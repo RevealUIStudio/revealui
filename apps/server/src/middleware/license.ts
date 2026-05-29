@@ -11,6 +11,7 @@ import {
   getGraceConfig,
   getLicensePayload,
   getLicenseStatus,
+  hostMatchesLicensedDomains,
   type LicenseTier,
 } from '@revealui/core/license';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
@@ -165,9 +166,16 @@ export const requireFeature = (
 };
 
 /**
- * Validate the requesting domain against the license's allowed domains.
- * Skips validation if no domain restrictions exist in the license.
- * Supports subdomain matching (e.g. app.example.com matches example.com).
+ * Reject any request whose Host is not covered by the license's `domains`
+ * claim. No-op when the license carries no domain restrictions (free tier or
+ * unrestricted kits). Subdomain matching + the localhost allowance live in the
+ * shared `hostMatchesLicensedDomains` matcher in `@revealui/core`.
+ *
+ * The allowed domains come from the verified JWT payload (`getLicensePayload`),
+ * so the lock is cryptographically bound — it cannot be spoofed via an env var.
+ * This is the single request-time domain-lock for RevForge/Fleet; it replaced
+ * the env-var-driven `domainLockMiddleware` (deleted) and the duplicated inline
+ * check in `apps/admin/src/proxy.ts`.
  */
 export const requireDomain = (): MiddlewareHandler => {
   return async (c, next) => {
@@ -179,29 +187,13 @@ export const requireDomain = (): MiddlewareHandler => {
       return;
     }
 
-    const origin = c.req.header('origin') || c.req.header('referer');
-    if (!origin) {
+    // Bind to the served Host (always present), not Origin/Referer — this is a
+    // deployment domain-lock, not a CORS check. localhost/127.0.0.1 are allowed
+    // by the shared matcher so trial kits on http://localhost still serve.
+    const host = c.req.header('host') ?? '';
+    if (!hostMatchesLicensedDomains(host, payload.domains)) {
       throw new HTTPException(403, {
-        message: 'Origin header required for domain-restricted licenses',
-      });
-    }
-
-    let requestDomain: string;
-    try {
-      requestDomain = new URL(origin).hostname;
-    } catch {
-      throw new HTTPException(403, {
-        message: 'Invalid Origin header format',
-      });
-    }
-
-    const isAllowed = payload.domains.some(
-      (d) => requestDomain === d || requestDomain.endsWith(`.${d}`),
-    );
-
-    if (!isAllowed) {
-      throw new HTTPException(403, {
-        message: `Domain '${requestDomain}' is not licensed. Licensed domains: ${payload.domains.join(', ')}`,
+        message: `This RevealUI instance is not licensed for host '${host || '(none)'}'. Licensed domains: ${payload.domains.join(', ')}`,
       });
     }
 

@@ -1,4 +1,4 @@
-import { validateLicenseKey } from '@revealui/core/license';
+import { hostMatchesLicensedDomains, validateLicenseKey } from '@revealui/core/license';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 
@@ -321,6 +321,18 @@ export function validateStartup(
       errors.push('STRIPE_WEBHOOK_SECRET must start with "whsec_" in production.');
     }
 
+    // Live-mode webhook signing secret. The webhook handler PREFERS this over
+    // STRIPE_WEBHOOK_SECRET when set, so a malformed value boots clean and then
+    // silently 400s every live webhook (no boot signal — the alert path is
+    // post-verification). Validate format when set; empty = handler falls back
+    // to STRIPE_WEBHOOK_SECRET, so this is not required.
+    const liveWebhookSecret = (env.STRIPE_WEBHOOK_SECRET_LIVE ?? '').trim();
+    if (liveWebhookSecret && !liveWebhookSecret.startsWith('whsec_')) {
+      errors.push(
+        'STRIPE_WEBHOOK_SECRET_LIVE must start with "whsec_" when set (preferred by the webhook handler in live mode).',
+      );
+    }
+
     // Optional dual-secret rotation transition (GAP-144). Only validated when
     // present — empty/unset is the steady state. When set, must be a valid
     // whsec_ secret since the webhook handler will use it as a fallback verifier.
@@ -488,6 +500,34 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
         'customerId does not match REVEALUI_LICENSED_CUSTOMER_ID (if set). ' +
         'Contact the operator who stamped this kit to re-issue the license.',
     );
+  }
+
+  // Domain binding: when the license restricts domains, the configured public
+  // server URL must resolve to a licensed host. The allowed domains come from
+  // the signed JWT `domains` claim (cryptographically bound), so this cannot
+  // be bypassed by editing an env var. REVEALUI_PUBLIC_SERVER_URL presence is
+  // enforced separately in validateStartup's forge-mode REQUIRED list (prod);
+  // when it is absent here (e.g. dev), skip — request-time `requireDomain` is
+  // the per-request gate. localhost/127.0.0.1 pass via the shared matcher so a
+  // trial kit on its default http://localhost still boots.
+  if (payload.domains && payload.domains.length > 0) {
+    const publicUrl = (env.REVEALUI_PUBLIC_SERVER_URL ?? env.NEXT_PUBLIC_SERVER_URL ?? '').trim();
+    if (publicUrl) {
+      let host = '';
+      try {
+        host = new URL(publicUrl).hostname;
+      } catch {
+        host = '';
+      }
+      if (!hostMatchesLicensedDomains(host, payload.domains)) {
+        throw new Error(
+          'LICENSE VALIDATION FAILED: this license is restricted to ' +
+            `[${payload.domains.join(', ')}], but REVEALUI_PUBLIC_SERVER_URL host ` +
+            `"${host || '(unparseable)'}" is not among them. Set REVEALUI_PUBLIC_SERVER_URL ` +
+            'to a licensed domain, or contact the operator who stamped this kit.',
+        );
+      }
+    }
   }
 }
 
