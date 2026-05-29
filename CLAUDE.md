@@ -49,7 +49,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 > via npm rather than via workspace links — same brand surface, decoupled
 > repo + deploy cadence.
 
-### OSS Packages (MIT) — 21
+### OSS Packages (MIT) — 20
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
@@ -70,7 +70,6 @@ feature/* ──PR──▶ test ──PR──▶ main
 | revealui | Meta-installer that proxies to `create-revealui` (unpublished — npm name collision) |
 | @revealui/dev | Shared configs (Biome, TS, Tailwind, Vite) + editor config sync (Zed, VS Code) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
-| @revealui/scripts | Shared utilities for monorepo scripts — logging, paths, exec, workflow state, validation (internal) |
 | @revealui/openapi | Type-safe OpenAPI 3.x for Hono — route definitions, Zod validation, spec generation + Swagger UI |
 | @revealui/paywall | Runtime license enforcement, feature gating, and upgrade UI (Stripe + x402) |
 
@@ -82,6 +81,11 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
 | @revealui/services | Stripe (billing + circuit breaker), Vercel (deploy + DNS) |
+
+### Internal Package (no license, build tooling) — 1
+| Package | Purpose |
+|---------|---------|
+| @revealui/scripts | Shared monorepo script utilities — logging, paths, exec, workflow state, validation. `private: true`, no `license` field — outside the OSS/Pro split. |
 
 ## Common Commands
 
