@@ -20,6 +20,15 @@ export interface NewsletterPayload {
   email: string;
 }
 
+export interface WaitlistPayload {
+  email: string;
+  /**
+   * Segmentation key — matches the server's WAITLIST_SOURCES enum.
+   * e.g. 'managed-cloud' (RevealUI Cloud waitlist), 'newsletter'.
+   */
+  source: 'managed-cloud' | 'newsletter' | 'landing-page' | 'blog';
+}
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -53,23 +62,36 @@ export async function submitContact(payload: ContactPayload): Promise<string | n
 }
 
 /**
- * Subscribe an email to the newsletter. Returns null on success; an error
- * message string on failure.
+ * Capture an email against a named waitlist source. Returns null on success;
+ * an error message string on failure. Backed by apps/server POST /api/waitlist
+ * (the `waitlist` table, segmented by `source`).
  */
-export async function submitNewsletter(payload: NewsletterPayload): Promise<string | null> {
+export async function submitWaitlist(payload: WaitlistPayload): Promise<string | null> {
   try {
-    const res = await fetch(`${API_URL}/api/newsletter`, {
+    const res = await fetch(`${API_URL}/api/waitlist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: payload.email, source: 'marketing-site' }),
+      body: JSON.stringify({ email: payload.email, source: payload.source }),
     });
     if (res.ok) return null;
     // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.
-    const data = (await res.json().catch(() => ({}))) as { message?: string };
-    return data.message ?? `Subscription failed: ${res.status}`;
+    const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+    return data.error ?? data.message ?? `Signup failed: ${res.status}`;
   } catch {
     return 'Our service is temporarily unavailable. Please try again in a few minutes.';
   }
+}
+
+/**
+ * Subscribe an email to the newsletter. Returns null on success; an error
+ * message string on failure.
+ *
+ * Routes through the source-tagged waitlist endpoint (source: 'newsletter').
+ * Prior to this it POSTed to a non-existent /api/newsletter and 404'd;
+ * /api/waitlist is the canonical email-capture backend.
+ */
+export async function submitNewsletter(payload: NewsletterPayload): Promise<string | null> {
+  return submitWaitlist({ email: payload.email, source: 'newsletter' });
 }
 
 /**

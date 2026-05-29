@@ -129,11 +129,11 @@ export const FO_MANAGED_TODAY = {
 export const FO_MANAGED_WAITLIST = {
   eyebrow: 'Waitlist',
   heading: 'Want it when it ships? Join the waitlist.',
-  body: 'Tell us your email. You will receive RevealUI product updates; RevealUI Cloud progress will be called out specifically as it advances toward shipping. (We do not have a Cloud-only list yet — that is part of the work.)',
+  body: 'Tell us your email and we will record your interest in RevealUI Cloud specifically. We will reach out when there is something to demo — not before.',
   product: 'managed-cloud',
   inputPlaceholder: 'you@company.com',
   buttonLabel: 'Join the waitlist',
   buttonLabelLoading: 'Joining…',
   successMessage:
-    'You are on the list. RevealUI Cloud progress will be called out in our updates as it advances.',
+    'You are on the RevealUI Cloud waitlist. We will email when there is something to demo.',
 } as const;
