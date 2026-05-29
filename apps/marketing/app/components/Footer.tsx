@@ -1,5 +1,11 @@
 import { BuiltWithRevealUI } from '@revealui/presentation';
-import { FOOTER_COLUMNS, FOOTER_LEGAL, FOOTER_LEGAL_LINKS, FOOTER_TAGLINE } from '../content/nav';
+import {
+  FOOTER_COLUMNS,
+  FOOTER_LEGAL,
+  FOOTER_LEGAL_LINKS,
+  FOOTER_SOLO_OPERATOR_NOTE,
+  FOOTER_TAGLINE,
+} from '../content/nav';
 import { SITE } from '../content/site';
 import { NewsletterSignup } from './NewsletterSignup';
 
@@ -8,12 +14,15 @@ export function Footer() {
   return (
     <footer className="bg-muted border-t border-border py-12">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold tracking-tight text-foreground mb-4">
               {SITE.brand}
             </div>
             <p className="text-muted-foreground text-sm leading-6 max-w-sm">{FOOTER_TAGLINE}</p>
+            <p className="text-muted-foreground text-xs leading-6 max-w-sm mt-3">
+              {FOOTER_SOLO_OPERATOR_NOTE}
+            </p>
             <div className="mt-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                 Stay in the loop
