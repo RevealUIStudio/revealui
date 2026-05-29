@@ -2,7 +2,7 @@ import { ButtonCVA as Button, Input } from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { FO_MANAGED_WAITLIST } from '../../content/for-operators-managed';
-import { submitNewsletter } from '../../lib/api';
+import { submitWaitlist } from '../../lib/api';
 
 export function Waitlist() {
   const [email, setEmail] = useState('');
@@ -14,10 +14,9 @@ export function Waitlist() {
     if (!email || status === 'loading') return;
 
     setStatus('loading');
-    // NOTE: Phase 5 reuses the newsletter endpoint as the simplest mechanism
-    // that ships today. A dedicated waitlist source-tagging on the server
-    // is a follow-up — at that point, swap submitNewsletter for submitWaitlist.
-    const error = await submitNewsletter({ email });
+    // Source-tagged so RevealUI Cloud interest is queryable separately from
+    // newsletter signups (apps/server POST /api/waitlist → waitlist table).
+    const error = await submitWaitlist({ email, source: FO_MANAGED_WAITLIST.product });
     if (error === null) {
       setStatus('success');
       setMessage(FO_MANAGED_WAITLIST.successMessage);

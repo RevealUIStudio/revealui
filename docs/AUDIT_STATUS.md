@@ -29,7 +29,7 @@
 
 ## Verification Checks (2026-04-18)
 
-- **Revealcoin keys:** Private key files on disk, never committed to git, gitignored, 0600 permissions. No rotation needed.
+- **Revealcoin keys:** Project CANCELLED 2026-05-29 — keypairs decommissioned via revvault rotate-and-destroy (`_decommissioned/revealcoin-2026-05-29/` namespace). No live custody surface. (Historical posture: private key files on disk, never committed to git, gitignored, 0600 permissions.)
 - **Config secret literal:** Comment/example only (line 87), not runtime code.
 - **RevDev socket:** No chmod 0600 in Rust source. Socket not running. Low priority.
 - **Dependabot PRs:** Zero open.
