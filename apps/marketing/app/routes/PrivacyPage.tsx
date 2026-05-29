@@ -1,10 +1,24 @@
+import { Callout } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import { PRIVACY_META, PRIVACY_SECTIONS } from '../content/legal/privacy';
+import { SITE } from '../content/site';
 
 export function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background">
-      <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
+      <div className="mx-auto max-w-3xl px-6 pt-24 lg:px-8">
+        <Callout variant="info" title="Status: drafted in good faith, pending counsel review">
+          This page describes our actual privacy practices today. The wording has not yet been
+          reviewed by an attorney; we disclose this rather than hide it. The substance will not
+          change after review — only the wording may tighten. Privacy questions or data-rights
+          requests in the meantime:{' '}
+          <a className="underline" href={`mailto:${SITE.emails.support}`}>
+            {SITE.emails.support}
+          </a>
+          .
+        </Callout>
+      </div>
+      <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 lg:px-8 prose prose-gray">
         <h1>{PRIVACY_META.title}</h1>
         <p className="text-sm text-muted-foreground">Last updated: {PRIVACY_META.lastUpdated}</p>
 

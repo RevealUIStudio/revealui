@@ -5,7 +5,7 @@ import type { LegalSection } from './privacy';
 
 export const TERMS_META = {
   title: 'Terms of Service',
-  lastUpdated: 'March 4, 2026',
+  lastUpdated: 'May 28, 2026',
   intro:
     'These Terms of Service ("Terms") govern your use of the RevealUI platform provided by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). By creating an account or using the Service, you agree to these Terms.',
 } as const;
@@ -38,17 +38,15 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
       {
         heading: 'Billing',
         listItems: [
-          'Pro: $49/month, billed monthly. Includes a 7-day free trial.',
-          'Max: $149/month, billed monthly. Includes a 7-day free trial.',
-          'Enterprise: $299/month, billed monthly. Contact sales for annual pricing.',
-          'All prices are in USD and exclude applicable taxes.',
-          "Payment is processed by Stripe. You agree to Stripe's terms of service.",
+          'Subscription prices for Pro, Max, and Enterprise are as published at https://revealui.com/pricing at the time of purchase, in U.S. dollars and exclusive of applicable taxes. You will see the price you agree to before completing checkout.',
+          'Pro and Max include a 7-day free trial. Enterprise pricing is published with the option to contact sales for annual rates.',
+          "Payment is processed by Stripe. You agree to Stripe's terms of service when you complete checkout.",
         ],
       },
       {
         heading: 'Trial',
         paragraph:
-          'The Pro tier includes a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin and you will be charged the applicable monthly rate.',
+          'The Pro and Max tiers include a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin and you will be charged the applicable monthly rate.',
       },
       {
         heading: 'Cancellation',
