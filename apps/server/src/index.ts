@@ -20,6 +20,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 import { readFileSync } from 'node:fs';
+import { getHeapStatistics } from 'node:v8';
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import {
@@ -1224,7 +1225,7 @@ export function initAlerting(): void {
   alerting.registerRule(
     createMemoryUsageAlert(() => {
       const mem = process.memoryUsage();
-      return Math.round((mem.heapUsed / mem.heapTotal) * 100);
+      return Math.round((mem.heapUsed / getHeapStatistics().heap_size_limit) * 100);
     }, 85),
   );
 
