@@ -3,8 +3,9 @@
 // Sourced from per-product README audit (2026-05-18) cross-referenced against
 // docs/lanes/marketing-overhaul/plan.md §2.1 (canonical status table). Owner
 // directive 2026-05-18 redirected /products from "5 primitives deep-dive" to
-// "RevFleet product family lineup". RevealCoin omitted per
-// project_revealcoin_shelved_2026_05_15 memory. The legacy primitives data
+// "RevFleet product family lineup". RevealCoin permanently excluded per
+// the 2026-05-29 cancellation ADR (.jv docs/decisions/2026-05-29-revealcoin-cancelled.md;
+// supersedes the prior shelved-state memory). The legacy primitives data
 // (PRODUCTS_PRIMITIVES in content/primitives.ts) stays exported for future
 // relocation to a /concepts or /platform page per lane owner's discretion.
 //
