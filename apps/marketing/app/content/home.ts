@@ -236,3 +236,26 @@ export const HOME_GET_STARTED = {
     label: 'Not ready to start? Get product updates and engineering insights.',
   },
 } as const;
+
+// ---------------------------------------------------------------------------
+// Homepage audience fork
+// Per spec-2026-05-14-non-technical-lane.md §4.3 (Phase 2 of the spec sequence).
+// Two equal-weight branches; visitor self-identifies before the technical-lane
+// content below. Branch A scrolls past the fork into the existing technical
+// homepage (OQ-5 locked); Branch B routes to /for-operators (Phase 1, PR #1151).
+// Decisions consumed: §9.4 OQ-5 (Branch A stays on /).
+// ---------------------------------------------------------------------------
+
+export const HOME_FORK = {
+  branchA: {
+    title: "I'm building this myself.",
+    body: 'Source, packages, the CLI, and docs — read on.',
+    cta: 'Keep reading →',
+  },
+  branchB: {
+    title: 'I want it built for me.',
+    body: 'RevealUI Studio scopes, builds, and delivers a working product. Weeks, not quarters.',
+    cta: 'See how →',
+    href: '/for-operators',
+  },
+} as const;
