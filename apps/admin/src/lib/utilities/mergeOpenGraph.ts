@@ -20,7 +20,7 @@ function getOpenGraphIdentity() {
   return { name, description: description === '' ? undefined : description };
 }
 
-function buildDefaultOpenGraph(): Metadata['openGraph'] {
+function buildDefaultOpenGraph(): NonNullable<Metadata['openGraph']> {
   const { name, description } = getOpenGraphIdentity();
   return {
     type: 'website',
