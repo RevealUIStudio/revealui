@@ -83,7 +83,14 @@ REVEALUI_SECRET              = "revealui/prod/secret"
 REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
 REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"
 
-# Storage + CI tokens
+# Storage — Cloudflare R2 (canonical, S3-compatible). Set together; partial config
+# falls back to BLOB_READ_WRITE_TOKEN per @revealui/config storage module.
+R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
+R2_ACCESS_KEY_ID      = "revealui/prod/r2/access-key-id"
+R2_SECRET_ACCESS_KEY  = "revealui/prod/r2/secret-access-key"
+R2_BUCKET             = "revealui/prod/r2/bucket"
+R2_PUBLIC_BASE_URL    = "revealui/prod/r2/public-base-url"
+# Storage — legacy Vercel Blob (fallback; used only when R2_* are unset)
 BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
 # REVEALUI_NPM_TOKEN dropped 2026-05-23: 2FA-bypass npm automation token retired
 # (revealui#1016); release.yml publishes via OIDC trusted publishing — no token.
@@ -173,7 +180,14 @@ PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
 # Cron + alerting (parity with api)
 REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
 
-# Storage
+# Storage — Cloudflare R2 (canonical, S3-compatible). Set together; partial config
+# falls back to BLOB_READ_WRITE_TOKEN per @revealui/config storage module.
+R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
+R2_ACCESS_KEY_ID      = "revealui/prod/r2/access-key-id"
+R2_SECRET_ACCESS_KEY  = "revealui/prod/r2/secret-access-key"
+R2_BUCKET             = "revealui/prod/r2/bucket"
+R2_PUBLIC_BASE_URL    = "revealui/prod/r2/public-base-url"
+# Storage — legacy Vercel Blob (fallback; used only when R2_* are unset)
 BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
 
 # Email transport (parity with api — same Gmail SA credentials)
