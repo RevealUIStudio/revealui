@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "1.0.0",
+    "version": "0.1.0",
     "title": "RevealUI API",
     "description": "REST API for RevealUI application with OpenAPI 3.0 specification"
   },
@@ -2559,54 +2559,6 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/billing/rvui-payment": {
-      "post": {
-        "tags": ["billing"],
-        "summary": "Pay for subscription with RevealCoin",
-        "description": "Verifies an on-chain RVUI payment transaction and activates the subscription tier. Applies the 15% RVUI discount. Requires wallet address and transaction signature.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "txSignature": { "type": "string", "minLength": 1 },
-                  "tier": { "type": "string", "enum": ["Pro", "Max"] },
-                  "walletAddress": { "type": "string", "minLength": 1 },
-                  "network": {
-                    "type": "string",
-                    "enum": ["devnet", "mainnet-beta"],
-                    "default": "devnet"
-                  }
-                },
-                "required": ["txSignature", "tier", "walletAddress"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payment verified and subscription activated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "tier": { "type": "string" },
-                    "message": { "type": "string" }
-                  },
-                  "required": ["success", "tier", "message"]
-                }
-              }
-            }
-          },
-          "400": { "description": "Validation failed" },
-          "401": { "description": "Authentication required" },
-          "403": { "description": "Payment rejected by safeguards" }
         }
       }
     },
@@ -9336,54 +9288,6 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/billing/rvui-payment": {
-      "post": {
-        "tags": ["billing"],
-        "summary": "Pay for subscription with RevealCoin",
-        "description": "Verifies an on-chain RVUI payment transaction and activates the subscription tier. Applies the 15% RVUI discount. Requires wallet address and transaction signature.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "txSignature": { "type": "string", "minLength": 1 },
-                  "tier": { "type": "string", "enum": ["Pro", "Max"] },
-                  "walletAddress": { "type": "string", "minLength": 1 },
-                  "network": {
-                    "type": "string",
-                    "enum": ["devnet", "mainnet-beta"],
-                    "default": "devnet"
-                  }
-                },
-                "required": ["txSignature", "tier", "walletAddress"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payment verified and subscription activated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "tier": { "type": "string" },
-                    "message": { "type": "string" }
-                  },
-                  "required": ["success", "tier", "message"]
-                }
-              }
-            }
-          },
-          "400": { "description": "Validation failed" },
-          "401": { "description": "Authentication required" },
-          "403": { "description": "Payment rejected by safeguards" }
         }
       }
     },

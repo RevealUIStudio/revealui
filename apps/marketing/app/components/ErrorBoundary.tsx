@@ -1,5 +1,6 @@
 import { ButtonCVA } from '@revealui/presentation';
-import { Component, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { captureRenderError } from '../lib/sentry';
 
 interface Props {
   children: ReactNode;
@@ -18,9 +19,11 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  // React surfaces uncaught render errors via the global error handler in dev,
-  // so we don't need a componentDidCatch here. Production observability hooks
-  // (Sentry/logger) can be added once that integration ships.
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    // Forward to Sentry if the SDK was initialised. No-op when VITE_SENTRY_DSN
+    // is absent so dev and pre-DSN production builds stay quiet.
+    captureRenderError(error, { componentStack: info.componentStack ?? null });
+  }
 
   render(): ReactNode {
     if (this.state.hasError) {

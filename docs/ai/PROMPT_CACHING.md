@@ -1,6 +1,6 @@
-# Anthropic Prompt Caching
+# Prompt Caching
 
-Get up to **90% cost reduction** on repeated context using Anthropic's prompt caching feature.
+RevealUI's AI layer is provider-agnostic: open-weight models (Gemma, Phi, etc. via Ollama or Inference Snaps) are the default runtime path, and cloud providers are opt-in adapters. Prompt caching is one such provider capability — when you opt into a cloud provider that supports it (e.g. Anthropic), you can get up to **90% cost reduction** on repeated context. This guide uses Anthropic as the worked example because its caching API is the most mature; the same `@revealui/ai` client interface applies to any provider, and caching is a no-op on providers that don't support it.
 
 ## Quick Start
 
@@ -298,9 +298,13 @@ await client.chat(messages, { enableCache: false })
 
 ### Provider Configuration
 
+The default runtime provider is an open-weight model (e.g. Ollama-served Gemma); the caching config below applies when you opt into a cloud provider that supports it. Anthropic shown as the example — swap `provider` + key for any supported provider:
+
 ```typescript
 import { LLMClient } from '@revealui/ai/llm/client'
 
+// Opt-in cloud provider (Anthropic example). The fleet runtime does NOT
+// depend on Anthropic — this is one selectable adapter among several.
 const client = new LLMClient({
   provider: 'anthropic',
   apiKey: process.env.ANTHROPIC_API_KEY!,
