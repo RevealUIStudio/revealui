@@ -28,7 +28,7 @@ export interface ThirdParty {
 
 export const PRIVACY_META = {
   title: 'Privacy Policy',
-  lastUpdated: 'April 22, 2026',
+  lastUpdated: 'May 28, 2026',
   intro:
     'The RevealUI platform (revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com — the "Service") is operated by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). This Privacy Policy describes how we collect, use, and protect your personal information.',
 } as const;
@@ -96,6 +96,12 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
         policyUrl: 'https://vercel.com/legal/privacy-policy',
       },
       {
+        name: 'Cloudflare R2',
+        description: 'object storage (media uploads, generated assets)',
+        policyLabel: 'Cloudflare Privacy Policy',
+        policyUrl: 'https://www.cloudflare.com/privacypolicy/',
+      },
+      {
         name: 'Google Workspace',
         description: 'transactional email delivery via Gmail API',
         policyLabel: 'Google Privacy Policy',
@@ -110,15 +116,26 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
           'Error data may include browser context, page URL, and a partial session recording captured at the time of an error. No continuous session recording is performed.',
       },
     ],
+    paragraphs: [
+      'For the full dated list of subprocessors with regions, data categories, and DPA links, see our Subprocessors page at https://revealui.com/legal/subprocessors. The Subprocessors page is the authoritative source; this section is a summary kept in sync with it.',
+    ],
   },
   {
-    heading: '4. Data Retention',
+    heading: '4. Customer content and AI training',
+    paragraphs: [
+      'We do not use customer content (the data, prompts, files, and configurations you submit to the Service) to train any general-purpose model. This commitment applies to any model we operate and to any third-party model accessed through the Service via our infrastructure.',
+      'If you connect your own external LLM provider to RevealUI (your own OpenAI key, Anthropic key, or other provider), your data flows to that provider on terms you have agreed to with them. We do not intermediate those terms — you are responsible for understanding their training-data position.',
+      'The default RevealUI configuration uses local AI inference (Ollama or Inference Snaps) that runs entirely on your own infrastructure. In that configuration, customer content does not leave your boundary at all.',
+    ],
+  },
+  {
+    heading: '5. Data Retention',
     paragraphs: [
       'Account data is retained while your account is active. After account deletion, we permanently remove your personal data within 30 days. Application logs and error events are retained for 90 days. Agent activity audit logs are retained indefinitely for security and compliance purposes. Infrastructure server logs (IP address, request path, user agent) are retained by our hosting provider per their policy. Billing records are retained as required by tax law (typically 7 years).',
     ],
   },
   {
-    heading: '5. Your Rights (GDPR / CCPA)',
+    heading: '6. Your Rights (GDPR / CCPA)',
     listItems: [
       'Access your personal data, available via your account settings or by contacting us',
       'Export your data: use the GDPR export endpoint in the admin',
@@ -131,31 +148,38 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     ],
   },
   {
-    heading: '6. Security',
+    heading: '7. Security',
     paragraphs: [
       'We protect your data using: bcrypt password hashing, session-based authentication with secure cookies, rate limiting and brute-force protection, HTTPS/TLS encryption in transit, and encrypted database connections.',
     ],
   },
   {
-    heading: '7. Cookies',
+    heading: '8. Cookies and trackers',
+    listPreamble:
+      'We use the following cookies and trackers across our public marketing site (revealui.com), the admin dashboard, and the API:',
+    listItems: [
+      'Session cookie (essential): set on sign-in to keep you authenticated. httpOnly, secure, sameSite=lax.',
+      'CSRF token cookie (essential): set on POST requests to prevent cross-site request forgery.',
+      'Vercel Speed Insights (performance telemetry, anonymous): loaded on the marketing site to measure Core Web Vitals (LCP, INP, CLS, etc.). Aggregated by Vercel; no personal identifiers; no cross-site tracking.',
+    ],
     paragraphs: [
-      'We use essential cookies only: a session cookie for authentication. We do not use tracking cookies, analytics cookies, or advertising cookies.',
+      'We do not use advertising cookies, third-party tracking cookies, or cross-site cookies. Vercel Speed Insights honors the `Do Not Track` browser signal and can be opted out at the browser level. We will surface any additional trackers — including Sentry, when wired — on this list in the same commit that adds them.',
     ],
   },
   {
-    heading: '8. Children',
+    heading: '9. Children',
     paragraphs: [
       'The Service is not intended for children under 13. We do not knowingly collect personal information from children under 13.',
     ],
   },
   {
-    heading: '9. Changes',
+    heading: '10. Changes',
     paragraphs: [
       'We may update this Privacy Policy from time to time. We will notify registered users of material changes via email.',
     ],
   },
   {
-    heading: '10. Contact',
+    heading: '11. Contact',
     paragraphs: [
       `For privacy-related questions or to exercise your data rights, contact us at ${SITE.emails.support}.`,
     ],

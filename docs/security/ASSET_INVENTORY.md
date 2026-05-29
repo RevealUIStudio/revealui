@@ -27,7 +27,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | SVC-004 | docs | Documentation | Vite + React | 3002 | Vercel | Production | Founder | Public | Active |
 | SVC-005 | studio | Desktop Application | Tauri 2 + React 19 | N/A | Local distribution | User device | Founder | Internal | Active |
 | SVC-006 | terminal | CLI Tool | Go (Bubble Tea) | N/A | Local distribution | User device | Founder | Internal | Active |
-| SVC-007 | revealcoin | Token Service | N/A | N/A | TBD | N/A | Founder | Internal | Active |
+| ~~SVC-007~~ | ~~revealcoin~~ | (CANCELLED 2026-05-29 — project ended; repo private+archived; keys destroyed via revvault rotate-and-destroy) | N/A | N/A | N/A | N/A | N/A | N/A | Decommissioned |
 
 ### 2.2 OSS Packages (MIT License)
 

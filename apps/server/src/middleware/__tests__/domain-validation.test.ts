@@ -3,12 +3,20 @@ import { describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
+//
+// requireDomain reads getLicensePayload() (mocked per-test to inject the
+// `domains` claim) but uses the REAL hostMatchesLicensedDomains matcher from
+// @revealui/core, so these tests exercise the actual Host-matching logic
+// end-to-end rather than a stubbed matcher.
 // ---------------------------------------------------------------------------
-vi.mock('@revealui/core/license', () => ({
-  getCurrentTier: vi.fn(() => 'enterprise'),
-  getLicensePayload: vi.fn(),
-  isLicensed: vi.fn(() => true),
-}));
+vi.mock('@revealui/core/license', async () => {
+  const actual =
+    await vi.importActual<typeof import('@revealui/core/license')>('@revealui/core/license');
+  return {
+    ...actual,
+    getLicensePayload: vi.fn(),
+  };
+});
 
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(() => true),
@@ -41,74 +49,93 @@ function createApp() {
 
 // ---------------------------------------------------------------------------
 // Tests
+//
+// requireDomain is a Host-based deployment domain-lock sourced from the signed
+// JWT `domains` claim. localhost is always allowed by the shared matcher, so a
+// non-localhost Host header is used to exercise rejection. (Hono's app.request
+// defaults the Host to `localhost` from the request URL when none is given.)
 // ---------------------------------------------------------------------------
 describe('requireDomain', () => {
   it('passes when no domain restrictions in license', async () => {
-    mockedGetLicensePayload.mockReturnValue({
-      tier: 'enterprise',
-      customerId: 'cus_1',
-    });
+    mockedGetLicensePayload.mockReturnValue({ tier: 'enterprise', customerId: 'cus_1' });
 
-    const app = createApp();
-    const res = await app.request('/resource');
+    const res = await createApp().request('/resource', { headers: { host: 'evil.com' } });
 
     expect(res.status).toBe(200);
   });
 
-  it('passes when domains array is empty', async () => {
+  it('passes when the domains array is empty', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'enterprise',
       customerId: 'cus_1',
       domains: [],
     });
 
-    const app = createApp();
-    const res = await app.request('/resource');
+    const res = await createApp().request('/resource', { headers: { host: 'evil.com' } });
 
     expect(res.status).toBe(200);
   });
 
-  it('passes when Origin matches a licensed domain', async () => {
+  it('passes when the Host matches a licensed domain', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'enterprise',
       customerId: 'cus_1',
       domains: ['example.com'],
     });
 
-    const app = createApp();
-    const res = await app.request('/resource', {
-      headers: { Origin: 'https://example.com' },
-    });
+    const res = await createApp().request('/resource', { headers: { host: 'example.com' } });
 
     expect(res.status).toBe(200);
   });
 
-  it('passes when Origin is a subdomain of a licensed domain', async () => {
+  it('passes when the Host is a subdomain of a licensed domain', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'enterprise',
       customerId: 'cus_1',
       domains: ['example.com'],
     });
 
-    const app = createApp();
-    const res = await app.request('/resource', {
-      headers: { Origin: 'https://app.example.com' },
-    });
+    const res = await createApp().request('/resource', { headers: { host: 'app.example.com' } });
 
     expect(res.status).toBe(200);
   });
 
-  it('returns 403 when Origin does not match any licensed domain', async () => {
+  it('always allows an explicit localhost Host even under a domain-restricted license', async () => {
     mockedGetLicensePayload.mockReturnValue({
       tier: 'enterprise',
       customerId: 'cus_1',
       domains: ['example.com'],
     });
 
-    const app = createApp();
-    const res = await app.request('/resource', {
-      headers: { Origin: 'https://evil.com' },
+    // An explicit localhost Host (e.g. the Docker healthcheck hitting
+    // http://localhost:PORT) is always allowed by the shared matcher.
+    const res = await createApp().request('/resource', { headers: { host: 'localhost:4000' } });
+
+    expect(res.status).toBe(200);
+  });
+
+  it('returns 403 when no Host header is present under a domain-restricted license (fail closed)', async () => {
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'enterprise',
+      customerId: 'cus_1',
+      domains: ['example.com'],
     });
+
+    // HTTP/1.1 requires a Host header; a request without one cannot be proven
+    // to target a licensed host, so the domain-lock rejects it.
+    const res = await createApp().request('/resource');
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when the Host does not match any licensed domain', async () => {
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'enterprise',
+      customerId: 'cus_1',
+      domains: ['example.com'],
+    });
+
+    const res = await createApp().request('/resource', { headers: { host: 'evil.com' } });
 
     expect(res.status).toBe(403);
     const body = await parseBody(res);
@@ -116,26 +143,10 @@ describe('requireDomain', () => {
     expect(body.error).toContain('not licensed');
   });
 
-  it('returns 403 when Origin header is missing but domains are restricted', async () => {
-    mockedGetLicensePayload.mockReturnValue({
-      tier: 'enterprise',
-      customerId: 'cus_1',
-      domains: ['example.com'],
-    });
-
-    const app = createApp();
-    const res = await app.request('/resource');
-
-    expect(res.status).toBe(403);
-    const body = await parseBody(res);
-    expect(body.error).toContain('Origin header required');
-  });
-
   it('passes when no license payload exists (free tier)', async () => {
     mockedGetLicensePayload.mockReturnValue(null);
 
-    const app = createApp();
-    const res = await app.request('/resource');
+    const res = await createApp().request('/resource', { headers: { host: 'evil.com' } });
 
     expect(res.status).toBe(200);
   });

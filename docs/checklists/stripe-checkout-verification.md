@@ -171,7 +171,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 | Upgrade | | |
 | Downgrade | | |
 | Webhooks (failure/dispute/refund/trial) | | |
-| RVC disabled | | |
+| ~~RVC disabled~~ (retired 2026-05-29 — RevealCoin cancelled, no longer a gating concern) | n/a | n/a |
 | Edge cases | | |
 
 **All flows verified → checkout mechanics tested in TEST mode.**

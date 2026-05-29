@@ -3,10 +3,18 @@
 // Sourced from per-product README audit (2026-05-18) cross-referenced against
 // docs/lanes/marketing-overhaul/plan.md §2.1 (canonical status table). Owner
 // directive 2026-05-18 redirected /products from "5 primitives deep-dive" to
-// "RevFleet product family lineup". RevealCoin omitted per
-// project_revealcoin_shelved_2026_05_15 memory. The legacy primitives data
+// "RevFleet product family lineup". RevealCoin permanently excluded per
+// the 2026-05-29 cancellation ADR (.jv docs/decisions/2026-05-29-revealcoin-cancelled.md;
+// supersedes the prior shelved-state memory). The legacy primitives data
 // (PRODUCTS_PRIMITIVES in content/primitives.ts) stays exported for future
 // relocation to a /concepts or /platform page per lane owner's discretion.
+//
+// Status re-verified 2026-05-29 (owner directive: reflect what's completed vs.
+// soon-to-complete). RevKit promoted Planned → Active (MIT): the §2.1 table
+// flagged it "cross-check revkit/README.md", and that README confirms a working
+// MIT toolkit (bootstrap + render engine + 4 tier profiles) in active studio
+// use — not an unshipped/planned item. Hero subtitle sharpened to state what
+// ships today vs. what's on the way (RevMarket, the agent marketplace).
 //
 // Status semantics:
 //   Beta         — production-ready code, limited paying users / dogfooded
@@ -20,7 +28,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Eight products on one foundation — each ships today or ships soon, all built and operated by RevealUI Studio.',
+    'Start with the runtime, add the rest as you grow. Eight products on one foundation, all built and operated by RevealUI Studio — every one shipping today except the agent marketplace, which is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
@@ -175,7 +183,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revskills',
     name: 'RevSkills',
     tagline: 'Claude Code skills library',
-    body: 'Reusable agent skills for Next.js, Tailwind, Drizzle, ElectricSQL, MCP, and testing patterns. Free, open, importable.',
+    body: 'Skills your AI agents lean on to ship features faster — auth flows, schema patterns, test scaffolds. Free, open, importable.',
     status: 'Active (MIT)',
     iconPath:
       'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5',
@@ -190,7 +198,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     name: 'RevKit',
     tagline: 'Portable WSL dev environment',
     body: 'Profile-based WSL bootstrap with parameterized templates and tier-aware resource configs. Reproducible developer machines.',
-    status: 'Planned',
+    status: 'Active (MIT)',
     iconPath:
       'M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z',
     primaryCta: {
@@ -203,7 +211,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revmarket',
     name: 'RevMarket',
     tagline: 'Agent tool marketplace',
-    body: `First-party catalog of ${METRICS.mcpServers} production MCP servers (code-validator, Stripe, Neon, Vercel, Next.js, and more). Third-party publishing is planned, not shipped.`,
+    body: `First-party catalog of ${METRICS.mcpServers} integrations your agents call out-of-the-box — Stripe, Neon, Vercel, Next.js, and more. Third-party publishing planned.`,
     status: 'Planned',
     iconPath:
       'M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z',
