@@ -143,6 +143,21 @@ describe('validateStartup — production format checks (live mode)', () => {
     );
   });
 
+  it('rejects STRIPE_WEBHOOK_SECRET_LIVE without whsec_ prefix when set', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ STRIPE_WEBHOOK_SECRET_LIVE: 'not-a-secret' })),
+    ).toThrow('STRIPE_WEBHOOK_SECRET_LIVE');
+  });
+
+  it('accepts a valid or unset STRIPE_WEBHOOK_SECRET_LIVE', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ STRIPE_WEBHOOK_SECRET_LIVE: 'whsec_livedeadbeef' })),
+    ).not.toThrow();
+    expect(() =>
+      validateStartup(validLiveProdEnv({ STRIPE_WEBHOOK_SECRET_LIVE: '' })),
+    ).not.toThrow();
+  });
+
   it('rejects non-HTTPS REVEALUI_PUBLIC_SERVER_URL', () => {
     expect(() =>
       validateStartup(
@@ -458,6 +473,70 @@ describe('validateLicenseAtStartup', () => {
       validateLicenseAtStartup({
         REVEALUI_LICENSE_KEY: jwt,
         REVEALUI_LICENSE_PUBLIC_KEY: singleLinePublicKey,
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  // ── JWT-derived domain binding (the boot-time half of the domain-lock) ──
+  it('passes when the licensed domain covers REVEALUI_PUBLIC_SERVER_URL host', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'https://admin.acme.com',
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('throws when the licensed domain does NOT cover REVEALUI_PUBLIC_SERVER_URL host', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'https://evil.com',
+      }),
+    ).rejects.toThrow(/restricted to/);
+  });
+
+  it('allows a localhost public URL under a domain-restricted license (trial-kit default)', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('skips the domain check when no public URL is set (presence enforced by validateStartup)', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
       }),
     ).resolves.toBeUndefined();
   });

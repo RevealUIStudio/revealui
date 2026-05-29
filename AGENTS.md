@@ -29,7 +29,7 @@ RevealUI is the agentic business runtime. Users, content, products, payments, an
 
 ## MCP Servers
 
-13 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
+14 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
 
 **External integrations:** Stripe, Supabase, Neon, Vercel, Playwright
 **Developer tools:** Code Validator, Next.js DevTools, Vultr Test

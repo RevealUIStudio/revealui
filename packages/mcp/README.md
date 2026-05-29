@@ -11,7 +11,7 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **13 MCP Servers** — Code Validator, Contracts Introspection, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, and an Email Provider helper. Ground-truth count is enforced by `pnpm validate:claims`.
+- **14 MCP Servers** — Code Validator, Contracts Introspection, RevealUI Docs, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, and an Email Provider helper. Ground-truth count is enforced by `pnpm validate:claims`.
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
 - **Documentation** - Complete guides and per-server docs
@@ -148,7 +148,7 @@ pnpm mcp:next-devtools
 ### 8. Contracts Introspection
 **Status:** ✅ Active (no API key required, **not** Pro-license-gated)
 
-Phase 1 of the protocol-pyramid ADR ([`docs/decisions/2026-05-03-contracts-protocol-pyramid.md`](../../docs/decisions/2026-05-03-contracts-protocol-pyramid.md)). Exposes every `@revealui/contracts` category (representation, entities, content, admin, agents, security, secrets, a2a, api-auth, api-chat, api-gdpr, content-validation, devkit-profiles, generated, providers, revealcoin, stripe-webhook-events) as MCP **resources** (read-only JSON Schemas of every category schema) and matching MCP **tools** that parse arbitrary JSON against any registered schema.
+Phase 1 of the protocol-pyramid ADR ([`docs/decisions/2026-05-03-contracts-protocol-pyramid.md`](../../docs/decisions/2026-05-03-contracts-protocol-pyramid.md)). Exposes every `@revealui/contracts` category (representation, entities, content, admin, agents, security, secrets, a2a, api-auth, api-chat, api-gdpr, content-validation, devkit-profiles, generated, providers, stripe-webhook-events) as MCP **resources** (read-only JSON Schemas of every category schema) and matching MCP **tools** that parse arbitrary JSON against any registered schema.
 
 - **Resources:** `revealui-contracts://catalog` (full discovery payload) + `revealui-contracts://<category>` (one per category, returns all schemas).
 - **Tools:** `contracts_list_categories`, `contracts_get_schema`, plus one `contracts_validate_<category>` per category.

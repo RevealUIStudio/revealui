@@ -1,6 +1,6 @@
 # REST API Reference
 
-**Version:** 1.0.0
+**Version:** 0.1.0
 
 **Base URL (production):** `https://api.revealui.com/api`
 
@@ -1186,32 +1186,6 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 - `400`  -  Invalid request (missing payment reference)
 - `401`  -  Not authenticated
 - `403`  -  Admin access required
-
----
-
-### `POST` `/api/v1/billing/rvui-payment`
-
-**Pay for subscription with RevealCoin**
-
-Verifies an on-chain RVC (RevealCoin) payment transaction and activates the subscription tier. Applies the 15% RVC discount. Requires wallet address and transaction signature.
-
-> **Note:** The route path uses the internal project codename (`$RVUI`). The on-chain token symbol is **RVC**.
-
-**Request body** (JSON)
-
-| Field | Type | Required | Description |
-|-------|------|:--------:|-------------|
-| `txSignature` | `string` | ✓ |  |
-| `tier` | `string` | ✓ |  |
-| `walletAddress` | `string` | ✓ |  |
-| `network` | `string` |  -  |  |
-
-**Responses**
-
-- `200`  -  Payment verified and subscription activated
-- `400`  -  Validation failed
-- `401`  -  Authentication required
-- `403`  -  Payment rejected by safeguards
 
 ---
 
