@@ -28,7 +28,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-05-18 (
 | Workspaces (monorepo total) | **30** | `countWorkspaces()` (= 26 packages + 4 apps) | |
 | Test files | **912** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
 | UI components in `packages/presentation/` | **59** | `countUIComponents()` | Marketing copy says "59 native React components" or similar. |
-| **MCP servers** | **13** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
+| **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
 | DB tables (Drizzle pgTable) | **85** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
 | License: MIT packages | **20** | `licenseSplit.mit` | |
 | License: FSL-1.1-MIT packages | **5** | `licenseSplit.fsl` | @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services |
@@ -94,7 +94,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live." |
-| MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (13 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
+| MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (14 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
 | Perpetual Licenses (Track C) | **Planned** | `comingSoon: true` in contracts. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
@@ -148,7 +148,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Ph
 Five testable rules — Phase 5 audits every page against these:
 
 1. **Lead with what ships today.** Every page's first sentence under H1 names a capability with a verifiable artifact.
-2. **Specifics over adjectives.** "Fast" → "13 first-party MCP servers." "Secure" → "Ed25519-signed license JWTs."
+2. **Specifics over adjectives.** "Fast" → "14 first-party MCP servers." "Secure" → "Ed25519-signed license JWTs."
 3. **Identify the reader by their stack, not job title.**
 4. **Surface the trade-off, don't bury it.** "Three yeses and one no" pattern.
 5. **No marketing-speak, no emojis, no exclamation points.** Banned adjective table in `voice-and-headline-rules.md` §1.

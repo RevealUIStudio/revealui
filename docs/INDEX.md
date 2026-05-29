@@ -21,10 +21,12 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 ## Core Guides
 
 - [Design Principles](./JOSHUA.md): Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
-- [Architecture](./ARCHITECTURE.md): System design, NeonDB data layer, multi-tenant patterns
+- [Architecture](./ARCHITECTURE.md): System design, frontend choices (Vite vs Next.js), NeonDB data layer, multi-tenant patterns
+- [Technology Stack](./guides/technology-stack.md): Canonical library + framework reference with rationale for each choice
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
+- [Audit Chain](./guides/audit-chain.md): Tamper-evident audit log — schema, signing, verification
 - [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, environment setup
 - [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 

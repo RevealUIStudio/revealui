@@ -47,7 +47,7 @@ export const PROOF_STACK: readonly StackItem[] = [
 export const PROOF_STACK_PANEL = {
   eyebrow: 'No proprietary lock-in',
   heading: 'Standards your team already knows',
-  body: 'No proprietary runtime, no vendor-specific edge functions. Deploys to Vercel, Cloudflare, Railway, Hetzner, or your own infra. Take your data with you.',
+  body: 'Open standards end-to-end — OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Deploys to Vercel, Cloudflare, Fly, Hetzner, or your own infra. Take your data with you.',
 } as const;
 
 export const PROOF_TRUST = {
@@ -70,10 +70,10 @@ export const PROOF_TRUST = {
     {
       eyebrow: 'In the schema',
       heading: 'Every mutation signs into a hash chain.',
-      codeSnippet: `signature:        text('signature').notNull(),
-previousSignature: text('previous_signature'),
-hashAlgorithm:    text('hash_algorithm')
-  .notNull().default('sha256-hmac'),`,
+      codeSnippet: `// HMAC-SHA256 signature for tamper detection
+signature:         text('signature'),
+// Signature of the prior entry — the chain link
+previousSignature: text('previous_signature'),`,
       fileLabel: 'packages/db/src/schema/audit-log.ts',
       fileHref: `${SITE.urls.repo}/blob/main/packages/db/src/schema/audit-log.ts`,
       caption: '— tampering breaks the chain.',
