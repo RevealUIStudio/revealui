@@ -1,29 +1,32 @@
 import { Callout } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
-import { TERMS_META, TERMS_SECTIONS } from '../content/legal/terms';
+import { SECURITY_META, SECURITY_SECTIONS } from '../content/legal/security';
 import { SITE } from '../content/site';
 
-export function TermsPage() {
+export function SecurityPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-6 pt-24 lg:px-8">
-        <Callout variant="info" title="Status: drafted in good faith, pending counsel review">
-          This page describes our actual practices and commitments today. The wording has not yet
-          been reviewed by an attorney; we disclose this rather than hide it. The substance will not
-          change after review — only the wording may tighten. Questions in the meantime?{' '}
-          <a className="underline" href={`mailto:${SITE.emails.support}`}>
-            {SITE.emails.support}
+        <Callout variant="success" title="Safe-harbor commitment to good-faith researchers">
+          If you act in good faith and follow this policy, we will not pursue or support legal
+          action against you for your security research. Email{' '}
+          <a className="underline" href={`mailto:${SITE.emails.security}`}>
+            {SITE.emails.security}
+          </a>{' '}
+          to report a vulnerability. The machine-readable policy is at{' '}
+          <a className="underline" href="/.well-known/security.txt">
+            /.well-known/security.txt
           </a>
           .
         </Callout>
       </div>
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 lg:px-8 prose prose-gray">
-        <h1>{TERMS_META.title}</h1>
-        <p className="text-sm text-muted-foreground">Last updated: {TERMS_META.lastUpdated}</p>
+        <h1>{SECURITY_META.title}</h1>
+        <p className="text-sm text-muted-foreground">Last updated: {SECURITY_META.lastUpdated}</p>
 
-        <p>{TERMS_META.intro}</p>
+        <p>{SECURITY_META.intro}</p>
 
-        {TERMS_SECTIONS.map((section) => (
+        {SECURITY_SECTIONS.map((section) => (
           <div key={section.heading}>
             <h2>{section.heading}</h2>
 
@@ -54,7 +57,7 @@ export function TermsPage() {
             {section.paragraphs?.map((para) =>
               section.contactEmail ? (
                 <p key={para}>
-                  For questions about these Terms, contact us at{' '}
+                  For security questions or to submit a report, contact us at{' '}
                   <a href={`mailto:${section.contactEmail}`}>{section.contactEmail}</a>.
                 </p>
               ) : (
