@@ -2,7 +2,7 @@
 title: SOC2 Type II Audit Track
 status: planning
 owner: RevealUI Studio
-last-updated: 2026-04-15
+last-updated: 2026-05-29
 ---
 
 # SOC2 Type II Audit Track
@@ -10,6 +10,8 @@ last-updated: 2026-04-15
 ## Overview
 
 This document tracks progress toward SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required for Enterprise tier customers.
+
+> **Infrastructure-in-transition note (2026-05-29).** The infrastructure under audit is mid-migration: Supabase (secondary) is phasing out (ADR 2026-05-01), the ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18), and RevealCoin was cancelled 2026-05-29. The audit baseline must track these to completion; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative current status.
 
 ## Prerequisites (Complete)
 

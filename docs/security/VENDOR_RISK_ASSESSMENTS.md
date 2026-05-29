@@ -1,7 +1,7 @@
 ---
 title: Vendor Risk Assessments
-description: Third-party vendor risk assessments for Neon, Supabase, Vercel, Stripe, and GitHub covering SOC 2 compliance, data handling, and business continuity.
-last-updated: 2026-04-12
+description: Third-party vendor risk assessments for Neon, Supabase (legacy, phasing out), Vercel, Stripe, and GitHub covering SOC 2 compliance, data handling, and business continuity.
+last-updated: 2026-05-29
 review-cadence: quarterly
 owner: RevealUI Studio <founder@revealui.com>
 classification: internal
@@ -78,10 +78,12 @@ Each vendor is evaluated against the following criteria:
 
 ---
 
-### 3.2 Supabase (Secondary Database)
+### 3.2 Supabase (Secondary Database — legacy, phasing out)
+
+> **Status note (2026-05-29):** Supabase is a *legacy secondary* store being phased out per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md) (target: NeonDB-primary + ElectricSQL). It remains in service during phase-out, so this assessment stays in force; new features must not add Supabase dependencies. The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
 
 **Vendor:** Supabase Inc.
-**Service:** Managed PostgreSQL + pgvector, Auth
+**Service:** Managed PostgreSQL + pgvector, Auth (legacy secondary — phase-out in progress)
 **Asset ID:** DS-002, TP-006 (see Asset Inventory)
 **Data classification:** Confidential (vector embeddings, OAuth linkage)
 
@@ -244,7 +246,7 @@ Each vendor is evaluated against the following criteria:
 | Vendor | Asset IDs | Risk Rating | Key Strengths | Watchlist Items |
 |--------|-----------|-------------|---------------|-----------------|
 | Neon | DS-001, TP-005 | Low | SOC 2 Type II, PITR, standard PostgreSQL | Monitor for pricing changes, verify DPA annually |
-| Supabase | DS-002, TP-006 | Low | SOC 2 Type II, RLS, pgvector | Monitor RLS configuration drift, verify DPA annually |
+| Supabase (legacy, phasing out) | DS-002, TP-006 | Low | SOC 2 Type II, RLS, pgvector | Phase-out in progress (ADR 2026-05-01) → NeonDB pgvector; no new Supabase dependencies; verify DPA while in service |
 | Vercel | TP-001 | Low | SOC 2 Type II, 99.99% SLA, instant rollback | Monitor for env var handling changes |
 | Stripe | TP-002 | Low | PCI DSS L1, SOC 2 Type II, no card data exposure | Monitor test-to-live mode transition readiness |
 | GitHub | TP-003, TP-004 | Low | SOC 2 Type II, OIDC publishing, secret scanning | Monitor for Actions pricing changes, audit log retention |
