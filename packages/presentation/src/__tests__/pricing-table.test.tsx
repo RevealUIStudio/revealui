@@ -205,3 +205,48 @@ describe('PricingTable  -  edge cases', () => {
     expect(screen.getByText('-')).toBeInTheDocument();
   });
 });
+
+// =============================================================================
+// Semantic tokens (cobalt design system  -  no hardcoded palette)
+// =============================================================================
+
+describe('PricingTable  -  semantic tokens', () => {
+  // Render every visual branch: current tier, highlighted tier, default tiers,
+  // both link + button CTAs, and the compact layout.
+  function renderAllVariantsHtml(): string {
+    const { container: fullLinks } = render(<PricingTable tiers={mockTiers} currentTier="free" />);
+    const { container: fullButtons } = render(
+      <PricingTable tiers={mockTiers} currentTier="free" onSelectTier={vi.fn()} />,
+    );
+    const { container: compact } = render(
+      <PricingTable tiers={mockTiers} compact currentTier="free" onSelectTier={vi.fn()} />,
+    );
+    return [fullLinks, fullButtons, compact].map((c) => c.innerHTML).join('\n');
+  }
+
+  it('does not leak raw Tailwind palette colors', () => {
+    const html = renderAllVariantsHtml();
+    // The public pricing surface themes via tokens (light/dark/tenant brand), so
+    // no hardcoded palette family may regress back in.
+    const banned = ['blue-', 'indigo-', 'emerald-', 'zinc-', 'bg-white', 'text-white'];
+    for (const token of banned) {
+      expect(html.includes(token), `must not contain "${token}"`).toBe(false);
+    }
+  });
+
+  it('drives brand, surface, and current-plan state from semantic tokens', () => {
+    const html = renderAllVariantsHtml();
+    for (const token of [
+      'bg-card',
+      'bg-primary',
+      'ring-primary',
+      'text-primary-foreground',
+      'bg-secondary',
+      'text-muted-foreground',
+      'ring-border',
+      'text-success',
+    ]) {
+      expect(html.includes(token), `expected "${token}"`).toBe(true);
+    }
+  });
+});
