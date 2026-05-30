@@ -17,10 +17,11 @@ import type { Cta, FaqItem } from './types';
 
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable. Audit-ready.',
-  h1: 'Five primitives. One runtime for humans and agents.',
+  h1: 'Run your whole business on one runtime you own.',
   subtitle: {
-    strong: 'An open-source framework. The business logic every product needs, pre-wired.',
-    body: 'Spin up a working app — users, Stripe payments, an admin dashboard, and an AI agent layer, all sharing one login and one audit trail. Build it yourself',
+    strong:
+      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host.',
+    body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',
     agencyHref: SITE.urls.agency,
@@ -63,7 +64,7 @@ export const HOME_HERO = {
         detail: 'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
       },
       {
-        metric: 'Same login. Same audit chain. Same API.',
+        metric: 'Same permissions. Same audit chain. Same API.',
         detail:
           'One permission model and one tamper-evident chain — for your team and your agents alike. See the [architecture](https://docs.revealui.com/architecture).',
       },
