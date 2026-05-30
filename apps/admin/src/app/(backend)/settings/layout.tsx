@@ -31,6 +31,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`shrink-0 border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
                   isActive
                     ? 'border-primary text-foreground'
@@ -74,6 +75,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
