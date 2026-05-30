@@ -1,6 +1,62 @@
-/* Tailwind v4 Theme Configuration */
-/* @theme is a valid Tailwind CSS v4 at-rule - CSS linter warnings can be ignored */
+/* Tailwind v4 Theme Configuration for the admin (backend) route group.
+ *
+ * Brought to parity with apps/admin/src/app/(frontend)/tailwind-theme.css so cobalt
+ * semantic-token utilities (bg-card, bg-primary, text-foreground, text-muted-foreground,
+ * ring-primary, etc.) and the catalyst SidebarLayout shell render correctly under
+ * (backend). Without the @source scans + @theme inline bridge below, Tailwind v4 does
+ * not generate those utilities for this entry (it only emits utilities for registered
+ * theme colors, and only scans @source-declared content), so presentation components
+ * that use semantic tokens (e.g. PricingTable on /upgrade) compile to no CSS.
+ *
+ * tokens.css stays the single source of truth for color VALUES; the @theme inline block
+ * only maps --rvui-* into Tailwind's @theme namespace. tokens.css is loaded by the
+ * route-group layout (apps/admin/src/app/(backend)/layout.tsx), so the inline var()
+ * references below resolve from it at runtime.
+ *
+ * @theme is a valid Tailwind CSS v4 at-rule; CSS linter warnings can be ignored.
+ */
 @import "tailwindcss";
+
+/* Scan workspace package sources so their Tailwind class usage is generated for this
+ * entry (matches the @source set in (frontend)/tailwind-theme.css). */
+@source "../../../../../packages/presentation/src/**/*.{ts,tsx}";
+@source "../../../../../packages/core/src/**/*.{ts,tsx}";
+@source "../../../../../packages/auth/src/**/*.{ts,tsx}";
+@source "../../lib/**/*.{ts,tsx}";
+@source "../../components/**/*.{ts,tsx}";
+
+/*
+ * Bridge --rvui-* canonical cobalt tokens into Tailwind's @theme namespace so that
+ * bg-card / text-foreground / bg-primary / etc. resolve to the live token values.
+ * `inline` keeps the var() reference in each utility so theme switching (dark :root
+ * default; light via [data-theme="light"] or prefers-color-scheme: light) stays live.
+ */
+@theme inline {
+  --color-background: var(--rvui-surface-0);
+  --color-foreground: var(--rvui-text-0);
+  --color-card: var(--rvui-surface-1);
+  --color-card-foreground: var(--rvui-text-0);
+  --color-popover: var(--rvui-surface-1);
+  --color-popover-foreground: var(--rvui-text-0);
+  --color-primary: var(--rvui-brand);
+  --color-primary-foreground: var(--rvui-text-on-brand);
+  --color-secondary: var(--rvui-surface-2);
+  --color-secondary-foreground: var(--rvui-text-0);
+  --color-muted: var(--rvui-surface-2);
+  --color-muted-foreground: var(--rvui-text-2);
+  --color-accent: var(--rvui-accent);
+  --color-accent-foreground: var(--rvui-text-on-accent);
+  --color-destructive: var(--rvui-error);
+  --color-destructive-foreground: var(--rvui-text-0);
+  --color-border: var(--rvui-border);
+  --color-input: var(--rvui-border);
+  --color-ring: var(--rvui-brand);
+  --color-success: var(--rvui-success);
+  --color-warning: var(--rvui-warning);
+  --color-warning-foreground: var(--rvui-warning-text);
+  --color-error: var(--rvui-error);
+  --radius: var(--rvui-radius-md);
+}
 
 @theme {
   /* Custom Screens */
@@ -8,6 +64,19 @@
   --breakpoint-8xl: 1920px;
   --breakpoint-9xl: 2560px;
   --breakpoint-10xl: 3840px;
+
+  /* RevealUI Theme - Mist Color Palette (OKLCH), parity with (frontend)/tailwind-theme.css */
+  --color-mist-50: oklch(98.7% 0.002 197.1);
+  --color-mist-100: oklch(96.3% 0.002 197.1);
+  --color-mist-200: oklch(92.5% 0.005 214.3);
+  --color-mist-300: oklch(87.2% 0.007 219.6);
+  --color-mist-400: oklch(72.3% 0.014 214.4);
+  --color-mist-500: oklch(56% 0.021 213.5);
+  --color-mist-600: oklch(45% 0.017 213.2);
+  --color-mist-700: oklch(37.8% 0.015 216);
+  --color-mist-800: oklch(27.5% 0.011 216.9);
+  --color-mist-900: oklch(21.8% 0.008 223.9);
+  --color-mist-950: oklch(14.8% 0.004 228.8);
 
   /* Custom Colors */
   --color-scrapBlack: #020617;
@@ -81,8 +150,16 @@
 
 /* Base styles for admin dashboard */
 @layer base {
+  /* Token-driven body (cobalt). Was `bg-gray-50 text-gray-900`, a pre-cobalt hardcode
+   * untouched since the cms->admin rename. The catalyst SidebarLayout shell covers the
+   * body, but token-driving it keeps the (backend) surface cobalt-coherent with
+   * (frontend) and prevents a hardcoded light-gray leaking at any uncovered edge.
+   * No FOUC `html { opacity: 0 }` guard here (unlike (frontend)/styles.css): (backend)
+   * has no InitTheme to set data-theme, so a guard would hide the page permanently. */
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    background-color: var(--rvui-surface-0);
+    color: var(--rvui-text-0);
+    @apply antialiased;
   }
 }
 

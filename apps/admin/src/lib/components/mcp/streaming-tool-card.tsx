@@ -263,20 +263,22 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
   };
 
   return (
-    <details className="group rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+    <details className="group rounded-lg border border-border bg-card p-4">
       <summary className="flex cursor-pointer items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-mono text-sm font-semibold text-white">{tool.name}</div>
+          <div className="font-mono text-sm font-semibold text-foreground">{tool.name}</div>
           {tool.description && (
-            <div className="mt-0.5 line-clamp-1 text-xs text-zinc-400">{tool.description}</div>
+            <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+              {tool.description}
+            </div>
           )}
         </div>
-        <span className="shrink-0 text-xs text-zinc-500 group-open:hidden">Expand</span>
+        <span className="shrink-0 text-xs text-muted-foreground group-open:hidden">Expand</span>
       </summary>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 space-y-3">
         {Object.keys(properties).length === 0 && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             This tool takes no input. Click <span className="font-medium">Invoke</span> to call it.
           </p>
         )}
@@ -295,7 +297,7 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
           <button
             type="submit"
             disabled={invoking}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {invoking ? 'Invoking…' : 'Invoke'}
           </button>
@@ -303,7 +305,7 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
             <button
               type="button"
               onClick={handleCancel}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+              className="rounded-md border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
             >
               Cancel
             </button>
@@ -322,7 +324,7 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
       {logs.length > 0 && <LogPanel logs={logs} />}
       {result && <ToolResult result={result} />}
       {error && (
-        <div className="mt-4 rounded-md border border-red-800 bg-red-900/20 p-3 text-xs text-red-300">
+        <div className="mt-4 rounded-md border border-error/30 bg-error/10 p-3 text-xs text-error">
           {error}
         </div>
       )}
@@ -344,8 +346,8 @@ function ProgressDisplay({
       ? Math.min(100, Math.round((progress.progress / progress.total) * 100))
       : undefined;
   return (
-    <div className="mt-4 rounded-md border border-zinc-800 bg-zinc-900/40 p-3">
-      <div className="mb-1.5 flex items-center justify-between text-[10px] text-zinc-400">
+    <div className="mt-4 rounded-md border border-border bg-card p-3">
+      <div className="mb-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
         <span>{progress.message ?? 'Progress'}</span>
         <span className="font-mono">
           {pct !== undefined
@@ -353,9 +355,9 @@ function ProgressDisplay({
             : `${progress.progress}${progress.total !== undefined ? ` / ${progress.total}` : ''}`}
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full bg-emerald-500 transition-all duration-200"
+          className="h-full bg-success transition-all duration-200"
           style={
             pct !== undefined ? { width: `${pct}%` } : { width: '33%', opacity: 0.6 } // indeterminate fallback
           }
@@ -371,18 +373,18 @@ function ProgressDisplay({
 
 function LogPanel({ logs }: { logs: LogEntry[] }) {
   return (
-    <details className="mt-4 rounded-md border border-zinc-800 bg-zinc-900/40 p-3">
-      <summary className="cursor-pointer text-xs text-zinc-400">
-        Logs <span className="text-zinc-500">({logs.length})</span>
+    <details className="mt-4 rounded-md border border-border bg-card p-3">
+      <summary className="cursor-pointer text-xs text-muted-foreground">
+        Logs <span className="text-muted-foreground">({logs.length})</span>
       </summary>
       <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto font-mono text-[11px]">
         {logs.map((entry) => (
-          <li key={entry.at} className="text-zinc-200">
-            <span className="mr-2 text-zinc-500">
+          <li key={entry.at} className="text-foreground">
+            <span className="mr-2 text-muted-foreground">
               [{new Date(entry.at).toISOString().slice(11, 19)}]
             </span>
             <span className={levelColor(entry.level)}>{entry.level}</span>
-            {entry.logger && <span className="ml-1 text-zinc-500">({entry.logger})</span>}{' '}
+            {entry.logger && <span className="ml-1 text-muted-foreground">({entry.logger})</span>}{' '}
             {typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data)}
           </li>
         ))}
@@ -397,14 +399,14 @@ function levelColor(level: string): string {
     case 'critical':
     case 'alert':
     case 'emergency':
-      return 'text-red-400';
+      return 'text-error';
     case 'warning':
-      return 'text-yellow-400';
+      return 'text-warning-foreground';
     case 'notice':
     case 'info':
-      return 'text-emerald-400';
+      return 'text-success';
     default:
-      return 'text-zinc-400';
+      return 'text-muted-foreground';
   }
 }
 
@@ -417,8 +419,8 @@ function ToolResult({ result }: { result: CallToolResult }) {
     <div
       className={`mt-4 rounded-md border p-3 text-xs ${
         result.isError
-          ? 'border-red-800 bg-red-900/20 text-red-300'
-          : 'border-emerald-900 bg-emerald-900/10 text-emerald-200'
+          ? 'border-error/30 bg-error/10 text-error'
+          : 'border-success/30 bg-success/10 text-success'
       }`}
     >
       <div className="mb-2 font-medium">{result.isError ? 'Tool returned an error' : 'Result'}</div>

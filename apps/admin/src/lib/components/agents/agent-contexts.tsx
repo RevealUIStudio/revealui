@@ -27,7 +27,7 @@ export function AgentContexts({ agentId }: AgentContextsProps) {
     return (
       <div
         role="alert"
-        className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+        className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
       >
         Failed to load agent contexts
       </div>
@@ -41,33 +41,37 @@ export function AgentContexts({ agentId }: AgentContextsProps) {
         role="status"
         aria-label="Loading contexts"
       >
-        <div className="h-3 w-3 animate-spin rounded-full border border-zinc-600 border-t-zinc-300" />
+        <div className="h-3 w-3 animate-spin rounded-full border border-border border-t-foreground" />
       </div>
     );
   }
 
   if (agentContexts.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-zinc-600">No active contexts for this agent.</p>
+      <p className="py-4 text-center text-sm text-muted-foreground">
+        No active contexts for this agent.
+      </p>
     );
   }
 
   return (
     <ul className="space-y-2">
       {agentContexts.map((ctx) => (
-        <li key={ctx.id} className="rounded-lg border border-zinc-800 p-3">
+        <li key={ctx.id} className="rounded-lg border border-border p-3">
           <div className="mb-1.5 flex items-center gap-2">
-            <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
+            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               priority {ctx.priority}
             </span>
-            <span className="text-xs text-zinc-600">{formatRelativeTime(ctx.created_at)}</span>
+            <span className="text-xs text-muted-foreground">
+              {formatRelativeTime(ctx.created_at)}
+            </span>
           </div>
           {Object.keys(ctx.context).length > 0 ? (
-            <pre className="overflow-auto rounded bg-zinc-950 p-2 font-mono text-xs text-zinc-300">
+            <pre className="overflow-auto rounded bg-muted p-2 font-mono text-xs text-muted-foreground">
               {JSON.stringify(ctx.context, null, 2)}
             </pre>
           ) : (
-            <p className="text-xs text-zinc-600">empty context</p>
+            <p className="text-xs text-muted-foreground">empty context</p>
           )}
         </li>
       ))}

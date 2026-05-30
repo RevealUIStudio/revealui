@@ -29,7 +29,7 @@ export function LicenseGate({ feature, children, mode = 'inline' }: LicenseGateP
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
         <div
-          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-600 dark:border-t-zinc-200"
+          className="h-5 w-5 animate-spin rounded-full border-2 border-foreground/10 border-t-foreground"
           aria-hidden="true"
         />
       </div>
@@ -45,7 +45,7 @@ export function LicenseGate({ feature, children, mode = 'inline' }: LicenseGateP
           <div className="pointer-events-none select-none blur-sm" aria-hidden="true">
             {children}
           </div>
-          <div className="absolute inset-0 flex items-start justify-center pt-12 bg-white/60 dark:bg-zinc-950/60">
+          <div className="absolute inset-0 flex items-start justify-center pt-12 bg-background/60">
             <div className="max-w-lg w-full">
               <UpgradePrompt feature={feature} />
             </div>

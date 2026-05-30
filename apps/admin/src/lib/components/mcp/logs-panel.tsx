@@ -137,8 +137,8 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
-        <label htmlFor="log-level" className="text-xs font-medium text-zinc-300">
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+        <label htmlFor="log-level" className="text-xs font-medium text-muted-foreground">
           Level
         </label>
         <select
@@ -146,7 +146,7 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           value={level}
           onChange={(e) => setLevel(e.target.value as Level)}
           disabled={state === 'streaming' || state === 'connecting'}
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+          className="rounded-md border border-border bg-muted px-2 py-1 font-mono text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
         >
           {LEVELS.map((l) => (
             <option key={l} value={l}>
@@ -158,7 +158,7 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           <button
             type="button"
             onClick={stop}
-            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+            className="rounded-md border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
           >
             Stop
           </button>
@@ -166,7 +166,7 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           <button
             type="button"
             onClick={() => void start()}
-            className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+            className="rounded-md bg-success px-3 py-1 text-xs font-medium text-primary-foreground transition-colors hover:bg-success/90"
           >
             Start
           </button>
@@ -175,18 +175,18 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           type="button"
           onClick={() => setEntries([])}
           disabled={entries.length === 0}
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-md border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           Clear
         </button>
-        <div className="ml-auto text-xs text-zinc-500">
+        <div className="ml-auto text-xs text-muted-foreground">
           {state === 'streaming' && (
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" /> streaming
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> streaming
             </span>
           )}
           {state === 'connecting' && <span>connecting…</span>}
-          {state === 'error' && <span className="text-red-400">error</span>}
+          {state === 'error' && <span className="text-error">error</span>}
           {state === 'idle' && <span>idle</span>}
           <span className="ml-3">{entries.length} entries</span>
         </div>
@@ -195,26 +195,26 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
       {message && (
         <div
           role="alert"
-          className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-xs text-red-300"
+          className="rounded-lg border border-error/30 bg-error/10 p-3 text-xs text-error"
         >
           {message}
         </div>
       )}
 
       {entries.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-xs text-zinc-500">
-          No log messages yet. Click <span className="font-medium text-zinc-300">Start</span> to
+        <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
+          No log messages yet. Click <span className="font-medium text-foreground">Start</span> to
           subscribe.
         </div>
       ) : (
-        <ul className="max-h-[60vh] space-y-0.5 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950/60 p-3 font-mono text-[11px]">
+        <ul className="max-h-[60vh] space-y-0.5 overflow-y-auto rounded-lg border border-border bg-muted p-3 font-mono text-[11px]">
           {entries.map((entry) => (
-            <li key={entry.at} className="text-zinc-200">
-              <span className="mr-2 text-zinc-500">
+            <li key={entry.at} className="text-foreground">
+              <span className="mr-2 text-muted-foreground">
                 [{new Date(entry.at).toISOString().slice(11, 19)}]
               </span>
               <span className={levelColor(entry.level)}>{entry.level}</span>
-              {entry.logger && <span className="ml-1 text-zinc-500">({entry.logger})</span>}{' '}
+              {entry.logger && <span className="ml-1 text-muted-foreground">({entry.logger})</span>}{' '}
               {typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data)}
             </li>
           ))}
@@ -230,13 +230,13 @@ function levelColor(level: string): string {
     case 'critical':
     case 'alert':
     case 'emergency':
-      return 'text-red-400';
+      return 'text-error';
     case 'warning':
-      return 'text-yellow-400';
+      return 'text-warning-foreground';
     case 'notice':
     case 'info':
-      return 'text-emerald-400';
+      return 'text-success';
     default:
-      return 'text-zinc-400';
+      return 'text-muted-foreground';
   }
 }

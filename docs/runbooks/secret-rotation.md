@@ -82,9 +82,7 @@ Safe to loop (effect on redeploy only; `revealui/prod/secret` also invalidates a
 for p in \
   revealui/prod/secret \
   revealui/prod/cron-secret \
-  revealui/prod/admin/api-key \
-  revealui/prod/admin/revalidation-key \
-  revealui/prod/admin/draft-secret ; do
+  revealui/prod/admin/api-key ; do
   revvault generate "$p" --force --length 48 --no-symbols --no-ambiguous && echo "rotated $p"
 done
 ```
@@ -93,7 +91,6 @@ Rotate **individually, with awareness** (each has a side effect):
 revvault generate revealui/prod/audit-hmac-secret --force --length 48 --no-symbols --no-ambiguous
 #   ↑ pre-rotation audit-log HMACs stop verifying
 revvault generate revealui/prod/admin/password     --force --length 32 --no-ambiguous
-revvault generate revealui/prod/cms/admin-password --force --length 32 --no-ambiguous
 #   ↑ admin login changes — retrieve the new value from revvault to log in
 revvault generate revealui/prod/electric/secret    --force --length 48 --no-symbols --no-ambiguous
 #   ↑ ALSO set the Electric service to the same value, or realtime sync breaks
@@ -146,8 +143,8 @@ Stripe price IDs (`*-price-id`) + `agent-meter-event-name` · passkey `origin`/`
 all `NEXT_PUBLIC_*` + `public/server-url` + `public/api-url` + `public/is-live` ·
 `session-cookie-domain` · `cors-origin` · `email/from` + `email/reply-to` · `alert-email` ·
 `marketplace-connect-return-url` · `electric/service-url` · `sentry/org` + `sentry/project*` +
-`sentry/dsn*` (DSNs are embeddable) · `google/service-account-email` · `admin/email` +
-`cms/admin-email` · `VERCEL_ORG_ID`.
+`sentry/dsn*` (DSNs are embeddable) · `google/service-account-email` · `admin/email` ·
+`VERCEL_ORG_ID`.
 
 ## See also
 - [`vercel-env-sync.md`](./vercel-env-sync.md) — day-to-day single-secret sync workflow

@@ -75,26 +75,26 @@ export function SystemHealthPanel({
   const getStatusColor = (status: HealthStatus) => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-500';
+        return 'bg-success';
       case 'warning':
-        return 'bg-yellow-500';
+        return 'bg-warning';
       case 'critical':
-        return 'bg-red-500';
+        return 'bg-error';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted';
     }
   };
 
   const getStatusTextColor = (status: HealthStatus) => {
     switch (status) {
       case 'healthy':
-        return 'text-green-600 dark:text-green-400';
+        return 'text-success';
       case 'warning':
-        return 'text-yellow-600 dark:text-yellow-400';
+        return 'text-warning-foreground';
       case 'critical':
-        return 'text-red-600 dark:text-red-400';
+        return 'text-error';
       default:
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-muted-foreground';
     }
   };
 
@@ -111,21 +111,18 @@ export function SystemHealthPanel({
     return (
       <div
         ref={ref}
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
+        className={`bg-card rounded-lg shadow p-6 ${className}`}
         role="status"
         aria-live="polite"
         aria-label="Loading system health data"
         aria-busy="true"
       >
         <div className="animate-pulse">
-          <div
-            className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"
-            data-skeleton="true"
-          ></div>
+          <div className="h-6 bg-foreground/10 rounded w-1/3 mb-4" data-skeleton="true"></div>
           <div className="space-y-3">
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" data-skeleton="true"></div>
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" data-skeleton="true"></div>
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" data-skeleton="true"></div>
+            <div className="h-16 bg-foreground/10 rounded" data-skeleton="true"></div>
+            <div className="h-16 bg-foreground/10 rounded" data-skeleton="true"></div>
+            <div className="h-16 bg-foreground/10 rounded" data-skeleton="true"></div>
           </div>
         </div>
       </div>
@@ -136,16 +133,16 @@ export function SystemHealthPanel({
     return (
       <div
         ref={ref}
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
+        className={`bg-card rounded-lg shadow p-6 ${className}`}
         role="alert"
         aria-live="assertive"
       >
-        <div className="text-red-500">
+        <div className="text-error">
           <h2 className="text-lg font-semibold mb-2">Error Loading Health Data</h2>
           <p className="mb-4">{error}</p>
           <button
             onClick={onRetry}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors disabled:opacity-50"
+            className="bg-error text-primary-foreground hover:bg-error/90 px-4 py-2 rounded transition-colors disabled:opacity-50"
             type="button"
             disabled={!onRetry}
           >
@@ -158,18 +155,18 @@ export function SystemHealthPanel({
 
   if (!data || Object.keys(data.checks).length === 0) {
     return (
-      <div ref={ref} className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}>
+      <div ref={ref} className={`bg-card rounded-lg shadow p-6 ${className}`}>
         <h2 className="text-lg font-semibold mb-4">System Health</h2>
-        <p className="text-gray-600 dark:text-gray-400">No health checks available</p>
+        <p className="text-muted-foreground">No health checks available</p>
       </div>
     );
   }
 
   return (
-    <div ref={ref} className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}>
+    <div ref={ref} className={`bg-card rounded-lg shadow p-6 ${className}`}>
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Health</h2>
+          <h2 className="text-lg font-semibold text-foreground">System Health</h2>
           <div className="flex items-center gap-2">
             <span
               className={`text-sm font-medium ${getStatusTextColor(data.status || 'healthy')}`}
@@ -184,7 +181,7 @@ export function SystemHealthPanel({
             />
           </div>
         </div>
-        <p className="text-xs text-gray-600 dark:text-gray-400">
+        <p className="text-xs text-muted-foreground">
           Last updated: {formatTimestamp(lastUpdated)}
         </p>
       </div>
@@ -194,7 +191,7 @@ export function SystemHealthPanel({
           <button
             key={name}
             type="button"
-            className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer w-full text-left"
+            className="border border-border rounded-lg p-4 hover:bg-muted transition-colors cursor-pointer w-full text-left"
             onClick={() => toggleCheck(name)}
             aria-expanded={expandedChecks[name]}
             aria-label={`${name} health check: ${check.status}`}
@@ -208,23 +205,20 @@ export function SystemHealthPanel({
                 />
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-medium text-gray-900 dark:text-white capitalize"
+                    className="font-medium text-foreground capitalize"
                     data-testid={`${name}-check-name`}
                   >
                     {name}
                   </span>
                   {check.latency !== undefined && (
-                    <span
-                      className="text-sm text-gray-600 dark:text-gray-400"
-                      data-testid={`${name}-latency`}
-                    >
+                    <span className="text-sm text-muted-foreground" data-testid={`${name}-latency`}>
                       ({check.latency} ms)
                     </span>
                   )}
                 </div>
               </div>
               <svg
-                className={`w-5 h-5 text-gray-400 transition-transform ${expandedChecks[name] ? 'rotate-180' : ''}`}
+                className={`w-5 h-5 text-muted-foreground transition-transform ${expandedChecks[name] ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -240,9 +234,9 @@ export function SystemHealthPanel({
             </div>
 
             {expandedChecks[name] && (
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                <p className="text-sm text-gray-600 dark:text-gray-400">{check.message}</p>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-500">
+              <div className="mt-3 pt-3 border-t border-border">
+                <p className="text-sm text-muted-foreground">{check.message}</p>
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div>
                     <span className="font-medium">Status:</span> {check.status}
                   </div>

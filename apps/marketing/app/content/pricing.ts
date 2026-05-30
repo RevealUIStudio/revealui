@@ -64,6 +64,21 @@ export const PRICING_TRACK_C_SECTION = {
   body: 'Pay once, use forever. No subscription required. Support renewals are optional.',
 } as const;
 
+// Studio / agency reseller economics, rendered in the Perpetual section where the
+// Agency Perpetual (RevealUI Fleet) tier lives. Names no third-party prices, consistent
+// with PRICING_VALUE_BAND. Models the multi-client P&L the per-business cards do not show.
+export const PRICING_AGENCY_VALUE_BAND = {
+  eyebrow: 'For studios & agencies',
+  heading: 'One runtime. Every client gets their own.',
+  body: 'Building or reselling software for more than one client means re-licensing auth, billing, content, and an admin for every account you take on. An Agency Perpetual license covers the runtime once, so you ship a branded, self-hosted instance per client instead.',
+  points: [
+    'One license, a branded instance per client. No per-client SaaS re-licensing.',
+    'White-label stamping built in via RevForge trial kits.',
+    'Each client owns their data, infrastructure, and Stripe account. Clean handoff, no lock-in.',
+    'One runtime, one upgrade cadence across every client you serve.',
+  ],
+} as const;
+
 export const PRICING_AGENTS_SECTION = {
   eyebrow: 'Agent-Native',
   heading: 'RevealUI for AI Agents',

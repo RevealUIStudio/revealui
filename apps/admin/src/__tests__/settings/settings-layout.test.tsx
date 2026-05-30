@@ -101,8 +101,7 @@ describe('SettingsLayout', () => {
 
     const sidebar = screen.getByRole('complementary');
     const accountLink = within(sidebar).getByText('Account').closest('a');
-    expect(accountLink?.className).toContain('bg-zinc-800');
-    expect(accountLink?.className).toContain('text-white');
+    expect(accountLink).toHaveAttribute('aria-current', 'page');
   });
 
   it('highlights active API Keys link', () => {
@@ -116,11 +115,10 @@ describe('SettingsLayout', () => {
 
     const sidebar = screen.getByRole('complementary');
     const apiKeysLink = within(sidebar).getByText('API Keys').closest('a');
-    expect(apiKeysLink?.className).toContain('bg-zinc-800');
-    expect(apiKeysLink?.className).toContain('text-white');
+    expect(apiKeysLink).toHaveAttribute('aria-current', 'page');
 
     // Account should NOT be highlighted
     const accountLink = within(sidebar).getByText('Account').closest('a');
-    expect(accountLink?.className).not.toContain('bg-zinc-800');
+    expect(accountLink).not.toHaveAttribute('aria-current', 'page');
   });
 });

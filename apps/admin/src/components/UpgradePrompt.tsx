@@ -37,8 +37,8 @@ export function UpgradePrompt({ feature, description, variant = 'default' }: Upg
 
   if (variant === 'sampling') {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/30">
-        <div className="flex-1 text-sm text-blue-700 dark:text-blue-300">
+      <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
+        <div className="flex-1 text-sm text-primary">
           {description ||
             'Free AI sampling quota reached. Upgrade to Pro for 10,000 tasks/month with full coding tools.'}
         </div>
@@ -67,10 +67,8 @@ export function UpgradePrompt({ feature, description, variant = 'default' }: Upg
         </Link>
 
         {upgradeTiers.length > 0 && (
-          <div className="pt-2 border-t dark:border-zinc-800">
-            <p className="mb-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Compare plans
-            </p>
+          <div className="pt-2 border-t border-border">
+            <p className="mb-3 text-xs font-medium text-muted-foreground">Compare plans</p>
             <PricingTable
               tiers={upgradeTiers}
               currentTier={currentTier ?? 'free'}

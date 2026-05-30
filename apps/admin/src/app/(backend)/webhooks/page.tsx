@@ -145,12 +145,12 @@ function WebhooksDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen text-foreground">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-gray-700 bg-gray-900 p-4">
+      <div className="flex flex-wrap items-center gap-4 border-b border-border bg-card p-4">
         <div>
-          <h1 className="text-xl font-semibold text-white">Webhook Events</h1>
-          <p className="mt-0.5 text-sm text-gray-400">
+          <h1 className="text-xl font-semibold text-foreground">Webhook Events</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Processed Stripe webhook events - deduplication log
           </p>
         </div>
@@ -160,7 +160,7 @@ function WebhooksDashboard() {
           <div className="ml-auto flex flex-wrap items-center gap-1 text-sm">
             <Link
               href={filterUrl({ type: undefined })}
-              className={`rounded px-2 py-1 ${!filterType ? 'bg-blue-700 text-white' : 'text-gray-400 hover:text-white'}`}
+              className={`rounded px-2 py-1 ${!filterType ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               All types
             </Link>
@@ -168,7 +168,7 @@ function WebhooksDashboard() {
               <Link
                 key={t}
                 href={filterUrl({ type: t })}
-                className={`rounded px-2 py-1 font-mono text-xs ${filterType === t ? 'bg-blue-700 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`rounded px-2 py-1 font-mono text-xs ${filterType === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {t}
               </Link>
@@ -178,25 +178,25 @@ function WebhooksDashboard() {
       </div>
 
       {loading && (
-        <div className="m-4 p-8 text-center text-gray-500">Loading webhook events...</div>
+        <div className="m-4 p-8 text-center text-muted-foreground">Loading webhook events...</div>
       )}
 
       {error && (
         <div
           role="alert"
-          className="m-4 rounded border border-red-700 bg-red-900 p-3 text-sm text-red-200"
+          className="m-4 rounded border border-error/30 bg-error/10 p-3 text-sm text-error"
         >
           Failed to load webhook events: {error}
         </div>
       )}
 
       {!(loading || error) && rows.length === 0 && (
-        <div className="m-4 p-8 text-center text-gray-500">
+        <div className="m-4 p-8 text-center text-muted-foreground">
           No webhook events processed yet.
           {filterType ? (
             <span>
               {' '}
-              <Link href="/webhooks" className="text-blue-400 hover:underline">
+              <Link href="/webhooks" className="text-primary hover:underline">
                 Clear filter
               </Link>
             </span>
@@ -208,34 +208,34 @@ function WebhooksDashboard() {
 
       {rows.length > 0 && (
         <>
-          <div className="border-b border-gray-800 px-4 py-2 text-xs text-gray-500">
+          <div className="border-b border-border px-4 py-2 text-xs text-muted-foreground">
             Showing {rows.length} of {total} events
             {filterType ? ` · type: ${filterType}` : ''}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-900 text-left text-gray-400">
+                <tr className="bg-card text-left text-muted-foreground">
                   <th className="whitespace-nowrap px-4 py-2 font-medium">Processed At</th>
                   <th className="px-4 py-2 font-medium">Event Type</th>
                   <th className="px-4 py-2 font-medium">Event ID</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-border">
                 {rows.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-gray-900">
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-gray-400">
+                  <tr key={row.id} className="transition-colors hover:bg-card">
+                    <td className="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground">
                       {formatTime(new Date(row.processedAt))}
                     </td>
                     <td className="px-4 py-2">
                       <Link
                         href={filterUrl({ type: row.eventType })}
-                        className="font-mono text-xs text-gray-300 hover:text-blue-400"
+                        className="font-mono text-xs text-muted-foreground hover:text-primary"
                       >
                         {row.eventType}
                       </Link>
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs text-gray-500">{row.id}</td>
+                    <td className="px-4 py-2 font-mono text-xs text-muted-foreground">{row.id}</td>
                   </tr>
                 ))}
               </tbody>
