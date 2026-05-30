@@ -801,6 +801,8 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
       STRIPE_WEBHOOK_SECRET: '',
       STRIPE_LIVE_MODE: '',
       REVEALUI_BILLING_PORTAL_CONFIG_ID: '',
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: '',
+      GOOGLE_PRIVATE_KEY: '',
       ...overrides,
     };
   }
