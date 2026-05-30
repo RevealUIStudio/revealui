@@ -54,8 +54,6 @@ function parseArgs(): SetupOptions {
 // Variables that can be generated automatically from crypto
 const AUTO_GENERATE: Record<string, () => string> = {
   REVEALUI_SECRET: () => generateSecret(32),
-  REVEALUI_PUBLIC_DRAFT_SECRET: () => generateSecret(32),
-  REVEALUI_REVALIDATION_KEY: () => generateSecret(32),
   REVEALUI_ADMIN_PASSWORD: () => generatePassword(16),
 };
 
