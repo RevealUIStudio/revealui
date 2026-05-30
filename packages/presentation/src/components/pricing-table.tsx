@@ -34,7 +34,7 @@ export interface PricingTableProps {
 function CheckIcon() {
   return (
     <svg
-      className="h-4 w-4 shrink-0 text-blue-600 mt-0.5"
+      className="mt-0.5 h-4 w-4 shrink-0 text-primary"
       fill="currentColor"
       viewBox="0 0 20 20"
       aria-hidden="true"
@@ -113,37 +113,33 @@ function PricingCardFull({
   return (
     <div
       className={cn(
-        'relative rounded-2xl bg-white p-8 shadow-lg dark:bg-zinc-900',
+        'relative rounded-2xl bg-card p-8 shadow-lg',
         isHighlighted
-          ? 'ring-2 ring-blue-600'
+          ? 'ring-2 ring-primary'
           : isCurrent
-            ? 'ring-2 ring-emerald-500'
-            : 'ring-1 ring-zinc-200 dark:ring-zinc-800',
+            ? 'ring-2 ring-success'
+            : 'ring-1 ring-border',
       )}
     >
       {isHighlighted && (
-        <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-sm font-semibold text-white text-center shadow-lg">
+        <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
           Most Popular
         </div>
       )}
       {isCurrent && (
-        <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white text-center shadow-lg">
+        <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-success/15 px-3 py-1.5 text-center text-sm font-semibold text-success ring-1 ring-inset ring-success/30">
           Current Plan
         </div>
       )}
 
       <div className="mb-8">
-        <h3 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-          {tier.name}
-        </h3>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{tier.description}</p>
+        <h3 className="text-xl font-bold tracking-tight text-foreground">{tier.name}</h3>
+        <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>
         <p className="mt-6 flex items-baseline gap-x-1">
-          <span className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          <span className="text-4xl font-bold tracking-tight text-foreground">
             {tier.price ?? '-'}
           </span>
-          {tier.period && (
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">{tier.period}</span>
-          )}
+          {tier.period && <span className="text-sm text-muted-foreground">{tier.period}</span>}
         </p>
       </div>
 
@@ -151,7 +147,7 @@ function PricingCardFull({
         {tier.features.map((feature) => (
           <li key={feature} className="flex items-start gap-x-3">
             <CheckIcon />
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">{feature}</span>
+            <span className="text-sm text-muted-foreground">{feature}</span>
           </li>
         ))}
       </ul>
@@ -164,10 +160,10 @@ function PricingCardFull({
           className={cn(
             'block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors',
             isCurrent
-              ? 'cursor-default bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+              ? 'cursor-default bg-success/10 text-success'
               : isHighlighted
-                ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
-                : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700',
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
           )}
         >
           {isCurrent ? 'Current Plan' : tier.cta}
@@ -178,8 +174,8 @@ function PricingCardFull({
           className={cn(
             'block w-full rounded-md px-6 py-3 text-center text-sm font-semibold transition-colors',
             isHighlighted
-              ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
-              : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700',
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
           )}
         >
           {tier.cta}
@@ -205,33 +201,27 @@ function PricingCardCompact({
   return (
     <div
       className={cn(
-        'flex-1 rounded-xl p-5 shadow-sm dark:bg-zinc-900',
+        'flex-1 rounded-xl bg-card p-5 shadow-sm',
         isCurrent
-          ? 'ring-2 ring-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'
+          ? 'ring-2 ring-success bg-success/5'
           : tier.highlighted
-            ? 'ring-2 ring-blue-600 bg-blue-50/50 dark:bg-blue-900/10'
-            : 'ring-1 ring-zinc-200 bg-white dark:ring-zinc-800',
+            ? 'ring-2 ring-primary bg-primary/5'
+            : 'ring-1 ring-border',
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <h4 className="text-sm font-bold text-zinc-900 dark:text-white">{tier.name}</h4>
+        <h4 className="text-sm font-bold text-foreground">{tier.name}</h4>
         {isCurrent && (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-medium text-success">
             Current
           </span>
         )}
       </div>
       <p className="mt-1 flex items-baseline gap-x-1">
-        <span className="text-2xl font-bold text-zinc-900 dark:text-white">
-          {tier.price ?? '-'}
-        </span>
-        {tier.period && (
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">{tier.period}</span>
-        )}
+        <span className="text-2xl font-bold text-foreground">{tier.price ?? '-'}</span>
+        {tier.period && <span className="text-xs text-muted-foreground">{tier.period}</span>}
       </p>
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">
-        {tier.description}
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{tier.description}</p>
 
       {onSelect ? (
         <button
@@ -241,10 +231,10 @@ function PricingCardCompact({
           className={cn(
             'mt-3 block w-full rounded-md px-3 py-2 text-center text-xs font-semibold transition-colors',
             isCurrent
-              ? 'cursor-default bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+              ? 'cursor-default bg-success/10 text-success'
               : tier.highlighted
-                ? 'bg-blue-600 text-white hover:bg-blue-500'
-                : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700',
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
           )}
         >
           {isCurrent ? 'Current' : tier.cta}
@@ -255,8 +245,8 @@ function PricingCardCompact({
           className={cn(
             'mt-3 block w-full rounded-md px-3 py-2 text-center text-xs font-semibold transition-colors',
             tier.highlighted
-              ? 'bg-blue-600 text-white hover:bg-blue-500'
-              : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700',
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
           )}
         >
           {tier.cta}
