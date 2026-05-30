@@ -137,6 +137,16 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
   // back to Stripe's default (all plans visible, no flow customisation).
   // Required here so we never flip live-mode without the portal wired. (#827)
   'REVEALUI_BILLING_PORTAL_CONFIG_ID',
+  // Transactional email transport (Gmail API with domain-wide delegation — see
+  // packages/services/src/email/index.ts → getEmailProvider). Without BOTH of
+  // these, getEmailProvider() falls back to a no-op that drops every send, so
+  // receipt / license-activation / refund emails (and, in the admin app, signup
+  // verification) silently never arrive while the deploy boots clean with no
+  // signal. Require them so a hosted deploy with broken email transport fails
+  // loudly at boot instead of silently degrading. EMAIL_FROM is intentionally
+  // not required — it has a safe default (noreply@revealui.com).
+  'GOOGLE_SERVICE_ACCOUNT_EMAIL',
+  'GOOGLE_PRIVATE_KEY',
 ] as const;
 
 const REQUIRED_IN_PRODUCTION_FORGE = [
