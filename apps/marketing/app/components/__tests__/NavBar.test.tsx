@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { Router, RouterProvider } from '@revealui/router';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { NavBar } from '../NavBar';
@@ -7,9 +8,19 @@ afterEach(cleanup);
 
 const MENU_ID = 'marketing-mobile-menu';
 
+// NavBar now navigates via the router (Link + useLocation), so it must render
+// inside a RouterProvider.
+function renderNavBar() {
+  return render(
+    <RouterProvider router={new Router()}>
+      <NavBar />
+    </RouterProvider>,
+  );
+}
+
 describe('NavBar (marketing)', () => {
   it('renders a 44x44 hamburger wired as an ARIA disclosure trigger', () => {
-    render(<NavBar />);
+    renderNavBar();
     const toggle = screen.getByRole('button', { name: 'Open menu' });
     // WCAG 2.5.5 / Apple HIG minimum 44x44 tap target.
     expect(toggle.className).toContain('h-11');
@@ -20,7 +31,7 @@ describe('NavBar (marketing)', () => {
   });
 
   it('opens the menu and points the trigger at it via aria-controls/id', () => {
-    render(<NavBar />);
+    renderNavBar();
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
 
     const menu = document.getElementById(MENU_ID);
@@ -33,7 +44,7 @@ describe('NavBar (marketing)', () => {
   });
 
   it('gives every mobile menu link a >=44px tap target', () => {
-    render(<NavBar />);
+    renderNavBar();
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
 
     const links = document.getElementById(MENU_ID)?.querySelectorAll('a') ?? [];
@@ -46,7 +57,7 @@ describe('NavBar (marketing)', () => {
   });
 
   it('closes the menu when Escape is pressed', () => {
-    render(<NavBar />);
+    renderNavBar();
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
     expect(document.getElementById(MENU_ID)).toBeInTheDocument();
 
@@ -55,7 +66,7 @@ describe('NavBar (marketing)', () => {
   });
 
   it('closes the menu when the backdrop is tapped (tap-outside)', () => {
-    render(<NavBar />);
+    renderNavBar();
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
 
     const closers = screen.getAllByRole('button', { name: 'Close menu' });
@@ -68,7 +79,7 @@ describe('NavBar (marketing)', () => {
   });
 
   it('locks body scroll while open and restores it on close', () => {
-    render(<NavBar />);
+    renderNavBar();
     expect(document.body.style.overflow).toBe('');
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
@@ -76,5 +87,17 @@ describe('NavBar (marketing)', () => {
 
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(document.body.style.overflow).toBe('');
+  });
+
+  it('routes internal nav links through the SPA router; external links stay anchors', () => {
+    renderNavBar();
+    // Internal route -> router Link that intercepts the click (no full reload).
+    const pricing = screen.getByRole('link', { name: 'Pricing' });
+    expect(pricing).toHaveAttribute('href', '/pricing');
+    expect(fireEvent.click(pricing)).toBe(false); // default prevented = intercepted
+
+    // Absolute URL -> plain anchor, left for a full-page load.
+    const docs = screen.getByRole('link', { name: 'Docs' });
+    expect(docs).toHaveAttribute('href', 'https://docs.revealui.com');
   });
 });
