@@ -17,10 +17,11 @@ import type { Cta, FaqItem } from './types';
 
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable. Audit-ready.',
-  h1: 'Five primitives. One runtime for humans and agents.',
+  h1: 'Run your whole business on one runtime you own.',
   subtitle: {
-    strong: 'An open-source framework. The business logic every product needs, pre-wired.',
-    body: 'Spin up a working app — users, Stripe payments, an admin dashboard, and an AI agent layer, all sharing one login and one audit trail. Build it yourself',
+    strong:
+      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host.',
+    body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',
     agencyHref: SITE.urls.agency,
@@ -63,7 +64,7 @@ export const HOME_HERO = {
         detail: 'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
       },
       {
-        metric: 'Same login. Same audit chain. Same API.',
+        metric: 'Same permissions. Same audit chain. Same API.',
         detail:
           'One permission model and one tamper-evident chain — for your team and your agents alike. See the [architecture](https://docs.revealui.com/architecture).',
       },
@@ -238,6 +239,44 @@ export const HOME_GET_STARTED = {
   newsletter: {
     label: 'Not ready to start? Get product updates and engineering insights.',
   },
+} as const;
+
+// ---------------------------------------------------------------------------
+// Three actors (cast explainer)
+// Defines the three roles the rest of the copy assumes: developer, operator,
+// agent. Two human roles (build, run) plus the AI role (work inside). Sits
+// between the hero and the audience fork so "agents" in the hero h1 is defined
+// within one scroll, before the visitor self-identifies in the fork below.
+// ---------------------------------------------------------------------------
+
+export interface Actor {
+  readonly role: string;
+  readonly action: string;
+  readonly body: string;
+}
+
+export const HOME_ACTORS = {
+  eyebrow: 'Who does what',
+  heading: 'Three actors, one runtime.',
+  body: 'RevealUI runs people and AI under one set of rules: the same permissions and the same tamper-evident audit trail.',
+  actors: [
+    {
+      role: 'Developers',
+      action: 'build it.',
+      body: 'Install RevealUI, write the code, own the stack.',
+    },
+    {
+      role: 'Operators',
+      action: 'run it.',
+      body: 'Log into the admin to manage customers, content, and billing. No code required.',
+    },
+    {
+      role: 'Agents',
+      action: 'work inside it.',
+      body: 'An agent is an AI that works through the same APIs you do: read and update your data, send notifications, look up customers and billing. Every action runs under the same permissions and the same audit trail as a person.',
+    },
+  ] as readonly Actor[],
+  tagline: 'Developers build it. Operators run it. Agents work in it.',
 } as const;
 
 // ---------------------------------------------------------------------------
