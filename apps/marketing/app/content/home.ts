@@ -243,9 +243,10 @@ export const HOME_GET_STARTED = {
 // ---------------------------------------------------------------------------
 // Homepage audience fork
 // Per spec-2026-05-14-non-technical-lane.md §4.3 (Phase 2 of the spec sequence).
-// Two equal-weight branches; visitor self-identifies before the technical-lane
+// Three equal-weight branches; visitor self-identifies before the technical-lane
 // content below. Branch A scrolls past the fork into the existing technical
-// homepage (OQ-5 locked); Branch B routes to /for-operators (Phase 1, PR #1151).
+// homepage (OQ-5 locked); Branch B routes to /for-operators (Phase 1, PR #1151);
+// Branch C routes studios/agencies to the Agency Perpetual pricing band.
 // Decisions consumed: §9.4 OQ-5 (Branch A stays on /).
 // ---------------------------------------------------------------------------
 
@@ -260,5 +261,11 @@ export const HOME_FORK = {
     body: 'RevealUI Studio scopes, builds, and delivers a working product. Weeks, not quarters.',
     cta: 'See how →',
     href: '/for-operators',
+  },
+  branchC: {
+    title: 'I build software for my clients.',
+    body: 'License once, then ship a branded, self-hosted instance for every client you serve.',
+    cta: 'See agency licensing →',
+    href: '/pricing#perpetual',
   },
 } as const;
