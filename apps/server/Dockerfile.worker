@@ -31,7 +31,7 @@ RUN corepack enable
 
 # Copy workspace plumbing first for layer caching on dep changes.
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY .npmrc* tsconfig.base.json ./
+COPY .npmrc* tsconfig.json ./
 
 # Copy all workspace packages — needed for workspace:* symlink resolution.
 COPY packages ./packages
@@ -39,7 +39,7 @@ COPY apps/server ./apps/server
 
 # Install + build only the server slice + its dependency closure.
 RUN pnpm install --frozen-lockfile --filter "server..."
-RUN pnpm --filter server build
+RUN pnpm --filter "server..." build
 
 # ─────────────────────────────────────────────────────────────────────
 # Stage 2: runtime — minimal Node 24 alpine + built worker
