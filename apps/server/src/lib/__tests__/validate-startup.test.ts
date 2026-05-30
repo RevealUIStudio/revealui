@@ -27,6 +27,8 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_ALERT_EMAIL: 'ops@revealui.com',
     SENTRY_DSN: 'https://abc123@o123456.ingest.sentry.io/456789',
     REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test_fixture',
+    GOOGLE_SERVICE_ACCOUNT_EMAIL: 'svc@project.iam.gserviceaccount.com',
+    GOOGLE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----',
     ...overrides,
   };
 }
@@ -127,6 +129,12 @@ describe('validateStartup — production presence', () => {
     const env = validLiveProdEnv();
     delete env.SENTRY_DSN;
     expect(() => validateStartup(env)).toThrow(/SENTRY_DSN/);
+  });
+
+  it('rejects missing Gmail email transport vars in production hosted env', () => {
+    const env = validLiveProdEnv();
+    delete env.GOOGLE_PRIVATE_KEY;
+    expect(() => validateStartup(env)).toThrow(/GOOGLE_PRIVATE_KEY/);
   });
 });
 
