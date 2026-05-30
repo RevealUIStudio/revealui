@@ -16,11 +16,11 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col sm:flex-row">
       {/* Mobile: horizontal tab bar */}
-      <nav className="border-b border-zinc-800 bg-zinc-950 sm:hidden" aria-label="Settings">
+      <nav className="border-b border-border bg-muted sm:hidden" aria-label="Settings">
         <div className="flex items-center gap-1 overflow-x-auto px-4">
           <Link
             href="/"
-            className="shrink-0 py-3 pr-3 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+            className="shrink-0 py-3 pr-3 text-xs text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Back to Admin"
           >
             ←
@@ -33,8 +33,8 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={`shrink-0 border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'border-white text-white'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {item.label}
@@ -45,11 +45,11 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       </nav>
 
       {/* Desktop: sidebar */}
-      <aside className="hidden w-56 shrink-0 border-r border-zinc-800 bg-zinc-950 sm:block">
+      <aside className="hidden w-56 shrink-0 border-r border-border bg-muted sm:block">
         <div className="sticky top-0 flex flex-col gap-1 p-4">
           <Link
             href="/"
-            className="mb-4 flex items-center gap-2 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+            className="mb-4 flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <svg
               className="h-3.5 w-3.5"
@@ -64,7 +64,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             Back to Admin
           </Link>
 
-          <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Settings
           </h2>
 
@@ -76,8 +76,8 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-zinc-800 text-white'
-                    : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
                 }`}
               >
                 {item.label}

@@ -241,29 +241,29 @@ function ToolCallBadge({ entry }: { entry: ToolCallEntry }) {
   const label = TOOL_LABELS[entry.name] ?? entry.name;
 
   return (
-    <div className="my-1.5 rounded-md border border-zinc-200 bg-zinc-50 text-sm dark:border-zinc-700 dark:bg-zinc-800/50">
+    <div className="my-1.5 rounded-md border border-border bg-muted text-sm">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center gap-2 px-3 py-1.5 text-left"
       >
         {entry.status === 'running' && (
-          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-zinc-400 border-t-blue-500" />
+          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-foreground/10 border-t-primary" />
         )}
-        {entry.status === 'success' && <span className="text-emerald-500">&#10003;</span>}
-        {entry.status === 'error' && <span className="text-red-500">&#10007;</span>}
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">{label}</span>
-        <span className="ml-auto text-xs text-zinc-400">{expanded ? '▲' : '▼'}</span>
+        {entry.status === 'success' && <span className="text-success">&#10003;</span>}
+        {entry.status === 'error' && <span className="text-error">&#10007;</span>}
+        <span className="font-medium text-foreground">{label}</span>
+        <span className="ml-auto text-xs text-muted-foreground">{expanded ? '▲' : '▼'}</span>
       </button>
       {expanded && (
-        <div className="border-t border-zinc-200 px-3 py-2 dark:border-zinc-700">
+        <div className="border-t border-border px-3 py-2">
           {entry.arguments && (
-            <pre className="mb-1 max-h-32 overflow-auto rounded bg-zinc-100 p-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+            <pre className="mb-1 max-h-32 overflow-auto rounded bg-card p-2 text-xs text-muted-foreground">
               {formatJson(entry.arguments)}
             </pre>
           )}
           {entry.result && (
-            <pre className="max-h-32 overflow-auto rounded bg-zinc-100 p-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">
+            <pre className="max-h-32 overflow-auto rounded bg-card p-2 text-xs text-muted-foreground">
               {entry.result}
             </pre>
           )}
@@ -283,7 +283,7 @@ function ChatMarkdown({ content }: { content: string }) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 underline hover:text-blue-300"
+            className="text-primary underline hover:text-primary/80"
             {...props}
           >
             {children}
@@ -293,7 +293,7 @@ function ChatMarkdown({ content }: { content: string }) {
           const isBlock = className?.startsWith('language-');
           if (isBlock) {
             return (
-              <pre className="my-2 overflow-x-auto rounded-md bg-zinc-900 p-3 text-sm text-zinc-100">
+              <pre className="my-2 overflow-x-auto rounded-md bg-card p-3 text-sm text-foreground">
                 <code className={className} {...props}>
                   {children}
                 </code>
@@ -301,7 +301,7 @@ function ChatMarkdown({ content }: { content: string }) {
             );
           }
           return (
-            <code className="rounded bg-zinc-200 px-1 py-0.5 text-sm dark:bg-zinc-700" {...props}>
+            <code className="rounded bg-muted px-1 py-0.5 text-sm" {...props}>
               {children}
             </code>
           );
@@ -314,15 +314,12 @@ function ChatMarkdown({ content }: { content: string }) {
           </div>
         ),
         th: ({ children, ...props }) => (
-          <th
-            className="border-b border-zinc-300 px-3 py-1 text-left font-semibold dark:border-zinc-600"
-            {...props}
-          >
+          <th className="border-b border-border px-3 py-1 text-left font-semibold" {...props}>
             {children}
           </th>
         ),
         td: ({ children, ...props }) => (
-          <td className="border-b border-zinc-200 px-3 py-1 dark:border-zinc-700" {...props}>
+          <td className="border-b border-border px-3 py-1" {...props}>
             {children}
           </td>
         ),
@@ -346,7 +343,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="mt-1 self-start rounded px-1.5 py-0.5 text-xs text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-200 hover:text-zinc-600 group-hover:opacity-100 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
+      className="mt-1 self-start rounded px-1.5 py-0.5 text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
       aria-label="Copy message"
     >
       {copied ? 'Copied' : 'Copy'}
@@ -357,10 +354,10 @@ function CopyButton({ text }: { text: string }) {
 function MessageSkeleton() {
   return (
     <div className="flex animate-pulse gap-3">
-      <div className="h-8 w-8 shrink-0 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+      <div className="h-8 w-8 shrink-0 rounded-full bg-foreground/10" />
       <div className="flex-1 space-y-2 py-1">
-        <div className="h-3 w-3/4 rounded bg-zinc-200 dark:bg-zinc-700" />
-        <div className="h-3 w-1/2 rounded bg-zinc-200 dark:bg-zinc-700" />
+        <div className="h-3 w-3/4 rounded bg-foreground/10" />
+        <div className="h-3 w-1/2 rounded bg-foreground/10" />
       </div>
     </div>
   );
@@ -374,7 +371,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
           isUser
-            ? 'bg-blue-600 text-white'
+            ? 'bg-primary text-primary-foreground'
             : 'bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white'
         }`}
       >
@@ -383,9 +380,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div className={`flex max-w-[85%] flex-col ${isUser ? 'items-end' : 'items-start'}`}>
         <div
           className={`rounded-2xl px-4 py-3 ${
-            isUser
-              ? 'bg-blue-600 text-white'
-              : 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
+            isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
           }`}
         >
           {isUser ? (
@@ -417,19 +412,15 @@ function ConfirmationCard({
   isLoading: boolean;
 }) {
   return (
-    <div className="mx-auto my-4 max-w-md rounded-xl border-2 border-amber-300 bg-amber-50 p-4 dark:border-amber-600 dark:bg-amber-900/20">
+    <div className="mx-auto my-4 max-w-md rounded-xl border-2 border-warning/30 bg-warning/15 p-4">
       <div className="mb-2 flex items-center gap-2">
         <span className="text-lg">&#x26A0;&#xFE0F;</span>
-        <span className="font-semibold text-amber-800 dark:text-amber-300">
-          Confirmation Required
-        </span>
+        <span className="font-semibold text-warning-foreground">Confirmation Required</span>
       </div>
-      <p className="mb-3 text-sm text-amber-700 dark:text-amber-400">{confirmation.description}</p>
+      <p className="mb-3 text-sm text-warning-foreground">{confirmation.description}</p>
       <details className="mb-3">
-        <summary className="cursor-pointer text-xs text-amber-600 dark:text-amber-500">
-          View details
-        </summary>
-        <pre className="mt-1 max-h-24 overflow-auto rounded bg-amber-100 p-2 text-xs dark:bg-amber-900/40">
+        <summary className="cursor-pointer text-xs text-warning-foreground">View details</summary>
+        <pre className="mt-1 max-h-24 overflow-auto rounded bg-warning/15 p-2 text-xs">
           {formatJson(JSON.stringify(confirmation.arguments))}
         </pre>
       </details>
@@ -438,7 +429,7 @@ function ConfirmationCard({
           type="button"
           onClick={onApprove}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          className="flex-1 rounded-lg bg-error px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:opacity-50"
         >
           {isLoading ? 'Executing...' : 'Approve'}
         </button>
@@ -446,7 +437,7 @@ function ConfirmationCard({
           type="button"
           onClick={onReject}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600"
+          className="flex-1 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
         >
           Reject
         </button>
@@ -791,10 +782,8 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
           <div className="flex h-full flex-col items-center justify-center gap-6">
             <div className="text-center">
               <div className="mb-2 text-4xl">&#x1F916;</div>
-              <h2 className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">
-                admin Assistant
-              </h2>
-              <p className="mt-1 max-w-md text-sm text-zinc-500">
+              <h2 className="text-lg font-semibold text-foreground">admin Assistant</h2>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
                 {agentMode === 'coding'
                   ? 'I can help you read, write, and search code, run commands, and manage your project. Try a suggestion below.'
                   : 'I can help you manage content, users, media, and settings. Ask me anything or try one of the suggestions below.'}
@@ -807,7 +796,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
                     key={prompt}
                     type="button"
                     onClick={() => handleSuggestedPrompt(prompt)}
-                    className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-700 transition-colors hover:border-blue-300 hover:bg-blue-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-blue-600 dark:hover:bg-zinc-700"
+                    className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground transition-colors hover:border-primary hover:bg-muted"
                   >
                     {prompt}
                   </button>
@@ -827,7 +816,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-medium text-white">
               AI
             </div>
-            <div className="max-w-[85%] rounded-2xl bg-zinc-100 px-4 py-3 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+            <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-3 text-foreground">
               <div className="prose prose-sm max-w-none dark:prose-invert">
                 {activeToolCalls.current.map((tc) => (
                   <ToolCallBadge key={`${tc.name}-${tc.arguments.slice(0, 20)}`} entry={tc} />
@@ -835,7 +824,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
                 {stream.text ? (
                   <ChatMarkdown content={stream.text} />
                 ) : (
-                  <div className="flex items-center gap-2 text-sm text-zinc-500">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-violet-500" />
                     <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-violet-500 [animation-delay:150ms]" />
                     <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-violet-500 [animation-delay:300ms]" />
@@ -856,7 +845,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         )}
 
         {stream.error && !stream.isStreaming && (
-          <div className="mx-auto max-w-md rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          <div className="mx-auto max-w-md rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
             <p className="font-medium">Something went wrong</p>
             <p className="mt-1 text-xs">{stream.error}</p>
             <div className="mt-3 flex items-center gap-3">
@@ -864,12 +853,12 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
                 <button
                   type="button"
                   onClick={handleRetry}
-                  className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
+                  className="rounded-md bg-error/15 px-3 py-1.5 text-xs font-medium text-error transition-colors hover:bg-error/25"
                 >
                   Retry
                 </button>
               )}
-              <p className="text-xs text-red-500">Contact support@revealui.com if this persists.</p>
+              <p className="text-xs text-error">Contact support@revealui.com if this persists.</p>
             </div>
           </div>
         )}
@@ -878,17 +867,17 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       </div>
 
       {/* Input area */}
-      <div className="border-t border-zinc-200 bg-white px-3 py-3 sm:px-4 dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="border-t border-border bg-card px-3 py-3 sm:px-4">
         <div className="mx-auto mb-2 flex max-w-3xl items-center gap-2">
-          <div className="flex items-center rounded-md border border-zinc-200 dark:border-zinc-700">
+          <div className="flex items-center rounded-md border border-border">
             <button
               type="button"
               onClick={() => setAgentMode('admin')}
               disabled={stream.isStreaming}
               className={`rounded-l-md px-2.5 py-1 text-xs font-medium transition-colors ${
                 agentMode === 'admin'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
               }`}
             >
               admin
@@ -899,14 +888,14 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
               disabled={stream.isStreaming}
               className={`rounded-r-md px-2.5 py-1 text-xs font-medium transition-colors ${
                 agentMode === 'coding'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
               }`}
             >
               Coding
             </button>
           </div>
-          <label htmlFor="model-select" className="text-xs text-zinc-400">
+          <label htmlFor="model-select" className="text-xs text-muted-foreground">
             Model
           </label>
           <select
@@ -914,7 +903,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
             disabled={stream.isStreaming}
-            className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs text-zinc-600 outline-none focus:border-blue-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
           >
             {MODEL_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -923,7 +912,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             ))}
           </select>
           {selectedModel !== 'auto' && (
-            <span className="hidden text-xs text-zinc-400 sm:inline">
+            <span className="hidden text-xs text-muted-foreground sm:inline">
               {MODEL_OPTIONS.find((m) => m.id === selectedModel)?.model || 'default'}
             </span>
           )}
@@ -931,7 +920,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
         <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-2 sm:gap-3">
           <textarea
             ref={textareaRef}
-            className="flex-1 resize-none rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2.5 text-sm outline-none transition-colors placeholder:text-zinc-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 sm:px-4 sm:py-3 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+            className="flex-1 resize-none rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 sm:px-4 sm:py-3"
             value={input}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
@@ -947,7 +936,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <button
               type="button"
               onClick={stream.abort}
-              className="shrink-0 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 sm:px-5 sm:py-3"
+              className="shrink-0 rounded-xl bg-error px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 sm:px-5 sm:py-3"
             >
               Stop
             </button>
@@ -955,13 +944,13 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <button
               type="submit"
               disabled={!input.trim()}
-              className="shrink-0 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-3"
+              className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-3"
             >
               Send
             </button>
           )}
         </form>
-        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-zinc-400">
+        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
           Enter to send &middot; Shift+Enter for new line &middot; Esc to stop &middot; AI may make
           mistakes
         </p>
