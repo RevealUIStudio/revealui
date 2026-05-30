@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "@revealui/presentation/tokens.css";
 
+/*
+ * Scan @revealui/presentation source so Tailwind generates the utility classes
+ * those components use (bg-primary, bg-card, text-foreground, ring-ring, …).
+ * Without this, showcase components reference classes Tailwind never emitted
+ * and render unstyled regardless of the token bridge below.
+ */
+@source "../../../packages/presentation/src/**/*.{ts,tsx}";
+
 /* ──────────────────────────────────────────────
    Theme — design tokens as Tailwind v4 @theme
    ────────────────────────────────────────────── */
@@ -26,6 +34,43 @@
 
   --width-sidebar: 272px;
   --width-content: 820px;
+}
+
+/* ──────────────────────────────────────────────
+   Cobalt semantic bridge — maps the shadcn-style utility names used by
+   @revealui/presentation components (rendered under /showcase) onto the
+   canonical --rvui-* tokens from tokens.css. Values cascade with the active
+   theme, so the showcase Preview's Dark/Light toggle (which sets data-theme)
+   actually re-themes the components.
+
+   Intentionally NOT bridged: --color-accent and --color-border are owned by
+   the docs palette above (accent = cobalt brand; border = #e8eaed). Leaving
+   them out keeps the docs chrome unchanged. Presentation's `accent` hover
+   surfaces therefore reuse the docs cobalt accent, paired with the on-brand
+   foreground below for contrast.
+   ────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--rvui-surface-0);
+  --color-foreground: var(--rvui-text-0);
+  --color-card: var(--rvui-surface-1);
+  --color-card-foreground: var(--rvui-text-0);
+  --color-popover: var(--rvui-surface-1);
+  --color-popover-foreground: var(--rvui-text-0);
+  --color-primary: var(--rvui-brand);
+  --color-primary-foreground: var(--rvui-text-on-brand);
+  --color-secondary: var(--rvui-surface-2);
+  --color-secondary-foreground: var(--rvui-text-0);
+  --color-muted: var(--rvui-surface-2);
+  --color-muted-foreground: var(--rvui-text-2);
+  --color-accent-foreground: var(--rvui-text-on-brand);
+  --color-destructive: var(--rvui-error);
+  --color-destructive-foreground: var(--rvui-text-0);
+  --color-input: var(--rvui-border);
+  --color-ring: var(--rvui-brand);
+  --color-success: var(--rvui-success);
+  --color-warning: var(--rvui-warning);
+  --color-warning-foreground: var(--rvui-warning-text);
+  --color-error: var(--rvui-error);
 }
 
 /* ──────────────────────────────────────────────

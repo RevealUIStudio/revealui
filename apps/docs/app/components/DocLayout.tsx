@@ -1,5 +1,6 @@
 import { Link, useLocation } from '@revealui/router';
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { buildDocNavSections, type NavItem, type NavSection } from '../lib/nav';
 import { showcaseEntries } from './showcase/registry.js';
 
 const SearchBar = lazy(async () =>
@@ -7,118 +8,21 @@ const SearchBar = lazy(async () =>
 );
 
 /**
- * Build the Showcase nav items from the registry. Two stable anchors
- * (Overview + Design Tokens) followed by every entry sorted by display name.
- * Adding a new showcase to `showcase/registry.ts` automatically surfaces
- * it here — no hand-maintained list to drift.
+ * Per-component Showcase nav items, derived from the registry and sorted by
+ * display name. Adding a showcase to `showcase/registry.ts` automatically
+ * surfaces it here — no hand-maintained list to drift. The static doc sections
+ * + the two stable Showcase anchors live in `../lib/nav` (React-free so the
+ * link guard in `scripts/check-links.ts` can validate every doc link).
  */
-const showcaseNavItems = [
-  { label: 'Overview', path: '/showcase' },
-  { label: 'Design Tokens', path: '/showcase/tokens' },
-  ...[...showcaseEntries]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((entry) => ({ label: entry.name, path: `/showcase/${entry.slug}` })),
-];
+const showcaseComponentItems: NavItem[] = [...showcaseEntries]
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((entry) => ({ label: entry.name, path: `/showcase/${entry.slug}` }));
 
 interface DocLayoutProps {
   children?: React.ReactNode;
 }
 
-interface NavItem {
-  label: string;
-  path: string;
-  children?: NavItem[];
-}
-
-interface NavSection {
-  title: string;
-  items: NavItem[];
-}
-
-const sections: NavSection[] = [
-  {
-    title: 'Getting Started',
-    items: [
-      { label: 'Quick Start', path: '/quick-start' },
-      { label: 'Build Your Business', path: '/build-your-business' },
-      { label: 'Examples', path: '/examples' },
-    ],
-  },
-  {
-    title: 'Tutorials',
-    items: [
-      { label: 'Quick Start', path: '/guides/quick-start' },
-      { label: 'Authentication', path: '/guides/authentication' },
-      { label: 'Collections', path: '/guides/collections' },
-      { label: 'Billing', path: '/guides/billing' },
-      { label: 'Deployment', path: '/guides/deployment' },
-    ],
-  },
-  {
-    title: 'Core Guides',
-    items: [
-      { label: 'Admin Guide', path: '/admin-guide' },
-      { label: 'Authentication', path: '/auth' },
-      { label: 'Database', path: '/database' },
-      { label: 'CI/CD & Deployment', path: '/ci-cd-guide' },
-      { label: 'Environment Variables', path: '/environment-variables-guide' },
-      { label: 'Testing', path: '/testing' },
-      { label: 'Troubleshooting', path: '/troubleshooting' },
-    ],
-  },
-  {
-    title: 'Architecture',
-    items: [
-      { label: 'System Architecture', path: '/architecture' },
-      { label: 'Performance', path: '/performance' },
-      { label: 'Standards', path: '/standards' },
-      { label: 'Core Stability', path: '/core-stability' },
-    ],
-  },
-  {
-    title: 'Reference',
-    items: [
-      { label: 'Package Reference', path: '/reference' },
-      { label: 'REST API', path: '/api/rest-api' },
-      { label: 'Component Catalog', path: '/component-catalog' },
-      { label: 'AI', path: '/ai' },
-      { label: 'Marketplace', path: '/marketplace' },
-    ],
-  },
-  {
-    title: 'Showcase',
-    items: showcaseNavItems,
-  },
-  {
-    title: 'Pro & Enterprise',
-    items: [
-      { label: 'Pro (AI, MCP, Inference)', path: '/pro' },
-      { label: 'Enterprise', path: '/forge' },
-      { label: 'Local-First Setup', path: '/local-first' },
-    ],
-  },
-  {
-    title: 'RevFleet (companion products)',
-    items: [{ label: 'Other RevealUI Studio products →', path: '/revfleet' }],
-  },
-  {
-    title: 'Blog',
-    items: [
-      { label: 'Why We Built RevealUI', path: '/blog/01-why-we-built-revealui' },
-      { label: 'HTTP 402 Payments', path: '/blog/02-http-402-payments' },
-      { label: 'Multi-Agent Coordination', path: '/blog/03-multi-agent-coordination' },
-      { label: 'The Air-Gap Capable Stack', path: '/blog/04-local-first-ai-stack' },
-      { label: 'The Five Primitives', path: '/blog/05-five-primitives' },
-      { label: 'Open Source & Pro', path: '/blog/06-open-source-and-pro' },
-      { label: 'Agent-First Future', path: '/blog/07-agent-first-future' },
-      { label: 'Getting Started in About 30 Minutes', path: '/blog/08-getting-started' },
-    ],
-  },
-  {
-    title: 'Legal',
-    items: [{ label: 'Third-Party Licenses', path: '/third-party-licenses' }],
-  },
-];
+const sections: NavSection[] = buildDocNavSections(showcaseComponentItems);
 
 function NavLink({
   item,
