@@ -6,7 +6,7 @@
  * Prints a rotation checklist for the given secret name and generates a new value.
  *
  * Usage:
- *   pnpm secrets:rotate CMS_ADMIN_PASSWORD
+ *   pnpm secrets:rotate REVEALUI_ADMIN_PASSWORD
  *   pnpm secrets:rotate STRIPE_SECRET_KEY
  */
 
@@ -26,7 +26,7 @@ const secretName = process.argv[2];
 
 if (!secretName) {
   console.error('Usage: pnpm secrets:rotate <SECRET_NAME>');
-  console.error('Example: pnpm secrets:rotate CMS_ADMIN_PASSWORD');
+  console.error('Example: pnpm secrets:rotate REVEALUI_ADMIN_PASSWORD');
   process.exit(1);
 }
 
