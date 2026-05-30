@@ -1,21 +1,31 @@
-import { LinkButton } from '@revealui/presentation';
-import { useState } from 'react';
+import { LinkButton, useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
+import { useRef, useState } from 'react';
 import { NAV_AUTH, NAV_LINKS } from '../content/nav';
+
+const MOBILE_MENU_ID = 'marketing-mobile-menu';
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const close = () => setOpen(false);
+
+  // Use the modal primitives @revealui/presentation already ships: lock body
+  // scroll, trap focus inside the open menu, and close on Escape.
+  useScrollLock(open);
+  useFocusTrap(menuRef, open);
+  useEscapeKey(close, open);
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <nav className="mx-auto max-w-7xl px-6 lg:px-8 flex items-center justify-between h-16">
+    <header className="sticky top-0 z-50 border-b border-border bg-background backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
         <a href="/" className="text-xl font-bold tracking-tight text-foreground">
           RevealUI
         </a>
 
         {/* Desktop links */}
-        <div className="hidden sm:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+        <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
           {NAV_LINKS.map(({ label, href }) => (
-            <a key={label} href={href} className="hover:text-foreground transition-colors">
+            <a key={label} href={href} className="transition-colors hover:text-foreground">
               {label}
             </a>
           ))}
@@ -23,7 +33,7 @@ export function NavBar() {
             href="https://github.com/RevealUIStudio/revealui"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground transition-colors"
+            className="transition-colors hover:text-foreground"
             aria-label="GitHub"
           >
             <span className="sr-only">GitHub</span>
@@ -40,18 +50,19 @@ export function NavBar() {
         <div className="flex items-center gap-3">
           <a
             href={NAV_AUTH.login.href}
-            className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground lg:inline-flex"
           >
             {NAV_AUTH.login.label}
           </a>
           <LinkButton href={NAV_AUTH.signup.href}>{NAV_AUTH.signup.label}</LinkButton>
 
-          {/* Hamburger - mobile only */}
+          {/* Hamburger - mobile only. 44x44 tap target per WCAG 2.5.5 / Apple HIG. */}
           <button
             type="button"
-            className="sm:hidden -mr-1 flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted lg:hidden"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
+            aria-controls={MOBILE_MENU_ID}
             onClick={() => setOpen((o) => !o)}
           >
             {open ? (
@@ -87,45 +98,56 @@ export function NavBar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="sm:hidden border-t border-border bg-background px-6 py-4">
-          <div className="flex flex-col gap-1">
-            {NAV_LINKS.map(({ label, href }) => (
+        <>
+          {/* Backdrop: tap outside to close. Sits below the nav row (top-16) so
+              the trigger stays interactive; kept out of the tab order. */}
+          <button
+            type="button"
+            aria-label="Close menu"
+            tabIndex={-1}
+            onClick={close}
+            className="fixed inset-x-0 bottom-0 top-16 z-40 bg-foreground/10 lg:hidden"
+          />
+          <div
+            id={MOBILE_MENU_ID}
+            ref={menuRef}
+            className="relative z-50 border-t border-border bg-background px-6 py-4 lg:hidden"
+          >
+            <div className="flex flex-col gap-1">
+              {NAV_LINKS.map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  onClick={close}
+                >
+                  {label}
+                </a>
+              ))}
               <a
-                key={label}
-                href={href}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                onClick={() => setOpen(false)}
+                href="https://github.com/RevealUIStudio/revealui"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                onClick={close}
               >
-                {label}
+                GitHub
               </a>
-            ))}
-            <a
-              href="https://github.com/RevealUIStudio/revealui"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              GitHub
-            </a>
+            </div>
+            <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
+              <a
+                href={NAV_AUTH.login.href}
+                className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                onClick={close}
+              >
+                {NAV_AUTH.login.label}
+              </a>
+              <LinkButton href={NAV_AUTH.signup.href} onClick={close} className="w-full">
+                {NAV_AUTH.signup.label}
+              </LinkButton>
+            </div>
           </div>
-          <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-            <a
-              href={NAV_AUTH.login.href}
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              {NAV_AUTH.login.label}
-            </a>
-            <LinkButton
-              href={NAV_AUTH.signup.href}
-              onClick={() => setOpen(false)}
-              className="w-full"
-            >
-              {NAV_AUTH.signup.label}
-            </LinkButton>
-          </div>
-        </div>
+        </>
       )}
     </header>
   );
