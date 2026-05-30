@@ -75,11 +75,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       // Default error UI
       return (
-        <div className="my-16 p-6 border border-red-500 rounded-lg bg-red-50">
+        <div className="my-16 p-6 border border-error/30 rounded-lg bg-error/10">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-red-800 mb-2">Something went wrong</h2>
-              <p className="text-red-700">
+              <h2 className="text-lg font-semibold text-error mb-2">Something went wrong</h2>
+              <p className="text-error">
                 An unexpected error occurred while rendering this component. Please try refreshing
                 the page. Contact support@revealui.com if this persists.
               </p>
@@ -87,15 +87,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-medium text-red-800 mb-2">
+                <summary className="cursor-pointer text-sm font-medium text-error mb-2">
                   Error Details (Development Only)
                 </summary>
-                <div className="mt-2 p-4 bg-red-100 rounded border border-red-300">
-                  <p className="text-sm font-mono text-red-900 mb-2">
-                    {this.state.error.toString()}
-                  </p>
+                <div className="mt-2 p-4 bg-error/15 rounded border border-error/30">
+                  <p className="text-sm font-mono text-error mb-2">{this.state.error.toString()}</p>
                   {this.state.errorInfo && (
-                    <pre className="text-xs text-red-800 overflow-auto">
+                    <pre className="text-xs text-error overflow-auto">
                       {this.state.errorInfo.componentStack}
                     </pre>
                   )}
@@ -105,7 +103,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             <button
               onClick={this.handleReset}
-              className="self-start px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              className="self-start px-4 py-2 bg-error text-primary-foreground rounded hover:bg-error/90 transition-colors"
               type="button"
             >
               Try Again

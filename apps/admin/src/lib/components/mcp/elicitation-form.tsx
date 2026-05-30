@@ -58,17 +58,19 @@ export function ArgumentField({ name, prop, required, value, onChange }: Argumen
 
   return (
     <div>
-      <label htmlFor={inputId} className="mb-1 block text-xs font-medium text-zinc-300">
+      <label htmlFor={inputId} className="mb-1 block text-xs font-medium text-muted-foreground">
         {name}
-        {required && <span className="ml-1 text-red-400">*</span>}
-        <span className="ml-2 font-mono text-[10px] text-zinc-500">{prop.type ?? 'string'}</span>
+        {required && <span className="ml-1 text-error">*</span>}
+        <span className="ml-2 font-mono text-[10px] text-muted-foreground">
+          {prop.type ?? 'string'}
+        </span>
       </label>
       {prop.enum && prop.enum.length > 0 ? (
         <select
           id={inputId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
         >
           <option value="">—</option>
           {prop.enum.map((opt) => (
@@ -85,10 +87,12 @@ export function ArgumentField({ name, prop, required, value, onChange }: Argumen
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           required={required}
-          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
         />
       )}
-      {prop.description && <p className="mt-1 text-[11px] text-zinc-500">{prop.description}</p>}
+      {prop.description && (
+        <p className="mt-1 text-[11px] text-muted-foreground">{prop.description}</p>
+      )}
     </div>
   );
 }
@@ -152,14 +156,14 @@ export function ElicitationForm({ message, requestedSchema, onSubmit }: Elicitat
   return (
     <form
       onSubmit={handleAccept}
-      className="mt-4 rounded-md border border-blue-800 bg-blue-900/10 p-3"
+      className="mt-4 rounded-md border border-primary/30 bg-primary/10 p-3"
     >
       {message && (
         <div className="mb-3 flex items-center gap-2 text-xs">
-          <span className="rounded-full bg-blue-500/20 px-2 py-0.5 font-medium text-blue-300">
+          <span className="rounded-full bg-primary/15 px-2 py-0.5 font-medium text-primary">
             Server request
           </span>
-          <span className="text-blue-200">{message}</span>
+          <span className="text-primary">{message}</span>
         </div>
       )}
       <div className="space-y-3">
@@ -177,21 +181,21 @@ export function ElicitationForm({ message, requestedSchema, onSubmit }: Elicitat
       <div className="mt-3 flex items-center gap-2">
         <button
           type="submit"
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+          className="rounded-md bg-success px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-success/90"
         >
           Accept
         </button>
         <button
           type="button"
           onClick={() => void onSubmit('decline')}
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-700"
+          className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
           Decline
         </button>
         <button
           type="button"
           onClick={() => void onSubmit('cancel')}
-          className="rounded-md border border-red-800 bg-red-900/20 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-900/40"
+          className="rounded-md border border-error/30 bg-error/10 px-3 py-1.5 text-xs font-medium text-error transition-colors hover:bg-error/20"
         >
           Cancel
         </button>

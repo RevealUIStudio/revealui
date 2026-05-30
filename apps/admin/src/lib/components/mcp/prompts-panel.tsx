@@ -76,18 +76,18 @@ export function PromptsPanel({ tenant, server }: PromptsPanelProps) {
       {message && (
         <div
           role="alert"
-          className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-xs text-red-300"
+          className="rounded-lg border border-error/30 bg-error/10 p-3 text-xs text-error"
         >
           {message}
         </div>
       )}
       {state === 'loading' && (
-        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-4 text-center text-xs text-zinc-500">
+        <div className="rounded-lg border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
           Loading prompts…
         </div>
       )}
       {state === 'ready' && prompts.length === 0 && (
-        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-4 text-center text-xs text-zinc-500">
+        <div className="rounded-lg border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
           No prompts advertised.
         </div>
       )}
@@ -150,20 +150,22 @@ function PromptCard({ prompt, tenant, server }: PromptCardProps) {
   };
 
   return (
-    <details className="group rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+    <details className="group rounded-lg border border-border bg-card p-4">
       <summary className="flex cursor-pointer items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-mono text-sm font-semibold text-white">{prompt.name}</div>
+          <div className="font-mono text-sm font-semibold text-foreground">{prompt.name}</div>
           {prompt.description && (
-            <div className="mt-0.5 line-clamp-1 text-xs text-zinc-400">{prompt.description}</div>
+            <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+              {prompt.description}
+            </div>
           )}
         </div>
-        <span className="shrink-0 text-xs text-zinc-500 group-open:hidden">Expand</span>
+        <span className="shrink-0 text-xs text-muted-foreground group-open:hidden">Expand</span>
       </summary>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="mt-4 space-y-3">
         {args.length === 0 && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             This prompt takes no arguments. Click <span className="font-medium">Resolve</span> to
             fetch its messages.
           </p>
@@ -184,11 +186,11 @@ function PromptCard({ prompt, tenant, server }: PromptCardProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? 'Resolving…' : 'Resolve'}
           </button>
-          {error && <span className="text-xs text-red-400">{error}</span>}
+          {error && <span className="text-xs text-error">{error}</span>}
         </div>
       </form>
 
@@ -264,9 +266,9 @@ function PromptArgumentField({
 
   return (
     <div>
-      <label htmlFor={inputId} className="mb-1 block text-xs font-medium text-zinc-300">
+      <label htmlFor={inputId} className="mb-1 block text-xs font-medium text-muted-foreground">
         {arg.name}
-        {arg.required && <span className="ml-1 text-red-400">*</span>}
+        {arg.required && <span className="ml-1 text-error">*</span>}
       </label>
       <input
         id={inputId}
@@ -276,7 +278,7 @@ function PromptArgumentField({
         list={suggestions.length > 0 ? listId : undefined}
         required={arg.required}
         autoComplete="off"
-        className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
       />
       {suggestions.length > 0 && (
         <datalist id={listId}>
@@ -285,7 +287,9 @@ function PromptArgumentField({
           ))}
         </datalist>
       )}
-      {arg.description && <p className="mt-1 text-[11px] text-zinc-500">{arg.description}</p>}
+      {arg.description && (
+        <p className="mt-1 text-[11px] text-muted-foreground">{arg.description}</p>
+      )}
     </div>
   );
 }
@@ -298,18 +302,20 @@ function PromptResult({ result }: { result: GetPromptResult }) {
   return (
     <div className="mt-4 space-y-3">
       {result.description && (
-        <div className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-400">
+        <div className="rounded-md border border-border bg-card p-3 text-xs text-muted-foreground">
           {result.description}
         </div>
       )}
       {result.messages.map((msg, idx) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: messages have no id
-        <div key={idx} className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3">
-          <div className="mb-2 flex items-center gap-2 text-[10px] uppercase tracking-wide text-zinc-500">
-            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-zinc-300">{msg.role}</span>
-            <span className="text-zinc-600">{msg.content.type}</span>
+        <div key={idx} className="rounded-md border border-border bg-card p-3">
+          <div className="mb-2 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+              {msg.role}
+            </span>
+            <span className="text-muted-foreground">{msg.content.type}</span>
           </div>
-          <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-zinc-200">
+          <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-foreground">
             {msg.content.type === 'text'
               ? (msg.content.text ?? '')
               : `[${msg.content.type}${msg.content.mimeType ? ` ${msg.content.mimeType}` : ''}]`}

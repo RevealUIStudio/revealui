@@ -21,15 +21,15 @@ export default function AgentsPage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Page header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <h1 className="text-xl font-semibold text-white">Agents</h1>
-          <p className="mt-0.5 text-sm text-zinc-400">
+        <div className="border-b border-border bg-card px-6 py-4">
+          <h1 className="text-xl font-semibold text-foreground">Agents</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             A2A agent cards and MCP server integrations
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+        <div className="border-b border-border bg-muted px-6">
           <nav className="flex gap-1 -mb-px">
             {(['agents', 'mcp'] as Tab[]).map((t) => (
               <button
@@ -38,8 +38,8 @@ export default function AgentsPage() {
                 onClick={() => setTab(t)}
                 className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                   tab === t
-                    ? 'border-white text-white'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t === 'agents' ? 'Agent Cards' : 'MCP Servers'}
@@ -96,12 +96,12 @@ function AgentCardsPanel() {
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
             key={i}
-            className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 p-4"
+            className="animate-pulse rounded-lg border border-border bg-card p-4"
           >
-            <div className="mb-3 h-5 w-2/3 rounded bg-zinc-700" />
+            <div className="mb-3 h-5 w-2/3 rounded bg-foreground/10" />
             <div className="space-y-2">
-              <div className="h-3 w-full rounded bg-zinc-700/60" />
-              <div className="h-3 w-4/5 rounded bg-zinc-700/60" />
+              <div className="h-3 w-full rounded bg-foreground/10" />
+              <div className="h-3 w-4/5 rounded bg-foreground/10" />
             </div>
           </div>
         ))}
@@ -113,7 +113,7 @@ function AgentCardsPanel() {
     return (
       <div
         role="alert"
-        className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+        className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
       >
         {error}
       </div>
@@ -123,18 +123,18 @@ function AgentCardsPanel() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-zinc-400">{agents.length} agent(s) registered</p>
+        <p className="text-sm text-muted-foreground">{agents.length} agent(s) registered</p>
         <Link
           href="/agents/new"
-          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           + New Agent
         </Link>
       </div>
 
       {agents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 px-6 py-16 text-center">
-          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-zinc-800 text-zinc-400">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border px-6 py-16 text-center">
+          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <svg
               className="size-6"
               fill="none"
@@ -150,13 +150,13 @@ function AgentCardsPanel() {
               />
             </svg>
           </div>
-          <h3 className="text-sm font-semibold text-white">No agents registered</h3>
-          <p className="mt-1 max-w-sm text-sm text-zinc-400">
+          <h3 className="text-sm font-semibold text-foreground">No agents registered</h3>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
             Create your first AI agent to get started with automated tasks and workflows.
           </p>
           <Link
             href="/agents/new"
-            className="mt-6 rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
+            className="mt-6 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Create Agent
           </Link>
@@ -201,12 +201,12 @@ function McpServersPanel() {
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
             key={i}
-            className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 p-4"
+            className="animate-pulse rounded-lg border border-border bg-card p-4"
           >
-            <div className="mb-3 h-5 w-1/2 rounded bg-zinc-700" />
+            <div className="mb-3 h-5 w-1/2 rounded bg-foreground/10" />
             <div className="space-y-2">
-              <div className="h-3 w-full rounded bg-zinc-700/60" />
-              <div className="h-3 w-3/5 rounded bg-zinc-700/60" />
+              <div className="h-3 w-full rounded bg-foreground/10" />
+              <div className="h-3 w-3/5 rounded bg-foreground/10" />
             </div>
           </div>
         ))}
@@ -218,7 +218,7 @@ function McpServersPanel() {
     return (
       <div
         role="alert"
-        className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+        className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
       >
         {error}
       </div>
@@ -230,17 +230,17 @@ function McpServersPanel() {
   return (
     <div>
       <div className="mb-6 flex items-center gap-4">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           {servers.length} server(s) · {total} tools
         </p>
-        <span className="text-xs text-zinc-600">
+        <span className="text-xs text-muted-foreground">
           Start with <code className="font-mono">revealui dev up --include mcp</code>
         </span>
       </div>
 
       {servers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 px-6 py-16 text-center">
-          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-zinc-800 text-zinc-400">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border px-6 py-16 text-center">
+          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <svg
               className="size-6"
               fill="none"
@@ -256,11 +256,11 @@ function McpServersPanel() {
               />
             </svg>
           </div>
-          <h3 className="text-sm font-semibold text-white">No MCP servers connected</h3>
-          <p className="mt-1 max-w-sm text-sm text-zinc-400">
+          <h3 className="text-sm font-semibold text-foreground">No MCP servers connected</h3>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
             Start your development environment with MCP support to connect servers.
           </p>
-          <code className="mt-4 rounded-lg bg-zinc-800 px-3 py-1.5 font-mono text-xs text-zinc-300">
+          <code className="mt-4 rounded-lg bg-muted px-3 py-1.5 font-mono text-xs text-muted-foreground">
             revealui dev up --include mcp
           </code>
         </div>

@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Override the global useSearchParams mock for these tests
@@ -213,7 +213,7 @@ describe('AccountSettingsPage', () => {
 
     // Click the confirm "Unlink" button inside the dialog
     const dialog = screen.getByTestId('confirm-dialog');
-    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    const confirmButton = within(dialog).getByRole('button', { name: 'Unlink' });
     await act(async () => {
       fireEvent.click(confirmButton);
     });
@@ -249,7 +249,7 @@ describe('AccountSettingsPage', () => {
       fireEvent.click(screen.getByText('Unlink'));
     });
     const dialog = screen.getByTestId('confirm-dialog');
-    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    const confirmButton = within(dialog).getByRole('button', { name: 'Unlink' });
     await act(async () => {
       fireEvent.click(confirmButton);
     });
@@ -278,7 +278,7 @@ describe('AccountSettingsPage', () => {
       fireEvent.click(screen.getByText('Unlink'));
     });
     const dialog = screen.getByTestId('confirm-dialog');
-    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    const confirmButton = within(dialog).getByRole('button', { name: 'Unlink' });
     await act(async () => {
       fireEvent.click(confirmButton);
     });
@@ -374,7 +374,7 @@ describe('AccountSettingsPage', () => {
       fireEvent.click(screen.getByText('Unlink'));
     });
     const dialog = screen.getByTestId('confirm-dialog');
-    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    const confirmButton = within(dialog).getByRole('button', { name: 'Unlink' });
     await act(async () => {
       fireEvent.click(confirmButton);
     });
@@ -408,7 +408,7 @@ describe('AccountSettingsPage', () => {
       fireEvent.click(screen.getByText('Unlink'));
     });
     const dialog = screen.getByTestId('confirm-dialog');
-    const confirmButton = dialog.querySelector('button.bg-red-600') as HTMLButtonElement;
+    const confirmButton = within(dialog).getByRole('button', { name: 'Unlink' });
     await act(async () => {
       fireEvent.click(confirmButton);
     });

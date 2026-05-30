@@ -21,12 +21,12 @@ interface TaskProgress {
 type StatusFilter = 'all' | 'pending' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-900/50 text-yellow-400',
-  queued: 'bg-blue-900/50 text-blue-400',
-  running: 'bg-cyan-900/50 text-cyan-400',
-  completed: 'bg-green-900/50 text-green-400',
-  failed: 'bg-red-900/50 text-red-400',
-  cancelled: 'bg-zinc-800 text-zinc-500',
+  pending: 'bg-warning/10 text-warning-foreground',
+  queued: 'bg-primary/10 text-primary',
+  running: 'bg-primary/10 text-primary',
+  completed: 'bg-success/10 text-success',
+  failed: 'bg-error/10 text-error',
+  cancelled: 'bg-muted text-muted-foreground',
 };
 
 // =============================================================================
@@ -52,16 +52,19 @@ export default function TaskDashboardPage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+        <div className="border-b border-border bg-card px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <Link href="/marketplace" className="text-sm text-zinc-500 hover:text-zinc-300">
+              <Link
+                href="/marketplace"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
                 RevMarket
               </Link>
-              <span className="mx-2 text-zinc-700">/</span>
-              <span className="text-sm text-zinc-300">My Tasks</span>
-              <h1 className="mt-1 text-xl font-semibold text-white">Task Dashboard</h1>
-              <p className="mt-0.5 text-sm text-zinc-400">
+              <span className="mx-2 text-muted-foreground">/</span>
+              <span className="text-sm text-muted-foreground">My Tasks</span>
+              <h1 className="mt-1 text-xl font-semibold text-foreground">Task Dashboard</h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Track your submitted tasks - progress, cost, and artifacts
               </p>
             </div>
@@ -69,7 +72,7 @@ export default function TaskDashboardPage() {
         </div>
 
         {/* Status filter tabs */}
-        <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+        <div className="border-b border-border bg-muted px-6">
           <nav className="flex gap-1 -mb-px overflow-x-auto">
             {(
               [
@@ -90,8 +93,8 @@ export default function TaskDashboardPage() {
                   onClick={() => setFilter(s)}
                   className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                     filter === s
-                      ? 'border-white text-white'
-                      : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                      ? 'border-primary text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)} ({count})
@@ -106,18 +109,18 @@ export default function TaskDashboardPage() {
           {isLoading ? (
             <TaskTableSkeleton />
           ) : error ? (
-            <div className="rounded-lg border border-red-900 bg-red-950/50 p-4 text-sm text-red-400">
+            <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
               Failed to load tasks: {error.message}
             </div>
           ) : filteredTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-lg text-zinc-400">No tasks found</p>
-              <p className="mt-1 text-sm text-zinc-500">
+              <p className="text-lg text-muted-foreground">No tasks found</p>
+              <p className="mt-1 text-sm text-muted-foreground">
                 {filter !== 'all' ? 'Try a different filter' : 'Submit a task from the marketplace'}
               </p>
               <Link
                 href="/marketplace"
-                className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
               >
                 Browse Agents
               </Link>
@@ -181,26 +184,28 @@ function TaskRow({
     };
   }, [apiUrl, task.id, task.status]);
 
-  const statusClass = STATUS_COLORS[task.status] ?? 'bg-zinc-800 text-zinc-400';
+  const statusClass = STATUS_COLORS[task.status] ?? 'bg-muted text-muted-foreground';
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900">
+    <div className="rounded-lg border border-border bg-card">
       {/* Row header */}
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-zinc-800/50 transition-colors"
+        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-muted transition-colors"
       >
         <span className={`rounded px-2.5 py-0.5 text-xs font-medium ${statusClass}`}>
           {task.status}
         </span>
-        <span className="flex-1 text-sm text-white truncate">{task.skill_name}</span>
-        <span className="text-xs text-zinc-500">P{task.priority}</span>
-        {task.cost_usdc && <span className="text-xs text-zinc-400">${task.cost_usdc}</span>}
-        <span className="text-xs text-zinc-600">
+        <span className="flex-1 text-sm text-foreground truncate">{task.skill_name}</span>
+        <span className="text-xs text-muted-foreground">P{task.priority}</span>
+        {task.cost_usdc && <span className="text-xs text-muted-foreground">${task.cost_usdc}</span>}
+        <span className="text-xs text-muted-foreground">
           {new Date(task.created_at).toLocaleDateString()}
         </span>
-        <span className={`text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+        <span
+          className={`text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+        >
           ▼
         </span>
       </button>
@@ -209,43 +214,45 @@ function TaskRow({
       {task.status === 'running' && progress && progress.progress > 0 && (
         <div className="px-4 pb-2">
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+            <div className="flex-1 h-1.5 rounded-full bg-foreground/10 overflow-hidden">
               <div
-                className="h-full rounded-full bg-cyan-500 transition-all"
+                className="h-full rounded-full bg-primary transition-all"
                 style={{ width: `${progress.progress}%` }}
               />
             </div>
-            <span className="text-xs text-zinc-500">{progress.progress}%</span>
+            <span className="text-xs text-muted-foreground">{progress.progress}%</span>
           </div>
-          {progress.message && <p className="mt-1 text-xs text-zinc-500">{progress.message}</p>}
+          {progress.message && (
+            <p className="mt-1 text-xs text-muted-foreground">{progress.message}</p>
+          )}
         </div>
       )}
 
       {/* Expanded details */}
       {isExpanded && (
-        <div className="border-t border-zinc-800 px-4 py-3 space-y-3">
+        <div className="border-t border-border px-4 py-3 space-y-3">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-zinc-500">Task ID:</span>{' '}
-              <span className="font-mono text-xs text-zinc-300">{task.id}</span>
+              <span className="text-muted-foreground">Task ID:</span>{' '}
+              <span className="font-mono text-xs text-foreground">{task.id}</span>
             </div>
             <div>
-              <span className="text-zinc-500">Agent:</span>{' '}
-              <span className="text-zinc-300">{task.agent_id ?? 'Unassigned'}</span>
+              <span className="text-muted-foreground">Agent:</span>{' '}
+              <span className="text-foreground">{task.agent_id ?? 'Unassigned'}</span>
             </div>
             <div>
-              <span className="text-zinc-500">Created:</span>{' '}
-              <span className="text-zinc-300">{new Date(task.created_at).toLocaleString()}</span>
+              <span className="text-muted-foreground">Created:</span>{' '}
+              <span className="text-foreground">{new Date(task.created_at).toLocaleString()}</span>
             </div>
             <div>
-              <span className="text-zinc-500">Updated:</span>{' '}
-              <span className="text-zinc-300">{new Date(task.updated_at).toLocaleString()}</span>
+              <span className="text-muted-foreground">Updated:</span>{' '}
+              <span className="text-foreground">{new Date(task.updated_at).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Error message */}
           {task.error_message && (
-            <div className="rounded border border-red-900 bg-red-950/50 p-3 text-sm text-red-400">
+            <div className="rounded border border-error/30 bg-error/10 p-3 text-sm text-error">
               {task.error_message}
             </div>
           )}
@@ -253,8 +260,8 @@ function TaskRow({
           {/* Output */}
           {task.output && (
             <div>
-              <p className="text-xs text-zinc-500 mb-1">Output:</p>
-              <pre className="overflow-x-auto rounded bg-zinc-950 p-3 text-xs text-zinc-400">
+              <p className="text-xs text-muted-foreground mb-1">Output:</p>
+              <pre className="overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
                 {JSON.stringify(task.output, null, 2)}
               </pre>
             </div>
@@ -263,7 +270,7 @@ function TaskRow({
           {/* Artifacts */}
           {task.artifacts.length > 0 && (
             <div>
-              <p className="text-xs text-zinc-500 mb-1">Artifacts:</p>
+              <p className="text-xs text-muted-foreground mb-1">Artifacts:</p>
               <div className="space-y-1">
                 {task.artifacts.map((artifact) => (
                   <a
@@ -271,7 +278,7 @@ function TaskRow({
                     href={artifact.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-blue-400 hover:text-blue-300"
+                    className="block rounded border border-border bg-muted px-3 py-2 text-sm text-primary hover:text-primary/80"
                   >
                     {artifact.name} ({artifact.mimeType})
                   </a>
@@ -296,12 +303,12 @@ function TaskTableSkeleton() {
         <div
           // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
           key={i}
-          className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
+          className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
         >
           <div className="flex items-center gap-4">
-            <div className="h-5 w-16 rounded bg-zinc-800" />
-            <div className="h-4 w-48 rounded bg-zinc-800" />
-            <div className="ml-auto h-3 w-20 rounded bg-zinc-800" />
+            <div className="h-5 w-16 rounded bg-muted" />
+            <div className="h-4 w-48 rounded bg-muted" />
+            <div className="ml-auto h-3 w-20 rounded bg-muted" />
           </div>
         </div>
       ))}

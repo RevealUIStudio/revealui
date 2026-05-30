@@ -66,14 +66,14 @@ export default function EarningsDashboardPage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <Link href="/marketplace" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <div className="border-b border-border bg-card px-6 py-4">
+          <Link href="/marketplace" className="text-sm text-muted-foreground hover:text-foreground">
             RevMarket
           </Link>
-          <span className="mx-2 text-zinc-700">/</span>
-          <span className="text-sm text-zinc-300">Earnings</span>
-          <h1 className="mt-1 text-xl font-semibold text-white">Publisher Earnings</h1>
-          <p className="mt-0.5 text-sm text-zinc-400">Revenue from your published agents</p>
+          <span className="mx-2 text-muted-foreground">/</span>
+          <span className="text-sm text-muted-foreground">Earnings</span>
+          <h1 className="mt-1 text-xl font-semibold text-foreground">Publisher Earnings</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Revenue from your published agents</p>
         </div>
 
         {/* Content */}
@@ -81,11 +81,11 @@ export default function EarningsDashboardPage() {
           {loading ? (
             <EarningsSkeleton />
           ) : error ? (
-            <div className="rounded-lg border border-red-900 bg-red-950/50 p-4 text-sm text-red-400">
+            <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
               Failed to load earnings: {error}
             </div>
           ) : !summary ? (
-            <p className="text-sm text-zinc-500">No data available</p>
+            <p className="text-sm text-muted-foreground">No data available</p>
           ) : (
             <>
               {/* Summary cards */}
@@ -108,11 +108,13 @@ export default function EarningsDashboardPage() {
               </div>
 
               {/* Agent earnings breakdown */}
-              <h2 className="text-lg font-medium text-white mb-4">Earnings by Agent</h2>
+              <h2 className="text-lg font-medium text-foreground mb-4">Earnings by Agent</h2>
               {summary.agents.length === 0 ? (
                 <div className="flex flex-col items-center py-12 text-center">
-                  <p className="text-zinc-400">No published agents yet</p>
-                  <p className="mt-1 text-sm text-zinc-500">Publish an agent to start earning</p>
+                  <p className="text-muted-foreground">No published agents yet</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Publish an agent to start earning
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -121,16 +123,16 @@ export default function EarningsDashboardPage() {
                     return (
                       <div
                         key={agent.id}
-                        className="flex items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
+                        className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3"
                       >
                         <div className="flex-1">
                           <Link
                             href={`/marketplace/${agent.id}`}
-                            className="text-sm font-medium text-white hover:text-blue-400 transition-colors"
+                            className="text-sm font-medium text-foreground hover:text-primary transition-colors"
                           >
                             {agent.name}
                           </Link>
-                          <div className="mt-0.5 flex items-center gap-3 text-xs text-zinc-500">
+                          <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
                             <span>
                               ★ {agent.rating.toFixed(1)} ({agent.reviewCount})
                             </span>
@@ -138,8 +140,8 @@ export default function EarningsDashboardPage() {
                             <span
                               className={`rounded px-2 py-0.5 text-xs ${
                                 agent.status === 'published'
-                                  ? 'bg-green-900/50 text-green-400'
-                                  : 'bg-zinc-800 text-zinc-500'
+                                  ? 'bg-success/10 text-success'
+                                  : 'bg-muted text-muted-foreground'
                               }`}
                             >
                               {agent.status}
@@ -147,8 +149,12 @@ export default function EarningsDashboardPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-medium text-white">${earnings.toFixed(2)}</p>
-                          <p className="text-xs text-zinc-500">${agent.basePriceUsdc}/task</p>
+                          <p className="text-sm font-medium text-foreground">
+                            ${earnings.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            ${agent.basePriceUsdc}/task
+                          </p>
                         </div>
                       </div>
                     );
@@ -177,10 +183,10 @@ function SummaryCard({
   sublabel: string;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-      <p className="text-sm text-zinc-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
-      <p className="mt-0.5 text-xs text-zinc-600">{sublabel}</p>
+    <div className="rounded-lg border border-border bg-card p-5">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{sublabel}</p>
     </div>
   );
 }
@@ -195,24 +201,24 @@ function EarningsSkeleton() {
       <div className="grid gap-4 sm:grid-cols-3 mb-8">
         {Array.from({ length: 3 }, (_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-          <div key={i} className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-            <div className="h-3 w-20 rounded bg-zinc-800" />
-            <div className="mt-2 h-7 w-24 rounded bg-zinc-800" />
-            <div className="mt-1 h-2.5 w-16 rounded bg-zinc-800" />
+          <div key={i} className="animate-pulse rounded-lg border border-border bg-card p-5">
+            <div className="h-3 w-20 rounded bg-foreground/10" />
+            <div className="mt-2 h-7 w-24 rounded bg-foreground/10" />
+            <div className="mt-1 h-2.5 w-16 rounded bg-foreground/10" />
           </div>
         ))}
       </div>
-      <div className="h-5 w-32 rounded bg-zinc-800 mb-4" />
+      <div className="h-5 w-32 rounded bg-foreground/10 mb-4" />
       <div className="space-y-3">
         {Array.from({ length: 3 }, (_, i) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
             key={i}
-            className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
+            className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
           >
             <div className="flex items-center gap-4">
-              <div className="h-4 w-40 rounded bg-zinc-800" />
-              <div className="ml-auto h-4 w-16 rounded bg-zinc-800" />
+              <div className="h-4 w-40 rounded bg-foreground/10" />
+              <div className="ml-auto h-4 w-16 rounded bg-foreground/10" />
             </div>
           </div>
         ))}
