@@ -92,7 +92,7 @@ export default function InspectMcpServerPage() {
   if (!(tenant && server)) {
     return (
       <div className="mx-auto max-w-2xl p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
+        <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
           Missing <span className="font-mono">tenant</span> or{' '}
           <span className="font-mono">server</span> query parameter. Navigate from{' '}
           <a href="/mcp" className="underline">
@@ -106,26 +106,27 @@ export default function InspectMcpServerPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+      <div className="border-b border-border bg-card px-6 py-4">
         <div className="flex items-center gap-3">
-          <a href="/mcp" className="text-sm text-zinc-400 hover:text-zinc-200">
+          <a href="/mcp" className="text-sm text-muted-foreground hover:text-foreground">
             ← Catalog
           </a>
-          <span className="text-zinc-600">/</span>
-          <h1 className="text-xl font-semibold text-white">
-            <span className="font-mono text-zinc-400">{tenant}</span>{' '}
-            <span className="text-zinc-600">/</span> <span className="font-mono">{server}</span>
+          <span className="text-muted-foreground">/</span>
+          <h1 className="text-xl font-semibold text-foreground">
+            <span className="font-mono text-muted-foreground">{tenant}</span>{' '}
+            <span className="text-muted-foreground">/</span>{' '}
+            <span className="font-mono">{server}</span>
           </h1>
         </div>
         {serverUrl && (
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             {serverUrl} · {tools.length} {tools.length === 1 ? 'tool' : 'tools'}
           </p>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 bg-zinc-900/70">
+      <div className="border-b border-border bg-card">
         <nav className="mx-auto flex max-w-5xl gap-1 px-6" aria-label="Inspector surfaces">
           {(['tools', 'resources', 'prompts', 'logs'] as InspectorTab[]).map((t) => (
             <button
@@ -134,8 +135,8 @@ export default function InspectMcpServerPage() {
               onClick={() => setActiveTab(t)}
               className={`-mb-px border-b-2 px-3 py-2 text-sm capitalize transition-colors ${
                 activeTab === t
-                  ? 'border-emerald-500 text-emerald-300'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
               aria-current={activeTab === t ? 'page' : undefined}
             >
@@ -153,8 +154,8 @@ export default function InspectMcpServerPage() {
                 role="alert"
                 className={`mb-6 rounded-lg border p-3 text-sm ${
                   state === 'error'
-                    ? 'border-red-800 bg-red-900/20 text-red-300'
-                    : 'border-zinc-800 bg-zinc-900/50 text-zinc-300'
+                    ? 'border-error/30 bg-error/10 text-error'
+                    : 'border-border bg-card text-muted-foreground'
                 }`}
               >
                 {message}
@@ -162,16 +163,16 @@ export default function InspectMcpServerPage() {
             )}
 
             {state === 'loading' && (
-              <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+              <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
                 Loading tools…
               </div>
             )}
 
             {state === 'ready' && tools.length === 0 && (
-              <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+              <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
                 This server doesn&rsquo;t advertise any tools, or the{' '}
-                <span className="font-mono text-zinc-400">tools</span> capability isn&rsquo;t
-                declared.
+                <span className="font-mono text-muted-foreground">tools</span> capability
+                isn&rsquo;t declared.
               </div>
             )}
 

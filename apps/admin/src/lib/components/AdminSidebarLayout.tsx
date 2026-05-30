@@ -158,7 +158,7 @@ function AdminSidebarContent({ siteName }: { siteName: string }) {
       <SidebarHeader>
         <SidebarSection>
           <SidebarItem href="/" current={isCurrent('/')}>
-            <span className="text-lg font-bold text-white">RevealUI</span>
+            <span className="text-lg font-bold text-foreground">RevealUI</span>
           </SidebarItem>
         </SidebarSection>
       </SidebarHeader>
@@ -201,7 +201,7 @@ function AdminSidebarContent({ siteName }: { siteName: string }) {
         </SidebarSection>
       </SidebarBody>
       <SidebarFooter>
-        <p className="text-xs text-zinc-500">{siteName} Admin</p>
+        <p className="text-xs text-muted-foreground">{siteName} Admin</p>
       </SidebarFooter>
     </Sidebar>
   );

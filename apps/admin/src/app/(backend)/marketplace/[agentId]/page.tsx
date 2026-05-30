@@ -87,12 +87,12 @@ export default function MarketplaceAgentDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen">
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
+        <div className="border-b border-border bg-card px-6 py-4">
+          <div className="h-5 w-48 animate-pulse rounded bg-muted" />
         </div>
         <div className="p-6">
-          <div className="h-4 w-96 animate-pulse rounded bg-zinc-800" />
-          <div className="mt-3 h-3 w-64 animate-pulse rounded bg-zinc-800" />
+          <div className="h-4 w-96 animate-pulse rounded bg-muted" />
+          <div className="mt-3 h-3 w-64 animate-pulse rounded bg-muted" />
         </div>
       </div>
     );
@@ -101,12 +101,12 @@ export default function MarketplaceAgentDetailPage() {
   if (error || !agent) {
     return (
       <div className="min-h-screen p-6">
-        <div className="rounded-lg border border-red-900 bg-red-950/50 p-4 text-sm text-red-400">
+        <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
           {error ?? 'Agent not found'}
         </div>
         <Link
           href="/marketplace"
-          className="mt-4 inline-block text-sm text-zinc-400 hover:text-white"
+          className="mt-4 inline-block text-sm text-muted-foreground hover:text-foreground"
         >
           Back to marketplace
         </Link>
@@ -118,30 +118,30 @@ export default function MarketplaceAgentDetailPage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Breadcrumb + Header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <Link href="/marketplace" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <div className="border-b border-border bg-card px-6 py-4">
+          <Link href="/marketplace" className="text-sm text-muted-foreground hover:text-foreground">
             RevMarket
           </Link>
-          <span className="mx-2 text-zinc-700">/</span>
-          <span className="text-sm text-zinc-300">{agent.name}</span>
+          <span className="mx-2 text-muted-foreground">/</span>
+          <span className="text-sm text-muted-foreground">{agent.name}</span>
 
           <div className="mt-3 flex items-start justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-white">{agent.name}</h1>
-              <p className="mt-1 text-sm text-zinc-400">{agent.description}</p>
-              <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500">
+              <h1 className="text-xl font-semibold text-foreground">{agent.name}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{agent.description}</p>
+              <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <StarIcon />
                   {agent.rating.toFixed(1)} ({agent.reviewCount} reviews)
                 </span>
                 <span>{agent.taskCount} tasks completed</span>
-                <span className="rounded bg-zinc-800 px-2 py-0.5">{agent.category}</span>
-                <span className="text-zinc-600">v{agent.version}</span>
+                <span className="rounded bg-muted px-2 py-0.5">{agent.category}</span>
+                <span className="text-muted-foreground">v{agent.version}</span>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-lg font-semibold text-white">${agent.basePriceUsdc}</p>
-              <p className="text-xs text-zinc-500">
+              <p className="text-lg font-semibold text-foreground">${agent.basePriceUsdc}</p>
+              <p className="text-xs text-muted-foreground">
                 per {agent.pricingModel === 'per-task' ? 'task' : 'minute'}
               </p>
             </div>
@@ -149,7 +149,7 @@ export default function MarketplaceAgentDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+        <div className="border-b border-border bg-muted px-6">
           <nav className="flex gap-1 -mb-px">
             {(['skills', 'reviews', 'submit'] as ActiveTab[]).map((t) => (
               <button
@@ -158,8 +158,8 @@ export default function MarketplaceAgentDetailPage() {
                 onClick={() => setTab(t)}
                 className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                   tab === t
-                    ? 'border-white text-white'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t === 'skills'
@@ -203,31 +203,31 @@ export default function MarketplaceAgentDetailPage() {
 
 function SkillsPanel({ skills }: { skills: AgentSkill[] }) {
   if (skills.length === 0) {
-    return <p className="text-sm text-zinc-500">No skills registered for this agent.</p>;
+    return <p className="text-sm text-muted-foreground">No skills registered for this agent.</p>;
   }
 
   return (
     <div className="space-y-4">
       {skills.map((skill) => (
-        <div key={skill.id} className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-          <h3 className="font-medium text-white">{skill.name}</h3>
-          <p className="mt-1 text-sm text-zinc-400">{skill.description}</p>
+        <div key={skill.id} className="rounded-lg border border-border bg-card p-4">
+          <h3 className="font-medium text-foreground">{skill.name}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{skill.description}</p>
           {skill.inputSchema && (
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-300">
+              <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
                 Input Schema
               </summary>
-              <pre className="mt-2 overflow-x-auto rounded bg-zinc-950 p-3 text-xs text-zinc-400">
+              <pre className="mt-2 overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
                 {JSON.stringify(skill.inputSchema, null, 2)}
               </pre>
             </details>
           )}
           {skill.outputSchema && (
             <details className="mt-2">
-              <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-300">
+              <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
                 Output Schema
               </summary>
-              <pre className="mt-2 overflow-x-auto rounded bg-zinc-950 p-3 text-xs text-zinc-400">
+              <pre className="mt-2 overflow-x-auto rounded bg-muted p-3 text-xs text-muted-foreground">
                 {JSON.stringify(skill.outputSchema, null, 2)}
               </pre>
             </details>
@@ -287,11 +287,11 @@ function ReviewsPanel({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-zinc-300">{reviews.length} Reviews</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</h3>
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition-colors"
+          className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           Write Review
         </button>
@@ -300,10 +300,10 @@ function ReviewsPanel({
       {showForm && (
         <form
           onSubmit={handleSubmitReview}
-          className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900 p-4"
+          className="mb-6 rounded-lg border border-border bg-card p-4"
         >
           <div className="mb-3">
-            <span className="block text-sm text-zinc-400 mb-1">Rating</span>
+            <span className="block text-sm text-muted-foreground mb-1">Rating</span>
             <div className="flex gap-1" role="radiogroup" aria-label="Rating">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
@@ -311,7 +311,9 @@ function ReviewsPanel({
                   type="button"
                   onClick={() => setRating(n)}
                   className={`h-8 w-8 rounded transition-colors ${
-                    n <= rating ? 'bg-amber-500 text-black' : 'bg-zinc-800 text-zinc-600'
+                    n <= rating
+                      ? 'bg-warning text-warning-foreground'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {n}
@@ -320,7 +322,7 @@ function ReviewsPanel({
             </div>
           </div>
           <div className="mb-3">
-            <label className="block text-sm text-zinc-400 mb-1">
+            <label className="block text-sm text-muted-foreground mb-1">
               Comment (optional)
               <textarea
                 value={comment}
@@ -328,7 +330,7 @@ function ReviewsPanel({
                   e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                 ) => setComment(e.target.value)}
                 rows={3}
-                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                 placeholder="Share your experience..."
               />
             </label>
@@ -337,14 +339,14 @@ function ReviewsPanel({
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {submitting ? 'Submitting...' : 'Submit Review'}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+              className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
             >
               Cancel
             </button>
@@ -353,33 +355,37 @@ function ReviewsPanel({
       )}
 
       {reviews.length === 0 ? (
-        <p className="text-sm text-zinc-500">No reviews yet. Be the first to review this agent.</p>
+        <p className="text-sm text-muted-foreground">
+          No reviews yet. Be the first to review this agent.
+        </p>
       ) : (
         <div className="space-y-3">
           {reviews.map((review) => (
-            <div key={review.id} className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+            <div key={review.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex items-center gap-2">
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }, (_, i) => (
                     <span
                       // biome-ignore lint/suspicious/noArrayIndexKey: fixed 5-star display
                       key={i}
-                      className={`text-sm ${i < review.rating ? 'text-amber-500' : 'text-zinc-700'}`}
+                      className={`text-sm ${i < review.rating ? 'text-warning' : 'text-foreground/10'}`}
                     >
                       ★
                     </span>
                   ))}
                 </div>
                 {review.verified === 1 && (
-                  <span className="rounded bg-green-900/50 px-2 py-0.5 text-xs text-green-400">
+                  <span className="rounded bg-success/10 px-2 py-0.5 text-xs text-success">
                     Verified
                   </span>
                 )}
-                <span className="text-xs text-zinc-600">
+                <span className="text-xs text-muted-foreground">
                   {new Date(review.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              {review.comment && <p className="mt-2 text-sm text-zinc-400">{review.comment}</p>}
+              {review.comment && (
+                <p className="mt-2 text-sm text-muted-foreground">{review.comment}</p>
+              )}
             </div>
           ))}
         </div>
@@ -451,22 +457,22 @@ function SubmitTaskPanel({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl">
-      <h3 className="text-lg font-medium text-white mb-4">Submit a task to {agent.name}</h3>
+      <h3 className="text-lg font-medium text-foreground mb-4">Submit a task to {agent.name}</h3>
 
       {/* Skill selection */}
       <div className="mb-4">
         {/* biome-ignore lint/a11y/noLabelWithoutControl: select is inside the conditional branch */}
-        <label className="block text-sm text-zinc-400 mb-1">
+        <label className="block text-sm text-muted-foreground mb-1">
           Skill
           {skills.length === 0 ? (
-            <span className="block mt-1 text-zinc-500">No skills available</span>
+            <span className="block mt-1 text-muted-foreground">No skills available</span>
           ) : (
             <select
               value={selectedSkill}
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => setSelectedSkill(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-border bg-card px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
             >
               {skills.map((skill) => (
                 <option key={skill.id} value={skill.name}>
@@ -480,7 +486,7 @@ function SubmitTaskPanel({
 
       {/* Input JSON */}
       <div className="mb-4">
-        <label className="block text-sm text-zinc-400 mb-1">
+        <label className="block text-sm text-muted-foreground mb-1">
           Input (JSON)
           <textarea
             value={inputJson}
@@ -488,7 +494,7 @@ function SubmitTaskPanel({
               e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
             ) => setInputJson(e.target.value)}
             rows={8}
-            className="mt-1 w-full font-mono rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+            className="mt-1 w-full font-mono rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
             placeholder='{"key": "value"}'
           />
         </label>
@@ -496,7 +502,7 @@ function SubmitTaskPanel({
 
       {/* Priority */}
       <div className="mb-4">
-        <label className="block text-sm text-zinc-400 mb-1">
+        <label className="block text-sm text-muted-foreground mb-1">
           Priority (1=low, 5=critical)
           <input
             type="range"
@@ -509,7 +515,7 @@ function SubmitTaskPanel({
             className="mt-1 w-full"
           />
         </label>
-        <div className="flex justify-between text-xs text-zinc-600">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>Low</span>
           <span>Normal</span>
           <span>Critical</span>
@@ -517,15 +523,15 @@ function SubmitTaskPanel({
       </div>
 
       {/* Cost estimate */}
-      <div className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900 p-3">
-        <p className="text-sm text-zinc-400">
+      <div className="mb-6 rounded-lg border border-border bg-card p-3">
+        <p className="text-sm text-muted-foreground">
           Estimated cost:{' '}
-          <span className="font-medium text-white">${agent.basePriceUsdc} USDC</span>
+          <span className="font-medium text-foreground">${agent.basePriceUsdc} USDC</span>
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-900 bg-red-950/50 p-3 text-sm text-red-400">
+        <div className="mb-4 rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">
           {error}
         </div>
       )}
@@ -533,7 +539,7 @@ function SubmitTaskPanel({
       <button
         type="submit"
         disabled={submitting || skills.length === 0}
-        className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
         {submitting ? 'Submitting...' : 'Submit Task'}
       </button>
@@ -548,7 +554,7 @@ function SubmitTaskPanel({
 function StarIcon() {
   return (
     <svg
-      className="h-3.5 w-3.5 fill-amber-500"
+      className="h-3.5 w-3.5 fill-warning"
       viewBox="0 0 20 20"
       role="img"
       aria-label="Star rating"

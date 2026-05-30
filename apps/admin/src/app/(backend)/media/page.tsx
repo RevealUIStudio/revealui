@@ -122,7 +122,7 @@ function DropZone({
         if (e.dataTransfer.files.length > 0) onFiles(e.dataTransfer.files);
       }}
       className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
-        dragOver ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-700 hover:border-zinc-500'
+        dragOver ? 'border-primary bg-primary/10' : 'border-border hover:border-ring'
       } ${uploading ? 'pointer-events-none opacity-50' : ''}`}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => {
@@ -131,7 +131,7 @@ function DropZone({
       tabIndex={0}
     >
       <svg
-        className="mb-2 h-8 w-8 text-zinc-500"
+        className="mb-2 h-8 w-8 text-muted-foreground"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={1.5}
@@ -145,10 +145,10 @@ function DropZone({
           d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
         />
       </svg>
-      <p className="text-sm text-zinc-400">
+      <p className="text-sm text-muted-foreground">
         {uploading ? 'Uploading...' : 'Drop files here or click to upload'}
       </p>
-      <p className="mt-1 text-xs text-zinc-600">JPEG, PNG, WebP, GIF</p>
+      <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, WebP, GIF</p>
       <input
         ref={inputRef}
         type="file"
@@ -178,9 +178,9 @@ function MediaCard({
   const [deleting, setDeleting] = useState(false);
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 transition-colors hover:border-zinc-600">
+    <div className="group relative overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-ring">
       <button type="button" onClick={() => onPreview(item)} className="block w-full">
-        <div className="flex h-40 items-center justify-center bg-zinc-950">
+        <div className="flex h-40 items-center justify-center bg-muted">
           {isImage(item.mimeType) ? (
             // biome-ignore lint/performance/noImgElement: external Blob URLs  -  next/image requires configured domains
             <img
@@ -191,7 +191,7 @@ function MediaCard({
             />
           ) : (
             <svg
-              className="h-12 w-12 text-zinc-600"
+              className="h-12 w-12 text-muted-foreground"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1}
@@ -209,10 +209,10 @@ function MediaCard({
         </div>
       </button>
       <div className="p-3">
-        <p className="truncate text-sm font-medium text-white" title={item.filename}>
+        <p className="truncate text-sm font-medium text-foreground" title={item.filename}>
           {item.filename}
         </p>
-        <p className="mt-0.5 text-xs text-zinc-500">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {item.mimeType.split('/')[1]?.toUpperCase()} · {formatBytes(item.filesize)}
         </p>
       </div>
@@ -227,7 +227,7 @@ function MediaCard({
           }
         }}
         disabled={deleting}
-        className="absolute top-2 right-2 rounded-full bg-zinc-900/80 p-1.5 text-zinc-400 opacity-0 backdrop-blur transition-opacity hover:text-red-400 group-hover:opacity-100"
+        className="absolute top-2 right-2 rounded-full bg-card/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-error group-hover:opacity-100"
         aria-label={`Delete ${item.filename}`}
       >
         <svg
@@ -259,13 +259,13 @@ function PreviewModal({ item, onClose }: { item: MediaItem; onClose: () => void 
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: click stops propagation to backdrop */}
       {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content panel needs click stop-propagation */}
       <div
-        className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-lg bg-zinc-900 p-4 shadow-2xl"
+        className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-lg bg-popover p-4 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3 right-3 rounded-full bg-zinc-800 p-1.5 text-zinc-400 hover:text-white"
+          className="absolute top-3 right-3 rounded-full bg-muted p-1.5 text-muted-foreground hover:text-foreground"
           aria-label="Close preview"
         >
           <svg
@@ -288,18 +288,20 @@ function PreviewModal({ item, onClose }: { item: MediaItem; onClose: () => void 
             className="max-h-[80vh] max-w-full rounded object-contain"
           />
         ) : (
-          <div className="flex h-64 w-96 items-center justify-center text-zinc-500">
+          <div className="flex h-64 w-96 items-center justify-center text-muted-foreground">
             File preview not available
           </div>
         )}
         <div className="mt-4 space-y-1 text-sm">
-          <p className="font-medium text-white">{item.filename}</p>
-          <p className="text-zinc-400">
+          <p className="font-medium text-foreground">{item.filename}</p>
+          <p className="text-muted-foreground">
             {item.mimeType} · {formatBytes(item.filesize)}
             {item.width != null && item.height != null && ` · ${item.width}x${item.height}`}
           </p>
-          {item.alt && <p className="text-zinc-500">Alt: {item.alt}</p>}
-          <p className="text-zinc-600">Uploaded {new Date(item.createdAt).toLocaleDateString()}</p>
+          {item.alt && <p className="text-muted-foreground">Alt: {item.alt}</p>}
+          <p className="text-muted-foreground">
+            Uploaded {new Date(item.createdAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
     </div>
@@ -394,8 +396,8 @@ export default function MediaLibraryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Media Library</h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             {totalDocs} {totalDocs === 1 ? 'file' : 'files'}
           </p>
         </div>
@@ -405,7 +407,7 @@ export default function MediaLibraryPage() {
             onChange={(
               e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
             ) => handleFilterChange(e.target.value)}
-            className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white"
+            className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground"
           >
             <option value="">All types</option>
             <option value="image/jpeg">JPEG</option>
@@ -418,7 +420,7 @@ export default function MediaLibraryPage() {
 
       {error && (
         <div
-          className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+          className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
           role="alert"
         >
           {error}
@@ -433,14 +435,14 @@ export default function MediaLibraryPage() {
             <div
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders have no stable ID
               key={`skeleton-${i}`}
-              className="h-52 animate-pulse rounded-lg border border-zinc-800 bg-zinc-900"
+              className="h-52 animate-pulse rounded-lg border border-border bg-card"
             />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 py-16">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card py-16">
           <svg
-            className="mb-3 h-12 w-12 text-zinc-700"
+            className="mb-3 h-12 w-12 text-muted-foreground"
             fill="none"
             viewBox="0 0 24 24"
             aria-hidden="true"
@@ -454,8 +456,8 @@ export default function MediaLibraryPage() {
               d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
             />
           </svg>
-          <p className="text-sm text-zinc-500">No media files yet</p>
-          <p className="mt-1 text-xs text-zinc-600">Upload images to get started</p>
+          <p className="text-sm text-muted-foreground">No media files yet</p>
+          <p className="mt-1 text-xs text-muted-foreground">Upload images to get started</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
@@ -466,8 +468,8 @@ export default function MediaLibraryPage() {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
-          <p className="text-sm text-zinc-500">
+        <div className="flex items-center justify-between border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">
             Page {page + 1} of {totalPages}
           </p>
           <div className="flex gap-2">
@@ -475,7 +477,7 @@ export default function MediaLibraryPage() {
               type="button"
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 0}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground disabled:opacity-50"
             >
               Previous
             </button>
@@ -483,7 +485,7 @@ export default function MediaLibraryPage() {
               type="button"
               onClick={() => handlePageChange(page + 1)}
               disabled={page >= totalPages - 1}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground disabled:opacity-50"
             >
               Next
             </button>

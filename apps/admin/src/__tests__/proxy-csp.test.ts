@@ -84,3 +84,34 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
     expect(a).not.toBe(b);
   });
 });
+
+describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ needed: false }) });
+  });
+
+  it('lets an authenticated non-admin (paying customer) reach /welcome without bouncing to /login', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/welcome?success=true&tier=pro', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=user' },
+      }),
+    );
+    // Post-checkout landing is session-gated, not admin-gated: no redirect.
+    expect(res.headers.get('location')).toBeNull();
+  });
+
+  it('still requires a session for /welcome (no session redirects to /login)', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/welcome'));
+    expect(res.headers.get('location')).toContain('/login');
+  });
+
+  it('still enforces the admin role on other backend pages (non-admin session redirects to /login)', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/posts', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=user' },
+      }),
+    );
+    expect(res.headers.get('location')).toContain('/login');
+  });
+});

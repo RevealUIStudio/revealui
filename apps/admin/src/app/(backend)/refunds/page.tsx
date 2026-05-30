@@ -219,7 +219,7 @@ function RefundsDashboard() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div
-          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200"
+          className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-foreground"
           aria-hidden="true"
         />
       </div>
@@ -230,11 +230,11 @@ function RefundsDashboard() {
   if (!user) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-400">Authentication Required</h2>
-          <p className="mt-2 text-sm text-zinc-400">
+        <div className="rounded-lg border border-error/30 bg-error/10 p-6 text-center">
+          <h2 className="text-lg font-semibold text-error">Authentication Required</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             Please{' '}
-            <a href="/login?redirect=/refunds" className="text-emerald-400 underline">
+            <a href="/login?redirect=/refunds" className="text-primary underline">
               sign in
             </a>{' '}
             to access this page.
@@ -248,9 +248,9 @@ function RefundsDashboard() {
   if (!isAdmin) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-400">Access Denied</h2>
-          <p className="mt-2 text-sm text-zinc-400">
+        <div className="rounded-lg border border-error/30 bg-error/10 p-6 text-center">
+          <h2 className="text-lg font-semibold text-error">Access Denied</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             Admin or owner role is required to issue refunds.
           </p>
         </div>
@@ -261,9 +261,9 @@ function RefundsDashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-        <h1 className="text-xl font-semibold text-white">Refund Management</h1>
-        <p className="mt-0.5 text-sm text-zinc-400">
+      <div className="border-b border-border bg-card px-6 py-4">
+        <h1 className="text-xl font-semibold text-foreground">Refund Management</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Issue full or partial refunds for Stripe payments
         </p>
       </div>
@@ -272,9 +272,9 @@ function RefundsDashboard() {
         {/* Refund Form */}
         <form
           onSubmit={(e) => void handleSubmit(e)}
-          className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6"
+          className="rounded-lg border border-border bg-card p-6"
         >
-          <h2 className="mb-4 text-lg font-medium text-white">Issue Refund</h2>
+          <h2 className="mb-4 text-lg font-medium text-foreground">Issue Refund</h2>
 
           {/* Status Message */}
           {message && (
@@ -282,15 +282,15 @@ function RefundsDashboard() {
               role="alert"
               className={`mb-4 flex items-center justify-between rounded-lg border p-3 text-sm ${
                 submitStatus === 'success'
-                  ? 'border-emerald-800 bg-emerald-900/20 text-emerald-400'
-                  : 'border-red-800 bg-red-900/20 text-red-400'
+                  ? 'border-success/30 bg-success/10 text-success'
+                  : 'border-error/30 bg-error/10 text-error'
               }`}
             >
               <span>{message}</span>
               <button
                 type="button"
                 onClick={() => dispatch({ type: 'DISMISS_MESSAGE' })}
-                className="ml-3 shrink-0 text-zinc-500 hover:text-zinc-300"
+                className="ml-3 shrink-0 text-muted-foreground hover:text-foreground"
                 aria-label="Dismiss message"
               >
                 <svg
@@ -316,7 +316,7 @@ function RefundsDashboard() {
             <div className="sm:col-span-2">
               <label
                 htmlFor="refund-identifier"
-                className="mb-1.5 block text-sm font-medium text-zinc-300"
+                className="mb-1.5 block text-sm font-medium text-foreground"
               >
                 Payment Intent or Charge ID
               </label>
@@ -329,9 +329,9 @@ function RefundsDashboard() {
                 ) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
                 placeholder="pi_abc123 or ch_abc123"
                 required
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Prefix determines type: pi_ for payment intents, ch_ for charges
               </p>
             </div>
@@ -340,7 +340,7 @@ function RefundsDashboard() {
             <div>
               <label
                 htmlFor="refund-amount"
-                className="mb-1.5 block text-sm font-medium text-zinc-300"
+                className="mb-1.5 block text-sm font-medium text-foreground"
               >
                 Amount (USD)
               </label>
@@ -354,16 +354,18 @@ function RefundsDashboard() {
                 placeholder="Leave empty for full refund"
                 min="0.01"
                 step="0.01"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
-              <p className="mt-1 text-xs text-zinc-500">Optional. Omit for a full refund.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Optional. Omit for a full refund.
+              </p>
             </div>
 
             {/* Reason */}
             <div>
               <label
                 htmlFor="refund-reason"
-                className="mb-1.5 block text-sm font-medium text-zinc-300"
+                className="mb-1.5 block text-sm font-medium text-foreground"
               >
                 Reason
               </label>
@@ -378,7 +380,7 @@ function RefundsDashboard() {
                     value: e.target.value as State['reason'],
                   })
                 }
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 <option value="requested_by_customer">Requested by customer</option>
                 <option value="duplicate">Duplicate charge</option>
@@ -392,12 +394,12 @@ function RefundsDashboard() {
             <button
               type="submit"
               disabled={submitStatus === 'submitting' || !identifier.trim()}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitStatus === 'submitting' ? (
                 <span className="flex items-center gap-2">
                   <span
-                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground"
                     aria-hidden="true"
                   />
                   Processing...
@@ -407,7 +409,7 @@ function RefundsDashboard() {
               )}
             </button>
             {submitStatus === 'submitting' && (
-              <span className="text-xs text-zinc-500">This may take a few seconds...</span>
+              <span className="text-xs text-muted-foreground">This may take a few seconds...</span>
             )}
           </div>
         </form>
@@ -415,37 +417,51 @@ function RefundsDashboard() {
         {/* Refund History (session-local) */}
         {history.length > 0 && (
           <div className="mt-8">
-            <h2 className="mb-3 text-lg font-medium text-white">
+            <h2 className="mb-3 text-lg font-medium text-foreground">
               Recent Refunds{' '}
-              <span className="text-sm font-normal text-zinc-500">(this session)</span>
+              <span className="text-sm font-normal text-muted-foreground">(this session)</span>
             </h2>
-            <div className="overflow-x-auto rounded-lg border border-zinc-800">
+            <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Refund ID</th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Amount</th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Source</th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Reason</th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Time</th>
+                  <tr className="border-b border-border bg-card">
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Refund ID
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Amount
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Source
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                      Reason
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Time</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.map((record) => (
-                    <tr key={record.id} className="border-b border-zinc-800/50 last:border-b-0">
-                      <td className="px-4 py-3 font-mono text-xs text-zinc-300">{record.id}</td>
+                    <tr key={record.id} className="border-b border-border last:border-b-0">
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                        {record.id}
+                      </td>
                       <td className="px-4 py-3">
                         <RefundStatusBadge status={record.status} />
                       </td>
-                      <td className="px-4 py-3 text-zinc-300">
+                      <td className="px-4 py-3 text-foreground">
                         {formatAmount(record.amount, record.currency)}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-zinc-500">
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                         {record.paymentIntentId ?? record.chargeId ?? '-'}
                       </td>
-                      <td className="px-4 py-3 text-zinc-400">{formatReason(record.reason)}</td>
-                      <td className="px-4 py-3 text-xs text-zinc-500">
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatReason(record.reason)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
                         {new Date(record.createdAt).toLocaleTimeString()}
                       </td>
                     </tr>
@@ -457,9 +473,9 @@ function RefundsDashboard() {
         )}
 
         {/* Help text */}
-        <div className="mt-8 rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-          <h3 className="text-sm font-medium text-zinc-300">Notes</h3>
-          <ul className="mt-2 space-y-1 text-xs text-zinc-500">
+        <div className="mt-8 rounded-lg border border-border bg-card p-4">
+          <h3 className="text-sm font-medium text-foreground">Notes</h3>
+          <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
             <li>
               Full refunds automatically trigger license revocation via the charge.refunded webhook.
             </li>
@@ -474,7 +490,7 @@ function RefundsDashboard() {
                 href="https://dashboard.stripe.com/payments"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-400 underline"
+                className="text-primary underline"
               >
                 Stripe Dashboard
               </a>
@@ -493,13 +509,13 @@ function RefundsDashboard() {
 
 function RefundStatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    succeeded: 'bg-emerald-500/10 text-emerald-400',
-    pending: 'bg-yellow-500/10 text-yellow-400',
-    failed: 'bg-red-500/10 text-red-400',
-    canceled: 'bg-zinc-600/20 text-zinc-400',
-    requires_action: 'bg-blue-500/10 text-blue-400',
+    succeeded: 'bg-success/10 text-success',
+    pending: 'bg-warning/15 text-warning-foreground',
+    failed: 'bg-error/10 text-error',
+    canceled: 'bg-muted text-muted-foreground',
+    requires_action: 'bg-primary/10 text-primary',
   };
-  const color = colors[status] ?? 'bg-zinc-700/20 text-zinc-400';
+  const color = colors[status] ?? 'bg-muted text-muted-foreground';
   return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{status}</span>;
 }
 

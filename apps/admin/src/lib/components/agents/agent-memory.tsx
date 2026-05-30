@@ -23,14 +23,14 @@ interface EnrichedMemory {
 }
 
 const MEMORY_TYPE_LABELS: Record<string, MemoryTypeInfo> = {
-  episodic: { label: 'Episodic', color: 'text-blue-400 bg-blue-500/10' },
-  semantic: { label: 'Semantic', color: 'text-purple-400 bg-purple-500/10' },
-  working: { label: 'Working', color: 'text-amber-400 bg-amber-500/10' },
+  episodic: { label: 'Episodic', color: 'text-primary bg-primary/10' },
+  semantic: { label: 'Semantic', color: 'text-accent-foreground bg-accent/10' },
+  working: { label: 'Working', color: 'text-warning-foreground bg-warning/15' },
 } as const;
 
 const FALLBACK_TYPE_INFO: MemoryTypeInfo = {
   label: '',
-  color: 'text-zinc-400 bg-zinc-500/10',
+  color: 'text-muted-foreground bg-muted',
 };
 
 function isMemoryExpired(expiresAt: string | null | undefined): boolean {
@@ -95,7 +95,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
     return (
       <div
         role="alert"
-        className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+        className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
       >
         Failed to load agent memory
       </div>
@@ -110,7 +110,9 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
           type="button"
           onClick={() => setFilter(null)}
           className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-            filter === null ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
+            filter === null
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           All ({memories.length})
@@ -121,7 +123,9 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
             type="button"
             onClick={() => setFilter(filter === type ? null : type)}
             className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-              filter === type ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
+              filter === type
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {label} ({typeCounts[type] ?? 0})
@@ -129,7 +133,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
         ))}
         {isLoading && (
           <div
-            className="ml-auto h-3 w-3 animate-spin rounded-full border border-zinc-600 border-t-zinc-300"
+            className="ml-auto h-3 w-3 animate-spin rounded-full border border-border border-t-foreground"
             aria-hidden="true"
           />
         )}
@@ -137,7 +141,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
 
       {/* Memory list */}
       {sorted.length === 0 ? (
-        <p className="py-8 text-center text-sm text-zinc-600">
+        <p className="py-8 text-center text-sm text-muted-foreground">
           {isLoading ? 'Loading memories...' : 'No memories recorded yet.'}
         </p>
       ) : (
@@ -145,7 +149,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
           {sorted.map((memory) => (
             <li
               key={memory.id}
-              className={`group rounded-lg border border-zinc-800 p-3 transition-colors hover:border-zinc-700 ${
+              className={`group rounded-lg border border-border p-3 transition-colors hover:border-border ${
                 memory.isExpired ? 'opacity-50' : ''
               }`}
             >
@@ -157,18 +161,20 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                     >
                       {memory.typeInfo.label}
                     </span>
-                    {memory.isExpired && <span className="text-xs text-zinc-600">expired</span>}
-                    <span className="text-xs text-zinc-600">
+                    {memory.isExpired && (
+                      <span className="text-xs text-muted-foreground">expired</span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
                       {formatRelativeTime(memory.created_at)}
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-300 line-clamp-3">{memory.content}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{memory.content}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleRemove(memory.id)}
                   disabled={removingId === memory.id}
-                  className="shrink-0 rounded p-1 text-zinc-600 opacity-0 transition-all hover:bg-zinc-800 hover:text-red-400 group-hover:opacity-100 disabled:opacity-50"
+                  className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-error group-hover:opacity-100 disabled:opacity-50"
                   title="Delete memory"
                   aria-label="Delete memory"
                 >

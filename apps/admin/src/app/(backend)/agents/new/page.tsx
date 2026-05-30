@@ -228,7 +228,7 @@ export default function NewAgentPage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+        <div className="border-b border-border bg-card px-6 py-4">
           <Breadcrumb
             items={[
               { label: 'Admin', href: '/' },
@@ -236,14 +236,16 @@ export default function NewAgentPage() {
               { label: 'New Agent' },
             ]}
           />
-          <p className="mt-2 text-sm text-zinc-400">Scaffold a new AI agent from a template</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Scaffold a new AI agent from a template
+          </p>
         </div>
 
         <div className="mx-auto max-w-2xl p-6">
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
             {/* Step 1  -  Template */}
             <section>
-              <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+              <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                 1. Choose a template
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -254,26 +256,26 @@ export default function NewAgentPage() {
                     onClick={() => applyTemplate(t.key)}
                     className={`rounded-xl border p-4 text-left transition-all ${
                       selectedTemplate === t.key
-                        ? 'border-zinc-400 bg-zinc-800 ring-1 ring-zinc-400'
-                        : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
+                        ? 'border-border bg-muted ring-1 ring-ring'
+                        : 'border-border bg-card hover:border-border'
                     }`}
                   >
                     <div className="mb-1 flex items-center gap-2">
                       <TemplateIcon templateKey={t.key} />
-                      <span className="font-medium text-white text-sm">{t.label}</span>
+                      <span className="font-medium text-foreground text-sm">{t.label}</span>
                     </div>
-                    <p className="text-xs text-zinc-400 leading-relaxed">{t.description}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t.description}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {t.capabilities.slice(0, 2).map((cap) => (
                         <span
                           key={cap}
-                          className="rounded-full bg-zinc-700 px-2 py-0.5 text-xs text-zinc-300"
+                          className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                         >
                           {cap}
                         </span>
                       ))}
                       {t.capabilities.length > 2 && (
-                        <span className="rounded-full bg-zinc-700 px-2 py-0.5 text-xs text-zinc-300">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                           +{t.capabilities.length - 2}
                         </span>
                       )}
@@ -286,7 +288,7 @@ export default function NewAgentPage() {
             {/* Step 2  -  Details (shown after template selection) */}
             {selectedTemplate && (
               <section className="flex flex-col gap-4">
-                <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                   2. Configure agent
                 </h2>
 
@@ -294,9 +296,9 @@ export default function NewAgentPage() {
                 <div>
                   <label
                     htmlFor="agent-name"
-                    className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    className="block text-sm font-medium text-muted-foreground mb-1.5"
                   >
-                    Name <span className="text-red-400">*</span>
+                    Name <span className="text-error">*</span>
                   </label>
                   <input
                     id="agent-name"
@@ -307,10 +309,10 @@ export default function NewAgentPage() {
                       e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                     ) => handleNameChange(e.target.value)}
                     placeholder={`e.g. ${tpl?.label ?? 'My Agent'}`}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   />
                   {name.trim() && (
-                    <p className="mt-1 text-xs text-zinc-500">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Agent ID:{' '}
                       <code className="font-mono">
                         {name
@@ -327,7 +329,7 @@ export default function NewAgentPage() {
                 <div>
                   <label
                     htmlFor="agent-desc"
-                    className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    className="block text-sm font-medium text-muted-foreground mb-1.5"
                   >
                     Description
                   </label>
@@ -339,7 +341,7 @@ export default function NewAgentPage() {
                       e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                     ) => dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })}
                     placeholder={tpl?.description ?? 'What does this agent do?'}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   />
                 </div>
 
@@ -347,7 +349,7 @@ export default function NewAgentPage() {
                 <div>
                   <label
                     htmlFor="agent-prompt"
-                    className="block text-sm font-medium text-zinc-300 mb-1.5"
+                    className="block text-sm font-medium text-muted-foreground mb-1.5"
                   >
                     System Prompt
                   </label>
@@ -359,17 +361,17 @@ export default function NewAgentPage() {
                       e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                     ) => dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })}
                     placeholder="Describe the agent's role, personality, and constraints..."
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
+                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
                   />
                 </div>
 
                 {/* Model info (read-only) */}
-                <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-xs text-zinc-400">
-                  <span className="font-medium text-zinc-300">Model:</span> {tpl?.model}
+                <div className="rounded-lg border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Model:</span> {tpl?.model}
                   &nbsp;·&nbsp;
-                  <span className="font-medium text-zinc-300">Temp:</span> {tpl?.temperature}
+                  <span className="font-medium text-foreground">Temp:</span> {tpl?.temperature}
                   &nbsp;·&nbsp;
-                  <span className="font-medium text-zinc-300">Max tokens:</span>{' '}
+                  <span className="font-medium text-foreground">Max tokens:</span>{' '}
                   {tpl?.maxTokens?.toLocaleString()}
                 </div>
 
@@ -377,7 +379,7 @@ export default function NewAgentPage() {
                 {error && (
                   <div
                     role="alert"
-                    className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+                    className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
                   >
                     {error}
                   </div>
@@ -388,13 +390,13 @@ export default function NewAgentPage() {
                   <button
                     type="submit"
                     disabled={submitting || !name.trim()}
-                    className="rounded-lg bg-zinc-100 px-5 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {submitting ? 'Creating...' : 'Create Agent'}
                   </button>
                   <Link
                     href="/agents"
-                    className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+                    className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                   >
                     Cancel
                   </Link>
@@ -417,7 +419,7 @@ function TemplateIcon({ templateKey }: { templateKey: TemplateKey }) {
     content: (
       <svg
         aria-hidden="true"
-        className="h-4 w-4 text-zinc-400"
+        className="h-4 w-4 text-muted-foreground"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -433,7 +435,7 @@ function TemplateIcon({ templateKey }: { templateKey: TemplateKey }) {
     code: (
       <svg
         aria-hidden="true"
-        className="h-4 w-4 text-zinc-400"
+        className="h-4 w-4 text-muted-foreground"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -449,7 +451,7 @@ function TemplateIcon({ templateKey }: { templateKey: TemplateKey }) {
     support: (
       <svg
         aria-hidden="true"
-        className="h-4 w-4 text-zinc-400"
+        className="h-4 w-4 text-muted-foreground"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -465,7 +467,7 @@ function TemplateIcon({ templateKey }: { templateKey: TemplateKey }) {
     analytics: (
       <svg
         aria-hidden="true"
-        className="h-4 w-4 text-zinc-400"
+        className="h-4 w-4 text-muted-foreground"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"

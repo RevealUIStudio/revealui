@@ -113,11 +113,11 @@ function reducer(state: State, action: Action): State {
 const STATE_ORDER: StateFilter[] = ['all', 'created', 'active', 'completed', 'failed', 'retry'];
 
 const STATE_COLORS: Record<string, string> = {
-  created: 'bg-zinc-600/20 text-zinc-300',
-  active: 'bg-blue-500/10 text-blue-400',
-  completed: 'bg-emerald-500/10 text-emerald-400',
-  failed: 'bg-red-500/10 text-red-400',
-  retry: 'bg-amber-500/10 text-amber-400',
+  created: 'bg-muted text-muted-foreground',
+  active: 'bg-primary/10 text-primary',
+  completed: 'bg-success/10 text-success',
+  failed: 'bg-error/10 text-error',
+  retry: 'bg-warning/15 text-warning-foreground',
 };
 
 function formatTimestamp(iso: string | null): string {
@@ -210,16 +210,16 @@ function JobsDashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-        <h1 className="text-xl font-semibold text-white">Durable Work Queue</h1>
-        <p className="mt-0.5 text-sm text-zinc-400">
+      <div className="border-b border-border bg-card px-6 py-4">
+        <h1 className="text-xl font-semibold text-foreground">Durable Work Queue</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Background jobs processed by the CR8-P2-01 queue (agent dispatch, saga outbox, future
           handlers).
         </p>
       </div>
 
       {/* State stat row */}
-      <div className="overflow-x-auto border-b border-zinc-800 bg-zinc-950 px-6 py-3">
+      <div className="overflow-x-auto border-b border-border bg-muted px-6 py-3">
         <div className="flex min-w-max gap-6">
           <StatePill label="Created" value={summary?.stateCounts.created ?? 0} color="zinc" />
           <StatePill label="Active" value={summary?.stateCounts.active ?? 0} color="blue" />
@@ -230,7 +230,7 @@ function JobsDashboard() {
           />
           <StatePill label="Failed" value={summary?.stateCounts.failed ?? 0} color="red" />
           <StatePill label="Retry" value={summary?.stateCounts.retry ?? 0} color="amber" />
-          <span className="ml-auto text-xs text-zinc-600">
+          <span className="ml-auto text-xs text-muted-foreground">
             {summary ? `snapshot ${formatTimestamp(summary.timestamp)}` : ''}
           </span>
         </div>
@@ -238,8 +238,8 @@ function JobsDashboard() {
 
       {/* Per-handler 24h row */}
       {summary && summary.byHandler24h.length > 0 && (
-        <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-3">
-          <h2 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <div className="border-b border-border bg-muted px-6 py-3">
+          <h2 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Handlers (last 24h)
           </h2>
           <div className="flex flex-wrap gap-3">
@@ -251,7 +251,7 @@ function JobsDashboard() {
       )}
 
       {/* Filter row */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+      <div className="border-b border-border bg-muted px-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <nav className="flex min-w-max gap-1 -mb-px" aria-label="State filter">
             {STATE_ORDER.map((s) => (
@@ -261,8 +261,8 @@ function JobsDashboard() {
                 onClick={() => dispatch({ type: 'SET_STATE_FILTER', filter: s })}
                 className={`border-b-2 px-4 py-3 text-sm font-medium capitalize transition-colors ${
                   stateFilter === s
-                    ? 'border-white text-white'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {s}
@@ -271,7 +271,7 @@ function JobsDashboard() {
             ))}
           </nav>
           <div className="flex items-center gap-2 py-2">
-            <label htmlFor="name-filter" className="text-xs text-zinc-500">
+            <label htmlFor="name-filter" className="text-xs text-muted-foreground">
               Handler:
             </label>
             <select
@@ -280,7 +280,7 @@ function JobsDashboard() {
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => dispatch({ type: 'SET_NAME_FILTER', filter: e.target.value })}
-              className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-300 focus:border-zinc-500 focus:outline-none"
+              className="rounded border border-border bg-muted px-2 py-1 text-xs text-foreground focus:border-ring focus:outline-none"
             >
               <option value="">All handlers</option>
               {handlerNames.map((n) => (
@@ -301,12 +301,12 @@ function JobsDashboard() {
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
                 key={i}
-                className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 px-4 py-3"
+                className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-16 rounded-full bg-zinc-700" />
-                  <div className="h-4 flex-1 rounded bg-zinc-700/60" />
-                  <div className="h-3 w-32 rounded bg-zinc-700/40" />
+                  <div className="h-5 w-16 rounded-full bg-foreground/10" />
+                  <div className="h-4 flex-1 rounded bg-foreground/10" />
+                  <div className="h-3 w-32 rounded bg-foreground/10" />
                 </div>
               </div>
             ))}
@@ -314,7 +314,7 @@ function JobsDashboard() {
         ) : error ? (
           <div
             role="alert"
-            className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+            className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
           >
             {error}
           </div>
@@ -322,7 +322,7 @@ function JobsDashboard() {
           <EmptyState stateFilter={stateFilter} nameFilter={nameFilter} />
         ) : (
           <>
-            <div className="mb-3 text-xs text-zinc-500">
+            <div className="mb-3 text-xs text-muted-foreground">
               Showing {jobs.length} of {total} matching jobs
             </div>
             <div className="flex flex-col gap-2">
@@ -356,16 +356,16 @@ function StatePill({
   color: 'emerald' | 'red' | 'blue' | 'zinc' | 'amber';
 }) {
   const colors = {
-    emerald: 'text-emerald-400',
-    red: 'text-red-400',
-    blue: 'text-blue-400',
-    zinc: 'text-zinc-400',
-    amber: 'text-amber-400',
+    emerald: 'text-success',
+    red: 'text-error',
+    blue: 'text-primary',
+    zinc: 'text-muted-foreground',
+    amber: 'text-warning-foreground',
   };
   return (
     <div className="flex items-center gap-1.5">
       <span className={`text-sm font-semibold ${colors[color]}`}>{value}</span>
-      <span className="text-xs text-zinc-500">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -382,12 +382,12 @@ function HandlerChip({
   running: number;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-xs">
-      <div className="font-mono text-zinc-300">{name}</div>
-      <div className="mt-1 flex gap-3 text-[11px] text-zinc-500">
-        <span className="text-emerald-400">{completed} ok</span>
-        <span className="text-red-400">{failed} fail</span>
-        {running > 0 && <span className="text-blue-400">{running} running</span>}
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs">
+      <div className="font-mono text-muted-foreground">{name}</div>
+      <div className="mt-1 flex gap-3 text-[11px] text-muted-foreground">
+        <span className="text-success">{completed} ok</span>
+        <span className="text-error">{failed} fail</span>
+        {running > 0 && <span className="text-primary">{running} running</span>}
       </div>
     </div>
   );
@@ -408,7 +408,7 @@ function JobRow({
       : null;
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-800/40 transition-colors hover:border-zinc-700">
+    <div className="rounded-lg border border-border bg-card transition-colors hover:border-border">
       <button
         type="button"
         onClick={onToggle}
@@ -417,36 +417,38 @@ function JobRow({
       >
         <div className="flex items-center gap-3">
           <StateBadge state={job.state} />
-          <span className="truncate font-mono text-sm text-zinc-300">{job.name}</span>
-          <span className="hidden shrink-0 text-xs text-zinc-600 sm:inline">
+          <span className="truncate font-mono text-sm text-muted-foreground">{job.name}</span>
+          <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
             {truncate(job.id, 32)}
           </span>
           {job.retryCount > 0 && (
             <span
               title={`retry ${job.retryCount}/${job.retryLimit}`}
-              className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400"
+              className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning-foreground"
             >
               ↻ {job.retryCount}
             </span>
           )}
-          <span className="ml-auto shrink-0 font-mono text-xs text-zinc-600">
+          <span className="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
             {formatTimestamp(job.createdAt)}
           </span>
           {durationMs != null && (
-            <span className="hidden shrink-0 text-xs text-zinc-500 sm:inline">{durationMs}ms</span>
+            <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+              {durationMs}ms
+            </span>
           )}
           <ChevronIcon expanded={expanded} />
         </div>
         {!expanded && job.lastError && (
-          <p className="mt-1.5 truncate text-xs text-red-400">
-            <span className="text-zinc-600">err: </span>
+          <p className="mt-1.5 truncate text-xs text-error">
+            <span className="text-muted-foreground">err: </span>
             {job.lastError}
           </p>
         )}
       </button>
 
       {expanded && (
-        <div className="border-t border-zinc-800 px-4 py-3">
+        <div className="border-t border-border px-4 py-3">
           <div className="grid gap-4 text-sm lg:grid-cols-2">
             <MetaField label="Job ID" value={job.id} mono />
             <MetaField label="Handler" value={job.name} mono />
@@ -467,27 +469,27 @@ function JobRow({
             )}
 
             {job.data != null && (
-              <div className="col-span-full border-t border-zinc-800 pt-3">
-                <h4 className="mb-1 text-xs font-medium text-zinc-500">Payload</h4>
-                <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-zinc-400">
+              <div className="col-span-full border-t border-border pt-3">
+                <h4 className="mb-1 text-xs font-medium text-muted-foreground">Payload</h4>
+                <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-muted-foreground">
                   {JSON.stringify(job.data, null, 2)}
                 </pre>
               </div>
             )}
 
             {job.output != null && (
-              <div className="col-span-full border-t border-zinc-800 pt-3">
-                <h4 className="mb-1 text-xs font-medium text-zinc-500">Output</h4>
-                <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-zinc-400">
+              <div className="col-span-full border-t border-border pt-3">
+                <h4 className="mb-1 text-xs font-medium text-muted-foreground">Output</h4>
+                <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-muted-foreground">
                   {JSON.stringify(job.output, null, 2)}
                 </pre>
               </div>
             )}
 
             {job.lastError && (
-              <div role="alert" className="col-span-full border-t border-zinc-800 pt-3">
-                <h4 className="mb-1 text-xs font-medium text-red-500">Last error</h4>
-                <p className="whitespace-pre-wrap text-xs text-red-400">{job.lastError}</p>
+              <div role="alert" className="col-span-full border-t border-border pt-3">
+                <h4 className="mb-1 text-xs font-medium text-error">Last error</h4>
+                <p className="whitespace-pre-wrap text-xs text-error">{job.lastError}</p>
               </div>
             )}
           </div>
@@ -498,7 +500,7 @@ function JobRow({
 }
 
 function StateBadge({ state }: { state: string }) {
-  const color = STATE_COLORS[state] ?? 'bg-zinc-700/20 text-zinc-400';
+  const color = STATE_COLORS[state] ?? 'bg-muted text-muted-foreground';
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
       {state}
@@ -509,8 +511,8 @@ function StateBadge({ state }: { state: string }) {
 function MetaField({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <span className="text-xs text-zinc-600">{label}: </span>
-      <span className={`text-xs text-zinc-400 ${mono ? 'font-mono' : ''}`}>{value}</span>
+      <span className="text-xs text-muted-foreground">{label}: </span>
+      <span className={`text-xs text-muted-foreground ${mono ? 'font-mono' : ''}`}>{value}</span>
     </div>
   );
 }
@@ -518,7 +520,7 @@ function MetaField({ label, value, mono }: { label: string; value: string; mono?
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
-      className={`h-4 w-4 shrink-0 text-zinc-600 transition-transform ${expanded ? 'rotate-180' : ''}`}
+      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -542,9 +544,9 @@ function EmptyState({ stateFilter, nameFilter }: { stateFilter: StateFilter; nam
 
   return (
     <div className="flex flex-col items-center py-16">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <svg
-          className="h-6 w-6 text-zinc-500"
+          className="h-6 w-6 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -558,7 +560,7 @@ function EmptyState({ stateFilter, nameFilter }: { stateFilter: StateFilter; nam
           />
         </svg>
       </div>
-      <p className="max-w-md text-center text-sm text-zinc-500">{message}</p>
+      <p className="max-w-md text-center text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }

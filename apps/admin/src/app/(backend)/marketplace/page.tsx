@@ -78,30 +78,30 @@ export default function MarketplacePage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+        <div className="border-b border-border bg-card px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-white">RevMarket</h1>
-              <p className="mt-0.5 text-sm text-zinc-400">
+              <h1 className="text-xl font-semibold text-foreground">RevMarket</h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Browse autonomous agents - find the right agent for your task
               </p>
             </div>
             <div className="flex gap-2">
               <Link
                 href="/marketplace/tasks"
-                className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
               >
                 My Tasks
               </Link>
               <Link
                 href="/marketplace/analytics"
-                className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
               >
                 Analytics
               </Link>
               <Link
                 href="/marketplace/publish"
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition-colors"
+                className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Publish Agent
               </Link>
@@ -110,7 +110,7 @@ export default function MarketplacePage() {
         </div>
 
         {/* Search + Filters */}
-        <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-4">
+        <div className="border-b border-border bg-muted px-6 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             {/* Search */}
             <input
@@ -120,7 +120,7 @@ export default function MarketplacePage() {
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => setSearch(e.target.value)}
-              className="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
             />
 
             {/* Category filter */}
@@ -129,7 +129,7 @@ export default function MarketplacePage() {
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => setCategory(e.target.value)}
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+              className="rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
             >
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
@@ -144,7 +144,7 @@ export default function MarketplacePage() {
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => setSort(e.target.value as SortOption)}
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+              className="rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
             >
               <option value="rating">Highest Rated</option>
               <option value="tasks">Most Used</option>
@@ -159,19 +159,19 @@ export default function MarketplacePage() {
           {loading ? (
             <AgentGridSkeleton />
           ) : error ? (
-            <div className="rounded-lg border border-red-900 bg-red-950/50 p-4 text-sm text-red-400">
+            <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
               Failed to load agents: {error}
             </div>
           ) : agents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-lg text-zinc-400">No agents found</p>
-              <p className="mt-1 text-sm text-zinc-500">
+              <p className="text-lg text-muted-foreground">No agents found</p>
+              <p className="mt-1 text-sm text-muted-foreground">
                 {search ? 'Try a different search term' : 'No agents published yet'}
               </p>
             </div>
           ) : (
             <>
-              <p className="mb-4 text-sm text-zinc-500">
+              <p className="mb-4 text-sm text-muted-foreground">
                 {total} agent{total !== 1 ? 's' : ''} found
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -195,16 +195,16 @@ function MarketplaceAgentCard({ agent }: { agent: MarketplaceAgent }) {
   return (
     <Link
       href={`/marketplace/${agent.id}`}
-      className="group rounded-lg border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-zinc-600 hover:bg-zinc-800/50"
+      className="group rounded-lg border border-border bg-card p-5 transition-colors hover:border-border hover:bg-muted"
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="font-medium text-white group-hover:text-blue-400 transition-colors">
+          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
             {agent.name}
           </h3>
-          <p className="mt-1 text-sm text-zinc-400 line-clamp-2">{agent.description}</p>
+          <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
         </div>
-        <span className="ml-3 rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-400">
+        <span className="ml-3 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
           {agent.category}
         </span>
       </div>
@@ -213,24 +213,24 @@ function MarketplaceAgentCard({ agent }: { agent: MarketplaceAgent }) {
       {agent.tags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1">
           {agent.tags.slice(0, 4).map((tag) => (
-            <span key={tag} className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">
+            <span key={tag} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               {tag}
             </span>
           ))}
           {agent.tags.length > 4 && (
-            <span className="text-xs text-zinc-600">+{agent.tags.length - 4}</span>
+            <span className="text-xs text-muted-foreground">+{agent.tags.length - 4}</span>
           )}
         </div>
       )}
 
       {/* Stats */}
-      <div className="mt-4 flex items-center gap-4 text-xs text-zinc-500">
+      <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <StarIcon />
           {agent.rating.toFixed(1)} ({agent.reviewCount})
         </span>
         <span>{agent.taskCount} tasks</span>
-        <span className="ml-auto font-medium text-zinc-300">
+        <span className="ml-auto font-medium text-foreground">
           ${agent.basePriceUsdc}/{agent.pricingModel === 'per-task' ? 'task' : 'min'}
         </span>
       </div>
@@ -247,13 +247,13 @@ function AgentGridSkeleton() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }, (_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-        <div key={i} className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-          <div className="h-4 w-2/3 rounded bg-zinc-800" />
-          <div className="mt-2 h-3 w-full rounded bg-zinc-800" />
-          <div className="mt-1 h-3 w-4/5 rounded bg-zinc-800" />
+        <div key={i} className="animate-pulse rounded-lg border border-border bg-card p-5">
+          <div className="h-4 w-2/3 rounded bg-foreground/10" />
+          <div className="mt-2 h-3 w-full rounded bg-foreground/10" />
+          <div className="mt-1 h-3 w-4/5 rounded bg-foreground/10" />
           <div className="mt-4 flex gap-4">
-            <div className="h-3 w-16 rounded bg-zinc-800" />
-            <div className="h-3 w-12 rounded bg-zinc-800" />
+            <div className="h-3 w-16 rounded bg-foreground/10" />
+            <div className="h-3 w-12 rounded bg-foreground/10" />
           </div>
         </div>
       ))}
@@ -268,7 +268,7 @@ function AgentGridSkeleton() {
 function StarIcon() {
   return (
     <svg
-      className="h-3.5 w-3.5 fill-amber-500"
+      className="h-3.5 w-3.5 fill-warning"
       viewBox="0 0 20 20"
       role="img"
       aria-label="Star rating"

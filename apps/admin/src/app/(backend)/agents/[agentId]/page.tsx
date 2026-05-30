@@ -152,7 +152,7 @@ export default function AgentDetailPage({ params }: PageProps) {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Breadcrumb header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+        <div className="border-b border-border bg-card px-6 py-4">
           <Breadcrumb
             items={[
               { label: 'Admin', href: '/' },
@@ -165,14 +165,14 @@ export default function AgentDetailPage({ params }: PageProps) {
         <div className="p-6">
           {loading && (
             <div className="flex h-32 items-center justify-center">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-foreground" />
             </div>
           )}
 
           {error && (
             <div
               role="alert"
-              className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+              className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
             >
               {error}
             </div>
@@ -183,13 +183,13 @@ export default function AgentDetailPage({ params }: PageProps) {
               {/* Left: Agent metadata */}
               <div className="flex flex-col gap-6">
                 {/* Identity */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   {isEditing ? (
                     <div className="flex flex-col gap-4">
                       <div>
                         <label
                           htmlFor="edit-name"
-                          className="block text-xs font-medium text-zinc-400 mb-1.5"
+                          className="block text-xs font-medium text-muted-foreground mb-1.5"
                         >
                           Name
                         </label>
@@ -202,13 +202,13 @@ export default function AgentDetailPage({ params }: PageProps) {
                               HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
                             >,
                           ) => setEditName(e.target.value)}
-                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="edit-description"
-                          className="block text-xs font-medium text-zinc-400 mb-1.5"
+                          className="block text-xs font-medium text-muted-foreground mb-1.5"
                         >
                           Description
                         </label>
@@ -221,13 +221,13 @@ export default function AgentDetailPage({ params }: PageProps) {
                               HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
                             >,
                           ) => setEditDescription(e.target.value)}
-                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="edit-system-prompt"
-                          className="block text-xs font-medium text-zinc-400 mb-1.5"
+                          className="block text-xs font-medium text-muted-foreground mb-1.5"
                         >
                           System Prompt
                         </label>
@@ -240,13 +240,13 @@ export default function AgentDetailPage({ params }: PageProps) {
                               HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
                             >,
                           ) => setEditSystemPrompt(e.target.value)}
-                          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
+                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
                         />
                       </div>
                       {saveError && (
                         <div
                           role="alert"
-                          className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+                          className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
                         >
                           {saveError}
                         </div>
@@ -256,7 +256,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           type="button"
                           onClick={handleSave}
                           disabled={saving || !editName.trim()}
-                          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {saving ? 'Saving...' : 'Save'}
                         </button>
@@ -264,7 +264,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           type="button"
                           onClick={handleEditCancel}
                           disabled={saving}
-                          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+                          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
                           Cancel
                         </button>
@@ -273,24 +273,24 @@ export default function AgentDetailPage({ params }: PageProps) {
                   ) : (
                     <>
                       <div className="flex items-start justify-between gap-3">
-                        <h1 className="text-xl font-semibold text-white">{card.name}</h1>
+                        <h1 className="text-xl font-semibold text-foreground">{card.name}</h1>
                         <div className="flex shrink-0 items-center gap-2">
-                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                          <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
                             v{card.version}
                           </span>
                           <button
                             type="button"
                             onClick={handleEditStart}
                             disabled={loadingDef}
-                            className="rounded-lg border border-zinc-700 px-3 py-1 text-xs font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {loadingDef ? '...' : 'Edit'}
                           </button>
                         </div>
                       </div>
-                      <p className="mt-2 text-sm text-zinc-400">{card.description}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
                       {card.provider && (
-                        <p className="mt-3 text-xs text-zinc-600">
+                        <p className="mt-3 text-xs text-muted-foreground">
                           by {card.provider.organization}
                         </p>
                       )}
@@ -299,61 +299,67 @@ export default function AgentDetailPage({ params }: PageProps) {
                 </div>
 
                 {/* Capabilities */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Capabilities
                   </h2>
                   <dl className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <dt className="text-zinc-400">Streaming</dt>
+                      <dt className="text-muted-foreground">Streaming</dt>
                       <dd
                         className={
-                          card.capabilities.streaming ? 'text-emerald-400' : 'text-zinc-600'
+                          card.capabilities.streaming ? 'text-success' : 'text-muted-foreground'
                         }
                       >
                         {card.capabilities.streaming ? 'yes' : 'no'}
                       </dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-zinc-400">Push Notifications</dt>
+                      <dt className="text-muted-foreground">Push Notifications</dt>
                       <dd
                         className={
-                          card.capabilities.pushNotifications ? 'text-emerald-400' : 'text-zinc-600'
+                          card.capabilities.pushNotifications
+                            ? 'text-success'
+                            : 'text-muted-foreground'
                         }
                       >
                         {card.capabilities.pushNotifications ? 'yes' : 'no'}
                       </dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-zinc-400">Auth</dt>
-                      <dd className="text-zinc-300">{card.authentication.schemes.join(', ')}</dd>
+                      <dt className="text-muted-foreground">Auth</dt>
+                      <dd className="text-muted-foreground">
+                        {card.authentication.schemes.join(', ')}
+                      </dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-zinc-400">Input modes</dt>
-                      <dd className="text-zinc-300">{card.defaultInputModes.join(', ')}</dd>
+                      <dt className="text-muted-foreground">Input modes</dt>
+                      <dd className="text-muted-foreground">{card.defaultInputModes.join(', ')}</dd>
                     </div>
                   </dl>
                 </div>
 
                 {/* Skills */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Skills ({card.skills.length})
                   </h2>
                   <ul className="space-y-3">
                     {card.skills.map((skill) => (
                       <li
                         key={skill.id}
-                        className="border-t border-zinc-800 pt-3 first:border-0 first:pt-0"
+                        className="border-t border-border pt-3 first:border-0 first:pt-0"
                       >
-                        <p className="font-mono text-sm font-medium text-zinc-200">{skill.id}</p>
-                        <p className="mt-0.5 text-sm text-zinc-400">{skill.description}</p>
+                        <p className="font-mono text-sm font-medium text-muted-foreground">
+                          {skill.id}
+                        </p>
+                        <p className="mt-0.5 text-sm text-muted-foreground">{skill.description}</p>
                         {skill.tags && skill.tags.length > 0 && (
                           <div className="mt-1.5 flex flex-wrap gap-1">
                             {skill.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-500"
+                                className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
                               >
                                 {tag}
                               </span>
@@ -370,25 +376,25 @@ export default function AgentDetailPage({ params }: PageProps) {
                   href={`${apiUrl}/.well-known/agents/${agentId}/agent.json`}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-center text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
+                  className="rounded-lg border border-border bg-muted px-4 py-2.5 text-center text-sm text-muted-foreground transition-colors hover:bg-muted/80"
                 >
                   View Agent Card JSON ↗
                 </a>
 
                 {/* Danger zone  -  built-in agents are protected */}
                 {!BUILTIN_AGENTS.has(agentId) && (
-                  <div className="rounded-xl border border-red-900/40 bg-red-950/10 p-5">
-                    <h2 className="mb-3 text-sm font-medium text-red-400">Danger Zone</h2>
+                  <div className="rounded-xl border border-error/30 bg-error/10 p-5">
+                    <h2 className="mb-3 text-sm font-medium text-error">Danger Zone</h2>
                     {isConfirmingRetire ? (
                       <div className="flex flex-col gap-3">
-                        <p className="text-sm text-zinc-300">
-                          Retire <strong className="text-white">{card.name}</strong>? This removes
-                          the agent from the registry. This action cannot be undone.
+                        <p className="text-sm text-muted-foreground">
+                          Retire <strong className="text-foreground">{card.name}</strong>? This
+                          removes the agent from the registry. This action cannot be undone.
                         </p>
                         {retireError && (
                           <div
                             role="alert"
-                            className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-400"
+                            className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
                           >
                             {retireError}
                           </div>
@@ -398,7 +404,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                             type="button"
                             onClick={handleRetire}
                             disabled={retiring}
-                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-lg bg-error px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {retiring ? 'Retiring...' : 'Confirm Retire'}
                           </button>
@@ -409,7 +415,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                               setRetireError(null);
                             }}
                             disabled={retiring}
-                            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:text-zinc-100"
+                            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                           >
                             Cancel
                           </button>
@@ -417,13 +423,13 @@ export default function AgentDetailPage({ params }: PageProps) {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between gap-4">
-                        <p className="text-sm text-zinc-500">
+                        <p className="text-sm text-muted-foreground">
                           Remove this agent from the registry permanently.
                         </p>
                         <button
                           type="button"
                           onClick={() => setIsConfirmingRetire(true)}
-                          className="shrink-0 rounded-lg border border-red-800 px-3 py-1.5 text-sm font-medium text-red-400 transition-colors hover:border-red-600 hover:text-red-300"
+                          className="shrink-0 rounded-lg border border-error/30 px-3 py-1.5 text-sm font-medium text-error transition-colors hover:border-error/50 hover:text-error"
                         >
                           Retire Agent
                         </button>
@@ -435,14 +441,14 @@ export default function AgentDetailPage({ params }: PageProps) {
 
               {/* Right: Task tester + history */}
               <div className="flex flex-col gap-6">
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                <div className="rounded-xl border border-border bg-card p-5">
                   <div className="mb-4 flex items-center justify-between gap-2">
-                    <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
+                    <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                       Task Tester
                     </h2>
                     <a
                       href={`/agents/${encodeURIComponent(agentId)}/run`}
-                      className="rounded-md border border-emerald-700 bg-emerald-900/20 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-900/40"
+                      className="rounded-md border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success transition-colors hover:bg-success/20"
                       title="Stream agent execution live (Stage 5 surface)"
                     >
                       Watch live ↗
@@ -455,25 +461,29 @@ export default function AgentDetailPage({ params }: PageProps) {
                   />
                 </div>
 
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Agent Memory
-                    <span className="ml-2 text-xs font-normal normal-case text-zinc-600">live</span>
+                    <span className="ml-2 text-xs font-normal normal-case text-muted-foreground">
+                      live
+                    </span>
                   </h2>
                   <AgentMemory agentId={agentId} />
                 </div>
 
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Task History
                   </h2>
                   <TaskHistory agentId={agentId} refreshKey={taskRefreshKey} />
                 </div>
 
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Agent Contexts
-                    <span className="ml-2 text-xs font-normal normal-case text-zinc-600">live</span>
+                    <span className="ml-2 text-xs font-normal normal-case text-muted-foreground">
+                      live
+                    </span>
                   </h2>
                   <AgentContexts agentId={agentId} />
                 </div>
