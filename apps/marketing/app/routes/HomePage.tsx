@@ -1,5 +1,6 @@
 import { Footer } from '../components/Footer';
 import { GetStarted } from '../components/GetStarted';
+import { Actors } from '../components/landing/Actors';
 import { Demo } from '../components/landing/Demo';
 import { Faq } from '../components/landing/Faq';
 import { Fork } from '../components/landing/Fork';
@@ -15,6 +16,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Hero />
+      <Actors />
       <Fork />
       <Problem />
       <Demo />
