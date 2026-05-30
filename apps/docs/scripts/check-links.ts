@@ -29,6 +29,8 @@
 import { execFileSync } from 'node:child_process';
 import { type Dirent, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { buildDocNavSections } from '../app/lib/nav';
+import { type DocSection, resolveDocPath } from '../app/utils/paths';
 
 const scriptDir = import.meta.dirname;
 const docsApp = path.resolve(scriptDir, '..'); // apps/docs
@@ -209,6 +211,68 @@ function describe(link: BrokenLink): string {
   }
 }
 
+/**
+ * Validate the hardcoded sidebar navigation. `DocLayout.tsx` renders these
+ * entries from `app/lib/nav.ts`; here each doc link is resolved with the SAME
+ * resolver the app uses at runtime (`resolveDocPath` + the slug manifest), and
+ * a target that isn't in the served set would 404 in production. Showcase
+ * (`/showcase…`) and Pro (`/pro…`) paths are component-rendered routes, not
+ * direct markdown fetches, so they are out of scope. This closes the gap that
+ * let `/ci-cd-guide`, `/performance`, `/standards` (all internal-excluded)
+ * ship as dead nav links — the markdown `](…)` scan never saw the React nav.
+ */
+function checkNavLinks(served: Set<string>, source: Set<string>): BrokenLink[] {
+  const broken: BrokenLink[] = [];
+  const navSource = '(sidebar nav — app/lib/nav.ts)';
+
+  const links: string[] = [];
+  for (const section of buildDocNavSections([])) {
+    for (const item of section.items) {
+      links.push(item.path);
+      for (const child of item.children ?? []) {
+        links.push(child.path);
+      }
+    }
+  }
+
+  const seen = new Set<string>();
+  for (const navPath of links) {
+    if (seen.has(navPath)) {
+      continue;
+    }
+    seen.add(navPath);
+
+    if (isExternal(navPath) || navPath === '/') {
+      continue; // home → INDEX.md (always served)
+    }
+    const segments = navPath.split('/').filter(Boolean);
+    const first = segments[0] ?? '';
+    if (first === 'showcase' || first === 'pro') {
+      continue; // component-rendered routes, not direct .md fetches
+    }
+
+    let section: DocSection = 'docs';
+    let routePath = segments.join('/');
+    if (first === 'guides' || first === 'api') {
+      section = first;
+      routePath = segments.slice(1).join('/');
+    }
+
+    const { markdownPath } = resolveDocPath({ section, routePath: routePath || null });
+    const resolved = markdownPath.startsWith('/') ? markdownPath.slice(1) : markdownPath;
+    if (served.has(resolved)) {
+      continue;
+    }
+    broken.push({
+      source: navSource,
+      raw: navPath,
+      resolved,
+      kind: source.has(resolved) ? 'internal-excluded' : 'missing',
+    });
+  }
+  return broken;
+}
+
 function main(): void {
   // Refresh the served set exactly as the build does — copy-docs.sh is the
   // single authority for what ships to the public site.
@@ -222,10 +286,13 @@ function main(): void {
 
   const served = collectMarkdownFiles(servedRoot);
   const source = collectMarkdownFiles(sourceDocs);
-  const broken = checkLinks(served, source);
+  const broken = [...checkLinks(served, source), ...checkNavLinks(served, source)];
 
   if (broken.length === 0) {
-    write(`✓ docs link check: ${served.size} served pages, 0 broken relative .md links.`);
+    write(
+      `✓ docs link check: ${served.size} served pages, 0 broken relative .md links, ` +
+        'sidebar nav links all resolve.',
+    );
     return;
   }
 
@@ -238,7 +305,7 @@ function main(): void {
 
   write('');
   write(
-    `✗ docs link check: ${broken.length} broken relative .md link(s) across ${bySource.size} served page(s).`,
+    `✗ docs link check: ${broken.length} broken link(s) across ${bySource.size} source(s) (served pages + sidebar nav).`,
   );
   write('');
   for (const src of [...bySource.keys()].sort()) {
