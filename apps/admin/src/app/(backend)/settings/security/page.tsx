@@ -54,9 +54,9 @@ export default function SecuritySettingsPage() {
     <Suspense
       fallback={
         <div className="p-4 sm:p-6 max-w-lg">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="h-5 w-48 animate-pulse rounded bg-foreground/10" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-foreground/10" />
           </div>
         </div>
       }
@@ -415,8 +415,8 @@ function SecuritySettingsContent() {
       <div className="p-4 sm:p-6 max-w-lg">
         {/* Success banner */}
         {success && (
-          <output className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <output className="mb-6 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+            <span className="h-2 w-2 rounded-full bg-success" />
             {success}
           </output>
         )}
@@ -425,9 +425,9 @@ function SecuritySettingsContent() {
         {(error || mfaError || passkeyError) && (
           <div
             role="alert"
-            className="mb-6 flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400"
+            className="mb-6 flex items-center gap-2 rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
           >
-            <span className="h-2 w-2 rounded-full bg-red-400" />
+            <span className="h-2 w-2 rounded-full bg-error" />
             {error || mfaError || passkeyError}
           </div>
         )}
@@ -437,13 +437,13 @@ function SecuritySettingsContent() {
           <section
             aria-busy="true"
             aria-label="Loading security settings"
-            className="rounded-xl border border-zinc-800 bg-zinc-900 p-5"
+            className="rounded-xl border border-border bg-card p-5"
           >
-            <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
+            <div className="h-5 w-48 animate-pulse rounded bg-foreground/10" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-foreground/10" />
             <div className="mt-6 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-lg bg-zinc-800" />
+                <div key={i} className="h-16 animate-pulse rounded-lg bg-foreground/10" />
               ))}
             </div>
           </section>
@@ -455,27 +455,29 @@ function SecuritySettingsContent() {
             {/* ============================================================= */}
             {/* Section 1: Two-Factor Authentication                          */}
             {/* ============================================================= */}
-            <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="mb-6 rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
-                <h1 className="text-base font-semibold text-white">Two-Factor Authentication</h1>
+                <h1 className="text-base font-semibold text-foreground">
+                  Two-Factor Authentication
+                </h1>
                 {mfaStatus && (
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
                       mfaStatus.enabled
-                        ? 'bg-emerald-900/30 text-emerald-400'
-                        : 'bg-zinc-800 text-zinc-400'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
-                        mfaStatus.enabled ? 'bg-emerald-400' : 'bg-zinc-500'
+                        mfaStatus.enabled ? 'bg-success' : 'bg-muted-foreground'
                       }`}
                     />
                     {mfaStatus.enabled ? 'Enabled' : 'Not configured'}
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Add an extra layer of security by requiring a one-time code from your authenticator
                 app.
               </p>
@@ -485,26 +487,28 @@ function SecuritySettingsContent() {
                 <div className="mt-5 space-y-4">
                   {/* OTP URI */}
                   <div>
-                    <p className="text-xs font-medium text-zinc-400">
+                    <p className="text-xs font-medium text-muted-foreground">
                       Copy this URI into your authenticator app
                     </p>
-                    <div className="mt-2 flex justify-center rounded-lg border border-zinc-700 bg-white p-4">
+                    <div className="mt-2 flex justify-center rounded-lg border border-border bg-white p-4">
                       <QRCodeSVG value={setupData.uri} size={200} level="M" />
                     </div>
-                    <p className="mt-2 text-xs text-zinc-500">Or copy the URI manually:</p>
-                    <div className="mt-1 rounded-lg border border-zinc-700 bg-zinc-950 p-3">
-                      <code className="block break-all text-xs text-zinc-300">{setupData.uri}</code>
+                    <p className="mt-2 text-xs text-muted-foreground">Or copy the URI manually:</p>
+                    <div className="mt-1 rounded-lg border border-border bg-muted p-3">
+                      <code className="block break-all text-xs text-muted-foreground">
+                        {setupData.uri}
+                      </code>
                     </div>
                   </div>
 
                   {/* Backup codes */}
                   <div>
-                    <p className="text-xs font-medium text-zinc-400">
+                    <p className="text-xs font-medium text-muted-foreground">
                       Backup codes - save these in a secure place
                     </p>
-                    <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-2">
+                    <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-border bg-muted p-3 sm:grid-cols-2">
                       {setupData.backupCodes.map((code) => (
-                        <code key={code} className="text-xs font-mono text-zinc-300">
+                        <code key={code} className="text-xs font-mono text-muted-foreground">
                           {code}
                         </code>
                       ))}
@@ -513,7 +517,10 @@ function SecuritySettingsContent() {
 
                   {/* Verification */}
                   <div>
-                    <label htmlFor="mfa-verify-code" className="text-xs font-medium text-zinc-400">
+                    <label
+                      htmlFor="mfa-verify-code"
+                      className="text-xs font-medium text-muted-foreground"
+                    >
                       Enter a code from your authenticator app to verify
                     </label>
                     <div className="mt-1 flex gap-2">
@@ -530,20 +537,20 @@ function SecuritySettingsContent() {
                           >,
                         ) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                         placeholder="000000"
-                        className="w-32 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+                        className="w-32 rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => void handleVerifySetup()}
                         disabled={verifyCode.length !== 6 || mfaLoading}
-                        className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-md bg-success px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {mfaLoading ? 'Verifying...' : 'Verify'}
                       </button>
                       <button
                         type="button"
                         onClick={cancelSetup}
-                        className="rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+                        className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
                       >
                         Cancel
                       </button>
@@ -560,7 +567,7 @@ function SecuritySettingsContent() {
                       type="button"
                       onClick={() => void handleEnableMFA()}
                       disabled={mfaLoading}
-                      className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {mfaLoading ? 'Setting up...' : 'Enable 2FA'}
                     </button>
@@ -570,10 +577,10 @@ function SecuritySettingsContent() {
                     <div className="space-y-3">
                       {/* Disable 2FA */}
                       {showDisableForm ? (
-                        <div className="rounded-lg border border-zinc-700 p-3">
+                        <div className="rounded-lg border border-border p-3">
                           <label
                             htmlFor="mfa-disable-password"
-                            className="text-xs font-medium text-zinc-400"
+                            className="text-xs font-medium text-muted-foreground"
                           >
                             Confirm your password to disable 2FA
                           </label>
@@ -588,13 +595,13 @@ function SecuritySettingsContent() {
                                 >,
                               ) => setDisablePassword(e.target.value)}
                               placeholder="Password"
-                              className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none sm:w-48"
+                              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none sm:w-48"
                             />
                             <button
                               type="button"
                               onClick={() => void handleDisableMFA()}
                               disabled={disabling || !disablePassword.trim()}
-                              className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {disabling ? 'Disabling...' : 'Confirm'}
                             </button>
@@ -604,7 +611,7 @@ function SecuritySettingsContent() {
                                 setShowDisableForm(false);
                                 setDisablePassword('');
                               }}
-                              className="rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+                              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
                             >
                               Cancel
                             </button>
@@ -614,7 +621,7 @@ function SecuritySettingsContent() {
                         <button
                           type="button"
                           onClick={() => setShowDisableForm(true)}
-                          className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-red-700 hover:text-red-400"
+                          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-error/50 hover:text-error"
                         >
                           Disable 2FA
                         </button>
@@ -626,7 +633,7 @@ function SecuritySettingsContent() {
                           type="button"
                           onClick={() => void handleRegenerateCodes()}
                           disabled={regenerating}
-                          className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {regenerating ? 'Regenerating...' : 'Regenerate backup codes'}
                         </button>
@@ -635,12 +642,12 @@ function SecuritySettingsContent() {
                       {/* Show regenerated codes */}
                       {regeneratedCodes && (
                         <div>
-                          <p className="text-xs font-medium text-zinc-400">
+                          <p className="text-xs font-medium text-muted-foreground">
                             New backup codes - save these in a secure place
                           </p>
-                          <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-2">
+                          <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-border bg-muted p-3 sm:grid-cols-2">
                             {regeneratedCodes.map((code) => (
-                              <code key={code} className="text-xs font-mono text-zinc-300">
+                              <code key={code} className="text-xs font-mono text-muted-foreground">
                                 {code}
                               </code>
                             ))}
@@ -648,7 +655,7 @@ function SecuritySettingsContent() {
                           <button
                             type="button"
                             onClick={() => setRegeneratedCodes(null)}
-                            className="mt-2 text-xs text-zinc-500 hover:text-zinc-300"
+                            className="mt-2 text-xs text-muted-foreground hover:text-foreground"
                           >
                             Dismiss
                           </button>
@@ -663,14 +670,14 @@ function SecuritySettingsContent() {
             {/* ============================================================= */}
             {/* Section 2: Passkeys                                           */}
             {/* ============================================================= */}
-            <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="mb-6 rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-white">Passkeys</h2>
-                <span className="text-xs text-zinc-500">
+                <h2 className="text-base font-semibold text-foreground">Passkeys</h2>
+                <span className="text-xs text-muted-foreground">
                   {passkeys.length} of {MAX_PASSKEYS} passkeys
                 </span>
               </div>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Passkeys let you sign in securely without a password using biometrics or a security
                 key.
               </p>
@@ -681,11 +688,11 @@ function SecuritySettingsContent() {
                   {passkeys.map((passkey) => (
                     <div
                       key={passkey.id}
-                      className="flex items-center justify-between rounded-lg border border-zinc-800 px-4 py-3"
+                      className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <svg
-                          className="h-5 w-5 text-zinc-400"
+                          className="h-5 w-5 text-muted-foreground"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
@@ -713,29 +720,29 @@ function SecuritySettingsContent() {
                                   if (e.key === 'Enter') void submitRename(passkey.id);
                                   if (e.key === 'Escape') cancelRename();
                                 }}
-                                className="w-36 rounded border border-zinc-700 bg-zinc-950 px-2 py-0.5 text-sm text-zinc-200 focus:border-zinc-500 focus:outline-none"
+                                className="w-36 rounded border border-border bg-muted px-2 py-0.5 text-sm text-foreground focus:border-ring focus:outline-none"
                               />
                               <button
                                 type="button"
                                 onClick={() => void submitRename(passkey.id)}
-                                className="text-xs text-emerald-400 hover:text-emerald-300"
+                                className="text-xs text-success hover:text-success/80"
                               >
                                 Save
                               </button>
                               <button
                                 type="button"
                                 onClick={cancelRename}
-                                className="text-xs text-zinc-500 hover:text-zinc-300"
+                                className="text-xs text-muted-foreground hover:text-foreground"
                               >
                                 Cancel
                               </button>
                             </div>
                           ) : (
-                            <div className="text-sm font-medium text-zinc-200">
+                            <div className="text-sm font-medium text-muted-foreground">
                               {passkey.deviceName ?? 'Unnamed passkey'}
                             </div>
                           )}
-                          <div className="text-xs text-zinc-500">
+                          <div className="text-xs text-muted-foreground">
                             Added {formatDate(passkey.createdAt)}
                             {passkey.lastUsedAt && ` · Last used ${formatDate(passkey.lastUsedAt)}`}
                           </div>
@@ -747,7 +754,7 @@ function SecuritySettingsContent() {
                           <button
                             type="button"
                             onClick={() => startRename(passkey)}
-                            className="rounded-md px-2 py-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+                            className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
                           >
                             Rename
                           </button>
@@ -755,7 +762,7 @@ function SecuritySettingsContent() {
                             type="button"
                             onClick={() => requestDelete(passkey.id)}
                             disabled={deletingId === passkey.id}
-                            className="rounded-md px-2 py-1 text-xs text-zinc-500 transition-colors hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {deletingId === passkey.id ? 'Removing...' : 'Remove'}
                           </button>
@@ -769,7 +776,7 @@ function SecuritySettingsContent() {
               {/* Add passkey button */}
               <div className="mt-5">
                 {!passkeySupported ? (
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-muted-foreground">
                     Passkeys are not supported in this browser.
                   </p>
                 ) : (
@@ -777,13 +784,13 @@ function SecuritySettingsContent() {
                     type="button"
                     onClick={() => void handleAddPasskey()}
                     disabled={passkeyLoading || passkeys.length >= MAX_PASSKEYS}
-                    className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {passkeyLoading ? 'Adding...' : 'Add passkey'}
                   </button>
                 )}
                 {passkeys.length >= MAX_PASSKEYS && (
-                  <p className="mt-2 text-xs text-amber-400/80">
+                  <p className="mt-2 text-xs text-warning-foreground/80">
                     Maximum number of passkeys reached. Remove one to add another.
                   </p>
                 )}
@@ -793,17 +800,19 @@ function SecuritySettingsContent() {
             {/* ============================================================= */}
             {/* Section 3: Account Recovery                                   */}
             {/* ============================================================= */}
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-              <h2 className="text-base font-semibold text-white">Account Recovery</h2>
-              <p className="mt-1 text-sm text-zinc-400">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h2 className="text-base font-semibold text-foreground">Account Recovery</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 If you lose access to all your devices, you can recover your account via email magic
                 link.
               </p>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Backup codes remaining</span>
+                  <span className="text-muted-foreground">Backup codes remaining</span>
                   <span
-                    className={mfaStatus?.backupCodesRemaining ? 'text-zinc-200' : 'text-zinc-500'}
+                    className={
+                      mfaStatus?.backupCodesRemaining ? 'text-foreground' : 'text-muted-foreground'
+                    }
                   >
                     {mfaStatus?.enabled
                       ? (mfaStatus.backupCodesRemaining ?? 'Unknown')
@@ -811,14 +820,14 @@ function SecuritySettingsContent() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Email recovery</span>
-                  <span className="text-emerald-400">Available</span>
+                  <span className="text-muted-foreground">Email recovery</span>
+                  <span className="text-success">Available</span>
                 </div>
               </div>
               {mfaStatus?.enabled &&
                 mfaStatus.backupCodesRemaining !== undefined &&
                 mfaStatus.backupCodesRemaining <= 2 && (
-                  <p className="mt-4 text-xs text-amber-400/80">
+                  <p className="mt-4 text-xs text-warning-foreground/80">
                     You have few backup codes remaining. Consider regenerating them above.
                   </p>
                 )}
@@ -827,35 +836,35 @@ function SecuritySettingsContent() {
             {/* ============================================================= */}
             {/* Section 4: Active Sessions                                    */}
             {/* ============================================================= */}
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-              <h2 className="text-base font-semibold text-white">Active Sessions</h2>
-              <p className="mt-1 text-sm text-zinc-400">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h2 className="text-base font-semibold text-foreground">Active Sessions</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Devices and browsers currently signed in to your account.
               </p>
 
               {activeSessions.length === 0 ? (
-                <p className="mt-4 text-sm text-zinc-500">No other sessions found.</p>
+                <p className="mt-4 text-sm text-muted-foreground">No other sessions found.</p>
               ) : (
                 <div className="mt-5 space-y-3">
                   {activeSessions.map((session) => (
                     <div
                       key={session.id}
-                      className="flex items-start justify-between rounded-lg border border-zinc-800 px-4 py-3"
+                      className="flex items-start justify-between rounded-lg border border-border px-4 py-3"
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-sm text-zinc-200">
+                          <span className="truncate text-sm text-muted-foreground">
                             {session.userAgent
                               ? parseUserAgent(session.userAgent)
                               : 'Unknown device'}
                           </span>
                           {session.isCurrent && (
-                            <span className="shrink-0 rounded-full bg-emerald-900/30 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                            <span className="shrink-0 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
                               Current
                             </span>
                           )}
                         </div>
-                        <div className="mt-0.5 text-xs text-zinc-500">
+                        <div className="mt-0.5 text-xs text-muted-foreground">
                           {session.ipAddress && <span>{session.ipAddress} · </span>}
                           Last active {formatRelative(session.lastActivityAt)}
                         </div>
@@ -866,7 +875,7 @@ function SecuritySettingsContent() {
                           onClick={() => void revokeSession(session.id)}
                           disabled={revokingId === session.id}
                           aria-label="Revoke this session"
-                          className="ml-4 shrink-0 rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-red-700 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="ml-4 shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-error/50 hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {revokingId === session.id ? 'Revoking...' : 'Revoke'}
                         </button>
@@ -886,7 +895,7 @@ function SecuritySettingsContent() {
                     }
                   }}
                   disabled={!!revokingId}
-                  className="mt-4 text-xs text-red-400 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-4 text-xs text-error hover:text-error/80 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Revoke all other sessions
                 </button>
@@ -906,14 +915,14 @@ function SecuritySettingsContent() {
           <button
             type="button"
             onClick={cancelDelete}
-            className="rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={() => void confirmDelete()}
-            className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-error/90"
           >
             Remove
           </button>

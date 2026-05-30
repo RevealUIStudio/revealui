@@ -54,7 +54,7 @@ interface StackedBarProps {
 function StackedBar({ successCount, errorCount, unknownCount }: StackedBarProps) {
   const total = successCount + errorCount + unknownCount;
   if (total === 0) {
-    return <div aria-hidden="true" className="h-2 w-full rounded-full bg-zinc-800" />;
+    return <div aria-hidden="true" className="h-2 w-full rounded-full bg-muted" />;
   }
   const successPct = (successCount / total) * 100;
   const errorPct = (errorCount / total) * 100;
@@ -66,13 +66,13 @@ function StackedBar({ successCount, errorCount, unknownCount }: StackedBarProps)
       aria-label={`${successCount} success, ${errorCount} error, ${unknownCount} unknown`}
       viewBox="0 0 100 4"
       preserveAspectRatio="none"
-      className="h-2 w-full overflow-hidden rounded-full bg-zinc-800"
+      className="h-2 w-full overflow-hidden rounded-full bg-muted"
     >
       {successPct > 0 && (
-        <rect x={0} y={0} width={successPct} height={4} className="fill-emerald-500" />
+        <rect x={0} y={0} width={successPct} height={4} className="fill-success" />
       )}
       {errorPct > 0 && (
-        <rect x={successPct} y={0} width={errorPct} height={4} className="fill-red-500" />
+        <rect x={successPct} y={0} width={errorPct} height={4} className="fill-error" />
       )}
       {unknownPct > 0 && (
         <rect
@@ -80,7 +80,7 @@ function StackedBar({ successCount, errorCount, unknownCount }: StackedBarProps)
           y={0}
           width={unknownPct}
           height={4}
-          className="fill-zinc-500"
+          className="fill-muted-foreground"
         />
       )}
     </svg>
@@ -125,13 +125,13 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
     <section aria-label="MCP usage">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-medium text-white">Usage</h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <h2 className="text-lg font-medium text-foreground">Usage</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Per-meter call counts and durations from the events your MCP servers emit.
           </p>
         </div>
         <div
-          className="inline-flex rounded-md border border-zinc-800 bg-zinc-900/50 p-0.5"
+          className="inline-flex rounded-md border border-border bg-card p-0.5"
           role="toolbar"
           aria-label="Time range"
         >
@@ -142,7 +142,9 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
               onClick={() => setRange(r)}
               aria-pressed={range === r}
               className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-                range === r ? 'bg-zinc-800 text-emerald-300' : 'text-zinc-400 hover:text-zinc-200'
+                range === r
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {r}
@@ -154,60 +156,64 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
       {message && (
         <div
           role="alert"
-          className="mb-4 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-300"
+          className="mb-4 rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error"
         >
           {message}
         </div>
       )}
 
       {state === 'loading' && (
-        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+        <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
           Loading usage…
         </div>
       )}
 
       {state === 'ready' && data && data.meters.length === 0 && (
-        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+        <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
           No MCP usage in the {RANGE_LABELS[range].toLowerCase()}. Run an agent that calls an MCP
           tool, or wait for events to accumulate.
         </div>
       )}
 
       {state === 'ready' && data && data.meters.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-zinc-800">
+        <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-900/50">
+            <thead className="bg-card">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Meter</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Calls</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-400">Outcome mix</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-400">p50</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-400">p95</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Meter</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Calls</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Outcome mix
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">p50</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">p95</th>
               </tr>
             </thead>
             <tbody>
               {data.meters.map((m) => (
-                <tr key={m.meterName} className="border-t border-zinc-800/50 align-middle">
-                  <td className="px-4 py-3 font-mono text-xs text-zinc-300">{m.meterName}</td>
-                  <td className="px-4 py-3 text-zinc-300">{m.total.toLocaleString()}</td>
+                <tr key={m.meterName} className="border-t border-border align-middle">
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                    {m.meterName}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{m.total.toLocaleString()}</td>
                   <td className="min-w-48 px-4 py-3">
                     <StackedBar
                       successCount={m.successCount}
                       errorCount={m.errorCount}
                       unknownCount={m.unknownCount}
                     />
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-zinc-500">
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                       <span>
                         <span
                           aria-hidden="true"
-                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-emerald-500 align-middle"
+                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-success align-middle"
                         />
                         {m.successCount} ok
                       </span>
                       <span>
                         <span
                           aria-hidden="true"
-                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-red-500 align-middle"
+                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-error align-middle"
                         />
                         {m.errorCount} err
                       </span>
@@ -215,17 +221,17 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
                         <span>
                           <span
                             aria-hidden="true"
-                            className="mr-1 inline-block h-2 w-2 rounded-sm bg-zinc-500 align-middle"
+                            className="mr-1 inline-block h-2 w-2 rounded-sm bg-muted-foreground align-middle"
                           />
                           {m.unknownCount} unknown
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-zinc-300">
+                  <td className="px-4 py-3 text-right font-mono text-xs text-muted-foreground">
                     {formatDuration(m.p50Ms)}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-zinc-300">
+                  <td className="px-4 py-3 text-right font-mono text-xs text-muted-foreground">
                     {formatDuration(m.p95Ms)}
                   </td>
                 </tr>
@@ -236,9 +242,9 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
       )}
 
       {state === 'ready' && data && (
-        <p className="mt-3 text-xs text-zinc-500">
+        <p className="mt-3 text-xs text-muted-foreground">
           {RANGE_LABELS[range]} · since {new Date(data.since).toLocaleString()} · account{' '}
-          <span className="font-mono text-zinc-400">{data.accountId ?? '—'}</span>
+          <span className="font-mono text-muted-foreground">{data.accountId ?? '—'}</span>
         </p>
       )}
     </section>

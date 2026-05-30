@@ -107,9 +107,9 @@ export default function AccountSettingsPage() {
     <Suspense
       fallback={
         <div className="p-4 sm:p-6 max-w-lg">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="h-5 w-48 animate-pulse rounded bg-foreground/10" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-foreground/10" />
           </div>
         </div>
       }
@@ -242,8 +242,8 @@ function AccountSettingsContent() {
       <div className="p-4 sm:p-6 max-w-lg">
         {/* Success banner */}
         {success && (
-          <output className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <output className="mb-6 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+            <span className="h-2 w-2 rounded-full bg-success" />
             {success}
           </output>
         )}
@@ -252,9 +252,9 @@ function AccountSettingsContent() {
         {error && (
           <div
             role="alert"
-            className="mb-6 flex items-center gap-2 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400"
+            className="mb-6 flex items-center gap-2 rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
           >
-            <span className="h-2 w-2 rounded-full bg-red-400" />
+            <span className="h-2 w-2 rounded-full bg-error" />
             {error}
           </div>
         )}
@@ -264,13 +264,13 @@ function AccountSettingsContent() {
           <section
             aria-busy="true"
             aria-label="Loading account settings"
-            className="rounded-xl border border-zinc-800 bg-zinc-900 p-5"
+            className="rounded-xl border border-border bg-card p-5"
           >
-            <div className="h-5 w-48 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-zinc-800" />
+            <div className="h-5 w-48 animate-pulse rounded bg-foreground/10" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-foreground/10" />
             <div className="mt-6 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-lg bg-zinc-800" />
+                <div key={i} className="h-16 animate-pulse rounded-lg bg-foreground/10" />
               ))}
             </div>
           </section>
@@ -279,26 +279,26 @@ function AccountSettingsContent() {
         {/* Account info */}
         {!loading && user && (
           <>
-            <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-              <h1 className="text-base font-semibold text-white">Account</h1>
+            <div className="mb-6 rounded-xl border border-border bg-card p-5">
+              <h1 className="text-base font-semibold text-foreground">Account</h1>
               <div className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="shrink-0 text-zinc-400">Email</span>
-                  <span className="truncate text-zinc-200">{user.email}</span>
+                  <span className="shrink-0 text-muted-foreground">Email</span>
+                  <span className="truncate text-muted-foreground">{user.email}</span>
                 </div>
                 {user.name && (
                   <div className="flex items-center justify-between gap-4">
-                    <span className="shrink-0 text-zinc-400">Name</span>
-                    <span className="truncate text-zinc-200">{user.name}</span>
+                    <span className="shrink-0 text-muted-foreground">Name</span>
+                    <span className="truncate text-muted-foreground">{user.name}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-4">
-                  <span className="shrink-0 text-zinc-400">Role</span>
-                  <span className="text-zinc-200 capitalize">{user.role}</span>
+                  <span className="shrink-0 text-muted-foreground">Role</span>
+                  <span className="text-muted-foreground capitalize">{user.role}</span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="shrink-0 text-zinc-400">Password</span>
-                  <span className={user.hasPassword ? 'text-emerald-400' : 'text-zinc-500'}>
+                  <span className="shrink-0 text-muted-foreground">Password</span>
+                  <span className={user.hasPassword ? 'text-success' : 'text-muted-foreground'}>
                     {user.hasPassword ? 'Set' : 'Not set'}
                   </span>
                 </div>
@@ -306,23 +306,26 @@ function AccountSettingsContent() {
             </div>
 
             {/* Password */}
-            <div className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="mb-6 rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-white">Password</h2>
+                <h2 className="text-base font-semibold text-foreground">Password</h2>
                 {user.hasPassword && !showPasswordForm && (
                   <button
                     type="button"
                     onClick={() => setShowPasswordForm(true)}
-                    className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+                    className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
                   >
                     Change password
                   </button>
                 )}
               </div>
               {!user.hasPassword ? (
-                <p className="mt-2 text-sm text-zinc-400">
+                <p className="mt-2 text-sm text-muted-foreground">
                   No password set.{' '}
-                  <a href="/reset-password" className="text-zinc-200 underline hover:no-underline">
+                  <a
+                    href="/reset-password"
+                    className="text-foreground underline hover:no-underline"
+                  >
                     Use password reset
                   </a>{' '}
                   to set one.
@@ -333,14 +336,14 @@ function AccountSettingsContent() {
                   onCancel={() => setShowPasswordForm(false)}
                 />
               ) : (
-                <p className="mt-2 text-sm text-zinc-400">Password is set.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Password is set.</p>
               )}
             </div>
 
             {/* Connected accounts */}
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-              <h2 className="text-base font-semibold text-white">Connected Accounts</h2>
-              <p className="mt-1 text-sm text-zinc-400">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h2 className="text-base font-semibold text-foreground">Connected Accounts</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Link accounts to enable single sign-on. You must keep at least one sign-in method
                 active.
               </p>
@@ -355,19 +358,23 @@ function AccountSettingsContent() {
                   return (
                     <div
                       key={provider.id}
-                      className="flex items-center justify-between rounded-lg border border-zinc-800 px-4 py-3"
+                      className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className="h-5 w-5 text-zinc-400" />
+                        <Icon className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <div className="text-sm font-medium text-zinc-200">{provider.label}</div>
+                          <div className="text-sm font-medium text-muted-foreground">
+                            {provider.label}
+                          </div>
                           {isLinked && linkedInfo?.email ? (
-                            <div className="text-xs text-zinc-500">
+                            <div className="text-xs text-muted-foreground">
                               {linkedInfo.name ? `${linkedInfo.name} · ` : ''}
                               {linkedInfo.email}
                             </div>
                           ) : (
-                            <div className="text-xs text-zinc-600">{provider.description}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {provider.description}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -377,7 +384,7 @@ function AccountSettingsContent() {
                           type="button"
                           onClick={() => requestUnlink(provider.id)}
                           disabled={isUnlinking}
-                          className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-red-700 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-error hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {isUnlinking ? 'Unlinking...' : 'Unlink'}
                         </button>
@@ -385,7 +392,7 @@ function AccountSettingsContent() {
                         <button
                           type="button"
                           onClick={() => handleLink(provider.id)}
-                          className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-700"
+                          className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
                         >
                           Link
                         </button>
@@ -397,13 +404,13 @@ function AccountSettingsContent() {
 
               {/* Safety notes */}
               {!user.hasPassword && linkedSet.size === 0 && (
-                <p className="mt-4 text-xs text-red-400">
+                <p className="mt-4 text-xs text-error">
                   You have no password and no linked accounts. Set a password or link a provider to
                   regain access.
                 </p>
               )}
               {!user.hasPassword && linkedSet.size === 1 && (
-                <p className="mt-4 text-xs text-amber-400/80">
+                <p className="mt-4 text-xs text-warning-foreground">
                   You have no password set. Unlinking your only connected account will lock you out.
                   Set a password first or link another provider.
                 </p>
@@ -423,14 +430,14 @@ function AccountSettingsContent() {
           <button
             type="button"
             onClick={cancelUnlink}
-            className="rounded-md px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={() => void confirmUnlink()}
-            className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-error/90"
           >
             Unlink
           </button>
