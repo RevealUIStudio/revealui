@@ -173,13 +173,15 @@ function AgentTasksDashboard() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-        <h1 className="text-xl font-semibold text-white">Agent Tasks</h1>
-        <p className="mt-0.5 text-sm text-zinc-400">Task execution history across all AI agents</p>
+      <div className="border-b border-border bg-card px-6 py-4">
+        <h1 className="text-xl font-semibold text-foreground">Agent Tasks</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Task execution history across all AI agents
+        </p>
       </div>
 
       {/* Stats bar */}
-      <div className="overflow-x-auto border-b border-zinc-800 bg-zinc-950 px-6 py-3">
+      <div className="overflow-x-auto border-b border-border bg-muted px-6 py-3">
         <div className="flex min-w-max gap-6">
           <StatPill label="Total" value={counts.all} />
           <StatPill label="Completed" value={counts.completed} color="emerald" />
@@ -190,7 +192,7 @@ function AgentTasksDashboard() {
       </div>
 
       {/* Date + status filter row */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+      <div className="border-b border-border bg-muted px-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="overflow-x-auto">
             <nav className="flex gap-1 -mb-px min-w-max" aria-label="Status filter">
@@ -201,8 +203,8 @@ function AgentTasksDashboard() {
                   onClick={() => dispatch({ type: 'SET_FILTER', filter: f })}
                   className={`border-b-2 px-4 py-3 text-sm font-medium capitalize transition-colors ${
                     statusFilter === f
-                      ? 'border-white text-white'
-                      : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                      ? 'border-primary text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {f} ({counts[f]})
@@ -218,7 +220,9 @@ function AgentTasksDashboard() {
                 type="button"
                 onClick={() => dispatch({ type: 'SET_DATE_FILTER', filter: d })}
                 className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                  dateFilter === d ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'
+                  dateFilter === d
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {d === 'all' ? 'All time' : d}
@@ -236,13 +240,13 @@ function AgentTasksDashboard() {
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
                 key={i}
-                className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 px-4 py-3"
+                className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-16 rounded-full bg-zinc-700" />
-                  <div className="h-4 flex-1 rounded bg-zinc-700/60" />
-                  <div className="hidden h-3 w-20 rounded bg-zinc-700/40 sm:block" />
-                  <div className="h-3 w-32 rounded bg-zinc-700/40" />
+                  <div className="h-5 w-16 rounded-full bg-foreground/10" />
+                  <div className="h-4 flex-1 rounded bg-foreground/10" />
+                  <div className="hidden h-3 w-20 rounded bg-foreground/10 sm:block" />
+                  <div className="h-3 w-32 rounded bg-foreground/10" />
                 </div>
               </div>
             ))}
@@ -250,7 +254,7 @@ function AgentTasksDashboard() {
         ) : error ? (
           <div
             role="alert"
-            className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+            className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
           >
             {error}
           </div>
@@ -287,17 +291,17 @@ function StatPill({
   color?: 'emerald' | 'red' | 'blue' | 'zinc';
 }) {
   const colors = {
-    emerald: 'text-emerald-400',
-    red: 'text-red-400',
-    blue: 'text-blue-400',
-    zinc: 'text-zinc-400',
+    emerald: 'text-success',
+    red: 'text-error',
+    blue: 'text-primary',
+    zinc: 'text-muted-foreground',
   };
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`text-sm font-semibold ${color ? colors[color] : 'text-white'}`}>
+      <span className={`text-sm font-semibold ${color ? colors[color] : 'text-foreground'}`}>
         {value}
       </span>
-      <span className="text-xs text-zinc-500">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -316,7 +320,7 @@ function TaskRow({
   const ts = new Date(task.startedAt).toLocaleString();
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-800/40 transition-colors hover:border-zinc-700">
+    <div className="rounded-lg border border-border bg-card transition-colors hover:border-border">
       <button
         type="button"
         onClick={onToggle}
@@ -325,43 +329,43 @@ function TaskRow({
       >
         <div className="flex items-center gap-3">
           <StatusBadge status={task.status} />
-          <span className="truncate text-sm text-zinc-300">{inputText ?? task.tool}</span>
-          <span className="ml-auto hidden shrink-0 text-xs text-zinc-600 sm:inline">
+          <span className="truncate text-sm text-muted-foreground">{inputText ?? task.tool}</span>
+          <span className="ml-auto hidden shrink-0 text-xs text-muted-foreground sm:inline">
             {task.agentId}
           </span>
-          <span className="shrink-0 font-mono text-xs text-zinc-600">{ts}</span>
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">{ts}</span>
           {task.durationMs != null && (
-            <span className="hidden shrink-0 text-xs text-zinc-500 sm:inline">
+            <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
               {task.durationMs}ms
             </span>
           )}
           <ChevronIcon expanded={expanded} />
         </div>
         {!expanded && outputText && (
-          <p className="mt-1.5 truncate text-xs text-zinc-500">
-            <span className="text-zinc-600">out: </span>
+          <p className="mt-1.5 truncate text-xs text-muted-foreground">
+            <span className="text-muted-foreground">out: </span>
             {outputText}
           </p>
         )}
       </button>
 
       {expanded && (
-        <div className="border-t border-zinc-800 px-4 py-3">
+        <div className="border-t border-border px-4 py-3">
           <div className="grid gap-4 text-sm lg:grid-cols-2">
             {/* Input */}
             <div>
-              <h4 className="mb-1 text-xs font-medium text-zinc-500">Input</h4>
-              <p className="whitespace-pre-wrap text-zinc-300">{inputText ?? ' - '}</p>
+              <h4 className="mb-1 text-xs font-medium text-muted-foreground">Input</h4>
+              <p className="whitespace-pre-wrap text-muted-foreground">{inputText ?? ' - '}</p>
             </div>
 
             {/* Output */}
             <div>
-              <h4 className="mb-1 text-xs font-medium text-zinc-500">Output</h4>
-              <p className="whitespace-pre-wrap text-zinc-300">{outputText ?? ' - '}</p>
+              <h4 className="mb-1 text-xs font-medium text-muted-foreground">Output</h4>
+              <p className="whitespace-pre-wrap text-muted-foreground">{outputText ?? ' - '}</p>
             </div>
 
             {/* Metadata row */}
-            <div className="col-span-full flex flex-wrap gap-4 border-t border-zinc-800 pt-3">
+            <div className="col-span-full flex flex-wrap gap-4 border-t border-border pt-3">
               <MetaField label="Tool" value={task.tool} />
               <MetaField label="Agent" value={task.agentId} />
               <MetaField label="Started" value={ts} />
@@ -380,17 +384,19 @@ function TaskRow({
 
             {/* Reasoning */}
             {task.reasoning && (
-              <div className="col-span-full border-t border-zinc-800 pt-3">
-                <h4 className="mb-1 text-xs font-medium text-zinc-500">Reasoning</h4>
-                <p className="whitespace-pre-wrap text-xs text-zinc-400">{task.reasoning}</p>
+              <div className="col-span-full border-t border-border pt-3">
+                <h4 className="mb-1 text-xs font-medium text-muted-foreground">Reasoning</h4>
+                <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                  {task.reasoning}
+                </p>
               </div>
             )}
 
             {/* Error */}
             {task.error && (
-              <div role="alert" className="col-span-full border-t border-zinc-800 pt-3">
-                <h4 className="mb-1 text-xs font-medium text-red-500">Error</h4>
-                <p className="whitespace-pre-wrap text-xs text-red-400">{task.error}</p>
+              <div role="alert" className="col-span-full border-t border-border pt-3">
+                <h4 className="mb-1 text-xs font-medium text-error">Error</h4>
+                <p className="whitespace-pre-wrap text-xs text-error">{task.error}</p>
               </div>
             )}
           </div>
@@ -403,21 +409,21 @@ function TaskRow({
 function MetaField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <span className="text-xs text-zinc-600">{label}: </span>
-      <span className="font-mono text-xs text-zinc-400">{value}</span>
+      <span className="text-xs text-muted-foreground">{label}: </span>
+      <span className="font-mono text-xs text-muted-foreground">{value}</span>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    completed: 'bg-emerald-500/10 text-emerald-400',
-    failed: 'bg-red-500/10 text-red-400',
-    running: 'bg-blue-500/10 text-blue-400',
-    pending: 'bg-zinc-600/20 text-zinc-400',
-    cancelled: 'bg-zinc-600/20 text-zinc-400',
+    completed: 'bg-success/10 text-success',
+    failed: 'bg-error/10 text-error',
+    running: 'bg-primary/10 text-primary',
+    pending: 'bg-muted text-muted-foreground',
+    cancelled: 'bg-muted text-muted-foreground',
   };
-  const color = colors[status] ?? 'bg-zinc-700/20 text-zinc-400';
+  const color = colors[status] ?? 'bg-muted text-muted-foreground';
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
       {status}
@@ -428,7 +434,7 @@ function StatusBadge({ status }: { status: string }) {
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
-      className={`h-4 w-4 shrink-0 text-zinc-600 transition-transform ${expanded ? 'rotate-180' : ''}`}
+      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -455,9 +461,9 @@ function EmptyState({ filter, dateFilter }: { filter: StatusFilter; dateFilter: 
 
   return (
     <div className="flex flex-col items-center py-16">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <svg
-          className="h-6 w-6 text-zinc-500"
+          className="h-6 w-6 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -471,7 +477,7 @@ function EmptyState({ filter, dateFilter }: { filter: StatusFilter; dateFilter: 
           />
         </svg>
       </div>
-      <p className="text-sm text-zinc-500">{message}</p>
+      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }

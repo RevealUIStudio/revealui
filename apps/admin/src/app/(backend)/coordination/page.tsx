@@ -28,9 +28,9 @@ function isStaleSession(record: CoordinationSessionRecord): boolean {
 // =============================================================================
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-emerald-500/10 text-emerald-400',
-  ended: 'bg-zinc-600/20 text-zinc-300',
-  crashed: 'bg-red-500/10 text-red-400',
+  active: 'bg-success/10 text-success',
+  ended: 'bg-muted text-muted-foreground',
+  crashed: 'bg-error/10 text-error',
 };
 
 function formatAge(seconds: number): string {
@@ -80,9 +80,9 @@ function CoordinationDashboard() {
   return (
     <div className="min-h-screen">
       {/* Page header */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-        <h1 className="text-xl font-semibold text-white">Active Agents</h1>
-        <p className="mt-0.5 text-sm text-zinc-400">
+      <div className="border-b border-border bg-card px-6 py-4">
+        <h1 className="text-xl font-semibold text-foreground">Active Agents</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Coordination sessions across the agent fleet. Daemons running with{' '}
           <code className="font-mono text-xs">POSTGRES_URL</code> set dual-write to{' '}
           <code className="font-mono text-xs">coordination_sessions</code>; this surface reads from
@@ -91,7 +91,7 @@ function CoordinationDashboard() {
       </div>
 
       {/* Stat row */}
-      <div className="overflow-x-auto border-b border-zinc-800 bg-zinc-950 px-6 py-3">
+      <div className="overflow-x-auto border-b border-border bg-muted px-6 py-3">
         <div className="flex min-w-max gap-6">
           <StatPill label="Active" value={activeCount} color="emerald" />
           <StatPill label="Total Agents" value={uniqueAgents} color="blue" />
@@ -104,7 +104,7 @@ function CoordinationDashboard() {
       </div>
 
       {/* Filter row */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6">
+      <div className="border-b border-border bg-muted px-6">
         <nav className="flex min-w-max gap-1 -mb-px" aria-label="Scope filter">
           {(['active', 'all'] as Scope[]).map((s) => (
             <button
@@ -116,8 +116,8 @@ function CoordinationDashboard() {
               }}
               className={`border-b-2 px-4 py-3 text-sm font-medium capitalize transition-colors ${
                 scope === s
-                  ? 'border-white text-white'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               {s === 'active' ? 'Active only' : 'All sessions'}
@@ -135,12 +135,12 @@ function CoordinationDashboard() {
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
                 key={i}
-                className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 px-4 py-3"
+                className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-16 rounded-full bg-zinc-700" />
-                  <div className="h-4 flex-1 rounded bg-zinc-700/60" />
-                  <div className="h-3 w-32 rounded bg-zinc-700/40" />
+                  <div className="h-5 w-16 rounded-full bg-foreground/10" />
+                  <div className="h-4 flex-1 rounded bg-foreground/10" />
+                  <div className="h-3 w-32 rounded bg-foreground/10" />
                 </div>
               </div>
             ))}
@@ -148,7 +148,7 @@ function CoordinationDashboard() {
         ) : error ? (
           <div
             role="alert"
-            className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
+            className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
           >
             {error.message}
           </div>
@@ -156,7 +156,7 @@ function CoordinationDashboard() {
           <EmptyState scope={scope} />
         ) : (
           <>
-            <div className="mb-3 text-xs text-zinc-500">
+            <div className="mb-3 text-xs text-muted-foreground">
               Showing {displayed.length} of {sessions.length} session
               {sessions.length === 1 ? '' : 's'}
             </div>
@@ -193,21 +193,21 @@ function StatPill({
   color: 'emerald' | 'blue' | 'zinc' | 'amber';
 }) {
   const colors = {
-    emerald: 'text-emerald-400',
-    blue: 'text-blue-400',
-    zinc: 'text-zinc-400',
-    amber: 'text-amber-400',
+    emerald: 'text-success',
+    blue: 'text-primary',
+    zinc: 'text-muted-foreground',
+    amber: 'text-warning-foreground',
   };
   return (
     <div className="flex items-center gap-1.5">
       <span className={`text-sm font-semibold ${colors[color]}`}>{value}</span>
-      <span className="text-xs text-zinc-500">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const color = STATUS_COLORS[status] ?? 'bg-zinc-700/20 text-zinc-400';
+  const color = STATUS_COLORS[status] ?? 'bg-muted text-muted-foreground';
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
       {status}
@@ -228,7 +228,7 @@ function SessionRow({
   const stale = isStaleSession(session);
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-800/40 transition-colors hover:border-zinc-700">
+    <div className="rounded-lg border border-border bg-card transition-colors hover:border-ring">
       <button
         type="button"
         onClick={onToggle}
@@ -237,17 +237,19 @@ function SessionRow({
       >
         <div className="flex items-center gap-3">
           <StatusBadge status={session.status} />
-          <span className="truncate font-mono text-sm text-zinc-300">{session.agent_id}</span>
-          <span className="ml-auto shrink-0 text-xs text-zinc-500">
+          <span className="truncate font-mono text-sm text-muted-foreground">
+            {session.agent_id}
+          </span>
+          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
             {truncate(session.task, 60)}
           </span>
-          <span className="hidden shrink-0 font-mono text-xs text-zinc-600 sm:inline">
+          <span className="hidden shrink-0 font-mono text-xs text-muted-foreground sm:inline">
             {formatAge(age)}
           </span>
           {stale && (
             <span
               title="Session has not ended after 7+ days — likely a stale row"
-              className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400"
+              className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning-foreground"
             >
               stale
             </span>
@@ -257,7 +259,7 @@ function SessionRow({
       </button>
 
       {expanded && (
-        <div className="border-t border-zinc-800 px-4 py-3">
+        <div className="border-t border-border px-4 py-3">
           <div className="grid gap-4 text-sm lg:grid-cols-2">
             <MetaField label="Session ID" value={session.id} mono />
             <MetaField label="Agent ID" value={session.agent_id} mono />
@@ -269,13 +271,13 @@ function SessionRow({
             <MetaField label="Task" value={session.task} />
 
             {session.tools && Object.keys(session.tools).length > 0 && (
-              <div className="col-span-full border-t border-zinc-800 pt-3">
-                <h4 className="mb-1 text-xs font-medium text-zinc-500">Tool counters</h4>
+              <div className="col-span-full border-t border-border pt-3">
+                <h4 className="mb-1 text-xs font-medium text-muted-foreground">Tool counters</h4>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(session.tools).map(([tool, n]) => (
                     <span
                       key={tool}
-                      className="rounded bg-zinc-900 px-2 py-0.5 font-mono text-xs text-zinc-400"
+                      className="rounded bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
                     >
                       {tool}: {n}
                     </span>
@@ -293,8 +295,8 @@ function SessionRow({
 function MetaField({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <span className="text-xs text-zinc-600">{label}: </span>
-      <span className={`text-xs text-zinc-400 ${mono ? 'font-mono' : ''}`}>{value}</span>
+      <span className="text-xs text-muted-foreground">{label}: </span>
+      <span className={`text-xs text-muted-foreground ${mono ? 'font-mono' : ''}`}>{value}</span>
     </div>
   );
 }
@@ -302,7 +304,7 @@ function MetaField({ label, value, mono }: { label: string; value: string; mono?
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg
-      className={`h-4 w-4 shrink-0 text-zinc-600 transition-transform ${expanded ? 'rotate-180' : ''}`}
+      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -321,9 +323,9 @@ function EmptyState({ scope }: { scope: Scope }) {
 
   return (
     <div className="flex flex-col items-center py-16">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
+      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <svg
-          className="h-6 w-6 text-zinc-500"
+          className="h-6 w-6 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -337,7 +339,7 @@ function EmptyState({ scope }: { scope: Scope }) {
           />
         </svg>
       </div>
-      <p className="max-w-md text-center text-sm text-zinc-500">{message}</p>
+      <p className="max-w-md text-center text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }

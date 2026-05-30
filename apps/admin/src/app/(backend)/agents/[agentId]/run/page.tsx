@@ -51,15 +51,15 @@ export default function AgentRunPage({ params }: PageProps) {
         />
 
         <header className="space-y-2">
-          <h1 className="text-2xl font-semibold text-zinc-100">Run agent — live stream</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="text-2xl font-semibold text-foreground">Run agent — live stream</h1>
+          <p className="text-sm text-muted-foreground">
             Submits an instruction to{' '}
-            <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs">/api/agent-stream</code> and
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">/api/agent-stream</code> and
             renders chunks in real time. Connected MCP servers can call{' '}
-            <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs">sampling/create</code> and{' '}
-            <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs">elicitation/create</code>{' '}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">sampling/create</code> and{' '}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">elicitation/create</code>{' '}
             mid-run; both surface here.{' '}
-            <Link href={`/agents/${agentId}`} className="text-emerald-400 hover:text-emerald-300">
+            <Link href={`/agents/${agentId}`} className="text-success hover:text-success">
               ← Back to agent detail
             </Link>
           </p>
@@ -67,9 +67,9 @@ export default function AgentRunPage({ params }: PageProps) {
 
         <form
           onSubmit={handleStart}
-          className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4"
+          className="space-y-3 rounded-lg border border-border bg-card p-4"
         >
-          <label htmlFor="instruction" className="block text-sm font-medium text-zinc-200">
+          <label htmlFor="instruction" className="block text-sm font-medium text-muted-foreground">
             Instruction
           </label>
           <textarea
@@ -81,10 +81,10 @@ export default function AgentRunPage({ params }: PageProps) {
             disabled={stream.isStreaming}
             rows={4}
             placeholder="What would you like the agent to do?"
-            className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+            className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
           />
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs text-zinc-300">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Mode</span>
               <select
                 value={mode}
@@ -92,7 +92,7 @@ export default function AgentRunPage({ params }: PageProps) {
                   e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                 ) => setMode(e.target.value as 'admin' | 'coding')}
                 disabled={stream.isStreaming}
-                className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+                className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
               >
                 <option value="admin">admin</option>
                 <option value="coding">coding</option>
@@ -103,7 +103,7 @@ export default function AgentRunPage({ params }: PageProps) {
               <button
                 type="submit"
                 disabled={!instruction.trim()}
-                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Start agent
               </button>
@@ -112,7 +112,7 @@ export default function AgentRunPage({ params }: PageProps) {
               <button
                 type="button"
                 onClick={stream.abort}
-                className="rounded-md border border-red-800 bg-red-900/30 px-4 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-900/50"
+                className="rounded-md border border-error/30 bg-error/10 px-4 py-2 text-sm font-medium text-error transition-colors hover:bg-error/15"
               >
                 Cancel
               </button>
@@ -121,7 +121,7 @@ export default function AgentRunPage({ params }: PageProps) {
               <button
                 type="button"
                 onClick={stream.reset}
-                className="rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-700"
+                className="rounded-md border border-border bg-muted px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-foreground/10"
               >
                 Clear
               </button>
@@ -138,7 +138,7 @@ export default function AgentRunPage({ params }: PageProps) {
 
         {stream.pendingElicitations.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-blue-300">
+            <h2 className="text-sm font-medium text-primary">
               Pending input ({stream.pendingElicitations.length})
             </h2>
             {stream.pendingElicitations.map((pending) => (
@@ -156,15 +156,15 @@ export default function AgentRunPage({ params }: PageProps) {
         )}
 
         {stream.text && (
-          <section className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-4">
-            <h2 className="mb-2 text-sm font-medium text-zinc-300">Agent output</h2>
-            <pre className="whitespace-pre-wrap text-sm text-zinc-100">{stream.text}</pre>
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h2 className="mb-2 text-sm font-medium text-muted-foreground">Agent output</h2>
+            <pre className="whitespace-pre-wrap text-sm text-foreground">{stream.text}</pre>
           </section>
         )}
 
         {stream.chunks.length > 0 && (
           <section className="space-y-2">
-            <h2 className="text-sm font-medium text-zinc-300">Event log</h2>
+            <h2 className="text-sm font-medium text-muted-foreground">Event log</h2>
             <ol className="space-y-2">
               {stream.chunks.map((chunk, idx) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: streaming chunks are append-only, never reordered
@@ -191,26 +191,26 @@ interface StatusBarProps {
 
 function StatusBar({ isStreaming, sessionId, chunkCount, error }: StatusBarProps) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-2 text-xs text-zinc-400">
+    <div className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
       <span
         className={`inline-flex h-2 w-2 rounded-full ${
-          error ? 'bg-red-500' : isStreaming ? 'animate-pulse bg-emerald-500' : 'bg-zinc-600'
+          error ? 'bg-error' : isStreaming ? 'animate-pulse bg-success' : 'bg-foreground/10'
         }`}
         aria-hidden="true"
       />
       <span>{error ? 'Error' : isStreaming ? 'Streaming' : 'Idle'}</span>
-      <span className="text-zinc-600">·</span>
+      <span className="text-muted-foreground">·</span>
       <span>chunks: {chunkCount}</span>
       {sessionId && (
         <>
-          <span className="text-zinc-600">·</span>
-          <span className="font-mono text-zinc-500">session {sessionId.slice(0, 8)}</span>
+          <span className="text-muted-foreground">·</span>
+          <span className="font-mono text-muted-foreground">session {sessionId.slice(0, 8)}</span>
         </>
       )}
       {error && (
         <>
-          <span className="text-zinc-600">·</span>
-          <span className="text-red-400">{error}</span>
+          <span className="text-muted-foreground">·</span>
+          <span className="text-error">{error}</span>
         </>
       )}
     </div>
@@ -239,10 +239,10 @@ function ElicitationCard({ namespace, requestedSchema, message, onSubmit }: Elic
   ) satisfies ElicitationSchema;
 
   return (
-    <div className="rounded-lg border border-blue-800 bg-blue-900/10 p-4">
-      <div className="mb-2 flex items-center gap-2 text-xs text-blue-300">
+    <div className="rounded-lg border border-primary/30 bg-primary/10 p-4">
+      <div className="mb-2 flex items-center gap-2 text-xs text-primary">
         <span className="font-mono">{namespace}</span>
-        <span className="text-blue-700">·</span>
+        <span className="text-primary">·</span>
         <span>requesting input</span>
       </div>
       <ElicitationForm message={message} requestedSchema={schema} onSubmit={onSubmit} />
@@ -258,42 +258,46 @@ function ChunkRow({ chunk, index }: { chunk: AgentStreamChunk; index: number }) 
   switch (chunk.type) {
     case 'session_info':
       return (
-        <li className="rounded-md border border-zinc-800 bg-zinc-900/30 px-3 py-2 text-xs text-zinc-500">
-          <span className="font-mono text-zinc-600">[{index}]</span> session_info{' '}
+        <li className="rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-mono text-muted-foreground">[{index}]</span> session_info{' '}
           <span className="font-mono">{chunk.sessionId?.slice(0, 8)}…</span>
         </li>
       );
     case 'text':
       return (
-        <li className="rounded-md border border-zinc-800 bg-zinc-900/30 px-3 py-2 text-xs">
-          <span className="font-mono text-zinc-600">[{index}]</span>{' '}
-          <span className="text-zinc-400">text</span>{' '}
-          <span className="text-zinc-200">{chunk.content?.slice(0, 80)}</span>
-          {chunk.content && chunk.content.length > 80 && <span className="text-zinc-500">…</span>}
+        <li className="rounded-md border border-border bg-card px-3 py-2 text-xs">
+          <span className="font-mono text-muted-foreground">[{index}]</span>{' '}
+          <span className="text-muted-foreground">text</span>{' '}
+          <span className="text-muted-foreground">{chunk.content?.slice(0, 80)}</span>
+          {chunk.content && chunk.content.length > 80 && (
+            <span className="text-muted-foreground">…</span>
+          )}
         </li>
       );
     case 'tool_call_start':
       return (
-        <li className="rounded-md border border-emerald-900 bg-emerald-900/10 px-3 py-2 text-xs">
-          <span className="font-mono text-zinc-600">[{index}]</span>{' '}
-          <span className="font-medium text-emerald-300">tool call</span>{' '}
-          <span className="font-mono text-emerald-200">{chunk.toolCall?.name}</span>
+        <li className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-xs">
+          <span className="font-mono text-muted-foreground">[{index}]</span>{' '}
+          <span className="font-medium text-success">tool call</span>{' '}
+          <span className="font-mono text-success">{chunk.toolCall?.name}</span>
         </li>
       );
     case 'tool_call_result':
       return (
-        <li className="rounded-md border border-emerald-900 bg-emerald-900/10 px-3 py-2 text-xs">
-          <span className="font-mono text-zinc-600">[{index}]</span>{' '}
-          <span className="text-emerald-300">tool result</span>
+        <li className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-xs">
+          <span className="font-mono text-muted-foreground">[{index}]</span>{' '}
+          <span className="text-success">tool result</span>
         </li>
       );
     case 'sampling_request':
       return (
-        <li className="rounded-md border border-purple-900 bg-purple-900/10 px-3 py-2 text-xs">
-          <span className="font-mono text-zinc-600">[{index}]</span>{' '}
-          <span className="font-medium text-purple-300">sampling</span>{' '}
-          {chunk.namespace && <span className="font-mono text-purple-200">{chunk.namespace}</span>}{' '}
-          <span className="text-zinc-500">
+        <li className="rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-xs">
+          <span className="font-mono text-muted-foreground">[{index}]</span>{' '}
+          <span className="font-medium text-accent-foreground">sampling</span>{' '}
+          {chunk.namespace && (
+            <span className="font-mono text-accent-foreground">{chunk.namespace}</span>
+          )}{' '}
+          <span className="text-muted-foreground">
             model={chunk.sampling?.model}, messages={chunk.sampling?.messageCount}, maxTokens=
             {chunk.sampling?.maxTokens}
           </span>
@@ -301,30 +305,32 @@ function ChunkRow({ chunk, index }: { chunk: AgentStreamChunk; index: number }) 
       );
     case 'elicitation_request':
       return (
-        <li className="rounded-md border border-blue-900 bg-blue-900/10 px-3 py-2 text-xs">
-          <span className="font-mono text-zinc-600">[{index}]</span>{' '}
-          <span className="font-medium text-blue-300">elicitation</span>{' '}
-          {chunk.namespace && <span className="font-mono text-blue-200">{chunk.namespace}</span>}{' '}
-          <span className="text-zinc-500">id={chunk.elicitation?.elicitationId.slice(0, 8)}…</span>
+        <li className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs">
+          <span className="font-mono text-muted-foreground">[{index}]</span>{' '}
+          <span className="font-medium text-primary">elicitation</span>{' '}
+          {chunk.namespace && <span className="font-mono text-primary">{chunk.namespace}</span>}{' '}
+          <span className="text-muted-foreground">
+            id={chunk.elicitation?.elicitationId.slice(0, 8)}…
+          </span>
         </li>
       );
     case 'error':
       return (
-        <li className="rounded-md border border-red-800 bg-red-900/20 px-3 py-2 text-xs text-red-300">
-          <span className="font-mono text-zinc-600">[{index}]</span> error{' '}
-          <span className="text-red-200">{chunk.error}</span>
+        <li className="rounded-md border border-error/30 bg-error/10 px-3 py-2 text-xs text-error">
+          <span className="font-mono text-muted-foreground">[{index}]</span> error{' '}
+          <span className="text-error">{chunk.error}</span>
         </li>
       );
     case 'done':
       return (
-        <li className="rounded-md border border-zinc-700 bg-zinc-800/30 px-3 py-2 text-xs text-zinc-300">
-          <span className="font-mono text-zinc-600">[{index}]</span> done
+        <li className="rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-mono text-muted-foreground">[{index}]</span> done
         </li>
       );
     default:
       return (
-        <li className="rounded-md border border-zinc-800 bg-zinc-900/30 px-3 py-2 text-xs text-zinc-500">
-          <span className="font-mono text-zinc-600">[{index}]</span> {String(chunk.type)}
+        <li className="rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-mono text-muted-foreground">[{index}]</span> {String(chunk.type)}
         </li>
       );
   }
