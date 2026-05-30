@@ -53,7 +53,7 @@ export const MARKETPLACE_DISCOVERY_STEPS: readonly DiscoveryStep[] = [
     step: '2',
     title: 'Authenticate',
     description:
-      'The agent authenticates using the same RBAC system that governs human users. Permissions are scoped per tenant and per role.',
+      'The agent authenticates using the same RBAC system that governs your users. Permissions are scoped per tenant and per role.',
   },
   {
     step: '3',
