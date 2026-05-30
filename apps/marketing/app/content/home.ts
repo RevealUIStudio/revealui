@@ -257,7 +257,7 @@ export interface Actor {
 export const HOME_ACTORS = {
   eyebrow: 'Who does what',
   heading: 'Three actors, one runtime.',
-  body: 'RevealUI runs people and AI under one set of rules, with the same login and the same audit trail.',
+  body: 'RevealUI runs people and AI under one set of rules: the same permissions and the same tamper-evident audit trail.',
   actors: [
     {
       role: 'Developers',
@@ -272,7 +272,7 @@ export const HOME_ACTORS = {
     {
       role: 'Agents',
       action: 'work inside it.',
-      body: 'An agent is an AI that does work on its own: drafts emails, processes orders, runs recurring tasks. It uses the same login, permissions, and audit trail as a person.',
+      body: 'An agent is an AI that works through the same APIs you do: read and update your data, send notifications, look up customers and billing. Every action runs under the same permissions and the same audit trail as a person.',
     },
   ] as readonly Actor[],
   tagline: 'Developers build it. Operators run it. Agents work in it.',
