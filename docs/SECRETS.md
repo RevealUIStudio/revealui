@@ -80,8 +80,6 @@ revealui/prod/marketplace-connect-return-url  # MARKETPLACE_CONNECT_RETURN_URL
 revealui/prod/admin/api-key          # REVEALUI_ADMIN_API_KEY
 revealui/prod/admin/email            # REVEALUI_ADMIN_EMAIL
 revealui/prod/admin/password         # REVEALUI_ADMIN_PASSWORD
-revealui/prod/admin/revalidation-key # REVEALUI_REVALIDATION_KEY
-revealui/prod/admin/draft-secret     # REVEALUI_PUBLIC_DRAFT_SECRET
 ```
 
 **Database**
@@ -145,13 +143,6 @@ revealui/prod/license/public-key    # REVEALUI_LICENSE_PUBLIC_KEY — rotating i
 revealui/prod/passkey/origin    # PASSKEY_ORIGIN
 revealui/prod/passkey/rp-id     # PASSKEY_RP_ID
 revealui/prod/passkey/rp-name   # PASSKEY_RP_NAME
-```
-
-**CMS**
-
-```
-revealui/prod/cms/admin-email     # CMS_ADMIN_EMAIL
-revealui/prod/cms/admin-password  # CMS_ADMIN_PASSWORD
 ```
 
 **Observability (Sentry)**

@@ -212,10 +212,6 @@ REVEALUI_API_URL           = "revealui/prod/public/api-url"
 NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
 REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
 
-# CMS bootstrap creds (canonical paths under cms/)
-CMS_ADMIN_EMAIL    = "revealui/prod/cms/admin-email"
-CMS_ADMIN_PASSWORD = "revealui/prod/cms/admin-password"
-
 # Observability — Sentry (Next.js admin; DSN is client-bundled via NEXT_PUBLIC_,
 # auth-token + org + project are build-time for source-map upload via withSentryConfig)
 NEXT_PUBLIC_SENTRY_DSN = "revealui/prod/sentry/dsn-admin"
@@ -227,8 +223,6 @@ SENTRY_PROJECT         = "revealui/prod/sentry/project-admin"
 REVEALUI_ADMIN_EMAIL         = "revealui/prod/admin/email"
 REVEALUI_ADMIN_PASSWORD      = "revealui/prod/admin/password"
 REVEALUI_ADMIN_API_KEY       = "revealui/prod/admin/api-key"
-REVEALUI_REVALIDATION_KEY    = "revealui/prod/admin/revalidation-key"
-REVEALUI_PUBLIC_DRAFT_SECRET = "revealui/prod/admin/draft-secret"
 
 
 # ── revealui-marketing ──────────────────────────────────────────────────────
