@@ -1,12 +1,21 @@
 /**
  * Client-side full-text search index for documentation.
  *
- * Fetches all markdown docs listed in INDEX.md, extracts titles and
- * excerpts, and indexes them with FlexSearch for instant search.
+ * Indexes EVERY served doc enumerated in the slug manifest — the same
+ * build-time enumeration the route resolver uses — not just the handful of
+ * uppercase top-level files linked from INDEX.md. That is what makes nested
+ * sections (guides/, blog/, fleet/, api/), pro docs, and hyphenated or
+ * lowercase filenames searchable; the previous INDEX.md `[A-Z_]+.md` scrape
+ * silently dropped all of them. Internal-only docs are absent from the served
+ * set, so their fetch 404s and they are skipped automatically (never indexed,
+ * never leaked into results).
+ *
+ * No authored regex (fleet hardline, matching scripts/check-links.ts): title
+ * and excerpt extraction are indexOf / character scans.
  */
 
 import FlexSearch from 'flexsearch';
-import { filenameToSlug } from './slug';
+import { SLUG_TO_PATH } from './slug-manifest';
 
 const { Document } = FlexSearch;
 
@@ -38,37 +47,94 @@ let docs: DocEntry[] = [];
 let buildPromise: Promise<void> | null = null;
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers (no authored regex)
 // ---------------------------------------------------------------------------
 
-/** Extract the first H1 heading from markdown content. */
-function extractTitle(markdown: string): string {
-  const match = /^#\s+(.+)$/m.exec(markdown);
-  return match?.[1]?.trim() ?? '';
+/** Inline emphasis markers stripped from excerpts (bold, italic, code, strikethrough). */
+const EXCERPT_EMPHASIS = new Set(['*', '_', '`', '~']);
+
+/** Extract the first ATX H1 (`# Title`) from markdown content. */
+export function extractTitle(markdown: string): string {
+  for (const rawLine of markdown.split('\n')) {
+    const line = rawLine.trim();
+    if (!line.startsWith('#')) {
+      continue;
+    }
+    const rest = line.slice(1);
+    // A single `#` followed by whitespace is an H1. `##`/`###` (rest starts
+    // with another `#`) and a bare `#` fall through.
+    if (rest.length > 0 && (rest[0] === ' ' || rest[0] === '\t')) {
+      return rest.trim();
+    }
+  }
+  return '';
 }
 
-/** Extract the first non-heading, non-empty paragraph as an excerpt. */
-function extractExcerpt(markdown: string, maxLength = 160): string {
-  const lines = markdown.split('\n');
-  for (const line of lines) {
-    const trimmed = line.trim();
-    // Skip empty lines, headings, links-only lines, and horizontal rules
+/** Replace `[label](target)` spans with just their label (indexOf scan). */
+function stripMarkdownLinks(text: string): string {
+  if (!text.includes('](')) {
+    return text;
+  }
+  let out = '';
+  let cursor = 0;
+  while (cursor < text.length) {
+    const open = text.indexOf('[', cursor);
+    if (open === -1) {
+      out += text.slice(cursor);
+      break;
+    }
+    const mid = text.indexOf('](', open);
+    if (mid === -1) {
+      out += text.slice(cursor);
+      break;
+    }
+    const close = text.indexOf(')', mid + 2);
+    if (close === -1) {
+      out += text.slice(cursor);
+      break;
+    }
+    out += text.slice(cursor, open); // text before the link
+    out += text.slice(open + 1, mid); // the link label
+    cursor = close + 1; // skip past the (target)
+  }
+  return out;
+}
+
+/** Remove inline emphasis markers (`*`, `_`, `` ` ``, `~`). */
+function stripEmphasis(text: string): string {
+  let out = '';
+  for (const ch of text) {
+    if (!EXCERPT_EMPHASIS.has(ch)) {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+/** Extract the first substantive paragraph as a plain-text excerpt. */
+export function extractExcerpt(markdown: string, maxLength = 160): string {
+  let inFence = false;
+  for (const rawLine of markdown.split('\n')) {
+    const trimmed = rawLine.trim();
+    if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) {
+      continue;
+    }
+    // Skip empty lines, headings, horizontal rules, tables, link-only list items.
     if (
       !trimmed ||
       trimmed.startsWith('#') ||
       trimmed.startsWith('---') ||
       trimmed.startsWith('|') ||
       trimmed.startsWith('- [') ||
-      trimmed.startsWith('* [') ||
-      trimmed.startsWith('```')
+      trimmed.startsWith('* [')
     ) {
       continue;
     }
-    // Strip inline markdown formatting
-    const plain = trimmed
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
-      .replace(/[*_`~]+/g, '') // bold, italic, code, strikethrough
-      .trim();
+    const plain = stripEmphasis(stripMarkdownLinks(trimmed)).trim();
     if (plain.length > 10) {
       return plain.length > maxLength ? `${plain.slice(0, maxLength)}...` : plain;
     }
@@ -76,20 +142,13 @@ function extractExcerpt(markdown: string, maxLength = 160): string {
   return '';
 }
 
-/** Parse INDEX.md to extract markdown filenames. */
-function parseIndex(indexContent: string): string[] {
-  const files: string[] = [];
-  // Match lines like: - [Title](./FILENAME.md)
-  const linkRegex = /\[.*?\]\(\.\/([A-Z_]+\.md)\)/g;
-  let match: RegExpExecArray | null = null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: standard regex exec loop pattern
-  while ((match = linkRegex.exec(indexContent)) !== null) {
-    const filename = match[1];
-    if (filename) {
-      files.push(filename);
-    }
-  }
-  return files;
+/**
+ * The full set of searchable docs as `[slug, file]` pairs, sourced from the
+ * slug manifest. The slug doubles as the result path (flat URL space); the
+ * file is fetched from the served root.
+ */
+export function listSearchDocPaths(): Array<readonly [string, string]> {
+  return Object.entries(SLUG_TO_PATH);
 }
 
 // ---------------------------------------------------------------------------
@@ -97,7 +156,7 @@ function parseIndex(indexContent: string): string[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Build the search index by fetching INDEX.md and all referenced docs.
+ * Build the search index by fetching every served doc and indexing it.
  * Safe to call multiple times  -  subsequent calls return the same promise.
  */
 export async function buildSearchIndex(): Promise<void> {
@@ -107,29 +166,17 @@ export async function buildSearchIndex(): Promise<void> {
 
   buildPromise = (async () => {
     try {
-      // Fetch and parse the index (CHIP-3 D5a: docs serve from root)
-      const indexResponse = await fetch('/INDEX.md');
-      if (!indexResponse.ok) {
-        return;
-      }
-      const indexContent = await indexResponse.text();
-      const filenames = parseIndex(indexContent);
-
-      // Fetch all docs in parallel (CHIP-3 D5a: docs serve from root)
+      // Fetch all enumerated docs in parallel. Internal-only docs are not in
+      // the served set, so their fetch 404s and they fall out via the !ok
+      // guard — they are never indexed.
       const fetchResults = await Promise.allSettled(
-        filenames.map(async (filename) => {
-          const response = await fetch(`/${filename}`);
+        listSearchDocPaths().map(async ([slug, file]) => {
+          const response = await fetch(`/${file}`);
           if (!response.ok) {
             return null;
           }
           const content = await response.text();
-          // CHIP-3 D2b: use the lowercase-kebab slug so result.path matches
-          // the new flat URL space (e.g. ADMIN_GUIDE.md → admin-guide).
-          const slug = filenameToSlug(filename);
-          return {
-            filename: slug,
-            content,
-          };
+          return { slug, content };
         }),
       );
 
@@ -140,15 +187,15 @@ export async function buildSearchIndex(): Promise<void> {
         if (result.status !== 'fulfilled' || !result.value) {
           continue;
         }
-        const { filename, content } = result.value;
-        const title = extractTitle(content) || filename.replace(/_/g, ' ');
+        const { slug, content } = result.value;
+        const title = extractTitle(content) || slug;
         const excerpt = extractExcerpt(content);
 
         docs.push({
           id,
           title,
           content,
-          path: filename,
+          path: slug,
           excerpt,
         });
         id++;
