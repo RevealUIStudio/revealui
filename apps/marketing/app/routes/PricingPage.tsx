@@ -6,6 +6,7 @@ import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PERPETUAL_TIERS,
   PRICING_AGENCY_SECTION,
+  PRICING_AGENCY_VALUE_BAND,
   PRICING_AGENT_A2A,
   PRICING_AGENT_CTA_LINKS,
   PRICING_AGENT_MCP,
@@ -229,6 +230,28 @@ export function PricingPage() {
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">{PRICING_TRACK_C_SECTION.body}</p>
           </div>
+
+          {/* Studio / agency reseller value band: the multi-client P&L */}
+          <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
+            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
+              {PRICING_AGENCY_VALUE_BAND.eyebrow}
+            </span>
+            <h3 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+              {PRICING_AGENCY_VALUE_BAND.heading}
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              {PRICING_AGENCY_VALUE_BAND.body}
+            </p>
+            <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
+                <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
             {perpetualTiers.map((tier) => (
               <div
