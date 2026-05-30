@@ -242,6 +242,44 @@ export const HOME_GET_STARTED = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Three actors (cast explainer)
+// Defines the three roles the rest of the copy assumes: developer, operator,
+// agent. Two human roles (build, run) plus the AI role (work inside). Sits
+// between the hero and the audience fork so "agents" in the hero h1 is defined
+// within one scroll, before the visitor self-identifies in the fork below.
+// ---------------------------------------------------------------------------
+
+export interface Actor {
+  readonly role: string;
+  readonly action: string;
+  readonly body: string;
+}
+
+export const HOME_ACTORS = {
+  eyebrow: 'Who does what',
+  heading: 'Three actors, one runtime.',
+  body: 'RevealUI runs people and AI under one set of rules: the same permissions and the same tamper-evident audit trail.',
+  actors: [
+    {
+      role: 'Developers',
+      action: 'build it.',
+      body: 'Install RevealUI, write the code, own the stack.',
+    },
+    {
+      role: 'Operators',
+      action: 'run it.',
+      body: 'Log into the admin to manage customers, content, and billing. No code required.',
+    },
+    {
+      role: 'Agents',
+      action: 'work inside it.',
+      body: 'An agent is an AI that works through the same APIs you do: read and update your data, send notifications, look up customers and billing. Every action runs under the same permissions and the same audit trail as a person.',
+    },
+  ] as readonly Actor[],
+  tagline: 'Developers build it. Operators run it. Agents work in it.',
+} as const;
+
+// ---------------------------------------------------------------------------
 // Homepage audience fork
 // Per spec-2026-05-14-non-technical-lane.md §4.3 (Phase 2 of the spec sequence).
 // Three equal-weight branches; visitor self-identifies before the technical-lane

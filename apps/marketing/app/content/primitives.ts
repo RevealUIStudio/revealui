@@ -101,7 +101,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     forAgents: {
       headline: 'RBAC governs agent access per tenant',
       description:
-        'Every agent action is scoped by the same role and permission system that governs human users. Audit logs track every agent operation with full attribution.',
+        'Every agent action is scoped by the same role and permission system that governs your users. Audit logs track every agent operation with full attribution.',
     },
     together: {
       headline: 'Set permissions once. Agents respect them automatically.',
@@ -196,7 +196,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     together: {
       headline: 'Humans monetize. Agents transact. One billing infrastructure.',
       description:
-        'Human customers pay through Stripe. Agent payments via x402 are in development. Both flows are designed to settle into the same revenue system.',
+        'Your customers pay through Stripe. Agent payments via x402 are in development. Both flows are designed to settle into the same revenue system.',
     },
     features: [
       'Stripe checkout and subscriptions',
