@@ -20,6 +20,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { config } from 'dotenv';
+import { ensureTestDatabase } from './test-database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,18 +39,36 @@ const logger = {
   warn: (msg: string) => console.warn(`⚠️  ${msg}`),
 };
 
+/**
+ * Redact the password from a Postgres URL for logging. Uses the URL parser, not
+ * a regex, per the no-regex (M2) posture.
+ */
+function redactDatabaseUrl(raw: string): string {
+  try {
+    const url = new URL(raw);
+    if (url.password) url.password = '****';
+    return url.toString();
+  } catch {
+    return '[unparseable database url]';
+  }
+}
+
 async function runIntegrationTests() {
-  const databaseUrl: string | undefined = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  let databaseUrl: string | undefined = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
   try {
-    // Check if database URL is set
+    // Use the configured database, or provision one (honours the docstring above).
     if (!databaseUrl) {
-      logger.error('No database URL found!');
-      logger.info('Set DATABASE_URL or POSTGRES_URL environment variable,');
-      logger.info('or run: pnpm db:setup-test');
-      process.exit(ErrorCode.CONFIG_ERROR);
+      logger.warn('No DATABASE_URL/POSTGRES_URL set — provisioning a test database…');
+      const provisioned = await ensureTestDatabase();
+      if (!provisioned.migrated) {
+        logger.error('Failed to provision a migrated test database');
+        process.exit(ErrorCode.CONFIG_ERROR);
+      }
+      databaseUrl = provisioned.url;
+      logger.success(`Provisioned test database: ${redactDatabaseUrl(databaseUrl)}`);
     } else {
-      logger.info(`Using existing database: ${databaseUrl.replace(/:[^:@]+@/, ':****@')}`);
+      logger.info(`Using existing database: ${redactDatabaseUrl(databaseUrl)}`);
     }
 
     // Set environment variables for tests
