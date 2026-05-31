@@ -187,11 +187,16 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
   // (super-admin/admin). Both layers consume different fields;
   // first user is 'owner' at the DB layer and 'super-admin' at the app layer.
   //
-  // TOS capture: record acceptance at bootstrap time so the bootstrap admin has
-  // the same legal-defensibility record as web-signup users. Web signup sets
-  // these fields in apps/admin/src/app/api/auth/sign-up/route.ts:61-62;
-  // matching the pattern (including the same env-var default) keeps the two
-  // code paths in sync.
+  // TOS capture is intentionally NOT done here. tos_accepted_at / tos_version
+  // are typed Postgres columns, but the injected engine's create() routes
+  // through a dynamic-SQL adapter that writes the literal (camelCase) data keys
+  // as column identifiers and rejects them via a snake_case identifier guard
+  // (a Date would also be JSON-stringified into an invalid timestamp literal).
+  // Keeping @revealui/setup engine-agnostic, the bootstrap CALLERS stamp TOS via
+  // a typed Drizzle write right after this returns — see
+  // apps/admin/src/lib/auth/tos.ts (stampTosAcceptanceByEmail), used by the web
+  // setup route (apps/admin/src/app/api/setup/route.ts) and the CLI
+  // (scripts/admin/bootstrap.ts).
   try {
     await revealui.create({
       collection: 'users',
@@ -201,8 +206,6 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
         password: admin.password,
         role: 'owner',
         roles: ['super-admin'],
-        tosAcceptedAt: new Date(),
-        tosVersion: process.env.TOS_VERSION ?? '2026-03-01',
       },
       overrideAccess: true,
     });

@@ -142,44 +142,27 @@ describe('bootstrap', () => {
     );
   });
 
-  it('records tosAcceptedAt and tosVersion on the bootstrap admin', async () => {
-    // Regression guard for revealui#431 — web signup records TOS acceptance;
-    // bootstrap must match so the first admin has the same legal record.
-    const before = new Date();
+  it('does not send TOS fields through the engine create (callers persist them via typed write)', async () => {
+    // Regression guard for the PR #458 breakage: tos_accepted_at / tos_version
+    // are typed columns the injected engine's dynamic-SQL create() cannot
+    // persist — it writes the literal camelCase keys as column names and the
+    // universal-postgres identifier guard rejects `tosAcceptedAt`, failing the
+    // whole admin creation. bootstrap() must keep these OUT of the engine create;
+    // the callers stamp them via a typed Drizzle write
+    // (apps/admin/src/lib/auth/tos.ts → stampTosAcceptanceByEmail).
     await bootstrap({
       revealui: mockRevealUI,
       admin: VALID_ADMIN,
     });
-    const after = new Date();
 
     const createCall = (mockRevealUI.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
     const data = createCall?.data as Record<string, unknown>;
 
-    expect(data.tosAcceptedAt).toBeInstanceOf(Date);
-    const acceptedAt = data.tosAcceptedAt as Date;
-    expect(acceptedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-    expect(acceptedAt.getTime()).toBeLessThanOrEqual(after.getTime());
-
-    expect(typeof data.tosVersion).toBe('string');
-    expect((data.tosVersion as string).length).toBeGreaterThan(0);
-  });
-
-  it('honors TOS_VERSION env override when present', async () => {
-    const prev = process.env.TOS_VERSION;
-    process.env.TOS_VERSION = '2099-01-01';
-    try {
-      await bootstrap({
-        revealui: mockRevealUI,
-        admin: VALID_ADMIN,
-      });
-
-      const createCall = (mockRevealUI.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
-      const data = createCall?.data as Record<string, unknown>;
-      expect(data.tosVersion).toBe('2099-01-01');
-    } finally {
-      if (prev === undefined) delete process.env.TOS_VERSION;
-      else process.env.TOS_VERSION = prev;
-    }
+    expect(data).not.toHaveProperty('tosAcceptedAt');
+    expect(data).not.toHaveProperty('tosVersion');
+    // The role/roles dual-write must still be present.
+    expect(data.role).toBe('owner');
+    expect(data.roles).toEqual(['super-admin']);
   });
 
   it('continues even if seed fails (non-fatal)', async () => {

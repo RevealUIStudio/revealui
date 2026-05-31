@@ -22,6 +22,19 @@ vi.mock('@/lib/utilities/revealui-singleton', () => ({
     }),
 }));
 
+// Capture the typed Drizzle writes the route performs after a successful create:
+// stampTosAcceptanceByEmail() (TOS columns) + the audit-log insert. The route
+// dynamically imports @revealui/db/client for both.
+const mockTosWhere = vi.fn().mockResolvedValue(undefined);
+const mockTosSet = vi.fn(() => ({ where: mockTosWhere }));
+const mockUpdate = vi.fn(() => ({ set: mockTosSet }));
+const mockAuditValues = vi.fn().mockResolvedValue(undefined);
+const mockInsert = vi.fn(() => ({ values: mockAuditValues }));
+
+vi.mock('@revealui/db/client', () => ({
+  getClient: () => ({ update: mockUpdate, insert: mockInsert }),
+}));
+
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
 // ---------------------------------------------------------------------------
@@ -65,6 +78,46 @@ describe('POST /api/setup', () => {
     expect(body.status).toBe('created');
     expect(body.user?.email).toBe('admin@test.com');
     expect(body.seeded).toBe(true);
+  });
+
+  it('stamps TOS acceptance via a typed write after creating the admin', async () => {
+    await POST(
+      makePostRequest({
+        email: 'admin@test.com',
+        password: 'securepassword12',
+      }),
+    );
+
+    // bootstrap() must NOT push TOS through the engine create (the dynamic-SQL
+    // adapter rejects camelCase column identifiers)...
+    const createData = mockCreate.mock.calls[0]?.[0]?.data as Record<string, unknown> | undefined;
+    expect(createData).not.toHaveProperty('tosAcceptedAt');
+    expect(createData).not.toHaveProperty('tosVersion');
+
+    // ...the route stamps it via a typed Drizzle update instead.
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(mockTosSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tosAcceptedAt: expect.any(Date),
+        tosVersion: expect.any(String),
+      }),
+    );
+    expect(mockTosWhere).toHaveBeenCalledTimes(1);
+  });
+
+  it('still returns 201 when the TOS write fails (non-fatal)', async () => {
+    mockTosWhere.mockRejectedValueOnce(new Error('db unavailable'));
+
+    const res = await POST(
+      makePostRequest({
+        email: 'admin@test.com',
+        password: 'securepassword12',
+      }),
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.status).toBe('created');
   });
 
   it('returns 403 when users already exist', async () => {
