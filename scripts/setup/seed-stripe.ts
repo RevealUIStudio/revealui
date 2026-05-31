@@ -17,7 +17,8 @@
  *   pnpm stripe:seed -- --skip-portal        # skip billing portal setup
  *   pnpm stripe:seed -- --skip-catalog-sync  # skip local billing_catalog sync
  *   pnpm stripe:seed -- --webhook-url URL    # override webhook URL
- *   pnpm stripe:seed -- --sync-vercel        # push price IDs to Vercel env
+ *   pnpm stripe:seed -- --sync-revvault      # write IDs to revvault (source of truth), then `revvault sync vercel`
+ *   pnpm stripe:seed -- --sync-vercel        # DEPRECATED: writes Vercel directly; prefer --sync-revvault
  */
 
 import { execFileSync } from 'node:child_process';
@@ -30,6 +31,7 @@ import type Stripe from 'stripe';
 // @revealui/contracts as a root-level dep. Script only; not bundled.
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
 import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
+import { syncToRevvault } from './stripe-revvault-sync.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -926,6 +928,7 @@ async function main(): Promise<void> {
   const skipPortal = args.includes('--skip-portal');
   const skipCatalogSync = args.includes('--skip-catalog-sync');
   const syncVercel = args.includes('--sync-vercel');
+  const syncRevvault = args.includes('--sync-revvault');
   const webhookUrlFlag = (() => {
     const idx = args.indexOf('--webhook-url');
     return idx !== -1 ? args[idx + 1] : undefined;
@@ -1015,8 +1018,28 @@ async function main(): Promise<void> {
       await syncBillingCatalog(envVars, dryRun);
     }
 
+    if (syncRevvault) {
+      log.header('Revvault Sync (source of truth)');
+      const revvaultResult = syncToRevvault(envVars, {
+        manifestPath: resolve(import.meta.dirname, '../sync/revvault-vercel.toml'),
+        dryRun,
+        log,
+      });
+      log.info(
+        `revvault: ${revvaultResult.written.length} written, ${revvaultResult.skipped.length} skipped (no manifest path), ${revvaultResult.failed.length} failed`,
+      );
+      if (revvaultResult.failed.length > 0) {
+        process.exitCode = 1;
+      } else if (!dryRun) {
+        log.info('Next: review + commit the passage-store, then `revvault sync vercel --apply`');
+      }
+    }
+
     if (syncVercel) {
       log.header('Vercel Sync');
+      log.warn(
+        '--sync-vercel is DEPRECATED (writes Vercel behind revvault). Prefer --sync-revvault, then `revvault sync vercel --apply`.',
+      );
       await syncToVercel(envVars);
     }
   }
