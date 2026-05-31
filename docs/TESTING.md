@@ -19,7 +19,7 @@ RevealUI has an extensive test suite across unit, integration, and end-to-end la
 |------|---------|
 | **Vitest 4** | Primary test runner (unit, integration, component) |
 | **React Testing Library** | Component rendering and interaction |
-| **PGlite** | In-memory PostgreSQL for database tests |
+| **PGlite** | In-process PostgreSQL for packages that embed it (cache, mcp, harnesses) |
 | **Playwright** | End-to-end (E2E) and visual regression |
 
 ### Test Infrastructure Package
@@ -69,18 +69,21 @@ Standard Vitest tests. Each package has its own test suite. Run with `pnpm --fil
 **Key conventions:**
 - Use `vi.mock()` for module mocking (Vitest 4 requires `class` syntax in mock factories)
 - Use `@revealui/test` fixtures instead of creating ad-hoc test data
-- Database tests use PGlite (in-memory PostgreSQL)  -  no real DB needed
+- Unit tests never need a running database: they mock the Drizzle client (e.g. `packages/db/src/queries/users.test.ts`); packages that embed Postgres (cache, mcp, harnesses) use in-process PGlite
 - Test files must not import from `@revealui/ai` or `@revealui/harnesses` statically
 
 ### Integration Tests
 
-Tests that exercise real infrastructure (PostgreSQL, Stripe). These run separately from unit tests because they require service credentials.
+Tests that exercise a real Postgres (and, where keyed, Stripe). They run separately from unit tests because they need a live database. Provision one with `pnpm db:setup-test` — it uses `$POSTGRES_URL` if set, otherwise spins up a docker-compose Postgres, and works equally against the Nix dev-shell Postgres, a CI service container, or a Neon branch.
 
 ```bash
-# Run integration tests (requires POSTGRES_URL)
+# Provision a test database (idempotent): $POSTGRES_URL, else docker-compose
+pnpm db:setup-test
+
+# Run integration tests (uses $POSTGRES_URL; auto-provisions one if unset)
 pnpm test:integration
 
-# Skip if env vars are missing (CI handles this)
+# Skip env validation when running without full secrets (CI handles this)
 SKIP_ENV_VALIDATION=true pnpm test:integration
 ```
 
@@ -118,11 +121,11 @@ git add e2e/__snapshots__/
 
 ## Database Tests
 
-Database tests use **PGlite**  -  an in-memory PostgreSQL implementation that requires no running database. This means:
+Two paths, by layer:
 
-- Tests are fast (no network round-trips)
-- Tests are isolated (fresh database per test or describe block)
-- No database setup required for contributors
+- **Unit tests** never touch a real database — they mock the Drizzle client, staying fast and isolated with zero setup.
+- **Packages that embed Postgres** (`@revealui/cache`, `@revealui/mcp`, `@revealui/harnesses`) use **PGlite**, an in-process PostgreSQL (WASM) that needs no running server.
+- **Relational integration tests** (`packages/test`, `@revealui/db`) run against a **real Postgres** provisioned by `pnpm db:setup-test` (the Nix dev-shell Postgres, docker-compose, a CI service container, or a Neon branch). PGlite is *not* wired as a `@revealui/db` driver: `createClient` selects `node-postgres` for localhost / non-Neon hosts and the Neon HTTP driver for `*.neon.tech` (which has no transaction support — see [`DATABASE.md`](./DATABASE.md)).
 
 **Configuration:**
 - `hookTimeout: 30000` in PGlite test configs (30s for schema setup)
@@ -170,5 +173,5 @@ Every new package must have at least one test file. The CI coverage gate enforce
 2. **Describe blocks:** Match the module or function being tested
 3. **Test isolation:** Each test should be independent  -  no shared mutable state
 4. **No `any` in tests:** Use typed mocks via `@revealui/test` fixtures
-5. **PGlite for DB:** Never require a running database for unit tests
+5. **No DB for unit tests:** Mock the database (or use in-process PGlite where a package embeds Postgres) — never require a running database for a unit test. Integration tests use a real Postgres via `pnpm db:setup-test`
 6. **Conditional E2E skips:** E2E tests that require credentials use `test.skip()` with a condition  -  not unconditional skips
