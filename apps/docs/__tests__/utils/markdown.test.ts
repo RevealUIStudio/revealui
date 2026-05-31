@@ -7,9 +7,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearMarkdownCache,
   clearMarkdownCacheEntry,
+  extractLanguage,
   getMarkdownCacheStats,
+  highlightCode,
   loadMarkdownFile,
   renderMarkdown,
+  type Token,
 } from '../../app/utils/markdown';
 
 // Mock fetch globally
@@ -221,5 +224,53 @@ describe('renderMarkdown', () => {
     const code = screen.getByText('graph TD').closest('code');
     expect(code).toHaveClass('code-block', 'language-mermaid');
     expect(screen.queryByText('graph TD', { selector: '.token-keyword' })).toBeNull();
+  });
+});
+
+describe('highlightCode — language routing (unit)', () => {
+  const tok = (line: Token[], value: string): Token | undefined =>
+    line.find((t) => t.value === value);
+
+  it('routes tsx/jsx to the script tokenizer (regression: previously mis-routed to HTML markup)', () => {
+    for (const lang of ['tsx', 'jsx']) {
+      const [line] = highlightCode('const x = 1;', lang);
+      expect(tok(line, 'const')?.kind).toBe('keyword');
+      expect(tok(line, '1')?.kind).toBe('number');
+      // The bug: tsx/jsx were tokenized as HTML markup. There must be no tag/attr tokens.
+      expect(line.some((t) => t.kind === 'tag' || t.kind === 'attr')).toBe(false);
+    }
+  });
+
+  it('routes ts/js (and the typescript/javascript aliases) to the script tokenizer', () => {
+    for (const lang of ['ts', 'js', 'typescript', 'javascript']) {
+      const [line] = highlightCode('const s = "hi";', lang);
+      expect(tok(line, 'const')?.kind).toBe('keyword');
+      expect(tok(line, '"hi"')?.kind).toBe('string');
+    }
+  });
+
+  it('routes sql/yaml to plain rather than mis-highlighting them as JavaScript', () => {
+    for (const lang of ['sql', 'yaml', 'yml']) {
+      const [line] = highlightCode('select count from where', lang);
+      expect(line.every((t) => t.kind === 'plain')).toBe(true);
+    }
+  });
+
+  it('does not terminate a string early on an escaped quote (no-regex scanner)', () => {
+    const [line] = highlightCode('const s = "a\\"b";', 'ts');
+    expect(tok(line, '"a\\"b"')?.kind).toBe('string');
+  });
+});
+
+describe('extractLanguage (no-regex class parse)', () => {
+  it('pulls the language- token from the class list', () => {
+    expect(extractLanguage('language-tsx')).toBe('tsx');
+    expect(extractLanguage('foo language-json bar')).toBe('json');
+  });
+
+  it('returns undefined when there is no language- class', () => {
+    expect(extractLanguage('hljs no-lang')).toBeUndefined();
+    expect(extractLanguage('language-')).toBeUndefined();
+    expect(extractLanguage(undefined)).toBeUndefined();
   });
 });
