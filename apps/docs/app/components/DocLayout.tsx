@@ -220,9 +220,25 @@ function Breadcrumbs({ sections: navSections }: { sections: NavSection[] }) {
       }
     }
 
-    // Format last segment as page title
+    // Format last segment as page title: dashes/underscores become spaces and
+    // the first character of each word is upper-cased (no authored regex).
     const lastSegment = segments[segments.length - 1] ?? '';
-    const pageTitle = lastSegment.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const isWordChar = (c: string): boolean =>
+      (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c === '_';
+    let pageTitle = '';
+    let atWordBoundary = true;
+    for (const ch of lastSegment) {
+      if (ch === '-' || ch === '_') {
+        pageTitle += ' ';
+        atWordBoundary = true;
+      } else if (isWordChar(ch)) {
+        pageTitle += atWordBoundary ? ch.toUpperCase() : ch;
+        atWordBoundary = false;
+      } else {
+        pageTitle += ch;
+        atWordBoundary = true;
+      }
+    }
     if (pageTitle) {
       crumbs.push({ label: pageTitle });
     }
