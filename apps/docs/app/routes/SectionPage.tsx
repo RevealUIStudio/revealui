@@ -6,7 +6,7 @@ import { useWildcardPath } from '../hooks/useWildcardPath';
 import { slugToPath } from '../lib/slug-manifest';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import type { DocSection } from '../utils/paths';
-import { resolveDocPath } from '../utils/paths';
+import { resolveDocPath, stripDocExtension } from '../utils/paths';
 
 interface SectionPageProps {
   section: DocSection;
@@ -76,7 +76,7 @@ Document not found at \`${resolved.markdownPath}\`.
   // CHIP-3 D2b: path is a lowercase-kebab slug for the 'docs' section.
   // Resolve it back to the original filename via the manifest so the
   // GitHub edit link points at the real source file (e.g. ADMIN_GUIDE.md).
-  const slugKey = (path ?? '').replace(/\.(md|mdx)$/, '');
+  const slugKey = stripDocExtension(path ?? '');
   const sourceFile = slugToPath(slugKey) ?? (slugKey ? `${slugKey}.md` : 'INDEX.md');
   const githubUrl = `https://github.com/RevealUIStudio/revealui/blob/main/docs/${sourceFile}`;
 
