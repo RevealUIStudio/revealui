@@ -52,7 +52,25 @@ const JS_KEYWORDS = new Set([
   'yield',
 ]);
 
-type TokenKind =
+const SHELL_KEYWORDS = new Set([
+  'export',
+  'pnpm',
+  'npm',
+  'npx',
+  'node',
+  'bash',
+  'sh',
+  'git',
+  'docker',
+  'cd',
+  'cp',
+  'mv',
+  'rm',
+  'echo',
+  'revealui',
+]);
+
+export type TokenKind =
   | 'plain'
   | 'comment'
   | 'keyword'
@@ -62,7 +80,7 @@ type TokenKind =
   | 'tag'
   | 'attr';
 
-interface Token {
+export interface Token {
   kind: TokenKind;
   value: string;
 }
@@ -73,177 +91,375 @@ function pushToken(tokens: Token[], kind: TokenKind, value: string) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Character scanners (no authored regex — fleet no-regex hardline, M2).
+// Each tokenizer walks the line one char at a time, accumulating a "plain" run
+// and flushing it whenever a typed token (string/number/identifier/…) starts.
+// ---------------------------------------------------------------------------
+
+// Accept `string | undefined` so callers can pass `line[i]` directly under
+// tsconfig `noUncheckedIndexedAccess` — out-of-range indices are simply not
+// matched (every predicate is false for undefined).
+const isDigit = (c: string | undefined): boolean => c !== undefined && c >= '0' && c <= '9';
+const isLower = (c: string | undefined): boolean => c !== undefined && c >= 'a' && c <= 'z';
+const isUpper = (c: string | undefined): boolean => c !== undefined && c >= 'A' && c <= 'Z';
+const isAlpha = (c: string | undefined): boolean => isLower(c) || isUpper(c);
+const isSpace = (c: string | undefined): boolean => c === ' ' || c === '\t';
+const isIdentStart = (c: string | undefined): boolean => isAlpha(c) || c === '_' || c === '$';
+const isIdentChar = (c: string | undefined): boolean => isIdentStart(c) || isDigit(c);
+
+/** Scan a quoted string starting at `start` (line[start] is the quote). Honors
+ *  backslash escapes; on an unterminated string consumes to end-of-line. Returns
+ *  the index just past the closing quote. */
+function scanString(line: string, start: number): number {
+  const quote = line[start];
+  let i = start + 1;
+  while (i < line.length) {
+    const c = line[i];
+    if (c === '\\') {
+      i += 2;
+      continue;
+    }
+    if (c === quote) {
+      return i + 1;
+    }
+    i += 1;
+  }
+  return i;
+}
+
+/** Scan a number (optional leading `-`, digits, optional `.frac`, optional
+ *  `e[+-]exp`). Returns the index just past the number. */
+function scanNumber(line: string, start: number): number {
+  let i = start;
+  if (line[i] === '-') {
+    i += 1;
+  }
+  while (i < line.length && isDigit(line[i])) {
+    i += 1;
+  }
+  if (line[i] === '.') {
+    i += 1;
+    while (i < line.length && isDigit(line[i])) {
+      i += 1;
+    }
+  }
+  if (line[i] === 'e' || line[i] === 'E') {
+    let j = i + 1;
+    if (line[j] === '+' || line[j] === '-') {
+      j += 1;
+    }
+    if (j < line.length && isDigit(line[j])) {
+      i = j + 1;
+      while (i < line.length && isDigit(line[i])) {
+        i += 1;
+      }
+    }
+  }
+  return i;
+}
+
+/** Scan an identifier starting at `start` (line[start] is an ident-start char). */
+function scanIdent(line: string, start: number): number {
+  let i = start + 1;
+  while (i < line.length && isIdentChar(line[i])) {
+    i += 1;
+  }
+  return i;
+}
+
 function highlightJsonLine(line: string): Token[] {
   const tokens: Token[] = [];
-  let remaining = line;
+  let i = 0;
+  let plainStart = 0;
+  const flush = (end: number) => pushToken(tokens, 'plain', line.slice(plainStart, end));
 
-  while (remaining.length > 0) {
-    const propertyMatch = remaining.match(/^(\s*)"([^"]+)"(?=\s*:)/);
-    if (propertyMatch) {
-      pushToken(tokens, 'plain', propertyMatch[1] ?? '');
-      pushToken(tokens, 'property', `"${propertyMatch[2]}"`);
-      remaining = remaining.slice(propertyMatch[0].length);
+  while (i < line.length) {
+    const c = line[i];
+    if (c === '"') {
+      const end = scanString(line, i);
+      // A string is a property key when the next non-space char is a colon.
+      let k = end;
+      while (k < line.length && isSpace(line[k])) {
+        k += 1;
+      }
+      flush(i);
+      pushToken(tokens, line[k] === ':' ? 'property' : 'string', line.slice(i, end));
+      i = end;
+      plainStart = i;
       continue;
     }
-
-    const stringMatch = remaining.match(/^"(?:\\.|[^"])*"/);
-    if (stringMatch) {
-      pushToken(tokens, 'string', stringMatch[0]);
-      remaining = remaining.slice(stringMatch[0].length);
+    if (isDigit(c) || (c === '-' && isDigit(line[i + 1] ?? ''))) {
+      const end = scanNumber(line, i);
+      flush(i);
+      pushToken(tokens, 'number', line.slice(i, end));
+      i = end;
+      plainStart = i;
       continue;
     }
-
-    const numberMatch = remaining.match(/^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/i);
-    if (numberMatch) {
-      pushToken(tokens, 'number', numberMatch[0]);
-      remaining = remaining.slice(numberMatch[0].length);
+    if (isIdentStart(c)) {
+      const end = scanIdent(line, i);
+      const word = line.slice(i, end);
+      if (word === 'true' || word === 'false' || word === 'null') {
+        flush(i);
+        pushToken(tokens, 'keyword', word);
+        plainStart = end;
+      }
+      i = end;
       continue;
     }
-
-    const keywordMatch = remaining.match(/^(true|false|null)\b/);
-    if (keywordMatch) {
-      pushToken(tokens, 'keyword', keywordMatch[0]);
-      remaining = remaining.slice(keywordMatch[0].length);
-      continue;
-    }
-
-    pushToken(tokens, 'plain', remaining[0] ?? '');
-    remaining = remaining.slice(1);
+    i += 1;
   }
-
+  flush(line.length);
   return tokens;
 }
 
 function highlightShellLine(line: string): Token[] {
-  const commentIndex = line.indexOf('#');
-  const activePart = commentIndex >= 0 ? line.slice(0, commentIndex) : line;
-  const commentPart = commentIndex >= 0 ? line.slice(commentIndex) : '';
+  const hash = line.indexOf('#');
+  const active = hash >= 0 ? line.slice(0, hash) : line;
+  const comment = hash >= 0 ? line.slice(hash) : '';
   const tokens: Token[] = [];
-  const pattern =
-    /(\$[A-Z_][A-Z0-9_]*|\b(?:export|pnpm|npm|npx|node|bash|sh|git|docker|cd|cp|mv|rm|echo|revealui)\b|--?[a-zA-Z0-9][\w-]*|"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|\b\d+(?:\.\d+)?\b)/g;
+  let i = 0;
+  let plainStart = 0;
+  const flush = (end: number) => pushToken(tokens, 'plain', active.slice(plainStart, end));
 
-  let lastIndex = 0;
-  for (const match of activePart.matchAll(pattern)) {
-    const value = match[0];
-    const index = match.index ?? 0;
-    pushToken(tokens, 'plain', activePart.slice(lastIndex, index));
-
-    if (value.startsWith('"') || value.startsWith("'")) {
-      pushToken(tokens, 'string', value);
-    } else if (value.startsWith('$') || value.startsWith('--') || value.startsWith('-')) {
-      pushToken(tokens, 'property', value);
-    } else if (/^\d/.test(value)) {
-      pushToken(tokens, 'number', value);
-    } else {
-      pushToken(tokens, 'keyword', value);
+  while (i < active.length) {
+    const c = active[i];
+    if (c === '"' || c === "'") {
+      const end = scanString(active, i);
+      flush(i);
+      pushToken(tokens, 'string', active.slice(i, end));
+      i = end;
+      plainStart = i;
+      continue;
     }
-
-    lastIndex = index + value.length;
+    // Shell variable: $UPPER_NAME
+    if (c === '$' && (isUpper(active[i + 1] ?? '') || active[i + 1] === '_')) {
+      let j = i + 1;
+      while (j < active.length && (isUpper(active[j]) || isDigit(active[j]) || active[j] === '_')) {
+        j += 1;
+      }
+      flush(i);
+      pushToken(tokens, 'property', active.slice(i, j));
+      i = j;
+      plainStart = i;
+      continue;
+    }
+    // Flag: -x / --name
+    if (c === '-') {
+      let j = i + 1;
+      if (active[j] === '-') {
+        j += 1;
+      }
+      if (j < active.length && (isAlpha(active[j]) || isDigit(active[j]))) {
+        j += 1;
+        while (j < active.length && (isIdentChar(active[j]) || active[j] === '-')) {
+          j += 1;
+        }
+        flush(i);
+        pushToken(tokens, 'property', active.slice(i, j));
+        i = j;
+        plainStart = i;
+        continue;
+      }
+    }
+    if (isDigit(c)) {
+      const end = scanNumber(active, i);
+      flush(i);
+      pushToken(tokens, 'number', active.slice(i, end));
+      i = end;
+      plainStart = i;
+      continue;
+    }
+    if (isIdentStart(c)) {
+      const end = scanIdent(active, i);
+      const word = active.slice(i, end);
+      if (SHELL_KEYWORDS.has(word)) {
+        flush(i);
+        pushToken(tokens, 'keyword', word);
+        plainStart = end;
+      }
+      i = end;
+      continue;
+    }
+    i += 1;
   }
-
-  pushToken(tokens, 'plain', activePart.slice(lastIndex));
-  pushToken(tokens, 'comment', commentPart);
+  flush(active.length);
+  pushToken(tokens, 'comment', comment);
   return tokens;
 }
 
 function highlightMarkupLine(line: string): Token[] {
   const tokens: Token[] = [];
-  const pattern =
-    /(<\/?[A-Za-z][^>\s/>]*|\/?>|\s+[A-Za-z_:][A-Za-z0-9:._-]*(?==)|"(?:\\.|[^"])*")/g;
-  let lastIndex = 0;
+  let i = 0;
+  let plainStart = 0;
+  const flush = (end: number) => pushToken(tokens, 'plain', line.slice(plainStart, end));
 
-  for (const match of line.matchAll(pattern)) {
-    const value = match[0];
-    const index = match.index ?? 0;
-    pushToken(tokens, 'plain', line.slice(lastIndex, index));
-
-    if (value.startsWith('<') || value === '/>' || value === '>') {
-      pushToken(tokens, 'tag', value);
-    } else if (value.startsWith('"')) {
-      pushToken(tokens, 'string', value);
-    } else {
-      pushToken(tokens, 'attr', value);
+  while (i < line.length) {
+    const c = line[i];
+    // Opening/closing tag name: <tag or </tag
+    if (c === '<') {
+      let j = i + 1;
+      if (line[j] === '/') {
+        j += 1;
+      }
+      if (j < line.length && isAlpha(line[j])) {
+        j += 1;
+        while (j < line.length && line[j] !== '>' && line[j] !== '/' && !isSpace(line[j])) {
+          j += 1;
+        }
+        flush(i);
+        pushToken(tokens, 'tag', line.slice(i, j));
+        i = j;
+        plainStart = i;
+        continue;
+      }
     }
-
-    lastIndex = index + value.length;
+    if (c === '/' && line[i + 1] === '>') {
+      flush(i);
+      pushToken(tokens, 'tag', '/>');
+      i += 2;
+      plainStart = i;
+      continue;
+    }
+    if (c === '>') {
+      flush(i);
+      pushToken(tokens, 'tag', '>');
+      i += 1;
+      plainStart = i;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      const end = scanString(line, i);
+      flush(i);
+      pushToken(tokens, 'string', line.slice(i, end));
+      i = end;
+      plainStart = i;
+      continue;
+    }
+    // Attribute name: whitespace, then a name, then `=`
+    if (isSpace(c)) {
+      let j = i;
+      while (j < line.length && isSpace(line[j])) {
+        j += 1;
+      }
+      if (j < line.length && (isAlpha(line[j]) || line[j] === '_' || line[j] === ':')) {
+        let k = j + 1;
+        while (
+          k < line.length &&
+          (isIdentChar(line[k]) || line[k] === ':' || line[k] === '.' || line[k] === '-')
+        ) {
+          k += 1;
+        }
+        if (line[k] === '=') {
+          flush(i);
+          pushToken(tokens, 'attr', line.slice(i, k));
+          i = k;
+          plainStart = i;
+          continue;
+        }
+      }
+    }
+    i += 1;
   }
-
-  pushToken(tokens, 'plain', line.slice(lastIndex));
+  flush(line.length);
   return tokens;
 }
 
 function highlightScriptLine(line: string): Token[] {
-  const commentIndex = line.indexOf('//');
-  const activePart = commentIndex >= 0 ? line.slice(0, commentIndex) : line;
-  const commentPart = commentIndex >= 0 ? line.slice(commentIndex) : '';
+  const slashes = line.indexOf('//');
+  const active = slashes >= 0 ? line.slice(0, slashes) : line;
+  const comment = slashes >= 0 ? line.slice(slashes) : '';
   const tokens: Token[] = [];
-  const pattern =
-    /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][\w$]*\b/g;
-  let lastIndex = 0;
+  let i = 0;
+  let plainStart = 0;
+  const flush = (end: number) => pushToken(tokens, 'plain', active.slice(plainStart, end));
 
-  for (const match of activePart.matchAll(pattern)) {
-    const value = match[0];
-    const index = match.index ?? 0;
-    pushToken(tokens, 'plain', activePart.slice(lastIndex, index));
-
-    if (value.startsWith('"') || value.startsWith("'") || value.startsWith('`')) {
-      pushToken(tokens, 'string', value);
-    } else if (/^\d/.test(value)) {
-      pushToken(tokens, 'number', value);
-    } else if (JS_KEYWORDS.has(value)) {
-      pushToken(tokens, 'keyword', value);
-    } else {
-      pushToken(tokens, 'plain', value);
+  while (i < active.length) {
+    const c = active[i];
+    if (c === '"' || c === "'" || c === '`') {
+      const end = scanString(active, i);
+      flush(i);
+      pushToken(tokens, 'string', active.slice(i, end));
+      i = end;
+      plainStart = i;
+      continue;
     }
-
-    lastIndex = index + value.length;
+    if (isDigit(c)) {
+      const end = scanNumber(active, i);
+      flush(i);
+      pushToken(tokens, 'number', active.slice(i, end));
+      i = end;
+      plainStart = i;
+      continue;
+    }
+    if (isIdentStart(c)) {
+      const end = scanIdent(active, i);
+      const word = active.slice(i, end);
+      if (JS_KEYWORDS.has(word)) {
+        flush(i);
+        pushToken(tokens, 'keyword', word);
+        plainStart = end;
+      }
+      i = end;
+      continue;
+    }
+    i += 1;
   }
-
-  pushToken(tokens, 'plain', activePart.slice(lastIndex));
-  pushToken(tokens, 'comment', commentPart);
+  flush(active.length);
+  pushToken(tokens, 'comment', comment);
   return tokens;
 }
 
-function highlightCode(code: string, language?: string): Token[][] {
-  const normalizedLanguage = language?.toLowerCase();
+/**
+ * Tokenize a fenced code block by language.
+ *
+ * Routing note: `tsx`/`jsx` are JavaScript-family languages — they go to the
+ * script tokenizer, NOT the markup one (the prior version checked markup first
+ * and silently mis-highlighted every TSX/JSX block as HTML). `sql`/`yaml` have
+ * no dedicated tokenizer; they render as plain text rather than being forced
+ * through the JS tokenizer (which mis-colored their keywords).
+ */
+export function highlightCode(code: string, language?: string): Token[][] {
+  const lang = language?.toLowerCase();
 
   return code.split('\n').map((line) => {
-    if (normalizedLanguage === 'json') {
+    if (lang === 'json') {
       return highlightJsonLine(line);
     }
-
-    if (
-      normalizedLanguage === 'bash' ||
-      normalizedLanguage === 'sh' ||
-      normalizedLanguage === 'shell' ||
-      normalizedLanguage === 'zsh'
-    ) {
+    if (lang === 'bash' || lang === 'sh' || lang === 'shell' || lang === 'zsh') {
       return highlightShellLine(line);
     }
-
-    if (
-      normalizedLanguage === 'html' ||
-      normalizedLanguage === 'xml' ||
-      normalizedLanguage === 'tsx' ||
-      normalizedLanguage === 'jsx'
-    ) {
+    if (lang === 'html' || lang === 'xml') {
       return highlightMarkupLine(line);
     }
-
     if (
-      normalizedLanguage === 'js' ||
-      normalizedLanguage === 'ts' ||
-      normalizedLanguage === 'tsx' ||
-      normalizedLanguage === 'jsx' ||
-      normalizedLanguage === 'sql' ||
-      normalizedLanguage === 'yaml' ||
-      normalizedLanguage === 'yml'
+      lang === 'js' ||
+      lang === 'jsx' ||
+      lang === 'ts' ||
+      lang === 'tsx' ||
+      lang === 'javascript' ||
+      lang === 'typescript'
     ) {
       return highlightScriptLine(line);
     }
-
     return [{ kind: 'plain', value: line }];
   });
+}
+
+/** Extract the `language-<x>` class react-markdown sets on a code element.
+ *  No regex (M2): split the class list and match the prefix. */
+export function extractLanguage(className: string | undefined): string | undefined {
+  if (!className) {
+    return undefined;
+  }
+  const prefix = 'language-';
+  for (const cls of className.split(' ')) {
+    if (cls.startsWith(prefix) && cls.length > prefix.length) {
+      return cls.slice(prefix.length);
+    }
+  }
+  return undefined;
 }
 
 function CodeRenderer({
@@ -251,7 +467,7 @@ function CodeRenderer({
   children,
 }: React.ComponentProps<'code'> & { node?: unknown }): React.ReactElement {
   const raw = String(children ?? '');
-  const language = /language-([\w-]+)/.exec(className ?? '')?.[1];
+  const language = extractLanguage(className ?? undefined);
 
   if (!language) {
     return <code className={className}>{children}</code>;
