@@ -63,9 +63,9 @@ function reducer(state: State, action: Action): State {
 // =============================================================================
 
 const LEVEL_STYLES: Record<string, string> = {
-  fatal: 'bg-red-900 text-red-200',
-  error: 'bg-red-700 text-red-100',
-  warn: 'bg-yellow-700 text-yellow-100',
+  fatal: 'bg-error/15 text-error',
+  error: 'bg-error/15 text-error',
+  warn: 'bg-warning/15 text-warning-foreground',
 };
 
 const APPS = ['admin', 'api', 'marketing'] as const;
@@ -164,12 +164,12 @@ function LogsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen text-foreground">
       {/* Header */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-gray-700 bg-gray-900 p-4">
+      <div className="flex flex-wrap items-center gap-4 border-b border-border bg-card p-4">
         <div>
-          <h1 className="text-xl font-semibold text-white">Application Logs</h1>
-          <p className="mt-0.5 text-sm text-gray-400">
+          <h1 className="text-xl font-semibold text-foreground">Application Logs</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Structured warn/error/fatal logs from all apps
           </p>
         </div>
@@ -178,7 +178,7 @@ function LogsDashboard() {
         <div className="ml-auto flex items-center gap-1 text-sm">
           <Link
             href={filterUrl({ app: undefined })}
-            className={`rounded px-2 py-1 ${!filterApp ? 'bg-blue-700 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`rounded px-2 py-1 ${!filterApp ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             All apps
           </Link>
@@ -186,7 +186,7 @@ function LogsDashboard() {
             <Link
               key={a}
               href={filterUrl({ app: a })}
-              className={`rounded px-2 py-1 font-mono ${filterApp === a ? 'bg-blue-700 text-white' : 'text-gray-400 hover:text-white'}`}
+              className={`rounded px-2 py-1 font-mono ${filterApp === a ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {a}
             </Link>
@@ -197,7 +197,7 @@ function LogsDashboard() {
         <div className="flex items-center gap-1 text-sm">
           <Link
             href={filterUrl({ level: undefined })}
-            className={`rounded px-2 py-1 ${!filterLevel ? 'bg-blue-700 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`rounded px-2 py-1 ${!filterLevel ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             All levels
           </Link>
@@ -205,7 +205,7 @@ function LogsDashboard() {
             <Link
               key={l}
               href={filterUrl({ level: l })}
-              className={`rounded px-2 py-1 text-xs font-semibold uppercase ${filterLevel === l ? (LEVEL_STYLES[l] ?? '') : 'text-gray-400 hover:text-white'}`}
+              className={`rounded px-2 py-1 text-xs font-semibold uppercase ${filterLevel === l ? (LEVEL_STYLES[l] ?? '') : 'text-muted-foreground hover:text-foreground'}`}
             >
               {l}
             </Link>
@@ -213,24 +213,24 @@ function LogsDashboard() {
         </div>
       </div>
 
-      {loading && <div className="m-4 p-8 text-center text-gray-500">Loading logs...</div>}
+      {loading && <div className="m-4 p-8 text-center text-muted-foreground">Loading logs...</div>}
 
       {error && (
         <div
           role="alert"
-          className="m-4 rounded border border-red-700 bg-red-900 p-3 text-sm text-red-200"
+          className="m-4 rounded border border-error/30 bg-error/10 p-3 text-sm text-error"
         >
           Failed to load logs: {error}
         </div>
       )}
 
       {!(loading || error) && rows.length === 0 && (
-        <div className="m-4 p-8 text-center text-gray-500">
+        <div className="m-4 p-8 text-center text-muted-foreground">
           No log entries recorded yet.
           {filterApp || filterLevel ? (
             <span>
               {' '}
-              <Link href="/logs" className="text-blue-400 hover:underline">
+              <Link href="/logs" className="text-primary hover:underline">
                 Clear filters
               </Link>
             </span>
@@ -242,7 +242,7 @@ function LogsDashboard() {
 
       {rows.length > 0 && (
         <>
-          <div className="border-b border-gray-800 px-4 py-2 text-xs text-gray-500">
+          <div className="border-b border-border px-4 py-2 text-xs text-muted-foreground">
             Showing {rows.length} of {total} entries
             {filterApp ? ` · app: ${filterApp}` : ''}
             {filterLevel ? ` · level: ${filterLevel}` : ''}
@@ -250,7 +250,7 @@ function LogsDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-900 text-left text-gray-400">
+                <tr className="bg-card text-left text-muted-foreground">
                   <th className="whitespace-nowrap px-4 py-2 font-medium">Time</th>
                   <th className="px-4 py-2 font-medium">Level</th>
                   <th className="px-4 py-2 font-medium">App</th>
@@ -258,35 +258,35 @@ function LogsDashboard() {
                   <th className="w-1/2 px-4 py-2 font-medium">Message / Data</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-border">
                 {rows.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-gray-900">
-                    <td className="whitespace-nowrap px-4 py-2 text-xs text-gray-400">
+                  <tr key={row.id} className="transition-colors hover:bg-muted">
+                    <td className="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground">
                       {formatTime(new Date(row.timestamp))}
                     </td>
                     <td className="px-4 py-2">
                       <span
-                        className={`inline-block rounded px-2 py-0.5 font-mono text-xs font-semibold uppercase ${LEVEL_STYLES[row.level] ?? 'bg-gray-700 text-gray-200'}`}
+                        className={`inline-block rounded px-2 py-0.5 font-mono text-xs font-semibold uppercase ${LEVEL_STYLES[row.level] ?? 'bg-muted text-muted-foreground'}`}
                       >
                         {row.level}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-gray-300">
+                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-muted-foreground">
                       {row.app}
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs text-gray-600">
+                    <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
                       {row.requestId ? row.requestId.slice(0, 8) : ' - '}
                     </td>
-                    <td className="px-4 py-2 text-gray-200">
+                    <td className="px-4 py-2 text-muted-foreground">
                       <div className="truncate" title={row.message}>
                         {row.message}
                       </div>
                       {!!row.data && (
                         <details className="mt-1">
-                          <summary className="cursor-pointer text-xs text-gray-500">
+                          <summary className="cursor-pointer text-xs text-muted-foreground">
                             Context / data
                           </summary>
-                          <pre className="mt-1 overflow-x-auto whitespace-pre-wrap rounded bg-gray-900 p-2 text-xs text-gray-400">
+                          <pre className="mt-1 overflow-x-auto whitespace-pre-wrap rounded bg-card p-2 text-xs text-muted-foreground">
                             {JSON.stringify(row.data, null, 2)}
                           </pre>
                         </details>

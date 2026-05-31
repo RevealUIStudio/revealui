@@ -203,20 +203,20 @@ export default function PublishAgentPage() {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Header */}
-        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <Link href="/marketplace" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <div className="border-b border-border bg-card px-6 py-4">
+          <Link href="/marketplace" className="text-sm text-muted-foreground hover:text-foreground">
             RevMarket
           </Link>
-          <span className="mx-2 text-zinc-700">/</span>
-          <span className="text-sm text-zinc-300">Publish Agent</span>
-          <h1 className="mt-1 text-xl font-semibold text-white">Publish a New Agent</h1>
-          <p className="mt-0.5 text-sm text-zinc-400">
+          <span className="mx-2 text-muted-foreground">/</span>
+          <span className="text-sm text-muted-foreground">Publish Agent</span>
+          <h1 className="mt-1 text-xl font-semibold text-foreground">Publish a New Agent</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Define your agent, add skills, and publish to the marketplace
           </p>
         </div>
 
         {/* Step indicator */}
-        <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-3">
+        <div className="border-b border-border bg-muted px-6 py-3">
           <div className="flex gap-2">
             {[
               { num: 1, label: 'Basic Info' },
@@ -230,19 +230,19 @@ export default function PublishAgentPage() {
                 onClick={() => setStep(s.num)}
                 className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${
                   step === s.num
-                    ? 'bg-zinc-800 text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : step > s.num
-                      ? 'text-green-400'
-                      : 'text-zinc-600'
+                      ? 'text-success'
+                      : 'text-muted-foreground'
                 }`}
               >
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
                     step === s.num
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-primary text-primary-foreground'
                       : step > s.num
-                        ? 'bg-green-900 text-green-400'
-                        : 'bg-zinc-800 text-zinc-600'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {step > s.num ? '✓' : s.num}
@@ -348,46 +348,46 @@ function StepBasicInfo({
 }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-medium text-white">Basic Information</h2>
+      <h2 className="text-lg font-medium text-foreground">Basic Information</h2>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Agent Name</span>
+        <span className="text-sm text-muted-foreground">Agent Name</span>
         <input
           type="text"
           value={name}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             setName(e.target.value)
           }
-          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
           placeholder="Code Reviewer Pro"
         />
-        {fieldError('name') && <p className="mt-1 text-xs text-red-400">{fieldError('name')}</p>}
+        {fieldError('name') && <p className="mt-1 text-xs text-error">{fieldError('name')}</p>}
       </label>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Description</span>
+        <span className="text-sm text-muted-foreground">Description</span>
         <textarea
           value={description}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             setDescription(e.target.value)
           }
           rows={3}
-          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
           placeholder="An AI agent that reviews code for best practices, security issues, and performance..."
         />
         {fieldError('description') && (
-          <p className="mt-1 text-xs text-red-400">{fieldError('description')}</p>
+          <p className="mt-1 text-xs text-error">{fieldError('description')}</p>
         )}
       </label>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Category</span>
+        <span className="text-sm text-muted-foreground">Category</span>
         <select
           value={category}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             setCategory(e.target.value)
           }
-          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         >
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
@@ -398,14 +398,14 @@ function StepBasicInfo({
       </label>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Tags (comma-separated)</span>
+        <span className="text-sm text-muted-foreground">Tags (comma-separated)</span>
         <input
           type="text"
           value={tags}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             setTags(e.target.value)
           }
-          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
           placeholder="typescript, react, code-review"
         />
       </label>
@@ -414,7 +414,7 @@ function StepBasicInfo({
         <button
           type="button"
           onClick={onNext}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           Next: Configuration
         </button>
@@ -454,15 +454,15 @@ function StepConfiguration({
 }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-medium text-white">Configuration</h2>
+      <h2 className="text-lg font-medium text-foreground">Configuration</h2>
 
       <div>
-        <span className="block text-sm text-zinc-400 mb-2">Pricing Model</span>
+        <span className="block text-sm text-muted-foreground mb-2">Pricing Model</span>
         <div className="space-y-2">
           {PRICING_MODELS.map((pm) => (
             <label
               key={pm.value}
-              className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 p-3 cursor-pointer hover:border-zinc-600 transition-colors"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 cursor-pointer hover:border-border transition-colors"
             >
               <input
                 type="radio"
@@ -472,32 +472,32 @@ function StepConfiguration({
                 onChange={(
                   e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                 ) => setPricingModel(e.target.value)}
-                className="accent-blue-500"
+                className="accent-primary"
               />
-              <span className="text-sm text-zinc-300">{pm.label}</span>
+              <span className="text-sm text-muted-foreground">{pm.label}</span>
             </label>
           ))}
         </div>
       </div>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Base Price (USDC)</span>
+        <span className="text-sm text-muted-foreground">Base Price (USDC)</span>
         <input
           type="text"
           value={basePriceUsdc}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             setBasePriceUsdc(e.target.value)
           }
-          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
           placeholder="0.10"
         />
         {fieldError('basePriceUsdc') && (
-          <p className="mt-1 text-xs text-red-400">{fieldError('basePriceUsdc')}</p>
+          <p className="mt-1 text-xs text-error">{fieldError('basePriceUsdc')}</p>
         )}
       </label>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Max Execution Time (seconds)</span>
+        <span className="text-sm text-muted-foreground">Max Execution Time (seconds)</span>
         <input
           type="number"
           value={maxExecutionSecs}
@@ -506,22 +506,22 @@ function StepConfiguration({
           }
           min={10}
           max={3600}
-          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         />
       </label>
 
       <label className="block">
-        <span className="text-sm text-zinc-400">Agent Definition (JSON)</span>
+        <span className="text-sm text-muted-foreground">Agent Definition (JSON)</span>
         <textarea
           value={definitionJson}
           onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
             setDefinitionJson(e.target.value)
           }
           rows={8}
-          className="mt-1 w-full font-mono rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full font-mono rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         />
         {fieldError('definition') && (
-          <p className="mt-1 text-xs text-red-400">{fieldError('definition')}</p>
+          <p className="mt-1 text-xs text-error">{fieldError('definition')}</p>
         )}
       </label>
 
@@ -529,14 +529,14 @@ function StepConfiguration({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
         >
           Back
         </button>
         <button
           type="button"
           onClick={onNext}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           Next: Skills
         </button>
@@ -569,31 +569,31 @@ function StepSkills({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-white">Skills</h2>
+        <h2 className="text-lg font-medium text-foreground">Skills</h2>
         <button
           type="button"
           onClick={addSkill}
-          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+          className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
         >
           + Add Skill
         </button>
       </div>
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-muted-foreground">
         Define the capabilities your agent offers. Each skill has an input and output schema.
       </p>
 
       {skills.map((skill, i) => (
         <div
           key={skill.name || `skill-${i}`}
-          className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3"
+          className="rounded-lg border border-border bg-card p-4 space-y-3"
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-zinc-300">Skill {i + 1}</h3>
+            <h3 className="text-sm font-medium text-foreground">Skill {i + 1}</h3>
             {skills.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeSkill(i)}
-                className="text-xs text-red-400 hover:text-red-300"
+                className="text-xs text-error hover:text-error"
               >
                 Remove
               </button>
@@ -601,64 +601,64 @@ function StepSkills({
           </div>
 
           <label className="block">
-            <span className="text-xs text-zinc-500">Name</span>
+            <span className="text-xs text-muted-foreground">Name</span>
             <input
               type="text"
               value={skill.name}
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => updateSkill(i, 'name', e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
+              className="mt-1 w-full rounded border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
               placeholder="code-review"
             />
             {fieldError(`skill-${i}-name`) && (
-              <p className="mt-1 text-xs text-red-400">{fieldError(`skill-${i}-name`)}</p>
+              <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-name`)}</p>
             )}
           </label>
 
           <label className="block">
-            <span className="text-xs text-zinc-500">Description</span>
+            <span className="text-xs text-muted-foreground">Description</span>
             <input
               type="text"
               value={skill.description}
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => updateSkill(i, 'description', e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
+              className="mt-1 w-full rounded border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
               placeholder="Reviews code for bugs, security issues, and best practices"
             />
             {fieldError(`skill-${i}-description`) && (
-              <p className="mt-1 text-xs text-red-400">{fieldError(`skill-${i}-description`)}</p>
+              <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-description`)}</p>
             )}
           </label>
 
           <label className="block">
-            <span className="text-xs text-zinc-500">Input Schema (JSON)</span>
+            <span className="text-xs text-muted-foreground">Input Schema (JSON)</span>
             <textarea
               value={skill.inputSchema}
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => updateSkill(i, 'inputSchema', e.target.value)}
               rows={3}
-              className="mt-1 w-full font-mono rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-white focus:border-zinc-500 focus:outline-none"
+              className="mt-1 w-full font-mono rounded border border-border bg-muted px-3 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
             />
             {fieldError(`skill-${i}-input`) && (
-              <p className="mt-1 text-xs text-red-400">{fieldError(`skill-${i}-input`)}</p>
+              <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-input`)}</p>
             )}
           </label>
 
           <label className="block">
-            <span className="text-xs text-zinc-500">Output Schema (JSON)</span>
+            <span className="text-xs text-muted-foreground">Output Schema (JSON)</span>
             <textarea
               value={skill.outputSchema}
               onChange={(
                 e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
               ) => updateSkill(i, 'outputSchema', e.target.value)}
               rows={3}
-              className="mt-1 w-full font-mono rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-white focus:border-zinc-500 focus:outline-none"
+              className="mt-1 w-full font-mono rounded border border-border bg-muted px-3 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
             />
             {fieldError(`skill-${i}-output`) && (
-              <p className="mt-1 text-xs text-red-400">{fieldError(`skill-${i}-output`)}</p>
+              <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-output`)}</p>
             )}
           </label>
         </div>
@@ -668,14 +668,14 @@ function StepSkills({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
         >
           Back
         </button>
         <button
           type="button"
           onClick={onNext}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           Next: Review
         </button>
@@ -717,57 +717,54 @@ function StepReview({
 }) {
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-medium text-white">Review & Publish</h2>
+      <h2 className="text-lg font-medium text-foreground">Review & Publish</h2>
 
       {/* Summary */}
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3">
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <span className="text-zinc-500">Name:</span>{' '}
-            <span className="text-white">{name || ' - '}</span>
+            <span className="text-muted-foreground">Name:</span>{' '}
+            <span className="text-foreground">{name || ' - '}</span>
           </div>
           <div>
-            <span className="text-zinc-500">Category:</span>{' '}
-            <span className="text-white">{category}</span>
+            <span className="text-muted-foreground">Category:</span>{' '}
+            <span className="text-foreground">{category}</span>
           </div>
           <div className="col-span-2">
-            <span className="text-zinc-500">Description:</span>{' '}
-            <span className="text-zinc-300">{description || ' - '}</span>
+            <span className="text-muted-foreground">Description:</span>{' '}
+            <span className="text-muted-foreground">{description || ' - '}</span>
           </div>
           <div>
-            <span className="text-zinc-500">Tags:</span>{' '}
-            <span className="text-zinc-300">{tags || 'none'}</span>
+            <span className="text-muted-foreground">Tags:</span>{' '}
+            <span className="text-muted-foreground">{tags || 'none'}</span>
           </div>
           <div>
-            <span className="text-zinc-500">Pricing:</span>{' '}
-            <span className="text-white">
+            <span className="text-muted-foreground">Pricing:</span>{' '}
+            <span className="text-foreground">
               ${basePriceUsdc} / {pricingModel}
             </span>
           </div>
           <div>
-            <span className="text-zinc-500">Max execution:</span>{' '}
-            <span className="text-white">{maxExecutionSecs}s</span>
+            <span className="text-muted-foreground">Max execution:</span>{' '}
+            <span className="text-foreground">{maxExecutionSecs}s</span>
           </div>
           <div>
-            <span className="text-zinc-500">Skills:</span>{' '}
-            <span className="text-white">{skills.filter((s) => s.name).length}</span>
+            <span className="text-muted-foreground">Skills:</span>{' '}
+            <span className="text-foreground">{skills.filter((s) => s.name).length}</span>
           </div>
         </div>
       </div>
 
       {/* Skills summary */}
       <div>
-        <h3 className="text-sm font-medium text-zinc-400 mb-2">Skills</h3>
+        <h3 className="text-sm font-medium text-muted-foreground mb-2">Skills</h3>
         <div className="space-y-2">
           {skills
             .filter((s) => s.name)
             .map((skill) => (
-              <div
-                key={skill.name}
-                className="rounded border border-zinc-800 bg-zinc-950 px-3 py-2"
-              >
-                <span className="text-sm font-medium text-white">{skill.name}</span>
-                <span className="ml-2 text-xs text-zinc-500">{skill.description}</span>
+              <div key={skill.name} className="rounded border border-border bg-muted px-3 py-2">
+                <span className="text-sm font-medium text-foreground">{skill.name}</span>
+                <span className="ml-2 text-xs text-muted-foreground">{skill.description}</span>
               </div>
             ))}
         </div>
@@ -775,11 +772,11 @@ function StepReview({
 
       {/* Errors */}
       {errors.length > 0 && (
-        <div className="rounded-lg border border-red-900 bg-red-950/50 p-4">
-          <p className="text-sm font-medium text-red-400 mb-2">Please fix the following:</p>
+        <div className="rounded-lg border border-error/30 bg-error/10 p-4">
+          <p className="text-sm font-medium text-error mb-2">Please fix the following:</p>
           <ul className="space-y-1">
             {errors.map((err) => (
-              <li key={err.field} className="text-sm text-red-400">
+              <li key={err.field} className="text-sm text-error">
                 {err.message}
               </li>
             ))}
@@ -792,7 +789,7 @@ function StepReview({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
         >
           Back
         </button>
@@ -800,13 +797,13 @@ function StepReview({
           type="button"
           onClick={onPublish}
           disabled={submitting}
-          className="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
           {submitting ? 'Publishing...' : 'Publish Agent'}
         </button>
       </div>
 
-      <p className="text-xs text-zinc-600">
+      <p className="text-xs text-muted-foreground">
         Your agent will be created in draft status. You can publish it to the marketplace from your
         agent dashboard.
       </p>

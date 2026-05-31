@@ -67,7 +67,7 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
     return (
       <div className="flex h-16 items-center justify-center">
         <div
-          className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300"
+          className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-foreground"
           aria-hidden="true"
         />
       </div>
@@ -75,7 +75,7 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
   }
 
   if (rows.length === 0) {
-    return <p className="text-sm text-zinc-600">No tasks recorded yet.</p>;
+    return <p className="text-sm text-muted-foreground">No tasks recorded yet.</p>;
   }
 
   return (
@@ -86,23 +86,23 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
         const ts = new Date(row.startedAt).toLocaleString();
 
         return (
-          <li key={row.id} className="rounded-lg border border-zinc-800 bg-zinc-800/40 p-3">
+          <li key={row.id} className="rounded-lg border border-border bg-card p-3">
             <div className="flex items-center justify-between gap-2">
               <StatusBadge status={row.status} />
-              <span className="ml-auto shrink-0 font-mono text-xs text-zinc-600">{ts}</span>
+              <span className="ml-auto shrink-0 font-mono text-xs text-muted-foreground">{ts}</span>
               {row.durationMs != null && (
-                <span className="shrink-0 text-xs text-zinc-600">{row.durationMs}ms</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{row.durationMs}ms</span>
               )}
             </div>
             {inputText && (
-              <p className="mt-2 truncate text-xs text-zinc-400">
-                <span className="text-zinc-600">in: </span>
+              <p className="mt-2 truncate text-xs text-muted-foreground">
+                <span className="text-muted-foreground">in: </span>
                 {inputText}
               </p>
             )}
             {outputText && (
-              <p className="mt-0.5 truncate text-xs text-zinc-300">
-                <span className="text-zinc-600">out: </span>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                <span className="text-muted-foreground">out: </span>
                 {outputText}
               </p>
             )}
@@ -115,11 +115,11 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    completed: 'bg-emerald-500/10 text-emerald-400',
-    failed: 'bg-red-500/10 text-red-400',
-    cancelled: 'bg-zinc-600/20 text-zinc-400',
+    completed: 'bg-success/10 text-success',
+    failed: 'bg-error/10 text-error',
+    cancelled: 'bg-muted text-muted-foreground',
   };
-  const color = colors[status] ?? 'bg-zinc-700/20 text-zinc-400';
+  const color = colors[status] ?? 'bg-muted text-muted-foreground';
   return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{status}</span>;
 }
 

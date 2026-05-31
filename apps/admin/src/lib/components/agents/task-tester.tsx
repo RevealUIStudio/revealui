@@ -91,8 +91,11 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <label htmlFor="instruction" className="block text-sm font-medium text-zinc-300 mb-1.5">
-          Send a task to <span className="text-white">{agentName}</span>
+        <label
+          htmlFor="instruction"
+          className="block text-sm font-medium text-muted-foreground mb-1.5"
+        >
+          Send a task to <span className="text-foreground">{agentName}</span>
         </label>
         <textarea
           id="instruction"
@@ -100,7 +103,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           placeholder={`Tell ${agentName} what to do...`}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
+          className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
         />
       </div>
 
@@ -108,7 +111,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         type="button"
         onClick={submit}
         disabled={state === 'submitting' || state === 'polling' || !instruction.trim()}
-        className="self-start rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {state === 'submitting' ? 'Sending...' : state === 'polling' ? 'Working...' : 'Send Task'}
       </button>
@@ -118,23 +121,27 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         <div className="flex items-center gap-2">
           <TaskStateBadge state={task.status.state} />
           {task.id && (
-            <span className="font-mono text-xs text-zinc-500">task:{task.id.slice(0, 8)}</span>
+            <span className="font-mono text-xs text-muted-foreground">
+              task:{task.id.slice(0, 8)}
+            </span>
           )}
         </div>
       )}
 
       {/* Response */}
       {responseText && (
-        <div className="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">Response</p>
-          <p className="whitespace-pre-wrap text-sm text-zinc-200">{responseText}</p>
+        <div className="rounded-lg border border-border bg-muted p-4">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Response
+          </p>
+          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{responseText}</p>
         </div>
       )}
 
       {/* Error */}
       {errorMsg && (
-        <div role="alert" className="rounded-lg border border-red-800 bg-red-900/20 p-4">
-          <p className="text-sm text-red-400">{errorMsg}</p>
+        <div role="alert" className="rounded-lg border border-error/30 bg-error/10 p-4">
+          <p className="text-sm text-error">{errorMsg}</p>
         </div>
       )}
     </div>
@@ -143,15 +150,15 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 
 function TaskStateBadge({ state }: { state: string }) {
   const configs: Record<string, { label: string; color: string }> = {
-    submitted: { label: 'Submitted', color: 'bg-zinc-700 text-zinc-300' },
-    working: { label: 'Working', color: 'bg-blue-500/10 text-blue-400' },
-    'input-required': { label: 'Input Required', color: 'bg-yellow-500/10 text-yellow-400' },
-    completed: { label: 'Completed', color: 'bg-emerald-500/10 text-emerald-400' },
-    canceled: { label: 'Canceled', color: 'bg-zinc-600 text-zinc-400' },
-    failed: { label: 'Failed', color: 'bg-red-500/10 text-red-400' },
-    unknown: { label: 'Unknown', color: 'bg-zinc-700 text-zinc-400' },
+    submitted: { label: 'Submitted', color: 'bg-muted text-muted-foreground' },
+    working: { label: 'Working', color: 'bg-primary/10 text-primary' },
+    'input-required': { label: 'Input Required', color: 'bg-warning/15 text-warning-foreground' },
+    completed: { label: 'Completed', color: 'bg-success/10 text-success' },
+    canceled: { label: 'Canceled', color: 'bg-muted text-muted-foreground' },
+    failed: { label: 'Failed', color: 'bg-error/10 text-error' },
+    unknown: { label: 'Unknown', color: 'bg-muted text-muted-foreground' },
   };
-  const cfg = configs[state] ?? { label: state, color: 'bg-zinc-700 text-zinc-300' };
+  const cfg = configs[state] ?? { label: state, color: 'bg-muted text-muted-foreground' };
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
   );

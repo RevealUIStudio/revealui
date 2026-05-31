@@ -80,11 +80,7 @@ export function UpgradeDialog() {
           : 'Unlock more features by upgrading your plan.'}
       </DialogDescription>
       <DialogBody>
-        {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 rounded-md bg-error/10 p-3 text-sm text-error">{error}</div>}
         <PricingTable
           tiers={upgradeTiers}
           currentTier={tier ?? 'free'}
@@ -95,7 +91,7 @@ export function UpgradeDialog() {
       <DialogActions>
         <Link
           href="/upgrade"
-          className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+          className="text-sm font-medium text-primary hover:underline"
           onClick={handleClose}
         >
           View full pricing
@@ -103,7 +99,7 @@ export function UpgradeDialog() {
         <button
           type="button"
           onClick={handleClose}
-          className="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+          className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           Maybe later
         </button>

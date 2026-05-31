@@ -134,17 +134,17 @@ export default function McpCatalogPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+      <div className="border-b border-border bg-card px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-white">MCP</h1>
-            <p className="mt-0.5 text-sm text-zinc-400">
+            <h1 className="text-xl font-semibold text-foreground">MCP</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Built-in and OAuth-authorized servers, content exposure, and per-meter usage
             </p>
           </div>
           <a
             href="/mcp/connect"
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90"
           >
             Connect new server
           </a>
@@ -152,7 +152,7 @@ export default function McpCatalogPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 bg-zinc-900/70">
+      <div className="border-b border-border bg-card">
         <nav className="mx-auto flex max-w-5xl gap-1 px-6" aria-label="MCP page tabs">
           {(['catalog', 'usage'] as CatalogTab[]).map((t) => (
             <button
@@ -161,8 +161,8 @@ export default function McpCatalogPage() {
               onClick={() => setActiveTab(t)}
               className={`-mb-px border-b-2 px-3 py-2 text-sm capitalize transition-colors ${
                 activeTab === t
-                  ? 'border-emerald-500 text-emerald-300'
-                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                  ? 'border-success text-success'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
               aria-current={activeTab === t ? 'page' : undefined}
             >
@@ -180,7 +180,7 @@ export default function McpCatalogPage() {
             {message && (
               <div
                 role="status"
-                className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300"
+                className="mb-6 rounded-lg border border-border bg-card p-3 text-sm text-muted-foreground"
               >
                 {message}
               </div>
@@ -189,11 +189,11 @@ export default function McpCatalogPage() {
             {/* Tenant scope selector */}
             <form
               onSubmit={handleLoadTenant}
-              className="mb-8 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4"
+              className="mb-8 rounded-lg border border-border bg-card p-4"
             >
               <label
                 htmlFor="tenant-input"
-                className="mb-1.5 block text-sm font-medium text-zinc-300"
+                className="mb-1.5 block text-sm font-medium text-muted-foreground"
               >
                 Tenant
               </label>
@@ -208,19 +208,19 @@ export default function McpCatalogPage() {
                   ) => setTenant(e.target.value)}
                   pattern="[A-Za-z0-9_-]{1,64}"
                   placeholder="acme"
-                  className="w-64 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-64 rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 />
                 <button
                   type="submit"
                   disabled={!tenant.trim() || state === 'loading'}
-                  className="rounded-md bg-zinc-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-md bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-foreground/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {state === 'loading' ? 'Loading…' : 'Load'}
                 </button>
                 {activeTenant && state === 'ready' && (
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-muted-foreground">
                     Showing remote servers for{' '}
-                    <span className="font-mono text-zinc-400">{activeTenant}</span>
+                    <span className="font-mono text-muted-foreground">{activeTenant}</span>
                   </span>
                 )}
               </div>
@@ -228,52 +228,62 @@ export default function McpCatalogPage() {
 
             {/* Remote servers (per tenant) */}
             <section className="mb-10">
-              <h2 className="mb-3 text-lg font-medium text-white">
+              <h2 className="mb-3 text-lg font-medium text-foreground">
                 Remote servers{' '}
-                <span className="text-sm font-normal text-zinc-500">
+                <span className="text-sm font-normal text-muted-foreground">
                   {activeTenant ? `(${activeTenant})` : '(select a tenant)'}
                 </span>
               </h2>
               {activeTenant && state === 'ready' && remotes.length === 0 && (
-                <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+                <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
                   No remote servers connected for{' '}
-                  <span className="font-mono text-zinc-400">{activeTenant}</span>. Click{' '}
-                  <span className="font-medium text-zinc-300">Connect new server</span> to authorize
-                  one.
+                  <span className="font-mono text-muted-foreground">{activeTenant}</span>. Click{' '}
+                  <span className="font-medium text-foreground">Connect new server</span> to
+                  authorize one.
                 </div>
               )}
               {remotes.length > 0 && (
-                <div className="overflow-hidden rounded-lg border border-zinc-800">
+                <div className="overflow-hidden rounded-lg border border-border">
                   <table className="w-full text-sm">
-                    <thead className="bg-zinc-900/50">
+                    <thead className="bg-card">
                       <tr>
-                        <th className="px-4 py-3 text-left font-medium text-zinc-400">Server</th>
-                        <th className="px-4 py-3 text-left font-medium text-zinc-400">Tenant</th>
-                        <th className="px-4 py-3 text-left font-medium text-zinc-400">State</th>
-                        <th className="px-4 py-3 text-right font-medium text-zinc-400">Actions</th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Server
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Tenant
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          State
+                        </th>
+                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {remotes.map((r) => (
-                        <tr key={`${r.tenant}/${r.server}`} className="border-t border-zinc-800/50">
-                          <td className="px-4 py-3 font-mono text-zinc-300">{r.server}</td>
-                          <td className="px-4 py-3 font-mono text-xs text-zinc-500">{r.tenant}</td>
+                        <tr key={`${r.tenant}/${r.server}`} className="border-t border-border">
+                          <td className="px-4 py-3 font-mono text-muted-foreground">{r.server}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                            {r.tenant}
+                          </td>
                           <td className="px-4 py-3">
-                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                            <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
                               {r.connectionState}
                             </span>
                           </td>
                           <td className="flex items-center justify-end gap-3 px-4 py-3 text-right">
                             <a
                               href={`/mcp/inspect?tenant=${encodeURIComponent(r.tenant)}&server=${encodeURIComponent(r.server)}`}
-                              className="text-xs font-medium text-emerald-400 hover:text-emerald-300"
+                              className="text-xs font-medium text-success hover:text-success"
                             >
                               Inspect
                             </a>
                             <button
                               type="button"
                               onClick={() => void handleDisconnect(r.server)}
-                              className="text-xs font-medium text-red-400 hover:text-red-300"
+                              className="text-xs font-medium text-error hover:text-error"
                             >
                               Disconnect
                             </button>
@@ -288,43 +298,53 @@ export default function McpCatalogPage() {
 
             {/* Content exposure (tenant-agnostic in v1) */}
             <section className="mb-10">
-              <h2 className="mb-1 text-lg font-medium text-white">
+              <h2 className="mb-1 text-lg font-medium text-foreground">
                 Content exposure{' '}
-                <span className="text-sm font-normal text-zinc-500">({collections.length})</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({collections.length})
+                </span>
               </h2>
-              <p className="mb-3 text-xs text-zinc-500">
+              <p className="mb-3 text-xs text-muted-foreground">
                 Collections exposed to MCP clients as resources via the{' '}
-                <span className="font-mono text-zinc-400">revealui-content</span> server. Opt a
-                collection out by setting{' '}
-                <span className="font-mono text-zinc-400">mcpResource: false</span> in its
+                <span className="font-mono text-muted-foreground">revealui-content</span> server.
+                Opt a collection out by setting{' '}
+                <span className="font-mono text-muted-foreground">mcpResource: false</span> in its
                 CollectionConfig.
               </p>
               {collections.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+                <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
                   Loading collection exposure…
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-lg border border-zinc-800">
+                <div className="overflow-hidden rounded-lg border border-border">
                   <table className="w-full text-sm">
-                    <thead className="bg-zinc-900/50">
+                    <thead className="bg-card">
                       <tr>
-                        <th className="px-4 py-3 text-left font-medium text-zinc-400">Slug</th>
-                        <th className="px-4 py-3 text-left font-medium text-zinc-400">Label</th>
-                        <th className="px-4 py-3 text-left font-medium text-zinc-400">Exposure</th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Slug
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Label
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
+                          Exposure
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {collections.map((c) => (
-                        <tr key={c.slug} className="border-t border-zinc-800/50">
-                          <td className="px-4 py-3 font-mono text-zinc-300">{c.slug}</td>
-                          <td className="px-4 py-3 text-zinc-400">{c.labelPlural ?? c.label}</td>
+                        <tr key={c.slug} className="border-t border-border">
+                          <td className="px-4 py-3 font-mono text-muted-foreground">{c.slug}</td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {c.labelPlural ?? c.label}
+                          </td>
                           <td className="px-4 py-3">
                             {c.mcpResource ? (
-                              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                              <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
                                 exposed
                               </span>
                             ) : (
-                              <span className="rounded-full bg-zinc-700/40 px-2 py-0.5 text-xs font-medium text-zinc-400">
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                                 hidden
                               </span>
                             )}
@@ -339,12 +359,14 @@ export default function McpCatalogPage() {
 
             {/* Built-in servers (tenant-agnostic) */}
             <section>
-              <h2 className="mb-3 text-lg font-medium text-white">
+              <h2 className="mb-3 text-lg font-medium text-foreground">
                 Built-in servers{' '}
-                <span className="text-sm font-normal text-zinc-500">({builtins.length})</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({builtins.length})
+                </span>
               </h2>
               {builtins.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+                <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
                   Loading built-in servers…
                 </div>
               ) : (

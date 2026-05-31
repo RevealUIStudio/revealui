@@ -56,13 +56,13 @@ export function DataPanel({
   const getStatusColor = () => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-500';
+        return 'bg-success';
       case 'warning':
-        return 'bg-yellow-500';
+        return 'bg-warning';
       case 'critical':
-        return 'bg-red-500';
+        return 'bg-error';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted-foreground';
     }
   };
 
@@ -77,15 +77,15 @@ export function DataPanel({
     return (
       <output
         ref={ref as React.Ref<HTMLOutputElement>}
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
+        className={`bg-card rounded-lg shadow p-6 ${className}`}
         style={style}
         aria-label={ariaLabel || `${title} panel`}
         data-status={status}
         aria-busy="true"
       >
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+          <div className="h-4 bg-foreground/10 rounded w-1/2 mb-4"></div>
+          <div className="h-8 bg-foreground/10 rounded w-3/4"></div>
         </div>
       </output>
     );
@@ -95,13 +95,13 @@ export function DataPanel({
     return (
       <div
         ref={ref}
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}
+        className={`bg-card rounded-lg shadow p-6 ${className}`}
         style={style}
         role="alert"
         aria-label={ariaLabel || `${title} panel`}
         data-status={status}
       >
-        <div className="text-red-500">
+        <div className="text-error">
           <svg
             className="w-6 h-6 mb-2"
             fill="none"
@@ -129,7 +129,7 @@ export function DataPanel({
   return (
     <Component
       ref={ref as React.Ref<HTMLDivElement & HTMLButtonElement>}
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-all ${
+      className={`bg-card rounded-lg shadow p-6 transition-all ${
         onClick ? 'cursor-pointer hover:shadow-lg hover:scale-105' : ''
       } ${className}`}
       style={style}
@@ -146,10 +146,7 @@ export function DataPanel({
         data-status={status}
         tabIndex={onClick ? 0 : undefined}
       >
-        <h3
-          id={panelId}
-          className="text-sm font-medium text-gray-600 dark:text-gray-400 break-words"
-        >
+        <h3 id={panelId} className="text-sm font-medium text-muted-foreground break-words">
           {title}
         </h3>
         <div className="flex items-center gap-2">
@@ -159,16 +156,14 @@ export function DataPanel({
       </div>
 
       <div className="flex items-baseline gap-2 mb-2">
-        <p className="text-3xl font-bold text-gray-900 dark:text-white break-all">
-          {formatValue(value)}
-        </p>
-        {unit && <span className="text-sm text-gray-600 dark:text-gray-400">{unit}</span>}
+        <p className="text-3xl font-bold text-foreground break-all">{formatValue(value)}</p>
+        {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
       </div>
 
       {trend !== undefined && (
         <output
           className={`flex items-center text-sm ${
-            trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-600'
+            trend > 0 ? 'text-success' : trend < 0 ? 'text-error' : 'text-muted-foreground'
           }`}
           aria-live="polite"
         >

@@ -98,23 +98,23 @@ export function ResourcesPanel({ tenant, server }: ResourcesPanelProps) {
         {message && (
           <div
             role="alert"
-            className="mb-3 rounded-lg border border-red-800 bg-red-900/20 p-3 text-xs text-red-300"
+            className="mb-3 rounded-lg border border-error/30 bg-error/10 p-3 text-xs text-error"
           >
             {message}
           </div>
         )}
         {state === 'loading' && (
-          <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-4 text-center text-xs text-zinc-500">
+          <div className="rounded-lg border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
             Loading…
           </div>
         )}
         {state === 'ready' && resources.length === 0 && (
-          <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-4 text-center text-xs text-zinc-500">
+          <div className="rounded-lg border border-dashed border-border bg-card p-4 text-center text-xs text-muted-foreground">
             No resources advertised.
           </div>
         )}
         {resources.length > 0 && (
-          <ul className="divide-y divide-zinc-800 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/50">
+          <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
             {resources.map((r) => {
               const selected = r.uri === selectedUri;
               return (
@@ -124,12 +124,12 @@ export function ResourcesPanel({ tenant, server }: ResourcesPanelProps) {
                     onClick={() => void handleSelect(r.uri)}
                     className={`block w-full px-3 py-2 text-left transition-colors ${
                       selected
-                        ? 'bg-emerald-900/20 text-emerald-200'
-                        : 'text-zinc-300 hover:bg-zinc-800/60'
+                        ? 'bg-success/10 text-success'
+                        : 'text-muted-foreground hover:bg-muted'
                     }`}
                   >
                     <div className="truncate font-mono text-xs">{r.name || r.uri}</div>
-                    <div className="mt-0.5 truncate text-[10px] text-zinc-500">{r.uri}</div>
+                    <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{r.uri}</div>
                   </button>
                 </li>
               );
@@ -140,44 +140,44 @@ export function ResourcesPanel({ tenant, server }: ResourcesPanelProps) {
 
       <div>
         {!selectedUri && (
-          <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-xs text-zinc-500">
+          <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
             Select a resource to preview its contents.
           </div>
         )}
         {selectedUri && previewState === 'loading' && (
-          <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-xs text-zinc-500">
+          <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
             Loading preview…
           </div>
         )}
         {selectedUri && previewState === 'error' && (
-          <div className="rounded-lg border border-red-800 bg-red-900/20 p-3 text-xs text-red-300">
+          <div className="rounded-lg border border-error/30 bg-error/10 p-3 text-xs text-error">
             {previewError}
           </div>
         )}
         {selectedUri && previewState === 'ready' && contents && (
           <div className="space-y-3">
-            <div className="rounded-md border border-zinc-800 bg-zinc-900/50 px-3 py-2 font-mono text-[10px] text-zinc-500">
+            <div className="rounded-md border border-border bg-card px-3 py-2 font-mono text-[10px] text-muted-foreground">
               {selectedUri}
             </div>
             {contents.length === 0 && (
-              <div className="rounded-md border border-dashed border-zinc-800 bg-zinc-900/30 p-3 text-center text-xs text-zinc-500">
+              <div className="rounded-md border border-dashed border-border bg-card p-3 text-center text-xs text-muted-foreground">
                 (empty)
               </div>
             )}
             {contents.map((block, idx) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: content blocks have no id
-              <div key={idx} className="rounded-md border border-zinc-800 bg-zinc-900/40 p-3">
-                <div className="mb-2 text-[10px] text-zinc-500">
+              <div key={idx} className="rounded-md border border-border bg-card p-3">
+                <div className="mb-2 text-[10px] text-muted-foreground">
                   {block.mimeType ??
                     (block.text !== undefined ? 'text/plain' : 'application/octet-stream')}
                   {block.blob && ` · ${block.blob.length} base64 chars`}
                 </div>
                 {block.text !== undefined ? (
-                  <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-zinc-200">
+                  <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[11px] text-foreground">
                     {block.text}
                   </pre>
                 ) : (
-                  <div className="font-mono text-[11px] text-zinc-500">
+                  <div className="font-mono text-[11px] text-muted-foreground">
                     (binary content — not rendered in preview)
                   </div>
                 )}

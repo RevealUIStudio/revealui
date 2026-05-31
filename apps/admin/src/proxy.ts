@@ -47,6 +47,15 @@ const PUBLIC_PATHS = new Set([
   '/setup',
 ]);
 
+// Session-only paths in the (backend) route group: require an authenticated
+// session but NOT the admin role. `/welcome` is the post-checkout landing
+// (Stripe `success_url` in apps/server billing.ts) and every self-serve
+// subscriber has role `user`, not `admin` — gating it on admin would bounce a
+// paying customer to /login at the moment of conversion. The page is a client
+// component that renders only the user's own tier + generic CTAs (no privileged
+// data), so a valid session is sufficient.
+const SESSION_ONLY_PATHS = new Set(['/welcome']);
+
 // Legacy `/admin/*` paths from before the chip-2 URL flatten (#644) — 301 to
 // flat path. Catches stale bookmarks and any external links written against
 // the pre-flatten URLs. MUST be `/admin` (the historical prefix); empty
@@ -151,12 +160,16 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       return NextResponse.redirect(loginUrl);
     }
 
-    const role = request.cookies.get('revealui-role')?.value;
-    if (role !== 'admin') {
-      // User is authenticated but not admin — redirect to login (no admin home for non-admins)
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = '/login';
-      return NextResponse.redirect(loginUrl);
+    // Admin-role requirement. Skipped for session-only paths (e.g. /welcome),
+    // which any authenticated user may reach.
+    if (!SESSION_ONLY_PATHS.has(pathname)) {
+      const role = request.cookies.get('revealui-role')?.value;
+      if (role !== 'admin') {
+        // User is authenticated but not admin — redirect to login (no admin home for non-admins)
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = '/login';
+        return NextResponse.redirect(loginUrl);
+      }
     }
 
     // Password rotation enforcement — block protected pages until password is changed

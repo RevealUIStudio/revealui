@@ -115,8 +115,8 @@ export default function ApiKeysPage() {
         <div className="p-4 sm:p-6 max-w-lg">
           {/* Status banner */}
           {currentProvider && (
-            <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <div className="mb-6 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+              <span className="h-2 w-2 rounded-full bg-success" />
               {PROVIDERS.find((p) => p.id === currentProvider)?.label ?? currentProvider} key
               configured{currentKeyHint ? ` (${currentKeyHint})` : ''} - tasks will use your key
             </div>
@@ -126,15 +126,15 @@ export default function ApiKeysPage() {
           {saveError && (
             <div
               role="alert"
-              className="mb-6 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400"
+              className="mb-6 rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
             >
               {saveError}
             </div>
           )}
 
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <h1 className="text-base font-semibold text-white">Inference Endpoint</h1>
-            <p className="mt-1 text-sm text-zinc-400">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h1 className="text-base font-semibold text-foreground">Inference Endpoint</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Configure your open-model inference endpoint. Keys are stored encrypted on RevealUI
               servers and only used server-side for agent tasks.
             </p>
@@ -144,7 +144,7 @@ export default function ApiKeysPage() {
               <div>
                 <label
                   htmlFor="provider-select"
-                  className="block text-xs font-medium text-zinc-400 mb-1.5"
+                  className="block text-xs font-medium text-muted-foreground mb-1.5"
                 >
                   Provider
                 </label>
@@ -154,7 +154,7 @@ export default function ApiKeysPage() {
                   onChange={(
                     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                   ) => setProvider(e.target.value as Provider)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
                 >
                   {PROVIDERS.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -168,7 +168,7 @@ export default function ApiKeysPage() {
               <div>
                 <label
                   htmlFor="api-key-input"
-                  className="block text-xs font-medium text-zinc-400 mb-1.5"
+                  className="block text-xs font-medium text-muted-foreground mb-1.5"
                 >
                   API Key
                   {activeProviderInfo && (
@@ -176,7 +176,7 @@ export default function ApiKeysPage() {
                       href={activeProviderInfo.docsUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="ml-2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="ml-2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Get key ↗
                     </a>
@@ -191,12 +191,12 @@ export default function ApiKeysPage() {
                       e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                     ) => setApiKey(e.target.value)}
                     placeholder={activeProviderInfo?.placeholder ?? ''}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 pr-16 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none font-mono"
+                    className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-16 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowKey((v) => !v)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-500 hover:text-zinc-300"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
                   >
                     {showKey ? 'hide' : 'show'}
                   </button>
@@ -209,7 +209,7 @@ export default function ApiKeysPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={!apiKey.trim()}
-                  className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saved ? 'Saved ✓' : 'Save Key'}
                 </button>
@@ -217,7 +217,7 @@ export default function ApiKeysPage() {
                   <button
                     type="button"
                     onClick={handleClear}
-                    className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                   >
                     Clear
                   </button>

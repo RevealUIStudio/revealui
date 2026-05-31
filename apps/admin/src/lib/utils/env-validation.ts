@@ -157,6 +157,21 @@ export function validateRequiredEnvVars(
         missing.push(key);
       }
     }
+
+    // Transactional email transport (Gmail API — packages/services/src/email).
+    // The signup VERIFICATION email is sent from THIS admin app; without both
+    // vars getEmailProvider() falls back to a no-op that drops every send, so a
+    // non-first signup is created with no session and no email and (after the
+    // 24h grace) is locked out with no working recovery. Required in hosted
+    // production so a misconfigured deploy fails fast at boot (instrumentation.ts)
+    // instead of silently locking out every new user. Fleet kits are exempt
+    // (no Workspace email) via the !isFleetMode guard above.
+    const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_PRIVATE_KEY'];
+    for (const key of emailTransportVars) {
+      if (!process.env[key]) {
+        missing.push(key);
+      }
+    }
   }
 
   const valid = missing.length === 0;
