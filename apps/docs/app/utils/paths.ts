@@ -68,6 +68,47 @@ const stripControlChars = (value: string): string => {
   return result;
 };
 
+/** Strip a trailing `.md` or `.mdx` extension (no authored regex). */
+export const stripDocExtension = (value: string): string => {
+  if (value.endsWith('.mdx')) return value.slice(0, -4);
+  if (value.endsWith('.md')) return value.slice(0, -3);
+  return value;
+};
+
+/** Remove leading and trailing forward slashes (no authored regex). */
+const trimSlashes = (value: string): string => {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value[start] === '/') {
+    start++;
+  }
+  while (end > start && value[end - 1] === '/') {
+    end--;
+  }
+  return value.slice(start, end);
+};
+
+/** True when a segment is non-empty and consists only of '.' characters. */
+const isAllDots = (segment: string): boolean => {
+  if (segment.length === 0) return false;
+  for (const ch of segment) {
+    if (ch !== '.') {
+      return false;
+    }
+  }
+  return true;
+};
+
+/** True for an absolute path: a leading '/' or a Windows drive letter like "C:". */
+const isAbsolutePath = (value: string): boolean => {
+  if (value.startsWith('/')) return true;
+  if (value.length >= 2 && value[1] === ':') {
+    const code = value.charCodeAt(0);
+    return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+  }
+  return false;
+};
+
 /**
  * Sanitize a file path to prevent directory traversal and other security issues
  */
@@ -80,10 +121,10 @@ export function sanitizePath(input: string): string {
   let sanitized = stripControlChars(input);
 
   // Normalize path separators
-  sanitized = sanitized.replace(/\\/g, '/');
+  sanitized = sanitized.replaceAll('\\', '/');
 
   // Remove leading/trailing slashes and whitespace
-  sanitized = sanitized.trim().replace(/^\/+|\/+$/g, '');
+  sanitized = trimSlashes(sanitized.trim());
 
   // Split into segments and filter
   const segments = sanitized.split('/').filter((segment) => {
@@ -97,7 +138,7 @@ export function sanitizePath(input: string): string {
     if (segment === '..') return false;
 
     // Remove segments containing only dots (security: "....")
-    if (/^\.+$/.test(segment)) return false;
+    if (isAllDots(segment)) return false;
 
     // Remove segments with control characters
     if (hasControlChars(segment)) return false;
@@ -144,7 +185,7 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
   // CHIP-3 D2b: 'docs' section route paths are lowercase-kebab slugs.
   // Resolve via the slug manifest to recover the original filename.
   if (section === 'docs') {
-    const slugKey = sanitized.replace(/\.(md|mdx)$/, '');
+    const slugKey = stripDocExtension(sanitized);
     const original = slugToPath(slugKey);
     if (original) {
       return {
@@ -173,7 +214,7 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       // Keep as is
     } else {
       // Remove extension if not required
-      resolvedPath = resolvedPath.replace(/\.(md|mdx)$/, '');
+      resolvedPath = stripDocExtension(resolvedPath);
     }
   } else {
     // No extension - add it if required
@@ -218,7 +259,7 @@ export function isPathSafe(input: string): boolean {
   }
 
   // Check for absolute paths (on Windows or Unix)
-  if (/^([a-zA-Z]:|\/)/.test(input)) {
+  if (isAbsolutePath(input)) {
     return false;
   }
 
