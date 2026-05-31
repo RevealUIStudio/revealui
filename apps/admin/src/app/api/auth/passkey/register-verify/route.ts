@@ -17,7 +17,7 @@ import {
   verifyCookiePayload,
   verifyRegistration,
 } from '@revealui/auth/server';
-import config from '@revealui/config';
+import { getConfig } from '@revealui/config';
 import { PasskeyRegisterVerifyRequestSchema } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { getClient } from '@revealui/db';
@@ -61,7 +61,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
     const challengePayload = verifyCookiePayload<ChallengePayload>(
       challengeCookie,
-      config.reveal.secret,
+      getConfig().reveal.secret,
     );
 
     if (!challengePayload) {

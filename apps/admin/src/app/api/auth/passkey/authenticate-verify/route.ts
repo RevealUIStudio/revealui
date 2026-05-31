@@ -8,7 +8,7 @@
  */
 
 import { rotateSession, verifyAuthentication, verifyCookiePayload } from '@revealui/auth/server';
-import config from '@revealui/config';
+import { getConfig } from '@revealui/config';
 import { PasskeyAuthenticateVerifyRequestSchema } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
 import { getPasskeyByCredentialId } from '@revealui/db/queries/passkeys';
@@ -41,7 +41,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
 
     const challengePayload = verifyCookiePayload<{ challenge: string; expiresAt: number }>(
       challengeCookie,
-      config.reveal.secret,
+      getConfig().reveal.secret,
     );
 
     if (!challengePayload) {
