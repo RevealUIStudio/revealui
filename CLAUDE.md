@@ -179,7 +179,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (P
 - Unit/integration: Vitest (`*.test.ts`)
 - E2E: Playwright (`*.e2e.ts`)
 - Test helpers: `@revealui/test` package
-- Database tests use PGlite (in-memory PostgreSQL)
+- Unit tests mock the DB (or use in-process PGlite where a package embeds Postgres — cache, mcp, harnesses); relational integration tests run against a real Postgres via `pnpm db:setup-test`
 
 ## Engineering Posture
 
