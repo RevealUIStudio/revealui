@@ -15,6 +15,7 @@ import { users } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { sendVerificationEmail } from '@/lib/email/verification';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -239,8 +240,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     if (result.sessionToken && isVerified) {
       // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
       const userRole = resolvedUser?.role ?? 'user';
-      const isAdminRole = ['admin', 'super-admin', 'admin', 'super-admin'].includes(userRole);
-      response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
+      response.cookies.set('revealui-role', isAdminRole(userRole) ? 'admin' : 'user', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
