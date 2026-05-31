@@ -97,9 +97,12 @@ function buildEnvLocal(cfg: CreateProjectConfig): string {
     lines.push('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder');
   }
 
-  lines.push('', '# Admin bootstrap (used on first run only)');
+  lines.push(
+    '',
+    '# Admin bootstrap (first run only). Set a strong password (min 12 chars) before first run.',
+  );
   lines.push('REVEALUI_ADMIN_EMAIL=admin@example.com');
-  lines.push('REVEALUI_ADMIN_PASSWORD=changeme-min-12-chars');
+  lines.push('REVEALUI_ADMIN_PASSWORD=');
 
   return `${lines.join('\n')}\n`;
 }

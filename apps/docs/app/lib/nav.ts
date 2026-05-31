@@ -42,7 +42,6 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
     {
       title: 'Tutorials',
       items: [
-        { label: 'Quick Start', path: '/guides/quick-start' },
         { label: 'Authentication', path: '/guides/authentication' },
         { label: 'Collections', path: '/guides/collections' },
         { label: 'Billing', path: '/guides/billing' },
