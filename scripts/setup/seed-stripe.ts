@@ -8,7 +8,7 @@
  *   - Webhook endpoint (with canonical event list)
  *   - Billing portal configuration (plan switching, cancellation, invoice history)
  *
- * Idempotent  -  safe to run multiple times. Uses metadata keys for deduplication.
+ * Idempotent  -  safe to run multiple times. Dedupes by Stripe lookup_key (metadata-key fallback during migration).
  *
  * Usage:
  *   pnpm stripe:seed                         # sync all (products + webhook + portal)
@@ -31,6 +31,11 @@ import type Stripe from 'stripe';
 // @revealui/contracts as a root-level dep. Script only; not bundled.
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
 import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
+import {
+  type PriceDefinition,
+  priceMatchesDefinition,
+  priceSharesHandle,
+} from './stripe-price-match.js';
 import { syncToRevvault } from './stripe-revvault-sync.js';
 
 // Load env from root .env
@@ -58,15 +63,6 @@ interface ProductDefinition {
   renewal?: string;
   defaultPriceKey: string;
   prices: PriceDefinition[];
-}
-
-interface PriceDefinition {
-  key: string;
-  unitAmount: number; // cents
-  currency: string;
-  interval?: 'month' | 'year';
-  mode: 'subscription' | 'payment';
-  trialDays?: number;
 }
 
 interface LocalStripeCatalogCache {
@@ -534,15 +530,7 @@ async function syncCatalog(
       typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
 
     for (const priceDef of productDef.prices) {
-      const matchingPrice = existingPrices.find(
-        (p) =>
-          p.metadata.revealui_price_key === priceDef.key &&
-          p.unit_amount === priceDef.unitAmount &&
-          p.currency === priceDef.currency &&
-          (priceDef.mode === 'subscription'
-            ? p.recurring?.interval === priceDef.interval
-            : !p.recurring),
-      );
+      const matchingPrice = existingPrices.find((p) => priceMatchesDefinition(p, priceDef));
 
       if (matchingPrice) {
         log.success(
@@ -564,7 +552,7 @@ async function syncCatalog(
       }
 
       // Archive stale price with same key but different amount/interval
-      const stalePrice = existingPrices.find((p) => p.metadata.revealui_price_key === priceDef.key);
+      const stalePrice = existingPrices.find((p) => priceSharesHandle(p, priceDef));
       if (stalePrice) {
         if (dryRun) {
           log.info(`  Would archive stale price: ${stalePrice.id}`);
@@ -585,6 +573,11 @@ async function syncCatalog(
         product: product.id,
         unit_amount: priceDef.unitAmount,
         currency: priceDef.currency,
+        // Stripe's purpose-built stable handle. transfer_lookup_key moves it off
+        // an archived/stale price (a changed amount archives + recreates, since
+        // prices are immutable) onto the new price so the handle survives.
+        lookup_key: priceDef.key,
+        transfer_lookup_key: true,
         metadata: { revealui_price_key: priceDef.key },
         tax_behavior: PRICE_TAX_BEHAVIOR,
       };

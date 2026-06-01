@@ -165,6 +165,23 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Record TOS acceptance on the typed columns. bootstrap() creates the admin
+  // through the engine's create(), which can't persist tos_accepted_at /
+  // tos_version (its dynamic-SQL adapter rejects camelCase column identifiers),
+  // so the caller stamps them via a typed Drizzle write — mirrors the web setup
+  // route (apps/admin/src/app/api/setup/route.ts).
+  if (result.user) {
+    try {
+      const { stampTosAcceptanceByEmail } = await import('../../apps/admin/src/lib/auth/tos.js');
+      await stampTosAcceptanceByEmail(db, email);
+      console.log('[bootstrap] recorded TOS acceptance');
+    } catch (err) {
+      console.warn(
+        `[bootstrap] failed to record TOS acceptance: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
   // Set mustRotatePassword flag if requested
   if (forceRotate && result.user) {
     try {
