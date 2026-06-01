@@ -25,7 +25,9 @@ services:
   # PostgreSQL Database (self-hosted alternative to NeonDB)
   # ---------------------------------------------------------------------------
   postgres:
-    image: postgres:16-alpine
+    # pgvector/pgvector:pg16 (not vanilla postgres:16): migration 0000 runs
+    # `CREATE EXTENSION vector`, which a plain postgres image cannot satisfy.
+    image: pgvector/pgvector:pg16
     container_name: revealui-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-revealui}

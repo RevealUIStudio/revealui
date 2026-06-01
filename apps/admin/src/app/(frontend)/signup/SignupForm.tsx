@@ -58,6 +58,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   const [tosAccepted, setTosAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
 
   const anyLoading = isLoading || isPasskeyLoading;
 
@@ -83,10 +84,18 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         });
       }
 
-      if (plan === 'pro') {
-        router.push('/account/billing?upgrade=pro');
+      // The first user is auto-verified and gets a session immediately, so send
+      // them straight in. Everyone else must verify their email before they can
+      // sign in — show a confirmation screen instead of pushing them to a
+      // protected route that would only bounce back to /login.
+      if (result.user?.emailVerified) {
+        if (plan === 'pro') {
+          router.push('/account/billing?upgrade=pro');
+        } else {
+          router.push('/');
+        }
       } else {
-        router.push('/');
+        setAwaitingVerification(true);
       }
     } else {
       setError(result.error || 'Failed to create account');
@@ -120,6 +129,27 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       }
     }
   };
+
+  if (awaitingVerification) {
+    return (
+      <div className="w-full max-w-sm space-y-6">
+        <Heading as="h2" size="lg" className="tracking-tight">
+          Check your inbox
+        </Heading>
+        <p className="text-sm text-muted-foreground">
+          We sent a verification link to{' '}
+          <span className="font-medium text-foreground">{email}</span>. Click it to activate your
+          account, then sign in.
+        </p>
+        <p className="text-xs text-zinc-600">
+          Didn&apos;t get it? Check your spam folder — the link can take a minute to arrive.
+        </p>
+        <Button onClick={() => router.push('/login')} className="w-full">
+          Go to sign in
+        </Button>
+      </div>
+    );
+  }
 
   if (backupCodes) {
     return (
