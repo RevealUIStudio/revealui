@@ -30,6 +30,13 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   unknown_provider: 'Unknown sign-in provider. Please try again.',
 };
 
+// Success notices surfaced from query params. The email-verification link
+// (GET /api/auth/verify-email) redirects here with ?message=email_verified.
+const SUCCESS_MESSAGES: Record<string, string> = {
+  email_verified: 'Your email is verified — sign in to continue.',
+  already_verified: 'Your email is already verified — sign in to continue.',
+};
+
 const OAUTH_META: Record<OAuthProvider, { label: string; href: string; Icon: typeof GitHubIcon }> =
   {
     github: { label: 'GitHub', href: '/api/auth/github', Icon: GitHubIcon },
@@ -81,6 +88,8 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const [error, setError] = useState<string | null>(
     oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Sign-in failed. Please try again.') : null,
   );
+  const messageKey = searchParams.get('message');
+  const successMessage = messageKey ? SUCCESS_MESSAGES[messageKey] : undefined;
 
   const anyLoading = isLoading || isPasskeyLoading;
   const hasAlternates = oauthProviders.length > 0 || passkeySupported;
@@ -115,6 +124,15 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
       <Heading as="h2" size="lg" className="tracking-tight">
         Sign in
       </Heading>
+
+      {successMessage && !(error ?? passkeyError) && (
+        <div
+          role="status"
+          className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+        >
+          {successMessage}
+        </div>
+      )}
 
       {(error ?? passkeyError) && (
         <div

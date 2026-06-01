@@ -12,11 +12,23 @@
  * notified_at. The `source` column is the segmentation key — signups are
  * queryable per source (e.g. `WHERE source = 'managed-cloud'`).
  *
+ * `notified_at` is reserved for the launch broadcast (when the whole waitlist
+ * is emailed that access has opened); it is deliberately NOT set on signup.
+ *
  * Used by:
  *   - revealui.com /for-operators/managed — RevealUI Cloud waitlist
  *     (source: 'managed-cloud')
  *   - revealui.com footer + GetStarted     — newsletter capture
  *     (source: 'newsletter')
+ *
+ * Notifications (LEAD sources only — 'managed-cloud', 'landing-page'):
+ *   - the operator team gets an alert email (Reply-To the lead) so a
+ *     high-intent signup is acted on immediately, not left sitting in a table;
+ *   - the lead gets a confirmation email closing the loop.
+ *   Both are best-effort: the row has already been written, so an email
+ *   failure is logged and swallowed, never turning a successful capture into a
+ *   500. Newsletter / blog signups are list subscriptions (a separate
+ *   double-opt-in concern) and are intentionally not emailed here.
  *
  * Email uniqueness is on `email` alone (not composite with source), so a
  * repeat signup with a different source updates the row to the latest
@@ -35,11 +47,22 @@ import { waitlist } from '@revealui/db/schema';
 import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { sanitizeEmailHeader, sendEmail } from '../lib/email.js';
 
 // Closed enum keeps the segmentation column clean + queryable. Add a source
 // here when a new capture surface ships — a one-line API change, deliberate
 // so the `source` dimension never accumulates free-text drift.
 const WAITLIST_SOURCES = ['managed-cloud', 'newsletter', 'landing-page', 'blog'] as const;
+
+// Sources that represent a product LEAD (vs. a newsletter subscription). Only
+// these trigger a team alert + subscriber confirmation; newsletter/blog are
+// list subscriptions handled separately.
+const LEAD_SOURCES = new Set<string>(['managed-cloud', 'landing-page']);
+
+// Operator inbox for new-lead alerts. Validated at startup
+// (lib/validate-startup.ts); the founder fallback matches the other server
+// alert paths (cron-alerts, webhooks, billing-readiness).
+const ALERT_EMAIL = process.env.REVEALUI_ALERT_EMAIL ?? 'founder@revealui.com';
 
 const WaitlistSchema = z.object({
   // Normalize before validation so '  OP@Example.COM ' → 'op@example.com'.
@@ -55,6 +78,83 @@ type WaitlistInput = z.infer<typeof WaitlistSchema>;
 
 // `db` is injected by middleware in some contexts; fall back to getClient().
 type WaitlistVariables = { db?: DatabaseClient };
+
+/** No-regex HTML escape (per the fleet no-authored-regex rule). */
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+interface LeadNotifyContext {
+  email: string;
+  source: string;
+  referrer: string | null;
+  ipAddress: string | null;
+}
+
+/**
+ * Send the operator alert + the subscriber confirmation for a new lead.
+ * Best-effort: every failure is logged and swallowed so a capture that has
+ * already been written to the DB still returns success.
+ */
+async function sendLeadNotifications(ctx: LeadNotifyContext): Promise<void> {
+  const { email, source } = ctx;
+  const safeEmail = escapeHtml(email);
+  const safeSource = escapeHtml(source);
+  const safeReferrer = escapeHtml(ctx.referrer ?? '(none)');
+  const safeIp = escapeHtml(ctx.ipAddress ?? '(none)');
+
+  const teamAlert = sendEmail({
+    to: ALERT_EMAIL,
+    replyTo: email,
+    subject: sanitizeEmailHeader(`[waitlist:${source}] new signup`),
+    html: [
+      '<h2>New waitlist signup</h2>',
+      `<p><strong>Email:</strong> ${safeEmail}</p>`,
+      `<p><strong>Source:</strong> ${safeSource}</p>`,
+      `<p><strong>Referrer:</strong> ${safeReferrer}</p>`,
+      `<p><strong>IP:</strong> ${safeIp}</p>`,
+    ].join('\n'),
+    text: [
+      'New waitlist signup',
+      `Email: ${email}`,
+      `Source: ${source}`,
+      `Referrer: ${ctx.referrer ?? '(none)'}`,
+      `IP: ${ctx.ipAddress ?? '(none)'}`,
+    ].join('\n'),
+  });
+
+  const confirmation = sendEmail({
+    to: email,
+    subject: 'You are on the RevealUI waitlist',
+    html: [
+      '<h2>You are on the list</h2>',
+      '<p>Thanks for your interest in RevealUI. We will email you the moment access opens.</p>',
+      '<p>— The RevealUI team</p>',
+    ].join('\n'),
+    text: [
+      'You are on the list',
+      '',
+      'Thanks for your interest in RevealUI. We will email you the moment access opens.',
+      '',
+      '— The RevealUI team',
+    ].join('\n'),
+  });
+
+  const results = await Promise.allSettled([teamAlert, confirmation]);
+  for (const r of results) {
+    if (r.status === 'rejected') {
+      logger.warn('Waitlist notification email failed', {
+        source,
+        err: r.reason instanceof Error ? r.reason.message : String(r.reason),
+      });
+    }
+  }
+}
 
 const app = new Hono<{ Variables: WaitlistVariables }>();
 
@@ -100,6 +200,13 @@ app.post('/', zValidator('json', WaitlistSchema), async (c) => {
       });
 
     logger.info('Waitlist signup captured', { source: body.source });
+
+    // Lead sources get an operator alert + a subscriber confirmation. The
+    // capture has already persisted, so sendLeadNotifications swallows its own
+    // failures — it can never turn a successful signup into a 500.
+    if (LEAD_SOURCES.has(body.source)) {
+      await sendLeadNotifications({ email, source: body.source, referrer, ipAddress: ip });
+    }
 
     return c.json({ success: true }, 200);
   } catch (err) {
