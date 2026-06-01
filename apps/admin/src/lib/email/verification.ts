@@ -1,8 +1,8 @@
 /**
  * Email Verification
  *
- * Sends verification emails and handles token verification for the grace period flow.
- * Users can log in without verifying, but the admin shows a reminder banner.
+ * Sends verification emails and verifies the token from the signup link.
+ * Email verification is required before a user can sign in.
  */
 
 import config from '@revealui/config';
@@ -38,7 +38,7 @@ export async function sendVerificationEmail(
         <p>Or copy and paste this link into your browser:</p>
         <p style="word-break: break-all; color: #666;">${verifyUrl}</p>
         <p style="color: #666; font-size: 14px; margin-top: 30px;">
-          You can use RevealUI without verifying, but some features may be limited after 7 days.
+          Please verify your email to activate your account and sign in.
           If you didn't create this account, you can safely ignore this email.
         </p>
       </body>
@@ -52,7 +52,7 @@ Thanks for signing up for RevealUI! Please verify your email address by visiting
 
 ${verifyUrl}
 
-You can use RevealUI without verifying, but some features may be limited after 7 days.
+Please verify your email to activate your account and sign in.
 If you didn't create this account, you can safely ignore this email.
   `.trim();
 
