@@ -26,10 +26,17 @@ vi.mock('@revealui/db/schema', () => ({
   waitlist: { email: 'email' },
 }));
 
+vi.mock('../../lib/email.js', () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+  sanitizeEmailHeader: (s: string) => s,
+}));
+
 import { getClient } from '@revealui/db';
+import { sendEmail } from '../../lib/email.js';
 import waitlistApp from '../waitlist.js';
 
 const mockedGetClient = vi.mocked(getClient);
+const mockedSendEmail = vi.mocked(sendEmail);
 
 /** Builds a chainable insert mock: insert().values().onConflictDoUpdate() */
 function makeDb(onConflict: ReturnType<typeof vi.fn>) {
@@ -139,5 +146,46 @@ describe('waitlist route', () => {
     const body = (await res.json()) as { success: boolean; error: string };
     expect(body.success).toBe(false);
     expect(body.error).toContain('try again');
+  });
+
+  it('emails the team + confirms the lead for a managed-cloud signup', async () => {
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    const res = await post(createApp(), { email: 'lead@example.com', source: 'managed-cloud' });
+
+    expect(res.status).toBe(200);
+    // One alert to the operator inbox (Reply-To the lead) + one confirmation to the lead.
+    expect(mockedSendEmail).toHaveBeenCalledTimes(2);
+    expect(mockedSendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ replyTo: 'lead@example.com' }),
+    );
+    expect(mockedSendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'lead@example.com' }),
+    );
+  });
+
+  it('does not email for a newsletter signup (subscription, not a lead)', async () => {
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    const res = await post(createApp(), { email: 'sub@example.com', source: 'newsletter' });
+
+    expect(res.status).toBe(200);
+    expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('still returns 200 when a notification email fails', async () => {
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+    mockedSendEmail.mockRejectedValueOnce(new Error('smtp down'));
+
+    const res = await post(createApp(), { email: 'lead2@example.com', source: 'managed-cloud' });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true });
   });
 });

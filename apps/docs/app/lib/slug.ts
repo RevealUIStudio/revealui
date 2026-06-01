@@ -5,7 +5,7 @@
  * Filenames in fleet-root `docs/` use a mix of conventions:
  *   - SCREAMING_SNAKE: ADMIN_GUIDE.md, QUICK_START.md
  *   - kebab-case: 02-x402-payments.md, agent-rules/test-prompts.md
- *   - mixed (rare): RevealUIDocs.md (none today, but the regex handles it)
+ *   - mixed (rare): RevealUIDocs.md (none today, but the slug algorithm handles it)
  *
  * The slug derivation produces a single canonical lowercase-kebab form
  * for every filename, preserving directory structure for nested files.
@@ -14,7 +14,7 @@
  *
  * Round-trip is one-way: filename → slug is deterministic; slug → filename
  * requires the manifest lookup (information loss in the lowercase + dash
- * collapse means we cannot reverse the regex).
+ * collapse means we cannot reverse the derivation).
  */
 
 /**
@@ -27,15 +27,54 @@
  *   02-x402-payments.md    → 02-x402-payments
  *   RevealUIDocs.md        → reveal-ui-docs
  */
+const isAsciiUpper = (ch: string | undefined): boolean =>
+  ch !== undefined && ch >= 'A' && ch <= 'Z';
+const isAsciiLower = (ch: string | undefined): boolean =>
+  ch !== undefined && ch >= 'a' && ch <= 'z';
+
 export function filenameToSlug(filename: string): string {
-  return filename
-    .replace(/\.md$/, '')
-    .replace(/_/g, '-')
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-    .toLowerCase()
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+  // Drop a trailing `.md` extension (only `.md`, matching the prior behavior).
+  const base = filename.endsWith('.md') ? filename.slice(0, -3) : filename;
+
+  // Single pass: map `_` to `-` and insert `-` at word boundaries —
+  //   lower->Upper ("aB" -> "a-B") and acronym->word ("HTMLParser" -> "HTML-Parser").
+  let dashed = '';
+  for (let i = 0; i < base.length; i++) {
+    const ch = base[i];
+    if (ch === '_') {
+      dashed += '-';
+      continue;
+    }
+    const prev = i > 0 ? base[i - 1] : '';
+    const next = i + 1 < base.length ? base[i + 1] : '';
+    const lowerToUpper = isAsciiUpper(ch) && isAsciiLower(prev);
+    const acronymToWord = isAsciiUpper(ch) && isAsciiUpper(prev) && isAsciiLower(next);
+    if (lowerToUpper || acronymToWord) {
+      dashed += '-';
+    }
+    dashed += ch;
+  }
+
+  // Lowercase, collapse runs of `-`, and trim a leading/trailing `-`.
+  const lowered = dashed.toLowerCase();
+  let collapsed = '';
+  let prevDash = false;
+  for (const ch of lowered) {
+    if (ch === '-') {
+      if (!prevDash) {
+        collapsed += '-';
+      }
+      prevDash = true;
+    } else {
+      collapsed += ch;
+      prevDash = false;
+    }
+  }
+  let start = 0;
+  let end = collapsed.length;
+  if (start < end && collapsed[start] === '-') start++;
+  if (end > start && collapsed[end - 1] === '-') end--;
+  return collapsed.slice(start, end);
 }
 
 /**

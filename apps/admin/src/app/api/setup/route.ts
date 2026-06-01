@@ -1,6 +1,8 @@
 import { type BootstrapResult, bootstrap, type RevealUILike } from '@revealui/setup/bootstrap';
+import { logger } from '@revealui/utils/logger';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { stampTosAcceptanceByEmail } from '@/lib/auth/tos';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
 export const runtime = 'nodejs';
@@ -72,23 +74,49 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
 
   if (result.status === 'created') {
     try {
-      const { hostname } = await import('node:os');
       const { getClient } = await import('@revealui/db/client');
-      const { auditLog } = await import('@revealui/db/schema');
       const db = getClient('rest');
-      await db.insert(auditLog).values({
-        event: 'admin.bootstrap.completed',
-        actor: 'web',
-        severity: 'info',
-        meta: {
+
+      // Stamp TOS acceptance on the typed columns. bootstrap() creates the admin
+      // through the engine's create(), which can't persist tos_accepted_at /
+      // tos_version (its dynamic-SQL adapter rejects camelCase column
+      // identifiers), so the caller records them via a typed Drizzle write —
+      // mirrors the CLI (scripts/admin/bootstrap.ts) and the sign-up route.
+      try {
+        await stampTosAcceptanceByEmail(db, parsed.data.email);
+      } catch (tosError) {
+        logger.error('Failed to record TOS acceptance for bootstrap admin', {
           email: parsed.data.email,
-          source: 'web',
-          hostname: hostname(),
-          seeded: parsed.data.seed ?? true,
-        },
-      } as never);
-    } catch {
-      // Non-fatal — audit log may not be available in all environments
+          error: tosError instanceof Error ? tosError.message : String(tosError),
+        });
+      }
+
+      // Audit log — non-fatal.
+      try {
+        const { hostname } = await import('node:os');
+        const { auditLog } = await import('@revealui/db/schema');
+        await db.insert(auditLog).values({
+          event: 'admin.bootstrap.completed',
+          actor: 'web',
+          severity: 'info',
+          meta: {
+            email: parsed.data.email,
+            source: 'web',
+            hostname: hostname(),
+            seeded: parsed.data.seed ?? true,
+          },
+        } as never);
+      } catch {
+        // Non-fatal — audit log may not be available in all environments
+      }
+    } catch (dbError) {
+      // DB client unavailable — the admin was still created by bootstrap(), but
+      // the TOS record and audit entry couldn't be written. Surface loudly so the
+      // gap (a backfillable NULL tos_accepted_at) is visible, not silent.
+      logger.error('Post-create steps skipped: database client unavailable', {
+        email: parsed.data.email,
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      });
     }
   }
 
