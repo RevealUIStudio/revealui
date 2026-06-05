@@ -15,6 +15,7 @@
 import * as userQueries from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { isAdminRole } from '../../lib/access.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
@@ -24,13 +25,6 @@ const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 // =============================================================================
 // Constants
 // =============================================================================
-
-/** Roles that grant admin-level access to user management */
-const ADMIN_ROLES = new Set(['admin', 'super-admin']);
-
-function isAdminRole(role: string): boolean {
-  return ADMIN_ROLES.has(role);
-}
 
 /**
  * Fields that must NEVER be returned in API responses.
