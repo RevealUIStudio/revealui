@@ -1,6 +1,6 @@
 # marketing
 
-Public marketing site for RevealUI — homepage, blog, pricing, fair-source, contact, etc. Lives at `revealui.com` (and the `community.revealui.com` host redirects to the Discourse forum via `vercel.json`).
+Public marketing site for RevealUI — homepage, blog, pricing, fair-source, contact, etc. Lives at `revealui.com` (and the `community.revealui.com` host redirects to GitHub Discussions via `vercel.json`).
 
 ## Stack
 

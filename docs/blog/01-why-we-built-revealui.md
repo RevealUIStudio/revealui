@@ -252,7 +252,7 @@ The repository is public on GitHub. The docs site is live at [docs.revealui.com]
 
 RevDev Studio (Tauri + React) is the native AI experience — agent coordination, local inference management, and a visual dashboard. A terminal client (Go + Bubble Tea) gives you a TUI for API access and license lookups.
 
-The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and a template marketplace where developers can publish project starters. The community forum is at [revnation.discourse.group](https://revnation.discourse.group) — join early and help shape what gets built next.
+The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and a template marketplace where developers can publish project starters. The community lives on [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions), so join early and help shape what gets built next.
 
 But the core thesis won't change: **every software company needs users, content, products, payments, and intelligence. You shouldn't have to build them from scratch.**
 

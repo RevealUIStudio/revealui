@@ -138,7 +138,7 @@ RevealUI isn't just a framework you install. It's an open runtime for AI-native 
 
 **Template marketplace.** Starter projects on Vercel that showcase RevealUI for specific use cases -- SaaS boilerplates, e-commerce setups, documentation sites, internal tools. These lower the barrier to getting started and demonstrate what's possible.
 
-**Community on Discourse.** Free support for everyone through community forums. Pro and above get priority support with SLA-backed response times. The community is where we build trust, gather feedback, and help people succeed -- regardless of what tier they're on.
+**Community discussions.** Free support for everyone through community forums. Pro and above get priority support with SLA-backed response times. The community is where we build trust, gather feedback, and help people succeed -- regardless of what tier they're on.
 
 **The flywheel.** More developers using RevealUI means more MCP servers published to the marketplace. More MCP servers means agents can do more things. More capable agents means more demand for agent tasks. More demand means more developers building servers. Each layer reinforces the others.
 
