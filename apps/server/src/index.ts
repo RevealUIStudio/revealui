@@ -126,41 +126,48 @@ if (process.env.NODE_ENV === 'production') {
   logger.addLogHandler(createDbLogHandler('api'));
 }
 
-// Catch fatal errors that escape all middleware
-process.on('uncaughtException', (error: Error) => {
-  logger.error('Uncaught exception  -  process will exit', error);
-  setTimeout(() => process.exit(1), 1000);
-});
+// Signal handlers and fatal-error catchers are only meaningful when the
+// server is the live process entry point.  In the test suite (VITEST=true)
+// the module is imported repeatedly via vi.resetModules(); registering
+// listeners on every import causes MaxListenersExceededWarning and keeps
+// the Node process alive after the suite finishes.
+if (!process.env.VITEST) {
+  // Catch fatal errors that escape all middleware
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught exception  -  process will exit', error);
+    setTimeout(() => process.exit(1), 1000);
+  });
 
-process.on('unhandledRejection', (reason: unknown) => {
-  const error = reason instanceof Error ? reason : new Error(String(reason));
-  logger.error('Unhandled promise rejection', error);
-});
+  process.on('unhandledRejection', (reason: unknown) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    logger.error('Unhandled promise rejection', error);
+  });
 
-// Graceful shutdown  -  close database connection pools and stop background tasks
-async function gracefulShutdown(signal: string): Promise<void> {
-  logger.info(`${signal} received — shutting down`);
+  // Graceful shutdown  -  close database connection pools and stop background tasks
+  const gracefulShutdown = async (signal: string): Promise<void> => {
+    logger.info(`${signal} received — shutting down`);
 
-  // Stop alerting monitor
-  if (monitoringInterval) {
-    clearInterval(monitoringInterval);
-  }
+    // Stop alerting monitor
+    if (monitoringInterval) {
+      clearInterval(monitoringInterval);
+    }
 
-  // Close database pools
-  try {
-    await closeAllPools();
-    logger.info('Database pools closed');
-  } catch (err) {
-    logger.error(
-      'Error closing database pools',
-      err instanceof Error ? err : new Error(String(err)),
-    );
-  }
-  process.exit(0);
+    // Close database pools
+    try {
+      await closeAllPools();
+      logger.info('Database pools closed');
+    } catch (err) {
+      logger.error(
+        'Error closing database pools',
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    }
+    process.exit(0);
+  };
+
+  process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 }
-
-process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
 // flag is on, the wake secret must be set, or every dispatch silently
@@ -1240,8 +1247,12 @@ export function initAlerting(): void {
   logger.info('Alerting system started (60s interval)');
 }
 
-// For local development (but not in test environment)
-if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+// For local development (but not in test environment or vitest)
+if (
+  process.env.NODE_ENV !== 'production' &&
+  process.env.NODE_ENV !== 'test' &&
+  !process.env.VITEST
+) {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
   audit.setStorage(new PostgresAuditStorage());
   validateStartup();

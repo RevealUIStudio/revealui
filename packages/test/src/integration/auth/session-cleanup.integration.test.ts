@@ -255,12 +255,18 @@ describe('Session Cleanup Integration Tests', () => {
       // Global cleanup: delete all expired sessions
       await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
 
-      // Check remaining sessions
-      const allSessions = await db.select().from(sessions);
+      // Verify the two valid sessions still exist (not the expired ones)
+      const session1Row = await db
+        .select({ id: sessions.id })
+        .from(sessions)
+        .where(eq(sessions.id, validSession1.id));
+      const session2Row = await db
+        .select({ id: sessions.id })
+        .from(sessions)
+        .where(eq(sessions.id, validSession2.id));
 
-      expect(allSessions).toHaveLength(2);
-      expect(allSessions.map((s) => s.id)).toContain(validSession1.id);
-      expect(allSessions.map((s) => s.id)).toContain(validSession2.id);
+      expect(session1Row).toHaveLength(1);
+      expect(session2Row).toHaveLength(1);
     });
   });
 

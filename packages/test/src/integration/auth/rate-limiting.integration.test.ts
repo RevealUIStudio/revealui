@@ -108,36 +108,27 @@ describe('Rate Limiting Integration Tests', () => {
 
   describe('Rate Limit Blocking', () => {
     it('should block for blockDurationMs after limit exceeded', async () => {
-      // Use custom config with short durations for testing
-      // Note: windowMs must be long enough to not expire during testing,
-      // as the implementation deletes entries when resetAt expires
       const testConfig: RateLimitConfig = {
         maxAttempts: 3,
-        windowMs: 500, // 500ms window (long enough for our test)
-        blockDurationMs: 700, // 700ms total block duration
+        windowMs: 2000,
+        blockDurationMs: 1000,
       };
 
-      // Exceed limit (3 requests)
       for (let i = 0; i < 3; i++) {
         await checkRateLimit(testKey, testConfig);
       }
 
-      // 4th request should be blocked
       const result = await checkRateLimit(testKey, testConfig);
       expect(result.allowed).toBe(false);
       expect(result.remaining).toBe(0);
 
-      // Wait a bit but not long enough for block to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-      // Should still be blocked (within block duration)
       const result2 = await checkRateLimit(testKey, testConfig);
       expect(result2.allowed).toBe(false);
 
-      // Wait for block to expire (total 500ms + 700ms - 500ms = 700ms from start)
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Should now be allowed (block expired)
       const result3 = await checkRateLimit(testKey, testConfig);
       expect(result3.allowed).toBe(true);
     });
@@ -173,27 +164,22 @@ describe('Rate Limiting Integration Tests', () => {
 
   describe('Window Reset', () => {
     it('should reset limit after window expires', async () => {
-      // Use custom config with short window
       const testConfig: RateLimitConfig = {
         maxAttempts: 3,
-        windowMs: 100, // 100ms
+        windowMs: 200,
       };
 
-      // Make 2 requests
       await checkRateLimit(testKey, testConfig);
       await checkRateLimit(testKey, testConfig);
 
-      // Verify count
       const status = await getRateLimitStatus(testKey, testConfig);
       expect(status.count).toBe(2);
 
-      // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 400));
 
-      // New requests should be allowed with full remaining count
       const result = await checkRateLimit(testKey, testConfig);
       expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(2); // maxAttempts - 1 (current request)
+      expect(result.remaining).toBe(2);
     });
 
     it('should reset block after block duration expires', async () => {

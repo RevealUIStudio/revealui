@@ -16,7 +16,7 @@
 
 import { cleanupOperational } from '@revealui/db/cleanup';
 import { jobs, processedWebhookEvents, unreconciledWebhooks } from '@revealui/db/schema';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb, type TestDb } from '../../utils/drizzle-test-db.js';
 
 describe('operational-hygiene retention (CR8-P3-02 PR2)', () => {
@@ -41,15 +41,10 @@ describe('operational-hygiene retention (CR8-P3-02 PR2)', () => {
     await testDb.pglite.exec('DELETE FROM jobs');
     await testDb.pglite.exec('DELETE FROM processed_webhook_events');
     await testDb.pglite.exec('DELETE FROM unreconciled_webhooks');
-    delete process.env.REVEALUI_JOB_RETENTION_DAYS;
-    delete process.env.REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS;
-    delete process.env.REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS;
   });
 
   afterEach(() => {
-    delete process.env.REVEALUI_JOB_RETENTION_DAYS;
-    delete process.env.REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS;
-    delete process.env.REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS;
+    vi.unstubAllEnvs();
   });
 
   describe('jobs', () => {
@@ -314,8 +309,8 @@ describe('operational-hygiene retention (CR8-P3-02 PR2)', () => {
     });
 
     it('honors REVEALUI_* env vars', async () => {
-      process.env.REVEALUI_JOB_RETENTION_DAYS = '60';
-      process.env.REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS = '14';
+      vi.stubEnv('REVEALUI_JOB_RETENTION_DAYS', '60');
+      vi.stubEnv('REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS', '14');
 
       const result = await cleanupOperational(asDbOpts());
 

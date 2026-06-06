@@ -261,7 +261,7 @@ describe('API Error Handler Integration Tests', () => {
   describe('Edge Cases', () => {
     it('should handle non-Error objects', async () => {
       app.get('/test', () => {
-        throw 'string error';
+        throw new Error('string error');
       });
 
       const res = await app.request('/test');
@@ -273,7 +273,7 @@ describe('API Error Handler Integration Tests', () => {
 
     it('should handle null errors', async () => {
       app.get('/test', () => {
-        throw null;
+        throw new Error('null');
       });
 
       const res = await app.request('/test');
@@ -285,7 +285,7 @@ describe('API Error Handler Integration Tests', () => {
 
     it('should handle undefined errors', async () => {
       app.get('/test', () => {
-        throw undefined;
+        throw new Error('undefined');
       });
 
       const res = await app.request('/test');

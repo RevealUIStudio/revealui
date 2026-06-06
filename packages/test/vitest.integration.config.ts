@@ -42,6 +42,12 @@ export default defineConfig({
     // Disable file isolation for integration tests
     // This allows shared state across test files (database singleton)
     isolate: false,
+    // Auto-restore vi.stubEnv / vi.stubGlobal stubs between tests so env
+    // mutations in one file cannot bleed into the next under isolate:false.
+    unstubEnvs: true,
+    unstubGlobals: true,
+    // PGlite + bcrypt operations in beforeAll hooks can exceed the 10s default.
+    hookTimeout: 60_000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
