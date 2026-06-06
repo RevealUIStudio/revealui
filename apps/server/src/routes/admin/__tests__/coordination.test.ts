@@ -63,6 +63,14 @@ describe('GET /admin/coordination/sessions', () => {
     expect(res.status).toBe(403);
   });
 
+  it('grants access to the canonical owner role', async () => {
+    // Per #1219 an owner account carries DB role='owner'; the admin gate must
+    // admit it alongside 'admin'.
+    const { app } = createApp({ id: 'u1', role: 'owner' }, [[], [{ total: 0 }]]);
+    const res = await app.fetch(new Request('http://localhost/sessions'));
+    expect(res.status).toBe(200);
+  });
+
   it('returns 200 with empty data when no rows exist', async () => {
     const { app } = createApp({ id: 'u1', role: 'admin' }, [[], [{ total: 0 }]]);
     const res = await app.fetch(new Request('http://localhost/sessions'));
