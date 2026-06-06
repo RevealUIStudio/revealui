@@ -2,6 +2,8 @@
  * File discovery utilities for auto-generating documentation indexes
  */
 
+import { stripDocExtension } from './paths';
+
 /**
  * Discovered file information
  */
@@ -95,7 +97,7 @@ export async function discoverFiles(
  */
 function formatDisplayName(filename: string): string {
   // Remove extension
-  const withoutExt = filename.replace(/\.(md|mdx)$/, '');
+  const withoutExt = stripDocExtension(filename);
 
   // Convert kebab-case to Title Case
   return withoutExt

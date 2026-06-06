@@ -1,54 +1,120 @@
 # revvault → Fly secrets sync manifest
 #
-# Drives `revvault sync fly --manifest scripts/sync/revvault-fly.toml [--apply]`
-# (the Fly counterpart of revvault-vercel.toml — see that file for the Vercel
-# side and the shared schema notes).
+# Intended to drive `revvault sync fly --manifest scripts/sync/revvault-fly.toml [--apply]`
+# (the Fly counterpart of revvault-vercel.toml).
+#
+# ⚠️  NOTE 2026-05-30: the `fly` sync target is NOT YET implemented in the
+# installed revvault CLI — `revvault sync` only supports `vercel`
+# ("Unknown sync target 'fly'"). Until it lands, provision the Fly secrets with
+# `flyctl secrets set` driven by this var list (see docs/deployment/fly.md
+# §First deploy). This manifest is the authoritative definition of the worker's
+# secret set either way.
 #
 # Schema (parsed by revvault-cli, commands/sync.rs::FlyManifest):
 #   - [fly-apps.<logical>]       — one block per Fly app
 #   - app                         — Fly app name (used as the GraphQL appId)
-#   - skip                        — secret names sync never touches (optional)
+#   - skip                        — secret names sync never touches (set Fly-direct)
 #   - [fly-apps.<logical>.vars]   — secret name → vault path (bare string), or
 #                                   { path = "...", shape = "..." } to add shape
-#                                   validation. Unlike the Vercel manifest there
-#                                   is NO prefix-scan: every managed secret must
-#                                   be listed explicitly. A worker's secret set
-#                                   is a curated subset, not "everything under a
-#                                   prefix".
+#                                   validation. No prefix-scan: every managed
+#                                   secret is listed explicitly.
 #
 # Fly hides secret VALUES (its API returns only names + digest), so sync cannot
 # value-match: a present name is re-Set, an absent one Added. Orphans (set on
 # Fly but absent here) are surfaced, never deleted.
 #
-# Auth: FLY_API_TOKEN env var or `--token`. A live `--apply` is owner-gated:
-# it needs that token vaulted (see docs/SECRETS.md) and the Fly app to exist
-# (drop-railway lane Phase 3). Never inline secret values here — revvault is
-# the source of truth; this manifest carries only vault *paths*.
+# Auth: FLY_API_TOKEN env var or `--token`, vaulted at revealui/prod/fly/api-token.
+# Never inline secret values here — revvault is the source of truth; this
+# manifest carries only vault *paths*.
 
 # ── revealui-worker ───────────────────────────────────────────────────────────
 # Long-running apps/server subset on Fly (alerting, Yjs + agent collab WS,
-# terminal-ws Forge-gated, RVMarket executor flag-gated). Secret subset mirrors
-# the worker bootstrap block in docs/deployment/fly.md (drop-railway Phase 4).
+# terminal-ws Forge-gated, RVMarket executor flag-gated). The worker imports the
+# full Hono app, so its boot runs the SAME config + startup validation as the
+# Vercel `revealui-api` deploy — it needs API-PARITY env, not a minimal subset.
+# This var set mirrors [projects.revealui-api.vars] in revvault-vercel.toml.
 [fly-apps.revealui-worker]
 app = "revealui-worker"
+
+# Fly-direct, mode-gated — NOT synced from revvault (mirrors how STRIPE_LIVE_MODE
+# is handled on Vercel). validate-startup.ts requires STRIPE_SECRET_KEY to be a
+# sk_test_ key when STRIPE_LIVE_MODE is unset/false (the current pre-flip
+# posture), but the vault path revealui/prod/stripe/secret-key holds the STAGED
+# LIVE key. So the operator sets the sk_test_ key DIRECTLY on Fly during the
+# gated period; at launch, flip STRIPE_LIVE_MODE=true + the live key together
+# (gated on the billing-readiness audit).
+skip = ["STRIPE_LIVE_MODE", "STRIPE_SECRET_KEY"]
 
 [fly-apps.revealui-worker.vars]
 # Database (Neon)
 POSTGRES_URL = "revealui/prod/db/postgres-url"
+DATABASE_URL = "revealui/prod/db/postgres-url"
 
-# Core signing / session + license validation
+# Core signing / session + license + audit + encryption
 REVEALUI_SECRET              = "revealui/prod/secret"
+REVEALUI_KEK                 = "revealui/prod/kek"
 REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
+REVEALUI_AUDIT_HMAC_SECRET   = "revealui/prod/audit-hmac-secret"
+REVEALUI_CRON_SECRET         = "revealui/prod/cron-secret"
+REVEALUI_ADMIN_API_KEY       = "revealui/prod/admin/api-key"
 
-# Stripe (billing path exercised by the executor + alerting)
-STRIPE_SECRET_KEY     = "revealui/prod/stripe/secret-key"
-STRIPE_WEBHOOK_SECRET = "revealui/prod/stripe/webhook-secret"
+# Public URLs (must be HTTPS + match each other per validate-startup.ts)
+REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
+NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
+
+# Required at prod boot (alerting + billing portal)
+REVEALUI_ALERT_EMAIL              = "revealui/prod/alert-email"
+REVEALUI_BILLING_PORTAL_CONFIG_ID = "revealui/prod/billing/portal-config-id"
+
+# Stripe — webhook + price/meter config. STRIPE_SECRET_KEY is set Fly-direct
+# (see `skip` above). These are the LIVE-staged values; they are only exercised
+# when the RVMarket executor is enabled (REVMARKET_EXECUTOR_ENABLED, default off).
+STRIPE_WEBHOOK_SECRET                = "revealui/prod/stripe/webhook-secret"
+STRIPE_WEBHOOK_SECRET_LIVE           = "revealui/prod/stripe/webhook-secret-live"
+STRIPE_AGENT_METER_EVENT_NAME        = "revealui/prod/stripe/agent-meter-event-name"
+STRIPE_PRO_PRICE_ID                  = "revealui/prod/stripe/pro-price-id"
+STRIPE_MAX_PRICE_ID                  = "revealui/prod/stripe/max-price-id"
+STRIPE_ENTERPRISE_PRICE_ID           = "revealui/prod/stripe/enterprise-price-id"
+STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/prod/stripe/max-annual-price-id"
+STRIPE_PERPETUAL_PRO_PRICE_ID        = "revealui/prod/stripe/perpetual-pro-price-id"
+STRIPE_PERPETUAL_MAX_PRICE_ID        = "revealui/prod/stripe/perpetual-max-price-id"
+STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID = "revealui/prod/stripe/perpetual-enterprise-price-id"
+STRIPE_CREDITS_STARTER_PRICE_ID      = "revealui/prod/stripe/credits-starter-price-id"
+STRIPE_CREDITS_STANDARD_PRICE_ID     = "revealui/prod/stripe/credits-standard-price-id"
+STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/prod/stripe/credits-scale-price-id"
+STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/prod/stripe/agent-overage-price-id"
 
 # Observability
 SENTRY_DSN = "revealui/prod/sentry/dsn"
 
-# Electric (real-time sync). The service URL flips to the Fly-hosted Electric
-# during Phase 5 cutover; the vault path itself is unchanged.
+# Object storage (Cloudflare R2 canonical; legacy Blob retiring)
+R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
+R2_ACCESS_KEY_ID      = "revealui/prod/r2/access-key-id"
+R2_SECRET_ACCESS_KEY  = "revealui/prod/r2/secret-access-key"
+R2_BUCKET             = "revealui/prod/r2/bucket"
+R2_PUBLIC_BASE_URL    = "revealui/prod/r2/public-base-url"
+BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
+
+# Email (Google Workspace)
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
+GOOGLE_PRIVATE_KEY           = "revealui/prod/google/private-key"
+EMAIL_FROM                   = "revealui/prod/email/from"
+EMAIL_REPLY_TO               = "revealui/prod/email/reply-to"
+
+# Passkeys / session / CORS
+PASSKEY_ORIGIN        = "revealui/prod/passkey/origin"
+PASSKEY_RP_ID         = "revealui/prod/passkey/rp-id"
+PASSKEY_RP_NAME       = "revealui/prod/passkey/rp-name"
+SESSION_COOKIE_DOMAIN = "revealui/prod/session-cookie-domain"
+CORS_ORIGIN           = "revealui/prod/cors-origin"
+
+# Marketplace (executor flag-gated)
+MARKETPLACE_CONNECT_RETURN_URL = "revealui/prod/marketplace-connect-return-url"
+
+# Electric (real-time sync). service-url flips to Fly-hosted Electric at the
+# Phase 5 cutover; the vault path is unchanged. electric/secret is currently
+# empty in the vault (GAP-230/231) — the worker does NOT require it (Electric is
+# consumed by the admin shape proxies, not the worker).
 ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
 ELECTRIC_SECRET      = "revealui/prod/electric/secret"

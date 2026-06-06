@@ -67,22 +67,36 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
       );
     }
 
-    // Send email with reset link (tokenId is included in the URL for O(1) lookup)
+    // Send email with reset link (tokenId is included in the URL for O(1) lookup).
+    // Email transport failure must never 500 the request or reveal whether the
+    // account exists. A thrown send (e.g. an unconfigured or throwing mail
+    // provider) is logged and swallowed exactly like a returned { success:false },
+    // so the handler always falls through to the generic success response below.
     if (result.token && result.tokenId) {
-      const emailResult = await sendPasswordResetEmail(
-        sanitizedEmail,
-        result.tokenId,
-        result.token,
-      );
+      try {
+        const emailResult = await sendPasswordResetEmail(
+          sanitizedEmail,
+          result.tokenId,
+          result.token,
+        );
 
-      if (!emailResult.success) {
-        // Log error but don't reveal to user (security)
+        if (!emailResult.success) {
+          // Log error but don't reveal to user (security)
+          logger.error(
+            'Failed to send password reset email',
+            new Error(emailResult.error || 'Unknown email error'),
+            { email: sanitizedEmail },
+          );
+          // Still return success to prevent user enumeration
+        }
+      } catch (emailError) {
+        // A thrown send (transport misconfig, network) is non-fatal: log and
+        // fall through to the generic success response, matching the !success path.
         logger.error(
-          'Failed to send password reset email',
-          new Error(emailResult.error || 'Unknown email error'),
+          'Password reset email send threw',
+          emailError instanceof Error ? emailError : new Error(String(emailError)),
           { email: sanitizedEmail },
         );
-        // Still return success to prevent user enumeration
       }
     }
 

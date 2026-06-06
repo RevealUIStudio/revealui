@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SITE_NAME } from '@/lib/utilities/siteBranding';
 import PoweredByRevealUI from '../PoweredByRevealUI/index';
 import OnboardingChecklist from './OnboardingChecklist';
 
@@ -48,7 +49,7 @@ const adminLinks = [
 const BeforeDashboard = () => {
   return (
     <div className="relative mx-auto w-full rounded-lg bg-zinc-900 p-8 shadow-md">
-      <h1 className="mb-6 text-3xl font-bold text-white">RevealUI admin</h1>
+      <h1 className="mb-6 text-3xl font-bold text-white">{SITE_NAME} admin</h1>
 
       <OnboardingChecklist />
 

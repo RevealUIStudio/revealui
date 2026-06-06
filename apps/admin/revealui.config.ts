@@ -328,6 +328,28 @@ export default buildConfig({
         });
 
         revealui.logger.info(`First admin user created: ${adminEmail}`);
+
+        // Stamp TOS acceptance on the typed tos_accepted_at / tos_version
+        // columns: revealui.create() above can't persist them (the engine's
+        // dynamic-SQL adapter rejects camelCase column identifiers), so an
+        // onInit-created owner would otherwise have a NULL tos_accepted_at.
+        // Record them via a typed Drizzle write, mirroring the web setup route
+        // (api/setup) and the CLI (scripts/admin/bootstrap). Non-fatal — a
+        // failure here is a backfillable gap, not a reason to abort startup.
+        // Imports are lazy because pulling @revealui/db/client into the
+        // top-level module graph causes Turbopack async-module-init issues
+        // (see the poolFactory note near the top of this file).
+        try {
+          const { getClient } = await import('@revealui/db/client');
+          const { stampTosAcceptanceByEmail } = await import('@/lib/auth/tos');
+          const db = getClient('rest');
+          await stampTosAcceptanceByEmail(db, adminEmail);
+        } catch (tosError) {
+          const message = tosError instanceof Error ? tosError.message : String(tosError);
+          revealui.logger.error(
+            `Failed to record TOS acceptance for bootstrap admin ${adminEmail}: ${message}`,
+          );
+        }
       } catch (error) {
         // 23505 = unique_violation  -  user already exists, not a fatal error
         const pgCode = (error as { code?: string }).code;

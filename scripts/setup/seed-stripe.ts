@@ -8,7 +8,7 @@
  *   - Webhook endpoint (with canonical event list)
  *   - Billing portal configuration (plan switching, cancellation, invoice history)
  *
- * Idempotent  -  safe to run multiple times. Uses metadata keys for deduplication.
+ * Idempotent  -  safe to run multiple times. Dedupes by Stripe lookup_key (metadata-key fallback during migration).
  *
  * Usage:
  *   pnpm stripe:seed                         # sync all (products + webhook + portal)
@@ -17,7 +17,8 @@
  *   pnpm stripe:seed -- --skip-portal        # skip billing portal setup
  *   pnpm stripe:seed -- --skip-catalog-sync  # skip local billing_catalog sync
  *   pnpm stripe:seed -- --webhook-url URL    # override webhook URL
- *   pnpm stripe:seed -- --sync-vercel        # push price IDs to Vercel env
+ *   pnpm stripe:seed -- --sync-revvault      # write IDs to revvault (source of truth), then `revvault sync vercel`
+ *   pnpm stripe:seed -- --sync-vercel        # DEPRECATED: writes Vercel directly; prefer --sync-revvault
  */
 
 import { execFileSync } from 'node:child_process';
@@ -30,6 +31,12 @@ import type Stripe from 'stripe';
 // @revealui/contracts as a root-level dep. Script only; not bundled.
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
 import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
+import {
+  type PriceDefinition,
+  priceMatchesDefinition,
+  priceSharesHandle,
+} from './stripe-price-match.js';
+import { syncToRevvault } from './stripe-revvault-sync.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -56,15 +63,6 @@ interface ProductDefinition {
   renewal?: string;
   defaultPriceKey: string;
   prices: PriceDefinition[];
-}
-
-interface PriceDefinition {
-  key: string;
-  unitAmount: number; // cents
-  currency: string;
-  interval?: 'month' | 'year';
-  mode: 'subscription' | 'payment';
-  trialDays?: number;
 }
 
 interface LocalStripeCatalogCache {
@@ -532,15 +530,7 @@ async function syncCatalog(
       typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
 
     for (const priceDef of productDef.prices) {
-      const matchingPrice = existingPrices.find(
-        (p) =>
-          p.metadata.revealui_price_key === priceDef.key &&
-          p.unit_amount === priceDef.unitAmount &&
-          p.currency === priceDef.currency &&
-          (priceDef.mode === 'subscription'
-            ? p.recurring?.interval === priceDef.interval
-            : !p.recurring),
-      );
+      const matchingPrice = existingPrices.find((p) => priceMatchesDefinition(p, priceDef));
 
       if (matchingPrice) {
         log.success(
@@ -562,7 +552,7 @@ async function syncCatalog(
       }
 
       // Archive stale price with same key but different amount/interval
-      const stalePrice = existingPrices.find((p) => p.metadata.revealui_price_key === priceDef.key);
+      const stalePrice = existingPrices.find((p) => priceSharesHandle(p, priceDef));
       if (stalePrice) {
         if (dryRun) {
           log.info(`  Would archive stale price: ${stalePrice.id}`);
@@ -583,6 +573,11 @@ async function syncCatalog(
         product: product.id,
         unit_amount: priceDef.unitAmount,
         currency: priceDef.currency,
+        // Stripe's purpose-built stable handle. transfer_lookup_key moves it off
+        // an archived/stale price (a changed amount archives + recreates, since
+        // prices are immutable) onto the new price so the handle survives.
+        lookup_key: priceDef.key,
+        transfer_lookup_key: true,
         metadata: { revealui_price_key: priceDef.key },
         tax_behavior: PRICE_TAX_BEHAVIOR,
       };
@@ -926,6 +921,7 @@ async function main(): Promise<void> {
   const skipPortal = args.includes('--skip-portal');
   const skipCatalogSync = args.includes('--skip-catalog-sync');
   const syncVercel = args.includes('--sync-vercel');
+  const syncRevvault = args.includes('--sync-revvault');
   const webhookUrlFlag = (() => {
     const idx = args.indexOf('--webhook-url');
     return idx !== -1 ? args[idx + 1] : undefined;
@@ -1015,8 +1011,28 @@ async function main(): Promise<void> {
       await syncBillingCatalog(envVars, dryRun);
     }
 
+    if (syncRevvault) {
+      log.header('Revvault Sync (source of truth)');
+      const revvaultResult = syncToRevvault(envVars, {
+        manifestPath: resolve(import.meta.dirname, '../sync/revvault-vercel.toml'),
+        dryRun,
+        log,
+      });
+      log.info(
+        `revvault: ${revvaultResult.written.length} written, ${revvaultResult.skipped.length} skipped (no manifest path), ${revvaultResult.failed.length} failed`,
+      );
+      if (revvaultResult.failed.length > 0) {
+        process.exitCode = 1;
+      } else if (!dryRun) {
+        log.info('Next: review + commit the passage-store, then `revvault sync vercel --apply`');
+      }
+    }
+
     if (syncVercel) {
       log.header('Vercel Sync');
+      log.warn(
+        '--sync-vercel is DEPRECATED (writes Vercel behind revvault). Prefer --sync-revvault, then `revvault sync vercel --apply`.',
+      );
       await syncToVercel(envVars);
     }
   }

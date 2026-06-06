@@ -88,7 +88,7 @@ export const SPONSOR_TIERS: readonly SponsorTier[] = [
     benefits: [
       'All Gold Sponsor benefits',
       'Logo with link on landing page',
-      'Dedicated Discourse channel',
+      'Dedicated community channel',
       'Direct line to the founder for prioritized feature requests — implementation scoped separately via RevealUI Studio engagements',
     ],
   },
@@ -107,7 +107,7 @@ export const SPONSOR_SUPPORT_AREAS: readonly SupportArea[] = [
   },
   {
     title: 'Community',
-    description: 'Discourse forums, issue triage, code reviews, and mentorship.',
+    description: 'Community forums, issue triage, code reviews, and mentorship.',
     iconKey: 'community',
   },
 ];

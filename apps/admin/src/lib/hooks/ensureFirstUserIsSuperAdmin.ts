@@ -38,10 +38,14 @@ export async function ensureFirstUserIsSuperAdmin({
 
     // If no users found, this is the first user
     if (users.totalDocs === 0) {
-      // Ensure 'super-admin' is added to the roles if not already included
+      // Ensure the app-layer 'super-admin' role is present. This must be
+      // Role.UserSuperAdmin ('super-admin') — the value the engine gates check
+      // via isSuperAdmin/isAdmin. The previous Role.TenantSuperAdmin
+      // ('tenant-super-admin') granted a role no gate reads, so the first user
+      // was left without engine-level super-admin access.
       const currentRoles = value || [];
-      if (!currentRoles.includes(Role.TenantSuperAdmin)) {
-        return [...currentRoles, Role.TenantSuperAdmin];
+      if (!currentRoles.includes(Role.UserSuperAdmin)) {
+        return [...currentRoles, Role.UserSuperAdmin];
       }
     }
   }

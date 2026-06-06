@@ -20,6 +20,7 @@ import { coordinationAgents, coordinationSessions } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, isNull, type SQL } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { isAdminRole } from '../../lib/access.js';
 import { nullableDateToString } from '../_helpers/serialize.js';
 
 type AdminVariables = {
@@ -27,13 +28,11 @@ type AdminVariables = {
   user?: { id: string; role: string };
 };
 
-const ADMIN_ROLES = new Set(['admin', 'super-admin']);
-
 const STALE_THRESHOLD_SECONDS = 7 * 24 * 60 * 60;
 
 function requireAdmin(user: { id: string; role: string } | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-  if (!ADMIN_ROLES.has(user.role)) {
+  if (!isAdminRole(user.role)) {
     throw new HTTPException(403, { message: 'Admin access required' });
   }
 }

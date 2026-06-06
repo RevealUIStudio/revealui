@@ -11,7 +11,7 @@
  * handles argv parsing and reading keys from the environment.
  */
 
-import { generateLicenseKey, type LicensePayload } from './license.js';
+import { generateLicenseKey, type LicensePayload, validateLicenseKey } from './license.js';
 
 export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -56,8 +56,10 @@ export interface IssueRevForgeLicenseResult {
  * Issue a signed RevForge license JWT for a paying customer.
  *
  * @throws Error on invalid slug, invalid tier, mutually-exclusive flag combos,
- * or non-positive numeric overrides. The error message names the offending
- * field so callers can surface it directly to the operator.
+ * non-positive numeric overrides, or a private/public pair that is not a
+ * matching Ed25519 keypair. The error message names the offending field (or, for
+ * the keypair case, carries the `REVFORGE_LICENSE_KEYPAIR_MISMATCH` prefix) so
+ * callers can surface it directly to the operator.
  */
 export async function issueRevForgeLicense(
   opts: IssueRevForgeLicenseOptions,
@@ -117,6 +119,25 @@ export async function issueRevForgeLicense(
     expiresInSeconds,
     keys.publicKey,
   );
+
+  // Pair-match guard: prove the supplied public key can verify the JWT we just
+  // signed with the supplied private key. If it cannot, the two are not a
+  // matching Ed25519 keypair, and issuing anyway would hand back a license whose
+  // baked REVEALUI_LICENSE_PUBLIC_KEY crash-loops the kit at boot with
+  // "LICENSE VALIDATION FAILED" (apps/server validateLicenseAtStartup). Reusing
+  // the runtime verifier (validateLicenseKey) guarantees this check agrees
+  // exactly with the deployment-time check, so a mismatched pair can never reach
+  // a stamped customer kit.
+  const keypairSelfCheck = await validateLicenseKey(licenseKey, keys.publicKey);
+  if (keypairSelfCheck === null) {
+    throw new Error(
+      'REVFORGE_LICENSE_KEYPAIR_MISMATCH: the supplied public key cannot verify a ' +
+        'license JWT signed by the supplied private key, so they are not a matching ' +
+        'Ed25519 keypair. A kit issued with this pair would crash at boot with ' +
+        'LICENSE VALIDATION FAILED. Source REVEALUI_LICENSE_PRIVATE_KEY and ' +
+        'REVEALUI_LICENSE_PUBLIC_KEY from the same keypair in revvault and retry.',
+    );
+  }
 
   const expiresAt =
     expiresInSeconds === null ? null : new Date(issuedAtMs + expiresInSeconds * 1000).toISOString();
