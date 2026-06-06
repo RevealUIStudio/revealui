@@ -24,7 +24,11 @@ describe('account_memberships seat-limit trigger (CR8-P2-03)', () => {
 
   beforeAll(async () => {
     db = await createTestDb();
-  }, 30_000);
+    // 60s (not the default/30s): createTestDb spins up a fresh PGlite instance
+    // and applies the full migration set. Under the single-thread, isolate:false
+    // integration run this shares one contended worker, so cold init can exceed
+    // 30s intermittently. Matches the global hookTimeout in the vitest config.
+  }, 60_000);
 
   afterAll(async () => {
     await db.close();

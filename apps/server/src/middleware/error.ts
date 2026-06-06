@@ -68,15 +68,19 @@ export const errorHandler: ErrorHandler = (err, c) => {
     );
   }
 
-  // Handle validation errors  -  client mistake, no persist
-  if (err.name === 'ZodError') {
+  // Handle validation errors  -  client mistake, no persist.
+  // Read `.name`/`.message` from the normalized `error`, not the raw `err`:
+  // a thrown `null`/`undefined` (err) would make `err.name` throw, crashing the
+  // handler on exactly the non-Error throws line 49's normalization exists to
+  // absorb. A real ZodError is an Error, so `error === err` and this is equivalent.
+  if (error.name === 'ZodError') {
     // Strip field-level details in production to avoid leaking schema information
     let details: unknown;
     if (process.env.NODE_ENV !== 'production') {
       try {
-        details = JSON.parse(err.message);
+        details = JSON.parse(error.message);
       } catch {
-        details = err.message;
+        details = error.message;
       }
     }
     return c.json(

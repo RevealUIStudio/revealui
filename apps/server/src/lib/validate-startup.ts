@@ -1,4 +1,8 @@
-import { hostMatchesLicensedDomains, validateLicenseKey } from '@revealui/core/license';
+import {
+  computeKeyId,
+  hostMatchesLicensedDomains,
+  validateLicenseKey,
+} from '@revealui/core/license';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 
@@ -440,6 +444,30 @@ export function validateStartup(
 }
 
 /**
+ * Extracts the `kid` (key id) from a JWT's protected header WITHOUT verifying
+ * the signature. Returns undefined when the token is malformed or carries no
+ * `kid` (older tokens issued before the issuer paired a public key). Uses only
+ * built-in parsers (base64url decode + JSON.parse): no authored regex and no
+ * jose import at the boot layer. Used purely to sharpen the error message once
+ * cryptographic verification has ALREADY failed; never as a verification step.
+ */
+function decodeJwtKid(jwt: string): string | undefined {
+  const headerSegment = jwt.split('.')[0];
+  if (!headerSegment) return undefined;
+  try {
+    const header: unknown = JSON.parse(Buffer.from(headerSegment, 'base64url').toString('utf8'));
+    if (header && typeof header === 'object' && 'kid' in header) {
+      const { kid } = header as { kid?: unknown };
+      return typeof kid === 'string' ? kid : undefined;
+    }
+  } catch {
+    // Malformed header segment. Fall through; the caller's generic
+    // "invalid license" path surfaces the real failure.
+  }
+  return undefined;
+}
+
+/**
  * Boot-time license enforcement for self-hosted (Forge) deployments.
  *
  * The hosted SaaS deployment (apps/server on Vercel for revealui.com) signs
@@ -504,6 +532,28 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
   const expectedCustomerId = env.REVEALUI_LICENSED_CUSTOMER_ID || undefined;
   const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey, expectedCustomerId);
   if (!payload) {
+    // Sharpen the most common (and most confusing) stamping failure: the kit
+    // baked a REVEALUI_LICENSE_PUBLIC_KEY that is not the verification key for
+    // the issued JWT. Our issuer embeds a `kid` (a short digest of the paired
+    // public key) in every token, so a token whose kid does not match the
+    // configured public key's id was provably signed by a different key. We
+    // consult the kid only HERE, after cryptographic verification has already
+    // failed, so a public key that is correct but merely formatted differently
+    // (validateLicenseKey verifies key material, not PEM bytes) can never reach
+    // this branch and produce a false "wrong key" message.
+    const tokenKid = decodeJwtKid(env.REVEALUI_LICENSE_KEY);
+    if (tokenKid !== undefined) {
+      const expectedKid = await computeKeyId(publicKey);
+      if (tokenKid !== expectedKid) {
+        throw new Error(
+          'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_PUBLIC_KEY does not match the key that ' +
+            `signed REVEALUI_LICENSE_KEY (license key id "${tokenKid}", configured public key id ` +
+            `"${expectedKid}"). The stamped kit baked the wrong public key. Re-issue the license ` +
+            'with the matching keypair, or bake the public key that pairs with the signing key, ' +
+            'then re-run bin/revvault-bootstrap.sh. Contact the operator who stamped this kit.',
+        );
+      }
+    }
     throw new Error(
       'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
         'signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY, or its ' +

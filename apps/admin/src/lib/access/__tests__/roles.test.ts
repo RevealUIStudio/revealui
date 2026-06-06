@@ -32,6 +32,15 @@ const admin: UserWithRoles = {
   roles: [Role.UserAdmin],
 };
 
+// Canonical owner per #1219: DB role='owner' + app-layer roles ['super-admin'].
+// The engine gates operate on the app-layer roles array, so the owner is
+// recognized through its 'super-admin' app role (NOT the DB 'owner' value).
+const owner: UserWithRoles = {
+  id: 'u7',
+  role: 'owner',
+  roles: [Role.UserSuperAdmin],
+};
+
 const tenantAdmin: UserWithRoles = {
   id: 'u3',
   roles: [Role.TenantAdmin],
@@ -133,6 +142,10 @@ describe('isAdmin', () => {
     expect(isAdmin({ req: makeReq(superAdmin) })).toBe(true);
   });
 
+  it('allows the canonical owner (super-admin app role)', () => {
+    expect(isAdmin({ req: makeReq(owner) })).toBe(true);
+  });
+
   it('denies Viewer', () => {
     expect(isAdmin({ req: makeReq(viewer) })).toBe(false);
   });
@@ -155,6 +168,10 @@ describe('isAdmin', () => {
 describe('isSuperAdmin', () => {
   it('allows UserSuperAdmin', async () => {
     expect(await isSuperAdmin({ req: makeReq(superAdmin) })).toBe(true);
+  });
+
+  it('allows the canonical owner (super-admin app role)', async () => {
+    expect(await isSuperAdmin({ req: makeReq(owner) })).toBe(true);
   });
 
   it('denies UserAdmin', async () => {
