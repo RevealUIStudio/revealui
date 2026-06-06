@@ -458,11 +458,6 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Request features
    - Track progress
 
-3. **Discourse Community** - [Join here](https://revnation.discourse.group)
-   - Discussion forums
-   - Quick questions
-   - Community help
-
 4. **Email Support** - support@revealui.com
    - Technical issues
    - Account problems
