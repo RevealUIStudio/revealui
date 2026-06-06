@@ -1247,12 +1247,13 @@ export function initAlerting(): void {
   logger.info('Alerting system started (60s interval)');
 }
 
-// For local development (but not in test environment or vitest)
-if (
-  process.env.NODE_ENV !== 'production' &&
-  process.env.NODE_ENV !== 'test' &&
-  !process.env.VITEST
-) {
+// For local development (but not in test environment).
+// NODE_ENV is 'test' under Vitest (set in vitest.integration.config.ts), so this
+// dev-bootstrap block already short-circuits there — no extra VITEST guard needed
+// here. (The unconditional process signal handlers above ARE VITEST-guarded,
+// since those run regardless of NODE_ENV and otherwise leak across test files.)
+// This exact predicate string is asserted by index.startup.test.ts — keep it.
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
   audit.setStorage(new PostgresAuditStorage());
   validateStartup();
