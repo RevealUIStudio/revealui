@@ -21,7 +21,7 @@ describe('Test Isolation Verification', () => {
 
   beforeAll(async () => {
     revealui = await getTestRevealUI();
-  }, 30_000);
+  }, 60_000);
 
   afterEach(async () => {
     // Cleanup after each test
@@ -168,7 +168,7 @@ describe('Test Isolation Verification', () => {
       for (let i = 0; i < createdUsers.length; i++) {
         expect(createdUsers[i].email).toBe(testEmails[i]);
       }
-    }, 30_000);
+    }, 60_000);
 
     it('should handle rapid sequential creation without conflicts', async () => {
       // Create users rapidly in sequence

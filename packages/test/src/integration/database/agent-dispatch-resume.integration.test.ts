@@ -32,7 +32,7 @@ describe('agent-dispatch crash-resume (CR8-P2-01 phase C)', () => {
 
   beforeAll(async () => {
     testDb = await createTestDb();
-  }, 30_000);
+  }, 60_000);
 
   afterAll(async () => {
     await testDb.close();

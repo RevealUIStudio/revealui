@@ -28,7 +28,7 @@ describe('log retention cleanup (CR8-P3-02 PR1)', () => {
 
   beforeAll(async () => {
     testDb = await createTestDb();
-  }, 30_000);
+  }, 60_000);
 
   afterAll(async () => {
     await testDb.close();

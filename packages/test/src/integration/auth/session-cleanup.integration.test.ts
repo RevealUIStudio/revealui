@@ -19,7 +19,7 @@
 import { getClient } from '@revealui/db/client';
 import { sessions, users } from '@revealui/db/schema';
 import { and, eq, lt } from 'drizzle-orm';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createSession,
   deleteAllUserSessions,
@@ -54,6 +54,12 @@ describe('Session Cleanup Integration Tests', () => {
   beforeEach(async () => {
     // Clean up sessions before each test
     await db.delete(sessions).where(eq(sessions.userId, testUserId));
+  });
+
+  // Leak guard: a test that faked Date and threw before restoring would freeze
+  // the clock for every later test in this shared (isolate:false) process.
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   // =============================================================================
@@ -144,7 +150,12 @@ describe('Session Cleanup Integration Tests', () => {
     });
 
     it('should not return session exactly at expiration time', async () => {
-      // Create session expiring exactly now
+      // Freeze Date so "expiresAt === now" is exact: getSession filters with
+      // gt(expiresAt, new Date()) (strict), so a session expiring at the frozen
+      // instant must be treated as expired. The previous version relied on a
+      // real 100ms sleep to push past the boundary — a race that occasionally
+      // lost under load. Faking only Date keeps the DB query (real I-O) intact.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const now = new Date();
       const tokenHash = hashToken('test_token_456');
 
@@ -154,11 +165,8 @@ describe('Session Cleanup Integration Tests', () => {
         tokenHash,
         expiresAt: now,
         persistent: false,
-        lastActivityAt: new Date(),
+        lastActivityAt: now,
       });
-
-      // Small delay to ensure we're past expiration
-      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const headers = new Headers();
       headers.set('cookie', 'revealui-session=test_token_456');

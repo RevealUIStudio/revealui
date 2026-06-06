@@ -16,9 +16,27 @@
  */
 
 import { errorHandler } from '@api/middleware/error.js';
-import { Hono } from 'hono';
+import { type Context, Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { beforeEach, describe, expect, it } from 'vitest';
+
+/**
+ * Minimal Hono Context stub for invoking `errorHandler` directly.
+ *
+ * Hono only routes thrown `Error` instances to `app.onError`; a thrown
+ * non-Error (string/null/undefined) is re-thrown by Hono and never reaches the
+ * handler. So the handler's `err instanceof Error ? err : new Error(String(err))`
+ * normalization (error.ts) can't be exercised through `app.request()` — it must
+ * be invoked directly. Only the surface `errorHandler` touches is stubbed:
+ * `c.get('requestId')`, `c.req.url`, and `c.json(body, status)`.
+ */
+function mockContext(): Context {
+  return {
+    get: (key: string) => (key === 'requestId' ? 'test-request-id' : undefined),
+    req: { url: 'http://localhost/test' },
+    json: (body: unknown, status?: number) => Response.json(body, { status: status ?? 200 }),
+  } as unknown as Context;
+}
 
 describe('API Error Handler Integration Tests', () => {
   let app: Hono;
@@ -259,37 +277,32 @@ describe('API Error Handler Integration Tests', () => {
   // =============================================================================
 
   describe('Edge Cases', () => {
+    // These exercise the handler's non-Error normalization (error.ts) by
+    // invoking errorHandler directly — Hono re-throws non-Error values instead
+    // of routing them to onError, so they cannot reach the handler via
+    // app.request(). See mockContext() above.
     it('should handle non-Error objects', async () => {
-      app.get('/test', () => {
-        throw new Error('string error');
-      });
-
-      const res = await app.request('/test');
-      const json = await res.json();
+      const res = (await errorHandler(
+        'string error' as unknown as Error,
+        mockContext(),
+      )) as Response;
+      const json = (await res.json()) as { error: string };
 
       expect(res.status).toBe(500);
       expect(json.error).toBe('An error occurred while processing your request');
     });
 
     it('should handle null errors', async () => {
-      app.get('/test', () => {
-        throw new Error('null');
-      });
-
-      const res = await app.request('/test');
-      const json = await res.json();
+      const res = (await errorHandler(null as unknown as Error, mockContext())) as Response;
+      const json = (await res.json()) as { error: string };
 
       expect(res.status).toBe(500);
       expect(json.error).toBe('An error occurred while processing your request');
     });
 
     it('should handle undefined errors', async () => {
-      app.get('/test', () => {
-        throw new Error('undefined');
-      });
-
-      const res = await app.request('/test');
-      const json = await res.json();
+      const res = (await errorHandler(undefined as unknown as Error, mockContext())) as Response;
+      const json = (await res.json()) as { error: string };
 
       expect(res.status).toBe(500);
       expect(json.error).toBe('An error occurred while processing your request');
