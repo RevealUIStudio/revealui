@@ -16,13 +16,18 @@
  * - Custom configuration support
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearFailedAttempts,
   getFailedAttemptCount,
   isAccountLocked,
   recordFailedAttempt,
 } from '../../../../auth/src/server/brute-force.js';
+import {
+  InMemoryStorage,
+  resetStorage,
+  setStorage,
+} from '../../../../auth/src/server/storage/index.js';
 import { generateUniqueTestEmail } from '../../utils/integration-helpers.js';
 
 // Type for brute force configuration
@@ -34,6 +39,21 @@ interface BruteForceConfig {
 
 describe('Brute Force Protection Integration Tests', () => {
   let testEmail: string;
+
+  beforeAll(() => {
+    // Pin in-process storage so the lockout/window logic under test doesn't
+    // depend on the shared DatabaseStorage singleton. That singleton runs
+    // against the suite's single shared Postgres under isolate:false, where
+    // pool contention can intermittently drop a write (→ "not locked after N
+    // attempts"). The DatabaseStorage adapter has its own coverage; these tests
+    // exercise the brute-force algorithm, not persistence. See issue #1245.
+    setStorage(new InMemoryStorage());
+  });
+
+  afterAll(() => {
+    // Restore the singleton so later files re-derive the real backend.
+    resetStorage();
+  });
 
   beforeEach(() => {
     // Generate unique email for each test to prevent interference
