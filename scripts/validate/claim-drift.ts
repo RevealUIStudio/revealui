@@ -46,7 +46,13 @@ function countByGlob(base: string, extensions: string[]): number {
       return;
     }
     for (const e of entries) {
-      if (e.name === 'node_modules' || e.name === 'dist' || e.name === '.git') continue;
+      if (
+        e.name === 'node_modules' ||
+        e.name === 'dist' ||
+        e.name === '.git' ||
+        e.name === '.claude'
+      )
+        continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full);
@@ -279,7 +285,13 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
       return;
     }
     for (const e of entries) {
-      if (e.name === 'node_modules' || e.name === 'dist' || e.name === '.git') continue;
+      if (
+        e.name === 'node_modules' ||
+        e.name === 'dist' ||
+        e.name === '.git' ||
+        e.name === '.claude'
+      )
+        continue;
       const full = path.join(dir, e.name);
       const rel = path.relative(ROOT, full).replace(/\\/g, '/');
       if (e.isDirectory()) {
@@ -692,7 +704,13 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
       return;
     }
     for (const e of entries) {
-      if (e.name === 'node_modules' || e.name === 'dist' || e.name === '.git') continue;
+      if (
+        e.name === 'node_modules' ||
+        e.name === 'dist' ||
+        e.name === '.git' ||
+        e.name === '.claude'
+      )
+        continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walkAndScan(full);
@@ -1235,7 +1253,13 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
       return;
     }
     for (const e of entries) {
-      if (e.name === 'node_modules' || e.name === 'dist' || e.name === '.git') continue;
+      if (
+        e.name === 'node_modules' ||
+        e.name === 'dist' ||
+        e.name === '.git' ||
+        e.name === '.claude'
+      )
+        continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full);

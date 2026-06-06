@@ -184,6 +184,7 @@ async function gracefulShutdown(signal: string) {
 
 let _shutdownRegistered = false;
 function registerShutdown() {
+  if (process.env.VITEST) return;
   if (_shutdownRegistered) return;
   _shutdownRegistered = true;
   process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
