@@ -15,12 +15,17 @@
  * - Rate limit reset functionality
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkRateLimit,
   getRateLimitStatus,
   resetRateLimit,
 } from '../../../../auth/src/server/rate-limit.js';
+import {
+  InMemoryStorage,
+  resetStorage,
+  setStorage,
+} from '../../../../auth/src/server/storage/index.js';
 import { generateUniqueTestEmail } from '../../utils/integration-helpers.js';
 
 // Type for rate limit configuration
@@ -32,6 +37,20 @@ interface RateLimitConfig {
 
 describe('Rate Limiting Integration Tests', () => {
   let testKey: string;
+
+  beforeAll(() => {
+    // Pin in-process storage so the rate-limit logic under test doesn't depend
+    // on the shared DatabaseStorage singleton. That singleton runs against the
+    // suite's single shared Postgres under isolate:false, where pool contention
+    // can intermittently drop a write. The DatabaseStorage adapter has its own
+    // coverage; these tests exercise the rate-limit algorithm. See issue #1245.
+    setStorage(new InMemoryStorage());
+  });
+
+  afterAll(() => {
+    // Restore the singleton so later files re-derive the real backend.
+    resetStorage();
+  });
 
   beforeEach(async () => {
     // Generate unique key for each test to prevent interference
