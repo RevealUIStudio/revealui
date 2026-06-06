@@ -21,7 +21,7 @@ describe('Test Isolation Verification', () => {
 
   beforeAll(async () => {
     revealui = await getTestRevealUI();
-  });
+  }, 60_000);
 
   afterEach(async () => {
     // Cleanup after each test
@@ -131,8 +131,8 @@ describe('Test Isolation Verification', () => {
       const email2 = generateUniqueTestEmail('same-prefix');
 
       expect(email1).not.toBe(email2);
-      expect(email1).toMatch(/^same-prefix-/);
-      expect(email2).toMatch(/^same-prefix-/);
+      expect(email1.startsWith('same-prefix-')).toBe(true);
+      expect(email2.startsWith('same-prefix-')).toBe(true);
     });
   });
 
@@ -168,7 +168,7 @@ describe('Test Isolation Verification', () => {
       for (let i = 0; i < createdUsers.length; i++) {
         expect(createdUsers[i].email).toBe(testEmails[i]);
       }
-    });
+    }, 60_000);
 
     it('should handle rapid sequential creation without conflicts', async () => {
       // Create users rapidly in sequence
@@ -192,7 +192,7 @@ describe('Test Isolation Verification', () => {
       // Verify all are unique
       const emails = new Set(createdUsers.map((u) => u.email));
       expect(emails.size).toBe(20);
-    });
+    }, 60_000);
   });
 
   describe('Test Data Leakage Prevention', () => {

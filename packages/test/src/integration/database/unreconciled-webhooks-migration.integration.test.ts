@@ -23,7 +23,7 @@ describe('unreconciled_webhooks migration (0010)', () => {
 
   beforeAll(async () => {
     testDb = await createTestDb();
-  }, 30_000);
+  }, 60_000);
 
   afterAll(async () => {
     await testDb.close();

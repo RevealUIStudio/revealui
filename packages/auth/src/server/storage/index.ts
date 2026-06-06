@@ -101,6 +101,22 @@ export function resetStorage(): void {
   globalStorage = null;
 }
 
+/**
+ * Override the global storage instance (for testing).
+ *
+ * Lets a test pin a specific backend — e.g. {@link InMemoryStorage} — so the
+ * rate-limit/brute-force logic runs against in-process state instead of the
+ * shared `DatabaseStorage` singleton. The DB-backed integration suite runs
+ * single-threaded with `isolate: false`, so a shared Postgres-backed store
+ * under contention can intermittently drop a write (manifesting as e.g. "not
+ * locked after 5 attempts"); pinning InMemoryStorage removes that I/O entirely.
+ * Pair with {@link resetStorage} in teardown so later code re-derives the real
+ * backend.
+ */
+export function setStorage(storage: Storage): void {
+  globalStorage = storage;
+}
+
 export { DatabaseStorage } from './database.js';
 // Export storage implementations
 export { InMemoryStorage } from './in-memory.js';

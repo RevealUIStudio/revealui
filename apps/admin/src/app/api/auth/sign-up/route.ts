@@ -15,6 +15,7 @@ import { users } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { grantSuperAdminRoleById } from '@/lib/auth/roles';
 import { getTosAcceptance } from '@/lib/auth/tos';
 import { sendVerificationEmail } from '@/lib/email/verification';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -193,6 +194,14 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
           emailVerified: true,
           emailVerifiedAt: new Date(),
         });
+        // Grant the app-layer super-admin role in `_json.roles`. The DB `role`
+        // column above is read by the proxy/cookie gate, but the engine's
+        // access gates (isSuperAdmin / isAdmin via hasRole) read `_json.roles`
+        // — without this the first user is an admin the engine still denies.
+        // signUp() creates users via a typed insert that never populates
+        // `_json`, so the grant must be a typed update afterward. Canonical
+        // owner shape per #1219: DB role + _json.roles=['super-admin'].
+        await grantSuperAdminRoleById(db, result.user.id);
         if (updatedUser) {
           resolvedUser = {
             ...updatedUser,
@@ -200,8 +209,11 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
           };
         }
       } catch (upgradeError) {
-        // Non-fatal  -  user was created, couldn't promote to admin
-        logger.warn('Failed to promote first user to admin', {
+        // Non-fatal  -  user was created, but couldn't be promoted (DB `role`
+        // and/or the `_json.roles` super-admin grant). Loud: a half-promoted
+        // first user can't reach the engine-gated admin surface and needs a
+        // manual backfill.
+        logger.error('Failed to promote first user to admin/super-admin', {
           userId: result.user.id,
           error: upgradeError instanceof Error ? upgradeError.message : String(upgradeError),
         });
@@ -239,7 +251,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     if (result.sessionToken && isVerified) {
       // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
       const userRole = resolvedUser?.role ?? 'user';
-      const isAdminRole = ['admin', 'super-admin', 'admin', 'super-admin'].includes(userRole);
+      const isAdminRole = ['owner', 'admin', 'super-admin'].includes(userRole);
       response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

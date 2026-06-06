@@ -43,7 +43,7 @@ describe('ensureFirstUserIsSuperAdmin', () => {
       value: [],
     });
 
-    expect(result).toContain(Role.TenantSuperAdmin);
+    expect(result).toContain(Role.UserSuperAdmin);
     expect(mockFind).toHaveBeenCalledWith({
       collection: 'users',
       limit: 1,
@@ -63,7 +63,7 @@ describe('ensureFirstUserIsSuperAdmin', () => {
 
     expect(result).toContain('editor');
     expect(result).toContain('viewer');
-    expect(result).toContain(Role.TenantSuperAdmin);
+    expect(result).toContain(Role.UserSuperAdmin);
   });
 
   it('does NOT promote second user when users already exist', async () => {
@@ -80,7 +80,7 @@ describe('ensureFirstUserIsSuperAdmin', () => {
     });
 
     expect(result).toEqual(['editor']);
-    expect(result).not.toContain(Role.TenantSuperAdmin);
+    expect(result).not.toContain(Role.UserSuperAdmin);
   });
 
   it('does not duplicate super-admin role if already present', async () => {
@@ -90,12 +90,12 @@ describe('ensureFirstUserIsSuperAdmin', () => {
     const result = await hook({
       req: makeReq(),
       operation: 'create',
-      value: [Role.TenantSuperAdmin],
+      value: [Role.UserSuperAdmin],
     });
 
-    expect(result).toEqual([Role.TenantSuperAdmin]);
+    expect(result).toEqual([Role.UserSuperAdmin]);
     // Should not have duplicated it
-    const superAdminCount = result?.filter((r: string) => r === Role.TenantSuperAdmin).length;
+    const superAdminCount = result?.filter((r: string) => r === Role.UserSuperAdmin).length;
     expect(superAdminCount).toBe(1);
   });
 
@@ -134,7 +134,7 @@ describe('ensureFirstUserIsSuperAdmin', () => {
       value: undefined,
     });
 
-    expect(result).toEqual([Role.TenantSuperAdmin]);
+    expect(result).toEqual([Role.UserSuperAdmin]);
   });
 
   it('queries users collection with minimal depth and limit', async () => {
