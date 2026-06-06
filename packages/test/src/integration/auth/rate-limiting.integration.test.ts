@@ -15,12 +15,17 @@
  * - Rate limit reset functionality
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkRateLimit,
   getRateLimitStatus,
   resetRateLimit,
 } from '../../../../auth/src/server/rate-limit.js';
+import {
+  InMemoryStorage,
+  resetStorage,
+  setStorage,
+} from '../../../../auth/src/server/storage/index.js';
 import { generateUniqueTestEmail } from '../../utils/integration-helpers.js';
 
 // Type for rate limit configuration
@@ -33,11 +38,32 @@ interface RateLimitConfig {
 describe('Rate Limiting Integration Tests', () => {
   let testKey: string;
 
+  beforeAll(() => {
+    // Pin in-process storage so the rate-limit logic under test doesn't depend
+    // on the shared DatabaseStorage singleton. That singleton runs against the
+    // suite's single shared Postgres under isolate:false, where pool contention
+    // can intermittently drop a write. The DatabaseStorage adapter has its own
+    // coverage; these tests exercise the rate-limit algorithm. See issue #1245.
+    setStorage(new InMemoryStorage());
+  });
+
+  afterAll(() => {
+    // Restore the singleton so later files re-derive the real backend.
+    resetStorage();
+  });
+
   beforeEach(async () => {
     // Generate unique key for each test to prevent interference
     testKey = generateUniqueTestEmail('rate-limit');
     // Clear rate limit before each test
     await resetRateLimit(testKey);
+  });
+
+  // Leak guard: a timing test that faked Date and threw before restoring would
+  // otherwise freeze the clock for every later test in this shared (isolate:false)
+  // process. Safe to call even when timers were never faked.
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   // =============================================================================
@@ -108,36 +134,37 @@ describe('Rate Limiting Integration Tests', () => {
 
   describe('Rate Limit Blocking', () => {
     it('should block for blockDurationMs after limit exceeded', async () => {
-      // Use custom config with short durations for testing
-      // Note: windowMs must be long enough to not expire during testing,
-      // as the implementation deletes entries when resetAt expires
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const testConfig: RateLimitConfig = {
         maxAttempts: 3,
-        windowMs: 500, // 500ms window (long enough for our test)
-        blockDurationMs: 700, // 700ms total block duration
+        windowMs: 2000,
+        blockDurationMs: 1000,
       };
 
-      // Exceed limit (3 requests)
       for (let i = 0; i < 3; i++) {
         await checkRateLimit(testKey, testConfig);
       }
 
-      // 4th request should be blocked
       const result = await checkRateLimit(testKey, testConfig);
       expect(result.allowed).toBe(false);
       expect(result.remaining).toBe(0);
 
-      // Wait a bit but not long enough for block to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Deterministic clock advance (lib expiry is Date.now()-based) instead of a real sleep.
+      vi.setSystemTime(Date.now() + 300);
 
-      // Should still be blocked (within block duration)
       const result2 = await checkRateLimit(testKey, testConfig);
       expect(result2.allowed).toBe(false);
 
-      // Wait for block to expire (total 500ms + 700ms - 500ms = 700ms from start)
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      // The stored entry's resetAt is creation + windowMs and is NOT extended by
+      // blockDurationMs (see checkRateLimit: blockDurationMs only sets the
+      // storage TTL). Under a controlled clock the block therefore lifts when
+      // now passes the window's resetAt, so advance just past windowMs.
+      // (The previous real-time version only "passed" when DB-op latency plus
+      // the 1s TTL floor incidentally crossed the 2s window — timing luck.)
+      vi.setSystemTime(Date.now() + testConfig.windowMs);
 
-      // Should now be allowed (block expired)
       const result3 = await checkRateLimit(testKey, testConfig);
       expect(result3.allowed).toBe(true);
     });
@@ -173,30 +200,32 @@ describe('Rate Limiting Integration Tests', () => {
 
   describe('Window Reset', () => {
     it('should reset limit after window expires', async () => {
-      // Use custom config with short window
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const testConfig: RateLimitConfig = {
         maxAttempts: 3,
-        windowMs: 100, // 100ms
+        windowMs: 200,
       };
 
-      // Make 2 requests
       await checkRateLimit(testKey, testConfig);
       await checkRateLimit(testKey, testConfig);
 
-      // Verify count
       const status = await getRateLimitStatus(testKey, testConfig);
       expect(status.count).toBe(2);
 
-      // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Deterministic clock advance (lib expiry is Date.now()-based) instead of a real sleep.
+      vi.setSystemTime(Date.now() + 400);
 
-      // New requests should be allowed with full remaining count
       const result = await checkRateLimit(testKey, testConfig);
       expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(2); // maxAttempts - 1 (current request)
+      expect(result.remaining).toBe(2);
     });
 
     it('should reset block after block duration expires', async () => {
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       // Use custom config with longer window to avoid window expiration during test
       const testConfig: RateLimitConfig = {
         maxAttempts: 2,
@@ -214,7 +243,8 @@ describe('Rate Limiting Integration Tests', () => {
       expect(result.allowed).toBe(false);
 
       // Wait for block to expire (600ms + 100ms buffer)
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      // Deterministic clock advance (lib expiry is Date.now()-based) instead of a real sleep.
+      vi.setSystemTime(Date.now() + 700);
 
       // Requests should be allowed again
       result = await checkRateLimit(testKey, testConfig);

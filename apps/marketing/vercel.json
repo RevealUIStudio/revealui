@@ -52,13 +52,13 @@
     { "source": "/marketplace", "destination": "/roadmap", "permanent": true },
     {
       "source": "/community",
-      "destination": "https://revnation.discourse.group",
+      "destination": "https://github.com/RevealUIStudio/revealui/discussions",
       "permanent": false
     },
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "community.revealui.com" }],
-      "destination": "https://revnation.discourse.group",
+      "destination": "https://github.com/RevealUIStudio/revealui/discussions",
       "permanent": true
     }
   ],
