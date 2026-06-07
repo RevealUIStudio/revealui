@@ -126,41 +126,48 @@ if (process.env.NODE_ENV === 'production') {
   logger.addLogHandler(createDbLogHandler('api'));
 }
 
-// Catch fatal errors that escape all middleware
-process.on('uncaughtException', (error: Error) => {
-  logger.error('Uncaught exception  -  process will exit', error);
-  setTimeout(() => process.exit(1), 1000);
-});
+// Signal handlers and fatal-error catchers are only meaningful when the
+// server is the live process entry point.  In the test suite (VITEST=true)
+// the module is imported repeatedly via vi.resetModules(); registering
+// listeners on every import causes MaxListenersExceededWarning and keeps
+// the Node process alive after the suite finishes.
+if (!process.env.VITEST) {
+  // Catch fatal errors that escape all middleware
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught exception  -  process will exit', error);
+    setTimeout(() => process.exit(1), 1000);
+  });
 
-process.on('unhandledRejection', (reason: unknown) => {
-  const error = reason instanceof Error ? reason : new Error(String(reason));
-  logger.error('Unhandled promise rejection', error);
-});
+  process.on('unhandledRejection', (reason: unknown) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    logger.error('Unhandled promise rejection', error);
+  });
 
-// Graceful shutdown  -  close database connection pools and stop background tasks
-async function gracefulShutdown(signal: string): Promise<void> {
-  logger.info(`${signal} received — shutting down`);
+  // Graceful shutdown  -  close database connection pools and stop background tasks
+  const gracefulShutdown = async (signal: string): Promise<void> => {
+    logger.info(`${signal} received — shutting down`);
 
-  // Stop alerting monitor
-  if (monitoringInterval) {
-    clearInterval(monitoringInterval);
-  }
+    // Stop alerting monitor
+    if (monitoringInterval) {
+      clearInterval(monitoringInterval);
+    }
 
-  // Close database pools
-  try {
-    await closeAllPools();
-    logger.info('Database pools closed');
-  } catch (err) {
-    logger.error(
-      'Error closing database pools',
-      err instanceof Error ? err : new Error(String(err)),
-    );
-  }
-  process.exit(0);
+    // Close database pools
+    try {
+      await closeAllPools();
+      logger.info('Database pools closed');
+    } catch (err) {
+      logger.error(
+        'Error closing database pools',
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    }
+    process.exit(0);
+  };
+
+  process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 }
-
-process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
 // flag is on, the wake secret must be set, or every dispatch silently
@@ -1240,45 +1247,55 @@ export function initAlerting(): void {
   logger.info('Alerting system started (60s interval)');
 }
 
-// For local development (but not in test environment)
+// For local development (but not in test environment).
+// The OUTER predicate string is asserted verbatim by index.startup.test.ts
+// (it locates this block to check serve()/license invariants) — keep it exact.
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
-  // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
-  audit.setStorage(new PostgresAuditStorage());
-  validateStartup();
-  // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
-  // present); in self-hosted Forge mode it throws on missing/invalid license,
-  // which we surface as process.exit(1) so a stamped kit refuses to serve
-  // traffic without a valid studio-issued JWT.
-  //
-  // validateBillingCatalogAtStartup is a no-op outside production-hosted-live
-  // (the dev branch is NODE_ENV !== 'production' so it short-circuits
-  // immediately); kept in the chain for symmetry with the production block
-  // below, where it fails boot if `billing_catalog` isn't seeded for live
-  // mode (prevents mid-customer-transaction 500s).
-  validateLicenseAtStartup()
-    .then(() => validateBillingCatalogAtStartup())
-    .then(() => initializeLicense())
-    .then((tier) => {
-      logger.info(`License tier: ${tier}`);
-    })
-    .catch((err: unknown) => {
-      logger.error(
-        'Startup validation failed; exiting',
-        err instanceof Error ? err : new Error(String(err)),
-      );
-      process.exit(1);
-    });
-  initAlerting();
-  // Best-effort hydration of per-site LLM provider configs into the
-  // in-memory registry. Skipped silently if @revealui/ai not installed or DB
-  // unreachable; agents fall back to env-based config in those cases.
-  hydrateInferenceConfigs();
-  const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
-  const server = serve({ fetch: app.fetch, port });
-  terminalWs.injectWebSocket(server);
-  logger.info(`🚀 API server running on http://localhost:${port}`);
-  logger.info(`📚 API documentation available at http://localhost:${port}/docs`);
-  logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
+  // NODE_ENV='test' normally short-circuits this block under Vitest, but the
+  // integration suite (isolate:false) has tests that stub NODE_ENV to
+  // 'development'/'production' and re-import this module via vi.resetModules
+  // (e.g. api-cors). Without this inner guard the dev bootstrap then fires
+  // serve() and binds a port → EADDRINUSE / hung worker. VITEST is set by the
+  // runner regardless of any NODE_ENV stub, so it's the reliable signal.
+  if (!process.env.VITEST) {
+    // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
+    audit.setStorage(new PostgresAuditStorage());
+    validateStartup();
+    // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
+    // present); in self-hosted Forge mode it throws on missing/invalid license,
+    // which we surface as process.exit(1) so a stamped kit refuses to serve
+    // traffic without a valid studio-issued JWT.
+    //
+    // validateBillingCatalogAtStartup is a no-op outside production-hosted-live
+    // (the dev branch is NODE_ENV !== 'production' so it short-circuits
+    // immediately); kept in the chain for symmetry with the production block
+    // below, where it fails boot if `billing_catalog` isn't seeded for live
+    // mode (prevents mid-customer-transaction 500s).
+    validateLicenseAtStartup()
+      .then(() => validateBillingCatalogAtStartup())
+      .then(() => initializeLicense())
+      .then((tier) => {
+        logger.info(`License tier: ${tier}`);
+      })
+      .catch((err: unknown) => {
+        logger.error(
+          'Startup validation failed; exiting',
+          err instanceof Error ? err : new Error(String(err)),
+        );
+        process.exit(1);
+      });
+    initAlerting();
+    // Best-effort hydration of per-site LLM provider configs into the
+    // in-memory registry. Skipped silently if @revealui/ai not installed or DB
+    // unreachable; agents fall back to env-based config in those cases.
+    hydrateInferenceConfigs();
+    const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
+    const server = serve({ fetch: app.fetch, port });
+    terminalWs.injectWebSocket(server);
+    logger.info(`🚀 API server running on http://localhost:${port}`);
+    logger.info(`📚 API documentation available at http://localhost:${port}/docs`);
+    logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
+  }
 }
 
 // Configure trusted-proxy-aware client IP extraction for session-binding

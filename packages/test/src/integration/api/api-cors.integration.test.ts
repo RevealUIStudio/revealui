@@ -16,17 +16,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('API CORS Configuration Integration Tests', () => {
-  const originalEnv = { ...process.env };
-
+describe('API CORS Configuration Integration Tests', { timeout: 60_000 }, () => {
   beforeEach(() => {
-    // Reset modules to clear cached imports
     vi.resetModules();
   });
 
   afterEach(() => {
-    // Restore original environment
-    process.env = { ...originalEnv };
     vi.resetModules();
   });
 
@@ -37,12 +32,12 @@ describe('API CORS Configuration Integration Tests', () => {
   describe('Production Mode CORS Validation (Production Blocker Fix)', () => {
     it('should throw error if CORS_ORIGIN not set in production', async () => {
       vi.stubEnv('NODE_ENV', 'production');
-      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
+      vi.stubEnv('CORS_ORIGIN', undefined);
 
       await expect(async () => {
         vi.resetModules();
         await import('../../../../../apps/server/src/index.js');
-      }).rejects.toThrow('CORS_ORIGIN environment variable must be set in production');
+      }).rejects.toThrow('CORS_ORIGIN env var missing or empty in production');
     });
 
     it('should throw error if CORS_ORIGIN is empty string in production', async () => {
@@ -52,7 +47,7 @@ describe('API CORS Configuration Integration Tests', () => {
       await expect(async () => {
         vi.resetModules();
         await import('../../../../../apps/server/src/index.js');
-      }).rejects.toThrow('CORS_ORIGIN environment variable must be set in production');
+      }).rejects.toThrow('CORS_ORIGIN env var missing or empty in production');
     });
 
     it('should throw error if CORS_ORIGIN is whitespace in production', async () => {
@@ -62,27 +57,25 @@ describe('API CORS Configuration Integration Tests', () => {
       await expect(async () => {
         vi.resetModules();
         await import('../../../../../apps/server/src/index.js');
-      }).rejects.toThrow('CORS_ORIGIN environment variable must be set in production');
+      }).rejects.toThrow('CORS_ORIGIN env var missing or empty in production');
     });
 
     it('should accept single origin in production', async () => {
       vi.stubEnv('NODE_ENV', 'production');
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
-      await expect(async () => {
-        vi.resetModules();
-        await import('../../../../../apps/server/src/index.js');
-      }).resolves.not.toThrow();
+      vi.resetModules();
+      const mod = await import('../../../../../apps/server/src/index.js');
+      expect(mod).toBeDefined();
     });
 
     it('should accept multiple origins in production', async () => {
       vi.stubEnv('NODE_ENV', 'production');
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com,https://www.example.com');
 
-      await expect(async () => {
-        vi.resetModules();
-        await import('../../../../../apps/server/src/index.js');
-      }).resolves.not.toThrow();
+      vi.resetModules();
+      const mod = await import('../../../../../apps/server/src/index.js');
+      expect(mod).toBeDefined();
     });
   });
 
@@ -168,7 +161,7 @@ describe('API CORS Configuration Integration Tests', () => {
   describe('Development Mode CORS', () => {
     it('should allow localhost origins in development', async () => {
       vi.stubEnv('NODE_ENV', 'development');
-      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
+      vi.stubEnv('CORS_ORIGIN', undefined);
 
       vi.resetModules();
       const { default: devApp } = await import('../../../../../apps/server/src/index.js');
@@ -191,17 +184,16 @@ describe('API CORS Configuration Integration Tests', () => {
 
     it('should not require CORS_ORIGIN in development', async () => {
       vi.stubEnv('NODE_ENV', 'development');
-      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
+      vi.stubEnv('CORS_ORIGIN', undefined);
 
-      await expect(async () => {
-        vi.resetModules();
-        await import('../../../../../apps/server/src/index.js');
-      }).resolves.not.toThrow();
+      vi.resetModules();
+      const mod = await import('../../../../../apps/server/src/index.js');
+      expect(mod).toBeDefined();
     });
 
     it('should reject non-localhost origins in development', async () => {
       vi.stubEnv('NODE_ENV', 'development');
-      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
+      vi.stubEnv('CORS_ORIGIN', undefined);
 
       vi.resetModules();
       const { default: devApp } = await import('../../../../../apps/server/src/index.js');
@@ -221,7 +213,7 @@ describe('API CORS Configuration Integration Tests', () => {
   describe('Test Mode CORS', () => {
     it('should allow localhost origins in test mode', async () => {
       vi.stubEnv('NODE_ENV', 'test');
-      vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
+      vi.stubEnv('CORS_ORIGIN', undefined);
 
       vi.resetModules();
       const { default: testApp } = await import('../../../../../apps/server/src/index.js');

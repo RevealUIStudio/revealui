@@ -204,6 +204,26 @@ describe('POST /api/auth/password-reset', () => {
     expect(body.message).toContain('password reset link has been sent');
   });
 
+  it('returns success even when sendPasswordResetEmail throws (transport down)', async () => {
+    vi.mocked(generatePasswordResetToken).mockResolvedValue({
+      success: true,
+      token: 'raw-token',
+      tokenId: 'tid-throw',
+    } as never);
+    vi.mocked(sendPasswordResetEmail).mockRejectedValue(
+      new Error('Gmail transport not configured'),
+    );
+
+    const req = makeRequest('/api/auth/password-reset', 'POST', {
+      email: 'alice@test.com',
+    });
+    const res = await POST(req);
+    // A thrown email send is swallowed like a returned failure, not a 500.
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.message).toContain('password reset link has been sent');
+  });
+
   it('returns 400 for missing email', async () => {
     const req = makeRequest('/api/auth/password-reset', 'POST', {});
     const res = await POST(req);

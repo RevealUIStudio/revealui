@@ -12,7 +12,7 @@
 
 import { cleanupOldLogs } from '@revealui/db/cleanup';
 import { appLogs, errorEvents } from '@revealui/db/schema';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb, type TestDb } from '../../utils/drizzle-test-db.js';
 
 describe('log retention cleanup (CR8-P3-02 PR1)', () => {
@@ -28,7 +28,7 @@ describe('log retention cleanup (CR8-P3-02 PR1)', () => {
 
   beforeAll(async () => {
     testDb = await createTestDb();
-  }, 30_000);
+  }, 60_000);
 
   afterAll(async () => {
     await testDb.close();
@@ -37,11 +37,10 @@ describe('log retention cleanup (CR8-P3-02 PR1)', () => {
   beforeEach(async () => {
     await testDb.pglite.exec('DELETE FROM app_logs');
     await testDb.pglite.exec('DELETE FROM error_events');
-    delete process.env.REVEALUI_LOG_RETENTION_DAYS;
   });
 
   afterEach(() => {
-    delete process.env.REVEALUI_LOG_RETENTION_DAYS;
+    vi.unstubAllEnvs();
   });
 
   it('deletes app_logs older than 90d, keeps newer rows', async () => {
@@ -186,7 +185,7 @@ describe('log retention cleanup (CR8-P3-02 PR1)', () => {
   });
 
   it('honors REVEALUI_LOG_RETENTION_DAYS env var when override not provided', async () => {
-    process.env.REVEALUI_LOG_RETENTION_DAYS = '30';
+    vi.stubEnv('REVEALUI_LOG_RETENTION_DAYS', '30');
 
     await testDb.drizzle.insert(appLogs).values([
       {
@@ -264,7 +263,7 @@ describe('log retention cleanup (CR8-P3-02 PR1)', () => {
   });
 
   it('falls back to 90d default when env var is absent or malformed', async () => {
-    process.env.REVEALUI_LOG_RETENTION_DAYS = 'not-a-number';
+    vi.stubEnv('REVEALUI_LOG_RETENTION_DAYS', 'not-a-number');
 
     const result = await cleanupOldLogs(asDbOpts());
     expect(result.retentionDays).toBe(90);

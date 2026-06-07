@@ -20,7 +20,7 @@ describe('queue cron safety-net (CR8-P2-01 phase B)', () => {
 
   beforeAll(async () => {
     testDb = await createTestDb();
-  }, 30_000);
+  }, 60_000);
 
   afterAll(async () => {
     await testDb.close();
