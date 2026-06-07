@@ -28,7 +28,7 @@
     "jose": "^6.2.3",
     "lexical": "^0.44.0",
     "pg": "catalog:",
-    "yjs": "^13.6.30",
+    "yjs": "^13.6.31",
     "zod": "catalog:"
   },
   "devDependencies": {
