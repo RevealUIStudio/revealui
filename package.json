@@ -206,6 +206,7 @@
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
+    "validate:marketing-voice": "tsx scripts/validate/marketing-voice.ts",
     "validate:client-safety": "tsx scripts/validate/client-safety.ts",
     "validate:design-context": "tsx scripts/validate/design-context-drift.ts",
     "validate:brand-bridge": "tsx scripts/validate/brand-bridge.ts",
