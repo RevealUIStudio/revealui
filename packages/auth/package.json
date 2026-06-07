@@ -15,7 +15,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/security": "workspace:*",
-    "@simplewebauthn/server": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.1",
     "bcryptjs": "catalog:",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"

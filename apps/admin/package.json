@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.6",
-    "@simplewebauthn/server": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.1",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
