@@ -420,20 +420,25 @@ describe('validateLicenseAtStartup', () => {
     ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
   });
 
-  it('throws when the JWT was signed with a different key', async () => {
+  it('throws a precise wrong-public-key error when the JWT was signed with a different key', async () => {
     const jwt = await generateLicenseKey(
       { tier: 'enterprise', customerId: 'acme' },
       testPrivateKey,
       30 * 24 * 60 * 60,
       testPublicKey,
     );
-    // Verify against a DIFFERENT public key — must fail.
-    await expect(
-      validateLicenseAtStartup({
-        REVEALUI_LICENSE_KEY: jwt,
-        REVEALUI_LICENSE_PUBLIC_KEY: mismatchedPublicKey,
-      }),
-    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
+    // Verify against a DIFFERENT public key: the kit baked the wrong key. The
+    // boot check should name this specific cause (public-key id mismatch), not
+    // the generic invalid/expired/customerId message.
+    const err = await validateLicenseAtStartup({
+      REVEALUI_LICENSE_KEY: jwt,
+      REVEALUI_LICENSE_PUBLIC_KEY: mismatchedPublicKey,
+    }).then(
+      () => null,
+      (e: unknown) => (e instanceof Error ? e.message : String(e)),
+    );
+    expect(err).toContain('does not match the key that signed');
+    expect(err).toContain('baked the wrong public key');
   });
 
   it('throws when the JWT is expired beyond the grace window', async () => {
