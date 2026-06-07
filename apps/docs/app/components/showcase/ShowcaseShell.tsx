@@ -94,7 +94,7 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {story.usage.when && (
             <div className="rounded-xl border border-border bg-surface p-4">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-emerald-700">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-success">
                 When to use
               </h3>
               <div className="text-sm text-text-secondary">{renderMarkdown(story.usage.when)}</div>
@@ -102,7 +102,7 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
           )}
           {story.usage.avoid && (
             <div className="rounded-xl border border-border bg-surface p-4">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-amber-700">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-warning-foreground">
                 When to avoid
               </h3>
               <div className="text-sm text-text-secondary">{renderMarkdown(story.usage.avoid)}</div>
@@ -195,7 +195,7 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
                   {a11y.conformance.map((item) => (
                     <span
                       key={item}
-                      className="rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200"
+                      className="rounded-md bg-success/15 px-2 py-1 text-xs font-medium text-success ring-1 ring-success/30"
                     >
                       {item}
                     </span>

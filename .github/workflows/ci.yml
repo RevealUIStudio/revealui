@@ -76,6 +76,9 @@ jobs:
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
+      - name: Marketing voice validation (hard fail)
+        run: pnpm validate:marketing-voice
+
       - name: Migration journal validation (hard fail)
         run: pnpm validate:migrations
 
