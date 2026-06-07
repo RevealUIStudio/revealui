@@ -29,7 +29,7 @@
     "globals": "catalog:",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "next": "^16.2.6",
+    "next": "^16.2.7",
     "next-devtools-mcp": "^0.3.10",
     "pg": "catalog:",
     "playwright": "^1.60.0",

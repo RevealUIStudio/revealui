@@ -14,8 +14,8 @@
     "@revealui/router": "workspace:*",
     "@sentry/react": "^10.53.1",
     "@vercel/speed-insights": "^2.0.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "zod": "catalog:"
