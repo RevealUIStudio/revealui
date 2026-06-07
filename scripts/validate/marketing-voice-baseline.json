@@ -1,0 +1,5 @@
+{
+  "note": "Grandfathered marketing-voice occurrences. Regenerate via `pnpm validate:marketing-voice --update-baseline`. Each key is a (file::ruleId::token) triple known to exist as of generation; CI fails only on NEW triples. Shrinking this list = progress.",
+  "count": 0,
+  "keys": []
+}

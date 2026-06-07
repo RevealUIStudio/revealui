@@ -57,7 +57,7 @@ export const HOME_HERO = {
       {
         metric: 'Pro license enforcement, signed and verified',
         detail:
-          'Pro features unlock against your license, server-checked — no manual install gates. See the [Pro reference](https://docs.revealui.com/pro).',
+          'Pro features check against your license server-side — no manual install gates. See the [Pro reference](https://docs.revealui.com/pro).',
       },
       {
         metric: `FSL-1.1-MIT on ${METRICS.licenseSplit.fsl} Fair Source packages`,
