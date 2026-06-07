@@ -62,12 +62,29 @@ describe('AdminBar', () => {
     mockUsePathname.mockReturnValue('/posts/some-post');
     render(<AdminBar />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Exit Preview')).toBeInTheDocument();
   });
 
   it('renders the bar on the dashboard root', () => {
     mockUsePathname.mockReturnValue('/');
     render(<AdminBar />);
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+  });
+
+  it('hides "Exit Preview" on a content route when preview mode is not enabled', () => {
+    mockUsePathname.mockReturnValue('/posts/some-post');
+    render(<AdminBar />);
+    expect(screen.queryByText('Exit Preview')).not.toBeInTheDocument();
+  });
+
+  it('hides "Exit Preview" when preview is explicitly false', () => {
+    mockUsePathname.mockReturnValue('/posts/some-post');
+    render(<AdminBar adminBarProps={{ preview: false }} />);
+    expect(screen.queryByText('Exit Preview')).not.toBeInTheDocument();
+  });
+
+  it('shows "Exit Preview" only when preview mode is enabled', () => {
+    mockUsePathname.mockReturnValue('/posts/some-post');
+    render(<AdminBar adminBarProps={{ preview: true }} />);
     expect(screen.getByText('Exit Preview')).toBeInTheDocument();
   });
 
