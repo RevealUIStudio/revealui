@@ -145,6 +145,24 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
+  // Already-authenticated admins have no reason to see the login/signup screens.
+  // Redirect them to the dashboard. Scoped to /login + /signup ONLY — /setup,
+  // /rotate-password, /forgot-password, /reset-password, /mfa stay reachable for an
+  // authenticated or partially-authenticated user (forced rotation, MFA enrollment,
+  // etc.). The `revealui-role` cookie is normalized to 'admin' | 'user' at sign-in
+  // (defense-in-depth UI hint), and this predicate matches the auth gate's admit
+  // check below, so an admin sent to '/' always passes that gate — no redirect loop.
+  if (pathname === '/login' || pathname === '/signup') {
+    const session = request.cookies.get('revealui-session')?.value;
+    const role = request.cookies.get('revealui-role')?.value;
+    if (session && role === 'admin') {
+      const homeUrl = request.nextUrl.clone();
+      homeUrl.pathname = '/';
+      homeUrl.search = '';
+      return NextResponse.redirect(homeUrl);
+    }
+  }
+
   // Auth gate: protect (backend) pages — every path that isn't public and
   // isn't internal needs a session + admin role. The role cookie is a
   // defense-in-depth UI hint (set at login). Real enforcement is at the API
