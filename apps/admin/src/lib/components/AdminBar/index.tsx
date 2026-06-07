@@ -32,7 +32,7 @@ export interface RevealUIMeUser {
 
 // RevealUI Admin Bar component
 const RevealUIAdminBar = (props: RevealUIAdminBarProps) => {
-  const { className, logo, onAuthChange, onPreviewExit, style } = props;
+  const { className, logo, onAuthChange, onPreviewExit, preview, style } = props;
 
   // Fetch user on mount
   React.useEffect(() => {
@@ -57,9 +57,11 @@ const RevealUIAdminBar = (props: RevealUIAdminBarProps) => {
       <div className="flex items-center justify-between">
         <div>{logo}</div>
         <div className="flex items-center gap-4">
-          <button type="button" onClick={onPreviewExit} className="text-sm underline">
-            Exit Preview
-          </button>
+          {preview ? (
+            <button type="button" onClick={onPreviewExit} className="text-sm underline">
+              Exit Preview
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
