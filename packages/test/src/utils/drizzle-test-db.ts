@@ -44,7 +44,7 @@ export interface CreateTestDbOptions {
   logger?: boolean;
   /**
    * Enable the PGlite pgvector extension. When true, the harness loads
-   * `@electric-sql/pglite/vector`, enables the `vector` type, and keeps
+   * `@electric-sql/pglite-pgvector`, enables the `vector` type, and keeps
    * (rather than skips) tables + statements that reference vector columns.
    * Required for tests that query tables like `agent_contexts`, `agent_memories`,
    * or `rag_chunks` which have pgvector-typed embedding columns.
@@ -111,7 +111,7 @@ export async function createTestDb(options?: CreateTestDbOptions): Promise<TestD
   const enableVector = options?.enableVector === true;
   let pglite: PGlite;
   if (enableVector) {
-    const { vector } = await import('@electric-sql/pglite/vector');
+    const { vector } = await import('@electric-sql/pglite-pgvector');
     pglite = new PGlite({ extensions: { vector } });
   } else {
     pglite = new PGlite();
