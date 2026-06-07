@@ -13,7 +13,7 @@
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "4.12.23",
-    "stripe": "^22.1.1",
+    "stripe": "^22.2.0",
     "zod": "catalog:"
   },
   "devDependencies": {
