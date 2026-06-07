@@ -71,7 +71,6 @@ catalogs:
       version: 4.4.3
 
 overrides:
-  '@electric-sql/pglite': ^0.4.5
   form-data: '>=4.0.4'
   path-to-regexp: '>=6.3.0'
   tar-fs: '>=2.1.4'
@@ -135,8 +134,8 @@ importers:
         specifier: ^2.31.0
         version: 2.31.0(@types/node@25.9.2)
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       '@modelcontextprotocol/sdk':
         specifier: '>=1.26.0'
         version: 1.29.0(zod@4.4.3)
@@ -310,7 +309,7 @@ importers:
         version: 10.1.0
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       jose:
         specifier: ^6.2.3
         version: 6.2.3
@@ -601,7 +600,7 @@ importers:
         version: 10.56.0
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       hono:
         specifier: 4.12.23
         version: 4.12.23
@@ -668,7 +667,7 @@ importers:
         version: link:../resilience
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       lru-cache:
         specifier: ^11.5.1
         version: 11.5.1
@@ -677,8 +676,8 @@ importers:
         version: 4.4.3
     devDependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       '@revealui/dev':
         specifier: workspace:*
         version: link:../dev
@@ -729,7 +728,7 @@ importers:
         version: 3.0.3
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -772,8 +771,8 @@ importers:
         version: link:../security
     devDependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       '@revealui/dev':
         specifier: workspace:*
         version: link:../dev
@@ -876,7 +875,7 @@ importers:
         version: 25.9.2
       drizzle-zod:
         specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0))(zod@4.4.3)
+        version: 0.8.3(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0))(zod@4.4.3)
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -890,8 +889,8 @@ importers:
         specifier: ^3.1063.0
         version: 3.1063.0
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       '@lexical/clipboard':
         specifier: ^0.45.0
         version: 0.45.0
@@ -1018,7 +1017,7 @@ importers:
         version: link:../utils
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       pg:
         specifier: 'catalog:'
         version: 8.21.0
@@ -1034,7 +1033,7 @@ importers:
         version: 0.31.10
       drizzle-zod:
         specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0))(zod@4.4.3)
+        version: 0.8.3(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0))(zod@4.4.3)
       tsx:
         specifier: 'catalog:'
         version: 4.22.4
@@ -1110,8 +1109,8 @@ importers:
   packages/harnesses:
     dependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       '@revealui/core':
         specifier: workspace:*
         version: link:../core
@@ -1160,8 +1159,8 @@ importers:
         version: 6.2.3
     devDependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       pg:
         specifier: 'catalog:'
         version: 8.21.0
@@ -1299,8 +1298,8 @@ importers:
   packages/resilience:
     devDependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
       '@revealui/dev':
         specifier: workspace:*
         version: link:../dev
@@ -1376,8 +1375,8 @@ importers:
         version: 6.0.3
     devDependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
 
   packages/security:
     dependencies:
@@ -1432,7 +1431,7 @@ importers:
         version: 5.8.4(rollup@4.60.3)
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       jose:
         specifier: ^6.2.3
         version: 6.2.3
@@ -1594,7 +1593,7 @@ importers:
         version: link:../utils
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+        version: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       hono:
         specifier: 4.12.23
         version: 4.12.23
@@ -1606,8 +1605,11 @@ importers:
         version: 4.4.3
     devDependencies:
       '@electric-sql/pglite':
-        specifier: ^0.4.5
-        version: 0.4.6
+        specifier: ^0.5.1
+        version: 0.5.1
+      '@electric-sql/pglite-pgvector':
+        specifier: ^0.0.2
+        version: 0.0.2(@electric-sql/pglite@0.5.1)
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.60.0
@@ -2086,8 +2088,13 @@ packages:
     resolution: {integrity: sha512-Ftf+ze/rZK9dBzvZqW7wrS74aQBToUlhQeUFm7KCTfOCkNJZ+7iZMm9JW/NjyIQjPOz4ApXg3VWOpeCbzsU3IQ==}
     hasBin: true
 
-  '@electric-sql/pglite@0.4.6':
-    resolution: {integrity: sha512-qmlmfN8UyKCee35qkV0r/MBp+Znl8FjBz7OpoglNvww3GJpw0/DLP0o1ZymvLNmcD5DTLOQdzKPtF8Hd3mdl1w==}
+  '@electric-sql/pglite-pgvector@0.0.2':
+    resolution: {integrity: sha512-Gu9Nv7JHlg6BgOLqPCR6lCjI+3xlb7ej5qUtHWmzEYA0ZKzuNgeDK16nRO0ELInwzhLptLqX7VdWyYRElSXjdQ==}
+    peerDependencies:
+      '@electric-sql/pglite': 0.5.1
+
+  '@electric-sql/pglite@0.5.1':
+    resolution: {integrity: sha512-h2Vc+qkQqsEL5kvyN5nBAxn3Vbyvka7QfDW7Io+CdcwU1+X8JbCAN2og+5dI11S3eJuDfroUCxzJaap6k+ezEw==}
 
   '@electric-sql/react@1.0.49':
     resolution: {integrity: sha512-lpEmF5rD7VMHJAeov/3SWa0ctqkzZJPZyf8sQnIVJdIUBSgniIYCCNXUzJ1fIeXJwvxNsBj4QX1zUbhntVR/Mw==}
@@ -5516,7 +5523,7 @@ packages:
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
-      '@electric-sql/pglite': ^0.4.5
+      '@electric-sql/pglite': '>=0.2.0'
       '@libsql/client': '>=0.10.0'
       '@libsql/client-wasm': '>=0.10.0'
       '@neondatabase/serverless': '>=0.10.0'
@@ -9271,7 +9278,11 @@ snapshots:
     optionalDependencies:
       '@rollup/rollup-darwin-arm64': 4.60.4
 
-  '@electric-sql/pglite@0.4.6': {}
+  '@electric-sql/pglite-pgvector@0.0.2(@electric-sql/pglite@0.5.1)':
+    dependencies:
+      '@electric-sql/pglite': 0.5.1
+
+  '@electric-sql/pglite@0.5.1': {}
 
   '@electric-sql/react@1.0.49(react@19.2.6)':
     dependencies:
@@ -12775,17 +12786,17 @@ snapshots:
       esbuild: 0.28.0
       tsx: 4.22.4
 
-  drizzle-orm@0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0):
+  drizzle-orm@0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0):
     optionalDependencies:
-      '@electric-sql/pglite': 0.4.6
+      '@electric-sql/pglite': 0.5.1
       '@neondatabase/serverless': 1.1.0
       '@opentelemetry/api': 1.9.1
       '@types/pg': 8.20.0
       pg: 8.21.0
 
-  drizzle-zod@0.8.3(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0))(zod@4.4.3):
+  drizzle-zod@0.8.3(drizzle-orm@0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0))(zod@4.4.3):
     dependencies:
-      drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.6)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
+      drizzle-orm: 0.45.2(@electric-sql/pglite@0.5.1)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.21.0)
       zod: 4.4.3
 
   dunder-proto@1.0.1:
