@@ -27,7 +27,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/resilience": "workspace:*",
-    "lru-cache": "^11.5.0",
+    "lru-cache": "^11.5.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -36,8 +36,8 @@
     "@vitest/coverage-v8": "^4.1.8",
     "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "typescript": "catalog:",
     "vitest": "^4.1.8"
   },

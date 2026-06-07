@@ -15,7 +15,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/security": "workspace:*",
-    "@simplewebauthn/server": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.1",
     "bcryptjs": "catalog:",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"
@@ -28,7 +28,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@revealui/dev": "workspace:*",
     "happy-dom": "^20.9.0",
-    "react": "^19.2.6",
+    "react": "^19.2.7",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
