@@ -203,9 +203,14 @@ let restPool: Pool | null = null;
 // Track all pg.Pool instances for monitoring and cleanup
 const activePools: Map<string, Pool> = new Map();
 
-// Register cleanup handler for graceful shutdown
+// Register cleanup handler for graceful shutdown.
+// Skipped in the test suite: vi.resetModules() re-executes this module on
+// every import, and the module-level guard resets each time — causing one
+// new SIGTERM/SIGINT/beforeExit listener per reimport cycle.  Signal
+// cleanup is not meaningful in the vitest worker anyway.
 let cleanupHandlerRegistered = false;
 function registerPoolCleanup() {
+  if (process.env.VITEST) return;
   if (cleanupHandlerRegistered) return;
 
   const shutdown = async () => {

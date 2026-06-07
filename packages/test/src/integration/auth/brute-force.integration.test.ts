@@ -16,13 +16,18 @@
  * - Custom configuration support
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearFailedAttempts,
   getFailedAttemptCount,
   isAccountLocked,
   recordFailedAttempt,
 } from '../../../../auth/src/server/brute-force.js';
+import {
+  InMemoryStorage,
+  resetStorage,
+  setStorage,
+} from '../../../../auth/src/server/storage/index.js';
 import { generateUniqueTestEmail } from '../../utils/integration-helpers.js';
 
 // Type for brute force configuration
@@ -35,11 +40,33 @@ interface BruteForceConfig {
 describe('Brute Force Protection Integration Tests', () => {
   let testEmail: string;
 
+  beforeAll(() => {
+    // Pin in-process storage so the lockout/window logic under test doesn't
+    // depend on the shared DatabaseStorage singleton. That singleton runs
+    // against the suite's single shared Postgres under isolate:false, where
+    // pool contention can intermittently drop a write (→ "not locked after N
+    // attempts"). The DatabaseStorage adapter has its own coverage; these tests
+    // exercise the brute-force algorithm, not persistence. See issue #1245.
+    setStorage(new InMemoryStorage());
+  });
+
+  afterAll(() => {
+    // Restore the singleton so later files re-derive the real backend.
+    resetStorage();
+  });
+
   beforeEach(() => {
     // Generate unique email for each test to prevent interference
     testEmail = generateUniqueTestEmail('brute-force');
     // Clear all failed attempts before each test
     clearFailedAttempts(testEmail);
+  });
+
+  // Leak guard: a timing test that faked Date and threw before restoring would
+  // otherwise freeze the clock for every later test in this shared (isolate:false)
+  // process. Safe to call even when timers were never faked.
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   // =============================================================================
@@ -119,52 +146,54 @@ describe('Brute Force Protection Integration Tests', () => {
 
   describe('Lock Expiration', () => {
     it('should unlock account after lock duration expires', async () => {
-      // Use custom config with short lock duration for testing
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const testConfig: BruteForceConfig = {
         maxAttempts: 3,
-        lockDurationMs: 100, // 100ms for fast test
+        lockDurationMs: 300,
         windowMs: 15 * 60 * 1000,
       };
 
-      // Lock the account
       for (let i = 0; i < 3; i++) {
         await recordFailedAttempt(testEmail, testConfig);
       }
 
-      // Verify account is locked
       let lockStatus = await isAccountLocked(testEmail, testConfig);
       expect(lockStatus.locked).toBe(true);
 
-      // Wait for lock to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Deterministic: advance the (faked) clock past the window/lock instead
+      // of sleeping. The lib computes expiry purely from Date.now(), so this is
+      // behaviour-identical to a real wait but immune to CI scheduling jitter.
+      vi.setSystemTime(Date.now() + 600);
 
-      // Verify account is unlocked
       lockStatus = await isAccountLocked(testEmail, testConfig);
       expect(lockStatus.locked).toBe(false);
       expect(lockStatus.attemptsRemaining).toBe(testConfig.maxAttempts);
     });
 
     it('should reset attempt count after lock expires', async () => {
-      // Use custom config with short lock duration
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const testConfig: BruteForceConfig = {
         maxAttempts: 3,
-        lockDurationMs: 100,
+        lockDurationMs: 300,
         windowMs: 15 * 60 * 1000,
       };
 
-      // Lock the account
       for (let i = 0; i < 3; i++) {
         await recordFailedAttempt(testEmail, testConfig);
       }
 
-      // Wait for lock to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Deterministic: advance the (faked) clock past the window/lock instead
+      // of sleeping. The lib computes expiry purely from Date.now(), so this is
+      // behaviour-identical to a real wait but immune to CI scheduling jitter.
+      vi.setSystemTime(Date.now() + 600);
 
-      // isAccountLocked() triggers the expiration check and deletes expired entries
       const lockStatus = await isAccountLocked(testEmail, testConfig);
       expect(lockStatus.locked).toBe(false);
 
-      // After isAccountLocked() clears the expired entry, count should be 0
       const count = await getFailedAttemptCount(testEmail);
       expect(count).toBe(0);
     });
@@ -176,54 +205,55 @@ describe('Brute Force Protection Integration Tests', () => {
 
   describe('Window Expiration', () => {
     it('should reset failed attempts after window expires (15 minutes)', async () => {
-      // Use custom config with short window for testing
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const testConfig: BruteForceConfig = {
         maxAttempts: 5,
         lockDurationMs: 30 * 60 * 1000,
-        windowMs: 100, // 100ms for fast test
+        windowMs: 300,
       };
 
-      // Add 3 failures
       for (let i = 0; i < 3; i++) {
         await recordFailedAttempt(testEmail, testConfig);
       }
 
-      // Verify count
       let count = await getFailedAttemptCount(testEmail);
       expect(count).toBe(3);
 
-      // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Deterministic: advance the (faked) clock past the window/lock instead
+      // of sleeping. The lib computes expiry purely from Date.now(), so this is
+      // behaviour-identical to a real wait but immune to CI scheduling jitter.
+      vi.setSystemTime(Date.now() + 600);
 
-      // isAccountLocked() triggers the expiration check and deletes expired entries
       const lockStatus = await isAccountLocked(testEmail, testConfig);
       expect(lockStatus.locked).toBe(false);
 
-      // After isAccountLocked() clears the expired entry, count should be 0
       count = await getFailedAttemptCount(testEmail);
       expect(count).toBe(0);
     });
 
     it('should restart window on first failure after expiration', async () => {
-      // Use custom config with short window
+      // Fake only Date (timers/I-O stay real so the DB driver is unaffected);
+      // the clock is frozen between ops, eliminating inter-op-latency races.
+      vi.useFakeTimers({ toFake: ['Date'] });
       const testConfig: BruteForceConfig = {
         maxAttempts: 5,
         lockDurationMs: 30 * 60 * 1000,
-        windowMs: 100,
+        windowMs: 300,
       };
 
-      // Add 3 failures
       for (let i = 0; i < 3; i++) {
         await recordFailedAttempt(testEmail, testConfig);
       }
 
-      // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Deterministic: advance the (faked) clock past the window/lock instead
+      // of sleeping. The lib computes expiry purely from Date.now(), so this is
+      // behaviour-identical to a real wait but immune to CI scheduling jitter.
+      vi.setSystemTime(Date.now() + 600);
 
-      // Add new failure (should start new window)
       await recordFailedAttempt(testEmail, testConfig);
 
-      // Verify attemptsRemaining resets to 4 (maxAttempts - 1)
       const lockStatus = await isAccountLocked(testEmail, testConfig);
       expect(lockStatus.attemptsRemaining).toBe(4);
     });

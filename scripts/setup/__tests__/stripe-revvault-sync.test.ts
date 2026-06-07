@@ -44,6 +44,7 @@ describe('drift guard: seeded price env keys must have a manifest vault path', (
     const requiredKeys = [
       'STRIPE_PRO_PRICE_ID',
       'STRIPE_MAX_PRICE_ID',
+      'STRIPE_MAX_ANNUAL_PRICE_ID',
       'STRIPE_ENTERPRISE_PRICE_ID',
       'STRIPE_PERPETUAL_PRO_PRICE_ID',
       'STRIPE_PERPETUAL_MAX_PRICE_ID',

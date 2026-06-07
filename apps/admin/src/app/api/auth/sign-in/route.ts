@@ -11,6 +11,7 @@ import config from '@revealui/config';
 import { SignInRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
@@ -110,13 +111,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     // Set role hint cookie for proxy.ts admin gate (defense-in-depth, not the security boundary).
     // The real enforcement is at the API level via collection access.read checks.
     const userRole = result.user.role ?? 'user';
-    // 'owner' is the highest DB role (the bootstrap assigns it to the first user) and must
-    // count as admin; 'super-admin' is an app-layer roles[] value, kept for forward-compat.
-    // (Pre-fix this list was the deduped wreckage of the #306 role-rename — ['admin',
-    // 'super-admin','admin','super-admin'] — which omitted 'owner' and locked the bootstrap
-    // admin out of /admin via proxy.ts's revealui-role gate.)
-    const isAdminRole = ['owner', 'admin', 'super-admin'].includes(userRole);
-    response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
+    response.cookies.set('revealui-role', isAdminRole(userRole) ? 'admin' : 'user', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

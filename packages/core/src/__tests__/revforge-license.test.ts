@@ -53,6 +53,23 @@ describe('issueRevForgeLicense', () => {
     expect(verified?.domains).toEqual(['bigcorp.example', 'admin.bigcorp.example']);
   });
 
+  it('fails closed when the public key does not match the signing private key', async () => {
+    // A second, unrelated Ed25519 keypair: its public half cannot verify a JWT
+    // signed by the first keypair's private half. Issuing must abort rather than
+    // hand back a license a stamped kit would crash-loop on at boot.
+    const other = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+
+    await expect(
+      issueRevForgeLicense(
+        { slug: 'mismatch', tier: 'enterprise', perpetual: true },
+        { privateKey, publicKey: other.publicKey },
+      ),
+    ).rejects.toThrow('REVFORGE_LICENSE_KEYPAIR_MISMATCH');
+  });
+
   it('omits exp claim for perpetual licenses', async () => {
     const result = await issueRevForgeLicense(
       { slug: 'forever', tier: 'enterprise', perpetual: true },

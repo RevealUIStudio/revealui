@@ -74,7 +74,7 @@ export const SITE = {
     adminLogin: 'https://admin.revealui.com/login',
     x: 'https://x.com/revealui',
     linkedin: 'https://www.linkedin.com/company/revealui',
-    forum: 'https://revnation.discourse.group',
+    forum: 'https://github.com/RevealUIStudio/revealui/discussions',
     repoChangelog: 'https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md',
     repoLicense: 'https://github.com/RevealUIStudio/revealui/blob/main/LICENSE',
   },

@@ -260,7 +260,7 @@ describe('ensureFirstUserIsSuperAdmin', () => {
     const hook = await loadHook();
     mockFind.mockResolvedValue({ totalDocs: 0, docs: [] });
     const result = await hook({ req: makeReq(), operation: 'create', value: ['user'] });
-    expect(result).toContain('tenant-super-admin');
+    expect(result).toContain('super-admin');
     expect(result).toContain('user');
   });
 
@@ -270,9 +270,9 @@ describe('ensureFirstUserIsSuperAdmin', () => {
     const result = await hook({
       req: makeReq(),
       operation: 'create',
-      value: ['tenant-super-admin', 'user'],
+      value: ['super-admin', 'user'],
     });
-    expect(result).toEqual(['tenant-super-admin', 'user']);
+    expect(result).toEqual(['super-admin', 'user']);
   });
 
   it('returns value unchanged when users already exist', async () => {
@@ -286,7 +286,7 @@ describe('ensureFirstUserIsSuperAdmin', () => {
     const hook = await loadHook();
     mockFind.mockResolvedValue({ totalDocs: 0, docs: [] });
     const result = await hook({ req: makeReq(), operation: 'create', value: undefined });
-    expect(result).toEqual(['tenant-super-admin']);
+    expect(result).toEqual(['super-admin']);
   });
 });
 
