@@ -4,7 +4,7 @@
   "description": "Circuit breaker, retry, bulkhead, and timeout patterns for resilient services. Database-backed circuit state. Ships with RevealUI.",
   "license": "MIT",
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.5",
+    "@electric-sql/pglite": "^0.5.1",
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
     "tsup": "catalog:",
