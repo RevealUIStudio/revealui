@@ -381,19 +381,43 @@ export class LLMClient {
 
     // Use dedicated embed provider if one was configured
     const embedProvider = this.embedProviderOverride ?? this.provider;
+    // Only the primary-provider path maps to a known LLMProviderType the health
+    // monitor can key on. A dedicated embed override is an opaque provider, so we
+    // skip recording rather than attribute its latency to the primary provider.
+    const trackPrimary = !this.embedProviderOverride;
+    const callStart = Date.now();
 
     try {
       this.recordRequest();
-      return await this.circuitBreaker.execute(() => embedProvider.embed(text, options));
+      const result = await this.circuitBreaker.execute(() => embedProvider.embed(text, options));
+      if (trackPrimary) {
+        this.healthMonitor?.recordCall(this.config.provider, Date.now() - callStart);
+      }
+      return result;
     } catch (error) {
+      if (trackPrimary) {
+        this.healthMonitor?.recordCall(
+          this.config.provider,
+          Date.now() - callStart,
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
       // Try fallback if available (only when using the primary provider path)
-      if (!this.embedProviderOverride && this.fallbackProvider) {
+      if (!this.embedProviderOverride && this.fallbackProvider && this.config.fallbackProvider) {
         const fp = this.fallbackProvider;
+        const fallbackStart = Date.now();
         try {
-          return this.fallbackCircuitBreaker
+          const fb = this.fallbackCircuitBreaker
             ? await this.fallbackCircuitBreaker.execute(() => fp.embed(text, options))
             : await fp.embed(text, options);
-        } catch {
+          this.healthMonitor?.recordCall(this.config.fallbackProvider, Date.now() - fallbackStart);
+          return fb;
+        } catch (fallbackError) {
+          this.healthMonitor?.recordCall(
+            this.config.fallbackProvider,
+            Date.now() - fallbackStart,
+            fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
+          );
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           );
@@ -410,6 +434,7 @@ export class LLMClient {
       throw new Error('Rate limit exceeded');
     }
 
+    const callStart = Date.now();
     try {
       // Circuit breaker check — streaming can't use execute() wrapper
       // so we check state and record outcomes manually
@@ -417,16 +442,57 @@ export class LLMClient {
         throw new CircuitBreakerOpenError(`llm-${this.config.provider}`);
       }
       this.recordRequest();
-      yield* this.provider.stream(messages, options);
+      // Sample health latency at time-to-first-chunk, not full stream duration:
+      // a pull-based generator's total time includes downstream consumer speed,
+      // which would falsely mark a healthy provider degraded.
+      let sampled = false;
+      for await (const chunk of this.provider.stream(messages, options)) {
+        if (!sampled) {
+          this.healthMonitor?.recordCall(this.config.provider, Date.now() - callStart);
+          sampled = true;
+        }
+        yield chunk;
+      }
+      if (!sampled) {
+        // Stream produced zero chunks but the call still succeeded.
+        this.healthMonitor?.recordCall(this.config.provider, Date.now() - callStart);
+      }
     } catch (error) {
+      this.healthMonitor?.recordCall(
+        this.config.provider,
+        Date.now() - callStart,
+        error instanceof Error ? error : new Error(String(error)),
+      );
       // Try fallback if available
-      if (this.fallbackProvider) {
+      if (this.fallbackProvider && this.config.fallbackProvider) {
+        const fallbackStart = Date.now();
         try {
           if (this.fallbackCircuitBreaker?.isOpen()) {
             throw new CircuitBreakerOpenError(`llm-${this.config.fallbackProvider}`);
           }
-          yield* this.fallbackProvider.stream(messages, options);
-        } catch {
+          let fallbackSampled = false;
+          for await (const chunk of this.fallbackProvider.stream(messages, options)) {
+            if (!fallbackSampled) {
+              this.healthMonitor?.recordCall(
+                this.config.fallbackProvider,
+                Date.now() - fallbackStart,
+              );
+              fallbackSampled = true;
+            }
+            yield chunk;
+          }
+          if (!fallbackSampled) {
+            this.healthMonitor?.recordCall(
+              this.config.fallbackProvider,
+              Date.now() - fallbackStart,
+            );
+          }
+        } catch (fallbackError) {
+          this.healthMonitor?.recordCall(
+            this.config.fallbackProvider,
+            Date.now() - fallbackStart,
+            fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
+          );
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
           );
