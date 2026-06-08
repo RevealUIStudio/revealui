@@ -24,8 +24,8 @@ export type SubscriptionTierId = 'pro' | 'max' | 'enterprise';
  */
 export const MRR_TIER_PRICE_FALLBACK_USD: Record<SubscriptionTierId, number> = {
   pro: 49,
-  max: 149,
-  enterprise: 299,
+  max: 299,
+  enterprise: 1499,
 };
 
 /** Same values in cents — convenience for Stripe comparisons. */
