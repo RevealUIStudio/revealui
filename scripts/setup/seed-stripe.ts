@@ -195,8 +195,8 @@ const CATALOG: ProductDefinition[] = [
   },
   {
     key: 'revealui_enterprise_perpetual',
-    name: 'Forge Perpetual',
-    description: 'Full self-hosted Forge with unlimited deployments.',
+    name: 'Enterprise Perpetual',
+    description: 'Full self-hosted Enterprise with unlimited deployments.',
     tier: 'enterprise',
     billingModel: 'perpetual',
     priceNote: 'one-time',
@@ -248,8 +248,8 @@ const CATALOG: ProductDefinition[] = [
   },
   {
     key: 'revealui_renewal_enterprise',
-    name: 'Forge Support Renewal',
-    description: 'Renew your Forge perpetual license support contract for 1 year.',
+    name: 'Enterprise Support Renewal',
+    description: 'Renew your Enterprise perpetual license support contract for 1 year.',
     tier: 'enterprise',
     billingModel: 'renewal',
     priceNote: 'annual',
