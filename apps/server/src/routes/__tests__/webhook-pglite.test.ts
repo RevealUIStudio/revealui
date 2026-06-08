@@ -306,6 +306,63 @@ describe('webhook integration  -  checkout.session.completed (subscription)', ()
     expect(licenseRows[0].perpetual).toBe(false);
     expect(licenseRows[0].licenseKey).toBe('test-jwt-license-key');
   });
+
+  it('issues a real license when tier is only on the subscription (session lacks tier)', async () => {
+    // Production-fidelity proof of the 2026-06-07 audit P0 hardening: Stripe does
+    // not copy subscription_data.metadata onto the Checkout Session. Even when the
+    // session carries no tier, the handler must read it from the retrieved
+    // subscription and write a real licenses row at the correct tier.
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-sub-fallback',
+      email: 'fallback@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_sub_fallback' })
+      .where(eq(users.id, 'user-sub-fallback'));
+
+    // The subscription carries the tier; the session (below) does not.
+    mockSubscriptionsRetrieve.mockResolvedValueOnce({
+      id: 'sub_checkout_fallback',
+      status: 'active',
+      trial_end: null,
+      items: {
+        data: [
+          {
+            id: 'si_fallback',
+            current_period_start: Math.floor(Date.now() / 1000),
+            current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+          },
+        ],
+      },
+      metadata: { tier: 'max', revealui_user_id: 'user-sub-fallback' },
+    });
+
+    const event = makeStripeEvent('checkout.session.completed', {
+      id: 'cs_test_sub_fallback',
+      mode: 'subscription',
+      customer: 'cus_sub_fallback',
+      subscription: 'sub_checkout_fallback',
+      customer_email: 'fallback@example.com',
+      metadata: { revealui_user_id: 'user-sub-fallback' }, // no tier on the session
+    });
+
+    const res = await postWebhook(event);
+    if (res.status !== 200) {
+      const errBody = await res.clone().text();
+      throw new Error(`Expected 200, got ${res.status}: ${errBody}`);
+    }
+
+    const licenseRows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_sub_fallback'));
+
+    expect(licenseRows).toHaveLength(1);
+    expect(licenseRows[0].tier).toBe('max');
+    expect(licenseRows[0].status).toBe('active');
+    expect(licenseRows[0].subscriptionId).toBe('sub_checkout_fallback');
+  });
 });
 
 describe('webhook integration  -  checkout.session.completed (perpetual)', () => {

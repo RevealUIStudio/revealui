@@ -390,6 +390,42 @@ describe('Webhook Lifecycle Complete', () => {
       expect(mockAuditAppend).toHaveBeenCalled();
     });
 
+    it('falls back to subscription metadata.tier when the session lacks it', async () => {
+      // Defense-in-depth (2026-06-07 audit P0 hardening): Stripe does not copy
+      // subscription_data.metadata onto the Checkout Session. If a session is
+      // ever created without top-level metadata.tier, the handler must still
+      // issue a license by reading the tier from the retrieved subscription.
+      const event = {
+        id: 'evt_checkout_sub_meta_fallback',
+        livemode: false,
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            mode: 'subscription',
+            subscription: 'sub_checkout',
+            customer: 'cus_checkout',
+            metadata: { revealui_user_id: 'user_checkout' }, // no tier on the session
+          },
+        },
+      };
+      mockConstructEvent.mockReturnValueOnce(event);
+      mockSubscriptionsRetrieve.mockResolvedValueOnce({
+        status: 'active',
+        trial_end: null,
+        metadata: { tier: 'max' }, // tier lives only on the subscription
+      });
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ email: 'buyer@test.com' }]);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(licenseModule.generateLicenseKey).toHaveBeenCalledWith(
+        expect.objectContaining({ tier: 'max' }),
+        expect.anything(),
+      );
+    });
+
     it('is idempotent  -  duplicate event returns 200 with duplicate:true', async () => {
       const event = makeCheckoutEvent('evt_checkout_idempotent');
       mockConstructEvent.mockReturnValue(event);
