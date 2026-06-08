@@ -87,8 +87,8 @@ export function Hero() {
           </h1>
 
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-            <strong className="text-foreground">{hero.subtitle.strong}</strong>{' '}
-            {hero.subtitle.body} &mdash;{' '}
+            <strong className="text-foreground">{hero.subtitle.strong}</strong> {hero.subtitle.body}{' '}
+            &mdash;{' '}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-base text-foreground">
               {SITE.cli.create}
             </code>{' '}

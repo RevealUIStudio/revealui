@@ -30,9 +30,7 @@ export function EngagementPricing() {
                 <ButtonCVA asChild variant="outline" className="w-full">
                   <a
                     href={rung.cta.href}
-                    {...(rung.cta.external
-                      ? { target: '_blank', rel: 'noopener noreferrer' }
-                      : {})}
+                    {...(rung.cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   >
                     {rung.cta.label}
                   </a>
