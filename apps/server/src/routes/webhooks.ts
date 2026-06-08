@@ -1333,7 +1333,35 @@ app.openapi(stripeWebhookRoute, async (c) => {
           );
         }
 
-        const tier = resolveTier(session.metadata);
+        // Retrieve the subscription up front: it is both the trialing-state
+        // source (below) and the authoritative fallback for the paid tier.
+        // All new checkouts start as trialing (7-day trial configured in billing.ts).
+        let checkoutSubscription: Stripe.Subscription;
+        try {
+          checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+        } catch (err) {
+          // Throw so Stripe retries the webhook  -  a payment was captured but we
+          // cannot determine trialing vs active without the subscription object.
+          logger.error(
+            'Failed to retrieve subscription at checkout  -  returning 500 for retry',
+            undefined,
+            {
+              subscriptionId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            },
+          );
+          throw new Error(`Failed to retrieve subscription ${subscriptionId} at checkout`);
+        }
+
+        // Resolve the paid tier. Prefer the top-level session metadata set at
+        // checkout creation; fall back to the subscription's own metadata
+        // (subscription_data.metadata.tier). Stripe does NOT mirror one bag onto
+        // the other, so consulting both keeps license issuance working even if a
+        // session is ever created without top-level metadata. resolveTier throws
+        // (-> 500 -> Stripe retry) only when BOTH bags lack a valid tier.
+        const tier = resolveTier(
+          session.metadata?.tier ? session.metadata : checkoutSubscription.metadata,
+        );
         const userId = session.metadata?.revealui_user_id ?? null;
 
         // Resolve userId from Stripe customer if not in metadata
@@ -1378,25 +1406,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // with \n escaped in the .env format; the runtime preserves the literal
         // \n chars, so we must convert them to real newlines for jose/importPKCS8.
         const normalizedKey = privateKey.replaceAll('\\n', '\n');
-
-        // Retrieve subscription to detect trialing state and trial_end date.
-        // All new checkouts start as trialing (7-day trial configured in billing.ts).
-        let checkoutSubscription: Stripe.Subscription;
-        try {
-          checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
-        } catch (err) {
-          // Throw so Stripe retries the webhook  -  a payment was captured but we
-          // cannot determine trialing vs active without the subscription object.
-          logger.error(
-            'Failed to retrieve subscription at checkout  -  returning 500 for retry',
-            undefined,
-            {
-              subscriptionId,
-              detail: err instanceof Error ? err.message : 'unknown',
-            },
-          );
-          throw new Error(`Failed to retrieve subscription ${subscriptionId} at checkout`);
-        }
 
         const isTrialing = checkoutSubscription.status === 'trialing';
         const licenseStatus = isTrialing ? 'trialing' : 'active';

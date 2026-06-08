@@ -633,6 +633,13 @@ app.openapi(checkoutRoute, async (c) => {
       {
         customer: customerId,
         mode: 'subscription',
+        // Top-level session metadata is REQUIRED: the webhook reads
+        // resolveTier(session.metadata), and Stripe does NOT copy
+        // subscription_data.metadata onto the Checkout Session. Without this,
+        // checkout.session.completed throws in resolveTier -> 500 -> the paid
+        // customer never gets a license. Keep in lockstep with the
+        // subscription_data.metadata below.
+        metadata: { tier: resolvedTier, revealui_user_id: user.id },
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
