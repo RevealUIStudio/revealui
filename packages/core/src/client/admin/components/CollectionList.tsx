@@ -120,20 +120,20 @@ export function CollectionList({
   const colCount = displayFields.length + 1 + (hasBulk ? 1 : 0);
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+    <div className="bg-card shadow overflow-hidden sm:rounded-md">
       <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
         <div>
-          <h3 className="text-lg leading-6 font-medium text-gray-900 capitalize">
+          <h3 className="text-lg leading-6 font-medium text-foreground capitalize">
             {collection.slug}
           </h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             {totalDocs} {totalDocs === 1 ? 'document' : 'documents'}
           </p>
         </div>
         <button
           type="button"
           onClick={onCreate}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring"
         >
           <svg
             className="-ml-1 mr-2 h-5 w-5"
@@ -153,8 +153,8 @@ export function CollectionList({
 
       {/* Bulk action toolbar */}
       {hasBulk && selectedIds.size > 0 && (
-        <div className="bg-indigo-50 border-y border-indigo-100 px-4 py-2 flex items-center gap-3">
-          <span className="text-sm font-medium text-indigo-700">{selectedIds.size} selected</span>
+        <div className="bg-primary/10 border-y border-primary/20 px-4 py-2 flex items-center gap-3">
+          <span className="text-sm font-medium text-primary">{selectedIds.size} selected</span>
           {onBulkDelete && (
             <button
               type="button"
@@ -170,7 +170,7 @@ export function CollectionList({
               type="button"
               onClick={() => void handleBulkAction('publish')}
               disabled={bulkLoading}
-              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50"
+              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-success bg-success/15 hover:bg-success/25 disabled:opacity-50"
             >
               Publish
             </button>
@@ -178,7 +178,7 @@ export function CollectionList({
           <button
             type="button"
             onClick={() => setSelectedIds(new Set())}
-            className="ml-auto text-xs text-gray-500 hover:text-gray-700"
+            className="ml-auto text-xs text-muted-foreground hover:text-foreground"
           >
             Clear selection
           </button>
@@ -186,8 +186,8 @@ export function CollectionList({
       )}
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
               {hasBulk && (
                 <th scope="col" className="w-10 px-3 py-3">
@@ -198,7 +198,7 @@ export function CollectionList({
                       if (el) el.indeterminate = someSelected;
                     }}
                     onChange={toggleAll}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                     aria-label="Select all"
                   />
                 </th>
@@ -207,7 +207,7 @@ export function CollectionList({
                 <th
                   key={field.name}
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   {getFieldLabel(field)}
                 </th>
@@ -217,15 +217,18 @@ export function CollectionList({
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {documents.length === 0 ? (
               <tr>
-                <td colSpan={colCount} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td
+                  colSpan={colCount}
+                  className="px-6 py-4 text-center text-sm text-muted-foreground"
+                >
                   No documents found.{' '}
                   <button
                     type="button"
                     onClick={onCreate}
-                    className="text-indigo-600 hover:text-indigo-500"
+                    className="text-primary hover:text-primary/80"
                   >
                     Create the first one
                   </button>
@@ -238,7 +241,7 @@ export function CollectionList({
                 return (
                   <tr
                     key={docId}
-                    className={`hover:bg-gray-50 ${selectedIds.has(docId) ? 'bg-indigo-50' : ''}`}
+                    className={`hover:bg-muted ${selectedIds.has(docId) ? 'bg-primary/10' : ''}`}
                   >
                     {hasBulk && (
                       <td className="w-10 px-3 py-4">
@@ -246,7 +249,7 @@ export function CollectionList({
                           type="checkbox"
                           checked={selectedIds.has(docId)}
                           onChange={() => toggleOne(docId)}
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="h-4 w-4 rounded border-input text-primary focus:ring-ring"
                           aria-label={`Select ${docId}`}
                         />
                       </td>
@@ -254,7 +257,7 @@ export function CollectionList({
                     {displayFields.map((field: RevealUIField) => (
                       <td
                         key={field.name}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        className="px-6 py-4 whitespace-nowrap text-sm text-foreground"
                       >
                         {renderFieldValue(field.name ? doc[field.name] : undefined, field)}
                       </td>
@@ -263,7 +266,7 @@ export function CollectionList({
                       <button
                         type="button"
                         onClick={() => onEdit(doc)}
-                        className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={deleting !== null}
                       >
                         Edit
@@ -287,13 +290,13 @@ export function CollectionList({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-border sm:px-6">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
               type="button"
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-4 py-2 border border-input text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -301,14 +304,14 @@ export function CollectionList({
               type="button"
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-input text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-foreground">
                 Showing page <span className="font-medium">{page}</span> of{' '}
                 <span className="font-medium">{totalPages}</span>
               </p>
@@ -319,7 +322,7 @@ export function CollectionList({
                   type="button"
                   onClick={() => onPageChange(page - 1)}
                   disabled={page <= 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-input bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -327,7 +330,7 @@ export function CollectionList({
                   type="button"
                   onClick={() => onPageChange(page + 1)}
                   disabled={page >= totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-input bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -342,7 +345,7 @@ export function CollectionList({
 
 function renderFieldValue(value: unknown, field: RevealUIField): React.ReactNode {
   if (value === null || value === undefined) {
-    return <span className="text-gray-400">-</span>;
+    return <span className="text-muted-foreground">-</span>;
   }
 
   switch (field.type) {

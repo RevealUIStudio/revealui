@@ -21,6 +21,7 @@ export {
   buttonVariants,
 } from './Button.js';
 export { Badge, BadgeButton } from './badge.js';
+export { RevealUIMark, type RevealUIMarkProps } from './brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './breadcrumb.js';
 // Native UI components
 export { Button, TouchTarget } from './button-headless.js';

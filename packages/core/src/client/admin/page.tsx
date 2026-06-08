@@ -33,15 +33,15 @@ export function RootPage({ config }: RootPageProps) {
   const globals = (config.globals || []) as AdminCollectionSummary[];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">RevealUI Admin</h1>
+              <h1 className="text-2xl font-bold text-foreground">RevealUI Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">v0.1.0</span>
+              <span className="text-sm text-muted-foreground">v0.1.0</span>
             </div>
           </div>
         </div>
@@ -51,12 +51,12 @@ export function RootPage({ config }: RootPageProps) {
         <div className="px-4 py-6 sm:px-0">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Collections */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-8 w-8 text-gray-400"
+                      className="h-8 w-8 text-muted-foreground"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -73,39 +73,41 @@ export function RootPage({ config }: RootPageProps) {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Collections</dt>
-                      <dd className="text-lg font-medium text-gray-900">{collections.length}</dd>
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
+                        Collections
+                      </dt>
+                      <dd className="text-lg font-medium text-foreground">{collections.length}</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   {collections.length > 0 ? (
                     <ul className="space-y-1">
                       {collections.map((collection) => (
-                        <li key={collection.slug} className="text-gray-600">
+                        <li key={collection.slug} className="text-muted-foreground">
                           <span className="font-medium">{collection.slug}</span>
-                          <span className="ml-2 text-xs text-gray-400">
+                          <span className="ml-2 text-xs text-muted-foreground">
                             ({collection.fields?.length || 0} fields)
                           </span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500">No collections configured</p>
+                    <p className="text-muted-foreground">No collections configured</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Globals */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-8 w-8 text-gray-400"
+                      className="h-8 w-8 text-muted-foreground"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -122,40 +124,42 @@ export function RootPage({ config }: RootPageProps) {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Globals</dt>
-                      <dd className="text-lg font-medium text-gray-900">{globals.length}</dd>
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
+                        Globals
+                      </dt>
+                      <dd className="text-lg font-medium text-foreground">{globals.length}</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   {globals.length > 0 ? (
                     <ul className="space-y-1">
                       {globals.map((global) => (
-                        <li key={global.slug} className="text-gray-600">
+                        <li key={global.slug} className="text-muted-foreground">
                           <span className="font-medium">{global.slug}</span>
-                          <span className="ml-2 text-xs text-gray-400">
+                          <span className="ml-2 text-xs text-muted-foreground">
                             ({global.fields?.length || 0} fields)
                           </span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500">No globals configured</p>
+                    <p className="text-muted-foreground">No globals configured</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* System Status */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <div className="h-8 w-8 bg-success/15 rounded-full flex items-center justify-center">
                       <svg
-                        className="h-5 w-5 text-green-600"
+                        className="h-5 w-5 text-success"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -173,14 +177,16 @@ export function RootPage({ config }: RootPageProps) {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">System Status</dt>
-                      <dd className="text-lg font-medium text-gray-900">Operational</dd>
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
+                        System Status
+                      </dt>
+                      <dd className="text-lg font-medium text-foreground">Operational</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm text-gray-600">
+              <div className="bg-muted px-5 py-3">
+                <div className="text-sm text-muted-foreground">
                   RevealUI admin is running successfully with {collections.length} collections and{' '}
                   {globals.length} globals configured.
                 </div>
