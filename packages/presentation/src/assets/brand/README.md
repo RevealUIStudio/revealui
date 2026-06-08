@@ -15,7 +15,7 @@ Every colour derives from the OKLCH design tokens in [`../../tokens.css`](../../
 
 ## Masters
 
-- `revealui-mark.svg` — full-colour logomark (cobalt R + amber "reveal" stripe).
+- `revealui-mark.svg` — full-colour logomark (faceted aperture R + amber pupil).
 - `revealui-mark-mono.svg` — single-colour mark (`currentColor`, no amber). In app
   code prefer the `RevealUIMark` React component from `@revealui/presentation`.
 - `favicon.svg` — browser / PWA / app tile (white R on a cobalt rounded square).
