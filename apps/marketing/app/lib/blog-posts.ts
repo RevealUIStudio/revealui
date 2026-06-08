@@ -32,9 +32,9 @@ interface PostMeta {
 const POST_METADATA: PostMeta[] = [
   {
     slug: 'component-library',
-    title: '59 Components, One Dependency',
+    title: '60 Components, One Dependency',
     excerpt:
-      'A native React component library with 59 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
+      'A native React component library with 60 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
     publishedAt: '2026-06-08T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '09-component-library.md',

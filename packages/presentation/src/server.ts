@@ -14,6 +14,7 @@ export {
   type ButtonProps,
   buttonVariants,
 } from './components/Button.js';
+export { RevealUIMark, type RevealUIMarkProps } from './components/brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
 export {
   Card,
