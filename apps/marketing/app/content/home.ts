@@ -73,6 +73,25 @@ export const HOME_HERO = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Hero — "Foundation" A/B variant.
+// Tests the noun "foundation" against the canonical "runtime" in HOME_HERO.
+// The two strings below (h1 + subtitle.strong) are the only difference, so the
+// A/B isolates the noun; "runtime" stays the canonical noun on every other
+// surface. WIRE-UP-PENDING: the hero component selects HOME_HERO (default) vs
+// this variant; the A/B serving + measurement wiring is a follow-up.
+// ---------------------------------------------------------------------------
+
+export const HOME_HERO_FOUNDATION = {
+  ...HOME_HERO,
+  h1: 'Run your whole business on a foundation you own.',
+  subtitle: {
+    ...HOME_HERO.subtitle,
+    strong:
+      'Auth, content, products, and payments, pre-wired into one open-source foundation you self-host.',
+  },
+} as const;
+
+// ---------------------------------------------------------------------------
 // Problem (comparison table)
 // ---------------------------------------------------------------------------
 
