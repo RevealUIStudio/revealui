@@ -228,7 +228,7 @@ Some numbers on what's actually shipped:
 
 - **30 workspaces** across the monorepo (4 apps + 26 packages — 20 MIT, 5 Fair Source, 1 internal)
 - **85 database tables** via Drizzle ORM on NeonDB (Postgres)
-- **59 UI components** in `@revealui/presentation` (80 counting the admin engine) — zero external UI dependencies, just Tailwind v4, clsx, and CVA
+- **60 UI components** in `@revealui/presentation` (80 counting the admin engine) — zero external UI dependencies, just Tailwind v4, clsx, and CVA
 - **14 first-party MCP servers** in `@revealui/mcp`
 - **Extensive test coverage** across unit, integration, and E2E layers (run `pnpm test` for the current count)
 - **Full OpenAPI spec** with Swagger UI at `/docs`

@@ -100,64 +100,83 @@ function buildNode(title: string, description: string): SatoriNode {
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#09090b',
-        padding: '60px',
+        justifyContent: 'space-between',
+        backgroundColor: '#060d1a',
+        backgroundImage: 'linear-gradient(135deg, #06245e 0%, #060d1a 62%)',
+        padding: '72px',
         fontFamily: 'Inter Tight',
       },
-      children: {
-        type: 'div',
-        props: {
-          style: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '24px',
+      children: [
+        // Brand wordmark, top-left: "Reveal" paper white + "UI" cobalt
+        {
+          type: 'div',
+          props: {
+            style: { display: 'flex', fontSize: 40, fontWeight: 700, letterSpacing: '-0.01em' },
+            children: [
+              { type: 'span', props: { style: { color: '#f8fafd' }, children: 'Reveal' } },
+              { type: 'span', props: { style: { color: '#0083c9' }, children: 'UI' } },
+            ],
           },
-          children: [
-            {
-              type: 'div',
-              props: {
-                style: {
-                  fontSize: 72,
-                  fontWeight: 700,
-                  letterSpacing: '-0.02em',
-                  background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                  textAlign: 'center',
-                },
-                children: title,
-              },
-            },
-            {
-              type: 'div',
-              props: {
-                style: {
-                  fontSize: 32,
-                  color: '#a1a1aa',
-                  textAlign: 'center',
-                  maxWidth: '900px',
-                  lineHeight: 1.3,
-                },
-                children: description,
-              },
-            },
-            {
-              type: 'div',
-              props: {
-                style: {
-                  fontSize: 20,
-                  color: '#71717a',
-                  marginTop: '20px',
-                },
-                children: 'revealui.com',
-              },
-            },
-          ],
         },
-      },
+        // Title + Solar Amber accent rule + description
+        {
+          type: 'div',
+          props: {
+            style: { display: 'flex', flexDirection: 'column' },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    display: 'flex',
+                    width: '96px',
+                    height: '6px',
+                    backgroundColor: '#eeb300',
+                    borderRadius: '3px',
+                    marginBottom: '28px',
+                  },
+                  children: '',
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    fontSize: 68,
+                    fontWeight: 700,
+                    color: '#f8fafd',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.05,
+                    maxWidth: '1000px',
+                  },
+                  children: title,
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    fontSize: 30,
+                    color: '#93a3bd',
+                    marginTop: '24px',
+                    maxWidth: '880px',
+                    lineHeight: 1.35,
+                  },
+                  children: description,
+                },
+              },
+            ],
+          },
+        },
+        // Footer
+        {
+          type: 'div',
+          props: {
+            style: { display: 'flex', fontSize: 24, color: '#5b93d6' },
+            children: 'revealui.com',
+          },
+        },
+      ],
     },
   };
 }

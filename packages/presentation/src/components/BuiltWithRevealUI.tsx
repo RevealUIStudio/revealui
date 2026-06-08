@@ -1,4 +1,5 @@
 import { cn, cva, type VariantProps } from '../utils/cn.js';
+import { RevealUIMark } from './brand-mark.js';
 
 const badgeStyles = cva(
   'inline-flex items-center gap-1.5 rounded-md border text-xs font-medium transition-opacity hover:opacity-100',
@@ -50,12 +51,7 @@ export function BuiltWithRevealUI({
         className,
       )}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect width="24" height="24" rx="4" fill="currentColor" fillOpacity="0.15" />
-        <text x="12" y="16" textAnchor="middle" fill="currentColor" fontSize="12" fontWeight="700">
-          R
-        </text>
-      </svg>
+      <RevealUIMark className="size-3.5" reveal={false} />
       {variant === 'full' && <span>Built with RevealUI</span>}
     </a>
   );
