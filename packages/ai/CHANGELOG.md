@@ -1,3 +1,11 @@
+---
+title: "@revealui/ai"
+description: "The tool ran tests via `execSync(..., { timeout })`, whose timeout signal only reaches the immediate child (the shell). A grandchild — e.g. `pnpm test` → `node …` — was orphaned..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/ai
 
 ## 0.5.2

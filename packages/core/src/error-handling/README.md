@@ -1,3 +1,11 @@
+---
+title: "README"
+description: "Comprehensive error handling infrastructure for building resilient production applications."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
   # Error Handling & Recovery
 
 Comprehensive error handling infrastructure for building resilient production applications.

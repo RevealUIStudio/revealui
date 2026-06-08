@@ -1,3 +1,11 @@
+---
+title: "PULL_REQUEST_TEMPLATE"
+description: ".github/PULL_REQUEST_TEMPLATE.md"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 ## Closes <!-- #issue-number (REQUIRED if fixing a GitHub issue) -->
 
 ## Summary

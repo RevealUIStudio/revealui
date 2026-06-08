@@ -1,3 +1,11 @@
+---
+title: "@revealui/mcp"
+description: "**Model Context Protocol (MCP) - Complete Integration Package**"
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/mcp
 
 > **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.

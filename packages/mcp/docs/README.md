@@ -1,3 +1,11 @@
+---
+title: "Model Context Protocol (MCP) - Complete Guide"
+description: "Complete guide for setting up and using Model Context Protocol (MCP) servers in RevealUI, including Next.js DevTools integration."
+visibility: public
+status: verified
+audience: user
+---
+
 # Model Context Protocol (MCP) - Complete Guide
 
 Complete guide for setting up and using Model Context Protocol (MCP) servers in RevealUI, including Next.js DevTools integration.

@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Core API Stability"
 description: "API stability guarantees, versioning policy, and breaking change process for @revealui/core"
 category: reference

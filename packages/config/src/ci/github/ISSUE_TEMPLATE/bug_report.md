@@ -1,4 +1,8 @@
 ---
+description: "A clear and concise description of what the bug is."
+visibility: internal
+status: verified
+audience: maintainer
 name: Bug Report
 about: Create a report to help us improve
 title: '[BUG] '

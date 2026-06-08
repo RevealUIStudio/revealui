@@ -1,3 +1,11 @@
+---
+title: "Unused Declarations Policy"
+description: "**NEVER suppress an unused variable/import warning without first determining if the code is incomplete.**"
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Unused Declarations Policy
 
 ## Core Rule

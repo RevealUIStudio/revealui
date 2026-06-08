@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: narrative
 title: "Documentation Assessment"
 description: "Audit of documentation completeness and accuracy across all packages"
 category: internal

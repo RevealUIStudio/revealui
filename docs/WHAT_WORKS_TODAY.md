@@ -1,3 +1,11 @@
+---
+title: "What Works Today"
+description: "This page is an honest account of what RevealUI can and can't do right now."
+visibility: public
+status: verified
+audience: user
+---
+
 # What Works Today
 
 > Last verified: 2026-05-26

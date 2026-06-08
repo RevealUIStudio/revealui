@@ -1,3 +1,11 @@
+---
+title: "Building for the Agent-First Internet"
+description: "*The web was built for browsers. The next web is being built for agents.*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Building for the Agent-First Internet
 
 *The web was built for browsers. The next web is being built for agents.*

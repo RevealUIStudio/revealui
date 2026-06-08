@@ -1,3 +1,11 @@
+---
+title: "Storage Migration Guide"
+description: "The authentication system uses **storage abstraction** with automatic backend selection:"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Storage Migration Guide
 
 ## Current State

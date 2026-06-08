@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Threat Model
 description: STRIDE-style threat model for the RevealUI security stack across four trust boundaries — Human↔App, App↔External services, Agent↔Tool (MCP), Agent↔Agent (RevDev daemon).
 last-updated: 2026-05-29

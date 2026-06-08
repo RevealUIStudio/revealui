@@ -1,4 +1,6 @@
 ---
+visibility: internal
+audience: maintainer
 title: "Launch Checklist"
 description: "Pre-launch verification checklist for RevealUI open-core monorepo production deployment"
 last-updated: 2026-05-19

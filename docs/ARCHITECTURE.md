@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "System Architecture"
 description: "RevealUI system architecture reference  -  apps, packages, data flow, and deployment"
 category: architecture

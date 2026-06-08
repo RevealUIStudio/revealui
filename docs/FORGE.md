@@ -1,4 +1,7 @@
 ---
+visibility: public
+status: verified
+audience: user
 title: "FORGE — Moved"
 description: "This page has been split. See FLEET.md for the runtime kit; see PRO.md §Enterprise tier for billing."
 category: redirect

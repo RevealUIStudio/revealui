@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "RevDev"
 description: "Native developer tools for RevealUI: Studio (Tauri 2 desktop) and Console (Go SSH TUI), backed by a shared harness daemon."
 category: fleet

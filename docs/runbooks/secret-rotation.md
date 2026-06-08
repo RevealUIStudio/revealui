@@ -1,3 +1,11 @@
+---
+title: "Secret rotation — full E2E runbook"
+description: "`revvault` is the canonical store for every RevealUI production secret. This runbook"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Secret rotation — full E2E runbook
 
 `revvault` is the canonical store for every RevealUI production secret. This runbook

@@ -1,3 +1,11 @@
+---
+title: "Request Tracing & Context"
+description: "Distributed tracing infrastructure for tracking requests across services with automatic request ID generation and propagation."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Request Tracing & Context
 
 Distributed tracing infrastructure for tracking requests across services with automatic request ID generation and propagation.

@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Harness Protocol"
 description: "Agent-tool coordination protocol shipped in @revealui/harnesses — capabilities, lifecycle events, configuration normalization, coordinator surface."
 category: protocol

@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Testing Guide"
 description: "Vitest unit tests, Playwright E2E, test utilities, and coverage targets"
 category: guide

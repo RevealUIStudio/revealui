@@ -1,3 +1,11 @@
+---
+title: "Database Error Handling"
+description: "Comprehensive Postgres error code parsing and handling for robust database operations."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Database Error Handling
 
 Comprehensive Postgres error code parsing and handling for robust database operations.

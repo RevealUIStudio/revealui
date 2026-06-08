@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Incident Response Plan
 description: Procedures for detecting, responding to, and recovering from security incidents in the RevealUI project.
 last-updated: 2026-05-29

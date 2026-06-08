@@ -1,3 +1,11 @@
+---
+title: "Three AI Agents, One Codebase, No Conflicts"
+description: "*By Joshua Vaughn - RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Three AI Agents, One Codebase, No Conflicts
 
 *By Joshua Vaughn  -  RevealUI Studio*

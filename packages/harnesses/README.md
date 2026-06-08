@@ -1,3 +1,11 @@
+---
+title: "@revealui/harnesses"
+description: "AI harness coordination for RevealUI - enables multiple AI coding tools to work on the same codebase safely and in parallel."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/harnesses
 
 > **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.

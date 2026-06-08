@@ -1,3 +1,11 @@
+---
+title: "Biome Configuration"
+description: "This Biome configuration provides comprehensive formatting and linting rules for the RevealUI Framework."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Biome Configuration
 
 This Biome configuration provides comprehensive formatting and linting rules for the RevealUI Framework.

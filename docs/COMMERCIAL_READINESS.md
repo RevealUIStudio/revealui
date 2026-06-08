@@ -1,4 +1,6 @@
 ---
+visibility: internal
+audience: maintainer
 title: "Commercial Readiness Handoff"
 description: "The trust-layer gap between shipping code and charging a user — moral, secure, effective."
 last-updated: 2026-05-19

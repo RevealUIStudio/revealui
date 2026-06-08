@@ -1,3 +1,11 @@
+---
+title: "Database Conventions"
+description: "**`@supabase/supabase-js` must only be imported inside designated vector/auth modules:**"
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Database Conventions
 
 ## Database Architecture (NeonDB primary; Supabase being retired)

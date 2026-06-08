@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "API Reference"
 description: "Complete API reference for @revealui/core exports and subpath modules"
 category: reference

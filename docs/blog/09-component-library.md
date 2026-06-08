@@ -1,3 +1,11 @@
+---
+title: "60 Components, One Dependency"
+description: "*By Joshua Vaughn, RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # 60 Components, One Dependency
 
 *By Joshua Vaughn, RevealUI Studio*

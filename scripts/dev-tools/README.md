@@ -1,3 +1,11 @@
+---
+title: "Development & Testing Tools"
+description: "Development utilities for testing, debugging, and validating the RevealUI codebase."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Development & Testing Tools
 
 Development utilities for testing, debugging, and validating the RevealUI codebase.

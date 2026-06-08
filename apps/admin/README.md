@@ -1,3 +1,11 @@
+---
+title: "RevealUI Dashboard"
+description: "Admin dashboard with content, account billing, and system monitoring - powered by Next.js 16."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI Dashboard
 
 Admin dashboard with content, account billing, and system monitoring  -  powered by Next.js 16.

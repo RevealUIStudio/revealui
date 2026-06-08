@@ -1,3 +1,11 @@
+---
+title: "@revealui/presentation"
+description: "57 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/presentation
 
 57 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).

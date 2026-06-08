@@ -1,3 +1,11 @@
+---
+title: "Monorepo Conventions"
+description: "1. Create `packages/<name>/` with package.json, tsconfig.json, tsup.config.ts"
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Monorepo Conventions
 
 ## Structure

@@ -1,3 +1,11 @@
+---
+title: "Runbook — `REVEALUI_JOBS_AGENT_DISPATCH_ENABLED` flag"
+description: "When `REVEALUI_JOBS_AGENT_DISPATCH_ENABLED=true`, the"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Runbook — `REVEALUI_JOBS_AGENT_DISPATCH_ENABLED` flag
 
 ## What the flag does

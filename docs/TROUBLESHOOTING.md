@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Troubleshooting"
 description: "Common issues, error messages, and solutions for RevealUI development"
 category: guide

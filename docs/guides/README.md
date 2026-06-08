@@ -1,3 +1,11 @@
+---
+title: "Guides"
+description: "Practical, step-by-step guides for building with RevealUI."
+visibility: public
+status: verified
+audience: user
+---
+
 # Guides
 
 Practical, step-by-step guides for building with RevealUI.

@@ -1,3 +1,11 @@
+---
+title: "Feature Gating Conventions"
+description: "Rules for managing Pro/OSS tier boundaries in the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Feature Gating Conventions
 
 Rules for managing Pro/OSS tier boundaries in the RevealUI monorepo.

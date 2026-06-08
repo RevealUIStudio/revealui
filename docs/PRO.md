@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Pro Guide"
 description: "RevealUI Pro tier  -  AI agents, MCP servers, editor integrations, and licensing"
 category: guide

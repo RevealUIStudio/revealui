@@ -1,3 +1,11 @@
+---
+title: "Cobalt — Electric Verdigris"
+description: "Voice/headline rules consolidation deferred to lane Phase 3 (DS-V1). Canonical voice corpus: .jv messaging-funnel-audit/voice-and-headline-rules.md"
+visibility: internal
+status: generated
+audience: maintainer
+---
+
 <!-- GENERATED from packages/presentation/src/tokens.css — DO NOT EDIT — run pnpm --filter @revealui/presentation gen:design-context -->
 
 # Cobalt — Electric Verdigris

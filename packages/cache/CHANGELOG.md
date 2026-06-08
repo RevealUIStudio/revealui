@@ -1,3 +1,11 @@
+---
+title: "@revealui/cache"
+description: "@revealui/cache"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/cache
 
 ## 0.2.1

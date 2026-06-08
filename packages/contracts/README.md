@@ -1,3 +1,11 @@
+---
+title: "@revealui/contracts"
+description: "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/contracts
 
 Unified contracts package for RevealUI - schemas, validation, and type safety across the stack.

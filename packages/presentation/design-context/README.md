@@ -1,3 +1,11 @@
+---
+title: "RevealUI Design Context — Claude Design Pack"
+description: "Drop this folder into a Claude Design session."
+visibility: internal
+status: generated
+audience: maintainer
+---
+
 <!-- GENERATED from packages/presentation/src/tokens.css — DO NOT EDIT — run pnpm --filter @revealui/presentation gen:design-context -->
 
 # RevealUI Design Context — Claude Design Pack

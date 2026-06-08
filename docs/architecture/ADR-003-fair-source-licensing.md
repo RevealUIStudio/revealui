@@ -1,3 +1,11 @@
+---
+title: "ADR-003: Fair Source Licensing (FSL-1.1-MIT)"
+description: "**Date:** 2026-04-08"
+visibility: public
+status: verified
+audience: user
+---
+
 # ADR-003: Fair Source Licensing (FSL-1.1-MIT)
 
 **Date:** 2026-04-08

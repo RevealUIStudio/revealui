@@ -1,3 +1,11 @@
+---
+title: "@revealui/sync"
+description: "@revealui/sync"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/sync
 
 ## 0.3.11

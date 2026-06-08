@@ -1,3 +1,11 @@
+---
+title: "@revealui/security"
+description: "Security infrastructure for RevealUI. Provides HTTP security headers, CORS management, RBAC/ABAC authorization, field-level encryption, audit logging, and GDPR compliance tooling."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/security
 
 Security infrastructure for RevealUI. Provides HTTP security headers, CORS management, RBAC/ABAC authorization, field-level encryption, audit logging, and GDPR compliance tooling.

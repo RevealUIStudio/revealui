@@ -1,3 +1,11 @@
+---
+title: "Response Caching for All LLM Providers"
+description: "Cache **complete LLM responses** at the application level — works with any provider. A cache HIT costs zero (no provider call); real-world dollar savings depend on your duplicat..."
+visibility: public
+status: verified
+audience: user
+---
+
 # Response Caching for All LLM Providers
 
 Cache **complete LLM responses** at the application level — works with any provider. A cache HIT costs zero (no provider call); real-world dollar savings depend on your duplicate rate × hit rate.

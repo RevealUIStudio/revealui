@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Component Catalog"
 description: "Complete reference for @revealui/presentation UI components"
 category: reference

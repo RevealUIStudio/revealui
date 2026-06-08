@@ -1,3 +1,11 @@
+---
+title: "AI Code Standards Enforcer"
+description: "**Prevents AI-generated technical debt before it enters the codebase**"
+visibility: public
+status: verified
+audience: user
+---
+
 # AI Code Standards Enforcer
 
 **Prevents AI-generated technical debt before it enters the codebase**

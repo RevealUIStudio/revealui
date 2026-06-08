@@ -1,3 +1,11 @@
+---
+title: "@revealui/setup"
+description: "The first user created via the setup bootstrap now receives the `owner` role (hard-capped at 3 via app-layer soft cap). Existing `admin`-role checks should be reviewed — the for..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/setup
 
 ## 0.4.0

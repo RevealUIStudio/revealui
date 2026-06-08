@@ -1,3 +1,11 @@
+---
+title: "Sanitization Attack Corpus"
+description: "Categorised attack vectors exercised by the `sanitize.test.ts` suite. Each file"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Sanitization Attack Corpus
 
 Categorised attack vectors exercised by the `sanitize.test.ts` suite. Each file

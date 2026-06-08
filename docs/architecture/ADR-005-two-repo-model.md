@@ -1,3 +1,11 @@
+---
+title: "ADR-005: Two-Repo Model (Public + Private Coordination Hub)"
+description: "**Date:** 2026-04-08"
+visibility: public
+status: verified
+audience: user
+---
+
 # ADR-005: Two-Repo Model (Public + Private Coordination Hub)
 
 **Date:** 2026-04-08

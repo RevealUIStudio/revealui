@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Roadmap"
 description: "Product roadmap with planned features, timelines, and priorities"
 category: planning

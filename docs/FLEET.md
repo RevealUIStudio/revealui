@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "RevealUI Fleet — Self-Hosted Deployment"
 description: "Enterprise self-hosted runtime kit. Domain-locked, multi-tenant, unlimited users. Produced by RevForge per customer."
 category: guide

@@ -1,3 +1,11 @@
+---
+title: "pull_request_template"
+description: "Please include a summary of the change and which issue is fixed. Include relevant motivation and context."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 ## Description
 
 Please include a summary of the change and which issue is fixed. Include relevant motivation and context.

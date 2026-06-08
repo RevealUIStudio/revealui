@@ -1,3 +1,11 @@
+---
+title: "AI Tool Evaluation Log"
+description: "Track pass/fail results when running test prompts from `test-prompts.md` across different AI tools."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # AI Tool Evaluation Log
 
 Track pass/fail results when running test prompts from `test-prompts.md` across different AI tools.

@@ -1,3 +1,11 @@
+---
+title: "PostCSS Configuration"
+description: "Shared PostCSS configuration for the RevealUI Framework."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # PostCSS Configuration
 
 Shared PostCSS configuration for the RevealUI Framework.

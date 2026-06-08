@@ -1,3 +1,11 @@
+---
+title: "@revealui/services"
+description: "External service integrations for RevealUI - Stripe (billing + circuit breaker) and Gmail API (transactional email)."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/services
 
 > **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.

@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Documentation Index"
 description: "Entry point and navigation hub for all RevealUI documentation"
 category: index

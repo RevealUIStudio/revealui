@@ -1,3 +1,11 @@
+---
+title: "Safety Conventions"
+description: "Rules for protecting sensitive files, credentials, and system paths in the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Safety Conventions
 
 Rules for protecting sensitive files, credentials, and system paths in the RevealUI monorepo.

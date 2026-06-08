@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Security Training Program
 description: Employee and contributor security training curriculum, completion tracking, and renewal requirements for SOC 2 compliance.
 last-updated: 2026-04-12

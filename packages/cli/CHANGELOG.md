@@ -1,3 +1,11 @@
+---
+title: "@revealui/cli"
+description: "The RevealUI engine does not decode images in-process (resizing is delegated to"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/cli
 
 ## 0.7.3

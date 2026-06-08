@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Authentication System"
 description: "Session-based auth, OAuth, password reset, rate limiting, and brute force protection"
 category: guide

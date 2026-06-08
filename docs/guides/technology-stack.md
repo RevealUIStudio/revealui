@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Technology Stack"
 description: "Canonical reference for the libraries, frameworks, and services @revealui/* uses today — with rationale for each choice"
 category: guide

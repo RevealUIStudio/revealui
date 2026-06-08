@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Audit Chain"
 description: "Tamper-evident audit log — how RevealUI signs every action so the record cannot be altered without detection"
 category: security

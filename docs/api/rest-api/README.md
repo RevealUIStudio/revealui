@@ -1,3 +1,11 @@
+---
+title: "REST API Reference"
+description: "**Version:** 0.1.0"
+visibility: public
+status: generated
+audience: user
+---
+
 # REST API Reference
 
 **Version:** 0.1.0

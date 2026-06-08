@@ -1,3 +1,11 @@
+---
+title: "RevealUI Scripts"
+description: "Comprehensive TypeScript and shell scripts for development, automation, and tooling in the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # RevealUI Scripts
 
 Comprehensive TypeScript and shell scripts for development, automation, and tooling in the RevealUI monorepo.

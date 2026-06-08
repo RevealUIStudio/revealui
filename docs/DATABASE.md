@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Database Management"
 description: "Drizzle ORM schema, migrations, NeonDB setup (with optional legacy Supabase RAG sidecar), and seeding"
 category: guide

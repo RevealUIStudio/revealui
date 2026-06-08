@@ -1,3 +1,11 @@
+---
+title: "leak-scan (canonical source)"
+description: "No-regex leak scanner. Single source of truth for the fleet's"
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # leak-scan (canonical source)
 
 No-regex leak scanner. Single source of truth for the fleet's

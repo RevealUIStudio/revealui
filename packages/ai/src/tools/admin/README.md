@@ -1,3 +1,11 @@
+---
+title: "Admin Tools Package"
+description: "AI-powered tools for managing the RevealUI admin through natural language."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Admin Tools Package
 
 AI-powered tools for managing the RevealUI admin through natural language.

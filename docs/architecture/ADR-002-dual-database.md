@@ -1,3 +1,11 @@
+---
+title: "ADR-002: Dual-Database Architecture (NeonDB + Supabase)"
+description: "**Date:** 2026-04-08"
+visibility: public
+status: verified
+audience: user
+---
+
 # ADR-002: Dual-Database Architecture (NeonDB + Supabase)
 
 **Date:** 2026-04-08

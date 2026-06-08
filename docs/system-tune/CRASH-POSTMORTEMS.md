@@ -1,3 +1,11 @@
+---
+title: "System Tune — Crash Postmortems"
+description: "Canonical crash/incident log that seeds the `@revealui/system-tune` profile matrix. Every entry here should trace to a concrete profile adjustment in `profiles/*.json` so new us..."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # System Tune — Crash Postmortems
 
 Canonical crash/incident log that seeds the `@revealui/system-tune` profile matrix. Every entry here should trace to a concrete profile adjustment in `profiles/*.json` so new users never debug the same class of failure.
