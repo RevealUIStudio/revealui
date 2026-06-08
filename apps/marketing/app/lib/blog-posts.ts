@@ -31,6 +31,24 @@ interface PostMeta {
 
 const POST_METADATA: PostMeta[] = [
   {
+    slug: 'component-library',
+    title: '59 Components, One Dependency',
+    excerpt:
+      'A native React component library with 59 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
+    publishedAt: '2026-06-08T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '09-component-library.md',
+  },
+  {
+    slug: 'own-your-data',
+    title: 'Your Database, Your Storage, Your Sync',
+    excerpt:
+      'Standard Postgres, S3-compatible storage, and real-time sync, all built in and all portable. The data layer you can actually leave.',
+    publishedAt: '2026-06-07T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '10-own-your-data.md',
+  },
+  {
     slug: 'getting-started',
     title: 'From Zero to Production in About 30 Minutes',
     excerpt:
