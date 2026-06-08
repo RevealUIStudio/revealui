@@ -92,7 +92,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   status: 'Beta',
   version: 'v0.3.0',
   tagline: 'The agentic business runtime',
-  body: 'Auth, content, products, payments, and intelligence — pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
+  body: 'People, content, offers, payments, and agents — pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   facts: [
     { stat: String(METRICS.packages), label: 'packages' },

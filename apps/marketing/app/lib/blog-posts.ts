@@ -79,7 +79,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'five-primitives',
     title: 'The Five Primitives of Business Software',
     excerpt:
-      'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence: the building blocks every software company needs.',
+      'A deep technical walkthrough of People, Content, Offers, Payments, and Agents: the building blocks every software company needs.',
     publishedAt: '2026-03-24T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '05-five-primitives.md',
