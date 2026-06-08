@@ -30,10 +30,10 @@ describe('loadLocalRules', () => {
   });
   it('loads an anyOf rule (case variants)', () => {
     const rules = loadLocalRules(
-      write([{ tag: 'v', reason: 'venture', anyOf: ['Biotix', 'biotix'] }]),
+      write([{ tag: 'v', reason: 'venture', anyOf: ['Globex', 'globex'] }]),
     );
-    expect(rules[0]?.matches('the biotix project')).toBe(true);
-    expect(rules[0]?.matches('BIOTIX')).toBe(false);
+    expect(rules[0]?.matches('the globex project')).toBe(true);
+    expect(rules[0]?.matches('GLOBEX')).toBe(false);
   });
   it('throws ConfigError on non-array JSON', () => {
     expect(() => loadLocalRules(write({ not: 'an array' }))).toThrow(ConfigError);

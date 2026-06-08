@@ -114,20 +114,22 @@ export const BASE_RULES: readonly Rule[] = [
 ];
 
 /**
- * Tags whose patterns are SENSITIVE literal values. Intentionally absent from
- * BASE_RULES; each repo supplies them via local config (the cutover moves them
- * out of that repo's bash scanner). Listed so the migration knows the exact set
- * to relocate, and so a test can assert none of them leaked into BASE_RULES.
+ * Generic CATEGORY tags for SENSITIVE literal rules. Intentionally absent from
+ * BASE_RULES; each repo supplies the actual values via local config. The tags
+ * are kept generic (no real customer / prospect / host values) because this
+ * source is public — the per-repo cutover maps each bash scanner's specific tag
+ * onto the matching category here and into that repo's .leakrules.json (and
+ * updates its .leakignore keys to match). A test asserts none appear in BASE.
  */
 export const SENSITIVE_TAGS: readonly string[] = [
-  'devbox-host',
+  'internal-hostname',
   'personal-email',
-  'customer-allevia',
-  'customer-alleviafleet',
-  'prospect-stefan',
-  'prospect-djones-name',
-  'prospect-djones-email',
-  'venture-biotix',
-  'bank-mercury',
-  'anthropic-partner',
+  'customer-name',
+  'customer-brand',
+  'prospect-name',
+  'prospect-contact',
+  'prospect-email',
+  'internal-venture',
+  'operator-bank',
+  'partner-reference',
 ];
