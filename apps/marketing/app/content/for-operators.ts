@@ -89,6 +89,47 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
     'If "I want it automatic and instant" is the requirement, this is not yet the right time to engage. If "I want it built, scoped, and delivered by people who maintain the runtime it runs on" is the requirement, that is what we ship.',
 } as const;
 
+// ---------------------------------------------------------------------------
+// Engagement pricing — published "from" anchors (Architecture Review, Fleet
+// deployment, Custom Build), shown as "from" minimums. Every engagement is
+// still scoped in a discovery call; the numbers are starting points, not quotes.
+// Rendered by components/for-operators/EngagementPricing.tsx, placed after
+// <HowWeDeliver /> on ForOperatorsPage.
+// ---------------------------------------------------------------------------
+
+export interface PricingRung {
+  readonly title: string;
+  readonly price: string;
+  readonly body: string;
+  readonly cta: Cta;
+}
+
+export const FOR_OPERATORS_PRICING = {
+  eyebrow: 'What it costs',
+  heading: 'What an engagement costs.',
+  body: 'Every engagement is fixed-bid and starts with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
+  rungs: [
+    {
+      title: 'Architecture Review',
+      price: '$3,500',
+      body: 'A two-week, fixed-bid plan for a self-hosted, audited product your clients own: a reference architecture, a data-flow and audit map, a model plan, and a priced path to launch. Credited toward a Fleet deployment if you start one within 30 days.',
+      cta: { label: 'Book the scoping call', href: AGENCY_CONTACT, external: true },
+    },
+    {
+      title: 'Fleet deployment',
+      price: 'from $25,000',
+      body: 'A branded, self-hosted runtime your clients use under your name, on your cloud, white-labeled per client. Built and delivered as a fixed-scope engagement, scoped in the Architecture Review. Ongoing support runs as a separate monthly plan.',
+      cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
+    },
+    {
+      title: 'Custom Build',
+      price: 'from $50,000',
+      body: 'A bespoke product on the same runtime, scoped to what your business needs beyond a standard Fleet deployment. A four-to-twelve-week statement of work, fixed-bid, scoped in discovery.',
+      cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
+    },
+  ] as readonly PricingRung[],
+} as const;
+
 export const FOR_OPERATORS_DISCOVERY = {
   eyebrow: 'How the engagement works',
   heading: 'Discovery, scope, ship.',
@@ -140,7 +181,7 @@ export const FOR_OPERATORS_FAQ = {
     {
       question: 'How much does it cost?',
       answer:
-        'The discovery call scopes the engagement. A $3,500 fixed-bid Architecture Review is available as a written-assessment starting point if you want an outside-eye look before committing to a full engagement. Full-scope engagement prices are scoped per project in discovery.',
+        'The discovery call scopes the engagement. A $3,500 fixed-bid Architecture Review is the written-assessment starting point, and it credits toward what you build next. From there, Fleet deployments start at $25,000 and Custom Builds at $50,000; the discovery call scopes the final number.',
     },
     {
       question: 'How long does it take?',
