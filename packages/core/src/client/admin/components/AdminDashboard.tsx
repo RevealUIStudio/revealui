@@ -117,14 +117,18 @@ function reducer(state: DashboardState, action: DashboardAction): DashboardState
 
 function AdminHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className="bg-card shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
-            <button type="button" onClick={onBack} className="text-gray-400 hover:text-gray-600">
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-muted-foreground hover:text-muted-foreground"
+            >
               ← Back to Dashboard
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 capitalize">{title}</h1>
+            <h1 className="text-2xl font-bold text-foreground capitalize">{title}</h1>
           </div>
           <SignOutButton />
         </div>
@@ -149,7 +153,7 @@ function StatusBanners({
         </div>
       )}
       {successMessage && (
-        <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+        <div className="mb-4 bg-success/10 border border-success/30 text-success px-4 py-3 rounded">
           <p className="font-medium">Success</p>
           <p className="text-sm">{successMessage}</p>
         </div>
@@ -161,8 +165,8 @@ function StatusBanners({
 function LoadingSpinner() {
   return (
     <div className="mb-4 text-center py-8">
-      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      <p className="mt-2 text-sm text-gray-600">Loading...</p>
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <p className="mt-2 text-sm text-muted-foreground">Loading...</p>
     </div>
   );
 }
@@ -188,7 +192,7 @@ function SignOutButton() {
       type="button"
       onClick={() => void handleSignOut()}
       disabled={loading}
-      className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
+      className="text-sm text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-md hover:bg-muted transition-colors"
     >
       {loading ? 'Signing out...' : 'Sign Out'}
     </button>
@@ -211,15 +215,15 @@ function DashboardHome({
   onGlobalClick: (g: RevealGlobalConfig) => void;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">RevealUI Admin</h1>
+              <h1 className="text-2xl font-bold text-foreground">RevealUI Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">v0.1.0</span>
+              <span className="text-sm text-muted-foreground">v0.1.0</span>
               <SignOutButton />
             </div>
           </div>
@@ -230,12 +234,12 @@ function DashboardHome({
         <div className="px-4 py-6 sm:px-0">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Collections */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-8 w-8 text-gray-400"
+                      className="h-8 w-8 text-muted-foreground"
                       aria-label="Collections"
                       fill="none"
                       stroke="currentColor"
@@ -253,20 +257,22 @@ function DashboardHome({
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Collections</dt>
-                      <dd className="text-lg font-medium text-gray-900">{collections.length}</dd>
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
+                        Collections
+                      </dt>
+                      <dd className="text-lg font-medium text-foreground">{collections.length}</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   {collections.length > 0 ? (
                     <ul className="space-y-1 max-h-48 overflow-y-auto">
                       {collections.map((collection) => (
                         <li
                           key={String(collection.slug)}
-                          className="text-gray-600 hover:text-gray-900"
+                          className="text-muted-foreground hover:text-foreground"
                         >
                           <button
                             type="button"
@@ -279,19 +285,19 @@ function DashboardHome({
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500">No collections configured</p>
+                    <p className="text-muted-foreground">No collections configured</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Globals */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg
-                      className="h-8 w-8 text-gray-400"
+                      className="h-8 w-8 text-muted-foreground"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -309,18 +315,23 @@ function DashboardHome({
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Globals</dt>
-                      <dd className="text-lg font-medium text-gray-900">{globals.length}</dd>
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
+                        Globals
+                      </dt>
+                      <dd className="text-lg font-medium text-foreground">{globals.length}</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
+              <div className="bg-muted px-5 py-3">
                 <div className="text-sm">
                   {globals.length > 0 ? (
                     <ul className="space-y-1 max-h-32 overflow-y-auto">
                       {globals.map((global) => (
-                        <li key={String(global.slug)} className="text-gray-600 hover:text-gray-900">
+                        <li
+                          key={String(global.slug)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
                           <button
                             type="button"
                             onClick={() => onGlobalClick(global)}
@@ -332,20 +343,20 @@ function DashboardHome({
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500">No globals configured</p>
+                    <p className="text-muted-foreground">No globals configured</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* System Status */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-card overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <div className="h-8 w-8 bg-success/15 rounded-full flex items-center justify-center">
                       <svg
-                        className="h-5 w-5 text-green-600"
+                        className="h-5 w-5 text-success"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -364,14 +375,18 @@ function DashboardHome({
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">System Status</dt>
-                      <dd className="text-lg font-medium text-gray-900">Healthy</dd>
+                      <dt className="text-sm font-medium text-muted-foreground truncate">
+                        System Status
+                      </dt>
+                      <dd className="text-lg font-medium text-foreground">Healthy</dd>
                     </dl>
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm text-gray-600">RevealUI admin is running successfully</div>
+              <div className="bg-muted px-5 py-3">
+                <div className="text-sm text-muted-foreground">
+                  RevealUI admin is running successfully
+                </div>
               </div>
             </div>
           </div>
@@ -651,7 +666,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
   // ── Collection list view ──────────────────────────────────────────────
   if (state.view.type === 'collection' && state.view.collection) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <AdminHeader title={String(state.view.collection.slug)} onBack={goToDashboard} />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <StatusBanners error={state.error} successMessage={state.successMessage} />
@@ -681,7 +696,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
   // ── Document edit/create view ─────────────────────────────────────────
   if (state.view.type === 'edit' && state.view.collection) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <AdminHeader
           title={`${state.view.document ? 'Edit' : 'Create'} ${String(state.view.collection.slug).slice(0, -1)}`}
           onBack={goToDashboard}
@@ -705,7 +720,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
   // ── Global edit view ──────────────────────────────────────────────────
   if (state.view.type === 'global' && state.view.global) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <AdminHeader
           title={state.view.global.label || String(state.view.global.slug)}
           onBack={goToDashboard}
