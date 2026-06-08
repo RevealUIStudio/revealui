@@ -1227,7 +1227,18 @@ app.openapi(pauseRoute, async (c) => {
   }
   assertAccountOwner(c);
 
-  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+  // Read-only resolution: pause/resume require an existing active subscription,
+  // so there is never a reason to create a Stripe customer here (the create-
+  // capable ensureStripeCustomer with an empty-email fallback could mint a
+  // customer for someone who never checked out). Mirror upgrade/downgrade/portal.
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const stripeCustomerId = await resolveHostedStripeCustomerId(
+    user.id,
+    requestEntitlements?.accountId,
+  );
+  if (!stripeCustomerId) {
+    throw new HTTPException(400, { message: 'No active subscription found.' });
+  }
 
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),
@@ -1287,7 +1298,18 @@ app.openapi(resumeRoute, async (c) => {
   }
   assertAccountOwner(c);
 
-  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+  // Read-only resolution: pause/resume require an existing active subscription,
+  // so there is never a reason to create a Stripe customer here (the create-
+  // capable ensureStripeCustomer with an empty-email fallback could mint a
+  // customer for someone who never checked out). Mirror upgrade/downgrade/portal.
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const stripeCustomerId = await resolveHostedStripeCustomerId(
+    user.id,
+    requestEntitlements?.accountId,
+  );
+  if (!stripeCustomerId) {
+    throw new HTTPException(400, { message: 'No active subscription found.' });
+  }
 
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),

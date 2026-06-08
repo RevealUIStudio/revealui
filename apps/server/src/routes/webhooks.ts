@@ -855,6 +855,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
     return c.json({ error: 'Webhook service unavailable' }, 503);
   }
 
+  // CONTRACT: Stripe signature verification REQUIRES the raw request bytes.
+  // Always read the body via c.req.text() here and verify with
+  // constructEventAsync below. Do NOT switch the event source to
+  // c.req.valid('json') / c.req.json() — a re-serialized body changes the bytes
+  // and breaks HMAC verification. The OpenAPI route declares a JSON body schema
+  // for documentation only; Hono buffers the raw body so this text() read and
+  // the schema coexist.
   const body = await c.req.text();
   const sig = c.req.header('Stripe-Signature');
 
@@ -3410,10 +3417,15 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   // of these as a no-op success.
                   const msg = cancelErr instanceof Error ? cancelErr.message : 'unknown';
                   const code = (cancelErr as { code?: string }).code;
+                  // M2 no-regex: detect Stripe's idempotent "already canceled"
+                  // outcomes via case-insensitive substring checks. Covers
+                  // "already canceled" / "already cancelled" / "already been
+                  // cancel(l)ed" and "no such subscription".
+                  const lowerMsg = msg.toLowerCase();
                   const isAlreadyCanceled =
                     code === 'resource_missing' ||
-                    /already\s+(been\s+)?cance(l|ll)ed/i.test(msg) ||
-                    /no such subscription/i.test(msg);
+                    (lowerMsg.includes('already') && lowerMsg.includes('cancel')) ||
+                    lowerMsg.includes('no such subscription');
                   if (isAlreadyCanceled) {
                     logger.info(
                       'Stripe subscription already canceled — refund cancel is no-op (idempotent)',
