@@ -62,6 +62,8 @@ See the [Quick Start guide](/quick-start) for the full walkthrough, or browse th
 - [Open Source & Pro](/blog/06-open-source-and-pro)  -  Our monetization philosophy
 - [Agent-First Future](/blog/07-agent-first-future)  -  Building for the agent economy
 - [Getting Started in About 30 Minutes](/blog/08-getting-started)  -  From zero to deployed
+- [59 Components, One Dependency](/blog/09-component-library)  -  The UI layer you own
+- [Your Database, Your Storage, Your Sync](/blog/10-own-your-data)  -  Standard Postgres, S3 storage, built-in sync
 
 ---
 

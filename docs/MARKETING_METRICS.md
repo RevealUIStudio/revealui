@@ -30,6 +30,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-05-18 (
 | UI components in `packages/presentation/` | **59** | `countUIComponents()` | Marketing copy says "59 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
 | DB tables (Drizzle pgTable) | **85** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
+| Access-control enforcement tests | **59** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
 | License: MIT packages | **20** | `licenseSplit.mit` | |
 | License: FSL-1.1-MIT packages | **5** | `licenseSplit.fsl` | @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services |
 | License: internal/none | **1** | `licenseSplit.internal` | `test` workspace package (private) |
