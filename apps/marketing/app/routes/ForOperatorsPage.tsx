@@ -11,6 +11,7 @@
 import { Footer } from '../components/Footer';
 import { ClosingCta } from '../components/for-operators/ClosingCta';
 import { DiscoveryScopeShip } from '../components/for-operators/DiscoveryScopeShip';
+import { EngagementPricing } from '../components/for-operators/EngagementPricing';
 import { Faq } from '../components/for-operators/Faq';
 import { Hero } from '../components/for-operators/Hero';
 import { HowWeDeliver } from '../components/for-operators/HowWeDeliver';
@@ -23,6 +24,7 @@ export function ForOperatorsPage() {
       <Hero />
       <WhatYouGet />
       <HowWeDeliver />
+      <EngagementPricing />
       <DiscoveryScopeShip />
       <Proof />
       <Faq />
