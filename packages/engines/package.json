@@ -2,7 +2,7 @@
   "name": "@revealui/engines",
   "version": "0.4.2",
   "private": true,
-  "description": "Unified entry point for the five RevealUI business primitives — users, content, products, payments, intelligence.",
+  "description": "Unified entry point for the five RevealUI business primitives — users, content, products, payments, agents.",
   "license": "FSL-1.1-MIT",
   "type": "module",
   "dependencies": {
@@ -24,7 +24,7 @@
     "./content": "./src/content/index.ts",
     "./products": "./src/products/index.ts",
     "./payments": "./src/payments/index.ts",
-    "./intelligence": "./src/intelligence/index.ts"
+    "./agents": "./src/agents/index.ts"
   },
   "scripts": {
     "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",
