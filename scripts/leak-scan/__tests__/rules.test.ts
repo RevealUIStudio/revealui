@@ -9,8 +9,8 @@ const byTag = (tag: string): Rule => {
 
 // One positive + one negative per BASE rule, mirroring the legacy ERE semantics.
 const cases: ReadonlyArray<{ tag: string; hit: string; miss: string }> = [
-  { tag: 'abs-home-path', hit: 'see /home/joshua-v-dev/x', miss: 'see /home//x' },
-  { tag: 'abs-windows-user', hit: 'C:\\Users\\joshu\\x', miss: 'C:\\Programs\\x' },
+  { tag: 'abs-home-path', hit: 'see /home/alice/x', miss: 'see /home//x' },
+  { tag: 'abs-windows-user', hit: 'C:\\Users\\alice\\x', miss: 'C:\\Programs\\x' },
   { tag: 'private-jv-repo', hit: '~/revfleet/.jv/docs', miss: '~/revfleet/revealui' },
   { tag: 'private-jv-name', hit: 'RevealUIStudio/revealui-jv', miss: 'RevealUIStudio/revealui' },
   { tag: 'lts-drive', hit: 'cd /mnt/e/backups', miss: 'cd /mnt/d/backups' },
