@@ -39,7 +39,7 @@
     "tsx": "catalog:",
     "turbo": "^2.9.16",
     "typescript": "catalog:",
-    "undici": "^7.25.0",
+    "undici": "^7.27.2",
     "vercel": "^52.2.1",
     "vercel-mcp": "^0.0.7",
     "vitest": "catalog:",
