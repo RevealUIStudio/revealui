@@ -58,6 +58,10 @@ const IGNORE_DIRS = new Set([
   '.worktrees',
   '.wt',
   'opensrc',
+  // Not doc-system docs: changesets carry their own tooling format; .claude
+  // holds ephemeral coordination state.
+  '.changeset',
+  '.claude',
 ]);
 
 /**
