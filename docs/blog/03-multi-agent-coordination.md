@@ -208,7 +208,7 @@ if (!clean) {
 wb.releaseFiles('my-agent')
 ```
 
-The package also includes adapters for Claude Code, Cursor, and Aider  -  so you can coordinate across different AI tools on the same codebase.
+The package also includes adapters for Claude Code, Cursor, and GitHub Copilot  -  so you can coordinate across different AI tools on the same codebase.
 
 ---
 

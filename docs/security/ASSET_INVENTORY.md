@@ -155,7 +155,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 
 | ID | Control | Package | Purpose |
 |----|---------|---------|---------|
-| SEC-017 | RBAC + ABAC Policy Engine | @revealui/core | Role-based and attribute-based access control (58 enforcement tests) |
+| SEC-017 | RBAC + ABAC Policy Engine | @revealui/core | Role-based and attribute-based access control (59 enforcement tests) |
 | SEC-018 | Rate Limiting | @revealui/auth | Brute force protection, webhook rate limiting (100 req/min) |
 | SEC-019 | Session Auth | @revealui/auth | httpOnly, secure, sameSite=lax cookies; no JWTs |
 | SEC-020 | CSP/CORS/HSTS Headers | @revealui/security | Transport and browser security headers |

@@ -152,6 +152,64 @@ function countDbTables(): number {
 }
 
 // ---------------------------------------------------------------------------
+// Enforcement-test collector
+//
+// The access-control story is quoted fleet-wide as "N enforcement tests": the
+// blog, both security attestations (INFORMATION_SECURITY_POLICY,
+// ASSET_INVENTORY), LAUNCH-CHECKLIST, and marketing primitives all cite it.
+// Canonical scope (per the Security section of CLAUDE.md) is the two suites
+// that prove RBAC/ABAC role isolation. Counting it here makes a drift in any
+// one of those surfaces fail CI, the same way the mcp / component / table
+// counts already do.
+// ---------------------------------------------------------------------------
+
+const ENFORCEMENT_TEST_ROOTS = [
+  path.join(ROOT, 'packages/core/src/__tests__/auth'),
+  path.join(ROOT, 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts'),
+];
+
+/**
+ * Count `it(` / `test(` cases across the canonical enforcement suites. No
+ * authored regex (fleet no-regex rule) — a trimmed-line `startsWith` scan.
+ * Modifier forms (disabled cases, or table-driven `each` cases) are
+ * intentionally excluded: none exist in these suites today, and a disabled
+ * case should not inflate an attestation that the tests verify role isolation.
+ * Path-injectable + exported for tests.
+ */
+export function countEnforcementTests(roots: string[] = ENFORCEMENT_TEST_ROOTS): number {
+  const files: string[] = [];
+  for (const root of roots) {
+    let stat: fs.Stats;
+    try {
+      stat = fs.statSync(root);
+    } catch {
+      continue;
+    }
+    if (stat.isDirectory()) {
+      for (const entry of fs.readdirSync(root)) {
+        if (entry.endsWith('.test.ts')) files.push(path.join(root, entry));
+      }
+    } else if (stat.isFile()) {
+      files.push(root);
+    }
+  }
+  let count = 0;
+  for (const file of files) {
+    let content: string;
+    try {
+      content = fs.readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
+    for (const line of content.split('\n')) {
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith('it(') || trimmed.startsWith('test(')) count++;
+    }
+  }
+  return count;
+}
+
+// ---------------------------------------------------------------------------
 // License-split collector (added 2026-05-14 — closes a fleet drift class)
 //
 // Walks `packages/*/package.json` and groups by the `license` field. The
@@ -1369,6 +1427,7 @@ function run(): void {
   const uiComponents = countUIComponents();
   const mcpServers = countMCPServers();
   const dbTables = countDbTables();
+  const enforcementTests = countEnforcementTests();
   const licenseSplit = countLicenseSplit();
 
   console.log('Actual metrics:');
@@ -1379,6 +1438,7 @@ function run(): void {
   console.log(`  UI components: ${uiComponents}`);
   console.log(`  MCP servers:   ${mcpServers}`);
   console.log(`  DB tables:     ${dbTables}`);
+  console.log(`  Enforcement:   ${enforcementTests}`);
   console.log(
     `  License split: ${licenseSplit.mit} MIT | ${licenseSplit.fsl} FSL-1.1-MIT | ${licenseSplit.internal} internal/none`,
   );
@@ -1432,6 +1492,13 @@ function run(): void {
         // "Schema (85 tables)" parenthetical
         /\(\s*([1-9]\d{1,2})\s+tables?\s*\)/i,
       ],
+    },
+    {
+      name: 'enforcement tests',
+      actual: enforcementTests,
+      // REGEX-CONFIG-BOUNDARY — claim pattern only (pre-existing convention in
+      // this file); countEnforcementTests computes the count with no authored regex.
+      claimPatterns: [/\b(\d+)\s+enforcement\s+tests?\b/i],
     },
     // License-split metrics (REGEX-CONFIG-BOUNDARY — pre-existing convention
     // in this file; AST-refactor pending GAP-192). Patterns target the
