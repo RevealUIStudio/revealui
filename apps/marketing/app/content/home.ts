@@ -77,8 +77,10 @@ export const HOME_HERO = {
 // Tests the noun "foundation" against the canonical "runtime" in HOME_HERO.
 // The two strings below (h1 + subtitle.strong) are the only difference, so the
 // A/B isolates the noun; "runtime" stays the canonical noun on every other
-// surface. WIRE-UP-PENDING: the hero component selects HOME_HERO (default) vs
-// this variant; the A/B serving + measurement wiring is a follow-up.
+// surface. Served via selectHomeHero() (app/lib/hero-variant.ts): the homepage
+// hero renders this variant when the URL carries ?hero=foundation, else
+// HOME_HERO. An automatic traffic split + conversion measurement is separate
+// (the marketing app has no analytics sink yet).
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO_FOUNDATION = {

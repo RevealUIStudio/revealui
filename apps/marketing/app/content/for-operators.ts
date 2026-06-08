@@ -93,8 +93,8 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 // Engagement pricing — published "from" anchors (Architecture Review, Fleet
 // deployment, Custom Build), shown as "from" minimums. Every engagement is
 // still scoped in a discovery call; the numbers are starting points, not quotes.
-// WIRE-UP-PENDING: render as a section component (components/for-operators/
-// EngagementPricing.tsx) on ForOperatorsPage, placed after <HowWeDeliver />.
+// Rendered by components/for-operators/EngagementPricing.tsx, placed after
+// <HowWeDeliver /> on ForOperatorsPage.
 // ---------------------------------------------------------------------------
 
 export interface PricingRung {
