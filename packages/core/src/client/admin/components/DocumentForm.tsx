@@ -100,16 +100,16 @@ export function DocumentForm({
   };
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div className="bg-card shadow overflow-hidden sm:rounded-lg">
       <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+        <h3 className="text-lg leading-6 font-medium text-foreground mb-4">
           {document ? 'Edit' : 'Create'} {collection.slug.slice(0, -1)}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {visibleFields.map((field: RevealUIField) => (
             <div key={field.name || 'layout'}>
-              <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">
+              <label htmlFor={field.name} className="block text-sm font-medium text-foreground">
                 {getFieldLabel(field)}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -127,14 +127,14 @@ export function DocumentForm({
             <button
               type="button"
               onClick={onCancel}
-              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="bg-card py-2 px-4 border border-input rounded-md shadow-sm text-sm font-medium text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Saving...' : 'Save'}
             </button>
@@ -178,7 +178,7 @@ function ArrayFieldRenderer({
       {rows.map((row, idx) => (
         <div
           key={`${field.name}-row-${idx.toString()}`}
-          className="border border-gray-200 rounded-md p-3 space-y-2 relative"
+          className="border border-border rounded-md p-3 space-y-2 relative"
         >
           <button
             type="button"
@@ -191,7 +191,7 @@ function ArrayFieldRenderer({
             <div key={sf.name}>
               <label
                 htmlFor={`${field.name}-${idx}-${sf.name}`}
-                className="block text-xs font-medium text-gray-600"
+                className="block text-xs font-medium text-muted-foreground"
               >
                 {getFieldLabel(sf)}
               </label>
@@ -207,7 +207,7 @@ function ArrayFieldRenderer({
       <button
         type="button"
         onClick={addRow}
-        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+        className="text-sm text-primary hover:text-primary/80 font-medium"
       >
         + Add item
       </button>
@@ -238,12 +238,12 @@ function GroupFieldRenderer({
   };
 
   return (
-    <div className="border border-gray-200 rounded-md p-3 space-y-3">
+    <div className="border border-border rounded-md p-3 space-y-3">
       {subFields.map((sf) => (
         <div key={sf.name}>
           <label
             htmlFor={`${field.name}-${sf.name}`}
-            className="block text-xs font-medium text-gray-600"
+            className="block text-xs font-medium text-muted-foreground"
           >
             {getFieldLabel(sf)}
             {sf.required && <span className="text-red-500 ml-1">*</span>}
@@ -292,10 +292,10 @@ function BlocksFieldRenderer({
         return (
           <div
             key={`${field.name}-block-${idx.toString()}`}
-            className="border border-gray-200 rounded-md p-3 space-y-2 relative"
+            className="border border-border rounded-md p-3 space-y-2 relative"
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase">
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
                 {String(block.blockType)}
               </span>
               <button
@@ -310,7 +310,7 @@ function BlocksFieldRenderer({
               <div key={sf.name}>
                 <label
                   htmlFor={`${field.name}-${idx}-${sf.name}`}
-                  className="block text-xs font-medium text-gray-600"
+                  className="block text-xs font-medium text-muted-foreground"
                 >
                   {getFieldLabel(sf)}
                 </label>
@@ -331,7 +331,7 @@ function BlocksFieldRenderer({
               key={bt.slug}
               type="button"
               onClick={() => addBlock(bt.slug)}
-              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+              className="text-sm text-primary hover:text-primary/80 font-medium"
             >
               + {bt.slug}
             </button>
@@ -366,14 +366,14 @@ function CollapsibleFieldRenderer({
   };
 
   return (
-    <div className="border border-gray-200 rounded-md">
+    <div className="border border-border rounded-md">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+        className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted flex items-center justify-between"
       >
         {getFieldLabel(field)}
-        <span className="text-gray-400">{open ? '\u25B2' : '\u25BC'}</span>
+        <span className="text-muted-foreground">{open ? '\u25B2' : '\u25BC'}</span>
       </button>
       {open && (
         <div className="px-3 pb-3 space-y-3">
@@ -381,7 +381,7 @@ function CollapsibleFieldRenderer({
             <div key={sf.name}>
               <label
                 htmlFor={`${field.name}-${sf.name}`}
-                className="block text-xs font-medium text-gray-600"
+                className="block text-xs font-medium text-muted-foreground"
               >
                 {getFieldLabel(sf)}
               </label>
@@ -436,7 +436,7 @@ function JsonFieldRenderer({
         value={formatted}
         onChange={handleChange}
         rows={8}
-        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono text-xs"
+        className="mt-1 block w-full border-input rounded-md shadow-sm focus:ring-ring focus:border-primary sm:text-sm font-mono text-xs"
         spellCheck={false}
       />
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
@@ -461,12 +461,15 @@ function PointFieldRenderer({
     lng: number;
   };
   const baseClasses =
-    'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+    'mt-1 block w-full border-input rounded-md shadow-sm focus:ring-ring focus:border-primary sm:text-sm';
 
   return (
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label htmlFor={`${field.name}-lat`} className="block text-xs font-medium text-gray-600">
+        <label
+          htmlFor={`${field.name}-lat`}
+          className="block text-xs font-medium text-muted-foreground"
+        >
           Latitude
         </label>
         <input
@@ -481,7 +484,10 @@ function PointFieldRenderer({
         />
       </div>
       <div>
-        <label htmlFor={`${field.name}-lng`} className="block text-xs font-medium text-gray-600">
+        <label
+          htmlFor={`${field.name}-lng`}
+          className="block text-xs font-medium text-muted-foreground"
+        >
           Longitude
         </label>
         <input
@@ -504,7 +510,7 @@ function PointFieldRenderer({
 // ---------------------------------------------------------------------------
 function FieldInput({ field, value, onChange }: FieldInputProps) {
   const baseClasses =
-    'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+    'mt-1 block w-full border-input rounded-md shadow-sm focus:ring-ring focus:border-primary sm:text-sm';
 
   switch (field.type) {
     case 'text':
@@ -591,7 +597,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
           id={field.name}
           checked={Boolean(value)}
           onChange={(e) => onChange(e.target.checked)}
-          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          className="h-4 w-4 text-primary focus:ring-ring border-input rounded"
         />
       );
 
@@ -626,7 +632,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
             return (
               <label
                 key={optValue}
-                className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                className="flex items-center gap-2 text-sm text-foreground cursor-pointer"
               >
                 <input
                   type="radio"
@@ -634,7 +640,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
                   value={optValue}
                   checked={formatTextValue(value) === optValue}
                   onChange={() => onChange(optValue)}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                  className="h-4 w-4 text-primary focus:ring-ring border-input"
                 />
                 {optLabel}
               </label>
@@ -655,7 +661,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
             required={field.required}
             placeholder={`Enter ${(field as unknown as { relationTo?: string }).relationTo ?? 'related'} ID`}
           />
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             Related to: {(field as unknown as { relationTo?: string }).relationTo ?? 'unknown'}
           </p>
         </div>
@@ -671,10 +677,10 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
               const file = e.target.files?.[0];
               if (file) onChange(file);
             }}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
           />
           {typeof value === 'string' && value !== '' && (
-            <p className="mt-1 text-xs text-gray-500">Current: {value}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Current: {value}</p>
           )}
         </div>
       );
@@ -696,7 +702,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
       return (
         <Suspense
           fallback={
-            <div className="border border-gray-300 rounded-md h-40 flex items-center justify-center text-sm text-gray-400">
+            <div className="border border-input rounded-md h-40 flex items-center justify-center text-sm text-muted-foreground">
               Loading editor…
             </div>
           }
@@ -706,7 +712,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
             editorConfig={editorConfig}
             initialValue={value as string | null | undefined}
             onSerializedChange={(json) => onChange(json)}
-            className="border border-gray-300 rounded-md"
+            className="border border-input rounded-md"
           />
         </Suspense>
       );
@@ -732,7 +738,7 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
 
     case 'ui':
       return (
-        <div className="border border-dashed border-gray-300 rounded-md p-3 text-sm text-gray-400 text-center">
+        <div className="border border-dashed border-input rounded-md p-3 text-sm text-muted-foreground text-center">
           Custom UI field: {field.name}
         </div>
       );
