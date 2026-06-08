@@ -8,7 +8,7 @@ I've started three software companies. Each time, I spent the first three to six
 
 That's not a skills problem. That's an infrastructure problem. And after the third time, I decided to solve it.
 
-RevealUI is the open runtime for AI-native businesses. Users, content, products, payments, and intelligence — the five primitives every product needs — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
+RevealUI is the open runtime for businesses that run their own AI. Users, content, products, payments, and intelligence — the five primitives every product needs — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
 
 ## The problem nobody talks about
 
