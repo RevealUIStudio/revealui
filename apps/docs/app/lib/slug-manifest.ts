@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 112 entries.
+ * Generated: 116 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -47,6 +47,8 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'blog/06-open-source-and-pro': 'blog/06-open-source-and-pro.md',
   'blog/07-agent-first-future': 'blog/07-agent-first-future.md',
   'blog/08-getting-started': 'blog/08-getting-started.md',
+  'blog/09-component-library': 'blog/09-component-library.md',
+  'blog/10-own-your-data': 'blog/10-own-your-data.md',
   'build-your-business': 'BUILD_YOUR_BUSINESS.md',
   'checklists/stripe-checkout-verification': 'checklists/stripe-checkout-verification.md',
   'ci-cd-guide': 'CI_CD_GUIDE.md',
@@ -72,12 +74,14 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'fleet/revvault': 'fleet/revvault.md',
   forge: 'FORGE.md',
   glossary: 'glossary.md',
+  'guides/audit-chain': 'guides/audit-chain.md',
   'guides/authentication': 'guides/authentication.md',
   'guides/billing': 'guides/billing.md',
   'guides/collections': 'guides/collections.md',
   'guides/deployment': 'guides/deployment.md',
   'guides/quick-start': 'guides/quick-start.md',
   'guides/readme': 'guides/README.md',
+  'guides/technology-stack': 'guides/technology-stack.md',
   'harness-protocol': 'HARNESS_PROTOCOL.md',
   index: 'INDEX.md',
   joshua: 'JOSHUA.md',

@@ -24,12 +24,14 @@ const {
   mockSubscriptionsCancel,
   mockInvoicesRetrieve,
   mockPaymentIntentsRetrieve,
+  mockChargesRetrieve,
 } = vi.hoisted(() => ({
   mockConstructEvent: vi.fn(),
   mockSubscriptionsRetrieve: vi.fn(),
   mockSubscriptionsCancel: vi.fn(),
   mockInvoicesRetrieve: vi.fn(),
   mockPaymentIntentsRetrieve: vi.fn(),
+  mockChargesRetrieve: vi.fn(),
 }));
 
 vi.mock('stripe', () => ({
@@ -44,6 +46,9 @@ vi.mock('stripe', () => ({
       };
       invoices = {
         retrieve: mockInvoicesRetrieve,
+      };
+      charges = {
+        retrieve: mockChargesRetrieve,
       };
       paymentIntents = {
         retrieve: mockPaymentIntentsRetrieve,
@@ -64,7 +69,7 @@ vi.mock('@revealui/services', () => ({
       list: vi.fn().mockResolvedValue({ data: [] }),
     },
     customers: { update: vi.fn() },
-    charges: { retrieve: vi.fn() },
+    charges: { retrieve: mockChargesRetrieve },
     invoices: { retrieve: mockInvoicesRetrieve },
     paymentIntents: { retrieve: mockPaymentIntentsRetrieve },
   },
@@ -969,5 +974,287 @@ describe('webhook integration  -  claim/complete idempotency (PR3)', () => {
       .from(agentCreditBalance)
       .where(eq(agentCreditBalance.userId, 'user-credit-idem'));
     expect(bal[0].balance).toBe(500); // not 1000
+  });
+});
+
+// S2: refund + chargeback revocation must be scoped to the affected
+// subscription, not every license the customer holds. Falls back to the prior
+// (broader) behavior only when the charge cannot be traced to a subscription.
+describe('webhook integration  -  refund/dispute revoke scoping (S2)', () => {
+  it('charge.refunded revokes ONLY the refunded subscription, not the customer other subscriptions', async () => {
+    await seedTestUser(testDb.drizzle, { id: 'user-s2-refund', email: 's2refund@example.com' });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_s2_refund' })
+      .where(eq(users.id, 'user-s2-refund'));
+
+    // Two active subscription licenses for the SAME customer + one perpetual.
+    await testDb.drizzle.insert(licenses).values([
+      {
+        id: 'lic-s2-subA',
+        userId: 'user-s2-refund',
+        licenseKey: 'subA-key',
+        tier: 'pro',
+        customerId: 'cus_s2_refund',
+        subscriptionId: 'sub_A',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2-subB',
+        userId: 'user-s2-refund',
+        licenseKey: 'subB-key',
+        tier: 'max',
+        customerId: 'cus_s2_refund',
+        subscriptionId: 'sub_B',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2-perp',
+        userId: 'user-s2-refund',
+        licenseKey: 'perp-key',
+        tier: 'pro',
+        customerId: 'cus_s2_refund',
+        subscriptionId: null,
+        status: 'active',
+        perpetual: true,
+      },
+    ]);
+
+    mockPaymentIntentsRetrieve.mockResolvedValueOnce({ id: 'pi_s2_refund', metadata: {} });
+    // Charge → Invoice → Subscription resolves to sub_A only.
+    mockInvoicesRetrieve.mockResolvedValueOnce({
+      id: 'in_s2_refund',
+      parent: { subscription_details: { subscription: 'sub_A' } },
+    });
+    mockSubscriptionsCancel.mockResolvedValueOnce({ id: 'sub_A', status: 'canceled' });
+
+    const event = makeStripeEvent('charge.refunded', {
+      id: 'ch_s2_refund',
+      customer: 'cus_s2_refund',
+      payment_intent: 'pi_s2_refund',
+      invoice: 'in_s2_refund',
+      amount: 4900,
+      amount_refunded: 4900,
+      currency: 'usd',
+      billing_details: { email: 's2refund@example.com' },
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const rows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_s2_refund'));
+    const byId = new Map(rows.map((r) => [r.id, r.status]));
+    expect(byId.get('lic-s2-subA')).toBe('revoked'); // the refunded subscription
+    expect(byId.get('lic-s2-subB')).toBe('active'); // the OTHER subscription — preserved
+    expect(byId.get('lic-s2-perp')).toBe('active'); // perpetual — preserved
+    // Only the resolved subscription is canceled in Stripe.
+    expect(mockSubscriptionsCancel).toHaveBeenCalledWith('sub_A', {
+      invoice_now: false,
+      prorate: false,
+    });
+  });
+
+  it('charge.refunded falls back to all non-perpetual licenses when the subscription is unresolvable', async () => {
+    await seedTestUser(testDb.drizzle, { id: 'user-s2-fb', email: 's2fb@example.com' });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_s2_fb' })
+      .where(eq(users.id, 'user-s2-fb'));
+
+    await testDb.drizzle.insert(licenses).values([
+      {
+        id: 'lic-s2fb-subA',
+        userId: 'user-s2-fb',
+        licenseKey: 'fa-key',
+        tier: 'pro',
+        customerId: 'cus_s2_fb',
+        subscriptionId: 'sub_FA',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2fb-subB',
+        userId: 'user-s2-fb',
+        licenseKey: 'fb-key',
+        tier: 'pro',
+        customerId: 'cus_s2_fb',
+        subscriptionId: 'sub_FB',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2fb-perp',
+        userId: 'user-s2-fb',
+        licenseKey: 'fp-key',
+        tier: 'pro',
+        customerId: 'cus_s2_fb',
+        subscriptionId: null,
+        status: 'active',
+        perpetual: true,
+      },
+    ]);
+
+    mockPaymentIntentsRetrieve.mockResolvedValueOnce({ id: 'pi_s2_fb', metadata: {} });
+    // No invoice on the charge → subscription unresolvable → fallback.
+
+    const event = makeStripeEvent('charge.refunded', {
+      id: 'ch_s2_fb',
+      customer: 'cus_s2_fb',
+      payment_intent: 'pi_s2_fb',
+      invoice: null,
+      amount: 4900,
+      amount_refunded: 4900,
+      currency: 'usd',
+      billing_details: { email: 's2fb@example.com' },
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const rows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_s2_fb'));
+    const byId = new Map(rows.map((r) => [r.id, r.status]));
+    // Fallback: ALL non-perpetual revoked, perpetual preserved.
+    expect(byId.get('lic-s2fb-subA')).toBe('revoked');
+    expect(byId.get('lic-s2fb-subB')).toBe('revoked');
+    expect(byId.get('lic-s2fb-perp')).toBe('active');
+    // No subscription resolved → no Stripe invoice lookup / cancel.
+    expect(mockInvoicesRetrieve).not.toHaveBeenCalled();
+    expect(mockSubscriptionsCancel).not.toHaveBeenCalled();
+  });
+
+  it('charge.dispute.closed (lost) revokes ONLY the disputed subscription when resolvable', async () => {
+    await seedTestUser(testDb.drizzle, { id: 'user-s2-dispute', email: 's2dispute@example.com' });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_s2_dispute' })
+      .where(eq(users.id, 'user-s2-dispute'));
+
+    await testDb.drizzle.insert(licenses).values([
+      {
+        id: 'lic-s2d-subA',
+        userId: 'user-s2-dispute',
+        licenseKey: 'da-key',
+        tier: 'pro',
+        customerId: 'cus_s2_dispute',
+        subscriptionId: 'sub_DA',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2d-subB',
+        userId: 'user-s2-dispute',
+        licenseKey: 'db-key',
+        tier: 'pro',
+        customerId: 'cus_s2_dispute',
+        subscriptionId: 'sub_DB',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2d-perp',
+        userId: 'user-s2-dispute',
+        licenseKey: 'dp-key',
+        tier: 'pro',
+        customerId: 'cus_s2_dispute',
+        subscriptionId: null,
+        status: 'active',
+        perpetual: true,
+      },
+    ]);
+
+    // Charge → customer + invoice; invoice → sub_DA.
+    mockChargesRetrieve.mockResolvedValueOnce({
+      id: 'ch_s2_dispute',
+      customer: 'cus_s2_dispute',
+      invoice: 'in_s2_dispute',
+    });
+    mockInvoicesRetrieve.mockResolvedValueOnce({
+      id: 'in_s2_dispute',
+      parent: { subscription_details: { subscription: 'sub_DA' } },
+    });
+
+    const event = makeStripeEvent('charge.dispute.closed', {
+      id: 'dp_s2_dispute',
+      status: 'lost',
+      charge: 'ch_s2_dispute',
+      amount: 4900,
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const rows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_s2_dispute'));
+    const byId = new Map(rows.map((r) => [r.id, r.status]));
+    expect(byId.get('lic-s2d-subA')).toBe('revoked'); // the disputed subscription
+    expect(byId.get('lic-s2d-subB')).toBe('active'); // the OTHER subscription — preserved
+    expect(byId.get('lic-s2d-perp')).toBe('active'); // perpetual — preserved
+  });
+
+  it('charge.dispute.closed (lost) falls back to all licenses when the subscription is unresolvable', async () => {
+    await seedTestUser(testDb.drizzle, { id: 'user-s2-dfb', email: 's2dfb@example.com' });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_s2_dfb' })
+      .where(eq(users.id, 'user-s2-dfb'));
+
+    await testDb.drizzle.insert(licenses).values([
+      {
+        id: 'lic-s2dfb-subA',
+        userId: 'user-s2-dfb',
+        licenseKey: 'dfa-key',
+        tier: 'pro',
+        customerId: 'cus_s2_dfb',
+        subscriptionId: 'sub_DFA',
+        status: 'active',
+        perpetual: false,
+      },
+      {
+        id: 'lic-s2dfb-perp',
+        userId: 'user-s2-dfb',
+        licenseKey: 'dfp-key',
+        tier: 'pro',
+        customerId: 'cus_s2_dfb',
+        subscriptionId: null,
+        status: 'active',
+        perpetual: true,
+      },
+    ]);
+
+    // Charge has a customer but no invoice → subscription unresolvable → fallback.
+    mockChargesRetrieve.mockResolvedValueOnce({
+      id: 'ch_s2_dfb',
+      customer: 'cus_s2_dfb',
+      invoice: null,
+    });
+
+    const event = makeStripeEvent('charge.dispute.closed', {
+      id: 'dp_s2_dfb',
+      status: 'lost',
+      charge: 'ch_s2_dfb',
+      amount: 4900,
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const rows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_s2_dfb'));
+    const byId = new Map(rows.map((r) => [r.id, r.status]));
+    // Conservative fallback for a chargeback: ALL licenses revoked, incl. perpetual.
+    expect(byId.get('lic-s2dfb-subA')).toBe('revoked');
+    expect(byId.get('lic-s2dfb-perp')).toBe('revoked');
   });
 });

@@ -107,6 +107,8 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
         { label: 'Open Source & Pro', path: '/blog/06-open-source-and-pro' },
         { label: 'Agent-First Future', path: '/blog/07-agent-first-future' },
         { label: 'Getting Started in About 30 Minutes', path: '/blog/08-getting-started' },
+        { label: '59 Components, One Dependency', path: '/blog/09-component-library' },
+        { label: 'Your Database, Your Storage, Your Sync', path: '/blog/10-own-your-data' },
       ],
     },
     {
