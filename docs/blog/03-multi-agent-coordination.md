@@ -222,4 +222,4 @@ The `@revealui/harnesses` package is part of RevealUI Pro. The protocol itself  
 
 ---
 
-*RevealUI is the open runtime for AI-native businesses. [revealui.com](https://revealui.com)*
+*RevealUI is the open runtime for businesses that run their own AI. [revealui.com](https://revealui.com)*
