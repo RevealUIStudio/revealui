@@ -26,8 +26,8 @@
     "@types/react-dom": "catalog:",
     "@revealui/dev": "workspace:*",
     "hono": "^4.12.23",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
