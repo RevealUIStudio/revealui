@@ -29,7 +29,7 @@ export interface LicensePeer {
   readonly url: string;
 }
 
-export const FAIR_SOURCE_PAGE_TITLE = 'Fair Source — RevealUI';
+export const FAIR_SOURCE_PAGE_TITLE = 'Fair Source | RevealUI';
 
 export const FAIR_SOURCE_HERO = {
   eyebrow: 'License contract for the Pro packages',
@@ -60,7 +60,7 @@ export const FAIR_SOURCE_CONTRACT_CARDS: readonly ContractCard[] = [
   {
     kind: 'yes',
     title: 'Read and modify the source',
-    body: 'Every line is on GitHub. Fork it, patch it, audit it for security. The source is the source of truth — there is no closed binary hiding behind it.',
+    body: 'Every line is on GitHub. Fork it, patch it, audit it for security. The source is the source of truth. There is no closed binary hiding behind it.',
   },
   {
     kind: 'yes',
@@ -79,10 +79,10 @@ export const FAIR_SOURCE_PACKAGES_SECTION = {
   heading: 'Which RevealUI packages are Fair Source.',
   body: {
     prefix:
-      'Five packages carry FSL-1.1-MIT — the four published to npm are listed below, plus the private',
+      'Five packages carry FSL-1.1-MIT: the four published to npm are listed below, plus the private',
     privatePackage: '@revealui/engines',
     suffix:
-      'workspace package. Every other RevealUI package is plain MIT — no non-compete, no time limit, fully open source.',
+      'workspace package. Every other RevealUI package is plain MIT: no non-compete, no time limit, fully open source.',
   },
   footer: {
     prefix: "Looking for a specific package's license? Run",
@@ -108,14 +108,14 @@ export const FAIR_SOURCE_PACKAGES: readonly FslPackage[] = [
   },
   {
     name: '@revealui/mcp',
-    purpose: 'MCP framework — server hypervisor, adapter pattern, tool discovery',
+    purpose: 'MCP framework: server hypervisor, adapter pattern, tool discovery',
     license: 'FSL-1.1-MIT',
     repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp',
     npm: 'https://www.npmjs.com/package/@revealui/mcp',
   },
   {
     name: '@revealui/services',
-    purpose: 'External service integrations — Stripe, Solana, Vercel',
+    purpose: 'External service integrations: Stripe, Solana, Vercel',
     license: 'FSL-1.1-MIT',
     repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/services',
     npm: 'https://www.npmjs.com/package/@revealui/services',
@@ -125,7 +125,7 @@ export const FAIR_SOURCE_PACKAGES: readonly FslPackage[] = [
 export const FAIR_SOURCE_CLOCK_SECTION = {
   eyebrow: 'The two-year clock',
   heading: 'Every release auto-converts to MIT.',
-  body: "The 2-year timer starts on each release's publish date. Older releases reach MIT first; newer releases start their own clock from their own publish date. The clause does not require any action from RevealUI Studio — it is in the license text and self-executing.",
+  body: "The 2-year timer starts on each release's publish date. Older releases reach MIT first; newer releases start their own clock from their own publish date. The clause does not require any action from RevealUI Studio. It is in the license text and self-executing.",
   steps: [
     {
       title: 'Release publishes under FSL-1.1-MIT',
@@ -177,11 +177,11 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'Is Fair Source open source?',
     answer:
-      'Not in the OSI-approved sense — the non-compete clause means it is "source-available" rather than "open source." But for almost every practical purpose (read, modify, deploy, charge for products built on top), the freedoms match what most builders need from open source. After two years per release, the clause lifts and the code becomes plain MIT, which IS OSI open source.',
+      'Not in the OSI-approved sense: the non-compete clause means it is "source-available" rather than "open source." But for almost every practical purpose (read, modify, deploy, charge for products built on top), the freedoms match what most builders need from open source. After two years per release, the clause lifts and the code becomes plain MIT, which IS OSI open source.',
   },
   {
     question: 'What counts as a "competing developer platform"?',
-    answer: `The license uses the standard FSL definition: a software product with substantially the same functionality as RevealUI that is offered to the same audience as a developer platform. Building a SaaS app for end users that happens to use @revealui/ai under the hood is fine. Building a marketplace for AI-agent tooling on top of @revealui/harnesses and selling it to developers is the case the clause addresses. If you are unsure, email ${SITE.emails.founder} — we would rather you ship than worry.`,
+    answer: `The license uses the standard FSL definition: a software product with substantially the same functionality as RevealUI that is offered to the same audience as a developer platform. Building a SaaS app for end users that happens to use @revealui/ai under the hood is fine. Building a marketplace for AI-agent tooling on top of @revealui/harnesses and selling it to developers is the case the clause addresses. If you are unsure, email ${SITE.emails.founder}. We would rather you ship than worry.`,
   },
   {
     question: 'When exactly does each release convert to MIT?',
@@ -196,12 +196,12 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'How is the Pro tier enforced if the source is visible?',
     answer:
-      'License enforcement is at runtime in the hosted product, not baked into the npm packages. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection — the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
+      'License enforcement is at runtime in the hosted product, not baked into the npm packages. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection: the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
   },
   {
     question: 'What about the rest of the RevealUI packages?',
     answer:
-      'Every other RevealUI package is plain MIT — no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
+      'Every other RevealUI package is plain MIT: no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
   },
 ];
 
