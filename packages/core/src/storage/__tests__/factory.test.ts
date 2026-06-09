@@ -1,21 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-
-// Stub @aws-sdk/client-s3 so createR2Provider can construct the S3Client
-// without touching network / requiring real creds.
-vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: class {
-    constructor(_args: unknown) {}
-  },
-  PutObjectCommand: class {
-    constructor(public input: unknown) {}
-  },
-  DeleteObjectCommand: class {
-    constructor(public input: unknown) {}
-  },
-  ListObjectsV2Command: class {
-    constructor(public input: unknown) {}
-  },
-}));
+import { describe, expect, it } from 'vitest';
 
 import { createStorage } from '../index.js';
 import type { StorageConfig } from '../types.js';
