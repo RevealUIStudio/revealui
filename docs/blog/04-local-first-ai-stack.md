@@ -4,12 +4,7 @@ description: "*By Joshua Vaughn - RevealUI Studio*"
 visibility: public
 status: narrative
 audience: user
----
-
-# The Air-Gap-Capable Business Runtime
-
-*By Joshua Vaughn  -  RevealUI Studio*
-
+author: Joshua Vaughn
 ---
 
 Most software companies accept a particular bargain without thinking about it: your secrets live in someone else's vault, your AI calls someone else's API, and your dev environment is a pile of global installs that one `npm install -g` can break.

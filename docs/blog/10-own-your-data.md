@@ -4,12 +4,7 @@ description: "*By Joshua Vaughn, RevealUI Studio*"
 visibility: public
 status: narrative
 audience: user
----
-
-# Your Database, Your Storage, Your Sync
-
-*By Joshua Vaughn, RevealUI Studio*
-
+author: Joshua Vaughn
 ---
 
 Most "modern data stacks" charge a quiet tax: lock-in. The database speaks a proprietary dialect, so your queries do not move. The file storage is a vendor blob API with no standard underneath, so your uploads do not move. Real-time sync is a separate SaaS you wire in by hand, so your live data lives somewhere you do not control. Each choice is reasonable on its own. Together they mean that the day you want to leave, you cannot.

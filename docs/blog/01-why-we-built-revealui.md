@@ -4,12 +4,7 @@ description: "*By Joshua Vaughn — RevealUI Studio*"
 visibility: public
 status: narrative
 audience: user
----
-
-# Why I Built RevealUI (and Open-Sourced It)
-
-*By Joshua Vaughn — RevealUI Studio*
-
+author: Joshua Vaughn
 ---
 
 I've started three software companies. Each time, I spent the first three to six months building the same thing: user authentication, a content management system, billing integration, an admin dashboard, role-based access control. The actual product — the thing that made the company worth existing — didn't get serious development time until month four at the earliest.
