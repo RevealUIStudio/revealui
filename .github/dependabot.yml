@@ -43,7 +43,6 @@ updates:
           - "vite"
           - "@vitejs/*"
           - "postcss"
-          - "framer-motion"
           - "three"
         update-types:
           - "minor"

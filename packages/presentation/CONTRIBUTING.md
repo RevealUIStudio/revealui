@@ -52,7 +52,7 @@ Every shipped component must meet **WCAG 2.1 AA** at minimum:
 - **Keyboard navigation** — every interactive control reachable via Tab, operable via Enter/Space (or component-appropriate keys). No tab traps unless inside a modal/disclosure.
 - **ARIA** — use the right role and aria-* attributes. Prefer native semantics (`<button>`, `<details>`, `<dialog>`) over re-implementing with divs.
 - **Focus visibility** — focus ring must be visible at default contrast. The base `Button` uses `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`; match that pattern.
-- **Reduced motion** — animations respect `prefers-reduced-motion`. Use the `useReducedMotion` hook from `./hooks` or the matching media query.
+- **Reduced motion** — animations respect `prefers-reduced-motion`. Use the `useReducedMotion` hook from `@revealui/presentation/animations` (it gates the `useSpring` / `useAnimation` / `useStagger` / `usePresence` hooks automatically) or the matching media query.
 
 Document which of these you tested in the showcase's `a11y` field (see step 5).
 

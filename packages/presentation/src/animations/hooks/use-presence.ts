@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from './use-reduced-motion.js';
 
 interface PresenceState {
   /** Whether the element should be rendered in the DOM */
@@ -45,8 +46,20 @@ export function usePresence(show: boolean, exitDuration = 200): PresenceState {
   const [present, setPresent] = useState(show);
   const nodeRef = useRef<HTMLElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
+    // Reduced motion: mount/unmount instantly with no enter/exit transition.
+    if (reduce) {
+      if (show) {
+        setMounted(true);
+        setPresent(true);
+      } else {
+        setPresent(false);
+        setMounted(false);
+      }
+      return;
+    }
     if (show) {
       // Mount immediately, then set present on next frame for CSS transition
       setMounted(true);
@@ -92,7 +105,7 @@ export function usePresence(show: boolean, exitDuration = 200): PresenceState {
         if (timerRef.current) clearTimeout(timerRef.current);
       };
     }
-  }, [show, exitDuration]);
+  }, [show, exitDuration, reduce]);
 
   const ref = (node: HTMLElement | null) => {
     nodeRef.current = node;

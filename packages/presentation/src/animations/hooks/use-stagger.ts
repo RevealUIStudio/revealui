@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useReducedMotion } from './use-reduced-motion.js';
 
 export interface StaggerConfig {
   /** Delay between each item in milliseconds (default: 50) */
@@ -34,9 +35,14 @@ export interface StaggerConfig {
 export function useStagger(count: number, config?: StaggerConfig): number[] {
   const delay = config?.delay ?? 50;
   const direction = config?.direction ?? 'forward';
+  const reduce = useReducedMotion();
 
   return useMemo(() => {
+    // Reduced motion: no stagger — every item appears together.
+    if (reduce) {
+      return Array.from({ length: count }, () => 0);
+    }
     const delays = Array.from({ length: count }, (_, i) => i * delay);
     return direction === 'reverse' ? delays.reverse() : delays;
-  }, [count, delay, direction]);
+  }, [count, delay, direction, reduce]);
 }

@@ -8,6 +8,7 @@ import {
   type SpringPreset,
   stepSpring,
 } from '../core/spring.js';
+import { useReducedMotion } from './use-reduced-motion.js';
 
 interface SpringOptions {
   /** Spring configuration or preset name */
@@ -38,6 +39,9 @@ interface SpringValue {
  */
 export function useSpring(target: number, options?: SpringOptions): SpringValue {
   const config = resolveSpringConfig(options?.config);
+  const reduce = useReducedMotion();
+  // Reduced motion collapses the spring straight to its target, no transition.
+  const immediate = (options?.immediate ?? false) || reduce;
   const stateRef = useRef({ value: target, velocity: 0, animating: false });
   const targetRef = useRef(target);
   const configRef = useRef(config);
@@ -66,7 +70,7 @@ export function useSpring(target: number, options?: SpringOptions): SpringValue 
   useEffect(() => {
     targetRef.current = target;
 
-    if (options?.immediate) {
+    if (immediate) {
       stateRef.current = { value: target, velocity: 0, animating: false };
       cleanupRef.current?.();
       cleanupRef.current = null;
@@ -106,7 +110,7 @@ export function useSpring(target: number, options?: SpringOptions): SpringValue 
       cleanupRef.current?.();
       cleanupRef.current = null;
     };
-  }, [target, options?.immediate, notify]);
+  }, [target, immediate, notify]);
 
   const set = useCallback(
     (value: number) => {
