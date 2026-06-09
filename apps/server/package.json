@@ -19,7 +19,7 @@
     "@revealui/security": "workspace:*",
     "@sentry/node": "^10.56.0",
     "drizzle-orm": "catalog:",
-    "hono": "4.12.23",
+    "hono": "4.12.25",
     "jose": "catalog:",
     "lib0": "^0.2.117",
     "pg": "catalog:",
