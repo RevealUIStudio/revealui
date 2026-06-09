@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1063.0",
-    "@electric-sql/pglite": "^0.5.1",
+    "@electric-sql/pglite": "catalog:",
     "@lexical/clipboard": "^0.45.0",
     "@lexical/code": "^0.45.0",
     "@lexical/html": "^0.45.0",
@@ -25,10 +25,10 @@
     "@vercel/blob": "^2.3.3",
     "bcryptjs": "catalog:",
     "dataloader": "^2.2.3",
-    "jose": "^6.2.3",
+    "jose": "catalog:",
     "lexical": "^0.45.0",
     "pg": "catalog:",
-    "yjs": "^13.6.31",
+    "yjs": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
