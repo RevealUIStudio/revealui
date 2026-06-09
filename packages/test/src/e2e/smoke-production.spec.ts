@@ -64,7 +64,7 @@ test.describe('Production Smoke Tests', () => {
     // Verify dollar amounts are rendered on the page
     expect(pageText).toContain('$0');
     expect(pageText).toContain('$49');
-    expect(pageText).toContain('$149');
+    expect(pageText).toContain('$299');
   });
 
   test('signup redirect flow and login page @smoke', async ({ page }) => {

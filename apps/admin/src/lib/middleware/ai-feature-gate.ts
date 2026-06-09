@@ -30,7 +30,7 @@ export function checkAIFeatureGate(): NextResponse | null {
 
 /**
  * Returns a 403 NextResponse if AI Memory features are not enabled (no Max license).
- * AI Memory routes (episodic, working, context, vector search) require Max ($149/mo),
+ * AI Memory routes (episodic, working, context, vector search) require Max ($299/mo),
  * not Pro ($49/mo).
  * Bypassed in development mode.
  */
