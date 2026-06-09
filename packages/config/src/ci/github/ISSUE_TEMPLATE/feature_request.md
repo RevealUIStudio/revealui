@@ -1,4 +1,8 @@
 ---
+description: "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]"
+visibility: internal
+status: verified
+audience: maintainer
 name: Feature Request
 about: Suggest an idea for RevealUI
 title: '[FEATURE] '

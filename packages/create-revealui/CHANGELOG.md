@@ -1,3 +1,11 @@
+---
+title: "create-revealui"
+description: "New `revealui terminal install` and `revealui terminal list` commands that auto-detect"
+visibility: public
+status: narrative
+audience: user
+---
+
 # create-revealui
 
 ## 0.5.8

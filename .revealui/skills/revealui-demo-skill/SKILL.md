@@ -1,4 +1,8 @@
 ---
+title: "RevealUI Demo Skill"
+visibility: internal
+status: verified
+audience: agent
 name: revealui-demo-skill
 description: Demo skill showcasing RevealUI's skills system integration
 version: "0.1.0"

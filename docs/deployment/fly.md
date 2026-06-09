@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: Fly.io Deployment — apps/server Worker
 description: Deploy + secrets workflow for the apps/server long-running worker on Fly.io.
 category: deployment

@@ -1,4 +1,7 @@
 ---
+description: "This document tracks progress toward SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required for Enterprise tier customers."
+visibility: internal
+audience: maintainer
 title: SOC2 Type II Audit Track
 status: planning
 owner: RevealUI Studio

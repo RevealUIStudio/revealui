@@ -1,3 +1,11 @@
+---
+title: "Authentication Load & Performance Tests"
+description: "Load testing and performance testing for the RevealUI authentication system."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Authentication Load & Performance Tests
 
 Load testing and performance testing for the RevealUI authentication system.

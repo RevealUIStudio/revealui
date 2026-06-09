@@ -1,4 +1,8 @@
 ---
+title: "RevealUI TypeScript Quality Standards"
+visibility: internal
+status: verified
+audience: agent
 name: revealui-typescript-quality
 description: TypeScript best practices to eliminate 267 any types and improve code quality
 version: "0.1.0"

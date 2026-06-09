@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "RevSkills"
 description: "Curated Agent Skills for modern web development. Compatible with Claude Code, Cursor, and any tool supporting the Agent Skills standard."
 category: fleet

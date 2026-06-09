@@ -1,4 +1,8 @@
 ---
+title: "RevealUI React 19 & Next.js 16 Patterns"
+visibility: internal
+status: verified
+audience: agent
 name: revealui-react-nextjs-patterns
 description: React 19 and Next.js 16 best practices for RevealUI development
 version: "0.1.0"

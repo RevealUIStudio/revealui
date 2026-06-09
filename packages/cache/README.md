@@ -1,3 +1,11 @@
+---
+title: "@revealui/cache"
+description: "Caching infrastructure for RevealUI applications. Provides CDN cache configuration, edge cache helpers, ISR presets, tag-based revalidation, and rate limiting at the edge."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/cache
 
 Caching infrastructure for RevealUI applications. Provides CDN cache configuration, edge cache helpers, ISR presets, tag-based revalidation, and rate limiting at the edge.

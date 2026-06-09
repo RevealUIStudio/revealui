@@ -1,3 +1,11 @@
+---
+title: "Cross-Tool Validation Prompts"
+description: "Test these prompts in any AI coding tool to verify it follows RevealUI conventions. Each prompt has an expected behavior - the tool should match it without being told the rule e..."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Cross-Tool Validation Prompts
 
 Test these prompts in any AI coding tool to verify it follows RevealUI conventions. Each prompt has an expected behavior  -  the tool should match it without being told the rule explicitly.

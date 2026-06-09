@@ -1,3 +1,11 @@
+---
+title: "Alert Integration Guide"
+description: "Complete guide to using the RevealUI alert system with request context and Sentry integration."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Alert Integration Guide
 
 Complete guide to using the RevealUI alert system with request context and Sentry integration.

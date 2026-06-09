@@ -1,3 +1,11 @@
+---
+title: "Open Source + Pro: How We Think About Monetization"
+description: "RevealUI is open source today; the commercial side is pre-launch. Before we talk about features or roadmaps, I want to be completely transparent about how we plan to make money,..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # Open Source + Pro: How We Think About Monetization
 
 RevealUI is open source today; the commercial side is pre-launch. Before we talk about features or roadmaps, I want to be completely transparent about how we plan to make money, what's free, what's paid, and why.

@@ -1,3 +1,11 @@
+---
+title: "Testing Guide for AI Package"
+description: "⚠️ **Important**: This package has known testing limitations due to Drizzle/Neon compatibility workarounds."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Testing Guide for AI Package
 
 ## Table of Contents

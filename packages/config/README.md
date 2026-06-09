@@ -1,3 +1,11 @@
+---
+title: "@revealui/config"
+description: "Environment configuration management for RevealUI - type-safe environment variables with Zod validation."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/config
 
 Environment configuration management for RevealUI - type-safe environment variables with Zod validation.

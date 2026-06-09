@@ -1,3 +1,11 @@
+---
+title: "Your Database, Your Storage, Your Sync"
+description: "*By Joshua Vaughn, RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Your Database, Your Storage, Your Sync
 
 *By Joshua Vaughn, RevealUI Studio*

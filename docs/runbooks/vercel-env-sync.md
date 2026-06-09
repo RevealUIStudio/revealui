@@ -1,3 +1,11 @@
+---
+title: "Vercel env sync — operator runbook"
+description: "`revvault` is the canonical store for every Vercel-runtime secret in this monorepo. This runbook covers the day-to-day workflow."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Vercel env sync — operator runbook
 
 `revvault` is the canonical store for every Vercel-runtime secret in this monorepo. This runbook covers the day-to-day workflow.

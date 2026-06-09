@@ -1,3 +1,11 @@
+---
+title: "Scripts Architecture"
+description: "This document describes the architecture of the consolidated scripts infrastructure after the Phase 1-4 consolidation effort."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Scripts Architecture
 
 ## Consolidated Module Structure

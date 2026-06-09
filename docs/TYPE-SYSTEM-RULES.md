@@ -1,3 +1,11 @@
+---
+title: "Type System Rules & Enforcement"
+description: "**Status**: 🔒 **CRITICAL RULE** - Must be followed by all developers and AI agents"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Type System Rules & Enforcement
 
 **Status**: 🔒 **CRITICAL RULE** - Must be followed by all developers and AI agents

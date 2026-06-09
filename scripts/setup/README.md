@@ -1,3 +1,11 @@
+---
+title: "Setup Scripts"
+description: "Essential scripts for initializing and configuring RevealUI development and production environments."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Setup Scripts
 
 Essential scripts for initializing and configuring RevealUI development and production environments.

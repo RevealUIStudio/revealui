@@ -1,3 +1,11 @@
+---
+title: "ADR: Deployment Target — Vercel + Forge Docker, not Kubernetes"
+description: "**Date:** 2026-05-08"
+visibility: public
+status: verified
+audience: user
+---
+
 # ADR: Deployment Target — Vercel + Forge Docker, not Kubernetes
 
 **Date:** 2026-05-08

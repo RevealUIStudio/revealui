@@ -1,4 +1,6 @@
 ---
+visibility: internal
+audience: maintainer
 title: Backup Restore Verification Procedure
 description: Quarterly restore drill procedures, RTO/RPO targets, and verification checklists for all RevealUI data stores. Supports SOC2 compliance (CC6.1, CC7.5, A1.2, A1.3).
 last-updated: 2026-05-29

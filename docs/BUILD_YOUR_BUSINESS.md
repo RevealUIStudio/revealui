@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Build Your First Business"
 description: "Step-by-step tutorial for building a software product with RevealUI"
 category: tutorial

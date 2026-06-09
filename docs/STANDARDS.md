@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "Code Standards"
 description: "Code style, formatting, Biome configuration, and naming conventions"
 category: guide

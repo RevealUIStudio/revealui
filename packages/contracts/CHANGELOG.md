@@ -1,3 +1,11 @@
+---
+title: "@revealui/contracts"
+description: "Breaking for any consumer importing the removed symbols (minor bumps under pre-1.0 SemVer)."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/contracts
 
 ## 0.6.0

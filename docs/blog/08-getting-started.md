@@ -1,3 +1,11 @@
+---
+title: "From Zero to Production in About 30 Minutes"
+description: "**Build a complete business application with auth, content, and payments - faster than you can order lunch.**"
+visibility: public
+status: narrative
+audience: user
+---
+
 # From Zero to Production in About 30 Minutes
 
 **Build a complete business application with auth, content, and payments  -  faster than you can order lunch.**

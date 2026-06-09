@@ -1,3 +1,11 @@
+---
+title: "Contributing to `@revealui/presentation`"
+description: "This is the package-level contribution guide for the design system. The repo-wide guide lives at the [root `CONTRIBUTING.md`](../../CONTRIBUTING.md) — read that first for genera..."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Contributing to `@revealui/presentation`
 
 This is the package-level contribution guide for the design system. The repo-wide guide lives at the [root `CONTRIBUTING.md`](../../CONTRIBUTING.md) — read that first for general repo conventions (type system, lint, error codes, commit style).

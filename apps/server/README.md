@@ -1,3 +1,11 @@
+---
+title: "RevealUI API"
+description: "Centralized backend API server for RevealUI - built with Hono."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI API
 
 Centralized backend API server for RevealUI  -  built with Hono.

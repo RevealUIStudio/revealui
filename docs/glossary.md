@@ -1,3 +1,11 @@
+---
+title: "RevealUI Glossary"
+description: "Canonical vocabulary across [RevFleet](#revfleet). This page is the single source of truth for cross-cutting terminology — agent, runtime, tier, harness, license, and the rest. ..."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI Glossary
 
 Canonical vocabulary across [RevFleet](#revfleet). This page is the single source of truth for cross-cutting terminology — agent, runtime, tier, harness, license, and the rest. When the same concept shows up across two products with different names, this page picks the one canonical name and points the others at it.

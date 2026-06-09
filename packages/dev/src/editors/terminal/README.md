@@ -1,3 +1,11 @@
+---
+title: "RevealUI Terminal Profiles"
+description: "Terminal emulator configurations with the RevealUI brand color scheme."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI Terminal Profiles
 
 Terminal emulator configurations with the RevealUI brand color scheme.

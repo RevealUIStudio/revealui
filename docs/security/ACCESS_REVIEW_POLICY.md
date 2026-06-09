@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Access Review Policy
 description: Quarterly access review cadence, review template, and audit records for SOC 2 compliance.
 last-updated: 2026-05-29

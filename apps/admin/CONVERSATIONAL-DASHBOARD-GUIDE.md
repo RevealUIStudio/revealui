@@ -1,3 +1,11 @@
+---
+title: "Conversational Dashboard - User Guide"
+description: "Your RevealUI admin dashboard now has AI-powered conversational control! You can manage your entire admin using natural language through text, speech, or images."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Conversational Dashboard - User Guide
 
 Your RevealUI admin dashboard now has AI-powered conversational control! You can manage your entire admin using natural language through text, speech, or images.

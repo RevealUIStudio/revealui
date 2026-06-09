@@ -1,3 +1,11 @@
+---
+title: "GitHub Actions Workflows"
+description: "**Triggers:** Push to `main`/`test`, pull requests targeting those branches. `feature/*` branches are local-only (no CI)."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # GitHub Actions Workflows
 
 ## Active Workflows

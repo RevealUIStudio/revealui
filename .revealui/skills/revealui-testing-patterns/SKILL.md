@@ -1,4 +1,8 @@
 ---
+title: "RevealUI Testing Patterns"
+visibility: internal
+status: verified
+audience: agent
 name: revealui-testing-patterns
 description: Testing patterns and best practices for RevealUI with Vitest
 version: "0.1.0"

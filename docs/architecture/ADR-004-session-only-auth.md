@@ -1,3 +1,11 @@
+---
+title: "ADR-004: Session-Only Authentication (No JWT)"
+description: "**Date:** 2026-04-08"
+visibility: public
+status: verified
+audience: user
+---
+
 # ADR-004: Session-Only Authentication (No JWT)
 
 **Date:** 2026-04-08

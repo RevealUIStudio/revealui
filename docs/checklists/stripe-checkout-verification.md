@@ -1,3 +1,11 @@
+---
+title: "Stripe Checkout Verification Checklist"
+description: "Complete each flow end-to-end in **test mode** before switching to live keys."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Stripe Checkout Verification Checklist
 
 Complete each flow end-to-end in **test mode** before switching to live keys.

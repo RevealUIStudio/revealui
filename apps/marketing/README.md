@@ -1,3 +1,11 @@
+---
+title: "marketing"
+description: "Public marketing site for RevealUI — homepage, blog, pricing, fair-source, contact, etc. Lives at `revealui.com` (and the `community.revealui.com` host redirects to GitHub Discu..."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # marketing
 
 Public marketing site for RevealUI — homepage, blog, pricing, fair-source, contact, etc. Lives at `revealui.com` (and the `community.revealui.com` host redirects to GitHub Discussions via `vercel.json`).

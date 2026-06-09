@@ -1,3 +1,11 @@
+---
+title: "@revealui/core"
+description: "When a collection's `access.read/update/delete` returns a `WhereClause` (the"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/core
 
 ## 0.9.0

@@ -1,3 +1,11 @@
+---
+title: "RevealUI brand assets"
+description: "Canonical SVG masters for the RevealUI identity (Cobalt v4 design language)."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI brand assets
 
 Canonical SVG masters for the RevealUI identity (Cobalt v4 design language).

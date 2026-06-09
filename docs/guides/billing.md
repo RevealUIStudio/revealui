@@ -1,3 +1,11 @@
+---
+title: "Billing"
+description: "RevealUI integrates with Stripe for checkout, subscriptions, and billing portal. The billing system uses account-level subscriptions with metered usage for AI and agent features."
+visibility: public
+status: verified
+audience: user
+---
+
 # Billing
 
 RevealUI integrates with Stripe for checkout, subscriptions, and billing portal. The billing system uses account-level subscriptions with metered usage for AI and agent features.

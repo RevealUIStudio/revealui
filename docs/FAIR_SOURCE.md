@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Fair Source"
 description: "How RevealUI Pro packages are licensed under FSL-1.1-MIT, what you can and cannot do with them, and how each release auto-converts to plain MIT after two years."
 category: reference

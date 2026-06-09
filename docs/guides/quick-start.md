@@ -1,4 +1,7 @@
 ---
+visibility: public
+status: verified
+audience: user
 title: "Quick Start — Moved"
 description: "The quick-start guide is now maintained as a single canonical doc at docs/QUICK_START.md."
 category: redirect

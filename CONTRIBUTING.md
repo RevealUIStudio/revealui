@@ -1,3 +1,11 @@
+---
+title: "Contributing to RevealUI"
+description: "First off, thank you for considering contributing to RevealUI! It's people like you that make RevealUI such a great agentic business runtime."
+visibility: public
+status: verified
+audience: contributor
+---
+
 # Contributing to RevealUI
 
 First off, thank you for considering contributing to RevealUI! It's people like you that make RevealUI such a great agentic business runtime.

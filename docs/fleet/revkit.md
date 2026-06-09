@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "RevKit"
 description: "Portable WSL development environment toolkit. Profile-based bootstrap for a RevealUI Studio-grade workstation."
 category: fleet

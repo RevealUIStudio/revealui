@@ -1,3 +1,11 @@
+---
+title: "@revealui/paywall"
+description: "@revealui/paywall"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/paywall
 
 ## 0.1.2

@@ -1,3 +1,11 @@
+---
+title: "buildConfig"
+description: "The `buildConfig` function processes and validates RevealUI configuration using the unified contract system."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # buildConfig
 
 The `buildConfig` function processes and validates RevealUI configuration using the unified contract system.

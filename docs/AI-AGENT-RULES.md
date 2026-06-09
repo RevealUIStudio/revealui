@@ -1,3 +1,11 @@
+---
+title: "AI Agent Rules & Boundaries"
+description: "**Status**: 🤖 **MANDATORY FOR ALL AI ASSISTANTS**"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # AI Agent Rules & Boundaries
 
 **Status**: 🤖 **MANDATORY FOR ALL AI ASSISTANTS**

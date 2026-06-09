@@ -1,3 +1,11 @@
+---
+title: "E2E Testing Guide"
+description: "Comprehensive end-to-end testing for RevealUI with full-stack verification from browser interactions through API calls to database operations."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # E2E Testing Guide
 
 Comprehensive end-to-end testing for RevealUI with full-stack verification from browser interactions through API calls to database operations.

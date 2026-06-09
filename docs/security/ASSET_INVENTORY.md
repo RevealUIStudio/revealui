@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Asset Inventory
 description: Formal inventory of all services, data stores, third-party processors, and security tooling for SOC 2 compliance.
 last-updated: 2026-05-29

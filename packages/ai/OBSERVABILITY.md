@@ -1,3 +1,11 @@
+---
+title: "RevealUI AI Observability"
+description: "Comprehensive observability system for tracking agent operations, decisions, tool usage, and LLM calls."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI AI Observability
 
 Comprehensive observability system for tracking agent operations, decisions, tool usage, and LLM calls.

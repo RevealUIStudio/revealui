@@ -1,3 +1,11 @@
+---
+title: "Development Monitoring"
+description: "Process health monitoring utilities for RevealUI development workflow."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Development Monitoring
 
 Process health monitoring utilities for RevealUI development workflow.

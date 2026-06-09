@@ -1,3 +1,11 @@
+---
+title: "RevealUI Monorepo"
+description: "Agentic business runtime. Users, content, products, payments, and AI - pre-wired, open source, and ready to deploy."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # RevealUI Monorepo
 
 Agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.

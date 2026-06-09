@@ -1,3 +1,11 @@
+---
+title: "Coding Conventions"
+description: "Standards for TypeScript, git, and configuration in the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Coding Conventions
 
 Standards for TypeScript, git, and configuration in the RevealUI monorepo.

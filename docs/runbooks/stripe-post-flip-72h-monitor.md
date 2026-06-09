@@ -1,3 +1,11 @@
+---
+title: "Stripe Post-Flip 72h Monitor Runbook"
+description: "**Who:** On-call operator (founder during initial live phase)"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Stripe Post-Flip 72h Monitor Runbook
 
 **Who:** On-call operator (founder during initial live phase)

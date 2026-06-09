@@ -1,3 +1,11 @@
+---
+title: "Deployment"
+description: "RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-h..."
+visibility: public
+status: verified
+audience: user
+---
+
 # Deployment
 
 RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.

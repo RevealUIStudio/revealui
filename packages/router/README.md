@@ -1,3 +1,11 @@
+---
+title: "@revealui/router"
+description: "Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required - works with Vite, Hono, or any React setup."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/router
 
 Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required  -  works with Vite, Hono, or any React setup.

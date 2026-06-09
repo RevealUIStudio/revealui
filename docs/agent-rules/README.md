@@ -1,3 +1,11 @@
+---
+title: "Agent Rules"
+description: "Tool-agnostic convention files for AI-assisted development in the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Agent Rules
 
 Tool-agnostic convention files for AI-assisted development in the RevealUI monorepo.

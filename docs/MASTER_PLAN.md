@@ -1,4 +1,9 @@
 ---
+title: "RevealUI Master Plan"
+description: "**Last Updated:** 2026-05-01 (Current Reality block refreshed; numbering aligned to Phase 5)"
+visibility: internal
+status: verified
+audience: maintainer
 type: master-plan
 repo: revealui
 last-updated: 2026-05-01

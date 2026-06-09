@@ -1,3 +1,11 @@
+---
+title: "Vercel Skills Integration Implementation"
+description: "This document describes the implementation of Vercel Skills integration in RevealUI."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Vercel Skills Integration Implementation
 
 This document describes the implementation of Vercel Skills integration in RevealUI.

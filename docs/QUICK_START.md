@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Quick Start"
 description: "Get RevealUI running locally in 15-30 minutes"
 category: tutorial

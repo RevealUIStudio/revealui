@@ -1,3 +1,11 @@
+---
+title: "Why I Built RevealUI (and Open-Sourced It)"
+description: "*By Joshua Vaughn — RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Why I Built RevealUI (and Open-Sourced It)
 
 *By Joshua Vaughn — RevealUI Studio*

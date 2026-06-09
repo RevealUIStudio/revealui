@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "Marketing Metrics — Pinned Truth"
 description: "Single source of truth for every metric, count, and status claim used in the marketing app and public-facing copy. Updated when the code changes; validated by claim-drift CI gate."
 category: internal

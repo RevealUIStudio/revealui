@@ -1,3 +1,11 @@
+---
+title: "The Five Primitives of Business Software"
+description: "Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to ..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # The Five Primitives of Business Software
 
 > **Status note (updated 2026-05-26):** One forward-looking system mentioned in this post is not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`). Everything else described — auth, content, Stripe billing, MCP wiring, agent primitives — runs today. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current per-feature shipping status.

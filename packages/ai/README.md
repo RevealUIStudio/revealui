@@ -1,3 +1,11 @@
+---
+title: "@revealui/ai"
+description: "AI system for RevealUI - memory, LLM, orchestration, and tools."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/ai
 
 > **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.

@@ -1,3 +1,11 @@
+---
+title: "Paying for AI API Calls with HTTP 402 and USDC"
+description: "_By Joshua Vaughn - RevealUI Studio_"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Paying for AI API Calls with HTTP 402 and USDC
 
 _By Joshua Vaughn  -  RevealUI Studio_

@@ -1,3 +1,11 @@
+---
+title: "@revealui/db"
+description: "Database schemas and Drizzle ORM integration for RevealUI."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/db
 
 Database schemas and Drizzle ORM integration for RevealUI.

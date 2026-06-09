@@ -1,3 +1,11 @@
+---
+title: "Package Conventions"
+description: "Conventions for organizing packages in the RevealUI monorepo."
+visibility: public
+status: verified
+audience: contributor
+---
+
 # Package Conventions
 
 Conventions for organizing packages in the RevealUI monorepo.

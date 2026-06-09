@@ -1,3 +1,11 @@
+---
+title: "Semantic Caching for LLM Responses"
+description: "Up to **73% cost reduction** in published industry benchmarks (Redis blog, FAQ-style traffic) through meaning-based caching."
+visibility: public
+status: verified
+audience: user
+---
+
 # Semantic Caching for LLM Responses
 
 Up to **73% cost reduction** in published industry benchmarks (Redis blog, FAQ-style traffic) through meaning-based caching.

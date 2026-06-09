@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Change Management Policy
 description: Formal change management procedures covering code review, deployment approvals, rollback, and emergency changes for SOC 2 compliance.
 last-updated: 2026-05-29

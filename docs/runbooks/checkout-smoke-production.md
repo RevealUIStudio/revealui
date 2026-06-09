@@ -1,3 +1,11 @@
+---
+title: "Production Checkout Smoke Runbook"
+description: "**Who:** Owner / on-call operator (founder during initial live phase)"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Production Checkout Smoke Runbook
 
 **Who:** Owner / on-call operator (founder during initial live phase)

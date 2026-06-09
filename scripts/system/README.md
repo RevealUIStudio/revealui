@@ -1,3 +1,11 @@
+---
+title: "System Maintenance Scripts"
+description: "Scripts for maintaining system health, applying updates, and monitoring processes."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # System Maintenance Scripts
 
 Scripts for maintaining system health, applying updates, and monitoring processes.

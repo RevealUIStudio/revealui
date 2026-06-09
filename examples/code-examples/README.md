@@ -1,3 +1,11 @@
+---
+title: "Code Examples"
+description: "Practical, runnable code examples demonstrating RevealUI features and CLI tools."
+visibility: public
+status: verified
+audience: user
+---
+
 # Code Examples
 
 Practical, runnable code examples demonstrating RevealUI features and CLI tools.

@@ -1,3 +1,11 @@
+---
+title: "Credential Rotation Runbook"
+description: "Operational reference for rotating all credentials in the RevealUI stack."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Credential Rotation Runbook
 
 Operational reference for rotating all credentials in the RevealUI stack.

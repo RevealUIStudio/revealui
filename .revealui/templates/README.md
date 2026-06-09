@@ -1,3 +1,11 @@
+---
+title: "Package Script Templates"
+description: "Standardized `package.json` script templates for RevealUI monorepo packages."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Package Script Templates
 
 Standardized `package.json` script templates for RevealUI monorepo packages.

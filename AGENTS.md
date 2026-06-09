@@ -1,3 +1,11 @@
+---
+title: "RevealUI"
+description: "RevealUI is the agentic business runtime. Users, content, products, payments, and AI - pre-wired, open source, and ready to deploy."
+visibility: public
+status: verified
+audience: agent
+---
+
 # RevealUI
 
 RevealUI is the agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.

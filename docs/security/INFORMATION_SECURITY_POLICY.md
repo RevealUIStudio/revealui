@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Information Security Policy
 description: Security policies governing the RevealUI open-source project, covering data protection, access control, encryption, and compliance.
 last-updated: 2026-05-29

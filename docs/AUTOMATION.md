@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "Automation Guide"
 description: "Branch protection posture, Claude Code agent integration, and pointers to CI/CD + deployment guides."
 category: operations

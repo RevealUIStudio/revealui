@@ -1,3 +1,11 @@
+---
+title: "@revealui/openapi"
+description: "Type-safe OpenAPI 3.x integration for Hono. Define routes with Zod schemas, get automatic spec generation, request validation, and Swagger UI - zero manual spec writing."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/openapi
 
 Type-safe OpenAPI 3.x integration for Hono. Define routes with Zod schemas, get automatic spec generation, request validation, and Swagger UI  -  zero manual spec writing.

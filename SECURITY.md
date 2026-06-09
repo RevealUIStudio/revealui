@@ -1,3 +1,11 @@
+---
+title: "Security Policy"
+description: "We release patches for security vulnerabilities. Currently supported versions:"
+visibility: public
+status: verified
+audience: user
+---
+
 # Security Policy
 
 ## Supported Versions

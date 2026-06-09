@@ -1,3 +1,11 @@
+---
+title: "Changelog"
+description: "All notable changes to this project will be documented in this file."
+visibility: public
+status: narrative
+audience: user
+---
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "Package Publishing Guide"
 description: "Versioning with Changesets and publishing to npm via CI"
 category: operations

@@ -1,3 +1,11 @@
+---
+title: "Contract System"
+description: "The RevealUI Contract System provides a unified approach to type safety, runtime validation, and documentation for CMS configurations."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Contract System
 
 The RevealUI Contract System provides a unified approach to type safety, runtime validation, and documentation for CMS configurations.

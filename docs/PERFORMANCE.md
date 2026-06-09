@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "Performance Testing"
 description: "Load testing, benchmarks, optimization targets, and monitoring"
 category: operations

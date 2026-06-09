@@ -1,3 +1,11 @@
+---
+title: "@revealui/cli"
+description: "The official CLI for creating RevealUI projects with a single command."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/cli
 
 The official CLI for creating RevealUI projects with a single command.

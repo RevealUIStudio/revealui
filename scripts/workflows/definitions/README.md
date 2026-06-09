@@ -1,3 +1,11 @@
+---
+title: "Workflow Templates"
+description: "Reusable workflow templates for common automation tasks."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Workflow Templates
 
 Reusable workflow templates for common automation tasks.

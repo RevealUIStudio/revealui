@@ -1,3 +1,11 @@
+---
+title: "Biome Conventions"
+description: "Biome 2 is the sole linter and formatter for this monorepo."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Biome Conventions
 
 ## Overview

@@ -1,3 +1,11 @@
+---
+title: "@revealui/presentation"
+description: "Since 0.6.0 the canonical token file (`src/tokens.css`) changed brand identity and gained AA fixes + a new token, all under 0.6.0 with no version bump. This bumps to 0.7.0 so np..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/presentation
 
 ## 0.7.0

@@ -1,3 +1,11 @@
+---
+title: "MCP Package Documentation Index"
+description: "Complete documentation for RevealUI's Model Context Protocol integration."
+visibility: public
+status: verified
+audience: user
+---
+
 # MCP Package Documentation Index
 
 Complete documentation for RevealUI's Model Context Protocol integration.
