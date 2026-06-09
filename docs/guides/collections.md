@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# Collections
-
 Collections are the core content abstraction in RevealUI. A collection defines a schema, access control rules, and lifecycle hooks for a type of content (posts, products, users, pages, etc.). Collections are stored in NeonDB via Drizzle ORM and exposed through the REST API.
 
 **Package:** `@revealui/core`

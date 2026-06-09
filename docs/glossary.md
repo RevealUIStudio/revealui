@@ -6,8 +6,6 @@ status: verified
 audience: maintainer
 ---
 
-# RevealUI Glossary
-
 Canonical vocabulary across [RevFleet](#revfleet). This page is the single source of truth for cross-cutting terminology — agent, runtime, tier, harness, license, and the rest. When the same concept shows up across two products with different names, this page picks the one canonical name and points the others at it.
 
 > **Audience:** technical humans, non-technical operators, and AI agents working in or on a RevealUI deployment. Each entry leads with a one-sentence framing then expands. Internal-only codenames (Kingdom taxonomy) are listed at the end so they don't appear customer-facing.

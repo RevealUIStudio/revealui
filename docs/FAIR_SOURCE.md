@@ -7,8 +7,6 @@ category: reference
 audience: developer
 ---
 
-# Fair Source
-
 The narrative version of this page lives at [revealui.com/fair-source](https://revealui.com/fair-source). This document is the engineer-targeted reference: license text, package status, runtime enforcement, and how to verify everything yourself.
 
 ## What's licensed how

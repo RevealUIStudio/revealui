@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "System Architecture"
+title: "RevealUI System Architecture"
 description: "RevealUI system architecture reference  -  apps, packages, data flow, and deployment"
 category: architecture
 audience: developer
 ---
-
-# RevealUI System Architecture
 
 **Last Updated:** 2026-05-26
 **Status:** Working draft (architectural target — not all systems are live in default deployments)

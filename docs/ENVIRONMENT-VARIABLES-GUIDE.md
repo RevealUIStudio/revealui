@@ -8,8 +8,6 @@ category: reference
 audience: developer
 ---
 
-# Environment Variables Guide
-
 This guide is the single reference for every environment variable used across the RevealUI monorepo. It covers setup, validation, secret management, and per-environment configuration.
 
 For initial project setup, see [Quick Start](./QUICK_START.md). For deployment, see the [Deployment Guide](./guides/deployment.md).

@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Coding Conventions
-
 Standards for TypeScript, git, and configuration in the RevealUI monorepo.
 
 ## TypeScript

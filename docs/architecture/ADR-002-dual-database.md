@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR-002: Dual-Database Architecture (NeonDB + Supabase)
-
 **Date:** 2026-04-08
 **Status:** Superseded by [2026-05-01-supabase-removal](../decisions/2026-05-01-supabase-removal.md) on 2026-05-01
 

@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Database Conventions
-
 ## Database Architecture (NeonDB primary; Supabase being retired)
 
 > **Status:** per ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. NeonDB holds everything, including vector embeddings and `agent_memories` (via `pgvector`). Supabase is a legacy, optional sidecar being phased out (Phase 7). The import boundary below remains **enforced during the phase-out** so no new code couples to Supabase.

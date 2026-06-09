@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Documentation Index"
+title: "RevealUI Documentation"
 description: "Entry point and navigation hub for all RevealUI documentation"
 category: index
 audience: developer
 ---
-
-# RevealUI Documentation
 
 Agentic business runtime. Five primitives for humans and agents: users, content, products, payments, and intelligence.
 

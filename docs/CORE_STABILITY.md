@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Core API Stability"
+title: "@revealui/core  -  API Stability Reference"
 description: "API stability guarantees, versioning policy, and breaking change process for @revealui/core"
 category: reference
 audience: developer
 ---
-
-# @revealui/core  -  API Stability Reference
 
 **Version:** 0.6.x
 **Last Updated:** 2026-04-26

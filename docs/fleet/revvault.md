@@ -7,8 +7,6 @@ category: fleet
 audience: developer
 ---
 
-# RevVault
-
 **Age-encrypted secret vault with CLI and Tauri desktop app. 100% [passage](https://github.com/FiloSottile/passage)-compatible.**
 
 > RevVault is a separate RevFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revvault](https://github.com/RevealUIStudio/revvault). This page summarises what RevVault is and how it composes with RevealUI; the canonical product README lives in the RevVault repo.

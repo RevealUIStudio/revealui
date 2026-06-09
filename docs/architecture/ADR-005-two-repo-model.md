@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR-005: Two-Repo Model (Public + Private Coordination Hub)
-
 **Date:** 2026-04-08
 **Status:** Superseded by the four-repo model (2026-05-18) — see note below
 

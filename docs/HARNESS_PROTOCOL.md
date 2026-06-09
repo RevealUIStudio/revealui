@@ -7,8 +7,6 @@ category: protocol
 audience: developer
 ---
 
-# Harness Protocol
-
 > **Version:** 0.1.0  (Active — Phase 1 + 2 shipped; multi-tool adapters and full coordinator surface remain on the roadmap.)
 > **Package:** [`@revealui/harnesses`](../packages/harnesses) at v0.5.0+
 > **Renamed:** 2026-05-18, from the original "VAUGHN" backronym. See [§Why "Harness Protocol"](#why-harness-protocol) at the end.

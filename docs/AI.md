@@ -7,8 +7,6 @@ category: package-guide
 audience: developer
 ---
 
-# @revealui/ai
-
 AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 ## Overview
