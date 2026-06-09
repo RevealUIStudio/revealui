@@ -102,11 +102,14 @@ class R2Provider implements StorageProvider {
       now: new Date(),
     });
 
+    // No manual content-length: it is a forbidden fetch header that undici
+    // computes from the body itself, and setting it throws UND_ERR_INVALID_ARG
+    // ("invalid content-length header") on the R2 PUT. `headers` already carries
+    // the signed set. `as BodyInit` bridges the TS lib's ArrayBufferLike vs
+    // ArrayBuffer typed-array variance for fetch bodies (cf. src/api/compression.ts).
     const response = await fetch(url, {
       method: 'PUT',
-      headers: { ...headers, 'content-length': String(body.byteLength) },
-      // `as BodyInit`: bridge the TS lib's ArrayBufferLike/ArrayBuffer typed-array
-      // variance for fetch bodies — same pattern as src/api/compression.ts.
+      headers,
       body: body as BodyInit,
     });
     if (!response.ok) {
