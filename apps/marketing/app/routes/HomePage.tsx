@@ -5,6 +5,7 @@ import { Demo } from '../components/landing/Demo';
 import { Faq } from '../components/landing/Faq';
 import { Fork } from '../components/landing/Fork';
 import { Hero } from '../components/landing/Hero';
+import { Objections } from '../components/landing/Objections';
 import { Persona } from '../components/landing/Persona';
 import { PricingTeaser } from '../components/landing/PricingTeaser';
 import { Primitives } from '../components/landing/Primitives';
@@ -20,6 +21,7 @@ export function HomePage() {
       <Fork />
       <Problem />
       <Demo />
+      <Objections />
       <Primitives />
       <WhatsShipped />
       <Persona />

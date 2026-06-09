@@ -2,7 +2,7 @@ import { HOME_FAQ } from '../../content/home';
 
 export function Faq() {
   return (
-    <section className="bg-background py-24 sm:py-32">
+    <section id="faq" className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">

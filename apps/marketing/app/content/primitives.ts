@@ -23,7 +23,7 @@ export interface HomePrimitive {
 export const HOME_PRIMITIVES_SECTION = {
   eyebrow: 'Five primitives. One login. One audit trail.',
   heading: "Everything a business needs. Nothing you don't.",
-  body: 'People, content, offers, payments, and agents — the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
+  body: 'People, content, offers, payments, and agents: the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
 } as const;
 
