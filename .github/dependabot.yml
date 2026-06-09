@@ -136,16 +136,3 @@ updates:
     ignore:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
-
-  - package-ecosystem: "docker"
-    directory: "/apps/marketing"
-    schedule:
-      interval: "monthly"
-      timezone: "UTC"
-    labels:
-      - "dependencies"
-      - "docker"
-      - "automated"
-    ignore:
-      - dependency-name: "node"
-        update-types: ["version-update:semver-major"]
