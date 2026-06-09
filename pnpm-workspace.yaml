@@ -36,7 +36,7 @@ catalog:
   tailwindcss: ^4.3.0
   tsup: ^8.5.1
   tsx: ^4.22.4
-  typescript: ^6.0.3
+  typescript: ^5.9.3
   vite: ^8.0.16
   vitest: ^4.1.8
   yjs: ^13.6.31
