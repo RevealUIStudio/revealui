@@ -10,7 +10,7 @@ export function TermsPage() {
         <Callout variant="info" title="Status: drafted in good faith, pending counsel review">
           This page describes our actual practices and commitments today. The wording has not yet
           been reviewed by an attorney; we disclose this rather than hide it. The substance will not
-          change after review — only the wording may tighten. Questions in the meantime?{' '}
+          change after review. Only the wording may tighten. Questions in the meantime?{' '}
           <a className="underline" href={`mailto:${SITE.emails.support}`}>
             {SITE.emails.support}
           </a>

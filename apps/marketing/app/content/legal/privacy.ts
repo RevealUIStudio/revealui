@@ -30,7 +30,7 @@ export const PRIVACY_META = {
   title: 'Privacy Policy',
   lastUpdated: 'May 28, 2026',
   intro:
-    'The RevealUI platform (revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com — the "Service") is operated by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). This Privacy Policy describes how we collect, use, and protect your personal information.',
+    'The RevealUI platform (revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com, the "Service") is operated by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). This Privacy Policy describes how we collect, use, and protect your personal information.',
 } as const;
 
 export const PRIVACY_SECTIONS: readonly LegalSection[] = [
@@ -124,7 +124,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: '4. Customer content and AI training',
     paragraphs: [
       'We do not use customer content (the data, prompts, files, and configurations you submit to the Service) to train any general-purpose model. This commitment applies to any model we operate and to any third-party model accessed through the Service via our infrastructure.',
-      'If you connect your own external LLM provider to RevealUI (your own OpenAI key, Anthropic key, or other provider), your data flows to that provider on terms you have agreed to with them. We do not intermediate those terms — you are responsible for understanding their training-data position.',
+      'If you connect your own external LLM provider to RevealUI (your own OpenAI key, Anthropic key, or other provider), your data flows to that provider on terms you have agreed to with them. We do not intermediate those terms. You are responsible for understanding their training-data position.',
       'The default RevealUI configuration uses local AI inference (Ollama or Inference Snaps) that runs entirely on your own infrastructure. In that configuration, customer content does not leave your boundary at all.',
     ],
   },
@@ -163,7 +163,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
       'Vercel Speed Insights (performance telemetry, anonymous): loaded on the marketing site to measure Core Web Vitals (LCP, INP, CLS, etc.). Aggregated by Vercel; no personal identifiers; no cross-site tracking.',
     ],
     paragraphs: [
-      'We do not use advertising cookies, third-party tracking cookies, or cross-site cookies. Vercel Speed Insights honors the `Do Not Track` browser signal and can be opted out at the browser level. We will surface any additional trackers — including Sentry, when wired — on this list in the same commit that adds them.',
+      'We do not use advertising cookies, third-party tracking cookies, or cross-site cookies. Vercel Speed Insights honors the `Do Not Track` browser signal and can be opted out at the browser level. We will surface any additional trackers (including Sentry, when wired) on this list in the same commit that adds them.',
     ],
   },
   {

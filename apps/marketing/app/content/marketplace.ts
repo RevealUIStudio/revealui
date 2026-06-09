@@ -135,7 +135,7 @@ export const MARKETPLACE_MCP_SERVERS: readonly McpServer[] = [
   {
     name: 'MCP Adapter',
     description:
-      'Base class plus concrete Vercel/Stripe/Neon adapters. Standardizes the MCP server contract — error handling, idempotency, observability — across every first-party server above. Source: packages/mcp/src/servers/adapter.ts.',
+      'Base class plus concrete Vercel/Stripe/Neon adapters. Standardizes the MCP server contract (error handling, idempotency, observability) across every first-party server above. Source: packages/mcp/src/servers/adapter.ts.',
     category: 'Framework',
   },
 ];
@@ -148,7 +148,7 @@ export const MARKETPLACE_COMING_SOON = {
       'Third-party MCP server publishing, developer earnings, and marketplace discovery are planned for a future release. See the',
     linkLabel: 'public roadmap',
     linkHref: SITE.urls.repoRoadmap,
-    suffix: 'for current status — listed under "Agent Marketplace" in the Mid-Term section.',
+    suffix: 'for current status, listed under "Agent Marketplace" in the Mid-Term section.',
   },
 } as const;
 

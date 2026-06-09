@@ -10,7 +10,7 @@ export function PrivacyPage() {
         <Callout variant="info" title="Status: drafted in good faith, pending counsel review">
           This page describes our actual privacy practices today. The wording has not yet been
           reviewed by an attorney; we disclose this rather than hide it. The substance will not
-          change after review — only the wording may tighten. Privacy questions or data-rights
+          change after review. Only the wording may tighten. Privacy questions or data-rights
           requests in the meantime:{' '}
           <a className="underline" href={`mailto:${SITE.emails.support}`}>
             {SITE.emails.support}

@@ -16,7 +16,7 @@ export const SUBPROCESSORS_META = {
   title: 'Subprocessors',
   lastUpdated: 'May 28, 2026',
   intro:
-    'A subprocessor is a third-party service we use to operate RevealUI on your behalf. Every entry below stores, processes, or transmits some category of customer data. The table is dated and we commit to updating it before adding a new subprocessor, not after — see the change-log at the bottom of this page.',
+    'A subprocessor is a third-party service we use to operate RevealUI on your behalf. Every entry below stores, processes, or transmits some category of customer data. The table is dated and we commit to updating it before adding a new subprocessor, not after. See the change-log at the bottom of this page.',
 } as const;
 
 /**
@@ -107,5 +107,5 @@ export const SUBPROCESSORS_NOTES = {
   subscribeAdvice:
     'There is no subscribe-to-changes channel for this page yet. Material customers can request notification by email and we will email them when an entry is added. Watch the RevealUI repository on GitHub to receive a notification when this file changes in source.',
   contactPrefix:
-    'Questions about a specific subprocessor — including its DPA, regional data handling, or sub-processors of its own — should go to ',
+    'Questions about a specific subprocessor (including its DPA, regional data handling, or sub-processors of its own) should go to ',
 } as const;

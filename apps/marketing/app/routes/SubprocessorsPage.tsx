@@ -113,7 +113,7 @@ export function SubprocessorsPage() {
         <ul>
           {SUBPROCESSORS_CHANGELOG.map((entry) => (
             <li key={entry.date}>
-              <strong>{entry.date}</strong> — {entry.summary}
+              <strong>{entry.date}</strong>. {entry.summary}
             </li>
           ))}
         </ul>
@@ -130,20 +130,20 @@ export function SubprocessorsPage() {
         <p>The following are NOT customer-data subprocessors and do not appear in the table:</p>
         <ul>
           <li>
-            <strong>GitHub</strong> — we use it for source code hosting only; customer data does not
+            <strong>GitHub</strong>: we use it for source code hosting only; customer data does not
             flow through GitHub.
           </li>
           <li>
-            <strong>npm</strong> — we publish our packages there; customer data does not flow
-            through npm.
+            <strong>npm</strong>: we publish our packages there; customer data does not flow through
+            npm.
           </li>
           <li>
-            <strong>Local AI inference</strong> (Ollama, Inference Snaps) — runs on the customer's
+            <strong>Local AI inference</strong> (Ollama, Inference Snaps): runs on the customer's
             own infrastructure, not ours; data does not leave the customer boundary.
           </li>
           <li>
             <strong>Optional integrations</strong> the customer configures themselves (a customer's
-            own Sentry account, their own analytics, their own LLM provider) — those are the
+            own Sentry account, their own analytics, their own LLM provider): those are the
             customer's subprocessors, not ours.
           </li>
         </ul>

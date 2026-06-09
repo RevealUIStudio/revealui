@@ -52,7 +52,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'getting-started',
     title: 'From Zero to Production in About 30 Minutes',
     excerpt:
-      'Build a complete business application with auth, content, and payments — from zero to deployed in about 30 minutes.',
+      'Build a complete business application with auth, content, and payments: from zero to deployed in about 30 minutes.',
     publishedAt: '2026-03-27T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '08-getting-started.md',
