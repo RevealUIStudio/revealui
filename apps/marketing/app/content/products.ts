@@ -126,7 +126,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
 export const PRODUCTS_FLAGSHIP_SHOWCASE = {
   eyebrow: 'Inside the flagship',
   heading: 'See what you actually ship',
-  body: 'Content, users, billing, AI agents, and live monitoring — the real RevealUI admin running on the open-source stack, captured from a fresh install.',
+  body: 'Content, users, billing, AI agents, and live monitoring: the real RevealUI admin running on the open-source stack, captured from a fresh install.',
 } as const;
 
 export interface SisterProduct {
@@ -154,7 +154,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     highlights: [
       'Rust CLI + Tauri desktop app',
       'Age-encrypted, 100% passage-compatible',
-      'Canonical secret store — no .env plaintext',
+      'Canonical secret store, no .env plaintext',
     ],
     status: 'Beta',
     version: 'v0.2.0',
