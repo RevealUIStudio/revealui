@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type { EasingFunction } from '../core/easing.js';
 import { resolveEasing } from '../core/easing.js';
+import { useReducedMotion } from './use-reduced-motion.js';
 
 export interface AnimationConfig {
   /** Duration in milliseconds (default: 300) */
@@ -47,6 +48,11 @@ export function useAnimation<T extends HTMLElement>(): [
 ] {
   const ref = useRef<T>(null);
   const animationRef = useRef<Animation | null>(null);
+  const reduce = useReducedMotion();
+  // Mirror into a ref so the imperative `animate` callback reads the current
+  // value without being re-created on every change.
+  const reduceRef = useRef(reduce);
+  reduceRef.current = reduce;
 
   // Cleanup on unmount
   useEffect(() => {
@@ -63,8 +69,9 @@ export function useAnimation<T extends HTMLElement>(): [
       // Cancel any running animation
       animationRef.current?.cancel();
 
-      const duration = config?.duration ?? DEFAULT_DURATION;
-      const delay = config?.delay ?? 0;
+      // Reduced motion: jump to the final keyframe instantly (no visible motion).
+      const duration = reduceRef.current ? 0 : (config?.duration ?? DEFAULT_DURATION);
+      const delay = reduceRef.current ? 0 : (config?.delay ?? 0);
       const fill = config?.fill ?? 'forwards';
       const easingFn = resolveEasing(config?.easing ?? 'easeOut');
 
