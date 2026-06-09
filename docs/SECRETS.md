@@ -101,6 +101,15 @@ revealui/prod/db/neon-api-key        # NEON_API_KEY — Neon control-plane API (
 > from an earlier naming scheme. The manifest and all consuming code use `revealui/prod/db/postgres-url`.
 > The `neon/postgres-url` entry is slated for deletion by the owner — do not add new consumers.
 
+> **GitHub Actions secret mirrors of this value** (all sourced from `revealui/prod/db/postgres-url`):
+> - `POSTGRES_URL` + `DATABASE_URL` — consumed by `db-backup.yml` and `webhook-reconciliation.yml`.
+> - `PROD_POSTGRES_URL` — consumed by `deploy.yml`'s migrate job. Needed because `vercel env pull`
+>   returns empty strings for the Sensitive Vercel `POSTGRES_URL`, so the migrate step requires the
+>   actual value out-of-band. (`revvault-vercel-sync` Phase 5 will retire this mirror.)
+>
+> These three repo secrets hold the same prod Neon URL; consolidating the names is an owner
+> repo-settings task (not a code change). Rotating the value means updating all three.
+
 **Electric (real-time sync)**
 
 ```
