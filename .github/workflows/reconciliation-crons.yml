@@ -30,6 +30,10 @@ on:
         required: false
         default: 'manual ops trigger'
 
+# These jobs only POST to an external API with a bearer secret; they never use
+# GITHUB_TOKEN. Grant it nothing (previously inherited the repo-default scope).
+permissions: {}
+
 jobs:
   drain-unreconciled:
     name: drain-unreconciled
