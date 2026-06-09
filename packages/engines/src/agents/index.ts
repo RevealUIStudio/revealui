@@ -1,5 +1,5 @@
 /**
- * Intelligence primitive — AI agents, memory, LLM providers, RAG, and tools.
+ * Agents primitive — AI agents, memory, LLM providers, RAG, and tools.
  *
  * Re-exports from @revealui/ai, @revealui/db, and @revealui/contracts.
  */
@@ -55,7 +55,7 @@ export {
   ToolDefinitionSchema,
   toolDefinitionToSkill,
 } from '@revealui/contracts';
-// ── DB: intelligence tables ─────────────────────────────────────────────────
+// ── DB: agent tables ─────────────────────────────────────────────────
 export {
   agentActions,
   agentContexts,

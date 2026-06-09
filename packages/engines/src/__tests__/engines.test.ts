@@ -8,7 +8,7 @@ describe('@revealui/engines', () => {
     expect(engines.content).toBeDefined();
     expect(engines.products).toBeDefined();
     expect(engines.payments).toBeDefined();
-    expect(engines.intelligence).toBeDefined();
+    expect(engines.agents).toBeDefined();
   }, 15_000);
 
   describe('users', () => {
@@ -382,72 +382,72 @@ describe('@revealui/engines', () => {
     });
   });
 
-  describe('intelligence', () => {
+  describe('agents', () => {
     it('exports all agent db tables', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.agentContexts).toBeDefined();
-      expect(intelligence.agentMemories).toBeDefined();
-      expect(intelligence.conversations).toBeDefined();
-      expect(intelligence.agentActions).toBeDefined();
-      expect(intelligence.ragDocuments).toBeDefined();
-      expect(intelligence.ragChunks).toBeDefined();
-      expect(intelligence.codeProvenance).toBeDefined();
-      expect(intelligence.codeReviews).toBeDefined();
+      expect(agents.agentContexts).toBeDefined();
+      expect(agents.agentMemories).toBeDefined();
+      expect(agents.conversations).toBeDefined();
+      expect(agents.agentActions).toBeDefined();
+      expect(agents.ragDocuments).toBeDefined();
+      expect(agents.ragChunks).toBeDefined();
+      expect(agents.codeProvenance).toBeDefined();
+      expect(agents.codeReviews).toBeDefined();
     });
 
     it('exports agent definition schema with validation', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.AgentDefinitionSchema).toBeDefined();
-      expect(typeof intelligence.AgentDefinitionSchema.parse).toBe('function');
-      expect(intelligence.AGENT_SCHEMA_VERSION).toBeDefined();
+      expect(agents.AgentDefinitionSchema).toBeDefined();
+      expect(typeof agents.AgentDefinitionSchema.parse).toBe('function');
+      expect(agents.AGENT_SCHEMA_VERSION).toBeDefined();
     });
 
     it('exports agent state and context schemas', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.AgentStateSchema).toBeDefined();
-      expect(intelligence.AgentContextSchema).toBeDefined();
-      expect(intelligence.AgentActionRecordSchema).toBeDefined();
-      expect(intelligence.AgentMemorySchema).toBeDefined();
-      expect(typeof intelligence.createAgentContext).toBe('function');
-      expect(typeof intelligence.createAgentMemory).toBe('function');
+      expect(agents.AgentStateSchema).toBeDefined();
+      expect(agents.AgentContextSchema).toBeDefined();
+      expect(agents.AgentActionRecordSchema).toBeDefined();
+      expect(agents.AgentMemorySchema).toBeDefined();
+      expect(typeof agents.createAgentContext).toBe('function');
+      expect(typeof agents.createAgentMemory).toBe('function');
     });
 
     it('exports A2A protocol schemas', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.A2AAgentCardSchema).toBeDefined();
-      expect(typeof intelligence.A2AAgentCardSchema.parse).toBe('function');
-      expect(typeof intelligence.agentDefinitionToCard).toBe('function');
+      expect(agents.A2AAgentCardSchema).toBeDefined();
+      expect(typeof agents.A2AAgentCardSchema.parse).toBe('function');
+      expect(typeof agents.agentDefinitionToCard).toBe('function');
     });
 
     it('exports conversation schemas and factories', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.ConversationSchema).toBeDefined();
-      expect(intelligence.ConversationMessageSchema).toBeDefined();
-      expect(typeof intelligence.createConversation).toBe('function');
-      expect(typeof intelligence.createMessage).toBe('function');
+      expect(agents.ConversationSchema).toBeDefined();
+      expect(agents.ConversationMessageSchema).toBeDefined();
+      expect(typeof agents.createConversation).toBe('function');
+      expect(typeof agents.createMessage).toBe('function');
     });
 
     it('exports embedding utilities', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.EmbeddingSchema).toBeDefined();
-      expect(typeof intelligence.createEmbedding).toBe('function');
-      expect(intelligence.DEFAULT_EMBEDDING_MODEL).toBeDefined();
-      expect(intelligence.DEFAULT_EMBEDDING_DIMENSION).toBeDefined();
-      expect(intelligence.EMBEDDING_DIMENSIONS).toBeDefined();
+      expect(agents.EmbeddingSchema).toBeDefined();
+      expect(typeof agents.createEmbedding).toBe('function');
+      expect(agents.DEFAULT_EMBEDDING_MODEL).toBeDefined();
+      expect(agents.DEFAULT_EMBEDDING_DIMENSION).toBeDefined();
+      expect(agents.EMBEDDING_DIMENSIONS).toBeDefined();
     });
 
     it('exports tool and intent schemas', async () => {
-      const { intelligence } = await import('../index.js');
+      const { agents } = await import('../index.js');
 
-      expect(intelligence.ToolDefinitionSchema).toBeDefined();
-      expect(typeof intelligence.toolDefinitionToSkill).toBe('function');
-      expect(intelligence.IntentSchema).toBeDefined();
+      expect(agents.ToolDefinitionSchema).toBeDefined();
+      expect(typeof agents.toolDefinitionToSkill).toBe('function');
+      expect(agents.IntentSchema).toBeDefined();
     });
   });
 
@@ -501,19 +501,19 @@ describe('@revealui/engines', () => {
       }
     });
 
-    it('intelligence db tables are Drizzle table objects', async () => {
-      const { intelligence } = await import('../index.js');
+    it('agents db tables are Drizzle table objects', async () => {
+      const { agents } = await import('../index.js');
 
       const drizzleName = Symbol.for('drizzle:Name');
       for (const table of [
-        intelligence.agentContexts,
-        intelligence.agentMemories,
-        intelligence.conversations,
-        intelligence.agentActions,
-        intelligence.ragDocuments,
-        intelligence.ragChunks,
-        intelligence.codeProvenance,
-        intelligence.codeReviews,
+        agents.agentContexts,
+        agents.agentMemories,
+        agents.conversations,
+        agents.agentActions,
+        agents.ragDocuments,
+        agents.ragChunks,
+        agents.codeProvenance,
+        agents.codeReviews,
       ]) {
         expect(drizzleName in (table as object)).toBe(true);
       }
@@ -527,7 +527,7 @@ describe('@revealui/engines', () => {
         engines.content,
         engines.products,
         engines.payments,
-        engines.intelligence,
+        engines.agents,
       ];
 
       for (let i = 0; i < namespaces.length; i++) {
