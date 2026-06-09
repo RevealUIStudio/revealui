@@ -17,6 +17,8 @@ export { useGesture } from './hooks/use-gesture.js';
 
 export { usePresence } from './hooks/use-presence.js';
 
+export { useReducedMotion } from './hooks/use-reduced-motion.js';
+
 export { useSpring } from './hooks/use-spring.js';
 export type { StaggerConfig } from './hooks/use-stagger.js';
 export { useStagger } from './hooks/use-stagger.js';
