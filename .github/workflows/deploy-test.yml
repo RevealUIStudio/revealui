@@ -72,20 +72,18 @@ jobs:
           echo "has-apps=true" >> "$GITHUB_OUTPUT"
           echo "app-list=$AFFECTED" >> "$GITHUB_OUTPUT"
 
-          MATRIX="["
-          FIRST=true
+          # Build matrix JSON from the single-source project-id map
+          # (.github/vercel-projects.json); unknown apps dropped + warned.
+          MATRIX=$(jq -cn --slurpfile map .github/vercel-projects.json --arg apps "$AFFECTED" '
+            [ ($apps | split(" ") | .[] | select(length > 0))
+              | select($map[0][.] != null)
+              | {app: ., "project-id": $map[0][.]} ]
+          ')
           for app in $AFFECTED; do
-            case "$app" in
-              api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
-              admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
-              marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
-              docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
-              *) echo "::warning::Unknown app: $app"; continue ;;
-            esac
-            if [ "$FIRST" = true ]; then FIRST=false; else MATRIX="$MATRIX,"; fi
-            MATRIX="$MATRIX{\"app\":\"$app\",\"project-id\":\"$PID\"}"
+            if [ "$(jq -r --arg a "$app" '.[$a] // "null"' .github/vercel-projects.json)" = "null" ]; then
+              echo "::warning::Unknown app: $app"
+            fi
           done
-          MATRIX="$MATRIX]"
 
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "::notice::Preview deploy: $AFFECTED"
