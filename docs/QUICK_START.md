@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Quick Start"
+title: "Quick Start Guide"
 description: "Get RevealUI running locally in 15-30 minutes"
 category: tutorial
 audience: developer
 ---
-
-# Quick Start Guide
 
 Get RevealUI up and running locally. Budget 15–30 minutes if you're creating accounts for the first time.
 

@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# AI Tool Evaluation Log
-
 Track pass/fail results when running test prompts from `test-prompts.md` across different AI tools.
 
 ## Claude Code (Opus 4.6)  -  2026-03-13

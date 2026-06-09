@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Roadmap"
+title: "RevealUI Roadmap"
 description: "Product roadmap with planned features, timelines, and priorities"
 category: planning
 audience: developer
 ---
-
-# RevealUI Roadmap
 
 > Agentic business runtime. Build your business, not your boilerplate.
 

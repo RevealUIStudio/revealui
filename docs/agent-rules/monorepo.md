@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Monorepo Conventions
-
 ## Structure
 - Apps live in `apps/`  -  deployable services (Next.js, Hono, Vite)
 - Packages live in `packages/`  -  shared libraries consumed by apps

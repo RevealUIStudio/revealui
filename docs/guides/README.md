@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# Guides
-
 Practical, step-by-step guides for building with RevealUI.
 
 ---

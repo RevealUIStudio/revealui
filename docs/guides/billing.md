@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# Billing
-
 RevealUI integrates with Stripe for checkout, subscriptions, and billing portal. The billing system uses account-level subscriptions with metered usage for AI and agent features.
 
 **API routes:** `apps/server/src/routes/billing.ts`, `apps/server/src/routes/webhooks.ts`

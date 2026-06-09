@@ -6,8 +6,6 @@ status: verified
 audience: maintainer
 ---
 
-# RevealUI Methodology
-
 The engineering postures and coordination primitives that govern how RevFleet is built. This document is the canonical in-repo reference. Canonical rule definitions live in private repos and `~/.claude/rules/`; cross-references are provided at the end.
 
 ---

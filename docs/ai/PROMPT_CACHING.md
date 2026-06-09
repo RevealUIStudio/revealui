@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# Prompt Caching
-
 RevealUI's AI layer is provider-agnostic: open-weight models (Gemma, Phi, etc. via Ollama or Inference Snaps) are the default runtime path, and cloud providers are opt-in adapters. Prompt caching is one such provider capability — when you opt into a cloud provider that supports it (e.g. Anthropic), you can get up to **90% cost reduction** on repeated context. This guide uses Anthropic as the worked example because its caching API is the most mature; the same `@revealui/ai` client interface applies to any provider, and caching is a no-op on providers that don't support it.
 
 ## Quick Start
