@@ -477,7 +477,7 @@ Validation enforces:
 
 ## Env File Loading Order
 
-All secrets live in revvault (`~/.revealui/passage-store/`). Use `revvault export-env` to materialise them as environment variables for a session. Per the revvault-first secrets policy ([methodology](./methodology.md) M4): revvault is the source of truth; env files are a convenience cache, gitignored, regenerated per session. When adding a new secret, the revvault path comes first; the env-var binding is downstream.
+All secrets live in revvault (`~/.revealui/passage-store/`). Use `revvault export-env` to materialise them as environment variables for a session. Per the revvault-first secrets policy (methodology M4): revvault is the source of truth; env files are a convenience cache, gitignored, regenerated per session. When adding a new secret, the revvault path comes first; the env-var binding is downstream.
 
 The `@revealui/config` loader (`packages/config/src/loader.ts`) determines which materialised cache files to read based on `NODE_ENV`.
 

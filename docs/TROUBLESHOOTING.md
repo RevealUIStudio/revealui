@@ -228,7 +228,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    pnpm build
    ```
 
-**See Also**: [Type System Rules](./TYPE-SYSTEM-RULES.md)
+**See Also**: Type System Rules
 
 ---
 
@@ -506,7 +506,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 - [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Database Guide](./DATABASE.md) - Database setup and management
 - [Deployment Guide](./guides/deployment.md) - Deployment troubleshooting
-- [Linting Rules](./LINTING_RULES.md) - Code standards and lint rules
+- Linting Rules - Code standards and lint rules
 
 ---
 
