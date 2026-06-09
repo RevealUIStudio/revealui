@@ -7,6 +7,7 @@ import type React from 'react';
 import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { parseFrontmatter } from './frontmatter';
 
 const JS_KEYWORDS = new Set([
   'as',
@@ -529,17 +530,31 @@ function CopyablePreBlock({ children, ...props }: React.ComponentProps<'pre'>): 
 }
 
 export function renderMarkdown(content: string): React.ReactElement {
+  // Strip any leading frontmatter block so it never renders. Self-protecting:
+  // bodies without frontmatter and arbitrary inline strings pass through
+  // unchanged — parseFrontmatter only matches a well-formed leading block.
+  const { body } = parseFrontmatter(content);
   return (
     <div className="markdown-content">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{ code: CodeRenderer, pre: CopyablePreBlock }}
       >
-        {content}
+        {body}
       </ReactMarkdown>
     </div>
   );
 }
+
+export type {
+  FrontmatterData,
+  FrontmatterScalar,
+  FrontmatterValue,
+  ParsedFrontmatter,
+} from './frontmatter';
+// Re-exported so route pages can lift metadata (title/date/author) into page
+// chrome without rendering it: `import { parseFrontmatter } from '@/utils/markdown'`.
+export { parseFrontmatter } from './frontmatter';
 
 /**
  * In-memory cache for loaded markdown files
