@@ -40,8 +40,8 @@ const API_URL =
 const FALLBACK_PRICE: Record<LicenseTierId, { price: string; period?: string }> = {
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
-  max: { price: '$149', period: '/month' },
-  enterprise: { price: '$299', period: '/month' },
+  max: { price: '$299', period: '/month' },
+  enterprise: { price: '$1,499', period: '/month' },
 };
 
 function CheckIcon({ className }: { className?: string }) {

@@ -304,8 +304,8 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     const event = makeChargeRefundedEvent({
       customerId: 'cus_perpetual',
       paymentIntentId: 'pi_perpetual',
-      amount: 199900,
-      amountRefunded: 199900,
+      amount: 4299900,
+      amountRefunded: 4299900,
       billingEmail: 'buyer@example.com',
     });
 
@@ -330,8 +330,8 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     const event = makeChargeRefundedEvent({
       customerId: 'cus_perpetual_email',
       paymentIntentId: 'pi_perpetual_email',
-      amount: 199900,
-      amountRefunded: 199900,
+      amount: 4299900,
+      amountRefunded: 4299900,
       billingEmail: 'enterprise@example.com',
     });
 
@@ -358,7 +358,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     const event = makeChargeRefundedEvent({
       customerId: 'cus_partial',
       paymentIntentId: 'pi_partial',
-      amount: 199900,
+      amount: 4299900,
       amountRefunded: 5000,
       billingEmail: null,
     });
