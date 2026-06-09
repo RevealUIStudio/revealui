@@ -25,7 +25,7 @@ Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 | Build                       | all (affected on PRs)             | Hard fail   |
 | Unit tests                  | all                               | Hard fail   |
 | Integration tests           | PRs + push to main                | Hard fail   |
-| Integration tests (extended)| PRs + push to main (advisory)     | Hard fail   |
+| Integration tests (extended)| PRs + push to main                | Advisory    |
 | Coverage                    | main and PRs targeting main       | Hard fail   |
 | E2E smoke                   | main and PRs targeting main       | Hard fail   |
 | Accessibility (E2E)         | main and PRs targeting main       | Hard fail   |
