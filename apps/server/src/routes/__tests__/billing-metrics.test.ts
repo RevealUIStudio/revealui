@@ -524,7 +524,7 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
         ],
         catalogRows: [
           { tier: 'pro', metadata: { unitAmountCents: 4900 } },
-          { tier: 'max', metadata: { unitAmountCents: 14900 } },
+          { tier: 'max', metadata: { unitAmountCents: 29900 } },
         ],
       });
 
@@ -533,12 +533,12 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       const body = await res.json();
-      // MRR = (10 * 4900) + (5 * 14900) = 49000 + 74500 = 123500
-      expect(body.mrr).toBe(123_500);
+      // MRR = (10 * 4900) + (5 * 29900) = 49000 + 149500 = 198500
+      expect(body.mrr).toBe(198_500);
     });
 
     it('uses fallback tier prices when catalog is empty', async () => {
-      // Fallback: pro=4900, max=14900, enterprise=29900
+      // Fallback: pro=4900, max=29900, enterprise=149900
       queueMetricsResults({
         tierRows: [
           { tier: 'pro', tierCount: 3 },
@@ -553,8 +553,8 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       const body = await res.json();
-      // MRR = (3 * 4900) + (1 * 14900) + (1 * 29900) = 14700 + 14900 + 29900 = 59500
-      expect(body.mrr).toBe(59_500);
+      // MRR = (3 * 4900) + (1 * 29900) + (1 * 149900) = 14700 + 29900 + 149900 = 194500
+      expect(body.mrr).toBe(194_500);
     });
 
     it('returns recent events with type mapping', async () => {
@@ -610,7 +610,7 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
         ],
         catalogRows: [
           { tier: 'pro', metadata: { unitAmountCents: 3900 } }, // custom price
-          // enterprise not in catalog  -  falls back to 29900
+          // enterprise not in catalog  -  falls back to 149900
         ],
       });
 
@@ -620,8 +620,8 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.tierBreakdown).toEqual({ pro: 5, max: 0, enterprise: 2 });
-      // MRR = (5 * 3900) + (0 * anything) + (2 * 29900) = 19500 + 0 + 59800 = 79300
-      expect(body.mrr).toBe(79_300);
+      // MRR = (5 * 3900) + (0 * anything) + (2 * 149900) = 19500 + 0 + 299800 = 319300
+      expect(body.mrr).toBe(319_300);
     });
 
     it('ignores unknown tiers in breakdown', async () => {

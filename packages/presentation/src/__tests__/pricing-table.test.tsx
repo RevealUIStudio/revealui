@@ -32,7 +32,7 @@ const mockTiers: PricingTier[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: '$299',
+    price: '$1,499',
     period: '/month',
     description: 'For large teams.',
     features: ['Everything in Pro', 'Feature E'],
@@ -58,7 +58,7 @@ describe('PricingTable  -  full layout', () => {
     render(<PricingTable tiers={mockTiers} />);
     expect(screen.getByText('$0')).toBeInTheDocument();
     expect(screen.getByText('$49')).toBeInTheDocument();
-    expect(screen.getByText('$299')).toBeInTheDocument();
+    expect(screen.getByText('$1,499')).toBeInTheDocument();
   });
 
   it('renders period for paid tiers', () => {

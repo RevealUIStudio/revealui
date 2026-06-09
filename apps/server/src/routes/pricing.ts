@@ -50,8 +50,8 @@ function isStripeConfigured(): boolean {
 const HARDCODED_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: string }> = {
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
-  max: { price: '$149', period: '/month' },
-  enterprise: { price: '$299', period: '/month' },
+  max: { price: '$299', period: '/month' },
+  enterprise: { price: '$1,499', period: '/month' },
 };
 
 const HARDCODED_CREDIT_PRICES: [string, { price: string; priceNote: string; costPer: string }][] = [
@@ -65,14 +65,14 @@ const HARDCODED_PERPETUAL_PRICES: Record<
   { price: string; priceNote: string; renewal: string }
 > = {
   'Pro Perpetual': {
-    price: '$299',
+    price: '$1,499',
     priceNote: 'one-time',
-    renewal: '$99/yr for continued support',
+    renewal: '$149/yr for continued support',
   },
   'Agency Perpetual': {
-    price: '$799',
+    price: '$8,499',
     priceNote: 'one-time',
-    renewal: '$199/yr for continued support',
+    renewal: '$799/yr for continued support',
   },
   // 'Enterprise Perpetual' is the post-rename canonical name per
   // brand-naming ADR (2026-05-03-revfleet-rename.md). The contracts file
@@ -80,9 +80,9 @@ const HARDCODED_PERPETUAL_PRICES: Record<
   // Phase 2.6 (2026-05-18) closed the pre-rename "Forge Perpetual" drift
   // surfaced by pricing-marketing-drift.test.ts.
   'Enterprise Perpetual': {
-    price: '$1,999',
+    price: '$42,999',
     priceNote: 'one-time',
-    renewal: '$499/yr for continued support',
+    renewal: '$3,999/yr for continued support',
   },
 };
 

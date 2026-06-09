@@ -48,8 +48,8 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 |---|---|---|---|---|---|
 | Free | $0 | 1 | 3 | 1,000 | 200 |
 | Pro | $49 | 5 | 25 | 10,000 | 300 |
-| Max | $149 | 15 | 100 | 50,000 | 600 |
-| Enterprise | $299 | unlimited | unlimited | unlimited | 1,000 |
+| Max | $299 | 15 | 100 | 50,000 | 600 |
+| Enterprise | $1,499 | unlimited | unlimited | unlimited | 1,000 |
 
 ### Track B — Agent task credits (one-time)
 
@@ -63,9 +63,9 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Tier | Price | Annual support renewal |
 |---|---|---|
-| Pro Perpetual | $299 | $99/yr |
-| Agency Perpetual | $799 | $199/yr |
-| Enterprise Perpetual | $1,999 | $499/yr |
+| Pro Perpetual | $1,499 | $149/yr |
+| Agency Perpetual | $8,499 | $799/yr |
+| Enterprise Perpetual | $42,999 | $3,999/yr |
 
 **Status:** marked `comingSoon: true` in `packages/contracts/src/pricing.ts`. Marketing must label Track C "Coming soon" at H2 weight (no corner badges).
 
