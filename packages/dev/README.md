@@ -1,3 +1,11 @@
+---
+title: "@revealui/dev"
+description: "Shared development tooling and configuration for the RevealUI Framework monorepo."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/dev
 
 Shared development tooling and configuration for the RevealUI Framework monorepo.

@@ -1,3 +1,11 @@
+---
+title: "The Air-Gap-Capable Business Runtime"
+description: "*By Joshua Vaughn - RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # The Air-Gap-Capable Business Runtime
 
 *By Joshua Vaughn  -  RevealUI Studio*
@@ -17,7 +25,7 @@ RevealUI's local-first story comes from four independent pieces that happen to c
 | Layer | Technology | What it does |
 |-------|-----------|-------------|
 | **Secrets** | RevVault (age encryption) | Credentials stay on your machine, encrypted at rest |
-| **AI inference (default)** | Inference snaps / Ollama (open models) | Local LLM inference. Cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible, Anthropic) are pluggable via env vars but opt-in. |
+| **AI inference (default)** | Inference snaps / Ollama (open models) | Local LLM inference. Cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible) are pluggable via env vars but opt-in. |
 | **Dev environment** | Nix flakes + direnv | Reproducible environment, zero manual tool installs |
 | **Business logic** | RevealUI | Auth, content, payments, AI agents  -  all wired |
 
@@ -108,7 +116,7 @@ The entire AI-powered business stack  -  auth, content, products, payments, agen
 
 ## Who this is for
 
-The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers — Groq, HuggingFace, OpenAI-compatible endpoints, and Anthropic for prompt caching — are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
+The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers — Groq, HuggingFace, and OpenAI-compatible endpoints — are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 

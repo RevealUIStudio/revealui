@@ -1,3 +1,11 @@
+---
+title: "Security Audit Status"
+description: "**Last updated:** 2026-04-18"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Security Audit Status
 
 **Last updated:** 2026-04-18

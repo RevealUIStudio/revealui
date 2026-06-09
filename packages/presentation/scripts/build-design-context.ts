@@ -40,9 +40,28 @@ writeFileSync(join(OUT_DIR, 'tokens.css'), tokensSrc);
 
 writeFileSync(join(OUT_DIR, 'MANIFEST.sha256'), `${digest}  tokens.css\n`);
 
+// Frontmatter for the generated .md packs. The doc-system
+// (scripts/docs/apply-frontmatter.ts) classifies design-context/** as internal
+// docs and stamps this block; emitting it from the generator keeps regeneration
+// idempotent, so the "generated types in sync" CI gate stays green on rebuild.
+const frontmatter = (title: string, description: string): string[] => [
+  '---',
+  `title: ${JSON.stringify(title)}`,
+  `description: ${JSON.stringify(description)}`,
+  'visibility: internal',
+  'status: generated',
+  'audience: maintainer',
+  '---',
+  '',
+];
+
 writeFileSync(
   join(OUT_DIR, 'brand.md'),
   [
+    ...frontmatter(
+      `${meta.brand.name} — ${meta.brand['formal-name']}`,
+      'Voice/headline rules consolidation deferred to lane Phase 3 (DS-V1). Canonical voice corpus: .jv messaging-funnel-audit/voice-and-headline-rules.md',
+    ),
     `<!-- ${BANNER} -->`,
     '',
     `# ${meta.brand.name} — ${meta.brand['formal-name']}`,
@@ -80,6 +99,10 @@ writeFileSync(
 writeFileSync(
   join(OUT_DIR, 'README.md'),
   [
+    ...frontmatter(
+      'RevealUI Design Context — Claude Design Pack',
+      'Drop this folder into a Claude Design session.',
+    ),
     `<!-- ${BANNER} -->`,
     '',
     '# RevealUI Design Context — Claude Design Pack',

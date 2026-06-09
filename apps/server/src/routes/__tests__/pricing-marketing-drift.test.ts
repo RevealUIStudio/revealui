@@ -54,8 +54,8 @@ import app from '../pricing.js';
 const CANONICAL_SUBSCRIPTION_PRICES = {
   free: { price: '$0', period: undefined },
   pro: { price: '$49', period: '/month' },
-  max: { price: '$149', period: '/month' },
-  enterprise: { price: '$299', period: '/month' },
+  max: { price: '$299', period: '/month' },
+  enterprise: { price: '$1,499', period: '/month' },
 } as const;
 
 const CANONICAL_CREDIT_PRICES = {
@@ -66,19 +66,19 @@ const CANONICAL_CREDIT_PRICES = {
 
 const CANONICAL_PERPETUAL_PRICES = {
   'Pro Perpetual': {
-    price: '$299',
+    price: '$1,499',
     priceNote: 'one-time',
-    renewal: '$99/yr for continued support',
+    renewal: '$149/yr for continued support',
   },
   'Agency Perpetual': {
-    price: '$799',
+    price: '$8,499',
     priceNote: 'one-time',
-    renewal: '$199/yr for continued support',
+    renewal: '$799/yr for continued support',
   },
   'Enterprise Perpetual': {
-    price: '$1,999',
+    price: '$42,999',
     priceNote: 'one-time',
-    renewal: '$499/yr for continued support',
+    renewal: '$3,999/yr for continued support',
   },
 } as const;
 

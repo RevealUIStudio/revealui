@@ -1,3 +1,11 @@
+---
+title: "@revealui/core"
+description: "[![npm version](https://img.shields.io/npm/v/@revealui/core)](https://www.npmjs.com/package/@revealui/core)"
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/core
 
 [![npm version](https://img.shields.io/npm/v/@revealui/core)](https://www.npmjs.com/package/@revealui/core)

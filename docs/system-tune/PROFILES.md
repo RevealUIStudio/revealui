@@ -1,3 +1,11 @@
+---
+title: "System Tune Profiles"
+description: "Tuning profiles map a (platform, RAM bucket) pair to a set of safe defaults."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # System Tune Profiles
 
 Tuning profiles map a (platform, RAM bucket) pair to a set of safe defaults.

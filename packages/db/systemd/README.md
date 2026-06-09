@@ -1,3 +1,11 @@
+---
+title: "Drizzle Studio — systemd-user service"
+description: "Durable supervision pattern for `drizzle-kit studio`. Replaces ad-hoc `tmux`/`nohup`/`screen` invocations with a proper systemd-user unit: auto-restart on crash, journal logging..."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Drizzle Studio — systemd-user service
 
 Durable supervision pattern for `drizzle-kit studio`. Replaces ad-hoc `tmux`/`nohup`/`screen` invocations with a proper systemd-user unit: auto-restart on crash, journal logging, clean start/stop semantics, on-demand by design.

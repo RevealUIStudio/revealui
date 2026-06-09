@@ -1,3 +1,11 @@
+---
+title: "Paying for AI API Calls with HTTP 402 and USDC"
+description: "_By Joshua Vaughn - RevealUI Studio_"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Paying for AI API Calls with HTTP 402 and USDC
 
 _By Joshua Vaughn  -  RevealUI Studio_
@@ -260,4 +268,4 @@ The important constraint is ethical billing: failed or replayed calls should not
 
 ---
 
-_RevealUI is the open runtime for AI-native businesses. [revealui.com](https://revealui.com)_
+_RevealUI is the open runtime for businesses that run their own AI. [revealui.com](https://revealui.com)_

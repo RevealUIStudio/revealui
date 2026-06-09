@@ -1,3 +1,11 @@
+---
+title: "Unit Tests"
+description: "This directory contains unit tests for shared utilities, validation functions, and framework components."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Unit Tests
 
 This directory contains unit tests for shared utilities, validation functions, and framework components.

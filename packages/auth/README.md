@@ -1,3 +1,11 @@
+---
+title: "@revealui/auth"
+description: "Session-based authentication for RevealUI - database-backed sessions, rate limiting, brute force protection, and password reset."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/auth
 
 Session-based authentication for RevealUI  -  database-backed sessions, rate limiting, brute force protection, and password reset.

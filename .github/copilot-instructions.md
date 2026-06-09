@@ -1,3 +1,11 @@
+---
+title: "Copilot / AI Agent Instructions for RevealUI"
+description: "Purpose: give an AI coding agent concise, actionable context to be productive in this monorepo."
+visibility: internal
+status: verified
+audience: agent
+---
+
 # Copilot / AI Agent Instructions for RevealUI
 
 Purpose: give an AI coding agent concise, actionable context to be productive in this monorepo.

@@ -1,3 +1,11 @@
+---
+title: "MCP Setup Guide - Code Validator"
+description: "Complete guide to configure the Model Context Protocol (MCP) server for real-time code validation."
+visibility: public
+status: verified
+audience: user
+---
+
 # MCP Setup Guide - Code Validator
 
 Complete guide to configure the Model Context Protocol (MCP) server for real-time code validation.

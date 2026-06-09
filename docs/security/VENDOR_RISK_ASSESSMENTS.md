@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Vendor Risk Assessments
 description: Third-party vendor risk assessments for Neon, Supabase (legacy, phasing out), Vercel, Stripe, and GitHub covering SOC 2 compliance, data handling, and business continuity.
 last-updated: 2026-05-29

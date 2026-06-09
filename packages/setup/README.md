@@ -1,3 +1,11 @@
+---
+title: "@revealui/setup"
+description: "Shared setup utilities for RevealUI projects. Provides environment variable management, database initialization, and configuration validation."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/setup
 
 Shared setup utilities for RevealUI projects. Provides environment variable management, database initialization, and configuration validation.

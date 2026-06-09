@@ -1,3 +1,11 @@
+---
+title: "Why I Built RevealUI (and Open-Sourced It)"
+description: "*By Joshua Vaughn — RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Why I Built RevealUI (and Open-Sourced It)
 
 *By Joshua Vaughn — RevealUI Studio*
@@ -8,7 +16,7 @@ I've started three software companies. Each time, I spent the first three to six
 
 That's not a skills problem. That's an infrastructure problem. And after the third time, I decided to solve it.
 
-RevealUI is the open runtime for AI-native businesses. Users, content, products, payments, and intelligence — the five primitives every product needs — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
+RevealUI is the open runtime for businesses that run their own AI. Users, content, products, payments, and intelligence — the five primitives every product needs — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
 
 ## The problem nobody talks about
 
@@ -228,7 +236,7 @@ Some numbers on what's actually shipped:
 
 - **30 workspaces** across the monorepo (4 apps + 26 packages — 20 MIT, 5 Fair Source, 1 internal)
 - **85 database tables** via Drizzle ORM on NeonDB (Postgres)
-- **59 UI components** in `@revealui/presentation` (80 counting the admin engine) — zero external UI dependencies, just Tailwind v4, clsx, and CVA
+- **60 UI components** in `@revealui/presentation` (80 counting the admin engine) — zero external UI dependencies, just Tailwind v4, clsx, and CVA
 - **14 first-party MCP servers** in `@revealui/mcp`
 - **Extensive test coverage** across unit, integration, and E2E layers (run `pnpm test` for the current count)
 - **Full OpenAPI spec** with Swagger UI at `/docs`

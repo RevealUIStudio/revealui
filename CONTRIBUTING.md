@@ -1,3 +1,11 @@
+---
+title: "Contributing to RevealUI"
+description: "First off, thank you for considering contributing to RevealUI! It's people like you that make RevealUI such a great agentic business runtime."
+visibility: public
+status: verified
+audience: contributor
+---
+
 # Contributing to RevealUI
 
 First off, thank you for considering contributing to RevealUI! It's people like you that make RevealUI such a great agentic business runtime.
@@ -116,7 +124,7 @@ revealui/
 │   ├── core/           # Runtime engine, REST API, plugins
 │   ├── db/             # Drizzle ORM schema (85 tables, NeonDB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
-│   ├── presentation/   # 59 UI components (Tailwind v4)
+│   ├── presentation/   # 60 UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
 │   ├── setup/          # Environment setup utilities
 │   ├── sync/           # ElectricSQL real-time sync

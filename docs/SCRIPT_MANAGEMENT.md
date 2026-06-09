@@ -1,3 +1,11 @@
+---
+title: "Script Management System"
+description: "Complete guide to the RevealUI Script Management Enhancement System - infrastructure for managing 203 TypeScript scripts with visibility, type safety, verification, and rollback..."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Script Management System
 
 Complete guide to the RevealUI Script Management Enhancement System - infrastructure for managing 203 TypeScript scripts with visibility, type safety, verification, and rollback capabilities.

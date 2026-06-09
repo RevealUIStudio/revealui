@@ -1,3 +1,11 @@
+---
+title: "Database Migrations"
+description: "This directory contains versioned SQL migrations managed by Drizzle Kit."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Database Migrations
 
 This directory contains versioned SQL migrations managed by Drizzle Kit.

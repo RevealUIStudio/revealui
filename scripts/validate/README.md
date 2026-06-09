@@ -1,3 +1,11 @@
+---
+title: "Documentation Validation System"
+description: "Automated validation to prevent documentation drift and ensure accuracy."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Documentation Validation System
 
 Automated validation to prevent documentation drift and ensure accuracy.

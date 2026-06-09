@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "RevFleet — Architecture & Integration Guide"
 description: "The 7-tier product model: what each piece is, who it's for, and how they integrate."
 category: index

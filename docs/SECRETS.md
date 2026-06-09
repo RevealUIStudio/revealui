@@ -1,3 +1,11 @@
+---
+title: "Secrets Architecture"
+description: "**All secrets in RevFleet live in revvault, encrypted by an"
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Secrets Architecture
 
 ## One-sentence summary

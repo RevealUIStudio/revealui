@@ -1,3 +1,11 @@
+---
+title: "Authentication"
+description: "RevealUI uses session-based authentication backed by database-stored sessions. There are no JWTs. The sole authentication mechanism is a `revealui-session` cookie containing a h..."
+visibility: public
+status: verified
+audience: user
+---
+
 # Authentication
 
 RevealUI uses session-based authentication backed by database-stored sessions. There are no JWTs. The sole authentication mechanism is a `revealui-session` cookie containing a hashed token that maps to a row in the `sessions` table.

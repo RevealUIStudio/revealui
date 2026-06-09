@@ -326,3 +326,52 @@ describe('POST /checkout — metered overage price attachment', () => {
     expect(lineItems[0]).toEqual({ price: 'price_pro_test', quantity: 1 });
   });
 });
+
+describe('POST /checkout — session metadata (license-issuance contract)', () => {
+  // The webhook resolves the paid tier via resolveTier(session.metadata) in
+  // webhooks.ts. Stripe does NOT copy subscription_data.metadata onto the
+  // Checkout Session, so the subscription checkout MUST set metadata.tier at the
+  // TOP level or every completed checkout 500s and no license is issued.
+  // Regression guard for the P0 found in the 2026-06-07 checkout audit — the
+  // metered tests above inspect the same create args but only checked line_items.
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetChains();
+    process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
+    process.env.ADMIN_URL = 'https://app.example.com';
+  });
+
+  it('sets top-level session metadata.tier + revealui_user_id (P0 regression)', async () => {
+    queueSelectResults([{ stripePriceId: 'price_pro_test' }], [{ stripeCustomerId: 'cus_pro' }]);
+    mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/pay/pro' });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro' }));
+    expect(res.status).toBe(200);
+
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    // Top-level metadata is what webhooks.ts resolveTier(session.metadata) reads.
+    expect(sessionArgs.metadata).toEqual({ tier: 'pro', revealui_user_id: 'user-metered' });
+    // subscription_data.metadata must stay in lockstep (durable fallback source).
+    const subData = sessionArgs.subscription_data as Record<string, unknown>;
+    expect(subData.metadata).toEqual({ tier: 'pro', revealui_user_id: 'user-metered' });
+  });
+
+  it('top-level metadata.tier reflects the requested tier, not a hardcoded default', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_enterprise_test' }],
+      [{ stripeCustomerId: 'cus_ent' }],
+    );
+    mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/pay/ent' });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'enterprise' }));
+    expect(res.status).toBe(200);
+
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(sessionArgs.metadata).toEqual({
+      tier: 'enterprise',
+      revealui_user_id: 'user-metered',
+    });
+  });
+});

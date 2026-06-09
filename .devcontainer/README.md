@@ -1,3 +1,11 @@
+---
+title: "RevealUI Dev Container"
+description: "This directory contains the Dev Container configuration for RevealUI, enabling developers to work in a consistent, fully-configured development environment."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # RevealUI Dev Container
 
 This directory contains the Dev Container configuration for RevealUI, enabling developers to work in a consistent, fully-configured development environment.

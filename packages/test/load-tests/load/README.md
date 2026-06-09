@@ -1,3 +1,11 @@
+---
+title: "Load Testing Scripts"
+description: "This directory contains k6 load testing scripts for the RevealUI Framework."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Load Testing Scripts
 
 This directory contains k6 load testing scripts for the RevealUI Framework.

@@ -1,3 +1,11 @@
+---
+title: "@revealui/security"
+description: "`@revealui/core/richtext/rsc` imported `isSafeUrl` / `sanitizeUrl` from the `@revealui/security` barrel, which statically re-exports `auth.ts` and `gdpr.ts`. Both modules have a..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/security
 
 ## 0.4.0

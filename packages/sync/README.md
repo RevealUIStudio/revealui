@@ -1,3 +1,11 @@
+---
+title: "@revealui/sync"
+description: "ElectricSQL sync utilities for RevealUI - real-time data synchronization with local-first architecture."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/sync
 
 > **Experimental** (`"experimental": true` in package.json). Public API may change between minor versions.

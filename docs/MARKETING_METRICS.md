@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "Marketing Metrics — Pinned Truth"
 description: "Single source of truth for every metric, count, and status claim used in the marketing app and public-facing copy. Updated when the code changes; validated by claim-drift CI gate."
 category: internal
@@ -27,9 +29,10 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-05-18 (
 | Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (one app removed per PR #936 + #946 + #947). |
 | Workspaces (monorepo total) | **30** | `countWorkspaces()` (= 26 packages + 4 apps) | |
 | Test files | **912** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
-| UI components in `packages/presentation/` | **59** | `countUIComponents()` | Marketing copy says "59 native React components" or similar. |
+| UI components in `packages/presentation/` | **60** | `countUIComponents()` | Marketing copy says "60 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
 | DB tables (Drizzle pgTable) | **85** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
+| Access-control enforcement tests | **59** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
 | License: MIT packages | **20** | `licenseSplit.mit` | |
 | License: FSL-1.1-MIT packages | **5** | `licenseSplit.fsl` | @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services |
 | License: internal/none | **1** | `licenseSplit.internal` | `test` workspace package (private) |
@@ -47,8 +50,8 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 |---|---|---|---|---|---|
 | Free | $0 | 1 | 3 | 1,000 | 200 |
 | Pro | $49 | 5 | 25 | 10,000 | 300 |
-| Max | $149 | 15 | 100 | 50,000 | 600 |
-| Enterprise | $299 | unlimited | unlimited | unlimited | 1,000 |
+| Max | $299 | 15 | 100 | 50,000 | 600 |
+| Enterprise | $1,499 | unlimited | unlimited | unlimited | 1,000 |
 
 ### Track B — Agent task credits (one-time)
 
@@ -62,9 +65,9 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Tier | Price | Annual support renewal |
 |---|---|---|
-| Pro Perpetual | $299 | $99/yr |
-| Agency Perpetual | $799 | $199/yr |
-| Enterprise Perpetual | $1,999 | $499/yr |
+| Pro Perpetual | $1,499 | $149/yr |
+| Agency Perpetual | $8,499 | $799/yr |
+| Enterprise Perpetual | $42,999 | $3,999/yr |
 
 **Status:** marked `comingSoon: true` in `packages/contracts/src/pricing.ts`. Marketing must label Track C "Coming soon" at H2 weight (no corner badges).
 

@@ -1,3 +1,11 @@
+---
+title: "Package.json Script Standards"
+description: "Comprehensive standards and conventions for package.json scripts across the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Package.json Script Standards
 
 Comprehensive standards and conventions for package.json scripts across the RevealUI monorepo.

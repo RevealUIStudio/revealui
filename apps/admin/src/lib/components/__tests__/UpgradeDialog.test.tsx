@@ -11,7 +11,7 @@ vi.mock('@/lib/providers/LicenseProvider', () => ({
 vi.mock('@revealui/contracts/pricing', () => ({
   getTiersFromCurrent: vi.fn(() => [
     { id: 'pro', name: 'Pro', price: '$49/mo' },
-    { id: 'max', name: 'Max', price: '$149/mo' },
+    { id: 'max', name: 'Max', price: '$299/mo' },
   ]),
 }));
 

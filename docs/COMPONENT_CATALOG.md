@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Component Catalog"
 description: "Complete reference for @revealui/presentation UI components"
 category: reference
@@ -1541,7 +1543,7 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (59 components)
+### @revealui/presentation (60 components)
 - 6 Primitives (Box, Flex, Grid, Text, Heading, Slot)
 - 14 Form Controls (Button, LinkButton, Input, Textarea, Select, Checkbox, Radio, etc.)
 - 8 Data Display (Card, Table, Avatar, Badge, etc.)
@@ -1569,4 +1571,4 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 ---
 
 **Last Updated:** 2026-05-02
-**Packages:** `@revealui/presentation` (59 components), `@revealui/core` (21 components)
+**Packages:** `@revealui/presentation` (60 components), `@revealui/core` (21 components)

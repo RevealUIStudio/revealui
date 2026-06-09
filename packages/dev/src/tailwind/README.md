@@ -1,3 +1,11 @@
+---
+title: "Tailwind CSS Configuration"
+description: "Shared Tailwind CSS configuration for the RevealUI Framework."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Tailwind CSS Configuration
 
 Shared Tailwind CSS configuration for the RevealUI Framework.

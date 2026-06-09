@@ -1,3 +1,11 @@
+---
+title: "Migration Discipline"
+description: "How database migrations work in this monorepo, and the rules that prevent silent failures."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Migration Discipline
 
 How database migrations work in this monorepo, and the rules that prevent silent failures.

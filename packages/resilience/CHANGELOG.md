@@ -1,3 +1,11 @@
+---
+title: "@revealui/resilience"
+description: "@revealui/resilience"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/resilience
 
 ## 0.2.4

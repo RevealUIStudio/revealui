@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "@revealui/ai"
 description: "AI agents, LLM providers, CRDT memory, and orchestration for RevealUI Pro"
 category: package-guide

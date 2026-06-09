@@ -1,3 +1,11 @@
+---
+title: "Logging Guide"
+description: "**Last Updated:** 2026-02-04"
+visibility: public
+status: verified
+audience: user
+---
+
 # Logging Guide
 
 **Last Updated:** 2026-02-04

@@ -1,3 +1,11 @@
+---
+title: "RevealUI Scripts"
+description: "Comprehensive TypeScript and shell scripts for development, automation, and tooling in the RevealUI monorepo."
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # RevealUI Scripts
 
 Comprehensive TypeScript and shell scripts for development, automation, and tooling in the RevealUI monorepo.
@@ -692,7 +700,7 @@ const result = await validator.validate({
 import { dispatchCommand } from "@revealui/scripts-lib";
 
 // Use unified dispatcher (auto-selects best mode)
-await dispatchCommand("scripts/analyze/console-usage.ts", {
+await dispatchCommand("scripts/analyze/audit-console.ts", {
   mode: "auto", // 'import' | 'subprocess' | 'auto'
   args: parsedArgs,
 });

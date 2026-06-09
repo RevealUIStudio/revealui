@@ -1,3 +1,11 @@
+---
+title: "MCP Maintenance Guide"
+description: "This document consolidates all MCP-related maintenance information including CRDT audit strategy, key decisions, migration procedures, and metrics/observability approach."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # MCP Maintenance Guide
 
 This document consolidates all MCP-related maintenance information including CRDT audit strategy, key decisions, migration procedures, and metrics/observability approach.

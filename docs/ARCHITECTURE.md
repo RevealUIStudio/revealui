@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "System Architecture"
 description: "RevealUI system architecture reference  -  apps, packages, data flow, and deployment"
 category: architecture
@@ -207,7 +209,7 @@ RevealUI uses two frontend frameworks for two distinct surfaces. The choice is i
 
 ### Shared frontend layer
 
-Both surfaces share `@revealui/presentation` (59 native UI components, Tailwind v4, zero external UI deps), `@revealui/auth` (session auth), and `@revealui/contracts` (Zod schemas + types). The framework split is at the framework boundary; the component library and contracts are unified.
+Both surfaces share `@revealui/presentation` (60 native UI components, Tailwind v4, zero external UI deps), `@revealui/auth` (session auth), and `@revealui/contracts` (Zod schemas + types). The framework split is at the framework boundary; the component library and contracts are unified.
 
 For the full library + rationale, see [`guides/technology-stack.md`](./guides/technology-stack.md).
 

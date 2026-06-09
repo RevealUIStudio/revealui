@@ -1,3 +1,11 @@
+---
+title: "revealui"
+description: "Meta-installer for [RevealUI](https://revealui.com) — the open-source agentic business runtime."
+visibility: public
+status: verified
+audience: user
+---
+
 # revealui
 
 Meta-installer for [RevealUI](https://revealui.com) — the open-source agentic business runtime.

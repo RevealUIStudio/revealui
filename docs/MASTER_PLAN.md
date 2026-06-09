@@ -1,4 +1,9 @@
 ---
+title: "RevealUI Master Plan"
+description: "**Last Updated:** 2026-05-01 (Current Reality block refreshed; numbering aligned to Phase 5)"
+visibility: internal
+status: verified
+audience: maintainer
 type: master-plan
 repo: revealui
 last-updated: 2026-05-01
@@ -34,7 +39,7 @@ note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (
 - **Packages:** 26 packages + 4 apps = 30 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
 - **Database:** 85 tables (Drizzle ORM on **Neon** — primary). Supabase phase-out is in flight: GAP-129 PR-A/B/D shipped (2026-05-01); PR-C dual-DB client collapse shipped 2026-05-11 ([#800](https://github.com/RevealUIStudio/revealui/pull/800)). RAG tables (`ragDocuments`, `ragChunks`) and the legacy Supabase MCP server adapter remain in-tree during the transition. 61 CHECK constraints enforced (migration 0001 applied 2026-04-15).
-- **UI Components:** 59 native components (Tailwind v4, zero external UI deps)
+- **UI Components:** 60 native components (Tailwind v4, zero external UI deps)
 - **Branch pipeline:** `feature/* → test → main` — `test` is the default PR target; production deploys are auto on push to `main` only.
 - **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10

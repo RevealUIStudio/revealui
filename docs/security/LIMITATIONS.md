@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Security Stack Limitations
 description: Explicit scope and non-scope statements for the RevealUI security stack — what it governs, what it does not, and the trust assumptions that require defense-in-depth from outside the platform.
 last-updated: 2026-05-16

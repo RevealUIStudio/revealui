@@ -263,7 +263,7 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
     const data = await res.json();
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$149'); // static fallback
+    expect(max.price).toBe('$299'); // static fallback
   });
 
   it('ignores products with an unknown revealui_track value', async () => {
@@ -277,7 +277,7 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
         {
           name: 'Enterprise',
           metadata: { revealui_track: 'subscription', revealui_tier: 'enterprise' },
-          default_price: { unit_amount: 29900, recurring: { interval: 'month' } },
+          default_price: { unit_amount: 149900, recurring: { interval: 'month' } },
         },
       ],
     });
@@ -287,7 +287,7 @@ describe('GET /api/pricing  -  missing metadata fields', () => {
 
     // Enterprise should be enriched; Widget (unknown track) silently ignored
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$299');
+    expect(enterprise.price).toBe('$1499');
     // Subscriptions should still return 4 tiers
     expect(data.subscriptions).toHaveLength(4);
   });
@@ -332,13 +332,13 @@ describe('GET /api/pricing  -  logger call verification', () => {
 });
 
 describe('GET /api/pricing  -  formatPrice edge values', () => {
-  it('formats large unit amounts correctly ($29900 → $299)', async () => {
+  it('formats large unit amounts correctly ($149900 → $1499)', async () => {
     mockProductsList.mockResolvedValue({
       data: [
         {
           name: 'Enterprise',
           metadata: { revealui_track: 'subscription', revealui_tier: 'enterprise' },
-          default_price: { unit_amount: 29900, recurring: { interval: 'month' } },
+          default_price: { unit_amount: 149900, recurring: { interval: 'month' } },
         },
       ],
     });
@@ -347,7 +347,7 @@ describe('GET /api/pricing  -  formatPrice edge values', () => {
     const data = await res.json();
 
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$299');
+    expect(enterprise.price).toBe('$1499');
     expect(enterprise.period).toBe('/month');
   });
 

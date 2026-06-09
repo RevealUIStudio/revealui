@@ -1,8 +1,16 @@
+---
+title: "From Zero to Production in About 30 Minutes"
+description: "**Build a complete business application with auth, content, and payments - faster than you can order lunch.**"
+visibility: public
+status: narrative
+audience: user
+---
+
 # From Zero to Production in About 30 Minutes
 
 **Build a complete business application with auth, content, and payments  -  faster than you can order lunch.**
 
-RevealUI is the open runtime for AI-native businesses. Instead of gluing together a dozen SaaS tools and spending weeks on boilerplate, you get users, content, products, payments, and intelligence pre-wired and ready to deploy.
+RevealUI is the open runtime for businesses that run their own AI. Instead of gluing together a dozen SaaS tools and spending weeks on boilerplate, you get users, content, products, payments, and intelligence pre-wired and ready to deploy.
 
 This tutorial walks you through creating a real business application from scratch. By the end, you will have a working admin with typed collections, session-based authentication, a REST API with Swagger documentation, Stripe billing, license enforcement, and an admin dashboard  -  deployed to production on Vercel.
 
@@ -625,4 +633,4 @@ The pattern scales. Add products, orders, tickets, knowledge bases  -  each coll
 
 ---
 
-*RevealUI is the open runtime for AI-native businesses. Users, content, products, payments, and intelligence  -  pre-wired, open source, and ready to deploy. Get started at [revealui.com](https://revealui.com).*
+*RevealUI is the open runtime for businesses that run their own AI. Users, content, products, payments, and intelligence  -  pre-wired, open source, and ready to deploy. Get started at [revealui.com](https://revealui.com).*

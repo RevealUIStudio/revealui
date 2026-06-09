@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "MCP Marketplace"
 description: "MCP server marketplace  -  discovery, publishing, invocation, and monetization"
 category: guide

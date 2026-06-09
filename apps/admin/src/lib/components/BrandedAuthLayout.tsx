@@ -1,4 +1,9 @@
-import { BuiltWithRevealUI, Heading, SplitAuthLayout } from '@revealui/presentation/server';
+import {
+  BuiltWithRevealUI,
+  Heading,
+  RevealUIMark,
+  SplitAuthLayout,
+} from '@revealui/presentation/server';
 import type React from 'react';
 
 /**
@@ -15,7 +20,8 @@ import type React from 'react';
  *   the logo already contains the company wordmark, e.g. "acmeinc"); alt
  *   text on the logo stays for screen-reader accessibility regardless
  * - `REVEALUI_TENANT_TAGLINE` — optional subline; suppressed if unset
- * - `REVEALUI_BRAND_LOGO_URL` — logo src; defaults to `/logo.webp` (kit-mountable)
+ * - `REVEALUI_BRAND_LOGO_URL` — optional tenant logo src; when unset, the inline
+ *   RevealUI mark is rendered (inherits `--tenant-brand-on` for guaranteed contrast)
  * - `REVEALUI_SHOW_POWERED_BY` — `'false'` hides the "Built with RevealUI" badge
  *   (kit-default false; revealui.com SaaS-default true)
  *
@@ -26,17 +32,21 @@ export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
   const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
   const hideName = process.env.REVEALUI_TENANT_HIDE_NAME === 'true';
   const tagline = process.env.REVEALUI_TENANT_TAGLINE;
-  const logoUrl = process.env.REVEALUI_BRAND_LOGO_URL ?? '/logo.webp';
+  const logoUrl = process.env.REVEALUI_BRAND_LOGO_URL;
   const showPoweredBy = process.env.REVEALUI_SHOW_POWERED_BY !== 'false';
 
   const brand = (
     <>
-      {/* biome-ignore lint/performance/noImgElement: static branding image; Next.js Image overkill for one logo */}
-      <img
-        src={logoUrl}
-        alt={name}
-        className="max-h-24 w-auto max-w-xs object-contain lg:max-h-48 lg:max-w-sm"
-      />
+      {logoUrl ? (
+        // biome-ignore lint/performance/noImgElement: static tenant branding image; Next.js Image overkill for one logo
+        <img
+          src={logoUrl}
+          alt={name}
+          className="max-h-24 w-auto max-w-xs object-contain lg:max-h-48 lg:max-w-sm"
+        />
+      ) : (
+        <RevealUIMark title={name} className="h-24 w-24 lg:h-32 lg:w-32" />
+      )}
       {hideName ? null : (
         <Heading as="h1" size="2xl" className="text-center tracking-tight lg:text-3xl">
           {name}

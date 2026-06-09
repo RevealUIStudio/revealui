@@ -1,3 +1,11 @@
+---
+title: "@revealui/resilience"
+description: "Resilience infrastructure for RevealUI applications. Implements circuit breaker, retry with exponential backoff, and bulkhead patterns for fault-tolerant service communication."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/resilience
 
 Resilience infrastructure for RevealUI applications. Implements circuit breaker, retry with exponential backoff, and bulkhead patterns for fault-tolerant service communication.

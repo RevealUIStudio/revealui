@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Third-Party Licenses"
 description: "License attributions for all third-party dependencies"
 category: legal

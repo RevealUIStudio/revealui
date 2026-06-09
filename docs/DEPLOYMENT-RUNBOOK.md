@@ -1,4 +1,6 @@
 ---
+visibility: internal
+audience: maintainer
 title: Deployment Runbook
 description: Step-by-step procedures for deploying RevealUI apps, publishing npm packages, running migrations, and handling rollbacks.
 last-updated: 2026-04-12

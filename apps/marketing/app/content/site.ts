@@ -29,7 +29,7 @@ export const METRICS = {
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 912,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
-  uiComponents: 59,
+  uiComponents: 60,
   /**
    * MCP servers in `packages/mcp/src/servers/*.ts` (excluding underscore-prefixed
    * utilities). Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon concrete
@@ -53,7 +53,7 @@ export type Metrics = typeof METRICS;
 
 export const SITE = {
   brand: 'RevealUI',
-  brandTagline: 'The open runtime for AI-native businesses.',
+  brandTagline: 'The open runtime for businesses that run their own AI.',
   urls: {
     signup: 'https://admin.revealui.com/signup',
     admin: 'https://admin.revealui.com',

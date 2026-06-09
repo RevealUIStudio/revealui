@@ -1,3 +1,11 @@
+---
+title: "Visual Snapshot Testing - Quick Reference"
+description: "**Updated for CMS Application** - Tests now target actual routes like `/login` instead of fictional routes."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Visual Snapshot Testing - Quick Reference
 
 **Updated for CMS Application** - Tests now target actual routes like `/login` instead of fictional routes.

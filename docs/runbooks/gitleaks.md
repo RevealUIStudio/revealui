@@ -1,3 +1,11 @@
+---
+title: "Gitleaks scan (workflow + cutoff)"
+description: "The weekly Gitleaks scan (`Security` workflow → `gitleaks` job, cron Mon 09:00 UTC) walks git history. Without a cutoff, every historical finding from a long-since-rotated key r..."
+visibility: internal
+status: verified
+audience: maintainer
+---
+
 # Gitleaks scan (workflow + cutoff)
 
 The weekly Gitleaks scan (`Security` workflow → `gitleaks` job, cron Mon 09:00 UTC) walks git history. Without a cutoff, every historical finding from a long-since-rotated key reappears every Monday → alert fatigue → real new leaks risk being missed in the wash.

@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Design Principles"
 description: "Six engineering principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive"
 category: philosophy

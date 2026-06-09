@@ -1,3 +1,11 @@
+---
+title: "@revealui/harnesses"
+description: "The 2026-05-18 audit found the original VAUGHN spec oversold what the code actually shipped — one working adapter for the RevealUI Agent, plus static capability-profile data for..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/harnesses
 
 ## 0.6.1

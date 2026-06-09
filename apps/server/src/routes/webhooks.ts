@@ -757,6 +757,40 @@ async function findHostedStatusByCustomerId(
   return entitlement?.status ?? null;
 }
 
+/**
+ * Resolve the Stripe subscription ID backing a charge, via the
+ * Charge → Invoice → Subscription chain. Returns null when the charge is not
+ * invoice-backed (a one-time perpetual or credit-bundle purchase) or the chain
+ * cannot be resolved. Used to scope refund / chargeback license revocation to
+ * the affected subscription instead of revoking every license the customer
+ * holds.
+ *
+ * charge.invoice exists at runtime for invoice-backed charges but is not in the
+ * SDK type — cast through unknown to read it (same SDK-typing gap as elsewhere
+ * in this file). Stripe SDK v20 moved the subscription field to
+ * invoice.parent.subscription_details.subscription.
+ */
+async function resolveSubscriptionIdFromCharge(
+  stripe: ProtectedStripe,
+  charge: Stripe.Charge,
+): Promise<string | null> {
+  const chargeInvoice = (charge as unknown as { invoice?: string | { id: string } | null }).invoice;
+  const invoiceId = typeof chargeInvoice === 'string' ? chargeInvoice : (chargeInvoice?.id ?? null);
+  if (!invoiceId) return null;
+  try {
+    const invoice = await stripe.invoices.retrieve(invoiceId);
+    const field = invoice.parent?.subscription_details?.subscription;
+    return typeof field === 'string' ? field : (field?.id ?? null);
+  } catch (err) {
+    logger.warn('Failed to resolve subscription from charge invoice', {
+      chargeId: charge.id,
+      invoiceId,
+      detail: err instanceof Error ? err.message : 'unknown',
+    });
+    return null;
+  }
+}
+
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
 
 // Canonical list lives in `@revealui/contracts` so seed-stripe.ts and this
@@ -855,6 +889,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
     return c.json({ error: 'Webhook service unavailable' }, 503);
   }
 
+  // CONTRACT: Stripe signature verification REQUIRES the raw request bytes.
+  // Always read the body via c.req.text() here and verify with
+  // constructEventAsync below. Do NOT switch the event source to
+  // c.req.valid('json') / c.req.json() — a re-serialized body changes the bytes
+  // and breaks HMAC verification. The OpenAPI route declares a JSON body schema
+  // for documentation only; Hono buffers the raw body so this text() read and
+  // the schema coexist.
   const body = await c.req.text();
   const sig = c.req.header('Stripe-Signature');
 
@@ -1326,7 +1367,35 @@ app.openapi(stripeWebhookRoute, async (c) => {
           );
         }
 
-        const tier = resolveTier(session.metadata);
+        // Retrieve the subscription up front: it is both the trialing-state
+        // source (below) and the authoritative fallback for the paid tier.
+        // All new checkouts start as trialing (7-day trial configured in billing.ts).
+        let checkoutSubscription: Stripe.Subscription;
+        try {
+          checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+        } catch (err) {
+          // Throw so Stripe retries the webhook  -  a payment was captured but we
+          // cannot determine trialing vs active without the subscription object.
+          logger.error(
+            'Failed to retrieve subscription at checkout  -  returning 500 for retry',
+            undefined,
+            {
+              subscriptionId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            },
+          );
+          throw new Error(`Failed to retrieve subscription ${subscriptionId} at checkout`);
+        }
+
+        // Resolve the paid tier. Prefer the top-level session metadata set at
+        // checkout creation; fall back to the subscription's own metadata
+        // (subscription_data.metadata.tier). Stripe does NOT mirror one bag onto
+        // the other, so consulting both keeps license issuance working even if a
+        // session is ever created without top-level metadata. resolveTier throws
+        // (-> 500 -> Stripe retry) only when BOTH bags lack a valid tier.
+        const tier = resolveTier(
+          session.metadata?.tier ? session.metadata : checkoutSubscription.metadata,
+        );
         const userId = session.metadata?.revealui_user_id ?? null;
 
         // Resolve userId from Stripe customer if not in metadata
@@ -1371,25 +1440,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // with \n escaped in the .env format; the runtime preserves the literal
         // \n chars, so we must convert them to real newlines for jose/importPKCS8.
         const normalizedKey = privateKey.replaceAll('\\n', '\n');
-
-        // Retrieve subscription to detect trialing state and trial_end date.
-        // All new checkouts start as trialing (7-day trial configured in billing.ts).
-        let checkoutSubscription: Stripe.Subscription;
-        try {
-          checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
-        } catch (err) {
-          // Throw so Stripe retries the webhook  -  a payment was captured but we
-          // cannot determine trialing vs active without the subscription object.
-          logger.error(
-            'Failed to retrieve subscription at checkout  -  returning 500 for retry',
-            undefined,
-            {
-              subscriptionId,
-              detail: err instanceof Error ? err.message : 'unknown',
-            },
-          );
-          throw new Error(`Failed to retrieve subscription ${subscriptionId} at checkout`);
-        }
 
         const isTrialing = checkoutSubscription.status === 'trialing';
         const licenseStatus = isTrialing ? 'trialing' : 'active';
@@ -2934,11 +2984,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // is returned to the cardholder.
         const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
 
-        // Retrieve the charge to resolve the customer ID
+        // Retrieve the charge to resolve the customer ID (and, below, the
+        // disputed subscription).
         let disputeCustomerId: string | null = null;
+        let disputeCharge: Stripe.Charge | null = null;
         try {
-          const charge = await stripe.charges.retrieve(chargeId);
-          disputeCustomerId = resolveCustomerId(charge.customer);
+          disputeCharge = await stripe.charges.retrieve(chargeId);
+          disputeCustomerId = resolveCustomerId(disputeCharge.customer);
         } catch (err) {
           logger.error('Failed to retrieve charge for lost dispute', undefined, {
             chargeId,
@@ -2957,11 +3009,27 @@ app.openapi(stripeWebhookRoute, async (c) => {
           break;
         }
 
-        // Revoke all licenses for this customer
+        // S2: scope the chargeback revoke to the disputed subscription when the
+        // charge can be traced to one. A customer with multiple subscriptions
+        // must lose only the disputed one's license. When the charge is not
+        // invoice-backed or the chain is unresolvable, fall back to revoking ALL
+        // of the customer's licenses — the conservative posture for a chargeback
+        // (money was returned; never under-revoke), preserving prior behavior.
+        const disputeSubscriptionId = disputeCharge
+          ? await resolveSubscriptionIdFromCharge(stripe, disputeCharge)
+          : null;
+        const disputeRevokeWhere = disputeSubscriptionId
+          ? and(
+              eq(licenses.customerId, disputeCustomerId),
+              eq(licenses.perpetual, false),
+              eq(licenses.subscriptionId, disputeSubscriptionId),
+              isNull(licenses.deletedAt),
+            )
+          : and(eq(licenses.customerId, disputeCustomerId), isNull(licenses.deletedAt));
         await db
           .update(licenses)
           .set({ status: 'revoked', updatedAt: new Date() })
-          .where(and(eq(licenses.customerId, disputeCustomerId), isNull(licenses.deletedAt)));
+          .where(disputeRevokeWhere);
 
         await syncHostedSubscriptionState(db, {
           customerId: disputeCustomerId,
@@ -3256,6 +3324,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
         }
 
         if (isFullRefund) {
+          // S2: resolve the subscription this charge backs ONCE (Charge →
+          // Invoice → Subscription) so we can both scope the license revoke to
+          // that subscription and cancel it below. Resolving once keeps a single
+          // Stripe invoices.retrieve call (a second call would break the
+          // single-mock refund-cancel test and double the Stripe round-trip).
+          const refundSubscriptionId = await resolveSubscriptionIdFromCharge(stripe, charge);
+
           // B-1 fix: Revoke perpetual licenses when the originating charge is
           // fully refunded. Identify the perpetual purchase via the PaymentIntent
           // metadata set at checkout (payment_intent_data.metadata.perpetual='true').
@@ -3319,18 +3394,28 @@ app.openapi(stripeWebhookRoute, async (c) => {
             }
           }
 
-          // Only revoke NON-PERPETUAL licenses. Perpetual licenses represent
-          // a separate one-time purchase handled above.
-          await db
-            .update(licenses)
-            .set({ status: 'revoked', updatedAt: new Date() })
-            .where(
-              and(
+          // S2: scope the revoke to the subscription this refunded charge backs.
+          // A customer with multiple active subscriptions must lose only the
+          // refunded one's license, not all of them. When the charge cannot be
+          // traced to a subscription (non-invoice charge or broken chain) fall
+          // back to the prior all-non-perpetual revoke — strictly safer, never
+          // under-revokes. Perpetual licenses are handled above.
+          const refundRevokeWhere = refundSubscriptionId
+            ? and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.perpetual, false),
+                eq(licenses.subscriptionId, refundSubscriptionId),
+                isNull(licenses.deletedAt),
+              )
+            : and(
                 eq(licenses.customerId, customerId),
                 eq(licenses.perpetual, false),
                 isNull(licenses.deletedAt),
-              ),
-            );
+              );
+          await db
+            .update(licenses)
+            .set({ status: 'revoked', updatedAt: new Date() })
+            .where(refundRevokeWhere);
 
           await syncHostedSubscriptionState(db, {
             customerId,
@@ -3359,96 +3444,65 @@ app.openapi(stripeWebhookRoute, async (c) => {
           // Without this, Stripe continues invoicing the customer at the next
           // cycle while our entitlement is 'revoked' — producing immediate
           // "I got a refund and you charged me again" confusion + likely
-          // chargebacks.
-          //
-          // Detect via Charge → Invoice → Subscription chain. Idempotent:
-          // if the subscription is already canceled, Stripe returns
-          // resource_missing / "No such subscription" or "subscription is
-          // already canceled"; we log info and continue.
-          // charge.invoice exists at runtime (Stripe sends it for invoice-
-          // backed charges) but is not in the SDK type. Same SDK-typing gap
-          // as elsewhere in this file (see line ~2235 comment). Cast through
-          // unknown to read it.
-          const chargeInvoice = (charge as unknown as { invoice?: string | { id: string } | null })
-            .invoice;
-          const invoiceId =
-            typeof chargeInvoice === 'string' ? chargeInvoice : (chargeInvoice?.id ?? null);
-          if (invoiceId) {
+          // chargebacks. Uses the subscription resolved at the top of this
+          // block. Idempotent: if the subscription is already canceled, Stripe
+          // returns resource_missing / "No such subscription" / "already
+          // canceled"; we log info and continue.
+          if (refundSubscriptionId) {
             try {
-              const invoice = await stripe.invoices.retrieve(invoiceId);
-              // Stripe SDK v20 moved subscription from invoice.subscription to
-              // invoice.parent.subscription_details.subscription (matches the
-              // fix at line ~2451 in this file).
-              const invoiceSubscriptionField = invoice.parent?.subscription_details?.subscription;
-              const subscriptionId =
-                typeof invoiceSubscriptionField === 'string'
-                  ? invoiceSubscriptionField
-                  : (invoiceSubscriptionField?.id ?? null);
-              if (subscriptionId) {
-                try {
-                  await stripe.subscriptions.cancel(subscriptionId, {
-                    invoice_now: false,
-                    prorate: false,
-                  });
-                  logger.warn('Stripe subscription canceled after full refund', {
-                    customerId,
-                    chargeId: charge.id,
-                    invoiceId,
-                    subscriptionId,
-                  });
-                  auditLicenseEvent(db, 'subscription.canceled.refund', 'warn', {
-                    customerId,
-                    chargeId: charge.id,
-                    invoiceId,
-                    subscriptionId,
-                  });
-                } catch (cancelErr) {
-                  // Already-canceled is the common idempotent case. Stripe
-                  // surfaces it as a StripeInvalidRequestError with
-                  // code='resource_missing' (deleted) or a message containing
-                  // 'already canceled' / 'already been canceled'. Treat all
-                  // of these as a no-op success.
-                  const msg = cancelErr instanceof Error ? cancelErr.message : 'unknown';
-                  const code = (cancelErr as { code?: string }).code;
-                  const isAlreadyCanceled =
-                    code === 'resource_missing' ||
-                    /already\s+(been\s+)?cance(l|ll)ed/i.test(msg) ||
-                    /no such subscription/i.test(msg);
-                  if (isAlreadyCanceled) {
-                    logger.info(
-                      'Stripe subscription already canceled — refund cancel is no-op (idempotent)',
-                      {
-                        customerId,
-                        chargeId: charge.id,
-                        subscriptionId,
-                        detail: msg,
-                      },
-                    );
-                  } else {
-                    // Unexpected error — log loudly but don't crash the
-                    // webhook (email + audit-log already wrote; subscription
-                    // cancel can be retried by admin).
-                    logger.error(
-                      'Failed to cancel Stripe subscription after full refund',
-                      undefined,
-                      {
-                        customerId,
-                        chargeId: charge.id,
-                        subscriptionId,
-                        detail: msg,
-                        code,
-                      },
-                    );
-                  }
-                }
-              }
-            } catch (invoiceErr) {
-              logger.warn('Failed to retrieve invoice for refund — skipping subscription cancel', {
+              await stripe.subscriptions.cancel(refundSubscriptionId, {
+                invoice_now: false,
+                prorate: false,
+              });
+              logger.warn('Stripe subscription canceled after full refund', {
                 customerId,
                 chargeId: charge.id,
-                invoiceId,
-                detail: invoiceErr instanceof Error ? invoiceErr.message : 'unknown',
+                subscriptionId: refundSubscriptionId,
               });
+              auditLicenseEvent(db, 'subscription.canceled.refund', 'warn', {
+                customerId,
+                chargeId: charge.id,
+                subscriptionId: refundSubscriptionId,
+              });
+            } catch (cancelErr) {
+              // Already-canceled is the common idempotent case. Stripe
+              // surfaces it as a StripeInvalidRequestError with
+              // code='resource_missing' (deleted) or a message containing
+              // 'already canceled' / 'already been canceled'. Treat all
+              // of these as a no-op success.
+              const msg = cancelErr instanceof Error ? cancelErr.message : 'unknown';
+              const code = (cancelErr as { code?: string }).code;
+              // M2 no-regex: detect Stripe's idempotent "already canceled"
+              // outcomes via case-insensitive substring checks. Covers
+              // "already canceled" / "already cancelled" / "already been
+              // cancel(l)ed" and "no such subscription".
+              const lowerMsg = msg.toLowerCase();
+              const isAlreadyCanceled =
+                code === 'resource_missing' ||
+                (lowerMsg.includes('already') && lowerMsg.includes('cancel')) ||
+                lowerMsg.includes('no such subscription');
+              if (isAlreadyCanceled) {
+                logger.info(
+                  'Stripe subscription already canceled — refund cancel is no-op (idempotent)',
+                  {
+                    customerId,
+                    chargeId: charge.id,
+                    subscriptionId: refundSubscriptionId,
+                    detail: msg,
+                  },
+                );
+              } else {
+                // Unexpected error — log loudly but don't crash the
+                // webhook (email + audit-log already wrote; subscription
+                // cancel can be retried by admin).
+                logger.error('Failed to cancel Stripe subscription after full refund', undefined, {
+                  customerId,
+                  chargeId: charge.id,
+                  subscriptionId: refundSubscriptionId,
+                  detail: msg,
+                  code,
+                });
+              }
             }
           }
         } else {

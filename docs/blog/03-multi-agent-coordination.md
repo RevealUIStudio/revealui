@@ -1,3 +1,11 @@
+---
+title: "Three AI Agents, One Codebase, No Conflicts"
+description: "*By Joshua Vaughn - RevealUI Studio*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Three AI Agents, One Codebase, No Conflicts
 
 *By Joshua Vaughn  -  RevealUI Studio*
@@ -208,7 +216,7 @@ if (!clean) {
 wb.releaseFiles('my-agent')
 ```
 
-The package also includes adapters for Claude Code, Cursor, and Aider  -  so you can coordinate across different AI tools on the same codebase.
+The package also includes adapters for Claude Code, Cursor, and GitHub Copilot  -  so you can coordinate across different AI tools on the same codebase.
 
 ---
 
@@ -222,4 +230,4 @@ The `@revealui/harnesses` package is part of RevealUI Pro. The protocol itself  
 
 ---
 
-*RevealUI is the open runtime for AI-native businesses. [revealui.com](https://revealui.com)*
+*RevealUI is the open runtime for businesses that run their own AI. [revealui.com](https://revealui.com)*

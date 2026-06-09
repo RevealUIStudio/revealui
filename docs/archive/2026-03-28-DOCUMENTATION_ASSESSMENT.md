@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: narrative
 title: "Documentation Assessment"
 description: "Audit of documentation completeness and accuracy across all packages"
 category: internal
@@ -19,7 +21,7 @@ Brutally honest audit of what RevealUI documentation claimed versus what the cod
 
 ## Executive Summary
 
-RevealUI's core framework is **real and substantial**  -  auth, billing, runtime engine, 59 UI components, 81-table database, and an extensive test suite. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
+RevealUI's core framework is **real and substantial**  -  auth, billing, runtime engine, 60 UI components, 81-table database, and an extensive test suite. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
 
 ---
 
@@ -53,7 +55,7 @@ RevealUI's core framework is **real and substantial**  -  auth, billing, runtime
 |---------|----------|
 | React 19 | `react@^19.2.3` in package.json |
 | Next.js 16 | Catalog reference, App Router throughout |
-| 50+ UI components | **59 components** in presentation package |
+| 50+ UI components | **60 components** in presentation package |
 | Session-only auth (no JWT) | bcrypt-12, RBAC/ABAC, 2FA, WebAuthn, OAuth |
 | Stripe checkout/subscriptions/webhooks | 1,100-line webhook handler, 12 event types |
 | Drizzle ORM dual-DB (NeonDB + Supabase) | Schema + queries + boundary enforcement |

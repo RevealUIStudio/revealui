@@ -1,3 +1,11 @@
+---
+title: "Electric Latency Probe"
+description: "Measures end-to-end propagation latency through the local admin app:"
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Electric Latency Probe
 
 Measures end-to-end propagation latency through the local admin app:

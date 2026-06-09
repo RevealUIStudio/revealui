@@ -47,7 +47,7 @@ export const HOME_HERO = {
       {
         metric: `${METRICS.dbTables} database tables`,
         detail:
-          'Every table maps to a primitive — users, content, products, payments, or intelligence. See the [database reference](https://docs.revealui.com/database).',
+          'Every table maps to a primitive — people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
       },
       {
         metric: `${METRICS.mcpServers} first-party MCP servers`,
@@ -69,6 +69,27 @@ export const HOME_HERO = {
           'One permission model and one tamper-evident chain — for your team and your agents alike. See the [architecture](https://docs.revealui.com/architecture).',
       },
     ],
+  },
+} as const;
+
+// ---------------------------------------------------------------------------
+// Hero — "Foundation" A/B variant.
+// Tests the noun "foundation" against the canonical "runtime" in HOME_HERO.
+// The two strings below (h1 + subtitle.strong) are the only difference, so the
+// A/B isolates the noun; "runtime" stays the canonical noun on every other
+// surface. Served via selectHomeHero() (app/lib/hero-variant.ts): the homepage
+// hero renders this variant when the URL carries ?hero=foundation, else
+// HOME_HERO. An automatic traffic split + conversion measurement is separate
+// (the marketing app has no analytics sink yet).
+// ---------------------------------------------------------------------------
+
+export const HOME_HERO_FOUNDATION = {
+  ...HOME_HERO,
+  h1: 'Run your whole business on a foundation you own.',
+  subtitle: {
+    ...HOME_HERO.subtitle,
+    strong:
+      'Auth, content, products, and payments, pre-wired into one open-source foundation you self-host.',
   },
 } as const;
 

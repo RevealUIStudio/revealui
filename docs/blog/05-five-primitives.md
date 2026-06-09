@@ -1,3 +1,11 @@
+---
+title: "The Five Primitives of Business Software"
+description: "Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to ..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # The Five Primitives of Business Software
 
 > **Status note (updated 2026-05-26):** One forward-looking system mentioned in this post is not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`). Everything else described — auth, content, Stripe billing, MCP wiring, agent primitives — runs today. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current per-feature shipping status.
@@ -6,7 +14,7 @@
 
 Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, content engines, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
 
-RevealUI is the open runtime for AI-native businesses. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
+RevealUI is the open runtime for businesses that run their own AI. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
 
 This post is a deep technical walkthrough of all five. Not marketing copy. Real code, real architecture decisions, real trade-offs.
 
@@ -120,7 +128,7 @@ export const hasAnyRole = (roles: string[]) => ({ req }) =>
   !!req.user && roles.some((role) => req.user?.roles?.includes(role));
 ```
 
-These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 58 enforcement tests proving role isolation.
+These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 59 enforcement tests proving role isolation.
 
 ### How Users connects to everything else
 
@@ -424,7 +432,7 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 
 ### Open-Model Inference
 
-RevealUI defaults to open-weight models — no API key, no cloud bill, no vendor lock-in. Cloud providers (Groq, HuggingFace, OpenAI-compatible, and Anthropic for prompt caching) are opt-in via environment variables. The inference path is auto-detected:
+RevealUI defaults to open-weight models — no API key, no cloud bill, no vendor lock-in. Cloud providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are opt-in via environment variables. The inference path is auto-detected:
 
 1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
 2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
@@ -512,4 +520,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is the open runtime for AI-native businesses. The core — Users, Content, Products, and Payments — is MIT licensed and free forever. Intelligence (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the open runtime for businesses that run their own AI. The core — Users, Content, Products, and Payments — is MIT licensed and free forever. Intelligence (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

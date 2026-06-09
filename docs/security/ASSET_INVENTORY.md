@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Asset Inventory
 description: Formal inventory of all services, data stores, third-party processors, and security tooling for SOC 2 compliance.
 last-updated: 2026-05-29
@@ -45,7 +48,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | PKG-002 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) | npm | Public |
 | PKG-003 | @revealui/db | Drizzle ORM schema (85 tables), dual-DB support | npm | Public |
 | PKG-004 | @revealui/auth | Session auth, password reset, rate limiting | npm | Public |
-| PKG-005 | @revealui/presentation | 59 native UI components (Tailwind v4) | npm | Public |
+| PKG-005 | @revealui/presentation | 60 native UI components (Tailwind v4) | npm | Public |
 | PKG-006 | @revealui/router | Lightweight file-based router with SSR | npm | Public |
 | PKG-007 | @revealui/config | Type-safe env config (Zod + lazy Proxy) | npm | Public |
 | PKG-008 | @revealui/utils | Logger, DB helpers, validation | npm | Public |
@@ -155,7 +158,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 
 | ID | Control | Package | Purpose |
 |----|---------|---------|---------|
-| SEC-017 | RBAC + ABAC Policy Engine | @revealui/core | Role-based and attribute-based access control (58 enforcement tests) |
+| SEC-017 | RBAC + ABAC Policy Engine | @revealui/core | Role-based and attribute-based access control (59 enforcement tests) |
 | SEC-018 | Rate Limiting | @revealui/auth | Brute force protection, webhook rate limiting (100 req/min) |
 | SEC-019 | Session Auth | @revealui/auth | httpOnly, secure, sameSite=lax cookies; no JWTs |
 | SEC-020 | CSP/CORS/HSTS Headers | @revealui/security | Transport and browser security headers |

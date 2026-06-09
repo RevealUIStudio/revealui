@@ -1,3 +1,11 @@
+---
+title: "Test Package"
+description: "Comprehensive testing infrastructure for the RevealUI Framework."
+visibility: public
+status: verified
+audience: user
+---
+
 # Test Package
 
 Comprehensive testing infrastructure for the RevealUI Framework.

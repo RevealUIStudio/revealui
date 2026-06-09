@@ -116,7 +116,7 @@ const CATALOG: ProductDefinition[] = [
     prices: [
       {
         key: 'revealui_max_monthly',
-        unitAmount: 14900,
+        unitAmount: 29900,
         currency: 'usd',
         mode: 'subscription',
         interval: 'month',
@@ -124,7 +124,7 @@ const CATALOG: ProductDefinition[] = [
       },
       {
         key: 'revealui_max_yearly',
-        unitAmount: 142800,
+        unitAmount: 287000,
         currency: 'usd',
         mode: 'subscription',
         interval: 'year',
@@ -143,14 +143,14 @@ const CATALOG: ProductDefinition[] = [
     prices: [
       {
         key: 'revealui_enterprise_monthly',
-        unitAmount: 29900,
+        unitAmount: 149900,
         currency: 'usd',
         mode: 'subscription',
         interval: 'month',
       },
       {
         key: 'revealui_enterprise_yearly',
-        unitAmount: 287000,
+        unitAmount: 1439000,
         currency: 'usd',
         mode: 'subscription',
         interval: 'year',
@@ -164,12 +164,12 @@ const CATALOG: ProductDefinition[] = [
     tier: 'pro',
     billingModel: 'perpetual',
     priceNote: 'one-time',
-    renewal: '$99/yr for continued support',
+    renewal: '$149/yr for continued support',
     defaultPriceKey: 'revealui_pro_perpetual',
     prices: [
       {
         key: 'revealui_pro_perpetual',
-        unitAmount: 29900,
+        unitAmount: 149900,
         currency: 'usd',
         mode: 'payment',
       },
@@ -182,12 +182,12 @@ const CATALOG: ProductDefinition[] = [
     tier: 'max',
     billingModel: 'perpetual',
     priceNote: 'one-time',
-    renewal: '$199/yr for continued support',
+    renewal: '$799/yr for continued support',
     defaultPriceKey: 'revealui_max_perpetual',
     prices: [
       {
         key: 'revealui_max_perpetual',
-        unitAmount: 79900,
+        unitAmount: 849900,
         currency: 'usd',
         mode: 'payment',
       },
@@ -195,17 +195,17 @@ const CATALOG: ProductDefinition[] = [
   },
   {
     key: 'revealui_enterprise_perpetual',
-    name: 'Forge Perpetual',
-    description: 'Full self-hosted Forge with unlimited deployments.',
+    name: 'Enterprise Perpetual',
+    description: 'Full self-hosted Enterprise with unlimited deployments.',
     tier: 'enterprise',
     billingModel: 'perpetual',
     priceNote: 'one-time',
-    renewal: '$499/yr for continued support',
+    renewal: '$3,999/yr for continued support',
     defaultPriceKey: 'revealui_enterprise_perpetual',
     prices: [
       {
         key: 'revealui_enterprise_perpetual',
-        unitAmount: 199900,
+        unitAmount: 4299900,
         currency: 'usd',
         mode: 'payment',
       },
@@ -223,7 +223,7 @@ const CATALOG: ProductDefinition[] = [
     prices: [
       {
         key: 'revealui_renewal_pro',
-        unitAmount: 9900,
+        unitAmount: 14900,
         currency: 'usd',
         mode: 'payment',
       },
@@ -240,7 +240,7 @@ const CATALOG: ProductDefinition[] = [
     prices: [
       {
         key: 'revealui_renewal_max',
-        unitAmount: 19900,
+        unitAmount: 79900,
         currency: 'usd',
         mode: 'payment',
       },
@@ -248,8 +248,8 @@ const CATALOG: ProductDefinition[] = [
   },
   {
     key: 'revealui_renewal_enterprise',
-    name: 'Forge Support Renewal',
-    description: 'Renew your Forge perpetual license support contract for 1 year.',
+    name: 'Enterprise Support Renewal',
+    description: 'Renew your Enterprise perpetual license support contract for 1 year.',
     tier: 'enterprise',
     billingModel: 'renewal',
     priceNote: 'annual',
@@ -257,7 +257,7 @@ const CATALOG: ProductDefinition[] = [
     prices: [
       {
         key: 'revealui_renewal_enterprise',
-        unitAmount: 49900,
+        unitAmount: 399900,
         currency: 'usd',
         mode: 'payment',
       },

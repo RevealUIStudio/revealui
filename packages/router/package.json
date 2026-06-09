@@ -23,8 +23,8 @@
     "@testing-library/react": "^16.3.2",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "tsup": "^8.5.1",
     "typescript": "catalog:"
   },

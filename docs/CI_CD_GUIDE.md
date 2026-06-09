@@ -1,4 +1,6 @@
 ---
+visibility: internal
+status: verified
 title: "CI/CD & Deployment"
 description: "GitHub Actions workflows, Vercel deploy pipeline, Fleet self-hosted Docker stack, rollback"
 category: operations

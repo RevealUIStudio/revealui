@@ -31,6 +31,24 @@ interface PostMeta {
 
 const POST_METADATA: PostMeta[] = [
   {
+    slug: 'component-library',
+    title: '60 Components, One Dependency',
+    excerpt:
+      'A native React component library with 60 components and a single runtime dependency. No Radix, no MUI, no lock-in, just components you own.',
+    publishedAt: '2026-06-08T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '09-component-library.md',
+  },
+  {
+    slug: 'own-your-data',
+    title: 'Your Database, Your Storage, Your Sync',
+    excerpt:
+      'Standard Postgres, S3-compatible storage, and real-time sync, all built in and all portable. The data layer you can actually leave.',
+    publishedAt: '2026-06-07T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '10-own-your-data.md',
+  },
+  {
     slug: 'getting-started',
     title: 'From Zero to Production in About 30 Minutes',
     excerpt:
@@ -61,7 +79,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'five-primitives',
     title: 'The Five Primitives of Business Software',
     excerpt:
-      'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence: the building blocks every software company needs.',
+      'A deep technical walkthrough of People, Content, Offers, Payments, and Agents: the building blocks every software company needs.',
     publishedAt: '2026-03-24T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '05-five-primitives.md',

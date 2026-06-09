@@ -1,4 +1,7 @@
 ---
+visibility: internal
+status: verified
+audience: maintainer
 title: Information Security Policy
 description: Security policies governing the RevealUI open-source project, covering data protection, access control, encryption, and compliance.
 last-updated: 2026-05-29
@@ -62,7 +65,7 @@ RevealUI does not store credit card numbers or payment method details. All payme
 
 ### Authorization
 
-- **RBAC + ABAC**: Role-based access control combined with attribute-based policies. 58 enforcement tests verify role isolation.
+- **RBAC + ABAC**: Role-based access control combined with attribute-based policies. 59 enforcement tests verify role isolation.
 - **Collection-level access**: Every database operation enforces `access.read`, `access.update`, and `access.delete` policies.
 - **Admin gate**: Proxy middleware checks role cookies for /admin routes (defense-in-depth).
 - **Feature gating**: Pro features require valid license checks via `isLicensed('pro')` and `isFeatureEnabled()`.

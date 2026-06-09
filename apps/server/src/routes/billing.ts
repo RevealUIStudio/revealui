@@ -633,6 +633,13 @@ app.openapi(checkoutRoute, async (c) => {
       {
         customer: customerId,
         mode: 'subscription',
+        // Top-level session metadata is REQUIRED: the webhook reads
+        // resolveTier(session.metadata), and Stripe does NOT copy
+        // subscription_data.metadata onto the Checkout Session. Without this,
+        // checkout.session.completed throws in resolveTier -> 500 -> the paid
+        // customer never gets a license. Keep in lockstep with the
+        // subscription_data.metadata below.
+        metadata: { tier: resolvedTier, revealui_user_id: user.id },
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
@@ -1227,7 +1234,18 @@ app.openapi(pauseRoute, async (c) => {
   }
   assertAccountOwner(c);
 
-  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+  // Read-only resolution: pause/resume require an existing active subscription,
+  // so there is never a reason to create a Stripe customer here (the create-
+  // capable ensureStripeCustomer with an empty-email fallback could mint a
+  // customer for someone who never checked out). Mirror upgrade/downgrade/portal.
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const stripeCustomerId = await resolveHostedStripeCustomerId(
+    user.id,
+    requestEntitlements?.accountId,
+  );
+  if (!stripeCustomerId) {
+    throw new HTTPException(400, { message: 'No active subscription found.' });
+  }
 
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),
@@ -1287,7 +1305,18 @@ app.openapi(resumeRoute, async (c) => {
   }
   assertAccountOwner(c);
 
-  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+  // Read-only resolution: pause/resume require an existing active subscription,
+  // so there is never a reason to create a Stripe customer here (the create-
+  // capable ensureStripeCustomer with an empty-email fallback could mint a
+  // customer for someone who never checked out). Mirror upgrade/downgrade/portal.
+  const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
+  const stripeCustomerId = await resolveHostedStripeCustomerId(
+    user.id,
+    requestEntitlements?.accountId,
+  );
+  if (!stripeCustomerId) {
+    throw new HTTPException(400, { message: 'No active subscription found.' });
+  }
 
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),

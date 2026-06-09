@@ -1,3 +1,11 @@
+---
+title: "Open Source + Pro: How We Think About Monetization"
+description: "RevealUI is open source today; the commercial side is pre-launch. Before we talk about features or roadmaps, I want to be completely transparent about how we plan to make money,..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # Open Source + Pro: How We Think About Monetization
 
 RevealUI is open source today; the commercial side is pre-launch. Before we talk about features or roadmaps, I want to be completely transparent about how we plan to make money, what's free, what's paid, and why.
@@ -18,7 +26,7 @@ This wasn't a naive decision. I'm aware of the arguments for more restrictive li
 
 I understand that risk. I accept it. Here's why.
 
-RevealUI is an open runtime for AI-native businesses. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
+RevealUI is an open runtime for businesses that run their own AI. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
 
 The MCP framework is the one piece worth naming carefully: `@revealui/mcp` — the hypervisor, the 14 first-party servers, and the adapter base class — is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
 
@@ -37,7 +45,7 @@ RevealUI Pro includes:
 - **AI agents** -- task execution, multi-step workflows, autonomous operations
 - **CRDT memory** -- working memory, episodic memory, and vector storage that persists across agent sessions
 - **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps and Ollama
-- **Editor integrations** -- daemon adapters for Zed, VS Code, and Neovim
+- **Editor integrations** -- config sync for Zed and VS Code
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
 - **MCP framework** -- the hypervisor, 14 first-party servers, and the adapter base class that connect agents to tools
 
@@ -45,7 +53,7 @@ These features are commercially licensed. The source code is available (you can 
 
 Why AI specifically? Three reasons.
 
-**It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being an open runtime for AI-native businesses.
+**It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being an open runtime for businesses that run their own AI.
 
 **It's the most expensive to maintain.** Open-model inference evolves rapidly. Model formats change, quantization techniques improve, context windows expand, and new inference backends emerge. Maintaining reliable integrations across inference paths -- with memory systems, CRDT synchronization, and multi-agent coordination -- is a full-time job. Pro revenue funds this work directly.
 
@@ -130,7 +138,7 @@ I'm not going to share revenue projections here. That's not the point. The point
 
 ## The Ecosystem Play
 
-RevealUI isn't just a framework you install. It's an open runtime for AI-native businesses with an ecosystem strategy.
+RevealUI isn't just a framework you install. It's an open runtime for businesses that run their own AI, with an ecosystem strategy.
 
 **MCP Marketplace (in preview).** Developers will be able to publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. The publish/list/invoke/onboard endpoints are wired today; payouts open with the billing-readiness audit. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
 
@@ -178,4 +186,4 @@ Build something.
 
 ---
 
-*RevealUI is the open runtime for AI-native businesses. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*
+*RevealUI is the open runtime for businesses that run their own AI. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*

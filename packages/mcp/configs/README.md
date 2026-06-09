@@ -1,3 +1,11 @@
+---
+title: "MCP Configuration Templates"
+description: "This directory contains template configuration files for different MCP clients."
+visibility: public
+status: verified
+audience: user
+---
+
 # MCP Configuration Templates
 
 This directory contains template configuration files for different MCP clients.

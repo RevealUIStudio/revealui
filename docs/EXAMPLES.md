@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Example Projects"
 description: "Sample applications and use cases built with RevealUI"
 category: tutorial

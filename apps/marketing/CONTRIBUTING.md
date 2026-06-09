@@ -1,3 +1,11 @@
+---
+title: "Contributing to the marketing site (`apps/marketing`)"
+description: "`revealui.com` is a Vite + React SPA built on `@revealui/router`. Copy lives in"
+visibility: internal
+status: verified
+audience: contributor
+---
+
 # Contributing to the marketing site (`apps/marketing`)
 
 `revealui.com` is a Vite + React SPA built on `@revealui/router`. Copy lives in

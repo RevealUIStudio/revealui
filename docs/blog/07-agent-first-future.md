@@ -1,3 +1,11 @@
+---
+title: "Building for the Agent-First Internet"
+description: "*The web was built for browsers. The next web is being built for agents.*"
+visibility: public
+status: narrative
+audience: user
+---
+
 # Building for the Agent-First Internet
 
 *The web was built for browsers. The next web is being built for agents.*
@@ -8,7 +16,7 @@
 
 ---
 
-I have been building RevealUI for the past year as the open runtime for AI-native businesses -- the kind of thing where you get users, content, products, payments, and intelligence pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or an admin every time you start a new software business.
+I have been building RevealUI for the past year as the open runtime for businesses that run their own AI -- the kind of thing where you get users, content, products, payments, and intelligence pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or an admin every time you start a new software business.
 
 But somewhere around the third month of building, I realized something that changed the architecture fundamentally: **the next wave of customers for software platforms are not human.**
 
@@ -299,6 +307,6 @@ The user interface for the future has yet to reveal itself. But we know one thin
 
 ---
 
-*RevealUI is the open runtime for AI-native businesses. Users, content, products, payments, and intelligence -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the open runtime for businesses that run their own AI. Users, content, products, payments, and intelligence -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
 
 *Follow the project on [GitHub](https://github.com/RevealUIStudio/revealui).*

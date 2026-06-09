@@ -1,4 +1,8 @@
 ---
+title: "RevealUI Architecture Guide"
+visibility: internal
+status: verified
+audience: agent
 name: revealui-architecture-guide
 description: RevealUI monorepo architecture and package organization guide
 version: "0.1.0"

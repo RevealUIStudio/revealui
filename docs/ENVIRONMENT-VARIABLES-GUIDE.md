@@ -1,4 +1,5 @@
 ---
+visibility: public
 title: "Environment Variables Guide"
 description: "Complete reference for all environment variables: required vs optional, per-environment configuration, secret management, and troubleshooting"
 last-updated: 2026-04-12

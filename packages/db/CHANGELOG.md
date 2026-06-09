@@ -1,3 +1,11 @@
+---
+title: "@revealui/db"
+description: "Worker scripts and apps should depend on Drizzle through this subpath instead of importing the bare `drizzle-orm` package. Under pnpm's isolated linker, `drizzle-orm` is materia..."
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/db
 
 ## 0.7.0

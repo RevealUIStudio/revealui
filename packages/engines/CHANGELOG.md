@@ -1,3 +1,11 @@
+---
+title: "@revealui/engines"
+description: "is removed from `@revealui/services` per the 2026-05-08 charge-readiness audit"
+visibility: public
+status: narrative
+audience: user
+---
+
 # @revealui/engines
 
 ## 0.4.2

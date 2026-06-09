@@ -1,3 +1,11 @@
+---
+title: "@revealui/utils"
+description: "Shared utilities for RevealUI - structured logging, database helpers, and validation. Single runtime dependency: `zod` (used by the validation module)."
+visibility: public
+status: verified
+audience: user
+---
+
 # @revealui/utils
 
 Shared utilities for RevealUI  -  structured logging, database helpers, and validation. Single runtime dependency: `zod` (used by the validation module).

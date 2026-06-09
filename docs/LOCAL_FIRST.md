@@ -1,4 +1,6 @@
 ---
+visibility: public
+status: verified
 title: "Local-First Setup"
 description: "Development environment setup for local-first development with ElectricSQL"
 category: guide
