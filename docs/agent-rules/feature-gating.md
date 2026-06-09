@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Feature Gating Conventions
-
 Rules for managing Pro/OSS tier boundaries in the RevealUI monorepo.
 
 ## Tier Model

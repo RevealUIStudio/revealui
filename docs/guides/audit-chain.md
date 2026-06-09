@@ -7,8 +7,6 @@ category: security
 audience: developer
 ---
 
-# Audit Chain
-
 Every action by every human and every agent signs into an append-only `audit_log` table with an HMAC-SHA256 hash chain. Tampering with any row breaks the chain. This page documents the schema, the signing semantics, and how to verify the chain.
 
 ## Schema

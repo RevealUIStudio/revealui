@@ -7,8 +7,6 @@ category: fleet
 audience: developer
 ---
 
-# RevSkills
-
 **Curated [Agent Skills](https://agentskills.io) for modern web development. Built by RevealUI Studio.**
 
 > RevSkills is a separate fleet product. The repo is at [RevealUIStudio/revskills](https://github.com/RevealUIStudio/revskills). This page summarises what RevSkills is; the canonical product README lives in the RevSkills repo.

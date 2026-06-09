@@ -7,8 +7,6 @@ category: guide
 audience: contributor
 ---
 
-# Testing Guide
-
 Reference guide to testing in the RevealUI monorepo.
 
 ## Overview
