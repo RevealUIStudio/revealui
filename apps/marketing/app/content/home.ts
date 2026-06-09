@@ -47,7 +47,7 @@ export const HOME_HERO = {
       {
         metric: `${METRICS.dbTables} database tables`,
         detail:
-          'Every table maps to a primitive — users, content, products, payments, or intelligence. See the [database reference](https://docs.revealui.com/database).',
+          'Every table maps to a primitive — people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
       },
       {
         metric: `${METRICS.mcpServers} first-party MCP servers`,

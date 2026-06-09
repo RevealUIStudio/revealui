@@ -176,16 +176,16 @@ describe('GET /api/pricing  -  Stripe active path', () => {
     expect(standard.costPer).toBe('$0.00065/task');
   });
 
-  it('formats unit_amount in cents correctly ($4900 → $49)', async () => {
+  it('formats unit_amount in cents correctly ($29900 → $299)', async () => {
     mockProductsList.mockResolvedValue({
-      data: [makeStripeProduct('Max', 'subscription', 'max', 14900, 'month')],
+      data: [makeStripeProduct('Max', 'subscription', 'max', 29900, 'month')],
     });
 
     const res = await app.request('/');
     const data = await res.json();
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$149');
+    expect(max.price).toBe('$299');
   });
 });
 
@@ -251,8 +251,8 @@ describe('GET /api/pricing', () => {
     const data = await res.json();
 
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$299');
-    expect(proPerpetual.renewal).toBe('$99/yr for continued support');
+    expect(proPerpetual.price).toBe('$1,499');
+    expect(proPerpetual.renewal).toBe('$149/yr for continued support');
   });
 
   it('response matches expected shape', async () => {
@@ -352,7 +352,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
         {
           name: 'Max',
           metadata: { revealui_track: 'subscription', revealui_tier: 'max' },
-          default_price: { unit_amount: 14900, recurring: { interval: 'month' } },
+          default_price: { unit_amount: 29900, recurring: { interval: 'month' } },
         },
       ],
     });
@@ -366,7 +366,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     expect(pro.period).toBe('/month');
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$149');
+    expect(max.price).toBe('$299');
     expect(max.period).toBe('/month');
   });
 
@@ -418,9 +418,9 @@ describe('GET /api/pricing  -  Stripe integration', () => {
             revealui_track: 'perpetual',
             revealui_tier: 'pro_perpetual',
             revealui_price_note: 'one-time',
-            revealui_renewal: '$99/yr for continued support',
+            revealui_renewal: '$149/yr for continued support',
           },
-          default_price: { unit_amount: 29900 },
+          default_price: { unit_amount: 149900 },
         },
       ],
     });
@@ -430,9 +430,9 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     const data = await res.json();
 
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$299');
+    expect(proPerpetual.price).toBe('$1499');
     expect(proPerpetual.priceNote).toBe('one-time');
-    expect(proPerpetual.renewal).toBe('$99/yr for continued support');
+    expect(proPerpetual.renewal).toBe('$149/yr for continued support');
   });
 
   it('falls back to defaults when Stripe throws a generic error', async () => {
@@ -507,7 +507,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     expect(pro.price).toBe('$49');
 
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$149');
+    expect(max.price).toBe('$299');
   });
 
   it('formats yearly subscription interval as /year', async () => {
@@ -516,7 +516,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
         {
           name: 'Enterprise Annual',
           metadata: { revealui_track: 'subscription', revealui_tier: 'enterprise' },
-          default_price: { unit_amount: 29900, recurring: { interval: 'year' } },
+          default_price: { unit_amount: 1439000, recurring: { interval: 'year' } },
         },
       ],
     });
@@ -526,7 +526,7 @@ describe('GET /api/pricing  -  Stripe integration', () => {
     const data = await res.json();
 
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$299');
+    expect(enterprise.price).toBe('$14390');
     expect(enterprise.period).toBe('/year');
   });
 
@@ -639,14 +639,14 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
 
   it('defaults perpetual priceNote to "one-time" and renewal to empty string when metadata is absent', async () => {
     mockProductsList.mockResolvedValue({
-      data: [makeStripeProduct('Pro Perpetual', 'perpetual', 'pro_perpetual', 29900)],
+      data: [makeStripeProduct('Pro Perpetual', 'perpetual', 'pro_perpetual', 149900)],
     });
 
     const res = await app.request('/');
     const data = await res.json();
 
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$299');
+    expect(proPerpetual.price).toBe('$1499');
     expect(proPerpetual.priceNote).toBe('one-time');
     expect(proPerpetual.renewal).toBe('');
   });
@@ -731,8 +731,8 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
       data: [
         makeStripeProduct('Free', 'subscription', 'free', 0),
         makeStripeProduct('Pro', 'subscription', 'pro', 4900, 'month'),
-        makeStripeProduct('Max', 'subscription', 'max', 14900, 'month'),
-        makeStripeProduct('Enterprise', 'subscription', 'enterprise', 29900, 'month'),
+        makeStripeProduct('Max', 'subscription', 'max', 29900, 'month'),
+        makeStripeProduct('Enterprise', 'subscription', 'enterprise', 149900, 'month'),
       ],
     });
 
@@ -746,9 +746,9 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
     expect(pro.price).toBe('$49');
     const max = data.subscriptions.find((t: { id: string }) => t.id === 'max');
-    expect(max.price).toBe('$149');
+    expect(max.price).toBe('$299');
     const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
-    expect(enterprise.price).toBe('$299');
+    expect(enterprise.price).toBe('$1499');
   });
 
   it('enriches all three credit bundles simultaneously from Stripe', async () => {
@@ -784,23 +784,23 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
   it('enriches all three perpetual tiers simultaneously from Stripe', async () => {
     mockProductsList.mockResolvedValue({
       data: [
-        makeStripeProduct('Pro Perpetual', 'perpetual', 'pro_perpetual', 29900, undefined, {
+        makeStripeProduct('Pro Perpetual', 'perpetual', 'pro_perpetual', 149900, undefined, {
           revealui_price_note: 'one-time',
-          revealui_renewal: '$99/yr',
+          revealui_renewal: '$149/yr',
         }),
-        makeStripeProduct('Agency Perpetual', 'perpetual', 'agency_perpetual', 79900, undefined, {
+        makeStripeProduct('Agency Perpetual', 'perpetual', 'agency_perpetual', 849900, undefined, {
           revealui_price_note: 'one-time',
-          revealui_renewal: '$199/yr',
+          revealui_renewal: '$799/yr',
         }),
         makeStripeProduct(
           'Enterprise Perpetual',
           'perpetual',
           'enterprise_perpetual',
-          199900,
+          4299900,
           undefined,
           {
             revealui_price_note: 'one-time',
-            revealui_renewal: '$499/yr',
+            revealui_renewal: '$3,999/yr',
           },
         ),
       ],
@@ -811,13 +811,13 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
 
     expect(data.perpetual).toHaveLength(3);
     const pro = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(pro.price).toBe('$299');
+    expect(pro.price).toBe('$1499');
     const agency = data.perpetual.find((t: { name: string }) => t.name === 'Agency Perpetual');
-    expect(agency.price).toBe('$799');
+    expect(agency.price).toBe('$8499');
     const enterprise = data.perpetual.find(
       (t: { name: string }) => t.name === 'Enterprise Perpetual',
     );
-    expect(enterprise.price).toBe('$1999');
+    expect(enterprise.price).toBe('$42999');
   });
 
   it('mixes Stripe enrichment with fallback across tracks', async () => {
@@ -837,6 +837,6 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     expect(standard.price).toBe('$50');
     // Perpetual: fallback
     const proPerpetual = data.perpetual.find((t: { name: string }) => t.name === 'Pro Perpetual');
-    expect(proPerpetual.price).toBe('$299');
+    expect(proPerpetual.price).toBe('$1,499');
   });
 });

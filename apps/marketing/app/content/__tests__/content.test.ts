@@ -10,7 +10,7 @@ import { METRICS, SITE } from '../site';
 // rules the marketing-overhaul lane established. Metric VALUES are enforced
 // separately against the codebase by scripts/validate/claim-drift.ts.
 
-const FIVE_PRIMITIVES = ['Users', 'Content', 'Products', 'Payments', 'Intelligence'];
+const FIVE_PRIMITIVES = ['People', 'Content', 'Offers', 'Payments', 'Agents'];
 
 describe('marketing content contracts', () => {
   describe('primitives', () => {
