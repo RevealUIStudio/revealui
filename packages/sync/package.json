@@ -20,8 +20,8 @@
     "@vitest/coverage-v8": "catalog:",
     "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

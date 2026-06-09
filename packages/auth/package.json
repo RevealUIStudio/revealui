@@ -28,7 +28,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@revealui/dev": "workspace:*",
     "happy-dom": "^20.10.2",
-    "react": "^19.2.7",
+    "react": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
