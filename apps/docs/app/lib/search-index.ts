@@ -15,6 +15,7 @@
  */
 
 import FlexSearch from 'flexsearch';
+import { parseFrontmatter } from '../utils/frontmatter';
 import { SLUG_TO_PATH } from './slug-manifest';
 
 const { Document } = FlexSearch;
@@ -143,6 +144,20 @@ export function extractExcerpt(markdown: string, maxLength = 160): string {
 }
 
 /**
+ * Derive a doc's search title and excerpt, frontmatter-aware. Prefers the
+ * frontmatter `title`, and reads both the title fallback and the excerpt from
+ * the body so a leading frontmatter block is never indexed as content. Falls
+ * back to the first body H1, then the slug.
+ */
+export function deriveDocMeta(content: string, slug: string): { title: string; excerpt: string } {
+  const { data, body } = parseFrontmatter(content);
+  const fmTitle = typeof data.title === 'string' ? data.title.trim() : '';
+  const title = fmTitle || extractTitle(body) || slug;
+  const excerpt = extractExcerpt(body);
+  return { title, excerpt };
+}
+
+/**
  * The full set of searchable docs as `[slug, file]` pairs, sourced from the
  * slug manifest. The slug doubles as the result path (flat URL space); the
  * file is fetched from the served root.
@@ -188,8 +203,7 @@ export async function buildSearchIndex(): Promise<void> {
           continue;
         }
         const { slug, content } = result.value;
-        const title = extractTitle(content) || slug;
-        const excerpt = extractExcerpt(content);
+        const { title, excerpt } = deriveDocMeta(content, slug);
 
         docs.push({
           id,

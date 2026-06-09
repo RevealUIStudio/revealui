@@ -4,12 +4,7 @@ description: "*By Joshua Vaughn, RevealUI Studio*"
 visibility: public
 status: narrative
 audience: user
----
-
-# 60 Components, One Dependency
-
-*By Joshua Vaughn, RevealUI Studio*
-
+author: Joshua Vaughn
 ---
 
 Open the `package.json` of a typical React app and trace the dependency tree under your UI. A component library. The headless-primitive library it sits on. An icon set. A class-merging utility. A variants helper. A few polyfills the library pulls in. Every one of those is a version you have to track, a breaking change you have to absorb on someone else's schedule, and a styling opinion you have to work around.

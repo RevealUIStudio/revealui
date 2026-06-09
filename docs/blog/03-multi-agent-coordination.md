@@ -4,12 +4,7 @@ description: "*By Joshua Vaughn - RevealUI Studio*"
 visibility: public
 status: narrative
 audience: user
----
-
-# Three AI Agents, One Codebase, No Conflicts
-
-*By Joshua Vaughn  -  RevealUI Studio*
-
+author: Joshua Vaughn
 ---
 
 I built most of RevealUI with three Claude Code instances running simultaneously.
