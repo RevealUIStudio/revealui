@@ -18,7 +18,7 @@
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
     "@revealui/mcp": "workspace:*",
-    "hono": "4.12.23",
+    "hono": "4.12.25",
     "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
