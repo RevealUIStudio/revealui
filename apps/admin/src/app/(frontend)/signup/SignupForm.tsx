@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface SignupFormProps {
   /** API base URL resolved server-side to avoid build-time env inlining. */
@@ -75,7 +76,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
     const result = await signUp({ email, password, name, tosAccepted: true });
     if (result.success) {
       for (const type of ['necessary', 'functional'] as const) {
-        fetch(`${apiUrl}/api/gdpr/consent/grant`, {
+        apiFetch(`${apiUrl}/api/gdpr/consent/grant`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -136,7 +137,9 @@ function SignupContent({ apiUrl }: SignupFormProps) {
     try {
       // Session-less resend: the route accepts { email } without a session and
       // always answers with the same generic 200, so this needs no auth state.
-      await fetch('/api/auth/resend-verification', {
+      // apiFetch still matters here: a lingering session cookie (stale or
+      // live) makes the admin proxy demand a CSRF token on this POST.
+      await apiFetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

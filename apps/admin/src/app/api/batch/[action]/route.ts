@@ -1,6 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const API_URL =
@@ -28,10 +29,7 @@ export async function POST(
     const body = await request.json();
     const apiResponse = await fetch(`${API_URL}/api/content/batch/${action}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: request.headers.get('Cookie') ?? '',
-      },
+      headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
     });
 

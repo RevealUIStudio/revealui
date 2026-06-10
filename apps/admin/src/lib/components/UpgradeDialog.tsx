@@ -12,6 +12,7 @@ import { PricingTable } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
+import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 /**
@@ -48,7 +49,7 @@ export function UpgradeDialog() {
         enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
       };
       const priceId = priceIdMap[tierId];
-      const res = await fetch(`${apiUrl}/api/billing/checkout`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

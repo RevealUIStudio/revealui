@@ -9,6 +9,7 @@ import { AgentMemory } from '@/lib/components/agents/agent-memory';
 import { TaskHistory } from '@/lib/components/agents/task-history';
 import { TaskTester } from '@/lib/components/agents/task-tester';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface PageProps {
   params: Promise<{ agentId: string }>;
@@ -96,7 +97,7 @@ export default function AgentDetailPage({ params }: PageProps) {
     setRetiring(true);
     setRetireError(null);
     try {
-      const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
+      const res = await apiFetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -120,7 +121,7 @@ export default function AgentDetailPage({ params }: PageProps) {
     setSaving(true);
     setSaveError(null);
     try {
-      const res = await fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
+      const res = await apiFetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

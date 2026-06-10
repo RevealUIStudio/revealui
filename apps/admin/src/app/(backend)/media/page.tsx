@@ -1,6 +1,7 @@
 'use client';
 
 import { type ChangeEvent, useCallback, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -72,7 +73,7 @@ async function uploadMedia(serverUrl: string, file: File, alt?: string): Promise
   const formData = new FormData();
   formData.append('file', file);
   if (alt) formData.append('alt', alt);
-  const res = await fetch(`${serverUrl}/api/content/media`, {
+  const res = await apiFetch(`${serverUrl}/api/content/media`, {
     method: 'POST',
     credentials: 'include',
     body: formData,
@@ -86,7 +87,7 @@ async function uploadMedia(serverUrl: string, file: File, alt?: string): Promise
 }
 
 async function deleteMediaItem(serverUrl: string, id: string): Promise<void> {
-  const res = await fetch(`${serverUrl}/api/content/media/${id}`, {
+  const res = await apiFetch(`${serverUrl}/api/content/media/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   });

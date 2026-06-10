@@ -3,7 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { csrfMiddleware, generateCsrfToken, validateCsrfToken } from '../csrf.js';
 
 const SECRET = 'test-secret-key-32chars-long!!';
+// Arbitrary binding string for the token-primitive unit tests below.
 const SESSION_ID = 'session-abc-123';
+// The middleware binds tokens to the raw session COOKIE VALUE (signed
+// double-submit  -  the vocabulary the admin app issues against), NOT the
+// DB session row id that auth middleware puts on context.
+const SESSION_COOKIE = 'sess-123';
+const DB_SESSION_ROW_ID = 'a1b2c3d4-e5f6-7890-uuid-sessionrow00';
 
 // ─── generateCsrfToken ────────────────────────────────────────────────────────
 
@@ -172,7 +178,7 @@ describe('csrfMiddleware', () => {
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware());
@@ -180,7 +186,7 @@ describe('csrfMiddleware', () => {
 
     const res = await app.request('/test', {
       method: 'POST',
-      headers: { Cookie: 'revealui-session=sess-123' },
+      headers: { Cookie: `revealui-session=${SESSION_COOKIE}` },
     });
     expect(res.status).toBe(500);
   });
@@ -212,7 +218,7 @@ describe('csrfMiddleware', () => {
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware());
@@ -220,7 +226,7 @@ describe('csrfMiddleware', () => {
 
     const res = await app.request('/test', {
       method: 'POST',
-      headers: { Cookie: 'revealui-session=sess-123' },
+      headers: { Cookie: `revealui-session=${SESSION_COOKIE}` },
     });
     expect(res.status).toBe(403);
     const body = (await res.json()) as { error: string };
@@ -232,7 +238,7 @@ describe('csrfMiddleware', () => {
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware());
@@ -241,7 +247,7 @@ describe('csrfMiddleware', () => {
     const res = await app.request('/test', {
       method: 'POST',
       headers: {
-        Cookie: 'revealui-session=sess-123',
+        Cookie: `revealui-session=${SESSION_COOKIE}`,
         'X-CSRF-Token': 'invalid-token',
       },
     });
@@ -250,14 +256,16 @@ describe('csrfMiddleware', () => {
     expect(body.error).toContain('invalid');
   });
 
-  it('allows POST with a valid CSRF token', async () => {
+  it('allows POST with a token bound to the session cookie value (admin-issued shape)', async () => {
     vi.stubEnv('REVEALUI_SECRET', SECRET);
 
-    const token = generateCsrfToken(SESSION_ID, SECRET);
+    // What the admin app actually issues: HMAC over the raw session cookie
+    // value (proxy.ts `revealui-csrf` cookie / server-side forwarders).
+    const token = generateCsrfToken(SESSION_COOKIE, SECRET);
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware());
@@ -266,11 +274,40 @@ describe('csrfMiddleware', () => {
     const res = await app.request('/test', {
       method: 'POST',
       headers: {
-        Cookie: 'revealui-session=sess-123',
+        Cookie: `revealui-session=${SESSION_COOKIE}`,
         'X-CSRF-Token': token,
       },
     });
     expect(res.status).toBe(200);
+  });
+
+  it('rejects a token bound to the DB session row id (the pre-fix binding no issuer speaks)', async () => {
+    vi.stubEnv('REVEALUI_SECRET', SECRET);
+
+    // Regression for the binding unification: tokens minted against
+    // session.id used to be the only accepted shape, yet no browser-reachable
+    // issuer produced them  -  every cookie-bearing unsafe admin→api call
+    // 403'd. They must NOT validate now that the cookie value is the binding.
+    const legacyBoundToken = generateCsrfToken(DB_SESSION_ROW_ID, SECRET);
+
+    const app = new Hono();
+    app.use('*', async (c, next) => {
+      c.set('session', { id: DB_SESSION_ROW_ID });
+      await next();
+    });
+    app.use('*', csrfMiddleware());
+    app.post('/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/test', {
+      method: 'POST',
+      headers: {
+        Cookie: `revealui-session=${SESSION_COOKIE}`,
+        'X-CSRF-Token': legacyBoundToken,
+      },
+    });
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('invalid');
   });
 
   it('respects custom cookie name option', async () => {
@@ -278,7 +315,7 @@ describe('csrfMiddleware', () => {
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware({ cookieName: 'my-session' }));
@@ -287,7 +324,7 @@ describe('csrfMiddleware', () => {
     // Correct custom cookie name  -  triggers CSRF check, token is missing → 403
     const res = await app.request('/test', {
       method: 'POST',
-      headers: { Cookie: 'my-session=sess-123' },
+      headers: { Cookie: `my-session=${SESSION_COOKIE}` },
     });
     expect(res.status).toBe(403);
   });
@@ -295,11 +332,11 @@ describe('csrfMiddleware', () => {
   it('respects custom header name option', async () => {
     vi.stubEnv('REVEALUI_SECRET', SECRET);
 
-    const token = generateCsrfToken(SESSION_ID, SECRET);
+    const token = generateCsrfToken(SESSION_COOKIE, SECRET);
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware({ headerName: 'X-My-CSRF' }));
@@ -308,7 +345,7 @@ describe('csrfMiddleware', () => {
     const res = await app.request('/test', {
       method: 'POST',
       headers: {
-        Cookie: 'revealui-session=sess-123',
+        Cookie: `revealui-session=${SESSION_COOKIE}`,
         'X-My-CSRF': token,
       },
     });
@@ -318,11 +355,11 @@ describe('csrfMiddleware', () => {
   it('allows DELETE with valid CSRF token', async () => {
     vi.stubEnv('REVEALUI_SECRET', SECRET);
 
-    const token = generateCsrfToken(SESSION_ID, SECRET);
+    const token = generateCsrfToken(SESSION_COOKIE, SECRET);
 
     const app = new Hono();
     app.use('*', async (c, next) => {
-      c.set('session', { id: SESSION_ID });
+      c.set('session', { id: DB_SESSION_ROW_ID });
       await next();
     });
     app.use('*', csrfMiddleware());
@@ -331,7 +368,31 @@ describe('csrfMiddleware', () => {
     const res = await app.request('/test', {
       method: 'DELETE',
       headers: {
-        Cookie: 'revealui-session=sess-123',
+        Cookie: `revealui-session=${SESSION_COOKIE}`,
+        'X-CSRF-Token': token,
+      },
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it('validates the token against the custom cookie name value when overridden', async () => {
+    vi.stubEnv('REVEALUI_SECRET', SECRET);
+
+    const customCookieValue = 'custom-sess-value-789';
+    const token = generateCsrfToken(customCookieValue, SECRET);
+
+    const app = new Hono();
+    app.use('*', async (c, next) => {
+      c.set('session', { id: DB_SESSION_ROW_ID });
+      await next();
+    });
+    app.use('*', csrfMiddleware({ cookieName: 'my-session' }));
+    app.post('/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/test', {
+      method: 'POST',
+      headers: {
+        Cookie: `my-session=${customCookieValue}`,
         'X-CSRF-Token': token,
       },
     });

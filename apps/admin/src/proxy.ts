@@ -249,32 +249,20 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
 
     const sessionValue = request.cookies.get('revealui-session')?.value;
-    const csrfCookieValue = request.cookies.get('revealui-csrf')?.value;
     const secret = process.env.REVEALUI_SECRET;
 
-    if (sessionValue && secret) {
-      if (UNSAFE_METHODS.has(request.method) && !isCsrfExempt(pathname)) {
-        const tokenHeader = request.headers.get('X-CSRF-Token');
-        if (!tokenHeader) {
-          return NextResponse.json({ error: 'CSRF token missing' }, { status: 403 });
-        }
-        const valid = await validateCsrfToken(tokenHeader, sessionValue, secret);
-        if (!valid) {
-          return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 });
-        }
+    if (sessionValue && secret && UNSAFE_METHODS.has(request.method) && !isCsrfExempt(pathname)) {
+      const tokenHeader = request.headers.get('X-CSRF-Token');
+      if (!tokenHeader) {
+        return NextResponse.json({ error: 'CSRF token missing' }, { status: 403 });
       }
-
-      if (!csrfCookieValue) {
-        const token = await generateCsrfToken(sessionValue, secret);
-        response.cookies.set('revealui-csrf', token, {
-          httpOnly: false,
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV !== 'development',
-          path: '/',
-          maxAge: 60 * 60 * 24,
-        });
+      const valid = await validateCsrfToken(tokenHeader, sessionValue, secret);
+      if (!valid) {
+        return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 });
       }
     }
+
+    await ensureCsrfCookie(request, response);
 
     return response;
   }
@@ -283,7 +271,37 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // its inline bootstrap scripts, and set the matching CSP on the response.
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', cspValue);
+  // Mint/refresh the CSRF token cookie on page loads too. The billing,
+  // marketplace, and agents pages call the api server (cross-origin) directly
+  // from the browser  -  those fetches never traverse this proxy, so issuing
+  // only on same-origin /api responses would leave the first unsafe call
+  // after a fresh sign-in without a token.
+  await ensureCsrfCookie(request, response);
   return response;
+}
+
+/**
+ * Ensure the JS-readable `revealui-csrf` cookie holds a token that validates
+ * against the CURRENT session cookie value. Issues on first contact and
+ * re-issues after session rotation (re-login, recovery, privilege change)  -
+ * issue-only-when-missing left a stale binding 403-ing every unsafe call for
+ * up to the cookie's 24h lifetime. The same token authorizes unsafe requests
+ * to the admin's own /api routes (validated above) and to the api server's
+ * csrfMiddleware (validated there against the same cookie value).
+ */
+async function ensureCsrfCookie(request: NextRequest, response: NextResponse): Promise<void> {
+  const sessionValue = request.cookies.get('revealui-session')?.value;
+  const secret = process.env.REVEALUI_SECRET;
+  if (!(sessionValue && secret)) return;
+  const existing = request.cookies.get('revealui-csrf')?.value;
+  if (existing && (await validateCsrfToken(existing, sessionValue, secret))) return;
+  response.cookies.set('revealui-csrf', await generateCsrfToken(sessionValue, secret), {
+    httpOnly: false,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV !== 'development',
+    path: '/',
+    maxAge: 60 * 60 * 24,
+  });
 }
 
 // Define matcher configuration for Next.js proxy

@@ -1,6 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const API_URL =
@@ -53,9 +54,7 @@ export async function GET(
     const apiResponse = await fetch(
       `${API_URL}/api/content/${collection}?${searchParams.toString()}`,
       {
-        headers: {
-          Cookie: request.headers.get('Cookie') ?? '',
-        },
+        headers: await apiForwardHeaders(request),
       },
     );
     return proxyResponse(apiResponse);
@@ -79,10 +78,7 @@ export async function POST(
   try {
     const apiResponse = await fetch(`${API_URL}/api/content/${collection}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: request.headers.get('Cookie') ?? '',
-      },
+      headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
     });
     return proxyResponse(apiResponse);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { type ChangeEvent, useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
 // Types
@@ -263,7 +264,7 @@ function ReviewsPanel({
     setSubmitting(true);
 
     try {
-      const res = await fetch(`${apiUrl}/api/revmarket/agents/${agentId}/reviews`, {
+      const res = await apiFetch(`${apiUrl}/api/revmarket/agents/${agentId}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -430,7 +431,7 @@ function SubmitTaskPanel({
     }
 
     try {
-      const res = await fetch(`${apiUrl}/api/revmarket/tasks`, {
+      const res = await apiFetch(`${apiUrl}/api/revmarket/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
