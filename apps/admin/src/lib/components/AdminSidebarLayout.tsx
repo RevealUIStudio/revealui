@@ -158,7 +158,7 @@ function AdminSidebarContent({ siteName }: { siteName: string }) {
       <SidebarHeader>
         <SidebarSection>
           <SidebarItem href="/" current={isCurrent('/')}>
-            <span className="text-lg font-bold text-foreground">RevealUI</span>
+            <span className="text-lg font-bold text-foreground">{siteName}</span>
           </SidebarItem>
         </SidebarSection>
       </SidebarHeader>

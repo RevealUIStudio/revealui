@@ -31,6 +31,11 @@ export function RootPage({ config }: RootPageProps) {
   type AdminCollectionSummary = { slug?: string; fields?: unknown[] };
   const collections = (config.collections || []) as AdminCollectionSummary[];
   const globals = (config.globals || []) as AdminCollectionSummary[];
+  // Server component: white-label kits override via REVEALUI_BRAND_NAME /
+  // REVEALUI_TENANT_NAME. `||` not `??`: Compose `${VAR:-}` interpolation
+  // delivers unset vars as empty strings.
+  const siteName =
+    process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,7 +43,7 @@ export function RootPage({ config }: RootPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-foreground">RevealUI Admin</h1>
+              <h1 className="text-2xl font-bold text-foreground">{`${siteName} Admin`}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">v0.1.0</span>
@@ -187,7 +192,7 @@ export function RootPage({ config }: RootPageProps) {
               </div>
               <div className="bg-muted px-5 py-3">
                 <div className="text-sm text-muted-foreground">
-                  RevealUI admin is running successfully with {collections.length} collections and{' '}
+                  {siteName} admin is running successfully with {collections.length} collections and{' '}
                   {globals.length} globals configured.
                 </div>
               </div>
@@ -209,8 +214,12 @@ export function NotFoundPage() {
 }
 
 export function generatePageMetadata(): Metadata {
+  // Server-side, resolved per call. White-label kits override via env.
+  // `||` not `??`: Compose `${VAR:-}` delivers unset vars as empty strings.
+  const siteName =
+    process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   return {
-    title: 'RevealUI Admin',
-    description: 'RevealUI Content Management System',
+    title: `${siteName} Admin`,
+    description: `${siteName} Content Management System`,
   };
 }
