@@ -25,6 +25,7 @@ import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { sendEmail } from '../lib/email.js';
+import { escapeHtml } from '../lib/html.js';
 
 // Permissive enum — accommodates both marketing and agency form topics
 // without coupling them. The full set is validated downstream by length cap
@@ -43,15 +44,6 @@ const ContactInquirySchema = z.object({
 });
 
 type ContactInquiry = z.infer<typeof ContactInquirySchema>;
-
-function escapeHtml(s: string): string {
-  return s
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
 
 function buildEmailSubject(body: ContactInquiry): string {
   const tag = body.source === 'agency' ? '[agency]' : '[marketing]';
