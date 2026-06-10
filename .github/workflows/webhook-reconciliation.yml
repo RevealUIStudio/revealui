@@ -79,7 +79,7 @@ jobs:
           # Build the body from the captured JSON file into a file, then post via
           # --body-file. Nothing attacker-influenced or multi-line is interpolated
           # into the shell: COUNT is a numeric step output passed through env, and
-          # the rows come from the file, not a re-interpolated ${{ }} expression.
+          # the rows come from the file, not a re-interpolated GitHub Actions expression.
           ROWS=$(jq '.rows' /tmp/unrecon.json)
           {
             echo "## Unreconciled Webhook Events"
