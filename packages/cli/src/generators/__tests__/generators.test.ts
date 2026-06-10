@@ -277,15 +277,16 @@ describe('generateEnvFile', () => {
     expect(content).toContain('POSTGRES_URL=postgresql://user:pass@host/db');
   });
 
-  it('comments out POSTGRES_URL when database is skipped', async () => {
+  it('falls back to the local Postgres default when database is skipped', async () => {
     const config: EnvConfig = {
       ...baseEnvConfig,
       database: { provider: 'skip' },
     };
     await generateEnvFile('/tmp/my-app', config);
     const content = mockWriteFile.mock.calls[0][1] as string;
-    expect(content).toContain('# POSTGRES_URL=');
-    expect(content).not.toMatch(/^POSTGRES_URL=/m);
+    expect(content).toContain(
+      'POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/revealui',
+    );
   });
 
   it('includes Vercel Blob token when storage is vercel-blob', async () => {
@@ -333,19 +334,19 @@ describe('generateEnvFile', () => {
     expect(content).toContain('STRIPE_WEBHOOK_SECRET=FAKE_STRIPE_WHSEC_FOR_TESTS');
   });
 
-  it('comments out Stripe keys when payments are disabled', async () => {
+  it('writes uncommented test placeholders when payments are disabled', async () => {
     const config: EnvConfig = {
       ...baseEnvConfig,
       payment: { enabled: false },
     };
     await generateEnvFile('/tmp/my-app', config);
     const content = mockWriteFile.mock.calls[0][1] as string;
-    expect(content).toContain('# STRIPE_SECRET_KEY=');
-    expect(content).toContain('# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=');
-    expect(content).toContain('# STRIPE_WEBHOOK_SECRET=');
+    expect(content).toContain('STRIPE_SECRET_KEY=sk_test_placeholder');
+    expect(content).toContain('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder');
+    expect(content).toContain('STRIPE_WEBHOOK_SECRET=whsec_placeholder');
   });
 
-  it('comments out webhook secret with CLI instructions when not provided', async () => {
+  it('writes a webhook placeholder with CLI instructions when not provided', async () => {
     const config: EnvConfig = {
       ...baseEnvConfig,
       payment: {
@@ -357,7 +358,7 @@ describe('generateEnvFile', () => {
     await generateEnvFile('/tmp/my-app', config);
     const content = mockWriteFile.mock.calls[0][1] as string;
     expect(content).toContain('STRIPE_SECRET_KEY=FAKE_STRIPE_SK_FOR_TESTS');
-    expect(content).toContain('# STRIPE_WEBHOOK_SECRET=');
+    expect(content).toContain('STRIPE_WEBHOOK_SECRET=whsec_placeholder');
     expect(content).toContain('stripe listen --forward-to');
   });
 
@@ -365,5 +366,18 @@ describe('generateEnvFile', () => {
     await generateEnvFile('/tmp/my-app', baseEnvConfig);
     const content = mockWriteFile.mock.calls[0][1] as string;
     expect(content).toContain('REVEALUI_CORS_ORIGINS=http://localhost:3000,http://localhost:4000');
+  });
+
+  it('includes the admin bootstrap variables', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    expect(content).toContain('REVEALUI_ADMIN_EMAIL=admin@example.com');
+    expect(content).toContain('REVEALUI_ADMIN_PASSWORD=');
+  });
+
+  it('ends with a trailing newline', async () => {
+    await generateEnvFile('/tmp/my-app', baseEnvConfig);
+    const content = mockWriteFile.mock.calls[0][1] as string;
+    expect(content.endsWith('\n')).toBe(true);
   });
 });

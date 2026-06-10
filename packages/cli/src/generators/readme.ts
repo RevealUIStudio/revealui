@@ -53,7 +53,7 @@ ${projectConfig.projectName}/
 │   └── seed.ts           # Database seed script
 ├── revealui.config.ts    # RevealUI configuration
 ├── next.config.mjs       # Next.js configuration
-└── .env.local            # Environment variables (git-ignored)
+└── .env.development.local # Environment variables (git-ignored)
 \`\`\`
 
 ## Available Scripts

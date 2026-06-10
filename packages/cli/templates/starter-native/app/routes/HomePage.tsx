@@ -28,8 +28,11 @@ export function HomePage(): React.ReactNode {
           <li>
             Initialize the CMS database with{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs">pnpm db:init</code> once
-            your <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs">.env.local</code> is
-            filled in.
+            your{' '}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs">
+              .env.development.local
+            </code>{' '}
+            is filled in.
           </li>
         </ul>
       </section>
