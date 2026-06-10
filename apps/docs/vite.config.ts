@@ -6,7 +6,8 @@ import { defineConfig } from 'vite';
 import { isPubliclyServed } from './scripts/served-docs.mjs';
 
 /** Enable verbose docs-copy plugin logging with DEBUG=docs-copy or DEBUG=* */
-const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
+const debugTokens = new Set((process.env.DEBUG ?? '').split(',').map((token) => token.trim()));
+const DEBUG = debugTokens.has('docs-copy') || debugTokens.has('*');
 
 /**
  * Vite plugin to copy documentation files to public directory

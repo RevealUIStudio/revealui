@@ -50,7 +50,7 @@ describe('createProject', () => {
     expect(files).toContain('package.json');
     expect(files).toContain('tsconfig.json');
     expect(files).toContain('next.config.mjs');
-    expect(files).toContain('.env.local');
+    expect(files).toContain('.env.development.local');
     expect(files).toContain('README.md');
     expect(files).toContain('src');
   });
@@ -67,7 +67,7 @@ describe('createProject', () => {
     expect(pkgJson.name).toBe('my-project');
   });
 
-  it('writes .env.local with placeholder values when skipping integrations', async () => {
+  it('writes .env.development.local with placeholders when skipping integrations', async () => {
     const projectPath = path.join(tmpDir, 'env-test');
 
     await createProject({
@@ -75,14 +75,14 @@ describe('createProject', () => {
       project: { ...minimalConfig.project, projectName: 'env-test', projectPath },
     });
 
-    const env = await fs.readFile(path.join(projectPath, '.env.local'), 'utf-8');
+    const env = await fs.readFile(path.join(projectPath, '.env.development.local'), 'utf-8');
     expect(env).toContain('REVEALUI_SECRET=');
     expect(env).toContain('POSTGRES_URL=postgresql://');
     expect(env).toContain('STRIPE_SECRET_KEY=sk_test_placeholder');
     expect(env).toContain('BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder');
   });
 
-  it('writes .env.local with provided database URL', async () => {
+  it('writes .env.development.local with provided database URL', async () => {
     const projectPath = path.join(tmpDir, 'db-test');
     const postgresUrl = 'postgresql://user:pass@neon.tech/mydb';
 
@@ -92,7 +92,7 @@ describe('createProject', () => {
       database: { provider: 'neon', postgresUrl },
     });
 
-    const env = await fs.readFile(path.join(projectPath, '.env.local'), 'utf-8');
+    const env = await fs.readFile(path.join(projectPath, '.env.development.local'), 'utf-8');
     expect(env).toContain(`POSTGRES_URL=${postgresUrl}`);
   });
 

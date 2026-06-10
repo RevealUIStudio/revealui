@@ -104,6 +104,55 @@ describe('GET /  -  liveness probe', () => {
       }
     }
   });
+
+  it('treats compose-injected empty strings as unset (BRAND_NAME="" falls through)', async () => {
+    const prevBrand = process.env.REVEALUI_BRAND_NAME;
+    const prevTenant = process.env.REVEALUI_TENANT_NAME;
+    // Docker Compose `${VAR:-}` interpolation delivers unset vars as ''.
+    process.env.REVEALUI_BRAND_NAME = '';
+    process.env.REVEALUI_TENANT_NAME = 'Acme';
+    try {
+      const app = createApp();
+      const res = await app.request('/');
+      const body = await parseBody(res);
+      expect(body.service).toBe('Acme API');
+    } finally {
+      if (prevBrand === undefined) {
+        delete process.env.REVEALUI_BRAND_NAME;
+      } else {
+        process.env.REVEALUI_BRAND_NAME = prevBrand;
+      }
+      if (prevTenant === undefined) {
+        delete process.env.REVEALUI_TENANT_NAME;
+      } else {
+        process.env.REVEALUI_TENANT_NAME = prevTenant;
+      }
+    }
+  });
+
+  it('falls back to the canonical name when both overrides are empty strings', async () => {
+    const prevBrand = process.env.REVEALUI_BRAND_NAME;
+    const prevTenant = process.env.REVEALUI_TENANT_NAME;
+    process.env.REVEALUI_BRAND_NAME = '';
+    process.env.REVEALUI_TENANT_NAME = '';
+    try {
+      const app = createApp();
+      const res = await app.request('/');
+      const body = await parseBody(res);
+      expect(body.service).toBe('RevealUI API');
+    } finally {
+      if (prevBrand === undefined) {
+        delete process.env.REVEALUI_BRAND_NAME;
+      } else {
+        process.env.REVEALUI_BRAND_NAME = prevBrand;
+      }
+      if (prevTenant === undefined) {
+        delete process.env.REVEALUI_TENANT_NAME;
+      } else {
+        process.env.REVEALUI_TENANT_NAME = prevTenant;
+      }
+    }
+  });
 });
 
 describe('GET /ready  -  readiness probe', () => {

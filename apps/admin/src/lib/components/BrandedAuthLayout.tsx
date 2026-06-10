@@ -29,7 +29,10 @@ import type React from 'react';
  * vars injected at the root in `apps/admin/src/app/(frontend)/layout.tsx`.
  */
 export function BrandedAuthLayout({ children }: { children: React.ReactNode }) {
-  const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+  // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
+  // empty strings, which must fall through. tagline/logoUrl below are
+  // truthy-guarded in JSX, so empty strings are already safe there.
+  const name = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   const hideName = process.env.REVEALUI_TENANT_HIDE_NAME === 'true';
   const tagline = process.env.REVEALUI_TENANT_TAGLINE;
   const logoUrl = process.env.REVEALUI_BRAND_LOGO_URL;

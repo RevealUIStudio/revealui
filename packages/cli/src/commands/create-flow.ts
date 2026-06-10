@@ -79,7 +79,9 @@ function printPostCreateSummary(projectName: string): void {
   logger.info('');
   logger.info('  What was created:');
   logger.info(`    ./${projectName}/          — project root`);
-  logger.info(`    ./${projectName}/.env.local — environment variables (edit before pnpm dev)`);
+  logger.info(
+    `    ./${projectName}/.env.development.local — environment variables (edit before pnpm dev)`,
+  );
   logger.info(`    ./${projectName}/README.md  — getting started guide`);
   logger.info('');
   logger.info('  RevealUI ecosystem:');

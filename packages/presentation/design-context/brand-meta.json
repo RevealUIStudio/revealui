@@ -11,6 +11,34 @@
     "font-mono": "'JetBrains Mono', 'Fira Code', ui-monospace, monospace",
     "font-display": "'Inter Tight', 'Inter', system-ui, sans-serif"
   },
+  "shape": {
+    "radius-sm": "6px",
+    "radius-md": "10px",
+    "radius-lg": "16px",
+    "radius-xl": "24px"
+  },
+  "ladders": {
+    "note": "Declared canon for the contrast-load-bearing tokens. Values are single-spaced; the contract test collapses tokens.css whitespace before matching. Changing a value here AND in tokens.css is the deliberate two-place edit the gate exists to force.",
+    "dark": {
+      "surface-0": "oklch(0.16 0.030 260)",
+      "surface-1": "oklch(0.22 0.025 258)",
+      "surface-2": "oklch(0.28 0.028 256)",
+      "text-0": "oklch(0.985 0.005 250)",
+      "text-1": "oklch(0.83 0.015 245)",
+      "text-2": "oklch(0.65 0.025 250)",
+      "text-on-brand": "oklch(0.985 0.005 250)",
+      "warning-text": "oklch(0.70 0.165 80)"
+    },
+    "light": {
+      "surface-0": "oklch(0.985 0.005 250)",
+      "surface-1": "oklch(1.000 0 0)",
+      "surface-2": "oklch(0.965 0.006 248)",
+      "text-0": "oklch(0.16 0.030 260)",
+      "text-1": "oklch(0.34 0.030 250)",
+      "text-2": "oklch(0.50 0.030 250)",
+      "warning-text": "oklch(0.45 0.130 75)"
+    }
+  },
   "voice": {
     "note": "Voice/headline rules consolidation deferred to lane Phase 3 (DS-V1). Canonical voice corpus: .jv messaging-funnel-audit/voice-and-headline-rules.md"
   }

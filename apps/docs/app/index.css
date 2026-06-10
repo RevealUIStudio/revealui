@@ -20,7 +20,9 @@
   --color-border-subtle: #f0f1f3;
   --color-text-primary: #1a1a2e;
   --color-text-secondary: #5f6368;
-  --color-text-muted: #9aa0a6;
+  /* WCAG AA: 4.84:1 on #ffffff, 4.64:1 on #fafafa. The previous #9aa0a6
+   * tested ~2.5:1 on both (fails AA for the h6 / del / byline text using it). */
+  --color-text-muted: #6b7280;
   --color-accent: var(--rvui-brand);
   --color-accent-hover: var(--rvui-brand-hover);
   --color-accent-bg: var(--rvui-brand-soft);

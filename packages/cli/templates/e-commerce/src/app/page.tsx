@@ -66,7 +66,9 @@ export default function HomePage() {
           </li>
           <li>
             Add your Stripe keys to{' '}
-            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">.env.local</code>
+            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">
+              .env.development.local
+            </code>
           </li>
           <li>
             Visit{' '}

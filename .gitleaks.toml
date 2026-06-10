@@ -46,7 +46,7 @@ paths = [
   '''^packages/.*/e2e/.*''',
 
   # CLI scaffolding and prompts — emit placeholder env keys into user templates
-  '''^packages/cli/src/commands/create\.ts$''',
+  '''^packages/cli/src/generators/env-file\.ts$''',
   '''^packages/cli/src/prompts/.*''',
   '''^packages/cli/templates/.*''',
 

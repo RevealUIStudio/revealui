@@ -1,6 +1,13 @@
+import { useEffect } from 'react';
+import { applyDocHead } from '../lib/head';
 import { renderMarkdown } from '../utils/markdown';
 
 export function DocsIndexPage() {
+  // Restore the site-default head after per-page overrides (SPA navigation).
+  useEffect(() => {
+    applyDocHead();
+  }, []);
+
   const content = `# RevealUI Documentation
 
 Agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.
@@ -10,7 +17,7 @@ Agentic business runtime. Users, content, products, payments, and AI  -  pre-wir
 \`\`\`bash
 npx create-revealui@latest my-app
 cd my-app
-cp .env.template .env
+# review .env.development.local (created by the scaffolder)
 pnpm db:migrate
 pnpm dev
 \`\`\`
@@ -44,7 +51,7 @@ See the [Quick Start guide](/quick-start) for the full walkthrough, or browse th
 ### Reference
 - [Package Reference](/reference)  -  All packages: core, auth, db, contracts, presentation, router, CLI
 - [REST API](/api/rest-api)  -  OpenAPI reference for all endpoints
-- [Component Catalog](/component-catalog)  -  57 pre-wired UI components
+- [Component Catalog](/component-catalog)  -  Pre-wired UI components
 - [AI](/ai)  -  AI agents, prompt/response/semantic caching
 - [Marketplace](/marketplace)  -  Extensibility and integrations
 
@@ -62,7 +69,7 @@ See the [Quick Start guide](/quick-start) for the full walkthrough, or browse th
 - [Open Source & Pro](/blog/06-open-source-and-pro)  -  Our monetization philosophy
 - [Agent-First Future](/blog/07-agent-first-future)  -  Building for the agent economy
 - [Getting Started in About 30 Minutes](/blog/08-getting-started)  -  From zero to deployed
-- [59 Components, One Dependency](/blog/09-component-library)  -  The UI layer you own
+- [60 Components, One Dependency](/blog/09-component-library)  -  The UI layer you own
 - [Your Database, Your Storage, Your Sync](/blog/10-own-your-data)  -  Standard Postgres, S3 storage, built-in sync
 
 ---

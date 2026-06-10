@@ -87,7 +87,9 @@ const livenessRoute = createRoute({
  * Hosted SaaS (no overrides) keeps the canonical "RevealUI API" identity.
  */
 function getServiceName(): string {
-  const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+  // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
+  // empty strings, which must fall through to the next candidate.
+  const name = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   return `${name} API`;
 }
 
