@@ -46,11 +46,11 @@ type ContactInquiry = z.infer<typeof ContactInquirySchema>;
 
 function escapeHtml(s: string): string {
   return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 function buildEmailSubject(body: ContactInquiry): string {
@@ -68,7 +68,7 @@ function buildEmailHtml(body: ContactInquiry): string {
   }
   lines.push(`<p><strong>Topic:</strong> ${escapeHtml(body.topic)}</p>`);
   lines.push('<hr/>');
-  lines.push(`<div>${escapeHtml(body.message).replace(/\n/g, '<br/>')}</div>`);
+  lines.push(`<div>${escapeHtml(body.message).replaceAll('\n', '<br/>')}</div>`);
   return lines.join('\n');
 }
 
