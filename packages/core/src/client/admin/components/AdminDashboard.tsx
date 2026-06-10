@@ -19,6 +19,12 @@ import { GlobalForm } from './GlobalForm.js';
 
 interface AdminDashboardProps {
   config: RevealConfig;
+  /**
+   * Resolved brand name for the dashboard chrome. Pass from a server
+   * component (e.g. REVEALUI_BRAND_NAME / REVEALUI_TENANT_NAME): client
+   * files cannot read those env vars at runtime (build-time inlining).
+   */
+  siteName?: string;
 }
 
 type ViewType = 'dashboard' | 'collection' | 'edit' | 'global';
@@ -204,11 +210,13 @@ function SignOutButton() {
 // =============================================================================
 
 function DashboardHome({
+  siteName,
   collections,
   globals,
   onCollectionClick,
   onGlobalClick,
 }: {
+  siteName: string;
   collections: RevealCollectionConfig[];
   globals: RevealGlobalConfig[];
   onCollectionClick: (c: RevealCollectionConfig) => void;
@@ -220,7 +228,7 @@ function DashboardHome({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-foreground">RevealUI Admin</h1>
+              <h1 className="text-2xl font-bold text-foreground">{`${siteName} Admin`}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">v0.1.0</span>
@@ -385,7 +393,7 @@ function DashboardHome({
               </div>
               <div className="bg-muted px-5 py-3">
                 <div className="text-sm text-muted-foreground">
-                  RevealUI admin is running successfully
+                  {siteName} admin is running successfully
                 </div>
               </div>
             </div>
@@ -415,7 +423,7 @@ function logApiError(err: unknown, context: string): void {
 // Main component
 // =============================================================================
 
-export function AdminDashboard({ config }: AdminDashboardProps) {
+export function AdminDashboard({ config, siteName = 'RevealUI' }: AdminDashboardProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const collections = config.collections || [];
@@ -747,6 +755,7 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
   // ── Dashboard home ────────────────────────────────────────────────────
   return (
     <DashboardHome
+      siteName={siteName}
       collections={collections}
       globals={globals}
       onCollectionClick={(c) => void handleCollectionClick(c)}
