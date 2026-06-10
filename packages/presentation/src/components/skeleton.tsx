@@ -6,7 +6,7 @@ export function Skeleton({ className, ...props }: React.ComponentPropsWithoutRef
     <div
       aria-hidden="true"
       {...props}
-      className={cn('animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-700', className)}
+      className={cn('animate-pulse rounded-md bg-foreground/10', className)}
     />
   );
 }
@@ -29,7 +29,7 @@ export function SkeletonText({ lines = 3, className }: { lines?: number; classNa
 
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('rounded-xl border border-zinc-200 p-4 dark:border-zinc-700', className)}>
+    <div className={cn('rounded-xl border border-border p-4', className)}>
       <div className="flex items-center gap-3">
         <Skeleton className="size-10 rounded-full" />
         <div className="flex-1 space-y-2">

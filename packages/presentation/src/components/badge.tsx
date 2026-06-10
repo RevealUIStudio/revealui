@@ -32,6 +32,15 @@ const colors = {
   pink: 'bg-pink-400/15 text-pink-700 group-data-hover:bg-pink-400/25 dark:bg-pink-400/10 dark:text-pink-400 dark:group-data-hover:bg-pink-400/20',
   rose: 'bg-rose-400/15 text-rose-700 group-data-hover:bg-rose-400/25 dark:bg-rose-400/10 dark:text-rose-400 dark:group-data-hover:bg-rose-400/20',
   zinc: 'bg-zinc-600/10 text-zinc-700 group-data-hover:bg-zinc-600/20 dark:bg-white/5 dark:text-zinc-400 dark:group-data-hover:bg-white/10',
+  // Cobalt semantic variants (token-driven; auto-adapt to light/dark via the --rvui-*
+  // bridge, so no `dark:` pair is needed). Added so admin/dashboard status badges can
+  // track the semantic token system instead of the raw-palette swatches above. The raw
+  // palette stays intact (it is the allowlisted product surface per ds-catalyst-reskin).
+  brand: 'bg-primary/10 text-primary group-data-hover:bg-primary/20',
+  success: 'bg-success/10 text-success group-data-hover:bg-success/20',
+  warning: 'bg-warning/10 text-warning-foreground group-data-hover:bg-warning/20',
+  danger: 'bg-destructive/10 text-destructive group-data-hover:bg-destructive/20',
+  muted: 'bg-muted text-muted-foreground group-data-hover:bg-muted/80',
 };
 
 type BadgeProps = { color?: keyof typeof colors };
