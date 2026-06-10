@@ -2,6 +2,7 @@
 
 import { useShape } from '@electric-sql/react';
 import { useCallback } from 'react';
+import { csrfHeaders } from '../csrf.js';
 import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
@@ -75,10 +76,11 @@ export function useSharedMemories(sessionScope: string): UseSharedMemoriesResult
 
   const triggerReconciliation = useCallback(
     async (sessionId: string, siteId: string): Promise<MutationResult<unknown>> => {
-      const response = await fetch(`${proxyBaseUrl}/api/sync/reconcile`, {
+      const url = `${proxyBaseUrl}/api/sync/reconcile`;
+      const response = await fetch(url, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeaders(url) },
         body: JSON.stringify({ session_id: sessionId, site_id: siteId }),
       });
 

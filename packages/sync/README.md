@@ -71,6 +71,8 @@ function MyComponent() {
 
 Each hook returns `create`, `update`, and `remove` functions. Mutations go through authenticated REST endpoints at `/api/sync/*`. ElectricSQL picks up the database changes and pushes updates to all subscribers automatically.
 
+In browser contexts, mutation requests echo the JS-readable `revealui-csrf` cookie back as an `X-CSRF-Token` header (same-origin targets only), satisfying the admin proxy's signed double-submit CSRF check on unsafe methods.
+
 ```typescript
 import { useAgentContexts } from '@revealui/sync'
 
