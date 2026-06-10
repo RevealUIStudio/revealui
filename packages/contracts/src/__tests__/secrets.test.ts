@@ -36,7 +36,7 @@ describe('Secret Schemas', () => {
     });
 
     it('accepts a 2-segment path', () => {
-      expect(SecretPathSchema.safeParse('revdev/license-signing-key').success).toBe(true);
+      expect(SecretPathSchema.safeParse('revdev/license-signing-private-key').success).toBe(true);
     });
 
     it('accepts a path with a file extension on the final segment', () => {
@@ -98,10 +98,10 @@ describe('Secret Schemas', () => {
     });
 
     it('splits a 2-segment path with empty subsystems', () => {
-      const parsed = parseSecretPath('revdev/license-signing-key');
+      const parsed = parseSecretPath('revdev/license-signing-private-key');
       expect(parsed.project).toBe('revdev');
       expect(parsed.subsystems).toEqual([]);
-      expect(parsed.name).toBe('license-signing-key');
+      expect(parsed.name).toBe('license-signing-private-key');
     });
 
     it('preserves the file extension on the name', () => {
