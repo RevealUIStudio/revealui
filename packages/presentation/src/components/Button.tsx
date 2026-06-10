@@ -7,7 +7,7 @@ import {
   ShineOverlay,
   Spinner,
   shineHostClasses,
-} from './button-shared.js';
+} from './_button-shared.js';
 
 /**
  * `Button` (exported as `ButtonCVA`) — the brand-token-driven button.

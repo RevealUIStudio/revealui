@@ -3,15 +3,15 @@
 import type React from 'react';
 import { type LinkBehavior, useLinkBehavior } from '../hooks/use-link-behavior.js';
 import { cn } from '../utils/cn.js';
-import { type ButtonProps, buttonVariants } from './Button.js';
-import { TouchTarget } from './button-headless.js';
 import {
   buttonTransitionStyle,
   glowClasses,
   ShineOverlay,
   Spinner,
   shineHostClasses,
-} from './button-shared.js';
+} from './_button-shared.js';
+import { type ButtonProps, buttonVariants } from './Button.js';
+import { TouchTarget } from './button-headless.js';
 
 /**
  * LinkButton — a button-styled element that renders as an anchor by default,
@@ -29,7 +29,7 @@ import {
  *   <LinkButton as={MyLink} to="/x">…</LinkButton>
  *
  * Shares its visual contract (variants, sizes, spinner, glow, shine, transition)
- * with `Button` / `ButtonCVA` via `button-shared.tsx`.
+ * with `Button` / `ButtonCVA` via `_button-shared.tsx`.
  */
 export interface LinkButtonOwnProps {
   /** URL the button navigates to. Required for normal usage; omit only when `as` provides its own URL prop. */

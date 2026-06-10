@@ -91,9 +91,10 @@ function countTestFiles(): number {
 function countUIComponents(): number {
   const compDir = path.join(ROOT, 'packages/presentation/src/components');
   if (!fs.existsSync(compDir)) return 0;
-  // Each .tsx file in components/ is one component (excluding index.ts)
+  // Each .tsx file in components/ is one component (excluding index.ts and
+  // _-prefixed internal helpers, matching the MCP-server counter below).
   try {
-    return fs.readdirSync(compDir).filter((f) => f.endsWith('.tsx')).length;
+    return fs.readdirSync(compDir).filter((f) => f.endsWith('.tsx') && !f.startsWith('_')).length;
   } catch {
     return 0;
   }
