@@ -17,7 +17,7 @@ Agentic business runtime. Users, content, products, payments, and AI  -  pre-wir
 \`\`\`bash
 npx create-revealui@latest my-app
 cd my-app
-cp .env.example .env.development.local
+# review .env.development.local (created by the scaffolder)
 pnpm db:migrate
 pnpm dev
 \`\`\`
