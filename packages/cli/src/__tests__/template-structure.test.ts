@@ -70,7 +70,7 @@ describe('Template file structure  -  shared (all templates)', () => {
       expect(files).toContain('package.json');
       expect(files).toContain('tsconfig.json');
       expect(files).toContain('next.config.mjs');
-      expect(files).toContain('.env.local');
+      expect(files).toContain('.env.development.local');
       expect(files).toContain('README.md');
       expect(files).toContain('src');
     });
@@ -326,7 +326,7 @@ describe('Template file structure  -  starter-native (Vite + @revealui/router)',
     expect(files).toContain('vite.config.ts');
     expect(files).toContain('vitest.config.ts');
     expect(files).toContain('index.html');
-    expect(files).toContain('.env.local'); // CLI-generated
+    expect(files).toContain('.env.development.local'); // CLI-generated
     expect(files).toContain('README.md'); // CLI-generated
     expect(files).toContain('app');
     expect(files).toContain('src');
