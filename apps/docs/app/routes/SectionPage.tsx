@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { useWildcardPath } from '../hooks/useWildcardPath';
+import { applyDocHead } from '../lib/head';
 import { slugToPath } from '../lib/slug-manifest';
 import { loadMarkdownFile, parseFrontmatter, renderMarkdown } from '../utils/markdown';
 import type { DocSection } from '../utils/paths';
@@ -88,6 +89,22 @@ Document not found at \`${resolved.markdownPath}\`.
 
     void loadDoc();
   }, [path, section, title]);
+
+  // Per-page head: frontmatter title/description when present, else the
+  // section title. The crawl-time defaults live in index.html; this keeps
+  // SPA navigation in sync.
+  useEffect(() => {
+    if (loading || error !== null) {
+      return;
+    }
+    const { data } = parseFrontmatter(content);
+    const fmTitle = typeof data.title === 'string' ? data.title.trim() : '';
+    const fmDescription = typeof data.description === 'string' ? data.description.trim() : '';
+    applyDocHead({
+      title: fmTitle === '' ? title : fmTitle,
+      description: fmDescription,
+    });
+  }, [loading, error, content, title]);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -186,6 +203,13 @@ Content is being organized. Check back soon!
 
     void loadIndex();
   }, [section, title, fallbackIndex]);
+
+  // Section landing pages carry the section title in the head.
+  useEffect(() => {
+    if (!loading) {
+      applyDocHead({ title });
+    }
+  }, [loading, title]);
 
   if (loading) {
     return <LoadingSkeleton />;
