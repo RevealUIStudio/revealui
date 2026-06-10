@@ -91,11 +91,18 @@ const nextConfig = {
     // via @revealui/auth (transpilePackages). Externalize so it loads from
     // node_modules at runtime. Fixes the prod passkey-options 500 (GAP-220).
     '@simplewebauthn/server',
+    // @revealui/config exports a lazy-Proxy default (read as config.reveal.secret
+    // etc.). When transpiled by Turbopack into the standalone server bundle the
+    // Proxy default export is mangled, so config.reveal resolves to `undefined`
+    // at runtime — fine in `next dev`, but throws "Cannot read properties of
+    // undefined (reading 'secret')" in the prod build, 500ing passkey + every
+    // config.reveal route. It ships built ESM dist (./dist/index.js), so
+    // externalize it to load the working Proxy from node_modules un-transformed.
+    '@revealui/config',
   ],
   // Transpile workspace packages - all now use bundler module resolution with extensionless imports
   // This works with Turbopack since we changed from NodeNext to bundler resolution
   transpilePackages: [
-    '@revealui/config',
     '@revealui/db',
     '@revealui/contracts',
     '@revealui/auth',
