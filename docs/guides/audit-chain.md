@@ -75,5 +75,5 @@ Agents and humans use the same signing path. There is no separate "agent audit" 
 ## Further reading
 
 - [ARCHITECTURE.md §Security & Access Control](../ARCHITECTURE.md#security--access-control) — broader security architecture
-- [methodology.md](../methodology.md) — engineering postures (audit-first SDLC, verify-before-claim)
+- methodology.md — engineering postures (audit-first SDLC, verify-before-claim)
 - [technology-stack.md](./technology-stack.md) — full tech stack reference

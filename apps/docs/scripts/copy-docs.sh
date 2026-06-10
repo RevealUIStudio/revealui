@@ -17,27 +17,8 @@ echo "Copying documentation from source to docs app..."
 echo "   Source: $SOURCE_DOCS"
 echo "   Target: $TARGET_DOCS"
 
-# Internal-only files that must never be served publicly
-# IMPORTANT: Keep in sync with INTERNAL_DOC_FILES in vite.config.ts
-INTERNAL_FILES=(
-  "MASTER_PLAN.md"
-  "AI-AGENT-RULES.md"
-  "AUTOMATION.md"
-  "STANDARDS.md"
-  "SECRETS.md" # revvault secret-path inventory — must never be served publicly
-  # Internal ops / business docs — not for the public docs site
-  "AUDIT_STATUS.md"
-  "COMMERCIAL_READINESS.md"
-  "CREDENTIAL-ROTATION-RUNBOOK.md"
-  "DEPLOYMENT-RUNBOOK.md"
-  "LAUNCH-CHECKLIST.md"
-  "runbook-agent-dispatch-flag.md"
-  # audience: maintainer (operating RevealUI Studio's own infra/release, not framework-user docs)
-  "CI_CD_GUIDE.md"
-  "MARKETING_METRICS.md"
-  "PERFORMANCE.md"
-  "PUBLISHING.md"
-)
+# The public/internal boundary is enforced fail-closed below, after the copy, by
+# scripts/prune-non-public.mjs (single source of truth: scripts/served-docs.mjs).
 
 # Clean previously-copied docs.
 # CHIP-3: target is `public/` (shared with non-docs static assets like
@@ -72,25 +53,12 @@ if [ -d "$TARGET_DOCS/archive" ]; then
   rm -rf "$TARGET_DOCS/archive"
 fi
 
-# Remove internal-only subdirectories (ops / security / business docs, never public).
-# IMPORTANT: Keep in sync with INTERNAL_DOC_DIRS in vite.config.ts
-INTERNAL_DIRS=( runbooks security checklists system-tune deployment )
-for d in "${INTERNAL_DIRS[@]}"; do
-  if [ -d "$TARGET_DOCS/$d" ]; then
-    rm -rf "$TARGET_DOCS/$d"
-    echo "   Excluded dir: $d/"
-  fi
-done
-
-# Remove internal-only files from the public directory
-echo "   Removing internal docs..."
-for FILE in "${INTERNAL_FILES[@]}"; do
-  INTERNAL_PATH="$TARGET_DOCS/$FILE"
-  if [ -f "$INTERNAL_PATH" ]; then
-    rm "$INTERNAL_PATH"
-    echo "   Excluded: $FILE"
-  fi
-done
+# Enforce the fail-closed public/internal boundary: remove every doc COPIED from
+# docs/ that is not `visibility: public`. Scoped to copied docs, so hand-tracked
+# public-only content (public/docs-pro/, assets) is left alone.
+# Single source of truth: scripts/served-docs.mjs.
+echo "   Enforcing visibility boundary (fail-closed: visibility: public only)..."
+node "$SCRIPT_DIR/prune-non-public.mjs" "$TARGET_DOCS" "$SOURCE_DOCS"
 
 # Count files copied (only .md files at any depth, excluding archive)
 FILE_COUNT=$(find "$TARGET_DOCS" -type f -name "*.md" | wc -l)

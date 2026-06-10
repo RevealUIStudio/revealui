@@ -16,7 +16,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-- [Glossary](./glossary.md): Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402. Single source of truth for cross-cutting terminology.
+- Glossary: Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402. Single source of truth for cross-cutting terminology.
 
 ## Core Guides
 
