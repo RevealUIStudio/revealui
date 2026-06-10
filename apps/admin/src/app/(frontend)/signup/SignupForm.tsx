@@ -59,6 +59,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   const anyLoading = isLoading || isPasskeyLoading;
 
@@ -130,6 +131,22 @@ function SignupContent({ apiUrl }: SignupFormProps) {
     }
   };
 
+  const handleResendVerification = async () => {
+    setResendState('sending');
+    try {
+      // Session-less resend: the route accepts { email } without a session and
+      // always answers with the same generic 200, so this needs no auth state.
+      await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+    } catch {
+      // The endpoint answers identically either way; a network blip reads the same.
+    }
+    setResendState('sent');
+  };
+
   if (awaitingVerification) {
     return (
       <div className="w-full max-w-sm space-y-6">
@@ -144,6 +161,18 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         <p className="text-xs text-zinc-600">
           Didn&apos;t get it? Check your spam folder — the link can take a minute to arrive.
         </p>
+        <Button
+          variant="outline"
+          onClick={handleResendVerification}
+          disabled={resendState === 'sending'}
+          className="w-full"
+        >
+          {resendState === 'sent'
+            ? 'Sent. Check your inbox again.'
+            : resendState === 'sending'
+              ? 'Sending…'
+              : 'Resend verification email'}
+        </Button>
         <Button onClick={() => router.push('/login')} className="w-full">
           Go to sign in
         </Button>

@@ -3,16 +3,24 @@
  *
  * POST /api/auth/resend-verification
  *
- * Resends the email verification link to the authenticated user.
- * Rate-limited to prevent abuse.
+ * Two modes:
+ * - Authenticated session: resends to the session user (original behavior).
+ * - No session: accepts { email }. The response is the same generic 200 for
+ *   existing, nonexistent, already-verified, and per-email-rate-limited
+ *   addresses, and the actual token rotation + send run after the response
+ *   is sent — so neither the body nor the latency reveals whether an
+ *   account exists.
+ *
+ * Rate-limited per IP (wrapper) and, in the no-session mode, per email.
  */
 
-import { createHash } from 'node:crypto';
-import { getSession } from '@revealui/auth/server';
+import { createHash, randomBytes } from 'node:crypto';
+import { checkRateLimit, getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { updateUser } from '@revealui/db/queries/users';
+import { getUserByEmail, updateUser } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
-import { type NextRequest, NextResponse } from 'next/server';
+import { after, type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { sendVerificationEmail } from '@/lib/email/verification';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
@@ -21,11 +29,98 @@ import { extractRequestContext } from '@/lib/utils/request-context';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Matches the TTL signUp stamps on the initial verification token.
+const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+
+const unauthenticatedBody = z.object({
+  email: z.email().max(254),
+});
+
+/**
+ * Rotate the stored verification token and send the link. Stores only the
+ * SHA-256 hash, and refreshes the expiry alongside the token so a resent
+ * link never inherits the original signup deadline.
+ */
+async function rotateTokenAndSend(
+  userId: string,
+  email: string,
+): Promise<{ success: boolean; error?: string }> {
+  const rawToken = randomBytes(32).toString('hex');
+  const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+  const db = getClient();
+
+  await updateUser(db, userId, {
+    emailVerificationToken: tokenHash,
+    emailVerificationTokenExpiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+  });
+
+  return sendVerificationEmail(email, rawToken);
+}
+
+function genericAcceptedResponse(): NextResponse {
+  return NextResponse.json({
+    success: true,
+    message: 'If that account exists and is unverified, a new verification link is on its way.',
+  });
+}
+
+/**
+ * No-session mode. The constant response and the deferred lookup/send are
+ * load-bearing: changing either lets this endpoint be used to probe which
+ * emails have accounts.
+ */
+async function resendWithoutSession(request: NextRequest): Promise<NextResponse> {
+  const body = await request.json().catch(() => null);
+  const parsed = unauthenticatedBody.safeParse(body);
+  if (!parsed.success) {
+    return createApplicationErrorResponse(
+      'A valid email address is required',
+      'INVALID_EMAIL',
+      400,
+    );
+  }
+  const email = parsed.data.email;
+
+  // Per-email limiter on top of the wrapper's per-IP one, counted before the
+  // user lookup so nonexistent addresses consume the same budget. The key is
+  // hashed so raw addresses never become rate-limit storage keys.
+  const emailKey = `resend-verification:email:${createHash('sha256').update(email.toLowerCase()).digest('hex')}`;
+  const { allowed } = await checkRateLimit(emailKey, {
+    maxAttempts: 3,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (allowed) {
+    after(async () => {
+      try {
+        const db = getClient();
+        // Exact-match lookup — the same semantics signIn uses, so any address
+        // that can sign in can also request a resend.
+        const user = await getUserByEmail(db, email);
+        if (!user || user.emailVerified || !user.email) {
+          return;
+        }
+        const result = await rotateTokenAndSend(user.id, user.email);
+        if (!result.success) {
+          logger.warn('Failed to resend verification email (no-session mode)', {
+            userId: user.id,
+            error: result.error,
+          });
+        }
+      } catch (error) {
+        logger.error('Error in deferred verification resend', { error });
+      }
+    });
+  }
+
+  return genericAcceptedResponse();
+}
+
 async function resendHandler(request: NextRequest): Promise<NextResponse> {
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
-      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+      return resendWithoutSession(request);
     }
 
     if (session.user.emailVerified) {
@@ -36,16 +131,7 @@ async function resendHandler(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse('No email address on account', 'NO_EMAIL', 400);
     }
 
-    // Generate a new token  -  store the SHA-256 hash, send the raw token via email
-    const newToken = crypto.randomUUID();
-    const tokenHash = createHash('sha256').update(newToken).digest('hex');
-    const db = getClient();
-
-    await updateUser(db, session.user.id, {
-      emailVerificationToken: tokenHash,
-    });
-
-    const result = await sendVerificationEmail(session.user.email, newToken);
+    const result = await rotateTokenAndSend(session.user.id, session.user.email);
 
     if (!result.success) {
       logger.warn('Failed to resend verification email', {

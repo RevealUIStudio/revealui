@@ -221,11 +221,15 @@ describe('POST /api/auth/resend-verification', () => {
     return mod.POST;
   }
 
-  it('returns 401 when not authenticated', async () => {
+  it('serves the session-less mode when not authenticated (400 without a valid email)', async () => {
     mockGetSession.mockResolvedValue(null);
+    // No session is no longer a 401: the route accepts { email } so stuck
+    // unverified users can self-serve a resend. Without a valid email it
+    // rejects with INVALID_EMAIL; the full session-less contract is covered
+    // in src/__tests__/api/resend-verification.test.ts.
     const POST = await loadRoute();
     const res = await POST(makeRequest());
-    expect((res as { status: number }).status).toBe(401);
+    expect((res as { status: number }).status).toBe(400);
   });
 
   it('returns 400 when email is already verified', async () => {
