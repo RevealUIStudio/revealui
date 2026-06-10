@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
 // Template definitions
@@ -189,7 +190,7 @@ export default function NewAgentPage() {
     };
 
     try {
-      const res = await fetch(`${apiUrl}/a2a/agents`, {
+      const res = await apiFetch(`${apiUrl}/a2a/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

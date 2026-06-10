@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -33,9 +34,7 @@ export async function GET(
   const { searchParams } = new URL(request.url);
 
   const apiResponse = await fetch(`${API_URL}/api/globals/${slug}?${searchParams.toString()}`, {
-    headers: {
-      Cookie: request.headers.get('Cookie') ?? '',
-    },
+    headers: await apiForwardHeaders(request),
   });
 
   if (!apiResponse.ok) {
@@ -58,10 +57,7 @@ export async function POST(
 
   const apiResponse = await fetch(`${API_URL}/api/globals/${slug}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: request.headers.get('Cookie') ?? '',
-    },
+    headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   });
 

@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
 // Types
@@ -163,7 +164,7 @@ function RefundsDashboard() {
         body.amount = Math.round(dollars * 100);
       }
 
-      const res = await fetch(`${apiUrl}/api/billing/refund`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/refund`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

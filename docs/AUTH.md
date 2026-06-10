@@ -1227,56 +1227,50 @@ The authentication system uses **cookie-based sessions** with the following CSRF
 - **Protection:** Ensures cookies only sent over HTTPS in production
 - **Location:** All auth API routes
 
-### Why Additional CSRF Tokens Are Not Required
+#### 4. Signed Double-Submit CSRF Tokens
+- **Status:** ✅ Implemented (defense-in-depth on top of `sameSite: 'lax'`)
+- **Token:** `HMAC-SHA256(REVEALUI_SECRET, sessionCookieValue:nonce)`, formatted `nonce:hmac`
+- **Issuance:** the admin proxy (`apps/admin/src/proxy.ts`) sets the token as the
+  JS-readable `revealui-csrf` cookie (`sameSite: 'strict'`) on page and `/api`
+  responses, re-issuing whenever the existing token no longer validates against
+  the current session cookie (e.g. after re-login)
+- **Enforcement:** any `POST`/`PUT`/`PATCH`/`DELETE` carrying a `revealui-session`
+  cookie must send the token as `X-CSRF-Token`, in two validators speaking the
+  same binding:
+  - admin's own routes: `apps/admin/src/proxy.ts` (pre-auth endpoints such as
+    sign-in/sign-up/password-reset are exempt)
+  - the api server: `apps/server/src/middleware/csrf.ts` on `/api/*` (skips safe
+    methods, cookie-less API-key clients, webhooks, and cron routes; enforces
+    only when the cookie resolved to an authenticated session)
+- **Attachment:** browser code goes through `apiFetch`
+  (`apps/admin/src/lib/utils/csrf.ts`), which attaches the header for unsafe
+  requests to the admin's own `/api/*` routes and to the configured api origin;
+  the core admin `APIClient` does the same. Admin server-side forwarders
+  (collections/globals/batch proxy routes) mint a per-request token via
+  `apps/admin/src/lib/utils/api-proxy-headers.ts`.
 
-#### For Read Operations (GET)
-- **No CSRF risk:** GET requests are idempotent and don't modify state
-- **Current protection:** Session validation ensures user is authenticated
+### Why the Token Binds to the Session Cookie Value
 
-#### For Write Operations (POST)
-- **SameSite: 'lax' protection:** Sufficient for most use cases
-- **Origin validation:** Could be added but not critical with SameSite
-- **Double-submit cookie pattern:** Not needed with SameSite
+The HMAC is computed over the raw session cookie value, not the DB session row
+id. Every issuer (admin proxy, server-side forwarders) and both validators hold
+the cookie value at validation time, so no database lookup is needed to issue
+or verify; the HMAC is one-way, so the JS-readable token discloses nothing
+about the `httpOnly` session cookie. A binding only the database knows (such as
+the session row id) would have no browser-reachable issuance channel.
 
-### When CSRF Tokens Would Be Needed
+This requires `REVEALUI_SECRET` parity between the admin and api deployments —
+they already share it for other HMAC duties, and self-hosted kits configure one
+secret for both.
 
-CSRF tokens would be required if:
-1. SameSite cookies are set to `'none'` (not our case)
-2. Supporting legacy browsers without SameSite support (not a priority)
-3. Need to support cross-origin requests (not our use case)
+### What Each Layer Covers
 
-### Current Protection Assessment
-
-**Current CSRF protection is sufficient** for the following reasons:
-
-1. ✅ SameSite: 'lax' provides strong protection
-2. ✅ HttpOnly prevents XSS-based token theft
-3. ✅ Secure flag ensures HTTPS-only in production
-4. ✅ All state-changing operations require authentication
-5. ✅ No cross-origin requirements
-
-### Future Enhancements (Optional)
-
-If additional CSRF protection is needed in the future:
-
-1. **Origin Header Validation**
-   ```typescript
-   const origin = request.headers.get('origin')
-   const expectedOrigin = process.env.NEXT_PUBLIC_SERVER_URL
-   if (origin && origin !== expectedOrigin) {
-     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
-   }
-   ```
-
-2. **CSRF Token Pattern**
-   - Generate token on session creation
-   - Store in httpOnly cookie
-   - Require token in request body/header
-   - Validate token matches cookie
-
-3. **Referer Header Validation**
-   - Validate Referer header matches expected domain
-   - Less reliable than Origin (can be spoofed)
+1. `sameSite: 'lax'` blocks foreign-site cookie sends on everything except
+   top-level GET navigations (which are CSRF-safe by the method skip)
+2. The signed double-submit token covers what SameSite cannot: same-site but
+   cross-subdomain attack surfaces, and browsers with degraded SameSite
+   behavior
+3. `httpOnly` keeps the session cookie itself out of script reach
+4. All state-changing operations additionally require an authenticated session
 
 ---
 
