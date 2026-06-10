@@ -7,8 +7,6 @@ category: index
 audience: developer
 ---
 
-# RevFleet — Architecture & Integration Guide
-
 > RevFleet is the umbrella for all RevealUI Studio software. This guide covers the 7-tier product model: what each piece is, who it's for, and how they integrate.
 
 ---

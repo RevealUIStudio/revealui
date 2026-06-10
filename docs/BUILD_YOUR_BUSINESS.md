@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Build Your First Business"
+title: "Build Your First Business with RevealUI"
 description: "Step-by-step tutorial for building a software product with RevealUI"
 category: tutorial
 audience: developer
 ---
-
-# Build Your First Business with RevealUI
 
 This tutorial walks you from zero to a deployed product in under an hour. You'll build a simple product catalog with user accounts, billing, and an admin dashboard  -  the same foundation you'd use for any software business.
 

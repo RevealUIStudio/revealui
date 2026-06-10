@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Biome Conventions
-
 ## Overview
 
 Biome 2 is the sole linter and formatter for this monorepo.

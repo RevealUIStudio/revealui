@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Component Catalog"
+title: "RevealUI Component Catalog"
 description: "Complete reference for @revealui/presentation UI components"
 category: reference
 audience: developer
 ---
-
-# RevealUI Component Catalog
 
 **Last Updated:** 2026-05-02
 **Packages:** `@revealui/presentation`, `@revealui/core`

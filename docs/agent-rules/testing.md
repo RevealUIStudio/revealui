@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Testing Conventions
-
 Rules for testing in the RevealUI monorepo. Covers Vitest, React Testing Library, Pro/OSS test boundaries, and CI gate triage.
 
 ## Repo Rules

@@ -7,8 +7,6 @@ category: philosophy
 audience: developer
 ---
 
-# Design Principles
-
 Six engineering principles that govern every architectural decision in RevealUI.
 
 **Justifiable. Orthogonal. Sovereign. Hermetic. Unified. Adaptive.**

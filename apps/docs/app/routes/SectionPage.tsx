@@ -4,9 +4,38 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { slugToPath } from '../lib/slug-manifest';
-import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
+import { loadMarkdownFile, parseFrontmatter, renderMarkdown } from '../utils/markdown';
 import type { DocSection } from '../utils/paths';
 import { resolveDocPath, stripDocExtension } from '../utils/paths';
+
+/** True when the first non-blank line of `markdown` is an ATX H1 (`# `). */
+function startsWithH1(markdown: string): boolean {
+  for (const raw of markdown.split('\n')) {
+    const line = raw.trim();
+    if (line === '') {
+      continue;
+    }
+    return line.startsWith('# ');
+  }
+  return false;
+}
+
+/** Format an ISO date for display, or '' when absent / unparseable. */
+function formatPostDate(iso: string): string {
+  if (iso === '') {
+    return '';
+  }
+  const ms = Date.parse(iso);
+  if (Number.isNaN(ms)) {
+    return iso;
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(ms));
+}
 
 interface SectionPageProps {
   section: DocSection;
@@ -80,8 +109,27 @@ Document not found at \`${resolved.markdownPath}\`.
   const sourceFile = slugToPath(slugKey) ?? (slugKey ? `${slugKey}.md` : 'INDEX.md');
   const githubUrl = `https://github.com/RevealUIStudio/revealui/blob/main/docs/${sourceFile}`;
 
+  // Frontmatter-driven page chrome: when a doc carries a frontmatter `title`
+  // and its body no longer opens with an H1 (e.g. migrated blog posts), render
+  // the title + byline as chrome. Docs that still lead with their own H1 are
+  // left untouched, so the title is never rendered twice.
+  const { data, body } = parseFrontmatter(content);
+  const fmTitle = typeof data.title === 'string' ? data.title.trim() : '';
+  const fmAuthor = typeof data.author === 'string' ? data.author.trim() : '';
+  const fmDate = typeof data.date === 'string' ? data.date.trim() : '';
+  const showHeader = fmTitle !== '' && !startsWithH1(body);
+  const byline = [fmAuthor ? `By ${fmAuthor}` : '', formatPostDate(fmDate)]
+    .filter((part) => part !== '')
+    .join(' · ');
+
   return (
     <ErrorBoundary>
+      {showHeader ? (
+        <header className="mx-auto mb-8 max-w-[var(--width-content)] px-8">
+          <h1 className="font-bold text-3xl text-text-primary tracking-tight">{fmTitle}</h1>
+          {byline !== '' ? <p className="mt-2 text-[0.9375rem] text-text-muted">{byline}</p> : null}
+        </header>
+      ) : null}
       <div>{renderMarkdown(content)}</div>
       <div className="mx-auto mt-12 flex max-w-[var(--width-content)] items-center justify-between border-t border-border px-8 pt-6 text-[0.8125rem] text-text-muted">
         <a
