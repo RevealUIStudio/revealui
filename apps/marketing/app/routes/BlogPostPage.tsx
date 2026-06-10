@@ -73,7 +73,7 @@ export function BlogPostPage() {
 
   useEffect(() => {
     if (post) {
-      document.title = `${post.title} — RevealUI Blog`;
+      document.title = `${post.title} | RevealUI Blog`;
     }
   }, [post]);
 

@@ -62,8 +62,8 @@ export function FairSourcePage() {
               className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
             >
               {FAIR_SOURCE_HERO.body.fslLabel}
-            </a>{' '}
-            &mdash; {FAIR_SOURCE_HERO.body.suffix}
+            </a>
+            {FAIR_SOURCE_HERO.body.suffix}
           </p>
         </div>
       </section>
@@ -200,7 +200,7 @@ export function FairSourcePage() {
             {FAIR_SOURCE_PACKAGES_SECTION.footer.prefix}{' '}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               {FAIR_SOURCE_PACKAGES_SECTION.footer.command}
-            </code>{' '}
+            </code>
             {FAIR_SOURCE_PACKAGES_SECTION.footer.suffix}
           </p>
         </div>

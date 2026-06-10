@@ -89,7 +89,7 @@ export const SPONSOR_TIERS: readonly SponsorTier[] = [
       'All Gold Sponsor benefits',
       'Logo with link on landing page',
       'Dedicated community channel',
-      'Direct line to the founder for prioritized feature requests — implementation scoped separately via RevealUI Studio engagements',
+      'Direct line to the founder for prioritized feature requests. Implementation scoped separately via RevealUI Studio engagements',
     ],
   },
 ] as const;
