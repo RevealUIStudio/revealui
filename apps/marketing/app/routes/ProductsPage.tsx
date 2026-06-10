@@ -184,8 +184,8 @@ export function ProductsPage() {
               And the rest of the fleet
             </h2>
             <p className="mt-4 text-lg leading-7 text-muted-foreground">
-              Sister products that extend the runtime — secrets, dev tooling, white-labeling,
-              skills, and the agent tool catalog.
+              Sister products that extend the runtime: secrets, dev tooling, white-labeling, skills,
+              and the agent tool catalog.
             </p>
           </div>
 
