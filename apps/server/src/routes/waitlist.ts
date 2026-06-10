@@ -48,6 +48,7 @@ import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { sanitizeEmailHeader, sendEmail } from '../lib/email.js';
+import { escapeHtml } from '../lib/html.js';
 
 // Closed enum keeps the segmentation column clean + queryable. Add a source
 // here when a new capture surface ships — a one-line API change, deliberate
@@ -78,16 +79,6 @@ type WaitlistInput = z.infer<typeof WaitlistSchema>;
 
 // `db` is injected by middleware in some contexts; fall back to getClient().
 type WaitlistVariables = { db?: DatabaseClient };
-
-/** No-regex HTML escape (per the fleet no-authored-regex rule). */
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
 
 interface LeadNotifyContext {
   email: string;

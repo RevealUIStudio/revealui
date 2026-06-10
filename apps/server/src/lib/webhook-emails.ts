@@ -9,6 +9,7 @@ import { logger } from '@revealui/core/observability/logger';
 import type { Database } from '@revealui/db/client';
 import { appLogs } from '@revealui/db/schema';
 import { sendEmail } from './email.js';
+import { escapeHtml } from './html.js';
 
 const ZERO_DECIMAL_CURRENCIES = new Set([
   'bif',
@@ -46,15 +47,6 @@ function tierLabel(tier: string): string {
   if (tier === 'enterprise') return 'Enterprise';
   if (tier === 'max') return 'Max';
   return 'Pro';
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
 }
 
 function adminUrl(): string {
