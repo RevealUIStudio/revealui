@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { csrfHeaders } from './csrf.js';
 import { useElectricConfig } from './provider/index.js';
 
 /** Default timeout for mutation fetch requests (milliseconds). */
@@ -15,6 +16,8 @@ export interface MutationResult<T = unknown> {
 /**
  * Make an authenticated mutation request to the admin API.
  * Credentials are included so the session cookie is sent cross-origin.
+ * Same-origin requests echo the `revealui-csrf` double-submit cookie as an
+ * `X-CSRF-Token` header — the admin proxy 403s cookie-bearing writes without it.
  * Requests are aborted after {@link MUTATION_FETCH_TIMEOUT_MS} (10 s).
  */
 async function mutationFetch<T>(
@@ -25,13 +28,18 @@ async function mutationFetch<T>(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), MUTATION_FETCH_TIMEOUT_MS);
 
+  const headers: Record<string, string> = csrfHeaders(url);
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {
       method,
       credentials: 'include',
       signal: controller.signal,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } finally {
