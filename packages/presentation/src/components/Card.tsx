@@ -9,9 +9,10 @@ function Card({
   return (
     <div
       className={cn(
-        // Bare `border` previously fell through to currentColor — visible bug.
-        // Lighter than field borders (cards sit one tier behind interactive fields).
-        'rounded-lg border border-zinc-200 dark:border-zinc-700 bg-card text-card-foreground shadow-sm hover:shadow-md',
+        // Token-driven card border (was a zinc-200/700 Catalyst holdover). `border-border`
+        // resolves via --rvui-border and auto-adapts to light/dark; cards sit one tier
+        // behind interactive fields, which the border token already accounts for.
+        'rounded-lg border border-border bg-card text-card-foreground shadow-sm hover:shadow-md',
         className,
       )}
       style={{

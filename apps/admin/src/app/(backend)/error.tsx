@@ -25,9 +25,9 @@ export default function BackendError({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 p-8">
       {/* Icon */}
-      <div className="flex size-14 items-center justify-center rounded-full bg-red-900/20">
+      <div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
         <svg
-          className="size-7 text-red-400"
+          className="size-7 text-destructive"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -42,47 +42,49 @@ export default function BackendError({
         </svg>
       </div>
 
-      <h2 className="text-lg font-semibold text-white">
+      <h2 className="text-lg font-semibold text-foreground">
         {isDatabaseError ? 'Database connection failed' : 'Something went wrong'}
       </h2>
 
       {isDatabaseError ? (
-        <div className="flex max-w-lg flex-col gap-3 text-center text-sm text-zinc-400">
+        <div className="flex max-w-lg flex-col gap-3 text-center text-sm text-muted-foreground">
           <p>The admin dashboard cannot reach the database. To fix this:</p>
-          <ol className="list-inside list-decimal text-left text-xs text-zinc-500">
+          <ol className="list-inside list-decimal text-left text-xs text-muted-foreground">
             <li>
-              Set <code className="text-zinc-300">POSTGRES_URL</code> or{' '}
-              <code className="text-zinc-300">DATABASE_URL</code> in your environment
+              Set <code className="text-foreground">POSTGRES_URL</code> or{' '}
+              <code className="text-foreground">DATABASE_URL</code> in your environment
             </li>
             <li>
-              Run <code className="text-zinc-300">pnpm db:migrate</code> to create tables
+              Run <code className="text-foreground">pnpm db:migrate</code> to create tables
             </li>
             <li>
-              Run <code className="text-zinc-300">pnpm db:seed</code> for sample content
+              Run <code className="text-foreground">pnpm db:seed</code> for sample content
             </li>
           </ol>
         </div>
       ) : (
-        <p className="max-w-md text-center text-sm text-zinc-400">
+        <p className="max-w-md text-center text-sm text-muted-foreground">
           {isNetworkError
             ? 'Unable to reach the server. Check your connection and try again.'
             : 'An unexpected error occurred while loading this page.'}
         </p>
       )}
 
-      {error.digest && <p className="font-mono text-xs text-zinc-600">Error ID: {error.digest}</p>}
+      {error.digest && (
+        <p className="font-mono text-xs text-muted-foreground">Error ID: {error.digest}</p>
+      )}
 
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => reset()}
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
           Try again
         </button>
         <Link
           href="/"
-          className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
         >
           Go to dashboard
         </Link>
