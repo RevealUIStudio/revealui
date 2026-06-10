@@ -7,8 +7,6 @@ category: fleet
 audience: developer
 ---
 
-# RevCon
-
 **Centralized editor configurations for RevealUI projects.**
 
 > RevCon is a separate fleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revcon](https://github.com/RevealUIStudio/revcon) (its package historically shipped under the name `editor-configs`). This page summarises what RevCon is; the canonical product README lives in the RevCon repo.

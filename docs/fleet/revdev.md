@@ -7,8 +7,6 @@ category: fleet
 audience: developer
 ---
 
-# RevDev
-
 **Native developer tools for [RevealUI](https://github.com/RevealUIStudio/revealui). One product, two interfaces.**
 
 > RevDev is a separate RevFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revdev](https://github.com/RevealUIStudio/revdev). This page summarises what RevDev is and how it composes with RevealUI; the canonical product README lives in the RevDev repo.

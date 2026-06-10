@@ -6,8 +6,6 @@ status: verified
 audience: maintainer
 ---
 
-# Type System Rules & Enforcement
-
 **Status**: 🔒 **CRITICAL RULE** - Must be followed by all developers and AI agents
 **Created**: 2026-02-04
 **Applies To**: All TypeScript code in RevealUI monorepo

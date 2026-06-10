@@ -6,15 +6,15 @@
 
 export const PERSONA_SECTION = {
   eyebrow: "Who it's for",
-  heading: 'For founders who need to ship fast — and still pass a security review.',
+  heading: 'For founders who need to ship fast, and still pass a security review.',
 } as const;
 
 export const PERSONA_CARD = {
   label: 'What this team needs before they can charge customers',
   quote:
-    'You’ve got a working AI demo. Then your first serious customer asks the hard questions — who can see this data, who can shut an agent down at 3am, and can you prove everything it did? You need answers before you can charge them, and you shouldn’t have to rebuild what you’ve already shipped to get there.',
+    'You’ve got a working AI demo. Then your first serious customer asks the hard questions: who can see this data, who can shut an agent down at 3am, and can you prove everything it did? You need answers before you can charge them, and you shouldn’t have to rebuild what you’ve already shipped to get there.',
   checklist: [
-    'An audit trail of every action — by people and by agents — that you can prove was not edited after the fact',
+    'An audit trail of every action, by people and by agents, that you can prove was not edited after the fact',
     'One set of permission rules covering your team, your agents, and your service accounts',
     'GDPR consent, deletion, and anonymization built into the data model',
     'Stripe billing that catches the payment events most apps quietly drop',

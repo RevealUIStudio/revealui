@@ -201,7 +201,7 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'What about the rest of the RevealUI packages?',
     answer:
-      'Every other RevealUI package is plain MIT: no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
+      'Every other RevealUI package is plain MIT, no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
   },
 ];
 

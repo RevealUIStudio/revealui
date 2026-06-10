@@ -1,8 +1,12 @@
 import { Footer } from '../components/Footer';
+import { Faq } from '../components/landing/Faq';
+import { Proof } from '../components/landing/Proof';
+import { ProductMockup } from '../components/ProductMockup';
 import {
   PRODUCT_STATUS_STYLES,
   PRODUCTS_CTA_SECTION,
   PRODUCTS_FLAGSHIP,
+  PRODUCTS_FLAGSHIP_SHOWCASE,
   PRODUCTS_PAGE_HERO,
   PRODUCTS_SISTERS,
   PRODUCTS_STATS_SECTION,
@@ -106,6 +110,24 @@ export function ProductsPage() {
                 ))}
               </dl>
 
+              <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-semibold text-white ring-1 ring-white/30 backdrop-blur">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <title>Pricing</title>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
+                {PRODUCTS_FLAGSHIP.priceLabel}
+              </p>
+
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={PRODUCTS_FLAGSHIP.ctas.docs.href}
@@ -130,6 +152,26 @@ export function ProductsPage() {
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Flagship showcase — real admin screenshots, not a line icon */}
+      <section className="bg-background py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+              {PRODUCTS_FLAGSHIP_SHOWCASE.eyebrow}
+            </p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {PRODUCTS_FLAGSHIP_SHOWCASE.heading}
+            </h2>
+            <p className="mt-4 text-lg leading-7 text-muted-foreground">
+              {PRODUCTS_FLAGSHIP_SHOWCASE.body}
+            </p>
+          </div>
+          <div className="mt-12">
+            <ProductMockup />
           </div>
         </div>
       </section>
@@ -193,11 +235,33 @@ export function ProductsPage() {
                     </div>
                   </div>
 
-                  <p className="mt-5 grow text-sm leading-6 text-muted-foreground">
-                    {product.body}
-                  </p>
+                  <ul className="mt-5 grow space-y-2.5">
+                    {product.highlights.map((highlight) => (
+                      <li
+                        key={highlight}
+                        className="flex items-start gap-2.5 text-sm leading-6 text-muted-foreground"
+                      >
+                        <svg
+                          className="mt-1 h-4 w-4 flex-shrink-0 text-primary"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
 
-                  <div className="mt-6">
+                  <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+                    <span className="text-xs font-semibold text-foreground/70">
+                      {product.priceLabel}
+                    </span>
                     <a
                       href={product.primaryCta.href}
                       className="inline-flex min-h-11 items-center text-sm font-semibold text-primary transition-colors hover:text-primary/80"
@@ -236,6 +300,12 @@ export function ProductsPage() {
           </div>
         </div>
       </section>
+
+      {/* Proof — social proof, repo signals, and trust cards */}
+      <Proof />
+
+      {/* FAQ — handle licensing / self-host / production-ready objections */}
+      <Faq />
 
       {/* CTA */}
       <section className="py-24 sm:py-32">

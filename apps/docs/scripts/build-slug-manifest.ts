@@ -2,10 +2,10 @@
 /**
  * Build the slug-manifest for chip 3 docs URL flatten.
  *
- * Walks fleet-root `docs/**\/*.md`, applies the same exclusions as
- * the Vite docsCopyPlugin (INTERNAL_DOC_FILES + ignored dirs), and
- * writes a deterministic `app/lib/slug-manifest.ts` containing a
- * SLUG_TO_PATH map.
+ * Walks fleet-root `docs/**\/*.md`, enumerating only publicly served docs
+ * (fail-closed `visibility: public` check in ./served-docs.mjs, the same
+ * boundary the Vite docsCopyPlugin and copy-docs.sh enforce), and writes a
+ * deterministic `app/lib/slug-manifest.ts` containing a SLUG_TO_PATH map.
  *
  * Run via:
  *   pnpm --filter docs build:slug-manifest
@@ -17,27 +17,15 @@
  * are added, removed, or renamed.
  */
 
-import { readdir, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pathToSlug } from '../app/lib/slug.js';
+import { isPubliclyServed } from './served-docs.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DOCS_SOURCE = resolve(__dirname, '../../../docs');
 const MANIFEST_OUT = resolve(__dirname, '../app/lib/slug-manifest.ts');
-
-// Mirror INTERNAL_DOC_FILES from vite.config.ts. Keep in sync.
-const INTERNAL_DOC_FILES = new Set([
-  'MASTER_PLAN.md',
-  'GOVERNANCE.md',
-  'AI-AGENT-RULES.md',
-  'AUTOMATION.md',
-  'CI_ENVIRONMENT.md',
-  'PRICE_COLLECTION.md',
-  'PRODUCT_COLLECTION.md',
-  'SECRETS-MANAGEMENT.md',
-  'STANDARDS.md',
-]);
 
 const IGNORED_DIRS = new Set(['node_modules', '.next', 'dist', 'archive']);
 
@@ -77,8 +65,10 @@ async function walk(dir: string, prefix = ''): Promise<Entry[]> {
     if (entry.isDirectory()) {
       results.push(...(await walk(fullPath, relPath)));
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      // Top-level INTERNAL_DOC_FILES exclusion (matches Vite plugin behavior)
-      if (!prefix && INTERNAL_DOC_FILES.has(entry.name)) continue;
+      // Fail-closed: only enumerate publicly served docs (visibility: public),
+      // matching the Vite copy plugin and copy-docs.sh prune.
+      const content = await readFile(fullPath, 'utf8');
+      if (!isPubliclyServed(relPath, content)) continue;
       results.push({ slug: pathToSlug(relPath), path: relPath });
     }
   }

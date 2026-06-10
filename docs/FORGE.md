@@ -2,12 +2,10 @@
 visibility: public
 status: verified
 audience: user
-title: "FORGE — Moved"
+title: "FORGE — Page moved"
 description: "This page has been split. See FLEET.md for the runtime kit; see PRO.md §Enterprise tier for billing."
 category: redirect
 ---
-
-# FORGE — Page moved
 
 This page has been split into two distinct guides per the 7-tier rename (ADR `RevealUIStudio/revealui-jv/docs/decisions/2026-05-03-revfleet-rename.md`):
 

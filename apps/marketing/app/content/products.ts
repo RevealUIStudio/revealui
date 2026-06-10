@@ -16,6 +16,17 @@
 // use — not an unshipped/planned item. Hero subtitle sharpened to state what
 // ships today vs. what's on the way (RevMarket, the agent marketplace).
 //
+// Conversion pass (2026-06-09): per the e-commerce-PDP optimization framework
+// (digitalapplied.com), three "test-first" wins applied to this product-family
+// page — (1) price/license transparency surfaced on every card via priceLabel
+// instead of buried behind /pricing; (2) scannable bulleted highlights replace
+// prose card bodies (Nielsen Norman scan-not-read); (3) the flagship gains a
+// real-screenshot showcase (PRODUCTS_FLAGSHIP_SHOWCASE) so visitors can evaluate
+// the product visually, not from a line icon. priceLabel values are derived from
+// the authoritative license catalog in content/{home,pricing-faq}.ts, not from
+// repo SPDX (RevVault CLI MIT / RevDev Studio+Console MIT / RevCon MIT / RevSkills
+// MIT / RevForge operator-only / RevMarket integrations bundled with the runtime).
+//
 // Status semantics:
 //   Beta         — production-ready code, limited paying users / dogfooded
 //   Alpha        — development-preview quality; works, ships, may break
@@ -73,6 +84,8 @@ export interface FlagshipProduct {
   readonly eyebrow: string;
   readonly status: ProductStatus;
   readonly version: string;
+  /** Price/availability transparency surfaced on the card (PDP-framework "test-first" win). */
+  readonly priceLabel: string;
   readonly tagline: string;
   readonly body: string;
   readonly iconPath: string;
@@ -91,6 +104,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   eyebrow: 'FLAGSHIP',
   status: 'Beta',
   version: 'v0.3.0',
+  priceLabel: 'Free to self-host · Pro tier optional',
   tagline: 'The agentic business runtime',
   body: 'People, content, offers, payments, and agents: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
@@ -107,13 +121,24 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   },
 } as const;
 
+// Flagship visual showcase — real admin screenshots (PDP-framework: shoppers
+// evaluate from imagery, not a line icon). Renders the existing <ProductMockup>.
+export const PRODUCTS_FLAGSHIP_SHOWCASE = {
+  eyebrow: 'Inside the flagship',
+  heading: 'See what you actually ship',
+  body: 'Content, users, billing, AI agents, and live monitoring: the real RevealUI admin running on the open-source stack, captured from a fresh install.',
+} as const;
+
 export interface SisterProduct {
   readonly slug: string;
   readonly name: string;
   readonly tagline: string;
-  readonly body: string;
+  /** Scannable highlights — lead the card, replacing prose (PDP-framework "quick win"). */
+  readonly highlights: readonly string[];
   readonly status: ProductStatus;
   readonly version?: string;
+  /** Price/availability transparency surfaced on the card. */
+  readonly priceLabel: string;
   readonly iconPath: string;
   readonly primaryCta: Cta;
 }
@@ -126,9 +151,14 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revvault',
     name: 'RevVault',
     tagline: 'Age-encrypted secret vault',
-    body: 'Rust CLI plus Tauri desktop app. 100% compatible with passage; canonical secret store for every RevealUI install. No .env plaintext.',
+    highlights: [
+      'Rust CLI + Tauri desktop app',
+      'Age-encrypted, 100% passage-compatible',
+      'Canonical secret store, no .env plaintext',
+    ],
     status: 'Beta',
     version: 'v0.2.0',
+    priceLabel: 'Free · MIT CLI',
     iconPath:
       'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z',
     primaryCta: {
@@ -141,8 +171,13 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revforge',
     name: 'RevForge',
     tagline: 'White-label stamping tool',
-    body: 'Operator-side tool that generates branded RevealUI Fleet trial kits: domain-locked, multi-tenant self-hosted runtime instances.',
+    highlights: [
+      'Generates branded RevealUI trial kits',
+      'Domain-locked, multi-tenant',
+      'Self-hosted runtime instances',
+    ],
     status: 'Beta',
+    priceLabel: 'Operator tool',
     iconPath:
       'M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766m-2.704 3.796-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z',
     primaryCta: {
@@ -155,9 +190,14 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revdev',
     name: 'RevDev',
     tagline: 'Multi-agent IDE harness',
-    body: 'Native desktop Studio plus Console UI plus Node daemon. Coordinates AI agents across a multi-repo workspace; Studio is currently development-preview quality.',
+    highlights: [
+      'Desktop Studio + Console + Node daemon',
+      'Coordinates agents across a multi-repo workspace',
+      'Claude, Cursor, Copilot',
+    ],
     status: 'Alpha',
     version: 'v0.1.0',
+    priceLabel: 'Free · MIT core',
     iconPath: 'M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5',
     primaryCta: {
       label: 'GitHub →',
@@ -169,8 +209,13 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revcon',
     name: 'RevCon',
     tagline: 'Editor config sync',
-    body: 'Centralized Zed / VS Code / Cursor configs symlinked into every project. Edit once, propagate instantly across the fleet.',
+    highlights: [
+      'Zed, VS Code, Cursor configs',
+      'Symlinked into every project',
+      'Edit once, propagate fleet-wide',
+    ],
     status: 'Alpha',
+    priceLabel: 'Free · MIT',
     iconPath:
       'M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5',
     primaryCta: {
@@ -183,8 +228,13 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revskills',
     name: 'RevSkills',
     tagline: 'Claude Code skills library',
-    body: 'Skills your AI agents lean on to ship features faster: auth flows, schema patterns, test scaffolds. Free, open, importable.',
+    highlights: [
+      'Auth flows, schema patterns, test scaffolds',
+      'Drop into any Claude Code agent',
+      'Free, open, importable',
+    ],
     status: 'Active (MIT)',
+    priceLabel: 'Free · MIT',
     iconPath:
       'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5',
     primaryCta: {
@@ -197,8 +247,13 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revkit',
     name: 'RevKit',
     tagline: 'Portable WSL dev environment',
-    body: 'Profile-based WSL bootstrap with parameterized templates and tier-aware resource configs. Reproducible developer machines.',
+    highlights: [
+      'Profile-based WSL bootstrap',
+      'Parameterized templates, tier-aware configs',
+      'Reproducible developer machines',
+    ],
     status: 'Active (MIT)',
+    priceLabel: 'Free · MIT',
     iconPath:
       'M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z',
     primaryCta: {
@@ -211,8 +266,13 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revmarket',
     name: 'RevMarket',
     tagline: 'Agent tool marketplace',
-    body: `First-party catalog of ${METRICS.mcpServers} integrations your agents call out-of-the-box: Stripe, Neon, Vercel, Next.js, and more. Third-party publishing planned.`,
+    highlights: [
+      `${METRICS.mcpServers} first-party integrations, out of the box`,
+      'Stripe, Neon, Vercel, Next.js, and more',
+      'Third-party publishing planned',
+    ],
     status: 'Planned',
+    priceLabel: 'Bundled with the runtime',
     iconPath:
       'M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z',
     primaryCta: {

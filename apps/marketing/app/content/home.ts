@@ -19,9 +19,10 @@ export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable. Audit-ready.',
   h1: 'Run your whole business on one runtime you own.',
   subtitle: {
+    lead: 'Stop renting your stack from a half-dozen vendors.',
     strong:
       'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host.',
-    body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself',
+    body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself with',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',
     agencyHref: SITE.urls.agency,
@@ -47,7 +48,7 @@ export const HOME_HERO = {
       {
         metric: `${METRICS.dbTables} database tables`,
         detail:
-          'Every table maps to a primitive — people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
+          'Every table maps to a primitive: people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
       },
       {
         metric: `${METRICS.mcpServers} first-party MCP servers`,
@@ -57,7 +58,7 @@ export const HOME_HERO = {
       {
         metric: 'Pro license enforcement, signed and verified',
         detail:
-          'Pro features check against your license server-side — no manual install gates. See the [Pro reference](https://docs.revealui.com/pro).',
+          'Pro features check against your license server-side, with no manual install gates. See the [Pro reference](https://docs.revealui.com/pro).',
       },
       {
         metric: `FSL-1.1-MIT on ${METRICS.licenseSplit.fsl} Fair Source packages`,
@@ -66,7 +67,7 @@ export const HOME_HERO = {
       {
         metric: 'Same permissions. Same audit chain. Same API.',
         detail:
-          'One permission model and one tamper-evident chain — for your team and your agents alike. See the [architecture](https://docs.revealui.com/architecture).',
+          'One permission model and one tamper-evident chain, for your team and your agents alike. See the [architecture](https://docs.revealui.com/architecture).',
       },
     ],
   },
@@ -154,7 +155,30 @@ export const HOME_PROBLEM = {
     },
   ] as readonly ProblemRow[],
   footnote:
-    'Sprawl prices reflect typical mid-startup invoices. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors — RevealUI runs on all three.',
+    'Sprawl prices reflect typical mid-startup invoices. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
+} as const;
+
+// ---------------------------------------------------------------------------
+// Objections (surfaced high: the two questions skeptical engineers ask first)
+// Concise answers to the two hardest objections (lock-in, production-readiness),
+// promoted above the FAQ so a skeptic gets them without scrolling. Full detail
+// lives in HOME_FAQ + PROOF_*; the cards link onward to #faq.
+// ---------------------------------------------------------------------------
+
+export const HOME_OBJECTIONS = {
+  eyebrow: 'Before you ask',
+  heading: 'The two questions every engineer asks first.',
+  cards: [
+    {
+      heading: 'Will I get locked in?',
+      body: 'No. Open standards end-to-end: OAuth, JWT, Stripe webhooks, MCP, OpenAPI, and plain Postgres. Deploy anywhere Node runs, and take your data, your code, and your infra with you. RevealUI is the runtime, not the prison.',
+    },
+    {
+      heading: 'Is it production-ready?',
+      body: 'Every PR clears a 3-phase gate before it lands: Biome, Vitest unit and integration, Playwright E2E, CodeQL, and Gitleaks. This site and the agency site at revealuistudio.com both run on RevealUI in production.',
+    },
+  ],
+  cta: { label: 'See all the questions →', href: '#faq' },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -206,22 +230,22 @@ export const HOME_FAQ = {
     {
       question: 'How is this different from Supabase, Convex, Clerk, or Trigger?',
       answer:
-        'Convex gives you real-time DB + functions. Supabase gives you Postgres + auth. Clerk gives you sessions. Trigger runs background jobs. Each one is a slice. RevealUI is the whole runtime — auth, content, billing, admin UI, and an agent layer governed by one RBAC policy and one tamper-evident audit chain. Self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors — RevealUI runs on all three.)',
+        'Convex gives you real-time DB + functions. Supabase gives you Postgres + auth. Clerk gives you sessions. Trigger runs background jobs. Each one is a slice. RevealUI is the whole runtime: auth, content, billing, admin UI, and an agent layer governed by one RBAC policy and one tamper-evident audit chain. Self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.)',
     },
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. 20 of 26 packages are MIT and stay MIT — forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier — no vendor-specific edge runtimes, no proprietary database.',
+        'Yes. 20 of 26 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier, with no vendor-specific edge runtimes and no proprietary database.',
     },
     {
       question: 'What does "agent-native" actually mean in code?',
       answer:
-        'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call — gated by the same RBAC + ABAC policy. Agents are first-class principals: scope one to a collection, give it a budget, watch every action sign into the audit chain, revoke when done. The runtime is the contract, not a glue layer.',
+        'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call, gated by the same RBAC + ABAC policy. Agents are first-class principals: scope one to a collection, give it a budget, watch every action sign into the audit chain, revoke when done. The runtime is the contract, not a glue layer.',
     },
     {
       question: "What's the lock-in story?",
       answer:
-        'Open standards, end-to-end. OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Postgres for data. Deploy anywhere Node runs — Vercel, Cloudflare, Fly, Hetzner, your own metal. Your data, your code, your infra. RevealUI is the runtime, not the prison.',
+        'Open standards, end-to-end. OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Postgres for data. Deploy anywhere Node runs: Vercel, Cloudflare, Fly, Hetzner, your own metal. Your data, your code, your infra. RevealUI is the runtime, not the prison.',
     },
     {
       question: 'Production-ready?',
@@ -236,12 +260,12 @@ export const HOME_FAQ = {
     {
       question: 'How does AI inference work?',
       answer:
-        'Pair RevealUI with Ollama or Ubuntu Inference Snaps. Bring Gemma 3/4, DeepSeek R1, Qwen VL, or Nemotron locally — your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+        'Pair RevealUI with Ollama or Ubuntu Inference Snaps. Bring Gemma 3/4, DeepSeek R1, Qwen VL, or Nemotron locally, so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
     },
     {
       question: 'How do agent payments work?',
       answer:
-        "x402-native. RevealUI implements the HTTP 402 payment protocol — compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. The protocol is the load-bearing piece; the agent-payment rails are in development.",
+        "x402-native. RevealUI implements the HTTP 402 payment protocol, compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. The protocol is the load-bearing piece; the agent-payment rails are in development.",
     },
   ] as readonly FaqItem[],
 } as const;
@@ -313,7 +337,7 @@ export const HOME_ACTORS = {
 export const HOME_FORK = {
   branchA: {
     title: "I'm building this myself.",
-    body: 'Source, packages, the CLI, and docs — read on.',
+    body: 'Source, packages, the CLI, and docs. Read on.',
     cta: 'Keep reading →',
   },
   branchB: {
