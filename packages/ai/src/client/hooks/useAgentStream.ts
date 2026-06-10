@@ -11,6 +11,13 @@
  *   - pendingElicitations: outstanding form-mode elicitation requests by id (A.2b)
  *   - submitElicitation: POST a response to /api/agent-stream/elicit (A.2b)
  *   - abort(): cancels the stream
+ *
+ * CSRF: both POSTs echo the JS-readable `revealui-csrf` cookie (the signed
+ * double-submit token the RevealUI admin proxy issues) as an `X-CSRF-Token`
+ * header when the cookie is present — the api's csrfMiddleware requires it
+ * on session-cookie-authenticated unsafe requests. Sessionless callers
+ * (API-key / server-to-server) carry no session cookie and are exempt from
+ * the check, so omitting the header when the cookie is absent is correct.
  */
 
 'use client';
@@ -132,6 +139,26 @@ const INITIAL_STATE: UseAgentStreamState = {
   pendingElicitations: [],
 };
 
+/**
+ * Read the JS-readable `revealui-csrf` cookie. The api's csrfMiddleware
+ * (`apps/server/src/middleware/csrf.ts`) requires it as an `X-CSRF-Token`
+ * header on any session-cookie-bearing unsafe request; the admin proxy
+ * issues it on page load. Returns undefined outside the browser or when
+ * the cookie is absent/empty. Mirrors the cookie-read in `@revealui/core`'s
+ * admin APIClient (`request()`).
+ */
+function readCsrfToken(): string | undefined {
+  if (typeof document === 'undefined') return undefined;
+  for (const part of document.cookie.split(';')) {
+    const eqIdx = part.indexOf('=');
+    if (eqIdx === -1) continue;
+    if (part.slice(0, eqIdx).trim() === 'revealui-csrf') {
+      return part.slice(eqIdx + 1).trim() || undefined;
+    }
+  }
+  return undefined;
+}
+
 export function useAgentStream(): UseAgentStreamReturn {
   const [state, setState] = useState<UseAgentStreamState>(INITIAL_STATE);
   const controllerRef = useRef<AbortController | null>(null);
@@ -154,9 +181,13 @@ export function useAgentStream(): UseAgentStreamReturn {
     setState({ ...INITIAL_STATE, isStreaming: true });
 
     try {
+      const csrfToken = readCsrfToken();
       const response = await fetch(apiBase, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         body: JSON.stringify(request),
         credentials: 'include',
         signal: controller.signal,
@@ -234,9 +265,13 @@ export function useAgentStream(): UseAgentStreamReturn {
       const body: Record<string, unknown> = { sessionId, elicitationId, action };
       if (action === 'accept' && content) body.content = content;
 
+      const csrfToken = readCsrfToken();
       const response = await fetch('/api/agent-stream/elicit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         body: JSON.stringify(body),
         credentials: 'include',
       });
