@@ -47,7 +47,7 @@ export const PROOF_STACK: readonly StackItem[] = [
 export const PROOF_STACK_PANEL = {
   eyebrow: 'No proprietary lock-in',
   heading: 'Standards your team already knows',
-  body: 'Open standards end-to-end — OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Deploys to Vercel, Cloudflare, Fly, Hetzner, or your own infra. Take your data with you.',
+  body: 'Open standards end-to-end: OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Deploys to Vercel, Cloudflare, Fly, Hetzner, or your own infra. Take your data with you.',
 } as const;
 
 export const PROOF_TRUST = {
@@ -56,7 +56,7 @@ export const PROOF_TRUST = {
   cards: [
     {
       eyebrow: 'In the repo',
-      heading: `${METRICS.licenseSplit.mit} of ${METRICS.packages} packages MIT — forever.`,
+      heading: `${METRICS.licenseSplit.mit} of ${METRICS.packages} packages MIT, forever.`,
       body: {
         prefix: `The ${METRICS.licenseSplit.fsl} Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. View the`,
         licenseLabel: 'LICENSE',
@@ -76,7 +76,7 @@ signature:         text('signature'),
 previousSignature: text('previous_signature'),`,
       fileLabel: 'packages/db/src/schema/audit-log.ts',
       fileHref: `${SITE.urls.repo}/blob/main/packages/db/src/schema/audit-log.ts`,
-      caption: '— tampering breaks the chain.',
+      caption: '(tampering breaks the chain).',
     },
     {
       eyebrow: 'In production',

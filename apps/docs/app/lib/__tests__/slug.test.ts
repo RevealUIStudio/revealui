@@ -81,9 +81,11 @@ describe('pathToSlug', () => {
 });
 
 describe('slug-manifest', () => {
-  it('contains the expected number of entries (≥ 100 docs)', () => {
+  it('contains a sane number of served entries (public docs only)', () => {
     const count = Object.keys(SLUG_TO_PATH).length;
-    expect(count).toBeGreaterThanOrEqual(100);
+    // visibility: public docs only — internal docs are excluded by the
+    // fail-closed serving boundary (scripts/served-docs.mjs).
+    expect(count).toBeGreaterThanOrEqual(50);
     expect(count).toBeLessThanOrEqual(200); // Sanity ceiling against runaway generation
   });
 

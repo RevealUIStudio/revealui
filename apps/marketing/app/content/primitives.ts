@@ -23,7 +23,7 @@ export interface HomePrimitive {
 export const HOME_PRIMITIVES_SECTION = {
   eyebrow: 'Five primitives. One login. One audit trail.',
   heading: "Everything a business needs. Nothing you don't.",
-  body: 'People, content, offers, payments, and agents — the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
+  body: 'People, content, offers, payments, and agents: the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
 } as const;
 
@@ -174,7 +174,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
       'Usage tracking and limit enforcement',
       'License key management',
       'Upgrade prompts and billing portal',
-      'Agent task billing in development — unlimited during early access',
+      'Agent task billing in development: unlimited during early access',
     ],
   },
   {
@@ -189,9 +189,9 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
         'Stripe checkout, subscription management, webhooks, and a customer billing portal. Products, prices, and webhooks are wired up. You configure your Stripe keys and start charging.',
     },
     forAgents: {
-      headline: 'x402 protocol design — agent-native HTTP payments',
+      headline: 'x402 protocol design: agent-native HTTP payments',
       description:
-        'The x402 design routes agent payments over HTTP 402 — aligned with the Coinbase / Cloudflare x402 Foundation. This is in development. See the roadmap for current status.',
+        'The x402 design routes agent payments over HTTP 402, aligned with the Coinbase / Cloudflare x402 Foundation. This is in development. See the roadmap for current status.',
     },
     together: {
       headline: 'Humans monetize. Agents transact. One billing infrastructure.',

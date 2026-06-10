@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Tailwind CSS v4 Conventions
-
 ## Version
 
 RevealUI uses **Tailwind CSS v4** (`^4.1.18`). All new code must use v4 patterns.

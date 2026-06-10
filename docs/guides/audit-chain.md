@@ -7,8 +7,6 @@ category: security
 audience: developer
 ---
 
-# Audit Chain
-
 Every action by every human and every agent signs into an append-only `audit_log` table with an HMAC-SHA256 hash chain. Tampering with any row breaks the chain. This page documents the schema, the signing semantics, and how to verify the chain.
 
 ## Schema
@@ -77,5 +75,5 @@ Agents and humans use the same signing path. There is no separate "agent audit" 
 ## Further reading
 
 - [ARCHITECTURE.md §Security & Access Control](../ARCHITECTURE.md#security--access-control) — broader security architecture
-- [methodology.md](../methodology.md) — engineering postures (audit-first SDLC, verify-before-claim)
+- methodology.md — engineering postures (audit-first SDLC, verify-before-claim)
 - [technology-stack.md](./technology-stack.md) — full tech stack reference

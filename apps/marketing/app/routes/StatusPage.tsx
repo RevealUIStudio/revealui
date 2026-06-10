@@ -180,8 +180,8 @@ export function StatusPage() {
       <div className="mx-auto max-w-3xl px-6 pt-24 lg:px-8">
         <Callout variant={overallVariant} title={overallTitle}>
           This page probes the API health endpoint in your browser when you load it. It reflects
-          what your network sees right now, not a separate uptime service. Solo-operator company —
-          we do not run 24×7 manned monitoring you can subscribe to.{' '}
+          what your network sees right now, not a separate uptime service. Solo-operator company: we
+          do not run 24×7 manned monitoring you can subscribe to.{' '}
           <button
             type="button"
             className="underline"
@@ -270,7 +270,7 @@ export function StatusPage() {
           <li>
             <strong>What does not exist yet.</strong> A 24×7 on-call rotation. Multi-region
             failover. A separate paid status page domain. We will publish these on this page when
-            they ship — not before.
+            they ship, not before.
           </li>
         </ul>
 
@@ -284,14 +284,14 @@ export function StatusPage() {
         <h2>Are you experiencing an outage?</h2>
         <p>
           If this page shows all surfaces operational but you are still seeing issues, the problem
-          is probably between your network and ours — or specific to a feature this page does not
+          is probably between your network and ours, or specific to a feature this page does not
           probe yet. Email <a href={`mailto:${SITE.emails.support}`}>{SITE.emails.support}</a> with
           the URL you hit, the time you first saw the issue, and any error message. We treat outage
           reports as higher priority than standard support email.
         </p>
         <p>
           For confirmed security incidents, follow the <a href="/security">security policy</a>{' '}
-          instead — that channel has different SLAs.
+          instead. That channel has different SLAs.
         </p>
       </article>
       <Footer />

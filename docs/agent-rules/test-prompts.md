@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Cross-Tool Validation Prompts
-
 Test these prompts in any AI coding tool to verify it follows RevealUI conventions. Each prompt has an expected behavior  -  the tool should match it without being told the rule explicitly.
 
 ## How to Use

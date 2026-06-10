@@ -50,6 +50,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         with:
@@ -92,6 +94,9 @@ jobs:
       - name: Install Vercel CLI
         run: pnpm add -g vercel@latest
 
+      - name: Resolve api project id from .github/vercel-projects.json
+        run: echo "API_PROJECT_ID=$(jq -r '.api' .github/vercel-projects.json)" >> "$GITHUB_ENV"
+
       - name: Pull production env from Vercel (api project)
         run: |
           rm -rf .vercel
@@ -102,7 +107,7 @@ jobs:
           fi
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: prj_zk6EQijYXwd9L7BccuBssi436ktM # api
+          VERCEL_PROJECT_ID: ${{ env.API_PROJECT_ID }} # api (from .github/vercel-projects.json)
 
       - name: Build @revealui/core (transitive dep of validate-startup)
         # validateStartup imports validateLicenseKey from @revealui/core/license
@@ -127,6 +132,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         with:
@@ -212,6 +219,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
+          persist-credentials: false
           fetch-depth: 2
 
       - name: Detect affected apps
@@ -276,21 +284,19 @@ jobs:
           echo "has-apps=true" >> "$GITHUB_OUTPUT"
           echo "app-list=$AFFECTED" >> "$GITHUB_OUTPUT"
 
-          # Build matrix JSON with project IDs
-          MATRIX="["
-          FIRST=true
+          # Build matrix JSON from the single-source project-id map
+          # (.github/vercel-projects.json). Unknown apps are dropped from the
+          # matrix (and warned below), matching the prior case-statement.
+          MATRIX=$(jq -cn --slurpfile map .github/vercel-projects.json --arg apps "$AFFECTED" '
+            [ ($apps | split(" ") | .[] | select(length > 0))
+              | select($map[0][.] != null)
+              | {app: ., "project-id": $map[0][.]} ]
+          ')
           for app in $AFFECTED; do
-            case "$app" in
-              api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
-              admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
-              marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
-              docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
-              *) echo "::warning::Unknown app: $app"; continue ;;
-            esac
-            if [ "$FIRST" = true ]; then FIRST=false; else MATRIX="$MATRIX,"; fi
-            MATRIX="$MATRIX{\"app\":\"$app\",\"project-id\":\"$PID\"}"
+            if [ "$(jq -r --arg a "$app" '.[$a] // "null"' .github/vercel-projects.json)" = "null" ]; then
+              echo "::warning::Unknown app: $app"
+            fi
           done
-          MATRIX="$MATRIX]"
 
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           echo "::notice::Deploying: $AFFECTED"
@@ -316,6 +322,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
+          persist-credentials: false
           ref: ${{ needs.detect.outputs.sha }}
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
@@ -444,13 +451,11 @@ jobs:
           ROLLBACK_FAILED=0
           ROLLBACK_NO_HISTORY=0
           for app in $APP_LIST; do
-            case "$app" in
-              api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
-              admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
-              marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
-              docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
-              *) continue ;;
-            esac
+            # Look the project id up from the detect job's matrix (built from the
+            # single-source .github/vercel-projects.json). This job has no checkout,
+            # so it reuses the matrix via env rather than reading the file. Unknown -> skip.
+            PID=$(printf '%s' "$DETECT_MATRIX" | jq -r --arg a "$app" '.[] | select(.app == $a) | .["project-id"]')
+            if [ -z "$PID" ]; then continue; fi
 
             echo ""
             echo "=== Rolling back $app ($PID) ==="
@@ -515,6 +520,9 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ""
           VERCEL_TEAM_SLUG: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
+          # Reuse the matrix the detect job built from .github/vercel-projects.json
+          # (this job has no checkout, so it can't read the file directly).
+          DETECT_MATRIX: ${{ needs.detect.outputs.matrix }}
 
   # ---------------------------------------------------------------------------
   # Summary

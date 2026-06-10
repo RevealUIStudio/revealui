@@ -7,8 +7,6 @@ category: index
 audience: developer
 ---
 
-# RevFleet — Architecture & Integration Guide
-
 > RevFleet is the umbrella for all RevealUI Studio software. This guide covers the 7-tier product model: what each piece is, who it's for, and how they integrate.
 
 ---
@@ -76,7 +74,7 @@ RevCon is not gated by Pro. Any contributor can run `./link.sh --target ~/revfle
 
 ## Methodology
 
-See [`docs/methodology.md`](methodology.md) for the canonical M2-M12 statement — audit-first SDLC, no-regex, pre-1.0 versioning, open-model AI runtime, revvault-first secrets, coordination primitives, charge-readiness, stack conventions.
+See `docs/methodology.md` for the canonical M2-M12 statement — audit-first SDLC, no-regex, pre-1.0 versioning, open-model AI runtime, revvault-first secrets, coordination primitives, charge-readiness, stack conventions.
 
 ---
 
@@ -90,7 +88,7 @@ See [`docs/methodology.md`](methodology.md) for the canonical M2-M12 statement �
 ## Cross-references
 
 - Deployment guide: [`docs/FLEET.md`](./FLEET.md) — RevealUI Fleet self-hosted runtime kit
-- Methodology: [`docs/methodology.md`](methodology.md)
+- Methodology: `docs/methodology.md`
 - Internal glossary (private): `RevealUIStudio/revealui-jv/docs/glossary.md`
 - ADR for rename: `RevealUIStudio/revealui-jv/docs/decisions/2026-05-03-revfleet-rename.md`
 - Per-product pages: [`docs/fleet/`](./fleet/)

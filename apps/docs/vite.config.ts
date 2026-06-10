@@ -3,6 +3,7 @@ import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { isPubliclyServed } from './scripts/served-docs.mjs';
 
 /** Enable verbose docs-copy plugin logging with DEBUG=docs-copy or DEBUG=* */
 const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
@@ -18,32 +19,9 @@ const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
  * - Proper error logging
  * - Better path resolution
  */
-// Files in docs/ that must never be served publicly.
-// These are internal planning, governance, and tooling docs.
-// IMPORTANT: Keep in sync with INTERNAL_FILES in scripts/copy-docs.sh
-const INTERNAL_DOC_FILES = new Set([
-  'MASTER_PLAN.md',
-  'AI-AGENT-RULES.md',
-  'AUTOMATION.md',
-  'STANDARDS.md',
-  'SECRETS.md', // revvault secret-path inventory — must never be served publicly
-  // Internal ops / business docs — not for the public docs site
-  'AUDIT_STATUS.md',
-  'COMMERCIAL_READINESS.md',
-  'CREDENTIAL-ROTATION-RUNBOOK.md',
-  'DEPLOYMENT-RUNBOOK.md',
-  'LAUNCH-CHECKLIST.md',
-  'runbook-agent-dispatch-flag.md',
-  // audience: maintainer (operating RevealUI Studio's own infra/release, not framework-user docs)
-  'CI_CD_GUIDE.md',
-  'MARKETING_METRICS.md',
-  'PERFORMANCE.md',
-  'PUBLISHING.md',
-]);
-
-// Internal-only docs/ subdirectories that must never be served publicly.
-// IMPORTANT: Keep in sync with INTERNAL_DIRS in scripts/copy-docs.sh
-const INTERNAL_DOC_DIRS = ['runbooks', 'security', 'checklists', 'system-tune', 'deployment'];
+// The public/internal serving boundary is enforced fail-closed by the
+// frontmatter `visibility` check in ./scripts/served-docs.mjs — no hardcoded
+// blocklists (which previously leaked any internal doc nobody listed).
 
 function docsCopyPlugin() {
   const docsSource = path.resolve(import.meta.dirname, '../../docs');
@@ -166,7 +144,7 @@ function docsCopyPlugin() {
 
     // Skip ignored directories
     const parts = relativePath.split(path.sep);
-    const ignoreDirs = ['node_modules', '.next', 'dist', 'archive', ...INTERNAL_DOC_DIRS];
+    const ignoreDirs = ['node_modules', '.next', 'dist', 'archive'];
     if (parts.some((part) => ignoreDirs.includes(part))) {
       return;
     }
@@ -176,10 +154,14 @@ function docsCopyPlugin() {
       return;
     }
 
-    // Skip internal-only files (only applies to top-level files)
-    const filename = path.basename(normalizedFile);
-    if (parts.length === 1 && INTERNAL_DOC_FILES.has(filename)) {
-      return;
+    // Fail-closed visibility boundary: serve only `visibility: public` docs. If
+    // a doc is (or becomes) non-public, make sure it is not left in public/.
+    if (normalizedFile.endsWith('.md') || normalizedFile.endsWith('.mdx')) {
+      const content = await fs.readFile(normalizedFile, 'utf8');
+      if (!isPubliclyServed(relativePath, content)) {
+        await handleFileDeletion(filePath);
+        return;
+      }
     }
 
     const destPath = path.join(docsDest, relativePath);
@@ -268,7 +250,6 @@ function docsCopyPlugin() {
         '.next',
         'dist',
         'archive', // Skip archive in public - too large
-        ...INTERNAL_DOC_DIRS,
       ]);
 
       if (DEBUG)
@@ -304,10 +285,11 @@ function docsCopyPlugin() {
           await fs.mkdir(destPath, { recursive: true });
           await copyDirectory(srcPath, destPath, ignore);
         } else if (entry.isFile()) {
-          // Copy all markdown files, but skip internal-only top-level files
+          // Copy markdown files only when publicly served (fail-closed on the
+          // frontmatter `visibility` field — see ./scripts/served-docs.mjs).
           if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
-            // Only filter at the top level (src === docsSource)
-            if (src === docsSource && INTERNAL_DOC_FILES.has(entry.name)) {
+            const content = await fs.readFile(srcPath, 'utf8');
+            if (!isPubliclyServed(path.relative(docsSource, srcPath), content)) {
               continue;
             }
             await fs.copyFile(srcPath, destPath);

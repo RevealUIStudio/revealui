@@ -15,8 +15,8 @@ export function SupportPage() {
           first. For account-specific issues, billing, or anything sensitive, email{' '}
           <a className="underline" href={`mailto:${SITE.emails.support}`}>
             {SITE.emails.support}
-          </a>{' '}
-          — we aim for a substantive reply within 48 business hours (Mon–Fri, U.S. Central).
+          </a>
+          . We aim for a substantive reply within 48 business hours (Mon–Fri, U.S. Central).
         </Callout>
       </div>
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 lg:px-8 prose prose-gray">

@@ -18,7 +18,7 @@ export interface TeaserTier {
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
   heading: 'Start free. Pay when you scale.',
-  body: 'Self-host the open-source stack at no cost. Paid tiers (Pro, Enterprise) are previews — subscription billing opens when we flip Stripe live mode.',
+  body: 'Self-host the open-source stack at no cost. Paid tiers (Pro, Enterprise) are previews. Subscription billing opens when we flip Stripe live mode.',
 } as const;
 
 export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
@@ -26,7 +26,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     id: 'free',
     name: 'Free',
     description:
-      '20 of 26 packages MIT — forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
+      '20 of 26 packages MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
@@ -44,7 +44,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',
-      'Pro AI features (agents, MCP, memory) — beta in production',
+      'Pro AI features (agents, MCP, memory), beta in production',
       'Priority support',
     ],
     cta: 'See Pro pricing',

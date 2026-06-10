@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Troubleshooting"
+title: "Troubleshooting Guide"
 description: "Common issues, error messages, and solutions for RevealUI development"
 category: guide
 audience: developer
 ---
-
-# Troubleshooting Guide
 
 **Last Updated**: 2026-02-01
 
@@ -228,7 +226,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    pnpm build
    ```
 
-**See Also**: [Type System Rules](./TYPE-SYSTEM-RULES.md)
+**See Also**: Type System Rules
 
 ---
 
@@ -506,7 +504,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 - [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Database Guide](./DATABASE.md) - Database setup and management
 - [Deployment Guide](./guides/deployment.md) - Deployment troubleshooting
-- [Linting Rules](./LINTING_RULES.md) - Code standards and lint rules
+- Linting Rules - Code standards and lint rules
 
 ---
 

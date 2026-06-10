@@ -3,6 +3,13 @@
 import type React from 'react';
 import { type LinkBehavior, useLinkBehavior } from '../hooks/use-link-behavior.js';
 import { cn } from '../utils/cn.js';
+import {
+  buttonTransitionStyle,
+  glowClasses,
+  ShineOverlay,
+  Spinner,
+  shineHostClasses,
+} from './_button-shared.js';
 import { type ButtonProps, buttonVariants } from './Button.js';
 import { TouchTarget } from './button-headless.js';
 
@@ -20,6 +27,9 @@ import { TouchTarget } from './button-headless.js';
  *
  * Per-instance override (escape hatch):
  *   <LinkButton as={MyLink} to="/x">…</LinkButton>
+ *
+ * Shares its visual contract (variants, sizes, spinner, glow, shine, transition)
+ * with `Button` / `ButtonCVA` via `_button-shared.tsx`.
  */
 export interface LinkButtonOwnProps {
   /** URL the button navigates to. Required for normal usage; omit only when `as` provides its own URL prop. */
@@ -32,6 +42,10 @@ export interface LinkButtonOwnProps {
   size?: ButtonProps['size'];
   /** Show a loading spinner and disable interaction. Sets `aria-busy="true"`. */
   isLoading?: boolean;
+  /** Brand-glow halo for emphasis CTAs, driven by the `--rvui-shadow-glow` token. */
+  glow?: boolean;
+  /** Subtle light sweep across the button on hover. */
+  shine?: boolean;
   /** Visually disabled + ARIA-disabled. Anchor's `href` is preserved (semantics unchanged); click is prevented and `tabIndex` set to -1. */
   disabled?: boolean;
   className?: string;
@@ -45,31 +59,6 @@ export type LinkButtonProps<T extends React.ElementType = 'a'> = LinkButtonOwnPr
     ref?: React.Ref<Element>;
   };
 
-function LoadingSpinner() {
-  return (
-    <svg
-      className="mr-2 size-4 animate-spin"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
-}
-
-const sharedStyle: React.CSSProperties = {
-  transition:
-    'all var(--rvui-duration-normal, 200ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
-  borderRadius: 'var(--rvui-radius-md, 10px)',
-};
-
 function LinkButton<T extends React.ElementType = 'a'>({
   as,
   href,
@@ -77,6 +66,8 @@ function LinkButton<T extends React.ElementType = 'a'>({
   variant,
   size,
   isLoading = false,
+  glow = false,
+  shine = false,
   disabled = false,
   className,
   children,
@@ -112,8 +103,15 @@ function LinkButton<T extends React.ElementType = 'a'>({
     ...(href !== undefined ? { [finalHrefProp]: href } : {}),
     ...externalAttrs,
     'aria-busy': isLoading || undefined,
-    className: cn(buttonVariants({ variant, size }), interactionLockClass, opacityClass, className),
-    style: sharedStyle,
+    className: cn(
+      buttonVariants({ variant, size }),
+      glow && glowClasses,
+      shine && shineHostClasses,
+      interactionLockClass,
+      opacityClass,
+      className,
+    ),
+    style: buttonTransitionStyle,
     ref,
     ...rest,
     ...disabledAttrs,
@@ -122,7 +120,8 @@ function LinkButton<T extends React.ElementType = 'a'>({
   const Component = finalComponent as React.ElementType;
   return (
     <Component {...renderProps}>
-      {isLoading ? <LoadingSpinner /> : null}
+      {shine ? <ShineOverlay /> : null}
+      {isLoading ? <Spinner /> : null}
       <TouchTarget>{children}</TouchTarget>
     </Component>
   );

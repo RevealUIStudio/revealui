@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Admin Guide"
+title: "RevealUI Admin Guide"
 description: "Collections, access control, hooks, rich text, media, and admin dashboard"
 category: guide
 audience: developer
 ---
-
-# RevealUI Admin Guide
 
 **Purpose**: Complete guide to using the RevealUI admin dashboard and content engine
 **Last Updated**: 2026-02-01

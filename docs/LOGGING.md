@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# Logging Guide
-
 **Last Updated:** 2026-02-04
 
 ## Overview

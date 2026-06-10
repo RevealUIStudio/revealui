@@ -28,7 +28,7 @@ export const FO_MANAGED_HERO = {
   eyebrow: 'Roadmap',
   h1Lines: ['RevealUI Cloud.', 'On the roadmap.'] as const,
   subtitle:
-    'A self-serve managed version of the runtime — sign up in a browser, configure your business, get a hosted product without an agency engagement. It does not ship today. This page is the honest roadmap.',
+    'A self-serve managed version of the runtime: sign up in a browser, configure your business, get a hosted product without an agency engagement. It does not ship today. This page is the honest roadmap.',
   backLink: {
     label: '← Back to For Operators',
     href: '/for-operators',
@@ -41,9 +41,9 @@ export const FO_MANAGED_STATUS = {
   paragraph1:
     'RevealUI Cloud does not exist today. There is no signup, no billing, no managed hosting you can configure in a browser.',
   paragraph2:
-    'What does exist today is the RevealUI Studio agency engagement — we build and deliver a working product for your business as a scoped engagement. See For Operators for the path that ships.',
+    'What does exist today is the RevealUI Studio agency engagement: we build and deliver a working product for your business as a scoped engagement. See For Operators for the path that ships.',
   paragraph3:
-    'This page is the honest version of the question "is there a managed offering?" — yes, on the roadmap; no, not yet.',
+    'This page is the honest version of the question "is there a managed offering?" Yes, on the roadmap; no, not yet.',
 } as const;
 
 export interface WouldBeCapability {
@@ -57,11 +57,11 @@ export const FO_MANAGED_WOULD_BE = {
   capabilities: [
     {
       title: 'Sign up in a browser.',
-      body: 'No agency call required. Email, payment method, business name — the SaaS-shape onboarding most operators expect.',
+      body: 'No agency call required. Email, payment method, business name: the SaaS-shape onboarding most operators expect.',
     },
     {
       title: 'Configure the business in a browser.',
-      body: 'Name, branding, products, billing rates, customer-facing copy — all set up through a configuration UI, no code.',
+      body: 'Name, branding, products, billing rates, customer-facing copy: all set up through a configuration UI, no code.',
     },
     {
       title: 'Get a hosted instance in your account.',
@@ -73,11 +73,11 @@ export const FO_MANAGED_WOULD_BE = {
     },
     {
       title: 'Receive product support directly.',
-      body: 'Defined response times, defined escalation paths, included in the price. Not the bespoke retainer the agency offers — a productized support contract.',
+      body: 'Defined response times, defined escalation paths, included in the price. Not the bespoke retainer the agency offers: a productized support contract.',
     },
   ] as readonly WouldBeCapability[],
   closing:
-    'This is the SaaS-shape mental model operators arrive with. RevealUI Cloud is what fulfills it — when it ships.',
+    'This is the SaaS-shape mental model operators arrive with. RevealUI Cloud is what fulfills it, when it ships.',
 } as const;
 
 export interface Prerequisite {
@@ -100,11 +100,11 @@ export const FO_MANAGED_PREREQS = {
     },
     {
       title: 'An operator-legible configuration UI.',
-      body: 'The operator configures the business in a browser — branding, products, payments, copy. The UI to do that does not exist today.',
+      body: 'The operator configures the business in a browser: branding, products, payments, copy. The UI to do that does not exist today.',
     },
     {
       title: 'A defined support contract for self-serve operators.',
-      body: 'The agency engagement has support baked into the relationship. A self-serve tier needs an explicit shape — what is included, response times, escalation — that the agency motion does not currently formalize.',
+      body: 'The agency engagement has support baked into the relationship. A self-serve tier needs an explicit shape (what is included, response times, escalation) that the agency motion does not currently formalize.',
     },
   ] as readonly Prerequisite[],
   closing:
@@ -129,7 +129,7 @@ export const FO_MANAGED_TODAY = {
 export const FO_MANAGED_WAITLIST = {
   eyebrow: 'Waitlist',
   heading: 'Want it when it ships? Join the waitlist.',
-  body: 'Tell us your email and we will record your interest in RevealUI Cloud specifically. We will reach out when there is something to demo — not before.',
+  body: 'Tell us your email and we will record your interest in RevealUI Cloud specifically. We will reach out when there is something to demo, not before.',
   product: 'managed-cloud',
   inputPlaceholder: 'you@company.com',
   buttonLabel: 'Join the waitlist',

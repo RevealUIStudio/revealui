@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR: Supabase Removal — Single Neon-Primary Database
-
 **Note**: This ADR is a backfill written 2026-05-16 to document a migration that
 completed incrementally between 2026-04-15 and 2026-05-16.
 

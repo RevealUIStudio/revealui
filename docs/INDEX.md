@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "Documentation Index"
+title: "RevealUI Documentation"
 description: "Entry point and navigation hub for all RevealUI documentation"
 category: index
 audience: developer
 ---
-
-# RevealUI Documentation
 
 Agentic business runtime. Five primitives for humans and agents: users, content, products, payments, and intelligence.
 
@@ -18,7 +16,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-- [Glossary](./glossary.md): Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402. Single source of truth for cross-cutting terminology.
+- Glossary: Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402. Single source of truth for cross-cutting terminology.
 
 ## Core Guides
 

@@ -4,9 +4,8 @@ description: "**Build a complete business application with auth, content, and pa
 visibility: public
 status: narrative
 audience: user
+author: Joshua Vaughn
 ---
-
-# From Zero to Production in About 30 Minutes
 
 **Build a complete business application with auth, content, and payments  -  faster than you can order lunch.**
 

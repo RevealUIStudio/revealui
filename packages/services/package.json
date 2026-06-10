@@ -14,15 +14,15 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@vercel/node": "^5.8.12",
+    "@vercel/node": "^5.8.14",
     "drizzle-orm": "catalog:",
-    "jose": "^6.2.3",
-    "stripe": "^22.2.0"
+    "jose": "catalog:",
+    "stripe": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "^25.9.1",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-react": "catalog:",
     "@vitest/coverage-v8": "^4.1.8",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",

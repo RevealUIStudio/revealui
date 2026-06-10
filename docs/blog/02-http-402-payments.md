@@ -4,12 +4,7 @@ description: "_By Joshua Vaughn - RevealUI Studio_"
 visibility: public
 status: narrative
 audience: user
----
-
-# Paying for AI API Calls with HTTP 402 and USDC
-
-_By Joshua Vaughn  -  RevealUI Studio_
-
+author: Joshua Vaughn
 ---
 
 > **Status note (updated 2026-05-26):** The x402 integration in RevealUI is **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Live agent payments are gated on the Stripe live-keys flip and the billing-readiness audit — see [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status). This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.

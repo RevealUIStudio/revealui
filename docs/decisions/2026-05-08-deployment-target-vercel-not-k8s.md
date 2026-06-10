@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR: Deployment Target — Vercel + Forge Docker, not Kubernetes
-
 **Date:** 2026-05-08
 **Status:** Decided — final
 **Phase:** 5 — Agent-First Infrastructure

@@ -4,9 +4,8 @@ description: "*The web was built for browsers. The next web is being built for a
 visibility: public
 status: narrative
 audience: user
+author: Joshua Vaughn
 ---
-
-# Building for the Agent-First Internet
 
 *The web was built for browsers. The next web is being built for agents.*
 

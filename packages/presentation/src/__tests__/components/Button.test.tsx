@@ -78,6 +78,18 @@ describe('Button', () => {
       expect(btn).toHaveClass('justify-center');
     });
 
+    it('has gap-2 so icon + text children space without manual margins', () => {
+      render(<Button>Base</Button>);
+      expect(screen.getByRole('button')).toHaveClass('gap-2');
+    });
+
+    it('protects svg children from flex-shrink and steals no pointer events', () => {
+      render(<Button>Base</Button>);
+      const btn = screen.getByRole('button');
+      expect(btn).toHaveClass('[&_svg]:shrink-0');
+      expect(btn).toHaveClass('[&_svg]:pointer-events-none');
+    });
+
     it('has disabled styles via CSS (pointer-events-none when disabled)', () => {
       render(<Button>Base</Button>);
       // disabled:pointer-events-none is applied via Tailwind  -  verify the class exists
@@ -391,6 +403,76 @@ describe('Button', () => {
       const longText = 'A'.repeat(500);
       render(<Button>{longText}</Button>);
       expect(screen.getByRole('button')).toHaveTextContent(longText);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Loading state
+  // -------------------------------------------------------------------------
+
+  describe('Loading State', () => {
+    it('renders a spinner, disables the button, and sets aria-busy when loading', () => {
+      const { container } = render(<Button isLoading>Save</Button>);
+      const btn = screen.getByRole('button');
+      expect(container.querySelector('svg.animate-spin')).toBeInTheDocument();
+      expect(btn).toBeDisabled();
+      expect(btn).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('keeps the spinner aria-hidden (busy state is announced via aria-busy)', () => {
+      const { container } = render(<Button isLoading>Save</Button>);
+      expect(container.querySelector('svg.animate-spin')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('renders no spinner and no aria-busy when not loading', () => {
+      const { container } = render(<Button>Save</Button>);
+      expect(container.querySelector('svg.animate-spin')).not.toBeInTheDocument();
+      expect(screen.getByRole('button')).not.toHaveAttribute('aria-busy');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Expressive variants — glow + shine
+  // -------------------------------------------------------------------------
+
+  describe('Glow', () => {
+    it('adds the brand-glow shadow token when glow is set', () => {
+      render(<Button glow>Glowing</Button>);
+      expect(screen.getByRole('button')).toHaveClass('shadow-[var(--rvui-shadow-glow)]');
+    });
+
+    it('does not add the glow shadow by default', () => {
+      render(<Button>Plain</Button>);
+      expect(screen.getByRole('button')).not.toHaveClass('shadow-[var(--rvui-shadow-glow)]');
+    });
+
+    it('does not leak the glow prop onto the DOM element', () => {
+      render(<Button glow>Glowing</Button>);
+      expect(screen.getByRole('button')).not.toHaveAttribute('glow');
+    });
+  });
+
+  describe('Shine', () => {
+    it('makes the button a clipped, isolated group when shine is set', () => {
+      render(<Button shine>Shiny</Button>);
+      expect(screen.getByRole('button')).toHaveClass('overflow-hidden', 'isolate', 'group');
+    });
+
+    it('renders a single aria-hidden shine overlay sibling', () => {
+      const { container } = render(<Button shine>Shiny</Button>);
+      const overlay = container.querySelector('span[aria-hidden="true"]');
+      expect(overlay).toBeInTheDocument();
+      expect(overlay).toHaveClass('group-hover:translate-x-full');
+    });
+
+    it('renders no overlay by default', () => {
+      const { container } = render(<Button>Plain</Button>);
+      expect(container.querySelector('span[aria-hidden="true"]')).not.toBeInTheDocument();
+    });
+
+    it('does not leak the shine prop onto the DOM element', () => {
+      render(<Button shine>Shiny</Button>);
+      expect(screen.getByRole('button')).not.toHaveAttribute('shine');
     });
   });
 });

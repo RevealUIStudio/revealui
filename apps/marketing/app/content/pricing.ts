@@ -24,7 +24,7 @@ export const PRICING_HERO: SectionHeading = {
 
 export const PRICING_HERO_SUBTEXT = {
   prefix:
-    'All plans run as self-hosted installations under your license — managed deployment available as a service add-on. Want to deploy a branded version for your own customers? See',
+    'All plans run as self-hosted installations under your license. Managed deployment available as a service add-on. Want to deploy a branded version for your own customers? See',
   linkLabel: 'Agency Perpetual',
   linkHref: '#perpetual',
   suffix: 'for RevealUI Fleet licensing.',
@@ -52,7 +52,7 @@ export const PRICING_VALUE_BAND = {
     'One runtime, not five separate SaaS subscriptions',
     'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
     'Full source code access on every tier',
-    "Open-weight AI by default — your bill doesn't scale with usage",
+    "Open-weight AI by default: your bill doesn't scale with usage",
   ],
 } as const;
 
@@ -98,7 +98,7 @@ export const PRICING_AGENT_A2A = {
 
 export const PRICING_AGENT_X402 = {
   heading: 'x402-Native Payments',
-  body: "RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP — no accounts, no subscriptions.",
+  body: "RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. No accounts, no subscriptions.",
 } as const;
 
 export const PRICING_AGENT_MCP = {

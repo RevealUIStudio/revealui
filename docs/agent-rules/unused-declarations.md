@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Unused Declarations Policy
-
 ## Core Rule
 
 **NEVER suppress an unused variable/import warning without first determining if the code is incomplete.**

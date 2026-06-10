@@ -27,7 +27,7 @@ export const FOR_OPERATORS_HERO = {
   eyebrow: 'Built. Delivered. Yours.',
   h1Lines: ['Software for your business.', 'Built and delivered.'] as const,
   subtitle:
-    'Accounts, billing, content, and an admin dashboard — the software layer of a business, already built. We deliver it live, on infrastructure in your name, with the admin login in your hand. The first version runs in weeks, not quarters.',
+    'Accounts, billing, content, and an admin dashboard: the software layer of a business, already built. We deliver it live, on infrastructure in your name, with the admin login in your hand. The first version runs in weeks, not quarters.',
   primaryCta: {
     label: 'Book a build call',
     href: AGENCY_CONTACT,
@@ -79,7 +79,7 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
     'Today, RevealUI Studio builds and delivers this for you as a fixed-scope engagement. A discovery call scopes the work. We build, deploy, and hand you a live product and the admin login. You operate it without code.',
   paragraph2: {
     before:
-      'A self-serve managed version — sign up, configure in a browser, get a hosted product without an engagement — is on the roadmap. See the ',
+      'A self-serve managed version (sign up, configure in a browser, get a hosted product without an engagement) is on the roadmap. See the ',
     linkLabel: 'managed roadmap',
     linkHref: MANAGED_ROADMAP_HREF,
     after:
@@ -143,7 +143,7 @@ export const FOR_OPERATORS_DISCOVERY = {
 export const FOR_OPERATORS_PROOF = {
   eyebrow: 'Who delivers it',
   heading: 'Built by the engineer who built the runtime.',
-  body: 'RevealUI Studio is one engineer — Joshua Vaughn — and the runtime he maintains. Ten years managing teams in telecommunications before this. The agency engagement is delivered by the same person who reviews every commit to the open-source codebase you will be running.',
+  body: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. Ten years managing teams in telecommunications before this. The agency engagement is delivered by the same person who reviews every commit to the open-source codebase you will be running.',
   bulletIntro: 'That means three concrete things:',
   bullets: [
     'The software we build for you runs the same code we run on revealui.com.',
@@ -166,17 +166,17 @@ export const FOR_OPERATORS_FAQ = {
     {
       question: 'Do I need to know how to code?',
       answer:
-        "No, to operate the product we deliver. You log into the admin, click around, manage your business. Changing the software — adding a new feature, a new page, a new integration — is an engineer's job. You can hire RevealUI Studio for that or hire your own engineer; we deliver code another engineer can pick up.",
+        "No, to operate the product we deliver. You log into the admin, click around, manage your business. Changing the software (adding a new feature, a new page, a new integration) is an engineer's job. You can hire RevealUI Studio for that or hire your own engineer; we deliver code another engineer can pick up.",
     },
     {
       question: 'Is this a website builder, like Wix or Squarespace?',
       answer:
-        'No. Wix and Squarespace build brochure websites. We deliver a real software product with real customer accounts, billing, data, and an admin you operate. If a brochure site is what you need, those tools are faster and cheaper — book the call only if "real software with real customer accounts" is what you actually need.',
+        'No. Wix and Squarespace build brochure websites. We deliver a real software product with real customer accounts, billing, data, and an admin you operate. If a brochure site is what you need, those tools are faster and cheaper. Book the call only if "real software with real customer accounts" is what you actually need.',
     },
     {
       question: 'Who hosts it? What if RevealUI Studio goes away?',
       answer:
-        'You host it — on infrastructure in your name (Vercel for the app, Neon for the database, Stripe for billing). The code is open source. If RevealUI Studio ceased to exist tomorrow, your product keeps running on the same infrastructure with no change. Hiring a different engineer to take over the codebase is a normal hand-off, not a rescue mission.',
+        'You host it, on infrastructure in your name (Vercel for the app, Neon for the database, Stripe for billing). The code is open source. If RevealUI Studio ceased to exist tomorrow, your product keeps running on the same infrastructure with no change. Hiring a different engineer to take over the codebase is a normal hand-off, not a rescue mission.',
     },
     {
       question: 'How much does it cost?',
@@ -196,7 +196,7 @@ export const FOR_OPERATORS_FAQ = {
     {
       question: 'What about AI?',
       answer:
-        "The runtime ships an agent layer that can draft emails, process orders, and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API — the AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
+        "The runtime ships an agent layer that can draft emails, process orders, and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API. The AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
     },
   ] as readonly FaqItem[],
 } as const;

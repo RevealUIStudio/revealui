@@ -3,6 +3,15 @@ import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { cn } from '../utils/cn.js';
 import { Link } from './link.js';
 
+/**
+ * `Button` (headless) — the Catalyst-style button with its own `color` /
+ * `outline` / `plain` palette system. Used internally to compose `Dropdown`.
+ *
+ * For the brand-token-driven app button (re-themes with `--rvui-brand`), use
+ * the CVA `Button` in `Button.tsx`, exported as `ButtonCVA`. The bare-name vs
+ * `*CVA` split is an intentional package convention; see the package README.
+ */
+
 const styles = {
   base: [
     // Base

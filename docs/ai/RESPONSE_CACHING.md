@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# Response Caching for All LLM Providers
-
 Cache **complete LLM responses** at the application level — works with any provider. A cache HIT costs zero (no provider call); real-world dollar savings depend on your duplicate rate × hit rate.
 
 > **Note on dollar figures.** Every dollar amount in this guide is illustrative arithmetic against assumed traffic patterns and assumed provider pricing — not measured RevealUI traffic (RevealUI is pre-launch with 0 paying customers). Use the calculator below to estimate against your own stats.

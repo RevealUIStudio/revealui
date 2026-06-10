@@ -48,6 +48,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         with:
@@ -65,9 +67,11 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Probe Electric health before running E2E
+        env:
+          ADMIN_URL: ${{ secrets.ELECTRIC_E2E_ADMIN_URL }}
         run: |
           STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
-            "${{ secrets.ELECTRIC_E2E_ADMIN_URL }}/api/health/electric" || echo "000")
+            "$ADMIN_URL/api/health/electric" || echo "000")
           if [ "$STATUS" != "200" ]; then
             echo "::error::Electric health probe returned HTTP $STATUS — skipping E2E to avoid false failures"
             exit 1

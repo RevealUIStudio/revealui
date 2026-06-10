@@ -10,7 +10,7 @@ export const SECURITY_META = {
   title: 'Security',
   lastUpdated: 'May 28, 2026',
   intro:
-    'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us — it is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page describes how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host.',
+    'RevealUI Studio is a solo-operator company building production software. Security is not a marketing line for us. It is a discipline we apply every day, and it determines whether real customers can trust us with their data. This page describes how we accept vulnerability reports, what we commit to in return, and the security posture our customers inherit when they self-host.',
 } as const;
 
 export const SECURITY_SECTIONS: readonly LegalSection[] = [
@@ -32,7 +32,7 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
       'Credit you publicly on this page when the issue is resolved, if you wish to be named. We will never publish your identity without your consent.',
     ],
     paragraphs: [
-      'We do not currently run a paid bug-bounty program. We are pre-revenue and cannot honestly promise bounty payouts that we may not be able to fund. If you find a material issue we will discuss recognition, swag, or — once we are revenue-generating — a discretionary reward.',
+      'We do not currently run a paid bug-bounty program. We are pre-revenue and cannot honestly promise bounty payouts that we may not be able to fund. If you find a material issue we will discuss recognition, swag, or (once we are revenue-generating) a discretionary reward.',
     ],
   },
   {
@@ -49,10 +49,10 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '4. Out of scope',
     listItems: [
-      'Third-party services we use (Vercel, NeonDB, Stripe, Cloudflare, etc.) — report directly to those vendors.',
+      'Third-party services we use (Vercel, NeonDB, Stripe, Cloudflare, etc.): report directly to those vendors.',
       'Social-engineering attacks against employees, contractors, or customers.',
       'Denial-of-service attacks, traffic flooding, or any test that affects availability.',
-      'Vulnerabilities in software you have self-hosted using RevealUI but modified — please report against an unmodified build.',
+      'Vulnerabilities in software you have self-hosted using RevealUI but modified: please report against an unmodified build.',
       'Findings that require physical access to a device we do not own.',
       'Reports of missing security headers without a demonstrated exploit.',
       'Reports based solely on automated-scanner output without manual verification.',
@@ -78,7 +78,7 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
       'Standard browser security headers (CSP, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy) are configured on every deployed app.',
       'Continuous integration runs CodeQL, Gitleaks, dependency auditing, and an AST-based code-pattern analyzer on every push.',
       'GitHub branch protection requires CI passage before merge to main; production deploys are gated on the deploy workflow, not direct pushes.',
-      'Internal security documentation — incident response runbook, information security policy, credential rotation runbook — is maintained alongside this site and available for customer review on request.',
+      'Internal security documentation (incident response runbook, information security policy, credential rotation runbook) is maintained alongside this site and available for customer review on request.',
     ],
   },
   {
@@ -97,7 +97,7 @@ export const SECURITY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '9. Hall of fame',
     paragraphs: [
-      'We will list researchers here as they are credited. The list is empty today — pre-launch — but we plan to keep it updated as the program runs.',
+      'We will list researchers here as they are credited. The list is empty today, pre-launch, but we plan to keep it updated as the program runs.',
     ],
   },
   {

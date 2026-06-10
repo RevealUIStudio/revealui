@@ -24,7 +24,7 @@ export const FO_HIW_HERO = {
   eyebrow: 'How the engagement works',
   h1Lines: ['Discovery, scope,', 'build, deliver.'] as const,
   subtitle:
-    'A discovery call scopes the work. We build, deploy, and hand over a live product with the admin login. Weeks, not quarters — the discovery call gives you the range for your specific scope.',
+    'A discovery call scopes the work. We build, deploy, and hand over a live product with the admin login. Weeks, not quarters. The discovery call gives you the range for your specific scope.',
   primaryCta: {
     label: 'Book a build call',
     href: AGENCY_CONTACT,
@@ -54,7 +54,7 @@ export const FO_HIW_STEPS = {
     {
       number: '02',
       title: 'Fixed-scope proposal.',
-      body: "A written statement of work — what we'll build, what the deliverable looks like, what's in and out of scope, and the engagement timeline. Fixed-bid. No surprise change orders.",
+      body: "A written statement of work: what we'll build, what the deliverable looks like, what's in and out of scope, and the engagement timeline. Fixed-bid. No surprise change orders.",
     },
     {
       number: '03',
@@ -69,7 +69,7 @@ export const FO_HIW_STEPS = {
     {
       number: '05',
       title: 'Ongoing support is optional.',
-      body: 'If you want a retainer for ongoing work — new features, scaled support, expansion engagements — we offer one. If you want to take it from here, you take it from here. There is no lock-in either way.',
+      body: 'If you want a retainer for ongoing work (new features, scaled support, expansion engagements), we offer one. If you want to take it from here, you take it from here. There is no lock-in either way.',
     },
   ] as readonly EngagementStep[],
 } as const;
@@ -80,7 +80,7 @@ export const FO_HIW_FEAR = {
   paragraph1:
     "No, to operate the product. You log into the admin, manage your products, customers, content, and orders. The dashboard is the interface; you don't touch the code.",
   paragraph2:
-    'Yes, to change the software itself. Adding a new feature, a new page, a new integration — that is engineering work. Two honest options:',
+    'Yes, to change the software itself. Adding a new feature, a new page, a new integration: that is engineering work. Two honest options:',
   options: [
     {
       title: 'Hire RevealUI Studio for the change.',
@@ -88,7 +88,7 @@ export const FO_HIW_FEAR = {
     },
     {
       title: 'Hire your own engineer.',
-      body: 'The code we hand over is standard TypeScript on standard tools — React, Vite, Hono, Drizzle. Any competent React engineer can pick it up.',
+      body: 'The code we hand over is standard TypeScript on standard tools: React, Vite, Hono, Drizzle. Any competent React engineer can pick it up.',
     },
   ] as readonly { readonly title: string; readonly body: string }[],
   closing:
@@ -106,7 +106,7 @@ export const FO_HIW_OWNERSHIP = {
     },
     {
       title: 'The infrastructure is in your name.',
-      body: 'Vercel account, Neon database, Stripe account — all registered to your business, not RevealUI Studio.',
+      body: 'Vercel account, Neon database, Stripe account: all registered to your business, not RevealUI Studio.',
     },
     {
       title: 'There is no vendor lock-in.',
@@ -123,7 +123,7 @@ export const FO_HIW_TIMELINE = {
   paragraph1:
     'Weeks, not quarters. The discovery call gives you the range for your specific scope.',
   paragraph2:
-    'We do not promise specific day-counts. The work is fixed-bid (Step 2), so the timeline is part of the scope you and we agree on in writing. What we do not do is "live in 14 days" — that is a marketing promise, not an engineering reality.',
+    'We do not promise specific day-counts. The work is fixed-bid (Step 2), so the timeline is part of the scope you and we agree on in writing. What we do not do is "live in 14 days": that is a marketing promise, not an engineering reality.',
 } as const;
 
 export const FO_HIW_CLOSING = {
