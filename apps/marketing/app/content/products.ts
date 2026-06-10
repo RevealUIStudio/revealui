@@ -39,7 +39,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Eight products on one foundation, all built and operated by RevealUI Studio — every one shipping today except the agent marketplace, which is on the way.',
+    'Start with the runtime, add the rest as you grow. Eight products on one foundation, all built and operated by RevealUI Studio, every one shipping today except the agent marketplace, which is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
@@ -106,7 +106,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   version: 'v0.3.0',
   priceLabel: 'Free to self-host · Pro tier optional',
   tagline: 'The agentic business runtime',
-  body: 'People, content, offers, payments, and agents — pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
+  body: 'People, content, offers, payments, and agents: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   facts: [
     { stat: String(METRICS.packages), label: 'packages' },
