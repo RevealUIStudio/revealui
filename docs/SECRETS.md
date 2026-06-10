@@ -248,9 +248,11 @@ revealui/env/supabase
 ### RevDev
 
 ```
-revdev/license-signing-key               # when Ed25519 format lands (see license.ts TODO)
-revdev/license-public-key                # paired with signing-key (license verification side, for future format)
+revdev/license-signing-private-key       # Ed25519 license signing key (canonical keypair)
+revdev/license-signing-public-key        # Ed25519 license verification key (canonical keypair)
 revdev/github-token                      # perpetual license GitHub provisioning
+# The retired legacy pair (revdev/license-signing-key + revdev/license-public-key) is
+# superseded by the canonical Ed25519 keypair above.
 ```
 
 ### Licensing (RevealUI)
