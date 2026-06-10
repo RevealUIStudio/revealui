@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   baselineKey,
+  hasEmDash,
   hasEmoji,
   hasSentenceExclamation,
   isContentFile,
@@ -106,6 +107,23 @@ describe('scanLine — punctuation (content only)', () => {
   });
 });
 
+describe('scanLine — em-dash (all scopes)', () => {
+  it('flags an em dash in content scope', () => {
+    expect(hits("  body: 'one runtime — five primitives',", CONTENT)).toContain('em-dash:em-dash');
+  });
+  it('flags an em dash in tsx scope (JSX copy)', () => {
+    expect(hits('  <p>Sister products — secrets, tooling</p>', TSX)).toContain('em-dash:em-dash');
+  });
+  it('does not flag hyphens or en dashes', () => {
+    expect(ruleIds("  body: 'self-hosted - your data, 4–12 weeks',", CONTENT)).not.toContain(
+      'em-dash',
+    );
+  });
+  it('skips JSX comment lines', () => {
+    expect(scanLine('  {/* Value band — you own the runtime */}', TSX)).toEqual([]);
+  });
+});
+
 describe('scanLine — skips imports and comments', () => {
   it('skips import lines even when they contain banned tokens', () => {
     expect(scanLine("import { powerful } from './x';", CONTENT)).toEqual([]);
@@ -113,6 +131,7 @@ describe('scanLine — skips imports and comments', () => {
   it('skips comment lines', () => {
     expect(scanLine('  // a powerful, cutting-edge comment', CONTENT)).toEqual([]);
     expect(scanLine('   * jsdoc powerful line', CONTENT)).toEqual([]);
+    expect(scanLine('  // product roster — em dashes fine in comments', CONTENT)).toEqual([]);
   });
 });
 
@@ -121,6 +140,11 @@ describe('helpers', () => {
     expect(hasEmoji('🚀')).toBe(true);
     expect(hasEmoji('→')).toBe(false);
     expect(hasEmoji('x')).toBe(false);
+  });
+  it('hasEmDash matches only the em dash character', () => {
+    expect(hasEmDash('runtime — primitives')).toBe(true);
+    expect(hasEmDash('runtime - primitives')).toBe(false);
+    expect(hasEmDash('4–12 weeks')).toBe(false);
   });
   it('hasSentenceExclamation distinguishes copy from code', () => {
     expect(hasSentenceExclamation('Ship today!')).toBe(true);

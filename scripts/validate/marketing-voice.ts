@@ -7,6 +7,7 @@
  *
  *   - §4.1 banned hype words / phrases   → `hype-word`, `hype-phrase`
  *   - §4.1 punctuation bans (emoji, `!`) → `punctuation`
+ *   - owner style: no em dashes in copy  → `em-dash`
  *   - §4.2 internal-codename leaks       → `codename`
  *   - §2 / §4.3 / §5 fleet voice register → `fleet-voice`
  *     (no first-person-plural studio voice on fleet pages; `for-operators/*`
@@ -26,6 +27,8 @@
  *     with hype tokens, so they are out of scope for those rules.
  *   - codename + voice: every marketing file — those tokens never collide
  *     with class names.
+ *   - em-dash: every marketing file — the character never appears in class
+ *     names, and comment lines (including JSX comments) are skipped.
  *
  * A baseline (`marketing-voice-baseline.json`) grandfathers the current
  * corpus; CI fails only on NEW `(file::ruleId::token)` triples. Shrinking the
@@ -201,6 +204,15 @@ export function hasSentenceExclamation(line: string): boolean {
   return false;
 }
 
+/** U+2014 em dash, constructed from its code point so this validator's own
+ *  source never carries the raw character. Banned in customer copy (owner
+ *  writing style: use a comma, colon, or period instead). */
+const EM_DASH = String.fromCodePoint(0x2014);
+
+export function hasEmDash(text: string): boolean {
+  return text.includes(EM_DASH);
+}
+
 /** Find a lowercased token `sequence` as a contiguous run within `lowerWords`. */
 export function matchesSequence(
   lowerWords: readonly string[],
@@ -236,6 +248,7 @@ export function scanLine(line: string, opts: LineScanOptions): RawFinding[] {
     trimmed.startsWith('import ') ||
     trimmed.startsWith('//') ||
     trimmed.startsWith('/*') ||
+    trimmed.startsWith('{/*') ||
     trimmed.startsWith('*')
   ) {
     return [];
@@ -256,6 +269,12 @@ export function scanLine(line: string, opts: LineScanOptions): RawFinding[] {
     if (matchesSequence(lowerWords, seq)) {
       findings.push({ ruleId: 'codename', token: seq.join(' ') });
     }
+  }
+
+  // Em dashes — every marketing file (owner style: comma/colon/period in copy).
+  // Comment lines, including JSX comments, are already skipped above.
+  if (hasEmDash(line)) {
+    findings.push({ ruleId: 'em-dash', token: 'em-dash' });
   }
 
   // Fleet voice register — non-exempt fleet files.
@@ -463,7 +482,7 @@ function run(): void {
     console.error(`    ${f.text}`);
   }
   console.error(
-    `\n${fresh.length} new violation(s). See the voice-and-headline-rules corpus (§4.1 banned words, §4.2 codenames, §2/§4.3 fleet voice).`,
+    `\n${fresh.length} new violation(s). See the voice-and-headline-rules corpus (§4.1 banned words, §4.2 codenames, §2/§4.3 fleet voice) and the no-em-dash style rule (use a comma, colon, or period).`,
   );
   process.exitCode = 1;
 }

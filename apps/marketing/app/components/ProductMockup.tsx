@@ -134,7 +134,7 @@ export function ProductMockup() {
           {/* biome-ignore lint/performance/noImgElement: Vite SPA, no Next image optimizer available */}
           <img
             src={SCREENSHOTS[activeTab]?.src ?? ''}
-            alt={`RevealUI Admin — ${SCREENSHOTS[activeTab]?.label ?? ''}`}
+            alt={`RevealUI Admin: ${SCREENSHOTS[activeTab]?.label ?? ''}`}
             className="absolute inset-0 h-full w-full object-cover object-top"
           />
         </div>
