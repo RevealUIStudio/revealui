@@ -12,7 +12,10 @@ import type { Metadata } from 'next';
  * description can set REVEALUI_BRAND_DESCRIPTION='' (empty string opt-out).
  */
 function getOpenGraphIdentity() {
-  const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+  // `||` not `??` for the name: Compose `${VAR:-}` interpolation delivers
+  // unset vars as empty strings, which must fall through. The description
+  // keeps `??`: its empty string is a documented opt-out (see above).
+  const name = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   const description =
     process.env.REVEALUI_BRAND_DESCRIPTION ??
     'Agentic business runtime. Build your business, not your boilerplate.';

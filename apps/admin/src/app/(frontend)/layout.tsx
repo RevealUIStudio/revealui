@@ -126,7 +126,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+  // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
+  // empty strings, which must fall through to the next candidate.
+  const name = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   const adminLabel = `${name} admin`;
   // White-label: REVEALUI_BRAND_TWITTER lets a kit set its own Twitter/X
   // handle (e.g. '@AcmeCorp'); when unset, fall back to the canonical
@@ -136,7 +138,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const brandOverridden =
     Boolean(process.env.REVEALUI_BRAND_NAME) || Boolean(process.env.REVEALUI_TENANT_NAME);
   const twitterCreator =
-    process.env.REVEALUI_BRAND_TWITTER ?? (brandOverridden ? undefined : '@RevealUI');
+    process.env.REVEALUI_BRAND_TWITTER || (brandOverridden ? undefined : '@RevealUI');
   return {
     title: {
       default: adminLabel,
