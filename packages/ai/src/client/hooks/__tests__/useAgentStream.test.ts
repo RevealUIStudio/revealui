@@ -531,3 +531,85 @@ describe('useAgentStream  -  submitElicitation (A.2b)', () => {
     );
   });
 });
+
+// ─── CSRF double-submit attach ────────────────────────────────────────────────
+
+describe('useAgentStream  -  CSRF token attach', () => {
+  const SESSION_ID = '00000000-0000-4000-8000-000000000000';
+
+  afterEach(() => {
+    // jsdom cookies persist across tests in this file  -  expire ours
+    document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  });
+
+  it('echoes the revealui-csrf cookie as X-CSRF-Token on start()', async () => {
+    document.cookie = 'other-cookie=unrelated';
+    document.cookie = 'revealui-csrf=nonce123:hmac456';
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(makeOkResponse(makeSseStream([{ type: 'done' }])));
+
+    const { result } = renderHook(() => useAgentStream());
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect(init?.headers).toMatchObject({
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': 'nonce123:hmac456',
+    });
+  });
+
+  it('echoes the cookie on submitElicitation()', async () => {
+    document.cookie = 'revealui-csrf=tok-elicit';
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        makeOkResponse(makeSseStream([{ type: 'session_info', sessionId: SESSION_ID }])),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }));
+
+    const { result } = renderHook(() => useAgentStream());
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+    await waitFor(() => expect(result.current.sessionId).toBe(SESSION_ID));
+
+    await act(async () => {
+      await result.current.submitElicitation('elicit-1', 'cancel');
+    });
+
+    const [, init] = fetchSpy.mock.calls[1];
+    expect(init?.headers).toMatchObject({ 'X-CSRF-Token': 'tok-elicit' });
+  });
+
+  it('omits X-CSRF-Token when the cookie is absent', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(makeOkResponse(makeSseStream([{ type: 'done' }])));
+
+    const { result } = renderHook(() => useAgentStream());
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect(Object.keys(init?.headers ?? {})).not.toContain('X-CSRF-Token');
+  });
+
+  it('omits X-CSRF-Token when the cookie value is empty', async () => {
+    document.cookie = 'revealui-csrf=';
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(makeOkResponse(makeSseStream([{ type: 'done' }])));
+
+    const { result } = renderHook(() => useAgentStream());
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+
+    const [, init] = fetchSpy.mock.calls[0];
+    expect(Object.keys(init?.headers ?? {})).not.toContain('X-CSRF-Token');
+  });
+});

@@ -241,6 +241,13 @@ Rate limited: 10 requests/minute. Requires the `ai` feature flag.
 Client-side hook for consuming the SSE stream. Uses `fetch + ReadableStream` (not `EventSource`,
 which does not support POST).
 
+Both of the hook's POSTs (`start()` and `submitElicitation()`) automatically echo the
+JS-readable `revealui-csrf` cookie, the signed double-submit token the RevealUI admin proxy
+issues, as an `X-CSRF-Token` header. The API server's CSRF middleware requires that header on
+any session-cookie-authenticated unsafe request. Callers without a session cookie (API-key or
+server-to-server) are exempt from the check, and the header is omitted when the cookie is
+absent.
+
 ```typescript
 import { useAgentStream } from '@revealui/ai/client'
 
