@@ -58,6 +58,36 @@ describe('config modules', () => {
       );
       expect(getBrandingConfig(makeEnv({ REVEALUI_SHOW_POWERED_BY: '' })).showPoweredBy).toBe(true);
     });
+
+    it('prefers brand name over tenant name when both are set', () => {
+      const config = getBrandingConfig(
+        makeEnv({ REVEALUI_BRAND_NAME: 'BrandWins', REVEALUI_TENANT_NAME: 'Tenant' }),
+      );
+      expect(config.name).toBe('BrandWins');
+    });
+
+    it('treats compose-injected empty strings as unset', () => {
+      // Docker Compose `${VAR:-}` interpolation delivers unset vars as ''.
+      const config = getBrandingConfig(
+        makeEnv({
+          REVEALUI_BRAND_NAME: '',
+          REVEALUI_TENANT_NAME: 'Acme',
+          REVEALUI_BRAND_LOGO_URL: '',
+          REVEALUI_BRAND_PRIMARY_COLOR: '',
+          REVEALUI_TENANT_BRAND: '',
+        }),
+      );
+      expect(config.name).toBe('Acme');
+      expect(config.logoUrl).toBeUndefined();
+      expect(config.primaryColor).toBeUndefined();
+    });
+
+    it('falls back to the canonical name when both name overrides are empty', () => {
+      const config = getBrandingConfig(
+        makeEnv({ REVEALUI_BRAND_NAME: '', REVEALUI_TENANT_NAME: '' }),
+      );
+      expect(config.name).toBe('RevealUI');
+    });
   });
 
   describe('getDatabaseConfig', () => {

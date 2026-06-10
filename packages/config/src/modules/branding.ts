@@ -24,9 +24,12 @@ export interface BrandingConfig {
 
 export function getBrandingConfig(env: EnvConfig): BrandingConfig {
   return {
-    name: env.REVEALUI_BRAND_NAME ?? env.REVEALUI_TENANT_NAME ?? 'RevealUI',
-    logoUrl: env.REVEALUI_BRAND_LOGO_URL,
-    primaryColor: env.REVEALUI_BRAND_PRIMARY_COLOR ?? env.REVEALUI_TENANT_BRAND,
+    // `||` not `??`: Compose `${VAR:-}` interpolation delivers unset vars as
+    // empty strings, which must fall through (optional fields normalize ''
+    // to undefined so consumers' truthy checks behave).
+    name: env.REVEALUI_BRAND_NAME || env.REVEALUI_TENANT_NAME || 'RevealUI',
+    logoUrl: env.REVEALUI_BRAND_LOGO_URL || undefined,
+    primaryColor: env.REVEALUI_BRAND_PRIMARY_COLOR || env.REVEALUI_TENANT_BRAND || undefined,
     showPoweredBy: env.REVEALUI_SHOW_POWERED_BY !== 'false',
   };
 }

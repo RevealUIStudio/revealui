@@ -17,7 +17,8 @@ type Args = {
 // White-label: read tenant identity in the server component and prop-drill
 // to the client sidebar (env vars in `'use client'` files get inlined at
 // framework build time, missing the kit's stamped value at runtime).
-const siteName = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+// `||` not `??`: Compose `${VAR:-}` delivers unset vars as empty strings.
+const siteName = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
 
 const Layout = ({ children }: Args) => (
   <RootLayout config={config} importMap={importMap}>
