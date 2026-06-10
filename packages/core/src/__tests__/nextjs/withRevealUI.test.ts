@@ -1,24 +1,13 @@
 /**
  * withRevealUI tests  -  validates Next.js config wrapper including
- * config merging, webpack alias setup, turbopack aliases, headers,
- * environment variables, and config file resolution.
+ * config merging, webpack alias setup, turbopack passthrough, headers,
+ * and environment variables. Locks the regression that the `@revealui/config`
+ * package specifier is never aliased: the alias shadowed the env-config
+ * package in server bundles (prod admin passkey/MFA 500s, 2026-06-10).
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type WithRevealUIOptions, withRevealUI } from '../../nextjs/withRevealUI.js';
-
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
-
-vi.mock('node:fs', () => ({
-  default: {
-    existsSync: vi.fn(),
-  },
-  existsSync: vi.fn(),
-}));
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -61,10 +50,6 @@ function callWebpack(
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-
-beforeEach(() => {
-  vi.mocked(fs.existsSync).mockReturnValue(true);
-});
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -173,12 +158,12 @@ describe('withRevealUI  -  config merging', () => {
 // =============================================================================
 
 describe('withRevealUI  -  webpack', () => {
-  it('sets @revealui/config alias to resolved config path', () => {
+  it('does not alias @revealui/config (must resolve to the real env-config package)', () => {
     const result = withRevealUI();
     const webpackResult = callWebpack(result);
 
     const alias = webpackResult.resolve?.alias ?? {};
-    expect(alias['@revealui/config']).toBe(path.resolve('/project', './revealui.config.ts'));
+    expect(alias['@revealui/config']).toBeUndefined();
   });
 
   it('sets @revealui/core alias', () => {
@@ -200,7 +185,7 @@ describe('withRevealUI  -  webpack', () => {
 
     const alias = webpackResult.resolve?.alias ?? {};
     expect(alias['my-alias']).toBe('/some/path');
-    expect(alias['@revealui/config']).toBeDefined();
+    expect(alias['@revealui/config']).toBeUndefined();
   });
 
   it('initializes resolve.modules if missing', () => {
@@ -229,101 +214,6 @@ describe('withRevealUI  -  webpack', () => {
 
     expect(existingWebpack).toHaveBeenCalledOnce();
   });
-
-  it('uses context.dir as project root', () => {
-    const result = withRevealUI();
-    const webpackResult = callWebpack(result, {}, { dir: '/custom/project' });
-
-    const alias = webpackResult.resolve?.alias ?? {};
-    expect(alias['@revealui/config']).toBe(path.resolve('/custom/project', './revealui.config.ts'));
-  });
-});
-
-// =============================================================================
-// Config file resolution
-// =============================================================================
-
-describe('withRevealUI  -  config file resolution', () => {
-  it('uses exact path when file exists', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-
-    const result = withRevealUI();
-    const webpackResult = callWebpack(result);
-
-    const alias = webpackResult.resolve?.alias ?? {};
-    expect(alias['@revealui/config']).toBe(path.resolve('/project', './revealui.config.ts'));
-  });
-
-  it('tries alternative extensions when exact path not found', () => {
-    // First call (exact path) returns false, second (.ts ext) returns true
-    vi.mocked(fs.existsSync)
-      .mockReturnValueOnce(false) // exact path
-      .mockReturnValueOnce(true); // .ts extension
-
-    const result = withRevealUI({}, { configPath: './revealui.config' });
-    const webpackResult = callWebpack(result);
-
-    const alias = webpackResult.resolve?.alias ?? {};
-    expect(alias['@revealui/config']).toBeDefined();
-  });
-
-  it('throws in production when config file not found', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-
-    const result = withRevealUI();
-
-    expect(() => {
-      callWebpack(result, {}, { dev: false });
-    }).toThrow(/RevealUI config file not found/);
-  });
-
-  it('warns in development when config file not found', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-
-    const result = withRevealUI();
-
-    // Should not throw in dev mode
-    expect(() => {
-      callWebpack(result, {}, { dev: true });
-    }).not.toThrow();
-  });
-
-  it('uses fallback path in dev when config not found', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-
-    const result = withRevealUI();
-    const webpackResult = callWebpack(result, {}, { dev: true, dir: '/my/project' });
-
-    const alias = webpackResult.resolve?.alias ?? {};
-    // Falls back to resolved configPath
-    expect(alias['@revealui/config']).toBe(path.resolve('/my/project', './revealui.config.ts'));
-  });
-
-  it('handles absolute configPath', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-
-    const result = withRevealUI({}, { configPath: '/absolute/path/config.ts' });
-    const webpackResult = callWebpack(result);
-
-    const alias = webpackResult.resolve?.alias ?? {};
-    expect(alias['@revealui/config']).toBe('/absolute/path/config.ts');
-  });
-
-  it('error message includes searched paths', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-
-    const result = withRevealUI();
-
-    try {
-      callWebpack(result, {}, { dev: false });
-      expect.unreachable('should have thrown');
-    } catch (error) {
-      const message = (error as Error).message;
-      expect(message).toContain('RevealUI config file not found');
-      expect(message).toContain('Searched for');
-      expect(message).toContain('Please ensure the config file exists');
-    }
-  });
 });
 
 // =============================================================================
@@ -331,12 +221,12 @@ describe('withRevealUI  -  config file resolution', () => {
 // =============================================================================
 
 describe('withRevealUI  -  turbopack', () => {
-  it('sets turbopack resolveAlias for @revealui/config', () => {
+  it('injects no turbopack config when the app provides none', () => {
     const result = withRevealUI();
-    expect(result.turbopack?.resolveAlias?.['@revealui/config']).toBeDefined();
+    expect(result.turbopack).toBeUndefined();
   });
 
-  it('preserves existing turbopack config', () => {
+  it('passes through existing turbopack config without injecting @revealui/config', () => {
     const result = withRevealUI({
       turbopack: {
         resolveAlias: { 'my-pkg': './src/my-pkg' },
@@ -344,10 +234,10 @@ describe('withRevealUI  -  turbopack', () => {
     });
 
     expect(result.turbopack?.resolveAlias?.['my-pkg']).toBe('./src/my-pkg');
-    expect(result.turbopack?.resolveAlias?.['@revealui/config']).toBeDefined();
+    expect(result.turbopack?.resolveAlias?.['@revealui/config']).toBeUndefined();
   });
 
-  it('prefers existing @revealui/config alias from nextConfig', () => {
+  it('passes through a consumer-set @revealui/config alias untouched', () => {
     const result = withRevealUI({
       turbopack: {
         resolveAlias: { '@revealui/config': './custom-config.ts' },
@@ -355,12 +245,6 @@ describe('withRevealUI  -  turbopack', () => {
     });
 
     expect(result.turbopack?.resolveAlias?.['@revealui/config']).toBe('./custom-config.ts');
-  });
-
-  it('uses relative configPath for turbopack when not absolute', () => {
-    const result = withRevealUI({}, { configPath: './my-config.ts' });
-    // When configPath is relative and no existing turbopack alias, it should use configPath
-    expect(result.turbopack?.resolveAlias?.['@revealui/config']).toBe('./my-config.ts');
   });
 });
 
