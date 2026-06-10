@@ -1,13 +1,11 @@
 ---
 visibility: public
 status: verified
-title: "API Reference"
+title: "@revealui/core"
 description: "Complete API reference for @revealui/core exports and subpath modules"
 category: reference
 audience: developer
 ---
-
-# @revealui/core
 
 The runtime engine. Provides config building, collections, access control, REST API handlers, entitlement and feature gating primitives, rich text, admin UI components, logging, and plugins.
 

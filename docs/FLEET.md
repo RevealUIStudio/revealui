@@ -7,8 +7,6 @@ category: guide
 audience: enterprise
 ---
 
-# RevealUI Fleet — Self-Hosted Deployment
-
 Customers buy the Enterprise tier of RevealUI; the Fleet kit (produced by RevForge) is what they deploy. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
 RevealUI Fleet is a deployment-level commercial product, distinct from the hosted account-level subscription and metered usage model used for SaaS.

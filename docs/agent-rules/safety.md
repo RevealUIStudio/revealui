@@ -6,8 +6,6 @@ status: verified
 audience: agent
 ---
 
-# Safety Conventions
-
 Rules for protecting sensitive files, credentials, and system paths in the RevealUI monorepo.
 
 ## Protected Files  -  Never Edit Without Explicit Ask

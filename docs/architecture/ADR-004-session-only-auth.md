@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR-004: Session-Only Authentication (No JWT)
-
 **Date:** 2026-04-08
 **Status:** Accepted
 

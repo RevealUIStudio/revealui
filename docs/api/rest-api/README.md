@@ -6,8 +6,6 @@ status: generated
 audience: user
 ---
 
-# REST API Reference
-
 **Version:** 0.1.0
 
 **Base URL (production):** `https://api.revealui.com/api`

@@ -86,6 +86,9 @@ describe('createR2Provider', () => {
       expect(requests[0].method).toBe('PUT');
       expect(requests[0].url).toBe('https://acct-123.r2.cloudflarestorage.com/media/uploads/a.bin');
       expect(requests[0].headers['content-type']).toBe('image/png');
+      // No manual content-length: it is a forbidden fetch header (undici computes
+      // it from the body) and setting it throws UND_ERR_INVALID_ARG on a live R2 PUT.
+      expect(requests[0].headers['content-length']).toBeUndefined();
       expect(requests[0].body).toBe(body);
 
       expect(result).toEqual({

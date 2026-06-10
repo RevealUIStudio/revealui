@@ -21,6 +21,16 @@ useDefault = true
 [allowlist]
 description = "Test fixtures, CLI templates, documentation examples, and CI placeholder secrets"
 
+# Vercel project IDs (prj_ + base62) are non-secret identifiers, not credentials.
+# They are committed by design in .github/vercel-projects.json (the app -> project-id
+# map that single-sources deploy targets). The generic-api-key rule trips on their
+# entropy; allowlist the identifier shape so the exemption is durable across line /
+# commit drift (a fingerprint in .gitleaksignore would break on squash-merge).
+# REGEX-CONFIG-BOUNDARY (gitleaks TOML; minimal, anchored to the Vercel prj_ prefix).
+regexes = [
+  '''prj_[A-Za-z0-9]{20,}''',
+]
+
 paths = [
   # Tests — any file under a __tests__ directory
   '''(^|.*/)__tests__/.*''',

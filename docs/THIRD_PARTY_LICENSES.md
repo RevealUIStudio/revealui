@@ -7,8 +7,6 @@ category: legal
 audience: legal
 ---
 
-# Third-Party Licenses
-
 This document lists all third-party dependencies used in the RevealUI Framework and their respective licenses.
 
 ## License Summary

@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR-003: Fair Source Licensing (FSL-1.1-MIT)
-
 **Date:** 2026-04-08
 **Status:** Accepted
 

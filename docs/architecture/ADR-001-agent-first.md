@@ -6,8 +6,6 @@ status: verified
 audience: user
 ---
 
-# ADR-001: Agent-First, Human-Readable
-
 **Date:** 2026-03-11
 **Status:** Accepted
 

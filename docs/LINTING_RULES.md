@@ -6,8 +6,6 @@ status: verified
 audience: maintainer
 ---
 
-# Custom Linting Rules
-
 This document describes custom code quality rules enforced in the RevealUI project.
 
 ## no-hardcoded-exit

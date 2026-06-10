@@ -8,8 +8,6 @@ owner: RevealUI Studio
 last_verified: 2026-06-08
 ---
 
-# RevealUI Documentation System
-
 This is the canonical specification for how documentation works in the RevealUI
 monorepo. It supersedes the stale `scripts/validate/README.md`.
 

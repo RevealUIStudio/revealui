@@ -7,8 +7,6 @@ category: fleet
 audience: developer
 ---
 
-# RevKit
-
 **Portable WSL development environment toolkit for RevealUI projects.**
 
 > RevKit is a separate fleet product. The repo is at [RevealUIStudio/revkit](https://github.com/RevealUIStudio/revkit) (product name: RevealUI DevKit). This page summarises what RevKit is; the canonical product README lives in the RevKit repo.
