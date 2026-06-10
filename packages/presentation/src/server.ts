@@ -8,7 +8,11 @@
 // Layout Components - Server Safe
 export { AuthLayout, type AuthLayoutProps } from './components/auth-layout.js';
 export { BuiltWithRevealUI } from './components/BuiltWithRevealUI.js';
-// CVA Components - Server Safe
+// CVA Components - Server Safe.
+// `Button` is exported as `ButtonCVA` by package convention: the bare `Button`
+// name belongs to the headless/Catalyst button (see ./client), and the `*CVA`
+// suffix marks the styled, brand-token-driven button. `ButtonCVA` is the
+// canonical app button (marketing/admin/docs).
 export {
   Button as ButtonCVA,
   type ButtonProps,

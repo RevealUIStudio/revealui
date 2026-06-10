@@ -290,4 +290,46 @@ describe('LinkButton', () => {
       expect(container.querySelector('svg.animate-spin')).not.toBeInTheDocument();
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Expressive variants — glow + shine (parity with Button / ButtonCVA)
+  // -------------------------------------------------------------------------
+
+  describe('Expressive variants', () => {
+    it('adds the brand-glow shadow token when glow is set', () => {
+      render(
+        <LinkButton href="/x" glow>
+          Glow
+        </LinkButton>,
+      );
+      expect(screen.getByRole('link')).toHaveClass('shadow-[var(--rvui-shadow-glow)]');
+    });
+
+    it('hosts a shine overlay (a second aria-hidden span) when shine is set', () => {
+      const { container } = render(
+        <LinkButton href="/x" shine>
+          Shine
+        </LinkButton>,
+      );
+      expect(screen.getByRole('link')).toHaveClass('overflow-hidden', 'isolate', 'group');
+      // TouchTarget always renders one aria-hidden span; shine adds a second overlay.
+      expect(container.querySelectorAll('span[aria-hidden="true"]').length).toBe(2);
+    });
+
+    it('renders only the TouchTarget hidden span when shine is off', () => {
+      const { container } = render(<LinkButton href="/x">Plain</LinkButton>);
+      expect(container.querySelectorAll('span[aria-hidden="true"]').length).toBe(1);
+    });
+
+    it('does not leak glow/shine props onto the anchor', () => {
+      render(
+        <LinkButton href="/x" glow shine>
+          Clean
+        </LinkButton>,
+      );
+      const link = screen.getByRole('link');
+      expect(link).not.toHaveAttribute('glow');
+      expect(link).not.toHaveAttribute('shine');
+    });
+  });
 });

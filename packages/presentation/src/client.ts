@@ -20,6 +20,9 @@ export { Avatar } from './components/avatar.js';
 export { AvatarGroup } from './components/avatar-group.js';
 export { Badge } from './components/badge.js';
 export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
+// `Button` here is the headless/Catalyst button (its own color/outline/plain
+// palette; powers Dropdown). The styled, brand-token button is `ButtonCVA`
+// (see ./server). `TouchTarget` expands the hit area to 44px on touch devices.
 export { Button, TouchTarget } from './components/button-headless.js';
 // CVA Components that use hooks
 export {

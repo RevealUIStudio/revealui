@@ -151,6 +151,51 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | `@revealui/presentation/animations` | Animation utilities |
 | `@revealui/presentation/tokens.css` | Design token CSS file |
 
+## Styled vs headless components (the `*CVA` convention)
+
+Several form controls ship **two** implementations under a deliberate, package-wide naming
+convention. The bare name is the headless (Catalyst) component; the `*CVA` suffix is the
+styled, brand-token-driven one:
+
+| Headless (bare name) | Styled (`*CVA`) | Source files |
+|----------------------|-----------------|--------------|
+| `Button`   | `ButtonCVA`   | `button-headless.tsx`, `Button.tsx` |
+| `Input`    | `InputCVA`    | `input-headless.tsx`, `Input.tsx` |
+| `Textarea` | `TextareaCVA` | `textarea-headless.tsx`, `Textarea.tsx` |
+| `Checkbox` | `CheckboxCVA` | `checkbox-headless.tsx`, `Checkbox.tsx` |
+| `Select`   | `SelectCVA`   | `select-headless.tsx`, `Select.tsx` |
+
+- **Headless (bare name):** a richly composable Catalyst-style primitive with its own
+  `color` / `outline` / `plain` palette system. These also power internal composites (for
+  example, `Dropdown` is built on the headless `Button`).
+- **Styled (`*CVA`):** references the semantic design tokens (`bg-primary`, `--ring`, and so
+  on), so it re-themes automatically with the active brand. `ButtonCVA` is the canonical app
+  button, imported by marketing, admin, and docs.
+
+**Which do I use?** Reach for the styled `*CVA` component for app CTAs and forms. It is
+brand-aware and needs no palette wiring. Drop to the headless component only when you need
+Catalyst-style composition or a deliberately fixed, non-brand palette. The two are not
+interchangeable: `Button` (headless) and `ButtonCVA` (styled) are different components with
+different prop APIs, and the convention holds across all five families above.
+
+### `ButtonCVA` props
+
+`variant` (`primary`, `secondary`, `destructive`, `outline`, `ghost`, `link`), `size` (`sm`,
+`default`, `lg`, `icon`, `clear`), `asChild`, `isLoading`, plus:
+
+- automatic icon spacing (`gap-2`) and `svg` shrink / pointer-events protection, so an icon
+  and a label compose without manual margins;
+- `glow`: opt-in brand-glow halo for emphasis CTAs, driven by the `--rvui-shadow-glow` token;
+- `shine`: opt-in subtle light sweep on hover.
+
+```tsx
+import { ButtonCVA } from '@revealui/presentation/server'
+
+<ButtonCVA variant="primary" glow>Get started</ButtonCVA>
+<ButtonCVA variant="primary" size="lg" shine>Upgrade</ButtonCVA>
+<ButtonCVA isLoading>Saving...</ButtonCVA>
+```
+
 ## Development
 
 ```bash
