@@ -100,7 +100,9 @@ describe('Table with striped prop', () => {
     const rows = screen.getAllByRole('row');
     // Body rows (index 1 and 2) get striped classes
     const bodyRow = rows[1];
-    expect(bodyRow.className).toContain('even:bg-zinc-950/2.5');
+    // Cobalt re-skin: striped rows now use the token-driven foreground overlay
+    // (was even:bg-zinc-950/2.5) so they adapt to light/dark via --rvui-* tokens.
+    expect(bodyRow.className).toContain('even:bg-foreground/2.5');
   });
 
   it('should omit bottom border on cells when striped', () => {
