@@ -53,11 +53,11 @@ The chain is verifiable in two directions:
 
 Every mutation across the five primitives writes a row:
 
-- **Users** — auth events, RBAC role changes, GDPR consent and deletion events.
+- **People** — auth events, RBAC role changes, GDPR consent and deletion events.
 - **Content** — collection mutations, draft/live transitions, media uploads.
-- **Products** — catalog edits, pricing tier changes, license events.
+- **Offers** — catalog edits, pricing tier changes, license events.
 - **Payments** — Stripe webhook events, subscription transitions, refunds.
-- **Intelligence** — agent task lifecycle (`started`, `tool:called`, `completed`, `errored`), policy violations, memory writes.
+- **Agents** — agent task lifecycle (`started`, `tool:called`, `completed`, `errored`), policy violations, memory writes.
 
 Agents and humans use the same signing path. There is no separate "agent audit" surface — they are principals on the same chain.
 

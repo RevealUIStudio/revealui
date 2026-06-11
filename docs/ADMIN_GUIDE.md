@@ -865,7 +865,7 @@ About Us
 **Description**:
 
 ```
-[Your Site Name] is built on RevealUI — an open-source business runtime for software companies. Users, content, products, payments, and AI, pre-wired and ready to deploy.
+[Your Site Name] is built on RevealUI — an open-source business runtime for software companies. People, content, offers, payments, and agents, pre-wired and ready to deploy.
 ```
 
 **Image**:

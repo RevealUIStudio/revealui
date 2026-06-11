@@ -25,7 +25,7 @@ This wasn't a naive decision. I'm aware of the arguments for more restrictive li
 
 I understand that risk. I accept it. Here's why.
 
-RevealUI is an open runtime for businesses that run their own AI. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
+RevealUI is an open runtime for businesses that run their own AI. The four business primitives that make it useful -- People, Content, Offers, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
 
 The MCP framework is the one piece worth naming carefully: `@revealui/mcp` — the hypervisor, the 14 first-party servers, and the adapter base class — is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
 
@@ -37,7 +37,7 @@ What MIT means practically: you can take RevealUI, strip the branding, deploy it
 
 If everything important is MIT, what's left to sell?
 
-Intelligence.
+Agents.
 
 RevealUI Pro includes:
 
@@ -91,7 +91,7 @@ A few things worth noting about this table.
 
 **The free tier is genuinely useful.** Unlimited admin collections, session-based auth, basic real-time sync, local AI inference (Inference Snaps / Ollama), and full source code access. You can build and run a real product on the free tier. I don't want "free" to mean "demo."
 
-**All four business primitives work on free.** Users, Content, Products, Payments -- the MIT core -- are fully functional at every tier. Free doesn't cripple the business stack to pressure upgrades. The tier boundaries are about scale (more sites, more users, higher rate limits) and AI capabilities.
+**All four business primitives work on free.** People, Content, Offers, Payments -- the MIT core -- are fully functional at every tier. Free doesn't cripple the business stack to pressure upgrades. The tier boundaries are about scale (more sites, more users, higher rate limits) and AI capabilities.
 
 **Pro will have a 7-day trial with no credit card required (coming soon).** The signup flow won't ask for payment information. You try it, you decide, you pay if it's worth it. If the product can't convince you in seven days, a payment wall on day one wasn't going to help.
 
@@ -177,7 +177,7 @@ I don't know if this model will work. MIT open source with a commercial AI tier 
 
 What I do know is that the alternative -- restrictive licensing, crippled free tiers, dark patterns in the upgrade flow -- might generate more short-term revenue but would make me build a product I don't want to use.
 
-RevealUI is the business stack I wanted when I started building software companies. Users, content, products, payments, and AI -- pre-wired, open source, and ready to deploy. If it's useful to you at $0, that's a win. If it's useful enough to pay for, even better.
+RevealUI is the business stack I wanted when I started building software companies. People, content, offers, payments, and agents -- pre-wired, open source, and ready to deploy. If it's useful to you at $0, that's a win. If it's useful enough to pay for, even better.
 
 The code is on [GitHub](https://github.com/RevealUIStudio/revealui). The license is MIT. The Pro features will have a free trial (coming soon). Everything I've described in this post is verifiable.
 

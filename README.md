@@ -12,7 +12,7 @@ audience: user
 
 **Agentic business runtime.**
 
-Users. Content. Products. Payments. Intelligence. Five primitives for humans and agents, one deployment, one runtime.
+People. Content. Offers. Payments. Agents. Five primitives for humans and agents, one deployment, one runtime.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
@@ -53,15 +53,15 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 
 | Primitive        | For you                                                          | For your agents                                              |
 | ---------------- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| **Users**        | Session auth, RBAC + ABAC, rate limiting, GDPR compliance        | Same RBAC governs agent access. Every action auditable.      |
+| **People**       | Session auth, RBAC + ABAC, rate limiting, GDPR compliance        | Same RBAC governs agent access. Every action auditable.      |
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
-| **Products**     | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
+| **Offers**       | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | Same Stripe primitives, available to agents.                 |
-| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 14 MCP servers.                   |
+| **Agents**       | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 14 MCP servers.                   |
 
 ## Open-model first
 
-The Intelligence primitive ships with open-model defaults. No proprietary API keys required, no API bill that scales with usage.
+The Agents primitive ships with open-model defaults. No proprietary API keys required, no API bill that scales with usage.
 
 - **Ollama** — local model runner; the standard developer-machine path.
 - **Ubuntu Inference Snaps** — Apache-2.0-preferred model runtimes for production. `sudo snap install gemma3` (or `deepseek-r1`, `qwen-vl`, `nemotron-3-nano`, `nemotron-3-nano-omni`).
@@ -143,7 +143,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
-| **Free**       | $0        | Full OSS core: users, content, products, payments, admin             |
+| **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
 | **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $299/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
 | **Enterprise** | $1,499/mo | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked                                       |
