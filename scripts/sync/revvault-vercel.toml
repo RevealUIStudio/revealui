@@ -80,16 +80,16 @@ SENTRY_DSN = "revealui/prod/sentry/dsn"
 REVEALUI_ADMIN_API_KEY = { path = "revealui/prod/admin/api-key", sensitive = true }
 
 # Database
-POSTGRES_URL = "revealui/prod/db/postgres-url"
-DATABASE_URL = "revealui/prod/db/postgres-url"
+POSTGRES_URL = { path = "revealui/prod/db/postgres-url", sensitive = true }
+DATABASE_URL = { path = "revealui/prod/db/postgres-url", sensitive = true }
 
 # Encryption + signing
-REVEALUI_KEK                = "revealui/prod/kek"
+REVEALUI_KEK                = { path = "revealui/prod/kek", sensitive = true }
 # REVEALUI_KEK_NEXT deferred — rotation slot, populated only during KEK
 # rotation. Re-add to manifest at that time.
 # Canonical license-signing keypair (Ed25519). The retired
 # revealui/prod/license/* path held the stale pre-cutover RSA pair.
-REVEALUI_LICENSE_PRIVATE_KEY = "revdev/license-signing-private-key"
+REVEALUI_LICENSE_PRIVATE_KEY = { path = "revdev/license-signing-private-key", sensitive = true }
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
 REVEALUI_AUDIT_HMAC_SECRET   = { path = "revealui/prod/audit-hmac-secret", sensitive = true }
 REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
@@ -101,8 +101,8 @@ REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"
 # Storage — Cloudflare R2 (canonical, S3-compatible). Set together; partial config
 # falls back to BLOB_READ_WRITE_TOKEN per @revealui/config storage module.
 R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
-R2_ACCESS_KEY_ID      = "revealui/prod/r2/access-key-id"
-R2_SECRET_ACCESS_KEY  = "revealui/prod/r2/secret-access-key"
+R2_ACCESS_KEY_ID      = { path = "revealui/prod/r2/access-key-id", sensitive = true }
+R2_SECRET_ACCESS_KEY  = { path = "revealui/prod/r2/secret-access-key", sensitive = true }
 R2_BUCKET             = "revealui/prod/r2/bucket"
 R2_PUBLIC_BASE_URL    = "revealui/prod/r2/public-base-url"
 # Storage — legacy Vercel Blob (fallback; used only when R2_* are unset)
@@ -133,7 +133,7 @@ REVEALUI_BILLING_PORTAL_CONFIG_ID = "revealui/prod/billing/portal-config-id"
 
 # Electric (real-time sync)
 ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
-ELECTRIC_SECRET      = "revealui/prod/electric/secret"
+ELECTRIC_SECRET      = { path = "revealui/prod/electric/secret", sensitive = true }
 
 # Public (bundled into client; not secret, kept canonical for reproducibility)
 NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
@@ -173,15 +173,15 @@ STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
 STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
 
 # Database
-POSTGRES_URL  = "revealui/prod/db/postgres-url"
-NEON_API_KEY  = "revealui/prod/db/neon-api-key"
+POSTGRES_URL  = { path = "revealui/prod/db/postgres-url", sensitive = true }
+NEON_API_KEY  = { path = "revealui/prod/db/neon-api-key", sensitive = true }
 
 # Encryption + signing (parity with api — same license keypair + session secret)
 # REVEALUI_KEK - field-level encryption key (AES-256-GCM; packages/db/src/crypto.ts).
 # admin's production instrumentation hard-requires it (apps/admin/src/lib/utils/env-validation.ts);
 # leaving it untracked here is what let it go missing when the prod env was rebuilt (regression #928).
-REVEALUI_KEK                 = "revealui/prod/kek"
-REVEALUI_LICENSE_PRIVATE_KEY = "revdev/license-signing-private-key"
+REVEALUI_KEK                 = { path = "revealui/prod/kek", sensitive = true }
+REVEALUI_LICENSE_PRIVATE_KEY = { path = "revdev/license-signing-private-key", sensitive = true }
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
 REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
 
@@ -198,8 +198,8 @@ REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }
 # Storage — Cloudflare R2 (canonical, S3-compatible). Set together; partial config
 # falls back to BLOB_READ_WRITE_TOKEN per @revealui/config storage module.
 R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
-R2_ACCESS_KEY_ID      = "revealui/prod/r2/access-key-id"
-R2_SECRET_ACCESS_KEY  = "revealui/prod/r2/secret-access-key"
+R2_ACCESS_KEY_ID      = { path = "revealui/prod/r2/access-key-id", sensitive = true }
+R2_SECRET_ACCESS_KEY  = { path = "revealui/prod/r2/secret-access-key", sensitive = true }
 R2_BUCKET             = "revealui/prod/r2/bucket"
 R2_PUBLIC_BASE_URL    = "revealui/prod/r2/public-base-url"
 # Storage — legacy Vercel Blob (fallback; used only when R2_* are unset)
@@ -215,7 +215,7 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
 SESSION_COOKIE_DOMAIN = "revealui/prod/session-cookie-domain"
 
 # Electric (parity with api — same realtime sync infrastructure)
-ELECTRIC_SECRET      = "revealui/prod/electric/secret"
+ELECTRIC_SECRET      = { path = "revealui/prod/electric/secret", sensitive = true }
 ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
 
 # Mode flags (canonical pair — kept post-Q7)
