@@ -17,11 +17,24 @@
 #   - [projects.<slug>.vars]  — per-var path overrides (UPPER_SNAKE → vault path);
 #                               lets multiple Vercel vars feed from one canonical
 #                               kebab path (e.g. POSTGRES_URL + DATABASE_URL both
-#                               read from revealui/prod/db/postgres-url)
+#                               read from revealui/prod/db/postgres-url).
+#                               Entries may be inline tables:
+#                                 NAME = { path = "...", shape = "...", sensitive = true }
+#                               `sensitive = true` requests Vercel type `sensitive`
+#                               on CREATE — the plaintext is never revealable in
+#                               the Vercel UI/API after write; use for credentials
+#                               (Stripe keys, webhook secrets, signing/JWT
+#                               secrets). Updates PATCH value-only and never
+#                               change an existing row's type. Independent of the
+#                               marker, revvault >= 0.3.0 also preserves
+#                               sensitivity on re-create whenever any remote row
+#                               of the same key is already sensitive.
 #
 # Owner-ratified conventions: see ~/revfleet/.jv/docs/vercel-env-canonical-mapping.md
 # Design doc: ~/revfleet/.jv/docs/revvault-vercel-sync.md
-# Requires revvault binary with PR #40 (per-var path overrides via `vars` table)
+# Requires revvault >= 0.3.0 (sensitive markers + preserve-on-recreate; older
+# binaries fail loudly on the inline `sensitive` key — by design) and PR #40
+# (per-var path overrides via `vars` table)
 
 # Personal account — no team_id needed (Vercel team is implicit via the token)
 
@@ -38,10 +51,10 @@ skip = [
 ]
 
 [projects.revealui-api.vars]
-# Stripe — keys + secrets
-STRIPE_SECRET_KEY              = "revealui/prod/stripe/secret-key"
-STRIPE_WEBHOOK_SECRET          = "revealui/prod/stripe/webhook-secret"
-STRIPE_WEBHOOK_SECRET_LIVE     = "revealui/prod/stripe/webhook-secret-live"
+# Stripe — keys + secrets (sensitive: never UI/API-revealable after write)
+STRIPE_SECRET_KEY              = { path = "revealui/prod/stripe/secret-key", sensitive = true }
+STRIPE_WEBHOOK_SECRET          = { path = "revealui/prod/stripe/webhook-secret", sensitive = true }
+STRIPE_WEBHOOK_SECRET_LIVE     = { path = "revealui/prod/stripe/webhook-secret-live", sensitive = true }
 # STRIPE_WEBHOOK_SECRET_PREVIOUS deferred — rotation slot, populated only
 # during webhook-secret rotation. Re-add to manifest at that time.
 STRIPE_AGENT_METER_EVENT_NAME  = "revealui/prod/stripe/agent-meter-event-name"
@@ -64,7 +77,7 @@ STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/prod/stripe/max-annual-price-id
 SENTRY_DSN = "revealui/prod/sentry/dsn"
 
 # Admin API key (parity with admin)
-REVEALUI_ADMIN_API_KEY = "revealui/prod/admin/api-key"
+REVEALUI_ADMIN_API_KEY = { path = "revealui/prod/admin/api-key", sensitive = true }
 
 # Database
 POSTGRES_URL = "revealui/prod/db/postgres-url"
@@ -78,11 +91,11 @@ REVEALUI_KEK                = "revealui/prod/kek"
 # revealui/prod/license/* path held the stale pre-cutover RSA pair.
 REVEALUI_LICENSE_PRIVATE_KEY = "revdev/license-signing-private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
-REVEALUI_AUDIT_HMAC_SECRET   = "revealui/prod/audit-hmac-secret"
-REVEALUI_SECRET              = "revealui/prod/secret"
+REVEALUI_AUDIT_HMAC_SECRET   = { path = "revealui/prod/audit-hmac-secret", sensitive = true }
+REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
 
 # Cron + alerting
-REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
+REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }
 REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"
 
 # Storage — Cloudflare R2 (canonical, S3-compatible). Set together; partial config
@@ -99,7 +112,7 @@ BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
 
 # Email transport (Gmail SA)
 GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
-GOOGLE_PRIVATE_KEY            = "revealui/prod/google/private-key"
+GOOGLE_PRIVATE_KEY            = { path = "revealui/prod/google/private-key", sensitive = true }
 EMAIL_FROM                    = "revealui/prod/email/from"
 EMAIL_REPLY_TO                = "revealui/prod/email/reply-to"
 
@@ -143,9 +156,9 @@ skip = [
 ]
 
 [projects.revealui-admin.vars]
-# Stripe — keys (parity with api)
-STRIPE_SECRET_KEY     = "revealui/prod/stripe/secret-key"
-STRIPE_WEBHOOK_SECRET = "revealui/prod/stripe/webhook-secret"
+# Stripe — keys (parity with api; sensitive: never UI/API-revealable after write)
+STRIPE_SECRET_KEY     = { path = "revealui/prod/stripe/secret-key", sensitive = true }
+STRIPE_WEBHOOK_SECRET = { path = "revealui/prod/stripe/webhook-secret", sensitive = true }
 
 # Stripe — publishable key (admin-side client SDK)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "revealui/prod/stripe/publishable-key"
@@ -170,7 +183,7 @@ NEON_API_KEY  = "revealui/prod/db/neon-api-key"
 REVEALUI_KEK                 = "revealui/prod/kek"
 REVEALUI_LICENSE_PRIVATE_KEY = "revdev/license-signing-private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
-REVEALUI_SECRET              = "revealui/prod/secret"
+REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
 
 # Auth — passkey / WebAuthn (admin serves the passkey ceremony at admin.revealui.com)
 # rp-id=revealui.com is the registrable parent of admin.revealui.com; origin must match the admin origin.
@@ -180,7 +193,7 @@ PASSKEY_RP_ID          = "revealui/prod/passkey/rp-id"
 PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
 
 # Cron + alerting (parity with api)
-REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
+REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }
 
 # Storage — Cloudflare R2 (canonical, S3-compatible). Set together; partial config
 # falls back to BLOB_READ_WRITE_TOKEN per @revealui/config storage module.
@@ -195,7 +208,7 @@ BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
 # Email transport (parity with api — same Gmail SA credentials)
 EMAIL_FROM                   = "revealui/prod/email/from"
 EMAIL_REPLY_TO               = "revealui/prod/email/reply-to"
-GOOGLE_PRIVATE_KEY           = "revealui/prod/google/private-key"
+GOOGLE_PRIVATE_KEY           = { path = "revealui/prod/google/private-key", sensitive = true }
 GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
 
 # Auth + session (parity with api)
@@ -217,14 +230,14 @@ REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
 # Observability — Sentry (Next.js admin; DSN is client-bundled via NEXT_PUBLIC_,
 # auth-token + org + project are build-time for source-map upload via withSentryConfig)
 NEXT_PUBLIC_SENTRY_DSN = "revealui/prod/sentry/dsn-admin"
-SENTRY_AUTH_TOKEN      = "revealui/prod/sentry/auth-token"
+SENTRY_AUTH_TOKEN      = { path = "revealui/prod/sentry/auth-token", sensitive = true }
 SENTRY_ORG             = "revealui/prod/sentry/org"
 SENTRY_PROJECT         = "revealui/prod/sentry/project-admin"
 
 # Admin-specific (no parity — kebab paths under admin/ for consistency with secrets.md)
 REVEALUI_ADMIN_EMAIL         = "revealui/prod/admin/email"
-REVEALUI_ADMIN_PASSWORD      = "revealui/prod/admin/password"
-REVEALUI_ADMIN_API_KEY       = "revealui/prod/admin/api-key"
+REVEALUI_ADMIN_PASSWORD      = { path = "revealui/prod/admin/password", sensitive = true }
+REVEALUI_ADMIN_API_KEY       = { path = "revealui/prod/admin/api-key", sensitive = true }
 
 
 # ── revealui-marketing ──────────────────────────────────────────────────────
