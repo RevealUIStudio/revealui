@@ -61,7 +61,10 @@ function configureCreateCommand(command: Command): Command {
   command
     .description('Create a new RevealUI project')
     .argument('[project-name]', 'Name of the project')
-    .option('-t, --template <name>', 'Template to use (basic-blog, e-commerce, portfolio)')
+    .option(
+      '-t, --template <name>',
+      'Template to use (basic-blog, e-commerce, portfolio, starter, starter-native)',
+    )
     .option('--skip-git', 'Skip git initialization', false)
     .option('--skip-install', 'Skip dependency installation', false)
     .option('-y, --yes', 'Skip all prompts and use defaults', false)
