@@ -47,7 +47,9 @@ export const PRICING_TRACK_A_SECTION = {
 // (Vercel / Cloudflare / Fly / Hetzner — Railway dropped).
 export const PRICING_VALUE_BAND = {
   heading: 'You own the runtime.',
-  body: 'Most backend platforms rent you auth, content, jobs, and payments as separate per-seat subscriptions you never stop paying. RevealUI ships them as one runtime you self-host under your own license.',
+  // Body wording is the approved value-context block from the go-live copy
+  // corpus (sourced range, time-sensitive: re-verify past mid-2026).
+  body: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors. On entry tiers that runs about $320 to $380 a month and climbs past $700 once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
   points: [
     'One runtime, not five separate SaaS subscriptions',
     'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
@@ -56,12 +58,18 @@ export const PRICING_VALUE_BAND = {
   ],
 } as const;
 
-export const PRICING_HIGHLIGHTED_BADGE = 'Most Popular' as const;
+// 'Recommended' is an honest editorial signal; 'Most Popular' implied a
+// customer base that does not exist yet (truth-source: zero paying users).
+export const PRICING_HIGHLIGHTED_BADGE = 'Recommended' as const;
+
+// Rendered under the subscription grid, next to the CTA click point.
+export const PRICING_TRIAL_NOTE =
+  'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing.' as const;
 
 export const PRICING_TRACK_C_SECTION = {
   eyebrow: 'Perpetual',
   heading: 'Perpetual Licenses',
-  body: 'Pay once, use forever. No subscription required. Support renewals are optional.',
+  body: 'A perpetual license costs about three years of the subscription. Pay once, own it forever, and renew support only if you want it.',
 } as const;
 
 // Studio / agency reseller economics, rendered in the Perpetual section where the
@@ -123,10 +131,39 @@ export const PRICING_AGENT_CTA_LINKS = {
   } satisfies Cta,
 } as const;
 
-export const PRICING_AGENCY_SECTION = {
-  heading: 'Adoption help from RevealUI Studio',
-  body: 'Architecture reviews, migrations, and launch support are offered separately by RevealUI Studio (the agency). Engagements are scoped per-project.',
-  cta: {
+// Done-for-you rung: surfaces the services ladder (canonical figures from the
+// 2026-06-07 offerings pin) where the buying decision happens, instead of a
+// bare link out. Dollar figures match the agency site and /for-operators:
+// published "from" minimums, scoped in discovery, never fixed quotes. The
+// discovery call doubles as the mid-funnel capture for buyers who are not
+// ready to self-serve (06-10 public-surfaces audit P1).
+export const PRICING_DONE_FOR_YOU = {
+  eyebrow: 'Done for you',
+  heading: 'Want it built and handed over?',
+  body: 'RevealUI Studio (the agency) ships fixed-bid engagements on the runtime: scoped in a discovery call, delivered with a full handoff, owned by you afterward.',
+  rungs: [
+    {
+      name: 'Architecture Review',
+      price: '$3,500',
+      note: 'Fixed-bid written assessment of your project, schema, deployment, and security posture. Credited toward a Fleet deployment if you proceed within 30 days.',
+    },
+    {
+      name: 'Fleet deployment',
+      price: 'From $25,000',
+      note: 'A branded, self-hosted RevealUI deployment for your business or your clients. Starting point, scoped in discovery.',
+    },
+    {
+      name: 'Custom Build',
+      price: 'From $50,000',
+      note: 'Bespoke platform engagement, 4 to 12 week sprints. Starting point, scoped in discovery.',
+    },
+  ],
+  primaryCta: {
+    label: 'Book a discovery call',
+    href: 'https://cal.com/revealuistudio/discovery',
+    external: true,
+  } satisfies Cta,
+  secondaryCta: {
     label: 'Visit revealuistudio.com →',
     href: SITE.urls.agency,
     external: true,

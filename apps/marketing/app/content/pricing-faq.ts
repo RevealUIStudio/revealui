@@ -21,7 +21,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'How does agent task billing work?',
     answer:
-      'Every paid subscription includes a monthly task allowance. Agent task usage billing is coming soon. For now, all tiers include unlimited agent tasks during early access.',
+      'Every paid subscription includes a monthly task allowance: 10,000 tasks on Pro, 50,000 on Max, unlimited on Enterprise. Usage beyond the allowance is not billed today. Metered overage billing ships later, and usage is visible in your dashboard before any overage charge ever applies.',
   },
   {
     question: 'What are perpetual licenses?',
