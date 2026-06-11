@@ -7,7 +7,7 @@ category: guide
 audience: developer
 ---
 
-RevealUI is a framework, not a stack. The five primitives (users, content, products, payments, intelligence) are the contract; `@revealui/*` packages are one implementation of that contract. This page documents the libraries that implementation uses today, with one-line rationale for each choice. Future implementations could carry the same primitives on different code.
+RevealUI is a framework, not a stack. The five primitives (people, content, offers, payments, agents) are the contract; `@revealui/*` packages are one implementation of that contract. This page documents the libraries that implementation uses today, with one-line rationale for each choice. Future implementations could carry the same primitives on different code.
 
 ## Apps
 

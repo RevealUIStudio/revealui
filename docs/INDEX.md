@@ -7,7 +7,7 @@ category: index
 audience: developer
 ---
 
-Agentic business runtime. Five primitives for humans and agents: users, content, products, payments, and intelligence.
+Agentic business runtime. Five primitives for humans and agents: people, content, offers, payments, and agents.
 
 Six **[design principles](./JOSHUA.md)** govern every architectural decision: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 

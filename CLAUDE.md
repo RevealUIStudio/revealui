@@ -1,6 +1,6 @@
 ---
 title: "RevealUI Monorepo"
-description: "Agentic business runtime. Users, content, products, payments, and AI - pre-wired, open source, and ready to deploy."
+description: "Agentic business runtime. People, content, offers, payments, and agents - pre-wired, open source, and ready to deploy."
 visibility: internal
 status: verified
 audience: agent
@@ -8,7 +8,7 @@ audience: agent
 
 # RevealUI Monorepo
 
-Agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.
+Agentic business runtime. People, content, offers, payments, and agents  -  pre-wired, open source, and ready to deploy.
 
 ## Current Phase
 **Phase 5  -  Agent-First Infrastructure** (post-Phase 4). See `docs/MASTER_PLAN.md` for the active 5.x tracks.

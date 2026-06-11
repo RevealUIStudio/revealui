@@ -32,7 +32,7 @@ Each of the seven products in RevFleet ships in its own repo. The table below or
 
 | Product | Repo | What it is | License |
 |---|---|---|---|
-| **RevealUI** | [revealui](https://github.com/RevealUIStudio/revealui) | The agentic business runtime. Five primitives — users, content, products, payments, AI — pre-wired and ready to compose against. | MIT (OSS) + FSL-1.1-MIT (Pro packages) |
+| **RevealUI** | [revealui](https://github.com/RevealUIStudio/revealui) | The agentic business runtime. Five primitives — people, content, offers, payments, agents — pre-wired and ready to compose against. | MIT (OSS) + FSL-1.1-MIT (Pro packages) |
 | **RevForge** | [revforge](https://github.com/RevealUIStudio/revforge) | Operator-side stamping tool. Generates a branded RevealUI Fleet kit per customer — domain lock, unlimited users, Docker Compose stack. | per-product LICENSE |
 | **RevDev** | [revdev](https://github.com/RevealUIStudio/revdev) | Native developer tools: Studio (Tauri 2 desktop AI editor + agent dashboard) and Console (Go SSH TUI). Both talk to a shared harness daemon that coordinates agents and routes tools to the RevealUI API. | per-product LICENSE |
 | **RevVault** | [revvault](https://github.com/RevealUIStudio/revvault) | Age-encrypted secret vault. CLI + Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet per the fleet-wide secrets rule. | per-product LICENSE |
@@ -42,7 +42,7 @@ Each of the seven products in RevFleet ships in its own repo. The table below or
 
 ### RevealUI (the runtime)
 
-RevealUI is the agentic business runtime. Five primitives — users, content, products, payments, AI — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
+RevealUI is the agentic business runtime. Five primitives — people, content, offers, payments, agents — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
 
 Status: pre-launch (0 paying customers). Enterprise tier at $1,499/mo hosted; RevealUI Fleet for self-hosting via RevForge.
 
