@@ -58,8 +58,8 @@ Full details in `docs/PRO.md`.
 |------|-------|--------|
 | free | $0 | 1 site, 3 users, 200 req/min |
 | pro | $49/mo | 5 sites, 25 users, 300 req/min |
-| max | $149/mo | 15 sites, 100 users, 600 req/min |
-| enterprise | $299/mo | unlimited |
+| max | $299/mo | 15 sites, 100 users, 600 req/min |
+| enterprise | $1,499/mo | unlimited |
 
 ## Quickstart
 

@@ -163,9 +163,9 @@ RevealUI offers four ways to pay:
 
 | Track | Model | Description |
 |-------|-------|-------------|
-| **A  -  Subscriptions** | Monthly | Free / Pro $49/mo / Max $149/mo / Enterprise $299/mo |
+| **A  -  Subscriptions** | Monthly | Free / Pro $49/mo / Max $299/mo / Enterprise $1,499/mo |
 | **B  -  Agent Credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
-| **C  -  Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included, renewable) |
+| **C  -  Perpetual** | One-time | $1,499 / $8,499 / $42,999 (1 year support included, renewable) |
 | **D  -  Professional Services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
 Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max).
