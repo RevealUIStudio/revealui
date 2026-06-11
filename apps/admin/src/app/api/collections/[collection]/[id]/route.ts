@@ -1,5 +1,6 @@
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -17,9 +18,7 @@ async function proxyRequest(
 ): Promise<NextResponse> {
   const { collection, id } = await params;
 
-  const headers: Record<string, string> = {
-    Cookie: request.headers.get('Cookie') ?? '',
-  };
+  const headers = await apiForwardHeaders(request);
 
   const init: RequestInit = { method, headers };
 

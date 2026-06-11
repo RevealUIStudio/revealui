@@ -11,12 +11,17 @@ export interface RootLayoutProps {
 }
 
 export function RootLayout({ children, serverFunction }: RootLayoutProps) {
+  // Server component: resolved per request. White-label kits override via
+  // REVEALUI_BRAND_NAME / REVEALUI_TENANT_NAME. `||` not `??`: Compose
+  // `${VAR:-}` interpolation delivers unset vars as empty strings.
+  const siteName =
+    process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>RevealUI Admin</title>
+        <title>{`${siteName} Admin`}</title>
       </head>
       <body className="antialiased">
         <ServerFunctionProvider serverFunction={serverFunction}>

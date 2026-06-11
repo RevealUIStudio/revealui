@@ -1,12 +1,20 @@
 /**
  * CSRF protection middleware for Hono.
  *
- * Defense-in-depth on top of sameSite:lax cookies.
- * Generates HMAC-SHA256 tokens bound to session IDs.
+ * Defense-in-depth on top of sameSite:lax cookies, using the signed
+ * double-submit pattern: tokens are HMAC-SHA256 over the SESSION COOKIE
+ * VALUE plus a nonce. The admin app issues the token as the JS-readable
+ * `revealui-csrf` cookie (admin proxy.ts) and attaches it as X-CSRF-Token;
+ * admin's server-side forwarders mint the same shape per request. Validating
+ * against the cookie value (not the DB session row id) is what lets every
+ * REVEALUI_SECRET holder issue without a DB lookup — the browser never
+ * learns anything it didn't already have, because the HMAC is one-way.
  *
  * Skip logic:
  * - Safe methods (GET, HEAD, OPTIONS)
  * - Requests without session cookies (API-key/server-to-server)
+ * - Requests whose cookie did not resolve to an authenticated session
+ *   (auth middleware owns that failure)
  * - Webhook routes (use signature verification)
  * - Cron routes (use X-Cron-Secret)
  */
@@ -35,27 +43,32 @@ const DEFAULT_EXEMPT_PATHS = [
 ];
 
 /**
- * Generate a CSRF token bound to a session ID.
+ * Generate a CSRF token bound to a session binding value — the raw
+ * `revealui-session` cookie value, matching the admin issuer
+ * (apps/admin/src/lib/utils/csrf-token.ts).
  *
  * Format: `<nonce-hex>:<hmac-hex>`
  */
-export function generateCsrfToken(sessionId: string, secret: string): string {
+export function generateCsrfToken(sessionBinding: string, secret: string): string {
   const nonce = randomBytes(16).toString('hex');
-  const hmac = createHmac('sha256', secret).update(`${sessionId}:${nonce}`).digest('hex');
+  const hmac = createHmac('sha256', secret).update(`${sessionBinding}:${nonce}`).digest('hex');
   return `${nonce}:${hmac}`;
 }
 
 /**
- * Validate a CSRF token against a session ID using timing-safe comparison.
+ * Validate a CSRF token against a session binding value using timing-safe
+ * comparison.
  */
-export function validateCsrfToken(token: string, sessionId: string, secret: string): boolean {
+export function validateCsrfToken(token: string, sessionBinding: string, secret: string): boolean {
   const parts = token.split(':');
   if (parts.length !== 2) return false;
 
   const [nonce, providedHmac] = parts;
   if (!(nonce && providedHmac)) return false;
 
-  const expectedHmac = createHmac('sha256', secret).update(`${sessionId}:${nonce}`).digest('hex');
+  const expectedHmac = createHmac('sha256', secret)
+    .update(`${sessionBinding}:${nonce}`)
+    .digest('hex');
 
   try {
     const a = Buffer.from(providedHmac, 'hex');
@@ -99,21 +112,24 @@ export function csrfMiddleware(options?: CsrfMiddlewareOptions): MiddlewareHandl
       return c.json({ error: 'Server configuration error' }, 500);
     }
 
-    // Get session ID from context (set by auth middleware)
+    // Enforce only for authenticated sessions (set by auth middleware)  -
+    // cookie-bearing requests that failed auth get their 401 downstream.
     const session = c.get('session') as { id?: string } | undefined;
-    const sessionId = session?.id;
-    if (!sessionId) {
-      // No authenticated session  -  skip CSRF (auth middleware will handle)
+    if (!session?.id) {
       return next();
     }
 
-    // Read token from header or body
+    // Read token from header
     const token = c.req.header(headerName);
     if (!token) {
       return c.json({ error: 'CSRF token missing' }, 403);
     }
 
-    if (!validateCsrfToken(token, sessionId, secret)) {
+    // Bind to the session COOKIE VALUE  -  the vocabulary every issuer speaks
+    // (admin proxy.ts cookie, admin apiFetch, core APIClient, admin server-side
+    // forwarders). Binding to session.id would require an issuance channel that
+    // knows the DB row id; no browser-reachable issuer for that exists.
+    if (!validateCsrfToken(token, sessionCookie, secret)) {
       return c.json({ error: 'CSRF token invalid' }, 403);
     }
 

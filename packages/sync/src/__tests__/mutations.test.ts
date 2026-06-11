@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MutationResult } from '../mutations.js';
 import { useSyncMutations } from '../mutations.js';
 
@@ -48,6 +48,16 @@ function createErrorResponse(error: string, status: number): Response {
 
 function createNonJsonErrorResponse(status: number): Response {
   return new Response('Internal Server Error', { status });
+}
+
+function setCsrfCookie(value: string): void {
+  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API; direct assignment is the only way to seed cookies in tests
+  document.cookie = `revealui-csrf=${value}`;
+}
+
+function clearCsrfCookie(): void {
+  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API; direct assignment is the only way to clear cookies in tests
+  document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
 }
 
 const sampleRecord: TestRecord = {
@@ -685,6 +695,101 @@ describe('useSyncMutations', () => {
       expect(mutationResult?.success).toBe(false);
       expect(mutationResult?.error).toBe('Bad request');
       expect(mutationResult?.data).toBeUndefined();
+    });
+  });
+
+  // ---- CSRF token attach ----
+
+  describe('CSRF token attach', () => {
+    afterEach(() => {
+      clearCsrfCookie();
+    });
+
+    it('should attach X-CSRF-Token to POST when the csrf cookie is present', async () => {
+      setCsrfCookie('tok-123');
+      const mockFetch = vi.fn().mockResolvedValue(createJsonResponse(sampleRecord));
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() =>
+        useSyncMutations<TestCreateInput, TestUpdateInput, TestRecord>('items'),
+      );
+
+      await act(async () => {
+        await result.current.create({ title: 'Test' });
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/sync/items',
+        expect.objectContaining({
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': 'tok-123' },
+        }),
+      );
+    });
+
+    it('should attach X-CSRF-Token to PATCH when the csrf cookie is present', async () => {
+      setCsrfCookie('tok-123');
+      const mockFetch = vi.fn().mockResolvedValue(createJsonResponse(sampleRecord));
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() =>
+        useSyncMutations<TestCreateInput, TestUpdateInput, TestRecord>('items'),
+      );
+
+      await act(async () => {
+        await result.current.update('rec-1', { title: 'Updated' });
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/sync/items/rec-1',
+        expect.objectContaining({
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': 'tok-123' },
+        }),
+      );
+    });
+
+    it('should send only the token header for DELETE (no Content-Type, no body)', async () => {
+      setCsrfCookie('tok-123');
+      const mockFetch = vi.fn().mockResolvedValue(createJsonResponse(null));
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() =>
+        useSyncMutations<TestCreateInput, TestUpdateInput, TestRecord>('items'),
+      );
+
+      await act(async () => {
+        await result.current.remove('rec-1');
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/sync/items/rec-1',
+        expect.objectContaining({
+          headers: { 'X-CSRF-Token': 'tok-123' },
+          body: undefined,
+        }),
+      );
+    });
+
+    it('should not attach the token to a cross-origin proxyBaseUrl', async () => {
+      mockUseElectricConfig.mockReturnValue({
+        serviceUrl: null,
+        proxyBaseUrl: 'https://admin.example.com',
+        debug: false,
+      });
+      setCsrfCookie('tok-123');
+      const mockFetch = vi.fn().mockResolvedValue(createJsonResponse(sampleRecord));
+      vi.stubGlobal('fetch', mockFetch);
+
+      const { result } = renderHook(() =>
+        useSyncMutations<TestCreateInput, TestUpdateInput, TestRecord>('items'),
+      );
+
+      await act(async () => {
+        await result.current.create({ title: 'Test' });
+      });
+
+      expect((mockFetch.mock.calls[0][1] as RequestInit).headers).toEqual({
+        'Content-Type': 'application/json',
+      });
     });
   });
 });

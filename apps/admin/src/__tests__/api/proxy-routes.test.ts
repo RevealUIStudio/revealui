@@ -7,7 +7,8 @@
  */
 
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { validateCsrfToken } from '../../lib/utils/csrf-token';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -308,5 +309,84 @@ describe('DELETE /api/collections/[collection]/[id]', () => {
       params: Promise.resolve({ collection: 'posts', id: 'gone' }),
     });
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests  -  forwarded headers (Cookie, User-Agent, minted X-CSRF-Token)
+// ---------------------------------------------------------------------------
+
+describe('api forward headers', () => {
+  const SECRET = 'proxy-test-secret-32-chars-long!!';
+  const SESSION_COOKIE_VALUE = 'sess-forward-1';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('REVEALUI_SECRET', SECRET);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function forwardedHeaders(): Record<string, string> {
+    const init = mockFetch.mock.calls[0]?.[1] as RequestInit | undefined;
+    return (init?.headers ?? {}) as Record<string, string>;
+  }
+
+  it('forwards Cookie + User-Agent and mints a cookie-value-bound X-CSRF-Token on unsafe forwards', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ updated: true }));
+    const req = new NextRequest('http://localhost/api/globals/nav', {
+      method: 'POST',
+      body: '{}',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `revealui-session=${SESSION_COOKIE_VALUE}`,
+        'User-Agent': 'TestBrowser/1.0',
+      },
+    });
+    await globalsPost(req, { params: Promise.resolve({ slug: 'nav' }) });
+
+    const headers = forwardedHeaders();
+    expect(headers.Cookie).toBe(`revealui-session=${SESSION_COOKIE_VALUE}`);
+    expect(headers['User-Agent']).toBe('TestBrowser/1.0');
+    expect(headers['Content-Type']).toBe('application/json');
+    // The api's csrfMiddleware validates this exact shape against the same
+    // session cookie value it receives  -  assert the minted token verifies.
+    const token = headers['X-CSRF-Token'] ?? '';
+    expect(token).toBeTruthy();
+    await expect(validateCsrfToken(token, SESSION_COOKIE_VALUE, SECRET)).resolves.toBe(true);
+  });
+
+  it('mints the token for collection item PATCH forwards too', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ id: 'post-1' }));
+    const req = new NextRequest('http://localhost/api/collections/posts/post-1', {
+      method: 'PATCH',
+      body: '{}',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `revealui-session=${SESSION_COOKIE_VALUE}`,
+        'User-Agent': 'TestBrowser/1.0',
+      },
+    });
+    await collectionItemPatch(req, {
+      params: Promise.resolve({ collection: 'posts', id: 'post-1' }),
+    });
+
+    const headers = forwardedHeaders();
+    expect(headers['User-Agent']).toBe('TestBrowser/1.0');
+    const token = headers['X-CSRF-Token'] ?? '';
+    expect(token).toBeTruthy();
+    await expect(validateCsrfToken(token, SESSION_COOKIE_VALUE, SECRET)).resolves.toBe(true);
+  });
+
+  it('omits Cookie and X-CSRF-Token when the request carries no session cookie', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ docs: [] }));
+    const req = new NextRequest('http://localhost/api/collections/posts');
+    await collectionsGet(req, { params: Promise.resolve({ collection: 'posts' }) });
+
+    const headers = forwardedHeaders();
+    expect(headers.Cookie).toBeUndefined();
+    expect(headers['X-CSRF-Token']).toBeUndefined();
   });
 });

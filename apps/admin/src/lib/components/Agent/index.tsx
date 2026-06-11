@@ -156,7 +156,7 @@ function useAgentStream() {
       setError(null);
 
       try {
-        const response = await fetch(`${apiBase}/api/agent-stream`, {
+        const response = await apiFetch(`${apiBase}/api/agent-stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

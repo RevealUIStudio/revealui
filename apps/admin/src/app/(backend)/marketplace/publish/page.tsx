@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
 // Types
@@ -130,7 +131,7 @@ export default function PublishAgentPage() {
 
     try {
       // Create agent
-      const agentRes = await fetch(`${apiUrl}/api/revmarket/agents`, {
+      const agentRes = await apiFetch(`${apiUrl}/api/revmarket/agents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -159,7 +160,7 @@ export default function PublishAgentPage() {
       // Add skills
       for (const skill of skills) {
         if (!skill.name) continue;
-        await fetch(`${apiUrl}/api/revmarket/agents/${agent.id}/skills`, {
+        await apiFetch(`${apiUrl}/api/revmarket/agents/${agent.id}/skills`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

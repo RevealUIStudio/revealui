@@ -2,6 +2,7 @@
 
 import type { A2ATask } from '@revealui/contracts';
 import { useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface TaskTesterProps {
   agentId: string;
@@ -35,7 +36,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
     };
 
     try {
-      const res = await fetch(`${apiUrl}/a2a`, {
+      const res = await apiFetch(`${apiUrl}/a2a`, {
         method: 'POST',
         headers,
         credentials: 'include',

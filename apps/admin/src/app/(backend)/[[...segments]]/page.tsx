@@ -21,6 +21,11 @@ type Args = {
 export default async function Page({ params: _params, searchParams: _searchParams }: Args) {
   // Serialize config to remove functions before passing to client component
   const serializedConfig = serializeConfig(config as RevealConfig);
+  // White-label: resolve the brand server-side and pass down; client files
+  // can't read these env vars at runtime (build-time inlining). `||` not
+  // `??`: Compose `${VAR:-}` delivers unset vars as empty strings.
+  const siteName =
+    process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
 
   return (
     <div className="relative">
@@ -45,7 +50,7 @@ export default async function Page({ params: _params, searchParams: _searchParam
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </Link>
-      <AdminDashboard config={serializedConfig} />
+      <AdminDashboard config={serializedConfig} siteName={siteName} />
     </div>
   );
 }

@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
+import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -113,7 +114,7 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiUrl}/api/billing/checkout`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -169,7 +170,7 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiUrl}/api/billing/upgrade`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -198,7 +199,7 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiUrl}/api/billing/upgrade`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -227,7 +228,7 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiUrl}/api/billing/portal`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/portal`, {
         method: 'POST',
         credentials: 'include',
       });

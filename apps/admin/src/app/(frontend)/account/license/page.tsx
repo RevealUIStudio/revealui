@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -111,7 +112,7 @@ export default function LicensePage() {
     setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-      const res = await fetch(`${apiUrl}/api/billing/checkout-perpetual`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/checkout-perpetual`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -139,7 +140,7 @@ export default function LicensePage() {
     setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-      const res = await fetch(`${apiUrl}/api/billing/checkout-support-renewal`, {
+      const res = await apiFetch(`${apiUrl}/api/billing/checkout-support-renewal`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },

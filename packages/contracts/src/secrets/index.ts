@@ -40,7 +40,7 @@ export const SECRETS_SCHEMA_VERSION = 1;
  * - `revealui/dev/electric/service-url`
  * - `revealui/prod/stripe/secret-key`
  * - `revealui/prod/keys/signing-key.json`
- * - `revdev/license-signing-key`
+ * - `revdev/license-signing-private-key`
  * - `credentials/github/anthropic-api-key`
  */
 export const SecretPathSchema = z
