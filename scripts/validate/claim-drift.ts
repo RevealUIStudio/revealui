@@ -153,6 +153,40 @@ function countDbTables(): number {
 }
 
 // ---------------------------------------------------------------------------
+// CLI-template collector + claim patterns (added 2026-06-11)
+//
+// PR #1358 hand-corrected "4 templates" -> 5 in docs/ROADMAP.md; nothing
+// gated that drift class, so the next template addition would silently
+// re-drift the docs. countCliTemplates counts template directories under
+// packages/cli/templates/ (each ships a package.json — the scaffold copies a
+// complete project — so the package.json-gated countDirs applies directly).
+//
+// The claim patterns deliberately do NOT match "N template repos" /
+// "N standalone template repos": docs/ROADMAP.md legitimately pairs the
+// template count with "4 published as standalone template repos", a GitHub
+// fact (the revealui-template-* repos; starter-native has none) that cannot
+// be derived from this filesystem. Plural-only `templates` plus a repos
+// lookahead keeps that phrasing out of this hard-fail gate.
+//
+// REGEX-CONFIG-BOUNDARY — claim patterns only (pre-existing convention in
+// this file; AST refactor queued under GAP-192); the collector authors no
+// regex. Both exports are unit-tested in __tests__/claim-drift.test.ts.
+// ---------------------------------------------------------------------------
+
+/** Path-injectable + exported for tests. */
+export function countCliTemplates(
+  base: string = path.join(ROOT, 'packages/cli/templates'),
+): number {
+  return countDirs(base);
+}
+
+export const CLI_TEMPLATE_CLAIM_PATTERNS: RegExp[] = [
+  // "5 templates" / "5 CLI templates" — not "4 template repos" (singular
+  // never matches) and not "4 templates repos" (repos lookahead)
+  /\b(\d+)\s+(?:CLI\s+)?templates\b(?!\s+repos?\b)/i,
+];
+
+// ---------------------------------------------------------------------------
 // Enforcement-test collector
 //
 // The access-control story is quoted fleet-wide as "N enforcement tests": the
@@ -1428,6 +1462,7 @@ function run(): void {
   const uiComponents = countUIComponents();
   const mcpServers = countMCPServers();
   const dbTables = countDbTables();
+  const cliTemplates = countCliTemplates();
   const enforcementTests = countEnforcementTests();
   const licenseSplit = countLicenseSplit();
 
@@ -1439,6 +1474,7 @@ function run(): void {
   console.log(`  UI components: ${uiComponents}`);
   console.log(`  MCP servers:   ${mcpServers}`);
   console.log(`  DB tables:     ${dbTables}`);
+  console.log(`  CLI templates: ${cliTemplates}`);
   console.log(`  Enforcement:   ${enforcementTests}`);
   console.log(
     `  License split: ${licenseSplit.mit} MIT | ${licenseSplit.fsl} FSL-1.1-MIT | ${licenseSplit.internal} internal/none`,
@@ -1493,6 +1529,14 @@ function run(): void {
         // "Schema (85 tables)" parenthetical
         /\(\s*([1-9]\d{1,2})\s+tables?\s*\)/i,
       ],
+    },
+    {
+      name: 'CLI templates',
+      actual: cliTemplates,
+      // Patterns defined module-level (CLI_TEMPLATE_CLAIM_PATTERNS, exported
+      // for unit tests); see their definition for the "N template repos"
+      // non-match rationale.
+      claimPatterns: CLI_TEMPLATE_CLAIM_PATTERNS,
     },
     {
       name: 'enforcement tests',
