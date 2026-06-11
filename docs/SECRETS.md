@@ -287,6 +287,18 @@ credentials/sentry/auth-token           # error tracking (CI + runtime)
 ```
 credentials/github/personal-access-token
 credentials/github/actions-secrets-mirror
+# revfleet-backflow GitHub App (Contents + Pull requests r/w) — authenticates the
+# org-shared backflow-reusable.yml caller at .github/workflows/backflow-main-into-test.yml
+# in every fleet repo. Mirrored into each repo's Actions secrets as BACKFLOW_APP_ID /
+# BACKFLOW_APP_PRIVATE_KEY (publish step — value piped, never echoed or written to disk;
+# the App installation must also include the repo or the caller fails at token mint):
+#   revvault --json get credentials/github/backflow-app/app-id | jq -r .value | gh secret set BACKFLOW_APP_ID -R RevealUIStudio/<repo>
+#   revvault --json get credentials/github/backflow-app/private-key | jq -r .value | gh secret set BACKFLOW_APP_PRIVATE_KEY -R RevealUIStudio/<repo>
+# Rotation: generate a new private key on the App's settings page, revvault set --force
+# both paths, re-mirror to every repo carrying the caller, then delete the old key from
+# the App (multiple keys can be valid simultaneously, so rotation is zero-downtime).
+credentials/github/backflow-app/app-id
+credentials/github/backflow-app/private-key
 credentials/anthropic/api-key
 credentials/ssh/github                   # if distinct from system SSH
 ```
