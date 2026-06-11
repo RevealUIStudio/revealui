@@ -11,6 +11,8 @@ import {
   countTestFiles,
   extractRevealuiPackages,
   findIncompleteProList,
+  makeIgnoredPathPredicate,
+  parseGitIgnoredOutput,
   WALK_EXCLUDED_DIRS,
 } from '../claim-drift.ts';
 
@@ -258,6 +260,66 @@ describe('countTestFiles', () => {
       fs.writeFileSync(path.join(nested, 'phantom.test.ts'), '');
     }
     expect(countTestFiles(tmp)).toBe(1);
+  });
+
+  it('skips path-shaped ignored dirs the name set cannot express (generated docs-mirror class)', () => {
+    fs.mkdirSync(path.join(tmp, 'src'));
+    fs.writeFileSync(path.join(tmp, 'src', 'real.test.ts'), '');
+    // Generated-mirror shape: apps/docs/public/docs/ — "docs" is a normal
+    // directory name, so WALK_EXCLUDED_DIRS must not (and does not) list it.
+    const mirror = path.join(tmp, 'apps', 'docs', 'public', 'docs');
+    fs.mkdirSync(mirror, { recursive: true });
+    fs.writeFileSync(path.join(mirror, 'copied.test.ts'), '');
+
+    // Without the git-derived set the mirror inflates the count…
+    expect(countTestFiles(tmp)).toBe(2);
+    // …with it, the walker prunes at the collapsed directory entry.
+    const isIgnored = makeIgnoredPathPredicate(tmp, new Set(['apps/docs/public/docs']));
+    expect(countTestFiles(tmp, isIgnored)).toBe(1);
+  });
+
+  it('skips pattern-shaped ignored files inside scanned dirs (report-artifact class)', () => {
+    fs.mkdirSync(path.join(tmp, 'docs'));
+    fs.writeFileSync(path.join(tmp, 'docs', 'kept.test.ts'), '');
+    fs.writeFileSync(path.join(tmp, 'docs', 'STALE_REPORT.test.ts'), '');
+
+    expect(countTestFiles(tmp)).toBe(2);
+    // File-granular skip: exactly the listed file, nothing else.
+    const isIgnored = makeIgnoredPathPredicate(tmp, new Set(['docs/STALE_REPORT.test.ts']));
+    expect(countTestFiles(tmp, isIgnored)).toBe(1);
+  });
+});
+
+describe('parseGitIgnoredOutput', () => {
+  it('splits on NUL and strips the trailing slash from collapsed directories', () => {
+    const raw = 'apps/docs/public/docs/\0docs/LOCAL_VERIFICATION.md\0node_modules/\0';
+    expect(parseGitIgnoredOutput(raw)).toEqual(
+      new Set(['apps/docs/public/docs', 'docs/LOCAL_VERIFICATION.md', 'node_modules']),
+    );
+  });
+
+  it('returns an empty set for empty output', () => {
+    expect(parseGitIgnoredOutput('')).toEqual(new Set());
+  });
+});
+
+describe('makeIgnoredPathPredicate', () => {
+  const base = path.join(os.tmpdir(), 'claim-drift-pred-fixture');
+
+  it('matches files and collapsed directories by base-relative path', () => {
+    const isIgnored = makeIgnoredPathPredicate(
+      base,
+      new Set(['generated/docs', 'docs/STALE_REPORT.md']),
+    );
+    expect(isIgnored(path.join(base, 'generated', 'docs'))).toBe(true);
+    expect(isIgnored(path.join(base, 'docs', 'STALE_REPORT.md'))).toBe(true);
+    expect(isIgnored(path.join(base, 'docs', 'CURRENT.md'))).toBe(false);
+    expect(isIgnored(path.join(base, 'generated'))).toBe(false);
+  });
+
+  it('never matches when the ignored set is empty', () => {
+    const isIgnored = makeIgnoredPathPredicate(base, new Set());
+    expect(isIgnored(path.join(base, 'anything.md'))).toBe(false);
   });
 });
 
