@@ -3,6 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  CLI_TEMPLATE_CLAIM_PATTERNS,
+  countCliTemplates,
   countDirs,
   countEnforcementTests,
   extractRevealuiPackages,
@@ -150,5 +152,72 @@ describe('findIncompleteProList', () => {
     expect(
       findIncompleteProList('@revealui/ai and @revealui/harnesses are used here', fsl, mit),
     ).toBeNull();
+  });
+});
+
+describe('countCliTemplates', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-tpl-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts template directories that ship a package.json', () => {
+    for (const name of ['basic-blog', 'starter']) {
+      fs.mkdirSync(path.join(tmp, name));
+      fs.writeFileSync(path.join(tmp, name, 'package.json'), '{}');
+    }
+    // A bare directory is not a scaffoldable template
+    fs.mkdirSync(path.join(tmp, 'shared-assets'));
+    expect(countCliTemplates(tmp)).toBe(2);
+  });
+
+  it('returns 0 when the templates directory is missing', () => {
+    expect(countCliTemplates(path.join(tmp, 'does-not-exist'))).toBe(0);
+  });
+});
+
+describe('CLI template claim patterns', () => {
+  /**
+   * Mirrors scanForClaims semantics: first matching pattern on a line wins
+   * and capture group 1 carries the claimed count. null = no pattern matched.
+   */
+  function claimedCount(line: string): number | null {
+    for (const pattern of CLI_TEMPLATE_CLAIM_PATTERNS) {
+      const match = pattern.exec(line);
+      if (match) return Number.parseInt(match[1], 10);
+    }
+    return null;
+  }
+
+  it('matches "ships N templates" prose', () => {
+    expect(claimedCount('`@revealui/cli` ships 5 templates (`basic-blog`, `e-commerce`)')).toBe(5);
+  });
+
+  it('captures the template count, not the repo count, in the ROADMAP launch bullet', () => {
+    expect(
+      claimedCount(
+        '- **5 CLI templates** (basic-blog, e-commerce, portfolio, starter, starter-native)  -  4 published as standalone template repos',
+      ),
+    ).toBe(5);
+  });
+
+  it('does not match the standalone-template-repo phrasing (GitHub fact, not a filesystem count)', () => {
+    expect(claimedCount('4 published as standalone template repos')).toBeNull();
+    expect(claimedCount('4 standalone template repos')).toBeNull();
+    expect(claimedCount('4 template repos under the RevealUIStudio org')).toBeNull();
+  });
+
+  it('does not match "N templates repos" thanks to the repos lookahead', () => {
+    expect(claimedCount('4 templates repos')).toBeNull();
+    expect(claimedCount('4 templates repo mirrors')).toBeNull();
+  });
+
+  it('does not match singular "template" phrasing', () => {
+    expect(claimedCount('1 template directory was added')).toBeNull();
   });
 });
