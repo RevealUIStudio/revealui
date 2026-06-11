@@ -62,18 +62,28 @@ Options:
 
 ## What Gets Created
 
+The Next.js templates (basic-blog, e-commerce, portfolio, starter) scaffold a single Next.js app:
+
 ```
 my-project/
-├── apps/
-│   ├── cms/              # CMS application
-│   └── mainframe/        # Frontend application
-├── packages/
-│   └── ...               # Shared packages
-├── .devcontainer/        # Dev Container configuration
-├── devbox.json           # Devbox configuration
-├── .env.development.local # Environment variables
-└── README.md             # Project documentation
+├── src/
+│   ├── app/                   # Next.js App Router pages + template routes
+│   ├── collections/           # RevealUI collections (not in starter)
+│   └── seed.ts                # Database seed script
+├── revealui.config.ts         # RevealUI configuration
+├── next.config.mjs
+├── postcss.config.mjs
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── .gitignore
+├── .env.development.local     # Generated from your setup answers
+└── README.md                  # Generated getting-started guide
 ```
+
+The starter-native template scaffolds the Vite shape instead: `app/` (App.tsx, main.tsx, routes/, layouts/, styles/) plus `src/seed.ts`, `index.html`, `vite.config.ts`, and `vitest.config.ts` replace `src/app/` and the Next.js configs.
+
+Answering yes to the Dev Container and Devbox prompts also creates `.devcontainer/` and `devbox.json`.
 
 ## Next Steps
 
