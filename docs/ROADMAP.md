@@ -11,13 +11,13 @@ audience: developer
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-05-19
+**Last updated:** 2026-06-11
 
 ---
 
 ## RevFleet Product Maturity
 
-Honest labels for every product in the RevealUI ecosystem. Updated 2026-05-19.
+Honest labels for every product in the RevealUI ecosystem. Updated 2026-06-11.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
@@ -29,7 +29,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-05-19.
 | **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
 | **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
 | **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
-| **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Database schema defined. No API routes or UI. |
+| **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Schema, API routes, payouts cron, and admin UI built. Launch-gated pre-users: x402 disabled by default, no live charging. |
 | **RevKit** (templates) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Design documented. Stub implementation. |
 
 **Labels:** Production = real users + stable API. Beta = feature-complete, deployed, pre-users.
@@ -59,7 +59,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 
 - **Public repo** on GitHub with MIT license (OSS packages)
 - **26 packages** published to npm
-- **4 template repos** (basic-blog, e-commerce, portfolio, starter)
+- **5 CLI templates** (basic-blog, e-commerce, portfolio, starter, starter-native)  -  4 published as standalone template repos
 - **Production deploys**  -  admin, API, Marketing, Docs on Vercel
 - **Stripe test mode** verified end-to-end (checkout, webhooks, license generation)
 
@@ -115,7 +115,7 @@ Give users the ability to interact with an AI agent directly from the admin dash
 
 #### Ecosystem Integration — [#528](https://github.com/RevealUIStudio/revealui/issues/528)
 - RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
-- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: 5 interactive rotation shell scripts ship at `~/revfleet/.jv/scripts/rotation/` (neon, revealui-secret, stripe-webhook, probe-current-values, probe-mcp-api-key); Rust workspace at `~/revfleet/revvault/` ready to absorb them as a first-class subsystem._
+- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: the Rust rotation subsystem ships in the [RevVault repo](https://github.com/RevealUIStudio/revvault) at `crates/core/src/rotation/` (executor, provider framework, sync hooks) with a `revvault rotate <provider>` CLI supporting `--dry-run` (`crates/cli/src/commands/rotate.rs`); a small set of internal interactive rotation scripts covers providers not yet migrated._
 - RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
@@ -124,7 +124,7 @@ Give users the ability to interact with an AI agent directly from the admin dash
 - **`@revealui/security`** encryption + authorization helpers (`EncryptionSystem`, `FieldEncryption`, `KeyRotationManager`, `TokenGenerator`, `DataMasking`, `EnvelopeEncryption`, `PolicyBuilder`, `PermissionBuilder`) — implemented but not exported from the barrel. Production encryption today flows through KEK + revvault directly; these helpers are reserved for future consumer-facing surfaces.
 
 #### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)
-- `create-revealui` template improvements (more starters, better defaults). _Currently: `@revealui/cli` ships 4 templates (`basic-blog`, `e-commerce`, `portfolio`, `starter`) at `packages/cli/templates/`; bullet covers template audit + one new opinionated-SaaS starter + smoother prompts + post-init onboarding._
+- `create-revealui` template improvements (more starters, better defaults). _Currently: `@revealui/cli` ships 5 templates (`basic-blog`, `e-commerce`, `portfolio`, `starter`, `starter-native`) at `packages/cli/templates/`; bullet covers template audit + one new opinionated-SaaS starter + smoother prompts + post-init onboarding._
 - Hot module reload improvements for admin development. _Currently: admin runs Next.js 16 with Turbopack configured; bullet covers baseline measurement + collection-definition HMR + RichText plugin HMR + dev-startup optimization._
 - Better error messages and debugging output. _Currently: `packages/core/src/error-handling/` ships boundaries + reporter + fallbacks + Sentry wired per §CR-8 Phase 1; bullet covers user-facing error audit + opaque → actionable rewrites + structured `DEBUG=revealui:*` namespaces + API error-envelope consistency._
 - Plugin system documentation. _Currently: Plugin API lives at `packages/core/src/types/plugins.ts` with 3 first-party plugins (`form-builder`, `nested-docs`, `redirects`) but no dedicated `docs/PLUGINS.md`; bullet closes that documentation gap._
