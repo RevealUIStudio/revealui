@@ -44,7 +44,10 @@ export function SignupForm({ apiUrl }: SignupFormProps) {
 function SignupContent({ apiUrl }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const plan = searchParams.get('plan');
+  // Paid-tier deep link from the marketing pricing cards (?plan=pro|max).
+  // Unknown values are ignored rather than forwarded to the billing page.
+  const planParam = searchParams.get('plan');
+  const plan: 'pro' | 'max' | null = planParam === 'pro' || planParam === 'max' ? planParam : null;
   const { signUp, isLoading } = useSignUp();
   const {
     register: registerPasskey,
@@ -91,8 +94,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       // sign in — show a confirmation screen instead of pushing them to a
       // protected route that would only bounce back to /login.
       if (result.user?.emailVerified) {
-        if (plan === 'pro') {
-          router.push('/account/billing?upgrade=pro');
+        if (plan) {
+          router.push(`/account/billing?upgrade=${plan}`);
         } else {
           router.push('/');
         }
@@ -218,8 +221,10 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         Create your account
       </Heading>
 
-      {plan === 'pro' ? (
-        <p className="text-sm text-muted-foreground">Sign up to start your free 7-day Pro trial.</p>
+      {plan ? (
+        <p className="text-sm text-muted-foreground">
+          Sign up to start your free 7-day {plan === 'pro' ? 'Pro' : 'Max'} trial.
+        </p>
       ) : (
         <p className="text-sm text-muted-foreground">
           Already have an account?{' '}

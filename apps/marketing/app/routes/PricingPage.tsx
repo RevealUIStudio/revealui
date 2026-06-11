@@ -5,13 +5,13 @@ import { Footer } from '../components/Footer';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PERPETUAL_TIERS,
-  PRICING_AGENCY_SECTION,
   PRICING_AGENCY_VALUE_BAND,
   PRICING_AGENT_A2A,
   PRICING_AGENT_CTA_LINKS,
   PRICING_AGENT_MCP,
   PRICING_AGENT_X402,
   PRICING_AGENTS_SECTION,
+  PRICING_DONE_FOR_YOU,
   PRICING_FINAL_CTA,
   PRICING_FINAL_CTA_LINKS,
   PRICING_HERO,
@@ -21,6 +21,7 @@ import {
   PRICING_NEWSLETTER_LABEL,
   PRICING_TRACK_A_SECTION,
   PRICING_TRACK_C_SECTION,
+  PRICING_TRIAL_NOTE,
   PRICING_VALUE_BAND,
   type PricingResponse,
   SUBSCRIPTION_TIERS,
@@ -42,6 +43,31 @@ const FALLBACK_PRICE: Record<LicenseTierId, { price: string; period?: string }> 
   pro: { price: '$49', period: '/month' },
   max: { price: '$299', period: '/month' },
   enterprise: { price: '$1,499', period: '/month' },
+};
+
+// Same role as FALLBACK_PRICE for the perpetual cards: without it an API
+// outage renders "Contact for pricing" on all three, hiding the published
+// anchors. Mirrors HARDCODED_PERPETUAL_PRICES in apps/server/src/routes/
+// pricing.ts (lockstep enforced by pricing-marketing-drift.test.ts).
+const FALLBACK_PERPETUAL_PRICE: Record<
+  string,
+  { price: string; priceNote: string; renewal: string }
+> = {
+  'Pro Perpetual': {
+    price: '$1,499',
+    priceNote: 'one-time',
+    renewal: '$149/yr for continued support',
+  },
+  'Agency Perpetual': {
+    price: '$8,499',
+    priceNote: 'one-time',
+    renewal: '$799/yr for continued support',
+  },
+  'Enterprise Perpetual': {
+    price: '$42,999',
+    priceNote: 'one-time',
+    renewal: '$3,999/yr for continued support',
+  },
 };
 
 function CheckIcon({ className }: { className?: string }) {
@@ -84,7 +110,15 @@ export function PricingPage() {
       ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
     };
   });
-  const perpetualTiers = pricing?.perpetual ?? PERPETUAL_TIERS;
+  const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS).map((tier) => {
+    const fallback = FALLBACK_PERPETUAL_PRICE[tier.name];
+    return {
+      ...tier,
+      price: tier.price ?? fallback?.price,
+      priceNote: tier.priceNote ?? fallback?.priceNote,
+      renewal: tier.renewal ?? fallback?.renewal,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -215,6 +249,8 @@ export function PricingPage() {
               </div>
             ))}
           </div>
+
+          <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
         </div>
       </section>
 
@@ -442,17 +478,50 @@ export function PricingPage() {
         </div>
       </section>
 
-      {/* Need implementation help? Hand off to the agency. */}
-      <section className="bg-primary/5 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {PRICING_AGENCY_SECTION.heading}
-          </h2>
-          <p className="mt-4 text-base text-muted-foreground">{PRICING_AGENCY_SECTION.body}</p>
-          <div className="mt-8">
-            <ButtonCVA asChild variant="outline" size="lg">
-              <a href={PRICING_AGENCY_SECTION.cta.href} target="_blank" rel="noopener noreferrer">
-                {PRICING_AGENCY_SECTION.cta.label}
+      {/* Done-for-you rung: services ladder + discovery-call capture */}
+      <section id="done-for-you" className="bg-primary/5 py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
+              {PRICING_DONE_FOR_YOU.eyebrow}
+            </span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {PRICING_DONE_FOR_YOU.heading}
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              {PRICING_DONE_FOR_YOU.body}
+            </p>
+          </div>
+
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-3">
+            {PRICING_DONE_FOR_YOU.rungs.map((rung) => (
+              <div key={rung.name} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+                <h3 className="text-base font-semibold text-foreground">{rung.name}</h3>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+                  {rung.price}
+                </p>
+                <p className="mt-3 text-sm text-muted-foreground">{rung.note}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
+              <a
+                href={PRICING_DONE_FOR_YOU.primaryCta.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {PRICING_DONE_FOR_YOU.primaryCta.label}
+              </a>
+            </ButtonCVA>
+            <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
+              <a
+                href={PRICING_DONE_FOR_YOU.secondaryCta.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {PRICING_DONE_FOR_YOU.secondaryCta.label}
               </a>
             </ButtonCVA>
           </div>

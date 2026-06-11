@@ -8,12 +8,13 @@
  *   1. `apps/server/src/routes/pricing.ts` HARDCODED_*_PRICES
  *   2. `apps/marketing/app/content/pricing.ts` + dependent content
  *   3. `apps/marketing/app/components/landing/PricingTeaser.tsx` TEASER_FALLBACK_PRICE
- *   4. `docs/MARKETING_METRICS.md` §2 (the canonical doc)
- *   5. Stripe live data (via `pnpm stripe:seed` post-update)
- *   6. This file
+ *   4. `apps/marketing/app/routes/PricingPage.tsx` FALLBACK_PRICE + FALLBACK_PERPETUAL_PRICE
+ *   5. `docs/MARKETING_METRICS.md` §2 (the canonical doc)
+ *   6. Stripe live data (via `pnpm stripe:seed` post-update)
+ *   7. This file
  *
  * If this test fails, the lockstep was broken. Don't update the test in
- * isolation — update all six together so the canonical truth stays canonical.
+ * isolation — update all seven together so the canonical truth stays canonical.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

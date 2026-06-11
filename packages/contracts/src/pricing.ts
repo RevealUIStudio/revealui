@@ -152,8 +152,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Email support (48h response)',
       'Full source code access',
     ],
-    cta: 'Join the waitlist',
-    ctaHref: 'https://revealui.com/contact',
+    // Deep-links into the existing checkout path: /signup?plan=pro ->
+    // /account/billing?upgrade=pro -> auto-checkout (7-day trial via
+    // REVEALUI_TRIAL_DAYS). Marketing prefixes the admin origin onto
+    // '/'-relative hrefs. Signup stays 403 until REVEALUI_SIGNUP_OPEN flips
+    // (GAP-240), the same gate the marketing hero CTA already fronts.
+    cta: 'Start your 7-day free trial',
+    ctaHref: '/signup?plan=pro',
     highlighted: true,
   },
   {
@@ -172,8 +177,8 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Email support (24h response)',
       'Full source code access',
     ],
-    cta: 'Join the waitlist',
-    ctaHref: 'https://revealui.com/contact',
+    cta: 'Start your 7-day free trial',
+    ctaHref: '/signup?plan=max',
     highlighted: false,
   },
   {
