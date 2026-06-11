@@ -1405,7 +1405,7 @@ GET /.well-known/marketplace.json
 
 # Enterprise tier
 
-Customers buy the Enterprise tier of RevealUI ($299/mo); the RevealUI Fleet kit (produced by RevForge) is what they deploy. Two paths:
+Customers buy the Enterprise tier of RevealUI ($1,499/mo); the RevealUI Fleet kit (produced by RevForge) is what they deploy. Two paths:
 
 - **Hosted Enterprise** — RevealUI Studio manages infrastructure. You get a dedicated instance on `revealui.com` infrastructure, domain-configured for your organization.
 - **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`.

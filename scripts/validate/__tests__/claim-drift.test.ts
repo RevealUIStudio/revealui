@@ -1,12 +1,19 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  CLI_TEMPLATE_CLAIM_PATTERNS,
+  countCliTemplates,
   countDirs,
   countEnforcementTests,
+  countTestFiles,
   extractRevealuiPackages,
   findIncompleteProList,
+  makeIgnoredPathPredicate,
+  parseGitIgnoredOutput,
+  WALK_EXCLUDED_DIRS,
 } from '../claim-drift.ts';
 
 describe('countDirs', () => {
@@ -150,5 +157,204 @@ describe('findIncompleteProList', () => {
     expect(
       findIncompleteProList('@revealui/ai and @revealui/harnesses are used here', fsl, mit),
     ).toBeNull();
+  });
+});
+
+describe('countCliTemplates', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-tpl-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts template directories that ship a package.json', () => {
+    for (const name of ['basic-blog', 'starter']) {
+      fs.mkdirSync(path.join(tmp, name));
+      fs.writeFileSync(path.join(tmp, name, 'package.json'), '{}');
+    }
+    // A bare directory is not a scaffoldable template
+    fs.mkdirSync(path.join(tmp, 'shared-assets'));
+    expect(countCliTemplates(tmp)).toBe(2);
+  });
+
+  it('returns 0 when the templates directory is missing', () => {
+    expect(countCliTemplates(path.join(tmp, 'does-not-exist'))).toBe(0);
+  });
+});
+
+describe('CLI template claim patterns', () => {
+  /**
+   * Mirrors scanForClaims semantics: first matching pattern on a line wins
+   * and capture group 1 carries the claimed count. null = no pattern matched.
+   */
+  function claimedCount(line: string): number | null {
+    for (const pattern of CLI_TEMPLATE_CLAIM_PATTERNS) {
+      const match = pattern.exec(line);
+      if (match) return Number.parseInt(match[1], 10);
+    }
+    return null;
+  }
+
+  it('matches "ships N templates" prose', () => {
+    expect(claimedCount('`@revealui/cli` ships 5 templates (`basic-blog`, `e-commerce`)')).toBe(5);
+  });
+
+  it('captures the template count, not the repo count, in the ROADMAP launch bullet', () => {
+    expect(
+      claimedCount(
+        '- **5 CLI templates** (basic-blog, e-commerce, portfolio, starter, starter-native)  -  4 published as standalone template repos',
+      ),
+    ).toBe(5);
+  });
+
+  it('does not match the standalone-template-repo phrasing (GitHub fact, not a filesystem count)', () => {
+    expect(claimedCount('4 published as standalone template repos')).toBeNull();
+    expect(claimedCount('4 standalone template repos')).toBeNull();
+    expect(claimedCount('4 template repos under the RevealUIStudio org')).toBeNull();
+  });
+
+  it('does not match "N templates repos" thanks to the repos lookahead', () => {
+    expect(claimedCount('4 templates repos')).toBeNull();
+    expect(claimedCount('4 templates repo mirrors')).toBeNull();
+  });
+
+  it('does not match singular "template" phrasing', () => {
+    expect(claimedCount('1 template directory was added')).toBeNull();
+  });
+});
+
+describe('countTestFiles', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-walk-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts test-suffixed files outside excluded directories', () => {
+    fs.mkdirSync(path.join(tmp, 'packages', 'core', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'src', 'a.test.ts'), '');
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'src', 'b.spec.tsx'), '');
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'src', 'helper.ts'), '');
+    expect(countTestFiles(tmp)).toBe(2);
+  });
+
+  it('skips gitignored artifact dirs at any depth (2026-06-11 stale-opensrc incident)', () => {
+    fs.mkdirSync(path.join(tmp, 'src'));
+    fs.writeFileSync(path.join(tmp, 'src', 'real.test.ts'), '');
+    // Incident shape: a stale opensrc/ cache of fetched third-party sources
+    const opensrc = path.join(tmp, 'opensrc', 'repos', 'github.com', 'colinhacks', 'zod', 'src');
+    fs.mkdirSync(opensrc, { recursive: true });
+    fs.writeFileSync(path.join(opensrc, 'fake.test.ts'), '');
+    // Every excluded name, nested under an app dir to prove depth-independence
+    for (const dir of WALK_EXCLUDED_DIRS) {
+      const nested = path.join(tmp, 'apps', 'web', dir);
+      fs.mkdirSync(nested, { recursive: true });
+      fs.writeFileSync(path.join(nested, 'phantom.test.ts'), '');
+    }
+    expect(countTestFiles(tmp)).toBe(1);
+  });
+
+  it('skips path-shaped ignored dirs the name set cannot express (generated docs-mirror class)', () => {
+    fs.mkdirSync(path.join(tmp, 'src'));
+    fs.writeFileSync(path.join(tmp, 'src', 'real.test.ts'), '');
+    // Generated-mirror shape: apps/docs/public/docs/ — "docs" is a normal
+    // directory name, so WALK_EXCLUDED_DIRS must not (and does not) list it.
+    const mirror = path.join(tmp, 'apps', 'docs', 'public', 'docs');
+    fs.mkdirSync(mirror, { recursive: true });
+    fs.writeFileSync(path.join(mirror, 'copied.test.ts'), '');
+
+    // Without the git-derived set the mirror inflates the count…
+    expect(countTestFiles(tmp)).toBe(2);
+    // …with it, the walker prunes at the collapsed directory entry.
+    const isIgnored = makeIgnoredPathPredicate(tmp, new Set(['apps/docs/public/docs']));
+    expect(countTestFiles(tmp, isIgnored)).toBe(1);
+  });
+
+  it('skips pattern-shaped ignored files inside scanned dirs (report-artifact class)', () => {
+    fs.mkdirSync(path.join(tmp, 'docs'));
+    fs.writeFileSync(path.join(tmp, 'docs', 'kept.test.ts'), '');
+    fs.writeFileSync(path.join(tmp, 'docs', 'STALE_REPORT.test.ts'), '');
+
+    expect(countTestFiles(tmp)).toBe(2);
+    // File-granular skip: exactly the listed file, nothing else.
+    const isIgnored = makeIgnoredPathPredicate(tmp, new Set(['docs/STALE_REPORT.test.ts']));
+    expect(countTestFiles(tmp, isIgnored)).toBe(1);
+  });
+});
+
+describe('parseGitIgnoredOutput', () => {
+  it('splits on NUL and strips the trailing slash from collapsed directories', () => {
+    const raw = 'apps/docs/public/docs/\0docs/LOCAL_VERIFICATION.md\0node_modules/\0';
+    expect(parseGitIgnoredOutput(raw)).toEqual(
+      new Set(['apps/docs/public/docs', 'docs/LOCAL_VERIFICATION.md', 'node_modules']),
+    );
+  });
+
+  it('returns an empty set for empty output', () => {
+    expect(parseGitIgnoredOutput('')).toEqual(new Set());
+  });
+});
+
+describe('makeIgnoredPathPredicate', () => {
+  const base = path.join(os.tmpdir(), 'claim-drift-pred-fixture');
+
+  it('matches files and collapsed directories by base-relative path', () => {
+    const isIgnored = makeIgnoredPathPredicate(
+      base,
+      new Set(['generated/docs', 'docs/STALE_REPORT.md']),
+    );
+    expect(isIgnored(path.join(base, 'generated', 'docs'))).toBe(true);
+    expect(isIgnored(path.join(base, 'docs', 'STALE_REPORT.md'))).toBe(true);
+    expect(isIgnored(path.join(base, 'docs', 'CURRENT.md'))).toBe(false);
+    expect(isIgnored(path.join(base, 'generated'))).toBe(false);
+  });
+
+  it('never matches when the ignored set is empty', () => {
+    const isIgnored = makeIgnoredPathPredicate(base, new Set());
+    expect(isIgnored(path.join(base, 'anything.md'))).toBe(false);
+  });
+});
+
+describe('WALK_EXCLUDED_DIRS', () => {
+  const repoRoot = path.resolve(import.meta.dirname, '../../..');
+
+  it('every entry except .git has a covering .gitignore line', () => {
+    const gitignore = fs.readFileSync(path.join(repoRoot, '.gitignore'), 'utf8');
+    const covered = new Set<string>();
+    for (const raw of gitignore.split('\n')) {
+      const line = raw.trim();
+      if (line.length === 0 || line.startsWith('#') || line.startsWith('!')) continue;
+      let name = line;
+      if (name.startsWith('**/')) name = name.slice('**/'.length);
+      if (name.endsWith('/')) name = name.slice(0, -1);
+      covered.add(name);
+    }
+    for (const dir of WALK_EXCLUDED_DIRS) {
+      if (dir === '.git') continue;
+      expect(covered.has(dir), `"${dir}" is walker-excluded but not gitignored`).toBe(true);
+    }
+  });
+
+  it('no entry shadows git-tracked files (e.g. screenshots/ must stay walkable)', () => {
+    const tracked = execFileSync('git', ['ls-files'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    const shadowed = new Set<string>();
+    for (const file of tracked.split('\n')) {
+      for (const segment of file.split('/')) {
+        if (WALK_EXCLUDED_DIRS.has(segment)) shadowed.add(file);
+      }
+    }
+    expect([...shadowed]).toEqual([]);
   });
 });

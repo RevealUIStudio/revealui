@@ -19,11 +19,155 @@
  * no-console-log rule (per .revealui/code-standards.json).
  */
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const showFix = process.argv.includes('--fix');
+
+// ---------------------------------------------------------------------------
+// Walker exclusions
+//
+// Two layers keep stale local artifacts from skewing local validator runs vs
+// the clean checkout CI sees (incident 2026-06-11: a stale opensrc/ cache
+// held 53 third-party *.test.ts files, inflating countTestFiles() from 961
+// to 1014 — past the ±100 testFiles tolerance — so the local gate
+// hard-failed while CI stayed green):
+//
+// 1. WALK_EXCLUDED_DIRS — directory NAMES the walkers below must never
+//    enter, matched per entry at any depth. This is the only protection when
+//    git is unavailable, so every gitignored artifact directory name that
+//    can hold walker-matchable files (.ts/.tsx/.md/.txt/.json/.sh) still
+//    belongs here. Keep entries in sync with .gitignore: the unit tests
+//    assert every entry except .git has a covering .gitignore line AND that
+//    no entry shadows git-tracked files (e.g. screenshots/ is gitignored yet
+//    apps/marketing/public/screenshots is tracked, so it must NOT be listed
+//    here).
+//
+// 2. The git-derived ignored-path set (below) — one lazy `git ls-files` pass
+//    covering what a name set cannot express: path-shaped ignores (the
+//    generated docs mirrors apps/docs/public/docs/ + apps/docs/dist/docs/
+//    written by apps/docs/scripts/copy-docs.sh, where a local docs build
+//    duplicates every scan hit under the generated copy) and pattern-shaped
+//    file ignores inside scanned dirs (docs/*VERIFICATION*.md /
+//    docs/*REPORT*.md report artifacts carrying stale counts). It also
+//    honors nested .gitignore files (apps/docs/.gitignore `public/*/`),
+//    which the name set and its sync-guard test never see.
+// ---------------------------------------------------------------------------
+
+/** Exported for tests. */
+export const WALK_EXCLUDED_DIRS: ReadonlySet<string> = new Set([
+  '.git',
+  '.claude',
+  'node_modules',
+  // build output (gitignored)
+  'dist',
+  'build',
+  'out',
+  '.next',
+  // tool caches and generated reports (gitignored)
+  '.turbo',
+  '.vercel',
+  '.direnv',
+  '.pnpm-store',
+  'coverage',
+  'playwright-report',
+  'test-results',
+  '__temp_discover_test__',
+  // fetched third-party package source — the 2026-06-11 incident dir
+  'opensrc',
+  // parallel-agent worktrees: full repo copies under the repo root
+  '.worktrees',
+]);
+
+/** Skip-predicate the walkers consult for every entry. Exported for tests. */
+export type IgnoredPathPredicate = (fullPath: string) => boolean;
+
+const NEVER_IGNORED: IgnoredPathPredicate = () => false;
+
+/**
+ * Parse `git ls-files --others --ignored --exclude-standard --directory -z`
+ * output into repo-relative ignored paths. Entries are NUL-separated (split
+ * on the literal NUL — no authored regex, per the fleet no-regex rule);
+ * fully-ignored directories arrive collapsed with a trailing slash, stripped
+ * here so one Set lookup serves both file and directory entries.
+ * Exported for tests.
+ */
+export function parseGitIgnoredOutput(raw: string): Set<string> {
+  const ignored = new Set<string>();
+  for (const entry of raw.split('\0')) {
+    if (entry.length === 0) continue;
+    ignored.add(entry.endsWith('/') ? entry.slice(0, -1) : entry);
+  }
+  return ignored;
+}
+
+/**
+ * Build the skip-predicate for `ignoredPaths` rooted at `base`. Matching is
+ * an exact Set lookup on the base-relative path — git collapses fully-
+ * ignored directories to a single entry, so pruning at the directory entry
+ * is sufficient and no prefix scan is needed. Exported for tests.
+ */
+export function makeIgnoredPathPredicate(
+  base: string,
+  ignoredPaths: ReadonlySet<string>,
+): IgnoredPathPredicate {
+  if (ignoredPaths.size === 0) return NEVER_IGNORED;
+  return (fullPath: string): boolean =>
+    ignoredPaths.has(path.relative(base, fullPath).split(path.sep).join('/'));
+}
+
+/**
+ * One upfront git pass: every gitignored path under `root`, repo-relative.
+ * Covers the two classes the WALK_EXCLUDED_DIRS name set cannot express
+ * (path-shaped directory ignores; pattern-shaped file ignores) and honors
+ * nested .gitignore files. By construction the set can never shadow tracked
+ * files — git lists only ignored UNTRACKED paths, so e.g. the tracked
+ * apps/marketing/public/screenshots/ never appears here even though
+ * `screenshots/` is a .gitignore line.
+ *
+ * Returns null when git is unavailable (no git binary, deleted .git, tarball
+ * checkout) — walkers then fall back to WALK_EXCLUDED_DIRS alone, the
+ * pre-existing behavior.
+ */
+function loadGitIgnoredPaths(root: string): ReadonlySet<string> | null {
+  try {
+    const raw = execFileSync(
+      'git',
+      ['ls-files', '--others', '--ignored', '--exclude-standard', '--directory', '-z'],
+      { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+    );
+    return parseGitIgnoredOutput(raw);
+  } catch {
+    return null;
+  }
+}
+
+let rootPredicateCache: IgnoredPathPredicate | undefined;
+
+/**
+ * Skip-predicate for walks rooted inside the real repo tree. Lazy + cached:
+ * the git pass runs once per process on first walker use — never at import
+ * time (the unit tests import this module). Walks rooted OUTSIDE the repo
+ * (the mkdtemp fixtures in the unit tests — fixture dirs are not git repos)
+ * default to no path-based skipping, keeping the suite hermetic; tests that
+ * want path-skipping inject their own predicate instead.
+ */
+function ignoredPathPredicateFor(base: string): IgnoredPathPredicate {
+  if (base !== ROOT && !base.startsWith(ROOT + path.sep)) return NEVER_IGNORED;
+  if (rootPredicateCache === undefined) {
+    const ignored = loadGitIgnoredPaths(ROOT);
+    if (ignored === null) {
+      console.warn(
+        'claim-drift: git unavailable — gitignored-path skipping disabled; ' +
+          'walkers fall back to WALK_EXCLUDED_DIRS names only.',
+      );
+    }
+    rootPredicateCache = ignored === null ? NEVER_IGNORED : makeIgnoredPathPredicate(ROOT, ignored);
+  }
+  return rootPredicateCache;
+}
 
 // ---------------------------------------------------------------------------
 // Metric collectors
@@ -36,7 +180,11 @@ interface Metric {
   claimPatterns: RegExp[];
 }
 
-function countByGlob(base: string, extensions: string[]): number {
+function countByGlob(
+  base: string,
+  extensions: string[],
+  isIgnored: IgnoredPathPredicate = ignoredPathPredicateFor(base),
+): number {
   let count = 0;
   function walk(dir: string): void {
     let entries: fs.Dirent[];
@@ -46,14 +194,8 @@ function countByGlob(base: string, extensions: string[]): number {
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
       const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
       if (e.isDirectory()) {
         walk(full);
       } else if (extensions.some((ext) => e.name.endsWith(ext))) {
@@ -65,12 +207,19 @@ function countByGlob(base: string, extensions: string[]): number {
   return count;
 }
 
-function countDirs(base: string): number {
+function countDirs(
+  base: string,
+  isIgnored: IgnoredPathPredicate = ignoredPathPredicateFor(base),
+): number {
   try {
     return fs
       .readdirSync(base, { withFileTypes: true })
-      .filter((e) => e.isDirectory() && fs.existsSync(path.join(base, e.name, 'package.json')))
-      .length;
+      .filter(
+        (e) =>
+          e.isDirectory() &&
+          !isIgnored(path.join(base, e.name)) &&
+          fs.existsSync(path.join(base, e.name, 'package.json')),
+      ).length;
   } catch {
     return 0;
   }
@@ -84,8 +233,16 @@ function countApps(): number {
   return countDirs(path.join(ROOT, 'apps'));
 }
 
-function countTestFiles(): number {
-  return countByGlob(ROOT, ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx', '.e2e.ts']);
+/**
+ * Count test files across the repo. Path-injectable + exported for tests
+ * (mirrors countEnforcementTests); tests may also inject a skip-predicate.
+ */
+export function countTestFiles(base: string = ROOT, isIgnored?: IgnoredPathPredicate): number {
+  return countByGlob(
+    base,
+    ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx', '.e2e.ts'],
+    isIgnored,
+  );
 }
 
 function countUIComponents(): number {
@@ -123,6 +280,7 @@ function countWorkspaces(): number {
 function countDbTables(): number {
   const schemaDir = path.join(ROOT, 'packages/db/src/schema');
   if (!fs.existsSync(schemaDir)) return 0;
+  const isIgnored = ignoredPathPredicateFor(schemaDir);
   let total = 0;
   function walk(dir: string): void {
     let entries: fs.Dirent[];
@@ -133,6 +291,7 @@ function countDbTables(): number {
     }
     for (const e of entries) {
       const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
       if (e.isDirectory()) {
         walk(full);
       } else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) {
@@ -151,6 +310,40 @@ function countDbTables(): number {
   walk(schemaDir);
   return total;
 }
+
+// ---------------------------------------------------------------------------
+// CLI-template collector + claim patterns (added 2026-06-11)
+//
+// PR #1358 hand-corrected "4 templates" -> 5 in docs/ROADMAP.md; nothing
+// gated that drift class, so the next template addition would silently
+// re-drift the docs. countCliTemplates counts template directories under
+// packages/cli/templates/ (each ships a package.json — the scaffold copies a
+// complete project — so the package.json-gated countDirs applies directly).
+//
+// The claim patterns deliberately do NOT match "N template repos" /
+// "N standalone template repos": docs/ROADMAP.md legitimately pairs the
+// template count with "4 published as standalone template repos", a GitHub
+// fact (the revealui-template-* repos; starter-native has none) that cannot
+// be derived from this filesystem. Plural-only `templates` plus a repos
+// lookahead keeps that phrasing out of this hard-fail gate.
+//
+// REGEX-CONFIG-BOUNDARY — claim patterns only (pre-existing convention in
+// this file; AST refactor queued under GAP-192); the collector authors no
+// regex. Both exports are unit-tested in __tests__/claim-drift.test.ts.
+// ---------------------------------------------------------------------------
+
+/** Path-injectable + exported for tests. */
+export function countCliTemplates(
+  base: string = path.join(ROOT, 'packages/cli/templates'),
+): number {
+  return countDirs(base);
+}
+
+export const CLI_TEMPLATE_CLAIM_PATTERNS: RegExp[] = [
+  // "5 templates" / "5 CLI templates" — not "4 template repos" (singular
+  // never matches) and not "4 templates repos" (repos lookahead)
+  /\b(\d+)\s+(?:CLI\s+)?templates\b(?!\s+repos?\b)/i,
+];
 
 // ---------------------------------------------------------------------------
 // Enforcement-test collector
@@ -336,6 +529,7 @@ const LICENSE_SCAN_EXTENSIONS_FULL = ['.md', '.txt', '.ts', '.tsx', '.json', '.s
 const LICENSE_SCAN_EXTENSIONS_PACKAGES = ['.md']; // packages/* is huge; restrict to docs
 
 function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void): void {
+  const isIgnored = ignoredPathPredicateFor(ROOT);
   function walk(dir: string): void {
     let entries: fs.Dirent[];
     try {
@@ -344,14 +538,8 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
       const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
       const rel = path.relative(ROOT, full).replace(/\\/g, '/');
       if (e.isDirectory()) {
         walk(full);
@@ -701,6 +889,7 @@ const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md'];
 
 function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   const matches: ClaimMatch[] = [];
+  const isIgnored = ignoredPathPredicateFor(ROOT);
 
   function scanFile(filePath: string): void {
     const rel = path.relative(ROOT, filePath);
@@ -763,14 +952,8 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
       const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
       if (e.isDirectory()) {
         walkAndScan(full);
       } else if (
@@ -982,6 +1165,7 @@ const QUALIFIER_PATTERN =
 
 function scanForAspirationalFeatures(): AspirationalMatch[] {
   const matches: AspirationalMatch[] = [];
+  const isIgnored = ignoredPathPredicateFor(ROOT);
 
   function scanFile(filePath: string): void {
     const rel = path.relative(ROOT, filePath);
@@ -1036,6 +1220,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
     }
     for (const e of entries) {
       const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
       if (e.isDirectory()) {
         walk(full);
       } else if (e.name.endsWith('.tsx') || e.name.endsWith('.ts') || e.name.endsWith('.md')) {
@@ -1277,6 +1462,7 @@ const RVUI_LEAK_ALLOWLIST = new Set<string>([
 
 function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
   const matches: RvuiLeakMatch[] = [];
+  const isIgnored = ignoredPathPredicateFor(ROOT);
 
   function isAllowlisted(rel: string): boolean {
     return RVUI_LEAK_ALLOWLIST.has(rel) || rel.startsWith('docs/fleet/revealcoin');
@@ -1312,14 +1498,8 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
       const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
       if (e.isDirectory()) {
         walk(full);
       } else if (e.name.endsWith('.md')) {
@@ -1428,6 +1608,7 @@ function run(): void {
   const uiComponents = countUIComponents();
   const mcpServers = countMCPServers();
   const dbTables = countDbTables();
+  const cliTemplates = countCliTemplates();
   const enforcementTests = countEnforcementTests();
   const licenseSplit = countLicenseSplit();
 
@@ -1439,6 +1620,7 @@ function run(): void {
   console.log(`  UI components: ${uiComponents}`);
   console.log(`  MCP servers:   ${mcpServers}`);
   console.log(`  DB tables:     ${dbTables}`);
+  console.log(`  CLI templates: ${cliTemplates}`);
   console.log(`  Enforcement:   ${enforcementTests}`);
   console.log(
     `  License split: ${licenseSplit.mit} MIT | ${licenseSplit.fsl} FSL-1.1-MIT | ${licenseSplit.internal} internal/none`,
@@ -1493,6 +1675,14 @@ function run(): void {
         // "Schema (85 tables)" parenthetical
         /\(\s*([1-9]\d{1,2})\s+tables?\s*\)/i,
       ],
+    },
+    {
+      name: 'CLI templates',
+      actual: cliTemplates,
+      // Patterns defined module-level (CLI_TEMPLATE_CLAIM_PATTERNS, exported
+      // for unit tests); see their definition for the "N template repos"
+      // non-match rationale.
+      claimPatterns: CLI_TEMPLATE_CLAIM_PATTERNS,
     },
     {
       name: 'enforcement tests',

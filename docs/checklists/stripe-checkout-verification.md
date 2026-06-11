@@ -34,31 +34,31 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 - [ ] Verify: license created in DB (`SELECT * FROM licenses WHERE user_id = ...`)
 - [ ] Verify: user tier shows "pro" in admin dashboard
 
-### 1b. Max subscription ($149/mo)
+### 1b. Max subscription ($299/mo)
 - [ ] Same flow as 1a but for Max tier
-- [ ] Verify correct amount ($149/mo)
+- [ ] Verify correct amount ($299/mo)
 - [ ] Verify license tier = "max"
 
-### 1c. Enterprise subscription ($299/mo)
+### 1c. Enterprise subscription ($1,499/mo)
 - [ ] Same flow as 1a but for Enterprise tier
-- [ ] Verify correct amount ($299/mo)
+- [ ] Verify correct amount ($1,499/mo)
 - [ ] Verify license tier = "enterprise"
 
 ---
 
 ## 2. Perpetual License Checkout
 
-### 2a. Pro perpetual ($299 one-time)
+### 2a. Pro perpetual ($1,499 one-time)
 - [ ] Hit `POST /api/billing/checkout-perpetual` with `{"tier":"pro"}`
 - [ ] Complete Stripe Checkout with test card
 - [ ] Verify: `checkout.session.completed` webhook received
 - [ ] Verify: license created with `perpetual = true`
 - [ ] Verify: `support_expires_at` set to 1 year from now
 
-### 2b. Max perpetual ($799 one-time)
+### 2b. Agency perpetual — Max tier ($8,499 one-time)
 - [ ] Same flow, tier = "max"
 
-### 2c. Enterprise perpetual ($1,999 one-time)
+### 2c. Enterprise perpetual ($42,999 one-time)
 - [ ] Same flow, tier = "enterprise"
 
 ### 2d. Perpetual with GitHub username

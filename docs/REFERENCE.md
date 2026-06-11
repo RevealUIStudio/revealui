@@ -4043,18 +4043,17 @@ The CLI walks through five configuration steps:
 
 ### 3. Storage
 
-- **Storage provider**  -  Cloudflare R2 (S3-compatible, default) or local filesystem (legacy Vercel Blob is being retired)
+- **Storage provider**  -  Cloudflare R2 (S3-compatible, recommended) or legacy Vercel Blob (being retired); can be skipped to configure later
 
 ### 4. Payments
 
 - **Stripe keys**  -  publishable key, secret key, and webhook secret
-- Can be skipped to configure later via `.env.local`
+- Can be skipped to configure later via `.env.development.local`
 
 ### 5. Dev environment
 
-- **Package manager**  -  `pnpm` (recommended), `npm`, or `yarn`
-- **Dev shell**  -  Nix flakes + direnv (optional)
-- **Docker Compose**  -  generates a `docker-compose.yml` for local Postgres
+- **Dev Container**  -  VS Code / GitHub Codespaces configuration (yes/no, defaults to yes)
+- **Devbox**  -  Nix-powered development shell configuration (yes/no, defaults to yes)
 
 ---
 
@@ -4065,58 +4064,98 @@ The CLI walks through five configuration steps:
 | `basic-blog` | Blog with posts, pages, media, and REST API                  | Free |
 | `e-commerce` | Store with products, Stripe checkout, and license management | Free |
 | `portfolio`  | Portfolio site with projects and contact form                | Free |
+| `starter`    | Blank-canvas Next.js app  -  no sample collections           | Free |
+| `starter-native` | Vite + @revealui/router runtime  -  no Next.js dependency | Free |
 
 ---
 
 ## Generated Project Structure
 
+The Next.js templates (basic-blog, e-commerce, portfolio, starter) scaffold a single Next.js app:
+
 ```
 my-project/
-├── apps/
-│   ├── admin/          # Next.js admin + admin
-│   └── api/          # Hono REST API
-├── packages/
-│   └── db/           # Project-local schema extensions
-├── .env.local        # Pre-filled with your config answers
-├── .env.template     # Full env var reference
-├── package.json      # Workspace root
-├── pnpm-workspace.yaml
-├── turbo.json
-└── README.md         # Getting-started instructions
+├── src/
+│   ├── app/                    # Next.js App Router pages + template routes
+│   ├── collections/            # RevealUI collections (not in starter)
+│   └── seed.ts                 # Database seed script
+├── revealui.config.ts          # RevealUI configuration
+├── next.config.mjs
+├── postcss.config.mjs
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── .gitignore                  # Renamed from the template's _gitignore
+├── .env.development.local      # Generated from your setup answers
+└── README.md                   # Generated getting-started guide
 ```
+
+The `starter-native` template scaffolds the Vite shape instead:
+
+```
+my-project/
+├── app/
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── routes/
+│   ├── layouts/
+│   └── styles/
+├── src/
+│   └── seed.ts
+├── index.html
+├── vite.config.ts
+├── vitest.config.ts
+├── revealui.config.ts
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── .gitignore
+├── .env.development.local
+└── README.md
+```
+
+Both shapes are single-app projects  -  the CLI does not scaffold a monorepo. Answering yes to the Dev Container / Devbox prompts also creates `.devcontainer/` and `devbox.json`.
 
 ---
 
 ## Generated Files
 
-### `.env.local`
+### `.env.development.local`
 
-Pre-populated with all values you entered during setup. Contains:
+Pre-populated with the values you entered during setup (Next.js and Vite only load this file in development, so the generated secret and test placeholders never reach a production runtime). Contains:
 
 ```bash
 # Core
 REVEALUI_SECRET=<generated-64-char-hex>
-NEXT_PUBLIC_SERVER_URL=http://localhost:3004
+REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 
 # Database
 POSTGRES_URL=postgresql://...
-
-# Stripe
-STRIPE_SECRET_KEY=sk_live_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Storage — Cloudflare R2 (canonical, S3-compatible). Set all five R2_* vars.
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
-R2_BUCKET=revealui-media
-R2_PUBLIC_BASE_URL=https://media.revealui.com
+R2_BUCKET=...
+R2_PUBLIC_BASE_URL=...
 # Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset:
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# CORS
+REVEALUI_CORS_ORIGINS=http://localhost:3000,http://localhost:4000
+
+# Admin bootstrap (first run only)
+REVEALUI_ADMIN_EMAIL=admin@example.com
+REVEALUI_ADMIN_PASSWORD=
 ```
 
-Any values you skipped are left as `PLACEHOLDER`  -  fill them in before running `pnpm dev`.
+Values you skip fall back to safe defaults  -  a local-Postgres `POSTGRES_URL`, commented R2 examples, and Stripe `*_placeholder` test values. Fill them in before running `pnpm dev`.
 
 ### `README.md`
 
@@ -4124,11 +4163,11 @@ Auto-generated getting-started guide specific to your project configuration.
 
 ### `devbox.json` (optional)
 
-Generated if you selected Nix/Devbox during setup. Pre-configures the development shell with Node.js, pnpm, and project tools.
+Generated if you answer yes to the Devbox prompt. Pre-configures the development shell with Node.js 24, pnpm 10, PostgreSQL 16, and the Stripe CLI.
 
 ### `.devcontainer/` (optional)
 
-Generated if you selected Docker Compose. Provides a ready-to-use VS Code / GitHub Codespaces dev container.
+Generated if you answer yes to the Dev Container prompt. Contains `devcontainer.json`, `docker-compose.yml` (app container plus Postgres 16 with pgvector), a `Dockerfile`, and a setup README  -  ready for VS Code or GitHub Codespaces.
 
 ---
 
@@ -4150,7 +4189,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-The admin will be at `http://localhost:4000` and the API at `http://localhost:3004`.
+The dev server runs at `http://localhost:4000`  -  scaffolded projects are a single app, with no separate API server.
 
 ---
 
@@ -4167,10 +4206,10 @@ await createProject({
     projectPath: "/tmp/my-app",
     template: "basic-blog",
   },
-  database: { url: "postgresql://localhost/myapp" },
-  storage: { blobToken: "" },
-  payment: { secretKey: "", publishableKey: "", webhookSecret: "" },
-  devenv: { packageManager: "pnpm", useNix: false, useDocker: false },
+  database: { provider: "neon", postgresUrl: "postgresql://localhost/myapp" },
+  storage: { provider: "skip" },
+  payment: { enabled: false },
+  devenv: { createDevContainer: false, createDevbox: false },
   skipGit: true,
   skipInstall: true,
 });

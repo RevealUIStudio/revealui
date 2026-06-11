@@ -148,6 +148,18 @@ describe('promptProjectConfig', () => {
     expect(mockSelect).not.toHaveBeenCalled();
   });
 
+  it('accepts starter as templateArg (regression: starter was missing from VALID_TEMPLATES)', async () => {
+    const result = await promptProjectConfig('my-project', 'starter');
+    expect(result.template).toBe('starter');
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+
+  it('accepts starter-native as templateArg', async () => {
+    const result = await promptProjectConfig('my-project', 'starter-native');
+    expect(result.template).toBe('starter-native');
+    expect(mockSelect).not.toHaveBeenCalled();
+  });
+
   it('prompts for template when templateArg is invalid', async () => {
     mockSelect.mockResolvedValueOnce('basic-blog');
     const result = await promptProjectConfig('my-project', 'invalid-template');

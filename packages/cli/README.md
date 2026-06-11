@@ -25,10 +25,10 @@ pnpm create revealui@latest my-project --template basic-blog
 ## Features
 
 - Interactive project setup with guided prompts
-- Multiple templates: basic-blog, e-commerce, portfolio, starter-native (Vite + @revealui/router, no Next.js)
+- Multiple templates: basic-blog, e-commerce, portfolio, starter, starter-native (Vite + @revealui/router, no Next.js)
 - Automatic environment configuration
 - Database setup (NeonDB, Supabase, or local PostgreSQL)
-- Storage setup (Vercel Blob or Supabase)
+- Storage setup (Cloudflare R2, or legacy Vercel Blob)
 - Payment setup (Stripe)
 - Dev Container and Devbox configuration
 - Git initialization with initial commit
@@ -39,7 +39,7 @@ pnpm create revealui@latest my-project --template basic-blog
 Usage: create-revealui [options] [project-name]
 
 Options:
-  -t, --template <name>   Template to use (basic-blog, e-commerce, portfolio, starter-native)
+  -t, --template <name>   Template to use (basic-blog, e-commerce, portfolio, starter, starter-native)
   --skip-git              Skip git initialization
   --skip-install          Skip dependency installation
   -h, --help             Display help for command
@@ -52,6 +52,7 @@ Options:
 | `basic-blog` | Next.js 16 + @revealui/* | Blogs, content sites — Next.js ecosystem |
 | `e-commerce` | Next.js 16 + @revealui/* + Stripe | Online stores with checkout |
 | `portfolio` | Next.js 16 + @revealui/* | Personal portfolio sites |
+| `starter` | Next.js 16 + @revealui/* | Blank-canvas starting point — no sample collections |
 | `starter-native` | Vite + @revealui/router + @revealui/* | RevealUI-native runtime — no Next.js dep. Best when you want to dogfood the full RevealUI stack. |
 
 ## Requirements
@@ -61,18 +62,28 @@ Options:
 
 ## What Gets Created
 
+The Next.js templates (basic-blog, e-commerce, portfolio, starter) scaffold a single Next.js app:
+
 ```
 my-project/
-├── apps/
-│   ├── cms/              # CMS application
-│   └── mainframe/        # Frontend application
-├── packages/
-│   └── ...               # Shared packages
-├── .devcontainer/        # Dev Container configuration
-├── devbox.json           # Devbox configuration
-├── .env.development.local # Environment variables
-└── README.md             # Project documentation
+├── src/
+│   ├── app/                   # Next.js App Router pages + template routes
+│   ├── collections/           # RevealUI collections (not in starter)
+│   └── seed.ts                # Database seed script
+├── revealui.config.ts         # RevealUI configuration
+├── next.config.mjs
+├── postcss.config.mjs
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── .gitignore
+├── .env.development.local     # Generated from your setup answers
+└── README.md                  # Generated getting-started guide
 ```
+
+The starter-native template scaffolds the Vite shape instead: `app/` (App.tsx, main.tsx, routes/, layouts/, styles/) plus `src/seed.ts`, `index.html`, `vite.config.ts`, and `vitest.config.ts` replace `src/app/` and the Next.js configs.
+
+Answering yes to the Dev Container and Devbox prompts also creates `.devcontainer/` and `devbox.json`.
 
 ## Next Steps
 
@@ -108,7 +119,7 @@ pnpm dev
 ## Design Principles
 
 - **Justifiable**: Every prompt earns its place  -  template, database, storage, and payment choices all map to real config decisions
-- **Adaptive**: Multiple templates (blog, e-commerce, portfolio) and environment options (DevContainer, Devbox) adapt to your workflow
+- **Adaptive**: Multiple templates (blog, e-commerce, portfolio, starter, starter-native) and environment options (DevContainer, Devbox) adapt to your workflow
 - **Sovereign**: Scaffolds a self-contained project you fully own  -  no hosted dependency or account required
 
 ## License

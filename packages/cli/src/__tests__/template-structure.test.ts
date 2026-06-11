@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createProject } from '../commands/create.js';
+import { type ProjectConfig, VALID_TEMPLATES } from '../prompts/project.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
@@ -25,10 +26,7 @@ const TSC_BIN = path.resolve(__dirname, '../../../node_modules/.bin/tsc');
 // Shared scaffolding helper
 // ---------------------------------------------------------------------------
 
-function baseConfig(
-  template: 'basic-blog' | 'e-commerce' | 'portfolio' | 'starter-native',
-  projectPath: string,
-) {
+function baseConfig(template: ProjectConfig['template'], projectPath: string) {
   return {
     project: {
       projectName: `test-${template}`,
@@ -49,7 +47,7 @@ function baseConfig(
 // ---------------------------------------------------------------------------
 
 describe('Template file structure  -  shared (all templates)', () => {
-  const templates = ['basic-blog', 'e-commerce', 'portfolio'] as const;
+  const templates = ['basic-blog', 'e-commerce', 'portfolio', 'starter'] as const;
 
   let tmpDir: string;
 
@@ -144,7 +142,7 @@ describe('Template file structure  -  variant-specific content', () => {
 // ---------------------------------------------------------------------------
 
 describe('package.json integrity after scaffolding', () => {
-  const templates = ['basic-blog', 'e-commerce', 'portfolio'] as const;
+  const templates = ['basic-blog', 'e-commerce', 'portfolio', 'starter'] as const;
 
   let tmpDir: string;
 
@@ -192,6 +190,21 @@ describe('package.json integrity after scaffolding', () => {
       expect(pkg.dependencies?.['@revealui/core']).toMatch(/^(latest|\^?\d+\.\d+)/);
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// Template registry  -  the selectable list must match shipped directories
+// ---------------------------------------------------------------------------
+
+describe('Template registry', () => {
+  it('VALID_TEMPLATES matches the template directories shipped in the tarball', async () => {
+    const entries = await fs.readdir(TEMPLATES_DIR, { withFileTypes: true });
+    const shipped = entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    expect([...VALID_TEMPLATES].sort()).toEqual(shipped);
+  });
 });
 
 // ---------------------------------------------------------------------------
