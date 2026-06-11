@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -7,8 +8,10 @@ import {
   countCliTemplates,
   countDirs,
   countEnforcementTests,
+  countTestFiles,
   extractRevealuiPackages,
   findIncompleteProList,
+  WALK_EXCLUDED_DIRS,
 } from '../claim-drift.ts';
 
 describe('countDirs', () => {
@@ -219,5 +222,77 @@ describe('CLI template claim patterns', () => {
 
   it('does not match singular "template" phrasing', () => {
     expect(claimedCount('1 template directory was added')).toBeNull();
+  });
+});
+
+describe('countTestFiles', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-walk-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts test-suffixed files outside excluded directories', () => {
+    fs.mkdirSync(path.join(tmp, 'packages', 'core', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'src', 'a.test.ts'), '');
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'src', 'b.spec.tsx'), '');
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'src', 'helper.ts'), '');
+    expect(countTestFiles(tmp)).toBe(2);
+  });
+
+  it('skips gitignored artifact dirs at any depth (2026-06-11 stale-opensrc incident)', () => {
+    fs.mkdirSync(path.join(tmp, 'src'));
+    fs.writeFileSync(path.join(tmp, 'src', 'real.test.ts'), '');
+    // Incident shape: a stale opensrc/ cache of fetched third-party sources
+    const opensrc = path.join(tmp, 'opensrc', 'repos', 'github.com', 'colinhacks', 'zod', 'src');
+    fs.mkdirSync(opensrc, { recursive: true });
+    fs.writeFileSync(path.join(opensrc, 'fake.test.ts'), '');
+    // Every excluded name, nested under an app dir to prove depth-independence
+    for (const dir of WALK_EXCLUDED_DIRS) {
+      const nested = path.join(tmp, 'apps', 'web', dir);
+      fs.mkdirSync(nested, { recursive: true });
+      fs.writeFileSync(path.join(nested, 'phantom.test.ts'), '');
+    }
+    expect(countTestFiles(tmp)).toBe(1);
+  });
+});
+
+describe('WALK_EXCLUDED_DIRS', () => {
+  const repoRoot = path.resolve(import.meta.dirname, '../../..');
+
+  it('every entry except .git has a covering .gitignore line', () => {
+    const gitignore = fs.readFileSync(path.join(repoRoot, '.gitignore'), 'utf8');
+    const covered = new Set<string>();
+    for (const raw of gitignore.split('\n')) {
+      const line = raw.trim();
+      if (line.length === 0 || line.startsWith('#') || line.startsWith('!')) continue;
+      let name = line;
+      if (name.startsWith('**/')) name = name.slice('**/'.length);
+      if (name.endsWith('/')) name = name.slice(0, -1);
+      covered.add(name);
+    }
+    for (const dir of WALK_EXCLUDED_DIRS) {
+      if (dir === '.git') continue;
+      expect(covered.has(dir), `"${dir}" is walker-excluded but not gitignored`).toBe(true);
+    }
+  });
+
+  it('no entry shadows git-tracked files (e.g. screenshots/ must stay walkable)', () => {
+    const tracked = execFileSync('git', ['ls-files'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    const shadowed = new Set<string>();
+    for (const file of tracked.split('\n')) {
+      for (const segment of file.split('/')) {
+        if (WALK_EXCLUDED_DIRS.has(segment)) shadowed.add(file);
+      }
+    }
+    expect([...shadowed]).toEqual([]);
   });
 });

@@ -26,6 +26,50 @@ const ROOT = path.resolve(import.meta.dirname, '../..');
 const showFix = process.argv.includes('--fix');
 
 // ---------------------------------------------------------------------------
+// Walker exclusions
+//
+// Directory names the filesystem walkers below must never enter. The walkers
+// do not consult .gitignore, so every gitignored artifact directory that can
+// hold walker-matchable files (.ts/.tsx/.md/.txt/.json/.sh) must be listed
+// here — otherwise stale local artifacts make local counts diverge from the
+// clean checkout CI sees. Incident 2026-06-11: a stale opensrc/ cache held 53
+// third-party *.test.ts files, inflating countTestFiles() from 961 to 1014 —
+// past the ±100 testFiles tolerance — so the local gate hard-failed while CI
+// stayed green.
+//
+// Names match a single directory entry at any depth. Keep entries in sync
+// with .gitignore: the unit tests assert every entry except .git has a
+// covering .gitignore line AND that no entry shadows git-tracked files
+// (e.g. screenshots/ is gitignored yet apps/marketing/public/screenshots is
+// tracked, so it must NOT be listed here).
+// ---------------------------------------------------------------------------
+
+/** Exported for tests. */
+export const WALK_EXCLUDED_DIRS: ReadonlySet<string> = new Set([
+  '.git',
+  '.claude',
+  'node_modules',
+  // build output (gitignored)
+  'dist',
+  'build',
+  'out',
+  '.next',
+  // tool caches and generated reports (gitignored)
+  '.turbo',
+  '.vercel',
+  '.direnv',
+  '.pnpm-store',
+  'coverage',
+  'playwright-report',
+  'test-results',
+  '__temp_discover_test__',
+  // fetched third-party package source — the 2026-06-11 incident dir
+  'opensrc',
+  // parallel-agent worktrees: full repo copies under the repo root
+  '.worktrees',
+]);
+
+// ---------------------------------------------------------------------------
 // Metric collectors
 // ---------------------------------------------------------------------------
 
@@ -46,13 +90,7 @@ function countByGlob(base: string, extensions: string[]): number {
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full);
@@ -84,8 +122,12 @@ function countApps(): number {
   return countDirs(path.join(ROOT, 'apps'));
 }
 
-function countTestFiles(): number {
-  return countByGlob(ROOT, ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx', '.e2e.ts']);
+/**
+ * Count test files across the repo. Path-injectable + exported for tests
+ * (mirrors countEnforcementTests).
+ */
+export function countTestFiles(base: string = ROOT): number {
+  return countByGlob(base, ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx', '.e2e.ts']);
 }
 
 function countUIComponents(): number {
@@ -132,6 +174,7 @@ function countDbTables(): number {
       return;
     }
     for (const e of entries) {
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full);
@@ -378,13 +421,7 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
       const full = path.join(dir, e.name);
       const rel = path.relative(ROOT, full).replace(/\\/g, '/');
       if (e.isDirectory()) {
@@ -797,13 +834,7 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walkAndScan(full);
@@ -1069,6 +1100,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
       return;
     }
     for (const e of entries) {
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full);
@@ -1346,13 +1378,7 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
       return;
     }
     for (const e of entries) {
-      if (
-        e.name === 'node_modules' ||
-        e.name === 'dist' ||
-        e.name === '.git' ||
-        e.name === '.claude'
-      )
-        continue;
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walk(full);
