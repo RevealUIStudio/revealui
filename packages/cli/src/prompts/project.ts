@@ -6,13 +6,29 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { isCancel, select, text } from '@clack/prompts';
 
+export const VALID_TEMPLATES = [
+  'basic-blog',
+  'e-commerce',
+  'portfolio',
+  'starter',
+  'starter-native',
+] as const;
+
+export type ProjectTemplate = (typeof VALID_TEMPLATES)[number];
+
 export interface ProjectConfig {
   projectName: string;
   projectPath: string;
-  template: 'basic-blog' | 'e-commerce' | 'portfolio' | 'starter-native';
+  template: ProjectTemplate;
 }
 
-const VALID_TEMPLATES = ['basic-blog', 'e-commerce', 'portfolio', 'starter-native'] as const;
+const TEMPLATE_LABELS: Record<ProjectTemplate, string> = {
+  'basic-blog': 'Basic Blog - A simple blog with posts and pages',
+  'e-commerce': 'E-commerce - Product catalog with checkout',
+  portfolio: 'Portfolio - Personal portfolio site',
+  starter: 'Starter - Blank-canvas Next.js app, no sample collections',
+  'starter-native': 'Starter (native) - Vite + @revealui/router, no Next.js',
+};
 
 export async function promptProjectConfig(
   defaultName?: string,
@@ -65,15 +81,7 @@ export async function promptProjectConfig(
   } else {
     const selected = await select({
       message: 'Which template would you like to use?',
-      options: [
-        { value: 'basic-blog' as const, label: 'Basic Blog - A simple blog with posts and pages' },
-        { value: 'e-commerce' as const, label: 'E-commerce - Product catalog with checkout' },
-        { value: 'portfolio' as const, label: 'Portfolio - Personal portfolio site' },
-        {
-          value: 'starter-native' as const,
-          label: 'Starter (native) - Vite + @revealui/router, no Next.js',
-        },
-      ],
+      options: VALID_TEMPLATES.map((value) => ({ value, label: TEMPLATE_LABELS[value] })),
       initialValue: 'basic-blog' as const,
     });
 

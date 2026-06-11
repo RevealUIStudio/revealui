@@ -4065,6 +4065,8 @@ The CLI walks through five configuration steps:
 | `basic-blog` | Blog with posts, pages, media, and REST API                  | Free |
 | `e-commerce` | Store with products, Stripe checkout, and license management | Free |
 | `portfolio`  | Portfolio site with projects and contact form                | Free |
+| `starter`    | Blank-canvas Next.js app  -  no sample collections           | Free |
+| `starter-native` | Vite + @revealui/router runtime  -  no Next.js dependency | Free |
 
 ---
 

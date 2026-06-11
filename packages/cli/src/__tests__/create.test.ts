@@ -16,7 +16,7 @@ const minimalConfig = {
   project: {
     projectName: 'test-scaffold',
     projectPath: '', // set per-test
-    template: 'basic-blog' as const,
+    template: 'starter' as const,
   },
   database: { provider: 'skip' as const },
   storage: { provider: 'skip' as const },

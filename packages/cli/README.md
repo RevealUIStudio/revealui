@@ -25,10 +25,10 @@ pnpm create revealui@latest my-project --template basic-blog
 ## Features
 
 - Interactive project setup with guided prompts
-- Multiple templates: basic-blog, e-commerce, portfolio, starter-native (Vite + @revealui/router, no Next.js)
+- Multiple templates: basic-blog, e-commerce, portfolio, starter, starter-native (Vite + @revealui/router, no Next.js)
 - Automatic environment configuration
 - Database setup (NeonDB, Supabase, or local PostgreSQL)
-- Storage setup (Vercel Blob or Supabase)
+- Storage setup (Cloudflare R2, or legacy Vercel Blob)
 - Payment setup (Stripe)
 - Dev Container and Devbox configuration
 - Git initialization with initial commit
@@ -39,7 +39,7 @@ pnpm create revealui@latest my-project --template basic-blog
 Usage: create-revealui [options] [project-name]
 
 Options:
-  -t, --template <name>   Template to use (basic-blog, e-commerce, portfolio, starter-native)
+  -t, --template <name>   Template to use (basic-blog, e-commerce, portfolio, starter, starter-native)
   --skip-git              Skip git initialization
   --skip-install          Skip dependency installation
   -h, --help             Display help for command
@@ -52,6 +52,7 @@ Options:
 | `basic-blog` | Next.js 16 + @revealui/* | Blogs, content sites — Next.js ecosystem |
 | `e-commerce` | Next.js 16 + @revealui/* + Stripe | Online stores with checkout |
 | `portfolio` | Next.js 16 + @revealui/* | Personal portfolio sites |
+| `starter` | Next.js 16 + @revealui/* | Blank-canvas starting point — no sample collections |
 | `starter-native` | Vite + @revealui/router + @revealui/* | RevealUI-native runtime — no Next.js dep. Best when you want to dogfood the full RevealUI stack. |
 
 ## Requirements
@@ -108,7 +109,7 @@ pnpm dev
 ## Design Principles
 
 - **Justifiable**: Every prompt earns its place  -  template, database, storage, and payment choices all map to real config decisions
-- **Adaptive**: Multiple templates (blog, e-commerce, portfolio) and environment options (DevContainer, Devbox) adapt to your workflow
+- **Adaptive**: Multiple templates (blog, e-commerce, portfolio, starter, starter-native) and environment options (DevContainer, Devbox) adapt to your workflow
 - **Sovereign**: Scaffolds a self-contained project you fully own  -  no hosted dependency or account required
 
 ## License
