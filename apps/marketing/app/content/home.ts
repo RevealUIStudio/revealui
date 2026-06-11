@@ -21,7 +21,7 @@ export const HOME_HERO = {
   subtitle: {
     lead: 'Stop renting your stack from a half-dozen vendors.',
     strong:
-      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host.',
+      'Auth, content, offers, and payments, pre-wired into one open-source runtime you self-host.',
     body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself with',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',

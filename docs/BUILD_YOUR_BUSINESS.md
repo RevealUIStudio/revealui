@@ -348,7 +348,7 @@ In ~45 minutes you went from nothing to a deployed application with:
 - **Feature gating**  -  routes and components that check subscription tier
 - **Admin dashboard**  -  manage products, users, and billing from a browser
 
-This is the foundation. The five primitives  -  Users, Content, Products, Payments, Intelligence  -  are all here. Build your business logic on top.
+This is the foundation. The five primitives  -  People, Content, Offers, Payments, Agents  -  are all here. Build your business logic on top.
 
 ---
 

@@ -11,6 +11,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockSignUp = vi.fn();
 const mockPush = vi.fn();
+// Set per-test to simulate the ?plan= deep link from the marketing pricing cards.
+let mockPlanParam: string | null = null;
 
 vi.mock('@revealui/auth/react', () => ({
   useSignUp: () => ({ signUp: mockSignUp, isLoading: false }),
@@ -24,7 +26,9 @@ vi.mock('@revealui/auth/react', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
-  useSearchParams: () => ({ get: () => null }),
+  useSearchParams: () => ({
+    get: (key: string) => (key === 'plan' ? mockPlanParam : null),
+  }),
 }));
 
 vi.mock('@revealui/presentation/server', () => ({
@@ -52,6 +56,7 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockPlanParam = null;
   // GDPR consent grant is fire-and-forget; stub fetch so jsdom doesn't throw.
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
 });
@@ -96,5 +101,38 @@ describe('SignupForm post-signup routing', () => {
       expect(mockPush).toHaveBeenCalledWith('/');
     });
     expect(screen.queryByText('Check your inbox')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    'pro',
+    'max',
+  ] as const)('routes an auto-verified user with ?plan=%s into the billing upgrade flow', async (plan) => {
+    mockPlanParam = plan;
+    mockSignUp.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'ada@example.com', emailVerified: true },
+    });
+
+    render(<SignupForm apiUrl="http://api.test" />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(`/account/billing?upgrade=${plan}`);
+    });
+  });
+
+  it('ignores an unknown ?plan= value and routes home', async () => {
+    mockPlanParam = 'enterprise-deluxe';
+    mockSignUp.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'ada@example.com', emailVerified: true },
+    });
+
+    render(<SignupForm apiUrl="http://api.test" />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/');
+    });
   });
 });

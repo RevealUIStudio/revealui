@@ -1,6 +1,6 @@
 ---
 title: "RevealUI"
-description: "RevealUI is the agentic business runtime. Users, content, products, payments, and AI - pre-wired, open source, and ready to deploy."
+description: "RevealUI is the agentic business runtime. People, content, offers, payments, and agents - pre-wired, open source, and ready to deploy."
 visibility: public
 status: verified
 audience: agent
@@ -8,15 +8,15 @@ audience: agent
 
 # RevealUI
 
-RevealUI is the agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.
+RevealUI is the agentic business runtime. People, content, offers, payments, and agents  -  pre-wired, open source, and ready to deploy.
 
 ## Five Primitives
 
-1. **Users**  -  authentication, sessions, RBAC/ABAC, rate limiting, brute force protection
+1. **People**  -  authentication, sessions, RBAC/ABAC, rate limiting, brute force protection
 2. **Content**  -  collections, rich text (Lexical), media, draft/live workflows, REST API
-3. **Products**  -  catalog, pricing tiers, license key management
+3. **Offers**  -  catalog, pricing tiers, license key management
 4. **Payments**  -  Stripe checkout, subscriptions, webhooks, billing portal
-5. **Intelligence**  -  AI agents, CRDT memory, open-model inference, orchestration (Pro tier)
+5. **Agents**  -  AI agents, CRDT memory, open-model inference, orchestration (Pro tier)
 
 ## Stack
 

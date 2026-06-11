@@ -1,6 +1,6 @@
 ---
 title: "The Five Primitives of Business Software"
-description: "Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to ..."
+description: "Every software company ships the same five things: a way to manage people, a way to manage content, a way to sell your offers, a way to collect payments, and increasingly, a way to ..."
 visibility: public
 status: narrative
 audience: user
@@ -11,7 +11,7 @@ author: Joshua Vaughn
 
 ---
 
-Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, content engines, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
+Every software company ships the same five things: a way to manage people, a way to manage content, a way to sell your offers, a way to collect payments, and increasingly, a way to run agents. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, content engines, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
 
 RevealUI is the open runtime for businesses that run their own AI. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
 
@@ -19,7 +19,7 @@ This post is a deep technical walkthrough of all five. Not marketing copy. Real 
 
 ---
 
-## 1. Users
+## 1. People
 
 Authentication is the foundation. Get it wrong and nothing else matters. RevealUI's auth system is session-based, not JWT-based, and that is a deliberate choice.
 
@@ -129,15 +129,15 @@ export const hasAnyRole = (roles: string[]) => ({ req }) =>
 
 These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 59 enforcement tests proving role isolation.
 
-### How Users connects to everything else
+### How People connects to everything else
 
-The user ID is the foreign key for everything. Content has an `authorId`. Products have licenses keyed to `customerId`. Payments are tied via `stripeCustomerId`. AI agent tasks are metered per `userId`. One identity, five primitives.
+The user ID is the foreign key for everything. Content has an `authorId`. Offers have licenses keyed to `customerId`. Payments are tied via `stripeCustomerId`. Agent tasks are metered per `userId`. One identity, five primitives.
 
 ---
 
 ## 2. Content
 
-Content is the second primitive. Not because it is more important than users, but because it is what users interact with first.
+Content is the second primitive. Not because it is more important than people, but because it is what people interact with first.
 
 ### Collections
 
@@ -199,13 +199,13 @@ Every route is defined using Hono's OpenAPI integration with Zod schemas. This m
 
 ### How Content connects to everything else
 
-Content is authored by Users (the `authorId` foreign key). Premium content can be gated behind Products (license tier checks). Content creation by AI agents feeds back through the Intelligence layer. Media uploads integrate with CDN delivery via the cache package.
+Content is authored by People (the `authorId` foreign key). Premium content can be gated behind Offers (license tier checks). Content creation by AI agents feeds back through the Agents layer. Media uploads integrate with CDN delivery via the cache package.
 
 ---
 
-## 3. Products
+## 3. Offers
 
-Products are what turns your software from a project into a business. RevealUI's product primitive covers the catalog, license generation, and runtime feature gating.
+Offers are what turns your software from a project into a business. RevealUI's offers primitive covers the catalog, license generation, and runtime feature gating.
 
 ### License keys: Ed25519-signed JWTs
 
@@ -301,9 +301,9 @@ Content-Type: application/json
 
 Verification checks both the JWT signature and the database. A structurally valid JWT can still be revoked in the database (chargeback, refund, manual revoke), so the verify endpoint checks both. The license cache TTL is 15 minutes, meaning a revoked license loses access within 15 minutes at most.
 
-### How Products connects to everything else
+### How Offers connects to everything else
 
-Products are purchased by Users. License keys are generated from the Payments webhook. Feature gates control access to Content (premium collections) and Intelligence (AI agent execution). The tier hierarchy flows through the entire stack.
+Offers are purchased by People. License keys are generated from the Payments webhook. Feature gates control access to Content (premium collections) and Agents (AI agent execution). The tier hierarchy flows through the entire stack.
 
 ---
 
@@ -382,13 +382,13 @@ RevealUI implements the x402 payment protocol for machine-to-machine payments �
 
 ### How Payments connects to everything else
 
-Payments are initiated by Users (checkout requires a session). Successful payments generate Products (license keys). Payment status controls feature access across Content and Intelligence. Webhook events update the Users table (`stripeCustomerId`) and the licenses table (Products). Chargebacks revoke licenses instantly.
+Payments are initiated by People (checkout requires a session). Successful payments generate Offers (license keys). Payment status controls feature access across Content and Agents. Webhook events update the `users` table (`stripeCustomerId`) and the licenses table (Offers). Chargebacks revoke licenses instantly.
 
 ---
 
-## 5. Intelligence (AI) -- Pro Tier
+## 5. Agents (AI) -- Pro Tier
 
-The fifth primitive is AI. Not a chatbot bolted onto a sidebar, but an agent orchestration system with memory, streaming, and inter-agent communication.
+The fifth primitive is Agents. Not a chatbot bolted onto a sidebar, but an agent orchestration system with memory, streaming, and inter-agent communication.
 
 ### Agent streaming
 
@@ -489,9 +489,9 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 
 Usage beyond the quota is tracked in the `agent_task_usage` table. Reporting that overage to Stripe Billing Meters is in development — during early access, usage is recorded but not billed, so execution is never blocked on a meter.
 
-### How Intelligence connects to everything else
+### How Agents connects to everything else
 
-AI agents authenticate through the Users system (session cookies or API keys). Agents create and modify Content (posts, pages, media). Agent execution is metered as a Product (task quotas per tier). Overage billing feeds through Payments (Stripe Billing Meters). The A2A protocol enables agents to purchase services from other agents via x402, closing the loop.
+AI agents authenticate through the People system (session cookies or API keys). Agents create and modify Content (posts, pages, media). Agent execution is metered through Offers (task quotas per tier). Overage billing feeds through Payments (Stripe Billing Meters). The A2A protocol enables agents to purchase services from other agents via x402, closing the loop.
 
 ---
 
@@ -502,15 +502,15 @@ Any one of these primitives can be built in a weekend with the right libraries. 
 The five primitives are not independent features. They are a directed graph:
 
 ```
-Users --> Content (authorship)
-Users --> Products (licensing)
-Users --> Payments (billing)
-Users --> Intelligence (metering)
-Products --> Content (feature gating)
-Products --> Intelligence (feature gating)
-Payments --> Products (license generation)
-Intelligence --> Content (AI authoring)
-Intelligence --> Payments (usage billing)
+People --> Content (authorship)
+People --> Offers (licensing)
+People --> Payments (billing)
+People --> Agents (metering)
+Offers --> Content (feature gating)
+Offers --> Agents (feature gating)
+Payments --> Offers (license generation)
+Agents --> Content (AI authoring)
+Agents --> Payments (usage billing)
 ```
 
 Every edge in that graph is a piece of integration code you do not have to write. Every node is a piece of infrastructure you do not have to maintain. And because RevealUI is open source (MIT for the core, source-available for Pro), you can read every line, fork every module, and extend every API.
@@ -519,4 +519,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is the open runtime for businesses that run their own AI. The core — Users, Content, Products, and Payments — is MIT licensed and free forever. Intelligence (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the open runtime for businesses that run their own AI. The core — People, Content, Offers, and Payments — is MIT licensed and free forever. Agents (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

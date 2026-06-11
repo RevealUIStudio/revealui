@@ -58,7 +58,12 @@ function BillingContent() {
   const perpetual = searchParams.get('perpetual');
   const credits = searchParams.get('credits');
   const renewal = searchParams.get('renewal');
-  const upgrade = searchParams.get('upgrade');
+  // ?upgrade=pro|max deep link (marketing pricing cards via /signup?plan=).
+  // Unknown values are ignored. Enterprise upgrades go through the manual
+  // button below (proration confirm), never the auto-trigger.
+  const upgradeParam = searchParams.get('upgrade');
+  const upgrade: 'pro' | 'max' | null =
+    upgradeParam === 'pro' || upgradeParam === 'max' ? upgradeParam : null;
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -110,33 +115,38 @@ function BillingContent() {
     }
   }, [session, sessionLoading, fetchSubscription, router]);
 
-  const handleCheckout = useCallback(async () => {
-    setActionLoading(true);
-    setError(null);
-    try {
-      const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID && {
-            priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+  const handleCheckout = useCallback(
+    async (target: 'pro' | 'max' = 'pro') => {
+      setActionLoading(true);
+      setError(null);
+      try {
+        const priceId =
+          target === 'max'
+            ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
+            : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+        const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            ...(priceId && { priceId }),
+            tier: target,
           }),
-          tier: 'pro',
-        }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (data.url) {
-        safeStripeRedirect(data.url);
-      } else {
-        setError(data.error || 'Failed to start checkout');
+        });
+        const data = (await res.json()) as { url?: string; error?: string };
+        if (data.url) {
+          safeStripeRedirect(data.url);
+        } else {
+          setError(data.error || 'Failed to start checkout');
+        }
+      } catch {
+        setError('Network error. Please try again.');
+      } finally {
+        setActionLoading(false);
       }
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setActionLoading(false);
-    }
-  }, [apiUrl]);
+    },
+    [apiUrl],
+  );
 
   // Poll subscription status with exponential backoff after upgrades.
   // Retries up to 3 times (1s → 2s → 4s) to allow webhook processing.
@@ -159,10 +169,10 @@ function BillingContent() {
     };
   }, []);
 
-  // Auto-redirect to checkout on signup with ?upgrade=pro
+  // Auto-redirect to checkout on signup with ?upgrade=pro|max
   useEffect(() => {
-    if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
-      void handleCheckout();
+    if (upgrade && subscription?.tier === 'free' && !actionLoading) {
+      void handleCheckout(upgrade);
     }
   }, [upgrade, subscription, actionLoading, handleCheckout]);
 
@@ -304,7 +314,7 @@ function BillingContent() {
           Your subscription has expired. Pro features are no longer available.
           <button
             type="button"
-            onClick={handleCheckout}
+            onClick={() => void handleCheckout()}
             disabled={actionLoading}
             className="ml-2 font-medium underline hover:text-red-900 dark:hover:text-red-200"
           >
@@ -450,7 +460,11 @@ function BillingContent() {
                 <p className="text-sm text-zinc-600">
                   Upgrade to Pro for AI agents, advanced sync, built-in payments, and more.
                 </p>
-                <Button onClick={handleCheckout} disabled={actionLoading} className="w-full">
+                <Button
+                  onClick={() => void handleCheckout('pro')}
+                  disabled={actionLoading}
+                  className="w-full"
+                >
                   {actionLoading
                     ? 'Redirecting to checkout...'
                     : `Upgrade to Pro — ${getPrice('pro')}`}
