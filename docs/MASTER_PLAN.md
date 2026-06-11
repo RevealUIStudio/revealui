@@ -83,7 +83,7 @@ Architecture and security are genuinely strong (auth 9/10, crypto done right). C
 
 **Model:** Open Core (MIT core + paid Pro / Max / Enterprise tiers)
 **Target Market:** TypeScript-first agencies, SaaS builders, enterprise teams
-**Revenue:** SaaS subscriptions  -  Track A: Free / Pro $49/mo / Max $149/mo / Forge $299/mo; Track B: agent task credits ($0.001/task); Track C: perpetual licenses ($299–$1,999 one-time + annual support renewals); Track D: professional services (architecture review, migration assist, launch package, consulting)
+**Revenue:** SaaS subscriptions  -  Track A: Free / Pro $49/mo / Max $299/mo / Enterprise $1,499/mo; Track B: agent task credits ($0.001/task); Track C: perpetual licenses ($1,499–$42,999 one-time + annual support renewals); Track D: professional services (architecture review, migration assist, launch package, consulting)
 **Planned Launch:** OSS core Q3 2026, Pro tier Q4 2026
 
 See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separate concern).

@@ -3,7 +3,7 @@
  *
  * Provides gate functions for AI-related API routes.
  * - `checkAIFeatureGate()` checks the `ai` feature (Pro tier, $49/mo)
- * - `checkAIMemoryFeatureGate()` checks the `aiMemory` feature (Max tier, $149/mo)
+ * - `checkAIMemoryFeatureGate()` checks the `aiMemory` feature (Max tier, $299/mo)
  */
 
 import { isFeatureEnabled } from '@revealui/core/features';
