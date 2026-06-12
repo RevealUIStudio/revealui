@@ -21,18 +21,11 @@ describe('pricing-fallbacks — canonical value assertions', () => {
   });
 
   it('perpetual fallbacks match canonical prices', () => {
-    expect(PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'].price).toBe('$1,499');
-    expect(PERPETUAL_PRICE_FALLBACKS['Pro Perpetual'].renewal).toBe(
-      '$149/yr for continued support',
-    );
-    expect(PERPETUAL_PRICE_FALLBACKS['Agency Perpetual'].price).toBe('$8,499');
-    expect(PERPETUAL_PRICE_FALLBACKS['Agency Perpetual'].renewal).toBe(
-      '$799/yr for continued support',
-    );
-    expect(PERPETUAL_PRICE_FALLBACKS['Enterprise Perpetual'].price).toBe('$42,999');
-    expect(PERPETUAL_PRICE_FALLBACKS['Enterprise Perpetual'].renewal).toBe(
-      '$3,999/yr for continued support',
-    );
+    expect(PERPETUAL_PRICE_FALLBACKS).toMatchObject({
+      'Pro Perpetual': { price: '$1,499', renewal: '$149/yr for continued support' },
+      'Agency Perpetual': { price: '$8,499', renewal: '$799/yr for continued support' },
+      'Enterprise Perpetual': { price: '$42,999', renewal: '$3,999/yr for continued support' },
+    });
   });
 
   it('covers all four subscription tiers', () => {
