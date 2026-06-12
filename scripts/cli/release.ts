@@ -4,7 +4,7 @@
  * Release CLI
  *
  * Unified CLI for version management and package publishing.
- * Handles versioning, changelog generation, and npm publishing for the monorepo.
+ * Handles versioning and npm publishing for the monorepo.
  * Replaces GitHub Actions release.yml and release-pro.yml workflows.
  *
  * Commands:
@@ -13,7 +13,6 @@
  *   pro               Publish Pro packages to npm
  *   version           Bump version (major|minor|patch)
  *   preview           Preview release changes
- *   changelog         Generate changelog
  *   publish           Publish packages to npm
  *   tag               Create git release tag
  *   dry-run           Simulate a release without publishing
@@ -26,7 +25,6 @@
  *   pnpm release pro --dry-run           # dry-run Pro publish
  *   pnpm release version minor
  *   pnpm release preview
- *   pnpm release changelog --output CHANGELOG.md
  *   pnpm release publish --tag beta
  *   pnpm release tag v1.2.3
  *
@@ -43,8 +41,6 @@
  * - External: npm - Package publishing
  */
 
-import { writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import type { ParsedArgs } from '@revealui/scripts/args.js';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/index.js';
@@ -63,12 +59,6 @@ class ReleaseCLI extends ExecutingCLI {
         type: 'string' as const,
         description: 'NPM tag for publishing (latest, beta, next, etc.)',
         default: 'latest',
-      },
-      {
-        name: 'output',
-        short: 'o',
-        type: 'string' as const,
-        description: 'Output file path',
       },
       {
         name: 'no-push',
@@ -122,24 +112,6 @@ class ReleaseCLI extends ExecutingCLI {
         name: 'preview',
         description: 'Preview release changes without making any modifications',
         handler: async (args) => this.previewRelease(args),
-      },
-      {
-        name: 'changelog',
-        description: 'Generate changelog from git commits since the last tag',
-        args: [
-          {
-            name: 'output',
-            type: 'string' as const,
-            description: 'Output file path (default: CHANGELOG.md)',
-            default: 'CHANGELOG.md',
-          },
-          {
-            name: 'since',
-            type: 'string' as const,
-            description: 'Git ref (tag, commit) to start from (default: last tag)',
-          },
-        ],
-        handler: async (args) => this.generateChangelog(args),
       },
       {
         name: 'publish',
@@ -411,93 +383,6 @@ class ReleaseCLI extends ExecutingCLI {
     }
 
     return ok({ message: 'Release preview complete' });
-  }
-
-  /**
-   * Generate changelog
-   */
-  private async generateChangelog(args: ParsedArgs) {
-    const outputFile = args.output ? String(args.output) : 'CHANGELOG.md';
-    const since = args.since ? String(args.since) : undefined;
-
-    // Get the most recent git tag as the base, or use --since override
-    let fromRef = since;
-    if (!fromRef) {
-      const tagResult = await execCommand('git', ['describe', '--tags', '--abbrev=0'], {
-        cwd: this.projectRoot,
-      });
-      fromRef = tagResult.success ? (tagResult.stdout ?? '').trim() : undefined;
-    }
-
-    const logArgs = ['log', '--pretty=format:%H|%s|%an|%ad', '--date=short', '--no-merges'];
-    if (fromRef) logArgs.push(`${fromRef}..HEAD`);
-
-    const logResult = await execCommand('git', logArgs, { cwd: this.projectRoot });
-    if (!logResult.success) {
-      return fail('Failed to read git log', ErrorCode.EXECUTION_ERROR);
-    }
-
-    const lines = (logResult.stdout ?? '').trim().split('\n').filter(Boolean);
-
-    // Parse conventional commits into sections
-    const sections: Record<string, string[]> = {
-      feat: [],
-      fix: [],
-      perf: [],
-      refactor: [],
-      docs: [],
-      test: [],
-      chore: [],
-      other: [],
-    };
-    const labelMap: Record<string, string> = {
-      feat: 'Features',
-      fix: 'Bug Fixes',
-      perf: 'Performance',
-      refactor: 'Refactoring',
-      docs: 'Documentation',
-      test: 'Tests',
-      chore: 'Chores',
-      other: 'Other Changes',
-    };
-
-    for (const line of lines) {
-      const [hash, subject] = line.split('|');
-      if (!subject) continue;
-      const match = subject.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
-      if (match) {
-        const [, type, scope, breaking, desc] = match;
-        const entry = scope
-          ? `- **${scope}**: ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`
-          : `- ${desc}${breaking ? ' (**BREAKING**)' : ''} (${hash?.slice(0, 8)})`;
-        const bucket = sections[type ?? ''] !== undefined ? (type ?? 'other') : 'other';
-        sections[bucket]?.push(entry);
-      } else {
-        sections.other?.push(`- ${subject} (${hash?.slice(0, 8)})`);
-      }
-    }
-
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const header = fromRef
-      ? `## Changes since ${fromRef} (${dateStr})\n`
-      : `## Changelog (${dateStr})\n`;
-
-    const body = Object.entries(sections)
-      .filter(([, entries]) => entries.length > 0)
-      .map(([type, entries]) => `### ${labelMap[type]}\n\n${entries.join('\n')}`)
-      .join('\n\n');
-
-    const content = `${header}\n${body || '_No changes_'}\n`;
-
-    const outPath = resolve(this.projectRoot, outputFile);
-    writeFileSync(outPath, content, 'utf-8');
-
-    return ok({
-      message: `Changelog written to ${outputFile}`,
-      output: outPath,
-      commits: lines.length,
-      since: fromRef ?? 'beginning',
-    });
   }
 
   /**
