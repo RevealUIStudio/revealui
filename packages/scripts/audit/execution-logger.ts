@@ -566,6 +566,7 @@ export class ExecutionLogger {
       await this.db.close();
       this.db = null;
     }
+    ExecutionLogger.instance = null;
   }
 
   // ===========================================================================
