@@ -11,23 +11,61 @@
  * host-only delete is a browser-level no-op and the user stays signed in.
  */
 
+import { logger } from '@revealui/utils/logger';
 import type { NextResponse } from 'next/server';
 
 export const SESSION_COOKIE = 'revealui-session';
 export const ROLE_COOKIE = 'revealui-role';
 export const MUST_ROTATE_COOKIE = 'revealui-must-rotate';
 
+export interface SessionCookieDomainOptions {
+  /**
+   * Log an error when the variable is missing in production. The session
+   * cookie SET sites opt in (a host-only session cookie silently breaks
+   * cross-subdomain auth); the role-hint sites and sign-out stay silent.
+   */
+  logIfMissing?: boolean;
+}
+
 /**
  * Domain attribute for the session/role cookies, mirroring the sign-in
  * derivation: `SESSION_COOKIE_DOMAIN` in production, host-only otherwise.
+ * An empty string counts as unset so the cookie falls back to host-only
+ * rather than carrying `domain=""`.
  *
- * Unlike sign-in, this never throws when the variable is missing  -  sign-out
- * must still clear whatever cookie the host actually has.
+ * Unlike the sign-in session cookie, this never throws when the variable is
+ * missing  -  sign-out must still clear whatever cookie the host actually
+ * has, and the role-hint cookie is a defense-in-depth signal rather than the
+ * security boundary. The sign-in session cookie uses
+ * `requireSessionCookieDomain` instead.
  */
-export function sessionCookieDomain(): string | undefined {
-  return process.env.NODE_ENV === 'production'
-    ? process.env.SESSION_COOKIE_DOMAIN || undefined
-    : undefined;
+export function sessionCookieDomain(options?: SessionCookieDomainOptions): string | undefined {
+  if (process.env.NODE_ENV !== 'production') {
+    return undefined;
+  }
+  if (options?.logIfMissing && !process.env.SESSION_COOKIE_DOMAIN) {
+    logger.error(
+      'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
+    );
+  }
+  return process.env.SESSION_COOKIE_DOMAIN || undefined;
+}
+
+/**
+ * Strict domain derivation for the sign-in session cookie: in production a
+ * missing `SESSION_COOKIE_DOMAIN` throws  -  unless `REVEALUI_FLEET_MODE` is
+ * set (fleet kits run host-only cookies by design).
+ */
+export function requireSessionCookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== 'production') {
+    return undefined;
+  }
+  if (!(process.env.SESSION_COOKIE_DOMAIN || process.env.REVEALUI_FLEET_MODE)) {
+    throw new Error(
+      'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
+    );
+  }
+  return process.env.SESSION_COOKIE_DOMAIN || undefined;
 }
 
 /**
