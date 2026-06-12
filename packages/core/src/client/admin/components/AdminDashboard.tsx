@@ -8,7 +8,7 @@ import type {
   RevealDocument,
   RevealGlobalConfig,
 } from '../../../types/index.js';
-import { APIError, APIErrorType, apiClient } from '../utils/index.js';
+import { APIError, APIErrorType, apiClient, postSignOut } from '../utils/index.js';
 import { CollectionList } from './CollectionList.js';
 import { DocumentForm } from './DocumentForm.js';
 import { GlobalForm } from './GlobalForm.js';
@@ -183,10 +183,7 @@ function SignOutButton() {
   const handleSignOut = useCallback(async () => {
     setLoading(true);
     try {
-      await fetch('/api/auth/sign-out', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await postSignOut();
     } catch {
       // Sign out even if the API call fails  -  clear client state regardless
     }
