@@ -1,6 +1,6 @@
 {
   "name": "@revealui/cache",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Framework-agnostic CDN config, edge cache, ISR-style presets, and revalidation helpers. Compatible with NextRequest/NextResponse, Hono, and Cloudflare Workers via structural typing — no `next` peer dep.",
   "license": "MIT",
   "dependencies": {

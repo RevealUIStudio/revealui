@@ -1,4 +1,9 @@
 ---
+
+## 0.1.4
+### Patch Changes
+
+  - create-revealui@0.5.9
 title: "revealui"
 description: "revealui"
 visibility: public

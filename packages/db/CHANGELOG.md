@@ -1,4 +1,10 @@
 ---
+
+## 0.7.1
+### Patch Changes
+
+- Updated dependencies [145975d]
+  - @revealui/config@0.4.2
 title: "@revealui/db"
 description: "Worker scripts and apps should depend on Drizzle through this subpath instead of importing the bare `drizzle-orm` package. Under pnpm's isolated linker, `drizzle-orm` is materia..."
 visibility: public

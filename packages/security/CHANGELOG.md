@@ -1,4 +1,10 @@
 ---
+
+## 0.4.1
+### Patch Changes
+
+- Updated dependencies [c77ac4f]
+  - @revealui/contracts@0.6.1
 title: "@revealui/security"
 description: "`@revealui/core/richtext/rsc` imported `isSafeUrl` / `sanitizeUrl` from the `@revealui/security` barrel, which statically re-exports `auth.ts` and `gdpr.ts`. Both modules have a..."
 visibility: public
