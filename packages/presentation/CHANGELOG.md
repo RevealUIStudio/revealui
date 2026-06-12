@@ -1,18 +1,11 @@
----
+# @revealui/presentation
 
 ## 0.8.0
+
 ### Minor Changes
 
 - d861f75: Animations now honor `prefers-reduced-motion`. A new `useReducedMotion` hook is exported from `@revealui/presentation/animations`, and the `useSpring`, `useAnimation`, `useStagger`, and `usePresence` hooks collapse to their final state (no transition, no stagger, instant mount/unmount) when the user has requested reduced motion. The hook is SSR-safe and reactive to runtime changes.
 - 25c93af: `PricingTable` now styles through the cobalt semantic tokens (`primary`, `success`, `card`, `secondary`, `muted-foreground`, `border`) instead of a hardcoded `blue`/`emerald`/`zinc` palette. It now adapts to light/dark themes and tenant brand on the public pricing surface. No API or behavior changes — props and markup are unchanged.
-title: "@revealui/presentation"
-description: "Since 0.6.0 the canonical token file (`src/tokens.css`) changed brand identity and gained AA fixes + a new token, all under 0.6.0 with no version bump. This bumps to 0.7.0 so np..."
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/presentation
 
 ## 0.7.0
 

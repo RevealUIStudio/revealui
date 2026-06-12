@@ -1,11 +1,3 @@
----
-title: "@revealui/router"
-description: "@revealui/router"
-visibility: public
-status: narrative
-audience: user
----
-
 # @revealui/router
 
 ## 0.3.9

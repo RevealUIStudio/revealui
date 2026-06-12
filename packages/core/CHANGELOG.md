@@ -1,6 +1,7 @@
----
+# @revealui/core
 
 ## 0.10.0
+
 ### Minor Changes
 
 - ebbe445: Replace the `@aws-sdk/client-s3` dependency with a native, dependency-free Cloudflare R2 storage client. The R2 `StorageProvider` now signs requests with AWS Signature V4 (`node:crypto`) over global `fetch` and reads `ListObjectsV2`/error responses with a small no-regex XML parser, instead of routing through the AWS SDK. The provider contract and all behavior are unchanged; this drops the entire `@aws-sdk` / `@aws-crypto` / `@smithy` transitive dependency tree.
@@ -15,14 +16,6 @@
   - @revealui/contracts@0.6.1
   - @revealui/security@0.4.1
   - @revealui/cache@0.2.2
-title: "@revealui/core"
-description: "When a collection's `access.read/update/delete` returns a `WhereClause` (the"
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/core
 
 ## 0.9.0
 
