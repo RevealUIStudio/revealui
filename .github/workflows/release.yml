@@ -31,6 +31,12 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
+  # CI runners must not execute dev-machine git hooks: the husky pre-push gate
+  # fired on the "Push tags" step (run 27389106334) and ran the full repo gate
+  # inside the release runner — an environment the admin test suite was never
+  # provisioned for — blocking the tag push AFTER packages had already
+  # published. Husky honors HUSKY=0 by skipping hook install + execution.
+  HUSKY: "0"
 
 jobs:
   release:
