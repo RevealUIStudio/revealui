@@ -1,4 +1,11 @@
 ---
+
+## 0.5.9
+### Patch Changes
+
+- Updated dependencies [4d7d55d]
+- Updated dependencies [117445a]
+  - @revealui/cli@0.8.0
 title: "create-revealui"
 description: "New `revealui terminal install` and `revealui terminal list` commands that auto-detect"
 visibility: public
