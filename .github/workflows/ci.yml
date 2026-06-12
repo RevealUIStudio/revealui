@@ -99,6 +99,16 @@ jobs:
         # release pipeline (release.yml) on main.
         run: pnpm validate:changesets
 
+      - name: Changelog format validation (hard fail)
+        # packages/*/CHANGELOG.md are changesets-owned: changesets prepends
+        # new version sections by replacing the file's FIRST newline, so a
+        # leading docs-frontmatter block gets release sections injected
+        # inside it (#1377 corrupted 18 of 24 package changelogs). Fails if
+        # any package changelog starts with anything but its `# <package>`
+        # H1, or carries stranded frontmatter keys. See
+        # scripts/validate/changelog-format.ts.
+        run: pnpm validate:changelogs
+
       - name: Docs link validation (hard fail)
         # Fails when any served doc (apps/docs/public/ after copy-docs.sh)
         # links to a relative .md target that 404s on the public site —
