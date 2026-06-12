@@ -6,13 +6,12 @@ import {
   Heading,
   InputCVA as Input,
 } from '@revealui/presentation/server';
-import { useRouter } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 import { apiFetch } from '@/lib/utils/csrf';
 
 export function RotatePasswordForm() {
-  const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -55,7 +54,7 @@ export function RotatePasswordForm() {
         return;
       }
 
-      router.push('/');
+      navigateAfterAuthChange('/');
     } catch {
       setError('An unexpected error occurred.');
     } finally {
