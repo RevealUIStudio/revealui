@@ -5,7 +5,7 @@ visibility: internal
 status: verified
 audience: maintainer
 owner: RevealUI Studio
-last_verified: 2026-06-08
+last_verified: 2026-06-12
 ---
 
 This is the canonical specification for how documentation works in the RevealUI
@@ -42,6 +42,21 @@ doc genuinely needs unverifiable prose; keep those docs small and dated.
 
 Required on **every** tracked doc. The gate fails closed: a missing or invalid
 `visibility` is treated as `internal` **and** flagged as an error.
+
+**Exception — changesets-owned changelogs.** `packages/*/CHANGELOG.md` are
+machine files owned by changesets and MUST NOT carry frontmatter:
+`@changesets/apply-release-plan` prepends each new version section by
+replacing the file's first newline, which injects the section inside a
+leading frontmatter block and strands its keys below it (the 2026-06-12
+version run injected release sections inside the frontmatter of 18 such
+changelogs; the 6 not bumped that day were primed to corrupt on their next
+release). They are out of
+doc-system scope, like `.changeset/`: `scripts/docs/apply-frontmatter.ts`
+skips them, and `pnpm validate:changelogs`
+(`scripts/validate/changelog-format.ts`, CI hard-fail) enforces the inverse —
+a package changelog must start with its `# <package>` H1. Anything the docs
+surface wants to say about a package changelog is derived from
+`packages/*/package.json`, never embedded in the changelog.
 
 ```yaml
 ---

@@ -3,7 +3,9 @@
  *
  * The critical behavior: a NEW unverified user must NOT be pushed to a
  * protected route (which would bounce to /login) — they see a "Check your
- * inbox" confirmation instead. Only the auto-verified first user is sent in.
+ * inbox" confirmation instead. Only the auto-verified first user is sent in,
+ * via a full document navigation (navigateAfterAuthChange), never a soft
+ * router.push (see LoginForm.test.tsx for the stale-cache rationale).
  */
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -11,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockSignUp = vi.fn();
 const mockPush = vi.fn();
+const mockNavigate = vi.fn();
 // Set per-test to simulate the ?plan= deep link from the marketing pricing cards.
 let mockPlanParam: string | null = null;
 
@@ -29,6 +32,10 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: (key: string) => (key === 'plan' ? mockPlanParam : null),
   }),
+}));
+
+vi.mock('@/lib/utils/auth-navigation', () => ({
+  navigateAfterAuthChange: (path: string) => mockNavigate(path),
 }));
 
 vi.mock('@revealui/presentation/server', () => ({
@@ -86,6 +93,7 @@ describe('SignupForm post-signup routing', () => {
 
     expect(await screen.findByText('Check your inbox')).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('sends an auto-verified (first) user straight in', async () => {
@@ -98,8 +106,9 @@ describe('SignupForm post-signup routing', () => {
     fillAndSubmit();
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
+    expect(mockPush).not.toHaveBeenCalled();
     expect(screen.queryByText('Check your inbox')).not.toBeInTheDocument();
   });
 
@@ -117,8 +126,9 @@ describe('SignupForm post-signup routing', () => {
     fillAndSubmit();
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith(`/account/billing?upgrade=${plan}`);
+      expect(mockNavigate).toHaveBeenCalledWith(`/account/billing?upgrade=${plan}`);
     });
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('ignores an unknown ?plan= value and routes home', async () => {
@@ -132,7 +142,8 @@ describe('SignupForm post-signup routing', () => {
     fillAndSubmit();
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,7 @@
  * Mocks auth service to test route logic in isolation.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mocks -- must be before route imports
@@ -21,6 +21,10 @@ vi.mock('@revealui/core/utils/logger', () => ({
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
+
+vi.mock('@revealui/utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
@@ -44,6 +48,7 @@ vi.mock('@/lib/utils/error-response', () => ({
 }));
 
 import { deleteSession, getSession } from '@revealui/auth/server';
+import { logger } from '@revealui/utils/logger';
 import { NextRequest } from 'next/server';
 
 // ---------------------------------------------------------------------------
@@ -172,8 +177,16 @@ describe('POST /api/auth/sign-out', () => {
     POST = mod.POST as (req: NextRequest) => Promise<Response>;
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function deletionCookies(res: Response): string[] {
+    return res.headers.getSetCookie().map((cookie) => cookie.toLowerCase());
+  }
+
   it('returns 200 with success on sign-out', async () => {
-    vi.mocked(deleteSession).mockResolvedValue(undefined as never);
+    vi.mocked(deleteSession).mockResolvedValue(true);
 
     const req = makePostRequest('/api/auth/sign-out', {
       cookie: 'revealui-session=tok-abc',
@@ -185,20 +198,58 @@ describe('POST /api/auth/sign-out', () => {
     expect(body.success).toBe(true);
   });
 
-  it('clears the revealui-session cookie', async () => {
-    vi.mocked(deleteSession).mockResolvedValue(undefined as never);
+  it('clears the session, role, and must-rotate cookies', async () => {
+    vi.mocked(deleteSession).mockResolvedValue(true);
 
     const req = makePostRequest('/api/auth/sign-out');
     const res = await POST(req);
 
-    const setCookie = res.headers.get('set-cookie');
-    expect(setCookie).toContain('revealui-session');
-    // Cookie deletion sets max-age=0 or expires in the past
-    expect(setCookie).toMatch(/max-age=0|expires=Thu, 01 Jan 1970/i);
+    const setCookies = deletionCookies(res);
+    for (const name of ['revealui-session=', 'revealui-role=', 'revealui-must-rotate=']) {
+      const cookie = setCookies.find((entry) => entry.startsWith(name));
+      expect(cookie).toBeDefined();
+      // Cookie deletion sets max-age=0 with the path the cookies were set with
+      expect(cookie).toContain('max-age=0');
+      expect(cookie).toContain('path=/');
+    }
+  });
+
+  it('deletion cookies carry the domain the session cookies were set with', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '.revealui.com');
+    vi.mocked(deleteSession).mockResolvedValue(true);
+
+    const res = await POST(makePostRequest('/api/auth/sign-out'));
+    const setCookies = deletionCookies(res);
+
+    const sessionCookie = setCookies.find((entry) => entry.startsWith('revealui-session='));
+    const roleCookie = setCookies.find((entry) => entry.startsWith('revealui-role='));
+    expect(sessionCookie).toContain('domain=.revealui.com');
+    expect(roleCookie).toContain('domain=.revealui.com');
+
+    // revealui-must-rotate is set host-only at sign-in; its deletion must stay
+    // host-only to match.
+    const mustRotateCookie = setCookies.find((entry) => entry.startsWith('revealui-must-rotate='));
+    expect(mustRotateCookie).toBeDefined();
+    expect(mustRotateCookie).not.toContain('domain=');
+  });
+
+  it('omits the domain attribute when SESSION_COOKIE_DOMAIN is unset', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
+    vi.mocked(deleteSession).mockResolvedValue(true);
+
+    const res = await POST(makePostRequest('/api/auth/sign-out'));
+    const setCookies = deletionCookies(res);
+
+    expect(setCookies.length).toBeGreaterThan(0);
+    for (const cookie of setCookies) {
+      expect(cookie).not.toContain('domain=');
+    }
   });
 
   it('passes request headers to deleteSession', async () => {
-    vi.mocked(deleteSession).mockResolvedValue(undefined as never);
+    vi.mocked(deleteSession).mockResolvedValue(true);
 
     const req = makePostRequest('/api/auth/sign-out', {
       cookie: 'revealui-session=tok-xyz',
@@ -210,16 +261,35 @@ describe('POST /api/auth/sign-out', () => {
     expect(passedHeaders).toBeDefined();
   });
 
-  it('returns 500 when deleteSession throws', async () => {
+  it('still succeeds and warns when no session row was deleted', async () => {
+    vi.mocked(deleteSession).mockResolvedValue(false);
+
+    const res = await POST(makePostRequest('/api/auth/sign-out'));
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears cookies and returns 200 even when deleteSession throws', async () => {
     vi.mocked(deleteSession).mockRejectedValue(new Error('Storage unavailable'));
 
-    const req = makePostRequest('/api/auth/sign-out');
-    const res = await POST(req);
-    expect(res.status).toBe(500);
+    const res = await POST(makePostRequest('/api/auth/sign-out'));
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+
+    const setCookies = deletionCookies(res);
+    const sessionCookie = setCookies.find((entry) => entry.startsWith('revealui-session='));
+    expect(sessionCookie).toBeDefined();
+    expect(sessionCookie).toContain('max-age=0');
   });
 
   it('succeeds even without a session cookie (no-op sign-out)', async () => {
-    vi.mocked(deleteSession).mockResolvedValue(undefined as never);
+    vi.mocked(deleteSession).mockResolvedValue(false);
 
     const req = makePostRequest('/api/auth/sign-out');
     const res = await POST(req);

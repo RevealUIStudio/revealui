@@ -4,6 +4,7 @@
  */
 
 import type { RevealDocument } from '../../../types/index.js';
+import { readCsrfToken } from './csrf.js';
 
 export interface APIResponse<T = RevealDocument> {
   docs?: T[];
@@ -133,17 +134,7 @@ export class APIClient {
   private async request<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const Unsafe = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
     const method = (options.method ?? 'GET').toUpperCase();
-    let csrfToken: string | undefined;
-    if (Unsafe.has(method) && typeof document !== 'undefined') {
-      for (const part of document.cookie.split(';')) {
-        const eqIdx = part.indexOf('=');
-        if (eqIdx === -1) continue;
-        if (part.slice(0, eqIdx).trim() === 'revealui-csrf') {
-          csrfToken = part.slice(eqIdx + 1).trim() || undefined;
-          break;
-        }
-      }
-    }
+    const csrfToken = Unsafe.has(method) ? readCsrfToken() : undefined;
 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',

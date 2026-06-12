@@ -1,11 +1,3 @@
----
-title: "@revealui/openapi"
-description: "`@revealui/openapi` (0.2.3 → 0.3.0):"
-visibility: public
-status: narrative
-audience: user
----
-
 # @revealui/openapi
 
 ## 0.3.0

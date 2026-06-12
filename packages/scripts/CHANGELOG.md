@@ -1,11 +1,3 @@
----
-title: "@revealui/scripts"
-description: "@revealui/scripts"
-visibility: public
-status: narrative
-audience: user
----
-
 # @revealui/scripts
 
 ## 0.1.2

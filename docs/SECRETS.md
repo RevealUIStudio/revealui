@@ -251,8 +251,15 @@ revealui/env/supabase
 revdev/license-signing-private-key       # Ed25519 license signing key (canonical keypair)
 revdev/license-signing-public-key        # Ed25519 license verification key (canonical keypair)
 revdev/github-token                      # perpetual license GitHub provisioning
+revdev/tauri-signing-private-key          # Tauri updater signing key (Studio auto-update; generated 2026-06-11)
+revdev/tauri-signing-private-key-password # password for the Tauri updater key
+revdev/tauri-signing-public-key           # updater public key (also embedded in apps/studio tauri.conf.json)
 # The retired legacy pair (revdev/license-signing-key + revdev/license-public-key) is
 # superseded by the canonical Ed25519 keypair above.
+# CI mirror: TAURI_SIGNING_PRIVATE_KEY + TAURI_SIGNING_PRIVATE_KEY_PASSWORD repo secrets
+# on RevealUIStudio/revdev (consumed by studio-release.yml) are mirrored FROM the two
+# tauri-signing vault paths above — re-mirror after any rotation, never hand-type.
+# Rotating the updater key orphans installed Studio builds; see revdev docs/KEY_GENERATION.md §1.
 ```
 
 ### Licensing (RevealUI)

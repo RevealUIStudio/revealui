@@ -1,6 +1,7 @@
----
+# @revealui/auth
 
 ## 0.4.4
+
 ### Patch Changes
 
 - ec24584: Add `setStorage()` to the rate-limit/brute-force storage factory — a test hook to pin a specific backend (e.g. `InMemoryStorage`). Lets the DB-backed integration suite run the rate-limit/lockout logic against in-process state instead of the shared `DatabaseStorage` singleton, removing Postgres-pool contention that intermittently dropped writes under `isolate:false`.
@@ -16,14 +17,6 @@
   - @revealui/contracts@0.6.1
   - @revealui/db@0.7.1
   - @revealui/security@0.4.1
-title: "@revealui/auth"
-description: "These packages declare `zod` as a `catalog:` runtime dependency, so the catalog bump changes their published dependency range. No source changes — `zod` 4.4.x is API-compatible ..."
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/auth
 
 ## 0.4.3
 

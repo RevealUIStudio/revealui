@@ -1,6 +1,7 @@
----
+# @revealui/engines
 
 ## 0.4.3
+
 ### Patch Changes
 
 - Updated dependencies [ec24584]
@@ -15,14 +16,6 @@
   - @revealui/contracts@0.6.1
   - @revealui/db@0.7.1
   - @revealui/services@0.7.2
-title: "@revealui/engines"
-description: "is removed from `@revealui/services` per the 2026-05-08 charge-readiness audit"
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/engines
 
 ## 0.4.2
 

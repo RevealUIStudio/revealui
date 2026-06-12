@@ -3,11 +3,19 @@
  *
  * React hooks for WebAuthn passkey registration and authentication.
  * Uses dynamic imports for @simplewebauthn/browser to avoid SSR issues.
+ *
+ * CSRF: every POST echoes the JS-readable `revealui-csrf` cookie (the signed
+ * double-submit token the RevealUI admin proxy issues on page load) as an
+ * `X-CSRF-Token` header when the cookie is present. The proxy requires it on
+ * session-cookie-bearing unsafe requests — registration always runs with a
+ * session, so without the header it 403s ("CSRF token missing"). Cookie-less
+ * callers (no admin session) send no header and are unchanged.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
+import { readCsrfToken } from './csrf.js';
 
 export interface PasskeyRegisterOptions {
   /** Email for passkey registration (sign-up flow) */
@@ -75,9 +83,13 @@ export function usePasskeyRegister(): UsePasskeyRegisterResult {
       setError(null);
 
       // Step 1: Get registration options from the server
+      const optionsCsrfToken = readCsrfToken();
       const optionsResponse = await fetch('/api/auth/passkey/register-options', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(optionsCsrfToken ? { 'X-CSRF-Token': optionsCsrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({
           email: options?.email,
@@ -103,9 +115,13 @@ export function usePasskeyRegister(): UsePasskeyRegisterResult {
       const attestationResponse = await startRegistration({ optionsJSON: optionsData.options });
 
       // Step 3: Verify with the server
+      const verifyCsrfToken = readCsrfToken();
       const verifyResponse = await fetch('/api/auth/passkey/register-verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(verifyCsrfToken ? { 'X-CSRF-Token': verifyCsrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({
           attestationResponse,
@@ -167,7 +183,8 @@ export interface UsePasskeySignInResult {
  *   const handlePasskeyLogin = async () => {
  *     const success = await signIn();
  *     if (success) {
- *       router.push('/admin');
+ *       // Full navigation: a soft router.push() would replay the pre-auth Router Cache
+ *       window.location.href = '/admin';
  *     }
  *   };
  *
@@ -204,9 +221,13 @@ export function usePasskeySignIn(): UsePasskeySignInResult {
       setError(null);
 
       // Step 1: Get authentication options from the server
+      const optionsCsrfToken = readCsrfToken();
       const optionsResponse = await fetch('/api/auth/passkey/authenticate-options', {
         method: 'POST',
         credentials: 'include',
+        // Conditional headers key keeps cookie-less sign-in requests
+        // byte-identical to the pre-CSRF request shape.
+        ...(optionsCsrfToken ? { headers: { 'X-CSRF-Token': optionsCsrfToken } } : {}),
       });
 
       const optionsJson: unknown = await optionsResponse.json();
@@ -226,9 +247,13 @@ export function usePasskeySignIn(): UsePasskeySignInResult {
       const assertionResponse = await startAuthentication({ optionsJSON: authOptionsData.options });
 
       // Step 3: Verify with the server
+      const verifyCsrfToken = readCsrfToken();
       const verifyResponse = await fetch('/api/auth/passkey/authenticate-verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(verifyCsrfToken ? { 'X-CSRF-Token': verifyCsrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({ authenticationResponse: assertionResponse }),
       });

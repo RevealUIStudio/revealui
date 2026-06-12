@@ -1,6 +1,7 @@
----
+# @revealui/mcp
 
 ## 0.6.1
+
 ### Patch Changes
 
 - Updated dependencies [145975d]
@@ -14,14 +15,6 @@
   - @revealui/core@0.10.0
   - @revealui/contracts@0.6.1
   - @revealui/security@0.4.1
-title: "@revealui/mcp"
-description: "Breaking for any consumer importing the removed symbols (minor bumps under pre-1.0 SemVer)."
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/mcp
 
 ## 0.6.0
 

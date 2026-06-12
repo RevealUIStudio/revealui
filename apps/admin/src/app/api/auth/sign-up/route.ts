@@ -25,6 +25,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -258,10 +259,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
-        domain:
-          process.env.NODE_ENV === 'production'
-            ? process.env.SESSION_COOKIE_DOMAIN || undefined
-            : undefined,
+        domain: sessionCookieDomain(),
       });
 
       response.cookies.set('revealui-session', result.sessionToken, {
@@ -270,17 +268,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-        domain:
-          process.env.NODE_ENV === 'production'
-            ? (() => {
-                if (!process.env.SESSION_COOKIE_DOMAIN) {
-                  logger.error(
-                    'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
-                  );
-                }
-                return process.env.SESSION_COOKIE_DOMAIN || undefined;
-              })()
-            : undefined,
+        domain: sessionCookieDomain({ logIfMissing: true }),
       });
     }
 

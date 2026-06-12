@@ -214,6 +214,7 @@
     "validate:versions": "tsx scripts/validate/version-policy.ts",
     "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts",
     "validate:changesets": "tsx scripts/validate/mixed-changesets.ts",
+    "validate:changelogs": "tsx scripts/validate/changelog-format.ts",
     "validate:empty-catch": "tsx scripts/validate/empty-catch.ts",
     "validate:kek-rotation": "vitest run scripts/security/__tests__/rotate-kek.test.ts",
     "validate:migrations": "tsx scripts/validate/migration-journal.ts",

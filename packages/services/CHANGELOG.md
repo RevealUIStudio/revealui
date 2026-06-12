@@ -1,6 +1,7 @@
----
+# @revealui/services
 
 ## 0.7.2
+
 ### Patch Changes
 
 - Updated dependencies [145975d]
@@ -14,14 +15,6 @@
   - @revealui/core@0.10.0
   - @revealui/contracts@0.6.1
   - @revealui/db@0.7.1
-title: "@revealui/services"
-description: "Breaking for any consumer importing the removed symbols (minor bumps under pre-1.0 SemVer)."
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/services
 
 ## 0.7.1
 

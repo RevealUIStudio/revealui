@@ -13,9 +13,10 @@ import {
   VercelIcon,
 } from '@revealui/presentation/server';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 
 export type OAuthProvider = 'github' | 'google' | 'vercel' | 'linkedin';
 
@@ -72,7 +73,6 @@ export function LoginForm({ oauthProviders }: LoginFormProps) {
 }
 
 function LoginContent({ oauthProviders }: LoginFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn, isLoading } = useSignIn();
   const {
@@ -100,11 +100,11 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
 
     const result = await signIn({ email, password });
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
-      router.push('/rotate-password');
+      navigateAfterAuthChange('/rotate-password');
     } else if (result.success) {
-      router.push('/');
+      navigateAfterAuthChange('/');
     } else if ('requiresMfa' in result && result.requiresMfa) {
-      router.push('/mfa');
+      navigateAfterAuthChange('/mfa');
     } else {
       const errorMessage = 'error' in result ? result.error : 'Failed to sign in';
       setError(errorMessage || 'Failed to sign in');
@@ -115,7 +115,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     setError(null);
     const success = await passkeySignIn();
     if (success) {
-      router.push('/');
+      navigateAfterAuthChange('/');
     }
   };
 

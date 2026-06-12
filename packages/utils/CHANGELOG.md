@@ -1,11 +1,3 @@
----
-title: "@revealui/utils"
-description: "These packages declare `zod` as a `catalog:` runtime dependency, so the catalog bump changes their published dependency range. No source changes — `zod` 4.4.x is API-compatible ..."
-visibility: public
-status: narrative
-audience: user
----
-
 # @revealui/utils
 
 ## 0.3.5

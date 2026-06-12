@@ -1,17 +1,10 @@
----
+# revealui
 
 ## 0.1.4
+
 ### Patch Changes
 
   - create-revealui@0.5.9
-title: "revealui"
-description: "revealui"
-visibility: public
-status: narrative
-audience: user
----
-
-# revealui
 
 ## 0.1.3
 

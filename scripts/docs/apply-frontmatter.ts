@@ -53,6 +53,18 @@ const IGNORE_DIRS = new Set([
 const EXCLUDE_PREFIXES = ['apps/docs/'];
 const DOC_EXTENSIONS = ['.md', '.mdx'];
 
+// Changesets-owned package changelogs are machine files, not doc-system docs:
+// @changesets/apply-release-plan prepends each new version section by
+// replacing the file's FIRST newline, so any leading frontmatter block gets
+// new sections injected inside it (the 2026-06-12 version run, #1377,
+// corrupted 18 of the 24 package changelogs stamped by the #1293 sweep). The
+// inverse is CI-enforced by scripts/validate/changelog-format.ts: these files
+// must start with their `# <package>` H1, never frontmatter.
+function isChangesetsChangelog(rel: string): boolean {
+  const parts = rel.split('/');
+  return parts.length === 3 && parts[0] === 'packages' && parts[2] === 'CHANGELOG.md';
+}
+
 function toPosix(p: string): string {
   return p.split(path.sep).join('/');
 }
@@ -73,6 +85,7 @@ function collectDocs(): string[] {
       } else if (e.isFile() && DOC_EXTENSIONS.some((ext) => e.name.endsWith(ext))) {
         const rel = toPosix(path.relative(ROOT, path.join(dir, e.name)));
         if (EXCLUDE_PREFIXES.some((pre) => rel.startsWith(pre))) continue;
+        if (isChangesetsChangelog(rel)) continue;
         out.push(path.join(dir, e.name));
       }
     }
@@ -142,13 +155,11 @@ function isPublic(rel: string): boolean {
     const name = parts[1].endsWith('.md') ? parts[1].slice(0, -3) : parts[1];
     return !INTERNAL_DOCS_ROOT.has(name);
   }
-  // packages/<pkg>/README.md and CHANGELOG.md: public (npm). Deeper package
-  // docs (src/**, docs/**, systemd/**, design-context/**) are internal.
-  if (
-    parts.length === 3 &&
-    parts[0] === 'packages' &&
-    (parts[2] === 'README.md' || parts[2] === 'CHANGELOG.md')
-  ) {
+  // packages/<pkg>/README.md: public (npm). Deeper package docs (src/**,
+  // docs/**, systemd/**, design-context/**) are internal. Package
+  // CHANGELOG.md files are changesets-owned and out of scope entirely
+  // (see isChangesetsChangelog).
+  if (parts.length === 3 && parts[0] === 'packages' && parts[2] === 'README.md') {
     return true;
   }
   return false;
@@ -158,7 +169,9 @@ function classifyStatus(rel: string): string {
   if (rel === 'docs/api/rest-api/README.md') return 'generated';
   if (rel.startsWith('packages/presentation/design-context/')) return 'generated';
   if (rel.startsWith('docs/blog/') || rel.startsWith('docs/archive/')) return 'narrative';
-  if (rel.endsWith('/CHANGELOG.md') || rel === 'CHANGELOG.md') return 'narrative';
+  // Only the root keep-a-changelog file: packages/*/CHANGELOG.md are
+  // changesets-owned and excluded from scope (see isChangesetsChangelog).
+  if (rel === 'CHANGELOG.md') return 'narrative';
   return 'verified';
 }
 

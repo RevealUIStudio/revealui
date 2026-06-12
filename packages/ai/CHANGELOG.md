@@ -1,6 +1,7 @@
----
+# @revealui/ai
 
 ## 0.6.0
+
 ### Minor Changes
 
 - 2f1c551: `useAgentStream` now echoes the JS-readable `revealui-csrf` cookie (the signed double-submit token the RevealUI admin proxy issues) as an `X-CSRF-Token` header on both of its POSTs, `start()` and `submitElicitation()`. The API server's CSRF middleware requires that header on any session-cookie-bearing unsafe request, so cookie-authenticated browser consumers of the hook would otherwise 403 once CSRF enforcement is active. Mirrors the cookie-read in `@revealui/core`'s admin APIClient. No API change: when the cookie is absent (API-key / server-to-server callers, non-browser environments) the header is omitted and requests are unchanged.
@@ -16,14 +17,6 @@
   - @revealui/core@0.10.0
   - @revealui/contracts@0.6.1
   - @revealui/db@0.7.1
-title: "@revealui/ai"
-description: "The tool ran tests via `execSync(..., { timeout })`, whose timeout signal only reaches the immediate child (the shell). A grandchild — e.g. `pnpm test` → `node …` — was orphaned..."
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/ai
 
 ## 0.5.2
 
