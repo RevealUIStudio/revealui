@@ -51,6 +51,12 @@ vi.mock('next/server', () => {
     delete(name: string) {
       this.deleted.push(name);
     }
+    set(name: string, value: string, options?: { maxAge?: number }) {
+      // An empty value with maxAge 0 is cookie deletion.
+      if (value === '' && options?.maxAge === 0) {
+        this.deleted.push(name);
+      }
+    }
     getDeleted() {
       return this.deleted;
     }
@@ -215,7 +221,7 @@ describe('POST /api/auth/sign-out', () => {
   }
 
   it('deletes session and clears cookies on success', async () => {
-    mockDeleteSession.mockResolvedValue(undefined);
+    mockDeleteSession.mockResolvedValue(true);
     const POST = await loadRoute();
     const res = await POST(makeRequest());
 
@@ -229,13 +235,23 @@ describe('POST /api/auth/sign-out', () => {
     ).cookies.getDeleted();
     expect(cookies).toContain('revealui-session');
     expect(cookies).toContain('revealui-role');
+    expect(cookies).toContain('revealui-must-rotate');
   });
 
-  it('returns error response when deleteSession throws', async () => {
+  it('clears cookies and returns success even when deleteSession throws', async () => {
     mockDeleteSession.mockRejectedValue(new Error('Session not found'));
     const POST = await loadRoute();
     const res = await POST(makeRequest());
 
-    expect((res as { status: number }).status).toBe(500);
+    // Sign-out is idempotent: server-side revocation is best-effort, but the
+    // browser cookies must be cleared on every path.
+    expect((res as { status: number }).status).toBe(200);
+    expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
+
+    const cookies = (
+      res as unknown as { cookies: { getDeleted: () => string[] } }
+    ).cookies.getDeleted();
+    expect(cookies).toContain('revealui-session');
+    expect(cookies).toContain('revealui-role');
   });
 });

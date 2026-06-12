@@ -8,7 +8,7 @@
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { sessions, users } from '@revealui/db/schema';
-import { and, eq, gt, isNull, ne } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull, ne } from 'drizzle-orm';
 import type { Session, User } from '../types.js';
 import { hashToken } from '../utils/token.js';
 import { DatabaseError, TokenError } from './errors.js';
@@ -385,8 +385,14 @@ export async function rotateSession(
 /**
  * Delete a session (sign out)
  *
+ * Revokes EVERY session token presented in the cookie header, not just the
+ * first: a browser can hold duplicate `revealui-session` cookies (e.g. a
+ * stale host-only cookie alongside the domain-scoped one), and RFC 6265
+ * ordering lets the stale duplicate shadow the live token. Sign-out must
+ * revoke them all.
+ *
  * @param headers - Request headers containing session cookie
- * @returns True if session was deleted, false if not found
+ * @returns True if at least one session row was deleted, false otherwise
  */
 export async function deleteSession(headers: Headers): Promise<boolean> {
   const cookieHeader = headers.get('cookie');
@@ -394,15 +400,26 @@ export async function deleteSession(headers: Headers): Promise<boolean> {
     return false;
   }
 
-  const sessionToken = extractSessionToken(cookieHeader);
-  if (!sessionToken) {
+  const sessionTokens = extractAllSessionTokens(cookieHeader);
+  if (sessionTokens.length === 0) {
     return false;
   }
 
-  const tokenHash = hashToken(sessionToken);
+  const tokenHashes: string[] = [];
+  for (const sessionToken of sessionTokens) {
+    try {
+      tokenHashes.push(hashToken(sessionToken));
+    } catch {
+      logger.error('Error hashing session token during sign-out');
+    }
+  }
+  if (tokenHashes.length === 0) {
+    return false;
+  }
+
   const db = getClient();
 
-  const result = await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+  const result = await db.delete(sessions).where(inArray(sessions.tokenHash, tokenHashes));
 
   // Check if any rows were deleted - Drizzle delete returns result with rowCount or similar
   const rowCount =
@@ -488,6 +505,33 @@ function extractSessionToken(cookieHeader: string): string | null {
   }
 
   return decodeURIComponent(sessionCookie.substring('revealui-session='.length));
+}
+
+/**
+ * Extract every distinct session token from a cookie header.
+ *
+ * Duplicate `revealui-session` cookies are real: a host-only and a
+ * domain-scoped cookie with the same name travel together in one header.
+ * Deletion must see all of them; validation (getSession) deliberately keeps
+ * first-match semantics via extractSessionToken.
+ */
+function extractAllSessionTokens(cookieHeader: string): string[] {
+  const prefix = 'revealui-session=';
+  const tokens = new Set<string>();
+
+  for (const part of cookieHeader.split(';')) {
+    const cookie = part.trim();
+    if (!cookie.startsWith(prefix)) {
+      continue;
+    }
+    try {
+      tokens.add(decodeURIComponent(cookie.substring(prefix.length)));
+    } catch {
+      // Malformed percent-encoding in one duplicate must not abort sign-out.
+    }
+  }
+
+  return [...tokens];
 }
 
 /**
