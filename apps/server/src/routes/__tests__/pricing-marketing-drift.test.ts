@@ -7,14 +7,16 @@
  *
  *   1. `apps/server/src/routes/pricing.ts` HARDCODED_*_PRICES
  *   2. `apps/marketing/app/content/pricing.ts` + dependent content
- *   3. `apps/marketing/app/components/landing/PricingTeaser.tsx` TEASER_FALLBACK_PRICE
- *   4. `apps/marketing/app/routes/PricingPage.tsx` FALLBACK_PRICE + FALLBACK_PERPETUAL_PRICE
- *   5. `docs/MARKETING_METRICS.md` §2 (the canonical doc)
- *   6. Stripe live data (via `pnpm stripe:seed` post-update)
- *   7. This file
+ *   3. `apps/marketing/app/lib/pricing-fallbacks.ts` SUBSCRIPTION/PERPETUAL_PRICE_FALLBACKS
+ *   4. `apps/marketing/app/routes/PricingPage.tsx` (imports from #3)
+ *   5. `apps/marketing/app/components/landing/PricingTeaser.tsx` (imports from #3)
+ *   6. `apps/server/src/lib/tier-pricing.ts` MRR_TIER_PRICE_FALLBACK_USD
+ *   7. `docs/MARKETING_METRICS.md` §2 (the canonical doc)
+ *   8. Stripe live data (via `pnpm stripe:seed` post-update)
+ *   9. This file
  *
  * If this test fails, the lockstep was broken. Don't update the test in
- * isolation — update all seven together so the canonical truth stays canonical.
+ * isolation — update all nine surfaces together so the canonical truth stays canonical.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -45,6 +47,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
+import { MRR_TIER_PRICE_FALLBACK_USD } from '../../lib/tier-pricing.js';
 import app from '../pricing.js';
 
 // ---------------------------------------------------------------------------
@@ -141,6 +144,12 @@ describe('Pricing Marketing Drift — fallback prices match docs/MARKETING_METRI
       );
       expect(credit.costPer, `Credit bundle ${credit.name} costPer drift`).toBe(canonical.costPer);
     }
+  });
+
+  it('MRR_TIER_PRICE_FALLBACK_USD matches canonical subscription prices', () => {
+    expect(MRR_TIER_PRICE_FALLBACK_USD.pro, 'MRR pro price drift').toBe(49);
+    expect(MRR_TIER_PRICE_FALLBACK_USD.max, 'MRR max price drift').toBe(299);
+    expect(MRR_TIER_PRICE_FALLBACK_USD.enterprise, 'MRR enterprise price drift').toBe(1499);
   });
 
   it('perpetual-tier fallback prices match canonical map exactly', async () => {
