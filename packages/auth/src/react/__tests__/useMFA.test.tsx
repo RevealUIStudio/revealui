@@ -292,3 +292,156 @@ describe('useMFAVerify', () => {
     expect(result.current.error).toBeNull();
   });
 });
+
+describe('useMFA - CSRF token attach', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    // happy-dom cookies persist across tests in this file - expire ours so
+    // the exact-equality assertions in the describes above stay header-free
+    document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  });
+
+  it('setup() echoes the revealui-csrf cookie as X-CSRF-Token', async () => {
+    document.cookie = 'other-cookie=unrelated';
+    document.cookie = 'revealui-csrf=nonce123:hmac456';
+    vi.stubGlobal('fetch', mockFetch({ secret: 's', uri: 'otpauth://t', backupCodes: [] }));
+
+    const { result } = renderHook(() => useMFASetup());
+    await act(async () => {
+      await result.current.setup();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/mfa/setup', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'X-CSRF-Token': 'nonce123:hmac456' },
+    });
+  });
+
+  it('verifySetup() echoes the cookie alongside Content-Type', async () => {
+    document.cookie = 'revealui-csrf=nonce123:hmac456';
+    vi.stubGlobal('fetch', mockFetch({ verified: true }));
+
+    const { result } = renderHook(() => useMFASetup());
+    await act(async () => {
+      await result.current.verifySetup('123456');
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/mfa/verify-setup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'nonce123:hmac456',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ code: '123456' }),
+    });
+  });
+
+  it('verify() and verifyBackupCode() echo the cookie during MFA login', async () => {
+    document.cookie = 'revealui-csrf=tok-login';
+    vi.stubGlobal('fetch', mockFetch({ success: true }));
+
+    const { result } = renderHook(() => useMFAVerify());
+    await act(async () => {
+      await result.current.verify('123456');
+      await result.current.verifyBackupCode('backup-1');
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/mfa/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'tok-login',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ code: '123456' }),
+    });
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/mfa/backup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'tok-login',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ code: 'backup-1' }),
+    });
+  });
+
+  it('re-reads the cookie before each POST (proxy may reissue between steps)', async () => {
+    document.cookie = 'revealui-csrf=token-before';
+    vi.stubGlobal('fetch', mockFetch({ secret: 's', uri: 'otpauth://t', backupCodes: [] }));
+
+    const { result } = renderHook(() => useMFASetup());
+    await act(async () => {
+      await result.current.setup();
+    });
+
+    document.cookie = 'revealui-csrf=token-rotated';
+    await act(async () => {
+      await result.current.verifySetup('123456');
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/auth/mfa/setup',
+      expect.objectContaining({
+        headers: { 'X-CSRF-Token': 'token-before' },
+      }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/auth/mfa/verify-setup',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-CSRF-Token': 'token-rotated' }),
+      }),
+    );
+  });
+
+  it('setup() sends no headers key at all when the cookie is absent', async () => {
+    vi.stubGlobal('fetch', mockFetch({ secret: 's', uri: 'otpauth://t', backupCodes: [] }));
+
+    const { result } = renderHook(() => useMFASetup());
+    await act(async () => {
+      await result.current.setup();
+    });
+
+    // Exact equality: cookie-less setup requests stay byte-identical to the
+    // pre-CSRF shape (no headers key)
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/mfa/setup', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  });
+
+  it('verify() omits X-CSRF-Token when the cookie is absent', async () => {
+    vi.stubGlobal('fetch', mockFetch({ success: true }));
+
+    const { result } = renderHook(() => useMFAVerify());
+    await act(async () => {
+      await result.current.verify('123456');
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/mfa/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ code: '123456' }),
+    });
+  });
+
+  it('omits X-CSRF-Token when the cookie value is empty', async () => {
+    document.cookie = 'revealui-csrf=';
+    vi.stubGlobal('fetch', mockFetch({ secret: 's', uri: 'otpauth://t', backupCodes: [] }));
+
+    const { result } = renderHook(() => useMFASetup());
+    await act(async () => {
+      await result.current.setup();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/mfa/setup', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  });
+});

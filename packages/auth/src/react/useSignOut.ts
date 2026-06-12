@@ -2,11 +2,20 @@
  * useSignOut Hook
  *
  * React hook for signing out a user.
+ *
+ * CSRF: the sign-out POST echoes the JS-readable `revealui-csrf` cookie (the
+ * signed double-submit token the RevealUI admin proxy issues on page load) as
+ * an `X-CSRF-Token` header when the cookie is present. The proxy requires it
+ * on session-cookie-bearing unsafe requests and `/api/auth/sign-out` is not
+ * exempt — sign-out always carries a session, so without the header it 403s
+ * ("CSRF token missing") and the server-side session survives. Cookie-less
+ * callers send no header and are unchanged.
  */
 
 'use client';
 
 import { useState } from 'react';
+import { readCsrfToken } from './csrf.js';
 
 export interface UseSignOutResult {
   signOut: () => Promise<void>;
@@ -41,9 +50,13 @@ export function useSignOut(): UseSignOutResult {
       setIsLoading(true);
       setError(null);
 
+      const csrfToken = readCsrfToken();
       const response = await fetch('/api/auth/sign-out', {
         method: 'POST',
         credentials: 'include',
+        // Conditional headers key keeps cookie-less sign-out requests
+        // byte-identical to the pre-CSRF request shape.
+        ...(csrfToken ? { headers: { 'X-CSRF-Token': csrfToken } } : {}),
       });
 
       if (!response.ok) {
