@@ -1,4 +1,20 @@
 ---
+
+## 0.10.0
+### Minor Changes
+
+- ebbe445: Replace the `@aws-sdk/client-s3` dependency with a native, dependency-free Cloudflare R2 storage client. The R2 `StorageProvider` now signs requests with AWS Signature V4 (`node:crypto`) over global `fetch` and reads `ListObjectsV2`/error responses with a small no-regex XML parser, instead of routing through the AWS SDK. The provider contract and all behavior are unchanged; this drops the entire `@aws-sdk` / `@aws-crypto` / `@smithy` transitive dependency tree.
+
+### Patch Changes
+
+- 553a981: White-label the admin engine chrome: `RootLayout`'s document title, `RootPage`'s header, and `generatePageMetadata` now resolve the brand from `REVEALUI_BRAND_NAME` / `REVEALUI_TENANT_NAME` server-side (empty strings treated as unset), and `AdminDashboard` accepts an optional `siteName` prop for its top-bar heading and status copy. Hosted deployments without overrides keep the canonical "RevealUI Admin" everywhere.
+- 763e4f1: Fix the R2 storage provider's `PUT`, which set a manual `Content-Length` header. `Content-Length` is a forbidden `fetch` header that undici computes from the body itself; setting it threw `UND_ERR_INVALID_ARG` ("invalid content-length header") and failed every upload before the request left the process. The header is removed — undici derives the correct length from the body. (Unit tests mock `fetch`, so this only surfaced against a live R2 endpoint.)
+- a3dcac3: Fail closed when a RevForge license is issued with a private/public pair that is not a matching Ed25519 keypair. `issueRevForgeLicense` now verifies the freshly-signed JWT against the supplied public key (reusing the runtime verifier) and throws `REVFORGE_LICENSE_KEYPAIR_MISMATCH` on failure, so a stamped kit can no longer bake a public key that cannot verify its own license and crash-loop at boot.
+- 8024933: withRevealUI no longer aliases the `@revealui/config` package specifier to the app's `revealui.config.ts` (webpack + Turbopack). The alias shadowed the real env-config package inside Next.js server bundles, so `config.reveal` / `config.database` reads resolved against the CMS instance config and returned `undefined` at runtime (prod admin passkey/MFA/sign-in 500s). CMS config loading is unaffected: apps import `revealui.config.ts` relatively or via their own `@reveal-config` alias. The webpack-only "config file not found" build validation tied to the alias is removed with it; a missing config file still fails the build at the app's own import site.
+- Updated dependencies [c77ac4f]
+  - @revealui/contracts@0.6.1
+  - @revealui/security@0.4.1
+  - @revealui/cache@0.2.2
 title: "@revealui/core"
 description: "When a collection's `access.read/update/delete` returns a `WhereClause` (the"
 visibility: public

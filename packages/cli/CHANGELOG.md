@@ -1,4 +1,16 @@
 ---
+
+## 0.8.0
+### Minor Changes
+
+- 117445a: `create-revealui` now writes `.env.development.local` via the previously orphaned `generateEnvFile` generator instead of an inline duplicate that wrote `.env.local`. The generated file gains the admin bootstrap variables, a local Postgres default when the database prompt is skipped, and uncommented Stripe test placeholders mirroring the template `.env.example` shape. Next.js also loads `.env.local` in production, so the dev-only filename keeps generated secrets and placeholders out of production runtimes. Template `.env.example` headers, template UI copy, the generated project README, and the post-create summary all reference the same filename now.
+
+### Patch Changes
+
+- 4d7d55d: The `starter` template ships in the npm tarball and scaffolds correctly, but it was missing from the template type union, the `--template` flag validation, and the interactive picker, so `--template starter` silently fell back to the prompt (or to `basic-blog` with `--yes`). It is now selectable everywhere, the `--template` help text and docs enumerate all five templates, and a registry test pins the selectable list to the shipped `templates/` directories so the two can no longer drift.
+- Updated dependencies [145975d]
+  - @revealui/config@0.4.2
+  - @revealui/setup@0.4.1
 title: "@revealui/cli"
 description: "The RevealUI engine does not decode images in-process (resizing is delegated to"
 visibility: public
