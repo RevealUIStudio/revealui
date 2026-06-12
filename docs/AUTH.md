@@ -1247,7 +1247,8 @@ The authentication system uses **cookie-based sessions** with the following CSRF
   requests to the admin's own `/api/*` routes and to the configured api origin;
   the core admin `APIClient` does the same, as do the published hooks that
   POST from the browser — `@revealui/ai`'s `useAgentStream`, `@revealui/sync`'s
-  mutation helpers, and `@revealui/auth`'s passkey hooks. Admin server-side
+  mutation helpers, and `@revealui/auth`'s react hooks (passkey, MFA,
+  sign-out). Admin server-side
   forwarders (collections/globals/batch proxy routes) mint a per-request token
   via `apps/admin/src/lib/utils/api-proxy-headers.ts`.
 

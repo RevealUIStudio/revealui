@@ -68,3 +68,74 @@ describe('useSignOut', () => {
     });
   });
 });
+
+describe('useSignOut - CSRF token attach', () => {
+  const originalLocation = window.location;
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { ...originalLocation, href: '' },
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: originalLocation,
+    });
+    // happy-dom cookies persist across tests in this file - expire ours so
+    // the exact-equality assertion in the describe above stays header-free
+    document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  });
+
+  it('signOut() echoes the revealui-csrf cookie as X-CSRF-Token', async () => {
+    document.cookie = 'other-cookie=unrelated';
+    document.cookie = 'revealui-csrf=nonce123:hmac456';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const { result } = renderHook(() => useSignOut());
+    await waitFor(async () => {
+      await result.current.signOut();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/sign-out', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'X-CSRF-Token': 'nonce123:hmac456' },
+    });
+    expect(window.location.href).toBe('/login');
+  });
+
+  it('signOut() sends no headers key at all when the cookie is absent', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const { result } = renderHook(() => useSignOut());
+    await waitFor(async () => {
+      await result.current.signOut();
+    });
+
+    // Exact equality: cookie-less sign-out requests stay byte-identical to
+    // the pre-CSRF shape (no headers key)
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/sign-out', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  });
+
+  it('omits X-CSRF-Token when the cookie value is empty', async () => {
+    document.cookie = 'revealui-csrf=';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+
+    const { result } = renderHook(() => useSignOut());
+    await waitFor(async () => {
+      await result.current.signOut();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/sign-out', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  });
+});

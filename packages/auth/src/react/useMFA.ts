@@ -2,11 +2,20 @@
  * MFA Hooks
  *
  * React hooks for Multi-Factor Authentication setup and verification.
+ *
+ * CSRF: every POST echoes the JS-readable `revealui-csrf` cookie (the signed
+ * double-submit token the RevealUI admin proxy issues on page load) as an
+ * `X-CSRF-Token` header when the cookie is present. The proxy requires it on
+ * session-cookie-bearing unsafe requests and `/api/auth/mfa/*` is not exempt —
+ * MFA enrollment always runs with a session, so without the header it 403s
+ * ("CSRF token missing"). Cookie-less callers send no header and are
+ * unchanged.
  */
 
 'use client';
 
 import { useState } from 'react';
+import { readCsrfToken } from './csrf.js';
 
 /**
  * MFA setup data returned when initiating TOTP setup.
@@ -64,9 +73,13 @@ export function useMFASetup(): UseMFASetupResult {
       setIsLoading(true);
       setError(null);
 
+      const csrfToken = readCsrfToken();
       const response = await fetch('/api/auth/mfa/setup', {
         method: 'POST',
         credentials: 'include',
+        // Conditional headers key keeps cookie-less setup requests
+        // byte-identical to the pre-CSRF request shape.
+        ...(csrfToken ? { headers: { 'X-CSRF-Token': csrfToken } } : {}),
       });
 
       const json: unknown = await response.json();
@@ -93,9 +106,13 @@ export function useMFASetup(): UseMFASetupResult {
       setIsLoading(true);
       setError(null);
 
+      const csrfToken = readCsrfToken();
       const response = await fetch('/api/auth/mfa/verify-setup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({ code }),
       });
@@ -167,9 +184,13 @@ export function useMFAVerify(): UseMFAVerifyResult {
       setIsLoading(true);
       setError(null);
 
+      const csrfToken = readCsrfToken();
       const response = await fetch('/api/auth/mfa/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({ code }),
       });
@@ -197,9 +218,13 @@ export function useMFAVerify(): UseMFAVerifyResult {
       setIsLoading(true);
       setError(null);
 
+      const csrfToken = readCsrfToken();
       const response = await fetch('/api/auth/mfa/backup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({ code }),
       });
