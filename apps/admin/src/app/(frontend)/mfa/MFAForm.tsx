@@ -8,15 +8,14 @@ import {
   InputCVA as Input,
 } from '@revealui/presentation/server';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 
 function filterDigits(value: string): string {
   return [...value].filter((c) => c >= '0' && c <= '9').join('');
 }
 
 export function MFAForm() {
-  const router = useRouter();
   const { verify, verifyBackupCode, isLoading, error } = useMFAVerify();
   const [code, setCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
@@ -39,7 +38,7 @@ export function MFAForm() {
     const success = useBackupCode ? await verifyBackupCode(code.trim()) : await verify(code.trim());
 
     if (success) {
-      router.push('/');
+      navigateAfterAuthChange('/');
     }
   };
 

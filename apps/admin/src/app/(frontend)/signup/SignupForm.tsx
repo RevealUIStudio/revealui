@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 import { apiFetch } from '@/lib/utils/csrf';
 
 interface SignupFormProps {
@@ -95,9 +96,9 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       // protected route that would only bounce back to /login.
       if (result.user?.emailVerified) {
         if (plan) {
-          router.push(`/account/billing?upgrade=${plan}`);
+          navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
         } else {
-          router.push('/');
+          navigateAfterAuthChange('/');
         }
       } else {
         setAwaitingVerification(true);
@@ -130,7 +131,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        router.push('/');
+        navigateAfterAuthChange('/');
       }
     }
   };
@@ -206,7 +207,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         <p className="text-xs text-zinc-600">
           Each code can only be used once. Keep them somewhere safe.
         </p>
-        <Button onClick={() => router.push('/')} className="w-full">
+        <Button onClick={() => navigateAfterAuthChange('/')} className="w-full">
           I&apos;ve saved my codes
         </Button>
       </div>
