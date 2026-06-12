@@ -356,3 +356,198 @@ describe('usePasskeySignIn', () => {
     expect(result.current.error).toBe('Passkeys are not supported in this browser');
   });
 });
+
+describe('usePasskey - CSRF token attach', () => {
+  let originalPublicKeyCredential: typeof window.PublicKeyCredential;
+
+  beforeEach(() => {
+    originalPublicKeyCredential = window.PublicKeyCredential;
+    if (!window.PublicKeyCredential) {
+      Object.defineProperty(window, 'PublicKeyCredential', {
+        value: class MockPublicKeyCredential {},
+        writable: true,
+        configurable: true,
+      });
+    }
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    Object.defineProperty(window, 'PublicKeyCredential', {
+      value: originalPublicKeyCredential,
+      writable: true,
+      configurable: true,
+    });
+    // happy-dom cookies persist across tests in this file - expire ours so
+    // the exact-equality assertions in the describes above stay header-free
+    document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  });
+
+  it('register() echoes the revealui-csrf cookie as X-CSRF-Token on both POSTs', async () => {
+    document.cookie = 'other-cookie=unrelated';
+    document.cookie = 'revealui-csrf=nonce123:hmac456';
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: { challenge: 'c' } } }, { body: { backupCodes: [] } }]),
+    );
+
+    const { startRegistration } = await import('@simplewebauthn/browser');
+    vi.mocked(startRegistration).mockResolvedValue({ id: 'cred' } as never);
+
+    const { result } = renderHook(() => usePasskeyRegister());
+    await act(async () => {
+      await result.current.register({ deviceName: 'Test Device' });
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/passkey/register-options', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'nonce123:hmac456',
+      },
+      credentials: 'include',
+      body: '{}',
+    });
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/passkey/register-verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'nonce123:hmac456',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ attestationResponse: { id: 'cred' }, deviceName: 'Test Device' }),
+    });
+  });
+
+  it('register() re-reads the cookie before each POST (proxy may reissue between steps)', async () => {
+    document.cookie = 'revealui-csrf=token-before';
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: { challenge: 'c' } } }, { body: {} }]),
+    );
+
+    const { startRegistration } = await import('@simplewebauthn/browser');
+    vi.mocked(startRegistration).mockImplementation(async () => {
+      document.cookie = 'revealui-csrf=token-rotated';
+      return { id: 'cred' } as never;
+    });
+
+    const { result } = renderHook(() => usePasskeyRegister());
+    await act(async () => {
+      await result.current.register();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/auth/passkey/register-options',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-CSRF-Token': 'token-before' }),
+      }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/auth/passkey/register-verify',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-CSRF-Token': 'token-rotated' }),
+      }),
+    );
+  });
+
+  it('signIn() echoes the cookie on both POSTs (logged-in re-auth)', async () => {
+    document.cookie = 'revealui-csrf=tok-signin';
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: { challenge: 'c' } } }, { body: { success: true } }]),
+    );
+
+    const { startAuthentication } = await import('@simplewebauthn/browser');
+    vi.mocked(startAuthentication).mockResolvedValue({ id: 'cred' } as never);
+
+    const { result } = renderHook(() => usePasskeySignIn());
+    await act(async () => {
+      await result.current.signIn();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/passkey/authenticate-options', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'X-CSRF-Token': 'tok-signin' },
+    });
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/passkey/authenticate-verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'tok-signin',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ authenticationResponse: { id: 'cred' } }),
+    });
+  });
+
+  it('register() omits X-CSRF-Token when the cookie is absent', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: { challenge: 'c' } } }, { body: {} }]),
+    );
+
+    const { startRegistration } = await import('@simplewebauthn/browser');
+    vi.mocked(startRegistration).mockResolvedValue({ id: 'cred' } as never);
+
+    const { result } = renderHook(() => usePasskeyRegister());
+    await act(async () => {
+      await result.current.register();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/passkey/register-options', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: '{}',
+    });
+  });
+
+  it('signIn() sends no headers key at all when the cookie is absent', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: { challenge: 'c' } } }, { body: { success: true } }]),
+    );
+
+    const { startAuthentication } = await import('@simplewebauthn/browser');
+    vi.mocked(startAuthentication).mockResolvedValue({ id: 'cred' } as never);
+
+    const { result } = renderHook(() => usePasskeySignIn());
+    await act(async () => {
+      await result.current.signIn();
+    });
+
+    // Exact equality: cookie-less sign-in requests stay byte-identical to the
+    // pre-CSRF shape (no headers key on authenticate-options)
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/passkey/authenticate-options', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  });
+
+  it('omits X-CSRF-Token when the cookie value is empty', async () => {
+    document.cookie = 'revealui-csrf=';
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([{ body: { options: { challenge: 'c' } } }, { body: {} }]),
+    );
+
+    const { startRegistration } = await import('@simplewebauthn/browser');
+    vi.mocked(startRegistration).mockResolvedValue({ id: 'cred' } as never);
+
+    const { result } = renderHook(() => usePasskeyRegister());
+    await act(async () => {
+      await result.current.register();
+    });
+
+    expect(fetch).toHaveBeenNthCalledWith(1, '/api/auth/passkey/register-options', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: '{}',
+    });
+  });
+});
