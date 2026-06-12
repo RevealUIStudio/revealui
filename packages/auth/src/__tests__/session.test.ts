@@ -6,9 +6,11 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSession, deleteSession, getSession } from '../server/session.js';
+import { hashToken } from '../utils/token.js';
 
 // Mock database client
 const mockInsert = vi.fn();
+const mockDeleteWhere = vi.fn();
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
@@ -25,15 +27,26 @@ vi.mock('@revealui/db/client', () => ({
       })),
     })),
     delete: vi.fn(() => ({
-      where: vi.fn(() => Promise.resolve({ rowCount: 1 })),
+      where: mockDeleteWhere,
     })),
   })),
 }));
 
+// Pass-through spy on hashToken so tests can assert which tokens were hashed
+// without changing the real hashing behavior.
+vi.mock('../utils/token.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../utils/token.js')>();
+  return {
+    ...actual,
+    hashToken: vi.fn((token: string) => actual.hashToken(token)),
+  };
+});
+
 describe('Session Management', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset mock to default behavior
+    // Reset mocks to default behavior
+    mockDeleteWhere.mockResolvedValue({ rowCount: 1 });
     mockInsert.mockReturnValue({
       values: vi.fn(() => ({
         returning: vi.fn(() => [
@@ -148,6 +161,53 @@ describe('Session Management', () => {
       const headers = new Headers();
       const deleted = await deleteSession(headers);
       expect(deleted).toBe(false);
+    });
+
+    it('revokes every distinct session token when duplicate cookies are present', async () => {
+      const headers = new Headers();
+      headers.set(
+        'cookie',
+        'revealui-session=tok-a; revealui-role=admin; revealui-session=tok-b; revealui-session=tok-a',
+      );
+
+      const deleted = await deleteSession(headers);
+      expect(deleted).toBe(true);
+
+      // Both distinct tokens hashed (deduped), single batched delete.
+      const hashedTokens = vi.mocked(hashToken).mock.calls.map((call) => call[0]);
+      expect(hashedTokens).toEqual(['tok-a', 'tok-b']);
+      expect(mockDeleteWhere).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns false when no matching session row exists', async () => {
+      mockDeleteWhere.mockResolvedValueOnce({ rowCount: 0 });
+
+      const headers = new Headers();
+      headers.set('cookie', 'revealui-session=unknown-token');
+
+      const deleted = await deleteSession(headers);
+      expect(deleted).toBe(false);
+    });
+
+    it('returns false when the driver result exposes no rowCount', async () => {
+      mockDeleteWhere.mockResolvedValueOnce({});
+
+      const headers = new Headers();
+      headers.set('cookie', 'revealui-session=tok-a');
+
+      const deleted = await deleteSession(headers);
+      expect(deleted).toBe(false);
+    });
+
+    it('skips malformed percent-encoded duplicates without aborting sign-out', async () => {
+      const headers = new Headers();
+      headers.set('cookie', 'revealui-session=%E0%A4%A; revealui-session=tok-ok');
+
+      const deleted = await deleteSession(headers);
+      expect(deleted).toBe(true);
+
+      const hashedTokens = vi.mocked(hashToken).mock.calls.map((call) => call[0]);
+      expect(hashedTokens).toEqual(['tok-ok']);
     });
   });
 });
