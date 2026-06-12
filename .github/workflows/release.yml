@@ -104,31 +104,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
 
+      # `changeset publish` creates tags only for the packages it actually
+      # publishes — on a re-run after a successful publish there are no tags at
+      # HEAD, so this step and the release step after it intentionally no-op.
+      # Say so explicitly instead of silently pushing nothing.
       - name: Push tags
         if: ${{ !inputs.dry-run }}
-        run: git push --follow-tags
+        run: |
+          tag_count="$(git tag --points-at HEAD | wc -l)"
+          if [ "$tag_count" -eq 0 ]; then
+            echo "::notice title=No tags at HEAD::changeset publish created no tags (nothing newly published — likely a re-run), so no tags are pushed and no GitHub releases will be created."
+          else
+            echo "Pushing $tag_count tag(s) created by changeset publish."
+          fi
+          git push --follow-tags
 
+      # Release bodies come from each package's own CHANGELOG.md section for the
+      # tagged version (changesets convention). generate_release_notes is
+      # deliberately NOT used: GitHub builds those notes from every commit since
+      # the previous tag of the same package, which exceeds the 125,000-char
+      # release-body limit for monorepo package tags (422 "body is too long").
+      # The script fails this step if any release creation fails — the previous
+      # per-tag catch-and-warn reported success while every creation 422'd.
       - name: Create GitHub releases
         if: ${{ !inputs.dry-run }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const { execSync } = require('child_process')
-            const tags = execSync('git tag --points-at HEAD', { encoding: 'utf8' })
-              .trim().split('\n').filter(Boolean)
-
-            for (const tag of tags) {
-              try {
-                await github.rest.repos.createRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  tag_name: tag,
-                  name: tag,
-                  generate_release_notes: true,
-                  make_latest: 'false',
-                })
-                console.log(`Created release: ${tag}`)
-              } catch (e) {
-                console.warn(`Could not create release for ${tag}: ${e.message}`)
-              }
-            }
+            const { run } = require('./.github/scripts/create-github-releases.cjs')
+            await run({ github, context, core })
