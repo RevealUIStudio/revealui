@@ -26,7 +26,7 @@ jobs:
   backflow:
     # Pinned to a SHA — org-shared reusable was referenced by the mutable @main.
     # Bump this deliberately when the reusable changes.
-    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@5c376894f427f8cdba5471ab9d2c437b6b8e19c1 # main @ 2026-06-09
+    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@018dbca12f2b6588b456cb2f450aadf4814729cd # main @ 2026-06-12
     # Scope to ONLY the two secrets the reusable declares (its workflow_call.secrets
     # block documents this exact form) instead of `secrets: inherit`, which would
     # forward every caller secret (VERCEL_TOKEN, PROD_POSTGRES_URL, …) into it.
