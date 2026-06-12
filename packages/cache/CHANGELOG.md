@@ -1,17 +1,10 @@
----
+# @revealui/cache
 
 ## 0.2.2
+
 ### Patch Changes
 
   - @revealui/security@0.4.1
-title: "@revealui/cache"
-description: "@revealui/cache"
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/cache
 
 ## 0.2.1
 

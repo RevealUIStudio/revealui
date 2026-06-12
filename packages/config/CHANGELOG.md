@@ -1,17 +1,10 @@
----
+# @revealui/config
 
 ## 0.4.2
+
 ### Patch Changes
 
 - 145975d: Treat empty-string branding env vars as unset in `getBrandingConfig`. Docker Compose `${VAR:-}` interpolation delivers unset vars to containers as empty strings, which previously short-circuited the brand-name fallback chain (producing an empty brand name) and leaked `''` into optional `logoUrl` / `primaryColor` fields.
-title: "@revealui/config"
-description: "These packages declare `zod` as a `catalog:` runtime dependency, so the catalog bump changes their published dependency range. No source changes — `zod` 4.4.x is API-compatible ..."
-visibility: public
-status: narrative
-audience: user
----
-
-# @revealui/config
 
 ## 0.4.1
 

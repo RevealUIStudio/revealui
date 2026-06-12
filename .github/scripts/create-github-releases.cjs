@@ -59,10 +59,12 @@ function buildPackageDirMap(packagesRoot) {
  * Changesets only ever emits blank lines, `###` change-type headings, `-`/`*`
  * bullets, and indented continuation lines inside a section, so any other
  * column-0 line is a boundary: the next `##` version heading, the `#` package
- * title, a `---` delimiter, or docs-frontmatter key remnants — changesets
- * prepends new sections by replacing the file's first newline, which lands
- * them inside a leading frontmatter block and strands its keys below the
- * newest sections in some package changelogs.
+ * title, a `---` delimiter, or docs-frontmatter key remnants. (Changesets
+ * prepends new sections by replacing the file's first newline, which used to
+ * land them inside the leading frontmatter blocks package changelogs carried
+ * until the 2026-06-12 cleanup; `pnpm validate:changelogs` now keeps package
+ * changelogs frontmatter-free, so this boundary tolerance is belt-and-
+ * suspenders rather than load-bearing.)
  */
 function extractChangelogSection(changelogText, version) {
   const lines = changelogText.split('\n');
