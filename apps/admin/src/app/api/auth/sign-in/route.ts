@@ -18,6 +18,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { requireSessionCookieDomain, sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -117,10 +118,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
-      domain:
-        process.env.NODE_ENV === 'production'
-          ? process.env.SESSION_COOKIE_DOMAIN || undefined
-          : undefined,
+      domain: sessionCookieDomain(),
     });
 
     // Set password rotation cookie (proxy.ts uses this to block /admin access)
@@ -141,19 +139,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
-      domain:
-        process.env.NODE_ENV === 'production'
-          ? (() => {
-              if (!process.env.SESSION_COOKIE_DOMAIN) {
-                if (!process.env.REVEALUI_FLEET_MODE) {
-                  throw new Error(
-                    'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
-                  );
-                }
-              }
-              return process.env.SESSION_COOKIE_DOMAIN || undefined;
-            })()
-          : undefined,
+      domain: requireSessionCookieDomain(),
     });
 
     return response;
