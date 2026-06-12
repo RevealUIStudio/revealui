@@ -1,4 +1,4 @@
-import type { LicenseTierId, PricingResponse } from '@revealui/contracts/pricing';
+import type { PricingResponse } from '@revealui/contracts/pricing';
 import { ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import {
@@ -6,24 +6,14 @@ import {
   PRICING_TEASER_SECTION,
   PRICING_TEASER_TIERS,
 } from '../../content/pricing-teaser';
-
-// Fallback used when /api/pricing is unreachable. Mirrors HARDCODED_SUBSCRIPTION_PRICES
-// in apps/server/src/routes/pricing.ts. The billing-readiness cron drift-checks the API
-// hardcodes against Stripe; keep these in sync when that cron fires. Stripe Dashboard
-// is the canonical source of truth.
-const TEASER_FALLBACK_PRICE: Record<LicenseTierId, { price: string; period?: string }> = {
-  free: { price: '$0' },
-  pro: { price: '$49', period: '/month' },
-  max: { price: '$299', period: '/month' },
-  enterprise: { price: '$1,499', period: '/month' },
-};
+import { SUBSCRIPTION_PRICE_FALLBACKS } from '../../lib/pricing-fallbacks';
 
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
 
 export function PricingTeaser() {
-  const [prices, setPrices] = useState(TEASER_FALLBACK_PRICE);
+  const [prices, setPrices] = useState(SUBSCRIPTION_PRICE_FALLBACKS);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +23,7 @@ export function PricingTeaser() {
         if (!res.ok) return;
         const data = (await res.json()) as PricingResponse;
         if (cancelled) return;
-        const next = { ...TEASER_FALLBACK_PRICE };
+        const next = { ...SUBSCRIPTION_PRICE_FALLBACKS };
         for (const tier of data.subscriptions) {
           if (tier.price) {
             next[tier.id] = { price: tier.price, period: tier.period };

@@ -1,4 +1,3 @@
-import type { LicenseTierId } from '@revealui/contracts/pricing';
 import { ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
@@ -27,48 +26,12 @@ import {
   SUBSCRIPTION_TIERS,
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
+import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com';
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
-
-// Fallback prices shown when /api/pricing is unreachable (local dev without the API
-// running, or a transient API error) — without this the cards render "Contact us" for
-// every tier. Mirrors TEASER_FALLBACK_PRICE (PricingTeaser.tsx) and
-// HARDCODED_SUBSCRIPTION_PRICES in apps/server/src/routes/pricing.ts. Stripe Dashboard
-// is canonical; the billing-readiness cron drift-checks these.
-const FALLBACK_PRICE: Record<LicenseTierId, { price: string; period?: string }> = {
-  free: { price: '$0' },
-  pro: { price: '$49', period: '/month' },
-  max: { price: '$299', period: '/month' },
-  enterprise: { price: '$1,499', period: '/month' },
-};
-
-// Same role as FALLBACK_PRICE for the perpetual cards: without it an API
-// outage renders "Contact for pricing" on all three, hiding the published
-// anchors. Mirrors HARDCODED_PERPETUAL_PRICES in apps/server/src/routes/
-// pricing.ts (lockstep enforced by pricing-marketing-drift.test.ts).
-const FALLBACK_PERPETUAL_PRICE: Record<
-  string,
-  { price: string; priceNote: string; renewal: string }
-> = {
-  'Pro Perpetual': {
-    price: '$1,499',
-    priceNote: 'one-time',
-    renewal: '$149/yr for continued support',
-  },
-  'Agency Perpetual': {
-    price: '$8,499',
-    priceNote: 'one-time',
-    renewal: '$799/yr for continued support',
-  },
-  'Enterprise Perpetual': {
-    price: '$42,999',
-    priceNote: 'one-time',
-    renewal: '$3,999/yr for continued support',
-  },
-};
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -102,7 +65,7 @@ export function PricingPage() {
   }, []);
 
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
-    const fallback = FALLBACK_PRICE[tier.id];
+    const fallback = SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
     return {
       ...tier,
       price: tier.price ?? fallback?.price,
@@ -111,7 +74,7 @@ export function PricingPage() {
     };
   });
   const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS).map((tier) => {
-    const fallback = FALLBACK_PERPETUAL_PRICE[tier.name];
+    const fallback = PERPETUAL_PRICE_FALLBACKS[tier.name];
     return {
       ...tier,
       price: tier.price ?? fallback?.price,
