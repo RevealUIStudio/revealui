@@ -70,7 +70,8 @@ export interface UseSignUpResult {
  *     e.preventDefault()
  *     const result = await signUp({ email, password, name })
  *     if (result.success) {
- *       router.push('/dashboard')
+ *       // Full navigation: a soft router.push() would replay the pre-auth Router Cache
+ *       window.location.href = '/dashboard'
  *     }
  *   }
  * }

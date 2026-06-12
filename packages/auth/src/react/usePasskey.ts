@@ -167,7 +167,8 @@ export interface UsePasskeySignInResult {
  *   const handlePasskeyLogin = async () => {
  *     const success = await signIn();
  *     if (success) {
- *       router.push('/admin');
+ *       // Full navigation: a soft router.push() would replay the pre-auth Router Cache
+ *       window.location.href = '/admin';
  *     }
  *   };
  *

@@ -151,7 +151,8 @@ export interface UseMFAVerifyResult {
  *   const handleSubmit = async (code: string) => {
  *     const success = await verify(code);
  *     if (success) {
- *       router.push('/admin');
+ *       // Full navigation: a soft router.push() would replay the pre-auth Router Cache
+ *       window.location.href = '/admin';
  *     }
  *   };
  * }
