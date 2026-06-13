@@ -63,14 +63,6 @@ graph TB
         FixCmd --> Errors
     end
 
-    subgraph "Workflows"
-        AutoEngine[workflows/automation-engine.ts]
-        WorkflowDefs[workflows/definitions/*]
-
-        AutoEngine --> WorkflowDefs
-        AutoEngine --> Dispatcher
-    end
-
     style CLI fill:#e1f5ff
     style Dispatcher fill:#fff4e1
     style Analyzers fill:#e8f5e9
@@ -210,13 +202,6 @@ scanDirectorySync(dir, options)  // Sync array
 - `validate-scripts.ts` - Template compliance
 - `fix-scripts.ts` - Auto-fix package scripts
 
-### 5. Workflows (`workflows/`)
-
-**automation-engine.ts** - Consolidated automation engine
-- Deleted redundant `engine.ts` wrapper
-- Full workflow execution and resumption
-- State machine integration
-
 ## Before vs After
 
 ### Before Consolidation
@@ -272,8 +257,6 @@ scripts/
 │   ├── analyze/               # Read-only analysis
 │   ├── validate/              # Pass/fail checks
 │   └── fix/                   # ✨ NEW: Code modifications
-└── workflows/
-    └── automation-engine.ts   # ✨ Consolidated
 ```
 
 **Improvements:**
@@ -467,11 +450,6 @@ const result = await dispatchCommand('scripts/analyze/quality.ts', {
   args: { flags: { json: true } }
 })
 
-// Force subprocess for isolation
-await dispatchCommand('scripts/workflows/build.ts', {
-  mode: 'subprocess',
-  timeout: 60000
-})
 ```
 
 ### Using scanDirectory
