@@ -85,7 +85,7 @@ describe('LoginForm post-sign-in navigation', () => {
   it('full-navigates home after a successful credentials sign-in (no soft push)', async () => {
     mockSignIn.mockResolvedValue({
       success: true,
-      user: { id: '1', email: 'owner@example.com' },
+      user: { id: '1', email: 'owner@example.com', role: 'admin' },
     });
 
     render(<LoginForm oauthProviders={[]} />);
@@ -93,6 +93,21 @@ describe('LoginForm post-sign-in navigation', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('full-navigates to /welcome for a user-role sign-in (subscriber, not admin)', async () => {
+    mockSignIn.mockResolvedValue({
+      success: true,
+      user: { id: '2', email: 'subscriber@example.com', role: 'user' },
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/welcome');
     });
     expect(mockPush).not.toHaveBeenCalled();
   });

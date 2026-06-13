@@ -89,7 +89,7 @@ export async function GET(
     // unverified — without this gate, upsertOAuthUser would create an
     // account with a null email which is unworkable for password reset,
     // notifications, etc.
-    if (!existingOAuth && !providerUser.email) {
+    if (!(existingOAuth || providerUser.email)) {
       return loginUrl('verified_email_required');
     }
 

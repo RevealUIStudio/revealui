@@ -168,7 +168,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // defense-in-depth UI hint (set at login). Real enforcement is at the API
   // level via collection access.read checks.
   const isInternal = pathname.startsWith('/api/') || pathname.startsWith('/_next/');
-  const isPublic = PUBLIC_PATHS.has(pathname);
+  const isPublic = PUBLIC_PATHS.has(pathname) || pathname.startsWith('/legal/');
   if (!(isInternal || isPublic)) {
     const session = request.cookies.get('revealui-session')?.value;
     if (!session) {
