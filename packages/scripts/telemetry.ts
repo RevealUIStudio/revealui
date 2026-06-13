@@ -186,6 +186,9 @@ export class Telemetry {
         logger.warn(`Auto-flush failed: ${error.message}`);
       });
     }, this.autoFlushInterval);
+    // Unref so short-lived CLIs (--help, etc.) can exit without waiting for
+    // the flush interval; long-running scripts keep the loop alive themselves.
+    this.flushTimer.unref();
 
     // Cleanup on process exit
     process.on('beforeExit', () => {

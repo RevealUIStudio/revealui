@@ -249,9 +249,8 @@ export abstract class BaseCLI {
       }
 
       // Run lifecycle hooks and command
-      await this.beforeRun();
-
       try {
+        await this.beforeRun();
         const result = await command.handler(this.args);
 
         // If handler returned a result, output it
@@ -524,6 +523,10 @@ export abstract class ExecutingCLI extends BaseCLI {
         success: this.executionSuccess,
         error: this.executionError,
       });
+    }
+    if (this.logger) {
+      await this.logger.close();
+      this.logger = null;
     }
   }
 
