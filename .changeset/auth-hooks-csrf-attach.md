@@ -1,5 +1,0 @@
----
-'@revealui/auth': patch
----
-
-`useMFASetup`, `useMFAVerify`, and `useSignOut` now echo the JS-readable `revealui-csrf` cookie (the signed double-submit token the RevealUI admin proxy issues on page load) as an `X-CSRF-Token` header on their five POSTs, completing the sweep `usePasskeyRegister`/`usePasskeySignIn` started: the admin proxy requires that header on any session-cookie-bearing unsafe request, and `/api/auth/mfa/*` and `/api/auth/sign-out` are not proxy-exempt — MFA enrollment and sign-out always run with a session, so without the header they were rejected with a 403 "CSRF token missing" (and a rejected sign-out left the server-side session alive). The `readCsrfToken()` helper the passkey hooks introduced now lives in a shared module used by all three hook files; passkey behavior is unchanged. The token is re-read before each POST so a proxy reissue between steps cannot strand a stale token. No API change: when the cookie is absent (no admin session, non-browser callers) the header is omitted and requests are byte-identical to before.
