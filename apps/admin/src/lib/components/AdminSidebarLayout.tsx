@@ -13,6 +13,8 @@ import {
   SidebarSpacer,
 } from '@revealui/presentation/client';
 import { usePathname } from 'next/navigation';
+import { FreeTierBanner } from '@/components/FreeTierBanner';
+import { UpgradeDialog } from './UpgradeDialog';
 
 interface NavItem {
   href: string;
@@ -222,7 +224,9 @@ export function AdminSidebarLayout({
 }) {
   return (
     <SidebarLayout navbar={<span />} sidebar={<AdminSidebarContent siteName={siteName} />}>
+      <FreeTierBanner />
       {children}
+      <UpgradeDialog />
     </SidebarLayout>
   );
 }
