@@ -1,5 +1,17 @@
 # @revealui/auth
 
+## 0.4.5
+
+### Patch Changes
+
+- d5e3ff7: `useMFASetup`, `useMFAVerify`, and `useSignOut` now echo the JS-readable `revealui-csrf` cookie (the signed double-submit token the RevealUI admin proxy issues on page load) as an `X-CSRF-Token` header on their five POSTs, completing the sweep `usePasskeyRegister`/`usePasskeySignIn` started: the admin proxy requires that header on any session-cookie-bearing unsafe request, and `/api/auth/mfa/*` and `/api/auth/sign-out` are not proxy-exempt — MFA enrollment and sign-out always run with a session, so without the header they were rejected with a 403 "CSRF token missing" (and a rejected sign-out left the server-side session alive). The `readCsrfToken()` helper the passkey hooks introduced now lives in a shared module used by all three hook files; passkey behavior is unchanged. The token is re-read before each POST so a proxy reissue between steps cannot strand a stale token. No API change: when the cookie is absent (no admin session, non-browser callers) the header is omitted and requests are byte-identical to before.
+- 21fe1d8: docs(auth): post-auth hook examples now use a full document navigation instead of router.push(). In the Next.js App Router, a soft navigation after the session cookie changes replays the pre-auth client Router Cache (the logged-out RSC payload) and bounces the user back to the login page. The useSignIn, useSignUp, useMFAVerify, and usePasskeySignIn examples now use window.location.href, matching useSignOut and the admin auth forms. Doc comments only, no runtime change.
+- f98881d: `usePasskeyRegister` and `usePasskeySignIn` now echo the JS-readable `revealui-csrf` cookie (the signed double-submit token the RevealUI admin proxy issues on page load) as an `X-CSRF-Token` header on all four passkey POSTs. The admin proxy requires that header on any session-cookie-bearing unsafe request, so passkey registration — which always runs with a session — was rejected with a 403 "CSRF token missing" once CSRF enforcement went live; passkey sign-in kept working only because its endpoints are proxy-exempt pre-auth. The token is re-read before each POST so a proxy reissue between the options and verify steps cannot strand a stale token. Mirrors the attach pattern in `@revealui/core`'s admin APIClient and `@revealui/ai`'s `useAgentStream`. No API change: when the cookie is absent (no admin session, non-browser callers) the header is omitted and requests are byte-identical to before.
+- cf13376: `deleteSession` now revokes every session token presented in the Cookie header instead of only the first. Browsers can hold duplicate `revealui-session` cookies (e.g. a stale host-only cookie alongside the domain-scoped one), and the stale duplicate could shadow the live token, leaving the live session row in place after sign-out.
+- Updated dependencies [ff8096d]
+- Updated dependencies [ed45978]
+  - @revealui/core@0.10.1
+
 ## 0.4.4
 
 ### Patch Changes
