@@ -1,5 +1,13 @@
 # @revealui/services
 
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [ff8096d]
+- Updated dependencies [ed45978]
+  - @revealui/core@0.10.1
+
 ## 0.7.2
 
 ### Patch Changes
