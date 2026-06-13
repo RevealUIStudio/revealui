@@ -5,7 +5,6 @@
  *
  * Consolidated replacement for:
  * - jsdoc-coverage.ts
- * - maintenance-check.ts (already in manage-docs)
  * - Parts of validate-all.ts
  *
  * Usage:

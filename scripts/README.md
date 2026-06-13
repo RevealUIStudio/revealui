@@ -97,9 +97,6 @@ scripts/
 ├── validate/              # Pass/fail validation gates
 ├── setup/                 # Environment setup scripts
 ├── generate/              # Code generation scripts
-├── workflows/             # Workflow automation
-│   └── automation-engine.ts  # ✨ Consolidated (Phase 1)
-│
 ├── gates/                 # Quality gates
 │   ├── cohesion/          # Architecture analysis
 │   ├── ops/               # Build & deployment

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/ai",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "AI runtime for agent-driven products — agents, memory, LLM providers (Inference Snaps, Ollama, OpenAI-compatible), tools, and orchestration. Anthropic-SDK-free.",
   "keywords": [
     "agent",
