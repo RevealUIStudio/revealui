@@ -37,6 +37,12 @@ interface UsageData {
   resetAt: string;
 }
 
+interface SeatsData {
+  active: number;
+  max: number | null;
+  tier: LicenseTierId;
+}
+
 export default function BillingPage() {
   return (
     <Suspense
@@ -67,6 +73,7 @@ function BillingContent() {
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [usage, setUsage] = useState<UsageData | null>(null);
+  const [seats, setSeats] = useState<SeatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,10 +90,11 @@ function BillingContent() {
 
   const fetchSubscription = useCallback(async () => {
     try {
-      const [subRes, usageRes, pricingRes] = await Promise.all([
+      const [subRes, usageRes, pricingRes, seatsRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
         fetch(`${apiUrl}/api/billing/usage`, { credentials: 'include' }),
         fetch(`${apiUrl}/api/pricing`),
+        fetch(`${apiUrl}/api/billing/seats`, { credentials: 'include' }),
       ]);
       if (subRes.ok) {
         const data = (await subRes.json()) as SubscriptionData;
@@ -99,6 +107,10 @@ function BillingContent() {
       if (pricingRes.ok) {
         const data = (await pricingRes.json()) as PricingResponse;
         setPricing(data);
+      }
+      if (seatsRes.ok) {
+        const data = (await seatsRes.json()) as SeatsData;
+        setSeats(data);
       }
     } catch {
       setError('Failed to load subscription data');
@@ -571,6 +583,58 @@ function BillingContent() {
           </div>
         </CardContent>
       </Card>
+
+      {seats && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Seats</CardTitle>
+            <CardDescription>
+              {seats.max === null
+                ? 'Unlimited members (Enterprise tier).'
+                : `${seats.max.toLocaleString()} member seats included on the ${TIER_LABELS[seats.tier]} tier.`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-end justify-between text-sm">
+              <span className="font-medium">{seats.active.toLocaleString()} active</span>
+              <span className="text-zinc-600">
+                {seats.max === null ? 'Unlimited' : `of ${seats.max.toLocaleString()}`}
+              </span>
+            </div>
+            {seats.max !== null && (
+              <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    seats.active / seats.max >= 1
+                      ? 'bg-red-500'
+                      : seats.active / seats.max >= 0.8
+                        ? 'bg-amber-500'
+                        : 'bg-blue-500'
+                  }`}
+                  style={{ width: `${Math.min((seats.active / seats.max) * 100, 100)}%` }}
+                />
+              </div>
+            )}
+            {seats.max !== null && seats.active >= seats.max && (
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-red-50 p-3 dark:bg-red-950/30">
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {seats.tier === 'max'
+                    ? "You've reached your seat limit. Contact us about Enterprise to add more members."
+                    : "You've reached your seat limit. Upgrade to add more members."}
+                </p>
+                {seats.tier !== 'max' && (
+                  <Link
+                    href={`/account/billing?upgrade=${seats.tier === 'free' ? 'pro' : 'max'}`}
+                    className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                  >
+                    Upgrade
+                  </Link>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {usage && (
         <Card>

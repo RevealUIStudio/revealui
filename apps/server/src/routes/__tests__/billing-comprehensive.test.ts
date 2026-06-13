@@ -663,6 +663,65 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     });
   });
 
+  describe('GET /seats', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      resetChains();
+    });
+
+    it('returns 401 when unauthenticated', async () => {
+      const res = await billingApp.request(get('/seats'));
+      expect(res.status).toBe(401);
+    });
+
+    it('treats a user with no account membership as a single free seat', async () => {
+      queueSelectResults([]); // membership lookup -> none
+      const app = createApp();
+      const res = await app.request(get('/seats'));
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ active: 1, max: 3, tier: 'free' });
+    });
+
+    it('returns active member count and the pro seat cap for a pro account', async () => {
+      queueSelectResults(
+        [{ accountId: 'acct-1' }], // handler: membership lookup
+        [{ value: 7 }], // handler: active member count
+        [{ accountId: 'acct-1' }], // snapshot: membership lookup
+        [{ tier: 'pro', status: 'active', graceUntil: null }], // snapshot: entitlement
+      );
+      const app = createApp();
+      const res = await app.request(get('/seats'));
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ active: 7, max: 25, tier: 'pro' });
+    });
+
+    it('reports an unlimited cap (max=null) for an enterprise account', async () => {
+      queueSelectResults(
+        [{ accountId: 'acct-ent' }],
+        [{ value: 40 }],
+        [{ accountId: 'acct-ent' }],
+        [{ tier: 'enterprise', status: 'active', graceUntil: null }],
+      );
+      const app = createApp();
+      const res = await app.request(get('/seats'));
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ active: 40, max: null, tier: 'enterprise' });
+    });
+
+    it('surfaces a full account at the cap (active === max)', async () => {
+      queueSelectResults(
+        [{ accountId: 'acct-full' }],
+        [{ value: 25 }],
+        [{ accountId: 'acct-full' }],
+        [{ tier: 'pro', status: 'active', graceUntil: null }],
+      );
+      const app = createApp();
+      const res = await app.request(get('/seats'));
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ active: 25, max: 25, tier: 'pro' });
+    });
+  });
+
   describe('GET /usage', () => {
     beforeEach(() => {
       vi.clearAllMocks();
