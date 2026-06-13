@@ -8,6 +8,10 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
+vi.mock('@/lib/providers/LicenseProvider', () => ({
+  useLicense: () => ({ tier: 'pro', features: {}, isLoading: false, refetch: () => {} }),
+}));
+
 // The admin chrome must show the kit's brand, never the framework name,
 // when tenant identity is configured (canonical default otherwise).
 
