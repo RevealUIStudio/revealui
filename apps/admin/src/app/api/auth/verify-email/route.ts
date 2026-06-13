@@ -21,6 +21,9 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const token = request.nextUrl.searchParams.get('token');
+  const rawUpgrade = request.nextUrl.searchParams.get('upgrade');
+  const upgrade: 'pro' | 'max' | null =
+    rawUpgrade === 'pro' || rawUpgrade === 'max' ? rawUpgrade : null;
   const baseUrl = request.nextUrl.origin;
 
   if (!token) {
@@ -72,7 +75,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       emailVerificationToken: null,
     });
 
-    return NextResponse.redirect(`${baseUrl}/login?message=email_verified`);
+    return NextResponse.redirect(`${baseUrl}/login?message=email_verified${upgrade ? `&upgrade=${upgrade}` : ''}`);
   } catch (error) {
     logger.error('Email verification failed', { error });
     return NextResponse.redirect(`${baseUrl}/login?error=verification_failed`);
