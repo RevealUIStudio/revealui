@@ -256,7 +256,13 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       if (!tokenHeader) {
         return NextResponse.json({ error: 'CSRF token missing' }, { status: 403 });
       }
-      const valid = await validateCsrfToken(tokenHeader, sessionValue, secret);
+      let decodedToken: string;
+      try {
+        decodedToken = decodeURIComponent(tokenHeader);
+      } catch {
+        decodedToken = tokenHeader;
+      }
+      const valid = await validateCsrfToken(decodedToken, sessionValue, secret);
       if (!valid) {
         return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 });
       }

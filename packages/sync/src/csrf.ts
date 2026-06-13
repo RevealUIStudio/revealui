@@ -20,8 +20,13 @@ export function getCsrfToken(): string | null {
     const eqIdx = part.indexOf('=');
     if (eqIdx === -1) continue;
     if (part.slice(0, eqIdx).trim() === CSRF_COOKIE_NAME) {
-      const value = part.slice(eqIdx + 1).trim();
-      return value.length > 0 ? value : null;
+      const raw = part.slice(eqIdx + 1).trim();
+      if (!raw) return null;
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
+      }
     }
   }
   return null;
