@@ -25,6 +25,7 @@ import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } fr
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
+import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
 import {
   sendDowngradeConfirmationEmail,
@@ -1820,6 +1821,72 @@ app.openapi(usageRoute, async (c) => {
     },
     200,
   );
+});
+
+// GET /api/billing/seats  -  Active member count vs the tier seat cap for the current account
+const SeatsResponseSchema = z.object({
+  active: z.number().openapi({ description: 'Active members on the account' }),
+  max: z
+    .number()
+    .nullable()
+    .openapi({ description: 'Seat cap for the tier (null = unlimited / Enterprise)' }),
+  tier: z
+    .enum(['free', 'pro', 'max', 'enterprise'])
+    .openapi({ description: 'Current account tier' }),
+});
+
+const seatsRoute = createRoute({
+  method: 'get',
+  path: '/seats',
+  tags: ['billing'],
+  summary: 'Seat usage',
+  description: 'Returns active member count and the tier seat cap for the current account.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: SeatsResponseSchema } },
+      description: 'Current seat usage',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(seatsRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const db = getClient();
+  const [membership] = await db
+    .select({ accountId: accountMemberships.accountId })
+    .from(accountMemberships)
+    .where(and(eq(accountMemberships.userId, user.id), eq(accountMemberships.status, 'active')))
+    .limit(1);
+
+  // No account membership = solo/free context: the user is the only active seat.
+  if (!membership?.accountId) {
+    const soloLimits = getHostedLimitsForTier('free');
+    return c.json({ active: 1, max: soloLimits.maxUsers ?? null, tier: 'free' as const }, 200);
+  }
+
+  const [activeRow] = await db
+    .select({ value: count() })
+    .from(accountMemberships)
+    .where(
+      and(
+        eq(accountMemberships.accountId, membership.accountId),
+        eq(accountMemberships.status, 'active'),
+      ),
+    );
+
+  const snapshot = await getHostedSubscriptionSnapshot(user.id);
+  const tier = snapshot?.tier ?? 'free';
+  const limits = getHostedLimitsForTier(tier);
+
+  return c.json({ active: activeRow?.value ?? 0, max: limits.maxUsers ?? null, tier }, 200);
 });
 
 // POST /api/billing/support-renewal-check  -  Internal cron: send 30-day support renewal reminders

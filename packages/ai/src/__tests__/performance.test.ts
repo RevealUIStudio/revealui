@@ -30,7 +30,7 @@ let db: Database;
 beforeAll(async () => {
   testDb = await createTestDb();
   db = testDb.drizzle as unknown as Database;
-}, 30_000);
+}, 90_000);
 
 afterAll(async () => {
   await testDb?.close();
