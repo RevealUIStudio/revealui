@@ -76,9 +76,6 @@ Declaration files are in a private repo. For audit / SOC 2 / compliance access t
 The `scripts/` tree contains internal automation building blocks that are not registered as `pnpm` scripts and are not intended as a public surface:
 
 - `scripts/gates/cohesion/` — pattern-detection + assessment scaffolding. Not invoked by CI; not registered in `package.json`.
-- `scripts/workflows/` — iterative-workflow primitives (start/status/continue/cancel) and reusable definition templates under `scripts/workflows/definitions/`. Used internally by other scripts.
-
-These were prototypes from early-2026 design exploration. If you need to invoke them, do so via `tsx scripts/<path>.ts` directly. There is no committed plan to promote them to `pnpm` aliases; treat them as internal until that changes.
 
 ## Related documentation
 
