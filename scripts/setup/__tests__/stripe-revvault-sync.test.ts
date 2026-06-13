@@ -67,7 +67,8 @@ describe('syncToRevvault', () => {
     const result = syncToRevvault(
       {
         STRIPE_PRO_PRICE_ID: 'price_pro',
-        STRIPE_RENEWAL_PRO_PRICE_ID: 'price_renewal_not_vaulted', // no manifest path
+        STRIPE_RENEWAL_PRO_PRICE_ID: 'price_renewal_pro',
+        STRIPE_NO_MANIFEST_KEY: 'no_vault_path', // intentionally unmapped
       },
       {
         manifestPath: MANIFEST_PATH,
@@ -76,9 +77,15 @@ describe('syncToRevvault', () => {
       },
     );
 
-    expect(calls).toEqual([{ path: 'revealui/prod/stripe/pro-price-id', value: 'price_pro' }]);
-    expect(result.written).toEqual(['revealui/prod/stripe/pro-price-id']);
-    expect(result.skipped).toEqual(['STRIPE_RENEWAL_PRO_PRICE_ID']);
+    expect(calls).toEqual([
+      { path: 'revealui/prod/stripe/pro-price-id', value: 'price_pro' },
+      { path: 'revealui/prod/stripe/renewal-pro-price-id', value: 'price_renewal_pro' },
+    ]);
+    expect(result.written).toEqual([
+      'revealui/prod/stripe/pro-price-id',
+      'revealui/prod/stripe/renewal-pro-price-id',
+    ]);
+    expect(result.skipped).toEqual(['STRIPE_NO_MANIFEST_KEY']);
     expect(result.failed).toEqual([]);
   });
 

@@ -66,6 +66,9 @@ STRIPE_ENTERPRISE_PRICE_ID           = "revealui/prod/stripe/enterprise-price-id
 STRIPE_PERPETUAL_PRO_PRICE_ID        = "revealui/prod/stripe/perpetual-pro-price-id"
 STRIPE_PERPETUAL_MAX_PRICE_ID        = "revealui/prod/stripe/perpetual-max-price-id"
 STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID = "revealui/prod/stripe/perpetual-enterprise-price-id"
+STRIPE_RENEWAL_PRO_PRICE_ID          = "revealui/prod/stripe/renewal-pro-price-id"
+STRIPE_RENEWAL_MAX_PRICE_ID          = "revealui/prod/stripe/renewal-max-price-id"
+STRIPE_RENEWAL_ENTERPRISE_PRICE_ID   = "revealui/prod/stripe/renewal-enterprise-price-id"
 STRIPE_CREDITS_STARTER_PRICE_ID      = "revealui/prod/stripe/credits-starter-price-id"
 STRIPE_CREDITS_STANDARD_PRICE_ID     = "revealui/prod/stripe/credits-standard-price-id"
 STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/prod/stripe/credits-scale-price-id"
@@ -171,6 +174,10 @@ NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-
 # Bare versions on admin (server-side reads in Next.js api routes; same values)
 STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
 STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
+# Perpetual price IDs (parity twins — same vault paths as api STRIPE_PERPETUAL_* entries)
+NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID        = "revealui/prod/stripe/perpetual-pro-price-id"
+NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID        = "revealui/prod/stripe/perpetual-max-price-id"
+NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID = "revealui/prod/stripe/perpetual-enterprise-price-id"
 
 # Database
 POSTGRES_URL  = { path = "revealui/prod/db/postgres-url", sensitive = true }
