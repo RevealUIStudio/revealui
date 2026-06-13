@@ -143,7 +143,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        navigateAfterAuthChange('/');
+        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/');
       }
     }
   };
@@ -219,7 +219,10 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         <p className="text-xs text-zinc-600">
           Each code can only be used once. Keep them somewhere safe.
         </p>
-        <Button onClick={() => navigateAfterAuthChange('/')} className="w-full">
+        <Button
+          onClick={() => navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/')}
+          className="w-full"
+        >
           I&apos;ve saved my codes
         </Button>
       </div>
