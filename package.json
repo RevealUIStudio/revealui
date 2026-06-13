@@ -173,7 +173,7 @@
     "gate:types": "tsx scripts/gates/types-gate.ts",
     "install:clean": "cross-env NODE_OPTIONS=\"--no-deprecation\" pnpm install",
     "lint": "biome check --max-diagnostics=100 .",
-    "lint:fix": "biome check --write --max-diagnostics=100 .",
+    "lint:fix": "biome format --write --no-errors-on-unmatched .",
     "playwright:install": "playwright install --with-deps",
     "preflight": "tsx scripts/validate/pre-launch.ts",
     "preinstall": "npx only-allow pnpm",
