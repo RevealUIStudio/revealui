@@ -501,7 +501,7 @@ function filterAttrs(
 function hardenAnchor(tag: string, node: Parse5Element): void {
   if (tag !== 'a') return;
   const target = node.attrs.find((a) => a.name === 'target');
-  if (!target || target.value !== '_blank') return;
+  if (target?.value !== '_blank') return;
   const rel = node.attrs.find((a) => a.name === 'rel');
   const tokens = new Set((rel?.value ?? '').split(/\s+/).filter(Boolean));
   tokens.add('noopener');

@@ -270,7 +270,7 @@ export class WorkflowStateMachine {
     if (currentStep.dependsOn) {
       for (const depId of currentStep.dependsOn) {
         const depState = workflow.stepStates.get(depId);
-        if (!depState || depState.status !== 'completed') {
+        if (depState?.status !== 'completed') {
           return false;
         }
       }

@@ -46,9 +46,11 @@ const {
     mockRequestDeletion: vi
       .fn()
       .mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' }),
-    mockProcessDeletion: vi.fn().mockImplementation(async (_id: string, cb: Function) => {
-      await cb('user-1', ['personal']);
-    }),
+    mockProcessDeletion: vi
+      .fn()
+      .mockImplementation(async (_id: string, cb: (...args: unknown[]) => unknown) => {
+        await cb('user-1', ['personal']);
+      }),
     mockGetUserRequests: vi.fn().mockResolvedValue([]),
     mockGetRequest: vi.fn().mockResolvedValue(null),
     mockAnonymizeUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
@@ -181,9 +183,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGrantConsent.mockResolvedValue({ id: 'consent-1', type: 'analytics' });
   mockRequestDeletion.mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' });
-  mockProcessDeletion.mockImplementation(async (_id: string, cb: Function) => {
-    await cb('user-1', ['personal']);
-  });
+  mockProcessDeletion.mockImplementation(
+    async (_id: string, cb: (...args: unknown[]) => unknown) => {
+      await cb('user-1', ['personal']);
+    },
+  );
   mockGetRequest.mockResolvedValue({
     id: 'del-1',
     userId: 'user-1',

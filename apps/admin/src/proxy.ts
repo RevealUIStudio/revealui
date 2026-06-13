@@ -54,7 +54,9 @@ const PUBLIC_PATHS = new Set([
 // paying customer to /login at the moment of conversion. The page is a client
 // component that renders only the user's own tier + generic CTAs (no privileged
 // data), so a valid session is sufficient.
-const SESSION_ONLY_PATHS = new Set(['/welcome']);
+// `/account/billing` is also session-only: subscribers arriving from /welcome
+// via the "Billing portal" link need to reach checkout without admin role.
+const SESSION_ONLY_PATHS = new Set(['/welcome', '/account/billing']);
 
 // Legacy `/admin/*` paths from before the chip-2 URL flatten (#644) — 301 to
 // flat path. Catches stale bookmarks and any external links written against

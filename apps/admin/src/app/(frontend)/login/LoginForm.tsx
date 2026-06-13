@@ -110,7 +110,9 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
         ? upgrade
           ? `/account/billing?upgrade=${upgrade}`
           : '/'
-        : '/welcome';
+        : upgrade
+          ? `/account/billing?upgrade=${upgrade}`
+          : '/welcome';
       navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
       navigateAfterAuthChange('/mfa');
