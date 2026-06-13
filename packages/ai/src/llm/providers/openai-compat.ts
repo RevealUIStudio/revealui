@@ -66,7 +66,7 @@ const asRecord = (value: unknown): Record<string, unknown> | undefined => {
 
 const isFunctionToolCall = (call: unknown): call is OpenAIChatToolCall => {
   const record = asRecord(call);
-  if (!record || record.type !== 'function' || typeof record.id !== 'string') {
+  if (record?.type !== 'function' || typeof record.id !== 'string') {
     return false;
   }
   const fn = asRecord(record.function);

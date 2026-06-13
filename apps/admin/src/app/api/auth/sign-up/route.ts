@@ -47,7 +47,7 @@ export const runtime = 'nodejs';
 function isSignupGloballyClosed(): boolean {
   const open = process.env.REVEALUI_SIGNUP_OPEN === 'true';
   const whitelisted = Boolean(process.env.REVEALUI_SIGNUP_WHITELIST);
-  return !open && !whitelisted;
+  return !(open || whitelisted);
 }
 
 async function signUpHandler(request: NextRequest): Promise<NextResponse> {

@@ -365,7 +365,7 @@ describe('POST /upgrade — A.1 explicit item resolution', () => {
 
     const meterDelete = items.find((i) => i.id === 'si_meter' && i.deleted === true);
     expect(meterDelete).toBeDefined();
-    expect(items.find((i) => !i.id && !i.deleted)).toBeUndefined();
+    expect(items.find((i) => !(i.id || i.deleted))).toBeUndefined();
   });
 
   it('rejects when flat-tier item cannot be found by catalog price ID', async () => {

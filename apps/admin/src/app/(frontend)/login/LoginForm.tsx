@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
+import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 
@@ -105,7 +106,12 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
       navigateAfterAuthChange('/rotate-password');
     } else if (result.success) {
-      navigateAfterAuthChange(upgrade ? `/account/billing?upgrade=${upgrade}` : '/');
+      const dest = isAdminRole(result.user.role)
+        ? upgrade
+          ? `/account/billing?upgrade=${upgrade}`
+          : '/'
+        : '/welcome';
+      navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
       navigateAfterAuthChange('/mfa');
     } else {

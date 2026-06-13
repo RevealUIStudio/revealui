@@ -656,7 +656,7 @@ app.openapi(
         .where(eq(marketplaceAgents.id, assignedAgentId))
         .limit(1);
 
-      if (!agent || agent.status !== 'published') {
+      if (agent?.status !== 'published') {
         throw new HTTPException(404, { message: 'Agent not found or unavailable' });
       }
       costUsdc = agent.basePriceUsdc;
