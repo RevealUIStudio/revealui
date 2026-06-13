@@ -11,6 +11,7 @@ import { logger } from '@revealui/core/utils/logger';
 import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { INSERT_IMAGE_COMMAND } from '../nodes/ImageNode.js';
+import { postMediaUpload } from './upload.js';
 
 /** Default maximum file size: 10 MB */
 const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -102,11 +103,7 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
 
         let response: Response;
         try {
-          response = await fetch(uploadEndpoint, {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal,
-          });
+          response = await postMediaUpload(uploadEndpoint, formData, controller.signal);
         } finally {
           clearTimeout(timeoutId);
         }
