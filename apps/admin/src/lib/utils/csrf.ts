@@ -4,8 +4,15 @@ export function getCsrfToken(): string | null {
     const eqIdx = part.indexOf('=');
     if (eqIdx === -1) continue;
     const key = part.slice(0, eqIdx).trim();
-    const val = part.slice(eqIdx + 1).trim();
-    if (key === 'revealui-csrf') return val || null;
+    if (key === 'revealui-csrf') {
+      const raw = part.slice(eqIdx + 1).trim();
+      if (!raw) return null;
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
+      }
+    }
   }
   return null;
 }

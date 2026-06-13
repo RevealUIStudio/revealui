@@ -44,6 +44,13 @@ describe('readCsrfToken', () => {
     vi.stubGlobal('document', { cookie: 'revealui-csrf=first; revealui-csrf=second' });
     expect(readCsrfToken()).toBe('first');
   });
+
+  it('URL-decodes the value — Next.js cookie.serialize() encodes the colon separator', () => {
+    vi.stubGlobal('document', {
+      cookie: 'revealui-csrf=nonce123%3Ahmac456',
+    });
+    expect(readCsrfToken()).toBe('nonce123:hmac456');
+  });
 });
 
 describe('postSignOut - CSRF token attach', () => {

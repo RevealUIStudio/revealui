@@ -90,6 +90,9 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   );
   const messageKey = searchParams.get('message');
   const successMessage = messageKey ? SUCCESS_MESSAGES[messageKey] : undefined;
+  const rawUpgrade = searchParams.get('upgrade');
+  const upgrade: 'pro' | 'max' | null =
+    rawUpgrade === 'pro' || rawUpgrade === 'max' ? rawUpgrade : null;
 
   const anyLoading = isLoading || isPasskeyLoading;
   const hasAlternates = oauthProviders.length > 0 || passkeySupported;
@@ -102,7 +105,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
       navigateAfterAuthChange('/rotate-password');
     } else if (result.success) {
-      navigateAfterAuthChange('/');
+      navigateAfterAuthChange(upgrade ? `/account/billing?upgrade=${upgrade}` : '/');
     } else if ('requiresMfa' in result && result.requiresMfa) {
       navigateAfterAuthChange('/mfa');
     } else {

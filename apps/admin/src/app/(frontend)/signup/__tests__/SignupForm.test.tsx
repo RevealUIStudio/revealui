@@ -97,10 +97,13 @@ describe('SignupForm post-signup routing', () => {
   });
 
   it('sends an auto-verified (first) user straight in', async () => {
-    mockSignUp.mockResolvedValue({
-      success: true,
-      user: { id: '1', email: 'ada@example.com', emailVerified: true },
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ user: { emailVerified: true } }) })
+        .mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
 
     render(<SignupForm apiUrl="http://api.test" />);
     fillAndSubmit();
@@ -117,10 +120,13 @@ describe('SignupForm post-signup routing', () => {
     'max',
   ] as const)('routes an auto-verified user with ?plan=%s into the billing upgrade flow', async (plan) => {
     mockPlanParam = plan;
-    mockSignUp.mockResolvedValue({
-      success: true,
-      user: { id: '1', email: 'ada@example.com', emailVerified: true },
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ user: { emailVerified: true } }) })
+        .mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
 
     render(<SignupForm apiUrl="http://api.test" />);
     fillAndSubmit();
@@ -133,10 +139,13 @@ describe('SignupForm post-signup routing', () => {
 
   it('ignores an unknown ?plan= value and routes home', async () => {
     mockPlanParam = 'enterprise-deluxe';
-    mockSignUp.mockResolvedValue({
-      success: true,
-      user: { id: '1', email: 'ada@example.com', emailVerified: true },
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ user: { emailVerified: true } }) })
+        .mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
 
     render(<SignupForm apiUrl="http://api.test" />);
     fillAndSubmit();

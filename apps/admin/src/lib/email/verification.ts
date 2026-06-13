@@ -14,10 +14,12 @@ import { sendEmail } from './index';
 export async function sendVerificationEmail(
   email: string,
   token: string,
+  plan?: 'pro' | 'max',
 ): Promise<{ success: boolean; error?: string }> {
   const baseUrl = config.reveal.serverURL;
 
-  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const planSuffix = plan ? `&upgrade=${plan}` : '';
+  const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}${planSuffix}`;
 
   const html = `
     <!DOCTYPE html>
@@ -28,10 +30,10 @@ export async function sendVerificationEmail(
         <title>Verify Your Email</title>
       </head>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #ea580c;">Verify Your Email</h1>
+        <h1 style="color: #2563eb;">Verify Your Email</h1>
         <p>Thanks for signing up for RevealUI! Please verify your email address by clicking the button below:</p>
         <p style="text-align: center; margin: 30px 0;">
-          <a href="${verifyUrl}" style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          <a href="${verifyUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             Verify Email
           </a>
         </p>

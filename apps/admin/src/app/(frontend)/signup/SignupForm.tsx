@@ -1,6 +1,6 @@
 'use client';
 
-import { usePasskeyRegister, useSignUp } from '@revealui/auth/react';
+import { usePasskeyRegister } from '@revealui/auth/react';
 import {
   ButtonCVA as Button,
   FormLabel,
@@ -49,7 +49,6 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   // Unknown values are ignored rather than forwarded to the billing page.
   const planParam = searchParams.get('plan');
   const plan: 'pro' | 'max' | null = planParam === 'pro' || planParam === 'max' ? planParam : null;
-  const { signUp, isLoading } = useSignUp();
   const {
     register: registerPasskey,
     isLoading: isPasskeyLoading,
@@ -64,6 +63,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   const anyLoading = isLoading || isPasskeyLoading;
@@ -77,34 +77,46 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       return;
     }
 
-    const result = await signUp({ email, password, name, tosAccepted: true });
-    if (result.success) {
-      for (const type of ['necessary', 'functional'] as const) {
-        apiFetch(`${apiUrl}/api/gdpr/consent/grant`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ type }),
-        }).catch(() => {
-          // Best-effort — consent tracking should not block signup
-        });
-      }
-
-      // The first user is auto-verified and gets a session immediately, so send
-      // them straight in. Everyone else must verify their email before they can
-      // sign in — show a confirmation screen instead of pushing them to a
-      // protected route that would only bounce back to /login.
-      if (result.user?.emailVerified) {
-        if (plan) {
-          navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/auth/sign-up${plan ? `?plan=${plan}` : ''}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password, name, tosAccepted: true }),
+      });
+      const data = (await res.json()) as { user?: { emailVerified?: boolean }; error?: string };
+      if (res.ok) {
+        for (const type of ['necessary', 'functional'] as const) {
+          apiFetch(`${apiUrl}/api/gdpr/consent/grant`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ type }),
+          }).catch(() => {
+            // Best-effort — consent tracking should not block signup
+          });
+        }
+        // The first user is auto-verified and gets a session immediately, so send
+        // them straight in. Everyone else must verify their email before they can
+        // sign in — show a confirmation screen instead of pushing them to a
+        // protected route that would only bounce back to /login.
+        if (data.user?.emailVerified) {
+          if (plan) {
+            navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
+          } else {
+            navigateAfterAuthChange('/');
+          }
         } else {
-          navigateAfterAuthChange('/');
+          setAwaitingVerification(true);
         }
       } else {
-        setAwaitingVerification(true);
+        setError(data.error || 'Failed to create account');
       }
-    } else {
-      setError(result.error || 'Failed to create account');
+    } catch {
+      setError('Failed to create account');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -131,7 +143,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        navigateAfterAuthChange('/');
+        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/');
       }
     }
   };
@@ -207,7 +219,10 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         <p className="text-xs text-zinc-600">
           Each code can only be used once. Keep them somewhere safe.
         </p>
-        <Button onClick={() => navigateAfterAuthChange('/')} className="w-full">
+        <Button
+          onClick={() => navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/')}
+          className="w-full"
+        >
           I&apos;ve saved my codes
         </Button>
       </div>

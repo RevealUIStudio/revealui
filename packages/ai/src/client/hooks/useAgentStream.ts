@@ -153,7 +153,13 @@ function readCsrfToken(): string | undefined {
     const eqIdx = part.indexOf('=');
     if (eqIdx === -1) continue;
     if (part.slice(0, eqIdx).trim() === 'revealui-csrf') {
-      return part.slice(eqIdx + 1).trim() || undefined;
+      const raw = part.slice(eqIdx + 1).trim();
+      if (!raw) return undefined;
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
+      }
     }
   }
   return undefined;
