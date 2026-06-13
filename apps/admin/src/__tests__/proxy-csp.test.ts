@@ -114,4 +114,18 @@ describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => 
     );
     expect(res.headers.get('location')).toContain('/login');
   });
+
+  it('lets an authenticated non-admin (subscriber) reach /account/billing without bouncing to /login', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/account/billing?upgrade=pro', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=user' },
+      }),
+    );
+    expect(res.headers.get('location')).toBeNull();
+  });
+
+  it('still requires a session for /account/billing (no session redirects to /login)', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/account/billing'));
+    expect(res.headers.get('location')).toContain('/login');
+  });
 });
