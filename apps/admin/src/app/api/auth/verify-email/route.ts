@@ -75,7 +75,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       emailVerificationToken: null,
     });
 
-    return NextResponse.redirect(`${baseUrl}/login?message=email_verified${upgrade ? `&upgrade=${upgrade}` : ''}`);
+    return NextResponse.redirect(
+      `${baseUrl}/login?message=email_verified${upgrade ? `&upgrade=${upgrade}` : ''}`,
+    );
   } catch (error) {
     logger.error('Email verification failed', { error });
     return NextResponse.redirect(`${baseUrl}/login?error=verification_failed`);
