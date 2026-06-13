@@ -71,6 +71,9 @@ STRIPE_CREDITS_STANDARD_PRICE_ID     = "revealui/prod/stripe/credits-standard-pr
 STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/prod/stripe/credits-scale-price-id"
 STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/prod/stripe/agent-overage-price-id"
 STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/prod/stripe/max-annual-price-id"
+STRIPE_RENEWAL_PRO_PRICE_ID          = "revealui/prod/stripe/renewal-pro-price-id"
+STRIPE_RENEWAL_MAX_PRICE_ID          = "revealui/prod/stripe/renewal-max-price-id"
+STRIPE_RENEWAL_ENTERPRISE_PRICE_ID   = "revealui/prod/stripe/renewal-enterprise-price-id"
 
 # Observability — Sentry (server-side error capture; required by validate-startup.ts
 # REQUIRED_IN_PRODUCTION_HOSTED per revealui#787)
@@ -168,6 +171,9 @@ NEXT_PUBLIC_STRIPE_PRO_PRICE_ID        = "revealui/prod/stripe/pro-price-id"
 NEXT_PUBLIC_STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
 NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = "revealui/prod/stripe/enterprise-price-id"
 NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
+NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID        = "revealui/prod/stripe/perpetual-pro-price-id"
+NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID        = "revealui/prod/stripe/perpetual-max-price-id"
+NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID = "revealui/prod/stripe/perpetual-enterprise-price-id"
 # Bare versions on admin (server-side reads in Next.js api routes; same values)
 STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
 STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
