@@ -1,6 +1,7 @@
 'use client';
 
 import { usePasskeySignIn, useSignIn } from '@revealui/auth/react';
+import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import {
   ButtonCVA as Button,
   FormLabel,
@@ -105,7 +106,10 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
       navigateAfterAuthChange('/rotate-password');
     } else if (result.success) {
-      navigateAfterAuthChange(upgrade ? `/account/billing?upgrade=${upgrade}` : '/');
+      const dest = isAdminRole(result.user.role)
+        ? (upgrade ? `/account/billing?upgrade=${upgrade}` : '/')
+        : '/welcome';
+      navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
       navigateAfterAuthChange('/mfa');
     } else {
