@@ -107,8 +107,12 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
       navigateAfterAuthChange('/rotate-password');
     } else if (result.success) {
       const dest = isAdminRole(result.user.role)
-        ? (upgrade ? `/account/billing?upgrade=${upgrade}` : '/')
-        : (upgrade ? `/account/billing?upgrade=${upgrade}` : '/welcome');
+        ? upgrade
+          ? `/account/billing?upgrade=${upgrade}`
+          : '/'
+        : upgrade
+          ? `/account/billing?upgrade=${upgrade}`
+          : '/welcome';
       navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
       navigateAfterAuthChange('/mfa');
