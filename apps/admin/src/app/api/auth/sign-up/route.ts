@@ -63,6 +63,9 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const rawPlan = request.nextUrl.searchParams.get('plan');
+    const plan: 'pro' | 'max' | null = rawPlan === 'pro' || rawPlan === 'max' ? rawPlan : null;
+
     let body: unknown;
     try {
       body = await request.json();
@@ -224,14 +227,16 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
 
     // Send verification email (fire-and-forget  -  don't block signup)
     if (!isFirstUser && resolvedUser?.email && resolvedUser?.emailVerificationToken) {
-      sendVerificationEmail(resolvedUser.email, resolvedUser.emailVerificationToken).catch(
-        (emailError) => {
-          logger.warn('Failed to send verification email', {
-            userId: resolvedUser?.id,
-            error: emailError,
-          });
-        },
-      );
+      sendVerificationEmail(
+        resolvedUser.email,
+        resolvedUser.emailVerificationToken,
+        plan ?? undefined,
+      ).catch((emailError) => {
+        logger.warn('Failed to send verification email', {
+          userId: resolvedUser?.id,
+          error: emailError,
+        });
+      });
     }
 
     // Create response with user data
