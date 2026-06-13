@@ -530,6 +530,7 @@ async function syncCatalog(
     const subscriptionPriceIds: string[] = [];
     const currentDefaultPriceId =
       typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
+    const stalePricesToArchiveLast: string[] = [];
 
     for (const priceDef of productDef.prices) {
       const matchingPrice = existingPrices.find((p) => priceMatchesDefinition(p, priceDef));
@@ -558,6 +559,8 @@ async function syncCatalog(
       if (stalePrice) {
         if (dryRun) {
           log.info(`  Would archive stale price: ${stalePrice.id}`);
+        } else if (stalePrice.id === currentDefaultPriceId) {
+          stalePricesToArchiveLast.push(stalePrice.id);
         } else {
           await stripe.prices.update(stalePrice.id, { active: false });
           log.warn(`  Archived stale price: ${stalePrice.id}`);
@@ -621,6 +624,10 @@ async function syncCatalog(
       } else {
         await stripe.products.update(product.id, { default_price: String(defaultPriceId) });
         log.success(`  Set default price: ${defaultPriceId}`);
+        for (const staleId of stalePricesToArchiveLast) {
+          await stripe.prices.update(staleId, { active: false });
+          log.warn(`  Archived stale price (was default): ${staleId}`);
+        }
       }
     }
 
