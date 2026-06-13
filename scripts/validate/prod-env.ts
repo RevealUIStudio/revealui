@@ -82,7 +82,7 @@ export function isVercelEncryptedBlob(value: string): boolean {
     const decoded = Buffer.from(value, 'base64').toString('utf8');
     const parsed: unknown = JSON.parse(decoded);
     if (typeof parsed !== 'object' || parsed === null) return false;
-    if (!('v' in parsed) || !('c' in parsed)) return false;
+    if (!('v' in parsed && 'c' in parsed)) return false;
     return (parsed as { v: unknown }).v === 'v2';
   } catch {
     return false;

@@ -534,7 +534,7 @@ app.openapi(
   // @ts-expect-error -- OpenAPI response union narrowing
   async (c) => {
     const user = c.get('user');
-    if (!user || user.role !== 'admin') {
+    if (user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 
