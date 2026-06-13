@@ -15,7 +15,11 @@ import { generateDevbox } from '../generators/devbox.js';
 import { generateDevContainer } from '../generators/devcontainer.js';
 import { generateEnvFile } from '../generators/env-file.js';
 import { generateReadme } from '../generators/readme.js';
-import { installDependencies, isPnpmInstalled } from '../installers/dependencies.js';
+import {
+  checkPnpmVersion,
+  installDependencies,
+  isPnpmInstalled,
+} from '../installers/dependencies.js';
 import type { DatabaseConfig } from '../prompts/database.js';
 import type { DevEnvConfig } from '../prompts/devenv.js';
 import type { PaymentConfig } from '../prompts/payments.js';
@@ -181,6 +185,12 @@ export async function createProject(cfg: CreateProjectConfig): Promise<void> {
         'pnpm not found  -  skipping dependency installation. Run `pnpm install` manually.',
       );
     } else {
+      const { version, valid } = await checkPnpmVersion();
+      if (!valid) {
+        logger.error(`pnpm 10.28.2 or higher is required. You have ${version}.`);
+        logger.info('Upgrade: https://pnpm.io/installation');
+        process.exit(1);
+      }
       await installDependencies(projectPath);
     }
   } else {
