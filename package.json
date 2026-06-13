@@ -223,9 +223,9 @@
     "validate:seed-wiring": "tsx scripts/validate/seed-script-wiring.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts",
     "kek:rotate": "tsx scripts/security/rotate-kek.ts",
-    "vercel:sync": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml",
-    "vercel:sync:apply": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
-    "vercel:drift-check": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json"
+    "vercel:sync": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml",
+    "vercel:sync:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
+    "vercel:drift-check": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json"
   },
   "type": "module"
 }
