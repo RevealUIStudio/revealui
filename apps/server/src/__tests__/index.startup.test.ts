@@ -125,6 +125,28 @@ describe('apps/server/src/index.ts — post-Phase-2 invariants', () => {
       'export function initAlerting',
     );
   });
+
+  it('runs synchronous validateStartup() in a production guard (Vercel cold-start env validation), without the async boot chain', () => {
+    // The Vercel serverless API executes ONLY index.ts top-level code, so the
+    // synchronous env validator must run here to fail fast on a misconfigured
+    // deploy. It must NOT pull in the long-running boot chain — that lives in
+    // worker.ts (asserted by the test above). The VITEST inner guard keeps it
+    // from firing in suites that re-import this module with NODE_ENV=production.
+    const body = extractBranchBody(indexSource, PROD_GUARD, 'validateStartup()');
+    expect(
+      body,
+      'index.ts must call validateStartup() in a NODE_ENV===production guard for Vercel cold-start validation',
+    ).toContain('validateStartup()');
+    expect(body, 'cold-start validation must be guarded against the test runner').toContain(
+      '!process.env.VITEST',
+    );
+    expect(
+      body,
+      'cold-start validation must stay synchronous — no license/serve/alerting side effects',
+    ).not.toContain('validateLicenseAtStartup');
+    expect(body).not.toContain('serve({ fetch: app.fetch, port }');
+    expect(body).not.toContain('initAlerting()');
+  });
 });
 
 describe('apps/server/src/worker.ts — Fly entry invariants', () => {

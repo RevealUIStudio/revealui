@@ -1307,11 +1307,40 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 // IPs / 'unknown' for everyone.
 configureClientIp({ trustedProxyCount: 1 });
 
-// NODE_ENV === 'production' boot is handled by src/worker.ts (Fly entry).
-// This module is intentionally side-effect-free in production so the Vercel
-// serverless handler (api/index.js → dist/index.js) doesn't kick off
-// long-running side effects (serve(), injectWebSocket, initAlerting,
-// hydrateInferenceConfigs, startExecutor) on every cold start. The dev
-// block above still fires for `pnpm dev:api` because that runs with
-// NODE_ENV=development. See the internal infra-consolidation lane plan
-// (Phase 2) for the extraction history.
+// NODE_ENV === 'production' LONG-RUNNING boot is handled by src/worker.ts (Fly
+// entry). This module stays free of long-running side effects in production so
+// the Vercel serverless handler (api/index.js → dist/index.js) doesn't kick off
+// serve(), injectWebSocket, initAlerting, hydrateInferenceConfigs, or
+// startExecutor on every cold start. The dev block above still fires for
+// `pnpm dev:api` (NODE_ENV=development). See the internal infra-consolidation
+// lane plan (Phase 2) for the extraction history.
+//
+// One synchronous, side-effect-free exception runs here: validateStartup().
+// The Vercel serverless API executes ONLY this module's top-level code, so
+// without this call it had NO boot-time env validation at all — a deploy whose
+// config was internally inconsistent (e.g. a live Stripe key with
+// STRIPE_LIVE_MODE unset, or a malformed REVEALUI_KEK) booted clean and failed
+// only on the first request that happened to touch the broken value.
+// validateStartup() is pure (process.env reads + format checks + a stderr
+// warning) and throws on misconfig, so calling it at module load fails the cold
+// start fast and loud. We deliberately do NOT run the async chain here:
+// validateLicenseAtStartup is a no-op in hosted mode, validateBillingCatalog-
+// AtStartup is a per-cold-start DB round-trip we don't want on the request path
+// (the daily billing-readiness cron already covers catalog drift), and
+// serve()/intervals/executor are serverless-incompatible. Those stay in worker.ts.
+//
+// Trade-off (intentional): any missing/malformed REQUIRED_IN_PRODUCTION_HOSTED
+// var now fails the WHOLE API at cold start rather than degrading one feature.
+// For a money-handling deployment that fail-fast posture is the desired one and
+// matches worker.ts. SKIP_ENV_VALIDATION (honored inside validateStartup) still
+// lets Docker-build / build-only contexts compile without live credentials.
+//
+// The VITEST inner guard mirrors the dev block: the runner sets VITEST
+// regardless of any NODE_ENV stub, and several suites re-import this module with
+// NODE_ENV='production' (vi.resetModules) — without the guard those imports
+// would throw on the test env's intentionally-incomplete config.
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.VITEST) {
+    validateStartup();
+  }
+}
