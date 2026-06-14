@@ -21,12 +21,6 @@
       "migrationPhase": null
     },
     {
-      "path": "scripts/db/precheck-migration-0001.ts",
-      "rules": ["direct-import"],
-      "reason": "Pre-migration check script — intentionally uses pg directly to verify constraints before drizzle-kit applies migration 0001. Cannot depend on @revealui/db being in a valid state.",
-      "migrationPhase": null
-    },
-    {
       "path": "scripts/setup/backfill-migrations.ts",
       "rules": ["direct-import"],
       "reason": "GAP-168 pre-migrate guard. Queries drizzle.__drizzle_migrations directly to detect tracking-row drift before drizzle-kit migrate runs. Cannot route through @revealui/db because (a) the schema isn't yet known to be in a consistent state — that's exactly what this script verifies — and (b) drizzle.__drizzle_migrations is drizzle's own tracking table, not part of the app schema. Permanent.",
@@ -36,12 +30,6 @@
       "path": "scripts/setup/assert-migration-count.ts",
       "rules": ["direct-import"],
       "reason": "GAP-168 post-migrate guard. Counts rows in drizzle.__drizzle_migrations and asserts against _journal.json entry count. Same rationale as backfill-migrations.ts — drizzle.__drizzle_migrations is drizzle's own tracking table, not in the app schema. Permanent.",
-      "migrationPhase": null
-    },
-    {
-      "path": "scripts/seed-admin.mjs",
-      "rules": ["direct-import"],
-      "reason": "Admin-user seed script. Queries Neon Auth's own schema (`neon_auth.\"user\"`), not the app's public.users table — that's a third-party schema provided by Neon Auth which Drizzle correctly does not track. Routing this through @revealui/db would require adding neon_auth tables to the schema, which would be misleading (they are not owned by this project). Permanent.",
       "migrationPhase": null
     },
     {
@@ -75,22 +63,9 @@
       "migrationPhase": null
     },
     {
-      "path": "scripts/dev-tools/verify-test-setup.ts",
-      "rules": ["execute-sql-literal"],
-      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/server/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
-      "migrationPhase": null
-    },
-    {
       "path": "scripts/security/rotate-kek.ts",
       "rules": ["direct-import"],
-      "reason": "KEK rotation operational tool (GAP-126 Phase 2). One-off script that performs simple SELECT/UPDATE on the two KEK-encrypted columns (user_api_keys.encrypted_key + users.mfa_secret). Uses raw pg.Pool instead of @revealui/db/client to keep the rotation tool isolated from production DB-client lifecycle (singleton pools, retry policies, observability hooks). Operator-invoked; 2 surfaces, ~3 SQL ops total. Permanent.",
-      "migrationPhase": null
-    },
-    {
-      "path": "scripts/setup/backfill-tos-pre-458-bootstrap.ts",
-      "rules": ["direct-import"],
-      "reason": "CR-8 one-shot TOS backfill script (closes #460). Uses pg.Pool directly — same rationale as rotate-kek.ts: operational script that must remain isolated from @revealui/db's singleton pool, retry, and observability lifecycle. The script runs once by the founder, not in the application request path. Permanent.",
-      "migrationPhase": null
+      "reason": "KEK rotation operational tool (GAP-126 Phase 2). One-off script that performs simple SELECT/UPDATE on the two KEK-encrypted columns (user_api_keys.encrypted_key + users.mfa_secret). Uses raw pg.Pool instead of @revealui/db/client to keep the rotation tool isolated from production DB-client lifecycle (singleton pools, retry policies, observability hooks). Operator-invoked; 2 surfaces, ~3 SQL ops total. Permanent."
     }
   ]
 }
