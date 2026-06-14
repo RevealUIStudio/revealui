@@ -9,10 +9,6 @@
  * - Database adapter: PGlite / PostgreSQL with CRDT support (pre-wired)
  * - MCP contracts: Zod schemas for request/response/tool bridging (pre-wired)
  *
- * Server adapter status:
- * - NeonAdapter, StripeAdapter, VercelAdapter: scaffolded (adapter config + error mapping only,
- *   no live API calls). Implement execute() overrides before advertising as functional.
- *
  * @packageDocumentation
  */
 
@@ -152,16 +148,12 @@ export {
 } from './rate-limiter.js';
 // Adapter framework
 export {
-  createMCPAdapter,
   disposeAllAdapters,
   generateIdempotencyKey,
   generateUniqueIdempotencyKey,
   type IdempotencyStore,
   MCPAdapter,
   type MCPConfig,
-  NeonAdapter,
-  StripeAdapter,
-  VercelAdapter,
 } from './servers/adapter.js';
 // Contracts introspection server (F8 Phase 1 — protocol-pyramid ADR L2-MCP)
 export {
