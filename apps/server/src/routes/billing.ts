@@ -245,20 +245,45 @@ const UpgradeResponseSchema = z.object({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/**
+ * Returns true when `customerId` resolves to a live (non-deleted) customer in
+ * the Stripe account the current key targets. Returns false when the customer
+ * is missing ("No such customer" — e.g. an id created under a different mode's
+ * key) or has been deleted. Re-throws other errors (network, auth, rate-limit)
+ * so a transient Stripe failure does not trigger spurious re-provisioning.
+ */
+async function stripeCustomerIsUsable(
+  stripe: ProtectedStripe,
+  customerId: string,
+): Promise<boolean> {
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    return !('deleted' in customer && customer.deleted === true);
+  } catch (err) {
+    if (err instanceof Stripe.errors.StripeInvalidRequestError) {
+      return false;
+    }
+    throw err;
+  }
+}
+
 async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
   const db = getClient();
 
-  // Fast path: user already has a Stripe customer id.
+  // Fast path: user already has a Stripe customer id — but verify it still
+  // exists in the CURRENT Stripe mode before reusing it. A customer created
+  // under a different key (e.g. a live customer when the deployment later runs
+  // test keys, or vice versa) or one deleted in the dashboard would otherwise
+  // be handed to checkout.sessions.create and fail with "No such customer",
+  // surfacing as a generic "Invalid billing request". When unusable we clear it
+  // and re-provision via the create paths below.
   const [user] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)
     .where(eq(users.id, userId));
 
-  if (user?.stripeCustomerId) {
-    return user.stripeCustomerId;
-  }
-
-  // Slow paths below need protectedStripe — load lazily and 503 if absent.
+  // protectedStripe is needed to verify an existing customer AND to create a
+  // new one — load it up front and 503 if absent.
   const services = await getServices();
   if (!services) {
     throw new HTTPException(503, {
@@ -266,6 +291,25 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     });
   }
   const protectedStripe = services.protectedStripe;
+
+  const storedCustomerId = user?.stripeCustomerId;
+  if (storedCustomerId) {
+    if (await stripeCustomerIsUsable(protectedStripe, storedCustomerId)) {
+      return storedCustomerId;
+    }
+    // Stale (wrong-mode or deleted). Clear it — guarded on the stale value so a
+    // concurrent re-provision isn't clobbered — then fall through to create a
+    // fresh customer. The lock/fallback paths below treat a null id as
+    // "needs creation".
+    logger.warn(
+      'ensureStripeCustomer: stored customer not usable in current Stripe mode; re-provisioning',
+      { userId, storedCustomerId },
+    );
+    await db
+      .update(users)
+      .set({ stripeCustomerId: null, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), eq(users.stripeCustomerId, storedCustomerId)));
+  }
 
   // Slow path: need to create a Stripe customer. This is the race-prone
   // section that issue #394 tracks. Two kinds of race exist:
