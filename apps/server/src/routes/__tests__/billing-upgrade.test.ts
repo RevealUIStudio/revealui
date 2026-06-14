@@ -14,6 +14,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockSubscriptionsList = vi.hoisted(() => vi.fn());
 const mockSubscriptionsUpdate = vi.hoisted(() => vi.fn());
+const mockPricesRetrieve = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ id: 'price_overage', active: true }),
+);
 const mockLogger = vi.hoisted(() => ({
   info: vi.fn(),
   error: vi.fn(),
@@ -25,6 +28,7 @@ vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     class {
       customers = { create: vi.fn() };
+      prices = { retrieve: mockPricesRetrieve };
       checkout = { sessions: { create: vi.fn() } };
       billingPortal = { sessions: { create: vi.fn() } };
       subscriptions = { list: mockSubscriptionsList, update: mockSubscriptionsUpdate };
@@ -38,6 +42,7 @@ vi.mock('stripe', () => ({
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
     customers: { create: vi.fn() },
+    prices: { retrieve: mockPricesRetrieve },
     checkout: { sessions: { create: vi.fn() } },
     billingPortal: { sessions: { create: vi.fn() } },
     subscriptions: { list: mockSubscriptionsList, update: mockSubscriptionsUpdate },
