@@ -321,10 +321,42 @@ function isTestSubdomainOrigin(origin: string): boolean {
   return validSuffixes.some((suffix) => host === `dev.${suffix}` || host === `test.${suffix}`);
 }
 
+// Public GET endpoints that are CDN-cacheable (Cache-Control: public, s-maxage)
+// and carry NO credentials. They receive wildcard CORS so a single cached
+// variant is safe for every origin. Exact-match set — no regex, no prefix
+// surprises. Add a path here only if it is genuinely public, credential-free,
+// and cacheable.
+const PUBLIC_CACHEABLE_CORS_PATHS = new Set(['/api/pricing']);
+export function isPublicCacheableCorsPath(path: string): boolean {
+  return PUBLIC_CACHEABLE_CORS_PATHS.has(path);
+}
+
 // Manual CORS middleware  -  Hono's cors() middleware was not reliably setting
 // Access-Control-Allow-Origin headers in the Vercel serverless runtime.
 app.use('*', async (c, next) => {
   const origin = c.req.header('origin') || c.req.header('Origin') || '';
+
+  // Wildcard CORS for public, cacheable, credential-free endpoints. Coupling
+  // public CDN caching with per-origin CREDENTIALED CORS is a footgun: the CDN
+  // stores one variant (keyed by `Vary: Origin`, or none when a request arrives
+  // without an Origin — e.g. an SSR fetch/prefetch), and that variant can then
+  // be served to a browser whose origin doesn't match, surfacing as
+  // "No 'Access-Control-Allow-Origin' header is present" in the browser. These
+  // routes need no credentials, so one '*' variant is correct and cache-safe.
+  if (isPublicCacheableCorsPath(c.req.path)) {
+    c.header('Access-Control-Allow-Origin', '*');
+    if (c.req.method === 'OPTIONS') {
+      c.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
+      c.header(
+        'Access-Control-Allow-Headers',
+        c.req.header('Access-Control-Request-Headers') || 'Content-Type',
+      );
+      c.header('Access-Control-Max-Age', '86400');
+      return c.body(null, 204);
+    }
+    await next();
+    return;
+  }
 
   // Preview CORS: allow project-scoped Vercel preview URLs and test subdomains.
   // Pattern: revealui-<app>-<hash>-revealuistudios-projects.vercel.app
