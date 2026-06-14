@@ -21,6 +21,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
@@ -122,6 +123,32 @@ async function withStripe<T>(operation: (stripe: ProtectedStripe) => Promise<T>)
       throw new HTTPException(503, {
         message: 'Payment service temporarily unavailable. Please try again shortly.',
       });
+    }
+    // Surface the original Stripe error before it is remapped to a user-safe
+    // message below. Stripe's diagnostic fields (type/code/param/statusCode/
+    // requestId/message) describe the API misuse  -  e.g. "No such price: …; a
+    // similar object exists in live mode, but a test mode key was used"  -  and
+    // carry no secret material. Without this, a price/coupon/meter mode mismatch
+    // surfaces only as an opaque "Invalid billing request" with no way to
+    // identify the offending parameter from logs.
+    if (error instanceof Stripe.errors.StripeError) {
+      const diagnostics = {
+        type: error.type,
+        code: error.code,
+        statusCode: error.statusCode,
+        requestId: error.requestId,
+        param: error instanceof Stripe.errors.StripeInvalidRequestError ? error.param : undefined,
+        stripeMessage: error.message,
+      };
+      // Card declines and rate limits are expected outcomes, not system faults.
+      if (
+        error instanceof Stripe.errors.StripeCardError ||
+        error instanceof Stripe.errors.StripeRateLimitError
+      ) {
+        logger.warn('Stripe operation rejected', diagnostics);
+      } else {
+        logger.error('Stripe operation failed before remap', error, diagnostics);
+      }
     }
     // Map Stripe-specific errors to actionable HTTP status codes
     if (error instanceof Stripe.errors.StripeCardError) {
@@ -446,6 +473,7 @@ async function resolveCatalogPriceId(
   requestedPriceId?: string,
 ): Promise<string> {
   const db = getClient();
+  const mode = getConfiguredStripeMode();
   const planId = `${kind}:${tier}`;
   const [catalogEntry] = await db
     .select({ stripePriceId: billingCatalog.stripePriceId })
@@ -455,6 +483,7 @@ async function resolveCatalogPriceId(
         eq(billingCatalog.planId, planId),
         eq(billingCatalog.tier, tier),
         eq(billingCatalog.billingModel, kind),
+        eq(billingCatalog.mode, mode),
         eq(billingCatalog.active, true),
       ),
     )
@@ -464,7 +493,7 @@ async function resolveCatalogPriceId(
 
   if (!resolvedPriceId) {
     throw new HTTPException(500, {
-      message: `Billing catalog is not configured for ${kind} ${tier}`,
+      message: `Billing catalog is not configured for ${kind} ${tier} (${mode} mode)`,
     });
   }
 
@@ -482,7 +511,13 @@ async function getAllCatalogSubscriptionPriceIds(): Promise<Set<string>> {
   const rows = await db
     .select({ stripePriceId: billingCatalog.stripePriceId })
     .from(billingCatalog)
-    .where(and(eq(billingCatalog.billingModel, 'subscription'), eq(billingCatalog.active, true)));
+    .where(
+      and(
+        eq(billingCatalog.billingModel, 'subscription'),
+        eq(billingCatalog.mode, getConfiguredStripeMode()),
+        eq(billingCatalog.active, true),
+      ),
+    );
   return new Set(rows.map((r) => r.stripePriceId).filter((id): id is string => id !== null));
 }
 
@@ -1755,6 +1790,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
       and(
         eq(billingCatalog.planId, planId),
         eq(billingCatalog.billingModel, 'credits'),
+        eq(billingCatalog.mode, getConfiguredStripeMode()),
         eq(billingCatalog.active, true),
       ),
     )
@@ -2535,7 +2571,13 @@ app.openapi(metricsRoute, async (c) => {
       metadata: billingCatalog.metadata,
     })
     .from(billingCatalog)
-    .where(and(eq(billingCatalog.billingModel, 'subscription'), eq(billingCatalog.active, true)));
+    .where(
+      and(
+        eq(billingCatalog.billingModel, 'subscription'),
+        eq(billingCatalog.mode, getConfiguredStripeMode()),
+        eq(billingCatalog.active, true),
+      ),
+    );
 
   const catalogPriceCents: Record<string, number> = {};
   for (const entry of catalogRows) {

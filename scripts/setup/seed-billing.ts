@@ -21,6 +21,7 @@
 import { resolve } from 'node:path';
 import { getClient } from '@revealui/db';
 import { billingCatalog } from '@revealui/db/schema';
+import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
 import { config } from 'dotenv';
 
 // ---------------------------------------------------------------------------
@@ -149,6 +150,17 @@ async function main(): Promise<void> {
 
   const db = getClient();
   const now = new Date();
+  // Mode tags every row so test and live price IDs coexist (unique on
+  // planId+mode). `--mode live|test` overrides; otherwise derive from the
+  // STRIPE_SECRET_KEY in the environment being seeded from.
+  const modeFlagIndex = process.argv.indexOf('--mode');
+  const modeArg = modeFlagIndex !== -1 ? process.argv[modeFlagIndex + 1] : undefined;
+  if (modeArg !== undefined && modeArg !== 'live' && modeArg !== 'test') {
+    log.error(`Invalid --mode "${modeArg}" (expected live|test)`);
+    process.exit(1);
+  }
+  const mode: 'live' | 'test' =
+    modeArg === 'live' || modeArg === 'test' ? modeArg : getConfiguredStripeMode();
   let seeded = 0;
   let withStripe = 0;
   let withoutStripe = 0;
@@ -161,6 +173,7 @@ async function main(): Promise<void> {
       planId: plan.planId,
       tier: plan.tier,
       billingModel: plan.billingModel,
+      mode,
       stripeProductId,
       stripePriceId,
       active: true,
@@ -180,7 +193,7 @@ async function main(): Promise<void> {
         createdAt: now,
       })
       .onConflictDoUpdate({
-        target: billingCatalog.planId,
+        target: [billingCatalog.planId, billingCatalog.mode],
         set: values,
       });
 
