@@ -190,8 +190,12 @@ describe('contrast guards — WCAG AA invariants on the declared canon', () => {
     ['light text-2 on surface-1', light['text-2'] ?? '', light['surface-1'] ?? ''],
     ['light warning-text on surface-0', light['warning-text'] ?? '', light['surface-0'] ?? ''],
     ['light brand on surface-0', BRAND_LIGHT, light['surface-0'] ?? ''],
-    // CTA label in light mode (white on deep cobalt, ~9.6:1)
-    ['light text-on-brand on brand', dark['text-on-brand'] ?? '', BRAND_LIGHT],
+    // CTA labels — both modes hold AA against their primary brand fill after
+    // the 2026-06-14 dark-mode ink swap. Light stays paper-white on cobalt-200
+    // (~9.6:1). Dark moves to near-black ink (surface-0 value) on cobalt-300
+    // (~4.69:1), clearing the floor the WCAG brand lift had pulled below AA.
+    ['light text-on-brand on brand', light['text-on-brand'] ?? '', BRAND_LIGHT],
+    ['dark text-on-brand on brand', dark['text-on-brand'] ?? '', BRAND_DARK],
   ];
 
   for (const [label, fg, bg] of aaPairs) {
@@ -200,16 +204,4 @@ describe('contrast guards — WCAG AA invariants on the declared canon', () => {
       expect(ratio, `${label} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA_TEXT);
     });
   }
-
-  // KNOWN BORDERLINE — dark-mode CTA label (white on cobalt-300) computes to
-  // ~3.97:1: above the WCAG 3:1 large-text/UI floor, below 4.5:1 normal-text
-  // AA. The L=0.58 dark-brand lift fixed brand-on-midnight (4.73:1) but pulled
-  // the label below normal-text AA. Guarded here at the 3:1 floor so it cannot
-  // silently get WORSE; raising it to 4.5 needs an owner palette decision
-  // (e.g. a dark CTA label ink, or a brand tweak) — tracked in the 2026-06-10
-  // public-surfaces assessment follow-ups.
-  it('dark text-on-brand on brand >= 3:1 (UI floor; 4.5 pending owner palette decision)', () => {
-    const ratio = contrast(dark['text-on-brand'] ?? '', BRAND_DARK);
-    expect(ratio, `dark text-on-brand on brand = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
-  });
 });
