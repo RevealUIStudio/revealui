@@ -90,11 +90,57 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Engagement pricing — published "from" anchors (Architecture Review, Fleet
-// deployment, Custom Build), shown as "from" minimums. Every engagement is
-// still scoped in a discovery call; the numbers are starting points, not quotes.
-// Rendered by components/for-operators/EngagementPricing.tsx, placed after
-// <HowWeDeliver /> on ForOperatorsPage.
+// Agency engagement ladder — single source of truth for the three published
+// "from" anchors RevealUI Studio offers (Architecture Review, Fleet deployment,
+// Custom Build). Two surfaces consume it: this file's FOR_OPERATORS_PRICING
+// (the agency page at /for-operators) and content/pricing.ts's
+// PRICING_DONE_FOR_YOU (the done-for-you band at the bottom of /pricing).
+// Body copy and CTA labels are surface-specific (operator-voice on the agency
+// page, dev-voice on the pricing band); only `id`, `name`, and `price` are
+// pinned here so a single edit propagates to every render site, including the
+// FAQ prose below.
+//
+// `price` is the bare numeric anchor ("$25,000") so it can drop into prose;
+// `startsFrom` decides whether the rendered ladder rung prefixes "from ".
+// Single ownership of the bare anchors is asserted by
+// __tests__/agency-engagement-ladder.test.ts.
+// ---------------------------------------------------------------------------
+
+export type AgencyEngagementId = 'architecture-review' | 'fleet-deployment' | 'custom-build';
+
+export interface AgencyEngagement {
+  readonly id: AgencyEngagementId;
+  readonly name: string;
+  readonly price: string;
+  readonly startsFrom: boolean;
+}
+
+export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
+  { id: 'architecture-review', name: 'Architecture Review', price: '$3,500', startsFrom: false },
+  { id: 'fleet-deployment', name: 'Fleet deployment', price: '$25,000', startsFrom: true },
+  { id: 'custom-build', name: 'Custom Build', price: '$50,000', startsFrom: true },
+] as const;
+
+/** Rendered display form for a ladder rung ("$3,500" or "from $25,000"). */
+export function agencyEngagementPriceDisplay(engagement: AgencyEngagement): string {
+  return engagement.startsFrom ? `from ${engagement.price}` : engagement.price;
+}
+
+function findEngagement(id: AgencyEngagementId): AgencyEngagement {
+  const found = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === id);
+  if (!found) throw new Error(`unknown agency engagement id: ${id}`);
+  return found;
+}
+
+const ARCHITECTURE_REVIEW = findEngagement('architecture-review');
+const FLEET_DEPLOYMENT = findEngagement('fleet-deployment');
+const CUSTOM_BUILD = findEngagement('custom-build');
+
+// ---------------------------------------------------------------------------
+// Engagement pricing — rendered by components/for-operators/EngagementPricing.tsx,
+// placed after <HowWeDeliver /> on ForOperatorsPage. Surface-specific body copy
+// is operator-voice; the canonical anchor (name + price) derives from
+// AGENCY_ENGAGEMENT_LADDER above.
 // ---------------------------------------------------------------------------
 
 export interface PricingRung {
@@ -110,20 +156,20 @@ export const FOR_OPERATORS_PRICING = {
   body: 'Every engagement is fixed-bid and starts with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
   rungs: [
     {
-      title: 'Architecture Review',
-      price: '$3,500',
+      title: ARCHITECTURE_REVIEW.name,
+      price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
       body: 'A two-week, fixed-bid plan for a self-hosted, audited product your clients own: a reference architecture, a data-flow and audit map, a model plan, and a priced path to launch. Credited toward a Fleet deployment if you start one within 30 days.',
       cta: { label: 'Book the scoping call', href: AGENCY_CONTACT, external: true },
     },
     {
-      title: 'Fleet deployment',
-      price: 'from $25,000',
+      title: FLEET_DEPLOYMENT.name,
+      price: agencyEngagementPriceDisplay(FLEET_DEPLOYMENT),
       body: 'A branded, self-hosted runtime your clients use under your name, on your cloud, white-labeled per client. Built and delivered as a fixed-scope engagement, scoped in the Architecture Review. Ongoing support runs as a separate monthly plan.',
       cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
     {
-      title: 'Custom Build',
-      price: 'from $50,000',
+      title: CUSTOM_BUILD.name,
+      price: agencyEngagementPriceDisplay(CUSTOM_BUILD),
       body: 'A bespoke product on the same runtime, scoped to what your business needs beyond a standard Fleet deployment. A four-to-twelve-week statement of work, fixed-bid, scoped in discovery.',
       cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
