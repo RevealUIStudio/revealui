@@ -137,33 +137,40 @@ export const PRICING_AGENT_CTA_LINKS = {
   } satisfies Cta,
 } as const;
 
-// Done-for-you rung: surfaces the services ladder (canonical figures from the
-// 2026-06-07 offerings pin) where the buying decision happens, instead of a
-// bare link out. Dollar figures match the agency site and /for-operators:
-// published "from" minimums, scoped in discovery, never fixed quotes. The
-// discovery call doubles as the mid-funnel capture for buyers who are not
-// ready to self-serve (06-10 public-surfaces audit P1).
+// Done-for-you rung: surfaces the agency engagement ladder where the buying
+// decision happens, instead of a bare link out. Name + price derive from
+// content/for-operators.ts AGENCY_ENGAGEMENT_LADDER — the single source of
+// truth for the three published "from" anchors. Per-rung `note` copy is
+// surface-specific (band-voice, shorter than the agency-page rung body), so
+// only the name + price are reused. The discovery call doubles as the
+// mid-funnel capture for buyers who are not ready to self-serve (06-10
+// public-surfaces audit P1).
+const DONE_FOR_YOU_RUNG_NOTES: Record<AgencyEngagementId, string> = {
+  'architecture-review':
+    'Fixed-bid written assessment of your project, schema, deployment, and security posture. Credited toward a Fleet deployment if you proceed within 30 days.',
+  'fleet-deployment':
+    'A branded, self-hosted RevealUI deployment for your business or your clients. Starting point, scoped in discovery.',
+  'custom-build':
+    'Bespoke platform engagement, 4 to 12 week sprints. Starting point, scoped in discovery.',
+};
+
+export interface DoneForYouRung {
+  readonly name: string;
+  readonly price: string;
+  readonly note: string;
+}
+
 export const PRICING_DONE_FOR_YOU = {
   eyebrow: 'Done for you',
   heading: 'Want it built and handed over?',
   body: 'RevealUI Studio (the agency) ships fixed-bid engagements on the runtime: scoped in a discovery call, delivered with a full handoff, owned by you afterward.',
-  rungs: [
-    {
-      name: 'Architecture Review',
-      price: '$3,500',
-      note: 'Fixed-bid written assessment of your project, schema, deployment, and security posture. Credited toward a Fleet deployment if you proceed within 30 days.',
-    },
-    {
-      name: 'Fleet deployment',
-      price: 'From $25,000',
-      note: 'A branded, self-hosted RevealUI deployment for your business or your clients. Starting point, scoped in discovery.',
-    },
-    {
-      name: 'Custom Build',
-      price: 'From $50,000',
-      note: 'Bespoke platform engagement, 4 to 12 week sprints. Starting point, scoped in discovery.',
-    },
-  ],
+  rungs: AGENCY_ENGAGEMENT_LADDER.map(
+    (engagement: AgencyEngagement): DoneForYouRung => ({
+      name: engagement.name,
+      price: agencyEngagementPriceDisplay(engagement),
+      note: DONE_FOR_YOU_RUNG_NOTES[engagement.id],
+    }),
+  ) as readonly DoneForYouRung[],
   primaryCta: {
     label: 'Book a discovery call',
     href: 'https://cal.com/revealuistudio/discovery',
