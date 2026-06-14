@@ -50,6 +50,10 @@
       "types": "./dist/email/index.d.ts",
       "import": "./dist/email/index.js"
     },
+    "./stripe/mode": {
+      "types": "./dist/stripe/mode.d.ts",
+      "import": "./dist/stripe/mode.js"
+    },
     "./stripe/payment-intent": {
       "types": "./dist/stripe/payment-intent.d.ts",
       "import": "./dist/stripe/payment-intent.js"

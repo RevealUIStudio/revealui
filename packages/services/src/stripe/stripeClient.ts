@@ -4,6 +4,7 @@ import configModule from '@revealui/config';
 import { createLogger } from '@revealui/core/observability/logger';
 import Stripe from 'stripe';
 import { DbCircuitBreaker } from './db-circuit-breaker.js';
+import { checkStripeModeCoherence } from './mode.js';
 
 const logger = createLogger({ service: 'Stripe' });
 
@@ -36,6 +37,21 @@ function getStripe(): Stripe {
     throw new Error(
       'STRIPE_SECRET_KEY environment variable is required. Use @revealui/config or set STRIPE_SECRET_KEY.',
     );
+  }
+
+  // Money-boundary coherence guard. The boot-time validator (apps/server
+  // validate-startup.ts) enforces the same key/STRIPE_LIVE_MODE contract, but it
+  // does not run on the Vercel serverless API (that path is intentionally
+  // side-effect-free at cold start). Without this check, a split state — e.g. a
+  // live secret key deployed with STRIPE_LIVE_MODE unset — boots clean and only
+  // detonates as a cryptic StripeInvalidRequestError mid-checkout. Asserting
+  // here fails the money path with a precise message at the moment the client is
+  // first constructed, while leaving non-money routes unaffected. Shared rule:
+  // packages/services/src/stripe/mode.ts.
+  const coherence = checkStripeModeCoherence(secretKey, process.env.STRIPE_LIVE_MODE === 'true');
+  if (!coherence.ok) {
+    logger.error('Stripe key / STRIPE_LIVE_MODE mismatch — refusing to construct client');
+    throw new Error(coherence.message);
   }
 
   _stripe = new Stripe(secretKey, {
