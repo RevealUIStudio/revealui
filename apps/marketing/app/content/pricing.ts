@@ -9,6 +9,12 @@ export {
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 
+import {
+  AGENCY_ENGAGEMENT_LADDER,
+  type AgencyEngagement,
+  type AgencyEngagementId,
+  agencyEngagementPriceDisplay,
+} from './for-operators';
 import { METRICS, SITE } from './site';
 import type { Cta, SectionHeading } from './types';
 

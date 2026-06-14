@@ -226,8 +226,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer:
-        'The discovery call scopes the engagement. A $3,500 fixed-bid Architecture Review is the written-assessment starting point, and it credits toward what you build next. From there, Fleet deployments start at $25,000 and Custom Builds at $50,000; the discovery call scopes the final number.',
+      answer: `The discovery call scopes the engagement. A ${ARCHITECTURE_REVIEW.price} fixed-bid ${ARCHITECTURE_REVIEW.name} is the written-assessment starting point, and it credits toward what you build next. From there, ${FLEET_DEPLOYMENT.name}s start at ${FLEET_DEPLOYMENT.price} and ${CUSTOM_BUILD.name}s at ${CUSTOM_BUILD.price}; the discovery call scopes the final number.`,
     },
     {
       question: 'How long does it take?',
