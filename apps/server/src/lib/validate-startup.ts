@@ -5,6 +5,12 @@ import {
 } from '@revealui/core/license';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
+// Shared live/test classification — same rule the runtime money-boundary guard
+// (getStripe) uses, so the boot validator and the request path can't drift.
+import {
+  classifyStripePublishableKey,
+  classifyStripeSecretKey,
+} from '@revealui/services/stripe/mode';
 
 export type EnvMap = Record<string, string | undefined>;
 
@@ -292,40 +298,41 @@ export function validateStartup(
       emitStripeTestModeWarning();
     }
 
-    // Stripe secret key — prefix depends on STRIPE_LIVE_MODE.
+    // Stripe secret key — environment must match STRIPE_LIVE_MODE. The live/test
+    // prefix rule is shared with the runtime money-boundary guard (getStripe)
+    // via @revealui/services/stripe/mode; `unknown` (empty/malformed) keys fail
+    // the strict boot check in both modes exactly as the old startsWith checks did.
     const stripeSecretKey = env.STRIPE_SECRET_KEY ?? '';
     if (!skipFormat(stripeSecretKey)) {
+      const secretKeyMode = classifyStripeSecretKey(stripeSecretKey);
       if (stripeLiveMode) {
-        if (!stripeSecretKey.startsWith('sk_live_')) {
+        if (secretKeyMode !== 'live') {
           errors.push(
             'STRIPE_SECRET_KEY must be a live key (sk_live_...) when STRIPE_LIVE_MODE=true.',
           );
         }
-      } else {
-        if (!stripeSecretKey.startsWith('sk_test_')) {
-          errors.push(
-            'STRIPE_SECRET_KEY must be a test key (sk_test_...) when STRIPE_LIVE_MODE is unset/false. ' +
-              'Set STRIPE_LIVE_MODE=true to use live keys (gated on the billing-readiness audit).',
-          );
-        }
+      } else if (secretKeyMode !== 'test') {
+        errors.push(
+          'STRIPE_SECRET_KEY must be a test key (sk_test_...) when STRIPE_LIVE_MODE is unset/false. ' +
+            'Set STRIPE_LIVE_MODE=true to use live keys (gated on the billing-readiness audit).',
+        );
       }
     }
 
     // Stripe publishable key (optional, but if set it must match the mode).
     const stripePublishable = env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (stripePublishable) {
+      const publishableKeyMode = classifyStripePublishableKey(stripePublishable);
       if (stripeLiveMode) {
-        if (!stripePublishable.startsWith('pk_live_')) {
+        if (publishableKeyMode !== 'live') {
           errors.push(
             'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must be a live key (pk_live_...) when STRIPE_LIVE_MODE=true.',
           );
         }
-      } else {
-        if (!stripePublishable.startsWith('pk_test_')) {
-          errors.push(
-            'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must be a test key (pk_test_...) when STRIPE_LIVE_MODE is unset/false.',
-          );
-        }
+      } else if (publishableKeyMode !== 'test') {
+        errors.push(
+          'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must be a test key (pk_test_...) when STRIPE_LIVE_MODE is unset/false.',
+        );
       }
     }
 

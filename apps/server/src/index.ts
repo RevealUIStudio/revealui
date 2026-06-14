@@ -321,10 +321,42 @@ function isTestSubdomainOrigin(origin: string): boolean {
   return validSuffixes.some((suffix) => host === `dev.${suffix}` || host === `test.${suffix}`);
 }
 
+// Public GET endpoints that are CDN-cacheable (Cache-Control: public, s-maxage)
+// and carry NO credentials. They receive wildcard CORS so a single cached
+// variant is safe for every origin. Exact-match set — no regex, no prefix
+// surprises. Add a path here only if it is genuinely public, credential-free,
+// and cacheable.
+const PUBLIC_CACHEABLE_CORS_PATHS = new Set(['/api/pricing']);
+export function isPublicCacheableCorsPath(path: string): boolean {
+  return PUBLIC_CACHEABLE_CORS_PATHS.has(path);
+}
+
 // Manual CORS middleware  -  Hono's cors() middleware was not reliably setting
 // Access-Control-Allow-Origin headers in the Vercel serverless runtime.
 app.use('*', async (c, next) => {
   const origin = c.req.header('origin') || c.req.header('Origin') || '';
+
+  // Wildcard CORS for public, cacheable, credential-free endpoints. Coupling
+  // public CDN caching with per-origin CREDENTIALED CORS is a footgun: the CDN
+  // stores one variant (keyed by `Vary: Origin`, or none when a request arrives
+  // without an Origin — e.g. an SSR fetch/prefetch), and that variant can then
+  // be served to a browser whose origin doesn't match, surfacing as
+  // "No 'Access-Control-Allow-Origin' header is present" in the browser. These
+  // routes need no credentials, so one '*' variant is correct and cache-safe.
+  if (isPublicCacheableCorsPath(c.req.path)) {
+    c.header('Access-Control-Allow-Origin', '*');
+    if (c.req.method === 'OPTIONS') {
+      c.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
+      c.header(
+        'Access-Control-Allow-Headers',
+        c.req.header('Access-Control-Request-Headers') || 'Content-Type',
+      );
+      c.header('Access-Control-Max-Age', '86400');
+      return c.body(null, 204);
+    }
+    await next();
+    return;
+  }
 
   // Preview CORS: allow project-scoped Vercel preview URLs and test subdomains.
   // Pattern: revealui-<app>-<hash>-revealuistudios-projects.vercel.app
@@ -1307,11 +1339,40 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 // IPs / 'unknown' for everyone.
 configureClientIp({ trustedProxyCount: 1 });
 
-// NODE_ENV === 'production' boot is handled by src/worker.ts (Fly entry).
-// This module is intentionally side-effect-free in production so the Vercel
-// serverless handler (api/index.js → dist/index.js) doesn't kick off
-// long-running side effects (serve(), injectWebSocket, initAlerting,
-// hydrateInferenceConfigs, startExecutor) on every cold start. The dev
-// block above still fires for `pnpm dev:api` because that runs with
-// NODE_ENV=development. See the internal infra-consolidation lane plan
-// (Phase 2) for the extraction history.
+// NODE_ENV === 'production' LONG-RUNNING boot is handled by src/worker.ts (Fly
+// entry). This module stays free of long-running side effects in production so
+// the Vercel serverless handler (api/index.js → dist/index.js) doesn't kick off
+// serve(), injectWebSocket, initAlerting, hydrateInferenceConfigs, or
+// startExecutor on every cold start. The dev block above still fires for
+// `pnpm dev:api` (NODE_ENV=development). See the internal infra-consolidation
+// lane plan (Phase 2) for the extraction history.
+//
+// One synchronous, side-effect-free exception runs here: validateStartup().
+// The Vercel serverless API executes ONLY this module's top-level code, so
+// without this call it had NO boot-time env validation at all — a deploy whose
+// config was internally inconsistent (e.g. a live Stripe key with
+// STRIPE_LIVE_MODE unset, or a malformed REVEALUI_KEK) booted clean and failed
+// only on the first request that happened to touch the broken value.
+// validateStartup() is pure (process.env reads + format checks + a stderr
+// warning) and throws on misconfig, so calling it at module load fails the cold
+// start fast and loud. We deliberately do NOT run the async chain here:
+// validateLicenseAtStartup is a no-op in hosted mode, validateBillingCatalog-
+// AtStartup is a per-cold-start DB round-trip we don't want on the request path
+// (the daily billing-readiness cron already covers catalog drift), and
+// serve()/intervals/executor are serverless-incompatible. Those stay in worker.ts.
+//
+// Trade-off (intentional): any missing/malformed REQUIRED_IN_PRODUCTION_HOSTED
+// var now fails the WHOLE API at cold start rather than degrading one feature.
+// For a money-handling deployment that fail-fast posture is the desired one and
+// matches worker.ts. SKIP_ENV_VALIDATION (honored inside validateStartup) still
+// lets Docker-build / build-only contexts compile without live credentials.
+//
+// The VITEST inner guard mirrors the dev block: the runner sets VITEST
+// regardless of any NODE_ENV stub, and several suites re-import this module with
+// NODE_ENV='production' (vi.resetModules) — without the guard those imports
+// would throw on the test env's intentionally-incomplete config.
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.VITEST) {
+    validateStartup();
+  }
+}
