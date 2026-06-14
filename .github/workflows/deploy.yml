@@ -109,13 +109,16 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ env.API_PROJECT_ID }} # api (from .github/vercel-projects.json)
 
-      - name: Build @revealui/core (transitive dep of validate-startup)
-        # validateStartup imports validateLicenseKey from @revealui/core/license
-        # (top-level, used by the Forge-mode validateLicenseAtStartup branch).
-        # Build core's dist so the tsx invocation in validate:prod-env can
-        # resolve the import. Hosted-mode validation does not call into the
-        # license code, but the module-level import still needs to resolve.
-        run: pnpm turbo build --filter=@revealui/core
+      - name: Build validate-startup deps (@revealui/core + @revealui/services)
+        # validate-startup.ts has top-level imports the tsx invocation in
+        # validate:prod-env must resolve to built dist:
+        #   - @revealui/core/license (validateLicenseKey, Forge-mode branch)
+        #   - @revealui/services/stripe/mode (shared Stripe live/test classifier,
+        #     also used by the runtime getStripe() guard)
+        # @revealui/db is built in the earlier step. Hosted-mode validation does
+        # not call into license/Stripe code, but the module-level imports still
+        # need to resolve, so their dist must exist.
+        run: pnpm turbo build --filter=@revealui/core --filter=@revealui/services
 
       - name: Validate prod env (presence + format, mirrors validateStartup)
         run: pnpm validate:prod-env
