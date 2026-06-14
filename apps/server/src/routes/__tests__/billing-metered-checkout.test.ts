@@ -13,6 +13,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockCustomersCreate = vi.hoisted(() => vi.fn());
+const mockCustomersRetrieve = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ id: 'cus_existing', object: 'customer' }),
+);
+const mockPricesRetrieve = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ id: 'price_overage', active: true }),
+);
 const mockCheckoutSessionsCreate = vi.hoisted(() => vi.fn());
 const mockSubscriptionsList = vi.hoisted(() => vi.fn());
 const mockLogger = vi.hoisted(() => ({
@@ -25,7 +31,8 @@ const mockLogger = vi.hoisted(() => ({
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     class {
-      customers = { create: mockCustomersCreate };
+      customers = { create: mockCustomersCreate, retrieve: mockCustomersRetrieve };
+      prices = { retrieve: mockPricesRetrieve };
       checkout = { sessions: { create: mockCheckoutSessionsCreate } };
       billingPortal = { sessions: { create: vi.fn() } };
       subscriptions = { list: mockSubscriptionsList, update: vi.fn() };
@@ -38,7 +45,8 @@ vi.mock('stripe', () => ({
 
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
-    customers: { create: mockCustomersCreate },
+    customers: { create: mockCustomersCreate, retrieve: mockCustomersRetrieve },
+    prices: { retrieve: mockPricesRetrieve },
     checkout: { sessions: { create: mockCheckoutSessionsCreate } },
     billingPortal: { sessions: { create: vi.fn() } },
     subscriptions: { list: mockSubscriptionsList, update: vi.fn() },
@@ -259,6 +267,24 @@ describe('POST /checkout — metered overage price attachment', () => {
     expect(lineItems).toHaveLength(2);
     expect(lineItems[0]).toEqual({ price: 'price_pro_test', quantity: 1 });
     expect(lineItems[1]).toEqual({ price: OVERAGE_PRICE_ID });
+  });
+
+  it('omits the metered item when the overage price is missing/inactive in the current mode (resilience)', async () => {
+    // Regression: a cross-mode/misconfigured STRIPE_AGENT_OVERAGE_PRICE_ID
+    // (e.g. a live price while running test keys) must NOT fail the whole
+    // checkout — the meter is skipped and the core subscription proceeds.
+    queueSelectResults([{ stripePriceId: 'price_pro_test' }], [{ stripeCustomerId: 'cus_pro' }]);
+    mockPricesRetrieve.mockResolvedValueOnce({ id: OVERAGE_PRICE_ID, active: false });
+    mockCheckoutSessionsCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/pay/pro' });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro' }));
+    expect(res.status).toBe(200);
+
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    const lineItems = sessionArgs.line_items as Array<Record<string, unknown>>;
+    expect(lineItems).toHaveLength(1);
+    expect(lineItems[0]).toEqual({ price: 'price_pro_test', quantity: 1 });
   });
 
   it('appends metered item as second line_item for max tier', async () => {

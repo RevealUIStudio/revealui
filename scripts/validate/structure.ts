@@ -164,7 +164,7 @@ const VALIDATION_RULES: ValidationRule[] = [
     required: false,
   },
   {
-    path: 'scripts/validation',
+    path: 'scripts/validate',
     type: 'directory',
     description: 'Quality checks',
     required: true,

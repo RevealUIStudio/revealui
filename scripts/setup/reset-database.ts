@@ -48,6 +48,7 @@ interface ResetOptions {
   seedAfterReset: boolean;
   database: 'rest' | 'vector' | 'all';
   force: boolean;
+  allowProduction: boolean;
 }
 
 function parseArgs(): ResetOptions {
@@ -58,6 +59,7 @@ function parseArgs(): ResetOptions {
     seedAfterReset: args.includes('--seed'),
     database: getDbArg(args),
     force: args.includes('--force'),
+    allowProduction: args.includes('--allow-production'),
   };
 }
 
@@ -286,6 +288,18 @@ async function resetDatabase() {
   if (isCI() && !options.force) {
     logger.error('Running in CI environment. Use --force to proceed.');
     process.exit(ErrorCode.EXECUTION_ERROR);
+  }
+
+  // Safety check for production. NODE_ENV or VERCEL_ENV=production means the
+  // resolved POSTGRES_URL almost certainly points at a live database. Refuse
+  // without an explicit --allow-production opt-in (still requires confirm below).
+  const isProduction =
+    process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  if (isProduction && !options.allowProduction) {
+    logger.error(
+      'Refusing to reset database with NODE_ENV/VERCEL_ENV=production. Pass --allow-production to override.',
+    );
+    process.exit(ErrorCode.CONFIG_ERROR);
   }
 
   // Get connection strings

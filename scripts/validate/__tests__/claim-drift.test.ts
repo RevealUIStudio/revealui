@@ -11,6 +11,7 @@ import {
   countTestFiles,
   extractRevealuiPackages,
   findIncompleteProList,
+  findLicenseSplitAntiPattern,
   makeIgnoredPathPredicate,
   parseGitIgnoredOutput,
   WALK_EXCLUDED_DIRS,
@@ -356,5 +357,51 @@ describe('WALK_EXCLUDED_DIRS', () => {
       }
     }
     expect([...shadowed]).toEqual([]);
+  });
+});
+
+describe('findLicenseSplitAntiPattern', () => {
+  it('flags the canonical equation form', () => {
+    expect(findLicenseSplitAntiPattern('21 published + 5 private')).toBe('N published + M private');
+    expect(findLicenseSplitAntiPattern('Pre-launch: 21 published + 5 private = 26')).toBe(
+      'N published + M private',
+    );
+  });
+
+  it('flags bare "N published packages"', () => {
+    expect(findLicenseSplitAntiPattern('21 published packages on npm')).toBe(
+      'N published packages',
+    );
+    expect(findLicenseSplitAntiPattern('We ship 25 published package adapters.')).toBe(
+      'N published packages',
+    );
+  });
+
+  it('flags bare "N private packages"', () => {
+    expect(findLicenseSplitAntiPattern('5 private packages internal to the suite')).toBe(
+      'N private packages',
+    );
+  });
+
+  it('does NOT flag the canonical taxonomy phrasing', () => {
+    expect(findLicenseSplitAntiPattern('20 of 26 packages are MIT')).toBeNull();
+    expect(findLicenseSplitAntiPattern('5 Pro packages are Fair Source (FSL-1.1-MIT)')).toBeNull();
+    expect(findLicenseSplitAntiPattern('20 MIT + 5 FSL + 1 internal = 26')).toBeNull();
+  });
+
+  it('does NOT flag prose that happens to use "published" without a package count', () => {
+    expect(findLicenseSplitAntiPattern('Packages are published to npm.')).toBeNull();
+    expect(
+      findLicenseSplitAntiPattern('See SLSA Build Level 2 provenance on published packages'),
+    ).toBeNull();
+    expect(findLicenseSplitAntiPattern('private function defined here')).toBeNull();
+  });
+
+  it('equation form takes precedence over bare forms', () => {
+    // A line that contains both halves should report the equation shape, not
+    // "N published packages" — otherwise multi-flagging clutters the report.
+    expect(findLicenseSplitAntiPattern('21 published + 5 private packages')).toBe(
+      'N published + M private',
+    );
   });
 });

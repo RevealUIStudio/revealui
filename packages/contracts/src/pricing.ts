@@ -1,8 +1,18 @@
 /**
  * @revealui/contracts/pricing
  *
- * Single source of truth for all tier, pricing, and feature display data.
- * Eliminates duplication across marketing, admin billing, license, and upgrade pages.
+ * Single source of truth for the self-serve product surface:
+ * subscriptions (Track A), credit bundles (Track B), perpetual licenses
+ * (Track C), and self-serve professional services (Track D / SERVICE_OFFERINGS).
+ * Eliminates duplication across marketing, admin billing, license, and
+ * upgrade pages for those surfaces.
+ *
+ * NOT the source of truth for the **agency engagement ladder** (Architecture
+ * Review · Fleet deployment · Custom Build). Those anchors are
+ * marketing-owned and live in `apps/marketing/app/content/for-operators.ts`
+ * as `AGENCY_ENGAGEMENT_LADDER`. The two ladders deliberately overlap on
+ * "Architecture Review · $3,500" (the agency entry point doubles as a
+ * self-serve service); every other anchor sits in exactly one ladder.
  *
  * @packageDocumentation
  */

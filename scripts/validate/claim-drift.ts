@@ -831,6 +831,93 @@ function scanForIncompleteProList(map: PackageLicenseMap): IncompleteProMatch[] 
 }
 
 // ---------------------------------------------------------------------------
+// License-split anti-pattern detector (added 2026-06-14)
+//
+// Catches the canonical "N published + M private" drift class: prior copy
+// stated "21 published + 5 private" against an actual license split of
+// "20 MIT + 5 FSL + 1 internal = 26", off by 4 on both numbers. The phrase
+// is ambiguous (does "published" mean MIT-only or MIT+FSL? does "private"
+// mean internal-only or FSL+internal?), so the fix is to forbid the
+// phrasing entirely and steer authors to the canonical MIT / FSL / internal
+// taxonomy already gated by the license-membership detector above.
+//
+// Anti-patterns:
+//   - "N published packages"   — implies an OSS-vs-other split the
+//     canonical taxonomy doesn't carry (FSL packages also publish to npm).
+//   - "N private packages"     — implies M packages are not on npm; in the
+//     canonical taxonomy only 1 workspace is internal/private.
+//   - "N published + M private" — the explicit equation form prior copy
+//     used to count toward 26; flagged regardless of N + M arithmetic.
+//
+// REGEX-CONFIG-BOUNDARY — patterns only (pre-existing convention in this
+// file; AST refactor queued under GAP-192). The shape predicate
+// (findLicenseSplitAntiPattern) is exported for unit testing.
+// ---------------------------------------------------------------------------
+
+export type LicenseSplitAntiShape =
+  | 'N published packages'
+  | 'N private packages'
+  | 'N published + M private';
+
+interface LicenseSplitAntiMatch {
+  file: string;
+  line: number;
+  shape: LicenseSplitAntiShape;
+  text: string;
+}
+
+const PUBLISHED_PACKAGES_PATTERN = /\b[1-9]\d?\s+published\s+packages?\b/i;
+const PRIVATE_PACKAGES_PATTERN = /\b[1-9]\d?\s+private\s+packages?\b/i;
+const PUBLISHED_PLUS_PRIVATE_PATTERN = /\b[1-9]\d?\s+published\s*\+\s*[1-9]\d?\s+private\b/i;
+
+/**
+ * Returns the anti-pattern shape if `line` matches one, otherwise null.
+ * Equation form takes precedence — a single line that names both halves of
+ * the bug should be flagged once. Pure + exported for unit testing.
+ */
+export function findLicenseSplitAntiPattern(line: string): LicenseSplitAntiShape | null {
+  if (PUBLISHED_PLUS_PRIVATE_PATTERN.test(line)) return 'N published + M private';
+  if (PUBLISHED_PACKAGES_PATTERN.test(line)) return 'N published packages';
+  if (PRIVATE_PACKAGES_PATTERN.test(line)) return 'N private packages';
+  return null;
+}
+
+/**
+ * Files documenting the bug as part of their drift-correction prose
+ * (post-Phase-3.4 marketing-overhaul fixes). Their comments deliberately
+ * quote the old phrasing; the gate must not fire on them.
+ */
+const LICENSE_SPLIT_ANTIPATTERN_ALLOWLIST = new Set<string>([
+  'apps/marketing/app/content/home.ts',
+  'apps/marketing/app/content/proof.ts',
+  'apps/marketing/app/content/fair-source.ts',
+  // The validator itself + its tests — pattern strings are not claims
+  'scripts/validate/claim-drift.ts',
+]);
+
+function scanForLicenseSplitAntiPatterns(): LicenseSplitAntiMatch[] {
+  const matches: LicenseSplitAntiMatch[] = [];
+  walkLicenseScanFiles((filePath, rel) => {
+    if (LICENSE_SPLIT_ANTIPATTERN_ALLOWLIST.has(rel)) return;
+    if (rel.startsWith('scripts/validate/__tests__/')) return;
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const shape = findLicenseSplitAntiPattern(lines[i]);
+      if (shape) {
+        matches.push({ file: rel, line: i + 1, shape, text: lines[i].trim() });
+      }
+    }
+  });
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
 // Claim scanner
 // ---------------------------------------------------------------------------
 
@@ -1769,6 +1856,11 @@ function run(): void {
   const membershipMatches = scanForLicenseMembershipDrift(pkgMap);
   const incompleteProMatches = scanForIncompleteProList(pkgMap);
 
+  // License-split anti-pattern gate (added 2026-06-14) — forbids the
+  // "N published + M private" phrasing class that prior copy used to reach
+  // 26 with off-by-4 arithmetic on both halves.
+  const licenseSplitAntiMatches = scanForLicenseSplitAntiPatterns();
+
   // Marketing METRICS drift (Phase 6) — site.ts METRICS vs canonical counts
   const marketingMetricDrifts = checkMarketingMetrics([
     { key: 'packages', actual: packages },
@@ -1795,6 +1887,7 @@ function run(): void {
   console.log(`Phantom-package mentions: ${phantomMatches.length}`);
   console.log(`License-membership mismatches: ${membershipMatches.length}`);
   console.log(`Incomplete Pro-list claims: ${incompleteProMatches.length}`);
+  console.log(`License-split anti-pattern phrasings: ${licenseSplitAntiMatches.length}`);
   console.log(`Marketing METRICS drift (site.ts): ${marketingMetricDrifts.length}`);
 
   if (futureClaims.length > 0) {
@@ -1880,6 +1973,19 @@ function run(): void {
     );
   }
 
+  if (licenseSplitAntiMatches.length > 0) {
+    console.log(
+      '\nLicense-split anti-pattern phrasings (ambiguous "published"/"private" package counts):',
+    );
+    for (const m of licenseSplitAntiMatches) {
+      console.log(`  ${m.file}:${m.line}  ${m.shape}`);
+      console.log(`    ${m.text.substring(0, 140)}`);
+    }
+    console.log(
+      `\nUse the canonical taxonomy instead: "${licenseSplit.mit} MIT + ${licenseSplit.fsl} FSL + ${licenseSplit.internal} internal = ${licenseSplit.mit + licenseSplit.fsl + licenseSplit.internal}". The "published"/"private" split is ambiguous (FSL packages also publish to npm) and historically drifted by 4 on both halves.`,
+    );
+  }
+
   if (marketingMetricDrifts.length > 0) {
     console.log(
       '\nMarketing METRICS drift — apps/marketing/app/content/site.ts out of sync with codebase:',
@@ -1902,6 +2008,7 @@ function run(): void {
     phantomMatches.length > 0 ||
     membershipMatches.length > 0 ||
     incompleteProMatches.length > 0 ||
+    licenseSplitAntiMatches.length > 0 ||
     marketingMetricDrifts.length > 0;
 
   if (anyFailures) {
@@ -1932,13 +2039,16 @@ function run(): void {
     if (incompleteProMatches.length > 0) {
       console.log('\nFailed: incomplete Pro-package lists in docs.');
     }
+    if (licenseSplitAntiMatches.length > 0) {
+      console.log('\nFailed: license-split anti-pattern phrasings in docs.');
+    }
     if (marketingMetricDrifts.length > 0) {
       console.log('\nFailed: marketing METRICS out of sync with codebase counts.');
     }
     process.exit(1);
   } else {
     console.log(
-      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, fleet products are attributed, no $RVUI ticker leaks were found, no phantom-package mentions were found, and license membership matches package.json reality.',
+      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, fleet products are attributed, no $RVUI ticker leaks were found, no phantom-package mentions were found, license membership matches package.json reality, and no license-split anti-pattern phrasings were found.',
     );
   }
 }
