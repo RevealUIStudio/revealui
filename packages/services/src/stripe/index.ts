@@ -2,6 +2,7 @@ export {
   checkStripeModeCoherence,
   classifyStripePublishableKey,
   classifyStripeSecretKey,
+  getConfiguredStripeMode,
   type StripeKeyMode,
   type StripeModeCoherence,
 } from './mode.js';

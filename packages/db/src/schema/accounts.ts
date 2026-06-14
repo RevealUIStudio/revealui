@@ -152,6 +152,7 @@ export const billingCatalog = pgTable(
     planId: text('plan_id').notNull(),
     tier: text('tier').notNull(),
     billingModel: text('billing_model').notNull(),
+    mode: text('mode').notNull().default('live'),
     stripeProductId: text('stripe_product_id'),
     stripePriceId: text('stripe_price_id'),
     active: boolean('active').notNull().default(true),
@@ -163,15 +164,17 @@ export const billingCatalog = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex('billing_catalog_plan_id_idx').on(table.planId),
+    uniqueIndex('billing_catalog_plan_id_mode_idx').on(table.planId, table.mode),
     index('billing_catalog_tier_idx').on(table.tier),
     index('billing_catalog_billing_model_idx').on(table.billingModel),
     index('billing_catalog_active_idx').on(table.active),
+    index('billing_catalog_mode_idx').on(table.mode),
     check('billing_catalog_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
     check(
       'billing_catalog_billing_model_check',
       sql`billing_model IN ('subscription', 'perpetual', 'renewal', 'credits')`,
     ),
+    check('billing_catalog_mode_check', sql`mode IN ('live', 'test')`),
   ],
 );
 

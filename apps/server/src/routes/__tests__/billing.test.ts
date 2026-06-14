@@ -75,6 +75,7 @@ vi.mock('@revealui/db/schema', () => ({
     planId: 'billingCatalog.planId',
     tier: 'billingCatalog.tier',
     billingModel: 'billingCatalog.billingModel',
+    mode: 'billingCatalog.mode',
     active: 'billingCatalog.active',
   },
   users: {

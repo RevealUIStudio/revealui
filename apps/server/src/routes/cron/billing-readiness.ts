@@ -17,6 +17,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
@@ -116,7 +117,10 @@ app.post('/billing-readiness', async (c) => {
     const db = getClient();
     const rows = await db
       .select({ planId: billingCatalog.planId, stripePriceId: billingCatalog.stripePriceId })
-      .from(billingCatalog);
+      .from(billingCatalog)
+      // Live-readiness check: only the live-mode rows count (test rows may be
+      // seeded for QA without implying the production catalog is ready).
+      .where(eq(billingCatalog.mode, 'live'));
 
     for (const planId of EXPECTED_PLAN_IDS) {
       const row = rows.find((r) => r.planId === planId);

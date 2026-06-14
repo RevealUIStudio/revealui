@@ -11,6 +11,7 @@ import {
   classifyStripePublishableKey,
   classifyStripeSecretKey,
 } from '@revealui/services/stripe/mode';
+import { eq } from 'drizzle-orm';
 
 export type EnvMap = Record<string, string | undefined>;
 
@@ -605,12 +606,17 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
  */
 async function defaultFetchBillingCatalogRows(): Promise<BillingCatalogRow[]> {
   const db = getClient();
-  return db
-    .select({
-      planId: billingCatalog.planId,
-      stripePriceId: billingCatalog.stripePriceId,
-    })
-    .from(billingCatalog);
+  return (
+    db
+      .select({
+        planId: billingCatalog.planId,
+        stripePriceId: billingCatalog.stripePriceId,
+      })
+      .from(billingCatalog)
+      // This validator only runs when STRIPE_LIVE_MODE=true, so it checks the
+      // live-mode catalog rows specifically (test rows may be partially seeded).
+      .where(eq(billingCatalog.mode, 'live'))
+  );
 }
 
 /**
