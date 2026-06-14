@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockCustomersCreate = vi.hoisted(() => vi.fn());
+const mockCustomersRetrieve = vi.hoisted(() => vi.fn());
 const mockCheckoutSessionsCreate = vi.hoisted(() => vi.fn());
 const mockBillingPortalSessionsCreate = vi.hoisted(() => vi.fn());
 const mockSubscriptionsList = vi.hoisted(() => vi.fn());
@@ -40,7 +41,7 @@ vi.mock('stripe', () => ({
 
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
-    customers: { create: mockCustomersCreate },
+    customers: { create: mockCustomersCreate, retrieve: mockCustomersRetrieve },
     checkout: { sessions: { create: mockCheckoutSessionsCreate } },
     billingPortal: { sessions: { create: mockBillingPortalSessionsCreate } },
     subscriptions: { list: mockSubscriptionsList, update: mockSubscriptionsUpdate },
@@ -255,6 +256,9 @@ function resetChains() {
   // Default subscription list  -  empty (no active subscription)
   mockSubscriptionsList.mockResolvedValue({ data: [] });
   mockSubscriptionsUpdate.mockResolvedValue({});
+  // Default: a stored customer verifies as a live, non-deleted customer so the
+  // reuse fast-path returns it. Tests that exercise re-provisioning override this.
+  mockCustomersRetrieve.mockResolvedValue({ id: 'cus_existing', object: 'customer' });
 }
 
 function queueSelectResults(...results: unknown[][]) {
@@ -358,6 +362,34 @@ describe('POST /checkout', () => {
     // Must use the existing customer ID
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(sessionArgs.customer).toBe('cus_existing');
+  });
+
+  it('re-provisions when the stored Stripe customer is missing/deleted in the current mode', async () => {
+    // Regression: a stored stripe_customer_id from another mode (e.g. a live
+    // customer when the deployment runs test keys) or a deleted customer was
+    // previously reused unverified, failing checkout with "No such customer"
+    // ("Invalid billing request"). It must now be re-provisioned instead.
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_server' }], // resolveCatalogPriceId
+      [{ stripeCustomerId: 'cus_stale' }], // ensureStripeCustomer initial read
+      [{ stripeCustomerId: 'cus_new' }], // re-select after fallback create
+    );
+    // Stored customer no longer exists in this Stripe mode (deleted stub).
+    mockCustomersRetrieve.mockResolvedValue({ id: 'cus_stale', object: 'customer', deleted: true });
+    mockCustomersCreate.mockResolvedValue({ id: 'cus_new' });
+    mockCheckoutSessionsCreate.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pay/sess_new',
+    });
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { priceId: 'price_pro_server' }));
+
+    expect(res.status).toBe(200);
+    expect(mockCustomersRetrieve).toHaveBeenCalledWith('cus_stale');
+    // A fresh customer is created and used — never the stale id.
+    expect(mockCustomersCreate).toHaveBeenCalled();
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(sessionArgs.customer).toBe('cus_new');
   });
 
   it('includes tier and user ID in subscription_data metadata', async () => {

@@ -13,6 +13,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockCustomersCreate = vi.hoisted(() => vi.fn());
+const mockCustomersRetrieve = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ id: 'cus_existing', object: 'customer' }),
+);
 const mockCheckoutSessionsCreate = vi.hoisted(() => vi.fn());
 const mockSubscriptionsList = vi.hoisted(() => vi.fn());
 const mockLogger = vi.hoisted(() => ({
@@ -25,7 +28,7 @@ const mockLogger = vi.hoisted(() => ({
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
     class {
-      customers = { create: mockCustomersCreate };
+      customers = { create: mockCustomersCreate, retrieve: mockCustomersRetrieve };
       checkout = { sessions: { create: mockCheckoutSessionsCreate } };
       billingPortal = { sessions: { create: vi.fn() } };
       subscriptions = { list: mockSubscriptionsList, update: vi.fn() };
@@ -38,7 +41,7 @@ vi.mock('stripe', () => ({
 
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
-    customers: { create: mockCustomersCreate },
+    customers: { create: mockCustomersCreate, retrieve: mockCustomersRetrieve },
     checkout: { sessions: { create: mockCheckoutSessionsCreate } },
     billingPortal: { sessions: { create: vi.fn() } },
     subscriptions: { list: mockSubscriptionsList, update: vi.fn() },
