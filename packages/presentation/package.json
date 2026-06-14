@@ -61,6 +61,9 @@
       "import": "./dist/hooks/index.js"
     },
     "./tokens.css": "./dist/tokens.css",
+    "./design-context/MANIFEST.sha256": "./dist/design-context/MANIFEST.sha256",
+    "./design-context/brand-meta.json": "./dist/design-context/brand-meta.json",
+    "./design-context/tokens.css": "./dist/design-context/tokens.css",
     "./animations": {
       "types": "./dist/animations/index.d.ts",
       "import": "./dist/animations/index.js"
@@ -80,7 +83,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css && pnpm gen:design-context",
+    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css && pnpm gen:design-context && mkdir -p dist/design-context && cp design-context/MANIFEST.sha256 design-context/brand-meta.json design-context/tokens.css dist/design-context/",
     "gen:design-context": "tsx scripts/build-design-context.ts",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
