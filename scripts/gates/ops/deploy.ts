@@ -45,7 +45,7 @@ async function deploy() {
     }
 
     logger.success('Environment validation passed');
-    logger.info(`   Vercel Token: ${vercelToken.substring(0, 8)}...`);
+    logger.info('   Vercel Token: present');
     logger.info('');
 
     // Build the project first

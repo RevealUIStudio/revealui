@@ -113,7 +113,7 @@ describe('CodeValidator', () => {
 
   it('respects path exemptions through dot-prefixed segments (worktree paths)', () => {
     // Regression: git worktrees live under `.wt/<name>/...`, so absolute
-    // paths passed by `scripts/validation/validate-code.ts` from a worktree
+    // paths passed by `scripts/validate/validate-code.ts` from a worktree
     // contain a `.wt/` segment. minimatch's default behavior refuses to
     // traverse dot-prefixed segments under `**`, so without `{ dot: true }`
     // every exemption pattern fails for worktree-resolved paths. This test

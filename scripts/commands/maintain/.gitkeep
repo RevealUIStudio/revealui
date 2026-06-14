@@ -1,2 +1,0 @@
-# Reserved for maintenance command implementations
-# CLIs currently delegate to scripts/analyze/ (fix-* scripts)
