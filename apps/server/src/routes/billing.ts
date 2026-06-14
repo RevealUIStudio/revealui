@@ -760,6 +760,13 @@ app.openapi(checkoutRoute, async (c) => {
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
+        // Required by Stripe when tax_id_collection is enabled AND an existing
+        // `customer` is supplied: it lets Checkout persist the collected tax ID,
+        // business name, and billing address back onto the customer. Without it
+        // Stripe rejects the session with a StripeInvalidRequestError ("Tax ID
+        // collection requires updating business name on the customer…"), which
+        // surfaced to users as the generic "Invalid billing request".
+        customer_update: { name: 'auto', address: 'auto' },
         automatic_tax: { enabled: isStripeTaxEnabled },
         ...discountConfig,
         line_items: [
@@ -1564,6 +1571,13 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
+        // Required by Stripe when tax_id_collection is enabled AND an existing
+        // `customer` is supplied: it lets Checkout persist the collected tax ID,
+        // business name, and billing address back onto the customer. Without it
+        // Stripe rejects the session with a StripeInvalidRequestError ("Tax ID
+        // collection requires updating business name on the customer…"), which
+        // surfaced to users as the generic "Invalid billing request".
+        customer_update: { name: 'auto', address: 'auto' },
         automatic_tax: { enabled: isStripeTaxEnabled },
         allow_promotion_codes: true,
         line_items: [{ price: resolvedPriceId, quantity: 1 }],
@@ -1688,6 +1702,13 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
+        // Required by Stripe when tax_id_collection is enabled AND an existing
+        // `customer` is supplied: it lets Checkout persist the collected tax ID,
+        // business name, and billing address back onto the customer. Without it
+        // Stripe rejects the session with a StripeInvalidRequestError ("Tax ID
+        // collection requires updating business name on the customer…"), which
+        // surfaced to users as the generic "Invalid billing request".
+        customer_update: { name: 'auto', address: 'auto' },
         automatic_tax: { enabled: isStripeTaxEnabled },
         allow_promotion_codes: true,
         line_items: [{ price: resolvedPriceId, quantity: 1 }],
