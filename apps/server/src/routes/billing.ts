@@ -123,6 +123,32 @@ async function withStripe<T>(operation: (stripe: ProtectedStripe) => Promise<T>)
         message: 'Payment service temporarily unavailable. Please try again shortly.',
       });
     }
+    // Surface the original Stripe error before it is remapped to a user-safe
+    // message below. Stripe's diagnostic fields (type/code/param/statusCode/
+    // requestId/message) describe the API misuse  -  e.g. "No such price: …; a
+    // similar object exists in live mode, but a test mode key was used"  -  and
+    // carry no secret material. Without this, a price/coupon/meter mode mismatch
+    // surfaces only as an opaque "Invalid billing request" with no way to
+    // identify the offending parameter from logs.
+    if (error instanceof Stripe.errors.StripeError) {
+      const diagnostics = {
+        type: error.type,
+        code: error.code,
+        statusCode: error.statusCode,
+        requestId: error.requestId,
+        param: error instanceof Stripe.errors.StripeInvalidRequestError ? error.param : undefined,
+        stripeMessage: error.message,
+      };
+      // Card declines and rate limits are expected outcomes, not system faults.
+      if (
+        error instanceof Stripe.errors.StripeCardError ||
+        error instanceof Stripe.errors.StripeRateLimitError
+      ) {
+        logger.warn('Stripe operation rejected', diagnostics);
+      } else {
+        logger.error('Stripe operation failed before remap', error, diagnostics);
+      }
+    }
     // Map Stripe-specific errors to actionable HTTP status codes
     if (error instanceof Stripe.errors.StripeCardError) {
       throw new HTTPException(402, {
