@@ -21,10 +21,10 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
-import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
@@ -447,6 +447,7 @@ async function resolveCatalogPriceId(
   requestedPriceId?: string,
 ): Promise<string> {
   const db = getClient();
+  const mode = getConfiguredStripeMode();
   const planId = `${kind}:${tier}`;
   const [catalogEntry] = await db
     .select({ stripePriceId: billingCatalog.stripePriceId })
@@ -456,6 +457,7 @@ async function resolveCatalogPriceId(
         eq(billingCatalog.planId, planId),
         eq(billingCatalog.tier, tier),
         eq(billingCatalog.billingModel, kind),
+        eq(billingCatalog.mode, mode),
         eq(billingCatalog.active, true),
       ),
     )
@@ -465,7 +467,7 @@ async function resolveCatalogPriceId(
 
   if (!resolvedPriceId) {
     throw new HTTPException(500, {
-      message: `Billing catalog is not configured for ${kind} ${tier}`,
+      message: `Billing catalog is not configured for ${kind} ${tier} (${mode} mode)`,
     });
   }
 
@@ -483,7 +485,13 @@ async function getAllCatalogSubscriptionPriceIds(): Promise<Set<string>> {
   const rows = await db
     .select({ stripePriceId: billingCatalog.stripePriceId })
     .from(billingCatalog)
-    .where(and(eq(billingCatalog.billingModel, 'subscription'), eq(billingCatalog.active, true)));
+    .where(
+      and(
+        eq(billingCatalog.billingModel, 'subscription'),
+        eq(billingCatalog.mode, getConfiguredStripeMode()),
+        eq(billingCatalog.active, true),
+      ),
+    );
   return new Set(rows.map((r) => r.stripePriceId).filter((id): id is string => id !== null));
 }
 
@@ -1756,6 +1764,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
       and(
         eq(billingCatalog.planId, planId),
         eq(billingCatalog.billingModel, 'credits'),
+        eq(billingCatalog.mode, getConfiguredStripeMode()),
         eq(billingCatalog.active, true),
       ),
     )
@@ -2536,7 +2545,13 @@ app.openapi(metricsRoute, async (c) => {
       metadata: billingCatalog.metadata,
     })
     .from(billingCatalog)
-    .where(and(eq(billingCatalog.billingModel, 'subscription'), eq(billingCatalog.active, true)));
+    .where(
+      and(
+        eq(billingCatalog.billingModel, 'subscription'),
+        eq(billingCatalog.mode, getConfiguredStripeMode()),
+        eq(billingCatalog.active, true),
+      ),
+    );
 
   const catalogPriceCents: Record<string, number> = {};
   for (const entry of catalogRows) {

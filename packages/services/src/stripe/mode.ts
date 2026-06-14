@@ -63,22 +63,6 @@ export interface StripeModeCoherence {
  * Returns `ok: true` for a matching environment or an unknown key; `ok: false`
  * with a `message` only on a confirmed live/test contradiction.
  */
-/**
- * Single runtime source of truth for which catalog mode (`'live'` or `'test'`)
- * the deployed Stripe key targets. Used everywhere we filter `billing_catalog`
- * rows so test-key deploys never hit live price IDs and vice versa.
- *
- * Resolution order:
- *   1. `STRIPE_SECRET_KEY` prefix — definitive when the key is present.
- *   2. `STRIPE_LIVE_MODE=true` fallback — for restricted-key shapes we can't
- *      classify or when the env var is missing.
- */
-export function getConfiguredStripeMode(): 'live' | 'test' {
-  const classified = classifyStripeSecretKey(process.env.STRIPE_SECRET_KEY ?? '');
-  if (classified === 'live' || classified === 'test') return classified;
-  return process.env.STRIPE_LIVE_MODE === 'true' ? 'live' : 'test';
-}
-
 export function checkStripeModeCoherence(key: string, liveMode: boolean): StripeModeCoherence {
   const keyMode = classifyStripeSecretKey(key);
   if (keyMode === 'unknown') {
@@ -108,4 +92,20 @@ export function checkStripeModeCoherence(key: string, liveMode: boolean): Stripe
     };
   }
   return { ok: true, keyMode, liveMode };
+}
+
+/**
+ * Single runtime source of truth for which catalog mode (`'live'` or `'test'`)
+ * the deployed Stripe key targets. Used everywhere we filter `billing_catalog`
+ * rows so test-key deploys never hit live price IDs and vice versa.
+ *
+ * Resolution order:
+ *   1. `STRIPE_SECRET_KEY` prefix — definitive when the key is present.
+ *   2. `STRIPE_LIVE_MODE=true` fallback — for restricted-key shapes we can't
+ *      classify or when the env var is missing.
+ */
+export function getConfiguredStripeMode(): 'live' | 'test' {
+  const classified = classifyStripeSecretKey(process.env.STRIPE_SECRET_KEY ?? '');
+  if (classified === 'live' || classified === 'test') return classified;
+  return process.env.STRIPE_LIVE_MODE === 'true' ? 'live' : 'test';
 }
