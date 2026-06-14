@@ -24,6 +24,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
