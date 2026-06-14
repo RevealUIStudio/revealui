@@ -267,6 +267,26 @@ async function stripeCustomerIsUsable(
   }
 }
 
+/**
+ * Returns true when `priceId` resolves to an ACTIVE price in the Stripe account
+ * the current key targets. Returns false when the price is missing ("No such
+ * price" — e.g. a live price id while running test keys) or archived. Re-throws
+ * other errors (network/auth/rate-limit) so a transient failure does not
+ * silently drop the metered line item. Used to keep a misconfigured overage
+ * add-on from failing the entire subscription checkout.
+ */
+async function stripePriceIsUsable(stripe: ProtectedStripe, priceId: string): Promise<boolean> {
+  try {
+    const price = await stripe.prices.retrieve(priceId);
+    return price.active === true;
+  } catch (err) {
+    if (err instanceof Stripe.errors.StripeInvalidRequestError) {
+      return false;
+    }
+    throw err;
+  }
+}
+
 async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
   const db = getClient();
 
@@ -668,7 +688,24 @@ app.openapi(checkoutRoute, async (c) => {
   const discountConfig = getEarlyAdopterDiscount(resolvedTier);
 
   const meterPriceId = process.env.STRIPE_AGENT_OVERAGE_PRICE_ID;
-  const includeMeter = meterPriceId && (resolvedTier === 'pro' || resolvedTier === 'max');
+  let includeMeter = Boolean(meterPriceId) && (resolvedTier === 'pro' || resolvedTier === 'max');
+  // Resilience: only attach the metered overage item if its price actually
+  // exists + is active in the current Stripe mode. A misconfigured/cross-mode
+  // STRIPE_AGENT_OVERAGE_PRICE_ID (e.g. a live price while the deployment runs
+  // test keys) would otherwise fail the WHOLE checkout with "No such price"
+  // ("Invalid billing request"). The overage add-on must never block the core
+  // subscription — skip it and warn instead.
+  if (
+    includeMeter &&
+    meterPriceId &&
+    !(await withStripe((s) => stripePriceIsUsable(s, meterPriceId)))
+  ) {
+    logger.warn(
+      'checkout: agent-overage meter price not usable in current Stripe mode — omitting meter line item',
+      { meterPriceId, tier: resolvedTier },
+    );
+    includeMeter = false;
+  }
 
   // 10-minute idempotency window: prevents duplicate checkout sessions from
   // double-clicks or network retries while allowing a fresh attempt after 10 min.
@@ -1060,13 +1097,26 @@ app.openapi(upgradeRoute, async (c) => {
   //   - remove the meter item when upgrading to Enterprise (no overage on Enterprise)
   //   - add the meter item if upgrading to Pro/Max and it isn't already present
   //   - leave the meter item unchanged when switching between Pro and Max (same SKU)
-  const includeMeter = meterPriceId && (targetTier === 'pro' || targetTier === 'max');
+  let includeMeter = Boolean(meterPriceId) && (targetTier === 'pro' || targetTier === 'max');
+  // Same resilience as checkout: a missing/cross-mode overage price must not
+  // fail the upgrade. Skip the meter item + warn if its price isn't usable.
+  if (
+    includeMeter &&
+    meterPriceId &&
+    !(await withStripe((s) => stripePriceIsUsable(s, meterPriceId)))
+  ) {
+    logger.warn(
+      'upgrade: agent-overage meter price not usable in current Stripe mode — omitting meter line item',
+      { meterPriceId, targetTier },
+    );
+    includeMeter = false;
+  }
   const upgradeItems: Stripe.SubscriptionUpdateParams.Item[] = [
     { id: flatItem.id, price: resolvedPriceId },
   ];
   if (meterItem && !includeMeter) {
     upgradeItems.push({ id: meterItem.id, deleted: true });
-  } else if (!meterItem && includeMeter) {
+  } else if (!meterItem && includeMeter && meterPriceId) {
     upgradeItems.push({ price: meterPriceId });
   }
 
