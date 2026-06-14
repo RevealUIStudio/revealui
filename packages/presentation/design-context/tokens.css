@@ -141,7 +141,14 @@
   --rvui-text-0: oklch(0.985 0.005 250);   /* paper white */
   --rvui-text-1: oklch(0.83 0.015 245);    /* smoke-200 */
   --rvui-text-2: oklch(0.65 0.025 250);    /* smoke-300 */
-  --rvui-text-on-brand:  oklch(0.985 0.005 250);
+  /* Dark CTA labels run NEAR-BLACK INK on cobalt-300, not paper-white.
+   * Paper-white on the lifted dark brand tested at 3.97:1 (failing 4.5:1 AA
+   * for normal text). Near-black ink — reusing the same value as the dark
+   * page text ink (--rvui-text-0 light-mode equivalent / surface-0 dark) —
+   * tests at ~4.69:1, clearing AA. tokens.contract.test.ts asserts the floor.
+   * Light mode redeclares this token to paper-white (see [data-theme="light"]
+   * and the prefers-color-scheme: light media block). */
+  --rvui-text-on-brand:  oklch(0.16 0.030 260);
   --rvui-text-on-accent: oklch(0.18 0.040 75);  /* ink on amber, AAA */
 
   /* ── Status ── */
@@ -233,6 +240,10 @@
   --rvui-text-0: oklch(0.16 0.030 260);     /* midnight ink */
   --rvui-text-1: oklch(0.34 0.030 250);     /* smoke-700 */
   --rvui-text-2: oklch(0.50 0.030 250);     /* smoke-500 */
+  /* Light CTA labels stay paper-white on deep cobalt-200 (~9.6:1, AAA).
+   * Redeclared here so the cascade doesn't push the dark-mode near-black
+   * ink onto a light-mode primary button (which would test at ~1.94:1). */
+  --rvui-text-on-brand:  oklch(0.985 0.005 250);
 
   /* ── Status ── */
   --rvui-success:        oklch(0.48 0.135 165);
@@ -280,6 +291,7 @@
     --rvui-text-0: oklch(0.16 0.030 260);
     --rvui-text-1: oklch(0.34 0.030 250);
     --rvui-text-2: oklch(0.50 0.030 250);
+    --rvui-text-on-brand: oklch(0.985 0.005 250);  /* paper-white on cobalt-200, AAA */
 
     --rvui-success:        oklch(0.48 0.135 165);
     --rvui-success-subtle: oklch(0.48 0.135 165 / 0.10);
