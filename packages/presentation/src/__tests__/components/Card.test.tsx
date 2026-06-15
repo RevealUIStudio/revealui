@@ -379,11 +379,11 @@ describe('CardFooter', () => {
     it('should render links', () => {
       render(
         <CardFooter>
-          <a href="/learn-more">Learn more</a>
+          <a href="/learn-more">Learn more about pricing</a>
         </CardFooter>,
       );
 
-      expect(screen.getByRole('link', { name: 'Learn more' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Learn more about pricing' })).toBeInTheDocument();
     });
   });
 
