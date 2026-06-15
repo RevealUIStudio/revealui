@@ -346,7 +346,9 @@ describe('Billing lifecycle integration', () => {
       // calls[0] = idempotency insert; calls[1] = license insert
       expect(mockDb.insert).toHaveBeenCalledTimes(2);
       const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
-      expect(insertValues.status).toBe('trialing');
+      // A trialing subscription writes an ACTIVE license (licenses_status_check
+      // forbids 'trialing'); the trial window is captured by expiresAt.
+      expect(insertValues.status).toBe('active');
       expect(insertValues.tier).toBe('pro');
       expect(insertValues.subscriptionId).toBe('sub_happy');
       expect(insertValues.expiresAt).toBeInstanceOf(Date);
