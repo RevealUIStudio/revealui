@@ -26,6 +26,7 @@ _ds_bundle.js
 contrast-results.json
 _ds_manifest.json
 _adherence.oxlintrc.json
+.thumbnail
 
 # Design documentation (context for agents, not source code; anchored to root)
 /README.md
