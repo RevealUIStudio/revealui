@@ -79,9 +79,9 @@ The runtime is provider-agnostic by contract and ships with no default AI vendor
 
 ## License posture
 
-- **20 of 26 packages MIT-licensed** (forever).
-- **5 of 26 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
-- **1 of 26 packages internal** (`@revealui/scripts`) — unlicensed build tooling.
+- **21 of 27 packages MIT-licensed** (forever).
+- **5 of 27 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
+- **1 of 27 packages internal** (`@revealui/scripts`) — unlicensed build tooling.
 
 See [FAIR_SOURCE.md](../FAIR_SOURCE.md) for the licensing rationale.
 

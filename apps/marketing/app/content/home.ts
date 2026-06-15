@@ -235,7 +235,7 @@ export const HOME_FAQ = {
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. 20 of 26 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier, with no vendor-specific edge runtimes and no proprietary database.',
+        'Yes. 21 of 27 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier, with no vendor-specific edge runtimes and no proprietary database.',
     },
     {
       question: 'What does "agent-native" actually mean in code?',

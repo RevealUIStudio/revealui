@@ -971,8 +971,14 @@ const SCAN_DIRS = [
   'packages/mcp/docs',
 ];
 
-/** Historical documents where counts were accurate at time of writing */
-const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md'];
+/**
+ * Files excluded from claim-drift scanning:
+ *   - CRASH-POSTMORTEMS.md: historical document where counts were accurate at time of writing.
+ *   - docs/MASTER_PLAN.md: per `single-source-of-truth.md`, the canonical plan lives in
+ *     ~/revfleet/.jv/docs/MASTER_PLAN.md; this public-repo copy is an allowed-stale snapshot
+ *     and is also hook-blocked from agent edits, so numeric counts here cannot be kept in sync.
+ */
+const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', 'docs/MASTER_PLAN.md'];
 
 function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   const matches: ClaimMatch[] = [];

@@ -26,7 +26,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     id: 'free',
     name: 'Free',
     description:
-      '20 of 26 packages MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
+      '21 of 27 packages MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
