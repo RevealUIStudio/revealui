@@ -512,7 +512,7 @@ describe('POST /stripe webhook', () => {
       );
     });
 
-    it('creates license with trialing status when subscription is in trial', async () => {
+    it('creates an active license with trial-end expiry when subscription is in trial', async () => {
       const trialEnd = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60; // +7 days
       mockSubscriptionsRetrieve.mockResolvedValueOnce({ status: 'trialing', trial_end: trialEnd });
       // Transaction's inner user-existence check must find a matching user
@@ -540,7 +540,10 @@ describe('POST /stripe webhook', () => {
       // calls[0] = idempotency insert; calls[1] = license insert
       expect(mockDb.insert).toHaveBeenCalledTimes(2);
       const insertValues = mockDbInsertChain.values.mock.calls[1]?.[0] as Record<string, unknown>;
-      expect(insertValues.status).toBe('trialing');
+      // A trialing subscription yields an ACTIVE license (license-lifecycle
+      // status). The trial is reflected by expiresAt = trial_end, not by the
+      // status field — licenses_status_check forbids 'trialing'.
+      expect(insertValues.status).toBe('active');
       expect(insertValues.expiresAt).toBeInstanceOf(Date);
     });
 
