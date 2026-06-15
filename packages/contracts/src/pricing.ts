@@ -7,12 +7,12 @@
  * Eliminates duplication across marketing, admin billing, license, and
  * upgrade pages for those surfaces.
  *
- * NOT the source of truth for the **agency engagement ladder** (Architecture
- * Review · Fleet deployment · Custom Build). Those anchors are
- * marketing-owned and live in `apps/marketing/app/content/for-operators.ts`
- * as `AGENCY_ENGAGEMENT_LADDER`. The two ladders deliberately overlap on
- * "Architecture Review · $3,500" (the agency entry point doubles as a
- * self-serve service); every other anchor sits in exactly one ladder.
+ * NOT the source of truth for the **agency-only** anchors (Fleet deployment ·
+ * Custom Build). Those live in `apps/marketing/app/content/for-operators.ts`
+ * as `AGENCY_ENGAGEMENT_LADDER`. The two ladders deliberately overlap on the
+ * Architecture Review entry point (it doubles as a self-serve service); its
+ * canonical price is `ARCHITECTURE_REVIEW_PRICE` below, and marketing imports
+ * it so the agency-side rung cannot drift from the self-serve menu.
  *
  * @packageDocumentation
  */
@@ -289,11 +289,20 @@ export interface ServiceOffering {
   ctaHref: string;
 }
 
+/**
+ * Canonical price of the Architecture Review entry point. Owned here (the
+ * lower-level package) so the agency engagement ladder in
+ * `apps/marketing/app/content/for-operators.ts` can import it rather than
+ * re-author the literal. A cross-package equality guard lives in
+ * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`.
+ */
+export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
+
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'architecture-review',
     name: 'Architecture Review',
-    price: '$3,500',
+    price: ARCHITECTURE_REVIEW_PRICE,
     description:
       'I review your project structure, database schema, deployment pipeline, and security posture. You receive a written report with prioritized, actionable recommendations.',
     includes: [
