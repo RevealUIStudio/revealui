@@ -7,6 +7,7 @@
 // The future managed offering is named "RevealUI Cloud" (OQ-1) — referenced
 // only via the inline link to /for-operators/managed (Page 3, not this PR).
 
+import { ARCHITECTURE_REVIEW_PRICE } from '@revealui/contracts/pricing';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
@@ -90,15 +91,18 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Agency engagement ladder — single source of truth for the three published
-// "from" anchors RevealUI Studio offers (Architecture Review, Fleet deployment,
-// Custom Build). Two surfaces consume it: this file's FOR_OPERATORS_PRICING
-// (the agency page at /for-operators) and content/pricing.ts's
-// PRICING_DONE_FOR_YOU (the done-for-you band at the bottom of /pricing).
-// Body copy and CTA labels are surface-specific (operator-voice on the agency
-// page, dev-voice on the pricing band); only `id`, `name`, and `price` are
-// pinned here so a single edit propagates to every render site, including the
-// FAQ prose below.
+// Agency engagement ladder — single source of truth for the agency-only "from"
+// anchors RevealUI Studio offers (Fleet deployment, Custom Build). The shared
+// Architecture Review rung imports its price from @revealui/contracts/pricing
+// (`ARCHITECTURE_REVIEW_PRICE`) so the agency surface cannot drift from the
+// self-serve FOUNDER_SERVICE_OFFERINGS menu that also lists it.
+//
+// Two surfaces consume the ladder: this file's FOR_OPERATORS_PRICING (the
+// agency page at /for-operators) and content/pricing.ts's PRICING_DONE_FOR_YOU
+// (the done-for-you band at the bottom of /pricing). Body copy and CTA labels
+// are surface-specific (operator-voice on the agency page, dev-voice on the
+// pricing band); only `id`, `name`, and `price` are pinned here so a single
+// edit propagates to every render site, including the FAQ prose below.
 //
 // `price` is the bare numeric anchor ("$25,000") so it can drop into prose;
 // `startsFrom` decides whether the rendered ladder rung prefixes "from ".
@@ -116,7 +120,12 @@ export interface AgencyEngagement {
 }
 
 export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
-  { id: 'architecture-review', name: 'Architecture Review', price: '$3,500', startsFrom: false },
+  {
+    id: 'architecture-review',
+    name: 'Architecture Review',
+    price: ARCHITECTURE_REVIEW_PRICE,
+    startsFrom: false,
+  },
   { id: 'fleet-deployment', name: 'Fleet deployment', price: '$25,000', startsFrom: true },
   { id: 'custom-build', name: 'Custom Build', price: '$50,000', startsFrom: true },
 ] as const;
