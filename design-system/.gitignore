@@ -1,0 +1,40 @@
+# Ignore the HTML design-canvas artifacts and all design assets.
+# Only the token drift gate script and its pin file are tracked in git.
+
+# HTML design artifacts
+*.html
+
+# Design assets and generated files
+assets/
+brand/
+fonts/
+preview/
+screenshots/
+uploads/
+ui_kits/
+remediation/
+
+# Stylesheets (design-local; source of truth is packages/presentation/src/tokens.css)
+*.css
+
+# JS/JSX design runtime files
+deck-stage.js
+design-canvas.jsx
+_ds_bundle.js
+
+# Per-project generated and config files
+contrast-results.json
+_ds_manifest.json
+_adherence.oxlintrc.json
+
+# Design documentation (context for agents, not source code; anchored to root)
+/README.md
+/HANDOFF.md
+/CLAUDE.md
+/SKILL.md
+
+# reference/ — only MIRROR.sha256 is tracked; the mirror CSS stays local
+reference/*
+!reference/MIRROR.sha256
+
+# scripts/ — all tracked (token-drift-gate.cjs + its README.md)
