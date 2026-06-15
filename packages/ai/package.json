@@ -33,13 +33,13 @@
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
     "@testing-library/react": "catalog:",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.9",
     "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24.13.0"

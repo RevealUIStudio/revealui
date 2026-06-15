@@ -21,9 +21,9 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.3",
     "@vitejs/plugin-react": "catalog:",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.9",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
     "postcss": "^8.5.15",
@@ -32,7 +32,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24.13.0"
