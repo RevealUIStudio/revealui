@@ -27,6 +27,7 @@ export interface RevealUIAdminBarProps {
 export interface RevealUIMeUser {
   id?: string | number;
   email?: string;
+  role?: string;
   [key: string]: unknown;
 }
 
@@ -83,12 +84,10 @@ const collectionLabels = {
   },
 };
 
-const Title = () => <span>Dashboard</span>;
-
 // Auth-flow pages live in the (frontend) route group alongside content pages, and the
-// AdminBar is mounted in that group's layout. The bar is only meaningful on content pages an
-// authenticated admin is browsing — never on the login/signup/setup screens. Without this
-// guard, an admin who still holds a valid session and lands on /signup sees the bar there.
+// AdminBar is mounted in that group's layout. The bar is only meaningful to an admin
+// editing content (draft preview) — never on login/signup/setup screens, and never for
+// non-admin paying customers browsing /welcome or /account/billing.
 const AUTH_ROUTES = new Set([
   '/login',
   '/signup',
@@ -109,8 +108,11 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
 
   const router = useRouter();
 
+  // Only admins see the AdminBar. Self-serve subscribers (role 'user') have no use
+  // for the draft-preview controls and previously saw a stray "Dashboard" label on
+  // billing/welcome — the bar is admin-only chrome now.
   const onAuthChange = React.useCallback((user: RevealUIMeUser) => {
-    setShow(Boolean(user?.id));
+    setShow(user?.role === 'admin');
   }, []);
 
   // All hooks above run unconditionally (Rules of Hooks). On auth-flow pages the bar must
@@ -159,7 +161,6 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
               singular: collectionLabels[collection]?.singular || 'Page',
             },
           })}
-          logo={<Title />}
           onAuthChange={onAuthChange}
           onPreviewExit={() => {
             fetch('/next/exit-preview').then(() => {
