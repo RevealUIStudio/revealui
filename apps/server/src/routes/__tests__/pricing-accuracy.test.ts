@@ -11,12 +11,12 @@
 import {
   CREDIT_BUNDLES,
   type FeatureFlagKey,
+  FOUNDER_SERVICE_OFFERINGS,
   getTierLabel,
   getTiersFromCurrent,
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
-  SERVICE_OFFERINGS,
   SUBSCRIPTION_TIERS,
   TIER_LABELS,
   TIER_LIMITS,
@@ -372,11 +372,11 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
 
   describe('Professional services (Track D)', () => {
     it('has exactly 4 service offerings', () => {
-      expect(SERVICE_OFFERINGS).toHaveLength(4);
+      expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(4);
     });
 
     it('service IDs are architecture-review, launch-package, migration-assist, consulting-hour', () => {
-      const ids = SERVICE_OFFERINGS.map((s) => s.id);
+      const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
       expect(ids).toEqual([
         'architecture-review',
         'launch-package',
@@ -386,19 +386,19 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
     });
 
     it('every service has a non-empty includes list', () => {
-      for (const service of SERVICE_OFFERINGS) {
+      for (const service of FOUNDER_SERVICE_OFFERINGS) {
         expect(service.includes.length).toBeGreaterThan(0);
       }
     });
 
     it('every service has a deliverable description', () => {
-      for (const service of SERVICE_OFFERINGS) {
+      for (const service of FOUNDER_SERVICE_OFFERINGS) {
         expect(service.deliverable.length).toBeGreaterThan(10);
       }
     });
 
     it('service names are unique', () => {
-      const names = SERVICE_OFFERINGS.map((s) => s.name);
+      const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
       expect(new Set(names).size).toBe(names.length);
     });
   });
@@ -422,7 +422,7 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
         subscriptions: SUBSCRIPTION_TIERS,
         credits: CREDIT_BUNDLES,
         perpetual: PERPETUAL_TIERS,
-        services: SERVICE_OFFERINGS,
+        services: FOUNDER_SERVICE_OFFERINGS,
       };
 
       expect(response.subscriptions).toHaveLength(4);

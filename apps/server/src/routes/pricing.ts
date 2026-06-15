@@ -239,7 +239,7 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
   });
 
   // Services intentionally returned as empty array pending fulfillment infrastructure.
-  // SERVICE_OFFERINGS still exports 4 offerings from @revealui/contracts, but they are NOT
+  // FOUNDER_SERVICE_OFFERINGS still exports 4 offerings from @revealui/contracts, but they are NOT
   // exposed on the public pricing API because (a) no Stripe products exist for them,
   // (b) no `service` track exists in `billing_model` CHECK constraint, (c) no booking
   // automation fires when a customer hits the cal.com link. Services are available via

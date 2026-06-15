@@ -2,7 +2,7 @@
  * Billing Services & Renewal Tests
  *
  * Validates the new billing features:
- * 1. SERVICE_OFFERINGS are included in PricingResponse
+ * 1. FOUNDER_SERVICE_OFFERINGS are included in PricingResponse
  * 2. Subscription response includes perpetual and supportExpiresAt fields
  * 3. PricingResponse schema includes services array
  * 4. All perpetual tiers have comingSoon: false (enabled for purchase)
@@ -12,24 +12,24 @@
 
 import {
   CREDIT_BUNDLES,
+  FOUNDER_SERVICE_OFFERINGS,
   PERPETUAL_TIERS,
   type PricingResponse,
-  SERVICE_OFFERINGS,
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 import { describe, expect, it } from 'vitest';
 
 // =============================================================================
-// SERVICE_OFFERINGS  -  Track D completeness
+// FOUNDER_SERVICE_OFFERINGS  -  Track D completeness
 // =============================================================================
 
-describe('SERVICE_OFFERINGS  -  Track D', () => {
+describe('FOUNDER_SERVICE_OFFERINGS  -  Track D', () => {
   it('exports exactly 4 service offerings', () => {
-    expect(SERVICE_OFFERINGS).toHaveLength(4);
+    expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(4);
   });
 
   it('has IDs: architecture-review, launch-package, migration-assist, consulting-hour', () => {
-    const ids = SERVICE_OFFERINGS.map((s) => s.id);
+    const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
     expect(ids).toEqual([
       'architecture-review',
       'launch-package',
@@ -39,7 +39,7 @@ describe('SERVICE_OFFERINGS  -  Track D', () => {
   });
 
   it('every offering satisfies the ServiceOffering interface', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       // Required string fields
       expect(typeof service.id).toBe('string');
       expect(typeof service.name).toBe('string');
@@ -58,39 +58,39 @@ describe('SERVICE_OFFERINGS  -  Track D', () => {
   });
 
   it('service IDs are unique', () => {
-    const ids = SERVICE_OFFERINGS.map((s) => s.id);
+    const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('service names are unique', () => {
-    const names = SERVICE_OFFERINGS.map((s) => s.name);
+    const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
     expect(new Set(names).size).toBe(names.length);
   });
 
   describe('individual offerings', () => {
     it('architecture-review has at least 5 includes', () => {
-      const archReview = SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
+      const archReview = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
       expect(archReview).toBeDefined();
       expect(archReview!.includes.length).toBeGreaterThanOrEqual(5);
       expect(archReview!.name).toBe('Architecture Review');
     });
 
     it('migration-assist has at least 5 includes', () => {
-      const migration = SERVICE_OFFERINGS.find((s) => s.id === 'migration-assist');
+      const migration = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'migration-assist');
       expect(migration).toBeDefined();
       expect(migration!.includes.length).toBeGreaterThanOrEqual(5);
       expect(migration!.name).toBe('Migration Assist');
     });
 
     it('launch-package has at least 5 includes', () => {
-      const launch = SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
+      const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
       expect(launch).toBeDefined();
       expect(launch!.includes.length).toBeGreaterThanOrEqual(5);
       expect(launch!.name).toBe('Launch Package');
     });
 
     it('consulting-hour has at least 3 includes', () => {
-      const consulting = SERVICE_OFFERINGS.find((s) => s.id === 'consulting-hour');
+      const consulting = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'consulting-hour');
       expect(consulting).toBeDefined();
       expect(consulting!.includes.length).toBeGreaterThanOrEqual(3);
       expect(consulting!.name).toBe('Consulting Hour');
@@ -98,13 +98,13 @@ describe('SERVICE_OFFERINGS  -  Track D', () => {
   });
 
   it('all CTAs link to Cal.com booking', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.ctaHref).toContain('cal.com/revealuistudio');
     }
   });
 
   it('descriptions are substantive (more than 50 characters)', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.description.length).toBeGreaterThan(50);
     }
   });
@@ -120,7 +120,7 @@ describe('PricingResponse includes services', () => {
       subscriptions: SUBSCRIPTION_TIERS,
       credits: CREDIT_BUNDLES,
       perpetual: PERPETUAL_TIERS,
-      services: SERVICE_OFFERINGS,
+      services: FOUNDER_SERVICE_OFFERINGS,
     };
 
     expect(response.services).toBeDefined();
@@ -132,7 +132,7 @@ describe('PricingResponse includes services', () => {
       subscriptions: SUBSCRIPTION_TIERS,
       credits: CREDIT_BUNDLES,
       perpetual: PERPETUAL_TIERS,
-      services: SERVICE_OFFERINGS,
+      services: FOUNDER_SERVICE_OFFERINGS,
     };
 
     for (const service of response.services) {
@@ -147,7 +147,7 @@ describe('PricingResponse includes services', () => {
       subscriptions: SUBSCRIPTION_TIERS,
       credits: CREDIT_BUNDLES,
       perpetual: PERPETUAL_TIERS,
-      services: SERVICE_OFFERINGS,
+      services: FOUNDER_SERVICE_OFFERINGS,
     };
 
     // Track A  -  Subscriptions
