@@ -43,13 +43,10 @@ describe('design-context-drift', () => {
     const digest = digestOf(content);
     makeFixture(content, digest);
 
-    const realTokens = path.join(
-      import.meta.dirname,
-      '../../../packages/presentation/src/tokens.css',
-    );
+    const realTokens = path.join(import.meta.dirname, '../../../packages/tokens/src/tokens.css');
     const realManifest = path.join(
       import.meta.dirname,
-      '../../../packages/presentation/design-context/MANIFEST.sha256',
+      '../../../packages/tokens/design-context/MANIFEST.sha256',
     );
 
     // The exported run() uses hardcoded ROOT-relative paths, so we verify
@@ -65,7 +62,7 @@ describe('design-context-drift', () => {
 
   it('DRIFT_MESSAGE is the exact required string', () => {
     expect(DRIFT_MESSAGE).toBe(
-      "DESIGN-CONTEXT DRIFT: packages/presentation/src/tokens.css changed but design-context/ was not regenerated. Run 'pnpm --filter @revealui/presentation gen:design-context' and commit the result.",
+      "DESIGN-CONTEXT DRIFT: packages/tokens/src/tokens.css changed but design-context/MANIFEST.sha256 was not updated. Run 'pnpm --filter @revealui/tokens gen:manifest' and commit the result.",
     );
   });
 
@@ -90,7 +87,7 @@ describe('design-context-drift', () => {
 
     // The message that run() emits matches the required constant
     expect(DRIFT_MESSAGE).toContain('DESIGN-CONTEXT DRIFT');
-    expect(DRIFT_MESSAGE).toContain('gen:design-context');
+    expect(DRIFT_MESSAGE).toContain('gen:manifest');
   });
 
   it('missing MANIFEST is detected (not a silent pass)', () => {
@@ -98,7 +95,7 @@ describe('design-context-drift', () => {
     // absent, run() would exit non-zero. This ensures the guard is wired.
     const manifestPath = path.join(
       import.meta.dirname,
-      '../../../packages/presentation/design-context/MANIFEST.sha256',
+      '../../../packages/tokens/design-context/MANIFEST.sha256',
     );
     expect(fs.existsSync(manifestPath)).toBe(true);
   });
