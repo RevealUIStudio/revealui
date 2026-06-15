@@ -1479,9 +1479,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
           {
             name: 'insert-subscription-license',
             execute: async (ctx) => {
-              // WH-2 fix: idempotency guard — check for existing license before
-              // generating a key. Prevents duplicate keys on saga retry after
-              // crash between step execution and idempotency key recording.
+              // Idempotency guard. CRITICAL: match ANY existing row for this
+              // (customer, subscription) — including soft-deleted ones — because
+              // the `licenses_customer_subscription_unique` index spans
+              // deleted_at. Stripe redelivers webhooks (and this handler clears
+              // its idempotency marker on failure to force retries), so a plain
+              // INSERT collides with a pre-existing/soft-deleted row and fails
+              // the whole saga ("Subscription checkout saga failed"). When a row
+              // exists we UPDATE/reactivate it; only INSERT when there is none.
               const [existing] = await ctx.db
                 .select({ id: licenses.id })
                 .from(licenses)
@@ -1489,16 +1494,27 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   and(
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscriptionId),
-                    isNull(licenses.deletedAt),
                   ),
                 )
                 .limit(1);
 
-              if (existing) {
-                return { licenseId: existing.id, skipped: true };
-              }
-
               const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey);
+
+              if (existing) {
+                await ctx.db
+                  .update(licenses)
+                  .set({
+                    userId: resolvedUserId,
+                    licenseKey,
+                    tier,
+                    status: licenseStatus,
+                    expiresAt: licenseExpiresAt,
+                    deletedAt: null,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(licenses.id, existing.id));
+                return { licenseId: existing.id, skipped: false };
+              }
 
               await ctx.db.insert(licenses).values({
                 id: licenseId,
@@ -3540,7 +3556,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
   } catch (err) {
     const cleanedUp = await unmarkProcessed(db, event.id);
     const msg = err instanceof Error ? err.message : 'Unknown error';
-    logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type });
+    // Surface the wrapped DB/driver cause (e.g. a Postgres "duplicate key" or
+    // "column does not exist" inside a DrizzleQueryError). err.message alone is
+    // just the failed-query text, which hides the actual reason.
+    const cause =
+      err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
+    logger.error('Webhook handler error', err instanceof Error ? err : undefined, {
+      detail: msg,
+      cause,
+      eventType: event.type,
+    });
 
     // Fire-and-forget alert to founder  -  critical for checkout failures where
     // customer has paid but license was not generated.

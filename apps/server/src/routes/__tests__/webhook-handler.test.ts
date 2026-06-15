@@ -1028,8 +1028,11 @@ describe('POST /stripe webhook  -  handler tests', () => {
       expect(body.error).toBe('Webhook processing failed');
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         'Webhook handler error',
-        undefined,
-        expect.objectContaining({ eventType: 'customer.subscription.deleted' }),
+        expect.any(Error),
+        expect.objectContaining({
+          detail: 'DB down',
+          eventType: 'customer.subscription.deleted',
+        }),
       );
     });
 
