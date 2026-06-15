@@ -1442,7 +1442,15 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const normalizedKey = privateKey.replaceAll('\\n', '\n');
 
         const isTrialing = checkoutSubscription.status === 'trialing';
-        const licenseStatus = isTrialing ? 'trialing' : 'active';
+        // `licenses.status` is the license-lifecycle vocabulary
+        // (active/expired/revoked/support_expired) enforced by
+        // `licenses_status_check` — NOT the Stripe subscription status. A
+        // trialing subscription is an ACTIVE license (its trial expiry is
+        // captured by `licenseExpiresAt = trial_end` below); the trialing state
+        // itself is tracked in the hosted-subscription/entitlement layer via
+        // syncHostedSubscriptionState. Writing 'trialing' here violated the
+        // check constraint and failed the whole checkout saga on every trial.
+        const licenseStatus = 'active';
         const licenseExpiresAt =
           isTrialing && checkoutSubscription.trial_end
             ? new Date(checkoutSubscription.trial_end * 1000)

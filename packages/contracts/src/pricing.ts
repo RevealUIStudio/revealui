@@ -3,7 +3,7 @@
  *
  * Single source of truth for the self-serve product surface:
  * subscriptions (Track A), credit bundles (Track B), perpetual licenses
- * (Track C), and self-serve professional services (Track D / SERVICE_OFFERINGS).
+ * (Track C), and founder-led professional services (Track D / FOUNDER_SERVICE_OFFERINGS).
  * Eliminates duplication across marketing, admin billing, license, and
  * upgrade pages for those surfaces.
  *
@@ -266,7 +266,15 @@ export interface PerpetualTier {
 }
 
 // =============================================================================
-// Professional Services (Track D)
+// Founder-led Professional Services (Track D)
+//
+// Scope: small-to-mid project services delivered direct by the founder
+// (Architecture Review, Launch Package, Migration Assist, Consulting Hour).
+// These are NOT the agency-tier offerings — the Fleet deployment ($25K+) and
+// Custom Build ($50K+) tiers live in apps/marketing/app/content/pricing.ts
+// under PRICING_DONE_FOR_YOU.rungs (agency segment, different buyer). The two
+// surfaces share only the Architecture Review entry-point, whose canonical
+// price is owned here; marketing imports it rather than re-authoring.
 // =============================================================================
 
 export interface ServiceOffering {
@@ -281,7 +289,7 @@ export interface ServiceOffering {
   ctaHref: string;
 }
 
-export const SERVICE_OFFERINGS: ServiceOffering[] = [
+export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'architecture-review',
     name: 'Architecture Review',

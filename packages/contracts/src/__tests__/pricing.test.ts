@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   CREDIT_BUNDLES,
   FEATURE_LABELS,
+  FOUNDER_SERVICE_OFFERINGS,
   getTierColor,
   getTierLabel,
   getTiersFromCurrent,
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
-  SERVICE_OFFERINGS,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
   TIER_COLORS,
@@ -226,16 +226,16 @@ describe('getTierColor', () => {
 });
 
 // =============================================================================
-// SERVICE_OFFERINGS (Track D)
+// FOUNDER_SERVICE_OFFERINGS (Track D)
 // =============================================================================
 
-describe('SERVICE_OFFERINGS', () => {
+describe('FOUNDER_SERVICE_OFFERINGS', () => {
   it('has exactly 4 service offerings', () => {
-    expect(SERVICE_OFFERINGS).toHaveLength(4);
+    expect(FOUNDER_SERVICE_OFFERINGS).toHaveLength(4);
   });
 
   it('has the correct IDs in order', () => {
-    const ids = SERVICE_OFFERINGS.map((s) => s.id);
+    const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
     expect(ids).toEqual([
       'architecture-review',
       'launch-package',
@@ -245,12 +245,12 @@ describe('SERVICE_OFFERINGS', () => {
   });
 
   it('service IDs are unique', () => {
-    const ids = SERVICE_OFFERINGS.map((s) => s.id);
+    const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('every offering has required structural fields', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.id).toBeTruthy();
       expect(service.name).toBeTruthy();
       expect(service.description).toBeTruthy();
@@ -262,25 +262,25 @@ describe('SERVICE_OFFERINGS', () => {
   });
 
   it('every offering has at least 3 includes', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.includes.length).toBeGreaterThanOrEqual(3);
     }
   });
 
   it('all offerings have prices set', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.price).toBeDefined();
     }
   });
 
   it('all CTAs point to Cal.com booking link', () => {
-    for (const service of SERVICE_OFFERINGS) {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
       expect(service.ctaHref).toContain('cal.com/revealuistudio');
     }
   });
 
   it('ServiceOffering interface is properly typed', () => {
-    const sample: ServiceOffering = SERVICE_OFFERINGS[0];
+    const sample: ServiceOffering = FOUNDER_SERVICE_OFFERINGS[0];
     expect(typeof sample.id).toBe('string');
     expect(typeof sample.name).toBe('string');
     expect(typeof sample.description).toBe('string');
@@ -302,7 +302,7 @@ describe('PricingResponse', () => {
       subscriptions: SUBSCRIPTION_TIERS,
       credits: CREDIT_BUNDLES,
       perpetual: PERPETUAL_TIERS,
-      services: SERVICE_OFFERINGS,
+      services: FOUNDER_SERVICE_OFFERINGS,
     };
 
     expect(response.services).toBeDefined();
@@ -314,7 +314,7 @@ describe('PricingResponse', () => {
       subscriptions: SUBSCRIPTION_TIERS,
       credits: CREDIT_BUNDLES,
       perpetual: PERPETUAL_TIERS,
-      services: SERVICE_OFFERINGS,
+      services: FOUNDER_SERVICE_OFFERINGS,
     };
 
     expect(response.subscriptions.length).toBeGreaterThan(0);

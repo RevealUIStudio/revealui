@@ -12,7 +12,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { SERVICE_OFFERINGS } from '@revealui/contracts/pricing';
+import { FOUNDER_SERVICE_OFFERINGS } from '@revealui/contracts/pricing';
 import { describe, expect, it } from 'vitest';
 import {
   AGENCY_ENGAGEMENT_LADDER,
@@ -25,6 +25,29 @@ import { PRICING_DONE_FOR_YOU } from '../content/pricing';
 const CONTENT_DIR = join(import.meta.dirname, '..', 'content');
 const FOR_OPERATORS_SRC = readFileSync(join(CONTENT_DIR, 'for-operators.ts'), 'utf8');
 const PRICING_SRC = readFileSync(join(CONTENT_DIR, 'pricing.ts'), 'utf8');
+
+// Counts literal occurrences of `needle` in code, skipping comment lines.
+// Module-scoped so multiple describes can pin single-ownership invariants.
+function countOccurrencesInCode(source: string, needle: string): number {
+  let count = 0;
+  for (const line of source.split('\n')) {
+    const trimmed = line.trimStart();
+    if (
+      trimmed.startsWith('//') ||
+      trimmed.startsWith('/*') ||
+      trimmed.startsWith('*/') ||
+      trimmed.startsWith('*')
+    ) {
+      continue;
+    }
+    let idx = line.indexOf(needle);
+    while (idx !== -1) {
+      count++;
+      idx = line.indexOf(needle, idx + needle.length);
+    }
+  }
+  return count;
+}
 
 describe('AGENCY_ENGAGEMENT_LADDER — canonical anchors', () => {
   it('pins the three published "from" anchors', () => {
@@ -82,27 +105,6 @@ describe('single ownership of agency-only price anchors', () => {
   // must not gate the test.
   const agencyOnly = ['$25,000', '$50,000'] as const;
 
-  function countOccurrencesInCode(source: string, needle: string): number {
-    let count = 0;
-    for (const line of source.split('\n')) {
-      const trimmed = line.trimStart();
-      if (
-        trimmed.startsWith('//') ||
-        trimmed.startsWith('/*') ||
-        trimmed.startsWith('*/') ||
-        trimmed.startsWith('*')
-      ) {
-        continue;
-      }
-      let idx = line.indexOf(needle);
-      while (idx !== -1) {
-        count++;
-        idx = line.indexOf(needle, idx + needle.length);
-      }
-    }
-    return count;
-  }
-
   for (const anchor of agencyOnly) {
     it(`${anchor} appears exactly once in content/for-operators.ts code (the ladder)`, () => {
       expect(countOccurrencesInCode(FOR_OPERATORS_SRC, anchor)).toBe(1);
@@ -114,16 +116,33 @@ describe('single ownership of agency-only price anchors', () => {
   }
 });
 
-describe('SERVICE_OFFERINGS — self-serve menu, NOT the agency ladder', () => {
+describe('FOUNDER_SERVICE_OFFERINGS — founder-led services, NOT the agency ladder', () => {
   it('does not include Fleet deployment or Custom Build', () => {
-    const names = SERVICE_OFFERINGS.map((s) => s.name);
+    const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
     expect(names).not.toContain('Fleet deployment');
     expect(names).not.toContain('Custom Build');
   });
 
   it('agrees with the ladder on the shared Architecture Review price', () => {
-    const review = SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
+    const review = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'architecture-review');
     const ladderReview = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'architecture-review');
     expect(review?.price).toBe(ladderReview?.price);
+  });
+
+  // $7,500 is the Launch Package price — founder-led services only. It must
+  // not leak into the agency-tier marketing surfaces (the analog of the
+  // $25,000 / $50,000 single-ownership rules above, in the opposite
+  // direction).
+  it('Launch Package price ($7,500) is owned exclusively by FOUNDER_SERVICE_OFFERINGS', () => {
+    const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
+    expect(launch?.price).toBe('$7,500');
+  });
+
+  it('$7,500 does not appear in content/for-operators.ts code', () => {
+    expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$7,500')).toBe(0);
+  });
+
+  it('$7,500 does not appear in content/pricing.ts code', () => {
+    expect(countOccurrencesInCode(PRICING_SRC, '$7,500')).toBe(0);
   });
 });
