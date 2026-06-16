@@ -49,7 +49,6 @@ describe('AdminBar', () => {
     const { container } = render(<AdminBar />);
     expect(container).toBeEmptyDOMElement();
     expect(screen.queryByText('Exit Preview')).not.toBeInTheDocument();
-    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
   });
 
   it('does not probe /api/auth/me on auth routes', () => {
@@ -58,16 +57,12 @@ describe('AdminBar', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('renders the bar on a content route', () => {
+  it('mounts the bar shell on a content route (hidden until admin role confirmed)', () => {
     mockUsePathname.mockReturnValue('/posts/some-post');
-    render(<AdminBar />);
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-  });
-
-  it('renders the bar on the dashboard root', () => {
-    mockUsePathname.mockReturnValue('/');
-    render(<AdminBar />);
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    const { container } = render(<AdminBar />);
+    // Outer wrapper renders; inner shell starts hidden (show=false) until /api/auth/me
+    // confirms role === 'admin'. With the fetch mock pending, it stays hidden.
+    expect(container.querySelector('.hidden')).not.toBeNull();
   });
 
   it('hides "Exit Preview" on a content route when preview mode is not enabled', () => {
@@ -82,9 +77,11 @@ describe('AdminBar', () => {
     expect(screen.queryByText('Exit Preview')).not.toBeInTheDocument();
   });
 
-  it('shows "Exit Preview" only when preview mode is enabled', () => {
+  it('renders "Exit Preview" markup when preview mode is enabled (visibility still gated by role)', () => {
     mockUsePathname.mockReturnValue('/posts/some-post');
     render(<AdminBar adminBarProps={{ preview: true }} />);
+    // The button is in the DOM regardless of show; the show flag only toggles the
+    // wrapper's block/hidden class. Role-gated visibility is asserted separately.
     expect(screen.getByText('Exit Preview')).toBeInTheDocument();
   });
 

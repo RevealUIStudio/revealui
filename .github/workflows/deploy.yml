@@ -252,9 +252,17 @@ jobs:
             else
               AFFECTED=""
 
-              # Check each app directory for direct changes
+              # Check each app directory for direct changes.
+              # The "api" deploy target lives in apps/server/, not apps/api/,
+              # so map the logical app name to its source directory before the
+              # path check — otherwise server-only merges never match and the
+              # API deploy is silently skipped.
               for app in $ALL_APPS; do
-                if echo "$CHANGED" | grep -q "^apps/$app/"; then
+                case "$app" in
+                  api) app_dir="server" ;;
+                  *) app_dir="$app" ;;
+                esac
+                if echo "$CHANGED" | grep -q "^apps/$app_dir/"; then
                   AFFECTED="$AFFECTED $app"
                 fi
               done

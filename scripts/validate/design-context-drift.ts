@@ -2,12 +2,10 @@
 /**
  * Design-Context Drift Detector
  *
- * Verifies that packages/presentation/design-context/ is in sync with
- * packages/presentation/src/tokens.css by comparing sha256 digests.
- *
- * The MANIFEST.sha256 committed alongside the pack records the digest of
- * tokens.css at generation time. If tokens.css changes without regenerating
- * the pack, the digests diverge and this validator exits non-zero (hard fail).
+ * Verifies that packages/tokens/design-context/MANIFEST.sha256 matches the
+ * sha256 digest of packages/tokens/src/tokens.css. If tokens.css changes
+ * without regenerating the manifest, the digests diverge and this validator
+ * exits non-zero (hard fail).
  *
  * Usage:
  *   pnpm tsx scripts/validate/design-context-drift.ts
@@ -26,11 +24,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
-const TOKENS_CSS = path.join(ROOT, 'packages/presentation/src/tokens.css');
-const MANIFEST = path.join(ROOT, 'packages/presentation/design-context/MANIFEST.sha256');
+const TOKENS_CSS = path.join(ROOT, 'packages/tokens/src/tokens.css');
+const MANIFEST = path.join(ROOT, 'packages/tokens/design-context/MANIFEST.sha256');
 
 const DRIFT_MESSAGE =
-  "DESIGN-CONTEXT DRIFT: packages/presentation/src/tokens.css changed but design-context/ was not regenerated. Run 'pnpm --filter @revealui/presentation gen:design-context' and commit the result.";
+  "DESIGN-CONTEXT DRIFT: packages/tokens/src/tokens.css changed but design-context/MANIFEST.sha256 was not updated. Run 'pnpm --filter @revealui/tokens gen:manifest' and commit the result.";
 
 function run(): void {
   if (!fs.existsSync(TOKENS_CSS)) {
@@ -40,7 +38,7 @@ function run(): void {
 
   if (!fs.existsSync(MANIFEST)) {
     process.stderr.write(
-      `design-context-drift: MANIFEST.sha256 not found at ${MANIFEST} — run 'pnpm --filter @revealui/presentation gen:design-context' and commit the result.\n`,
+      `design-context-drift: MANIFEST.sha256 not found at ${MANIFEST} — run 'pnpm --filter @revealui/tokens gen:manifest' and commit the result.\n`,
     );
     process.exit(1);
   }

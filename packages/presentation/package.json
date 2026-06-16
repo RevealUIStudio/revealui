@@ -12,6 +12,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@revealui/tokens": "workspace:*",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
@@ -83,8 +84,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css && pnpm gen:design-context && mkdir -p dist/design-context && cp design-context/MANIFEST.sha256 design-context/brand-meta.json design-context/tokens.css dist/design-context/",
-    "gen:design-context": "tsx scripts/build-design-context.ts",
+    "build": "cross-env NODE_ENV=production vite build && cp ../tokens/src/tokens.css dist/tokens.css && mkdir -p dist/design-context && cp ../tokens/design-context/MANIFEST.sha256 ../tokens/design-context/brand-meta.json ../tokens/design-context/tokens.css dist/design-context/",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",

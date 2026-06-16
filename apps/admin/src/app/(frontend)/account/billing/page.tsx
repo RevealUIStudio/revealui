@@ -276,6 +276,26 @@ function BillingContent() {
   }
 
   const tier = subscription?.tier || 'free';
+  const isTrialing = subscription?.status === 'trialing';
+  const StatusLabels: Record<string, string> = {
+    trialing: 'Free Trial',
+    active: 'Active',
+    past_due: 'Past Due',
+    grace_period: 'Grace Period',
+    expired: 'Expired',
+    revoked: 'Revoked',
+    canceled: 'Canceled',
+  };
+  const statusLabel = subscription?.status
+    ? (StatusLabels[subscription.status] ?? subscription.status)
+    : 'Active';
+  const trialEndDate = subscription?.expiresAt
+    ? new Date(subscription.expiresAt).toLocaleDateString()
+    : '';
+  const cancelTitle = isTrialing
+    ? `Ends your trial. You keep Pro access until ${trialEndDate}.`
+    : 'Cancels at the end of your current billing period. You keep access until then.';
+  const cancelLabel = isTrialing ? 'End trial' : 'Cancel subscription';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
@@ -439,7 +459,7 @@ function BillingContent() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-zinc-600">Status</span>
             <span
-              className={`text-sm font-medium capitalize ${
+              className={`text-sm font-medium ${
                 subscription?.status === 'active' || subscription?.status === 'trialing'
                   ? 'text-green-600 dark:text-green-400'
                   : subscription?.status === 'past_due' || subscription?.status === 'grace_period'
@@ -449,11 +469,7 @@ function BillingContent() {
                       : ''
               }`}
             >
-              {subscription?.status === 'past_due'
-                ? 'Past Due'
-                : subscription?.status === 'grace_period'
-                  ? 'Grace Period'
-                  : subscription?.status || 'active'}
+              {statusLabel}
             </span>
           </div>
 
@@ -487,37 +503,42 @@ function BillingContent() {
 
             {tier === 'pro' && (
               <div className="space-y-3">
-                <p className="text-sm text-zinc-600">
-                  Upgrade to Max for AI memory, advanced inference, audit logging, and higher limits
-                  (15 projects, 100 users).
-                </p>
-                <Button
-                  onClick={handleUpgradeToMax}
-                  disabled={actionLoading || upgradeSuccess}
-                  className="w-full"
-                >
-                  {actionLoading
-                    ? 'Upgrading...'
-                    : upgradeSuccess
-                      ? 'Upgraded to Max'
-                      : `Upgrade to Max — ${getPrice('max')}`}
-                </Button>
-                <Button
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  variant="outline"
-                  className="w-full"
-                >
+                {isTrialing ? (
+                  <p className="text-sm text-zinc-600">
+                    You’re on a free Pro trial. Manage your payment method or end the trial before
+                    it converts.
+                  </p>
+                ) : (
+                  <p className="text-sm text-zinc-600">
+                    Upgrade to Max for AI memory, advanced inference, audit logging, and higher
+                    limits (15 projects, 100 users).
+                  </p>
+                )}
+                <Button onClick={handleManageBilling} disabled={actionLoading} className="w-full">
                   {actionLoading ? 'Opening portal...' : 'Manage Billing'}
                 </Button>
+                {!isTrialing && (
+                  <Button
+                    onClick={handleUpgradeToMax}
+                    disabled={actionLoading || upgradeSuccess}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {actionLoading
+                      ? 'Upgrading...'
+                      : upgradeSuccess
+                        ? 'Upgraded to Max'
+                        : `Upgrade to Max — ${getPrice('max')}`}
+                  </Button>
+                )}
                 <button
                   type="button"
                   onClick={handleManageBilling}
                   disabled={actionLoading}
-                  title="Cancels at the end of your current billing period. You keep access until then."
+                  title={cancelTitle}
                   className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
                 >
-                  Cancel subscription
+                  {cancelLabel}
                 </button>
               </div>
             )}

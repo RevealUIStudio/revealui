@@ -150,12 +150,6 @@ export default function WelcomePage() {
             Billing portal
           </a>
           <a
-            href="/admin"
-            className="rounded-md bg-card px-3 py-1.5 text-foreground ring-1 ring-border transition-colors hover:bg-muted"
-          >
-            Admin dashboard
-          </a>
-          <a
             href={DOCS_URL}
             target="_blank"
             rel="noopener noreferrer"
