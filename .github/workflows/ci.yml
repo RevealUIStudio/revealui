@@ -429,13 +429,21 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Validate generated types are in sync (hard fail)
+        # generate.ts imports @revealui/utils/dist and reads @revealui/db/dist, so
+        # build db + its workspace deps first. This previously rode on the
+        # build-affected step compiling everything via the base-ref fallback; now
+        # that --affected resolves correctly it can skip unaffected deps, so make
+        # this step self-sufficient (mirrors the Drizzle Migrations job).
         run: |
+          pnpm --filter '@revealui/db...' build
           pnpm --filter @revealui/db generate:all
           if [ -n "$(git diff --name-only)" ]; then
             echo "::error::Generated types are out of sync. Run 'pnpm --filter @revealui/db generate:all' and commit."
             git diff --stat
             exit 1
           fi
+        env:
+          SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
   # Phase 4: E2E smoke tests (main only)
