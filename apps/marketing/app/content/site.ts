@@ -21,11 +21,11 @@
  */
 export const METRICS = {
   /** Packages in `packages/` directories. Source: claim-drift countPackages. */
-  packages: 26,
+  packages: 27,
   /** Apps in `apps/`. Source: claim-drift countApps. */
   apps: 4,
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
-  workspaces: 30,
+  workspaces: 31,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 912,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
@@ -41,7 +41,7 @@ export const METRICS = {
   /** License split. Source: claim-drift licenseSplit. */
   licenseSplit: {
     /** MIT-licensed packages. */
-    mit: 20,
+    mit: 21,
     /** Fair Source (FSL-1.1-MIT) packages — @revealui/ai, engines, harnesses, mcp, services. */
     fsl: 5,
     /** Internal/none — `test` workspace package (private, no public license). */
