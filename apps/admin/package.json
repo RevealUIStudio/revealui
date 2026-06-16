@@ -34,7 +34,7 @@
     "react-hook-form": "^7.79.0",
     "react-markdown": "catalog:",
     "remark-gfm": "catalog:",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.1",
     "zod": "catalog:"
   },
   "devDependencies": {
