@@ -4,7 +4,13 @@ const servicesModule = await import('@revealui/services').catch(() => null);
 const describeIfServices = servicesModule ? describe : describe.skip;
 
 describeIfServices('Services Integration in admin Context', () => {
-  const { createPaymentIntent, protectedStripe } = servicesModule!;
+  // `describe.skip` still runs this callback to collect the (skipped) tests, so
+  // this destructure executes even when @revealui/services is absent (it's an
+  // optional peer dep — unlinked in OSS/CI). Fall back to an empty object so we
+  // skip cleanly instead of throwing on a null destructure; the `it` bodies
+  // below only run when servicesModule is non-null (suite not skipped).
+  const { createPaymentIntent, protectedStripe } =
+    servicesModule ?? ({} as NonNullable<typeof servicesModule>);
 
   it('should import protectedStripe from services', () => {
     expect(protectedStripe).toBeDefined();
