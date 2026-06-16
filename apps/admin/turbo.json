@@ -3,7 +3,8 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "outputs": [".next/**"]
+      "outputs": [".next/**"],
+      "dependsOn": ["^build", "@revealui/ai#build", "@revealui/services#build"]
     }
   }
 }
