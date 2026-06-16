@@ -1,3 +1,9 @@
+// Shared live/test classification — same rule the runtime money-boundary guard
+// (getStripe) uses, so the boot validator and the request path can't drift.
+import {
+  classifyStripePublishableKey,
+  classifyStripeSecretKey,
+} from '@revealui/config/stripe-mode';
 import {
   computeKeyId,
   hostMatchesLicensedDomains,
@@ -5,12 +11,6 @@ import {
 } from '@revealui/core/license';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
-// Shared live/test classification — same rule the runtime money-boundary guard
-// (getStripe) uses, so the boot validator and the request path can't drift.
-import {
-  classifyStripePublishableKey,
-  classifyStripeSecretKey,
-} from '@revealui/services/stripe/mode';
 import { eq } from 'drizzle-orm';
 
 export type EnvMap = Record<string, string | undefined>;

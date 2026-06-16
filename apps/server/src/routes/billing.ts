@@ -5,6 +5,7 @@
  * with Stripe customer records via the `stripe_customer_id` column.
  */
 
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -21,7 +22,6 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
@@ -989,9 +989,12 @@ app.openapi(invoicesRoute, async (c) => {
   const query = c.req.query();
   const limit = Math.min(Math.max(Number.parseInt(query.limit ?? '10', 10) || 10, 1), 100);
 
+  // Non-null here: guarded by the early return above. Bind to a const so the
+  // narrowing survives into the withStripe closure.
+  const stripeCustomerId = dbUser.stripeCustomerId;
   const stripeInvoices = await withStripe((stripe) =>
     stripe.invoices.list({
-      customer: dbUser.stripeCustomerId!,
+      customer: stripeCustomerId,
       limit,
       ...(query.starting_after ? { starting_after: query.starting_after } : {}),
     }),

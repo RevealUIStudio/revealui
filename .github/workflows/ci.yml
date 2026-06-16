@@ -211,9 +211,20 @@ jobs:
 
       - name: Typecheck affected packages (PRs — hard fail)
         if: github.event_name == 'pull_request'
-        run: pnpm turbo typecheck --affected
+        # Build affected packages first so consumer typechecks resolve upstream
+        # subpath exports (e.g. @revealui/ai/* -> dist/*.d.ts). Dependabot PRs run
+        # without TURBO_TOKEN (GitHub withholds secrets), so the remote cache is
+        # cold and a typecheck-only run can race the not-yet-emitted dep builds.
+        run: |
+          pnpm turbo build --affected
+          pnpm turbo typecheck --affected
         env:
           SKIP_ENV_VALIDATION: "true"
+          # Pin the --affected base to the PR base tip (a concrete SHA always
+          # reachable via fetch-depth: 0). Without this turbo tries to resolve the
+          # bare branch name and fails with "ambiguous argument 'test'", falling
+          # back to a full cold-cache run that amplifies the race above.
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
 
       - name: Typecheck all packages (push — hard fail)
         if: github.event_name == 'push'
@@ -407,6 +418,9 @@ jobs:
         run: pnpm turbo build --affected
         env:
           SKIP_ENV_VALIDATION: "true"
+          # See typecheck job: pin the --affected base to the PR base tip so turbo
+          # does not fall back to a full run on "ambiguous argument 'test'".
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
 
       - name: Build all (push to protected branches — hard fail)
         if: github.event_name == 'push'
@@ -415,13 +429,21 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Validate generated types are in sync (hard fail)
+        # generate.ts imports @revealui/utils/dist and reads @revealui/db/dist, so
+        # build db + its workspace deps first. This previously rode on the
+        # build-affected step compiling everything via the base-ref fallback; now
+        # that --affected resolves correctly it can skip unaffected deps, so make
+        # this step self-sufficient (mirrors the Drizzle Migrations job).
         run: |
+          pnpm --filter '@revealui/db...' build
           pnpm --filter @revealui/db generate:all
           if [ -n "$(git diff --name-only)" ]; then
             echo "::error::Generated types are out of sync. Run 'pnpm --filter @revealui/db generate:all' and commit."
             git diff --stat
             exit 1
           fi
+        env:
+          SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
   # Phase 4: E2E smoke tests (main only)
