@@ -88,6 +88,6 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "cd ../.. && pnpm turbo build --filter=admin"
+    "vercel-build": "node scripts/vercel-build.mjs"
   }
 }
