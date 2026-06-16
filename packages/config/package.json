@@ -28,6 +28,10 @@
     "./mcp": {
       "types": "./dist/mcp.d.ts",
       "import": "./dist/mcp.js"
+    },
+    "./stripe-mode": {
+      "types": "./dist/stripe-mode.d.ts",
+      "import": "./dist/stripe-mode.js"
     }
   },
   "files": [
