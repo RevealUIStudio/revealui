@@ -130,7 +130,7 @@ export function ProductMockup() {
         </div>
 
         {/* Real screenshot */}
-        <div className="relative bg-gray-100" style={{ minHeight: '380px' }}>
+        <div className="relative min-h-[240px] bg-gray-100 sm:min-h-[320px] lg:min-h-[380px]">
           {/* biome-ignore lint/performance/noImgElement: Vite SPA, no Next image optimizer available */}
           <img
             src={SCREENSHOTS[activeTab]?.src ?? ''}
@@ -156,8 +156,9 @@ export function ProductMockup() {
           </div>
         </div>
 
-        {/* Code */}
-        <div className="flex-1 px-5 py-5 font-mono text-xs leading-6 overflow-hidden">
+        {/* Code — horizontal scroll within the panel on narrow screens so no
+            line is clipped (conventional for code, not a deceptive page-level scroll). */}
+        <div className="flex-1 overflow-x-auto px-5 py-5 font-mono text-xs leading-6">
           {codeLines.map((line, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static display list, no reordering
             <div key={i} className="flex">

@@ -3,9 +3,9 @@
 //   app/components/GetStarted.tsx (Phase 1c extraction).
 // Phase 3 (2026-05-18) update: Hero "What ships today" metrics now reference
 // METRICS from site.ts (single source per docs/MARKETING_METRICS.md §1).
-// FSL package detail rewritten: now states 20 MIT + 5 FSL + 1 internal = 26 total
-// (matches validator licenseSplit; original copy's "21 published + 5 private" math
-// counted 26 by including create-revealui in the 21 — drift caught Phase 3.4).
+// FSL package detail references METRICS: 21 MIT + 5 FSL + 1 internal = 27 total
+// (matches validator licenseSplit; counted against packages/ on 2026-06-17 —
+// @revealui/tokens addition took MIT 20→21 and total 26→27).
 // Per docs/lanes/marketing-overhaul/plan.md §4.4.
 
 import { METRICS, SITE } from './site';
@@ -21,7 +21,7 @@ export const HOME_HERO = {
   subtitle: {
     lead: 'Stop renting your stack from a half-dozen vendors.',
     strong:
-      'Auth, content, offers, and payments, pre-wired into one open-source runtime you self-host.',
+      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host.',
     body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself with',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',
@@ -48,7 +48,7 @@ export const HOME_HERO = {
       {
         metric: `${METRICS.dbTables} database tables`,
         detail:
-          'Every table maps to a primitive: people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
+          'Every table maps to a primitive: users, content, products, payments, or intelligence. See the [database reference](https://docs.revealui.com/database).',
       },
       {
         metric: `${METRICS.mcpServers} first-party MCP servers`,
@@ -256,7 +256,7 @@ export const HOME_FAQ = {
     {
       question: 'How does AI inference work?',
       answer:
-        'Pair RevealUI with Ollama or Ubuntu Inference Snaps. Bring Gemma 3/4, DeepSeek R1, Qwen VL, or Nemotron locally, so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+        'Pair RevealUI with Ollama or Ubuntu Inference Snaps. Bring Gemma 4 or Phi-4-mini locally, so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
     },
     {
       question: 'How do agent payments work?',
