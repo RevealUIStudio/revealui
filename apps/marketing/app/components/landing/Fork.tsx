@@ -39,7 +39,7 @@ export function Fork() {
           <button
             type="button"
             onClick={handleSelfBuildScroll}
-            className="group rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="group flex flex-col rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <h3 className="text-lg font-semibold leading-7 text-foreground">
               {HOME_FORK.branchA.title}
@@ -52,7 +52,7 @@ export function Fork() {
 
           <a
             href={HOME_FORK.branchB.href}
-            className="group rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="group flex flex-col rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <h3 className="text-lg font-semibold leading-7 text-foreground">
               {HOME_FORK.branchB.title}
@@ -65,7 +65,7 @@ export function Fork() {
 
           <a
             href={HOME_FORK.branchC.href}
-            className="group rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="group flex flex-col rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition hover:border-primary/50 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <h3 className="text-lg font-semibold leading-7 text-foreground">
               {HOME_FORK.branchC.title}
