@@ -107,7 +107,7 @@ sudo snap install gemma3             # Or: ollama pull gemma4:e2b
 └── @revealui/mcp                    # MCP tool integrations
 ```
 
-The entire AI-powered business stack  -  people, content, offers, payments, agents  -  running without a cloud API call in sight.
+The entire AI-powered business stack  -  users, content, products, payments, intelligence  -  running without a cloud API call in sight.
 
 ## Who this is for
 
