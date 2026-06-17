@@ -40,47 +40,74 @@ async function signInViaAPI(baseURL: string, email: string, password: string): P
     throw new Error(`Sign-in failed (${res.status}): ${body}`);
   }
 
-  const setCookie = res.headers.get('set-cookie');
-  if (!setCookie) {
-    throw new Error('Sign-in succeeded but no Set-Cookie header returned');
+  // getSetCookie() returns ALL Set-Cookie headers as an array (Node 24 / undici).
+  // get('set-cookie') returns only the first header — which is `revealui-role`,
+  // not the `revealui-session` cookie the API authenticates on.
+  const setCookieHeaders = res.headers.getSetCookie();
+  if (setCookieHeaders.length === 0) {
+    throw new Error('Sign-in succeeded but no Set-Cookie headers returned');
   }
 
-  // Parse the Set-Cookie header into a Playwright cookie object
-  const parts = setCookie.split(';').map((s) => s.trim());
-  const [nameValue, ...attrs] = parts;
-  const eqIdx = nameValue.indexOf('=');
-  const cookieName = nameValue.substring(0, eqIdx);
-  const cookieValue = nameValue.substring(eqIdx + 1);
+  const defaultDomain = new URL(baseURL).hostname;
 
-  let domain = new URL(baseURL).hostname;
-  let path = '/';
-  let expires = -1;
-  let httpOnly = false;
-  let secure = false;
-  let sameSite: 'Lax' | 'Strict' | 'None' = 'Lax';
+  interface ParsedCookie {
+    name: string;
+    value: string;
+    domain: string;
+    path: string;
+    expires: number;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'Lax' | 'Strict' | 'None';
+  }
 
-  for (const attr of attrs) {
-    const lower = attr.toLowerCase();
-    if (lower.startsWith('domain=')) domain = attr.substring(7);
-    else if (lower.startsWith('path=')) path = attr.substring(5);
-    else if (lower.startsWith('max-age='))
-      expires = Math.floor(Date.now() / 1000) + parseInt(attr.substring(8), 10);
-    else if (lower.startsWith('expires='))
-      expires = Math.floor(Date.parse(attr.substring(8)) / 1000);
-    else if (lower === 'httponly') httpOnly = true;
-    else if (lower === 'secure') secure = true;
-    else if (lower.startsWith('samesite=')) {
-      const v = attr.substring(9).toLowerCase();
-      sameSite = v === 'strict' ? 'Strict' : v === 'none' ? 'None' : 'Lax';
+  function parseSetCookieHeader(header: string): ParsedCookie | null {
+    const parts = header.split(';').map((s) => s.trim());
+    const nameValue = parts[0];
+    if (!nameValue) return null;
+    const eqIdx = nameValue.indexOf('=');
+    if (eqIdx === -1) return null;
+    const name = nameValue.substring(0, eqIdx);
+    const value = nameValue.substring(eqIdx + 1);
+    if (!name) return null;
+
+    let domain = defaultDomain;
+    let path = '/';
+    let expires = -1;
+    let httpOnly = false;
+    let secure = false;
+    let sameSite: 'Lax' | 'Strict' | 'None' = 'Lax';
+
+    for (const attr of parts.slice(1)) {
+      const lower = attr.toLowerCase();
+      if (lower.startsWith('domain=')) domain = attr.substring(7);
+      else if (lower.startsWith('path=')) path = attr.substring(5);
+      else if (lower.startsWith('max-age='))
+        expires = Math.floor(Date.now() / 1000) + parseInt(attr.substring(8), 10);
+      else if (lower.startsWith('expires='))
+        expires = Math.floor(Date.parse(attr.substring(8)) / 1000);
+      else if (lower === 'httponly') httpOnly = true;
+      else if (lower === 'secure') secure = true;
+      else if (lower.startsWith('samesite=')) {
+        const v = attr.substring(9).toLowerCase();
+        sameSite = v === 'strict' ? 'Strict' : v === 'none' ? 'None' : 'Lax';
+      }
     }
+
+    return { name, value, domain, path, expires, httpOnly, secure, sameSite };
   }
 
-  return JSON.stringify({
-    cookies: [
-      { name: cookieName, value: cookieValue, domain, path, expires, httpOnly, secure, sameSite },
-    ],
-    origins: [],
-  });
+  const cookies: ParsedCookie[] = [];
+  for (const header of setCookieHeaders) {
+    const parsed = parseSetCookieHeader(header);
+    if (parsed) cookies.push(parsed);
+  }
+
+  if (cookies.length === 0) {
+    throw new Error('Sign-in succeeded but no cookies could be parsed from Set-Cookie headers');
+  }
+
+  return JSON.stringify({ cookies, origins: [] });
 }
 
 async function globalSetup(config: FullConfig) {
