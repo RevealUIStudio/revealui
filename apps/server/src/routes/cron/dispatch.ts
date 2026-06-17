@@ -24,6 +24,7 @@ import jobsSafetyNetApp from './jobs-safety-net.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import reconcileCustomersApp from './reconcile-customers.js';
+import reconcileStripeSubscriptionsApp from './reconcile-stripe-subscriptions.js';
 import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
 import uptimeCheckApp from './uptime-check.js';
@@ -60,6 +61,16 @@ const JOBS = [
   // Stripe events, so these rows surface to ops via the dashboard / aged
   // alert path).
   { name: 'reconcile-customers', app: reconcileCustomersApp, path: '/reconcile-customers' },
+  // reconcile-stripe-subscriptions walks Stripe subscriptions INWARD and flags
+  // any LIVE sub with no `accountSubscriptions` row — hosted entitlement state
+  // that was never created (e.g. a checkout.session.completed webhook that
+  // failed during an outage), which the OUTWARD-walking crons cannot see.
+  // Alert-only: writes `subscription.unsynced` rows to `unreconciledWebhooks`.
+  {
+    name: 'reconcile-stripe-subscriptions',
+    app: reconcileStripeSubscriptionsApp,
+    path: '/reconcile-stripe-subscriptions',
+  },
   { name: 'billing-readiness', app: billingReadinessApp, path: '/billing-readiness' },
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
