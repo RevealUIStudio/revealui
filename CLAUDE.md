@@ -57,7 +57,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 > via npm rather than via workspace links — same brand surface, decoupled
 > repo + deploy cadence.
 
-### OSS Packages (MIT) — 20
+### OSS Packages (MIT) — 21
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
@@ -80,6 +80,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 | @revealui/openapi | Type-safe OpenAPI 3.x for Hono — route definitions, Zod validation, spec generation + Swagger UI |
 | @revealui/paywall | Runtime license enforcement, feature gating, and upgrade UI (Stripe + x402) |
+| @revealui/tokens | Design tokens — canonical CSS variables, typed TS export, brand canon (zero internal deps) |
 
 ### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years) — 5
 | Package | Purpose |

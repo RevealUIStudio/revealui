@@ -35,7 +35,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'How does AI inference work?',
     answer:
-      'Bring your own model. The default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+      'Bring your own model. The default ships open-weight (Gemma 4, Phi-4-mini) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
   },
   {
     question: 'What does "full source code access" mean?',
@@ -53,6 +53,6 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What is RevFleet?',
     answer:
-      'RevFleet is the RevealUI Studio product family: seven products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Claude Code skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevKit is the portable WSL dev environment toolkit (MIT). Use RevealUI standalone, or compose what you need.',
+      'RevFleet is the RevealUI Studio product family: eight products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Claude Code skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevKit is the portable WSL dev environment toolkit (MIT). RevMarket is the agent tool marketplace (bundled with the runtime, on the way). Use RevealUI standalone, or compose what you need.',
   },
 ];
