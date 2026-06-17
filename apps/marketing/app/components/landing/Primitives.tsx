@@ -1,12 +1,20 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
 
+// Accent chips must be surface-relative so they adapt under the token-based
+// theme (dark-first; light via system pref OR a manual [data-theme] override).
+// Translucent bg/ring tint whatever the adaptive card surface is in either
+// mode — mirroring the emerald row's bg-primary/10 + text-primary + ring-
+// primary/20. We deliberately do NOT use Tailwind `dark:` variants: those are
+// media-based and would desync from a manual [data-theme] toggle. emerald rides
+// the adaptive brand token; the other four keep their distinct accent hues at
+// /10–/20 opacity with a mid-tone icon that reads in both modes.
 const accentBg: Record<string, string> = {
   emerald: 'bg-primary/10 text-primary ring-primary/20',
-  blue: 'bg-blue-50 text-blue-700 ring-blue-200',
-  amber: 'bg-amber-50 text-amber-700 ring-amber-200',
-  cyan: 'bg-cyan-50 text-cyan-700 ring-cyan-200',
-  violet: 'bg-violet-50 text-violet-700 ring-violet-200',
+  blue: 'bg-blue-500/10 text-blue-500 ring-blue-500/20',
+  amber: 'bg-amber-500/10 text-amber-500 ring-amber-500/20',
+  cyan: 'bg-cyan-500/10 text-cyan-500 ring-cyan-500/20',
+  violet: 'bg-violet-500/10 text-violet-500 ring-violet-500/20',
 };
 
 export function Primitives() {
