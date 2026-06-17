@@ -18,7 +18,7 @@ export interface TeaserTier {
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
   heading: 'Start free. Pay when you scale.',
-  body: 'Self-host the open-source stack at no cost. Paid tiers (Pro, Enterprise) are previews. Subscription billing opens when we flip Stripe live mode.',
+  body: 'Self-host the open-source stack at no cost. Paid tiers (Pro, Max, Enterprise) are previews. Subscription billing opens when we flip Stripe live mode.',
 } as const;
 
 export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
@@ -52,15 +52,30 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     highlight: true,
   },
   {
+    id: 'max',
+    name: 'Max',
+    description: 'For teams that need AI memory, advanced inference, and compliance tooling.',
+    features: [
+      'Everything in Pro',
+      'Full AI memory (working + episodic + vector)',
+      'Audit logging + 50,000 agent tasks / month',
+      'Up to 15 sites and 100 users',
+    ],
+    cta: 'See Max pricing',
+    href: '/pricing',
+    highlight: false,
+  },
+  {
     id: 'enterprise',
     name: 'Enterprise',
     description:
-      'Audit logs, multi-tenant architecture, and a named contact. Custom plans for high volume; SSO and on-prem on the roadmap.',
+      'Full ecosystem access with scale, compliance, and agent payments. SSO/SAML and on-prem on the roadmap.',
     features: [
-      'Everything in Pro',
-      'Audit logs + compliance reports',
-      'Multi-tenant architecture',
-      'Roadmap: SSO, SCIM, on-prem deploy',
+      'Everything in Max',
+      'SSO/SAML authentication (coming soon)',
+      'x402 agent payments (USDC)',
+      'RevealUI Fleet white-label license',
+      'Unlimited sites, users, and agent tasks',
     ],
     cta: 'Talk to us',
     href: '/contact',
