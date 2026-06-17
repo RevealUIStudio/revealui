@@ -2,9 +2,6 @@
   "extends": ["//"],
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "build": {
-      "dependsOn": ["^build", "@revealui/ai#build", "@revealui/services#build"]
-    },
     "typecheck": {
       "dependsOn": ["^build", "@revealui/ai#build", "@revealui/services#build"]
     }
