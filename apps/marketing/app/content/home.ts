@@ -74,24 +74,20 @@ export const HOME_HERO = {
 } as const;
 
 // ---------------------------------------------------------------------------
-// Hero — "Foundation" A/B variant.
-// Tests the noun "foundation" against the canonical "runtime" in HOME_HERO.
-// The two strings below (h1 + subtitle.strong) are the only difference, so the
-// A/B isolates the noun; "runtime" stays the canonical noun on every other
-// surface. Served via selectHomeHero() (app/lib/hero-variant.ts): the homepage
-// hero renders this variant when the URL carries ?hero=foundation, else
-// HOME_HERO. An automatic traffic split + conversion measurement is separate
-// (the marketing app has no analytics sink yet).
+// Hero — "Foundation" A/B variant (canonical lock).
+// Per docs/marketing/06-copy-corpus.md §4.1 (sanctioned A/B variant under ADR
+// 2026-06-07 decision 6, hero only): H1 reframes around "foundation"; subtitle
+// inherits the default unchanged. The noun-test is the H1 only — the subtitle
+// keeps the canonical "runtime" noun. Served via selectHomeHero()
+// (app/lib/hero-variant.ts): the homepage hero renders this variant when the
+// URL carries ?hero=foundation, else HOME_HERO. An automatic traffic split +
+// conversion measurement is separate (the marketing app has no analytics sink
+// yet).
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO_FOUNDATION = {
   ...HOME_HERO,
-  h1: 'Run your whole business on a foundation you own.',
-  subtitle: {
-    ...HOME_HERO.subtitle,
-    strong:
-      'Auth, content, products, and payments, pre-wired into one open-source foundation you self-host.',
-  },
+  h1: 'The foundation your business runs on.',
 } as const;
 
 // ---------------------------------------------------------------------------
