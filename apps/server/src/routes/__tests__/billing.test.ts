@@ -677,6 +677,60 @@ describe('GET /subscription', () => {
     // The WHERE clause must include isNull(licenses.deletedAt)
     expect(isNull).toHaveBeenCalledWith('licenses.deletedAt');
   });
+
+  it('reconciles a trialing Stripe subscription when no license row exists', async () => {
+    // Sequence of db.select() calls on the no-license path:
+    //  1) hosted-snapshot membership (none) 2) license query (none)
+    //  3) resolveHostedStripeCustomerId membership (none) 4) users.stripeCustomerId
+    queueSelectResults([], [], [], [{ stripeCustomerId: 'cus_trial' }]);
+    const trialEnd = 1893456000; // fixed epoch seconds
+    mockSubscriptionsList.mockResolvedValue({
+      data: [{ status: 'trialing', metadata: { tier: 'pro' }, trial_end: trialEnd }],
+    });
+
+    const app = createApp();
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('pro');
+    expect(body.status).toBe('trialing');
+    expect(body.expiresAt).toBe(new Date(trialEnd * 1000).toISOString());
+    expect(body.licenseKey).toBeNull();
+    expect(mockSubscriptionsList).toHaveBeenCalledWith({
+      customer: 'cus_trial',
+      status: 'all',
+      limit: 10,
+    });
+  });
+
+  it('does not call Stripe (stays free) when the user has no Stripe customer', async () => {
+    _selectResult = []; // no membership, no license, no stored customer
+    mockSubscriptionsList.mockClear();
+
+    const app = createApp();
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('free');
+    expect(mockSubscriptionsList).not.toHaveBeenCalled();
+  });
+
+  it('stays free when a Stripe subscription has no resolvable tier metadata', async () => {
+    queueSelectResults([], [], [], [{ stripeCustomerId: 'cus_unlabeled' }]);
+    // No tier in metadata  -  never guess a paid tier.
+    mockSubscriptionsList.mockResolvedValue({
+      data: [{ status: 'trialing', metadata: {}, trial_end: null }],
+    });
+
+    const app = createApp();
+    const res = await app.request(get('/subscription'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.tier).toBe('free');
+  });
 });
 
 describe('POST /upgrade', () => {
