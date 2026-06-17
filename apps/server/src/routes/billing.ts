@@ -604,6 +604,63 @@ async function resolveHostedStripeCustomerId(
   return dbUser?.stripeCustomerId ?? null;
 }
 
+/** Non-throwing tier resolver for Stripe subscription metadata (cf. webhook resolveTier). */
+function resolveTierFromMetadata(
+  metadata: Record<string, string> | null | undefined,
+): 'pro' | 'max' | 'enterprise' | null {
+  const tier = metadata?.tier;
+  if (tier === 'pro' || tier === 'max' || tier === 'enterprise') return tier;
+  return null;
+}
+
+/**
+ * Reconcile the subscription view against Stripe when no local license row
+ * exists yet. The checkout guard reads Stripe directly, so a trial whose
+ * `checkout.session.completed` webhook hasn't landed (or failed) would otherwise
+ * leave the UI showing "free" + an Upgrade button that dead-ends on the checkout
+ * 409. Returns a snapshot derived from the user's live Stripe subscription, or
+ * null when the user has no Stripe customer or no live subscription. Best-effort:
+ * a Stripe outage must never break the billing page, so it logs and returns null
+ * on failure rather than throwing.
+ */
+async function getStripeSubscriptionFallback(
+  userId: string,
+  accountId?: string | null,
+): Promise<{
+  tier: 'pro' | 'max' | 'enterprise';
+  status: string;
+  expiresAt: string | null;
+  licenseKey: null;
+} | null> {
+  try {
+    const customerId = await resolveHostedStripeCustomerId(userId, accountId);
+    if (!customerId) return null;
+
+    const subs = await withStripe((stripe) =>
+      stripe.subscriptions.list({ customer: customerId, status: 'all', limit: 10 }),
+    );
+    // Match the checkout guard's notion of an existing subscription so the UI
+    // and the guard agree (active / trialing / incomplete / past_due).
+    const liveStatuses = new Set(['trialing', 'active', 'incomplete', 'past_due']);
+    const sub = subs.data.find((s) => liveStatuses.has(s.status));
+    if (!sub) return null;
+
+    const tier = resolveTierFromMetadata(sub.metadata);
+    // Never guess a paid tier from an unlabeled subscription.
+    if (!tier) return null;
+
+    const expiresAt =
+      typeof sub.trial_end === 'number' ? new Date(sub.trial_end * 1000).toISOString() : null;
+
+    return { tier, status: sub.status, expiresAt, licenseKey: null };
+  } catch (error) {
+    logger.warn('subscription: Stripe reconciliation fallback failed; defaulting to free', {
+      detail: error instanceof Error ? error.message : 'unknown',
+    });
+    return null;
+  }
+}
+
 function resolveUsageQuota(c: { get: (key: string) => unknown }): number {
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   const accountQuota = requestEntitlements?.limits?.maxAgentTasks;
@@ -914,6 +971,17 @@ app.openapi(subscriptionRoute, async (c) => {
     .limit(1);
 
   if (!license) {
+    // No local license row — but a Stripe subscription may already exist (a
+    // trial whose webhook hasn't landed or failed). Reconcile against Stripe so
+    // the UI doesn't show a misleading "free" + dead-end Upgrade button. Only
+    // users with an existing Stripe customer incur the lookup.
+    const stripeSnapshot = await getStripeSubscriptionFallback(
+      user.id,
+      requestEntitlements?.accountId,
+    );
+    if (stripeSnapshot) {
+      return c.json(stripeSnapshot, 200);
+    }
     return c.json(
       {
         tier: 'free' as const,
