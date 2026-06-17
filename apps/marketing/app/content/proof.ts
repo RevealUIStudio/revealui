@@ -46,8 +46,19 @@ export const PROOF_STACK: readonly StackItem[] = [
 
 export const PROOF_STACK_PANEL = {
   eyebrow: 'No proprietary lock-in',
-  heading: 'Standards your team already knows',
-  body: 'Open standards end-to-end: OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Deploys to Vercel, Cloudflare, Fly, Hetzner, or your own infra. Take your data with you.',
+  heading: 'Yours to own. Theirs to trust.',
+  body: "Nothing here is proprietary. Open protocols (OAuth, JWT, MCP, OpenAPI) run over a stack your team already knows, so there's no new framework to learn and no platform to trap you.",
+} as const;
+
+// Portability proof for the stack panel. The deploy/data-portability claim (the
+// no-lock-in lead benefit) gets its own visual strip beneath the familiar-stack
+// chip grid, so it is shown rather than only asserted in the body. Two beats,
+// one root cause: standard parts -> familiar (the chips) AND yours to move (this).
+export const PROOF_PORTABILITY = {
+  deployLabel: 'Runs anywhere',
+  deployTargets: ['Vercel', 'Cloudflare', 'Fly', 'Hetzner', 'self-host'],
+  dataLabel: 'Your data stays yours',
+  dataNote: 'Standard Postgres, export anytime.',
 } as const;
 
 export const PROOF_TRUST = {

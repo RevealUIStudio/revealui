@@ -1,6 +1,7 @@
 import { ButtonCVA } from '@revealui/presentation';
 import {
   PROOF_CI_SIGNALS,
+  PROOF_PORTABILITY,
   PROOF_REPO_SIGNALS,
   PROOF_SECTION,
   PROOF_STACK,
@@ -114,6 +115,25 @@ export function Proof() {
                 </li>
               ))}
             </ul>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 border-t border-border pt-6 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                  {PROOF_PORTABILITY.deployLabel}
+                </p>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {PROOF_PORTABILITY.deployTargets.join(' · ')}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                  {PROOF_PORTABILITY.dataLabel}
+                </p>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {PROOF_PORTABILITY.dataNote}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
