@@ -46,7 +46,7 @@ export const PROOF_STACK: readonly StackItem[] = [
 
 export const PROOF_STACK_PANEL = {
   eyebrow: 'No proprietary lock-in',
-  heading: 'Own every layer. Leave anytime.',
+  heading: 'Yours to own. Theirs to trust.',
   body: "Nothing here is proprietary. Open protocols (OAuth, JWT, MCP, OpenAPI) run over a stack your team already knows, so there's no new framework to learn and no platform to trap you.",
 } as const;
 
