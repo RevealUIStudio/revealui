@@ -11,6 +11,7 @@ import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
 import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
+import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
