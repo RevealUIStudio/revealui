@@ -16,7 +16,7 @@ export function WhatsShipped() {
           </p>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-x-8 gap-y-10">
           {CAPABILITIES.map((c) => (
             <a
               key={c.path}
@@ -28,7 +28,7 @@ export function WhatsShipped() {
               <h3 className="text-base font-semibold text-foreground group-hover:text-primary">
                 {c.title}
               </h3>
-              <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{c.body}</p>
+              <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{c.body}</p>
               <code className="mt-4 inline-block self-start rounded bg-card px-2 py-1 font-mono text-[11px] text-primary ring-1 ring-primary/20 group-hover:bg-primary/10">
                 {c.path}
               </code>
