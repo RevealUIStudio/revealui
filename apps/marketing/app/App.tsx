@@ -11,6 +11,7 @@ import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
 import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
+import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
@@ -33,6 +34,11 @@ export function App() {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
       { path: '/products', component: ProductsPage, meta: { title: 'Products | RevealUI' } },
+      {
+        path: '/philosophy',
+        component: PhilosophyPage,
+        meta: { title: 'Why RevealUI exists | RevealUI' },
+      },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
       { path: '/blog', component: BlogIndexPage, meta: { title: 'Blog | RevealUI' } },
       { path: '/blog/:slug', component: BlogPostPage, meta: { title: 'Blog | RevealUI' } },
