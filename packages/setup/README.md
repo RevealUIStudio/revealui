@@ -129,7 +129,7 @@ Parses environment file content into key-value object.
 
 #### `validateEnv(required, env)`
 
-Validates environment variables against schema.
+Validates environment variables against schema (`packages/setup/src/validators/env.ts:32`).
 
 **Parameters:**
 - `required: EnvVariable[]` - Required variable definitions
