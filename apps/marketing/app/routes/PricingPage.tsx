@@ -1,5 +1,6 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
+import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
@@ -155,10 +156,7 @@ export function PricingPage() {
             </ul>
           </div>
 
-          {/* flex-wrap + justify-center: 3 per row, partial last row centered.
-              A lone last tier (count % 3 === 1, e.g. Enterprise) goes wider and
-              stays centered; a remainder of 2 centers at card width. */}
-          <div className="flex flex-wrap justify-center gap-6">
+          <CenteredCardGrid>
             {tiers.map((tier, index) => (
               <div
                 key={tier.id}
@@ -216,7 +214,7 @@ export function PricingPage() {
                 )}
               </div>
             ))}
-          </div>
+          </CenteredCardGrid>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
         </div>
