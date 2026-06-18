@@ -31,7 +31,7 @@ export const FO_MANAGED_HERO = {
     'A self-serve managed version of the runtime: sign up in a browser, configure your business, get a hosted product without an agency engagement. It does not ship today. This page is the honest roadmap.',
   backLink: {
     label: '← Back to For Operators',
-    href: '/for-operators',
+    href: '/?for=non-technical',
   } satisfies Cta,
 } as const;
 

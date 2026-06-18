@@ -101,9 +101,9 @@ describe('marketing content contracts', () => {
   });
 
   describe('homepage fork', () => {
-    it('exposes three self-identification branches, each fully populated', () => {
-      const branches = [HOME_FORK.branchA, HOME_FORK.branchB, HOME_FORK.branchC];
-      expect(branches).toHaveLength(3);
+    it('exposes two self-identification branches, each fully populated', () => {
+      const branches = [HOME_FORK.branchA, HOME_FORK.branchC];
+      expect(branches).toHaveLength(2);
       for (const branch of branches) {
         expect(branch.title.length, 'empty title').toBeGreaterThan(0);
         expect(branch.body.length, 'empty body').toBeGreaterThan(0);
@@ -111,8 +111,7 @@ describe('marketing content contracts', () => {
       }
     });
 
-    it('the navigating branches each carry an href', () => {
-      expect(HOME_FORK.branchB.href.length).toBeGreaterThan(0);
+    it('the navigating branch carries an href', () => {
       expect(HOME_FORK.branchC.href.length).toBeGreaterThan(0);
     });
   });
