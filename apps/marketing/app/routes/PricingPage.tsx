@@ -155,13 +155,18 @@ export function PricingPage() {
             </ul>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {tiers.map((tier) => (
+          {/* flex-wrap + justify-center: 3 per row, partial last row centered.
+              A lone last tier (count % 3 === 1, e.g. Enterprise) goes wider and
+              stays centered; a remainder of 2 centers at card width. */}
+          <div className="flex flex-wrap justify-center gap-6">
+            {tiers.map((tier, index) => (
               <div
                 key={tier.id}
-                className={`relative flex flex-col rounded-2xl bg-card p-8 shadow-lg ${
-                  tier.highlighted ? 'ring-2 ring-primary' : 'ring-1 ring-border'
-                }`}
+                className={`relative flex w-full flex-col rounded-2xl bg-card p-8 shadow-lg sm:w-[calc(50%-0.75rem)] ${
+                  index === tiers.length - 1 && tiers.length % 3 === 1
+                    ? 'lg:w-2/3'
+                    : 'lg:w-[calc(33.333%-1rem)]'
+                } ${tier.highlighted ? 'ring-2 ring-primary' : 'ring-1 ring-border'}`}
               >
                 {tier.highlighted && (
                   <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
