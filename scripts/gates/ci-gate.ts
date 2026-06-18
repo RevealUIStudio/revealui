@@ -285,13 +285,13 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
-        // Source-citation gate (CONTRIBUTING.md — Source citations). Warn-only on
-        // introduction (like docs import drift); flip to hard-fail on validity
-        // by dropping --warn once it has run green for a cycle.
-        name: 'Citation gate',
+        // Source-citation gate (CONTRIBUTING.md — Source citations). VALIDITY
+        // (every path:line citation must resolve and sit in-range) HARD-FAILS;
+        // COVERAGE stays warn-only + baseline-grandfathered (no --coverage-strict)
+        // until it is promoted in a later phase.
+        name: 'Citation gate (hard fail)',
         command: 'pnpm',
-        args: ['validate:citations', '--warn'],
-        warnOnly: true,
+        args: ['validate:citations'],
       },
       {
         name: 'Pro license validation',
