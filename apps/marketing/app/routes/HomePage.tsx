@@ -22,6 +22,7 @@ import { Proof } from '../components/landing/Proof';
 import { ThesisBand } from '../components/landing/ThesisBand';
 import { WhatsShipped } from '../components/landing/WhatsShipped';
 import { selectAudience } from '../lib/audience';
+import { useAudienceHead } from '../lib/use-audience-head';
 
 /** Developer-facing landing — `/?for=technical`. */
 function TechnicalLanding() {
@@ -72,6 +73,7 @@ function NonTechnicalLanding() {
 export function HomePage() {
   const { search } = useLocation();
   const audience = selectAudience(search);
+  useAudienceHead(audience);
   return (
     <div className="min-h-screen bg-background">
       {audience === 'non-technical' ? <NonTechnicalLanding /> : <TechnicalLanding />}
