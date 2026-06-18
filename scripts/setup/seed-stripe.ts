@@ -16,6 +16,7 @@
  *   pnpm stripe:seed -- --skip-webhook       # skip webhook endpoint setup
  *   pnpm stripe:seed -- --skip-portal        # skip billing portal setup
  *   pnpm stripe:seed -- --skip-catalog-sync  # skip local billing_catalog sync
+ *   pnpm stripe:seed -- --check            # read-only drift gate (exit 1 on drift)
  *   pnpm stripe:seed -- --webhook-url URL    # override webhook URL
  *   pnpm stripe:seed -- --sync-revvault      # write IDs to revvault (source of truth), then `revvault sync vercel`
  *   pnpm stripe:seed -- --sync-vercel        # DEPRECATED: writes Vercel directly; prefer --sync-revvault
@@ -30,12 +31,16 @@ import type Stripe from 'stripe';
 // Relative TS import resolves via tsx at script runtime; avoids adding
 // @revealui/contracts as a root-level dep. Script only; not bundled.
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
-import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
 import {
-  type PriceDefinition,
-  priceMatchesDefinition,
-  priceSharesHandle,
-} from './stripe-price-match.js';
+  CATALOG,
+  findCatalogDrift,
+  findOrphanProducts,
+  type ManagedProductView,
+  PRICE_ENV_KEYS,
+  PRICE_SERVER_ENV_KEYS,
+} from './stripe-catalog.js';
+import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
+import { priceMatchesDefinition, priceSharesHandle } from './stripe-price-match.js';
 import { syncToRevvault } from './stripe-revvault-sync.js';
 
 // Load env from root .env
@@ -52,19 +57,6 @@ const StripeConstructor = (stripeModule.default ?? stripeModule) as typeof Strip
 
 // ─── Product Catalog ────────────────────────────────────────────────────────
 
-interface ProductDefinition {
-  key: string;
-  name: string;
-  description: string;
-  tier: 'pro' | 'max' | 'enterprise';
-  billingModel: 'subscription' | 'perpetual' | 'credits' | 'renewal';
-  creditBundleName?: string;
-  priceNote?: string;
-  renewal?: string;
-  defaultPriceKey: string;
-  prices: PriceDefinition[];
-}
-
 interface LocalStripeCatalogCache {
   generatedAt: string;
   envVars: Record<string, string>;
@@ -77,249 +69,6 @@ interface LocalStripeCatalogCache {
   }>;
 }
 
-const CATALOG: ProductDefinition[] = [
-  {
-    key: 'revealui_pro',
-    name: 'RevealUI Pro',
-    description:
-      'AI agents, MCP servers, editor integrations, and advanced sync. For professional developers and small teams.',
-    tier: 'pro',
-    billingModel: 'subscription',
-    defaultPriceKey: 'revealui_pro_monthly',
-    prices: [
-      {
-        key: 'revealui_pro_monthly',
-        unitAmount: 4900,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'month',
-        trialDays: 7,
-      },
-      {
-        key: 'revealui_pro_yearly',
-        unitAmount: 47000,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'year',
-        trialDays: 7,
-      },
-    ],
-  },
-  {
-    key: 'revealui_max',
-    name: 'RevealUI Max',
-    description:
-      'AI memory, advanced inference configuration, audit log, and higher limits (15 projects, 100 users).',
-    tier: 'max',
-    billingModel: 'subscription',
-    defaultPriceKey: 'revealui_max_monthly',
-    prices: [
-      {
-        key: 'revealui_max_monthly',
-        unitAmount: 29900,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'month',
-        trialDays: 7,
-      },
-      {
-        key: 'revealui_max_yearly',
-        unitAmount: 287000,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'year',
-        trialDays: 7,
-      },
-    ],
-  },
-  {
-    key: 'revealui_enterprise',
-    name: 'RevealUI Enterprise',
-    description:
-      'SSO, audit logging, white-label, self-hosted deployment, and priority support. For agencies and enterprise teams.',
-    tier: 'enterprise',
-    billingModel: 'subscription',
-    defaultPriceKey: 'revealui_enterprise_monthly',
-    prices: [
-      {
-        key: 'revealui_enterprise_monthly',
-        unitAmount: 149900,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'month',
-      },
-      {
-        key: 'revealui_enterprise_yearly',
-        unitAmount: 1439000,
-        currency: 'usd',
-        mode: 'subscription',
-        interval: 'year',
-      },
-    ],
-  },
-  {
-    key: 'revealui_pro_perpetual',
-    name: 'Pro Perpetual',
-    description: 'Pro features, forever. No subscription required.',
-    tier: 'pro',
-    billingModel: 'perpetual',
-    priceNote: 'one-time',
-    renewal: '$149/yr for continued support',
-    defaultPriceKey: 'revealui_pro_perpetual',
-    prices: [
-      {
-        key: 'revealui_pro_perpetual',
-        unitAmount: 149900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_max_perpetual',
-    name: 'Agency Perpetual',
-    description: 'Deploy for multiple clients without per-site subscriptions.',
-    tier: 'max',
-    billingModel: 'perpetual',
-    priceNote: 'one-time',
-    renewal: '$799/yr for continued support',
-    defaultPriceKey: 'revealui_max_perpetual',
-    prices: [
-      {
-        key: 'revealui_max_perpetual',
-        unitAmount: 849900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_enterprise_perpetual',
-    name: 'Enterprise Perpetual',
-    description: 'Full self-hosted Enterprise with unlimited deployments.',
-    tier: 'enterprise',
-    billingModel: 'perpetual',
-    priceNote: 'one-time',
-    renewal: '$3,999/yr for continued support',
-    defaultPriceKey: 'revealui_enterprise_perpetual',
-    prices: [
-      {
-        key: 'revealui_enterprise_perpetual',
-        unitAmount: 4299900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  // ── Support Renewal (Track C  -  annual renewal for perpetual licenses) ─────
-  {
-    key: 'revealui_renewal_pro',
-    name: 'Pro Support Renewal',
-    description: 'Renew your Pro perpetual license support contract for 1 year.',
-    tier: 'pro',
-    billingModel: 'renewal',
-    priceNote: 'annual',
-    defaultPriceKey: 'revealui_renewal_pro',
-    prices: [
-      {
-        key: 'revealui_renewal_pro',
-        unitAmount: 14900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_renewal_max',
-    name: 'Max Support Renewal',
-    description: 'Renew your Max/Agency perpetual license support contract for 1 year.',
-    tier: 'max',
-    billingModel: 'renewal',
-    priceNote: 'annual',
-    defaultPriceKey: 'revealui_renewal_max',
-    prices: [
-      {
-        key: 'revealui_renewal_max',
-        unitAmount: 79900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_renewal_enterprise',
-    name: 'Enterprise Support Renewal',
-    description: 'Renew your Enterprise perpetual license support contract for 1 year.',
-    tier: 'enterprise',
-    billingModel: 'renewal',
-    priceNote: 'annual',
-    defaultPriceKey: 'revealui_renewal_enterprise',
-    prices: [
-      {
-        key: 'revealui_renewal_enterprise',
-        unitAmount: 399900,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  // ── Credit Bundles (Track B) ──────────────────────────────────────────────
-  {
-    key: 'revealui_credits_starter',
-    name: 'Credits: Starter',
-    description: '10,000 AI agent tasks. Top up any plan. Never expires.',
-    tier: 'pro',
-    billingModel: 'credits',
-    creditBundleName: 'starter',
-    priceNote: 'one-time',
-    defaultPriceKey: 'revealui_credits_starter',
-    prices: [
-      {
-        key: 'revealui_credits_starter',
-        unitAmount: 1000,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_credits_standard',
-    name: 'Credits: Standard',
-    description: '60,000 AI agent tasks. 17% cheaper per task vs Starter.',
-    tier: 'pro',
-    billingModel: 'credits',
-    creditBundleName: 'standard',
-    priceNote: 'one-time',
-    defaultPriceKey: 'revealui_credits_standard',
-    prices: [
-      {
-        key: 'revealui_credits_standard',
-        unitAmount: 5000,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-  {
-    key: 'revealui_credits_scale',
-    name: 'Credits: Scale',
-    description: '350,000 AI agent tasks. 29% cheaper per task vs Starter.',
-    tier: 'pro',
-    billingModel: 'credits',
-    creditBundleName: 'scale',
-    priceNote: 'one-time',
-    defaultPriceKey: 'revealui_credits_scale',
-    prices: [
-      {
-        key: 'revealui_credits_scale',
-        unitAmount: 25000,
-        currency: 'usd',
-        mode: 'payment',
-      },
-    ],
-  },
-];
-
 // Canonical webhook events now sourced from `@revealui/contracts` so this
 // script and `apps/server/src/routes/webhooks.ts` cannot drift.
 // `satisfies` preserves type-checking: if any event name in the shared
@@ -331,30 +80,6 @@ const WEBHOOK_EVENTS = [
 ] satisfies Stripe.WebhookEndpointCreateParams.EnabledEvent[];
 
 // Env vars to track: public-facing price IDs + server-side aliases
-const PRICE_ENV_KEYS: Record<string, string> = {
-  revealui_pro_monthly: 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
-  revealui_max_monthly: 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
-  revealui_max_yearly: 'NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID',
-  revealui_enterprise_monthly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
-  revealui_pro_perpetual: 'NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID',
-  revealui_max_perpetual: 'NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID',
-  revealui_enterprise_perpetual: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
-};
-const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
-  revealui_pro_monthly: 'STRIPE_PRO_PRICE_ID',
-  revealui_max_monthly: 'STRIPE_MAX_PRICE_ID',
-  revealui_max_yearly: 'STRIPE_MAX_ANNUAL_PRICE_ID',
-  revealui_enterprise_monthly: 'STRIPE_ENTERPRISE_PRICE_ID',
-  revealui_pro_perpetual: 'STRIPE_PERPETUAL_PRO_PRICE_ID',
-  revealui_max_perpetual: 'STRIPE_PERPETUAL_MAX_PRICE_ID',
-  revealui_enterprise_perpetual: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
-  revealui_renewal_pro: 'STRIPE_RENEWAL_PRO_PRICE_ID',
-  revealui_renewal_max: 'STRIPE_RENEWAL_MAX_PRICE_ID',
-  revealui_renewal_enterprise: 'STRIPE_RENEWAL_ENTERPRISE_PRICE_ID',
-  revealui_credits_starter: 'STRIPE_CREDITS_STARTER_PRICE_ID',
-  revealui_credits_standard: 'STRIPE_CREDITS_STANDARD_PRICE_ID',
-  revealui_credits_scale: 'STRIPE_CREDITS_SCALE_PRICE_ID',
-};
 
 // ─── Stripe Billing Meter (Track B agent task overage) ──────────────────────
 // The runtime emits meter events at apps/server/src/routes/billing.ts:1894
@@ -923,12 +648,107 @@ async function writeLocalStripeEnvCache(
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
+// --- Catalog reconciliation + drift check (pure predicates live in stripe-catalog.ts) ---
+
+/** Project all ACTIVE Stripe products to the minimal view the predicates read. */
+async function fetchManagedProducts(stripe: Stripe): Promise<ManagedProductView[]> {
+  const products = await stripe.products
+    .list({ active: true, expand: ['data.default_price'], limit: 100 })
+    .autoPagingToArray({ limit: 10_000 });
+  return products.map((p) => {
+    const dp = p.default_price;
+    const defaultPriceAmount =
+      dp && typeof dp !== 'string' && typeof dp.unit_amount === 'number' ? dp.unit_amount : null;
+    return {
+      id: p.id,
+      active: p.active,
+      productKey: p.metadata?.revealui_product_key ?? null,
+      track: p.metadata?.revealui_track ?? null,
+      tier: p.metadata?.revealui_tier ?? null,
+      defaultPriceAmount,
+    };
+  });
+}
+
+/** True if any of a product's recurring prices has a live (non-canceled) subscription. */
+async function productHasActiveSubscription(stripe: Stripe, productId: string): Promise<boolean> {
+  const prices = await stripe.prices
+    .list({ product: productId, active: true, limit: 100 })
+    .autoPagingToArray({ limit: 1000 });
+  for (const price of prices) {
+    if (!price.recurring) continue;
+    const subs = await stripe.subscriptions.list({ price: price.id, status: 'all', limit: 100 });
+    if (
+      subs.data.some(
+        (sub) => sub.status === 'active' || sub.status === 'trialing' || sub.status === 'past_due',
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Convergent IaC: archive every ACTIVE managed product NOT in the declared
+ * CATALOG (orphans from renames/re-spaces). Guarded -- never archives a product
+ * that still has a live subscription. Dry-run previews only. Returns the count
+ * archived (or that would be archived under --dry-run).
+ */
+async function reconcileOrphanProducts(stripe: Stripe, dryRun: boolean): Promise<number> {
+  const managed = await fetchManagedProducts(stripe);
+  const orphans = findOrphanProducts(managed);
+  if (orphans.length === 0) {
+    log.success('  No orphan products -- live catalog matches the declaration');
+    return 0;
+  }
+  let count = 0;
+  for (const orphan of orphans) {
+    const label = `${orphan.id} (key=${orphan.productKey ?? 'none'}, tier=${orphan.tier ?? '-'}, amount=${orphan.defaultPriceAmount ?? '-'})`;
+    if (await productHasActiveSubscription(stripe, orphan.id)) {
+      log.warn(
+        `  SKIP orphan ${label} -- has live subscriptions; migrate them, then archive manually`,
+      );
+      continue;
+    }
+    if (dryRun) {
+      log.info(`  Would archive orphan product: ${label}`);
+    } else {
+      await stripe.products.update(orphan.id, { active: false });
+      log.warn(`  Archived orphan product: ${label}`);
+    }
+    count++;
+  }
+  return count;
+}
+
+/**
+ * Read-only drift gate (--check): reports orphans, duplicates, missing, and
+ * amount-mismatch issues between the live catalog and the declaration. Returns
+ * the issue count (0 == in sync).
+ */
+async function runCatalogCheck(stripe: Stripe): Promise<number> {
+  const managed = await fetchManagedProducts(stripe);
+  const issues = findCatalogDrift(managed);
+  if (issues.length === 0) {
+    log.success('  Catalog in sync -- no orphans, duplicates, missing, or amount drift');
+    return 0;
+  }
+  log.error(`  ${issues.length} catalog drift issue(s):`);
+  for (const issue of issues) {
+    const where = issue.productId ? ` (${issue.productId})` : '';
+    log.error(`    [${issue.kind}] ${issue.productKey ?? '?'}${where}: ${issue.detail}`);
+  }
+  return issues.length;
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
   const skipWebhook = args.includes('--skip-webhook');
   const skipPortal = args.includes('--skip-portal');
   const skipCatalogSync = args.includes('--skip-catalog-sync');
+  const checkMode = args.includes('--check');
   const syncVercel = args.includes('--sync-vercel');
   const syncRevvault = args.includes('--sync-revvault');
   const webhookUrlFlag = (() => {
@@ -969,6 +789,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Catalog drift check (read-only) -- CI/cron gate; exits non-zero on drift
+  if (checkMode) {
+    log.header('Catalog Drift Check');
+    const driftCount = await runCatalogCheck(stripe);
+    process.exit(driftCount > 0 ? 1 : 0);
+  }
+
   // ── Stripe Billing Meter (Track B agent task overage)
   log.header('Stripe Billing Meter');
   await ensureBillingMeter(stripe, dryRun);
@@ -977,6 +804,13 @@ async function main(): Promise<void> {
   log.header('Products & Prices');
   const { envVars, subscriptionProducts, catalogEntries } = await syncCatalog(stripe, dryRun);
   envVars.STRIPE_AGENT_METER_EVENT_NAME = AGENT_METER_EVENT_NAME;
+
+  // Reconcile orphan products (convergent IaC: archive undeclared managed products)
+  log.header('Catalog Reconciliation');
+  const orphansArchived = await reconcileOrphanProducts(stripe, dryRun);
+  if (orphansArchived > 0) {
+    log.warn(`Archived ${orphansArchived} orphan product(s) to converge the catalog`);
+  }
 
   await writeLocalStripeEnvCache(envVars, catalogEntries, dryRun);
 

@@ -1,0 +1,52 @@
+name: Stripe Catalog Check
+
+# Read-only live-catalog drift gate. NOT a per-PR gate (live API + secrets are a
+# PR-gate anti-pattern) -- runs on a schedule + manual dispatch. Reports orphan /
+# duplicate / missing / amount-mismatch drift between the LIVE Stripe catalog and
+# the declared scripts/setup/stripe-catalog.ts. Requires a READ-ONLY Stripe key
+# in the STRIPE_CATALOG_CHECK_KEY secret; the job no-ops (passes) when unset.
+
+on:
+  schedule:
+    - cron: "17 13 * * 1" # Mondays 13:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+  PNPM_INSTALL_FLAGS: "--frozen-lockfile"
+
+jobs:
+  catalog-check:
+    name: Stripe catalog drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_CATALOG_CHECK_KEY }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Catalog drift check (read-only)
+        run: |
+          if [ -z "$STRIPE_SECRET_KEY" ]; then
+            echo "STRIPE_CATALOG_CHECK_KEY not set; skipping live catalog check."
+            exit 0
+          fi
+          pnpm stripe:catalog:check
