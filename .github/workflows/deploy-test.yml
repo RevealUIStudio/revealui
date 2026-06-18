@@ -94,7 +94,9 @@ jobs:
   deploy:
     name: Preview ${{ matrix.app }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Mirrors deploy.yml: api's Vercel server build runs ~19 min, which starved
+    # the deploy step and hit the 20-min wall. 40 = build + deploy + headroom.
+    timeout-minutes: 40
     needs: detect
     if: needs.detect.outputs.has-apps == 'true'
 
