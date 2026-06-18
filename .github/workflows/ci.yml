@@ -117,6 +117,14 @@ jobs:
         # apps/docs/scripts/check-links.ts.
         run: pnpm --filter docs check:links
 
+      - name: Citation gate (hard fail, validity + coverage-strict)
+        # Every code-behaviour claim in gated docs must cite a source:line that
+        # resolves and sits in range (VALIDITY, zero baseline), and must not add
+        # a NEW uncited claim beyond the grandfathered baseline (COVERAGE, via
+        # --coverage-strict, Phase 3). Mirrors the local pnpm gate citation step
+        # in scripts/gates/ci-gate.ts. See CONTRIBUTING.md "Source citations".
+        run: pnpm validate:citations --coverage-strict
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
