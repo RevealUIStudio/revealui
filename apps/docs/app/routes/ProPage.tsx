@@ -2,6 +2,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import { sanitizePath } from '../utils/paths';
@@ -10,8 +11,14 @@ function ProContent() {
   const routePath = useWildcardPath();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useNoindex(notFound);
 
   useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
     async function loadDoc() {
       setLoading(true);
 
@@ -31,35 +38,51 @@ function ProContent() {
       }
 
       try {
-        const loaded = await loadMarkdownFile(filePath, true);
-        setContent(loaded);
+        const loaded = await loadMarkdownFile(filePath, true, ctrl.signal);
+        if (!cancelled) {
+          setContent(loaded);
+          setNotFound(false);
+        }
       } catch {
+        // Abort means the component unmounted or path changed — do not retry.
+        if (ctrl.signal.aborted) return;
+
         // Fallback: try as .md if index.md failed
         const directPath = filePath.endsWith('/index.md')
           ? filePath.replace('/index.md', '.md')
           : filePath;
 
         try {
-          const loaded = await loadMarkdownFile(directPath, true);
-          setContent(loaded);
+          const loaded = await loadMarkdownFile(directPath, true, ctrl.signal);
+          if (!cancelled) {
+            setContent(loaded);
+            setNotFound(false);
+          }
         } catch (err) {
-          logger.error(
-            `[ProPage] Failed to load: ${filePath}`,
-            err instanceof Error ? err : new Error(String(err)),
-          );
-          setContent(`# Not found
+          if (!cancelled) {
+            logger.error(
+              `[ProPage] Failed to load: ${filePath}`,
+              err instanceof Error ? err : new Error(String(err)),
+            );
+            setContent(`# Not found
 
 Document not found at \`${filePath}\`.
 
 [Back to Pro docs](/pro)
 `);
+            setNotFound(true);
+          }
         }
       }
 
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     }
 
     void loadDoc();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
   }, [routePath]);
 
   if (loading) {

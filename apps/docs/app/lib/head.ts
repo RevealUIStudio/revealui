@@ -44,6 +44,15 @@ function setMeta(attr: 'name' | 'property', key: string, value: string): void {
   el.setAttribute('content', value);
 }
 
+/** Set or remove `<meta name="robots" content="noindex, nofollow">`. */
+export function setRobotsNoindex(on: boolean): void {
+  if (on) {
+    setMeta('name', 'robots', 'noindex, nofollow');
+    return;
+  }
+  document.head.querySelector('meta[name="robots"]')?.remove();
+}
+
 /** Apply per-page head state; omitted fields restore the site defaults. */
 export function applyDocHead(head: DocHead = {}): void {
   const pageTitle = head.title?.trim() ?? '';
