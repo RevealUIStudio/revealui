@@ -287,11 +287,12 @@ async function gate(): Promise<void> {
       {
         // Source-citation gate (CONTRIBUTING.md — Source citations). VALIDITY
         // (every path:line citation must resolve and sit in-range) HARD-FAILS;
-        // COVERAGE stays warn-only + baseline-grandfathered (no --coverage-strict)
-        // until it is promoted in a later phase.
+        // COVERAGE is now hard-fail too via --coverage-strict (Phase 3): NEW
+        // uncited code-behaviour claims beyond the grandfathered baseline fail.
+        // Mirrored in CI by the Quality job step in .github/workflows/ci.yml.
         name: 'Citation gate (hard fail)',
         command: 'pnpm',
-        args: ['validate:citations'],
+        args: ['validate:citations', '--coverage-strict'],
       },
       {
         name: 'Pro license validation',
