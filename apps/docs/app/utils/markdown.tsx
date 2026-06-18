@@ -571,7 +571,11 @@ const CACHE_TTL = 5 * 60 * 1000;
  * Load markdown file from public directory with caching
  * Files are copied there by the Vite plugin during dev/build
  */
-export async function loadMarkdownFile(filePath: string, useCache = true): Promise<string> {
+export async function loadMarkdownFile(
+  filePath: string,
+  useCache = true,
+  signal?: AbortSignal,
+): Promise<string> {
   // Ensure path starts with /
   const normalizedPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
 
@@ -589,7 +593,8 @@ export async function loadMarkdownFile(filePath: string, useCache = true): Promi
   }
 
   try {
-    const response = await fetch(normalizedPath);
+    const response =
+      signal !== undefined ? await fetch(normalizedPath, { signal }) : await fetch(normalizedPath);
     if (!response.ok) {
       throw new Error(`Failed to load markdown file: ${normalizedPath} (${response.status})`);
     }

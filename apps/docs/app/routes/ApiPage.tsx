@@ -2,6 +2,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import { resolveDocPath } from '../utils/paths';
@@ -11,8 +12,14 @@ function ApiPackageContent() {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useNoindex(notFound);
 
   useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
     async function loadApiDoc() {
       try {
         setLoading(true);
@@ -25,17 +32,21 @@ function ApiPackageContent() {
         });
 
         try {
-          const loaded = await loadMarkdownFile(resolved.markdownPath, true); // Use cache
-          setContent(loaded);
+          const loaded = await loadMarkdownFile(resolved.markdownPath, true, ctrl.signal);
+          if (!cancelled) {
+            setContent(loaded);
+            setNotFound(false);
+          }
         } catch (loadError) {
-          // Log error for debugging
-          logger.error(
-            `[ApiPage] Failed to load API docs: ${resolved.markdownPath}`,
-            loadError instanceof Error ? loadError : new Error(String(loadError)),
-          );
+          if (!cancelled) {
+            // Log error for debugging
+            logger.error(
+              `[ApiPage] Failed to load API docs: ${resolved.markdownPath}`,
+              loadError instanceof Error ? loadError : new Error(String(loadError)),
+            );
 
-          // Fallback to helpful message
-          setContent(`# API Documentation: ${resolved.displayPath || 'Index'}
+            // Fallback to helpful message
+            setContent(`# API Documentation: ${resolved.displayPath || 'Index'}
 
 API documentation not found at \`${resolved.markdownPath}\`.
 
@@ -47,21 +58,29 @@ pnpm docs:generate:api
 
 This will create markdown files in \`docs/api/\` that are automatically copied to the public directory and loaded here.
 `);
+            setNotFound(true);
+          }
         }
 
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load API docs';
-        setError(errorMessage);
-        logger.error(
-          '[ApiPage] Error loading API docs',
-          err instanceof Error ? err : new Error(String(err)),
-        );
-        setLoading(false);
+        if (!cancelled) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to load API docs';
+          setError(errorMessage);
+          logger.error(
+            '[ApiPage] Error loading API docs',
+            err instanceof Error ? err : new Error(String(err)),
+          );
+          setLoading(false);
+        }
       }
     }
 
     void loadApiDoc();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
   }, [path]);
 
   if (loading) {
