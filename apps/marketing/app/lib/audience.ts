@@ -4,18 +4,18 @@
  * shareable, and SEO-clean. Mirrors selectHomeHero() in hero-variant.ts — the
  * same URL-param seam, generalized from "hero A/B" to "audience corpus".
  *
- * DEFAULT_AUDIENCE is the single place the default lives. It is 'technical'
- * during PR 1 (hero toggle only): the page body is still technical-only, so a
- * non-technical default would render a non-technical hero on a technical body.
- * It flips to 'non-technical' in PR 2, when the non-technical body lands — the
- * canonical-URL logic in audienceHref() inverts automatically off this constant.
+ * DEFAULT_AUDIENCE is the single place the default lives. It is 'non-technical':
+ * the broadest top-of-funnel audience, plain language, no terminal command in
+ * the first viewport. The bare canonical URL (`/`) serves non-technical;
+ * `/?for=technical` serves the developer corpus. audienceHref()'s canonical-URL
+ * logic inverts automatically off this constant.
  */
 
 export type Audience = 'technical' | 'non-technical';
 
 export const AUDIENCE_PARAM = 'for';
 
-export const DEFAULT_AUDIENCE: Audience = 'technical';
+export const DEFAULT_AUDIENCE: Audience = 'non-technical';
 
 export function selectAudience(search: string): Audience {
   const value = new URLSearchParams(search).get(AUDIENCE_PARAM);
