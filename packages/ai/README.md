@@ -178,7 +178,7 @@ long-running operations stop instead of just being ignored.
 
 Some MCP servers need LLM capabilities without bundling a provider. The
 spec lets servers issue `sampling/createMessage` requests — the *client*
-runs the inference, keeps cost + context control, and returns the result (`packages/ai/src/tools/mcp-sampling.ts:175`).
+runs the inference, keeps cost + context control, and returns the result (`packages/ai/src/tools/mcp-sampling.ts:207`).
 On the Ubuntu reference stack, that means servers get LLM access via the
 developer's local Canonical Inference Snap — no cloud round-trip required.
 

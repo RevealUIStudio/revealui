@@ -74,7 +74,7 @@ const mcpConfig = getMcpConfig()
 
 ## Environment Variables
 
-The config package validates these environment variables (schema: `packages/config/src/schema.ts:26`):
+The config package validates these environment variables (schema: `packages/config/src/schema.ts:187`):
 
 ### Required Variables
 

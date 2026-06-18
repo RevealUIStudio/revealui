@@ -178,7 +178,7 @@ That last exception is temporary, not a preferred pattern. It exists because the
 ### Type Safety Flow
 
 1. **Frontend** → Uses generated types for compile-time safety
-2. **API Routes** → Validates with contracts (runtime + compile-time) (`packages/openapi/src/zod-validator.ts:29`)
+2. **API Routes** → Validates with contracts (runtime + compile-time) (`packages/openapi/src/zod-validator.ts:63`)
 3. **Type Adapters** → Convert DB types ↔ RevealUI types
 4. **Database** → Drizzle ORM provides type-safe queries
 
@@ -668,7 +668,7 @@ hooks: {
 ### Tenant Isolation Guarantees
 
 1. **Database Level**: Queries filtered by tenant relationship
-2. **API Level**: Access control validates tenant membership (`apps/admin/src/lib/access/tenants/checkTenantAccess.ts:15`)
+2. **API Level**: Access control validates tenant membership (`apps/admin/src/lib/access/tenants/checkTenantAccess.ts:29`)
 3. **UI Level**: Admin panel shows only current tenant's data
 
 ### Testing Tenant Isolation
@@ -1252,7 +1252,7 @@ Customer-facing meters should map to business activity rather than upstream infr
 ### Tenant Security
 
 **Database Level:** Queries filtered by tenant relationship
-**API Level:** Access control validates tenant membership (`apps/admin/src/lib/access/tenants/checkTenantAccess.ts:15`)
+**API Level:** Access control validates tenant membership (`apps/admin/src/lib/access/tenants/checkTenantAccess.ts:29`)
 **UI Level:** Admin panel shows only current tenant's data
 
 ---

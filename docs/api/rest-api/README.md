@@ -2736,7 +2736,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:95`)
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:93`)
 
 **Request body** (JSON)
 
@@ -2776,7 +2776,7 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:95`)
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:93`)
 
 **Request body** (JSON)
 

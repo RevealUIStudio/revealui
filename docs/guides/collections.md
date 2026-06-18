@@ -118,7 +118,7 @@ export default Posts;
 
 ## Field Types
 
-RevealUI supports these field types, with schemas defined in `@revealui/contracts` (`packages/contracts/src/admin/structure.ts:34`):
+RevealUI supports these field types, with schemas defined in `@revealui/contracts` (`packages/contracts/src/admin/structure.ts:373`):
 
 | Type | Description | Example |
 |------|-------------|---------|
@@ -401,7 +401,7 @@ Higher depth values increase query complexity. Use the minimum depth your use ca
 
 ## Registering Collections
 
-Collections are registered in the RevealUI configuration (`packages/core/src/config/index.ts:11`):
+Collections are registered in the RevealUI configuration (`packages/core/src/config/index.ts:45`):
 
 ```ts
 import { buildConfig } from '@revealui/core';
