@@ -19,6 +19,7 @@ import { PricingTeaser } from '../components/landing/PricingTeaser';
 import { Primitives } from '../components/landing/Primitives';
 import { Problem } from '../components/landing/Problem';
 import { Proof } from '../components/landing/Proof';
+import { ThesisBand } from '../components/landing/ThesisBand';
 import { WhatsShipped } from '../components/landing/WhatsShipped';
 import { selectAudience } from '../lib/audience';
 
@@ -33,6 +34,7 @@ function TechnicalLanding() {
       <Demo />
       <Objections />
       <Primitives />
+      <ThesisBand />
       <WhatsShipped />
       <Persona />
       <Proof />

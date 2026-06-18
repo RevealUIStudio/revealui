@@ -33,30 +33,40 @@ export function Primitives() {
           </p>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
-          {HOME_PRIMITIVES.map((p) => (
-            <div
-              key={p.label}
-              className="flex flex-col items-start rounded-2xl bg-card p-6 ring-1 ring-border transition hover:ring-border/80"
-            >
+        {/* Alternating feature rows (a zigzag), not a card grid — gives the page
+            rhythm. Each primitive is a generous row with a large accent icon that
+            alternates sides; the copy hugs toward it. */}
+        <div className="mx-auto mt-16 max-w-4xl space-y-10 sm:space-y-14">
+          {HOME_PRIMITIVES.map((p, index) => {
+            const flipped = index % 2 === 1;
+            return (
               <div
-                className={`mb-5 flex h-10 w-10 items-center justify-center rounded-xl ring-1 ${accentBg[p.color]}`}
+                key={p.label}
+                className={`flex flex-col gap-5 sm:items-center sm:gap-10 ${
+                  flipped ? 'sm:flex-row-reverse' : 'sm:flex-row'
+                }`}
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.75}
-                  stroke="currentColor"
+                <div
+                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl ring-1 ${accentBg[p.color]}`}
                 >
-                  <title>{p.label}</title>
-                  <path strokeLinecap="round" strokeLinejoin="round" d={p.iconPath} />
-                </svg>
+                  <svg
+                    className="h-10 w-10"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                  >
+                    <title>{p.label}</title>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={p.iconPath} />
+                  </svg>
+                </div>
+                <div className={`flex-1 ${flipped ? 'sm:text-right' : ''}`}>
+                  <h3 className="text-xl font-semibold text-foreground">{p.label}</h3>
+                  <p className="mt-2 text-base leading-7 text-muted-foreground">{p.body}</p>
+                </div>
               </div>
-              <h3 className="text-base font-semibold text-foreground">{p.label}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{p.body}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mt-12 text-center">

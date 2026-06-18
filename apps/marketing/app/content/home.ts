@@ -90,6 +90,13 @@ export const HOME_HERO_FOUNDATION = {
   h1: 'The foundation your business runs on.',
 } as const;
 
+// Full-width thesis band — a no-card rhythm break between the Primitives and
+// What's-shipped grids. One bold line + a short contrast sub.
+export const HOME_THESIS_BAND = {
+  line: 'You bring the business. The runtime handles the rest.',
+  sub: 'Not a starter kit, and not glue between five SaaS tools. One system, already wired together.',
+} as const;
+
 // ---------------------------------------------------------------------------
 // Problem (comparison table)
 // ---------------------------------------------------------------------------
