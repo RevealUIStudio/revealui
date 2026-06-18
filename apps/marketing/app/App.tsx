@@ -49,11 +49,6 @@ export function App() {
         meta: { title: 'Fair Source | RevealUI' },
       },
       {
-        path: '/for-operators',
-        component: ForOperatorsPage,
-        meta: { title: 'For Operators | RevealUI Studio' },
-      },
-      {
         path: '/for-operators/how-it-works',
         component: ForOperatorsHowItWorksPage,
         meta: { title: 'How it works | RevealUI Studio' },
