@@ -8,10 +8,13 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { initAnalytics } from './lib/analytics';
 import { initSentry } from './lib/sentry';
 
 // Initialise Sentry before mounting. No-op if VITE_SENTRY_DSN is absent.
 initSentry();
+// Initialise analytics sink. No-op if VITE_ANALYTICS_DOMAIN is absent or DNT is enabled.
+initAnalytics();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
