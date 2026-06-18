@@ -16,12 +16,15 @@ describe('selectHomeHero', () => {
     expect(selectHomeHero('?other=1')).toBe(HOME_HERO);
   });
 
-  it('isolates the noun: only h1 + subtitle.strong differ from HOME_HERO', () => {
+  it('isolates the noun in the H1 only (corpus §4.1 lock: Sub unchanged)', () => {
     expect(HOME_HERO_FOUNDATION.h1).not.toBe(HOME_HERO.h1);
-    expect(HOME_HERO_FOUNDATION.subtitle.strong).not.toBe(HOME_HERO.subtitle.strong);
+    expect(HOME_HERO_FOUNDATION.subtitle).toEqual(HOME_HERO.subtitle);
     expect(HOME_HERO_FOUNDATION.eyebrow).toBe(HOME_HERO.eyebrow);
-    expect(HOME_HERO_FOUNDATION.subtitle.body).toBe(HOME_HERO.subtitle.body);
     expect(HOME_HERO_FOUNDATION.cta).toEqual(HOME_HERO.cta);
     expect(HOME_HERO_FOUNDATION.shipsToday).toEqual(HOME_HERO.shipsToday);
+  });
+
+  it('matches the corpus §4.1 H1 lock verbatim', () => {
+    expect(HOME_HERO_FOUNDATION.h1).toBe('The foundation your business runs on.');
   });
 });

@@ -186,7 +186,14 @@ jobs:
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 25m (not 15m): when the pnpm-store cache restore transiently misses
+    # (observed 2026-06-17 — Quality hit the cache warm in the same run while
+    # this job reported `reused 0`), the job falls back to a cold install of
+    # ~1.3k packages. On a degraded npm registry (large binaries sharp /
+    # rolldown / vercel-sdk seen at 18-30 KiB/s) that cold install alone can
+    # exceed 15m and cancel the job before typecheck runs. The headroom absorbs
+    # that fallback window; siblings already run 20-30m.
+    timeout-minutes: 25
     needs: quality
 
     steps:

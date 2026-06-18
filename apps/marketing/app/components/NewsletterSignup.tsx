@@ -84,6 +84,7 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
         <Button
           type="submit"
           variant="primary"
+          size="sm"
           isLoading={status === 'loading'}
           disabled={status === 'loading'}
           className="shrink-0"

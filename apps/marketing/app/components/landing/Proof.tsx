@@ -1,6 +1,7 @@
 import { ButtonCVA } from '@revealui/presentation';
 import {
   PROOF_CI_SIGNALS,
+  PROOF_PORTABILITY,
   PROOF_REPO_SIGNALS,
   PROOF_SECTION,
   PROOF_STACK,
@@ -114,6 +115,25 @@ export function Proof() {
                 </li>
               ))}
             </ul>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 border-t border-border pt-6 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                  {PROOF_PORTABILITY.deployLabel}
+                </p>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {PROOF_PORTABILITY.deployTargets.join(' · ')}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                  {PROOF_PORTABILITY.dataLabel}
+                </p>
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                  {PROOF_PORTABILITY.dataNote}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -129,98 +149,23 @@ export function Proof() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="rounded-2xl bg-primary/10 p-6 ring-1 ring-primary/20">
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-                {PROOF_TRUST.cards[0].eyebrow}
-              </p>
-              <h4 className="mt-3 text-base font-semibold text-foreground">
-                {PROOF_TRUST.cards[0].heading}
-              </h4>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {PROOF_TRUST.cards[0].body.prefix}{' '}
-                <a
-                  href={PROOF_TRUST.cards[0].body.licenseHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
-                >
-                  {PROOF_TRUST.cards[0].body.licenseLabel}
-                </a>{' '}
-                {PROOF_TRUST.cards[0].body.middle}{' '}
-                <a
-                  href={PROOF_TRUST.cards[0].body.explainerHref}
-                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
-                >
-                  {PROOF_TRUST.cards[0].body.explainerLabel}
-                </a>
-                {PROOF_TRUST.cards[0].body.suffix}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-                {PROOF_TRUST.cards[1].eyebrow}
-              </p>
-              <h4 className="mt-3 text-base font-semibold text-foreground">
-                {PROOF_TRUST.cards[1].heading}
-              </h4>
-              <pre
-                // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable code region — axe-core scrollable-region-focusable requires tabIndex=0 so keyboard users can scroll horizontally
-                tabIndex={0}
-                className="mt-3 overflow-x-auto rounded-lg bg-secondary px-3 py-2 font-mono text-[11px] leading-5 text-muted-foreground ring-1 ring-border"
+            {PROOF_TRUST.cards.map((card) => (
+              <div
+                key={card.title}
+                className="flex flex-col rounded-2xl bg-card p-6 ring-1 ring-border"
               >
-                {PROOF_TRUST.cards[1].codeSnippet}
-              </pre>
-              <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                <h4 className="text-base font-semibold text-foreground">{card.title}</h4>
+                <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{card.body}</p>
                 <a
-                  href={PROOF_TRUST.cards[1].fileHref}
+                  href={card.linkHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
+                  className="mt-4 inline-block self-start text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
                 >
-                  {PROOF_TRUST.cards[1].fileLabel}
-                </a>{' '}
-                {PROOF_TRUST.cards[1].caption}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-primary/10 p-6 ring-1 ring-primary/20">
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-                {PROOF_TRUST.cards[2].eyebrow}
-              </p>
-              <h4 className="mt-3 text-base font-semibold text-foreground">
-                {PROOF_TRUST.cards[2].heading}
-              </h4>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {PROOF_TRUST.cards[2].body.prefix}{' '}
-                <a
-                  href={PROOF_TRUST.cards[2].body.agencyHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
-                >
-                  {PROOF_TRUST.cards[2].body.agencyLabel}
-                </a>{' '}
-                {PROOF_TRUST.cards[2].body.middle}{' '}
-                <code className="rounded bg-card px-1 py-0.5 font-mono text-xs text-foreground ring-1 ring-primary/20">
-                  {PROOF_TRUST.cards[2].body.pkg1}
-                </code>{' '}
-                {PROOF_TRUST.cards[2].body.plus}{' '}
-                <code className="rounded bg-card px-1 py-0.5 font-mono text-xs text-foreground ring-1 ring-primary/20">
-                  {PROOF_TRUST.cards[2].body.pkg2}
-                </code>
-                {PROOF_TRUST.cards[2].body.suffix}{' '}
-                <a
-                  href={PROOF_TRUST.cards[2].body.sourceHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
-                >
-                  {PROOF_TRUST.cards[2].body.sourceLabel}
+                  {card.linkLabel}
                 </a>
-                {PROOF_TRUST.cards[2].body.end}
-              </p>
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 

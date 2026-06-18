@@ -1,6 +1,6 @@
 // Sourced from: app/routes/PricingPage.tsx (Phase 1 extraction).
 // Phase 3 (2026-05-18) update: agent-section MCP count now references
-// METRICS.mcpServers (canonical 13 per docs/MARKETING_METRICS.md §1).
+// METRICS.mcpServers (canonical 14 per docs/MARKETING_METRICS.md §1).
 // Canonical pricing numbers re-exported from @revealui/contracts/pricing for component convenience.
 
 export {
@@ -53,9 +53,10 @@ export const PRICING_TRACK_A_SECTION = {
 // (Vercel / Cloudflare / Fly / Hetzner — Railway dropped).
 export const PRICING_VALUE_BAND = {
   heading: 'You own the runtime.',
-  // Body wording is the approved value-context block from the go-live copy
-  // corpus (sourced range, time-sensitive: re-verify past mid-2026).
-  body: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors. On entry tiers that runs about $320 to $380 a month and climbs past $700 once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
+  // Cost anchor reconciled to the homepage comparison table (HOME_PROBLEM,
+  // content/home.ts: ~$1,200/mo for a 5-dev mid-startup) so the two surfaces
+  // agree. Time-sensitive: re-verify past mid-2026.
+  body: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors. On a typical mid-startup invoice that runs about $1,200 a month for a five-developer team, and climbs further once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
   points: [
     'One runtime, not five separate SaaS subscriptions',
     'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
