@@ -112,7 +112,7 @@ pnpm dev
 ## When to Use This
 
 - You're starting a new RevealUI project from scratch and want a guided setup
-- You need database, storage, and payment providers configured in one step
+- You need database, storage, and payment providers configured in one step (`generateEnvFile`, `packages/cli/src/generators/env-file.ts:23`)
 - You want Dev Container or Devbox configuration generated automatically
 - **Not** for adding RevealUI to an existing project  -  install individual packages instead
 
