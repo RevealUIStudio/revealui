@@ -1,6 +1,6 @@
 {
   "note": "Grandfathered uncited code-behaviour claims in gated docs. Regenerate via `citation-check.ts --update-baseline`. CI reports only NEW (file::claim) keys; shrinking this list = backfill progress. Citation VALIDITY is never baselined.",
-  "count": 29,
+  "count": 25,
   "keys": [
     "docs/ARCHITECTURE.md::**api level:** access control validates tenant membership",
     "docs/ARCHITECTURE.md::- ⚠️ rag document chunks (`rag_chunks`) — only when the optional supabase sidecar is enabled. everything else, including `agent_memories` (via `pgvector`), live",
@@ -26,10 +26,6 @@
     "docs/guides/billing.md::4. returns the checkout url",
     "docs/guides/collections.md::collections are registered in the revealui configuration:",
     "docs/guides/collections.md::revealui supports these field types, with schemas defined in `@revealui/contracts`:",
-    "docs/guides/deployment.md::- [ ] stripe webhook endpoint is registered in the stripe dashboard",
-    "packages/ai/README.md::- `setcontext()`: validates then sets (cloning happens in workingmemory)",
-    "packages/ai/README.md::- `updatecontext()`: validates then updates (cloning happens in workingmemory)",
-    "packages/ai/README.md::runs the inference, keeps cost + context control, and returns the result.",
-    "packages/ai/README.md::the system enforces limits to prevent performance issues:"
+    "docs/guides/deployment.md::- [ ] stripe webhook endpoint is registered in the stripe dashboard"
   ]
 }

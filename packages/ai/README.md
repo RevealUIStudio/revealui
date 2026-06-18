@@ -178,7 +178,7 @@ long-running operations stop instead of just being ignored.
 
 Some MCP servers need LLM capabilities without bundling a provider. The
 spec lets servers issue `sampling/createMessage` requests — the *client*
-runs the inference, keeps cost + context control, and returns the result.
+runs the inference, keeps cost + context control, and returns the result (`packages/ai/src/tools/mcp-sampling.ts:175`).
 On the Ubuntu reference stack, that means servers get LLM access via the
 developer's local Canonical Inference Snap — no cloud round-trip required.
 
@@ -365,8 +365,8 @@ The memory system uses deep cloning to ensure immutability and prevent data corr
 3. **AgentContextManager Level**
    - `getContext()`: Returns value from cloned context (no additional cloning)
    - `getAllContext()`: Returns cloned context from WorkingMemory
-   - `setContext()`: Validates then sets (cloning happens in WorkingMemory)
-   - `updateContext()`: Validates then updates (cloning happens in WorkingMemory)
+   - `setContext()`: Validates then sets (cloning happens in WorkingMemory) (`packages/ai/src/memory/agent/context-manager.ts:84`)
+   - `updateContext()`: Validates then updates (cloning happens in WorkingMemory) (`packages/ai/src/memory/agent/context-manager.ts:131`)
 
 ### Performance Implications
 
@@ -450,7 +450,7 @@ manager.setContext('user', { name: 'John', age: 30 })
 
 ### Size Limits
 
-The system enforces limits to prevent performance issues:
+The system enforces limits (`packages/ai/src/memory/utils/validation.ts:28-39`) to prevent performance issues:
 
 - **Max Context Keys**: 10,000 keys
 - **Max Context Size**: ~10MB (approximate)
