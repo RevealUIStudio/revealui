@@ -318,7 +318,18 @@ jobs:
   deploy:
     name: Deploy ${{ matrix.app }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # api's Vercel build runs ~19 min on EVERY deploy: the turbo monorepo build
+    # is a remote-cache FULL TURBO hit (~4s), but Vercel's own @vercel/node
+    # compile of the Hono server (apps/server) takes ~19 min and is NOT turbo-
+    # cached — so this is not a cold-turbo-cache problem. At timeout-minutes: 20
+    # that build starved the `vercel deploy` step and GitHub cancelled the job
+    # mid-deploy at the 20-min wall (run 27769702651, 2026-06-18: Build 19m0s →
+    # Deploy cancelled 49s in). The deploy only "succeeded" because Vercel
+    # finishes the build server-side and aliases the domain independently of the
+    # GH job. 40 gives build (~19m) + deploy (~1-2m) + headroom so the job itself
+    # completes. (admin/marketing/docs build in 1-3.5 min; the wall is api-
+    # specific, but the limit is shared across the matrix.)
+    timeout-minutes: 40
     needs: [validate, migrate, detect]
     if: needs.detect.outputs.has-apps == 'true'
     environment:
