@@ -6,7 +6,8 @@
     "api/**": {
       "memory": 512,
       "maxDuration": 30,
-      "includeFiles": "dist/index_bg.wasm"
+      "includeFiles": "dist/index_bg.wasm",
+      "excludeFiles": "**/*.{ts,tsx,mts,cts}"
     }
   },
   "crons": [{ "path": "/api/cron/dispatch", "schedule": "0 6 * * *" }],
