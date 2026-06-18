@@ -1,31 +1,11 @@
 {
   "note": "Grandfathered uncited code-behaviour claims in gated docs. Regenerate via `citation-check.ts --update-baseline`. CI reports only NEW (file::claim) keys; shrinking this list = backfill progress. Citation VALIDITY is never baselined.",
-  "count": 25,
+  "count": 5,
   "keys": [
-    "docs/ARCHITECTURE.md::**api level:** access control validates tenant membership",
-    "docs/ARCHITECTURE.md::- ⚠️ rag document chunks (`rag_chunks`) — only when the optional supabase sidecar is enabled. everything else, including `agent_memories` (via `pgvector`), live",
-    "docs/ARCHITECTURE.md::2. **api level**: access control validates tenant membership",
-    "docs/ARCHITECTURE.md::2. **api routes** → validates with contracts (runtime + compile-time)",
-    "docs/ARCHITECTURE.md::revealui implements robust multi-tenancy using revealui admin 3.x, allowing multiple organizations to share the same application instance with complete data iso",
     "docs/STANDARDS.md::- validates proper imports from drizzle-zod",
     "docs/STANDARDS.md::- validates staged files before commit",
-    "docs/STANDARDS.md::revealui has a comprehensive logging system already implemented in `@revealui/core`. this guide shows how to use it instead of `console.log`.",
-    "docs/STANDARDS.md::sentry is configured in `apps/admin/next.config.mjs` and will automatically capture errors.",
-    "docs/STANDARDS.md::the type system is validated in ci to prevent drift. the workflow runs on:",
     "docs/STANDARDS.md::this codebase follows the revfleet engineering postures defined in [`docs/methodology.md`](./methodology.md). three postures directly affect code standards:",
-    "docs/api/rest-api/README.md::creates a ticket from the instruction, dispatches an ai agent with admin tools to resolve it, and returns the result.",
-    "docs/api/rest-api/README.md::returns the current user's license tier, status, and expiration.",
-    "docs/api/rest-api/README.md::validates a jwt license key and returns the tier, features, and limits.",
     "docs/architecture/ADR-003-fair-source-licensing.md::all source code lives in the public repo. no gitignored packages. no private repo sync.",
-    "docs/architecture/ai-stack.md::revealui's ai subsystem lives in `@revealui/ai` (pro, fair source fsl-1.1-mit). it provides open-model inference, agent orchestration, crdt-based memory, rag in",
-    "docs/architecture/x402.md::the boot validator (`apps/server/src/lib/validate-startup.ts`) enforces that when `x402_enabled=true`, `x402_receiving_address` is non-empty and matches the `0x",
-    "docs/architecture/x402.md::verification lives in [`apps/server/src/middleware/x402.ts`](../../apps/server/src/middleware/x402.ts) (`verifypayment`): the `exact` scheme is checked against ",
-    "docs/guides/authentication.md::4. every subsequent request validates the cookie against the hashed token in the database",
-    "docs/guides/authentication.md::revealui uses session-based authentication backed by database-stored sessions. there are no jwts. the sole authentication mechanism is a `revealui-session` cook",
-    "docs/guides/billing.md::1. validates the user session",
-    "docs/guides/billing.md::4. returns the checkout url",
-    "docs/guides/collections.md::collections are registered in the revealui configuration:",
-    "docs/guides/collections.md::revealui supports these field types, with schemas defined in `@revealui/contracts`:",
     "docs/guides/deployment.md::- [ ] stripe webhook endpoint is registered in the stripe dashboard"
   ]
 }
