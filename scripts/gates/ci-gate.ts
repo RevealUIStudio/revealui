@@ -340,6 +340,11 @@ async function gate(): Promise<void> {
         args: ['validate:stripe-client'],
       },
       {
+        name: 'Pricing lockstep (hard fail)',
+        command: 'pnpm',
+        args: ['validate:pricing-lockstep'],
+      },
+      {
         name: 'Client-bundle safety (hard fail)',
         command: 'pnpm',
         args: ['validate:client-safety'],
