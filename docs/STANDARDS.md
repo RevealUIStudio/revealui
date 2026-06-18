@@ -1256,7 +1256,7 @@ catch (error) {
 
 ### Sentry Integration
 
-Sentry is configured in `apps/admin/next.config.mjs:204` and will automatically capture errors.
+Sentry is configured in `apps/admin/next.config.mjs:205` and will automatically capture errors.
 
 **Manual Error Capture:**
 ```typescript
@@ -2058,7 +2058,7 @@ To add new validation rules:
 
 ## Overview
 
-RevealUI has a comprehensive logging system already implemented in `@revealui/core` (`packages/core/src/utils/logger.ts:14`). This guide shows how to use it instead of `console.log`.
+RevealUI has a comprehensive logging system already implemented in `@revealui/core` (`packages/core/src/utils/logger-client.ts:70`). This guide shows how to use it instead of `console.log`.
 
 ## Quick Start
 
@@ -2937,7 +2937,7 @@ packages/
 
 ## CI/CD Integration
 
-The type system is validated in CI (`.github/workflows/ci.yml:186`) to prevent drift. The workflow runs on:
+The type system is validated in CI (`.github/workflows/ci.yml:227`) to prevent drift. The workflow runs on:
 - Pull requests touching schema or generated files
 - Pushes to main branch
 - Manual workflow dispatch
