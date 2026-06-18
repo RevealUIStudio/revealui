@@ -69,7 +69,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Agency Perpetual | $8,499 | $799/yr |
 | Enterprise Perpetual | $42,999 | $3,999/yr |
 
-**Status:** marked `comingSoon: true` in `packages/contracts/src/pricing.ts`. Marketing must label Track C "Coming soon" at H2 weight (no corner badges).
+**Status:** `comingSoon: false` in `packages/contracts/src/pricing.ts` (all three Track C tiers; asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`). Marketing must NOT label Track C "Coming soon" — the perpetual tiers render as available. Live charging is still gated on the Stripe live-mode flip (see §3).
 
 ### Track D — Professional Services
 
