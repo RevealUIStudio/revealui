@@ -26,9 +26,9 @@ const MANAGED_ROADMAP_HREF = '/for-operators/managed' as const;
 
 export const FOR_OPERATORS_HERO = {
   eyebrow: 'Built. Delivered. Yours.',
-  h1Lines: ['Software for your business.', 'Built and delivered.'] as const,
+  h1Lines: ['Your business grows with you,', 'and stays at the frontier.'] as const,
   subtitle:
-    'Accounts, billing, content, and an admin dashboard: the software layer of a business, already built. We deliver it live, on infrastructure in your name, with the admin login in your hand. The first version runs in weeks, not quarters.',
+    'Running a business is hard enough without racing to keep up with AI. We build and deliver your software with AI built in, yours to own, and keep it current as the world moves. You stay ahead of your competition and keep doing the work you love.',
   primaryCta: {
     label: 'Book a build call',
     href: AGENCY_CONTACT,

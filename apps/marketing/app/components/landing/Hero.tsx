@@ -6,52 +6,6 @@ import { selectAudience } from '../../lib/audience';
 import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
 
-const backgroundPrimitives = [
-  {
-    color: 'text-primary',
-    style: { left: '4%', top: '8%', transform: 'rotate(-14deg)', width: '200px', height: '200px' },
-    path: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
-  },
-  {
-    color: 'text-blue-500',
-    style: { right: '6%', top: '14%', transform: 'rotate(18deg)', width: '160px', height: '160px' },
-    path: 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
-  },
-  {
-    color: 'text-amber-500',
-    style: {
-      left: '2%',
-      bottom: '14%',
-      transform: 'rotate(10deg)',
-      width: '180px',
-      height: '180px',
-    },
-    path: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z',
-  },
-  {
-    color: 'text-cyan-500',
-    style: {
-      right: '4%',
-      bottom: '18%',
-      transform: 'rotate(-22deg)',
-      width: '170px',
-      height: '170px',
-    },
-    path: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
-  },
-  {
-    color: 'text-violet-500',
-    style: {
-      left: '50%',
-      bottom: '4%',
-      transform: 'translateX(-50%) rotate(6deg)',
-      width: '190px',
-      height: '190px',
-    },
-    path: 'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z',
-  },
-];
-
 const ArrowIcon = () => (
   <svg
     className="h-4 w-4"
@@ -65,6 +19,28 @@ const ArrowIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
   </svg>
 );
+
+/**
+ * Hero background — a layered brand "mesh + motif" over a top-down wash:
+ * several soft, blurred cobalt/azure/violet glows (the generative mesh) plus one
+ * faint conic disc (an abstract motif, not iconography). All layers live inside
+ * an overflow-hidden box so the off-canvas offsets never create a scrollbar.
+ * Reads in both light and dark.
+ */
+function HeroBackground() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
+      {/* Mesh — overlapping soft glows, asymmetric */}
+      <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl" />
+      <div className="absolute -left-32 top-1/4 h-[420px] w-[420px] rounded-full bg-[radial-gradient(closest-side,oklch(0.62_0.16_265/0.16),transparent_75%)] blur-3xl" />
+      <div className="absolute -right-24 bottom-0 h-[460px] w-[520px] translate-y-1/4 rounded-full bg-[radial-gradient(closest-side,oklch(0.58_0.15_220/0.13),transparent_75%)] blur-3xl" />
+      <div className="absolute bottom-1/4 left-1/3 h-[360px] w-[360px] rounded-full bg-[radial-gradient(closest-side,oklch(0.60_0.17_290/0.10),transparent_75%)] blur-3xl" />
+      {/* Motif — a soft conic disc, abstract, off-center */}
+      <div className="absolute right-[22%] top-10 h-[320px] w-[320px] rounded-full opacity-[0.10] blur-2xl bg-[conic-gradient(from_140deg,oklch(0.55_0.18_245/0.6),oklch(0.62_0.16_290/0.35),oklch(0.58_0.15_220/0.2),transparent_72%)]" />
+    </div>
+  );
+}
 
 /** Technical hero — the canonical developer-facing pitch (CLI, GitHub, ships-today). */
 function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
@@ -168,7 +144,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
 /**
  * Non-technical hero — the operator-facing pitch. Reuses the /for-operators hero
  * copy and deliberately omits the developer-only surfaces (CLI block, GitHub
- * CTA, ships-today). The full non-technical body lands in PR 2.
+ * CTA, ships-today).
  */
 function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
@@ -205,25 +181,7 @@ export function Hero() {
 
   return (
     <section className="relative isolate overflow-hidden bg-background px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
-      {/* Brand background: warm wash + radial spotlight + faint primitive symbols */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
-        <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl" />
-        {backgroundPrimitives.map((p) => (
-          <svg
-            key={p.path}
-            className={`absolute opacity-[0.05] ${p.color}`}
-            style={p.style}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={0.75}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d={p.path} />
-          </svg>
-        ))}
-      </div>
+      <HeroBackground />
 
       <div className="relative mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
