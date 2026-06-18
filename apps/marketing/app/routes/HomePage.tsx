@@ -1,4 +1,12 @@
+import { useLocation } from '@revealui/router';
 import { Footer } from '../components/Footer';
+import { ClosingCta } from '../components/for-operators/ClosingCta';
+import { DiscoveryScopeShip } from '../components/for-operators/DiscoveryScopeShip';
+import { EngagementPricing } from '../components/for-operators/EngagementPricing';
+import { Faq as OperatorFaq } from '../components/for-operators/Faq';
+import { HowWeDeliver } from '../components/for-operators/HowWeDeliver';
+import { Proof as OperatorProof } from '../components/for-operators/Proof';
+import { WhatYouGet } from '../components/for-operators/WhatYouGet';
 import { GetStarted } from '../components/GetStarted';
 import { Actors } from '../components/landing/Actors';
 import { Demo } from '../components/landing/Demo';
@@ -12,10 +20,12 @@ import { Primitives } from '../components/landing/Primitives';
 import { Problem } from '../components/landing/Problem';
 import { Proof } from '../components/landing/Proof';
 import { WhatsShipped } from '../components/landing/WhatsShipped';
+import { selectAudience } from '../lib/audience';
 
-export function HomePage() {
+/** Developer-facing landing — `/?for=technical`. */
+function TechnicalLanding() {
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <Hero />
       <Actors />
       <Fork />
@@ -30,6 +40,39 @@ export function HomePage() {
       <Faq />
       <GetStarted />
       <Footer />
+    </>
+  );
+}
+
+/**
+ * Non-technical (operator) landing — the default `/`. Composes the existing
+ * `for-operators/*` section components inline. The shared <Hero/> self-selects
+ * the non-technical hero from the audience param, so it is not duplicated here.
+ * (The standalone /for-operators route still renders these too; it is retired
+ * and redirected here in PR 3.)
+ */
+function NonTechnicalLanding() {
+  return (
+    <>
+      <Hero />
+      <WhatYouGet />
+      <HowWeDeliver />
+      <EngagementPricing />
+      <DiscoveryScopeShip />
+      <OperatorProof />
+      <OperatorFaq />
+      <ClosingCta />
+      <Footer />
+    </>
+  );
+}
+
+export function HomePage() {
+  const { search } = useLocation();
+  const audience = selectAudience(search);
+  return (
+    <div className="min-h-screen bg-background">
+      {audience === 'non-technical' ? <NonTechnicalLanding /> : <TechnicalLanding />}
     </div>
   );
 }
