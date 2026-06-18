@@ -55,7 +55,17 @@ export function forEachProseLine(
   let inFence = false;
   let fence = '';
   const lines = markdown.split('\n');
-  for (let i = 0; i < lines.length; i++) {
+  // Skip a leading YAML frontmatter block (--- … ---) — metadata, not prose.
+  let start = 0;
+  if (lines.length > 0 && lines[0].trim() === '---') {
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim() === '---') {
+        start = i + 1;
+        break;
+      }
+    }
+  }
+  for (let i = start; i < lines.length; i++) {
     const rawLine = lines[i];
     const trimmed = rawLine.trimStart();
     if (isFenceMarker(trimmed)) {
