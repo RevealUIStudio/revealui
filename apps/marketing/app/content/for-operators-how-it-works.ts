@@ -32,7 +32,7 @@ export const FO_HIW_HERO = {
   } satisfies Cta,
   backLink: {
     label: '← Back to For Operators',
-    href: '/for-operators',
+    href: '/?for=non-technical',
   } satisfies Cta,
 } as const;
 
@@ -136,6 +136,6 @@ export const FO_HIW_CLOSING = {
   } satisfies Cta,
   backLink: {
     label: '← Back to For Operators',
-    href: '/for-operators',
+    href: '/?for=non-technical',
   } satisfies Cta,
 } as const;
