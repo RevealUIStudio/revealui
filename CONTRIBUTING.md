@@ -214,6 +214,28 @@ Why: every unlinked "coming soon" either ages into a broken promise or becomes l
 
 File a GitHub issue before writing the claim. Link it in the prose. If the feature is abandoned later, close the issue and remove the claim in the same PR.
 
+#### Source citations (Works Cited)
+
+Code-asserting docs — READMEs, `docs/ARCHITECTURE.md`, `docs/STANDARDS.md`, technical guides under `docs/guides` / `docs/api` / `docs/architecture`, and specs — must ground each code-behaviour claim in the source that validates it. When you assert how the code behaves, cite the file with a **required line anchor**, on the same line or in a `## Sources` block.
+
+Acceptable forms:
+
+```markdown
+Access reads enforce `access.read` in `packages/core/src/collections/operations/find.ts:42-88`.
+Payment verification lives in [verifyPayment](apps/server/src/middleware/x402.ts:120).
+```
+
+Not acceptable:
+
+```markdown
+Access is enforced in core.                         ← no source
+Payment verification lives in `apps/server/...`.    ← bare path, no line anchor
+```
+
+The `:line` / `:start-end` anchor is what separates a deliberate citation from an incidental path mention (an HTTP route, a partial component path). Citations point at code, never at another `.md` (doc-to-doc links are checked separately).
+
+The `pnpm validate:citations` gate enforces this: it hard-fails on a citation that no longer resolves — a renamed file or a deleted line range ("citation rot") — and reports uncited code-behaviour claims in the gated docs against a grandfathered baseline. It runs in `pnpm gate` (Phase 1). Run it before opening a docs PR; regenerate the baseline only after a sweep that reduces debt.
+
 ### Script Standards
 
 When creating or modifying packages:
