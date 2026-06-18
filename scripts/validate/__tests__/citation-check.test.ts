@@ -114,6 +114,9 @@ describe('isUncitedClaim', () => {
   it('ignores prose with no claim token', () => {
     expect(isUncitedClaim('RevealUI is an agentic business runtime.', false)).toBe(false);
   });
+  it('does not flag re-prefixed words like "revalidates"', () => {
+    expect(isUncitedClaim('- **Purpose**: Revalidates product pages', false)).toBe(false);
+  });
 });
 
 describe('normClaim', () => {
@@ -174,5 +177,24 @@ describe('scan (integration)', () => {
     const all = scan(tmp, path.dirname(tmp), 'revealui', true);
     expect(all.validity).toHaveLength(1);
     expect(all.validity[0].kind).toBe('missing');
+  });
+
+  it('skips YAML frontmatter and fenced code when detecting claims', () => {
+    fs.writeFileSync(
+      path.join(tmp, 'README.md'),
+      [
+        '---',
+        'description: "Implements circuit breaker and enforces limits."',
+        '---',
+        '# Demo',
+        '```ts',
+        'The walker enforces things here.',
+        '```',
+        'The router enforces SSR boundaries.',
+      ].join('\n'),
+    );
+    const result = scan(tmp, path.dirname(tmp), 'revealui', false);
+    expect(result.coverage).toHaveLength(1);
+    expect(result.coverage[0].excerpt).toContain('router enforces');
   });
 });
