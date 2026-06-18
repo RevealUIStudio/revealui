@@ -60,6 +60,11 @@
       "has": [{ "type": "host", "value": "community.revealui.com" }],
       "destination": "https://github.com/RevealUIStudio/revealui/discussions",
       "permanent": true
+    },
+    {
+      "source": "/for-operators",
+      "destination": "/?for=non-technical",
+      "permanent": true
     }
   ],
   "rewrites": [

@@ -9,7 +9,6 @@ export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: SITE.urls.docs },
   { label: 'Blog', href: '/blog' },
-  { label: 'For Operators', href: '/for-operators' },
 ] as const;
 
 export const NAV_AUTH = {
