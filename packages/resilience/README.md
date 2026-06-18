@@ -8,7 +8,7 @@ audience: user
 
 # @revealui/resilience
 
-Resilience infrastructure for RevealUI applications. Implements circuit breaker, retry with exponential backoff, and bulkhead patterns for fault-tolerant service communication.
+Resilience infrastructure for RevealUI applications. Implements circuit breaker (`packages/resilience/src/circuit-breaker.ts:60`), retry with exponential backoff (`packages/resilience/src/retry.ts:55`), and bulkhead patterns (`packages/resilience/src/circuit-breaker.ts:561`) for fault-tolerant service communication.
 
 ## When to Use This
 

@@ -1,6 +1,6 @@
 {
   "note": "Grandfathered uncited code-behaviour claims in gated docs. Regenerate via `citation-check.ts --update-baseline`. CI reports only NEW (file::claim) keys; shrinking this list = backfill progress. Citation VALIDITY is never baselined.",
-  "count": 52,
+  "count": 46,
   "keys": [
     "docs/ARCHITECTURE.md::**api level:** access control validates tenant membership",
     "docs/ARCHITECTURE.md::- **purpose**: revalidates footer global",
@@ -46,13 +46,7 @@
     "packages/ai/README.md::runs the inference, keeps cost + context control, and returns the result.",
     "packages/ai/README.md::the system enforces limits to prevent performance issues:",
     "packages/cli/README.md::- you need database, storage, and payment providers configured in one step",
-    "packages/config/README.md::- **unified**: one config loader validates and types all environment variables across every app and package",
-    "packages/config/README.md::- **validation**: validates all environment variables on load",
-    "packages/config/README.md::the config package validates these environment variables:",
-    "packages/config/README.md::the package also exports a lazy-proxy default export that validates on first property access:",
     "packages/openapi/README.md::- **orthogonal**: decoupled from business logic - validates at the boundary, not inside handlers",
-    "packages/resilience/README.md::description: \"resilience infrastructure for revealui applications. implements circuit breaker, retry with exponential backoff, and bulkhead patterns for fault-t",
-    "packages/resilience/README.md::resilience infrastructure for revealui applications. implements circuit breaker, retry with exponential backoff, and bulkhead patterns for fault-tolerant servic",
-    "packages/setup/README.md::validates environment variables against schema."
+    "packages/resilience/README.md::description: \"resilience infrastructure for revealui applications. implements circuit breaker, retry with exponential backoff, and bulkhead patterns for fault-t"
   ]
 }
