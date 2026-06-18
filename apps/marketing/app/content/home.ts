@@ -330,10 +330,12 @@ export const HOME_ACTORS = {
 // ---------------------------------------------------------------------------
 // Homepage audience fork
 // Per spec-2026-05-14-non-technical-lane.md §4.3 (Phase 2 of the spec sequence).
-// Three equal-weight branches; visitor self-identifies before the technical-lane
+// Two technical-lane branches; visitor self-identifies before the technical-lane
 // content below. Branch A scrolls past the fork into the existing technical
-// homepage (OQ-5 locked); Branch B routes to /for-operators (Phase 1, PR #1151);
-// Branch C routes studios/agencies to the Agency Perpetual pricing band.
+// homepage (OQ-5 locked); Branch C routes studios/agencies to the Agency
+// Perpetual pricing band. The former Branch B ("I want it built for me") was
+// removed when the audience toggle landed: "built for me" is now the
+// non-technical mode itself (the in-hero Technical/Non-technical switch).
 // Decisions consumed: §9.4 OQ-5 (Branch A stays on /).
 // ---------------------------------------------------------------------------
 
@@ -342,12 +344,6 @@ export const HOME_FORK = {
     title: "I'm building this myself.",
     body: 'Source, packages, the CLI, and docs. Read on.',
     cta: 'Keep reading →',
-  },
-  branchB: {
-    title: 'I want it built for me.',
-    body: 'RevealUI Studio scopes, builds, and delivers a working product. Weeks, not quarters.',
-    cta: 'See how →',
-    href: '/for-operators',
   },
   branchC: {
     title: 'I build software for my clients.',
