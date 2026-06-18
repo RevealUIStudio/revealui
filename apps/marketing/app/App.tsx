@@ -8,7 +8,6 @@ import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
 import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
-import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PhilosophyPage } from './routes/PhilosophyPage';
