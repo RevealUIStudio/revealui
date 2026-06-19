@@ -45,6 +45,7 @@
     "clean": "rm -rf dist",
     "gen:manifest": "node scripts/gen-manifest.cjs",
     "gen:manifest:check": "node scripts/gen-manifest.cjs --check",
+    "lint:adherence": "node scripts/adherence-lint.cjs",
     "lint": "biome check .",
     "test": "vitest run",
     "test:watch": "vitest",
