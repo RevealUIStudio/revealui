@@ -1259,6 +1259,52 @@ const BLOCKLIST: BlocklistEntry[] = [
 const QUALIFIER_PATTERN =
   /\((coming soon|planned|roadmap|in active development|forthcoming|will ship|in progress|TBD)\b[^)]*\)|\broadmap\b|(#\d+|\/(issues|pull|pulls)\/\d+|\bmilestones?\b|\.ya?ml\b)/i;
 
+/**
+ * Agent-commerce surfaces (x402 payments, the agent / MCP-server marketplace)
+ * are coming soon, NOT shipped. These tokens match only SHIPPED-CLAIM phrasing
+ * ("x402 is live", "the marketplace is open") -- never neutral mentions like
+ * "the x402 protocol", a glossary entry, or a "## How x402 Works" heading, so
+ * the design/explainer posts read normally. A shipped claim still passes if it
+ * carries a same-line qualifier (QUALIFIER_PATTERN), OR the whole file declares
+ * itself a roadmap post in frontmatter (isRoadmapDeclaredFile). The general
+ * BLOCKLIST (SSO / SLA / ...) is unaffected.
+ */
+export const AGENT_COMMERCE_BLOCKLIST: BlocklistEntry[] = [
+  {
+    token:
+      /\bx402\b[^.\n]{0,50}?\b(?:is|are)\s+(?:live|available|launched|in production|transacting|enabled today|working today)\b/i,
+    label: 'x402 (presented as live)',
+    why: 'x402 payments are coming soon, not live (X402_ENABLED=false); see #93',
+  },
+  {
+    token:
+      /\b(?:RevMarket|(?:agent(?: tool)?|MCP(?: server)?)[- ]marketplace)\b[^.\n]{0,50}?\b(?:is|are|now)\s+(?:live|open|available|launched)\b/i,
+    label: 'agent marketplace (presented as live)',
+    why: 'the agent / MCP-server marketplace is coming soon, not shipped; see #526',
+  },
+];
+
+/**
+ * A markdown file opts the AGENT_COMMERCE_BLOCKLIST tokens out by declaring
+ * itself a roadmap post in frontmatter, e.g.:
+ *   roadmap: "Coming soon: x402 #93, agent marketplace #526"
+ * The declaration MUST cite a tracker (issue / PR / milestone / workflow), so a
+ * roadmap exemption is never an unlinked "coming soon". The general BLOCKLIST
+ * (SSO / SLA / on-prem / ...) is unaffected and still enforced on every file.
+ */
+export function isRoadmapDeclaredFile(content: string): boolean {
+  if (!content.startsWith('---\n')) return false;
+  const end = content.indexOf('\n---', 4);
+  if (end === -1) return false;
+  for (const raw of content.slice(4, end).split('\n')) {
+    const line = raw.trimStart();
+    if (line.startsWith('roadmap:') || line.startsWith('lifecycle:')) {
+      if (TRACKER_PATTERN.test(raw)) return true;
+    }
+  }
+  return false;
+}
+
 function scanForAspirationalFeatures(): AspirationalMatch[] {
   const matches: AspirationalMatch[] = [];
   const isIgnored = ignoredPathPredicateFor(ROOT);
@@ -1272,6 +1318,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
       return;
     }
     const isMarkdown = filePath.endsWith('.md');
+    const commerceExempt = isMarkdown && isRoadmapDeclaredFile(content);
     const lines = content.split('\n');
     let inFence = false;
     for (let i = 0; i < lines.length; i++) {
@@ -1303,6 +1350,23 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
           why: entry.why,
           text: line.trim(),
         });
+      }
+
+      // Agent-commerce tokens (x402 / agent marketplace) are coming soon, not
+      // shipped. Skip when the file declares itself a roadmap post in
+      // frontmatter; otherwise require a same-line qualifier like the rest.
+      if (!commerceExempt) {
+        for (const entry of AGENT_COMMERCE_BLOCKLIST) {
+          if (!entry.token.test(line)) continue;
+          if (QUALIFIER_PATTERN.test(line)) continue;
+          matches.push({
+            file: rel,
+            line: i + 1,
+            token: entry.label,
+            why: entry.why,
+            text: line.trim(),
+          });
+        }
       }
     }
   }
