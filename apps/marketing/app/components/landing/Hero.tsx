@@ -180,6 +180,16 @@ function NonTechnicalHero() {
           </a>
         </ButtonCVA>
       </div>
+
+      {/* Trust strip — mirror of TechnicalHero; same signals for the operator view. */}
+      <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
+        {['Open source', 'Self-hostable', 'Audit-ready'].map((signal) => (
+          <li key={signal} className="flex items-center gap-2">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
+            {signal}
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
