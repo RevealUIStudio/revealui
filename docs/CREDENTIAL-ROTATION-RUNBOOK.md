@@ -30,15 +30,25 @@ Cross-reference `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for env var details.
 
 ### Encryption Keys (Maintenance Window Required)
 
-#### REVEALUI_KEK (AES-256-GCM field encryption) — NOT YET ROTATABLE
+#### REVEALUI_KEK (AES-256-GCM field encryption) -- rotatable via dual-key migration
 
-Used by: `@revealui/db/crypto` for API keys, TOTP secrets, and any `encryptField()` call.
+Used by `@revealui/db/crypto` for the two `encryptField()` surfaces: API keys
+(`api_keys.encrypted_key`) and TOTP/MFA secrets (`users.mfa_secret`).
 
-> **Status: rotation tooling not yet built.** A naive KEK rotation would brick every encrypted DB row. The required re-encryption migration tool (`migrate:rekey` or equivalent) is tracked as **GAP-126** and has not yet shipped. **Do not attempt to rotate `REVEALUI_KEK` until that tool lands.** If you need to rotate before then, a coordinated maintenance window with manual data re-encryption is required — open a ticket against the security workstream first.
+> **Status: rotatable (tooling shipped 2026-05-05).** Use the two-key `REVEALUI_KEK_NEXT`
+> migration, never a naive `revvault generate` (which would make data encrypted under the old
+> key unreadable).
 >
-> When tooling ships, the procedure will be: generate new KEK → run re-encryption migration → update RevVault + Vercel → redeploy → verify. The verify step will hit a `/api/health/crypto` endpoint that decrypts a known canary value.
+> Procedure, `pnpm kek:rotate` (`scripts/security/rotate-kek.ts`): set `REVEALUI_KEK_NEXT` to the
+> new key (boot then encrypts with NEXT and decrypts try NEXT first, falling back to
+> `REVEALUI_KEK`, see `getKekPair()` in `packages/db/src/crypto.ts`), re-encrypt the two surfaces,
+> then promote `REVEALUI_KEK_NEXT` to `REVEALUI_KEK` and remove `REVEALUI_KEK_NEXT`. Zero downtime.
+> Validate with `pnpm validate:kek-rotation`. Full steps:
+> [`docs/runbooks/secret-rotation.md`](./runbooks/secret-rotation.md) Phase 3.
 
-**Risk:** All encrypted data becomes unreadable if a naive rotate-without-rekey is attempted. This is why the tooling gate exists.
+**Risk:** bounded. Only the two columns above are KEK-encrypted, and the dual-key fallback keeps
+existing ciphertext readable throughout. revvault is unaffected (separate AGE identity). The prior
+"NOT YET ROTATABLE / GAP-126" framing predates the shipped tooling.
 
 #### REVEALUI_LICENSE_PRIVATE_KEY (Ed25519 license signing)
 
