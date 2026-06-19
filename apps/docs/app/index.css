@@ -13,22 +13,23 @@
    Theme — design tokens as Tailwind v4 @theme
    ────────────────────────────────────────────── */
 @theme {
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-sidebar: #f8f9fa;
-  --color-border: #e8eaed;
-  --color-border-subtle: #f0f1f3;
-  --color-text-primary: #1a1a2e;
-  --color-text-secondary: #5f6368;
-  /* WCAG AA: 4.84:1 on #ffffff, 4.64:1 on #fafafa. The previous #9aa0a6
-   * tested ~2.5:1 on both (fails AA for the h6 / del / byline text using it). */
-  --color-text-muted: #6b7280;
+  /* Chrome neutrals re-pointed at the --rvui-* tokens so the docs chrome is
+   * themeable and stays on-system. Muted text uses --rvui-text-2 (AA on the
+   * surface tokens per the token contract). Docs convergence D4. */
+  --color-bg: var(--rvui-surface-0);
+  --color-surface: var(--rvui-surface-1);
+  --color-sidebar: var(--rvui-surface-2);
+  --color-border: var(--rvui-border);
+  --color-border-subtle: var(--rvui-border);
+  --color-text-primary: var(--rvui-text-0);
+  --color-text-secondary: var(--rvui-text-1);
+  --color-text-muted: var(--rvui-text-2);
   --color-accent: var(--rvui-brand);
   --color-accent-hover: var(--rvui-brand-hover);
   --color-accent-bg: var(--rvui-brand-soft);
   --color-code-bg: #f4f5f7;
   --color-code-block: #1a1a2e;
-  --color-ink: #0a0a0a;
+  --color-ink: var(--rvui-text-0);
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -46,7 +47,7 @@
    actually re-themes the components.
 
    Intentionally NOT bridged: --color-accent and --color-border are owned by
-   the docs palette above (accent = cobalt brand; border = #e8eaed). Leaving
+   the docs palette above (accent = cobalt brand; border = --rvui-border). Leaving
    them out keeps the docs chrome unchanged. Presentation's `accent` hover
    surfaces therefore reuse the docs cobalt accent, paired with the on-brand
    foreground below for contrast.
