@@ -1,17 +1,17 @@
 /*
  * adherence-lint.cjs — keeps consuming surfaces on-system.
  * ──────────────────────────────────────────────────────────────────
- * Companion to token-drift-gate.cjs. Where the drift gate guards the
- * TOKEN MIRROR, this guards the CODE THAT CONSUMES it: it scans app /
+ * Where the @revealui/tokens contract test guards the TOKEN VALUES (cobalt
+ * pins + WCAG-AA), this guards the CODE THAT CONSUMES them: it scans app /
  * artifact source for the off-system patterns the three visual-drift
  * audits identified, so the fixes can't silently rot back in.
  *
- * CommonJS (.cjs) so the in-browser DS bundler ignores it. Dependency-free
+ * CommonJS (.cjs), dependency-free
  * Node CLI. Run in CI and pre-commit:
  *
- *     node scripts/adherence-lint.cjs <path> [<path> …]
- *     node scripts/adherence-lint.cjs ../revealui/apps
- *     node scripts/adherence-lint.cjs --json ../revealui/apps/docs
+ *     node packages/tokens/scripts/adherence-lint.cjs <path> [<path> …]
+ *     node packages/tokens/scripts/adherence-lint.cjs apps/marketing apps/docs
+ *     node packages/tokens/scripts/adherence-lint.cjs --json apps/docs
  *
  * Flags:
  *   --json     machine-readable report

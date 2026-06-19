@@ -1,16 +1,14 @@
 # .github/workflows/ds.yml — RevealUI design-system gates
 #
-# Drop this into the monorepo at .github/workflows/ds.yml. It runs the two
-# dependency-free DS-folder gates plus the existing token contract checks.
+# Drop this into the monorepo at .github/workflows/ds.yml. It runs the
+# dependency-free DS-folder gate plus the existing token contract checks.
 #
-#   1. token-drift-gate — the DS token MIRROR matches source + clears WCAG AA
-#   2. adherence-lint    — app/artifact CODE stays on-system (no hardcoded
+#   1. adherence-lint    — app/artifact CODE stays on-system (no hardcoded
 #                          greys, off-token colors, non-brand fonts, …)
-#   3. tokens contract   — the repo's own gen:manifest:check + vitest contract
+#   2. tokens contract   — the repo's own gen:manifest:check + vitest contract
 #
 # Conventions match the repo's existing ci.yml (pinned action SHAs, pnpm
 # action-setup @ PNPM_VERSION, node 24, persist-credentials:false).
-# Adjust DS_DIR if the design-system folder is vendored elsewhere.
 
 name: design-system
 
@@ -21,7 +19,6 @@ on:
       - 'apps/**'
       - 'packages/tokens/**'
       - 'packages/presentation/**'
-      - 'design-system/**'
       - '.github/workflows/ds.yml'
   push:
     branches: [main]
@@ -32,27 +29,8 @@ permissions:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
-  # Where the design-system folder (this repo's CLAUDE.md root) lives in the monorepo.
-  DS_DIR: design-system
 
 jobs:
-  token-drift:
-    name: DS token drift gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      # Also asserts the mirror was cut from the live source revision.
-      - name: Token drift gate (mirror + value pins + WCAG AA)
-        run: node "$DS_DIR/scripts/token-drift-gate.cjs"
-        env:
-          RVUI_TOKENS_SRC: ${{ github.workspace }}/packages/tokens/src/tokens.css
-
   adherence:
     name: DS adherence lint
     runs-on: ubuntu-latest
@@ -69,14 +47,14 @@ jobs:
       # Once the convergence patches land, delete `--warn` to make drift a
       # hard failure across all apps.
       - name: Adherence lint (apps — report-only)
-        run: node "$DS_DIR/scripts/adherence-lint.cjs" --warn apps
+        run: node packages/tokens/scripts/adherence-lint.cjs --warn apps
       # Ratchet: enforce hard on the surfaces already converged (PR #1550), so the
       # cleaned apps can't regress while the rest stay report-only above. Add a
       # line per app as each is cleaned.
       - name: Adherence lint (marketing — enforced)
-        run: node "$DS_DIR/scripts/adherence-lint.cjs" apps/marketing
+        run: node packages/tokens/scripts/adherence-lint.cjs apps/marketing
       - name: Adherence lint (docs — enforced)
-        run: node "$DS_DIR/scripts/adherence-lint.cjs" apps/docs
+        run: node packages/tokens/scripts/adherence-lint.cjs apps/docs
 
   tokens-contract:
     name: tokens pack in sync
