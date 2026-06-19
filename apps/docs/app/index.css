@@ -30,9 +30,9 @@
   --color-code-block: #1a1a2e;
   --color-ink: #0a0a0a;
 
-  --font-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --font-display: "Source Sans 3", sans-serif;
+  --font-display: "Inter Tight", "Inter", sans-serif;
 
   --width-sidebar: 272px;
   --width-content: 820px;
