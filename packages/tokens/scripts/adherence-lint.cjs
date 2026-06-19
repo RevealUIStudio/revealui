@@ -30,7 +30,7 @@
  *   Assessment · Dark-Mode Sweep.html  (the hardcoded-grey substitution table)
  */
 const { readFileSync, readdirSync, statSync } = require('node:fs');
-const { join, relative, extname, basename } = require('node:path');
+const { join, relative, extname } = require('node:path');
 
 const args = process.argv.slice(2);
 const JSON_OUT = args.includes('--json');
