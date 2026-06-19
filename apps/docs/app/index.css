@@ -28,7 +28,7 @@
   --color-accent-hover: var(--rvui-brand-hover);
   --color-accent-bg: var(--rvui-brand-soft);
   --color-code-bg: #f4f5f7;
-  --color-code-block: #1a1a2e;
+  --color-code-block: var(--rvui-midnight, oklch(0.16 0.03 260)); /* midnight; --rvui-midnight not yet a token, fallback = surface-0 dark value */
   --color-ink: var(--rvui-text-0);
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
