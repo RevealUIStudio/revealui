@@ -46,7 +46,7 @@ function HeroBackground() {
 function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
   return (
     <>
-      <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-5xl font-extrabold tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1}
       </h1>
 
@@ -150,7 +150,7 @@ function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
   return (
     <>
-      <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-5xl font-extrabold tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1Lines.map((line) => (
           <span key={line} className="block">
             {line}
