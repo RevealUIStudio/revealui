@@ -70,10 +70,13 @@ jobs:
       # hard failure across all apps.
       - name: Adherence lint (apps — report-only)
         run: node "$DS_DIR/scripts/adherence-lint.cjs" --warn apps
-      # Ratchet: enforce hard on surfaces already converged. Uncomment per app
-      # as each is cleaned, so cleaned surfaces can't regress.
-      # - name: Adherence lint (marketing — enforced)
-      #   run: node "$DS_DIR/scripts/adherence-lint.cjs" apps/marketing
+      # Ratchet: enforce hard on the surfaces already converged (PR #1550), so the
+      # cleaned apps can't regress while the rest stay report-only above. Add a
+      # line per app as each is cleaned.
+      - name: Adherence lint (marketing — enforced)
+        run: node "$DS_DIR/scripts/adherence-lint.cjs" apps/marketing
+      - name: Adherence lint (docs — enforced)
+        run: node "$DS_DIR/scripts/adherence-lint.cjs" apps/docs
 
   tokens-contract:
     name: tokens pack in sync
