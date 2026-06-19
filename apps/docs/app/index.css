@@ -217,10 +217,10 @@
   .markdown-content code {
     padding: 0.15em 0.4em;
     font-size: 0.85em;
-    background-color: var(--color-code-bg);
+    background-color: var(--rvui-surface-2);
     border-radius: 5px;
     font-family: var(--font-mono);
-    color: #d63384;
+    color: var(--rvui-brand-text);
     font-weight: 450;
   }
 
