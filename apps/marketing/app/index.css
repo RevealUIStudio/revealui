@@ -124,6 +124,18 @@ body {
   color: var(--rvui-text-0);
 }
 
+/* Headings opt into the display family (Inter Tight) — DS convergence item 1.
+ * Hero h1s also set font-display/extrabold inline; this carries the section
+ * h2/h3 headers so the whole type hierarchy uses the display role. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: var(--rvui-tracking-tight);
+  }
+}
+
 @keyframes hero-fade-up {
   from {
     opacity: 0;

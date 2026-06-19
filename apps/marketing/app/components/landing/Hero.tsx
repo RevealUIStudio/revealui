@@ -46,7 +46,7 @@ function HeroBackground() {
 function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
   return (
     <>
-      <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-5xl font-extrabold tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1}
       </h1>
 
@@ -87,6 +87,16 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
           </a>
         </ButtonCVA>
       </div>
+
+      {/* Trust strip — the signals the retired eyebrow pill used to carry. */}
+      <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
+        {['Open source', 'Self-hostable', 'Audit-ready'].map((signal) => (
+          <li key={signal} className="flex items-center gap-2">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
+            {signal}
+          </li>
+        ))}
+      </ul>
 
       <p className="mt-6 text-sm text-muted-foreground">
         {hero.agencyCta.prefix}{' '}
@@ -150,7 +160,7 @@ function NonTechnicalHero() {
   const hero = FOR_OPERATORS_HERO;
   return (
     <>
-      <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+      <h1 className="font-display text-5xl font-extrabold tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
         {hero.h1Lines.map((line) => (
           <span key={line} className="block">
             {line}
