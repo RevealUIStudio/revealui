@@ -11,7 +11,7 @@ RevealUI is open source today; the commercial side is pre-launch. Before we talk
 
 This is a solo-founder project. I don't have a VC board to answer to or a growth team optimizing conversion funnels. I have a business model I believe in, and I'd rather explain it plainly than have you discover the trade-offs later.
 
-> **Status note (updated 2026-05-26):** Two revenue surfaces described later in this post — the **MCP Marketplace** (third-party publishing + 80/20 revenue share) and **x402 agent payments** — are **planned, not shipped**. The first-party MCP catalog (14 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. x402 is designed and code-complete behind `X402_ENABLED=false`. Stripe runs in test mode until a billing-readiness audit closes. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
+> **Status note (updated 2026-05-26):** Two revenue surfaces described later in this post — the **MCP Marketplace** (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526); third-party publishing + 80/20 revenue share) and **x402 agent payments** (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93)) — are **planned, not shipped**. The first-party MCP catalog (14 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. x402 is designed and code-complete behind `X402_ENABLED=false`. Stripe runs in test mode until a billing-readiness audit closes. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
 
 ---
 
@@ -84,7 +84,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Audit logging** | -- | -- | Yes | Yes |
 | **Multi-tenant** | -- | -- | -- | Yes |
 | **White-label** | -- | -- | -- | Yes (planned) |
-| **Support** | Community | Email (48h) | Email (24h) | Slack (4h SLA) |
+| **Support** | Community | Email (48h) | Email (24h) | Slack (planned) |
 | **Source code** | Full | Full | Full | Full |
 
 A few things worth noting about this table.
@@ -129,7 +129,7 @@ The model works like this:
 
 2. **Pro AI features convert power users.** Teams that outgrow the free tier -- more sites, more users, AI automation -- upgrade to Pro. The conversion happens because the product is genuinely more capable, not because we crippled the free version.
 
-3. **Marketplace commissions create ecosystem revenue.** Developers publish MCP servers to our marketplace, set their own pricing, and earn 80% of revenue. We take 20% for hosting, discovery, and billing infrastructure. More developers building servers means more capability for agent users, which means more demand for agent tasks.
+3. **Marketplace commissions will create ecosystem revenue (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Developers will publish MCP servers to our marketplace, set their own pricing, and earn 80% of revenue. We take 20% for hosting, discovery, and billing infrastructure. More developers building servers means more capability for agent users, which means more demand for agent tasks.
 
 I'm not going to share revenue projections here. That's not the point. The point is transparency: here's exactly what's free, what's paid, and why. You can decide whether the trade-off makes sense for your team.
 
@@ -139,13 +139,13 @@ I'm not going to share revenue projections here. That's not the point. The point
 
 RevealUI isn't just a framework you install. It's an open runtime for businesses that run their own AI, with an ecosystem strategy.
 
-**MCP Marketplace (in preview).** Developers will be able to publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. The publish/list/invoke/onboard endpoints are wired today; payouts open with the billing-readiness audit. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
+**MCP Marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Developers will be able to publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. The publish/list/invoke/onboard endpoints are wired today; payouts open with the billing-readiness audit. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
 
 **"Built with RevealUI" badge.** Completely opt-in. If you display the badge, you get 500 bonus agent tasks per month. If you don't want it, don't use it. We will never require attribution. MIT means MIT.
 
 **Template marketplace.** Starter projects on Vercel that showcase RevealUI for specific use cases -- SaaS boilerplates, e-commerce setups, documentation sites, internal tools. These lower the barrier to getting started and demonstrate what's possible.
 
-**Community discussions.** Free support for everyone through community forums. Pro and above get priority support with SLA-backed response times. The community is where we build trust, gather feedback, and help people succeed -- regardless of what tier they're on.
+**Community discussions.** Free support for everyone through community forums. Pro and above get priority support with faster response times. The community is where we build trust, gather feedback, and help people succeed -- regardless of what tier they're on.
 
 **The flywheel.** More developers using RevealUI means more MCP servers published to the marketplace. More MCP servers means agents can do more things. More capable agents means more demand for agent tasks. More demand means more developers building servers. Each layer reinforces the others.
 

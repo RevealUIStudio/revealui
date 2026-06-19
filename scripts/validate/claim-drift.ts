@@ -1184,6 +1184,9 @@ const ASPIRATIONAL_SCAN_FILES = [
   'apps/docs/public/docs-pro/inference/index.md',
   'apps/docs/public/docs-pro/mcp/index.md',
   'apps/docs/public/docs-pro/editors/index.md',
+  // Blog posts (wired 2026-06-19): CONTRIBUTING.md (Future-tense claims)
+  // explicitly covers blog drafts; long-form, but the same blocklist applies.
+  'docs/blog',
 ];
 
 interface BlocklistEntry {

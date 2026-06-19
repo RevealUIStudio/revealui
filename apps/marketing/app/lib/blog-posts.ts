@@ -151,7 +151,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'http-402-payments',
     title: 'Paying for AI API Calls with HTTP 402 and USDC',
     excerpt:
-      'How the x402 protocol enables agent-native micropayments without accounts or subscriptions.',
+      'Coming soon: how the x402 protocol will enable agent-native micropayments without accounts or subscriptions. This post is the design.',
     publishedAt: '2026-03-21T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '02-http-402-payments.md',

@@ -19,7 +19,7 @@ Every product carries one of four status badges. They mean exactly what they say
 
 - **Beta** -- production-ready code, dogfooded daily, limited real users.
 - **Alpha** -- works and ships, development-preview quality, may break.
-- **Active (MIT)** -- a released, free, open library with no SLA.
+- **Active (MIT)** -- a released, free, open library, no support guarantees.
 - **Planned** -- code-complete or scaffolded, not yet shipped to users.
 
 No product on this page hides behind a vaguer word than that.
