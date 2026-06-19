@@ -31,6 +31,51 @@ interface PostMeta {
 
 const POST_METADATA: PostMeta[] = [
   {
+    slug: 'revfleet-product-family',
+    title: 'One Runtime, Eight Products: The RevFleet Family',
+    excerpt:
+      'You do not adopt a framework, you adopt a fleet. RevealUI is the flagship runtime, and seven sister products extend it, from an encrypted secret vault to an agent tool marketplace.',
+    publishedAt: '2026-06-18T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '11-revfleet-product-family.md',
+  },
+  {
+    slug: 'dashboard-agent-chat',
+    title: 'Run Your Admin by Talking to It',
+    excerpt:
+      'Open the admin, type what you want done, and watch the agent do it, with streaming output, full tool visibility, and the same access control your users get.',
+    publishedAt: '2026-06-17T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '15-dashboard-agent-chat.md',
+  },
+  {
+    slug: 'own-your-secrets',
+    title: "Your Secrets Don't Belong in a .env File",
+    excerpt:
+      'The default bargain puts your credentials in a vendor dashboard or a plaintext .env file. RevVault keeps them age-encrypted on hardware you control, never as plaintext on disk.',
+    publishedAt: '2026-06-16T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '12-own-your-secrets.md',
+  },
+  {
+    slug: 'zero-regex',
+    title: 'Building a Codebase With Zero Hand-Written Regex',
+    excerpt:
+      'We banned hand-written regular expressions across the entire fleet. Here is what we use instead, and why it makes the code safer and easier to read.',
+    publishedAt: '2026-06-15T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '13-zero-regex.md',
+  },
+  {
+    slug: 'claim-drift',
+    title: 'The Marketing Site That Fails CI When It Lies',
+    excerpt:
+      'Every number on revealui.com is checked against the code on every push. When a stat drifts from reality, the build breaks before the lie ships.',
+    publishedAt: '2026-06-14T12:00:00.000Z',
+    author: 'RevealUI Team',
+    file: '14-claim-drift.md',
+  },
+  {
     slug: 'component-library',
     title: '60 Components, One Dependency',
     excerpt:
