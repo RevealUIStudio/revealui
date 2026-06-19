@@ -9,7 +9,7 @@ author: Joshua Vaughn
 
 Open the `package.json` of a typical React app and trace the dependency tree under your UI. A component library. The headless-primitive library it sits on. An icon set. A class-merging utility. A variants helper. A few polyfills the library pulls in. Every one of those is a version you have to track, a breaking change you have to absorb on someone else's schedule, and a styling opinion you have to work around.
 
-RevealUI's UI layer, `@revealui/presentation`, has exactly one runtime dependency. Not one UI framework. One package: `tailwind-merge`. Everything else, the 60 components and the machinery that powers them, is in the box and MIT licensed.
+RevealUI's UI layer, `@revealui/presentation`, has exactly one third-party runtime dependency. Not one UI framework. One npm package: `tailwind-merge`. Its design tokens come from a sibling in-house package, `@revealui/tokens`. Everything else, the 60 components and the machinery that powers them, is in the box and MIT licensed.
 
 This post is about why a component library should be something you own outright, and how this one is built.
 
@@ -29,7 +29,7 @@ The set is meant to cover real business software, not just a demo: `accordion`, 
 
 The dependency story is the headline:
 
-- **One runtime dependency:** `tailwind-merge`, for safely merging Tailwind class lists.
+- **One third-party runtime dependency:** `tailwind-merge`, for safely merging Tailwind class lists. Design tokens come from the in-house `@revealui/tokens` package, not from npm.
 - **React is a peer dependency**, not a bundled copy. The package works on React 18 or 19; RevealUI runs it on 19.
 - **Tailwind v4** for styling.
 
@@ -90,7 +90,7 @@ Because the tokens are semantic rather than literal, a component never says "blu
 
 ## The trade-off
 
-Here is the honest version. A from-scratch component layer trades away two real things: the ecosystem breadth of a Radix or an MUI, and the millions of hours of edge-case hardening that a widely used library accumulates. If you need an exotic widget that is not among the 59, you build it, on the same primitives, rather than `npm install`-ing it in an afternoon.
+Here is the honest version. A from-scratch component layer trades away two real things: the ecosystem breadth of a Radix or an MUI, and the millions of hours of edge-case hardening that a widely used library accumulates. If you need an exotic widget that is not among the 60, you build it, on the same primitives, rather than `npm install`-ing it in an afternoon.
 
 What you get back is ownership. No major-version migrations dictated by someone else's roadmap. No dependency that can change behavior under you. No styling you cannot reach. For business software, where the component needs are broad but not exotic, that is the trade I want, and it is the one RevealUI makes by default.
 
