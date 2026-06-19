@@ -3,6 +3,7 @@ title: "Paying for AI API Calls with HTTP 402 and USDC"
 description: "_By Joshua Vaughn - RevealUI Studio_"
 visibility: public
 status: narrative
+roadmap: "Coming soon: x402 #93, agent marketplace #526"
 audience: user
 author: Joshua Vaughn
 ---

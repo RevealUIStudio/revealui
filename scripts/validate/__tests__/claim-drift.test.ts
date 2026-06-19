@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  AGENT_COMMERCE_BLOCKLIST,
   CLI_TEMPLATE_CLAIM_PATTERNS,
   countCliTemplates,
   countDirs,
@@ -12,6 +13,7 @@ import {
   extractRevealuiPackages,
   findIncompleteProList,
   findLicenseSplitAntiPattern,
+  isRoadmapDeclaredFile,
   makeIgnoredPathPredicate,
   parseGitIgnoredOutput,
   WALK_EXCLUDED_DIRS,
@@ -403,5 +405,53 @@ describe('findLicenseSplitAntiPattern', () => {
     expect(findLicenseSplitAntiPattern('21 published + 5 private packages')).toBe(
       'N published + M private',
     );
+  });
+});
+
+describe('AGENT_COMMERCE_BLOCKLIST (x402 / marketplace presented as live)', () => {
+  const tokenFor = (needle: string): RegExp => {
+    const entry = AGENT_COMMERCE_BLOCKLIST.find((e) => e.label.includes(needle));
+    if (!entry) throw new Error(`no agent-commerce blocklist entry for ${needle}`);
+    return entry.token;
+  };
+  const x402 = tokenFor('x402');
+  const market = tokenFor('marketplace');
+
+  it('flags x402 presented as live but not neutral mentions', () => {
+    expect(x402.test('Big news: x402 is live today for every caller')).toBe(true);
+    expect(x402.test('x402 payments are available now')).toBe(true);
+    expect(x402.test('the x402 protocol, developed by Coinbase')).toBe(false);
+    expect(x402.test('## How x402 Works')).toBe(false);
+    expect(x402.test('the endpoints are code-complete behind X402_ENABLED=false')).toBe(false);
+    expect(
+      x402.test('x402 micropayments (USDC on Base) are designed but not transactable today'),
+    ).toBe(false);
+  });
+
+  it('flags the agent/MCP marketplace presented as live, not a template marketplace', () => {
+    expect(market.test('the agent marketplace is open for publishing')).toBe(true);
+    expect(market.test('RevMarket is live today')).toBe(true);
+    expect(market.test('the MCP marketplace discovery document lists every server')).toBe(false);
+    expect(market.test('a template marketplace is available for plugins')).toBe(false);
+  });
+});
+
+describe('isRoadmapDeclaredFile', () => {
+  const fm = (body: string): string => `---
+${body}
+---
+
+body text
+`;
+
+  it('exempts a file that declares roadmap status WITH a tracker', () => {
+    expect(isRoadmapDeclaredFile(fm('roadmap: "Coming soon: x402 #93"'))).toBe(true);
+    expect(isRoadmapDeclaredFile(fm('lifecycle: "roadmap, tracked in #526"'))).toBe(true);
+  });
+
+  it('does not exempt an unlinked declaration or a non-frontmatter file', () => {
+    expect(isRoadmapDeclaredFile(fm('roadmap: "Coming soon"'))).toBe(false);
+    expect(isRoadmapDeclaredFile('no frontmatter, roadmap: see #93')).toBe(false);
+    expect(isRoadmapDeclaredFile(fm('title: "no roadmap key here"'))).toBe(false);
   });
 });
