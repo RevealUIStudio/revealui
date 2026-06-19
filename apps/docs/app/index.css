@@ -119,7 +119,7 @@
   .markdown-content h1 {
     font-family: var(--font-display);
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 800;
     margin-top: 0;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
@@ -132,7 +132,7 @@
   .markdown-content h2 {
     font-family: var(--font-display);
     font-size: 1.5rem;
-    font-weight: 650;
+    font-weight: 800;
     margin-top: 2.5rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
@@ -145,7 +145,7 @@
   .markdown-content h3 {
     font-family: var(--font-display);
     font-size: 1.25rem;
-    font-weight: 625;
+    font-weight: 700;
     margin-top: 2rem;
     margin-bottom: 0.75rem;
     line-height: 1.3;
