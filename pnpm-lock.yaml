@@ -266,7 +266,7 @@ importers:
         specifier: ^2.9.18
         version: 2.9.18
       typescript:
-        specifier: 5.9.3
+        specifier: 'catalog:'
         version: 5.9.3
       undici:
         specifier: '>=7.28.0 <8'
