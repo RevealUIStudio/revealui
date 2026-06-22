@@ -12,13 +12,13 @@
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
-    "hono": "4.12.25",
+    "hono": "4.12.26",
     "stripe": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
-    "@electric-sql/pglite-pgvector": "^0.0.3",
+    "@electric-sql/pglite-pgvector": "^0.0.4",
     "@playwright/test": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
