@@ -55,8 +55,8 @@ catalogs:
       specifier: ^3.0.3
       version: 3.0.3
     concurrently:
-      specifier: ^9.2.1
-      version: 9.2.1
+      specifier: ^9.2.3
+      version: 9.2.3
     dotenv:
       specifier: ^17.4.1
       version: 17.4.1
@@ -216,7 +216,7 @@ importers:
         version: 5.0.0
       concurrently:
         specifier: 'catalog:'
-        version: 9.2.1
+        version: 9.2.3
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -5606,8 +5606,8 @@ packages:
   compare-versions@6.1.1:
     resolution: {integrity: sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==}
 
-  concurrently@9.2.1:
-    resolution: {integrity: sha512-fsfrO0MxV64Znoy8/l1vVIjjHa29SZyyqPgQBwhiDcaW8wJc2W3XWVOGx4M3oJBnv/zdUZIIp1gDeS98GzP8Ng==}
+  concurrently@9.2.3:
+    resolution: {integrity: sha512-ihjs0E2SxvDgq/MK418hX6YycQgKhsqxpbZuZbHo0yKfqDWdymWMjWYIpCIzqDDLLKClHlXev8whW/8WXmJ0BA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -12938,7 +12938,7 @@ snapshots:
 
   compare-versions@6.1.1: {}
 
-  concurrently@9.2.1:
+  concurrently@9.2.3:
     dependencies:
       chalk: 4.1.2
       rxjs: 7.8.2
