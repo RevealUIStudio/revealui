@@ -48,6 +48,7 @@ export interface OpenAPIDocumentConfig {
   externalDocs?: { url: string; description?: string };
 }
 
+// biome-ignore lint/complexity/noBannedTypes: intentional open options type for future expansion
 export type GeneratorOptions = {};
 
 // =============================================================================
