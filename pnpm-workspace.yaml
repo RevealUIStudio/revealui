@@ -12,7 +12,7 @@ catalog:
   '@types/react-dom': ^19.2.3
   '@vitest/coverage-v8': ^4.1.8
   '@vitest/ui': ^4.1.8
-  '@electric-sql/pglite': ^0.5.2
+  '@electric-sql/pglite': ^0.5.3
   '@simplewebauthn/browser': ^13.3.0
   '@testing-library/jest-dom': ^6.9.1
   '@testing-library/react': ^16.3.2
