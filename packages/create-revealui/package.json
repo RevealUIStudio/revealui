@@ -1,6 +1,6 @@
 {
   "name": "create-revealui",
-  "version": "0.5.11",
+  "version": "0.5.12",
   "description": "Create a new RevealUI project",
   "keywords": [
     "cli",

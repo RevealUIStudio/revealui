@@ -1,5 +1,12 @@
 # @revealui/db
 
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies [95ddc7b]
+  - @revealui/config@0.4.3
+
 ## 0.7.1
 
 ### Patch Changes

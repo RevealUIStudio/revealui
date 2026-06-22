@@ -1,6 +1,6 @@
 {
   "name": "@revealui/tokens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "RevealUI design tokens — canonical CSS variables, typed TS export, and brand canon. Zero internal deps.",
   "keywords": [
     "design-tokens",
