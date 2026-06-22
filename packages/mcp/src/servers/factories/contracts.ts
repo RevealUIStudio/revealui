@@ -224,7 +224,6 @@ interface CategoryEntry {
   description: string;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Zod schemas vary in shape.
 const SCHEMA_REGISTRY = {
   a2a: {
     primary: 'agentCard',
@@ -458,7 +457,6 @@ export type ContractCategoryName = CategoryName;
 const CATEGORIES = Object.keys(SCHEMA_REGISTRY) as CategoryName[];
 
 // Constant exports for tests + runtime introspection.
-// biome-ignore lint/suspicious/noExplicitAny: ZodTypeAny convenience for tests.
 export const REGISTERED_CATEGORIES = CATEGORIES as readonly string[];
 
 // ---------------------------------------------------------------------------

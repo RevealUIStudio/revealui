@@ -255,6 +255,7 @@ function firstChars(node: RetToken | RetRoot): CharSet {
         const s = new Set<number>();
         for (const branch of node.options) {
           if (branch.length > 0) {
+            // biome-ignore lint/style/noNonNullAssertion: branch.length > 0 checked above
             const bc = firstChars(branch[0]!);
             if (bc === 'any') return 'any';
             for (const c of bc) s.add(c);
@@ -263,6 +264,7 @@ function firstChars(node: RetToken | RetRoot): CharSet {
         return s;
       }
       if (node.stack && node.stack.length > 0) {
+        // biome-ignore lint/style/noNonNullAssertion: node.stack.length > 0 checked above
         return firstChars(node.stack[0]!);
       }
       return new Set();
@@ -272,11 +274,13 @@ function firstChars(node: RetToken | RetRoot): CharSet {
       return firstChars(node.value);
 
     case RetNodeType.ROOT: {
+      // biome-ignore lint/style/noNonNullAssertion: node.stack.length > 0 checked above
       if (node.stack && node.stack.length > 0) return firstChars(node.stack[0]!);
       if (node.options) {
         const s = new Set<number>();
         for (const branch of node.options) {
           if (branch.length > 0) {
+            // biome-ignore lint/style/noNonNullAssertion: branch.length > 0 checked above
             const bc = firstChars(branch[0]!);
             if (bc === 'any') return 'any';
             for (const c of bc) s.add(c);
@@ -322,6 +326,7 @@ function lastChars(node: RetToken | RetRoot): CharSet {
         const s = new Set<number>();
         for (const branch of node.options) {
           if (branch.length > 0) {
+            // biome-ignore lint/style/noNonNullAssertion: branch.length > 0 checked above
             const bc = lastChars(branch[branch.length - 1]!);
             if (bc === 'any') return 'any';
             for (const c of bc) s.add(c);
@@ -330,6 +335,7 @@ function lastChars(node: RetToken | RetRoot): CharSet {
         return s;
       }
       if (node.stack && node.stack.length > 0) {
+        // biome-ignore lint/style/noNonNullAssertion: node.stack.length > 0 checked above
         return lastChars(node.stack[node.stack.length - 1]!);
       }
       return new Set();

@@ -2,12 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { csrfHeaders, getCsrfToken } from '../csrf.js';
 
 function seedCookie(cookie: string): void {
-  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API; direct assignment is the only way to seed cookies in tests
   document.cookie = cookie;
 }
 
 function expireCookie(name: string): void {
-  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API; direct assignment is the only way to clear cookies in tests
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
 

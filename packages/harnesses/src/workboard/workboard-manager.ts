@@ -54,9 +54,11 @@ function isSeparatorRow(cells: string[]): boolean {
 function parseTable(lines: string[]): { columns: string[]; rows: Record<string, string>[] } {
   if (lines.length < 2) return { columns: [], rows: [] };
 
+  // biome-ignore lint/style/noNonNullAssertion: lines.length >= 2 checked above
   const headerCells = splitRow(lines[0]!);
   if (!headerCells) return { columns: [], rows: [] };
 
+  // biome-ignore lint/style/noNonNullAssertion: lines.length >= 2 checked above
   const sepCells = splitRow(lines[1]!);
   if (!(sepCells && isSeparatorRow(sepCells))) return { columns: [], rows: [] };
 
@@ -70,10 +72,12 @@ function parseTable(lines: string[]): { columns: string[]; rows: Record<string, 
 
   const rows: Record<string, string>[] = [];
   for (let i = 2; i < lines.length; i++) {
+    // biome-ignore lint/style/noNonNullAssertion: i < lines.length loop invariant
     const cells = splitRow(lines[i]!);
     if (!cells || isSeparatorRow(cells)) continue;
     const row: Record<string, string> = {};
     for (let j = 0; j < columns.length; j++) {
+      // biome-ignore lint/style/noNonNullAssertion: j < columns.length loop invariant
       const col = columns[j]!;
       const raw = (cells[j] || '').trim();
       row[col] = raw === '-' ? '' : raw;
@@ -92,6 +96,7 @@ function parseWorkboard(content: string): WorkboardState {
   const lines = content.split('\n');
   const rawSections: Array<{ title: string; line: number }> = [];
   for (let i = 0; i < lines.length; i++) {
+    // biome-ignore lint/style/noNonNullAssertion: i < lines.length loop invariant
     const line = lines[i]!;
     const m = line.match(/^##\s+(.+)/);
     if (m?.[1]) rawSections.push({ title: m[1].trim(), line: i });
@@ -111,6 +116,7 @@ function parseWorkboard(content: string): WorkboardState {
   state.preamble = lines.slice(0, firstLine);
 
   for (let i = 0; i < rawSections.length; i++) {
+    // biome-ignore lint/style/noNonNullAssertion: i < rawSections.length loop invariant
     const sec = rawSections[i]!;
     const nextLine = i + 1 < rawSections.length ? rawSections[i + 1]?.line : lines.length;
     const body = lines.slice(sec.line + 1, nextLine);
@@ -155,9 +161,11 @@ function serializeTable(headers: string[], rows: Record<string, string>[]): stri
     return Math.max(h.length, dataMax, 3);
   });
 
+  // biome-ignore lint/style/noNonNullAssertion: widths and headers share the same length (mapped above)
   const headerLine = `| ${headers.map((h, i) => padCell(h, widths[i]!)).join(' | ')} |`;
   const sepLine = `| ${widths.map((w) => '-'.repeat(w)).join(' | ')} |`;
   const dataLines = rows.map(
+    // biome-ignore lint/style/noNonNullAssertion: widths and headers share the same length (mapped above)
     (row) => `| ${headers.map((h, i) => padCell(row[h] || '', widths[i]!)).join(' | ')} |`,
   );
 
@@ -313,6 +321,7 @@ export class WorkboardManager {
       const state = this.readUnlocked();
       const idx = state.agents.findIndex((a) => a.id === id);
       if (idx < 0) return;
+      // biome-ignore lint/style/noNonNullAssertion: idx >= 0 checked above
       state.agents[idx] = { ...state.agents[idx]!, ...updates };
       this.writeUnlocked(state);
     });
@@ -344,6 +353,7 @@ export class WorkboardManager {
       const state = this.readUnlocked();
       const idx = state.tasks.findIndex((t) => t.id === taskId);
       if (idx === -1) return;
+      // biome-ignore lint/style/noNonNullAssertion: splice(idx,1) returns exactly 1 element since idx !== -1
       const task = state.tasks.splice(idx, 1)[0]!;
       state.done.unshift({
         id: task.id,
@@ -398,6 +408,7 @@ export class WorkboardManager {
       const state = this.readUnlocked();
       const idx = state.blocked.findIndex((t) => t.id === taskId);
       if (idx === -1) return;
+      // biome-ignore lint/style/noNonNullAssertion: splice(idx,1) returns exactly 1 element since idx !== -1
       const blocked = state.blocked.splice(idx, 1)[0]!;
       state.tasks.push({
         id: blocked.id,

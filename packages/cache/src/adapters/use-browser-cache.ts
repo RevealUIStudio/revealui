@@ -82,8 +82,8 @@ export function useBrowserCache(): UseBrowserCacheResult {
 
       // Close the cache when no components are using it
       if (refCount === 0 && sharedCache) {
-        // empty-catch-ok: close() failure during React unmount is benign — the browser GCs the IDB handle on its own.
-        sharedCache.close().catch(() => {});
+        // close() failure during React unmount is benign — browser GCs the IDB handle on its own.
+        sharedCache.close().catch(() => void 0);
         sharedCache = null;
         initPromise = null;
       }

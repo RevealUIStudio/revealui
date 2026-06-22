@@ -49,7 +49,6 @@ export function NavBar() {
 
   // Close the mobile menu after a client-side navigation (covers browser
   // back/forward, where a link's own onClick never fires).
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the intended re-run trigger, not read in the body
   useEffect(() => {
     setOpen(false);
   }, [pathname]);

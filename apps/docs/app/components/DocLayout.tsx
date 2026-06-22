@@ -300,7 +300,6 @@ export function DocLayout({ children }: DocLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Close sidebar on route change  -  pathname is the intentional trigger
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname change is what triggers this effect
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
