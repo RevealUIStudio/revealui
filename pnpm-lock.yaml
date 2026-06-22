@@ -260,7 +260,7 @@ importers:
         specifier: ^14.3.1
         version: 14.3.1
       tsx:
-        specifier: 4.22.4
+        specifier: 'catalog:'
         version: 4.22.4
       turbo:
         specifier: ^2.9.18
@@ -8188,6 +8188,7 @@ packages:
 
   stream-to-promise@2.2.0:
     resolution: {integrity: sha512-HAGUASw8NT0k8JvIVutB2Y/9iBk7gpgEyAudXwNJmZERdMITGdajOa4VJfD/kNiA3TppQpTP4J+CtcHwdzKBAw==}
+    deprecated: Deprecated. Use node:stream/promises and node:stream/consumers instead.
 
   streamx@2.25.0:
     resolution: {integrity: sha512-0nQuG6jf1w+wddNEEXCF4nTg3LtufWINB5eFEN+5TNZW7KWJp6x87+JFL43vaAUPyCfH1wID+mNVyW6OHtFamg==}
