@@ -7,7 +7,7 @@ settings:
 catalogs:
   default:
     '@biomejs/biome':
-      specifier: ^2.5.0
+      specifier: ^2.4.16
       version: 2.5.0
     '@electric-sql/pglite':
       specifier: ^0.5.3
