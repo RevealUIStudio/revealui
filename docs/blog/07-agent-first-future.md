@@ -3,6 +3,7 @@ title: "Building for the Agent-First Internet"
 description: "*The web was built for browsers. The next web is being built for agents.*"
 visibility: public
 status: narrative
+roadmap: "Coming soon: x402 #93, agent marketplace #526"
 audience: user
 author: Joshua Vaughn
 ---
@@ -11,7 +12,7 @@ author: Joshua Vaughn
 
 ---
 
-> **Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) and the per-call MCP server marketplace are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (14 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.
+> **Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93)) and the per-call MCP server marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)) are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (14 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.
 
 ---
 
@@ -211,7 +212,7 @@ Agent                          RevealUI Marketplace             MCP Server
 
 The payment is verified by Coinbase's public facilitator at `x402.org/facilitator`. No API key required for verification. The entire flow is stateless from the agent's perspective -- pay, prove, get access.
 
-RevealUI's marketplace uses x402 as the payment rail for all per-call MCP server invocations. The default price is $0.001 USDC per call, but each server sets its own price.
+RevealUI's marketplace will use x402 as the payment rail for all per-call MCP server invocations (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)). The default price will be $0.001 USDC per call, but each server sets its own price.
 
 ### OpenAPI: The foundation layer
 
@@ -244,7 +245,7 @@ curl -X POST https://api.example.com/api/marketplace/servers \
 
 **The economics:** Developers earn 80% of each call's revenue. RevealUI takes 20%. Payouts happen via Stripe Connect -- developers onboard once, and transfers are batched automatically. At $0.001 per call, a server handling 100,000 calls per month generates $80 for the developer and $20 for the platform. At $0.005 per call, those numbers are $400 and $100.
 
-This is the first combined MCP + A2A registry. Smithery, mcpt, OpenTools, and Glama.ai list MCP servers. The a2a-registry.org lists A2A agents. RevealUI's marketplace is the first to combine both -- agents that are discoverable via A2A *and* tools that are invocable via MCP, with a payment layer that lets the economics work without manual billing integration. Registration on external registries (a2a-registry.org, Smithery, mcpt, OpenTools, Glama.ai) is planned for hard launch.
+This will be the first combined MCP + A2A registry (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)). Smithery, mcpt, OpenTools, and Glama.ai list MCP servers. The a2a-registry.org lists A2A agents. RevealUI's marketplace is the first to combine both -- agents that are discoverable via A2A *and* tools that are invocable via MCP, with a payment layer that lets the economics work without manual billing integration. Registration on external registries (a2a-registry.org, Smithery, mcpt, OpenTools, Glama.ai) is planned for hard launch.
 
 The marketplace is secured against common attack vectors. Developer-supplied MCP server URLs are validated against an SSRF guard that blocks loopback, link-local, and private RFC-1918 ranges. Proxied requests have a 30-second timeout. Rate limiting prevents probe abuse (30 invocations per minute per caller). And the x402 payment itself acts as an economic rate limiter -- every call costs real money, which naturally deters spam.
 
@@ -258,7 +259,7 @@ If you deploy a RevealUI instance today, you get agent-native infrastructure wit
 
 **Feature gating works for both audiences.** When a human user hits a Pro feature, they see the billing page and can upgrade. When an agent hits a Pro feature without a license, it gets a structured JSON error with the pricing URL. When x402 is enabled, agents can pay per-call instead of subscribing -- the same feature, two access patterns.
 
-**You can earn money from MCP servers while you sleep.** Publish an MCP server to the marketplace, set a per-call price, onboard with Stripe Connect, and agent calls generate passive revenue. The marketplace handles discovery, payment verification, proxying, transaction recording, and developer payouts.
+**You will be able to earn money from MCP servers while you sleep (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Publish an MCP server to the marketplace, set a per-call price, onboard with Stripe Connect, and agent calls generate passive revenue. The marketplace handles discovery, payment verification, proxying, transaction recording, and developer payouts.
 
 **The same code serves both audiences.** This is the key architectural insight. You do not build a "human API" and an "agent API." You build one API with Zod schemas and OpenAPI definitions. Humans consume it via the admin dashboard. Agents consume it via the OpenAPI spec and A2A protocol. The code is identical.
 

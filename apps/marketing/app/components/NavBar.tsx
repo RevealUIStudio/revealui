@@ -57,7 +57,11 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-        <NavLink href="/" className="text-xl font-bold tracking-tight text-foreground">
+        <NavLink
+          href="/"
+          className="flex items-center gap-2 font-display text-xl font-bold tracking-tight text-foreground"
+        >
+          <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-[22px] w-[22px]" />
           RevealUI
         </NavLink>
 

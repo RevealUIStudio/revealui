@@ -3,11 +3,12 @@ title: "Paying for AI API Calls with HTTP 402 and USDC"
 description: "_By Joshua Vaughn - RevealUI Studio_"
 visibility: public
 status: narrative
+roadmap: "Coming soon: x402 #93, agent marketplace #526"
 audience: user
 author: Joshua Vaughn
 ---
 
-> **Status note (updated 2026-05-26):** The x402 integration in RevealUI is **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Live agent payments are gated on the Stripe live-keys flip and the billing-readiness audit — see [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status). This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.
+> **Coming soon, not yet live (roadmap, tracked in [#93](https://github.com/RevealUIStudio/revealui/issues/93)):** x402 payments in RevealUI are **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Live agent payments are gated on the Stripe live-keys flip and the billing-readiness audit — see [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status). This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.
 
 ---
 
@@ -22,7 +23,7 @@ That model works fine for most APIs. But it breaks down for AI agent systems, wh
 - You want granular per-call pricing, not flat subscriptions
 - Payment is better handled at the protocol level than the application level
 
-The [x402 protocol](https://x402.org)  -  developed by Coinbase  -  finally gives 402 a real use. Here's how we implemented it in RevealUI, and why it's the right model for AI-native APIs.
+The [x402 protocol](https://x402.org)  -  developed by Coinbase  -  finally gives 402 a real use. Here's the design we have built in RevealUI and how it will work once x402 ships, and why it's the right model for AI-native APIs.
 
 ---
 
@@ -175,7 +176,7 @@ One line of setup. The SDK intercepts 402 responses, pays on-chain, retries. The
 
 ## The MCP Marketplace
 
-The cleaner application of x402 in RevealUI is the MCP Marketplace.
+The cleaner application of x402 in RevealUI is the MCP Marketplace (coming soon, tracked in [#526](https://github.com/RevealUIStudio/revealui/issues/526)).
 
 Developers publish Model Context Protocol servers to the marketplace with a per-call USDC price. Callers invoke them through RevealUI's proxy  -  which handles payment verification and SSRF protection  -  and the developer earns 80% of each call.
 
@@ -223,7 +224,7 @@ This is early. The tooling is still rough. Not every developer wants to deal wit
 
 ## Activating It
 
-In RevealUI, x402 is off by default. Enable it with two environment variables:
+When x402 ships, it will be off by default. You will enable it with a few environment variables:
 
 ```bash
 X402_ENABLED=true

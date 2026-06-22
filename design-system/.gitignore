@@ -34,8 +34,6 @@ _adherence.oxlintrc.json
 /CLAUDE.md
 /SKILL.md
 
-# reference/ — only MIRROR.sha256 is tracked; the mirror CSS stays local
+# reference/ — local mirror CSS stays local (MIRROR.sha256 drift gate retired;
+# tokens are canonical in @revealui/tokens, enforcement in packages/tokens + ci-gate)
 reference/*
-!reference/MIRROR.sha256
-
-# scripts/ — all tracked (token-drift-gate.cjs + its README.md)

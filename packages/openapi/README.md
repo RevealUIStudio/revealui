@@ -68,7 +68,7 @@ app.openapi(route, (c) => c.json({ id: '1', name: 'test' }, 201));
 ## Design Principles
 
 - **Unified**: Single schema definition drives validation, types, and OpenAPI spec
-- **Orthogonal**: Decoupled from business logic  -  validates at the boundary, not inside handlers
+- **Orthogonal**: Decoupled from business logic  -  validates at the boundary, not inside handlers (`zValidator`, `packages/openapi/src/zod-validator.ts:63`)
 - **Hermetic**: Request validation happens before handler execution, preventing invalid data from leaking through
 
 ## Contracts mirror — cross-language codegen pipeline (F8 Phase 3)

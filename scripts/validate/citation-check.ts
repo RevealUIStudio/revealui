@@ -47,7 +47,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { extractInlineCodeSpans, extractLinkTargets } from '../lib/md-links.js';
+import { extractInlineCodeSpans, extractLinkTargets, forEachProseLine } from '../lib/md-links.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -398,6 +398,23 @@ function isStructuralLine(trimmed: string): boolean {
   return false;
 }
 
+/**
+ * True when `tok` occurs in `lower` at a word boundary (start-of-string or a
+ * non-letter before it). Prevents `validates ` from matching inside
+ * `revalidates ` (an ISR-revalidation description, not a validation claim).
+ */
+function tokenAtWordBoundary(lower: string, tok: string): boolean {
+  let idx = lower.indexOf(tok);
+  while (idx !== -1) {
+    const before = idx === 0 ? '' : lower[idx - 1];
+    if (!(before >= 'a' && before <= 'z')) {
+      return true;
+    }
+    idx = lower.indexOf(tok, idx + 1);
+  }
+  return false;
+}
+
 /** True when `lower` (a lowercased line) reads as an uncited code-behaviour claim. */
 export function isUncitedClaim(rawLine: string, hasCitation: boolean): boolean {
   if (hasCitation) {
@@ -410,7 +427,7 @@ export function isUncitedClaim(rawLine: string, hasCitation: boolean): boolean {
   const lower = rawLine.toLowerCase();
   let claims = false;
   for (const tok of CLAIM_TOKENS) {
-    if (lower.includes(tok)) {
+    if (tokenAtWordBoundary(lower, tok)) {
       claims = true;
       break;
     }
@@ -545,21 +562,20 @@ export function scan(
       }
     }
 
-    // --- Coverage: uncited claims in gated docs only. ---
+    // --- Coverage: uncited claims in gated docs only. forEachProseLine skips
+    // YAML frontmatter + fenced code, so neither is mistaken for a claim. ---
     if (isGated) {
-      const lines = content.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        const lineNo = i + 1;
+      forEachProseLine(content, (rawLine, lineNo) => {
         const hasCitation = citedLines.has(lineNo);
-        if (isUncitedClaim(lines[i], hasCitation)) {
+        if (isUncitedClaim(rawLine, hasCitation)) {
           coverage.push({
             file: rel,
             line: lineNo,
-            excerpt: collapseWs(lines[i]).slice(0, 140),
-            key: normClaim(rel, lines[i]),
+            excerpt: collapseWs(rawLine).slice(0, 140),
+            key: normClaim(rel, rawLine),
           });
         }
-      }
+      });
     }
   }
   return { scanned: files.length, gated, validity, coverage };

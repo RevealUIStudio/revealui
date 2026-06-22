@@ -150,7 +150,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
 };
 ```
 
-Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama — no API key, no cloud bill). Pro unlocks AI agents, payments, sync, MCP, and the monitoring dashboard. Max adds AI memory, advanced inference configuration, and audit logging. Enterprise adds multi-tenant management and RevealUI Fleet — branded white-label deployment for your own customers (managed setup via RevForge). White-label and SSO are designed but not yet shipped, so the code forces those flags to `false` rather than advertise features that don't exist.
+Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama — no API key, no cloud bill). Pro unlocks AI agents, payments, sync, MCP, and the monitoring dashboard. Max adds AI memory, advanced inference configuration, and audit logging. Enterprise adds multi-tenant management and RevealUI Fleet — branded white-label deployment for your own customers (managed setup via RevForge). White-label and SSO are on the roadmap, designed but not yet shipped (SSO tracked in [#449](https://github.com/RevealUIStudio/revealui/issues/449)), so the code forces those flags to `false` rather than advertise features that don't exist.
 
 ### Pricing served from a single source, not hardcoded
 
@@ -231,7 +231,7 @@ Some numbers on what's actually shipped:
 
 - **31 workspaces** across the monorepo (4 apps + 27 packages — 21 MIT, 5 Fair Source, 1 internal)
 - **85 database tables** via Drizzle ORM on NeonDB (Postgres)
-- **60 UI components** in `@revealui/presentation` (80 counting the admin engine) — zero external UI dependencies, just Tailwind v4, clsx, and CVA
+- **60 UI components** in `@revealui/presentation` — one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package
 - **14 first-party MCP servers** in `@revealui/mcp`
 - **Extensive test coverage** across unit, integration, and E2E layers (run `pnpm test` for the current count)
 - **Full OpenAPI spec** with Swagger UI at `/docs`

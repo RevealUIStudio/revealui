@@ -16,7 +16,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <div className="text-2xl font-bold tracking-tight text-foreground mb-4">
+            <div className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight text-foreground mb-4">
+              <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-7 w-7" />
               {SITE.brand}
             </div>
             <p className="text-muted-foreground text-sm leading-6 max-w-sm">{FOOTER_TAGLINE}</p>
@@ -24,7 +25,7 @@ export function Footer() {
               {FOOTER_SOLO_OPERATOR_NOTE}
             </p>
             <div className="mt-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
                 Stay in the loop
               </p>
               <NewsletterSignup />
@@ -71,7 +72,7 @@ export function Footer() {
           </div>
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+              <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">
                 {col.heading}
               </h3>
               <ul className="space-y-3 text-sm text-muted-foreground">

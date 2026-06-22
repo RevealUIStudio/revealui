@@ -117,6 +117,14 @@ jobs:
         # apps/docs/scripts/check-links.ts.
         run: pnpm --filter docs check:links
 
+      - name: Citation gate (hard fail, validity + coverage-strict)
+        # Every code-behaviour claim in gated docs must cite a source:line that
+        # resolves and sits in range (VALIDITY, zero baseline), and must not add
+        # a NEW uncited claim beyond the grandfathered baseline (COVERAGE, via
+        # --coverage-strict, Phase 3). Mirrors the local pnpm gate citation step
+        # in scripts/gates/ci-gate.ts. See CONTRIBUTING.md "Source citations".
+        run: pnpm validate:citations --coverage-strict
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
@@ -275,16 +283,6 @@ jobs:
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
-
-      - name: Design-system token drift gate (hard fail)
-        # Verifies that design-system/reference/MIRROR.sha256 still matches the
-        # published @revealui/presentation/design-context/tokens.css digest.
-        # Any tokens.css change in the monorepo that isn't reflected here fails
-        # CI, enforcing the mirror-of-mirror protection described in
-        # design-system/Spec · Token Drift Gate.html.
-        run: RVUI_TOKENS_SRC=packages/presentation/dist/design-context/tokens.css node design-system/scripts/token-drift-gate.cjs
-        env:
-          CI: "true"
 
   # ---------------------------------------------------------------------------
   # Phase 3a.1: Integration tests (all PRs + push to main — requires DB)

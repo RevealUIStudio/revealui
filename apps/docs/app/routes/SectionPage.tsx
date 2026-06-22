@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { useWildcardPath } from '../hooks/useWildcardPath';
-import { applyDocHead } from '../lib/head';
+import { applyDocHead, setRobotsNoindex } from '../lib/head';
 import { slugToPath } from '../lib/slug-manifest';
 import { loadMarkdownFile, parseFrontmatter, renderMarkdown } from '../utils/markdown';
 import type { DocSection } from '../utils/paths';
@@ -49,8 +49,12 @@ function SectionContent({ section, title }: SectionPageProps) {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
     async function loadDoc() {
       try {
         setLoading(true);
@@ -62,37 +66,50 @@ function SectionContent({ section, title }: SectionPageProps) {
         });
 
         try {
-          const loaded = await loadMarkdownFile(resolved.markdownPath, true);
-          setContent(loaded);
+          const loaded = await loadMarkdownFile(resolved.markdownPath, true, ctrl.signal);
+          if (!cancelled) {
+            setContent(loaded);
+            setNotFound(false);
+          }
         } catch (loadError) {
-          logger.error(
-            `[${title}] Failed to load: ${resolved.markdownPath}`,
-            loadError instanceof Error ? loadError : new Error(String(loadError)),
-          );
+          if (!cancelled) {
+            logger.error(
+              `[${title}] Failed to load: ${resolved.markdownPath}`,
+              loadError instanceof Error ? loadError : new Error(String(loadError)),
+            );
 
-          setContent(`# ${title}: ${resolved.displayPath || 'Index'}
+            setContent(`# ${title}: ${resolved.displayPath || 'Index'}
 
 Document not found at \`${resolved.markdownPath}\`.
 
 [Back to ${title}](/${section})
 `);
+            setNotFound(true);
+          }
         }
 
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : `Failed to load ${title}`;
-        setError(errorMessage);
-        logger.error(`[${title}] Error`, err instanceof Error ? err : new Error(String(err)));
-        setLoading(false);
+        if (!cancelled) {
+          const errorMessage = err instanceof Error ? err.message : `Failed to load ${title}`;
+          setError(errorMessage);
+          logger.error(`[${title}] Error`, err instanceof Error ? err : new Error(String(err)));
+          setLoading(false);
+        }
       }
     }
 
     void loadDoc();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
   }, [path, section, title]);
 
   // Per-page head: frontmatter title/description when present, else the
   // section title. The crawl-time defaults live in index.html; this keeps
-  // SPA navigation in sync.
+  // SPA navigation in sync. noindex is folded here so the robots tag stays
+  // in sync with the head state without a second effect.
   useEffect(() => {
     if (loading || error !== null) {
       return;
@@ -104,7 +121,9 @@ Document not found at \`${resolved.markdownPath}\`.
       title: fmTitle === '' ? title : fmTitle,
       description: fmDescription,
     });
-  }, [loading, error, content, title]);
+    setRobotsNoindex(notFound);
+    return () => setRobotsNoindex(false);
+  }, [loading, error, content, title, notFound]);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -174,6 +193,9 @@ function SectionIndex({ section, title, fallbackIndex }: SectionPageProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
     async function loadIndex() {
       try {
         const resolved = resolveDocPath({
@@ -181,27 +203,33 @@ function SectionIndex({ section, title, fallbackIndex }: SectionPageProps) {
           routePath: null,
         });
 
-        const indexContent = await loadMarkdownFile(resolved.markdownPath, true);
-        setContent(indexContent);
+        const indexContent = await loadMarkdownFile(resolved.markdownPath, true, ctrl.signal);
+        if (!cancelled) setContent(indexContent);
       } catch (error) {
-        logger.error(
-          `[${title}] Failed to load index`,
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        if (!cancelled) {
+          logger.error(
+            `[${title}] Failed to load index`,
+            error instanceof Error ? error : new Error(String(error)),
+          );
 
-        setContent(
-          fallbackIndex ||
-            `# ${title}
+          setContent(
+            fallbackIndex ||
+              `# ${title}
 
 Content is being organized. Check back soon!
 `,
-        );
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     void loadIndex();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
   }, [section, title, fallbackIndex]);
 
   // Section landing pages carry the section title in the head.

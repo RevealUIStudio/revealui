@@ -120,10 +120,10 @@ Response:
 
 The endpoint:
 
-1. Validates the user session
+1. Validates the user session (`apps/server/src/routes/billing.ts:749`)
 2. Finds or creates a Stripe customer (linked via `stripe_customer_id` in the users table)
 3. Creates a Checkout Session with the correct price
-4. Returns the Checkout URL
+4. Returns the Checkout URL (`apps/server/src/routes/billing.ts:856`)
 
 ### Success and Cancel URLs
 

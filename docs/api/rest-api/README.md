@@ -708,7 +708,7 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 
 **Verify a license key**
 
-Validates a JWT license key and returns the tier, features, and limits.
+Validates a JWT license key and returns the tier, features, and limits. (`apps/server/src/routes/license.ts:119`)
 
 **Request body** (JSON)
 
@@ -764,7 +764,7 @@ Returns which features are available at each license tier.
 
 **Verify a license key**
 
-Validates a JWT license key and returns the tier, features, and limits.
+Validates a JWT license key and returns the tier, features, and limits. (`apps/server/src/routes/license.ts:119`)
 
 **Request body** (JSON)
 
@@ -855,7 +855,7 @@ Creates a Stripe billing portal session for subscription management.
 
 **Get subscription status**
 
-Returns the current user's license tier, status, and expiration.
+Returns the current user's license tier, status, and expiration. (`apps/server/src/routes/billing.ts:907`)
 
 **Responses**
 
@@ -1054,7 +1054,7 @@ Creates a Stripe billing portal session for subscription management.
 
 **Get subscription status**
 
-Returns the current user's license tier, status, and expiration.
+Returns the current user's license tier, status, and expiration. (`apps/server/src/routes/billing.ts:907`)
 
 **Responses**
 
@@ -2736,7 +2736,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:93`)
 
 **Request body** (JSON)
 
@@ -2776,7 +2776,7 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:93`)
 
 **Request body** (JSON)
 

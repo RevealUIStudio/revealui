@@ -68,9 +68,9 @@ GATE_EXIT=0
 case "$BRANCH" in
   main|test)
     echo ""
-    echo "Running CI gate for protected branch '$BRANCH' (quality + typecheck + affected tests)..."
+    echo "Running CI gate for protected branch '$BRANCH' (quality + typecheck; build + tests run in CI)..."
     echo ""
-    pnpm gate --no-build || GATE_EXIT=$?
+    pnpm gate --no-build --no-test || GATE_EXIT=$?
     ;;
   *)
     echo ""

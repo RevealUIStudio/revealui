@@ -285,13 +285,14 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
-        // Source-citation gate (CONTRIBUTING.md — Source citations). Warn-only on
-        // introduction (like docs import drift); flip to hard-fail on validity
-        // by dropping --warn once it has run green for a cycle.
-        name: 'Citation gate',
+        // Source-citation gate (CONTRIBUTING.md — Source citations). VALIDITY
+        // (every path:line citation must resolve and sit in-range) HARD-FAILS;
+        // COVERAGE is now hard-fail too via --coverage-strict (Phase 3): NEW
+        // uncited code-behaviour claims beyond the grandfathered baseline fail.
+        // Mirrored in CI by the Quality job step in .github/workflows/ci.yml.
+        name: 'Citation gate (hard fail)',
         command: 'pnpm',
-        args: ['validate:citations', '--warn'],
-        warnOnly: true,
+        args: ['validate:citations', '--coverage-strict'],
       },
       {
         name: 'Pro license validation',
@@ -337,6 +338,11 @@ async function gate(): Promise<void> {
         name: 'Stripe-client consolidation (hard fail)',
         command: 'pnpm',
         args: ['validate:stripe-client'],
+      },
+      {
+        name: 'Pricing lockstep (hard fail)',
+        command: 'pnpm',
+        args: ['validate:pricing-lockstep'],
       },
       {
         name: 'Client-bundle safety (hard fail)',

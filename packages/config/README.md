@@ -15,7 +15,7 @@ Environment configuration management for RevealUI - type-safe environment variab
 - **Type-safe**: Full TypeScript support with Zod validation
 - **Environment detection**: Automatically detects NODE_ENV
 - **Dotenv loading**: Loads `.env` files with priority
-- **Validation**: Validates all environment variables on load
+- **Validation**: Validates all environment variables on load (`packages/config/src/validator.ts:57`)
 - **MCP Configuration**: Configuration management for MCP servers
 - **RevealUI Config**: RevealUI-specific configuration
 
@@ -41,7 +41,7 @@ console.log(config.stripe.secretKey)
 console.log(config.storage.blobToken)
 ```
 
-The package also exports a lazy-proxy default export that validates on first property access:
+The package also exports a lazy-proxy default export (`packages/config/src/index.ts:217`) that validates on first property access:
 
 ```typescript
 import config from '@revealui/config'
@@ -74,7 +74,7 @@ const mcpConfig = getMcpConfig()
 
 ## Environment Variables
 
-The config package validates these environment variables:
+The config package validates these environment variables (schema: `packages/config/src/schema.ts:187`):
 
 ### Required Variables
 
@@ -156,7 +156,7 @@ pnpm --filter @revealui/config lint
 
 ## Design Principles
 
-- **Unified**: One config loader validates and types all environment variables across every app and package
+- **Unified**: One config loader (`getConfig`, `packages/config/src/index.ts:184`) validates and types all environment variables across every app and package
 - **Hermetic**: Validation runs at load time  -  invalid or missing variables fail fast, never leak into runtime
 
 ## Related Documentation

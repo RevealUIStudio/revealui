@@ -1,0 +1,82 @@
+# .github/workflows/ds.yml — RevealUI design-system gates
+#
+# Drop this into the monorepo at .github/workflows/ds.yml. It runs the
+# dependency-free DS-folder gate plus the existing token contract checks.
+#
+#   1. adherence-lint    — app/artifact CODE stays on-system (no hardcoded
+#                          greys, off-token colors, non-brand fonts, …)
+#   2. tokens contract   — the repo's own gen:manifest:check + vitest contract
+#
+# Conventions match the repo's existing ci.yml (pinned action SHAs, pnpm
+# action-setup @ PNPM_VERSION, node 24, persist-credentials:false).
+
+name: design-system
+
+on:
+  pull_request:
+    branches: [main, test]
+    paths:
+      - 'apps/**'
+      - 'packages/tokens/**'
+      - 'packages/presentation/**'
+      - '.github/workflows/ds.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  adherence:
+    name: DS adherence lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # STAGED ROLLOUT — start in --warn (report-only) so the existing backlog
+      # (design-system/remediation/*-convergence.md) doesn't block merges.
+      # Once the convergence patches land, delete `--warn` to make drift a
+      # hard failure across all apps.
+      - name: Adherence lint (apps — report-only)
+        run: node packages/tokens/scripts/adherence-lint.cjs --warn apps
+      # Ratchet: enforce hard on the surfaces already converged (PR #1550), so the
+      # cleaned apps can't regress while the rest stay report-only above. Add a
+      # line per app as each is cleaned.
+      - name: Adherence lint (marketing — enforced)
+        run: node packages/tokens/scripts/adherence-lint.cjs apps/marketing
+      - name: Adherence lint (docs — enforced)
+        run: node packages/tokens/scripts/adherence-lint.cjs apps/docs
+
+  tokens-contract:
+    name: tokens pack in sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      # Hard-fails if src/tokens.css changed without regenerating the
+      # design-context pack (the SHA the DS mirror is pinned against).
+      - name: design-context manifest in sync
+        run: pnpm --filter @revealui/tokens gen:manifest:check
+      # The tokens + presentation contract tests (values, brand-meta, contrast).
+      - name: tokens contract tests
+        run: pnpm --filter @revealui/tokens test

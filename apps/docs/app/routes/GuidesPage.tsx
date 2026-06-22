@@ -2,6 +2,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
+import { useNoindex } from '../hooks/useNoindex';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import { resolveDocPath } from '../utils/paths';
@@ -11,8 +12,14 @@ function GuideContent() {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  useNoindex(notFound);
 
   useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
     async function loadGuide() {
       try {
         setLoading(true);
@@ -25,37 +32,49 @@ function GuideContent() {
         });
 
         try {
-          const loaded = await loadMarkdownFile(resolved.markdownPath, true); // Use cache
-          setContent(loaded);
+          const loaded = await loadMarkdownFile(resolved.markdownPath, true, ctrl.signal);
+          if (!cancelled) {
+            setContent(loaded);
+            setNotFound(false);
+          }
         } catch (loadError) {
-          // Log error for debugging
-          logger.error(
-            `[GuidesPage] Failed to load guide: ${resolved.markdownPath}`,
-            loadError instanceof Error ? loadError : new Error(String(loadError)),
-          );
+          if (!cancelled) {
+            // Log error for debugging
+            logger.error(
+              `[GuidesPage] Failed to load guide: ${resolved.markdownPath}`,
+              loadError instanceof Error ? loadError : new Error(String(loadError)),
+            );
 
-          // Fallback to placeholder
-          setContent(`# Guide: ${resolved.displayPath || 'Index'}
+            // Fallback to placeholder
+            setContent(`# Guide: ${resolved.displayPath || 'Index'}
 
 Guide not found at \`${resolved.markdownPath}\`.
 
 Available guides are loaded from the \`docs/guides/\` directory.
 `);
+            setNotFound(true);
+          }
         }
 
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load guide';
-        setError(errorMessage);
-        logger.error(
-          '[GuidesPage] Error loading guide',
-          err instanceof Error ? err : new Error(String(err)),
-        );
-        setLoading(false);
+        if (!cancelled) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to load guide';
+          setError(errorMessage);
+          logger.error(
+            '[GuidesPage] Error loading guide',
+            err instanceof Error ? err : new Error(String(err)),
+          );
+          setLoading(false);
+        }
       }
     }
 
     void loadGuide();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
   }, [path]);
 
   if (loading) {
@@ -103,6 +122,9 @@ function GuideIndex() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
     async function loadIndex() {
       try {
         // Use shared path resolution utility for index
@@ -111,28 +133,34 @@ function GuideIndex() {
           routePath: null,
         });
 
-        const indexContent = await loadMarkdownFile(resolved.markdownPath, true); // Use cache
-        setContent(indexContent);
+        const indexContent = await loadMarkdownFile(resolved.markdownPath, true, ctrl.signal);
+        if (!cancelled) setContent(indexContent);
       } catch (error) {
-        // Log error for debugging
-        logger.error(
-          '[GuidesPage] Failed to load guides index',
-          error instanceof Error ? error : new Error(String(error)),
-        );
+        if (!cancelled) {
+          // Log error for debugging
+          logger.error(
+            '[GuidesPage] Failed to load guides index',
+            error instanceof Error ? error : new Error(String(error)),
+          );
 
-        // Fallback
-        setContent(`# Guides
+          // Fallback
+          setContent(`# Guides
 
 Welcome to the RevealUI Framework guides section.
 
 Guides are located in the \`docs/guides/\` directory. Available guides will be listed here once files are copied to the public directory.
 `);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     void loadIndex();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
   }, []);
 
   if (loading) {

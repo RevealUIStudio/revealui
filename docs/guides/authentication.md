@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-RevealUI uses session-based authentication backed by database-stored sessions. There are no JWTs. The sole authentication mechanism is a `revealui-session` cookie containing a hashed token that maps to a row in the `sessions` table.
+RevealUI uses session-based authentication backed by database-stored sessions. There are no JWTs. The sole authentication mechanism is a `revealui-session` cookie containing a hashed token that maps to a row in the `sessions` table (`packages/auth/src/server/session.ts:162`).
 
 **Package:** `@revealui/auth`
 
@@ -17,7 +17,7 @@ RevealUI uses session-based authentication backed by database-stored sessions. T
 1. User signs in with email/password or an OAuth provider
 2. A session row is created in the `sessions` table with a hashed token
 3. The raw token is set as an `HttpOnly`, `Secure`, `SameSite=Lax` cookie named `revealui-session`
-4. Every subsequent request validates the cookie against the hashed token in the database
+4. Every subsequent request validates the cookie against the hashed token in the database (`packages/auth/src/utils/token.ts:35`)
 5. Sessions expire after a configurable TTL and are refreshed on activity
 
 No tokens are stored in `localStorage` or sent as `Authorization` headers.

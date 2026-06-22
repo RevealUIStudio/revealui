@@ -178,7 +178,7 @@ That last exception is temporary, not a preferred pattern. It exists because the
 ### Type Safety Flow
 
 1. **Frontend** → Uses generated types for compile-time safety
-2. **API Routes** → Validates with contracts (runtime + compile-time)
+2. **API Routes** → Validates with contracts (runtime + compile-time) (`packages/openapi/src/zod-validator.ts:63`)
 3. **Type Adapters** → Convert DB types ↔ RevealUI types
 4. **Database** → Drizzle ORM provides type-safe queries
 
@@ -288,7 +288,7 @@ Transactional REST API + Real-time Sync Source
 
 **NOT Stored:**
 
-- ⚠️ RAG document chunks (`rag_chunks`) — only when the optional Supabase sidecar is enabled. Everything else, including `agent_memories` (via `pgvector`), lives in NeonDB.
+- ⚠️ RAG document chunks (`rag_chunks`, `packages/db/src/schema/rag.ts:94`) — only when the optional Supabase sidecar is enabled. Everything else, including `agent_memories` (via `pgvector`), lives in NeonDB.
 
 ### Characteristics
 
@@ -547,7 +547,7 @@ const memories = await db
 
 ### Tenant Model
 
-RevealUI implements robust multi-tenancy using RevealUI admin 3.x, allowing multiple organizations to share the same application instance with complete data isolation.
+RevealUI implements robust multi-tenancy (`packages/db/src/schema/tenants.ts:3`) using RevealUI admin 3.x, allowing multiple organizations to share the same application instance with complete data isolation.
 
 ```typescript
 Tenants Collection {
@@ -668,7 +668,7 @@ hooks: {
 ### Tenant Isolation Guarantees
 
 1. **Database Level**: Queries filtered by tenant relationship
-2. **API Level**: Access control validates tenant membership
+2. **API Level**: Access control validates tenant membership (`apps/admin/src/lib/access/tenants/checkTenantAccess.ts:29`)
 3. **UI Level**: Admin panel shows only current tenant's data
 
 ### Testing Tenant Isolation
@@ -1252,7 +1252,7 @@ Customer-facing meters should map to business activity rather than upstream infr
 ### Tenant Security
 
 **Database Level:** Queries filtered by tenant relationship
-**API Level:** Access control validates tenant membership
+**API Level:** Access control validates tenant membership (`apps/admin/src/lib/access/tenants/checkTenantAccess.ts:29`)
 **UI Level:** Admin panel shows only current tenant's data
 
 ---

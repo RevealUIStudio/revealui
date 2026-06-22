@@ -98,7 +98,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live." |
 | MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (14 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
-| Perpetual Licenses (Track C) | **Planned** | `comingSoon: true` in contracts. |
+| Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; live charging gated on the Stripe live-mode flip (same gate as subscriptions). |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
 | Enterprise SSO / SAML | **Planned** | Designed, not built. |
