@@ -21,7 +21,7 @@
     "@electric-sql/pglite": "catalog:",
     "pg": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24.13.0"

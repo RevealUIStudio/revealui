@@ -33,7 +33,7 @@
     "next": "^16.2.9",
     "next-devtools-mcp": "^0.3.10",
     "pg": "catalog:",
-    "playwright": "^1.60.0",
+    "playwright": "^1.61.0",
     "size-limit": "^12.1.0",
     "supabase-mcp": "^1.5.0",
     "syncpack": "^14.3.1",
