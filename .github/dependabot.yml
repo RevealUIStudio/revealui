@@ -89,6 +89,9 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # Fleet is on TS 6.x (catalog ^6.0.3). Never downgrade below 6.
+      - dependency-name: "typescript"
+        versions: ["< 6.0.0"]
     # Allow automatic rebasing
     rebase-strategy: "auto"
 
