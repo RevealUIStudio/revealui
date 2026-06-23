@@ -92,7 +92,6 @@ RevealUI is the runtime at the center of RevFleet — the RevealUI Studio produc
 | **RevVault**         | Age-encrypted secret vault (Rust CLI + desktop)          | MIT + Pro         |
 | **RevDev**           | AI engineering harness — multi-agent coordination        | MIT (early)       |
 | **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
-| **RevKit**           | Portable WSL dev environment toolkit                     | Pro               |
 | **RevSkills**        | Claude Code skills library                               | MIT               |
 | **RevealUI Fleet**   | White-label / enterprise deployment kit for RevealUI     | Enterprise tier   |
 
@@ -145,7 +144,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core: people, content, offers, payments, admin              |
 | **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
-| **Max**        | $299/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
+| **Max**        | $299/mo   | Full AI memory, audit log, higher limits         |
 | **Enterprise** | $1,499/mo | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked                                       |
 
 ## Apps

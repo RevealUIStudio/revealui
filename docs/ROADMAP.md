@@ -30,7 +30,6 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-06-11.
 | **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
 | **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
 | **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Schema, API routes, payouts cron, and admin UI built. Launch-gated pre-users: x402 disabled by default, no live charging. |
-| **RevKit** (templates) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Design documented. Stub implementation. |
 
 **Labels:** Production = real users + stable API. Beta = feature-complete, deployed, pre-users.
 Alpha = functional, not deployed/published. Planned = design or schema only.
@@ -73,9 +72,8 @@ RevealUI is the runtime at the center of a three-project ecosystem. Each project
 |---------|---------|---------|
 | **RevealUI** | Agentic business runtime (this repo) | MIT (core) + Commercial (Pro) |
 | **[RevVault](https://github.com/RevealUIStudio/revvault)** | Age-encrypted secret vault  -  Rust CLI, rotation engine, Tauri desktop app | MIT (CLI) + Pro (desktop, rotation) |
-| **[RevKit](https://github.com/RevealUIStudio/revkit)** | Portable dev environment toolkit  -  WSL provisioning, agent coordination protocol | MIT (agent coordination) + Max (provisioning) |
 
-**Dependency direction:** RevVault depends on nothing. RevKit integrates RevVault via its secret bridge. RevealUI consumes environment variables however they arrive.
+**Dependency direction:** RevVault depends on nothing. RevealUI consumes environment variables however they arrive.
 
 ---
 
@@ -116,7 +114,6 @@ Give users the ability to interact with an AI agent directly from the admin dash
 #### Ecosystem Integration — [#528](https://github.com/RevealUIStudio/revealui/issues/528)
 - RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
 - RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: the Rust rotation subsystem ships in the [RevVault repo](https://github.com/RevealUIStudio/revvault) at `crates/core/src/rotation/` (executor, provider framework, sync hooks) with a `revvault rotate <provider>` CLI supporting `--dry-run` (`crates/cli/src/commands/rotate.rs`); a small set of internal interactive rotation scripts covers providers not yet migrated._
-- RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
 #### Edge Cache + Encryption Helpers Integration
@@ -168,7 +165,7 @@ RevealUI offers four ways to pay:
 | **C  -  Perpetual** | One-time | $1,499 / $8,499 / $42,999 (1 year support included, renewable) |
 | **D  -  Professional Services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
-Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max).
+Ecosystem features by tier: RevVault desktop app + rotation engine (Pro).
 
 See [revealui.com/pricing](https://revealui.com/pricing) for details.
 

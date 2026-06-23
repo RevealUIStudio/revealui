@@ -49,7 +49,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Component Catalog](./COMPONENT_CATALOG.md): 60 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
-- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevForge, RevSkills, RevKit) — what each does and how they compose
+- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevForge, RevSkills) — what each does and how they compose
 
 ## Agent Coordination
 
@@ -70,7 +70,6 @@ RevealUI is one product in a fleet of seven that compose into an agent-first SDL
 - [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
 - [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
 - [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
-- [RevKit](./fleet/revkit.md) — portable WSL workstation toolkit
 
 ## Legal
 

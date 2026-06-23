@@ -96,10 +96,7 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevVault CLI + core crate | Yes | Yes | Yes | Yes |
 | RevVault desktop app | | Yes | Yes | Yes |
 | RevVault rotation engine | | Yes | Yes | Yes |
-| RevKit agent coordination protocol | Yes | Yes | Yes | Yes |
-| RevKit environment provisioning | | | Yes | Yes |
-
-The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
+The MIT-licensed component (RevVault CLI) is free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
 
 ## Licensing (Fair Source + MIT)
 
