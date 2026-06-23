@@ -8,6 +8,7 @@ import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
 import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
+import { GovernancePage } from './routes/GovernancePage';
 import { HomePage } from './routes/HomePage';
 import { LocalAiPage } from './routes/LocalAiPage';
 import { NotFoundPage } from './routes/NotFoundPage';
@@ -43,6 +44,11 @@ export function App() {
         path: '/local-ai',
         component: LocalAiPage,
         meta: { title: 'Local-first AI | RevealUI' },
+      },
+      {
+        path: '/governance',
+        component: GovernancePage,
+        meta: { title: 'Provable agent governance | RevealUI' },
       },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
       { path: '/blog', component: BlogIndexPage, meta: { title: 'Blog | RevealUI' } },
