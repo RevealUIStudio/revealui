@@ -6,6 +6,12 @@ import { selectAudience } from '../../lib/audience';
 import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
 
+// Shared trust strip (the signals the retired eyebrow pill used to carry).
+// Rendered above BOTH hero H1 variants and for both audiences, so the
+// "Local-first AI" chip lands without forking the ?hero=foundation A/B or
+// adding a third hero variant (positioning decision d).
+const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Audit-ready', 'Local-first AI'] as const;
+
 const ArrowIcon = () => (
   <svg
     className="h-4 w-4"
@@ -90,7 +96,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
 
       {/* Trust strip — the signals the retired eyebrow pill used to carry. */}
       <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
-        {['Open source', 'Self-hostable', 'Audit-ready'].map((signal) => (
+        {TRUST_SIGNALS.map((signal) => (
           <li key={signal} className="flex items-center gap-2">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
             {signal}
@@ -183,7 +189,7 @@ function NonTechnicalHero() {
 
       {/* Trust strip — mirror of TechnicalHero; same signals for the operator view. */}
       <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
-        {['Open source', 'Self-hostable', 'Audit-ready'].map((signal) => (
+        {TRUST_SIGNALS.map((signal) => (
           <li key={signal} className="flex items-center gap-2">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />
             {signal}

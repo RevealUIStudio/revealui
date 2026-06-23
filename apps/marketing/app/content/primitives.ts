@@ -212,9 +212,9 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     bgColor: 'bg-violet-500/10',
     ringColor: 'ring-violet-500/20',
     forYou: {
-      headline: 'AI agents that work on your business, no proprietary API keys',
+      headline: 'Agents on open-weight models you run yourself',
       description:
-        'AI agents manage content, process tasks, and coordinate workflows. Runs on open-weight models via Ubuntu Inference Snaps or Ollama. No vendor lock-in. Your own inference cost, not a per-token API tax.',
+        'Agents manage content, process tasks, and coordinate workflows on open-weight models running on infrastructure you own, via Ubuntu Inference Snaps or Ollama. Add a frontier provider in one config line: opt-in, never assumed. Your own inference cost, not a per-token API tax.',
     },
     forAgents: {
       headline: 'A2A protocol, CRDT memory, and MCP servers',
