@@ -133,3 +133,76 @@ export const LOCAL_AI_PAGE = {
     secondary: { label: 'Read the docs', href: SITE.urls.docs },
   },
 } as const;
+
+// Provider-switch interactive (anchors the local-AI section). Toggling Local <->
+// Frontier changes the model, the data locus, and the cost model, while the
+// governance and audit row stays identical. The frontier-pathway made tangible.
+// Honesty: the local LLM_PROVIDER value is grep-accurate; frontier is described
+// as an opt-in adapter (the locked Pillar-2 framing), not a fabricated env value.
+export const PROVIDER_SWITCH = {
+  eyebrow: 'Local or frontier, same governance',
+  heading: 'Switch the model. The rules do not move.',
+  modes: {
+    local: {
+      label: 'Local',
+      badge: 'default',
+      model: 'gemma3, open-weight',
+      locus: 'Runs on your own box',
+      cost: 'Your inference cost, no per-token fee',
+      config: 'LLM_PROVIDER=inference-snaps',
+    },
+    frontier: {
+      label: 'Frontier',
+      badge: 'opt-in',
+      model: 'Claude, GPT, or Bedrock',
+      locus: 'Calls the vendor API you choose',
+      cost: 'Per-token vendor pricing',
+      config: 'add a frontier adapter, one config line',
+    },
+  },
+  attributes: [
+    { key: 'model', label: 'Model' },
+    { key: 'locus', label: 'Where it runs' },
+    { key: 'cost', label: 'Cost model' },
+    { key: 'config', label: 'Config' },
+  ],
+  constant: {
+    label: 'Constant either way',
+    items: [
+      'The same RBAC + ABAC permissions',
+      'The same tamper-evident audit log',
+      'The same MCP tools',
+    ],
+  },
+} as const;
+
+// Frontier-pathway visual: open-weight default -> add adapter -> governed and
+// audited, three steps, governance constant across all of them.
+export interface FrontierStep {
+  readonly n: string;
+  readonly title: string;
+  readonly body: string;
+}
+
+export const FRONTIER_PATHWAY = {
+  eyebrow: 'The frontier pathway',
+  heading: 'Start local. Escalate on purpose.',
+  steps: [
+    {
+      n: '1',
+      title: 'Open-weight default',
+      body: 'Agents run on an open-weight model on your own box. Zero config.',
+    },
+    {
+      n: '2',
+      title: 'Add an adapter',
+      body: 'When a task needs a frontier model, add the provider in one config line. Opt-in, never assumed.',
+    },
+    {
+      n: '3',
+      title: 'Governed and audited',
+      body: 'Whichever model runs, the same permissions govern it and the same audit log records it.',
+    },
+  ] as readonly FrontierStep[],
+  constant: 'Governance and audit stay identical across all three steps.',
+} as const;

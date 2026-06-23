@@ -150,15 +150,56 @@ export const HOME_PROBLEM = {
       agentOnly: 'Logs only',
       revealui: 'Hash-chained, in DB',
     },
-    {
-      capability: 'Cost (5 devs, mid-startup)',
-      sprawl: '~$320 to $700+ / mo',
-      agentOnly: '~$300 / mo + infra',
-      revealui: '$49 / mo + infra',
-    },
   ] as readonly ProblemRow[],
   footnote:
-    'Sprawl prices reflect typical mid-startup invoices. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
+    'Capability comparison only; the monthly cost is the calculator below. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
+} as const;
+
+// ---------------------------------------------------------------------------
+// Cost calculator (interactive; replaces the former static cost row)
+// ---------------------------------------------------------------------------
+// Output is ALWAYS a sanctioned range from 00-truth-source §3 (entry ~$320-380,
+// climbing past $700-1,000+). The inputs move you between those sourced brackets;
+// the component never invents a precise figure outside the §3 band. No vendor
+// names. Honesty: sourced + time-sensitive + excludes payment processing +
+// RevealUI is self-hosted (you pay your own Postgres + compute).
+
+export interface CostTier {
+  readonly id: string;
+  readonly range: string;
+  readonly note: string;
+}
+
+export const HOME_COST_CALCULATOR = {
+  eyebrow: 'The rented stack',
+  heading: 'Add up what you would otherwise rent.',
+  body: 'A multi-product team rents auth, content, billing, observability, and background jobs from four to six vendors. Estimate the monthly bill for that rented stack, then compare it to one runtime you own.',
+  inputs: {
+    products: { label: 'Products you run', min: 1, max: 8, step: 1, default: 2 },
+    vendors: { label: 'Vendor services you would replace', min: 3, max: 6, step: 1, default: 5 },
+    mrr: { label: 'Monthly recurring revenue', min: 0, max: 50000, step: 5000, default: 10000 },
+  },
+  tiers: [
+    {
+      id: 'entry',
+      range: '$320 to $380 / month',
+      note: 'Entry tiers across four or five vendors.',
+    },
+    {
+      id: 'growth',
+      range: '$450 to $700 / month',
+      note: 'More products and seats push you up the published tiers.',
+    },
+    {
+      id: 'scale',
+      range: '$700 to $1,000+ / month',
+      note: 'Enterprise SSO, compliance tiers, or higher-tier auth enter.',
+    },
+  ] as const satisfies readonly CostTier[],
+  rentedLabel: 'The rented stack',
+  revealui: { label: 'RevealUI', value: '$49 / month', sub: '+ your own Postgres and compute' },
+  footnote:
+    'A sourced estimate from current 2026 published pricing, time-sensitive. It excludes payment processing, and RevealUI is self-hosted, so you still pay for your own Postgres and compute. Figures are ranges, not a quote.',
 } as const;
 
 // ---------------------------------------------------------------------------

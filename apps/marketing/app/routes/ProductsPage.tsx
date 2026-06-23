@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
 import { Proof } from '../components/landing/Proof';
@@ -10,6 +11,7 @@ import {
   PRODUCTS_PAGE_HERO,
   PRODUCTS_SISTERS,
   PRODUCTS_STATS_SECTION,
+  type ProductStatus,
 } from '../content/products';
 
 const ALL_PRODUCT_ANCHORS = [
@@ -17,7 +19,22 @@ const ALL_PRODUCT_ANCHORS = [
   ...PRODUCTS_SISTERS.map((p) => ({ slug: p.slug, name: p.name })),
 ] as const;
 
+// Filter chips for the fleet-products table. "All" plus each status, ordered
+// stability-descending to match the grid.
+const STATUS_FILTERS: readonly (ProductStatus | 'All')[] = [
+  'All',
+  'Beta',
+  'Alpha',
+  'Active (MIT)',
+  'Planned',
+];
+
 export function ProductsPage() {
+  const [filter, setFilter] = useState<ProductStatus | 'All'>('All');
+  const visibleSisters =
+    filter === 'All' ? PRODUCTS_SISTERS : PRODUCTS_SISTERS.filter((p) => p.status === filter);
+  const countFor = (f: ProductStatus | 'All') =>
+    f === 'All' ? PRODUCTS_SISTERS.length : PRODUCTS_SISTERS.filter((p) => p.status === f).length;
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
@@ -189,8 +206,36 @@ export function ProductsPage() {
             </p>
           </div>
 
-          <ul className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {PRODUCTS_SISTERS.map((product) => {
+          {/* Status filter chips (Phase D, interactive). */}
+          <div
+            className="mt-10 flex flex-wrap items-center justify-center gap-2"
+            role="tablist"
+            aria-label="Filter products by status"
+          >
+            {STATUS_FILTERS.map((f) => {
+              const selected = filter === f;
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setFilter(f)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium ring-1 transition ${
+                    selected
+                      ? 'bg-primary/10 text-primary ring-primary/30'
+                      : 'bg-card text-muted-foreground ring-border hover:text-foreground hover:ring-border/80'
+                  }`}
+                >
+                  {f}
+                  <span className="text-xs text-muted-foreground">{countFor(f)}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <ul className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {visibleSisters.map((product) => {
               const status = PRODUCT_STATUS_STYLES[product.status];
               return (
                 <li

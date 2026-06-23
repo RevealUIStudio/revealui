@@ -1,0 +1,31 @@
+import { FRONTIER_PATHWAY as F } from '../../content/local-ai';
+
+/**
+ * Frontier-pathway visual: a three-step progression (open-weight default -> add
+ * an adapter -> governed and audited) with a constant-governance footer. Static
+ * (no state); pairs with the interactive ProviderSwitch in the local-AI section.
+ */
+export function FrontierPathway() {
+  return (
+    <div className="mx-auto mt-12 max-w-4xl">
+      <div className="text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">{F.eyebrow}</p>
+        <h3 className="mt-2 text-xl font-semibold text-foreground">{F.heading}</h3>
+      </div>
+
+      <ol className="mt-8 grid grid-cols-1 gap-4 list-none p-0 sm:grid-cols-3">
+        {F.steps.map((step) => (
+          <li key={step.n} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-semibold text-primary">
+              {step.n}
+            </span>
+            <h4 className="mt-4 text-base font-semibold text-foreground">{step.title}</h4>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+          </li>
+        ))}
+      </ol>
+
+      <p className="mt-4 text-center text-sm font-medium text-primary">{F.constant}</p>
+    </div>
+  );
+}
