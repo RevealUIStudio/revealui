@@ -1,5 +1,7 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { LOCAL_AI_SECTION } from '../../content/local-ai';
+import { FrontierPathway } from './FrontierPathway';
+import { ProviderSwitch } from './ProviderSwitch';
 
 /**
  * Local-first AI home section. Sits between Primitives and Proof in the
@@ -51,6 +53,10 @@ export function LocalAi() {
             {LOCAL_AI_SECTION.snippet.caption}
           </p>
         </div>
+
+        {/* Provider-switch interactive + frontier-pathway visual (Phase D). */}
+        <ProviderSwitch />
+        <FrontierPathway />
 
         <div className="mx-auto mt-10 max-w-3xl space-y-3 text-center">
           <p className="text-sm leading-6 text-muted-foreground">{LOCAL_AI_SECTION.dogfood}</p>

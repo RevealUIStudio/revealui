@@ -3,7 +3,7 @@
 // uses METRICS license split (21 MIT). Pre-Phase-3 audit had off-by-one count.
 // Per docs/lanes/marketing-overhaul/plan.md §4.4 + docs/MARKETING_METRICS.md §1.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 
 export interface StackItem {
   readonly label: string;
@@ -106,4 +106,28 @@ export const PROOF_LOCAL_AI = {
   body: 'In the default config, agents run on an open-weight model on infrastructure you own, so the content they read and write stays in your boundary. RevDev Studio, the harness the team uses to build RevealUI, runs the same local inference.',
   linkLabel: 'See local-first AI →',
   linkHref: '/local-ai',
+} as const;
+
+// Live-metrics snapshot badge. Every integer is read from site.ts METRICS, which
+// is pinned to the codebase by the claim-drift gate (build fails on drift). The
+// badge links to that validator so the "live from the repo" claim is checkable.
+export interface LiveMetric {
+  readonly value: number;
+  readonly label: string;
+}
+
+export const LIVE_METRICS = {
+  eyebrow: 'Live from the repo',
+  heading: 'Every number here is pinned to the codebase.',
+  body: 'These counts are validated on every PR by the claim-drift gate. If the code changes and a number drifts, the build fails before it can ship.',
+  metrics: [
+    { value: METRICS.packages, label: 'packages' },
+    { value: METRICS.apps, label: 'apps' },
+    { value: METRICS.testFiles, label: 'test files' },
+    { value: METRICS.uiComponents, label: 'UI components' },
+    { value: METRICS.mcpServers, label: 'MCP servers' },
+    { value: METRICS.dbTables, label: 'DB tables' },
+  ] as readonly LiveMetric[],
+  validatorLabel: 'See the validator →',
+  validatorHref: `${SITE.urls.repo}/blob/main/scripts/validate/claim-drift.ts`,
 } as const;
