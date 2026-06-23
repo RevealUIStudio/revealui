@@ -112,7 +112,7 @@ pnpm --filter @revealui/harnesses build
 
 - [Coordination Rules](../../.claude/rules/coordination.md)  -  Multi-instance protocol
 - [Architecture Guide](../../docs/ARCHITECTURE.md)  -  System architecture
-- [Editors Package](../editors/README.md)  -  Editor daemon (parallel architecture)
+- [RevCon](https://github.com/RevealUIStudio/revcon)  -  Editor config sync across agents (separate fleet repo)
 
 ## License
 
