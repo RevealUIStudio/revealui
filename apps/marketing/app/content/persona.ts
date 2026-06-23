@@ -23,7 +23,7 @@ export const PERSONA_CARD = {
   footer: {
     prefix: 'Also a fit for',
     sprawl: 'teams escaping backend-platform sprawl',
-    sprawlNote: '(Convex + Supabase + Clerk + Trigger), and',
+    sprawlNote: '(four or five separate backend services), and',
     studios: 'studios + consultancies',
     studiosNote:
       'white-labeling one runtime across N customers without re-licensing N SaaS stacks.',

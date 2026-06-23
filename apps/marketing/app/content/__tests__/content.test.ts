@@ -10,9 +10,9 @@ import { METRICS, SITE } from '../site';
 // rules the marketing-overhaul lane established. Metric VALUES are enforced
 // separately against the codebase by scripts/validate/claim-drift.ts.
 
-// Canonical primitive contract (Joshua's methodology corpus): Users / Content /
-// Products / Payments / Intelligence. Body copy and footer reconcile to these.
-const FIVE_PRIMITIVES = ['Users', 'Content', 'Products', 'Payments', 'Intelligence'];
+// Canonical primitive contract (Joshua's methodology corpus): People / Content /
+// Offers / Payments / Agents. Body copy and footer reconcile to these.
+const FIVE_PRIMITIVES = ['People', 'Content', 'Offers', 'Payments', 'Agents'];
 
 describe('marketing content contracts', () => {
   describe('primitives', () => {

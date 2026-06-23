@@ -4,7 +4,7 @@
 //   - ProductsPrimitive: full forYou/forAgents/together/features deep-dive (used by ProductsPage.tsx)
 //   Both are canonical here. Phase 4 reconciles any copy redundancy.
 // Per docs/lanes/marketing-overhaul/plan.md §4.4.
-// Intelligence primitive MCP count is sourced from METRICS.mcpServers
+// Agents primitive MCP count is sourced from METRICS.mcpServers
 // (currently 14, per docs/MARKETING_METRICS.md §1) — never hardcoded here.
 
 import { METRICS, SITE } from './site';
@@ -23,13 +23,13 @@ export interface HomePrimitive {
 export const HOME_PRIMITIVES_SECTION = {
   eyebrow: 'Five primitives. One login. One audit trail.',
   heading: "Everything a business needs. Nothing you don't.",
-  body: 'Users, content, products, payments, and intelligence: the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
+  body: 'People, content, offers, payments, and agents: the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
 } as const;
 
 export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
   {
-    label: 'Users',
+    label: 'People',
     body: 'Auth, sessions, RBAC + ABAC. Same policy governs human and agent access.',
     color: 'emerald',
     iconPath:
@@ -43,7 +43,7 @@ export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
       'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
   },
   {
-    label: 'Products',
+    label: 'Offers',
     body: 'Catalogs, entitlements, feature flags. Gates govern agent capabilities.',
     color: 'amber',
     iconPath:
@@ -57,8 +57,8 @@ export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
       'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
   },
   {
-    label: 'Intelligence',
-    body: 'Agents, MCP servers, CRDT memory. Bring-your-own-model; open-weight default.',
+    label: 'Agents',
+    body: 'Agents, MCP servers, persistent memory. Bring-your-own-model with an open-weight default.',
     color: 'violet',
     iconPath:
       'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z',
@@ -88,7 +88,7 @@ export interface ProductsPrimitive {
 
 export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
   {
-    name: 'Users',
+    name: 'People',
     icon: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
     color: 'text-blue-600',
     bgColor: 'bg-blue-500/10',
@@ -148,7 +148,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     ],
   },
   {
-    name: 'Products',
+    name: 'Offers',
     icon: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z',
     color: 'text-purple-600',
     bgColor: 'bg-purple-500/10',
@@ -206,7 +206,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     ],
   },
   {
-    name: 'Intelligence',
+    name: 'Agents',
     icon: 'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z',
     color: 'text-violet-600',
     bgColor: 'bg-violet-500/10',
@@ -214,7 +214,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     forYou: {
       headline: 'AI agents that work on your business, no proprietary API keys',
       description:
-        'AI agents manage content, process tasks, and coordinate workflows. Runs on open models only (Apache 2.0) via Ubuntu Inference Snaps or Ollama. No vendor lock-in, no API bills.',
+        'AI agents manage content, process tasks, and coordinate workflows. Runs on open-weight models via Ubuntu Inference Snaps or Ollama. No vendor lock-in. Your own inference cost, not a per-token API tax.',
     },
     forAgents: {
       headline: 'A2A protocol, CRDT memory, and MCP servers',
