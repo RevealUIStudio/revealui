@@ -1,6 +1,7 @@
 import { ButtonCVA } from '@revealui/presentation';
 import {
   PROOF_CI_SIGNALS,
+  PROOF_LOCAL_AI,
   PROOF_PORTABILITY,
   PROOF_REPO_SIGNALS,
   PROOF_SECTION,
@@ -166,6 +167,23 @@ export function Proof() {
                 </a>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Local-AI proof beat: in-boundary by default, dogfooded by RevDev. */}
+        <div className="mx-auto mt-16 max-w-5xl">
+          <div className="rounded-2xl bg-secondary p-8 ring-1 ring-border">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+              {PROOF_LOCAL_AI.eyebrow}
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-foreground">{PROOF_LOCAL_AI.heading}</h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{PROOF_LOCAL_AI.body}</p>
+            <a
+              href={PROOF_LOCAL_AI.linkHref}
+              className="mt-4 inline-block text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
+            >
+              {PROOF_LOCAL_AI.linkLabel}
+            </a>
           </div>
         </div>
 

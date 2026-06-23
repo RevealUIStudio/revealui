@@ -9,6 +9,7 @@ import { FairSourcePage } from './routes/FairSourcePage';
 import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
 import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
 import { HomePage } from './routes/HomePage';
+import { LocalAiPage } from './routes/LocalAiPage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
@@ -37,6 +38,11 @@ export function App() {
         path: '/philosophy',
         component: PhilosophyPage,
         meta: { title: 'Why RevealUI exists | RevealUI' },
+      },
+      {
+        path: '/local-ai',
+        component: LocalAiPage,
+        meta: { title: 'Local-first AI | RevealUI' },
       },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
       { path: '/blog', component: BlogIndexPage, meta: { title: 'Blog | RevealUI' } },

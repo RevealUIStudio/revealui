@@ -96,3 +96,14 @@ export const PROOF_TRUST = {
     href: SITE.urls.repoChangelog,
   },
 } as const;
+
+// Local-AI proof beat. The default config keeps content in-boundary and the
+// team's own harness (RevDev) runs the same local inference, so the open-model
+// claim is dogfooded, not asserted. Links onward to the /local-ai surface.
+export const PROOF_LOCAL_AI = {
+  eyebrow: 'Local-first AI',
+  heading: 'The AI runs on your box, not a vendor cloud.',
+  body: 'In the default config, agents run on an open-weight model on infrastructure you own, so the content they read and write stays in your boundary. RevDev Studio, the harness the team uses to build RevealUI, runs the same local inference.',
+  linkLabel: 'See local-first AI →',
+  linkHref: '/local-ai',
+} as const;

@@ -13,6 +13,7 @@ import { Demo } from '../components/landing/Demo';
 import { Faq } from '../components/landing/Faq';
 import { Fork } from '../components/landing/Fork';
 import { Hero } from '../components/landing/Hero';
+import { LocalAi } from '../components/landing/LocalAi';
 import { Objections } from '../components/landing/Objections';
 import { Persona } from '../components/landing/Persona';
 import { PricingTeaser } from '../components/landing/PricingTeaser';
@@ -38,6 +39,7 @@ function TechnicalLanding() {
       <ThesisBand />
       <WhatsShipped />
       <Persona />
+      <LocalAi />
       <Proof />
       <PricingTeaser />
       <Faq />
