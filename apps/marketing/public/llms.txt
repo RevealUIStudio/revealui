@@ -7,7 +7,7 @@
 - [Documentation home](https://docs.revealui.com): Architecture, primitives, deployment, agent integration
 - [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status — what's tested, what's stub, what's not yet wired
 - [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, 4 apps (admin, server, docs, marketing), 27 packages (21 published to npm)
-- [Meet the Fleet](https://docs.revealui.com/SUITE): Seven products that compose **RevFleet**: RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), **RevealUI Fleet** (self-host runtime kit, deployed via the **RevForge** stamping tool — formerly RevealUI Forge), RevSkills (skills), RevKit (WSL toolkit)
+- [Meet the Fleet](https://docs.revealui.com/SUITE): Six products that compose **RevFleet**: RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), **RevealUI Fleet** (self-host runtime kit, deployed via the **RevForge** stamping tool — formerly RevealUI Forge), RevSkills (skills)
 
 ## Getting started
 

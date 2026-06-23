@@ -38,7 +38,6 @@ Each of the seven products in RevFleet ships in its own repo. The table below or
 | **RevVault** | [revvault](https://github.com/RevealUIStudio/revvault) | Age-encrypted secret vault. CLI + Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet per the fleet-wide secrets rule. | per-product LICENSE |
 | **RevCon** | [revcon](https://github.com/RevealUIStudio/revcon) | Centralized editor configs (Zed, VS Code, Cursor) + agent-rule sync. Symlinked into target projects via `link.sh`; edits propagate instantly. Not gated by the RevealUI Pro license. | per-product LICENSE |
 | **RevSkills** | [revskills](https://github.com/RevealUIStudio/revskills) | Curated Agent Skills (`SKILL.md` format) for modern web development. Compatible with Claude Code, Cursor, and any tool supporting the Agent Skills standard. | per-product LICENSE |
-| **RevKit** | [revkit](https://github.com/RevealUIStudio/revkit) | Portable WSL development environment toolkit. Profile presets, bootstrap scripts, shell config, boot optimization, RevStation PowerShell module. | per-product LICENSE |
 
 ### RevealUI (the runtime)
 

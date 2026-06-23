@@ -259,7 +259,7 @@ export const HOME_FAQ = {
     {
       question: "What's the rest of RevFleet?",
       answer:
-        'RevFleet is the umbrella. RevealUI is the runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness (multi-agent coordination across Claude / Cursor / Copilot). RevCon syncs editor configs. RevSkills is the skills library. RevForge is the operator-side stamping tool that produces white-label trial kits. RevKit is the portable WSL dev environment. Use RevealUI standalone, or compose what you need.',
+        'RevFleet is the umbrella. RevealUI is the runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness (multi-agent coordination across Claude / Cursor / Copilot). RevCon syncs editor configs. RevSkills is the skills library. RevForge is the operator-side stamping tool that produces white-label trial kits. Use RevealUI standalone, or compose what you need.',
     },
     {
       question: 'How does AI inference work?',

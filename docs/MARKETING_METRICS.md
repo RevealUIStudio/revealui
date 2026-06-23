@@ -125,7 +125,6 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer-stamped Fleet kits |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
 | RevSkills | Shipped | Active (MIT) | Claude Code skills library |
-| RevKit | Planned | Pro (planned) | Portable WSL dev env |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
 
 Customer-stamped Fleet kits are NOT fleet products — they are per-customer brand instances produced via RevForge.
