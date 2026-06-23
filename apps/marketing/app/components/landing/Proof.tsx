@@ -10,6 +10,7 @@ import {
   PROOF_STACK_PANEL,
   PROOF_TRUST,
 } from '../../content/proof';
+import { LiveMetricsBadge } from './LiveMetricsBadge';
 
 export function Proof() {
   return (
@@ -25,7 +26,12 @@ export function Proof() {
           <p className="mt-6 text-lg leading-8 text-muted-foreground">{PROOF_SECTION.body}</p>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Live-metrics snapshot badge (Phase D): gate-pinned counts + validator link. */}
+        <div className="mt-16">
+          <LiveMetricsBadge />
+        </div>
+
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Repo signals */}
           <div className="rounded-2xl bg-secondary p-8 ring-1 ring-border">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

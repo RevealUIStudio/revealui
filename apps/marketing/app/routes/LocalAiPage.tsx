@@ -1,5 +1,7 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
+import { FrontierPathway } from '../components/landing/FrontierPathway';
+import { ProviderSwitch } from '../components/landing/ProviderSwitch';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 
 /**
@@ -56,6 +58,12 @@ export function LocalAiPage() {
           </div>
           <p className="mt-3 text-sm text-muted-foreground">{LOCAL_AI_SECTION.snippet.caption}</p>
         </div>
+      </section>
+
+      {/* Provider-switch interactive + frontier-pathway visual (Phase D). */}
+      <section className="px-6 pb-8 lg:px-8">
+        <ProviderSwitch />
+        <FrontierPathway />
       </section>
 
       {/* §4(c) market proof: industry adopters of open/local models, not customers. */}

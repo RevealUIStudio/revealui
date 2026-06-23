@@ -9,6 +9,7 @@ import { Proof as OperatorProof } from '../components/for-operators/Proof';
 import { WhatYouGet } from '../components/for-operators/WhatYouGet';
 import { GetStarted } from '../components/GetStarted';
 import { Actors } from '../components/landing/Actors';
+import { CostCalculator } from '../components/landing/CostCalculator';
 import { Demo } from '../components/landing/Demo';
 import { Faq } from '../components/landing/Faq';
 import { Fork } from '../components/landing/Fork';
@@ -33,6 +34,7 @@ function TechnicalLanding() {
       <Actors />
       <Fork />
       <Problem />
+      <CostCalculator />
       <Demo />
       <Objections />
       <Primitives />
