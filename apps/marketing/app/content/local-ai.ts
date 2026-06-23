@@ -51,7 +51,7 @@ export const LOCAL_AI_SECTION = {
     lines: [
       {
         code: 'LLM_PROVIDER=inference-snaps',
-        note: 'gemma3 on your box, port 9090 (zero-config default)',
+        note: 'gemma3 on your box, port 9090 (default runner)',
       },
       { code: 'LLM_PROVIDER=ollama', note: 'gemma4 on your box, port 11434' },
     ],
@@ -98,7 +98,7 @@ export const LOCAL_AI_PAGE = {
     adopters: [
       {
         name: 'HSBC',
-        detail: 'self-hosts Mistral on its own systems in finance.',
+        detail: 'is deploying self-hosted Mistral on its own internal systems in finance.',
         source: 'HSBC, 2025-12-01',
       },
       {
@@ -108,13 +108,14 @@ export const LOCAL_AI_PAGE = {
         source: 'Capital One tech blog, 2025-03-05',
       },
       {
-        name: '300+ hospitals',
-        detail: 'run private, on-site DeepSeek inside their clinical systems.',
-        source: 'Int. J. Surgery, 2025-06-21',
+        name: 'Goldman Sachs and Shopify',
+        detail:
+          'run Llama in production, with Shopify serving tens of millions of inferences a day.',
+        source: 'Meta AI, 2024-08-29',
       },
       {
         name: 'Scale AI Defense Llama',
-        detail: 'fine-tunes Llama on doctrine and policy for controlled government environments.',
+        detail: 'fine-tunes Llama 3 on doctrine and policy for controlled government environments.',
         source: 'Scale, 2024-11-04',
       },
     ] as readonly LocalAdopter[],
@@ -128,7 +129,7 @@ export const LOCAL_AI_PAGE = {
   },
   honesty: LOCAL_AI_SECTION.honesty,
   cta: {
-    primary: { label: 'Start free', href: SITE.urls.signup },
+    primary: { label: 'Start building', href: SITE.urls.signup },
     secondary: { label: 'Read the docs', href: SITE.urls.docs },
   },
 } as const;
