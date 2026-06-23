@@ -75,20 +75,20 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 
 ### Available skills
 
-- next-best-practices: Next.js best practices - file conventions, RSC boundaries, data patterns, async APIs, metadata, error handling, route handlers, image/font optimization, bundling (file: /home/joshua-v-dev/revfleet/revskills/skills/next-best-practices/SKILL.md)
-- vitest-testing: Vitest fast unit testing framework — mocking, coverage, test filtering, fixtures. Use when writing or debugging tests in this repo. (file: /home/joshua-v-dev/revfleet/revskills/skills/vitest-testing/SKILL.md)
-- tailwind-v4: Tailwind CSS v4 migration and usage patterns. Use when writing or auditing Tailwind v4 utility classes. (file: /home/joshua-v-dev/revfleet/revskills/skills/tailwind-v4/SKILL.md)
-- drizzle-db: Drizzle ORM patterns — schema definitions, migrations, queries. Use for any NeonDB / Postgres work in this repo. (file: /home/joshua-v-dev/revfleet/revskills/skills/drizzle-db/SKILL.md)
-- electric-sync: ElectricSQL real-time sync integration. Use when working on `@revealui/sync` or Electric shape subscriptions. (file: /home/joshua-v-dev/revfleet/revskills/skills/electric-sync/SKILL.md)
-- mcp-server: MCP server authoring and adapter patterns. Use when building or debugging MCP servers in `packages/mcp`. (file: /home/joshua-v-dev/revfleet/revskills/skills/mcp-server/SKILL.md)
-- multi-agent-memory: Multi-agent CRDT memory patterns. Use for `@revealui/ai` memory and A2A coordination work. (file: /home/joshua-v-dev/revfleet/revskills/skills/multi-agent-memory/SKILL.md)
-- security-hardening: Security hardening checklist for this codebase. Use when reviewing auth, headers, access control, or cryptography. (file: /home/joshua-v-dev/revfleet/revskills/skills/security-hardening/SKILL.md)
-- yjs-collaboration: Yjs collaborative editing patterns. Use when working on real-time collaborative features backed by CRDT. (file: /home/joshua-v-dev/revfleet/revskills/skills/yjs-collaboration/SKILL.md)
-- revealui-doctor: Environment and dependency health check for RevealUI. Use to diagnose setup issues or verify dev environment state. (file: /home/joshua-v-dev/revfleet/revskills/skills/revealui-doctor/SKILL.md)
-- revealui-handoff: Session handoff notes. Use to leave structured context for the next Claude Code session. (file: /home/joshua-v-dev/revfleet/revskills/skills/revealui-handoff/SKILL.md)
-- revealui-recover: Recovery workflow for interrupted sessions or broken states. (file: /home/joshua-v-dev/revfleet/revskills/skills/revealui-recover/SKILL.md)
-- revealui-sync-lts: Sync repos on LTS drive with GitHub. Use when running the weekly LTS backup pipeline. (file: /home/joshua-v-dev/revfleet/revskills/skills/revealui-sync-lts/SKILL.md)
-- revealui-sync-rules: Sync RevCon harness rule files across agents. Use when rules in `revcon/harnesses/rules/` change. (file: /home/joshua-v-dev/revfleet/revskills/skills/revealui-sync-rules/SKILL.md)
+- next-best-practices: Next.js best practices - file conventions, RSC boundaries, data patterns, async APIs, metadata, error handling, route handlers, image/font optimization, bundling
+- vitest-testing: Vitest fast unit testing framework — mocking, coverage, test filtering, fixtures. Use when writing or debugging tests in this repo.
+- tailwind-v4: Tailwind CSS v4 migration and usage patterns. Use when writing or auditing Tailwind v4 utility classes.
+- drizzle-db: Drizzle ORM patterns — schema definitions, migrations, queries. Use for any NeonDB / Postgres work in this repo.
+- electric-sync: ElectricSQL real-time sync integration. Use when working on `@revealui/sync` or Electric shape subscriptions.
+- mcp-server: MCP server authoring and adapter patterns. Use when building or debugging MCP servers in `packages/mcp`.
+- multi-agent-memory: Multi-agent CRDT memory patterns. Use for `@revealui/ai` memory and A2A coordination work.
+- security-hardening: Security hardening checklist for this codebase. Use when reviewing auth, headers, access control, or cryptography.
+- yjs-collaboration: Yjs collaborative editing patterns. Use when working on real-time collaborative features backed by CRDT.
+- revealui-doctor: Environment and dependency health check for RevealUI. Use to diagnose setup issues or verify dev environment state.
+- revealui-handoff: Session handoff notes. Use to leave structured context for the next Claude Code session.
+- revealui-recover: Recovery workflow for interrupted sessions or broken states.
+- revealui-sync-lts: Sync repos on LTS drive with GitHub. Use when running the weekly LTS backup pipeline.
+- revealui-sync-rules: Sync RevCon harness rule files across agents. Use when rules in `revcon/harnesses/rules/` change.
 
 ### How to use skills
 
