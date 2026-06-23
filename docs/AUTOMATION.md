@@ -20,14 +20,26 @@ What's left here, and what this doc covers, is just two things: agent integratio
 
 ## Claude Code Integration
 
-[Claude Code](https://docs.anthropic.com/claude/docs/claude-code) is Anthropic's agentic CLI. It's the primary AI agent surface for this repo (alongside Zed's ACP integration).
+[Claude Code](https://code.claude.com/docs/en/setup) is Anthropic's agentic CLI. It's the primary AI agent surface for this repo (alongside Zed's ACP integration).
 
 ### Install
 
+Anthropic's recommended install is the **native installer**, a self-updating native binary that needs no Node.js. It updates itself in the background.
+
 ```bash
-pnpm add -g @anthropic-ai/claude-code
-# or, if you prefer not to install globally:
-pnpm dlx @anthropic-ai/claude-code
+# macOS / Linux / WSL
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+```powershell
+# Windows PowerShell
+irm https://claude.ai/install.ps1 | iex
+```
+
+Secondary (advanced): the npm package. It requires Node.js 18+ and ships the same native binary through per-platform optional dependencies, so your package manager must be configured to allow optional dependencies.
+
+```bash
+npm install -g @anthropic-ai/claude-code
 ```
 
 ### Run from the repo root
@@ -36,7 +48,7 @@ pnpm dlx @anthropic-ai/claude-code
 claude
 ```
 
-Project conventions are loaded from [`CLAUDE.md`](../CLAUDE.md) at the repo root. The agent's allowed permissions are defined in a local `.claude/settings.local.json` (not committed); see Anthropic's [Claude Code settings reference](https://docs.anthropic.com/claude/docs/claude-code-settings) for the format. Per-rule conventions and commands under `.claude/rules/` and `.claude/commands/` may be locally symlinked from `~/revfleet/revcon/profiles/revealui/claude/`, but neither directory is tracked in this repo.
+Project conventions are loaded from [`CLAUDE.md`](../CLAUDE.md) at the repo root. The agent's allowed permissions are defined in a local `.claude/settings.local.json` (not committed); see Anthropic's [Claude Code settings reference](https://code.claude.com/docs/en/settings) for the format. Per-rule conventions and commands under `.claude/rules/` and `.claude/commands/` may be locally symlinked from `~/revfleet/revcon/profiles/revealui/claude/`, but neither directory is tracked in this repo.
 
 ### MCP servers
 
