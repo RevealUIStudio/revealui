@@ -6,7 +6,8 @@
 
 export const PERSONA_SECTION = {
   eyebrow: "Who it's for",
-  heading: 'For founders who need to ship fast, and still pass a security review.',
+  heading:
+    'For teams putting agents in front of customers who still have to pass a security review.',
 } as const;
 
 export const PERSONA_CARD = {
