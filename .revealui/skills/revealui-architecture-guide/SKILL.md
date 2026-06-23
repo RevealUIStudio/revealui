@@ -30,9 +30,11 @@ RevealUI uses **pnpm workspaces** for monorepo management with **Turborepo** for
 
 ```
 RevealUI/
-├── apps/                    # Applications
-│   ├── admin/              # Admin application (Next.js 16)
-│   └── dashboard/          # Dashboard application
+├── apps/                    # Applications (4)
+│   ├── server/             # REST API (Hono, port 3004)
+│   ├── admin/              # Admin dashboard (Next.js 16, port 4000)
+│   ├── docs/               # Documentation site (Vite/React)
+│   └── marketing/          # Marketing site (Vite/React)
 ├── packages/               # Shared packages
 │   ├── ai/                 # AI/LLM integration
 │   ├── auth/               # Authentication
@@ -42,7 +44,7 @@ RevealUI/
 │   ├── db/                 # Database schemas (Drizzle)
 │   ├── dev/                # Development tooling
 │   ├── security/           # Security utilities
-│   └── ui/                 # UI components
+│   └── presentation/       # Native UI components (Tailwind v4, zero ext UI deps)
 ├── scripts/                # Build & maintenance scripts
 └── docs/                   # Documentation
 ```
@@ -65,18 +67,18 @@ RevealUI/
 - **Status**: Stable
 
 **@revealui/auth** - Authentication & Authorization
-- JWT management
-- Role-based access control (RBAC)
-- Session handling
+- Session-based auth: database-backed sessions, **no JWT** (stateless JWT is explicitly not used)
+- Password reset, rate limiting, brute-force protection (bcrypt, 12 rounds)
+- Role-based access control (RBAC/ABAC, enforced in @revealui/core)
 - **Status**: Stable
 
 ### Feature Packages
 
-**@revealui/ai** - AI Integration
-- Memory subsystem (vector stores, CRDT-based state)
-- Skills system (GitHub, local, Vercel integration)
-- LLM client abstractions
-- Embeddings generation
+**@revealui/ai** (Pro) - AI Integration
+- AI agents + orchestration
+- CRDT-based agent memory
+- LLM provider abstractions (open-model first; external LLMs via MCP)
+- Embeddings + vector queries (pgvector on the same Neon database)
 - **Status**: Active development
 
 **@revealui/security** - Security utilities
@@ -99,10 +101,9 @@ RevealUI/
 - Domain models
 - **Status**: Stable
 
-**@revealui/ui** - UI Components
-- Tailwind CSS v4 components
-- Accessible primitives
-- Dark mode support
+**@revealui/presentation** - UI Components
+- Native UI components (Tailwind CSS v4, zero external UI deps: only clsx + CVA)
+- Accessible primitives, dark mode + tenant-brand theming
 - **Status**: Active development
 
 **@revealui/dev** - Development tooling
@@ -119,7 +120,7 @@ apps/admin
   │    ├─→ @revealui/db
   │    ├─→ @revealui/auth
   │    └─→ @revealui/config
-  ├─→ @revealui/ui
+  ├─→ @revealui/presentation
   └─→ @revealui/ai
 
 ```
@@ -136,15 +137,17 @@ apps/admin
 
 ### Frontend
 - **React 19** - UI library with Server Components
-- **Next.js 16** - App Router framework
-- **Tailwind CSS v4** - Styling (10-100x faster builds)
+- **Next.js 16** - admin app (App Router)
+- **Vite/React** - docs + marketing apps
+- **Tailwind CSS v4** - Styling
 - **TypeScript 6** - Type safety
 
 ### Backend
-- **RevealUI Core** - Admin dashboard + content engine
+- **Hono** - REST API (apps/server, OpenAPI + Swagger)
+- **RevealUI Core** - admin engine + content management
 - **Drizzle ORM** - Type-safe database queries
-- **PostgreSQL** (NeonDB) - Production database
-- **PGlite** - Test database
+- **PostgreSQL** (NeonDB) - Production database, pgvector for embeddings
+- **PGlite** - in-process Postgres for tests
 
 ### Development
 - **pnpm** - Package manager
@@ -178,8 +181,8 @@ apps/admin
 ### Build Order
 
 1. **Core packages** (db, auth, config, contracts)
-2. **Feature packages** (ai, security, ui)
-3. **Applications** (admin)
+2. **Feature packages** (ai, security, presentation, router)
+3. **Applications** (server, admin, docs, marketing)
 
 ### Commands
 
@@ -257,7 +260,7 @@ export * from './my-feature'
 ```typescript
 // ✅ GOOD: Import from package
 import { getRevealUI } from '@revealui/core'
-import { validateToken } from '@revealui/auth'
+import type { User } from '@revealui/contracts'
 
 // ❌ BAD: Relative imports across packages
 import { getRevealUI } from '../../../core/src/instance'
