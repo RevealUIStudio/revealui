@@ -48,7 +48,7 @@ The token system is dark-first; light mode overrides via `[data-theme="light"]` 
 
 Every shipped component must meet **WCAG 2.1 AA** at minimum:
 
-- **Color contrast** — text on its background ≥ 4.5:1 for normal, ≥ 3:1 for large text. Use `text-emerald-700` floor (not `-500`/`-600`) for emerald accents on white. Run an axe-core check on your showcase before opening the PR.
+- **Color contrast** — text on its background ≥ 4.5:1 for normal, ≥ 3:1 for large text. For brand-colored accents on white, use the Cobalt brand tokens (`text-primary` / `var(--rvui-brand)`) and pick a shade dark enough to clear the contrast floor. Run an axe-core check on your showcase before opening the PR.
 - **Keyboard navigation** — every interactive control reachable via Tab, operable via Enter/Space (or component-appropriate keys). No tab traps unless inside a modal/disclosure.
 - **ARIA** — use the right role and aria-* attributes. Prefer native semantics (`<button>`, `<details>`, `<dialog>`) over re-implementing with divs.
 - **Focus visibility** — focus ring must be visible at default contrast. The base `Button` uses `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`; match that pattern.
