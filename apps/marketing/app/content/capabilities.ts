@@ -18,7 +18,7 @@ export const CAPABILITIES_SECTION = {
   heading: "What's actually shipped.",
   body: 'Nine load-bearing primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
   footnote:
-    "Trust through specificity. Compare RevealUI to Convex, Supabase, or Payload and you'll see depth those competitors don't ship.",
+    'Trust through specificity. These are primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
 } as const;
 
 export const CAPABILITIES: readonly Capability[] = [

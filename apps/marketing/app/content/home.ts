@@ -21,7 +21,7 @@ export const HOME_HERO = {
   subtitle: {
     lead: 'Stop renting your stack from a half-dozen vendors.',
     strong:
-      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host.',
+      'Auth, content, offers, and payments, pre-wired into one open-source runtime you self-host.',
     body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself with',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',
@@ -48,7 +48,7 @@ export const HOME_HERO = {
       {
         metric: `${METRICS.dbTables} database tables`,
         detail:
-          'Every table maps to a primitive: users, content, products, payments, or intelligence. See the [database reference](https://docs.revealui.com/database).',
+          'Every table maps to a primitive: people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
       },
       {
         metric: `${METRICS.mcpServers} first-party MCP servers`,
@@ -122,13 +122,13 @@ export const HOME_PROBLEM = {
   rows: [
     {
       capability: 'Auth + RBAC + sessions',
-      sprawl: 'Clerk Pro ($25/seat)',
+      sprawl: 'A separate auth vendor, per seat',
       agentOnly: 'Bring your own',
       revealui: 'Built in',
     },
     {
       capability: 'CMS + admin UI',
-      sprawl: 'Payload + your team',
+      sprawl: 'A headless CMS, plus a team to wire it',
       agentOnly: 'Bring your own',
       revealui: 'Built in',
     },
@@ -146,13 +146,13 @@ export const HOME_PROBLEM = {
     },
     {
       capability: 'Tamper-evident audit log',
-      sprawl: 'Datadog + custom hashing',
+      sprawl: 'An observability vendor, plus custom hashing',
       agentOnly: 'Logs only',
       revealui: 'Hash-chained, in DB',
     },
     {
       capability: 'Cost (5 devs, mid-startup)',
-      sprawl: '~$1,200 / mo',
+      sprawl: '~$320 to $700+ / mo',
       agentOnly: '~$300 / mo + infra',
       revealui: '$49 / mo + infra',
     },
@@ -231,9 +231,10 @@ export const HOME_FAQ = {
   heading: 'Common questions.',
   items: [
     {
-      question: 'How is this different from Supabase, Convex, Clerk, or Trigger?',
+      question:
+        'How is this different from stitching together separate auth, database, CMS, and background-job services?',
       answer:
-        'Convex gives you real-time DB + functions. Supabase gives you Postgres + auth. Clerk gives you sessions. Trigger runs background jobs. Each one is a slice. RevealUI is the whole runtime: auth, content, billing, admin UI, and an agent layer governed by one RBAC policy and one tamper-evident audit chain. Self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.)',
+        'Each of those covers one slice: a real-time database, a Postgres-plus-auth backend, a session service, a jobs runner. RevealUI is the whole runtime: auth, content, billing, admin UI, and an agent layer governed by one RBAC policy and one tamper-evident audit chain. Self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.)',
     },
     {
       question: 'Can I self-host?',

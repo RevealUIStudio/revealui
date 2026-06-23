@@ -55,7 +55,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 ] as const;
 
 export const FOOTER_TAGLINE =
-  'Agentic business runtime. Users, content, products, payments, and intelligence, pre-wired, open source, and ready to deploy.' as const;
+  'Agentic business runtime. People, content, offers, payments, and agents, pre-wired, open source, and ready to deploy.' as const;
 
 export const FOOTER_SOLO_OPERATOR_NOTE =
   'Built by one engineer in Tennessee. See Support for response SLAs.' as const;
