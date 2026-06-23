@@ -6,12 +6,10 @@ const TOKEN = 'aabbccdd:eeff0011';
 const DEFAULT_API_ORIGIN = 'https://api.revealui.com';
 
 function setCsrfCookie(value: string): void {
-  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API; direct assignment is the only way to seed cookies in tests
   document.cookie = `revealui-csrf=${value}`;
 }
 
 function clearCsrfCookie(): void {
-  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API; direct assignment is the only way to clear cookies in tests
   document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 }
 

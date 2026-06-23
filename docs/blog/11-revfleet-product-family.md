@@ -48,15 +48,13 @@ Each of these came out of operating RevealUI ourselves. We needed them, so we bu
 
 **RevSkills** (Active, MIT) is a library of Claude Code skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.
 
-**RevKit** (Active, MIT) is a portable developer environment. Profile-based bootstrap with parameterized templates and tier-aware configs, so a new machine comes up reproducible instead of hand-assembled.
-
 **RevMarket** (Planned) is the agent tool marketplace. The runtime already ships a catalog of first-party integrations out of the box; RevMarket is the planned layer where third-party developers publish and discover MCP servers and agent capabilities. It is designed, not yet open to outside publishers, and we say so plainly on the roadmap.
 
 ## Why a fleet instead of one big product
 
 The temptation, building this, was to fold everything into one monolith and call it a platform. We did the opposite on purpose.
 
-Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Claude Code setup. RevKit bootstraps any developer machine. Bundling them would have made each one worse, locked behind a runtime you may not want yet.
+Each product is useful on its own. RevVault secures secrets for any project, RevealUI runtime or not. RevSkills drops into any Claude Code setup. Bundling them would have made each one worse, locked behind a runtime you may not want yet.
 
 So they compose instead of couple. You can take exactly the piece you need today, and the rest is there when you need it. One foundation, eight products, no all-or-nothing.
 

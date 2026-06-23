@@ -112,7 +112,6 @@ export function StatusPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [, setTick] = useState(0);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is read as a trigger — incrementing it intentionally re-fires the probe.
   useEffect(() => {
     let cancelled = false;
     const probesToRun = SURFACES.filter((s) => s.mode === 'probe');

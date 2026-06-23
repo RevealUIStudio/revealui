@@ -34,7 +34,7 @@ Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-0
 
 ## RevFleet
 
-The umbrella brand for the seven-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the six-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
@@ -42,7 +42,7 @@ The umbrella brand for the seven-product RevealUI Studio family — RevealUI (ru
 
 ## Free / Pro / Max / Enterprise
 
-The four customer-facing pricing tiers, ordered by capability. Free is OSS-only (no Pro packages). Pro / Max / Enterprise unlock progressively more Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) plus ecosystem features (RevVault desktop app, RevKit provisioning). See [`./PRO`](./PRO.md) for the Pro feature matrix.
+The four customer-facing pricing tiers, ordered by capability. Free is OSS-only (no Pro packages). Pro / Max / Enterprise unlock progressively more Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) plus ecosystem features (RevVault desktop app). See [`./PRO`](./PRO.md) for the Pro feature matrix.
 
 ## Harness
 
@@ -91,7 +91,7 @@ The white-label self-hosted runtime kit — Docker Compose stack + domain lock +
 
 ## RevForge
 
-The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/revfleet/forge/` until Phase A filesystem rename `~/revfleet/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 3.
+The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/revfleet/forge/` until Phase A filesystem rename `~/suite/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 3.
 
 ## RevVault
 

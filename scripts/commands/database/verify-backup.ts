@@ -128,7 +128,7 @@ async function main(): Promise<void> {
   const maxAgeHours = maxAgeArg ? Number(maxAgeArg.split('=')[1]) : DEFAULT_MAX_AGE_HOURS;
   const projectRoot = findProjectRoot();
   const backupDir = dirArg
-    ? join(projectRoot, dirArg.split('=')[1]!)
+    ? join(projectRoot, dirArg.slice('--dir='.length))
     : join(projectRoot, '.revealui', 'backups');
 
   const result: VerifyResult = {

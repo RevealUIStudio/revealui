@@ -5,7 +5,7 @@ title: "Marketing Metrics — Pinned Truth"
 description: "Single source of truth for every metric, count, and status claim used in the marketing app and public-facing copy. Updated when the code changes; validated by claim-drift CI gate."
 category: internal
 audience: maintainer
-last-verified: 2026-05-18
+last-verified: 2026-06-22
 verified-via: pnpm tsx scripts/validate/claim-drift.ts
 ---
 
@@ -21,14 +21,14 @@ If a number appears in marketing copy, it MUST match the value below. If a value
 
 ## 1. Codebase metrics (validated by claim-drift CI gate)
 
-Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-05-18 (commit `b0c6bbc81`).
+Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-06-22 (commit `a5cf84240`).
 
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
 | Packages in `packages/` | **27** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
 | Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (one app removed per PR #936 + #946 + #947). |
 | Workspaces (monorepo total) | **31** | `countWorkspaces()` (= 27 packages + 4 apps) | |
-| Test files | **912** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
+| Test files | **960** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
 | UI components in `packages/presentation/` | **60** | `countUIComponents()` | Marketing copy says "60 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
 | DB tables (Drizzle pgTable) | **85** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
@@ -125,7 +125,6 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer-stamped Fleet kits |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
 | RevSkills | Shipped | Active (MIT) | Claude Code skills library |
-| RevKit | Planned | Pro (planned) | Portable WSL dev env |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
 
 Customer-stamped Fleet kits are NOT fleet products — they are per-customer brand instances produced via RevForge.

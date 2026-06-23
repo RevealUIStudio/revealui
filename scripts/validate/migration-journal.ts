@@ -128,8 +128,9 @@ export function checkMonotonicWhen(journal: Journal): CheckResult {
   const sorted = [...journal.entries].sort((a, b) => a.idx - b.idx);
   const errors: string[] = [];
   for (let i = 1; i < sorted.length; i++) {
-    const prev = sorted[i - 1]!;
-    const curr = sorted[i]!;
+    const prev = sorted[i - 1];
+    const curr = sorted[i];
+    if (prev === undefined || curr === undefined) continue;
     if (curr.when <= prev.when) {
       errors.push(
         `Entry ${curr.tag} (idx ${curr.idx}, when=${curr.when}) is not strictly greater than prior entry ${prev.tag} (idx ${prev.idx}, when=${prev.when}).`,

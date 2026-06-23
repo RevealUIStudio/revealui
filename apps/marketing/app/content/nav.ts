@@ -6,6 +6,7 @@ import type { NavLink } from './types';
 
 export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Products', href: '/products' },
+  { label: 'Local AI', href: '/local-ai' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: SITE.urls.docs },
   { label: 'Blog', href: '/blog' },
@@ -26,6 +27,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     heading: 'Product',
     links: [
       { label: 'Products', href: '/products' },
+      { label: 'Local AI', href: '/local-ai' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Documentation', href: SITE.urls.docs },
       { label: 'Blog', href: '/blog' },
@@ -55,7 +57,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 ] as const;
 
 export const FOOTER_TAGLINE =
-  'Agentic business runtime. Users, content, products, payments, and intelligence, pre-wired, open source, and ready to deploy.' as const;
+  'Agentic business runtime. People, content, offers, payments, and agents, pre-wired, open source, and ready to deploy.' as const;
 
 export const FOOTER_SOLO_OPERATOR_NOTE =
   'Built by one engineer in Tennessee. See Support for response SLAs.' as const;

@@ -18,10 +18,10 @@
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.4",
     "tsup": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24.13.0"

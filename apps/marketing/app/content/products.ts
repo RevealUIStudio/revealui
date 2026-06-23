@@ -9,13 +9,6 @@
 // (PRODUCTS_PRIMITIVES in content/primitives.ts) stays exported for future
 // relocation to a /concepts or /platform page per lane owner's discretion.
 //
-// Status re-verified 2026-05-29 (owner directive: reflect what's completed vs.
-// soon-to-complete). RevKit promoted Planned → Active (MIT): the §2.1 table
-// flagged it "cross-check revkit/README.md", and that README confirms a working
-// MIT toolkit (bootstrap + render engine + 4 tier profiles) in active studio
-// use — not an unshipped/planned item. Hero subtitle sharpened to state what
-// ships today vs. what's on the way (RevMarket, the agent marketplace).
-//
 // Conversion pass (2026-06-09): per the e-commerce-PDP optimization framework
 // (digitalapplied.com), three "test-first" wins applied to this product-family
 // page — (1) price/license transparency surfaced on every card via priceLabel
@@ -106,7 +99,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   version: 'v0.3.0',
   priceLabel: 'Free to self-host · Pro tier optional',
   tagline: 'The agentic business runtime',
-  body: 'Users, content, products, payments, and intelligence: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
+  body: 'People, content, offers, payments, and agents: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   facts: [
     { stat: String(METRICS.packages), label: 'packages' },
@@ -240,25 +233,6 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     primaryCta: {
       label: 'GitHub →',
       href: 'https://github.com/RevealUIStudio/revskills',
-      external: true,
-    },
-  },
-  {
-    slug: 'revkit',
-    name: 'RevKit',
-    tagline: 'Portable WSL dev environment',
-    highlights: [
-      'Profile-based WSL bootstrap',
-      'Parameterized templates, tier-aware configs',
-      'Reproducible developer machines',
-    ],
-    status: 'Active (MIT)',
-    priceLabel: 'Free · MIT',
-    iconPath:
-      'M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z',
-    primaryCta: {
-      label: 'GitHub →',
-      href: 'https://github.com/RevealUIStudio/revkit',
       external: true,
     },
   },

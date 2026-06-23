@@ -6,7 +6,8 @@
 
 export const PERSONA_SECTION = {
   eyebrow: "Who it's for",
-  heading: 'For founders who need to ship fast, and still pass a security review.',
+  heading:
+    'For teams putting agents in front of customers who still have to pass a security review.',
 } as const;
 
 export const PERSONA_CARD = {
@@ -23,7 +24,7 @@ export const PERSONA_CARD = {
   footer: {
     prefix: 'Also a fit for',
     sprawl: 'teams escaping backend-platform sprawl',
-    sprawlNote: '(Convex + Supabase + Clerk + Trigger), and',
+    sprawlNote: '(four or five separate backend services), and',
     studios: 'studios + consultancies',
     studiosNote:
       'white-labeling one runtime across N customers without re-licensing N SaaS stacks.',
