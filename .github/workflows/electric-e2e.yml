@@ -79,7 +79,7 @@ jobs:
           echo "Electric health probe: HTTP $STATUS — proceeding"
 
       - name: Run Electric E2E tests
-        run: pnpm test:e2e -- --project=chromium e2e/electric.e2e.ts
+        run: npx playwright test --project=chromium e2e/electric.e2e.ts
         env:
           CI: "true"
           PLAYWRIGHT_BASE_URL: ${{ secrets.ELECTRIC_E2E_ADMIN_URL }}
