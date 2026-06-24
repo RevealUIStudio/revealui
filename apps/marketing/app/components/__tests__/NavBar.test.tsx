@@ -37,8 +37,7 @@ describe('NavBar (marketing)', () => {
     const menu = document.getElementById(MENU_ID);
     expect(menu).toBeInTheDocument();
 
-    // Two "Close menu" buttons exist while open (trigger + backdrop); the
-    // trigger is the one carrying aria-expanded.
+    // The hamburger trigger flips to "Close menu" + aria-expanded while open.
     const toggle = screen.getByRole('button', { name: 'Close menu', expanded: true });
     expect(toggle).toHaveAttribute('aria-controls', MENU_ID);
   });
@@ -65,17 +64,27 @@ describe('NavBar (marketing)', () => {
     expect(document.getElementById(MENU_ID)).not.toBeInTheDocument();
   });
 
-  it('closes the menu when the backdrop is tapped (tap-outside)', () => {
+  it('closes the menu on a pointer-down outside the panel (tap-outside)', () => {
     renderNavBar();
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
+    expect(document.getElementById(MENU_ID)).toBeInTheDocument();
 
-    const closers = screen.getAllByRole('button', { name: 'Close menu' });
-    expect(closers).toHaveLength(2);
-    const backdrop = closers.find((b) => !b.hasAttribute('aria-expanded'));
-    expect(backdrop).toBeDefined();
-
-    fireEvent.click(backdrop as HTMLElement);
+    // Tap-outside is handled by useClickOutside (capture-phase pointerdown), not
+    // a visual backdrop — a fixed backdrop would be clipped by the sticky
+    // header's backdrop-blur containing block. A pointerdown on the document
+    // body (outside both the menu panel and the toggle) closes the menu.
+    fireEvent.pointerDown(document.body);
     expect(document.getElementById(MENU_ID)).not.toBeInTheDocument();
+  });
+
+  it('keeps the menu open on a pointer-down inside the panel', () => {
+    renderNavBar();
+    fireEvent.click(screen.getByRole('button', { name: 'Open menu' }));
+    const menu = document.getElementById(MENU_ID);
+    expect(menu).toBeInTheDocument();
+
+    fireEvent.pointerDown(menu as HTMLElement);
+    expect(document.getElementById(MENU_ID)).toBeInTheDocument();
   });
 
   it('locks body scroll while open and restores it on close', () => {

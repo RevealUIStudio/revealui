@@ -299,6 +299,15 @@ export class Router {
     this.currentMatch = this.match(window.location.pathname);
 
     this.notifyListeners();
+
+    // Scroll to the top on client navigation so a new page lands at the top,
+    // matching native full-page-load behavior. Skip when the URL carries a hash
+    // so in-page anchor links still jump to their target. Back/forward
+    // (popstate) and reload are deliberately left untouched: the browser's
+    // native scroll restoration (scrollRestoration = 'auto') handles those.
+    if (!url.includes('#')) {
+      window.scrollTo(0, 0);
+    }
   }
 
   /**
@@ -401,6 +410,14 @@ export class Router {
     if (globalThis.__revealui_router_initialized) return;
     globalThis.__revealui_router_initialized = true;
 
+    // Keep the browser's native scroll restoration for back/forward + reload.
+    // It is the default ('auto'), but set it explicitly to document intent and
+    // guard against any earlier code having switched it to 'manual'. navigate()
+    // handles scroll-to-top for forward client navigations.
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'auto';
+    }
+
     // Handle browser back/forward buttons
     this.popstateHandler = () => {
       this.lastPathname = window.location.pathname;
@@ -411,6 +428,12 @@ export class Router {
 
     // Intercept link clicks
     this.clickHandler = (e: MouseEvent) => {
+      // Defer to React-level handlers (e.g. the <Link> component, which already
+      // calls preventDefault() + router.navigate()). Without this guard both
+      // handlers fire for a single <Link> click and two history entries are
+      // pushed, so Back appears to do nothing on the first press.
+      if (e.defaultPrevented) return;
+
       const target = (e.target as HTMLElement).closest('a');
 
       if (!target) return;
