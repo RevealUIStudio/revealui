@@ -1,4 +1,10 @@
-import { LinkButton, useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
+import {
+  LinkButton,
+  useClickOutside,
+  useEscapeKey,
+  useFocusTrap,
+  useScrollLock,
+} from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { NAV_AUTH, NAV_LINKS } from '../content/nav';
@@ -38,6 +44,7 @@ function NavLink({
 export function NavBar() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const close = () => setOpen(false);
   const { pathname } = useLocation();
 
@@ -46,6 +53,15 @@ export function NavBar() {
   useScrollLock(open);
   useFocusTrap(menuRef, open);
   useEscapeKey(close, open);
+
+  // Close on a tap anywhere outside the menu panel. We list both the panel and
+  // the hamburger toggle so tapping the toggle to close doesn't double-fire
+  // (its own onClick handles that). useClickOutside is used instead of a
+  // visual `fixed` backdrop because the sticky header's `backdrop-blur` creates
+  // a containing block that clips any `position: fixed` descendant to the
+  // header box (which includes the in-flow menu) — so a fixed backdrop never
+  // actually covers the area outside the menu.
+  useClickOutside([menuRef, toggleRef], close, open);
 
   // Close the mobile menu after a client-side navigation (covers browser
   // back/forward, where a link's own onClick never fires).
@@ -100,6 +116,7 @@ export function NavBar() {
 
           {/* Hamburger - mobile only. 44x44 tap target per WCAG 2.5.5 / Apple HIG. */}
           <button
+            ref={toggleRef}
             type="button"
             className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted lg:hidden"
             aria-label={open ? 'Close menu' : 'Open menu'}
@@ -138,58 +155,49 @@ export function NavBar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile menu. Tap-outside-to-close is handled by useClickOutside (see
+          the hook call above) rather than a visual backdrop, which the sticky
+          header's backdrop-blur containing block would clip. */}
       {open && (
-        <>
-          {/* Backdrop: tap outside to close. Sits below the nav row (top-16) so
-              the trigger stays interactive; kept out of the tab order. */}
-          <button
-            type="button"
-            aria-label="Close menu"
-            tabIndex={-1}
-            onClick={close}
-            className="fixed inset-x-0 bottom-0 top-16 z-40 bg-foreground/10 lg:hidden"
-          />
-          <div
-            id={MOBILE_MENU_ID}
-            ref={menuRef}
-            className="relative z-50 border-t border-border bg-background px-6 py-4 lg:hidden"
-          >
-            <div className="flex flex-col gap-1">
-              {NAV_LINKS.map(({ label, href }) => (
-                <NavLink
-                  key={label}
-                  href={href}
-                  className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={close}
-                >
-                  {label}
-                </NavLink>
-              ))}
-              <a
-                href="https://github.com/RevealUIStudio/revealui"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                onClick={close}
-              >
-                GitHub
-              </a>
-            </div>
-            <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
+        <div
+          id={MOBILE_MENU_ID}
+          ref={menuRef}
+          className="relative z-50 border-t border-border bg-background px-6 py-4 lg:hidden"
+        >
+          <div className="flex flex-col gap-1">
+            {NAV_LINKS.map(({ label, href }) => (
               <NavLink
-                href={NAV_AUTH.login.href}
+                key={label}
+                href={href}
                 className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 onClick={close}
               >
-                {NAV_AUTH.login.label}
+                {label}
               </NavLink>
-              <LinkButton href={NAV_AUTH.signup.href} onClick={close} className="w-full">
-                {NAV_AUTH.signup.label}
-              </LinkButton>
-            </div>
+            ))}
+            <a
+              href="https://github.com/RevealUIStudio/revealui"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={close}
+            >
+              GitHub
+            </a>
           </div>
-        </>
+          <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
+            <NavLink
+              href={NAV_AUTH.login.href}
+              className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={close}
+            >
+              {NAV_AUTH.login.label}
+            </NavLink>
+            <LinkButton href={NAV_AUTH.signup.href} onClick={close} className="w-full">
+              {NAV_AUTH.signup.label}
+            </LinkButton>
+          </div>
+        </div>
       )}
     </header>
   );

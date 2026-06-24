@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the logger to avoid cross-package dependency issues in tests
 vi.mock('../../../core/src/observability/logger.js', () => ({
@@ -368,6 +368,37 @@ describe('Router', () => {
     });
   });
 
+  describe('scroll behavior', () => {
+    it('scrolls to the top on a hashless client navigation', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const scrollSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+      router.navigate('/about');
+      expect(scrollSpy).toHaveBeenCalledWith(0, 0);
+      scrollSpy.mockRestore();
+    });
+
+    it('does not scroll to the top when the URL has a hash (anchor link)', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const scrollSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+      router.navigate('/about#section');
+      expect(scrollSpy).not.toHaveBeenCalled();
+      scrollSpy.mockRestore();
+    });
+
+    it('scrolls to the top after listeners are notified', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const order: string[] = [];
+      router.subscribe(() => order.push('listener'));
+      const scrollSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => order.push('scroll'));
+      router.navigate('/about');
+      expect(order).toEqual(['listener', 'scroll']);
+      scrollSpy.mockRestore();
+    });
+  });
+
   describe('listener notifications', () => {
     it('notifies all subscribers on navigate', () => {
       const router = new Router();
@@ -451,6 +482,14 @@ describe('Router', () => {
       router.dispose();
     });
 
+    it('sets history.scrollRestoration to "auto" (keeps native back/forward + reload restore)', () => {
+      const router = new Router();
+      window.history.scrollRestoration = 'manual';
+      router.initClient();
+      expect(window.history.scrollRestoration).toBe('auto');
+      router.dispose();
+    });
+
     it('prevents duplicate initialization (HMR guard)', () => {
       const router = new Router();
       const addSpy = vi.spyOn(window, 'addEventListener');
@@ -486,6 +525,10 @@ describe('Router', () => {
       router.initClient();
       router.navigate('/a');
       expect(listener).not.toHaveBeenCalled();
+      // Dispose the re-initialized client so its document click listener does
+      // not leak into later tests (a leaked handler that preventDefaults would
+      // trip the global-click-handler defaultPrevented guard).
+      router.dispose();
     });
 
     it('dispose resets HMR guard so initClient can be called again', () => {
@@ -497,6 +540,56 @@ describe('Router', () => {
       const popstateCalls = addSpy.mock.calls.filter((c) => c[0] === 'popstate');
       expect(popstateCalls).toHaveLength(2);
       addSpy.mockRestore();
+      router.dispose();
+    });
+  });
+
+  describe('global click handler', () => {
+    // Reset the module-level HMR guard before AND after each test so initClient()
+    // actually installs the document listener (a prior test may have left it set).
+    beforeEach(() => {
+      // biome-ignore lint/suspicious/noExplicitAny: test setup for HMR guard
+      (globalThis as any).__revealui_router_initialized = false;
+    });
+    afterEach(() => {
+      // biome-ignore lint/suspicious/noExplicitAny: test cleanup for HMR guard
+      (globalThis as any).__revealui_router_initialized = false;
+    });
+
+    it('navigates on an unprevented internal link click', () => {
+      const router = new Router();
+      router.register(createRoute('/y'));
+      const navSpy = vi.spyOn(router, 'navigate').mockImplementation(() => {});
+      router.initClient();
+
+      const a = document.createElement('a');
+      a.setAttribute('href', '/y');
+      document.body.appendChild(a);
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+      expect(navSpy).toHaveBeenCalledWith('/y');
+      a.remove();
+      navSpy.mockRestore();
+      router.dispose();
+    });
+
+    it('defers to a handler that already prevented default (no double navigation)', () => {
+      const router = new Router();
+      router.register(createRoute('/x'));
+      const navSpy = vi.spyOn(router, 'navigate').mockImplementation(() => {});
+      router.initClient();
+
+      const a = document.createElement('a');
+      a.setAttribute('href', '/x');
+      // Mirrors the React <Link>, which calls preventDefault() + navigate first;
+      // the global handler must then bail so only one history entry is pushed.
+      a.addEventListener('click', (e) => e.preventDefault());
+      document.body.appendChild(a);
+      a.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+      expect(navSpy).not.toHaveBeenCalled();
+      a.remove();
+      navSpy.mockRestore();
       router.dispose();
     });
   });

@@ -24,9 +24,16 @@ const primaryButtonClasses =
   'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md';
 
 const buttonVariants = cva(
+  // `relative` contains the absolutely-positioned descendants this button can
+  // render — the `TouchTarget` hit-area expander (used by `LinkButton`) and the
+  // `ShineOverlay`. Without it those overlays size against the nearest *other*
+  // positioned ancestor (e.g. a `sticky` header), blanket the surrounding UI,
+  // and intercept pointer events on touch devices — which is what stopped the
+  // marketing mobile hamburger (a sibling of the signup `LinkButton`) from
+  // opening. The headless `Button` already carries `relative isolate`.
   // `gap-2` + the `[&_svg]` rules give icon/spinner children automatic spacing,
   // non-interactivity, and flex-shrink protection without per-call-site margins.
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] [&_svg]:pointer-events-none [&_svg]:shrink-0',
+  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] [&_svg]:pointer-events-none [&_svg]:shrink-0',
   {
     defaultVariants: {
       size: 'default',
