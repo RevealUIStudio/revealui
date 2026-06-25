@@ -365,6 +365,37 @@ describe('POST /checkout', () => {
     expect(sessionArgs.customer).toBe('cus_existing');
   });
 
+  it('interval=year resolves the annual planId and checks out (A4)', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_annual' }], // catalog lookup -> annual price
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
+    mockCheckoutSessionsCreate.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pay/sess_annual',
+    });
+    const { eq } = await import('drizzle-orm');
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro', interval: 'year' }));
+
+    expect(res.status).toBe(200);
+    // interval=year maps to the subscription:<tier>:year planId (monthly is unchanged).
+    expect(eq).toHaveBeenCalledWith('billingCatalog.planId', 'subscription:pro:year');
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    const lineItems = sessionArgs.line_items as Array<{ price: string }>;
+    expect(lineItems[0]?.price).toBe('price_pro_annual');
+    // Idempotency key carries the interval so a monthly->annual switch can't collide.
+    const opts = mockCheckoutSessionsCreate.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect((opts.idempotencyKey as string).includes('-year-')).toBe(true);
+  });
+
+  it('500s on annual checkout when no annual price is configured (no CTA without a resolvable price) (A4)', async () => {
+    queueSelectResults([]); // catalog lookup -> no annual row resolves
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro', interval: 'year' }));
+    expect(res.status).toBe(500);
+  });
+
   it('re-provisions when the stored Stripe customer is missing/deleted in the current mode', async () => {
     // Regression: a stored stripe_customer_id from another mode (e.g. a live
     // customer when the deployment runs test keys) or a deleted customer was
