@@ -79,11 +79,19 @@ function BillingContent() {
   const [error, setError] = useState<string | null>(null);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
+  // Show the annual toggle only if the server has the annual price IDs configured.
+  // This is the lockstep guard: no annual CTA without a resolvable annual price.
+  const hasAnnualOption = Boolean(process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID);
+
   const getPrice = (tierId: string): string => {
     const t = pricing?.subscriptions.find((s) => s.id === tierId);
+    if (billingInterval === 'year' && t?.annualPrice) {
+      return `${t.annualPrice}${t.annualPeriod ?? ''}`;
+    }
     if (!t?.price) return ' - ';
     return `${t.price}${t.period ?? ''}`;
   };
@@ -132,10 +140,16 @@ function BillingContent() {
       setActionLoading(true);
       setError(null);
       try {
-        const priceId =
+        const useAnnual = billingInterval === 'year' && hasAnnualOption;
+        const annualPriceId =
+          target === 'max'
+            ? process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID
+            : process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID;
+        const monthlyPriceId =
           target === 'max'
             ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
             : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+        const priceId = useAnnual ? annualPriceId : monthlyPriceId;
         const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -143,6 +157,7 @@ function BillingContent() {
           body: JSON.stringify({
             ...(priceId && { priceId }),
             tier: target,
+            ...(useAnnual && { interval: 'year' }),
           }),
         });
         const data = (await res.json()) as { url?: string; error?: string };
@@ -157,7 +172,7 @@ function BillingContent() {
         setActionLoading(false);
       }
     },
-    [apiUrl],
+    [apiUrl, billingInterval, hasAnnualOption],
   );
 
   // Poll subscription status with exponential backoff after upgrades.
@@ -192,15 +207,19 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
+      const useAnnual =
+        billingInterval === 'year' && Boolean(process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID);
+      const priceId = useAnnual
+        ? process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID;
       const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          ...(process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID && {
-            priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
-          }),
+          ...(priceId && { priceId }),
           targetTier: 'max',
+          ...(useAnnual && { interval: 'year' }),
         }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
@@ -221,15 +240,20 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
+      const useAnnual =
+        billingInterval === 'year' &&
+        Boolean(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID);
+      const priceId = useAnnual
+        ? process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID;
       const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          ...(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID && {
-            priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
-          }),
+          ...(priceId && { priceId }),
           targetTier: 'enterprise',
+          ...(useAnnual && { interval: 'year' }),
         }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
@@ -483,6 +507,36 @@ function BillingContent() {
           )}
 
           <div className="border-t pt-4 dark:border-zinc-800">
+            {hasAnnualOption &&
+              (tier === 'free' || (tier === 'pro' && !isTrialing) || tier === 'max') && (
+                <div className="mb-4 flex justify-center">
+                  <div className="inline-flex items-center rounded-full bg-zinc-100 p-1 text-sm font-medium ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+                    <button
+                      type="button"
+                      onClick={() => setBillingInterval('month')}
+                      className={`rounded-full px-3 py-1 transition-colors ${
+                        billingInterval === 'month'
+                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
+                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBillingInterval('year')}
+                      className={`rounded-full px-3 py-1 transition-colors ${
+                        billingInterval === 'year'
+                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
+                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      Annual
+                      <span className="ml-1 text-xs text-green-600 dark:text-green-400">−20%</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             {tier === 'free' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-600">

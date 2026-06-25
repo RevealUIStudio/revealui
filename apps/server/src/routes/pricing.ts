@@ -54,6 +54,24 @@ const HARDCODED_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: st
   enterprise: { price: '$1,499', period: '/month' },
 };
 
+// Annual prices are the cents-of-record from the Stripe CATALOG. Included in
+// the response only when the matching annual price-ID env var is set — that is
+// the "no annual CTA without a resolvable annual price" lockstep guard.
+const HARDCODED_ANNUAL_SUBSCRIPTION_PRICES: Record<
+  string,
+  { annualPrice: string; annualPeriod: string }
+> = {
+  pro: { annualPrice: '$470', annualPeriod: '/year' },
+  max: { annualPrice: '$2,870', annualPeriod: '/year' },
+  enterprise: { annualPrice: '$14,390', annualPeriod: '/year' },
+};
+
+const ANNUAL_PRICE_ENV_GUARDS: Record<string, string> = {
+  pro: 'STRIPE_PRO_ANNUAL_PRICE_ID',
+  max: 'STRIPE_MAX_ANNUAL_PRICE_ID',
+  enterprise: 'STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
+};
+
 const HARDCODED_CREDIT_PRICES: [string, { price: string; priceNote: string; costPer: string }][] = [
   ['Starter', { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' }],
   ['Standard', { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' }],
@@ -223,7 +241,12 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
   const subscriptions = SUBSCRIPTION_TIERS.map((tier) => {
     const stripePrice = stripePrices?.subscriptions.get(tier.id);
     const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id];
-    return { ...tier, ...(stripePrice ?? fallback) };
+    const annualGuardEnv = ANNUAL_PRICE_ENV_GUARDS[tier.id];
+    const annualPrices =
+      annualGuardEnv && process.env[annualGuardEnv]
+        ? HARDCODED_ANNUAL_SUBSCRIPTION_PRICES[tier.id]
+        : undefined;
+    return { ...tier, ...(stripePrice ?? fallback), ...annualPrices };
   });
 
   const credits = CREDIT_BUNDLES.map((bundle) => {
@@ -262,6 +285,8 @@ const PricingResponseSchema = z.object({
       name: z.string(),
       price: z.string().optional(),
       period: z.string().optional(),
+      annualPrice: z.string().optional(),
+      annualPeriod: z.string().optional(),
       description: z.string(),
       features: z.array(z.string()),
       cta: z.string(),

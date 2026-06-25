@@ -10,6 +10,7 @@
  *   tsx scripts/validate/pricing-lockstep.ts --warn   # warn-only (exit 0)
  */
 import {
+  ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
   PERPETUAL_PRICE_FALLBACKS,
   SUBSCRIPTION_PRICE_FALLBACKS,
 } from '../../apps/marketing/app/lib/pricing-fallbacks.js';
@@ -56,6 +57,29 @@ for (const [tier, key] of Object.entries(SUB_KEY)) {
   if (declared !== fallbackCents) {
     mismatches.push({
       surface: 'subscription',
+      tier,
+      fallback: fb.price,
+      fallbackCents,
+      catalogKey: key,
+      catalogCents: declared,
+    });
+  }
+}
+
+const ANNUAL_SUB_KEY: Record<string, string> = {
+  pro: 'revealui_pro_yearly',
+  max: 'revealui_max_yearly',
+  enterprise: 'revealui_enterprise_yearly',
+};
+for (const [tier, key] of Object.entries(ANNUAL_SUB_KEY)) {
+  const fb =
+    ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier as keyof typeof ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS];
+  if (!fb?.price || fb.price === '$0') continue;
+  const fallbackCents = dollarsToCents(fb.price);
+  const declared = catalogCents(key);
+  if (declared !== fallbackCents) {
+    mismatches.push({
+      surface: 'subscription-annual',
       tier,
       fallback: fb.price,
       fallbackCents,

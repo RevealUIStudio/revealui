@@ -152,6 +152,47 @@ describe('Pricing Marketing Drift — fallback prices match docs/MARKETING_METRI
     expect(MRR_TIER_PRICE_FALLBACK_USD.enterprise, 'MRR enterprise price drift').toBe(1499);
   });
 
+  it('annual subscription prices absent from response when env guards unset', async () => {
+    // No STRIPE_*_ANNUAL_PRICE_ID env vars set by default in test environment.
+    const res = await app.request('/');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+
+    for (const tier of body.subscriptions) {
+      expect(
+        tier.annualPrice,
+        `Tier ${tier.id} should NOT expose annualPrice when env guard is absent`,
+      ).toBeUndefined();
+    }
+  });
+
+  it('annual subscription prices present when env guards set', async () => {
+    vi.stubEnv('STRIPE_PRO_ANNUAL_PRICE_ID', 'price_test_pro_annual');
+    vi.stubEnv('STRIPE_MAX_ANNUAL_PRICE_ID', 'price_test_max_annual');
+    vi.stubEnv('STRIPE_ENTERPRISE_ANNUAL_PRICE_ID', 'price_test_enterprise_annual');
+
+    try {
+      const res = await app.request('/');
+      expect(res.status).toBe(200);
+      const body = await res.json();
+
+      const ANNUAL_PRICES: Record<string, { annualPrice: string; annualPeriod: string }> = {
+        pro: { annualPrice: '$470', annualPeriod: '/year' },
+        max: { annualPrice: '$2,870', annualPeriod: '/year' },
+        enterprise: { annualPrice: '$14,390', annualPeriod: '/year' },
+      };
+
+      for (const tier of body.subscriptions) {
+        const expected = ANNUAL_PRICES[tier.id];
+        if (!expected) continue; // free tier — no annual price
+        expect(tier.annualPrice, `Tier ${tier.id} annualPrice`).toBe(expected.annualPrice);
+        expect(tier.annualPeriod, `Tier ${tier.id} annualPeriod`).toBe(expected.annualPeriod);
+      }
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('perpetual-tier fallback prices match canonical map exactly', async () => {
     const res = await app.request('/');
     expect(res.status).toBe(200);

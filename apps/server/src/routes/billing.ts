@@ -241,6 +241,10 @@ const CheckoutRequestSchema = z.object({
     description: 'License tier (defaults to pro)',
     example: 'pro',
   }),
+  interval: z.enum(['month', 'year']).optional().openapi({
+    description: 'Billing interval (defaults to month). "year" selects the annual price.',
+    example: 'month',
+  }),
 });
 
 const CheckoutResponseSchema = z.object({
@@ -531,10 +535,14 @@ async function resolveCatalogPriceId(
   tier: PaidTier,
   kind: BillingCatalogKind,
   requestedPriceId?: string,
+  interval: 'month' | 'year' = 'month',
 ): Promise<string> {
   const db = getClient();
   const mode = getConfiguredStripeMode();
-  const planId = `${kind}:${tier}`;
+  // Annual subscriptions carry the interval in the planId (`subscription:<tier>:year`);
+  // monthly subscriptions and all non-subscription kinds keep the 2-part planId.
+  const planId =
+    kind === 'subscription' && interval === 'year' ? `${kind}:${tier}:year` : `${kind}:${tier}`;
   const [catalogEntry] = await db
     .select({ stripePriceId: billingCatalog.stripePriceId })
     .from(billingCatalog)
@@ -817,9 +825,15 @@ app.openapi(checkoutRoute, async (c) => {
   // instance; no-op in test mode.
   await assertLiveCatalogComplete();
 
-  const { priceId, tier } = c.req.valid('json');
+  const { priceId, tier, interval } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
-  const resolvedPriceId = await resolveCatalogPriceId(resolvedTier, 'subscription', priceId);
+  const resolvedInterval = interval ?? 'month';
+  const resolvedPriceId = await resolveCatalogPriceId(
+    resolvedTier,
+    'subscription',
+    priceId,
+    resolvedInterval,
+  );
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
@@ -911,7 +925,9 @@ app.openapi(checkoutRoute, async (c) => {
         success_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
         cancel_url: `${adminUrl}/account/billing`,
       },
-      { idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${idempotencyWindow}` },
+      {
+        idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${resolvedInterval}-${idempotencyWindow}`,
+      },
     ),
   );
 

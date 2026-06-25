@@ -27,7 +27,11 @@ import {
   SUBSCRIPTION_TIERS,
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
-import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
+import {
+  ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
+  PERPETUAL_PRICE_FALLBACKS,
+  SUBSCRIPTION_PRICE_FALLBACKS,
+} from '../lib/pricing-fallbacks';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com';
 const API_URL =
@@ -49,6 +53,7 @@ function CheckIcon({ className }: { className?: string }) {
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
 
   useEffect(() => {
     let cancelled = false;
@@ -65,13 +70,27 @@ export function PricingPage() {
     };
   }, []);
 
+  // Show the annual toggle only after the API confirms annual prices are available
+  // (i.e. the server has STRIPE_*_ANNUAL_PRICE_ID configured). This is the
+  // "no annual CTA without a resolvable annual price" lockstep guard.
+  const showAnnualToggle = pricing?.subscriptions.some((t) => Boolean(t.annualPrice)) ?? false;
+
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
     const fallback = SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const annualFallback = ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const useAnnual = billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
+    const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
+    const ctaHref = useAnnual ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
-      price: tier.price ?? fallback?.price,
-      period: tier.period ?? fallback?.period,
-      ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
+      price: useAnnual
+        ? (tier.annualPrice ?? annualFallback?.price)
+        : (tier.price ?? fallback?.price),
+      period: useAnnual
+        ? (tier.annualPeriod ?? annualFallback?.period)
+        : (tier.period ?? fallback?.period),
+      savings: useAnnual ? (annualFallback?.savings ?? '') : '',
+      ctaHref,
     };
   });
   const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS).map((tier) => {
@@ -156,6 +175,38 @@ export function PricingPage() {
             </ul>
           </div>
 
+          {showAnnualToggle && (
+            <div className="mb-8 flex justify-center">
+              <div className="inline-flex items-center rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval('month')}
+                  className={`rounded-full px-4 py-1.5 transition-colors ${
+                    billingInterval === 'month'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval('year')}
+                  className={`rounded-full px-4 py-1.5 transition-colors ${
+                    billingInterval === 'year'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Annually
+                  <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
+                    Save 20%
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <CenteredCardGrid>
             {tiers.map((tier, index) => (
               <div
@@ -182,6 +233,11 @@ export function PricingPage() {
                       <span className="text-sm text-muted-foreground">{tier.period}</span>
                     )}
                   </p>
+                  {tier.savings && (
+                    <p className="mt-1 text-xs font-medium text-green-700 dark:text-green-400">
+                      {tier.savings}
+                    </p>
+                  )}
                 </div>
                 <ul className="mb-8 flex-1 space-y-3">
                   {tier.features.map((feature) => (
