@@ -624,7 +624,14 @@ describe('GET /subscription', () => {
     expect(body.expiresAt).toBeNull();
   });
 
-  it('prefers request-scoped account entitlements over legacy license lookup', async () => {
+  it('takes tier/status from request-scoped entitlements but still surfaces the license key (A9)', async () => {
+    // The entitlement path short-circuits tier/status resolution, but the license
+    // JWT must still be surfaced — a paying hosted customer needs the key to
+    // activate a self-hosted framework deploy AND the RevDev daemon (one license,
+    // both products). Previously this path returned licenseKey:null.
+    _selectResult = [
+      { tier: 'pro', status: 'active', expiresAt: null, licenseKey: 'rv-entitlement-key' },
+    ];
     const app = createApp(MOCK_USER, {
       accountId: 'acct_123',
       tier: 'max',
@@ -634,11 +641,10 @@ describe('GET /subscription', () => {
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.tier).toBe('max');
+    expect(body.tier).toBe('max'); // tier/status still from entitlements
     expect(body.status).toBe('past_due');
     expect(body.expiresAt).toBeNull();
-    expect(body.licenseKey).toBeNull();
-    expect(mockDb.select).not.toHaveBeenCalled();
+    expect(body.licenseKey).toBe('rv-entitlement-key'); // license key now surfaced
   });
 
   it('returns revoked license status', async () => {

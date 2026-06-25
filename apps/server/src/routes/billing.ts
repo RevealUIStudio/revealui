@@ -922,6 +922,27 @@ const subscriptionRoute = createRoute({
   },
 });
 
+/**
+ * The user's most-recent active (non-deleted) license JWT, or null (A9).
+ *
+ * Surfaced on the hosted entitlement + snapshot short-circuit paths below so a
+ * paying customer can always retrieve the key they need to activate a
+ * self-hosted framework deploy AND the RevDev daemon — one Ed25519-signed JWT
+ * that both accept. Previously those paths returned licenseKey:null even after
+ * the checkout webhook had issued and stored a license (the webhook's
+ * syncHostedSubscriptionState creates the hosted rows that trigger the
+ * short-circuit), so a hosted subscriber could never see their key.
+ */
+async function getUserLicenseKey(userId: string): Promise<string | null> {
+  const [row] = await getClient()
+    .select({ licenseKey: licenses.licenseKey })
+    .from(licenses)
+    .where(and(eq(licenses.userId, userId), isNull(licenses.deletedAt)))
+    .orderBy(desc(licenses.createdAt))
+    .limit(1);
+  return row?.licenseKey ?? null;
+}
+
 app.openapi(subscriptionRoute, async (c) => {
   const user = c.get('user');
   if (!user) {
@@ -935,7 +956,7 @@ app.openapi(subscriptionRoute, async (c) => {
         tier: requestEntitlements.tier,
         status: requestEntitlements.subscriptionStatus ?? 'active',
         expiresAt: null,
-        licenseKey: null,
+        licenseKey: await getUserLicenseKey(user.id),
       },
       200,
     );
@@ -948,7 +969,7 @@ app.openapi(subscriptionRoute, async (c) => {
         tier: hostedSubscription.tier,
         status: hostedSubscription.status,
         expiresAt: null,
-        licenseKey: null,
+        licenseKey: await getUserLicenseKey(user.id),
         graceUntil: hostedSubscription.graceUntil,
       },
       200,
