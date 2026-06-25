@@ -111,7 +111,7 @@ Refer to `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for the full reference.
 - [ ] `REVEALUI_PUBLIC_SERVER_URL` set **(blocking)**
 - [ ] `NEXT_PUBLIC_SERVER_URL` set **(blocking)**
 - [ ] `POSTGRES_URL` set (NeonDB connection string) **(blocking)**
-- [ ] `BLOB_READ_WRITE_TOKEN` set (Vercel Blob Storage) **(blocking)**
+- [ ] `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` set (Cloudflare R2 object storage, revvault `revealui/prod/r2/*`) **(blocking)**
 - [ ] `STRIPE_SECRET_KEY` set (live key, not `sk_test_*`) **(blocking)**
 - [ ] `STRIPE_WEBHOOK_SECRET` set (live webhook signing secret) **(blocking)**
 - [ ] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` set (live key, not `pk_test_*`) **(blocking)**

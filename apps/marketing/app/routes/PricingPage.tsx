@@ -176,6 +176,38 @@ export function PricingPage() {
             </ul>
           </div>
 
+          {showAnnualToggle && (
+            <div className="mb-8 flex justify-center">
+              <div className="inline-flex items-center rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval('month')}
+                  className={`rounded-full px-4 py-1.5 transition-colors ${
+                    billingInterval === 'month'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingInterval('year')}
+                  className={`rounded-full px-4 py-1.5 transition-colors ${
+                    billingInterval === 'year'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Annually
+                  <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
+                    Save 20%
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <CenteredCardGrid>
             {tiers.map((tier, index) => (
               <div
@@ -202,6 +234,11 @@ export function PricingPage() {
                       <span className="text-sm text-muted-foreground">{tier.period}</span>
                     )}
                   </p>
+                  {tier.savings && (
+                    <p className="mt-1 text-xs font-medium text-green-700 dark:text-green-400">
+                      {tier.savings}
+                    </p>
+                  )}
                 </div>
                 <ul className="mb-8 flex-1 space-y-3">
                   {tier.features.map((feature) => (
