@@ -34,9 +34,69 @@ import {
 } from '../lib/webhook-emails.js';
 import { assertAccountOwner } from '../middleware/account-owner.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
+import {
+  type BillingCatalogRow,
+  fetchLiveBillingCatalogRows,
+  findBillingCatalogGaps,
+} from '../lib/validate-startup.js';
 
 /** Default trial period for new subscriptions (overridable via env) */
 const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);
+
+/**
+ * Per-cold-instance live-catalog completeness gate (A2).
+ *
+ * Vercel cold starts deliberately skip `validateBillingCatalogAtStartup`
+ * (apps/server/src/index.ts) to avoid a DB round-trip on the request path, so
+ * only the Fly worker validates the catalog at boot. The hole: a live deploy
+ * with a missing/null `stripe_price_id` row boots clean on Vercel, then 500s the
+ * FIRST real checkout deep inside the Stripe price lookup with an opaque
+ * "catalog is not configured" error mid-customer-transaction.
+ *
+ * This gate runs the SAME completeness check the Fly validator runs at boot —
+ * derived from the SAME `EXPECTED_LIVE_PLAN_IDS` + `findBillingCatalogGaps` +
+ * `fetchLiveBillingCatalogRows`, so the two enforcement points cannot drift —
+ * once per cold instance, and fails the checkout up front with a precise named
+ * error listing the offending plan ids. Only enforced in live mode (the
+ * post-flip risk); test-mode catalogs may be partially seeded and resolve
+ * lazily per request as before.
+ *
+ * Caches SUCCESS only: re-seeding the live catalog recovers without a redeploy
+ * (a still-incomplete catalog re-checks on the next request until it passes).
+ */
+let liveCatalogVerified = false;
+
+/** Test-only: clear the per-instance success cache between cases. */
+export function resetLiveCatalogGateForTests(): void {
+  liveCatalogVerified = false;
+}
+
+export async function assertLiveCatalogComplete(
+  mode: 'live' | 'test' = getConfiguredStripeMode(),
+  fetchRows: () => Promise<BillingCatalogRow[]> = fetchLiveBillingCatalogRows,
+): Promise<void> {
+  if (liveCatalogVerified) return;
+  if (mode !== 'live') return;
+
+  const { missing, incomplete } = findBillingCatalogGaps(await fetchRows());
+  if (missing.length === 0 && incomplete.length === 0) {
+    liveCatalogVerified = true;
+    return;
+  }
+
+  const details: string[] = [];
+  if (missing.length > 0) details.push(`missing rows: ${missing.join(', ')}`);
+  if (incomplete.length > 0) details.push(`null stripe_price_id: ${incomplete.join(', ')}`);
+  logger.error('Checkout blocked: live billing catalog incomplete', undefined, {
+    missing,
+    incomplete,
+  });
+  throw new HTTPException(503, {
+    message:
+      `Billing catalog incomplete (live mode): ${details.join('; ')}. ` +
+      'Checkout is temporarily disabled until the live Stripe catalog is re-seeded.',
+  });
+}
 
 /** Gate automatic_tax on Stripe Tax being active in this account (#828) */
 const isStripeTaxEnabled = process.env.STRIPE_TAX_ENABLED === 'true';
@@ -750,6 +810,12 @@ app.openapi(checkoutRoute, async (c) => {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
   assertAccountOwner(c);
+
+  // A2: fail fast with a precise, named error if the LIVE catalog is incomplete,
+  // rather than 500ing deep inside the Stripe price lookup on the first real
+  // checkout (Vercel cold starts skip the boot-time validator). Cached per cold
+  // instance; no-op in test mode.
+  await assertLiveCatalogComplete();
 
   const { priceId, tier } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
