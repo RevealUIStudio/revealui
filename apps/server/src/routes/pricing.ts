@@ -241,7 +241,12 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
   const subscriptions = SUBSCRIPTION_TIERS.map((tier) => {
     const stripePrice = stripePrices?.subscriptions.get(tier.id);
     const fallback = FALLBACK_SUBSCRIPTION_PRICES[tier.id];
-    return { ...tier, ...(stripePrice ?? fallback) };
+    const annualGuardEnv = ANNUAL_PRICE_ENV_GUARDS[tier.id];
+    const annualPrices =
+      annualGuardEnv && process.env[annualGuardEnv]
+        ? HARDCODED_ANNUAL_SUBSCRIPTION_PRICES[tier.id]
+        : undefined;
+    return { ...tier, ...(stripePrice ?? fallback), ...annualPrices };
   });
 
   const credits = CREDIT_BUNDLES.map((bundle) => {
