@@ -284,6 +284,17 @@ export default function LicensePage() {
                   </code>{' '}
                   at startup.
                 </p>
+                <p className="mt-3">
+                  The same key activates the RevDev daemon — one purchase, one license, both
+                  products. Set it as{' '}
+                  <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
+                    REVDEV_LICENSE_KEY
+                  </code>
+                  :
+                </p>
+                <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-2 text-xs font-mono dark:bg-zinc-900">
+                  REVDEV_LICENSE_KEY=your-key-here
+                </pre>
               </div>
             </div>
           </CardContent>

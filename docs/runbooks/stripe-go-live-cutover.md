@@ -29,7 +29,7 @@ During Gate-5 (2026-06-14) the production **revealui-api** Vercel project was pu
 | `STRIPE_WEBHOOK_SECRET` | test endpoint `whsec_…` | `revealui/prod/stripe/webhook-secret` |
 | `STRIPE_WEBHOOK_SECRET_LIVE` | test endpoint `whsec_…` | `revealui/prod/stripe/webhook-secret-live` |
 | `STRIPE_LIVE_MODE` | `false` | (Vercel-direct toggle; in the sync `skip` list — never synced) |
-| `billing_catalog.stripe_price_id` (prod DB) | **test** price IDs | re-seed from live Stripe (step 3) |
+| `billing_catalog` (prod DB) — **mode-keyed** | test-mode rows seeded | seed **live-mode** rows alongside (step 3); the flip switches which mode is read, not the data |
 
 The Gate-5 test key (`revealui/dev/stripe/secret-key`) and test webhook secret (`revealui/dev/stripe/webhook-secret`) were stored in revvault under the `dev/` namespace and must be **rotated/removed** at the end (step 7).
 
@@ -69,9 +69,11 @@ revvault sync vercel --manifest scripts/sync/revvault-vercel.toml   # or the pnp
 
 `STRIPE_LIVE_MODE` is in the manifest `skip` list, so the sync does **not** touch it — you flip it explicitly in step 4. Confirm the secret-key + webhook vars now resolve to live (the sync reports each var).
 
-## 3. Re-seed billing_catalog with LIVE price IDs
+## 3. Seed the LIVE-mode billing_catalog rows
 
-The prod `billing_catalog` currently holds **test** price IDs from Gate-5. Re-seed against the **live** Stripe account so it holds live price IDs. The seed picks live/test by key prefix and prints a 5-second LIVE warning — this is intentional.
+The `billing_catalog` is **mode-keyed** (ADR Layer 1 — `mode` column on `accounts.ts`; `sync-billing-catalog.ts` writes the row's mode). Live and test rows **coexist** (unique on `(plan_id, mode)`), so this step does **not** re-seed over / replace the test rows — it seeds the **live-mode** rows alongside them. The flip in step 4 (`STRIPE_LIVE_MODE`) changes which mode the runtime reads (`getConfiguredStripeMode`); it does not move catalog data.
+
+Seed the live-mode rows with the **live** Stripe key (the seed picks live/test by key prefix and prints a 5-second LIVE warning — intentional). The live rows must exist before the flip: the Fly startup validator and the per-cold-instance checkout gate both fail-fast if an expected live price row is missing. (Owner-gated — this is the Gate 1c live re-seed.)
 
 ```bash
 cd ~/revfleet/revealui

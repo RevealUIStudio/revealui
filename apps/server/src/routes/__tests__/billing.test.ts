@@ -365,6 +365,37 @@ describe('POST /checkout', () => {
     expect(sessionArgs.customer).toBe('cus_existing');
   });
 
+  it('interval=year resolves the annual planId and checks out (A4)', async () => {
+    queueSelectResults(
+      [{ stripePriceId: 'price_pro_annual' }], // catalog lookup -> annual price
+      [{ stripeCustomerId: 'cus_existing' }],
+    );
+    mockCheckoutSessionsCreate.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pay/sess_annual',
+    });
+    const { eq } = await import('drizzle-orm');
+
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro', interval: 'year' }));
+
+    expect(res.status).toBe(200);
+    // interval=year maps to the subscription:<tier>:year planId (monthly is unchanged).
+    expect(eq).toHaveBeenCalledWith('billingCatalog.planId', 'subscription:pro:year');
+    const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
+    const lineItems = sessionArgs.line_items as Array<{ price: string }>;
+    expect(lineItems[0]?.price).toBe('price_pro_annual');
+    // Idempotency key carries the interval so a monthly->annual switch can't collide.
+    const opts = mockCheckoutSessionsCreate.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect((opts.idempotencyKey as string).includes('-year-')).toBe(true);
+  });
+
+  it('500s on annual checkout when no annual price is configured (no CTA without a resolvable price) (A4)', async () => {
+    queueSelectResults([]); // catalog lookup -> no annual row resolves
+    const app = createApp();
+    const res = await app.request(post('/checkout', { tier: 'pro', interval: 'year' }));
+    expect(res.status).toBe(500);
+  });
+
   it('re-provisions when the stored Stripe customer is missing/deleted in the current mode', async () => {
     // Regression: a stored stripe_customer_id from another mode (e.g. a live
     // customer when the deployment runs test keys) or a deleted customer was
@@ -624,7 +655,14 @@ describe('GET /subscription', () => {
     expect(body.expiresAt).toBeNull();
   });
 
-  it('prefers request-scoped account entitlements over legacy license lookup', async () => {
+  it('takes tier/status from request-scoped entitlements but still surfaces the license key (A9)', async () => {
+    // The entitlement path short-circuits tier/status resolution, but the license
+    // JWT must still be surfaced — a paying hosted customer needs the key to
+    // activate a self-hosted framework deploy AND the RevDev daemon (one license,
+    // both products). Previously this path returned licenseKey:null.
+    _selectResult = [
+      { tier: 'pro', status: 'active', expiresAt: null, licenseKey: 'rv-entitlement-key' },
+    ];
     const app = createApp(MOCK_USER, {
       accountId: 'acct_123',
       tier: 'max',
@@ -634,11 +672,10 @@ describe('GET /subscription', () => {
 
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.tier).toBe('max');
+    expect(body.tier).toBe('max'); // tier/status still from entitlements
     expect(body.status).toBe('past_due');
     expect(body.expiresAt).toBeNull();
-    expect(body.licenseKey).toBeNull();
-    expect(mockDb.select).not.toHaveBeenCalled();
+    expect(body.licenseKey).toBe('rv-entitlement-key'); // license key now surfaced
   });
 
   it('returns revoked license status', async () => {
