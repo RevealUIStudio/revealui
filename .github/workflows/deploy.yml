@@ -492,7 +492,12 @@ jobs:
         # directly and doesn't go through the same team-scope validation.
         # Fix: route via --scope (team slug) instead of VERCEL_ORG_ID (team ID).
         run: |
-          set -uo pipefail
+          # GAP-252: use set +e so any individual grep/jq failure inside the
+          # loop does not abort the script early (GitHub Actions runs with
+          # set -eo pipefail by default; a grep that matches nothing exits 1
+          # and was aborting the loop on the first app, rolling back nothing).
+          # Failures are tracked via counters and surfaced at the end.
+          set +e
           echo "::warning::Smoke test failed — rolling back affected apps"
           pnpm add -g vercel@latest
           APP_LIST="${{ needs.detect.outputs.app-list }}"
@@ -502,7 +507,7 @@ jobs:
             # Look the project id up from the detect job's matrix (built from the
             # single-source .github/vercel-projects.json). This job has no checkout,
             # so it reuses the matrix via env rather than reading the file. Unknown -> skip.
-            PID=$(printf '%s' "$DETECT_MATRIX" | jq -r --arg a "$app" '.[] | select(.app == $a) | .["project-id"]')
+            PID=$(printf '%s' "$DETECT_MATRIX" | jq -r --arg a "$app" '.[] | select(.app == $a) | .["project-id"]' 2>/dev/null) || PID=""
             if [ -z "$PID" ]; then continue; fi
 
             echo ""
@@ -514,7 +519,7 @@ jobs:
               --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 || true)
             PREV_URL=$(printf '%s\n' "$DEPLOY_LIST" \
               | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
-              | sed -n '2p')
+              | sed -n '2p') || PREV_URL=""
 
             if [ -z "$PREV_URL" ]; then
               echo "::warning::No previous deployment found for $app — broken deploy is live, manual intervention required"
@@ -539,7 +544,7 @@ jobs:
             CURRENT_URL=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod \
               --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 \
               | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
-              | head -n 1)
+              | head -n 1) || CURRENT_URL=""
 
             if [ "$CURRENT_URL" = "$PREV_URL" ]; then
               echo "✅ Rollback verified: $app production now serving $CURRENT_URL"
