@@ -338,7 +338,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     mockConstructEvent.mockReturnValueOnce(event);
     mockPaymentIntentsRetrieve.mockResolvedValueOnce({
       id: 'pi_perpetual_email',
-      metadata: { perpetual: 'true', tier: 'enterprise', revealui_user_id: 'user-456' },
+      metadata: { perpetual: 'true', tier: 'enterprise', revealui_user_id: 'user-456', license_id: 'lic-email-test' },
     });
 
     const app = createApp();
