@@ -10,6 +10,7 @@
  *   tsx scripts/validate/pricing-lockstep.ts --warn   # warn-only (exit 0)
  */
 import {
+  ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
   PERPETUAL_PRICE_FALLBACKS,
   SUBSCRIPTION_PRICE_FALLBACKS,
 } from '../../apps/marketing/app/lib/pricing-fallbacks.js';

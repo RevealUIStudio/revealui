@@ -116,6 +116,8 @@ export interface SubscriptionTier {
   name: string;
   price?: string;
   period?: string;
+  annualPrice?: string;
+  annualPeriod?: string;
   description: string;
   features: string[];
   cta: string;

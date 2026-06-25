@@ -21,6 +21,16 @@ export const SUBSCRIPTION_PRICE_FALLBACKS: Record<
   enterprise: { price: '$1,499', period: '/month' },
 };
 
+export const ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS: Record<
+  LicenseTierId,
+  { price: string; period: string; savings: string }
+> = {
+  free: { price: '$0', period: '/year', savings: '' },
+  pro: { price: '$470', period: '/year', savings: 'Save $118/yr' },
+  max: { price: '$2,870', period: '/year', savings: 'Save $718/yr' },
+  enterprise: { price: '$14,390', period: '/year', savings: 'Save $3,598/yr' },
+};
+
 export const PERPETUAL_PRICE_FALLBACKS: Record<
   string,
   { price: string; priceNote: string; renewal: string }
