@@ -27,7 +27,11 @@ import {
   SUBSCRIPTION_TIERS,
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
-import { PERPETUAL_PRICE_FALLBACKS, SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
+import {
+  ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
+  PERPETUAL_PRICE_FALLBACKS,
+  SUBSCRIPTION_PRICE_FALLBACKS,
+} from '../lib/pricing-fallbacks';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com';
 const API_URL =
