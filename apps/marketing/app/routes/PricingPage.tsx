@@ -73,8 +73,7 @@ export function PricingPage() {
   // Show the annual toggle only after the API confirms annual prices are available
   // (i.e. the server has STRIPE_*_ANNUAL_PRICE_ID configured). This is the
   // "no annual CTA without a resolvable annual price" lockstep guard.
-  const showAnnualToggle =
-    pricing !== null && pricing.subscriptions.some((t) => Boolean(t.annualPrice));
+  const showAnnualToggle = pricing?.subscriptions.some((t) => Boolean(t.annualPrice)) ?? false;
 
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
     const fallback = SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
