@@ -29,7 +29,7 @@ During Gate-5 (2026-06-14) the production **revealui-api** Vercel project was pu
 | `STRIPE_WEBHOOK_SECRET` | test endpoint `whsec_…` | `revealui/prod/stripe/webhook-secret` |
 | `STRIPE_WEBHOOK_SECRET_LIVE` | test endpoint `whsec_…` | `revealui/prod/stripe/webhook-secret-live` |
 | `STRIPE_LIVE_MODE` | `false` | (Vercel-direct toggle; in the sync `skip` list — never synced) |
-| `billing_catalog.stripe_price_id` (prod DB) | **test** price IDs | re-seed from live Stripe (step 3) |
+| `billing_catalog` (prod DB) — **mode-keyed** | test-mode rows seeded | seed **live-mode** rows alongside (step 3); the flip switches which mode is read, not the data |
 
 The Gate-5 test key (`revealui/dev/stripe/secret-key`) and test webhook secret (`revealui/dev/stripe/webhook-secret`) were stored in revvault under the `dev/` namespace and must be **rotated/removed** at the end (step 7).
 
