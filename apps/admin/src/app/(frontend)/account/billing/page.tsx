@@ -507,6 +507,36 @@ function BillingContent() {
           )}
 
           <div className="border-t pt-4 dark:border-zinc-800">
+            {hasAnnualOption &&
+              (tier === 'free' || (tier === 'pro' && !isTrialing) || tier === 'max') && (
+                <div className="mb-4 flex justify-center">
+                  <div className="inline-flex items-center rounded-full bg-zinc-100 p-1 text-sm font-medium ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
+                    <button
+                      type="button"
+                      onClick={() => setBillingInterval('month')}
+                      className={`rounded-full px-3 py-1 transition-colors ${
+                        billingInterval === 'month'
+                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
+                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBillingInterval('year')}
+                      className={`rounded-full px-3 py-1 transition-colors ${
+                        billingInterval === 'year'
+                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
+                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      Annual
+                      <span className="ml-1 text-xs text-green-600 dark:text-green-400">−20%</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             {tier === 'free' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-600">
