@@ -449,6 +449,32 @@ jobs:
           echo "::error::Admin health check failed after 2 minutes"
           exit 1
 
+      - name: Invocation guard — API (real function invocation)
+        # GAP-253: /health/ready can pass while real request handling fails with
+        # FUNCTION_INVOCATION_FAILED — readiness does not exercise the full route
+        # handler the way a real API request does, and public /api/* responses can
+        # be CDN-cached (a stale 200 masks a broken function). Hit an AUTHENTICATED
+        # route with NO auth: a healthy function returns 401 (the handler + auth
+        # middleware actually executed); a broken function config returns a 5xx
+        # Vercel runtime error. Cache-bust with the run id so the CDN cannot serve
+        # a stale response. A non-5xx proves the function invokes; 5xx (or no
+        # response) trips the existing `if: failure()` rollback below.
+        run: |
+          API_URL="${REVEALUI_API_URL:-https://api.revealui.com}"
+          PROBE="$API_URL/api/billing/subscription?_cb=${GITHUB_RUN_ID}"
+          echo "Invocation guard: GET $PROBE (expect a non-5xx, e.g. 401)..."
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' "$PROBE" 2>/dev/null || echo "000")
+            if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 500 ]; then
+              echo "Invocation OK: function returned HTTP $CODE (handler executed)"
+              exit 0
+            fi
+            echo "Attempt $i/12 — got HTTP $CODE (function not invoking cleanly), waiting 10s..."
+            sleep 10
+          done
+          echo "::error::API invocation guard failed — /api/billing/subscription returned a 5xx (possible FUNCTION_INVOCATION_FAILED) after 2 minutes"
+          exit 1
+
       - name: Rollback on failure
         if: failure()
         # Per GAP-128: `vercel rollback` with no URL argument is a STATUS
@@ -466,7 +492,12 @@ jobs:
         # directly and doesn't go through the same team-scope validation.
         # Fix: route via --scope (team slug) instead of VERCEL_ORG_ID (team ID).
         run: |
-          set -uo pipefail
+          # GAP-252: use set +e so any individual grep/jq failure inside the
+          # loop does not abort the script early (GitHub Actions runs with
+          # set -eo pipefail by default; a grep that matches nothing exits 1
+          # and was aborting the loop on the first app, rolling back nothing).
+          # Failures are tracked via counters and surfaced at the end.
+          set +e
           echo "::warning::Smoke test failed — rolling back affected apps"
           pnpm add -g vercel@latest
           APP_LIST="${{ needs.detect.outputs.app-list }}"
@@ -476,7 +507,7 @@ jobs:
             # Look the project id up from the detect job's matrix (built from the
             # single-source .github/vercel-projects.json). This job has no checkout,
             # so it reuses the matrix via env rather than reading the file. Unknown -> skip.
-            PID=$(printf '%s' "$DETECT_MATRIX" | jq -r --arg a "$app" '.[] | select(.app == $a) | .["project-id"]')
+            PID=$(printf '%s' "$DETECT_MATRIX" | jq -r --arg a "$app" '.[] | select(.app == $a) | .["project-id"]' 2>/dev/null) || PID=""
             if [ -z "$PID" ]; then continue; fi
 
             echo ""
@@ -488,7 +519,7 @@ jobs:
               --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 || true)
             PREV_URL=$(printf '%s\n' "$DEPLOY_LIST" \
               | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
-              | sed -n '2p')
+              | sed -n '2p') || PREV_URL=""
 
             if [ -z "$PREV_URL" ]; then
               echo "::warning::No previous deployment found for $app — broken deploy is live, manual intervention required"
@@ -513,7 +544,7 @@ jobs:
             CURRENT_URL=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod \
               --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 \
               | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
-              | head -n 1)
+              | head -n 1) || CURRENT_URL=""
 
             if [ "$CURRENT_URL" = "$PREV_URL" ]; then
               echo "✅ Rollback verified: $app production now serving $CURRENT_URL"
