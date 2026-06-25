@@ -29,16 +29,16 @@ import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
 import {
+  type BillingCatalogRow,
+  fetchLiveBillingCatalogRows,
+  findBillingCatalogGaps,
+} from '../lib/validate-startup.js';
+import {
   sendDowngradeConfirmationEmail,
   sendUpgradeConfirmationEmail,
 } from '../lib/webhook-emails.js';
 import { assertAccountOwner } from '../middleware/account-owner.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
-import {
-  type BillingCatalogRow,
-  fetchLiveBillingCatalogRows,
-  findBillingCatalogGaps,
-} from '../lib/validate-startup.js';
 
 /** Default trial period for new subscriptions (overridable via env) */
 const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);
