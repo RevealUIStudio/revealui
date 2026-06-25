@@ -207,15 +207,19 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
+      const useAnnual =
+        billingInterval === 'year' && Boolean(process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID);
+      const priceId = useAnnual
+        ? process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID;
       const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          ...(process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID && {
-            priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
-          }),
+          ...(priceId && { priceId }),
           targetTier: 'max',
+          ...(useAnnual && { interval: 'year' }),
         }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
@@ -236,15 +240,20 @@ function BillingContent() {
     setActionLoading(true);
     setError(null);
     try {
+      const useAnnual =
+        billingInterval === 'year' &&
+        Boolean(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID);
+      const priceId = useAnnual
+        ? process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID;
       const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          ...(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID && {
-            priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
-          }),
+          ...(priceId && { priceId }),
           targetTier: 'enterprise',
+          ...(useAnnual && { interval: 'year' }),
         }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
