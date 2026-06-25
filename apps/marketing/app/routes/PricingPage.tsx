@@ -53,6 +53,7 @@ function CheckIcon({ className }: { className?: string }) {
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
 
   useEffect(() => {
     let cancelled = false;
@@ -69,13 +70,28 @@ export function PricingPage() {
     };
   }, []);
 
+  // Show the annual toggle only after the API confirms annual prices are available
+  // (i.e. the server has STRIPE_*_ANNUAL_PRICE_ID configured). This is the
+  // "no annual CTA without a resolvable annual price" lockstep guard.
+  const showAnnualToggle =
+    pricing !== null && pricing.subscriptions.some((t) => Boolean(t.annualPrice));
+
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => {
     const fallback = SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const annualFallback = ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier.id];
+    const useAnnual = billingInterval === 'year' && tier.id !== 'free' && Boolean(tier.annualPrice);
+    const baseHref = tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref;
+    const ctaHref = useAnnual ? `${baseHref}&interval=year` : baseHref;
     return {
       ...tier,
-      price: tier.price ?? fallback?.price,
-      period: tier.period ?? fallback?.period,
-      ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
+      price: useAnnual
+        ? (tier.annualPrice ?? annualFallback?.price)
+        : (tier.price ?? fallback?.price),
+      period: useAnnual
+        ? (tier.annualPeriod ?? annualFallback?.period)
+        : (tier.period ?? fallback?.period),
+      savings: useAnnual ? (annualFallback?.savings ?? '') : '',
+      ctaHref,
     };
   });
   const perpetualTiers = (pricing?.perpetual ?? PERPETUAL_TIERS).map((tier) => {
