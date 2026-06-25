@@ -6,8 +6,12 @@ import {
 } from '../stripe-webhook-events.js';
 
 describe('stripe-webhook-events', () => {
-  it('exposes exactly RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT events', () => {
-    expect(RELEVANT_STRIPE_WEBHOOK_EVENTS).toHaveLength(RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT);
+  it('exposes exactly the expected number of events (literal drift guard)', () => {
+    // The literal lives HERE, not in a hand-maintained module constant: a change
+    // to the array forces a deliberate update to this expectation. The exported
+    // COUNT is derived from the array, so it tracks automatically — assert they agree.
+    expect(RELEVANT_STRIPE_WEBHOOK_EVENTS).toHaveLength(15);
+    expect(RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT).toBe(15);
   });
 
   it('has no duplicates', () => {

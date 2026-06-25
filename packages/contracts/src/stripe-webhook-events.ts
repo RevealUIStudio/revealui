@@ -65,7 +65,8 @@ export const RELEVANT_STRIPE_WEBHOOK_EVENTS = [
 export type RelevantStripeWebhookEvent = (typeof RELEVANT_STRIPE_WEBHOOK_EVENTS)[number];
 
 /**
- * Expected event count — acts as a coarse drift detector for reviewers.
- * If you're adjusting the array above, update this too.
+ * Event count, derived from the array so the two can never drift. The literal
+ * drift guard for reviewers (assert the array length against the expected
+ * number) lives in the unit test, not in a hand-maintained constant here.
  */
-export const RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT = 15;
+export const RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT = RELEVANT_STRIPE_WEBHOOK_EVENTS.length;
