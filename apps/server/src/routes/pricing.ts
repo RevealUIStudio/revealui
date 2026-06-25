@@ -285,6 +285,8 @@ const PricingResponseSchema = z.object({
       name: z.string(),
       price: z.string().optional(),
       period: z.string().optional(),
+      annualPrice: z.string().optional(),
+      annualPeriod: z.string().optional(),
       description: z.string(),
       features: z.array(z.string()),
       cta: z.string(),
