@@ -66,6 +66,29 @@ for (const [tier, key] of Object.entries(SUB_KEY)) {
   }
 }
 
+const ANNUAL_SUB_KEY: Record<string, string> = {
+  pro: 'revealui_pro_yearly',
+  max: 'revealui_max_yearly',
+  enterprise: 'revealui_enterprise_yearly',
+};
+for (const [tier, key] of Object.entries(ANNUAL_SUB_KEY)) {
+  const fb =
+    ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS[tier as keyof typeof ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS];
+  if (!fb || !fb.price || fb.price === '$0') continue;
+  const fallbackCents = dollarsToCents(fb.price);
+  const declared = catalogCents(key);
+  if (declared !== fallbackCents) {
+    mismatches.push({
+      surface: 'subscription-annual',
+      tier,
+      fallback: fb.price,
+      fallbackCents,
+      catalogKey: key,
+      catalogCents: declared,
+    });
+  }
+}
+
 const PERP_KEY: Record<string, string> = {
   'Pro Perpetual': 'revealui_pro_perpetual',
   'Agency Perpetual': 'revealui_max_perpetual',
