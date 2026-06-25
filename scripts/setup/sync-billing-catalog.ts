@@ -109,6 +109,34 @@ function resolveCatalogSeeds(localCache: {
       stripeProductId: resolveProductId('subscription:enterprise'),
       ...resolvePriceId('STRIPE_ENTERPRISE_PRICE_ID', 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID'),
     },
+    // Annual subscriptions (Track A — KEEP). Same Stripe product as the monthly
+    // plan, a distinct yearly price. The planId carries the interval so monthly
+    // rows stay `subscription:<tier>` (backward compatible) and annual is
+    // `subscription:<tier>:year`.
+    {
+      planId: 'subscription:pro:year',
+      tier: 'pro',
+      billingModel: 'subscription',
+      stripeProductId: resolveProductId('subscription:pro'),
+      ...resolvePriceId('STRIPE_PRO_ANNUAL_PRICE_ID', 'NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID'),
+    },
+    {
+      planId: 'subscription:max:year',
+      tier: 'max',
+      billingModel: 'subscription',
+      stripeProductId: resolveProductId('subscription:max'),
+      ...resolvePriceId('STRIPE_MAX_ANNUAL_PRICE_ID', 'NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID'),
+    },
+    {
+      planId: 'subscription:enterprise:year',
+      tier: 'enterprise',
+      billingModel: 'subscription',
+      stripeProductId: resolveProductId('subscription:enterprise'),
+      ...resolvePriceId(
+        'STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
+        'NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
+      ),
+    },
     {
       planId: 'perpetual:pro',
       tier: 'pro',
