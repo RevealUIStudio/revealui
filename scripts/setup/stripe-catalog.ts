@@ -275,18 +275,22 @@ export const CATALOG: ProductDefinition[] = [
 
 export const PRICE_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
+  revealui_pro_yearly: 'NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID',
   revealui_max_monthly: 'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
   revealui_max_yearly: 'NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID',
   revealui_enterprise_monthly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
+  revealui_enterprise_yearly: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
   revealui_pro_perpetual: 'NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID',
   revealui_max_perpetual: 'NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID',
   revealui_enterprise_perpetual: 'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
 };
 export const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_pro_monthly: 'STRIPE_PRO_PRICE_ID',
+  revealui_pro_yearly: 'STRIPE_PRO_ANNUAL_PRICE_ID',
   revealui_max_monthly: 'STRIPE_MAX_PRICE_ID',
   revealui_max_yearly: 'STRIPE_MAX_ANNUAL_PRICE_ID',
   revealui_enterprise_monthly: 'STRIPE_ENTERPRISE_PRICE_ID',
+  revealui_enterprise_yearly: 'STRIPE_ENTERPRISE_ANNUAL_PRICE_ID',
   revealui_pro_perpetual: 'STRIPE_PERPETUAL_PRO_PRICE_ID',
   revealui_max_perpetual: 'STRIPE_PERPETUAL_MAX_PRICE_ID',
   revealui_enterprise_perpetual: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
