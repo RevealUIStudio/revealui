@@ -34,7 +34,7 @@ export interface BillingCatalogRow {
  * two lists are intentionally separate. A test in
  * `__tests__/validate-startup.test.ts` asserts they stay in sync.
  */
-const EXPECTED_LIVE_PLAN_IDS = [
+export const EXPECTED_LIVE_PLAN_IDS = [
   'subscription:pro',
   'subscription:max',
   'subscription:enterprise',
@@ -48,6 +48,31 @@ const EXPECTED_LIVE_PLAN_IDS = [
   'credits:standard',
   'credits:scale',
 ] as const;
+
+/**
+ * Compute which expected live-mode billing-catalog plans are absent (no row at
+ * all) or incomplete (row present but `stripe_price_id` is null). Shared by the
+ * boot-time validator (`validateBillingCatalogAtStartup`, run only by the Fly
+ * worker) AND the per-cold-instance checkout gate in `routes/billing.ts`, so the
+ * two enforcement points cannot drift — both derive the expected set from
+ * `EXPECTED_LIVE_PLAN_IDS` and apply the identical missing/incomplete predicate.
+ */
+export function findBillingCatalogGaps(rows: BillingCatalogRow[]): {
+  missing: string[];
+  incomplete: string[];
+} {
+  const byPlanId = new Map<string, string | null>(rows.map((r) => [r.planId, r.stripePriceId]));
+  const missing: string[] = [];
+  const incomplete: string[] = [];
+  for (const planId of EXPECTED_LIVE_PLAN_IDS) {
+    if (!byPlanId.has(planId)) {
+      missing.push(planId);
+    } else if (!byPlanId.get(planId)) {
+      incomplete.push(planId);
+    }
+  }
+  return { missing, incomplete };
+}
 
 /**
  * Where this RevealUI deployment runs.
@@ -603,11 +628,12 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
 }
 
 /**
- * Default fetcher: queries `billing_catalog` via the shared Drizzle client.
- * Extracted so `validateBillingCatalogAtStartup` can take an injectable
- * fetcher in tests (avoids mocking the DB module).
+ * Fetch the live-mode `billing_catalog` rows via the shared Drizzle client.
+ * Exported so BOTH the boot-time validator (injectable for tests) AND the
+ * checkout gate in `routes/billing.ts` issue the identical query — checking the
+ * live-mode rows specifically (test rows may be partially seeded before cutover).
  */
-async function defaultFetchBillingCatalogRows(): Promise<BillingCatalogRow[]> {
+export async function fetchLiveBillingCatalogRows(): Promise<BillingCatalogRow[]> {
   const db = getClient();
   return (
     db
@@ -648,7 +674,7 @@ async function defaultFetchBillingCatalogRows(): Promise<BillingCatalogRow[]> {
  */
 export async function validateBillingCatalogAtStartup(
   env: EnvMap = process.env as EnvMap,
-  fetchRows: () => Promise<BillingCatalogRow[]> = defaultFetchBillingCatalogRows,
+  fetchRows: () => Promise<BillingCatalogRow[]> = fetchLiveBillingCatalogRows,
 ): Promise<void> {
   if (env.SKIP_ENV_VALIDATION === 'true') return;
   if (env.NODE_ENV !== 'production') return;
@@ -656,17 +682,7 @@ export async function validateBillingCatalogAtStartup(
   if (env.STRIPE_LIVE_MODE !== 'true') return;
 
   const rows = await fetchRows();
-  const byPlanId = new Map<string, string | null>(rows.map((r) => [r.planId, r.stripePriceId]));
-
-  const missing: string[] = [];
-  const incomplete: string[] = [];
-  for (const planId of EXPECTED_LIVE_PLAN_IDS) {
-    if (!byPlanId.has(planId)) {
-      missing.push(planId);
-    } else if (!byPlanId.get(planId)) {
-      incomplete.push(planId);
-    }
-  }
+  const { missing, incomplete } = findBillingCatalogGaps(rows);
 
   if (missing.length === 0 && incomplete.length === 0) return;
 

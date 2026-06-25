@@ -82,7 +82,7 @@ All gates must pass on the `main` branch before deploy.
 - [ ] NeonDB production database provisioned and accessible **(blocking)**
 - [ ] pgvector extension enabled on NeonDB (`CREATE EXTENSION IF NOT EXISTS vector`) **(blocking)**
 - [ ] ElectricSQL sync proxy running and connected to NeonDB **(blocking)**
-- [ ] Vercel Blob Storage configured (`BLOB_READ_WRITE_TOKEN`) **(blocking)**
+- [ ] Cloudflare R2 object storage configured (`R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` / `R2_ACCOUNT_ID`; creds in revvault `revealui/prod/r2/*`) **(blocking)**
 
 ---
 

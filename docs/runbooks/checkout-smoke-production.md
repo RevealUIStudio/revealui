@@ -75,13 +75,13 @@ Expected: every row has `state = 'closed'` and `failure_count = 0`. If any row i
 
 > Use a **real card** in **live mode**. The test card numbers (`4242 4242 4242 4242`) only work in test mode and won't exercise the live webhook path. Use a personal card and refund the charge in §Rollback below.
 
-1. **Sign in** at `https://revealui.com/sign-in` as an account that does NOT currently hold a Pro license (verify in admin: user row's `tier = 'free'`).
+1. **Sign in** at `https://admin.revealui.com/sign-in` as an account that does NOT currently hold a Pro license (verify in admin: user row's `tier = 'free'`).
 2. Navigate to the **pricing page** at `https://revealui.com/pricing`.
 3. Click **Get Pro** (the $49/mo subscription tier). 📸 **Screenshot:** the pricing page before clicking, to capture the rendered tier list.
 4. The frontend POSTs to the checkout-session creation endpoint, which builds a Stripe checkout session with `metadata = { tier: 'pro', revealui_user_id: <your user id> }` and returns the Stripe-hosted URL. Browser redirects to `https://checkout.stripe.com/...`.
 5. **Stripe Checkout (hosted page)** — enter your real card. 📸 **Screenshot:** the Stripe checkout page before submitting (mask the card number — keep last 4 digits visible).
 6. Submit. Stripe processes the charge and fires `checkout.session.completed` to your webhook endpoint.
-7. Browser redirects back to `https://revealui.com/checkout/success` (the configured `success_url`). 📸 **Screenshot:** the success page.
+7. Browser redirects back to `https://admin.revealui.com/welcome?success=true` (the configured `success_url` — `${adminUrl}/welcome?success=true&tier=<tier>`, see `apps/server/src/routes/billing.ts`). 📸 **Screenshot:** the `/welcome` page.
 8. Navigate to `https://app.revealui.com/` (or wherever the post-checkout app lives). Confirm a Pro-gated feature is now accessible (e.g., the AI agents panel that requires `isLicensed('pro')`). 📸 **Screenshot:** the Pro feature rendering.
 
 **Wall-clock budget:** end-to-end (steps 1-8) should complete in **under 30 seconds** on a healthy production. If step 8 doesn't show Pro features within 60 seconds, jump to the failure-mode triage below.
