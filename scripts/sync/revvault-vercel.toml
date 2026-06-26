@@ -73,7 +73,9 @@ STRIPE_CREDITS_STARTER_PRICE_ID      = "revealui/prod/stripe/credits-starter-pri
 STRIPE_CREDITS_STANDARD_PRICE_ID     = "revealui/prod/stripe/credits-standard-price-id"
 STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/prod/stripe/credits-scale-price-id"
 STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/prod/stripe/agent-overage-price-id"
+STRIPE_PRO_ANNUAL_PRICE_ID           = "revealui/prod/stripe/pro-annual-price-id"
 STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/prod/stripe/max-annual-price-id"
+STRIPE_ENTERPRISE_ANNUAL_PRICE_ID    = "revealui/prod/stripe/enterprise-annual-price-id"
 
 # Observability — Sentry (server-side error capture; required by validate-startup.ts
 # REQUIRED_IN_PRODUCTION_HOSTED per revealui#787)
