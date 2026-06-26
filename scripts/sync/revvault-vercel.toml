@@ -180,7 +180,9 @@ NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID        = "revealui/prod/stripe/perpetu
 NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID = "revealui/prod/stripe/perpetual-enterprise-price-id"
 # Bare versions on admin (server-side reads in Next.js api routes; same values)
 STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
-STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
+STRIPE_PRO_ANNUAL_PRICE_ID        = "revealui/prod/stripe/pro-annual-price-id"
+STRIPE_MAX_ANNUAL_PRICE_ID        = "revealui/prod/stripe/max-annual-price-id"
+STRIPE_ENTERPRISE_ANNUAL_PRICE_ID = "revealui/prod/stripe/enterprise-annual-price-id"
 
 # Database
 POSTGRES_URL  = { path = "revealui/prod/db/postgres-url", sensitive = true }
