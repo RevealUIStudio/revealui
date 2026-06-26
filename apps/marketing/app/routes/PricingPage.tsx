@@ -199,7 +199,7 @@ export function PricingPage() {
                   }`}
                 >
                   Annually
-                  <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
+                  <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-800 dark:text-green-400">
                     Save 20%
                   </span>
                 </button>

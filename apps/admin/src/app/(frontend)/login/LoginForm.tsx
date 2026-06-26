@@ -18,6 +18,7 @@ import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
+import { buildAuthIntentQuery, readAuthIntent, resolveAuthDest } from '@/lib/utils/auth-redirect';
 
 export type OAuthProvider = 'github' | 'google' | 'vercel' | 'linkedin';
 
@@ -91,9 +92,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   );
   const messageKey = searchParams.get('message');
   const successMessage = messageKey ? SUCCESS_MESSAGES[messageKey] : undefined;
-  const rawUpgrade = searchParams.get('upgrade');
-  const upgrade: 'pro' | 'max' | null =
-    rawUpgrade === 'pro' || rawUpgrade === 'max' ? rawUpgrade : null;
+  const { upgrade, redirect } = readAuthIntent(searchParams);
 
   const anyLoading = isLoading || isPasskeyLoading;
   const hasAlternates = oauthProviders.length > 0 || passkeySupported;
@@ -104,18 +103,18 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
 
     const result = await signIn({ email, password });
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
-      navigateAfterAuthChange('/rotate-password');
+      // Carry the intent through the rotation step so the destination survives it.
+      navigateAfterAuthChange(`/rotate-password${buildAuthIntentQuery({ upgrade, redirect })}`);
     } else if (result.success) {
-      const dest = isAdminRole(result.user.role)
-        ? upgrade
-          ? `/account/billing?upgrade=${upgrade}`
-          : '/'
-        : upgrade
-          ? `/account/billing?upgrade=${upgrade}`
-          : '/welcome';
+      const dest = resolveAuthDest({
+        upgrade,
+        redirect,
+        fallback: isAdminRole(result.user.role) ? '/' : '/welcome',
+      });
       navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
-      navigateAfterAuthChange('/mfa');
+      // Carry the intent through the MFA step so the destination survives it.
+      navigateAfterAuthChange(`/mfa${buildAuthIntentQuery({ upgrade, redirect })}`);
     } else {
       const errorMessage = 'error' in result ? result.error : 'Failed to sign in';
       setError(errorMessage || 'Failed to sign in');
@@ -126,7 +125,8 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     setError(null);
     const success = await passkeySignIn();
     if (success) {
-      navigateAfterAuthChange('/');
+      // Passkey sign-in returns no user object, so role-default falls back to '/'.
+      navigateAfterAuthChange(resolveAuthDest({ upgrade, redirect, fallback: '/' }));
     }
   };
 
