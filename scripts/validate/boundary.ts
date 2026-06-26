@@ -339,6 +339,62 @@ function checkPublicRepoProDependencies(): string[] {
 }
 
 // =============================================================================
+// Check 5: Runtime packages must not import vendor LLM SDKs
+// =============================================================================
+
+// The fleet runtime reaches AI only via the Reasoner port / MCP  -  never a vendor
+// SDK (ADR 2026-06-25). Bans static, dynamic import(), and require() of these in
+// every packages/** source file. Enforces an already-true posture, machine-checked.
+const BANNED_RUNTIME_SDKS = ['@anthropic-ai/sdk', 'openai'];
+
+function importsBannedSdk(content: string, sdk: string): boolean {
+  // Match import/export ... from, dynamic import(), and require() of the exact
+  // package or a subpath, in single or double quotes. The closing quote / slash
+  // anchor avoids false positives like the local './openai-compat.js' module.
+  return (
+    content.includes(`from '${sdk}'`) ||
+    content.includes(`from "${sdk}"`) ||
+    content.includes(`from '${sdk}/`) ||
+    content.includes(`from "${sdk}/`) ||
+    content.includes(`import('${sdk}')`) ||
+    content.includes(`import("${sdk}")`) ||
+    content.includes(`import('${sdk}/`) ||
+    content.includes(`import("${sdk}/`) ||
+    content.includes(`require('${sdk}')`) ||
+    content.includes(`require("${sdk}")`) ||
+    content.includes(`require('${sdk}/`) ||
+    content.includes(`require("${sdk}/`)
+  );
+}
+
+function checkVendorSdkBoundary(): string[] {
+  const violations: string[] = [];
+  const allPackageNames = readdirSync(PACKAGES_DIR, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+
+  for (const pkgName of allPackageNames) {
+    const srcDir = join(PACKAGES_DIR, pkgName, 'src');
+    const files = collectSourceFiles(srcDir);
+
+    for (const file of files) {
+      const content = readFileSync(file, 'utf8');
+      const relPath = relative(REPO_ROOT, file);
+
+      for (const sdk of BANNED_RUNTIME_SDKS) {
+        if (importsBannedSdk(content, sdk)) {
+          violations.push(
+            `  ${relPath}: imports banned vendor SDK '${sdk}'  -  the runtime must reach AI only via the Reasoner port / MCP`,
+          );
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -384,6 +440,15 @@ function main(): void {
   } else {
     for (const v of publicRepoViolations) console.log(v);
     allViolations.push(...publicRepoViolations);
+  }
+
+  console.log('\n→ Check 5: Runtime packages do not import vendor LLM SDKs');
+  const vendorSdkViolations = checkVendorSdkBoundary();
+  if (vendorSdkViolations.length === 0) {
+    console.log('  ✓ No banned vendor SDK imports in packages/**');
+  } else {
+    for (const v of vendorSdkViolations) console.log(v);
+    allViolations.push(...vendorSdkViolations);
   }
 
   console.log(`\n${Sep}`);

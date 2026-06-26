@@ -16,6 +16,7 @@ import type {
   LLMResponse,
   LLMStreamOptions,
   Message,
+  ReasonerCapabilities,
 } from './base.js';
 import { OpenAICompatProvider } from './openai-compat.js';
 
@@ -36,6 +37,21 @@ export class GroqProvider implements LLMProvider {
       baseURL: config.baseURL ?? 'https://api.groq.com/openai/v1',
       model: config.model ?? 'qwen/qwen3-32b',
     });
+  }
+
+  capabilities(): ReasonerCapabilities {
+    // Profile for the default model (qwen/qwen3-32b). Groq exposes no embeddings endpoint.
+    return {
+      providerTag: 'groq',
+      tools: true,
+      parallelToolCalls: false,
+      vision: false,
+      streaming: true,
+      embeddings: false,
+      reasoningEffort: false,
+      promptCache: false,
+      structuredOutput: false,
+    };
   }
 
   chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {

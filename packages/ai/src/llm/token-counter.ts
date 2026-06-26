@@ -23,22 +23,43 @@ export interface CostEstimate {
   direction: 'input' | 'output';
 }
 
-// Cost per 1M tokens (USD)  -  input/output pricing
-const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-  // Anthropic
-  'claude-opus-4-6': { input: 15.0, output: 75.0 },
-  'claude-sonnet-4-6': { input: 3.0, output: 15.0 },
-  'claude-haiku-4-5-20251001': { input: 0.25, output: 1.25 },
+/**
+ * Per-1M-token pricing (USD). Single source of truth for every cost path in the package:
+ * `estimateCost` (input/output) and `calculateCacheCost` (cache-utils, cacheWrite/cacheRead).
+ * Cache rates follow Anthropic's model (write ~125% of input, read ~10%); non-caching
+ * providers carry 0 (local models are free; cache cost is not modelled for hosted
+ * non-Anthropic providers here).
+ */
+export interface ModelPricing {
+  /** USD per 1M input tokens. */
+  input: number;
+  /** USD per 1M output tokens. */
+  output: number;
+  /** USD per 1M tokens written to the prompt cache (0 where unsupported/unmodelled). */
+  cacheWrite: number;
+  /** USD per 1M tokens read from the prompt cache (0 where unsupported/unmodelled). */
+  cacheRead: number;
+}
+
+export const MODEL_PRICING: Record<string, ModelPricing> = {
+  // Anthropic (current)
+  'claude-opus-4-6': { input: 15.0, output: 75.0, cacheWrite: 18.75, cacheRead: 1.5 },
+  'claude-sonnet-4-6': { input: 3.0, output: 15.0, cacheWrite: 3.75, cacheRead: 0.3 },
+  'claude-haiku-4-5-20251001': { input: 0.25, output: 1.25, cacheWrite: 0.3125, cacheRead: 0.025 },
+  // Anthropic (legacy 2024  -  retained for cache-cost callers/examples)
+  'claude-3-5-sonnet-20241022': { input: 3.0, output: 15.0, cacheWrite: 3.75, cacheRead: 0.3 },
+  'claude-3-5-haiku-20241022': { input: 1.0, output: 5.0, cacheWrite: 1.25, cacheRead: 0.1 },
+  'claude-3-opus-20240229': { input: 15.0, output: 75.0, cacheWrite: 18.75, cacheRead: 1.5 },
   // OpenAI
-  'gpt-4o': { input: 5.0, output: 15.0 },
-  'gpt-4o-mini': { input: 0.15, output: 0.6 },
+  'gpt-4o': { input: 5.0, output: 15.0, cacheWrite: 0, cacheRead: 0 },
+  'gpt-4o-mini': { input: 0.15, output: 0.6, cacheWrite: 0, cacheRead: 0 },
   // Groq (Qwen  -  Apache 2.0)
-  'qwen/qwen3-32b': { input: 0.59, output: 0.79 },
+  'qwen/qwen3-32b': { input: 0.59, output: 0.79, cacheWrite: 0, cacheRead: 0 },
   // Ollama (self-hosted  -  no cost)
-  'gemma4:e2b': { input: 0, output: 0 },
-  'gemma4:e4b': { input: 0, output: 0 },
-  'gemma4:26b': { input: 0, output: 0 },
-  'nomic-embed-text': { input: 0, output: 0 },
+  'gemma4:e2b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
+  'gemma4:e4b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
+  'gemma4:26b': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
+  'nomic-embed-text': { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
 };
 
 function charsPerToken(model: string): number {
