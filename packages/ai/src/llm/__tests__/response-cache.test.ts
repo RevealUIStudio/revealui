@@ -52,16 +52,14 @@ describe('ResponseCache', () => {
       expect(key1).not.toBe(key2);
     });
 
-    it('should normalize messages (ignore cacheControl)', () => {
+    it('should normalize messages (ignore cache hint)', () => {
       const messages1: Message[] = [{ role: 'system', content: 'You are helpful' }];
-      const messages2: Message[] = [
-        { role: 'system', content: 'You are helpful', cacheControl: { type: 'ephemeral' } },
-      ];
+      const messages2: Message[] = [{ role: 'system', content: 'You are helpful', cache: true }];
 
       const key1 = cache.getCacheKey(messages1);
       const key2 = cache.getCacheKey(messages2);
 
-      // Should be same since cacheControl is not included in cache key
+      // Should be same since the cache hint is not included in the cache key
       expect(key1).toBe(key2);
     });
   });

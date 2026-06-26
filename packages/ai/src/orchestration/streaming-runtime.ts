@@ -118,12 +118,12 @@ export class StreamingAgentRuntime extends AgentRuntime {
       content: string;
       toolCalls?: unknown[];
       toolCallId?: string;
-      cacheControl?: { type: string };
+      cache?: boolean;
     }> = [
       {
         role: 'system',
         content: agent.instructions,
-        cacheControl: { type: 'ephemeral' },
+        cache: true,
       },
       {
         role: 'user',

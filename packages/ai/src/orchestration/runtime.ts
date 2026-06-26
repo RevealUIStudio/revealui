@@ -7,7 +7,7 @@
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import { z } from 'zod/v4';
 import type { LLMClient } from '../llm/client.js';
-import type { Message } from '../llm/providers/base.js';
+import type { Message, ReasoningEffort } from '../llm/providers/base.js';
 import { estimateCost } from '../llm/token-counter.js';
 import type { AgentSkillProvider } from '../skills/integration/agent-skill-provider.js';
 import type { ApprovalCallback, Tool, ToolResult } from '../tools/base.js';
@@ -18,28 +18,12 @@ import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
 
 /**
- * Controls how much of the model's token budget is allocated to internal reasoning.
- * Applies to Anthropic Claude only  -  ignored by other providers.
- *
- * | Level   | Budget (tokens) | Use case                          |
- * |---------|-----------------|-----------------------------------|
- * | off     | 0               | Disabled (default)                |
- * | minimal | 512             | Simple tasks, cost-sensitive      |
- * | low     | 2 048           | Moderate complexity               |
- * | medium  | 8 000           | Multi-step reasoning              |
- * | high    | 16 000          | Complex planning                  |
- * | xhigh   | 31 999          | Maximum depth (expensive)         |
+ * Reasoning-depth hint for a task. Alias of the neutral `ReasoningEffort` — the agnostic
+ * Reasoner port's control vocabulary. Mapping a level to a provider's native control
+ * (e.g. a thinking-token budget) is the adapter's job; a provider that advertises
+ * `reasoningEffort: false` treats it as a no-op.
  */
-export type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
-
-const THINKING_BUDGETS: Record<ThinkingLevel, number> = {
-  off: 0,
-  minimal: 512,
-  low: 2048,
-  medium: 8000,
-  high: 16000,
-  xhigh: 31999,
-};
+export type ThinkingLevel = ReasoningEffort;
 
 export interface RuntimeConfig {
   maxIterations?: number;
@@ -219,8 +203,8 @@ export class AgentRuntime {
       {
         role: 'system',
         content: agent.instructions,
-        // Cache agent instructions for cost savings (Anthropic only)
-        cacheControl: this.config.enableCache ? { type: 'ephemeral' } : undefined,
+        // Cache agent instructions for cost savings (effective where promptCache is supported)
+        cache: this.config.enableCache || undefined,
       },
       {
         role: 'user',
@@ -255,12 +239,6 @@ export class AgentRuntime {
           };
         }
 
-        // Resolve thinking budget if a level is configured
-        const thinkingBudget =
-          this.config.thinkingLevel && this.config.thinkingLevel !== 'off'
-            ? THINKING_BUDGETS[this.config.thinkingLevel]
-            : undefined;
-
         // Get LLM response (with caching for agent instructions and tools)
         const response = await llmClient.chat(messages, {
           tools: allTools.map((tool) => ({
@@ -271,8 +249,8 @@ export class AgentRuntime {
               parameters: z.toJSONSchema(tool.parameters) as Record<string, unknown>,
             },
           })),
-          enableCache: this.config.enableCache,
-          thinkingBudget,
+          cacheHint: this.config.enableCache,
+          effort: this.config.thinkingLevel,
         });
 
         // Accumulate token usage and cost
