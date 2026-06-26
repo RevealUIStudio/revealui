@@ -196,9 +196,15 @@ function BillingContent() {
     };
   }, []);
 
-  // Auto-redirect to checkout on signup with ?upgrade=pro|max
+  // Auto-redirect to checkout on signup with ?upgrade=pro|max, and for churned
+  // users (expired/canceled) arriving with explicit upgrade intent. Never fires
+  // for active or trialing subscribers.
   useEffect(() => {
-    if (upgrade && subscription?.tier === 'free' && !actionLoading) {
+    const canAutoCheckout =
+      subscription?.tier === 'free' ||
+      subscription?.status === 'expired' ||
+      subscription?.status === 'canceled';
+    if (upgrade && canAutoCheckout && !actionLoading) {
       void handleCheckout(upgrade);
     }
   }, [upgrade, subscription, actionLoading, handleCheckout]);
@@ -496,6 +502,17 @@ function BillingContent() {
               {statusLabel}
             </span>
           </div>
+
+          {tier !== 'max' && (
+            <div className="flex items-center justify-end">
+              <Link
+                href="/upgrade"
+                className="text-sm font-medium text-[var(--tenant-brand,#2563eb)] underline hover:no-underline"
+              >
+                Change plan &rarr;
+              </Link>
+            </div>
+          )}
 
           {subscription?.expiresAt && (
             <div className="flex items-center justify-between">
