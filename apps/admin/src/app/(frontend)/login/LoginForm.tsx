@@ -18,6 +18,7 @@ import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
+import { safeInternalRedirect } from '@/lib/utils/safe-internal-redirect';
 
 export type OAuthProvider = 'github' | 'google' | 'vercel' | 'linkedin';
 
@@ -94,6 +95,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const rawUpgrade = searchParams.get('upgrade');
   const upgrade: 'pro' | 'max' | null =
     rawUpgrade === 'pro' || rawUpgrade === 'max' ? rawUpgrade : null;
+  const redirect = safeInternalRedirect(searchParams.get('redirect'));
 
   const anyLoading = isLoading || isPasskeyLoading;
   const hasAlternates = oauthProviders.length > 0 || passkeySupported;
@@ -106,13 +108,13 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
       navigateAfterAuthChange('/rotate-password');
     } else if (result.success) {
-      const dest = isAdminRole(result.user.role)
-        ? upgrade
-          ? `/account/billing?upgrade=${upgrade}`
-          : '/'
-        : upgrade
-          ? `/account/billing?upgrade=${upgrade}`
-          : '/welcome';
+      const dest = upgrade
+        ? `/account/billing?upgrade=${upgrade}`
+        : redirect
+          ? redirect
+          : isAdminRole(result.user.role)
+            ? '/'
+            : '/welcome';
       navigateAfterAuthChange(dest);
     } else if ('requiresMfa' in result && result.requiresMfa) {
       navigateAfterAuthChange('/mfa');
@@ -126,7 +128,9 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     setError(null);
     const success = await passkeySignIn();
     if (success) {
-      navigateAfterAuthChange('/');
+      // Passkey sign-in returns no user object, so role-default falls back to '/'.
+      const dest = upgrade ? `/account/billing?upgrade=${upgrade}` : redirect ? redirect : '/';
+      navigateAfterAuthChange(dest);
     }
   };
 
