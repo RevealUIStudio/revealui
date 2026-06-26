@@ -6,6 +6,9 @@
  * router.push. The App Router client cache still holds the logged-out RSC
  * payload for '/' (a redirect back to /login), so a soft push after sign-in
  * replays it and bounces the user straight back to /login.
+ *
+ * Also covers the ?redirect= / ?upgrade= intent: honored on direct success and
+ * carried through the /mfa and /rotate-password intermediate steps.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -17,6 +20,8 @@ const mockNavigate = vi.fn();
 const mockPush = vi.fn();
 // Set per-test to render the passkey button.
 let mockPasskeySupported = false;
+// Set per-test to drive useSearchParams.
+let mockSearchParams: Record<string, string | null> = {};
 
 vi.mock('@revealui/auth/react', () => ({
   useSignIn: () => ({ signIn: mockSignIn, isLoading: false }),
@@ -30,7 +35,7 @@ vi.mock('@revealui/auth/react', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
-  useSearchParams: () => ({ get: () => null }),
+  useSearchParams: () => ({ get: (k: string) => mockSearchParams[k] ?? null }),
 }));
 
 vi.mock('@/lib/utils/auth-navigation', () => ({
@@ -69,6 +74,7 @@ afterEach(() => {
 beforeEach(() => {
   vi.clearAllMocks();
   mockPasskeySupported = false;
+  mockSearchParams = {};
 });
 
 function fillAndSubmit(): void {
@@ -112,6 +118,21 @@ describe('LoginForm post-sign-in navigation', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('honors a ?redirect= over the role default on direct success', async () => {
+    mockSearchParams = { redirect: '/upgrade' };
+    mockSignIn.mockResolvedValue({
+      success: true,
+      user: { id: '2', email: 'subscriber@example.com', role: 'user' },
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/upgrade');
+    });
+  });
+
   it('full-navigates to /rotate-password when the account requires rotation', async () => {
     mockSignIn.mockResolvedValue({
       success: true,
@@ -128,6 +149,22 @@ describe('LoginForm post-sign-in navigation', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('carries ?redirect= through the /rotate-password step', async () => {
+    mockSearchParams = { redirect: '/upgrade' };
+    mockSignIn.mockResolvedValue({
+      success: true,
+      user: { id: '1', email: 'owner@example.com' },
+      requiresPasswordRotation: true,
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/rotate-password?redirect=%2Fupgrade');
+    });
+  });
+
   it('full-navigates to /mfa when the server answers with an MFA challenge', async () => {
     mockSignIn.mockResolvedValue({ success: false, requiresMfa: true, mfaUserId: 'u-1' });
 
@@ -138,6 +175,18 @@ describe('LoginForm post-sign-in navigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/mfa');
     });
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('carries ?upgrade= and ?redirect= through the /mfa step', async () => {
+    mockSearchParams = { upgrade: 'pro', redirect: '/upgrade' };
+    mockSignIn.mockResolvedValue({ success: false, requiresMfa: true, mfaUserId: 'u-1' });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/mfa?upgrade=pro&redirect=%2Fupgrade');
+    });
   });
 
   it('shows the error and does not navigate on a failed sign-in', async () => {
@@ -162,6 +211,19 @@ describe('LoginForm post-sign-in navigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('honors ?redirect= after a successful passkey sign-in', async () => {
+    mockPasskeySupported = true;
+    mockSearchParams = { redirect: '/upgrade' };
+    mockPasskeySignIn.mockResolvedValue(true);
+
+    render(<LoginForm oauthProviders={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Passkey' }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/upgrade');
+    });
   });
 
   it('stays put when a passkey sign-in is cancelled or fails', async () => {

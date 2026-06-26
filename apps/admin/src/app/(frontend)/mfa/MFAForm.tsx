@@ -8,14 +8,38 @@ import {
   InputCVA as Input,
 } from '@revealui/presentation/server';
 import Link from 'next/link';
-import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
+import { readAuthIntent, resolveAuthDest } from '@/lib/utils/auth-redirect';
 
 function filterDigits(value: string): string {
   return [...value].filter((c) => c >= '0' && c <= '9').join('');
 }
 
+function MFASkeleton() {
+  return (
+    <div className="w-full max-w-sm space-y-6">
+      <div className="h-7 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+      <div className="space-y-4">
+        <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-11 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+      </div>
+    </div>
+  );
+}
+
 export function MFAForm() {
+  return (
+    <Suspense fallback={<MFASkeleton />}>
+      <MFAContent />
+    </Suspense>
+  );
+}
+
+function MFAContent() {
+  const searchParams = useSearchParams();
+  const { upgrade, redirect } = readAuthIntent(searchParams);
   const { verify, verifyBackupCode, isLoading, error } = useMFAVerify();
   const [code, setCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
@@ -38,7 +62,8 @@ export function MFAForm() {
     const success = useBackupCode ? await verifyBackupCode(code.trim()) : await verify(code.trim());
 
     if (success) {
-      navigateAfterAuthChange('/');
+      // No user object from MFA verify, so the role-default falls back to '/'.
+      navigateAfterAuthChange(resolveAuthDest({ upgrade, redirect, fallback: '/' }));
     }
   };
 
