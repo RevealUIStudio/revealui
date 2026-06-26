@@ -19,6 +19,7 @@
  */
 
 import type { Message } from './providers/base.js';
+import { MODEL_PRICING } from './token-counter.js';
 
 /**
  * Mark a message for caching
@@ -179,33 +180,28 @@ export function createCachedConversation(config: {
   return result;
 }
 
+/** Look up a model's pricing, asserting presence (used only for known-present keys). */
+function requirePricing(model: string) {
+  const pricing = MODEL_PRICING[model];
+  if (!pricing) {
+    throw new Error(`No pricing entry for model: ${model}`);
+  }
+  return pricing;
+}
+
 /**
- * Pricing information for Anthropic Claude models (as of 2024)
- * Prices are per million tokens
+ * @deprecated Use `MODEL_PRICING` from `./token-counter.js`. Retained as a thin derived
+ * view (the Anthropic-with-cache subset) so existing importers keep one source of truth.
  */
 export const ANTHROPIC_PRICING = {
-  'claude-3-5-sonnet-20241022': {
-    input: 3.0,
-    output: 15.0,
-    cacheWrite: 3.75, // 25% markup for cache creation
-    cacheRead: 0.3, // 90% discount for cache hits
-  },
-  'claude-3-5-haiku-20241022': {
-    input: 1.0,
-    output: 5.0,
-    cacheWrite: 1.25,
-    cacheRead: 0.1,
-  },
-  'claude-3-opus-20240229': {
-    input: 15.0,
-    output: 75.0,
-    cacheWrite: 18.75,
-    cacheRead: 1.5,
-  },
+  'claude-3-5-sonnet-20241022': requirePricing('claude-3-5-sonnet-20241022'),
+  'claude-3-5-haiku-20241022': requirePricing('claude-3-5-haiku-20241022'),
+  'claude-3-opus-20240229': requirePricing('claude-3-opus-20240229'),
 } as const;
 
 /**
- * Calculate actual cost of a request with caching
+ * Calculate actual cost of a request with caching, using the unified MODEL_PRICING table.
+ * Unknown models price at zero (matching `estimateCost`).
  *
  * @example
  * ```ts
@@ -217,18 +213,23 @@ export const ANTHROPIC_PRICING = {
  *   cacheReadTokens: 5000,
  * })
  *
- * console.log(`Request cost: $${cost.toFixed(4)}`)
+ * console.log(`Request cost: $${cost.total.toFixed(4)}`)
  * console.log(`Savings vs no cache: $${cost.savings.toFixed(4)}`)
  * ```
  */
 export function calculateCacheCost(usage: {
-  model: keyof typeof ANTHROPIC_PRICING;
+  model: string;
   promptTokens: number;
   completionTokens: number;
   cacheCreationTokens?: number;
   cacheReadTokens?: number;
 }): { total: number; breakdown: Record<string, number>; savings: number } {
-  const pricing = ANTHROPIC_PRICING[usage.model];
+  const pricing = MODEL_PRICING[usage.model] ?? {
+    input: 0,
+    output: 0,
+    cacheWrite: 0,
+    cacheRead: 0,
+  };
   const uncachedTokens =
     usage.promptTokens - (usage.cacheCreationTokens || 0) - (usage.cacheReadTokens || 0);
 
