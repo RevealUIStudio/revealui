@@ -27,7 +27,7 @@ describe('cache-utils', () => {
       expect(cached).toEqual({
         role: 'system',
         content: 'Test content',
-        cacheControl: { type: 'ephemeral' },
+        cache: true,
       });
     });
 
@@ -41,7 +41,7 @@ describe('cache-utils', () => {
       const cached = withCache(message);
 
       expect(cached.name).toBe('John');
-      expect(cached.cacheControl).toEqual({ type: 'ephemeral' });
+      expect(cached.cache).toBe(true);
     });
   });
 
@@ -52,7 +52,7 @@ describe('cache-utils', () => {
       expect(prompt).toEqual({
         role: 'system',
         content: 'You are a helpful assistant',
-        cacheControl: { type: 'ephemeral' },
+        cache: true,
       });
     });
   });
@@ -148,7 +148,7 @@ describe('cache-utils', () => {
       expect(conversation[0]).toEqual({
         role: 'system',
         content: 'You are helpful',
-        cacheControl: { type: 'ephemeral' },
+        cache: true,
       });
     });
 
@@ -159,10 +159,10 @@ describe('cache-utils', () => {
       });
 
       expect(conversation).toHaveLength(4);
-      expect(conversation[0].cacheControl).toBeUndefined();
-      expect(conversation[1].cacheControl).toBeUndefined();
-      expect(conversation[2].cacheControl).toEqual({ type: 'ephemeral' });
-      expect(conversation[3].cacheControl).toBeUndefined();
+      expect(conversation[0].cache).toBeUndefined();
+      expect(conversation[1].cache).toBeUndefined();
+      expect(conversation[2].cache).toBe(true);
+      expect(conversation[3].cache).toBeUndefined();
     });
 
     it('should include user messages without caching', () => {
@@ -175,7 +175,7 @@ describe('cache-utils', () => {
       });
 
       conversation.slice(-3).forEach((msg) => {
-        expect(msg.cacheControl).toBeUndefined();
+        expect(msg.cache).toBeUndefined();
       });
     });
   });

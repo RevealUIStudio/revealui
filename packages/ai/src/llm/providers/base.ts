@@ -2,9 +2,10 @@
  * LLM Provider Base Interface
  *
  * The agnostic Reasoner port (ADR 2026-06-25). Providers are negotiated by
- * `capabilities()`, never by provider-name string. Vendor-shaped request knobs are
- * tagged `@deprecated PROVIDER-EXTENSION` and excluded from the agnostic conformance
- * contract; cross-provider usage (e.g. cache token stats) stays neutral.
+ * `capabilities()`, never by provider-name string. The control vocabulary is neutral
+ * and capability-gated (`effort`, `cache`/`cacheHint`); genuinely unportable knobs ride
+ * the namespaced opaque `providerOptions` channel; cross-provider usage (e.g. cache token
+ * stats) stays neutral in `LLMResponse.usage`.
  */
 
 /**
@@ -48,12 +49,6 @@ export interface Message {
    * that supports prompt caching maps this to its native cache-control; others ignore it.
    */
   cache?: boolean;
-  /**
-   * @deprecated PROVIDER-EXTENSION  -  use `cache`. Anthropic-shaped request knob, retained
-   * transitionally for the cache-helper layer; excluded from the agnostic conformance
-   * contract. Callers migrate in P1b, then this is removed.
-   */
-  cacheControl?: { type: 'ephemeral' };
 }
 
 export interface ToolCall {
@@ -184,16 +179,6 @@ export interface LLMChatOptions {
   cacheHint?: boolean;
   /** Opaque, namespaced provider extension. Core never reads it; the adapter owns the schema. */
   providerOptions?: ProviderOptions;
-  /**
-   * @deprecated PROVIDER-EXTENSION  -  use `cacheHint`. Excluded from the agnostic
-   * conformance contract; callers migrate in P1b, then this is removed.
-   */
-  enableCache?: boolean;
-  /**
-   * @deprecated PROVIDER-EXTENSION  -  use `effort`. Vendor-shaped token budget; no provider
-   * reads it. Excluded from the agnostic conformance contract; callers migrate in P1b.
-   */
-  thinkingBudget?: number;
 }
 
 export interface LLMEmbedOptions {
@@ -208,11 +193,6 @@ export interface LLMStreamOptions {
   effort?: ReasoningEffort;
   /** Opaque, namespaced provider extension. Core never reads it; the adapter owns the schema. */
   providerOptions?: ProviderOptions;
-  /**
-   * @deprecated PROVIDER-EXTENSION  -  use the `promptCache` capability + `cacheHint` on chat.
-   * Callers migrate in P1b, then this is removed.
-   */
-  enableCache?: boolean;
 }
 
 export interface ToolDefinition {

@@ -27,7 +27,7 @@ import type { Message } from './providers/base.js';
 export function withCache(message: Message): Message {
   return {
     ...message,
-    cacheControl: { type: 'ephemeral' },
+    cache: true,
   };
 }
 
@@ -89,7 +89,7 @@ export function estimateCacheSavings(
  *
  * @example
  * ```ts
- * const response = await client.chat(messages, { enableCache: true })
+ * const response = await client.chat(messages, { cacheHint: true })
  * const stats = formatCacheStats(response.usage)
  * console.log(stats)
  * // "Cache: 45% read (2,500 tokens), 10% created (500 tokens)"
@@ -146,7 +146,7 @@ export function shouldCache(content: string, minTokens = 1024): boolean {
  *   ],
  * })
  *
- * const response = await client.chat(conversation, { enableCache: true })
+ * const response = await client.chat(conversation, { cacheHint: true })
  * ```
  */
 export function createCachedConversation(config: {
@@ -168,7 +168,7 @@ export function createCachedConversation(config: {
       result.push({
         role: 'system',
         content: doc,
-        ...(isLast ? { cacheControl: { type: 'ephemeral' } } : {}),
+        ...(isLast ? { cache: true } : {}),
       });
     });
   }
