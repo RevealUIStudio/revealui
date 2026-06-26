@@ -35,6 +35,7 @@ import type {
   LLMResponse,
   LLMStreamOptions,
   Message,
+  ReasonerCapabilities,
 } from './base.js';
 import { OpenAICompatProvider } from './openai-compat.js';
 
@@ -64,6 +65,22 @@ export class InferenceSnapsProvider implements LLMProvider {
       baseURL: config.baseURL,
       model: config.model ?? 'gemma3',
     });
+  }
+
+  capabilities(): ReasonerCapabilities {
+    // Profile for the default model (gemma3, text-only). Per-model capability
+    // negotiation (e.g. qwen-vl vision, deepseek-r1 reasoningEffort) is a follow-up.
+    return {
+      providerTag: 'inference-snaps',
+      tools: true,
+      parallelToolCalls: false,
+      vision: false,
+      streaming: true,
+      embeddings: true,
+      reasoningEffort: false,
+      promptCache: false,
+      structuredOutput: false,
+    };
   }
 
   chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {

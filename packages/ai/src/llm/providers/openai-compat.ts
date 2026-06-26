@@ -17,6 +17,7 @@ import type {
   LLMResponse,
   LLMStreamOptions,
   Message,
+  ReasonerCapabilities,
   ToolCall,
 } from './base.js';
 
@@ -85,6 +86,22 @@ export class OpenAICompatProvider implements LLMProvider {
       );
     }
     this.baseURL = config.baseURL;
+  }
+
+  capabilities(): ReasonerCapabilities {
+    // Base OpenAI-compatible profile. Concrete providers (Groq, Ollama, inference-snaps)
+    // override per their endpoint and default model.
+    return {
+      providerTag: 'openai-compat',
+      tools: true,
+      parallelToolCalls: false,
+      vision: false,
+      streaming: true,
+      embeddings: true,
+      reasoningEffort: false,
+      promptCache: false,
+      structuredOutput: false,
+    };
   }
 
   async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
