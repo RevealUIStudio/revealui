@@ -6,12 +6,38 @@ import {
   Heading,
   InputCVA as Input,
 } from '@revealui/presentation/server';
-import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
+import { readAuthIntent, resolveAuthDest } from '@/lib/utils/auth-redirect';
 import { apiFetch } from '@/lib/utils/csrf';
 
+function RotatePasswordSkeleton() {
+  return (
+    <div className="w-full max-w-md space-y-6">
+      <div className="h-7 w-56 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+      <div className="space-y-4">
+        <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-10 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+        <div className="h-11 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" />
+      </div>
+    </div>
+  );
+}
+
 export function RotatePasswordForm() {
+  return (
+    <Suspense fallback={<RotatePasswordSkeleton />}>
+      <RotatePasswordContent />
+    </Suspense>
+  );
+}
+
+function RotatePasswordContent() {
+  const searchParams = useSearchParams();
+  const { upgrade, redirect } = readAuthIntent(searchParams);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -54,7 +80,8 @@ export function RotatePasswordForm() {
         return;
       }
 
-      navigateAfterAuthChange('/');
+      // No user object from the rotation step, so the role-default falls back to '/'.
+      navigateAfterAuthChange(resolveAuthDest({ upgrade, redirect, fallback: '/' }));
     } catch {
       setError('An unexpected error occurred.');
     } finally {

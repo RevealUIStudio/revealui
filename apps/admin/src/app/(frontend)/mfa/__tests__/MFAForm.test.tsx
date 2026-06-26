@@ -1,7 +1,8 @@
 /**
  * Tests for MFAForm's post-verify navigation — must be a full document
  * navigation so the App Router client cache from the pre-auth state is
- * discarded (same class as the LoginForm sign-in bounce).
+ * discarded (same class as the LoginForm sign-in bounce), and must honor the
+ * upgrade/redirect intent carried through the MFA step from login.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -10,6 +11,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mockVerify = vi.fn();
 const mockVerifyBackupCode = vi.fn();
 const mockNavigate = vi.fn();
+// Set per-test to drive useSearchParams.
+let mockSearchParams: Record<string, string | null> = {};
 
 vi.mock('@revealui/auth/react', () => ({
   useMFAVerify: () => ({
@@ -18,6 +21,10 @@ vi.mock('@revealui/auth/react', () => ({
     isLoading: false,
     error: null,
   }),
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => ({ get: (k: string) => mockSearchParams[k] ?? null }),
 }));
 
 vi.mock('@/lib/utils/auth-navigation', () => ({
@@ -43,6 +50,7 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockSearchParams = {};
 });
 
 function submitCode(code: string): void {
@@ -53,6 +61,42 @@ function submitCode(code: string): void {
 
 describe('MFAForm post-verify navigation', () => {
   it('full-navigates home after a successful TOTP verification', async () => {
+    mockVerify.mockResolvedValue(true);
+
+    render(<MFAForm />);
+    submitCode('123456');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('honors a redirect carried through the MFA step', async () => {
+    mockSearchParams = { redirect: '/upgrade' };
+    mockVerify.mockResolvedValue(true);
+
+    render(<MFAForm />);
+    submitCode('123456');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/upgrade');
+    });
+  });
+
+  it('honors an upgrade intent carried through the MFA step (over redirect)', async () => {
+    mockSearchParams = { upgrade: 'pro', redirect: '/somewhere' };
+    mockVerify.mockResolvedValue(true);
+
+    render(<MFAForm />);
+    submitCode('123456');
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/billing?upgrade=pro');
+    });
+  });
+
+  it('ignores an off-origin redirect and falls back home', async () => {
+    mockSearchParams = { redirect: '//evil.com' };
     mockVerify.mockResolvedValue(true);
 
     render(<MFAForm />);

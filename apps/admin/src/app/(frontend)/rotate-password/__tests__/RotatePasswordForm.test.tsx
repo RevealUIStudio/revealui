@@ -2,7 +2,8 @@
  * Tests for RotatePasswordForm's post-rotation navigation — must be a full
  * document navigation so the App Router client cache from the
  * rotation-pending state is discarded (same class as the LoginForm sign-in
- * bounce).
+ * bounce), and must honor the upgrade/redirect intent carried through the
+ * rotation step from login.
  */
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -10,9 +11,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApiFetch = vi.fn();
 const mockNavigate = vi.fn();
+// Set per-test to drive useSearchParams.
+let mockSearchParams: Record<string, string | null> = {};
 
 vi.mock('@/lib/utils/csrf', () => ({
   apiFetch: (url: string, init?: RequestInit) => mockApiFetch(url, init),
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => ({ get: (k: string) => mockSearchParams[k] ?? null }),
 }));
 
 vi.mock('@/lib/utils/auth-navigation', () => ({
@@ -43,6 +50,7 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockSearchParams = {};
 });
 
 function fillAndSubmit(): void {
@@ -65,6 +73,30 @@ describe('RotatePasswordForm post-rotation navigation', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
+    });
+  });
+
+  it('honors a redirect carried through the rotation step', async () => {
+    mockSearchParams = { redirect: '/upgrade' };
+    mockApiFetch.mockResolvedValue({ ok: true });
+
+    render(<RotatePasswordForm />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/upgrade');
+    });
+  });
+
+  it('honors an upgrade intent carried through the rotation step (over redirect)', async () => {
+    mockSearchParams = { upgrade: 'max', redirect: '/somewhere' };
+    mockApiFetch.mockResolvedValue({ ok: true });
+
+    render(<RotatePasswordForm />);
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/account/billing?upgrade=max');
     });
   });
 
