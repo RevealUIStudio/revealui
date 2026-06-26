@@ -16,6 +16,7 @@ import type {
   LLMResponse,
   LLMStreamOptions,
   Message,
+  ReasonerCapabilities,
 } from './base.js';
 import { OpenAICompatProvider } from './openai-compat.js';
 
@@ -45,6 +46,21 @@ export class OllamaProvider implements LLMProvider {
       baseURL,
       model: config.model ?? 'gemma4:e2b',
     });
+  }
+
+  capabilities(): ReasonerCapabilities {
+    // Profile for the default model (gemma4:e2b, text-only).
+    return {
+      providerTag: 'ollama',
+      tools: true,
+      parallelToolCalls: false,
+      vision: false,
+      streaming: true,
+      embeddings: true,
+      reasoningEffort: false,
+      promptCache: false,
+      structuredOutput: false,
+    };
   }
 
   chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
