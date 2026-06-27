@@ -83,9 +83,6 @@ function BillingContent() {
 
   const getPrice = (tierId: string): string => {
     const t = pricing?.subscriptions.find((s) => s.id === tierId);
-    if (billingInterval === 'year' && t?.annualPrice) {
-      return `${t.annualPrice}${t.annualPeriod ?? ''}`;
-    }
     if (!t?.price) return ' - ';
     return `${t.price}${t.period ?? ''}`;
   };
