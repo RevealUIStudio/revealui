@@ -16,11 +16,11 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
-vi.mock('@/lib/utilities/revealui-singleton', () => ({
+vi.mock('@/lib/utils/revealui-singleton', () => ({
   getRevealUIInstance: vi.fn(),
 }));
 
-vi.mock('@/lib/utilities/gdpr-audit', () => ({
+vi.mock('@/lib/utils/gdpr-audit', () => ({
   writeGDPRAuditEntry: vi.fn(),
 }));
 

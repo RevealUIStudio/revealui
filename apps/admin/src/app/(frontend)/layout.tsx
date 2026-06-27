@@ -10,7 +10,7 @@ import { Footer } from '@/lib/globals/Footer/Component';
 import { Header } from '@/lib/globals/Header/Component';
 import { Providers } from '@/lib/providers';
 import { InitTheme } from '@/lib/providers/Theme/InitTheme';
-import { mergeOpenGraph } from '@/lib/utilities/mergeOpenGraph';
+import { mergeOpenGraph } from '@/lib/cms/mergeOpenGraph';
 import '@revealui/presentation/tokens.css';
 import './styles.css';
 

@@ -119,7 +119,7 @@ vi.mock('@revealui/ai/memory/agent', () => {
   return { AgentContextManager };
 });
 
-vi.mock('@/lib/utilities/nodeId', () => ({
+vi.mock('@/lib/utils/nodeId', () => ({
   getNodeIdFromSession: vi.fn().mockResolvedValue('node-session-123'),
   getNodeIdFromUser: vi.fn().mockResolvedValue('node-user-123'),
 }));

@@ -16,7 +16,7 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
 }));
 
-vi.mock('@/lib/utilities/revealui-singleton', () => ({
+vi.mock('@/lib/utils/revealui-singleton', () => ({
   getRevealUIInstance: (...args: unknown[]) => mockGetRevealUIInstance(...args),
 }));
 

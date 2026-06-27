@@ -14,7 +14,7 @@ import { Banner } from '@/lib/blocks/Banner/config';
 import { Code } from '@/lib/blocks/Code/config';
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
 import { slugField } from '@/lib/fields/slug';
-import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath';
+import { generatePreviewPath } from '@/lib/cms/generatePreviewPath';
 import { indexPost } from './hooks/indexPost';
 import { populateAuthors } from './hooks/populateAuthors';
 import { revalidatePost } from './hooks/revalidatePost';

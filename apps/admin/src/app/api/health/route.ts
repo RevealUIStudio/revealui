@@ -1,7 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import config from '@revealui/config';
 import { NextResponse } from 'next/server';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const runtime = 'nodejs';

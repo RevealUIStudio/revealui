@@ -35,11 +35,11 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: (handler: (...args: unknown[]) => unknown, _opts?: unknown) => handler,
 }));
 
-vi.mock('@/lib/utilities/revealui-singleton', () => ({
+vi.mock('@/lib/utils/revealui-singleton', () => ({
   getRevealUIInstance: (...args: unknown[]) => mockGetRevealUIInstance(...args),
 }));
 
-vi.mock('@/lib/utilities/gdpr-audit', () => ({
+vi.mock('@/lib/utils/gdpr-audit', () => ({
   writeGDPRAuditEntry: (...args: unknown[]) => mockWriteGDPRAuditEntry(...args),
 }));
 

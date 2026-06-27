@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CMSLink } from '@/lib/components/Link/index';
-import { getCachedGlobal } from '@/lib/utilities/getGlobals';
-import { SITE_NAME, SITE_OPERATOR } from '@/lib/utilities/siteBranding';
+import { getCachedGlobal } from '@/lib/cms/getGlobals';
+import { SITE_NAME, SITE_OPERATOR } from '@/lib/utils/siteBranding';
 
 // Define the NavItem type with constrained type property
 export interface NavItem {

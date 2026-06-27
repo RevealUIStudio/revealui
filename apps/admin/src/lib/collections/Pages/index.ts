@@ -12,7 +12,7 @@ import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
 import { slugField } from '@/lib/fields/slug/index';
 import { hero } from '@/lib/heros/config';
 import { populatePublishedAt } from '@/lib/hooks/populatePublishedAt';
-import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath';
+import { generatePreviewPath } from '@/lib/cms/generatePreviewPath';
 import { indexPage } from './hooks/indexPage';
 import { revalidatePage } from './hooks/revalidatePage';
 export const Pages: RevealCollectionConfig<Page> = {

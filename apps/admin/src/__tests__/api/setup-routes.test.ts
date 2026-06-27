@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockFind = vi.fn();
 const mockCreate = vi.fn();
 
-vi.mock('@/lib/utilities/revealui-singleton', () => ({
+vi.mock('@/lib/utils/revealui-singleton', () => ({
   getRevealUIInstance: () =>
     Promise.resolve({
       find: (...args: unknown[]) => mockFind(...args),

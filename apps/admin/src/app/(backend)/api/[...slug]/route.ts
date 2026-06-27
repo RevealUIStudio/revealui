@@ -3,7 +3,7 @@
 import { createRESTHandlers } from '@revealui/core/api/rest';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest } from 'next/server';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 import config from '../../../../../revealui.config';
 
 // Force dynamic rendering to prevent build-time initialization
