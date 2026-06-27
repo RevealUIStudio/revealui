@@ -26,7 +26,7 @@ export interface StorageConfig {
    * lenient validation never throws; the consumer (`apps/server`
    * `getMediaStorage()` / `apps/admin` revealui.config `resolveProvider`) raises
    * a clear runtime error naming the missing vars when R2 does not resolve.
-   * The legacy Vercel Blob fallback (`blobToken`) was removed in #1644.
+   * The legacy Vercel Blob fallback was removed in #1644.
    */
   r2: R2StorageConfig | undefined;
 }

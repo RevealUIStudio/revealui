@@ -34,8 +34,8 @@ const requiredSchema = z.object({
 
   // Storage — Cloudflare R2 is the canonical (and sole) object-storage backend
   // (GAP-208). All five R2 vars must be set together for the R2 provider to
-  // activate. The legacy Vercel Blob fallback (BLOB_READ_WRITE_TOKEN) was
-  // removed in #1644 once R2 was confirmed in every production environment.
+  // activate. The legacy Vercel Blob fallback was removed in #1644 once R2 was
+  // confirmed in every production environment.
   R2_ACCOUNT_ID: z.string().min(1, 'R2 account ID is required').optional(),
   R2_ACCESS_KEY_ID: z.string().min(1, 'R2 access key ID is required').optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1, 'R2 secret access key is required').optional(),

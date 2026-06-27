@@ -317,7 +317,6 @@ Changelogs are published via [Changesets](https://github.com/changesets/changese
 | `zod` | `^4.x` | Schema validation. Zod 4 is a major revision; no Zod 3 compatibility. |
 | `jose` | `^6.x` | JWT/JOSE. API stable. |
 | `bcryptjs` | `^3.x` | Password hashing. API stable. |
-| `@aws-sdk/client-s3` | `^3.x` | S3 client for the Cloudflare R2 (S3-compatible) object-storage backend. |
 | `yjs` | `^13.x` | CRDT for collaborative editing. Peer dep for real-time use cases. |
 | `pg` | `^8.x` | PostgreSQL client. Used internally; not re-exported. |
 
