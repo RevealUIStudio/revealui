@@ -20,22 +20,20 @@ export interface R2StorageConfig {
 
 export interface StorageConfig {
   /**
-   * Cloudflare R2 config — the canonical backend. Populated only when all five
-   * `R2_*` env vars are set; otherwise `undefined` (consumers fall back to
-   * Vercel Blob). Partial R2 config intentionally resolves to `undefined` so
-   * build-time lenient validation never throws; the consumer
-   * (`apps/server` getMediaStorage) raises a clear runtime error naming the
-   * missing vars when no storage backend resolves.
+   * Cloudflare R2 config — the canonical (and sole) object-storage backend.
+   * Populated only when all five `R2_*` env vars are set; otherwise `undefined`.
+   * Partial R2 config intentionally resolves to `undefined` so build-time
+   * lenient validation never throws; the consumer (`apps/server`
+   * `getMediaStorage()` / `apps/admin` revealui.config `resolveProvider`) raises
+   * a clear runtime error naming the missing vars when R2 does not resolve.
+   * The legacy Vercel Blob fallback (`blobToken`) was removed in #1644.
    */
   r2: R2StorageConfig | undefined;
-  /** Legacy Vercel Blob read/write token — fallback backend (being retired). */
-  blobToken: string | undefined;
 }
 
 export function getStorageConfig(env: EnvConfig): StorageConfig {
   return {
     r2: resolveR2Config(env),
-    blobToken: env.BLOB_READ_WRITE_TOKEN,
   };
 }
 

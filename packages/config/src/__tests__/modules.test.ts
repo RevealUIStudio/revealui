@@ -232,16 +232,6 @@ describe('config modules', () => {
       R2_PUBLIC_BASE_URL: 'https://media.revealui.com',
     } as const;
 
-    it('returns blob token when set', () => {
-      const config = getStorageConfig(makeEnv({ BLOB_READ_WRITE_TOKEN: 'vercel_blob_xyz' }));
-      expect(config.blobToken).toBe('vercel_blob_xyz');
-    });
-
-    it('returns undefined blobToken when not set', () => {
-      const config = getStorageConfig(makeEnv());
-      expect(config.blobToken).toBeUndefined();
-    });
-
     it('resolves r2 config when all five R2 vars are set', () => {
       const config = getStorageConfig(makeEnv(fullR2));
       expect(config.r2).toEqual({
