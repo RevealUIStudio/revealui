@@ -351,12 +351,6 @@ function BillingContent() {
         </div>
       )}
 
-      {upgradeSuccess && (
-        <div className="rounded-md bg-indigo-50 p-4 text-sm text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">
-          Upgraded! Your plan will update within a few seconds.
-        </div>
-      )}
-
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}
