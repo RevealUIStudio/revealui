@@ -4,7 +4,6 @@ import {
   validateOpenAIKey,
   validateStripeKey,
   validateSupabaseUrl,
-  validateVercelToken,
 } from '../validators/credentials.js';
 
 describe('Credential Validators', () => {
@@ -44,23 +43,6 @@ describe('Credential Validators', () => {
 
     it('rejects invalid URLs', () => {
       const result = validateNeonUrl('not-a-url');
-      expect(result.valid).toBe(false);
-    });
-  });
-
-  describe('validateVercelToken', () => {
-    it('accepts tokens with 20+ characters', () => {
-      const result = validateVercelToken('a'.repeat(20));
-      expect(result.valid).toBe(true);
-    });
-
-    it('rejects tokens shorter than 20 characters', () => {
-      const result = validateVercelToken('short');
-      expect(result.valid).toBe(false);
-    });
-
-    it('rejects empty strings', () => {
-      const result = validateVercelToken('');
       expect(result.valid).toBe(false);
     });
   });

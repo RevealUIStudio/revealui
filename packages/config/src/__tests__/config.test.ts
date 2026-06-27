@@ -29,7 +29,6 @@ describe('@revealui/config', () => {
     ['REVEALUI_PUBLIC_SERVER_URL', 'http://localhost:4000'],
     ['NEXT_PUBLIC_SERVER_URL', 'http://localhost:4000'],
     ['POSTGRES_URL', 'postgresql://user:pass@localhost:5432/db'],
-    ['BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_test_token'],
     ['STRIPE_SECRET_KEY', 'sk_test_test123456789'],
     ['STRIPE_WEBHOOK_SECRET', 'whsec_test123456789'],
     ['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY', 'pk_test_test123456789'],
@@ -302,7 +301,9 @@ describe('@revealui/config', () => {
       const config = getConfig();
 
       expect(config.storage).toBeDefined();
-      expect(config.storage.blobToken).toBe(validEnv.BLOB_READ_WRITE_TOKEN);
+      // No R2 vars in validEnv, so r2 resolves to undefined (Blob fallback
+      // removed in #1644 — R2 is the sole backend).
+      expect(config.storage.r2).toBeUndefined();
     });
 
     it('should provide reveal config', () => {

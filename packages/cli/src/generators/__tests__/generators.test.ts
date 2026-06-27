@@ -242,7 +242,7 @@ describe('generateDevContainer', () => {
 describe('generateEnvFile', () => {
   const baseEnvConfig: EnvConfig = {
     database: { provider: 'neon', postgresUrl: 'postgresql://user:pass@host/db' },
-    storage: { provider: 'vercel-blob', blobToken: 'FAKE_BLOB_TOKEN_FOR_TESTS' },
+    storage: { provider: 'skip' },
     payment: {
       enabled: true,
       stripeSecretKey: 'FAKE_STRIPE_SK_FOR_TESTS',
@@ -287,12 +287,6 @@ describe('generateEnvFile', () => {
     expect(content).toContain(
       'POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/revealui',
     );
-  });
-
-  it('includes Vercel Blob token when storage is vercel-blob', async () => {
-    await generateEnvFile('/tmp/my-app', baseEnvConfig);
-    const content = mockWriteFile.mock.calls[0][1] as string;
-    expect(content).toContain('BLOB_READ_WRITE_TOKEN=FAKE_BLOB_TOKEN_FOR_TESTS');
   });
 
   it('includes all five R2 vars when storage is r2', async () => {

@@ -57,17 +57,13 @@ export async function generateEnvFile(projectPath: string, config: EnvConfig): P
   lines.push('# =============================================================================');
   lines.push('');
 
-  // Storage configuration — Cloudflare R2 is the canonical backend; Vercel Blob
-  // is the legacy fallback (being retired, GAP-208).
+  // Storage configuration — Cloudflare R2 is the canonical (and sole) backend.
   if (config.storage.provider === 'r2') {
     lines.push(`R2_ACCOUNT_ID=${config.storage.r2AccountId ?? ''}`);
     lines.push(`R2_ACCESS_KEY_ID=${config.storage.r2AccessKeyId ?? ''}`);
     lines.push(`R2_SECRET_ACCESS_KEY=${config.storage.r2SecretAccessKey ?? ''}`);
     lines.push(`R2_BUCKET=${config.storage.r2Bucket ?? ''}`);
     lines.push(`R2_PUBLIC_BASE_URL=${config.storage.r2PublicBaseUrl ?? ''}`);
-  } else if (config.storage.provider === 'vercel-blob' && config.storage.blobToken) {
-    lines.push('# Cloudflare R2 is the canonical backend; Vercel Blob is legacy (being retired).');
-    lines.push(`BLOB_READ_WRITE_TOKEN=${config.storage.blobToken}`);
   } else {
     lines.push('# Cloudflare R2 (recommended, S3-compatible). Create a bucket + API token in');
     lines.push('# the Cloudflare dashboard (R2 > Manage R2 API Tokens), then set all five:');
@@ -76,9 +72,6 @@ export async function generateEnvFile(projectPath: string, config: EnvConfig): P
     lines.push('# R2_SECRET_ACCESS_KEY=your-r2-secret-access-key');
     lines.push('# R2_BUCKET=your-bucket-name');
     lines.push('# R2_PUBLIC_BASE_URL=https://<account-id>.r2.cloudflarestorage.com/<bucket>');
-    lines.push(
-      '# Legacy alternative (being retired): BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder',
-    );
   }
 
   lines.push('');

@@ -88,13 +88,12 @@ STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/prod/stripe/agent-overage-price
 # Observability
 SENTRY_DSN = "revealui/prod/sentry/dsn"
 
-# Object storage (Cloudflare R2 canonical; legacy Blob retiring)
+# Object storage — Cloudflare R2 (S3-compatible)
 R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
 R2_ACCESS_KEY_ID      = "revealui/prod/r2/access-key-id"
 R2_SECRET_ACCESS_KEY  = "revealui/prod/r2/secret-access-key"
 R2_BUCKET             = "revealui/prod/r2/bucket"
 R2_PUBLIC_BASE_URL    = "revealui/prod/r2/public-base-url"
-BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
 
 # Email (Google Workspace)
 GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"

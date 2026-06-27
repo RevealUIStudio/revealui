@@ -138,7 +138,6 @@ function createConfig(strict: boolean = true): Config {
         envVars.REVEALUI_PUBLIC_SERVER_URL ||
         'http://localhost:4000',
       POSTGRES_URL: envVars.POSTGRES_URL || envVars.DATABASE_URL || '',
-      BLOB_READ_WRITE_TOKEN: envVars.BLOB_READ_WRITE_TOKEN || '',
       STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY || `sk_test_${BUILD_PLACEHOLDER}`,
       STRIPE_WEBHOOK_SECRET: envVars.STRIPE_WEBHOOK_SECRET || `whsec_${BUILD_PLACEHOLDER}`,
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:

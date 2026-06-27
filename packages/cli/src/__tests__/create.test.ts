@@ -79,7 +79,6 @@ describe('createProject', () => {
     expect(env).toContain('REVEALUI_SECRET=');
     expect(env).toContain('POSTGRES_URL=postgresql://');
     expect(env).toContain('STRIPE_SECRET_KEY=sk_test_placeholder');
-    expect(env).toContain('BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder');
   });
 
   it('writes .env.development.local with provided database URL', async () => {

@@ -20,20 +20,11 @@ vi.mock('@/lib/utilities/revealui-singleton', () => ({
   getRevealUIInstance: (...args: unknown[]) => mockGetRevealUIInstance(...args),
 }));
 
-vi.mock('@vercel/blob', () => ({
-  list: vi.fn(),
-}));
-
 vi.mock('@revealui/config', () => ({
   default: {
     stripe: {
       get secretKey() {
         return process.env.STRIPE_SECRET_KEY;
-      },
-    },
-    storage: {
-      get blobToken() {
-        return process.env.BLOB_READ_WRITE_TOKEN;
       },
     },
   },
@@ -59,9 +50,8 @@ vi.mock('next/server', () => {
 describe('GET /api/health', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Ensure no Stripe/Blob keys are set by default
+    // Ensure no Stripe key is set by default
     delete process.env.STRIPE_SECRET_KEY;
-    delete process.env.BLOB_READ_WRITE_TOKEN;
   });
 
   async function loadRoute() {
