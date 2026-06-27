@@ -127,8 +127,8 @@ export const PageSchema = DualEntitySchema.extend({
   /** Sort order within parent */
   order: z.number().int().nonnegative().default(0),
 
-  /** Scheduled publish time */
-  publishAt: z.string().datetime().optional(),
+  /** Scheduled publish time (maps to db column `scheduled_at`) */
+  scheduledAt: z.string().datetime().optional(),
 
   /** Last published time */
   publishedAt: z.string().datetime().optional(),
@@ -383,7 +383,7 @@ export const UpdatePageInputSchema = z.object({
   blocks: z.array(BlockSchema).optional(),
   seo: PageSeoSchema.partial().optional(),
   order: z.number().int().nonnegative().optional(),
-  publishAt: z.string().datetime().optional(),
+  scheduledAt: z.string().datetime().optional(),
 });
 
 export type UpdatePageInput = z.infer<typeof UpdatePageInputSchema>;
