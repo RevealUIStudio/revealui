@@ -205,7 +205,6 @@ function BillingContent() {
   }
 
   const tier = subscription?.tier || 'free';
-  const isTrialing = subscription?.status === 'trialing';
   const StatusLabels: Record<string, string> = {
     trialing: 'Free Trial',
     active: 'Active',
