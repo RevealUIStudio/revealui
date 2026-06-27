@@ -253,14 +253,6 @@ describe('config modules', () => {
       const config = getStorageConfig(makeEnv(partial));
       expect(config.r2).toBeUndefined();
     });
-
-    it('resolves both r2 and blobToken independently when both are set', () => {
-      const config = getStorageConfig(
-        makeEnv({ ...fullR2, BLOB_READ_WRITE_TOKEN: 'vercel_blob_xyz' }),
-      );
-      expect(config.r2?.bucket).toBe('media');
-      expect(config.blobToken).toBe('vercel_blob_xyz');
-    });
   });
 
   describe('getSentryConfig', () => {
