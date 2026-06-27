@@ -47,8 +47,8 @@ vi.mock('@revealui/db', () => ({
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
 import { getSession } from '@revealui/auth/server';
-import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { writeGDPRAuditEntry } from '@/lib/utils/gdpr-audit';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
