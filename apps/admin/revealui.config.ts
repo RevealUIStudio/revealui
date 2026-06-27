@@ -22,7 +22,7 @@ import {
   universalPostgresAdapter,
 } from '@revealui/core';
 import { en } from '@revealui/core/admin/i18n/en';
-import { createR2Provider, createVercelBlobProvider, objectStorage } from '@revealui/core/storage';
+import { createR2Provider, objectStorage } from '@revealui/core/storage';
 import { allCollections } from '@/lib/collections/registry';
 import Users from '@/lib/collections/Users';
 import { createTypedCollectionStorage } from '@/lib/db/typedCollectionStorage';

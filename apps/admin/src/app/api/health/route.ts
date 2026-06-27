@@ -1,6 +1,5 @@
 import { getSession } from '@revealui/auth/server';
 import config from '@revealui/config';
-import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 import { extractRequestContext } from '@/lib/utils/request-context';
