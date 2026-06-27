@@ -364,7 +364,7 @@ function BillingContent() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600">Plan</span>
+            <span className="text-sm text-muted-foreground">Plan</span>
             <span className={`rounded-full px-3 py-1 text-sm font-medium ${TIER_COLORS[tier]}`}>
               {TIER_LABELS[tier]}
             </span>
