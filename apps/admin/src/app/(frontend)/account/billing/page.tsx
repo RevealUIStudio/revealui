@@ -77,15 +77,9 @@ function BillingContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
-  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
-
-  // Show the annual toggle only if the server has the annual price IDs configured.
-  // This is the lockstep guard: no annual CTA without a resolvable annual price.
-  const hasAnnualOption = Boolean(process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID);
 
   const getPrice = (tierId: string): string => {
     const t = pricing?.subscriptions.find((s) => s.id === tierId);
