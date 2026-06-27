@@ -135,8 +135,11 @@ export const REQUIRED_ENV_VARS: EnvVariable[] = [
   },
   {
     name: 'BLOB_READ_WRITE_TOKEN',
-    description: 'Vercel Blob storage token',
-    required: true,
+    // Legacy Vercel Blob token — being retired in favor of Cloudflare R2 (GAP-208).
+    // Optional to match the config schema (packages/config/src/schema.ts), so a
+    // fresh R2-only deploy does not fail validation on a token it no longer needs.
+    description: 'Vercel Blob storage token (legacy; optional — superseded by R2)',
+    required: false,
   },
   {
     name: 'STRIPE_SECRET_KEY',
