@@ -271,22 +271,4 @@ describe('promptStorageConfig', () => {
     expect(mockSelect).toHaveBeenCalledOnce();
     expect(mockText).toHaveBeenCalledTimes(5);
   });
-
-  it('returns vercel-blob config with token (legacy option)', async () => {
-    mockSelect.mockResolvedValueOnce('vercel-blob');
-    mockText.mockResolvedValueOnce('vercel_blob_rw_abc123');
-    const result = await promptStorageConfig();
-    expect(result).toEqual({
-      provider: 'vercel-blob',
-      blobToken: 'vercel_blob_rw_abc123',
-    });
-  });
-
-  it('calls select + text for vercel-blob', async () => {
-    mockSelect.mockResolvedValueOnce('vercel-blob');
-    mockText.mockResolvedValueOnce('token');
-    await promptStorageConfig();
-    expect(mockSelect).toHaveBeenCalledOnce();
-    expect(mockText).toHaveBeenCalledOnce();
-  });
 });

@@ -242,7 +242,7 @@ describe('generateDevContainer', () => {
 describe('generateEnvFile', () => {
   const baseEnvConfig: EnvConfig = {
     database: { provider: 'neon', postgresUrl: 'postgresql://user:pass@host/db' },
-    storage: { provider: 'vercel-blob', blobToken: 'FAKE_BLOB_TOKEN_FOR_TESTS' },
+    storage: { provider: 'skip' },
     payment: {
       enabled: true,
       stripeSecretKey: 'FAKE_STRIPE_SK_FOR_TESTS',
