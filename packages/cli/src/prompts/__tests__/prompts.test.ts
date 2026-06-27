@@ -13,7 +13,6 @@ vi.mock('../../validators/credentials.js', () => ({
   validateNeonUrl: vi.fn().mockReturnValue({ valid: true }),
   validateStripeKey: vi.fn().mockReturnValue({ valid: true }),
   validateSupabaseUrl: vi.fn().mockReturnValue({ valid: true }),
-  validateVercelToken: vi.fn().mockReturnValue({ valid: true }),
   validateR2BucketName: vi.fn().mockReturnValue({ valid: true }),
   validateR2PublicBaseUrl: vi.fn().mockReturnValue({ valid: true }),
 }));

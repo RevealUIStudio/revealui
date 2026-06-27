@@ -289,12 +289,6 @@ describe('generateEnvFile', () => {
     );
   });
 
-  it('includes Vercel Blob token when storage is vercel-blob', async () => {
-    await generateEnvFile('/tmp/my-app', baseEnvConfig);
-    const content = mockWriteFile.mock.calls[0][1] as string;
-    expect(content).toContain('BLOB_READ_WRITE_TOKEN=FAKE_BLOB_TOKEN_FOR_TESTS');
-  });
-
   it('includes all five R2 vars when storage is r2', async () => {
     const config: EnvConfig = {
       ...baseEnvConfig,

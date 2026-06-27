@@ -4,7 +4,6 @@ import {
   validateOpenAIKey,
   validateStripeKey,
   validateSupabaseUrl,
-  validateVercelToken,
 } from '../validators/credentials.js';
 
 describe('Credential Validators', () => {
