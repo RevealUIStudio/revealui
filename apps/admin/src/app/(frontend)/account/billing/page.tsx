@@ -162,27 +162,6 @@ function BillingContent() {
     [apiUrl],
   );
 
-  // Poll subscription status with exponential backoff after upgrades.
-  // Retries up to 3 times (1s → 2s → 4s) to allow webhook processing.
-  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pollSubscription = useCallback(
-    (attempt = 0) => {
-      const maxAttempts = 3;
-      if (attempt >= maxAttempts) return;
-      const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
-      pollTimerRef.current = setTimeout(() => {
-        void fetchSubscription().then(() => pollSubscription(attempt + 1));
-      }, delay);
-    },
-    [fetchSubscription],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
-    };
-  }, []);
-
   // Auto-redirect to checkout on signup with ?upgrade=pro|max, and for churned
   // users (expired/canceled) arriving with explicit upgrade intent. Never fires
   // for active or trialing subscribers.
