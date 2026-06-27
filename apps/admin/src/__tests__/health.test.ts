@@ -114,13 +114,6 @@ describe.skipIf(!testDatabaseUrl || isTestMode)('Health Check Endpoint', () => {
       // Test should pass regardless of Stripe configuration
       expect(typeof hasStripeKey).toBe('boolean');
     });
-
-    it('should handle missing Vercel Blob configuration gracefully', () => {
-      // If Vercel Blob is not configured, health check should still work
-      const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
-      // Test should pass regardless of Blob configuration
-      expect(typeof hasBlobToken).toBe('boolean');
-    });
   });
 
   describe('Error Handling', () => {

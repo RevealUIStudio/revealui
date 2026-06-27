@@ -93,34 +93,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // Check Vercel Blob Storage (if configured)  -  make a real API call with a 2s timeout
-  if (config.storage.blobToken) {
-    try {
-      const blobStartTime = Date.now();
-      await Promise.race([
-        list({ prefix: '_health/', limit: 1 }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Blob health check timed out (2s)')), 2000),
-        ),
-      ]);
-      const blobResponseTime = Date.now() - blobStartTime;
-
-      checks.push({
-        name: 'vercel-blob',
-        status: 'healthy',
-        message: 'Vercel Blob API reachable',
-        responseTimeMs: blobResponseTime,
-      });
-    } catch (error) {
-      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
-      checks.push({
-        name: 'vercel-blob',
-        status: 'unhealthy',
-        message: error instanceof Error ? error.message : 'Vercel Blob check failed',
-      });
-    }
-  }
-
   // System metrics
   const memoryUsage = process.memoryUsage();
   const cpuUsage = process.cpuUsage();
