@@ -301,7 +301,9 @@ describe('@revealui/config', () => {
       const config = getConfig();
 
       expect(config.storage).toBeDefined();
-      expect(config.storage.blobToken).toBe(validEnv.BLOB_READ_WRITE_TOKEN);
+      // No R2 vars in validEnv, so r2 resolves to undefined (Blob fallback
+      // removed in #1644 — R2 is the sole backend).
+      expect(config.storage.r2).toBeUndefined();
     });
 
     it('should provide reveal config', () => {
