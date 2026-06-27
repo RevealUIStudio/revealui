@@ -8,10 +8,10 @@
  * apps/admin health probes, packages/core Payload-style plugin shims) depend
  * only on this contract. Switching providers becomes a config change.
  *
- * GAP-208 introduces this abstraction during the Vercel Blob → Cloudflare R2
- * swap (2026-05-18). The vercel-blob Payload-style plugin (vercel-blob.ts)
- * stays in place during migration for backward compat; once consumers migrate
- * to the interface, the legacy plugin is dropped.
+ * GAP-208 introduced this abstraction during the Vercel Blob → Cloudflare R2
+ * swap (2026-05-18). #1644 removed the Vercel Blob StorageProvider once R2 was
+ * confirmed in every production environment; Cloudflare R2 is now the sole
+ * non-mock backend.
  */
 
 // ── Provider contract ────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ export interface StorageProvider {
   /** List items, optionally filtered by key prefix. Used by health probes + admin browsing. */
   list(opts?: ListOptions): Promise<ListResult>;
 
-  /** Provider tag (e.g. "r2", "vercel-blob", "mock") — exposed so consumers can adapt URL handling. */
+  /** Provider tag (e.g. "r2", "mock") — exposed so consumers can adapt URL handling. */
   readonly provider: string;
 }
 
@@ -109,10 +109,7 @@ export interface ListItem {
  * No silent fallback per `feedback_pluggable_provider_pattern`: unknown tags
  * throw with a clear "valid tags: ..." message.
  */
-export type StorageConfig =
-  | { provider: 'r2'; r2: R2Config }
-  | { provider: 'vercel-blob'; vercelBlob: VercelBlobConfig }
-  | { provider: 'mock' };
+export type StorageConfig = { provider: 'r2'; r2: R2Config } | { provider: 'mock' };
 
 export interface R2Config {
   /** Cloudflare account ID (visible at top of the R2 dashboard). */
@@ -134,9 +131,4 @@ export interface R2Config {
    * falls back to a presigned URL (private bucket pattern).
    */
   publicBaseUrl?: string;
-}
-
-export interface VercelBlobConfig {
-  /** vercel_blob_rw_* token from the Vercel Blob dashboard. */
-  token: string;
 }

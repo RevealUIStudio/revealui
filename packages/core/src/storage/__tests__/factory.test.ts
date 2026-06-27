@@ -25,25 +25,6 @@ describe('createStorage', () => {
     });
   });
 
-  describe('vercel-blob (legacy migration-window backend)', () => {
-    it('returns a vercel-blob provider for { provider: "vercel-blob", vercelBlob: {...} }', () => {
-      const provider = createStorage({
-        provider: 'vercel-blob',
-        vercelBlob: { token: 'vercel_blob_rw_test' },
-      });
-      expect(provider.provider).toBe('vercel-blob');
-    });
-
-    it('propagates the missing-token validation error', () => {
-      expect(() =>
-        createStorage({
-          provider: 'vercel-blob',
-          vercelBlob: { token: '' },
-        }),
-      ).toThrow(/requires VercelBlobConfig.token/);
-    });
-  });
-
   describe('exhaustiveness', () => {
     it('throws with a clear message for unknown provider tags', () => {
       // Bypass the discriminated union to simulate a runtime config that
