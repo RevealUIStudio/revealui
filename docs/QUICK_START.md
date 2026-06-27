@@ -73,7 +73,6 @@ R2_ACCESS_KEY_ID=your-r2-access-key-id
 R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
 R2_BUCKET=your-bucket-name
 R2_PUBLIC_BASE_URL=https://<account-id>.r2.cloudflarestorage.com/<bucket>
-# Legacy alternative (being retired): BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
 
 # Optional: Stripe (needed for billing flows)
 STRIPE_SECRET_KEY=sk_test_XXXXX
@@ -92,7 +91,7 @@ bash scripts/generate-secret.sh
 
 **POSTGRES_URL**  -  [console.neon.tech](https://console.neon.tech) → New project → Connection string (include `?sslmode=require`)
 
-**BLOB_READ_WRITE_TOKEN** (optional)  -  [vercel.com/dashboard](https://vercel.com/dashboard) → Storage → Blob → Create store → Create token
+**R2_\* (Cloudflare R2)** (optional)  -  [dash.cloudflare.com](https://dash.cloudflare.com) → R2 → create a bucket and an API token (Access Key ID + Secret Access Key); bind a public domain for `R2_PUBLIC_BASE_URL`
 
 **Stripe keys** (optional)  -  [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (use test mode keys)
 
@@ -140,7 +139,7 @@ This starts two services:
 
 **Database**  -  go to **Posts** or **Pages** in the admin, create a record, save it. If it persists on reload, the database connection is working.
 
-**Media** (requires `BLOB_READ_WRITE_TOKEN`)  -  go to **Media**, upload an image. Skip this step if you haven't set up Vercel Blob yet.
+**Media** (requires the `R2_*` vars)  -  go to **Media**, upload an image. Skip this step if you haven't set up Cloudflare R2 yet.
 
 **Billing** (requires Stripe keys)  -  go to **Account → Billing**. The page loads without Stripe keys but checkout won't function until keys are set. For local webhook testing, run `stripe listen --forward-to localhost:4000/api/webhooks/stripe` to get a local `STRIPE_WEBHOOK_SECRET`.
 

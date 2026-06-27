@@ -829,11 +829,11 @@ buildConfig({
 
 ### `objectStorage()`
 
-Provider-agnostic object-storage upload plugin. Adapts any `StorageProvider` — Cloudflare R2 (canonical), Vercel Blob, or mock — to a collection's upload-adapter interface. The backend is resolved lazily on first upload via `resolveProvider`, so reading validated config never forces env validation at config-build time. Cloudflare R2 (S3-compatible) is the canonical backend; the legacy `BLOB_READ_WRITE_TOKEN` is a migration-window fallback.
+Provider-agnostic object-storage upload plugin. Adapts any `StorageProvider` — Cloudflare R2 (the object-storage backend) or mock — to a collection's upload-adapter interface. The backend is resolved lazily on first upload via `resolveProvider`, so reading validated config never forces env validation at config-build time. Cloudflare R2 (S3-compatible) is the sole backend.
 
 ```ts
 import config from "@revealui/config";
-import { createR2Provider, createVercelBlobProvider, objectStorage } from "@revealui/core/storage";
+import { createR2Provider, objectStorage } from "@revealui/core/storage";
 
 buildConfig({
   upload: {
@@ -844,10 +844,9 @@ buildConfig({
     objectStorage({
       collections: { media: true },
       resolveProvider: () => {
-        const { r2, blobToken } = config.storage;
-        if (r2) return createR2Provider(r2); // Cloudflare R2 — canonical
-        if (blobToken) return createVercelBlobProvider({ token: blobToken }); // legacy fallback
-        throw new Error("No object-storage backend configured (set R2_* or BLOB_READ_WRITE_TOKEN).");
+        const { r2 } = config.storage;
+        if (r2) return createR2Provider(r2); // Cloudflare R2 — sole backend
+        throw new Error("No object-storage backend configured (set R2_*).");
       },
     }),
   ],
@@ -1819,10 +1818,8 @@ File upload storage.
 
 ```ts
 interface StorageConfig {
-  // Cloudflare R2 (canonical) — populated only when all five R2_* vars are set, else undefined.
+  // Cloudflare R2 (the object-storage backend) — populated only when all five R2_* vars are set, else undefined.
   r2: R2StorageConfig | undefined;
-  // BLOB_READ_WRITE_TOKEN — legacy Vercel Blob fallback (being retired), used only when r2 is undefined.
-  blobToken: string | undefined;
 }
 
 interface R2StorageConfig {
@@ -1982,14 +1979,12 @@ STRIPE_SECRET_KEY=sk_live_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
-# Storage — Cloudflare R2 (canonical, S3-compatible). Set all five R2_* vars.
+# Storage — Cloudflare R2 (S3-compatible). Set all five R2_* vars.
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET=revealui-media
 R2_PUBLIC_BASE_URL=https://media.revealui.com
-# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset:
-BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # Optional
 SENTRY_DSN=https://...@sentry.io/...
@@ -4043,7 +4038,7 @@ The CLI walks through five configuration steps:
 
 ### 3. Storage
 
-- **Storage provider**  -  Cloudflare R2 (S3-compatible, recommended) or legacy Vercel Blob (being retired); can be skipped to configure later
+- **Storage provider**  -  Cloudflare R2 (S3-compatible, the object-storage backend); can be skipped to configure later
 
 ### 4. Payments
 
@@ -4133,14 +4128,12 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 # Database
 POSTGRES_URL=postgresql://...
 
-# Storage — Cloudflare R2 (canonical, S3-compatible). Set all five R2_* vars.
+# Storage — Cloudflare R2 (S3-compatible). Set all five R2_* vars.
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET=...
 R2_PUBLIC_BASE_URL=...
-# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset:
-BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # Stripe
 STRIPE_SECRET_KEY=sk_test_...
@@ -4404,12 +4397,11 @@ Pre-defined list of required environment variables for RevealUI projects.
 | ------------------------------------ | --------------------------------- | ---------------------- |
 | `REVEALUI_SECRET`                    | Secret key for session encryption | `minLength(32)`        |
 | `POSTGRES_URL`                       | PostgreSQL connection string      | `postgresUrl`          |
-| `R2_ACCOUNT_ID`                      | Cloudflare R2 account ID (canonical object storage) | `minLength(1)` (optional) |
+| `R2_ACCOUNT_ID`                      | Cloudflare R2 account ID (object storage) | `minLength(1)` (optional) |
 | `R2_ACCESS_KEY_ID`                   | Cloudflare R2 access key ID       | `minLength(1)` (optional) |
 | `R2_SECRET_ACCESS_KEY`               | Cloudflare R2 secret access key   | `minLength(1)` (optional) |
 | `R2_BUCKET`                          | Cloudflare R2 bucket name         | `minLength(1)` (optional) |
 | `R2_PUBLIC_BASE_URL`                 | Public base URL for R2 objects    | `minLength(1)` (optional) |
-| `BLOB_READ_WRITE_TOKEN`              | Legacy Vercel Blob token — optional fallback when the R2_* vars are unset |  -                       |
 | `STRIPE_SECRET_KEY`                  | Stripe secret key                 | `stripeSecretKey`      |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key            | `stripePublishableKey` |
 

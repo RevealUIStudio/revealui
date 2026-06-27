@@ -168,7 +168,7 @@ Plugin API shape is stable. The set of bundled plugins may expand.
 |--------|-----------|-------|
 | `@revealui/core/storage` | **Beta** | File/media upload handlers, Cloudflare R2 (S3-compatible) adapter. |
 
-Cloudflare R2 (S3-compatible) is the canonical storage backend; the legacy Vercel Blob adapter is being retired. The storage adapter interface is designed for extensibility but is not yet fully documented.
+Cloudflare R2 (S3-compatible) is the sole object-storage backend. The storage adapter interface is designed for extensibility but is not yet fully documented.
 
 #### Authentication Helpers
 
@@ -240,7 +240,7 @@ This table reflects what has been exercised against production infrastructure (a
 | Webhook idempotency | ✅ Yes | Stripe webhook double-processing prevented (idempotency key) |
 | REST API (Hono, `/v1/`) | ✅ Yes | API deployed and serving |
 | Rich text (Lexical) | ⚠️ Partial | Integration tested, no production content authored yet |
-| Storage (Cloudflare R2) | ⚠️ Partial | R2 canonical across admin + API (provider abstraction; legacy Blob plugin removed); no production uploads verified yet |
+| Storage (Cloudflare R2) | ⚠️ Partial | R2 is the sole backend across admin + API (provider abstraction); no production uploads verified yet |
 | Monitoring / health checks | ⚠️ Partial | Health endpoints return live data; alert pipeline not wired |
 | AI agents | ❌ Not yet | Pro-only; no production traffic yet |
 
@@ -317,7 +317,7 @@ Changelogs are published via [Changesets](https://github.com/changesets/changese
 | `zod` | `^4.x` | Schema validation. Zod 4 is a major revision; no Zod 3 compatibility. |
 | `jose` | `^6.x` | JWT/JOSE. API stable. |
 | `bcryptjs` | `^3.x` | Password hashing. API stable. |
-| `@vercel/blob` | `^2.x` | Legacy Vercel Blob storage SDK; being retired in favor of the Cloudflare R2 (S3-compatible) backend. |
+| `@aws-sdk/client-s3` | `^3.x` | S3 client for the Cloudflare R2 (S3-compatible) object-storage backend. |
 | `yjs` | `^13.x` | CRDT for collaborative editing. Peer dep for real-time use cases. |
 | `pg` | `^8.x` | PostgreSQL client. Used internally; not re-exported. |
 

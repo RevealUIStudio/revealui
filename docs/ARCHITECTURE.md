@@ -73,7 +73,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 2. **Supabase (SUPABASE_DATABASE_URL — optional RAG sidecar)**: Hosts `rag_chunks` and related embedding tables when an Ollama/cloud RAG path is wired. Phase 7 (in roadmap) consolidates RAG embeddings onto NeonDB pgvector and retires the Supabase sidecar; current usage is minimal.
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
-5. **Cloudflare R2 (S3-compatible)**: Media and file storage — canonical object-storage backend (the legacy Vercel Blob backend is being retired, GAP-208)
+5. **Cloudflare R2 (S3-compatible)**: Media and file storage — the sole object-storage backend (GAP-208)
 6. **Remote Procedure Calls (RPC)**: Type-safe API calls
 7. **Vercel Analytics & Speed Insights**: Performance monitoring
 
@@ -965,22 +965,21 @@ const memories = await rpc.call("memory.search", { queryEmbedding });
 
 **Role:** Scalable media and file storage for admin content.
 
-Object storage uses a pluggable backend exposed through a slim `StorageProvider` interface (`packages/core/src/storage/types.ts`). **Cloudflare R2 (S3-compatible, via `@aws-sdk/client-s3`) is the canonical backend** (`packages/core/src/storage/r2.ts`) and the default everywhere. A Vercel Blob provider (`packages/core/src/storage/vercel-blob-provider.ts`) remains available as a config-selected fallback for the migration window (GAP-208). Both the API media route and the admin upload path resolve their backend from `@revealui/config`'s `config.storage` — R2 when the five `R2_*` vars are set, otherwise the legacy `BLOB_READ_WRITE_TOKEN`.
+Object storage uses a pluggable backend exposed through a slim `StorageProvider` interface (`packages/core/src/storage/types.ts`). **Cloudflare R2 (S3-compatible, via `@aws-sdk/client-s3`) is the sole backend** (`packages/core/src/storage/r2.ts`) and the default everywhere. Both the API media route and the admin upload path resolve their backend from `@revealui/config`'s `config.storage` — R2 when the five `R2_*` vars are set.
 
 The admin app attaches uploads to media collections through the provider-agnostic `objectStorage` Payload plugin (`packages/core/src/storage/object-storage.ts`), which adapts any `StorageProvider` to the engine's upload-adapter interface and resolves the backend lazily on first upload:
 
 ```typescript
 // apps/admin/revealui.config.ts
 import config from "@revealui/config";
-import { createR2Provider, createVercelBlobProvider, objectStorage } from "@revealui/core/storage";
+import { createR2Provider, objectStorage } from "@revealui/core/storage";
 
 objectStorage({
   collections: { media: true },
   resolveProvider: () => {
-    const { r2, blobToken } = config.storage;
-    if (r2) return createR2Provider(r2); // Cloudflare R2 — canonical
-    if (blobToken) return createVercelBlobProvider({ token: blobToken }); // legacy fallback
-    throw new Error("No object-storage backend configured (set R2_* or BLOB_READ_WRITE_TOKEN).");
+    const { r2 } = config.storage;
+    if (r2) return createR2Provider(r2); // Cloudflare R2 — sole backend
+    throw new Error("No object-storage backend configured (set R2_*).");
   },
 });
 ```
@@ -1530,15 +1529,13 @@ SUPABASE_DATABASE_URL=postgresql://...@db.supabase.co/...
 ELECTRIC_SERVICE_URL=http://localhost:5133
 NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 
-# Object storage — Cloudflare R2 is the canonical backend (GAP-208).
+# Object storage — Cloudflare R2 is the object-storage backend (GAP-208).
 # Set all five R2_* vars for media uploads (R2 is S3-compatible, via @aws-sdk/client-s3).
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET=revealui-media
 R2_PUBLIC_BASE_URL=https://media.revealui.com
-# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset.
-BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # AI Inference — open-model only (Ubuntu Inference Snaps, Ollama)
 # See docs/PRO.md for inference configuration
@@ -2048,7 +2045,7 @@ Server-side API endpoints that provide data to components.
 
 3. **Health Check** (`health/route.ts`)
    - **Purpose**: System health monitoring
-   - **Checks**: Database, Stripe, Vercel Blob
+   - **Checks**: Database, Stripe, Cloudflare R2
 
 4. **Health Ready** (`health/ready/route.ts`)
    - **Purpose**: Readiness probe
