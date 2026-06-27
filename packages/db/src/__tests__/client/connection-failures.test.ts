@@ -669,7 +669,7 @@ describe('database connection failures', () => {
       expect(() => getClient('rest')).toThrow('Database connection string not provided');
     });
 
-    it('throws when no connection string is available for vector client (aliased to rest)', async () => {
+    it('falls back to rest for the removed "vector" alias (throws with no connection string)', async () => {
       Reflect.deleteProperty(process.env, 'POSTGRES_URL');
       Reflect.deleteProperty(process.env, 'DATABASE_URL');
 
@@ -677,6 +677,9 @@ describe('database connection failures', () => {
       const { getClient, resetClient } = await import('../../client/index.js');
       resetClient();
 
+      // 'vector' is no longer a recognized DatabaseType (removed in #1643); as an
+      // unrecognized string it falls through to the default 'rest' client, which
+      // throws when no connection string is set.
       expect(() => getClient('vector')).toThrow('Database connection string not provided');
     });
   });

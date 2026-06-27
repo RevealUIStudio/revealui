@@ -247,10 +247,13 @@ describe('client/index  -  pool management', () => {
       expect(() => getClient('rest')).toThrow('Database connection string not provided');
     });
 
-    it('throws when no connection string is available for vector (aliased to rest)', () => {
+    it('falls back to rest for the removed "vector" alias (throws with no connection string)', () => {
       delete process.env.POSTGRES_URL;
       delete process.env.DATABASE_URL;
 
+      // 'vector' is no longer a recognized DatabaseType (removed in #1643); it falls
+      // through to the default 'rest' client, which throws when no connection string
+      // is set.
       expect(() => getClient('vector')).toThrow('Database connection string not provided');
     });
 

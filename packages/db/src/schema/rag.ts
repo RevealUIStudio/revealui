@@ -1,9 +1,11 @@
 /**
  * RAG (Retrieval-Augmented Generation) Tables
  *
- * Stored on Supabase (vector database) because rag_chunks uses pgvector.
- * The ragDocuments → ragChunks FK cascade is enforced within Supabase.
- * The workspaceId → sites.id reference is cross-database (type-only, not enforced at runtime).
+ * Stored on Neon (Postgres) because rag_chunks uses the pgvector extension.
+ * The ragDocuments → ragChunks FK cascade is enforced within the same Neon database.
+ * The workspaceId → sites.id reference is a same-database FK; because sites are
+ * soft-deleted (deletedAt) rather than hard-deleted, orphaned rows are reclaimed by
+ * @revealui/db/cleanup rather than by the FK cascade.
  *
  * Embedding dimensions: 768 (nomic-embed-text via Ollama  -  policy default)
  */

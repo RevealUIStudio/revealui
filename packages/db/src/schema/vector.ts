@@ -3,11 +3,11 @@
  *
  * Schemas for AI/vector operations that require pgvector.
  *
- * ARCHITECTURE NOTE: Despite the "vector" naming, `agentMemories` currently
- * lives in NeonDB (not Supabase) because its FK constraints reference
- * NeonDB's `sites` and `users` tables. Cross-database FKs are not possible.
- * The table is re-exported here for semantic grouping (it uses vector embeddings),
- * but its data resides in the REST (Neon) database.
+ * NAMING NOTE: the "vector" name refers to pgvector embeddings, not a separate
+ * vector database. Every table grouped here lives in the single Neon (Postgres)
+ * database alongside the rest of the schema. `agentMemories` is grouped here
+ * because it uses vector embeddings, and its FK constraints reference Neon's
+ * `sites` and `users` tables.
  *
  * RAG tables also require pgvector and follow the same pattern.
  */
@@ -19,9 +19,9 @@ export type {
   NewAgentMemory as NewAgentMemoryType,
 } from './agents.js';
 // Re-export table + types for convenience.
-// agentMemories lives in NeonDB (not Supabase) due to FK constraints on sites/users,
-// but is re-exported here because published @revealui/ai imports it from this path.
+// agentMemories lives in the Neon database; it is re-exported here because the
+// published @revealui/ai package imports it from this path.
 export { agentMemories } from './agents.js';
 
-// RAG tables (pgvector-backed, stored on Supabase)
+// RAG tables (pgvector-backed, stored on Neon)
 export * from './rag.js';
