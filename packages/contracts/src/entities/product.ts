@@ -94,7 +94,9 @@ export type StripePriceList = z.infer<typeof StripePriceListSchema>;
 // Product Status
 // =============================================================================
 
-export const ProductStatusSchema = z.enum(['draft', 'published']);
+// Mirrors the db CHECK constraint (packages/db/src/schema/products.ts PRODUCT_STATUSES);
+// 'archived' must be included or archived rows throw on ProductSchema.parse().
+export const ProductStatusSchema = z.enum(['draft', 'published', 'archived']);
 export type ProductStatus = z.infer<typeof ProductStatusSchema>;
 
 // =============================================================================
