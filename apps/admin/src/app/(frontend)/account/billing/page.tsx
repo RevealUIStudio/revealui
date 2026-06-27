@@ -134,16 +134,10 @@ function BillingContent() {
       setActionLoading(true);
       setError(null);
       try {
-        const useAnnual = billingInterval === 'year' && hasAnnualOption;
-        const annualPriceId =
-          target === 'max'
-            ? process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID
-            : process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID;
-        const monthlyPriceId =
+        const priceId =
           target === 'max'
             ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
             : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-        const priceId = useAnnual ? annualPriceId : monthlyPriceId;
         const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -151,7 +145,6 @@ function BillingContent() {
           body: JSON.stringify({
             ...(priceId && { priceId }),
             tier: target,
-            ...(useAnnual && { interval: 'year' }),
           }),
         });
         const data = (await res.json()) as { url?: string; error?: string };
@@ -166,7 +159,7 @@ function BillingContent() {
         setActionLoading(false);
       }
     },
-    [apiUrl, billingInterval, hasAnnualOption],
+    [apiUrl],
   );
 
   // Poll subscription status with exponential backoff after upgrades.
