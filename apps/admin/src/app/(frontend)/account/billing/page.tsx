@@ -217,14 +217,6 @@ function BillingContent() {
   const statusLabel = subscription?.status
     ? (StatusLabels[subscription.status] ?? subscription.status)
     : 'Active';
-  const trialEndDate = subscription?.expiresAt
-    ? new Date(subscription.expiresAt).toLocaleDateString()
-    : '';
-  const cancelTitle = isTrialing
-    ? `Ends your trial. You keep Pro access until ${trialEndDate}.`
-    : 'Cancels at the end of your current billing period. You keep access until then.';
-  const cancelLabel = isTrialing ? 'End trial' : 'Cancel subscription';
-
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">Billing</h1>
