@@ -1,7 +1,7 @@
 import type { RevealDocument } from '@revealui/core';
 import { logger } from '@revealui/utils/logger';
 import { unstable_cache } from 'next/cache';
-import { getRevealUIInstance } from './revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 type Global = string;
 
