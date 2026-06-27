@@ -443,20 +443,12 @@ function BillingContent() {
               </div>
             )}
             {seats.max !== null && seats.active >= seats.max && (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-red-50 p-3 dark:bg-red-950/30">
+              <div className="rounded-lg bg-red-50 p-3 dark:bg-red-950/30">
                 <p className="text-xs text-red-600 dark:text-red-400">
                   {seats.tier === 'max'
                     ? "You've reached your seat limit. Contact us about Enterprise to add more members."
-                    : "You've reached your seat limit. Upgrade to add more members."}
+                    : 'You\'ve reached your seat limit. Use "Change plan" above to add more members.'}
                 </p>
-                {seats.tier !== 'max' && (
-                  <Link
-                    href={`/account/billing?upgrade=${seats.tier === 'free' ? 'pro' : 'max'}`}
-                    className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-                  >
-                    Upgrade
-                  </Link>
-                )}
               </div>
             )}
           </CardContent>
