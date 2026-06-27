@@ -371,15 +371,15 @@ function BillingContent() {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600">Status</span>
+            <span className="text-sm text-muted-foreground">Status</span>
             <span
               className={`text-sm font-medium ${
                 subscription?.status === 'active' || subscription?.status === 'trialing'
-                  ? 'text-green-600 dark:text-green-400'
+                  ? 'text-success'
                   : subscription?.status === 'past_due' || subscription?.status === 'grace_period'
-                    ? 'text-amber-600 dark:text-amber-400'
+                    ? 'text-warning'
                     : subscription?.status === 'expired' || subscription?.status === 'revoked'
-                      ? 'text-red-600 dark:text-red-400'
+                      ? 'text-destructive'
                       : ''
               }`}
             >
@@ -387,174 +387,28 @@ function BillingContent() {
             </span>
           </div>
 
-          {tier !== 'max' && (
-            <div className="flex items-center justify-end">
-              <Link
-                href="/upgrade"
-                className="text-sm font-medium text-[var(--tenant-brand,#2563eb)] underline hover:no-underline"
-              >
-                Change plan &rarr;
-              </Link>
-            </div>
-          )}
-
           {subscription?.expiresAt && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-600">Expires</span>
+              <span className="text-sm text-muted-foreground">Expires</span>
               <span className="text-sm">
                 {new Date(subscription.expiresAt).toLocaleDateString()}
               </span>
             </div>
           )}
 
-          <div className="border-t pt-4 dark:border-zinc-800">
-            {hasAnnualOption &&
-              (tier === 'free' || (tier === 'pro' && !isTrialing) || tier === 'max') && (
-                <div className="mb-4 flex justify-center">
-                  <div className="inline-flex items-center rounded-full bg-zinc-100 p-1 text-sm font-medium ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
-                    <button
-                      type="button"
-                      onClick={() => setBillingInterval('month')}
-                      className={`rounded-full px-3 py-1 transition-colors ${
-                        billingInterval === 'month'
-                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
-                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-                      }`}
-                    >
-                      Monthly
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBillingInterval('year')}
-                      className={`rounded-full px-3 py-1 transition-colors ${
-                        billingInterval === 'year'
-                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
-                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-                      }`}
-                    >
-                      Annual
-                      <span className="ml-1 text-xs text-green-600 dark:text-green-400">−20%</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            {tier === 'free' && (
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-600">
-                  Upgrade to Pro for AI agents, advanced sync, built-in payments, and more.
-                </p>
-                <Button
-                  onClick={() => void handleCheckout('pro')}
-                  disabled={actionLoading}
-                  className="w-full"
-                >
-                  {actionLoading
-                    ? 'Redirecting to checkout...'
-                    : `Upgrade to Pro — ${getPrice('pro')}`}
-                </Button>
-                <p className="text-center text-xs text-zinc-400">Includes a 7-day free trial</p>
-              </div>
-            )}
-
-            {tier === 'pro' && (
-              <div className="space-y-3">
-                {isTrialing ? (
-                  <p className="text-sm text-zinc-600">
-                    You’re on a free Pro trial. Manage your payment method or end the trial before
-                    it converts.
-                  </p>
-                ) : (
-                  <p className="text-sm text-zinc-600">
-                    Upgrade to Max for AI memory, advanced inference, audit logging, and higher
-                    limits (15 projects, 100 users).
-                  </p>
-                )}
-                <Button onClick={handleManageBilling} disabled={actionLoading} className="w-full">
-                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-                </Button>
-                {!isTrialing && (
-                  <Button
-                    onClick={handleUpgradeToMax}
-                    disabled={actionLoading || upgradeSuccess}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {actionLoading
-                      ? 'Upgrading...'
-                      : upgradeSuccess
-                        ? 'Upgraded to Max'
-                        : `Upgrade to Max — ${getPrice('max')}`}
-                  </Button>
-                )}
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  title={cancelTitle}
-                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
-                >
-                  {cancelLabel}
-                </button>
-              </div>
-            )}
-
-            {tier === 'max' && (
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-600">
-                  Upgrade to Enterprise for unlimited projects and users, SSO, white-label branding,
-                  multi-tenant isolation, and self-hosted deployment.
-                </p>
-                <Button
-                  onClick={handleUpgradeToEnterprise}
-                  disabled={actionLoading || upgradeSuccess}
-                  className="w-full"
-                >
-                  {actionLoading
-                    ? 'Upgrading...'
-                    : upgradeSuccess
-                      ? 'Upgraded to Enterprise'
-                      : `Upgrade to Enterprise — ${getPrice('enterprise')}`}
-                </Button>
-                <Button
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  title="Cancels at the end of your current billing period. You keep access until then."
-                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
-                >
-                  Cancel subscription
-                </button>
-              </div>
-            )}
-
-            {tier === 'enterprise' && (
-              <div className="space-y-3">
-                <Button
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  title="Cancels at the end of your current billing period. You keep access until then."
-                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
-                >
-                  Cancel subscription
-                </button>
-              </div>
+          <div className="flex flex-col gap-2 border-t pt-4">
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/upgrade">Change plan →</Link>
+            </Button>
+            {tier !== 'free' && (
+              <Button
+                onClick={handleManageBilling}
+                disabled={actionLoading}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading ? 'Opening portal...' : 'Manage billing & cancel'}
+              </Button>
             )}
           </div>
         </CardContent>
