@@ -4,10 +4,10 @@ import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import { cache } from 'react';
 import { RenderBlocks } from '@/lib/blocks/RenderBlocks';
+import { generateMeta } from '@/lib/cms/generateMeta';
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
 import { RenderHero } from '@/lib/heros/RenderHero';
-import { generateMeta } from '@/lib/utilities/generateMeta';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 // Force dynamic rendering to prevent build-time RevealUI admin initialization
 export const dynamic = 'force-dynamic';

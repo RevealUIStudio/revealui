@@ -7,10 +7,10 @@ import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
-import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+import { writeGDPRAuditEntry } from '@/lib/utils/gdpr-audit';
 import { extractRequestContext } from '@/lib/utils/request-context';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 export const dynamic = 'force-dynamic';
 

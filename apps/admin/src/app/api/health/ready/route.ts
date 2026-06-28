@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 /**
  * Readiness probe endpoint

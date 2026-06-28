@@ -6,7 +6,7 @@
  * one (and a new DB connection) per request.
  *
  * Usage:
- *   import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
+ *   import { getRevealUIInstance } from '@/lib/utils/revealui-singleton'
  *   const revealui = await getRevealUIInstance()
  *
  * Note: Do NOT use this in tests  -  import getRevealUI directly and pass a

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { mergeOpenGraph } from '../mergeOpenGraph';
+import { mergeOpenGraph } from '@/lib/cms/mergeOpenGraph';
 
 // Docker Compose `${VAR:-}` interpolation delivers unset env vars to the
 // container as empty strings, not undefined. The brand fallback chains must

@@ -13,7 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { getRevealUIInstance } = vi.hoisted(() => ({ getRevealUIInstance: vi.fn() }));
 
-vi.mock('@/lib/utilities/revealui-singleton', () => ({ getRevealUIInstance }));
+vi.mock('@/lib/utils/revealui-singleton', () => ({ getRevealUIInstance }));
 
 async function loadInitEngineAtBoot() {
   return (await import('../instrumentation-node')).initEngineAtBoot;

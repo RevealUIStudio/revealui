@@ -1,4 +1,4 @@
-import { SITE_NAME } from '@/lib/utilities/siteBranding';
+import { SITE_NAME } from '@/lib/utils/siteBranding';
 
 const BeforeLogin = () => {
   return (

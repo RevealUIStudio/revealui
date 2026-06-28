@@ -3,7 +3,7 @@ import { logger } from '@revealui/utils/logger';
 import { CollectionArchive } from '@/lib/components/CollectionArchive/index';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
 import RichText from '@/lib/components/RichText/index';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 import { asDocuments } from '@/lib/utils/type-guards';
 
 export interface ArchiveBlockProps {

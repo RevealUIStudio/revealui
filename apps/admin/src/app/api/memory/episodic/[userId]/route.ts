@@ -12,8 +12,8 @@ import { getClient } from '@revealui/db/client';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
-import { getNodeIdFromUser } from '@/lib/utilities/nodeId';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
+import { getNodeIdFromUser } from '@/lib/utils/nodeId';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';

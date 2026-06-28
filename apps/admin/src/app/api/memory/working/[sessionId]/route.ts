@@ -12,8 +12,8 @@ import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
-import { getNodeIdFromSession } from '@/lib/utilities/nodeId';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
+import { getNodeIdFromSession } from '@/lib/utils/nodeId';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';

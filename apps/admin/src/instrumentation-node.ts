@@ -33,7 +33,7 @@ export async function initEngineAtBoot(): Promise<void> {
   }
 
   try {
-    const { getRevealUIInstance } = await import('@/lib/utilities/revealui-singleton');
+    const { getRevealUIInstance } = await import('@/lib/utils/revealui-singleton');
     await getRevealUIInstance();
   } catch (err) {
     // Write straight to stderr — the structured logger may not be wired this
