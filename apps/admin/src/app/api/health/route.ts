@@ -1,9 +1,8 @@
 import { getSession } from '@revealui/auth/server';
 import config from '@revealui/config';
-import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 import { extractRequestContext } from '@/lib/utils/request-context';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -89,34 +88,6 @@ export async function GET(request: Request) {
         name: 'stripe',
         status: 'degraded',
         message: 'Stripe check skipped: @revealui/services (Pro) not installed',
-      });
-    }
-  }
-
-  // Check Vercel Blob Storage (if configured)  -  make a real API call with a 2s timeout
-  if (config.storage.blobToken) {
-    try {
-      const blobStartTime = Date.now();
-      await Promise.race([
-        list({ prefix: '_health/', limit: 1 }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Blob health check timed out (2s)')), 2000),
-        ),
-      ]);
-      const blobResponseTime = Date.now() - blobStartTime;
-
-      checks.push({
-        name: 'vercel-blob',
-        status: 'healthy',
-        message: 'Vercel Blob API reachable',
-        responseTimeMs: blobResponseTime,
-      });
-    } catch (error) {
-      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
-      checks.push({
-        name: 'vercel-blob',
-        status: 'unhealthy',
-        message: error instanceof Error ? error.message : 'Vercel Blob check failed',
       });
     }
   }

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { SITE_NAME } from '@/lib/utilities/siteBranding';
+import { SITE_NAME } from '@/lib/utils/siteBranding';
 import PoweredByRevealUI from '../PoweredByRevealUI/index';
 import OnboardingChecklist from './OnboardingChecklist';
 

@@ -1,5 +1,5 @@
 import type { Page } from '@revealui/core/types/admin';
-import { getCachedGlobal } from '@/lib/utilities/getGlobals';
+import { getCachedGlobal } from '@/lib/cms/getGlobals';
 import { RevealUIHeader } from './RevealUIHeader';
 
 export interface HeaderType {

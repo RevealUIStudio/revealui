@@ -134,11 +134,6 @@ export const REQUIRED_ENV_VARS: EnvVariable[] = [
     validator: validators.postgresUrl,
   },
   {
-    name: 'BLOB_READ_WRITE_TOKEN',
-    description: 'Vercel Blob storage token',
-    required: true,
-  },
-  {
     name: 'STRIPE_SECRET_KEY',
     description: 'Stripe secret key (sk_test_... or sk_live_...)',
     required: true,

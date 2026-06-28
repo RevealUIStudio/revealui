@@ -155,7 +155,7 @@ Pre-built validators:
 Default required environment variables for RevealUI:
 - `REVEALUI_SECRET` - JWT secret (min 32 chars)
 - `POSTGRES_URL` - Database connection string
-- `BLOB_READ_WRITE_TOKEN` - Vercel Blob token
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` - Cloudflare R2 object storage
 - `STRIPE_SECRET_KEY` - Stripe secret key
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 

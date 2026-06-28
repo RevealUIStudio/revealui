@@ -3,10 +3,11 @@
  *
  * Removes orphaned vector data (agent memories + RAG documents/chunks) for
  * sites that have been soft-deleted in NeonDB. Runs against a single NeonDB
- * connection — historical "cross-DB" framing referred to a dual-DB (NeonDB +
- * Supabase) architecture that is being phased out; these tables now live on
- * the same database, but the soft-delete fanout is still needed because sites
- * use soft-delete (`deletedAt`) rather than hard-delete.
+ * connection — the "cross-DB" name is historical: it referred to a dual-DB
+ * (NeonDB + Supabase) architecture whose internal Supabase half was removed in
+ * May 2026. These tables now all live in the single Neon database, but the
+ * soft-delete fanout is still needed because sites use soft-delete (`deletedAt`)
+ * rather than hard-delete, so the FK cascade never fires for a soft-deleted site.
  *
  * Affected tables:
  * - agentMemories.siteId       -> sites.id

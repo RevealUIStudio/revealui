@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { SITE_NAME } from '@/lib/utilities/siteBranding';
+import { SITE_NAME } from '@/lib/utils/siteBranding';
 
 const DISMISSED_KEY = 'revealui-onboarding-dismissed';
 

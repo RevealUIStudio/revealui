@@ -17,7 +17,7 @@ import {
 } from '@revealui/presentation';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -77,21 +77,12 @@ function BillingContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
-  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
-  // Show the annual toggle only if the server has the annual price IDs configured.
-  // This is the lockstep guard: no annual CTA without a resolvable annual price.
-  const hasAnnualOption = Boolean(process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID);
-
   const getPrice = (tierId: string): string => {
     const t = pricing?.subscriptions.find((s) => s.id === tierId);
-    if (billingInterval === 'year' && t?.annualPrice) {
-      return `${t.annualPrice}${t.annualPeriod ?? ''}`;
-    }
     if (!t?.price) return ' - ';
     return `${t.price}${t.period ?? ''}`;
   };
@@ -140,16 +131,10 @@ function BillingContent() {
       setActionLoading(true);
       setError(null);
       try {
-        const useAnnual = billingInterval === 'year' && hasAnnualOption;
-        const annualPriceId =
-          target === 'max'
-            ? process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID
-            : process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID;
-        const monthlyPriceId =
+        const priceId =
           target === 'max'
             ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
             : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-        const priceId = useAnnual ? annualPriceId : monthlyPriceId;
         const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -157,7 +142,6 @@ function BillingContent() {
           body: JSON.stringify({
             ...(priceId && { priceId }),
             tier: target,
-            ...(useAnnual && { interval: 'year' }),
           }),
         });
         const data = (await res.json()) as { url?: string; error?: string };
@@ -172,29 +156,8 @@ function BillingContent() {
         setActionLoading(false);
       }
     },
-    [apiUrl, billingInterval, hasAnnualOption],
+    [apiUrl],
   );
-
-  // Poll subscription status with exponential backoff after upgrades.
-  // Retries up to 3 times (1s → 2s → 4s) to allow webhook processing.
-  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pollSubscription = useCallback(
-    (attempt = 0) => {
-      const maxAttempts = 3;
-      if (attempt >= maxAttempts) return;
-      const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
-      pollTimerRef.current = setTimeout(() => {
-        void fetchSubscription().then(() => pollSubscription(attempt + 1));
-      }, delay);
-    },
-    [fetchSubscription],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
-    };
-  }, []);
 
   // Auto-redirect to checkout on signup with ?upgrade=pro|max, and for churned
   // users (expired/canceled) arriving with explicit upgrade intent. Never fires
@@ -208,73 +171,6 @@ function BillingContent() {
       void handleCheckout(upgrade);
     }
   }, [upgrade, subscription, actionLoading, handleCheckout]);
-
-  const handleUpgradeToMax = async () => {
-    setActionLoading(true);
-    setError(null);
-    try {
-      const useAnnual =
-        billingInterval === 'year' && Boolean(process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID);
-      const priceId = useAnnual
-        ? process.env.NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID;
-      const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...(priceId && { priceId }),
-          targetTier: 'max',
-          ...(useAnnual && { interval: 'year' }),
-        }),
-      });
-      const data = (await res.json()) as { success?: boolean; error?: string };
-      if (data.success) {
-        setUpgradeSuccess(true);
-        pollSubscription();
-      } else {
-        setError(data.error || 'Failed to upgrade subscription');
-      }
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleUpgradeToEnterprise = async () => {
-    setActionLoading(true);
-    setError(null);
-    try {
-      const useAnnual =
-        billingInterval === 'year' &&
-        Boolean(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID);
-      const priceId = useAnnual
-        ? process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID;
-      const res = await apiFetch(`${apiUrl}/api/billing/upgrade`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...(priceId && { priceId }),
-          targetTier: 'enterprise',
-          ...(useAnnual && { interval: 'year' }),
-        }),
-      });
-      const data = (await res.json()) as { success?: boolean; error?: string };
-      if (data.success) {
-        setUpgradeSuccess(true);
-        pollSubscription();
-      } else {
-        setError(data.error || 'Failed to upgrade subscription');
-      }
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleManageBilling = async () => {
     setActionLoading(true);
@@ -306,7 +202,6 @@ function BillingContent() {
   }
 
   const tier = subscription?.tier || 'free';
-  const isTrialing = subscription?.status === 'trialing';
   const StatusLabels: Record<string, string> = {
     trialing: 'Free Trial',
     active: 'Active',
@@ -319,14 +214,6 @@ function BillingContent() {
   const statusLabel = subscription?.status
     ? (StatusLabels[subscription.status] ?? subscription.status)
     : 'Active';
-  const trialEndDate = subscription?.expiresAt
-    ? new Date(subscription.expiresAt).toLocaleDateString()
-    : '';
-  const cancelTitle = isTrialing
-    ? `Ends your trial. You keep Pro access until ${trialEndDate}.`
-    : 'Cancels at the end of your current billing period. You keep access until then.';
-  const cancelLabel = isTrialing ? 'End trial' : 'Cancel subscription';
-
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">Billing</h1>
@@ -461,12 +348,6 @@ function BillingContent() {
         </div>
       )}
 
-      {upgradeSuccess && (
-        <div className="rounded-md bg-indigo-50 p-4 text-sm text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">
-          Upgraded! Your plan will update within a few seconds.
-        </div>
-      )}
-
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}
@@ -480,22 +361,22 @@ function BillingContent() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600">Plan</span>
+            <span className="text-sm text-muted-foreground">Plan</span>
             <span className={`rounded-full px-3 py-1 text-sm font-medium ${TIER_COLORS[tier]}`}>
               {TIER_LABELS[tier]}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-600">Status</span>
+            <span className="text-sm text-muted-foreground">Status</span>
             <span
               className={`text-sm font-medium ${
                 subscription?.status === 'active' || subscription?.status === 'trialing'
-                  ? 'text-green-600 dark:text-green-400'
+                  ? 'text-success'
                   : subscription?.status === 'past_due' || subscription?.status === 'grace_period'
-                    ? 'text-amber-600 dark:text-amber-400'
+                    ? 'text-warning'
                     : subscription?.status === 'expired' || subscription?.status === 'revoked'
-                      ? 'text-red-600 dark:text-red-400'
+                      ? 'text-destructive'
                       : ''
               }`}
             >
@@ -503,174 +384,28 @@ function BillingContent() {
             </span>
           </div>
 
-          {tier !== 'max' && (
-            <div className="flex items-center justify-end">
-              <Link
-                href="/upgrade"
-                className="text-sm font-medium text-[var(--tenant-brand,#2563eb)] underline hover:no-underline"
-              >
-                Change plan &rarr;
-              </Link>
-            </div>
-          )}
-
           {subscription?.expiresAt && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-600">Expires</span>
+              <span className="text-sm text-muted-foreground">Expires</span>
               <span className="text-sm">
                 {new Date(subscription.expiresAt).toLocaleDateString()}
               </span>
             </div>
           )}
 
-          <div className="border-t pt-4 dark:border-zinc-800">
-            {hasAnnualOption &&
-              (tier === 'free' || (tier === 'pro' && !isTrialing) || tier === 'max') && (
-                <div className="mb-4 flex justify-center">
-                  <div className="inline-flex items-center rounded-full bg-zinc-100 p-1 text-sm font-medium ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700">
-                    <button
-                      type="button"
-                      onClick={() => setBillingInterval('month')}
-                      className={`rounded-full px-3 py-1 transition-colors ${
-                        billingInterval === 'month'
-                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
-                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-                      }`}
-                    >
-                      Monthly
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBillingInterval('year')}
-                      className={`rounded-full px-3 py-1 transition-colors ${
-                        billingInterval === 'year'
-                          ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100'
-                          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-                      }`}
-                    >
-                      Annual
-                      <span className="ml-1 text-xs text-green-600 dark:text-green-400">−20%</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            {tier === 'free' && (
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-600">
-                  Upgrade to Pro for AI agents, advanced sync, built-in payments, and more.
-                </p>
-                <Button
-                  onClick={() => void handleCheckout('pro')}
-                  disabled={actionLoading}
-                  className="w-full"
-                >
-                  {actionLoading
-                    ? 'Redirecting to checkout...'
-                    : `Upgrade to Pro — ${getPrice('pro')}`}
-                </Button>
-                <p className="text-center text-xs text-zinc-400">Includes a 7-day free trial</p>
-              </div>
-            )}
-
-            {tier === 'pro' && (
-              <div className="space-y-3">
-                {isTrialing ? (
-                  <p className="text-sm text-zinc-600">
-                    You’re on a free Pro trial. Manage your payment method or end the trial before
-                    it converts.
-                  </p>
-                ) : (
-                  <p className="text-sm text-zinc-600">
-                    Upgrade to Max for AI memory, advanced inference, audit logging, and higher
-                    limits (15 projects, 100 users).
-                  </p>
-                )}
-                <Button onClick={handleManageBilling} disabled={actionLoading} className="w-full">
-                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-                </Button>
-                {!isTrialing && (
-                  <Button
-                    onClick={handleUpgradeToMax}
-                    disabled={actionLoading || upgradeSuccess}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {actionLoading
-                      ? 'Upgrading...'
-                      : upgradeSuccess
-                        ? 'Upgraded to Max'
-                        : `Upgrade to Max — ${getPrice('max')}`}
-                  </Button>
-                )}
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  title={cancelTitle}
-                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
-                >
-                  {cancelLabel}
-                </button>
-              </div>
-            )}
-
-            {tier === 'max' && (
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-600">
-                  Upgrade to Enterprise for unlimited projects and users, SSO, white-label branding,
-                  multi-tenant isolation, and self-hosted deployment.
-                </p>
-                <Button
-                  onClick={handleUpgradeToEnterprise}
-                  disabled={actionLoading || upgradeSuccess}
-                  className="w-full"
-                >
-                  {actionLoading
-                    ? 'Upgrading...'
-                    : upgradeSuccess
-                      ? 'Upgraded to Enterprise'
-                      : `Upgrade to Enterprise — ${getPrice('enterprise')}`}
-                </Button>
-                <Button
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  title="Cancels at the end of your current billing period. You keep access until then."
-                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
-                >
-                  Cancel subscription
-                </button>
-              </div>
-            )}
-
-            {tier === 'enterprise' && (
-              <div className="space-y-3">
-                <Button
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {actionLoading ? 'Opening portal...' : 'Manage Billing'}
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={actionLoading}
-                  title="Cancels at the end of your current billing period. You keep access until then."
-                  className="w-full text-sm text-zinc-400 underline hover:text-zinc-600 disabled:cursor-not-allowed dark:text-zinc-500 dark:hover:text-zinc-300"
-                >
-                  Cancel subscription
-                </button>
-              </div>
+          <div className="flex flex-col gap-2 border-t pt-4">
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/upgrade">Change plan →</Link>
+            </Button>
+            {tier !== 'free' && (
+              <Button
+                onClick={handleManageBilling}
+                disabled={actionLoading}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading ? 'Opening portal...' : 'Manage billing & cancel'}
+              </Button>
             )}
           </div>
         </CardContent>
@@ -708,20 +443,12 @@ function BillingContent() {
               </div>
             )}
             {seats.max !== null && seats.active >= seats.max && (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-red-50 p-3 dark:bg-red-950/30">
+              <div className="rounded-lg bg-red-50 p-3 dark:bg-red-950/30">
                 <p className="text-xs text-red-600 dark:text-red-400">
                   {seats.tier === 'max'
                     ? "You've reached your seat limit. Contact us about Enterprise to add more members."
-                    : "You've reached your seat limit. Upgrade to add more members."}
+                    : 'You\'ve reached your seat limit. Use "Change plan" above to add more members.'}
                 </p>
-                {seats.tier !== 'max' && (
-                  <Link
-                    href={`/account/billing?upgrade=${seats.tier === 'free' ? 'pro' : 'max'}`}
-                    className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-                  >
-                    Upgrade
-                  </Link>
-                )}
               </div>
             )}
           </CardContent>
@@ -764,72 +491,6 @@ function BillingContent() {
                 {usage.overage.toLocaleString()} tasks over quota this cycle.
               </p>
             )}
-          </CardContent>
-        </Card>
-      )}
-
-      {tier === 'free' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>What&apos;s Included in Pro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <li>Up to 5 projects and 25 users</li>
-              <li>AI agent system (open-model inference)</li>
-              <li>MCP server integration</li>
-              <li>Built-in Stripe payment processing</li>
-              <li>Full real-time sync with conflict resolution</li>
-              <li>Monitoring dashboard</li>
-              <li>Custom domain mapping</li>
-              <li>Analytics and conversion tracking</li>
-              <li>10,000 agent tasks/month</li>
-              <li>300 API requests/minute</li>
-              <li>Email support (48-hour SLA)</li>
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {tier === 'pro' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>What&apos;s Included in Max</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <li>Up to 15 projects and 100 users</li>
-              <li>Advanced inference configuration</li>
-              <li>AI memory (working + episodic + vector)</li>
-              <li>Audit log for all license + tier events</li>
-              <li>50,000 agent tasks/month</li>
-              <li>600 API requests/minute</li>
-              <li>Priority support (24-hour SLA)</li>
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {tier === 'max' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>What&apos;s Included in Forge</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <li>Unlimited projects and users</li>
-              <li>All AI providers (Anthropic, OpenAI, Groq, Ollama)</li>
-              <li>Full AI memory (semantic + procedural + episodic)</li>
-              <li>SSO/SAML authentication</li>
-              <li>White-label branding removal</li>
-              <li>Multi-tenant isolation</li>
-              <li>Domain-locked license enforcement</li>
-              <li>Self-hosted deployment rights</li>
-              <li>Unlimited agent tasks</li>
-              <li>1,000 API requests/minute</li>
-              <li>Priority support (4-hour SLA)</li>
-              <li>Custom SLA and DPA available</li>
-            </ul>
           </CardContent>
         </Card>
       )}

@@ -1,11 +1,11 @@
 /**
  * Object-storage upload plugin (provider-agnostic).
  *
- * Adapts any `StorageProvider` (Cloudflare R2 — canonical — Vercel Blob, mock,
- * or a future backend) to the RevealUI engine's collection upload-adapter
- * interface, so `apps/admin/revealui.config.ts` stores media through the
- * configured object-storage backend. Replaces the provider-specific
- * `vercelBlobStorage` Payload plugin retired in GAP-208 Phase 4.
+ * Adapts any `StorageProvider` (Cloudflare R2 — canonical — mock, or a future
+ * backend) to the RevealUI engine's collection upload-adapter interface, so
+ * `apps/admin/revealui.config.ts` stores media through the configured
+ * object-storage backend. Replaces the provider-specific `vercelBlobStorage`
+ * Payload plugin retired in GAP-208 Phase 4.
  *
  * The backend is resolved through a lazy `resolveProvider` thunk — invoked
  * (and memoized) on the first upload/delete, never at config-build time — so a

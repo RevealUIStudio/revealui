@@ -70,12 +70,6 @@ export const OPTIONAL_ENV_VARS: EnvVariable[] = [
     defaultValue: 'http://localhost:4000',
   },
   {
-    name: 'BLOB_READ_WRITE_TOKEN',
-    required: false,
-    description: 'Vercel Blob Storage token',
-    sensitive: true,
-  },
-  {
     name: 'STRIPE_SECRET_KEY',
     required: false,
     description: 'Stripe secret key',

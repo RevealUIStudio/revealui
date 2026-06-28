@@ -134,30 +134,16 @@ export function createTerminalRoute(): {
     upgradeWebSocket((c) => {
       const sessionId = c.req.param('id');
 
-      // Poll daemon for output via a persistent socket connection
-      let outputSocket: ReturnType<typeof createConnection> | null = null;
-      let closed = false;
+      // NOTE: output streaming is not yet implemented on this remote bridge.
+      // Desktop clients receive agent output via the Tauri event system; the
+      // remote WebSocket path needs the daemon to expose an output stream
+      // (SSE / JSON-RPC subscription), which it does not have yet. Until then
+      // this bridge forwards INPUT (keystrokes + resize) and leaves session
+      // lifecycle to the REST endpoints. A previous 100ms output-poll timer
+      // here did no work and burned CPU per open connection, so it was removed.
+      // Real output streaming is tracked in revealui#1650.
 
       return {
-        onOpen(_event, _ws) {
-          // Subscribe to agent output by polling daemon
-          // The daemon emits 'output' events  -  we poll via a long-lived connection
-          // For now, use periodic RPC polling until daemon supports event streaming
-          const pollInterval = setInterval(async () => {
-            if (closed) {
-              clearInterval(pollInterval);
-              return;
-            }
-            // Output streaming is handled by the Tauri event system for desktop.
-            // For remote WebSocket, the daemon's HTTP gateway SSE endpoint
-            // would be the proper source. For now, the WebSocket bridge
-            // forwards input and handles session lifecycle.
-          }, 100);
-
-          // Clean up on close
-          outputSocket = null; // placeholder for future event stream
-        },
-
         onMessage(event, ws) {
           try {
             const msg = JSON.parse(
@@ -193,14 +179,6 @@ export function createTerminalRoute(): {
             }
           } catch {
             ws.send(JSON.stringify({ type: 'error', message: 'Invalid message' }));
-          }
-        },
-
-        onClose() {
-          closed = true;
-          if (outputSocket) {
-            outputSocket.destroy();
-            outputSocket = null;
           }
         },
       };

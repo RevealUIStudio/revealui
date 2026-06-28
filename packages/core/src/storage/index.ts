@@ -3,20 +3,20 @@
 //
 // Phase 1 (#959): types.ts + index.ts type re-exports.
 // Phase 2a (#959 follow-up): r2 + mock providers + createStorage factory.
-// Phase 2b (this PR): vercel-blob StorageProvider + apps/server media-route
-//   cutover. R2 is canonical; Vercel Blob is the migration-window fallback.
+// Phase 2b (#959 follow-up): apps/server media-route cutover onto R2.
+// #1644: legacy Vercel Blob StorageProvider removed once R2 was confirmed in
+//   every production environment — R2 is now the sole non-mock backend.
 
 import { createMockProvider } from './mock.js';
 import { createR2Provider } from './r2.js';
 import type { StorageConfig, StorageProvider } from './types.js';
-import { createVercelBlobProvider } from './vercel-blob-provider.js';
 
 export { createMockProvider } from './mock.js';
 export type { ObjectStorageConfig } from './object-storage.js';
 // Provider-agnostic Payload-style upload plugin — adapts any StorageProvider
-// (R2 canonical, Vercel Blob fallback, mock) to the engine's collection upload
-// adapter. Used by apps/admin/revealui.config.ts. GAP-208 Phase 4 replaced the
-// provider-specific `vercelBlobStorage` plugin with this.
+// (R2 canonical, mock) to the engine's collection upload adapter. Used by
+// apps/admin/revealui.config.ts. GAP-208 Phase 4 replaced the provider-specific
+// `vercelBlobStorage` plugin with this.
 export { objectStorage } from './object-storage.js';
 // Provider factories — exported so callers can construct a provider directly
 // when they already know which one they want (skipping the discriminated-union
@@ -31,9 +31,7 @@ export type {
   R2Config,
   StorageConfig,
   StorageProvider,
-  VercelBlobConfig,
 } from './types.js';
-export { createVercelBlobProvider } from './vercel-blob-provider.js';
 
 /**
  * Construct a StorageProvider from a tagged config.
@@ -41,23 +39,21 @@ export { createVercelBlobProvider } from './vercel-blob-provider.js';
  * Per `feedback_pluggable_provider_pattern`: explicit "no-X" opt-in — unknown
  * tags throw with a clear message; no silent fallback.
  *
- * Supported tags: 'r2' (canonical), 'vercel-blob' (legacy migration-window
- * fallback), and 'mock' (tests). The provider-agnostic `objectStorage` Payload
- * plugin (object-storage.ts) adapts any of these to apps/admin's upload path.
+ * Supported tags: 'r2' (canonical) and 'mock' (tests). The provider-agnostic
+ * `objectStorage` Payload plugin (object-storage.ts) adapts either to apps/admin's
+ * upload path.
  */
 export function createStorage(config: StorageConfig): StorageProvider {
   switch (config.provider) {
     case 'r2':
       return createR2Provider(config.r2);
-    case 'vercel-blob':
-      return createVercelBlobProvider(config.vercelBlob);
     case 'mock':
       return createMockProvider();
     default: {
       const _exhaustive: never = config;
       throw new Error(
         `createStorage: unknown provider tag. Got ${JSON.stringify(_exhaustive)}. ` +
-          "Valid tags: 'r2', 'vercel-blob', 'mock'.",
+          "Valid tags: 'r2', 'mock'.",
       );
     }
   }

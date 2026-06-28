@@ -142,7 +142,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 3. **Check variable names**
    - `POSTGRES_URL` or `DATABASE_URL` (either works)
    - `REVEALUI_SECRET` (not REVEAL_SECRET)
-   - `BLOB_READ_WRITE_TOKEN` (not BLOB_TOKEN)
+   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` (Cloudflare R2 object storage)
 
 4. **Restart development server**
    - Changes to .env files require server restart

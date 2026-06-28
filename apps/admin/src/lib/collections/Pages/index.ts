@@ -9,10 +9,10 @@ import { Code } from '@/lib/blocks/Code/config';
 import { Content } from '@/lib/blocks/Content/config';
 import { FormBlock } from '@/lib/blocks/Form/config';
 import { MediaBlock } from '@/lib/blocks/MediaBlock/config';
+import { generatePreviewPath } from '@/lib/cms/generatePreviewPath';
 import { slugField } from '@/lib/fields/slug/index';
 import { hero } from '@/lib/heros/config';
 import { populatePublishedAt } from '@/lib/hooks/populatePublishedAt';
-import { generatePreviewPath } from '@/lib/utilities/generatePreviewPath';
 import { indexPage } from './hooks/indexPage';
 import { revalidatePage } from './hooks/revalidatePage';
 export const Pages: RevealCollectionConfig<Page> = {

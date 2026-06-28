@@ -1,6 +1,6 @@
 import type { RevealDocument } from '@revealui/core';
 import { unstable_cache } from 'next/cache';
-import { getRevealUIInstance } from './revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 type Collection = string;
 

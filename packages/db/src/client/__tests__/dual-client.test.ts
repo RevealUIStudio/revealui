@@ -1,8 +1,8 @@
 /**
  * Single Database Client Tests
  *
- * Tests that getClient('rest') and getClient('vector') both return the same
- * single Neon-primary client.
+ * Tests for the single Neon-primary client returned by getClient('rest').
+ * The legacy 'vector' alias was removed in #1643.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -37,15 +37,6 @@ describe('Single Database Client', () => {
   afterEach(() => {
     Reflect.deleteProperty(process.env, 'POSTGRES_URL');
     Reflect.deleteProperty(process.env, 'DATABASE_URL');
-  });
-
-  it('getClient("vector") returns the same client as getClient("rest")', () => {
-    const restClient = getClient('rest');
-    const vectorClient = getClient('vector');
-
-    expect(restClient).toBeDefined();
-    expect(vectorClient).toBeDefined();
-    expect(restClient).toBe(vectorClient);
   });
 
   it('returns same client instance for same type (singleton)', () => {

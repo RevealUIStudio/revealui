@@ -36,7 +36,6 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **@types/node** v22.10.2 - TypeScript definitions for Node.js
 - **@types/react** v18.3.12 - TypeScript definitions for React
 - **@types/react-dom** v18.3.1 - TypeScript definitions for React DOM
-- **@vercel/blob** v0.25.0 - Vercel Blob storage client (legacy; being retired in favor of Cloudflare R2)
 - **@vercel/postgres** v0.12.0 - Vercel Postgres client
 - **class-variance-authority** v0.7.1 - Utility for creating variant-based component APIs
 - **clsx** v2.1.1 - Utility for constructing className strings conditionally

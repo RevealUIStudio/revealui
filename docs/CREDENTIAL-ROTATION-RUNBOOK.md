@@ -18,7 +18,7 @@ Cross-reference `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for env var details.
 | Cadence | Credentials |
 |---------|------------|
 | **90 days** | REVEALUI_SECRET, REVEALUI_KEK*, REVEALUI_LICENSE_ENCRYPTION_KEY*, REVEALUI_CRON_SECRET, REVEALUI_ADMIN_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, TAVILY_API_KEY, HF_TOKEN, VERCEL_API_KEY, RESEND_API_KEY, NEON_API_KEY, MCP_API_KEY |
-| **Quarterly** | STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, GOOGLE_PRIVATE_KEY, GITHUB_CLIENT_SECRET, REVEALUI_GITHUB_TOKEN, SENTRY_AUTH_TOKEN, SUPABASE_SERVICE_ROLE_KEY, ELECTRIC_API_KEY, ELECTRIC_DATABASE_URL (password) |
+| **Quarterly** | STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, GOOGLE_PRIVATE_KEY, GITHUB_CLIENT_SECRET, REVEALUI_GITHUB_TOKEN, SENTRY_AUTH_TOKEN, SUPABASE_SERVICE_ROLE_KEY, ELECTRIC_API_KEY, ELECTRIC_DATABASE_URL (password), R2_SECRET_ACCESS_KEY |
 | **Annually** | REVEALUI_LICENSE_PRIVATE_KEY (Ed25519 pair), GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID, VERCEL_CLIENT_ID, YOUTUBE_API_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY |
 | **As-needed** | STRIPE_WEBHOOK_SECRET (endpoint change), REVFORGE_LICENSE_KEY (renewal), X402_RECEIVING_ADDRESS (wallet change), POSTGRES_URL (provider migration) |
 
@@ -206,8 +206,11 @@ revvault set revealui/env/core NEON_API_KEY "..."
 ### Storage
 
 ```bash
-# Vercel Blob: Dashboard > Storage > Blob > Manage > Tokens
-revvault set revealui/env/core BLOB_READ_WRITE_TOKEN "vercel_blob_rw_..."
+# Cloudflare R2 (canonical object-storage backend): Cloudflare Dashboard > R2 > Manage API Tokens
+# Rotate the R2 API token (Access Key ID + Secret Access Key are issued together).
+revvault set revealui/prod/r2/access-key-id "..."
+revvault set revealui/prod/r2/secret-access-key "..."
+# Redeploy api + admin to pick up the new credentials.
 ```
 
 ---
@@ -249,7 +252,8 @@ All secrets are managed through RevVault. Namespace mapping:
 
 | Namespace | Contains |
 |-----------|---------|
-| `revealui/env/core` | REVEALUI_SECRET, REVEALUI_KEK, VERCEL_API_KEY, NEON_API_KEY, BLOB_READ_WRITE_TOKEN |
+| `revealui/env/core` | REVEALUI_SECRET, REVEALUI_KEK, VERCEL_API_KEY, NEON_API_KEY |
+| `revealui/prod/r2` | R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_BASE_URL |
 | `revealui/env/license` | REVEALUI_LICENSE_PRIVATE_KEY, REVEALUI_LICENSE_PUBLIC_KEY, REVEALUI_LICENSE_ENCRYPTION_KEY |
 | `revealui/env/stripe` | STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PUBLISHABLE_KEY, price IDs |
 | `revealui/env/supabase` | SUPABASE_DATABASE_URI, SUPABASE_SERVICE_ROLE_KEY, anon key — **Legacy** (retired per ADR `2026-05-01-supabase-removal.md`) |

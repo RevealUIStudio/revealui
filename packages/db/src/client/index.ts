@@ -6,8 +6,9 @@
  * Uses node-postgres (pg Pool) with drizzle-orm/node-postgres for localhost / 127.0.0.1
  * connections (development and test environments).
  *
- * The 'vector' database type resolves to the same single client as 'rest' following Supabase
- * removal per docs/decisions/2026-05-01-supabase-removal.md (GAP-129 PR-C).
+ * A single 'rest' database type selects this client. The legacy 'vector' type
+ * (a holdover from the dual-DB Supabase era) was removed per
+ * docs/decisions/2026-05-01-supabase-removal.md (GAP-129 PR-C).
  *
  * Connection String Format:
  * - NeonDB: postgresql://...@neon.tech/...
@@ -60,9 +61,11 @@ let restSupportsTransactions = false;
 /**
  * Database type selector.
  * - 'rest': Neon-primary Postgres connection
- * - 'vector': deprecated alias for 'rest'; will be removed after 1-2 release cycles (GAP-129 PR-C)
+ *
+ * The legacy 'vector' alias (a holdover from the dual-DB Supabase era) was
+ * removed per GAP-129 PR-C; see docs/decisions/2026-05-01-supabase-removal.md.
  */
-export type DatabaseType = 'rest' | 'vector';
+export type DatabaseType = 'rest';
 
 /**
  * Database client type (Drizzle ORM client)
@@ -229,7 +232,6 @@ function registerPoolCleanup() {
  * Uses config module if available, otherwise falls back to process.env for backward compatibility.
  *
  * @param typeOrConnectionString - Database type ('rest') or connection string (legacy API).
- *   'vector' is a deprecated alias for 'rest' (GAP-129 PR-C); prefer 'rest' in new code.
  * @returns Database client instance
  *
  * @example
@@ -243,12 +245,11 @@ function registerPoolCleanup() {
  */
 // Note: DatabaseType | string union is intentional for backward compatibility (allows both type strings and connection strings)
 export function getClient(typeOrConnectionString?: DatabaseType | string): Database {
-  // Legacy API: If first argument is a string and not 'rest' or 'vector', treat as connection string
+  // Legacy API: If first argument is a string and not 'rest', treat as connection string
   if (typeOrConnectionString && typeof typeOrConnectionString === 'string') {
-    if (typeOrConnectionString === 'rest' || typeOrConnectionString === 'vector') {
+    if (typeOrConnectionString === 'rest') {
       // New API: Type specified
-      const type = typeOrConnectionString as DatabaseType;
-      return getClientByType(type);
+      return getClientByType();
     } else if (
       typeOrConnectionString.startsWith('postgresql://') ||
       typeOrConnectionString.startsWith('postgres://')
@@ -262,19 +263,13 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
   }
 
   // Default to 'rest' for backward compatibility
-  return getClientByType('rest');
+  return getClientByType();
 }
 
 /**
- * Internal function to get client by type.
- * 'vector' is aliased to 'rest' (Supabase removed per GAP-129 PR-C).
+ * Internal function to get (or lazily create) the single 'rest' client.
  */
-function getClientByType(type: DatabaseType): Database {
-  if (type === 'vector') {
-    return getClientByType('rest');
-  }
-
-  // type === 'rest'
+function getClientByType(): Database {
   if (!restClient) {
     // Try to get from config module (ESM - lazy validation via Proxy)
     let url: string | undefined;
@@ -371,7 +366,7 @@ export function getRestPool(): Pool | null {
     const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
     if (!url) return null;
     try {
-      getClientByType('rest');
+      getClientByType();
     } catch {
       return null;
     }
@@ -454,7 +449,7 @@ export async function closeAllPools(): Promise<void> {
 /**
  * Asserts that the database supports transactions. Call at app startup to fail fast.
  *
- * @param dbType - Database type to check ('rest', or deprecated 'vector' alias)
+ * @param dbType - Database type to check ('rest')
  * @throws {Error} If the database driver does not support transactions
  *
  * @example

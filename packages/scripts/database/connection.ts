@@ -13,7 +13,9 @@ import type { Pool, PoolClient } from 'pg';
 import { createLogger, detectDatabaseProvider, type Logger } from '../index.js';
 import { getSSLConfig } from './ssl-config.js';
 
-export type DatabaseType = 'rest' | 'vector';
+// The legacy 'vector' alias was removed per GAP-129 PR-C (Supabase removal);
+// see docs/decisions/2026-05-01-supabase-removal.md.
+export type DatabaseType = 'rest';
 
 export interface ConnectionConfig {
   connectionString: string;

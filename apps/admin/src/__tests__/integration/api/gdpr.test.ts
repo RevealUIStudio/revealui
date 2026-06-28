@@ -16,11 +16,11 @@ vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
 }));
 
-vi.mock('@/lib/utilities/revealui-singleton', () => ({
+vi.mock('@/lib/utils/revealui-singleton', () => ({
   getRevealUIInstance: vi.fn(),
 }));
 
-vi.mock('@/lib/utilities/gdpr-audit', () => ({
+vi.mock('@/lib/utils/gdpr-audit', () => ({
   writeGDPRAuditEntry: vi.fn(),
 }));
 
@@ -47,8 +47,8 @@ vi.mock('@revealui/db', () => ({
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
 import { getSession } from '@revealui/auth/server';
-import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { writeGDPRAuditEntry } from '@/lib/utils/gdpr-audit';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

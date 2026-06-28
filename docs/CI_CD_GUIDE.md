@@ -160,8 +160,12 @@ NEXT_PUBLIC_SERVER_URL=https://admin.revealui.com
 # Database
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
-# Storage
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
+# Storage (Cloudflare R2)
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.revealui.com
 
 # Stripe (live keys for prod)
 STRIPE_SECRET_KEY=sk_live_xxx

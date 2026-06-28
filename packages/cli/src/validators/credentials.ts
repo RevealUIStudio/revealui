@@ -40,16 +40,6 @@ export function validateNeonUrl(url: string): CredentialValidation {
   }
 }
 
-export function validateVercelToken(token: string): CredentialValidation {
-  if (!token || token.length < 20) {
-    return {
-      valid: false,
-      message: 'Vercel token appears invalid (too short)',
-    };
-  }
-  return { valid: true };
-}
-
 export function validateSupabaseUrl(url: string): CredentialValidation {
   try {
     const parsed = new URL(url);

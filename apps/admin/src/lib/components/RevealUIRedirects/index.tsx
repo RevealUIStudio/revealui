@@ -1,7 +1,7 @@
 import type { Page, Post, Redirect } from '@revealui/core/types/admin';
 import { notFound, redirect } from 'next/navigation';
-import { getCachedDocument } from '@/lib/utilities/getDocument';
-import { getCachedRedirects } from '@/lib/utilities/getRedirects';
+import { getCachedDocument } from '@/lib/cms/getDocument';
+import { getCachedRedirects } from '@/lib/cms/getRedirects';
 import { asDocument } from '@/lib/utils/type-guards';
 
 interface Props {

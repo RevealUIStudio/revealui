@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { createContext, use, useEffect, useState } from 'react';
-import { canUseDOM } from '@/lib/utilities/canUseDOM';
+import { canUseDOM } from '@/lib/utils/canUseDOM';
 import type { Theme, ThemeContextType } from './types';
 
 const initialContext: ThemeContextType = {

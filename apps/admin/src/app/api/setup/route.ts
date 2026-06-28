@@ -3,7 +3,7 @@ import { logger } from '@revealui/utils/logger';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { stampTosAcceptanceByEmail } from '@/lib/auth/tos';
-import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
