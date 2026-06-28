@@ -1,8 +1,8 @@
 import { getSession } from '@revealui/auth/server';
 import config from '@revealui/config';
 import { NextResponse } from 'next/server';
-import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 import { extractRequestContext } from '@/lib/utils/request-context';
+import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

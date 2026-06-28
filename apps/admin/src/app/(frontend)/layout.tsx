@@ -4,13 +4,13 @@ import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { mergeOpenGraph } from '@/lib/cms/mergeOpenGraph';
 import { AdminBar } from '@/lib/components/AdminBar';
 import { LivePreviewListener } from '@/lib/components/LivePreviewListener';
 import { Footer } from '@/lib/globals/Footer/Component';
 import { Header } from '@/lib/globals/Header/Component';
 import { Providers } from '@/lib/providers';
 import { InitTheme } from '@/lib/providers/Theme/InitTheme';
-import { mergeOpenGraph } from '@/lib/cms/mergeOpenGraph';
 import '@revealui/presentation/tokens.css';
 import './styles.css';
 
