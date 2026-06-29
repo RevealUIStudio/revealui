@@ -15,6 +15,7 @@ import { accountMemberships, type sites, type users } from '@revealui/db/schema'
 import { count, eq, inArray } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 
 /**
  * Get all user IDs that belong to the same account as the given user.
@@ -95,6 +96,17 @@ export const enforceSiteLimit = (getSitesTable: () => typeof sites): MiddlewareH
  */
 export const enforceUserLimit = (getUsersTable: () => typeof users): MiddlewareHandler => {
   return async (c, next) => {
+    // The deployment-license user cap is a SELF-HOSTED (Forge) concept: a
+    // stamped kit is licensed for N seats. On a hosted multi-tenant deployment
+    // one process serves every tenant, so a global active-user count would cap
+    // the entire deployment rather than any one tenant. Hosted admission is
+    // governed per-account, not by a deployment-global seat count — so enforce
+    // this cap only in self-hosted (Forge) mode.
+    if (detectDeploymentMode(process.env as EnvMap) !== 'forge') {
+      await next();
+      return;
+    }
+
     const db = c.get('db') as DatabaseClient | undefined;
 
     if (!db) {

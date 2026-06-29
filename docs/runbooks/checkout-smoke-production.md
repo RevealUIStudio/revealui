@@ -47,6 +47,7 @@ vercel env ls --environment production | grep -E "STRIPE_|REVEALUI_|SENTRY_DSN|D
 - [ ] The checkout session creation code sets `metadata.tier` (see Failure Mode #4 — this is a **different** metadata bag from `revealui_tier` above)
 - [ ] `pnpm stripe:seed` has run against the **production** Stripe account at least once (idempotent; safe to re-run)
 - [ ] `STRIPE_LIVE_MODE=true` is set in Vercel production environment
+- [ ] **Signup is not capped.** The server must be in **hosted** mode so the deployment-license user cap is skipped on `/api/auth/signup`. Hosted mode is detected by `REVEALUI_LICENSE_PRIVATE_KEY` being set (env table above; `detectDeploymentMode` at `apps/server/src/lib/validate-startup.ts:128`). Verify a brand-new email can sign up even when ≥3 active users already exist — a `403 USER_LIMIT_REACHED` here means the server is mis-detected as self-hosted (signing key missing). The deployment-license seat cap is a self-hosted (Forge) concept and must not gate hosted onboarding.
 
 ### Health-check the server
 

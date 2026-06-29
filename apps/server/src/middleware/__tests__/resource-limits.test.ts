@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
@@ -149,6 +149,13 @@ describe('enforceSiteLimit', () => {
 // enforceUserLimit
 // ---------------------------------------------------------------------------
 describe('enforceUserLimit', () => {
+  // The deployment-license user cap is self-hosted (Forge) only; mode = forge
+  // when REVEALUI_LICENSE_PRIVATE_KEY is absent. Default every case to forge so
+  // the cap is active, except the explicit hosted case below.
+  beforeEach(() => {
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+  });
+
   it('passes when under the user limit', async () => {
     mockedGetMaxUsers.mockReturnValue(25);
     const db = createMockDb(10);
@@ -180,6 +187,33 @@ describe('enforceUserLimit', () => {
     const res = await app.request('/users', { method: 'POST' });
 
     expect(res.status).toBe(201);
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('still enforces the cap on self-hosted Forge (no signing key)', async () => {
+    mockedGetMaxUsers.mockReturnValue(3);
+    const db = createMockDb(3);
+
+    const app = createUserLimitApp(db);
+    const res = await app.request('/users', { method: 'POST' });
+
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('User limit reached');
+  });
+
+  it('skips the cap on hosted SaaS (deployment mode = hosted)', async () => {
+    // Hosted mode is detected by REVEALUI_LICENSE_PRIVATE_KEY presence; the
+    // global deployment-license cap must not gate hosted onboarding.
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'test-signing-key';
+    mockedGetMaxUsers.mockReturnValue(3);
+    const db = createMockDb(9999); // far over any cap
+
+    const app = createUserLimitApp(db);
+    const res = await app.request('/users', { method: 'POST' });
+
+    expect(res.status).toBe(201);
+    // The global active-user count query must NOT run on hosted.
     expect(db.select).not.toHaveBeenCalled();
   });
 });
