@@ -1,5 +1,6 @@
 'use client';
 
+import { ButtonCVA, EmptyState, Skeleton } from '@revealui/presentation';
 import { useConversations } from '@revealui/sync';
 import { useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
@@ -49,13 +50,9 @@ export default function ChatPage() {
             <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Conversations
             </span>
-            <button
-              type="button"
-              onClick={handleNewChat}
-              className="rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700"
-            >
+            <ButtonCVA type="button" variant="default" size="sm" onClick={handleNewChat}>
               New
-            </button>
+            </ButtonCVA>
           </div>
           <div className="flex-1 overflow-y-auto">
             {sidebarLoading ? (
@@ -64,12 +61,9 @@ export default function ChatPage() {
                   <div
                     // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
                     key={i}
-                    className="animate-pulse rounded-md px-3 py-2.5"
+                    className="rounded-md px-3 py-2.5"
                   >
-                    <div
-                      className="h-4 rounded bg-zinc-200 dark:bg-zinc-700"
-                      style={{ width: `${60 + (i % 3) * 15}%` }}
-                    />
+                    <Skeleton className="h-4" style={{ width: `${60 + (i % 3) * 15}%` }} />
                   </div>
                 ))}
               </div>
@@ -80,24 +74,27 @@ export default function ChatPage() {
                 </p>
               </div>
             ) : conversations.length === 0 ? (
-              <div className="flex flex-col items-center px-3 py-8">
-                <svg
-                  className="mb-2 size-6 text-zinc-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
-                  />
-                </svg>
-                <p className="text-center text-xs text-zinc-400">No conversations yet</p>
-                <p className="mt-1 text-center text-xs text-zinc-500">Start a new chat to begin</p>
-              </div>
+              <EmptyState
+                icon={
+                  <svg
+                    className="size-6 text-zinc-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+                    />
+                  </svg>
+                }
+                title="No conversations yet"
+                description="Start a new chat to begin"
+                className="border-0 py-8"
+              />
             ) : null}
             {!(sidebarLoading || sidebarError) &&
               conversations.map((conv) => (
@@ -137,7 +134,7 @@ export default function ChatPage() {
           className="flex w-6 shrink-0 items-center justify-center border-r border-zinc-200 bg-zinc-50 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
           aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
         >
-          {sidebarOpen ? '\u2039' : '\u203A'}
+          {sidebarOpen ? '‹' : '›'}
         </button>
 
         {/* Chat area */}
