@@ -1,5 +1,6 @@
 'use client';
 
+import { ButtonCVA } from '@revealui/presentation';
 import { useAgentMemory } from '@revealui/sync';
 import { useState } from 'react';
 
@@ -104,7 +105,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
 
   return (
     <div>
-      {/* Filter tabs */}
+      {/* Filter chips — Tabs primitive not applicable: "All" requires null active value */}
       <div className="mb-4 flex items-center gap-2">
         <button
           type="button"
@@ -156,6 +157,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="mb-1.5 flex items-center gap-2">
+                    {/* Memory type pills use accent/warning tones not in Badge — left as handroll */}
                     <span
                       className={`rounded px-1.5 py-0.5 text-xs font-medium ${memory.typeInfo.color}`}
                     >
@@ -170,11 +172,13 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-3">{memory.content}</p>
                 </div>
-                <button
+                <ButtonCVA
                   type="button"
                   onClick={() => handleRemove(memory.id)}
                   disabled={removingId === memory.id}
-                  className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-error group-hover:opacity-100 disabled:opacity-50"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 opacity-0 group-hover:opacity-100 hover:text-error disabled:opacity-50"
                   title="Delete memory"
                   aria-label="Delete memory"
                 >
@@ -190,7 +194,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                       clipRule="evenodd"
                     />
                   </svg>
-                </button>
+                </ButtonCVA>
               </div>
             </li>
           ))}

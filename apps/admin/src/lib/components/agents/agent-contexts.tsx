@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge } from '@revealui/presentation';
 import { useAgentContexts } from '@revealui/sync';
 
 interface AgentContextsProps {
@@ -59,9 +60,7 @@ export function AgentContexts({ agentId }: AgentContextsProps) {
       {agentContexts.map((ctx) => (
         <li key={ctx.id} className="rounded-lg border border-border p-3">
           <div className="mb-1.5 flex items-center gap-2">
-            <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
-              priority {ctx.priority}
-            </span>
+            <Badge color="muted">priority {ctx.priority}</Badge>
             <span className="text-xs text-muted-foreground">
               {formatRelativeTime(ctx.created_at)}
             </span>
