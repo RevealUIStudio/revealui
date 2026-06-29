@@ -17,7 +17,7 @@ catalog:
   '@testing-library/jest-dom': ^6.9.1
   '@testing-library/react': ^16.3.2
   '@testing-library/user-event': ^14.6.1
-  '@vitejs/plugin-react': ^6.0.2
+  '@vitejs/plugin-react': ^6.0.3
   bcryptjs: ^3.0.3
   concurrently: ^9.2.3
   dotenv: ^17.4.1
@@ -37,7 +37,7 @@ catalog:
   tsup: ^8.5.1
   tsx: ^4.22.4
   typescript: ^6.0.3
-  vite: ^8.0.16
+  vite: ^8.1.0
   vitest: ^4.1.9
   yjs: ^13.6.31
   zod: ^4.4.3
