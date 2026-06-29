@@ -1,7 +1,7 @@
 import type { Post } from '@revealui/core/types/admin';
+import { cn } from '@revealui/presentation/server';
 import { Card } from '@/lib/components/Card/index';
 import RichText from '@/lib/components/RichText/index';
-import { cn } from '@/lib/styles/classnames';
 import type { RichTextContent } from '../Form/Component';
 
 export type RelatedPostsProps = {

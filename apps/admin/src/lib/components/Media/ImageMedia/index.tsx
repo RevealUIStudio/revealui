@@ -1,6 +1,7 @@
 'use client';
 
 import cssVariables from 'cssVariables';
+import { cn } from '@revealui/presentation';
 import type { StaticImageData } from 'next/image';
 import NextImage from 'next/image';
 import React from 'react';
@@ -44,11 +45,6 @@ export const ImageMedia = (props: MediaProps) => {
     : Object.entries(breakpoints)
         .map(([, value]) => `(max-width: ${value}px) ${value}px`)
         .join(', ');
-
-  function cn(imgClassName: string | undefined): string | undefined {
-    if (!imgClassName) return undefined;
-    return imgClassName.trim();
-  }
 
   return (
     <>

@@ -1,6 +1,6 @@
+import { cn } from '@revealui/presentation/server';
 import type { ComponentProps, ReactNode } from 'react';
 import { ChevronIcon } from '@/components/revealui/icons/chevron-icon';
-import { cn } from '@/lib/utils/cn';
 
 export function AnnouncementBadge({
   text,

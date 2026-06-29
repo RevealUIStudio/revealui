@@ -1,4 +1,5 @@
 'use client';
+import { cn } from '@revealui/presentation';
 import {
   Pagination as PaginationComponent,
   PaginationContent,
@@ -9,7 +10,6 @@ import {
   PaginationPrevious,
 } from '@revealui/presentation/server';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/styles/classnames';
 
 export const Pagination = (props: { className?: string; page: number; totalPages: number }) => {
   const router = useRouter();

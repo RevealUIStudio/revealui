@@ -1,5 +1,5 @@
 import type { Page, Post } from '@revealui/core/types/admin';
-import { ButtonCVA as Button, type ButtonProps } from '@revealui/presentation/server';
+import { ButtonCVA as Button, type ButtonProps, cn } from '@revealui/presentation/server';
 import Link from 'next/link';
 import type React from 'react';
 
@@ -43,10 +43,6 @@ export const CMSLink = (props: CMSLinkType) => {
 
   const size = appearance === 'link' ? 'clear' : sizeFromProps;
   const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {};
-
-  const cn = (...inputs: (string | undefined)[]) => {
-    return inputs.filter(Boolean).join(' ');
-  };
 
   /* Ensure we don't break any styles set by richText */
   if (appearance === 'inline') {

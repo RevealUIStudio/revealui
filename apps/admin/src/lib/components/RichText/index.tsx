@@ -1,4 +1,4 @@
-import { cn } from '@/lib/styles/classnames';
+import { cn } from '@revealui/presentation/server';
 import { serializeLexical } from './serialize';
 
 // Rich text content type (Lexical format)

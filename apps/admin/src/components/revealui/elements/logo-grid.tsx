@@ -1,5 +1,5 @@
+import { cn } from '@revealui/presentation/server';
 import type { ComponentProps } from 'react';
-import { cn } from '@/lib/utils/cn';
 
 export function Logo({ className, ...props }: ComponentProps<'span'>) {
   return <span className={cn('flex h-8 items-stretch', className)} {...props} />;
