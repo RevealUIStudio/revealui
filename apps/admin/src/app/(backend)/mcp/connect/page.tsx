@@ -12,6 +12,8 @@
  * via the revvault-backed `McpOAuthProvider`.
  */
 
+import { ButtonCVA, Card } from '@revealui/presentation/server';
+
 type SearchParamValue = string | string[] | undefined;
 
 function firstString(value: SearchParamValue): string | undefined {
@@ -68,91 +70,84 @@ export default async function ConnectMcpServerPage({
           </div>
         )}
 
-        <form
-          method="GET"
-          action="/api/mcp/oauth/initiate"
-          className="rounded-lg border border-border bg-card p-6"
-        >
-          <div className="grid gap-4">
-            <div>
-              <label
-                htmlFor="tenant"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
-              >
-                Tenant
-              </label>
-              <input
-                id="tenant"
-                name="tenant"
-                type="text"
-                required
-                pattern="[A-Za-z0-9_-]{1,64}"
-                placeholder="acme"
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Identifier under which tokens are scoped in revvault. Alphanumeric, underscore,
-                hyphen.
-              </p>
+        <Card className="p-6">
+          <form method="GET" action="/api/mcp/oauth/initiate">
+            <div className="grid gap-4">
+              <div>
+                <label
+                  htmlFor="tenant"
+                  className="mb-1.5 block text-sm font-medium text-muted-foreground"
+                >
+                  Tenant
+                </label>
+                <input
+                  id="tenant"
+                  name="tenant"
+                  type="text"
+                  required
+                  pattern="[A-Za-z0-9_-]{1,64}"
+                  placeholder="acme"
+                  className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Identifier under which tokens are scoped in revvault. Alphanumeric, underscore,
+                  hyphen.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="server"
+                  className="mb-1.5 block text-sm font-medium text-muted-foreground"
+                >
+                  Server name
+                </label>
+                <input
+                  id="server"
+                  name="server"
+                  type="text"
+                  required
+                  pattern="[A-Za-z0-9_-]{1,64}"
+                  placeholder="linear"
+                  className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Short identifier for this MCP server. Used as the revvault path segment.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="serverUrl"
+                  className="mb-1.5 block text-sm font-medium text-muted-foreground"
+                >
+                  Server URL
+                </label>
+                <input
+                  id="serverUrl"
+                  name="serverUrl"
+                  type="url"
+                  required
+                  placeholder="https://mcp.example.com"
+                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The MCP server&rsquo;s base URL. Must be HTTPS in production (localhost allowed
+                  for dev).
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="server"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
-              >
-                Server name
-              </label>
-              <input
-                id="server"
-                name="server"
-                type="text"
-                required
-                pattern="[A-Za-z0-9_-]{1,64}"
-                placeholder="linear"
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Short identifier for this MCP server. Used as the revvault path segment.
-              </p>
+            <div className="mt-6 flex items-center gap-3">
+              <ButtonCVA type="submit">Authorize</ButtonCVA>
+              <span className="text-xs text-muted-foreground">
+                You&rsquo;ll be redirected to the server&rsquo;s consent screen.
+              </span>
             </div>
+          </form>
+        </Card>
 
-            <div>
-              <label
-                htmlFor="serverUrl"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
-              >
-                Server URL
-              </label>
-              <input
-                id="serverUrl"
-                name="serverUrl"
-                type="url"
-                required
-                placeholder="https://mcp.example.com"
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                The MCP server&rsquo;s base URL. Must be HTTPS in production (localhost allowed for
-                dev).
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex items-center gap-3">
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-            >
-              Authorize
-            </button>
-            <span className="text-xs text-muted-foreground">
-              You&rsquo;ll be redirected to the server&rsquo;s consent screen.
-            </span>
-          </div>
-        </form>
-
-        <div className="mt-8 rounded-lg border border-border bg-card p-4">
+        <Card className="mt-8 p-4">
           <h3 className="text-sm font-medium text-muted-foreground">How it works</h3>
           <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
             <li>
@@ -174,7 +169,7 @@ export default async function ConnectMcpServerPage({
               Refresh rotation is handled automatically by the MCP client on subsequent connections.
             </li>
           </ol>
-        </div>
+        </Card>
       </div>
     </div>
   );
