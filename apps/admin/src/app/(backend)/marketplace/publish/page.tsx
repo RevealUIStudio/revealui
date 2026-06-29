@@ -1,5 +1,6 @@
 'use client';
 
+import { ButtonCVA, Card } from '@revealui/presentation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useState } from 'react';
@@ -412,13 +413,9 @@ function StepBasicInfo({
       </label>
 
       <div className="pt-4">
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
+        <ButtonCVA type="button" onClick={onNext}>
           Next: Configuration
-        </button>
+        </ButtonCVA>
       </div>
     </div>
   );
@@ -527,20 +524,12 @@ function StepConfiguration({
       </label>
 
       <div className="flex gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={onBack}>
           Back
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
+        </ButtonCVA>
+        <ButtonCVA type="button" onClick={onNext}>
           Next: Skills
-        </button>
+        </ButtonCVA>
       </div>
     </div>
   );
@@ -571,33 +560,27 @@ function StepSkills({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium text-foreground">Skills</h2>
-        <button
-          type="button"
-          onClick={addSkill}
-          className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={addSkill}>
           + Add Skill
-        </button>
+        </ButtonCVA>
       </div>
       <p className="text-sm text-muted-foreground">
         Define the capabilities your agent offers. Each skill has an input and output schema.
       </p>
 
       {skills.map((skill, i) => (
-        <div
-          key={skill.name || `skill-${i}`}
-          className="rounded-lg border border-border bg-card p-4 space-y-3"
-        >
+        <Card key={skill.name || `skill-${i}`} className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-foreground">Skill {i + 1}</h3>
             {skills.length > 1 && (
-              <button
+              <ButtonCVA
                 type="button"
+                variant="ghost"
                 onClick={() => removeSkill(i)}
                 className="text-xs text-error hover:text-error"
               >
                 Remove
-              </button>
+              </ButtonCVA>
             )}
           </div>
 
@@ -662,24 +645,16 @@ function StepSkills({
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-output`)}</p>
             )}
           </label>
-        </div>
+        </Card>
       ))}
 
       <div className="flex gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={onBack}>
           Back
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
+        </ButtonCVA>
+        <ButtonCVA type="button" onClick={onNext}>
           Next: Review
-        </button>
+        </ButtonCVA>
       </div>
     </div>
   );
@@ -721,7 +696,7 @@ function StepReview({
       <h2 className="text-lg font-medium text-foreground">Review & Publish</h2>
 
       {/* Summary */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      <Card className="p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-muted-foreground">Name:</span>{' '}
@@ -754,7 +729,7 @@ function StepReview({
             <span className="text-foreground">{skills.filter((s) => s.name).length}</span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Skills summary */}
       <div>
@@ -787,21 +762,12 @@ function StepReview({
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={onBack}>
           Back
-        </button>
-        <button
-          type="button"
-          onClick={onPublish}
-          disabled={submitting}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-        >
+        </ButtonCVA>
+        <ButtonCVA type="button" onClick={onPublish} disabled={submitting}>
           {submitting ? 'Publishing...' : 'Publish Agent'}
-        </button>
+        </ButtonCVA>
       </div>
 
       <p className="text-xs text-muted-foreground">

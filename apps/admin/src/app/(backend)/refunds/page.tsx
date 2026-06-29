@@ -1,5 +1,16 @@
 'use client';
 
+import {
+  Badge,
+  ButtonCVA,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@revealui/presentation';
 import { type ChangeEvent, useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -95,6 +106,14 @@ function reducer(state: State, action: Action): State {
       return { ...state, user: null, userLoading: false };
   }
 }
+
+const REFUND_STATUS_COLORS: Record<string, 'success' | 'warning' | 'danger' | 'muted' | 'brand'> = {
+  succeeded: 'success',
+  pending: 'warning',
+  failed: 'danger',
+  canceled: 'muted',
+  requires_action: 'brand',
+};
 
 // =============================================================================
 // Page
@@ -271,148 +290,148 @@ function RefundsDashboard() {
 
       <div className="mx-auto max-w-4xl p-6">
         {/* Refund Form */}
-        <form
-          onSubmit={(e) => void handleSubmit(e)}
-          className="rounded-lg border border-border bg-card p-6"
-        >
-          <h2 className="mb-4 text-lg font-medium text-foreground">Issue Refund</h2>
+        <form onSubmit={(e) => void handleSubmit(e)}>
+          <Card className="p-6">
+            <h2 className="mb-4 text-lg font-medium text-foreground">Issue Refund</h2>
 
-          {/* Status Message */}
-          {message && (
-            <div
-              role="alert"
-              className={`mb-4 flex items-center justify-between rounded-lg border p-3 text-sm ${
-                submitStatus === 'success'
-                  ? 'border-success/30 bg-success/10 text-success'
-                  : 'border-error/30 bg-error/10 text-error'
-              }`}
-            >
-              <span>{message}</span>
-              <button
-                type="button"
-                onClick={() => dispatch({ type: 'DISMISS_MESSAGE' })}
-                className="ml-3 shrink-0 text-muted-foreground hover:text-foreground"
-                aria-label="Dismiss message"
+            {/* Status Message */}
+            {message && (
+              <div
+                role="alert"
+                className={`mb-4 flex items-center justify-between rounded-lg border p-3 text-sm ${
+                  submitStatus === 'success'
+                    ? 'border-success/30 bg-success/10 text-success'
+                    : 'border-error/30 bg-error/10 text-error'
+                }`}
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
+                <span>{message}</span>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: 'DISMISS_MESSAGE' })}
+                  className="ml-3 shrink-0 text-muted-foreground hover:text-foreground"
+                  aria-label="Dismiss message"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* Payment Intent / Charge ID */}
-            <div className="sm:col-span-2">
-              <label
-                htmlFor="refund-identifier"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Payment Intent or Charge ID
-              </label>
-              <input
-                id="refund-identifier"
-                type="text"
-                value={identifier}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
-                placeholder="pi_abc123 or ch_abc123"
-                required
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Prefix determines type: pi_ for payment intents, ch_ for charges
-              </p>
-            </div>
-
-            {/* Amount */}
-            <div>
-              <label
-                htmlFor="refund-amount"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Amount (USD)
-              </label>
-              <input
-                id="refund-amount"
-                type="number"
-                value={amountInput}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) => dispatch({ type: 'SET_AMOUNT', value: e.target.value })}
-                placeholder="Leave empty for full refund"
-                min="0.01"
-                step="0.01"
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Optional. Omit for a full refund.
-              </p>
-            </div>
-
-            {/* Reason */}
-            <div>
-              <label
-                htmlFor="refund-reason"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Reason
-              </label>
-              <select
-                id="refund-reason"
-                value={reason}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) =>
-                  dispatch({
-                    type: 'SET_REASON',
-                    value: e.target.value as State['reason'],
-                  })
-                }
-                className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="requested_by_customer">Requested by customer</option>
-                <option value="duplicate">Duplicate charge</option>
-                <option value="fraudulent">Fraudulent</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Submit */}
-          <div className="mt-6 flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={submitStatus === 'submitting' || !identifier.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {submitStatus === 'submitting' ? (
-                <span className="flex items-center gap-2">
-                  <span
-                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground"
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                     aria-hidden="true"
-                  />
-                  Processing...
-                </span>
-              ) : (
-                'Issue Refund'
-              )}
-            </button>
-            {submitStatus === 'submitting' && (
-              <span className="text-xs text-muted-foreground">This may take a few seconds...</span>
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             )}
-          </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Payment Intent / Charge ID */}
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="refund-identifier"
+                  className="mb-1.5 block text-sm font-medium text-foreground"
+                >
+                  Payment Intent or Charge ID
+                </label>
+                <input
+                  id="refund-identifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                  ) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
+                  placeholder="pi_abc123 or ch_abc123"
+                  required
+                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Prefix determines type: pi_ for payment intents, ch_ for charges
+                </p>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label
+                  htmlFor="refund-amount"
+                  className="mb-1.5 block text-sm font-medium text-foreground"
+                >
+                  Amount (USD)
+                </label>
+                <input
+                  id="refund-amount"
+                  type="number"
+                  value={amountInput}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                  ) => dispatch({ type: 'SET_AMOUNT', value: e.target.value })}
+                  placeholder="Leave empty for full refund"
+                  min="0.01"
+                  step="0.01"
+                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Optional. Omit for a full refund.
+                </p>
+              </div>
+
+              {/* Reason */}
+              <div>
+                <label
+                  htmlFor="refund-reason"
+                  className="mb-1.5 block text-sm font-medium text-foreground"
+                >
+                  Reason
+                </label>
+                <select
+                  id="refund-reason"
+                  value={reason}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                  ) =>
+                    dispatch({
+                      type: 'SET_REASON',
+                      value: e.target.value as State['reason'],
+                    })
+                  }
+                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="requested_by_customer">Requested by customer</option>
+                  <option value="duplicate">Duplicate charge</option>
+                  <option value="fraudulent">Fraudulent</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="mt-6 flex items-center gap-3">
+              <ButtonCVA
+                type="submit"
+                disabled={submitStatus === 'submitting' || !identifier.trim()}
+              >
+                {submitStatus === 'submitting' ? (
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground"
+                      aria-hidden="true"
+                    />
+                    Processing...
+                  </span>
+                ) : (
+                  'Issue Refund'
+                )}
+              </ButtonCVA>
+              {submitStatus === 'submitting' && (
+                <span className="text-xs text-muted-foreground">
+                  This may take a few seconds...
+                </span>
+              )}
+            </div>
+          </Card>
         </form>
 
         {/* Refund History (session-local) */}
@@ -422,59 +441,49 @@ function RefundsDashboard() {
               Recent Refunds{' '}
               <span className="text-sm font-normal text-muted-foreground">(this session)</span>
             </h2>
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-card">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Refund ID
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Amount
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Source
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Reason
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((record) => (
-                    <tr key={record.id} className="border-b border-border last:border-b-0">
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                        {record.id}
-                      </td>
-                      <td className="px-4 py-3">
-                        <RefundStatusBadge status={record.status} />
-                      </td>
-                      <td className="px-4 py-3 text-foreground">
-                        {formatAmount(record.amount, record.currency)}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                        {record.paymentIntentId ?? record.chargeId ?? '-'}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatReason(record.reason)}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">
-                        {new Date(record.createdAt).toLocaleTimeString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Refund ID</TableHeader>
+                  <TableHeader>Status</TableHeader>
+                  <TableHeader>Amount</TableHeader>
+                  <TableHeader>Source</TableHeader>
+                  <TableHeader>Reason</TableHeader>
+                  <TableHeader>Time</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {history.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {record.id}
+                    </TableCell>
+                    <TableCell>
+                      <Badge color={REFUND_STATUS_COLORS[record.status] ?? 'muted'}>
+                        {record.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {formatAmount(record.amount, record.currency)}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {record.paymentIntentId ?? record.chargeId ?? '-'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatReason(record.reason)}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(record.createdAt).toLocaleTimeString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
 
         {/* Help text */}
-        <div className="mt-8 rounded-lg border border-border bg-card p-4">
+        <Card className="mt-8 p-4">
           <h3 className="text-sm font-medium text-foreground">Notes</h3>
           <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
             <li>
@@ -498,26 +507,10 @@ function RefundsDashboard() {
               .
             </li>
           </ul>
-        </div>
+        </Card>
       </div>
     </div>
   );
-}
-
-// =============================================================================
-// Components
-// =============================================================================
-
-function RefundStatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    succeeded: 'bg-success/10 text-success',
-    pending: 'bg-warning/15 text-warning-foreground',
-    failed: 'bg-error/10 text-error',
-    canceled: 'bg-muted text-muted-foreground',
-    requires_action: 'bg-primary/10 text-primary',
-  };
-  const color = colors[status] ?? 'bg-muted text-muted-foreground';
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{status}</span>;
 }
 
 // =============================================================================
