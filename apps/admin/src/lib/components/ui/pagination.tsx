@@ -1,7 +1,6 @@
 import type { ButtonProps } from '@revealui/presentation/server';
-import { buttonVariants } from '@revealui/presentation/server';
+import { buttonVariants, cn } from '@revealui/presentation/server';
 import type * as React from 'react';
-import { cn } from '@/lib/styles/classnames';
 
 const ChevronLeft = ({ className }: { className: string }) => {
   return (

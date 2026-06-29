@@ -1,9 +1,9 @@
 'use client';
 
+import { cn } from '@revealui/presentation';
 import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
 import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon';
 import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon';
-import { cn } from '@/lib/utils/cn';
 
 export function InstallCommand({
   snippet,

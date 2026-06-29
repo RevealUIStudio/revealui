@@ -1,5 +1,5 @@
 import type { Post } from '@revealui/core/types/admin';
-import { cn } from '@/lib/styles/classnames';
+import { cn } from '@revealui/presentation/server';
 import { Card } from '../Card/index';
 
 export type Props = {

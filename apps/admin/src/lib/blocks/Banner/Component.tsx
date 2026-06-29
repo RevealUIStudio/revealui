@@ -1,3 +1,4 @@
+import { cn } from '@revealui/presentation/server';
 import RichText from '@/lib/components/RichText/index';
 
 export interface BannerBlockProps {
@@ -24,19 +25,6 @@ export interface BannerBlockProps {
 }
 
 export const BannerBlock = ({ className, content, style }: BannerBlockProps) => {
-  function cn(...args: (string | Record<string, boolean> | undefined)[]): string {
-    return args
-      .flatMap((arg) => {
-        if (!arg) return [];
-        if (typeof arg === 'string') return arg.split(' ');
-        return Object.entries(arg)
-          .filter(([, value]) => value)
-          .map(([key]) => key);
-      })
-      .filter(Boolean)
-      .join(' ');
-  }
-
   return (
     <div className={cn('mx-auto my-8 w-full', className)}>
       <div

@@ -1,11 +1,11 @@
 import { ImageBlockSchema, VideoBlockSchema } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/admin';
+import { cn } from '@revealui/presentation/server';
 import { logger } from '@revealui/utils/logger';
 import type { StaticImageData } from 'next/image';
 import { memo } from 'react';
 import { Media } from '@/lib/components/Media/index';
 import RichText, { type RichTextContent } from '@/lib/components/RichText/index';
-import { cn } from '@/lib/styles/classnames';
 
 type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
   breakout?: boolean;

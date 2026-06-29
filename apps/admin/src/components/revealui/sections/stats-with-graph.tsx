@@ -1,6 +1,6 @@
+import { cn } from '@revealui/presentation/server';
 import { type ComponentProps, type ReactNode, useId } from 'react';
 import { Section } from '@/components/revealui/elements/section';
-import { cn } from '@/lib/utils/cn';
 
 export function Stat({
   stat,

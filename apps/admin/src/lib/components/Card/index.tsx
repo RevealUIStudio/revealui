@@ -1,11 +1,11 @@
 'use client';
 
 import type { Media as CmsMedia, Post } from '@revealui/core/types/admin';
+import { cn } from '@revealui/presentation';
 import { CardContent, Card as PresentationCard } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { Fragment } from 'react';
 import useClickableCard from '@/lib/hooks/useClickableCard';
-import { cn } from '@/lib/styles/classnames';
 import { Media } from '../Media/index';
 
 interface CardDoc {

@@ -1,10 +1,10 @@
 import { TextBlockSchema } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/admin';
+import { cn } from '@revealui/presentation/server';
 import { logger } from '@revealui/utils/logger';
 import { memo } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import RichText from '@/lib/components/RichText/index';
-import { cn } from '@/lib/styles/classnames';
 import type { RichTextContent } from '../Form/Component';
 
 // Define possible sizes for columns

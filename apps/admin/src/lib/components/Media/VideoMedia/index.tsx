@@ -1,7 +1,7 @@
 'use client';
 
+import { cn } from '@revealui/presentation';
 import { useRef } from 'react';
-import { cn } from '@/lib/styles/classnames';
 
 import type { Props as MediaProps } from '../types';
 

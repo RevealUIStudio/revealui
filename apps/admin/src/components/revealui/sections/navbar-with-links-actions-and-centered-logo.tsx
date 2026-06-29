@@ -1,9 +1,8 @@
 'use client';
 
-import { useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
+import { cn, useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
 import Link from 'next/link';
 import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
-import { cn } from '@/lib/utils/cn';
 
 export function NavbarLink({
   children,
