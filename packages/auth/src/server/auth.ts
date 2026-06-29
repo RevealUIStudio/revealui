@@ -7,7 +7,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
-import { oauthAccounts, users } from '@revealui/db/schema';
+import { accountMemberships, accounts, oauthAccounts, users } from '@revealui/db/schema';
 import bcrypt from 'bcryptjs';
 import { and, eq, isNull } from 'drizzle-orm';
 import type { SignInResult, SignUpResult, User } from '../types.js';
@@ -440,6 +440,42 @@ export async function signUp(
         success: false,
         error: 'Failed to create session',
       };
+    }
+
+    // Provision a personal billing account + owner membership so a hosted tenant
+    // exists from signup. Best-effort: the Stripe billing webhook
+    // (ensureHostedAccount) is idempotent on an active membership and backfills
+    // this if it fails here, so a transient error never blocks signup. Skipped on
+    // self-hosted (Forge) deployments — single-tenant, no per-user accounts (mode
+    // detected by the license signing key, as in apps/server validate-startup).
+    if (process.env.REVEALUI_LICENSE_PRIVATE_KEY) {
+      try {
+        const accountId = crypto.randomUUID();
+        const now = new Date();
+        await db.insert(accounts).values({
+          id: accountId,
+          name: `${user.name || 'RevealUI'} Workspace`,
+          slug: `acct-${accountId}`,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        });
+        await db.insert(accountMemberships).values({
+          id: crypto.randomUUID(),
+          accountId,
+          userId: user.id,
+          role: 'owner',
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        });
+      } catch {
+        logger.error(
+          'Failed to provision personal account at signup (billing webhook will backfill)',
+          undefined,
+          { userId: user.id },
+        );
+      }
     }
 
     // Return the raw (unhashed) token so the caller can include it in the
