@@ -10,6 +10,7 @@
 
 'use client';
 
+import { ButtonCVA } from '@revealui/presentation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -183,13 +184,9 @@ function PromptCard({ prompt, tenant, server }: PromptCardProps) {
         ))}
 
         <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <ButtonCVA type="submit" disabled={submitting}>
             {submitting ? 'Resolving…' : 'Resolve'}
-          </button>
+          </ButtonCVA>
           {error && <span className="text-xs text-error">{error}</span>}
         </div>
       </form>

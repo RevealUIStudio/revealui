@@ -9,6 +9,7 @@
 
 'use client';
 
+import { ButtonCVA } from '@revealui/presentation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface LogEntry {
@@ -155,30 +156,23 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           ))}
         </select>
         {state === 'streaming' || state === 'connecting' ? (
-          <button
-            type="button"
-            onClick={stop}
-            className="rounded-md border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-          >
+          <ButtonCVA type="button" variant="outline" size="sm" onClick={stop}>
             Stop
-          </button>
+          </ButtonCVA>
         ) : (
-          <button
-            type="button"
-            onClick={() => void start()}
-            className="rounded-md bg-success px-3 py-1 text-xs font-medium text-primary-foreground transition-colors hover:bg-success/90"
-          >
+          <ButtonCVA type="button" size="sm" onClick={() => void start()}>
             Start
-          </button>
+          </ButtonCVA>
         )}
-        <button
+        <ButtonCVA
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setEntries([])}
           disabled={entries.length === 0}
-          className="rounded-md border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           Clear
-        </button>
+        </ButtonCVA>
         <div className="ml-auto text-xs text-muted-foreground">
           {state === 'streaming' && (
             <span className="inline-flex items-center gap-1.5">

@@ -19,6 +19,7 @@
 
 'use client';
 
+import { ButtonCVA, Card } from '@revealui/presentation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 import {
@@ -294,21 +295,13 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
         ))}
 
         <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={invoking}
-            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <ButtonCVA type="submit" disabled={invoking}>
             {invoking ? 'Invoking…' : 'Invoke'}
-          </button>
+          </ButtonCVA>
           {invoking && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="rounded-md border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-            >
+            <ButtonCVA type="button" variant="outline" size="sm" onClick={handleCancel}>
               Cancel
-            </button>
+            </ButtonCVA>
           )}
         </div>
       </form>
@@ -346,7 +339,7 @@ function ProgressDisplay({
       ? Math.min(100, Math.round((progress.progress / progress.total) * 100))
       : undefined;
   return (
-    <div className="mt-4 rounded-md border border-border bg-card p-3">
+    <Card className="mt-4 p-3">
       <div className="mb-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
         <span>{progress.message ?? 'Progress'}</span>
         <span className="font-mono">
@@ -363,7 +356,7 @@ function ProgressDisplay({
           }
         />
       </div>
-    </div>
+    </Card>
   );
 }
 

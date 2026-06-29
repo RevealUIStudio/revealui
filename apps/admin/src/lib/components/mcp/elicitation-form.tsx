@@ -14,6 +14,7 @@
 
 'use client';
 
+import { ButtonCVA } from '@revealui/presentation';
 import { useState } from 'react';
 
 // ---------------------------------------------------------------------------
@@ -179,26 +180,25 @@ export function ElicitationForm({ message, requestedSchema, onSubmit }: Elicitat
         ))}
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <button
-          type="submit"
-          className="rounded-md bg-success px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-success/90"
-        >
+        <ButtonCVA type="submit" variant="default" size="sm">
           Accept
-        </button>
-        <button
+        </ButtonCVA>
+        <ButtonCVA
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => void onSubmit('decline')}
-          className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
           Decline
-        </button>
-        <button
+        </ButtonCVA>
+        <ButtonCVA
           type="button"
+          variant="destructive"
+          size="sm"
           onClick={() => void onSubmit('cancel')}
-          className="rounded-md border border-error/30 bg-error/10 px-3 py-1.5 text-xs font-medium text-error transition-colors hover:bg-error/20"
         >
           Cancel
-        </button>
+        </ButtonCVA>
       </div>
     </form>
   );
