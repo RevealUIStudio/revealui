@@ -2,7 +2,8 @@
 
 const SAVED_FEEDBACK_MS = 2_000;
 
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { InputCVA, Select } from '@revealui/presentation';
+import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -148,20 +149,17 @@ export default function ApiKeysPage() {
                 >
                   Provider
                 </label>
-                <select
+                <Select
                   id="provider-select"
                   value={provider}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => setProvider(e.target.value as Provider)}
-                  className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+                  onChange={(e) => setProvider(e.target.value as Provider)}
                 >
                   {PROVIDERS.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* API key input */}
@@ -183,15 +181,13 @@ export default function ApiKeysPage() {
                   )}
                 </label>
                 <div className="relative">
-                  <input
+                  <InputCVA
                     id="api-key-input"
                     type={showKey ? 'text' : 'password'}
                     value={apiKey}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => setApiKey(e.target.value)}
+                    onChange={(e) => setApiKey(e.target.value)}
                     placeholder={activeProviderInfo?.placeholder ?? ''}
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-16 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none font-mono"
+                    className="pr-16 font-mono"
                   />
                   <button
                     type="button"
