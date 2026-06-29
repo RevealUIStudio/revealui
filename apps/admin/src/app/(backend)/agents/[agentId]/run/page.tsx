@@ -14,7 +14,7 @@
 
 'use client';
 
-import { Breadcrumb } from '@revealui/presentation/client';
+import { Breadcrumb, ButtonCVA, Card } from '@revealui/presentation';
 import Link from 'next/link';
 import { type ChangeEvent, use, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -65,69 +65,65 @@ export default function AgentRunPage({ params }: PageProps) {
           </p>
         </header>
 
-        <form
-          onSubmit={handleStart}
-          className="space-y-3 rounded-lg border border-border bg-card p-4"
-        >
-          <label htmlFor="instruction" className="block text-sm font-medium text-muted-foreground">
-            Instruction
-          </label>
-          <textarea
-            id="instruction"
-            value={instruction}
-            onChange={(
-              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-            ) => setInstruction(e.target.value)}
-            disabled={stream.isStreaming}
-            rows={4}
-            placeholder="What would you like the agent to do?"
-            className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-          />
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Mode</span>
-              <select
-                value={mode}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) => setMode(e.target.value as 'admin' | 'coding')}
-                disabled={stream.isStreaming}
-                className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-              >
-                <option value="admin">admin</option>
-                <option value="coding">coding</option>
-              </select>
+        <Card className="p-4">
+          <form onSubmit={handleStart} className="space-y-3">
+            <label
+              htmlFor="instruction"
+              className="block text-sm font-medium text-muted-foreground"
+            >
+              Instruction
             </label>
-            <div className="flex-1" />
-            {!stream.isStreaming && (
-              <button
-                type="submit"
-                disabled={!instruction.trim()}
-                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Start agent
-              </button>
-            )}
-            {stream.isStreaming && (
-              <button
-                type="button"
-                onClick={stream.abort}
-                className="rounded-md border border-error/30 bg-error/10 px-4 py-2 text-sm font-medium text-error transition-colors hover:bg-error/15"
-              >
-                Cancel
-              </button>
-            )}
-            {!stream.isStreaming && stream.chunks.length > 0 && (
-              <button
-                type="button"
-                onClick={stream.reset}
-                className="rounded-md border border-border bg-muted px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-foreground/10"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </form>
+            <textarea
+              id="instruction"
+              value={instruction}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => setInstruction(e.target.value)}
+              disabled={stream.isStreaming}
+              rows={4}
+              placeholder="What would you like the agent to do?"
+              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+            />
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Mode</span>
+                <select
+                  value={mode}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                  ) => setMode(e.target.value as 'admin' | 'coding')}
+                  disabled={stream.isStreaming}
+                  className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
+                >
+                  <option value="admin">admin</option>
+                  <option value="coding">coding</option>
+                </select>
+              </label>
+              <div className="flex-1" />
+              {!stream.isStreaming && (
+                <ButtonCVA type="submit" disabled={!instruction.trim()} variant="default" size="sm">
+                  Start agent
+                </ButtonCVA>
+              )}
+              {stream.isStreaming && (
+                <ButtonCVA
+                  type="button"
+                  onClick={stream.abort}
+                  variant="outline"
+                  size="sm"
+                  className="border-error/30 bg-error/10 text-error hover:bg-error/15"
+                >
+                  Cancel
+                </ButtonCVA>
+              )}
+              {!stream.isStreaming && stream.chunks.length > 0 && (
+                <ButtonCVA type="button" onClick={stream.reset} variant="ghost" size="sm">
+                  Clear
+                </ButtonCVA>
+              )}
+            </div>
+          </form>
+        </Card>
 
         <StatusBar
           isStreaming={stream.isStreaming}
@@ -156,10 +152,10 @@ export default function AgentRunPage({ params }: PageProps) {
         )}
 
         {stream.text && (
-          <section className="rounded-lg border border-border bg-card p-4">
+          <Card className="p-4">
             <h2 className="mb-2 text-sm font-medium text-muted-foreground">Agent output</h2>
             <pre className="whitespace-pre-wrap text-sm text-foreground">{stream.text}</pre>
-          </section>
+          </Card>
         )}
 
         {stream.chunks.length > 0 && (
@@ -219,6 +215,7 @@ function StatusBar({ isStreaming, sessionId, chunkCount, error }: StatusBarProps
 
 // ---------------------------------------------------------------------------
 // Elicitation card — wraps the shared ElicitationForm with namespace label
+// Border uses primary/30 tint (not Card's border-border) — left as handroll
 // ---------------------------------------------------------------------------
 
 interface ElicitationCardProps {
@@ -252,6 +249,7 @@ function ElicitationCard({ namespace, requestedSchema, message, onSubmit }: Elic
 
 // ---------------------------------------------------------------------------
 // Chunk row — per-event rendering for the event log
+// Log rows use tinted borders per event type — not generic Card
 // ---------------------------------------------------------------------------
 
 function ChunkRow({ chunk, index }: { chunk: AgentStreamChunk; index: number }) {

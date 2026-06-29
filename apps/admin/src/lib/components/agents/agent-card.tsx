@@ -1,7 +1,7 @@
 'use client';
 
 import type { A2AAgentCard } from '@revealui/contracts';
-import { Badge } from '@revealui/presentation/client';
+import { Badge, Card, LinkButton } from '@revealui/presentation';
 import Link from 'next/link';
 
 interface AgentCardProps {
@@ -15,42 +15,18 @@ interface AgentCardProps {
  */
 export function AgentCard({ card, agentId }: AgentCardProps) {
   return (
-    <div
-      className="flex flex-col gap-4 rounded-xl border p-5 transition-colors"
-      style={{
-        backgroundColor: 'var(--rvui-surface-1, oklch(0.18 0.006 225))',
-        borderColor: 'var(--rvui-border-subtle, oklch(0.28 0.006 222 / 0.4))',
-        borderRadius: 'var(--rvui-radius-lg, 16px)',
-        transition:
-          'border-color var(--rvui-duration-normal, 200ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
-      }}
-    >
+    <Card className="flex flex-col gap-4 p-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3
-            className="truncate font-semibold"
-            style={{ color: 'var(--rvui-text-0, oklch(0.95 0.002 210))' }}
-          >
-            {card.name}
-          </h3>
-          <p
-            className="mt-0.5 text-xs"
-            style={{ color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
-          >
-            v{card.version}
-          </p>
+          <h3 className="truncate font-semibold text-foreground">{card.name}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">v{card.version}</p>
         </div>
-        <Badge color="emerald">active</Badge>
+        <Badge color="success">active</Badge>
       </div>
 
       {/* Description */}
-      <p
-        className="line-clamp-2 text-sm"
-        style={{ color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
-      >
-        {card.description}
-      </p>
+      <p className="line-clamp-2 text-sm text-muted-foreground">{card.description}</p>
 
       {/* Capabilities */}
       <div className="flex flex-wrap gap-1.5">
@@ -66,34 +42,20 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
       {/* Skills */}
       {card.skills.length > 0 && (
         <div>
-          <p
-            className="mb-2 text-xs font-medium uppercase tracking-wide"
-            style={{ color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
-          >
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Skills ({card.skills.length})
           </p>
           <ul className="space-y-1">
             {card.skills.slice(0, 3).map((skill) => (
               <li key={skill.id} className="flex items-start gap-2">
-                <span
-                  className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
-                />
-                <span
-                  className="text-xs leading-relaxed"
-                  style={{ color: 'var(--rvui-text-1, oklch(0.75 0.01 215))' }}
-                >
+                <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground" />
+                <span className="text-xs leading-relaxed text-muted-foreground">
                   {skill.description}
                 </span>
               </li>
             ))}
             {card.skills.length > 3 && (
-              <li
-                className="text-xs"
-                style={{ color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
-              >
-                +{card.skills.length - 3} more
-              </li>
+              <li className="text-xs text-muted-foreground">+{card.skills.length - 3} more</li>
             )}
           </ul>
         </div>
@@ -101,32 +63,25 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
 
       {/* Actions */}
       <div className="mt-auto flex gap-2 pt-1">
-        <Link
+        <LinkButton
+          as={Link}
           href={`/agents/${agentId}`}
-          className="flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--rvui-surface-2, oklch(0.22 0.008 222))',
-            color: 'var(--rvui-text-1, oklch(0.75 0.01 215))',
-            borderRadius: 'var(--rvui-radius-md, 10px)',
-          }}
+          variant="secondary"
+          size="sm"
+          className="flex-1 justify-center"
         >
           Test Agent
-        </Link>
-        <a
+        </LinkButton>
+        <LinkButton
           href={card.url.replace('/a2a', `/.well-known/agents/${agentId}/agent.json`)}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: 'var(--rvui-surface-2, oklch(0.22 0.008 222))',
-            color: 'var(--rvui-text-1, oklch(0.75 0.01 215))',
-            borderRadius: 'var(--rvui-radius-md, 10px)',
-          }}
+          external
+          variant="secondary"
+          size="sm"
           title="View Agent Card JSON"
         >
           JSON
-        </a>
+        </LinkButton>
       </div>
-    </div>
+    </Card>
   );
 }
