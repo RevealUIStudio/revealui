@@ -1,5 +1,6 @@
 'use client';
 
+import { InputCVA } from '@revealui/presentation/server';
 import { useActionState, useEffect, useId, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import type { ChangePasswordState } from './actions';
@@ -46,7 +47,7 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
           Current password
         </label>
         <PasswordInput visible={showCurrent} onToggle={() => setShowCurrent((v) => !v)}>
-          <input
+          <InputCVA
             id={`${formId}-current`}
             name="currentPassword"
             type={showCurrent ? 'text' : 'password'}
@@ -56,7 +57,7 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
             aria-describedby={
               state?.fieldErrors?.currentPassword ? `${formId}-current-error` : undefined
             }
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 pr-10 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none aria-invalid:border-red-700"
+            className="pr-10"
           />
         </PasswordInput>
         {state?.fieldErrors?.currentPassword && (
@@ -71,7 +72,7 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
           New password
         </label>
         <PasswordInput visible={showNew} onToggle={() => setShowNew((v) => !v)}>
-          <input
+          <InputCVA
             id={`${formId}-new`}
             name="newPassword"
             type={showNew ? 'text' : 'password'}
@@ -80,7 +81,7 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
             minLength={8}
             aria-invalid={!!state?.fieldErrors?.newPassword}
             aria-describedby={state?.fieldErrors?.newPassword ? `${formId}-new-error` : undefined}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 pr-10 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none aria-invalid:border-red-700"
+            className="pr-10"
           />
         </PasswordInput>
         {state?.fieldErrors?.newPassword && (
@@ -98,7 +99,7 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
           Confirm new password
         </label>
         <PasswordInput visible={showConfirm} onToggle={() => setShowConfirm((v) => !v)}>
-          <input
+          <InputCVA
             id={`${formId}-confirm`}
             name="confirmPassword"
             type={showConfirm ? 'text' : 'password'}
@@ -109,7 +110,7 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
             aria-describedby={
               state?.fieldErrors?.confirmPassword ? `${formId}-confirm-error` : undefined
             }
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 pr-10 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none aria-invalid:border-red-700"
+            className="pr-10"
           />
         </PasswordInput>
         {state?.fieldErrors?.confirmPassword && (
