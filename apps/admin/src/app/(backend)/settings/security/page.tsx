@@ -4,13 +4,15 @@ const SUCCESS_DISMISS_MS = 5_000;
 const ERROR_DISMISS_MS = 8_000;
 
 import { useMFASetup, usePasskeyRegister } from '@revealui/auth/react';
+import { Input } from '@revealui/presentation';
 import {
   Dialog,
   DialogActions,
   DialogDescription,
   DialogTitle,
+  Field,
+  Label,
 } from '@revealui/presentation/client';
-import { InputCVA } from '@revealui/presentation/server';
 import { QRCodeSVG } from 'qrcode.react';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -517,16 +519,12 @@ function SecuritySettingsContent() {
                   </div>
 
                   {/* Verification */}
-                  <div>
-                    <label
-                      htmlFor="mfa-verify-code"
-                      className="text-xs font-medium text-muted-foreground"
-                    >
+                  <Field>
+                    <Label className="text-xs font-medium text-muted-foreground">
                       Enter a code from your authenticator app to verify
-                    </label>
+                    </Label>
                     <div className="mt-1 flex gap-2">
-                      <InputCVA
-                        id="mfa-verify-code"
+                      <Input
                         type="text"
                         inputMode="numeric"
                         autoComplete="one-time-code"
@@ -556,7 +554,7 @@ function SecuritySettingsContent() {
                         Cancel
                       </button>
                     </div>
-                  </div>
+                  </Field>
                 </div>
               )}
 
@@ -579,40 +577,38 @@ function SecuritySettingsContent() {
                       {/* Disable 2FA */}
                       {showDisableForm ? (
                         <div className="rounded-lg border border-border p-3">
-                          <label
-                            htmlFor="mfa-disable-password"
-                            className="text-xs font-medium text-muted-foreground"
-                          >
-                            Confirm your password to disable 2FA
-                          </label>
-                          <div className="mt-1.5 flex flex-wrap gap-2">
-                            <InputCVA
-                              id="mfa-disable-password"
-                              type="password"
-                              value={disablePassword}
-                              onChange={(e) => setDisablePassword(e.target.value)}
-                              placeholder="Password"
-                              className="w-full sm:w-48"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => void handleDisableMFA()}
-                              disabled={disabling || !disablePassword.trim()}
-                              className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {disabling ? 'Disabling...' : 'Confirm'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowDisableForm(false);
-                                setDisablePassword('');
-                              }}
-                              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                          <Field>
+                            <Label className="text-xs font-medium text-muted-foreground">
+                              Confirm your password to disable 2FA
+                            </Label>
+                            <div className="mt-1.5 flex flex-wrap gap-2">
+                              <Input
+                                type="password"
+                                value={disablePassword}
+                                onChange={(e) => setDisablePassword(e.target.value)}
+                                placeholder="Password"
+                                className="w-full sm:w-48"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => void handleDisableMFA()}
+                                disabled={disabling || !disablePassword.trim()}
+                                className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {disabling ? 'Disabling...' : 'Confirm'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowDisableForm(false);
+                                  setDisablePassword('');
+                                }}
+                                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </Field>
                         </div>
                       ) : (
                         <button
@@ -705,7 +701,7 @@ function SecuritySettingsContent() {
                         <div>
                           {renamingId === passkey.id ? (
                             <div className="flex gap-1.5">
-                              <InputCVA
+                              <Input
                                 type="text"
                                 value={renameValue}
                                 onChange={(e) => setRenameValue(e.target.value)}

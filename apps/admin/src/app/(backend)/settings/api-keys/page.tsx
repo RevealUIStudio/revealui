@@ -2,7 +2,8 @@
 
 const SAVED_FEEDBACK_MS = 2_000;
 
-import { InputCVA, Select } from '@revealui/presentation';
+import { Input, Select } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -142,32 +143,22 @@ export default function ApiKeysPage() {
 
             <div className="mt-5 flex flex-col gap-4">
               {/* Provider selector */}
-              <div>
-                <label
-                  htmlFor="provider-select"
-                  className="block text-xs font-medium text-muted-foreground mb-1.5"
-                >
+              <Field>
+                <Label className="block text-xs font-medium text-muted-foreground mb-1.5">
                   Provider
-                </label>
-                <Select
-                  id="provider-select"
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as Provider)}
-                >
+                </Label>
+                <Select value={provider} onChange={(e) => setProvider(e.target.value as Provider)}>
                   {PROVIDERS.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.label}
                     </option>
                   ))}
                 </Select>
-              </div>
+              </Field>
 
               {/* API key input */}
-              <div>
-                <label
-                  htmlFor="api-key-input"
-                  className="block text-xs font-medium text-muted-foreground mb-1.5"
-                >
+              <Field>
+                <Label className="block text-xs font-medium text-muted-foreground mb-1.5">
                   API Key
                   {activeProviderInfo && (
                     <a
@@ -179,10 +170,9 @@ export default function ApiKeysPage() {
                       Get key ↗
                     </a>
                   )}
-                </label>
+                </Label>
                 <div className="relative">
-                  <InputCVA
-                    id="api-key-input"
+                  <Input
                     type={showKey ? 'text' : 'password'}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
@@ -197,7 +187,7 @@ export default function ApiKeysPage() {
                     {showKey ? 'hide' : 'show'}
                   </button>
                 </div>
-              </div>
+              </Field>
 
               {/* Actions */}
               <div className="flex items-center gap-2 pt-1">

@@ -1,6 +1,7 @@
 'use client';
 
 import { Badge, ButtonCVA, Card, Select, Skeleton, Slider, Textarea } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -315,18 +316,16 @@ function ReviewsPanel({
                 ))}
               </div>
             </div>
-            <div className="mb-3">
-              <label className="block text-sm text-muted-foreground mb-1">
-                Comment (optional)
-                <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={3}
-                  className="mt-1"
-                  placeholder="Share your experience..."
-                />
-              </label>
-            </div>
+            <Field className="mb-3">
+              <Label className="block text-sm text-muted-foreground mb-1">Comment (optional)</Label>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                className="mt-1"
+                placeholder="Share your experience..."
+              />
+            </Field>
             <div className="flex gap-2">
               <ButtonCVA type="submit" disabled={submitting}>
                 {submitting ? 'Submitting...' : 'Submit Review'}
@@ -441,41 +440,36 @@ function SubmitTaskPanel({
       <h3 className="text-lg font-medium text-foreground mb-4">Submit a task to {agent.name}</h3>
 
       {/* Skill selection */}
-      <div className="mb-4">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: select is inside the conditional branch */}
-        <label className="block text-sm text-muted-foreground mb-1">
-          Skill
-          {skills.length === 0 ? (
-            <span className="block mt-1 text-muted-foreground">No skills available</span>
-          ) : (
-            <Select
-              value={selectedSkill}
-              onChange={(e) => setSelectedSkill(e.target.value)}
-              className="mt-1"
-            >
-              {skills.map((skill) => (
-                <option key={skill.id} value={skill.name}>
-                  {skill.name} - {skill.description}
-                </option>
-              ))}
-            </Select>
-          )}
-        </label>
-      </div>
+      <Field className="mb-4">
+        <Label className="block text-sm text-muted-foreground mb-1">Skill</Label>
+        {skills.length === 0 ? (
+          <span className="block mt-1 text-muted-foreground">No skills available</span>
+        ) : (
+          <Select
+            value={selectedSkill}
+            onChange={(e) => setSelectedSkill(e.target.value)}
+            className="mt-1"
+          >
+            {skills.map((skill) => (
+              <option key={skill.id} value={skill.name}>
+                {skill.name} - {skill.description}
+              </option>
+            ))}
+          </Select>
+        )}
+      </Field>
 
       {/* Input JSON */}
-      <div className="mb-4">
-        <label className="block text-sm text-muted-foreground mb-1">
-          Input (JSON)
-          <Textarea
-            value={inputJson}
-            onChange={(e) => setInputJson(e.target.value)}
-            rows={8}
-            className="mt-1 font-mono"
-            placeholder='{"key": "value"}'
-          />
-        </label>
-      </div>
+      <Field className="mb-4">
+        <Label className="block text-sm text-muted-foreground mb-1">Input (JSON)</Label>
+        <Textarea
+          value={inputJson}
+          onChange={(e) => setInputJson(e.target.value)}
+          rows={8}
+          className="mt-1 font-mono"
+          placeholder='{"key": "value"}'
+        />
+      </Field>
 
       {/* Priority */}
       <div className="mb-4">
