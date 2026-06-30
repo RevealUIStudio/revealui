@@ -18,7 +18,7 @@
     "@revealui/setup": "workspace:*",
     "@revealui/sync": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@sentry/nextjs": "^10.59.0",
+    "@sentry/nextjs": "^10.62.0",
     "@simplewebauthn/browser": "catalog:",
     "@vercel/speed-insights": "^2.0.0",
     "cross-env": "^10.1.0",
