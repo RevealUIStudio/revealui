@@ -244,7 +244,12 @@ function serializeNode(
         />
         {caption && (
           <figcaption
-            style={{ marginTop: '8px', fontSize: '14px', color: '#64748b', fontStyle: 'italic' }}
+            style={{
+              marginTop: '8px',
+              fontSize: '14px',
+              color: 'var(--rvui-text-2, #64748b)',
+              fontStyle: 'italic',
+            }}
           >
             {caption}
           </figcaption>
