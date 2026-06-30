@@ -3,13 +3,14 @@
 import {
   ButtonCVA,
   Card,
-  InputCVA,
+  Input,
   Radio,
   RadioField,
   RadioGroup,
   Select,
   Textarea,
 } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -361,9 +362,9 @@ function StepBasicInfo({
     <div className="space-y-4">
       <h2 className="text-lg font-medium text-foreground">Basic Information</h2>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Agent Name</span>
-        <InputCVA
+      <Field>
+        <Label className="text-sm text-muted-foreground">Agent Name</Label>
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -371,10 +372,10 @@ function StepBasicInfo({
           placeholder="Code Reviewer Pro"
         />
         {fieldError('name') && <p className="mt-1 text-xs text-error">{fieldError('name')}</p>}
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Description</span>
+      <Field>
+        <Label className="text-sm text-muted-foreground">Description</Label>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -385,10 +386,10 @@ function StepBasicInfo({
         {fieldError('description') && (
           <p className="mt-1 text-xs text-error">{fieldError('description')}</p>
         )}
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Category</span>
+      <Field>
+        <Label className="text-sm text-muted-foreground">Category</Label>
         <Select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1">
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
@@ -396,18 +397,18 @@ function StepBasicInfo({
             </option>
           ))}
         </Select>
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Tags (comma-separated)</span>
-        <InputCVA
+      <Field>
+        <Label className="text-sm text-muted-foreground">Tags (comma-separated)</Label>
+        <Input
           type="text"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           className="mt-1 w-full"
           placeholder="typescript, react, code-review"
         />
-      </label>
+      </Field>
 
       <div className="pt-4">
         <ButtonCVA type="button" onClick={onNext}>
@@ -467,9 +468,9 @@ function StepConfiguration({
         </RadioGroup>
       </div>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Base Price (USDC)</span>
-        <InputCVA
+      <Field>
+        <Label className="text-sm text-muted-foreground">Base Price (USDC)</Label>
+        <Input
           type="text"
           value={basePriceUsdc}
           onChange={(e) => setBasePriceUsdc(e.target.value)}
@@ -479,11 +480,11 @@ function StepConfiguration({
         {fieldError('basePriceUsdc') && (
           <p className="mt-1 text-xs text-error">{fieldError('basePriceUsdc')}</p>
         )}
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Max Execution Time (seconds)</span>
-        <InputCVA
+      <Field>
+        <Label className="text-sm text-muted-foreground">Max Execution Time (seconds)</Label>
+        <Input
           type="number"
           value={maxExecutionSecs}
           onChange={(e) => setMaxExecutionSecs(Number(e.target.value))}
@@ -491,10 +492,10 @@ function StepConfiguration({
           max={3600}
           className="mt-1 w-full"
         />
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Agent Definition (JSON)</span>
+      <Field>
+        <Label className="text-sm text-muted-foreground">Agent Definition (JSON)</Label>
         <Textarea
           value={definitionJson}
           onChange={(e) => setDefinitionJson(e.target.value)}
@@ -504,7 +505,7 @@ function StepConfiguration({
         {fieldError('definition') && (
           <p className="mt-1 text-xs text-error">{fieldError('definition')}</p>
         )}
-      </label>
+      </Field>
 
       <div className="flex gap-3 pt-4">
         <ButtonCVA type="button" variant="outline" onClick={onBack}>
@@ -567,9 +568,9 @@ function StepSkills({
             )}
           </div>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Name</span>
-            <InputCVA
+          <Field>
+            <Label className="text-xs text-muted-foreground">Name</Label>
+            <Input
               type="text"
               value={skill.name}
               onChange={(e) => updateSkill(i, 'name', e.target.value)}
@@ -579,11 +580,11 @@ function StepSkills({
             {fieldError(`skill-${i}-name`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-name`)}</p>
             )}
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Description</span>
-            <InputCVA
+          <Field>
+            <Label className="text-xs text-muted-foreground">Description</Label>
+            <Input
               type="text"
               value={skill.description}
               onChange={(e) => updateSkill(i, 'description', e.target.value)}
@@ -593,10 +594,10 @@ function StepSkills({
             {fieldError(`skill-${i}-description`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-description`)}</p>
             )}
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Input Schema (JSON)</span>
+          <Field>
+            <Label className="text-xs text-muted-foreground">Input Schema (JSON)</Label>
             <Textarea
               value={skill.inputSchema}
               onChange={(e) => updateSkill(i, 'inputSchema', e.target.value)}
@@ -606,10 +607,10 @@ function StepSkills({
             {fieldError(`skill-${i}-input`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-input`)}</p>
             )}
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Output Schema (JSON)</span>
+          <Field>
+            <Label className="text-xs text-muted-foreground">Output Schema (JSON)</Label>
             <Textarea
               value={skill.outputSchema}
               onChange={(e) => updateSkill(i, 'outputSchema', e.target.value)}
@@ -619,7 +620,7 @@ function StepSkills({
             {fieldError(`skill-${i}-output`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-output`)}</p>
             )}
-          </label>
+          </Field>
         </Card>
       ))}
 

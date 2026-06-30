@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, EmptyState, InputCVA, LinkButton, Select, Skeleton } from '@revealui/presentation';
+import { Badge, EmptyState, Input, LinkButton, Select, Skeleton } from '@revealui/presentation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -102,8 +102,8 @@ export default function MarketplacePage() {
         {/* Search + Filters */}
         <div className="border-b border-border bg-muted px-6 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            {/* Search */}
-            <InputCVA
+            {/* Search — no label; bare Input intentional for search-box pattern */}
+            <Input
               type="text"
               placeholder="Search agents..."
               value={search}
@@ -111,7 +111,7 @@ export default function MarketplacePage() {
               className="flex-1"
             />
 
-            {/* Category filter */}
+            {/* Category filter — no label; bare Select intentional */}
             <Select value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
@@ -120,7 +120,7 @@ export default function MarketplacePage() {
               ))}
             </Select>
 
-            {/* Sort */}
+            {/* Sort filter — no label; bare Select intentional */}
             <Select value={sort} onChange={(e) => setSort(e.target.value as SortOption)}>
               <option value="rating">Highest Rated</option>
               <option value="tasks">Most Used</option>
