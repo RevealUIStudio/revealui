@@ -1,6 +1,8 @@
 'use client';
 
 import type { A2ATask } from '@revealui/contracts';
+import { Badge, ButtonCVA, Textarea } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import { useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -11,6 +13,26 @@ interface TaskTesterProps {
 }
 
 type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error';
+
+const TASK_STATE_BADGE_COLOR = {
+  submitted: 'muted',
+  working: 'brand',
+  'input-required': 'warning',
+  completed: 'success',
+  canceled: 'muted',
+  failed: 'danger',
+  unknown: 'muted',
+} as const satisfies Record<string, 'muted' | 'brand' | 'warning' | 'success' | 'danger'>;
+
+const TASK_STATE_LABEL: Record<string, string> = {
+  submitted: 'Submitted',
+  working: 'Working',
+  'input-required': 'Input Required',
+  completed: 'Completed',
+  canceled: 'Canceled',
+  failed: 'Failed',
+  unknown: 'Unknown',
+};
 
 /**
  * Interactive task tester for an A2A agent.
@@ -91,31 +113,29 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <label
-          htmlFor="instruction"
-          className="block text-sm font-medium text-muted-foreground mb-1.5"
-        >
+      <Field>
+        <Label>
           Send a task to <span className="text-foreground">{agentName}</span>
-        </label>
-        <textarea
-          id="instruction"
+        </Label>
+        <Textarea
+          name="instruction"
           rows={4}
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           placeholder={`Tell ${agentName} what to do...`}
-          className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
         />
-      </div>
+      </Field>
 
-      <button
+      <ButtonCVA
         type="button"
         onClick={submit}
         disabled={state === 'submitting' || state === 'polling' || !instruction.trim()}
-        className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        variant="default"
+        size="sm"
+        className="self-start"
       >
         {state === 'submitting' ? 'Sending...' : state === 'polling' ? 'Working...' : 'Send Task'}
-      </button>
+      </ButtonCVA>
 
       {/* Status badge */}
       {task && (
@@ -129,7 +149,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         </div>
       )}
 
-      {/* Response */}
+      {/* Response — bg-muted (not bg-card); Card would apply bg-card, behavioral mismatch */}
       {responseText && (
         <div className="rounded-lg border border-border bg-muted p-4">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -139,7 +159,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         </div>
       )}
 
-      {/* Error */}
+      {/* Inline error — Alert primitive is a modal dialog, not applicable */}
       {errorMsg && (
         <div role="alert" className="rounded-lg border border-error/30 bg-error/10 p-4">
           <p className="text-sm text-error">{errorMsg}</p>
@@ -150,17 +170,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 }
 
 function TaskStateBadge({ state }: { state: string }) {
-  const configs: Record<string, { label: string; color: string }> = {
-    submitted: { label: 'Submitted', color: 'bg-muted text-muted-foreground' },
-    working: { label: 'Working', color: 'bg-primary/10 text-primary' },
-    'input-required': { label: 'Input Required', color: 'bg-warning/15 text-warning-foreground' },
-    completed: { label: 'Completed', color: 'bg-success/10 text-success' },
-    canceled: { label: 'Canceled', color: 'bg-muted text-muted-foreground' },
-    failed: { label: 'Failed', color: 'bg-error/10 text-error' },
-    unknown: { label: 'Unknown', color: 'bg-muted text-muted-foreground' },
-  };
-  const cfg = configs[state] ?? { label: state, color: 'bg-muted text-muted-foreground' };
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
-  );
+  const color = TASK_STATE_BADGE_COLOR[state as keyof typeof TASK_STATE_BADGE_COLOR] ?? 'muted';
+  const label = TASK_STATE_LABEL[state] ?? state;
+  return <Badge color={color}>{label}</Badge>;
 }

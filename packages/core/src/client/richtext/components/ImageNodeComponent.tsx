@@ -104,7 +104,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
             style={{
               padding: '4px 8px',
               background: 'white',
-              border: '1px solid #e2e8f0',
+              border: `1px solid var(--rvui-border, #e2e8f0)`,
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '12px',
@@ -121,7 +121,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
             style={{
               padding: '4px 8px',
               background: 'white',
-              border: '1px solid #e2e8f0',
+              border: `1px solid var(--rvui-border, #e2e8f0)`,
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '12px',
@@ -152,7 +152,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
             width: '100%',
             marginTop: '8px',
             padding: '4px 8px',
-            border: '1px solid #e2e8f0',
+            border: `1px solid var(--rvui-border, #e2e8f0)`,
             borderRadius: '4px',
           }}
         />
@@ -162,7 +162,7 @@ export const ImageNodeComponent: React.FC<Props> = (props) => {
             style={{
               marginTop: '8px',
               fontSize: '14px',
-              color: '#64748b',
+              color: 'var(--rvui-text-2, #64748b)',
               fontStyle: 'italic',
             }}
           >

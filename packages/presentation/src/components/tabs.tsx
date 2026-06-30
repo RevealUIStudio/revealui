@@ -80,7 +80,7 @@ export function TabList({
       ref={listRef}
       role="tablist"
       onKeyDown={handleKeyDown}
-      className={cn('flex border-b border-zinc-200 dark:border-zinc-700', className)}
+      className={cn('flex border-b border-border', className)}
     >
       {children}
     </div>
@@ -109,11 +109,11 @@ export function Tab({
       tabIndex={isActive ? 0 : -1}
       onClick={() => setActiveTab(id)}
       className={cn(
-        className,
-        'relative -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+        'relative -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         isActive
-          ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-          : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200',
+          ? 'border-primary text-primary'
+          : 'border-transparent text-muted-foreground hover:text-foreground',
+        className,
       )}
     >
       {children}

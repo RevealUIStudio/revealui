@@ -1,6 +1,15 @@
 'use client';
 
-import { Breadcrumb } from '@revealui/presentation/client';
+import {
+  Badge,
+  Breadcrumb,
+  ButtonCVA,
+  Card,
+  Input,
+  LinkButton,
+  Textarea,
+} from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useReducer } from 'react';
@@ -268,17 +277,12 @@ export default function NewAgentPage() {
                     <p className="text-xs text-muted-foreground leading-relaxed">{t.description}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {t.capabilities.slice(0, 2).map((cap) => (
-                        <span
-                          key={cap}
-                          className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                        >
+                        <Badge key={cap} color="muted">
                           {cap}
-                        </span>
+                        </Badge>
                       ))}
                       {t.capabilities.length > 2 && (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                          +{t.capabilities.length - 2}
-                        </span>
+                        <Badge color="muted">+{t.capabilities.length - 2}</Badge>
                       )}
                     </div>
                   </button>
@@ -293,24 +297,19 @@ export default function NewAgentPage() {
                   2. Configure agent
                 </h2>
 
-                {/* Agent Name */}
-                <div>
-                  <label
-                    htmlFor="agent-name"
-                    className="block text-sm font-medium text-muted-foreground mb-1.5"
-                  >
+                <Field>
+                  <Label>
                     Name <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="agent-name"
+                  </Label>
+                  <Input
+                    name="name"
                     type="text"
                     required
                     value={name}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => handleNameChange(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleNameChange(e.target.value)
+                    }
                     placeholder={`e.g. ${tpl?.label ?? 'My Agent'}`}
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   />
                   {name.trim() && (
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -324,59 +323,45 @@ export default function NewAgentPage() {
                       </code>
                     </p>
                   )}
-                </div>
+                </Field>
 
-                {/* Description */}
-                <div>
-                  <label
-                    htmlFor="agent-desc"
-                    className="block text-sm font-medium text-muted-foreground mb-1.5"
-                  >
-                    Description
-                  </label>
-                  <input
-                    id="agent-desc"
+                <Field>
+                  <Label>Description</Label>
+                  <Input
+                    name="description"
                     type="text"
                     value={description}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })
+                    }
                     placeholder={tpl?.description ?? 'What does this agent do?'}
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   />
-                </div>
+                </Field>
 
-                {/* System Prompt */}
-                <div>
-                  <label
-                    htmlFor="agent-prompt"
-                    className="block text-sm font-medium text-muted-foreground mb-1.5"
-                  >
-                    System Prompt
-                  </label>
-                  <textarea
-                    id="agent-prompt"
+                <Field>
+                  <Label>System Prompt</Label>
+                  <Textarea
+                    name="systemPrompt"
                     rows={6}
                     value={systemPrompt}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                      dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })
+                    }
                     placeholder="Describe the agent's role, personality, and constraints..."
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
                   />
-                </div>
+                </Field>
 
                 {/* Model info (read-only) */}
-                <div className="rounded-lg border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
+                <Card className="px-4 py-3 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">Model:</span> {tpl?.model}
                   &nbsp;·&nbsp;
                   <span className="font-medium text-foreground">Temp:</span> {tpl?.temperature}
                   &nbsp;·&nbsp;
                   <span className="font-medium text-foreground">Max tokens:</span>{' '}
                   {tpl?.maxTokens?.toLocaleString()}
-                </div>
+                </Card>
 
-                {/* Error */}
+                {/* Error — inline banner; Alert primitive is a modal dialog, not applicable */}
                 {error && (
                   <div
                     role="alert"
@@ -388,19 +373,17 @@ export default function NewAgentPage() {
 
                 {/* Actions */}
                 <div className="flex gap-3 pt-2">
-                  <button
+                  <ButtonCVA
                     type="submit"
                     disabled={submitting || !name.trim()}
-                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    variant="default"
+                    size="sm"
                   >
                     {submitting ? 'Creating...' : 'Create Agent'}
-                  </button>
-                  <Link
-                    href="/agents"
-                    className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                  >
+                  </ButtonCVA>
+                  <LinkButton as={Link} href="/agents" variant="outline" size="sm">
                     Cancel
-                  </Link>
+                  </LinkButton>
                 </div>
               </section>
             )}

@@ -1,8 +1,10 @@
 'use client';
 
+import { Badge, ButtonCVA, Card, Select, Skeleton, Slider, Textarea } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -89,11 +91,11 @@ export default function MarketplaceAgentDetailPage() {
     return (
       <div className="min-h-screen">
         <div className="border-b border-border bg-card px-6 py-4">
-          <div className="h-5 w-48 animate-pulse rounded bg-muted" />
+          <Skeleton className="h-5 w-48" />
         </div>
         <div className="p-6">
-          <div className="h-4 w-96 animate-pulse rounded bg-muted" />
-          <div className="mt-3 h-3 w-64 animate-pulse rounded bg-muted" />
+          <Skeleton className="h-4 w-96" />
+          <Skeleton className="mt-3 h-3 w-64" />
         </div>
       </div>
     );
@@ -136,7 +138,7 @@ export default function MarketplaceAgentDetailPage() {
                   {agent.rating.toFixed(1)} ({agent.reviewCount} reviews)
                 </span>
                 <span>{agent.taskCount} tasks completed</span>
-                <span className="rounded bg-muted px-2 py-0.5">{agent.category}</span>
+                <Badge color="muted">{agent.category}</Badge>
                 <span className="text-muted-foreground">v{agent.version}</span>
               </div>
             </div>
@@ -210,7 +212,7 @@ function SkillsPanel({ skills }: { skills: AgentSkill[] }) {
   return (
     <div className="space-y-4">
       {skills.map((skill) => (
-        <div key={skill.id} className="rounded-lg border border-border bg-card p-4">
+        <Card key={skill.id} className="p-4">
           <h3 className="font-medium text-foreground">{skill.name}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{skill.description}</p>
           {skill.inputSchema && (
@@ -233,7 +235,7 @@ function SkillsPanel({ skills }: { skills: AgentSkill[] }) {
               </pre>
             </details>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );
@@ -289,69 +291,50 @@ function ReviewsPanel({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</h3>
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          Write Review
-        </button>
+        <ButtonCVA onClick={() => setShowForm(!showForm)}>Write Review</ButtonCVA>
       </div>
 
       {showForm && (
-        <form
-          onSubmit={handleSubmitReview}
-          className="mb-6 rounded-lg border border-border bg-card p-4"
-        >
-          <div className="mb-3">
-            <span className="block text-sm text-muted-foreground mb-1">Rating</span>
-            <div className="flex gap-1" role="radiogroup" aria-label="Rating">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRating(n)}
-                  className={`h-8 w-8 rounded transition-colors ${
-                    n <= rating
-                      ? 'bg-warning text-warning-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
+        <form onSubmit={handleSubmitReview}>
+          <Card className="mb-6 p-4">
+            <div className="mb-3">
+              <span className="block text-sm text-muted-foreground mb-1">Rating</span>
+              <div className="flex gap-1" role="radiogroup" aria-label="Rating">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setRating(n)}
+                    className={`h-8 w-8 rounded transition-colors ${
+                      n <= rating
+                        ? 'bg-warning text-warning-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="mb-3">
-            <label className="block text-sm text-muted-foreground mb-1">
-              Comment (optional)
-              <textarea
+            <Field className="mb-3">
+              <Label className="block text-sm text-muted-foreground mb-1">Comment (optional)</Label>
+              <Textarea
                 value={comment}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) => setComment(e.target.value)}
+                onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                className="mt-1"
                 placeholder="Share your experience..."
               />
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-            >
-              {submitting ? 'Submitting...' : 'Submit Review'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+            </Field>
+            <div className="flex gap-2">
+              <ButtonCVA type="submit" disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit Review'}
+              </ButtonCVA>
+              <ButtonCVA type="button" variant="outline" onClick={() => setShowForm(false)}>
+                Cancel
+              </ButtonCVA>
+            </div>
+          </Card>
         </form>
       )}
 
@@ -362,7 +345,7 @@ function ReviewsPanel({
       ) : (
         <div className="space-y-3">
           {reviews.map((review) => (
-            <div key={review.id} className="rounded-lg border border-border bg-card p-4">
+            <Card key={review.id} className="p-4">
               <div className="flex items-center gap-2">
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }, (_, i) => (
@@ -375,11 +358,7 @@ function ReviewsPanel({
                     </span>
                   ))}
                 </div>
-                {review.verified === 1 && (
-                  <span className="rounded bg-success/10 px-2 py-0.5 text-xs text-success">
-                    Verified
-                  </span>
-                )}
+                {review.verified === 1 && <Badge color="success">Verified</Badge>}
                 <span className="text-xs text-muted-foreground">
                   {new Date(review.createdAt).toLocaleDateString()}
                 </span>
@@ -387,7 +366,7 @@ function ReviewsPanel({
               {review.comment && (
                 <p className="mt-2 text-sm text-muted-foreground">{review.comment}</p>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}
@@ -461,61 +440,48 @@ function SubmitTaskPanel({
       <h3 className="text-lg font-medium text-foreground mb-4">Submit a task to {agent.name}</h3>
 
       {/* Skill selection */}
-      <div className="mb-4">
-        {/* biome-ignore lint/a11y/noLabelWithoutControl: select is inside the conditional branch */}
-        <label className="block text-sm text-muted-foreground mb-1">
-          Skill
-          {skills.length === 0 ? (
-            <span className="block mt-1 text-muted-foreground">No skills available</span>
-          ) : (
-            <select
-              value={selectedSkill}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setSelectedSkill(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-border bg-card px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-            >
-              {skills.map((skill) => (
-                <option key={skill.id} value={skill.name}>
-                  {skill.name} - {skill.description}
-                </option>
-              ))}
-            </select>
-          )}
-        </label>
-      </div>
+      <Field className="mb-4">
+        <Label className="block text-sm text-muted-foreground mb-1">Skill</Label>
+        {skills.length === 0 ? (
+          <span className="block mt-1 text-muted-foreground">No skills available</span>
+        ) : (
+          <Select
+            value={selectedSkill}
+            onChange={(e) => setSelectedSkill(e.target.value)}
+            className="mt-1"
+          >
+            {skills.map((skill) => (
+              <option key={skill.id} value={skill.name}>
+                {skill.name} - {skill.description}
+              </option>
+            ))}
+          </Select>
+        )}
+      </Field>
 
       {/* Input JSON */}
-      <div className="mb-4">
-        <label className="block text-sm text-muted-foreground mb-1">
-          Input (JSON)
-          <textarea
-            value={inputJson}
-            onChange={(
-              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-            ) => setInputJson(e.target.value)}
-            rows={8}
-            className="mt-1 w-full font-mono rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-            placeholder='{"key": "value"}'
-          />
-        </label>
-      </div>
+      <Field className="mb-4">
+        <Label className="block text-sm text-muted-foreground mb-1">Input (JSON)</Label>
+        <Textarea
+          value={inputJson}
+          onChange={(e) => setInputJson(e.target.value)}
+          rows={8}
+          className="mt-1 font-mono"
+          placeholder='{"key": "value"}'
+        />
+      </Field>
 
       {/* Priority */}
       <div className="mb-4">
-        <label className="block text-sm text-muted-foreground mb-1">
-          Priority (1=low, 5=critical)
-          <input
-            type="range"
-            min={1}
-            max={5}
-            value={priority}
-            onChange={(
-              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-            ) => setPriority(Number(e.target.value))}
-            className="mt-1 w-full"
-          />
-        </label>
+        <Slider
+          label="Priority (1=low, 5=critical)"
+          min={1}
+          max={5}
+          step={1}
+          value={priority}
+          onChange={(value) => setPriority(value)}
+          className="mt-1"
+        />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>Low</span>
           <span>Normal</span>
@@ -524,12 +490,12 @@ function SubmitTaskPanel({
       </div>
 
       {/* Cost estimate */}
-      <div className="mb-6 rounded-lg border border-border bg-card p-3">
+      <Card className="mb-6 p-3">
         <p className="text-sm text-muted-foreground">
           Estimated cost:{' '}
           <span className="font-medium text-foreground">${agent.basePriceUsdc} USDC</span>
         </p>
-      </div>
+      </Card>
 
       {error && (
         <div className="mb-4 rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">
@@ -537,13 +503,9 @@ function SubmitTaskPanel({
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={submitting || skills.length === 0}
-        className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-      >
+      <ButtonCVA type="submit" disabled={submitting || skills.length === 0}>
         {submitting ? 'Submitting...' : 'Submit Task'}
-      </button>
+      </ButtonCVA>
     </form>
   );
 }

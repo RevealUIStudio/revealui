@@ -8,6 +8,14 @@
 
 'use client';
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@revealui/presentation';
 import { useCallback, useEffect, useState } from 'react';
 
 type Range = '24h' | '7d' | '30d';
@@ -176,69 +184,65 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
       )}
 
       {state === 'ready' && data && data.meters.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-card">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Meter</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Calls</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                  Outcome mix
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">p50</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">p95</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.meters.map((m) => (
-                <tr key={m.meterName} className="border-t border-border align-middle">
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                    {m.meterName}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{m.total.toLocaleString()}</td>
-                  <td className="min-w-48 px-4 py-3">
-                    <StackedBar
-                      successCount={m.successCount}
-                      errorCount={m.errorCount}
-                      unknownCount={m.unknownCount}
-                    />
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Meter</TableHeader>
+              <TableHeader>Calls</TableHeader>
+              <TableHeader>Outcome mix</TableHeader>
+              <TableHeader className="text-right">p50</TableHeader>
+              <TableHeader className="text-right">p95</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.meters.map((m) => (
+              <TableRow key={m.meterName} className="align-middle">
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {m.meterName}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{m.total.toLocaleString()}</TableCell>
+                <TableCell className="min-w-48">
+                  <StackedBar
+                    successCount={m.successCount}
+                    errorCount={m.errorCount}
+                    unknownCount={m.unknownCount}
+                  />
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <span>
+                      <span
+                        aria-hidden="true"
+                        className="mr-1 inline-block h-2 w-2 rounded-sm bg-success align-middle"
+                      />
+                      {m.successCount} ok
+                    </span>
+                    <span>
+                      <span
+                        aria-hidden="true"
+                        className="mr-1 inline-block h-2 w-2 rounded-sm bg-error align-middle"
+                      />
+                      {m.errorCount} err
+                    </span>
+                    {m.unknownCount > 0 && (
                       <span>
                         <span
                           aria-hidden="true"
-                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-success align-middle"
+                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-muted-foreground align-middle"
                         />
-                        {m.successCount} ok
+                        {m.unknownCount} unknown
                       </span>
-                      <span>
-                        <span
-                          aria-hidden="true"
-                          className="mr-1 inline-block h-2 w-2 rounded-sm bg-error align-middle"
-                        />
-                        {m.errorCount} err
-                      </span>
-                      {m.unknownCount > 0 && (
-                        <span>
-                          <span
-                            aria-hidden="true"
-                            className="mr-1 inline-block h-2 w-2 rounded-sm bg-muted-foreground align-middle"
-                          />
-                          {m.unknownCount} unknown
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-muted-foreground">
-                    {formatDuration(m.p50Ms)}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-muted-foreground">
-                    {formatDuration(m.p95Ms)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                  {formatDuration(m.p50Ms)}
+                </TableCell>
+                <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                  {formatDuration(m.p95Ms)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
 
       {state === 'ready' && data && (

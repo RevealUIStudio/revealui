@@ -1,7 +1,16 @@
 'use client';
 
 import type { A2AAgentCard } from '@revealui/contracts';
-import { Breadcrumb } from '@revealui/presentation/client';
+import {
+  Badge,
+  Breadcrumb,
+  ButtonCVA,
+  Card,
+  Input,
+  LinkButton,
+  Textarea,
+} from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, use, useEffect, useState } from 'react';
 import { AgentContexts } from '@/lib/components/agents/agent-contexts';
@@ -170,6 +179,7 @@ export default function AgentDetailPage({ params }: PageProps) {
             </div>
           )}
 
+          {/* Inline error banner — Alert primitive is a modal dialog, not applicable */}
           {error && (
             <div
               role="alert"
@@ -184,66 +194,43 @@ export default function AgentDetailPage({ params }: PageProps) {
               {/* Left: Agent metadata */}
               <div className="flex flex-col gap-6">
                 {/* Identity */}
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   {isEditing ? (
                     <div className="flex flex-col gap-4">
-                      <div>
-                        <label
-                          htmlFor="edit-name"
-                          className="block text-xs font-medium text-muted-foreground mb-1.5"
-                        >
-                          Name
-                        </label>
-                        <input
-                          id="edit-name"
+                      <Field>
+                        <Label>Name</Label>
+                        <Input
+                          name="editName"
                           type="text"
                           value={editName}
-                          onChange={(
-                            e: ChangeEvent<
-                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                            >,
-                          ) => setEditName(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setEditName(e.target.value)
+                          }
                         />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="edit-description"
-                          className="block text-xs font-medium text-muted-foreground mb-1.5"
-                        >
-                          Description
-                        </label>
-                        <input
-                          id="edit-description"
+                      </Field>
+                      <Field>
+                        <Label>Description</Label>
+                        <Input
+                          name="editDescription"
                           type="text"
                           value={editDescription}
-                          onChange={(
-                            e: ChangeEvent<
-                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                            >,
-                          ) => setEditDescription(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setEditDescription(e.target.value)
+                          }
                         />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="edit-system-prompt"
-                          className="block text-xs font-medium text-muted-foreground mb-1.5"
-                        >
-                          System Prompt
-                        </label>
-                        <textarea
-                          id="edit-system-prompt"
+                      </Field>
+                      <Field>
+                        <Label>System Prompt</Label>
+                        <Textarea
+                          name="editSystemPrompt"
                           rows={7}
                           value={editSystemPrompt}
-                          onChange={(
-                            e: ChangeEvent<
-                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                            >,
-                          ) => setEditSystemPrompt(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
+                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                            setEditSystemPrompt(e.target.value)
+                          }
                         />
-                      </div>
+                      </Field>
+                      {/* Inline save error — Alert primitive is a modal dialog, not applicable */}
                       {saveError && (
                         <div
                           role="alert"
@@ -253,22 +240,24 @@ export default function AgentDetailPage({ params }: PageProps) {
                         </div>
                       )}
                       <div className="flex gap-2 pt-1">
-                        <button
+                        <ButtonCVA
                           type="button"
                           onClick={handleSave}
                           disabled={saving || !editName.trim()}
-                          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                          variant="default"
+                          size="sm"
                         >
                           {saving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
+                        </ButtonCVA>
+                        <ButtonCVA
                           type="button"
                           onClick={handleEditCancel}
                           disabled={saving}
-                          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                          variant="outline"
+                          size="sm"
                         >
                           Cancel
-                        </button>
+                        </ButtonCVA>
                       </div>
                     </div>
                   ) : (
@@ -276,17 +265,16 @@ export default function AgentDetailPage({ params }: PageProps) {
                       <div className="flex items-start justify-between gap-3">
                         <h1 className="text-xl font-semibold text-foreground">{card.name}</h1>
                         <div className="flex shrink-0 items-center gap-2">
-                          <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-                            v{card.version}
-                          </span>
-                          <button
+                          <Badge color="success">v{card.version}</Badge>
+                          <ButtonCVA
                             type="button"
                             onClick={handleEditStart}
                             disabled={loadingDef}
-                            className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            variant="outline"
+                            size="sm"
                           >
                             {loadingDef ? '...' : 'Edit'}
-                          </button>
+                          </ButtonCVA>
                         </div>
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
@@ -297,10 +285,10 @@ export default function AgentDetailPage({ params }: PageProps) {
                       )}
                     </>
                   )}
-                </div>
+                </Card>
 
                 {/* Capabilities */}
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Capabilities
                   </h2>
@@ -338,10 +326,10 @@ export default function AgentDetailPage({ params }: PageProps) {
                       <dd className="text-muted-foreground">{card.defaultInputModes.join(', ')}</dd>
                     </div>
                   </dl>
-                </div>
+                </Card>
 
                 {/* Skills */}
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Skills ({card.skills.length})
                   </h2>
@@ -358,29 +346,27 @@ export default function AgentDetailPage({ params }: PageProps) {
                         {skill.tags && skill.tags.length > 0 && (
                           <div className="mt-1.5 flex flex-wrap gap-1">
                             {skill.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
-                              >
+                              <Badge key={tag} color="muted">
                                 {tag}
-                              </span>
+                              </Badge>
                             ))}
                           </div>
                         )}
                       </li>
                     ))}
                   </ul>
-                </div>
+                </Card>
 
                 {/* Agent Card JSON link */}
-                <a
+                <LinkButton
                   href={`${apiUrl}/.well-known/agents/${agentId}/agent.json`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg border border-border bg-muted px-4 py-2.5 text-center text-sm text-muted-foreground transition-colors hover:bg-muted/80"
+                  external
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-center"
                 >
                   View Agent Card JSON ↗
-                </a>
+                </LinkButton>
 
                 {/* Danger zone  -  built-in agents are protected */}
                 {!BUILTIN_AGENTS.has(agentId) && (
@@ -392,6 +378,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           Retire <strong className="text-foreground">{card.name}</strong>? This
                           removes the agent from the registry. This action cannot be undone.
                         </p>
+                        {/* Inline retire error — Alert primitive is a modal dialog, not applicable */}
                         {retireError && (
                           <div
                             role="alert"
@@ -401,25 +388,27 @@ export default function AgentDetailPage({ params }: PageProps) {
                           </div>
                         )}
                         <div className="flex gap-2">
-                          <button
+                          <ButtonCVA
                             type="button"
                             onClick={handleRetire}
                             disabled={retiring}
-                            className="rounded-lg bg-error px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            variant="destructive"
+                            size="sm"
                           >
                             {retiring ? 'Retiring...' : 'Confirm Retire'}
-                          </button>
-                          <button
+                          </ButtonCVA>
+                          <ButtonCVA
                             type="button"
                             onClick={() => {
                               setIsConfirmingRetire(false);
                               setRetireError(null);
                             }}
                             disabled={retiring}
-                            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                            variant="outline"
+                            size="sm"
                           >
                             Cancel
-                          </button>
+                          </ButtonCVA>
                         </div>
                       </div>
                     ) : (
@@ -427,13 +416,15 @@ export default function AgentDetailPage({ params }: PageProps) {
                         <p className="text-sm text-muted-foreground">
                           Remove this agent from the registry permanently.
                         </p>
-                        <button
+                        <ButtonCVA
                           type="button"
                           onClick={() => setIsConfirmingRetire(true)}
-                          className="shrink-0 rounded-lg border border-error/30 px-3 py-1.5 text-sm font-medium text-error transition-colors hover:border-error/50 hover:text-error"
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0 border-error/30 text-error hover:border-error/50 hover:text-error"
                         >
                           Retire Agent
-                        </button>
+                        </ButtonCVA>
                       </div>
                     )}
                   </div>
@@ -442,27 +433,29 @@ export default function AgentDetailPage({ params }: PageProps) {
 
               {/* Right: Task tester + history */}
               <div className="flex flex-col gap-6">
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   <div className="mb-4 flex items-center justify-between gap-2">
                     <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                       Task Tester
                     </h2>
-                    <a
+                    <LinkButton
                       href={`/agents/${encodeURIComponent(agentId)}/run`}
-                      className="rounded-md border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success transition-colors hover:bg-success/20"
+                      variant="outline"
+                      size="sm"
+                      className="border-success/30 bg-success/10 text-success hover:bg-success/20"
                       title="Stream agent execution live (Stage 5 surface)"
                     >
                       Watch live ↗
-                    </a>
+                    </LinkButton>
                   </div>
                   <TaskTester
                     agentId={agentId}
                     agentName={card.name}
                     onComplete={() => setTaskRefreshKey((k) => k + 1)}
                   />
-                </div>
+                </Card>
 
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Agent Memory
                     <span className="ml-2 text-xs font-normal normal-case text-muted-foreground">
@@ -470,16 +463,16 @@ export default function AgentDetailPage({ params }: PageProps) {
                     </span>
                   </h2>
                   <AgentMemory agentId={agentId} />
-                </div>
+                </Card>
 
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Task History
                   </h2>
                   <TaskHistory agentId={agentId} refreshKey={taskRefreshKey} />
-                </div>
+                </Card>
 
-                <div className="rounded-xl border border-border bg-card p-5">
+                <Card className="p-5">
                   <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-muted-foreground">
                     Agent Contexts
                     <span className="ml-2 text-xs font-normal normal-case text-muted-foreground">
@@ -487,7 +480,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                     </span>
                   </h2>
                   <AgentContexts agentId={agentId} />
-                </div>
+                </Card>
               </div>
             </div>
           )}

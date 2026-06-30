@@ -2,7 +2,9 @@
 
 const SAVED_FEEDBACK_MS = 2_000;
 
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { Input, Select } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
+import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -141,35 +143,22 @@ export default function ApiKeysPage() {
 
             <div className="mt-5 flex flex-col gap-4">
               {/* Provider selector */}
-              <div>
-                <label
-                  htmlFor="provider-select"
-                  className="block text-xs font-medium text-muted-foreground mb-1.5"
-                >
+              <Field>
+                <Label className="block text-xs font-medium text-muted-foreground mb-1.5">
                   Provider
-                </label>
-                <select
-                  id="provider-select"
-                  value={provider}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => setProvider(e.target.value as Provider)}
-                  className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-                >
+                </Label>
+                <Select value={provider} onChange={(e) => setProvider(e.target.value as Provider)}>
                   {PROVIDERS.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.label}
                     </option>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </Field>
 
               {/* API key input */}
-              <div>
-                <label
-                  htmlFor="api-key-input"
-                  className="block text-xs font-medium text-muted-foreground mb-1.5"
-                >
+              <Field>
+                <Label className="block text-xs font-medium text-muted-foreground mb-1.5">
                   API Key
                   {activeProviderInfo && (
                     <a
@@ -181,17 +170,14 @@ export default function ApiKeysPage() {
                       Get key ↗
                     </a>
                   )}
-                </label>
+                </Label>
                 <div className="relative">
-                  <input
-                    id="api-key-input"
+                  <Input
                     type={showKey ? 'text' : 'password'}
                     value={apiKey}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => setApiKey(e.target.value)}
+                    onChange={(e) => setApiKey(e.target.value)}
                     placeholder={activeProviderInfo?.placeholder ?? ''}
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2 pr-16 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none font-mono"
+                    className="pr-16 font-mono"
                   />
                   <button
                     type="button"
@@ -201,7 +187,7 @@ export default function ApiKeysPage() {
                     {showKey ? 'hide' : 'show'}
                   </button>
                 </div>
-              </div>
+              </Field>
 
               {/* Actions */}
               <div className="flex items-center gap-2 pt-1">

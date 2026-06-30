@@ -13,7 +13,20 @@
 
 'use client';
 
-import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import {
+  Badge,
+  ButtonCVA,
+  Input,
+  LinkButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
+import { useCallback, useEffect, useState } from 'react';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { UsageDashboard } from '@/lib/components/mcp/usage-dashboard';
 import type { CollectionMcpSummary } from '@/lib/mcp/collections';
@@ -142,12 +155,9 @@ export default function McpCatalogPage() {
               Built-in and OAuth-authorized servers, content exposure, and per-meter usage
             </p>
           </div>
-          <a
-            href="/mcp/connect"
-            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90"
-          >
+          <LinkButton href="/mcp/connect" variant="default">
             Connect new server
-          </a>
+          </LinkButton>
         </div>
       </div>
 
@@ -191,39 +201,32 @@ export default function McpCatalogPage() {
               onSubmit={handleLoadTenant}
               className="mb-8 rounded-lg border border-border bg-card p-4"
             >
-              <label
-                htmlFor="tenant-input"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
-              >
-                Tenant
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  id="tenant-input"
-                  name="tenant"
-                  type="text"
-                  value={tenant}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => setTenant(e.target.value)}
-                  pattern="[A-Za-z0-9_-]{1,64}"
-                  placeholder="acme"
-                  className="w-64 rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-                <button
-                  type="submit"
-                  disabled={!tenant.trim() || state === 'loading'}
-                  className="rounded-md bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-foreground/10 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {state === 'loading' ? 'Loading…' : 'Load'}
-                </button>
-                {activeTenant && state === 'ready' && (
-                  <span className="text-xs text-muted-foreground">
-                    Showing remote servers for{' '}
-                    <span className="font-mono text-muted-foreground">{activeTenant}</span>
-                  </span>
-                )}
-              </div>
+              <Field>
+                <Label>Tenant</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    name="tenant"
+                    type="text"
+                    value={tenant}
+                    onChange={(e) => setTenant(e.target.value)}
+                    pattern="[A-Za-z0-9_-]{1,64}"
+                    placeholder="acme"
+                  />
+                  <ButtonCVA
+                    type="submit"
+                    variant="outline"
+                    disabled={!tenant.trim() || state === 'loading'}
+                  >
+                    {state === 'loading' ? 'Loading…' : 'Load'}
+                  </ButtonCVA>
+                  {activeTenant && state === 'ready' && (
+                    <span className="text-xs text-muted-foreground">
+                      Showing remote servers for{' '}
+                      <span className="font-mono text-muted-foreground">{activeTenant}</span>
+                    </span>
+                  )}
+                </div>
+              </Field>
             </form>
 
             {/* Remote servers (per tenant) */}
@@ -244,54 +247,48 @@ export default function McpCatalogPage() {
               )}
               {remotes.length > 0 && (
                 <div className="overflow-hidden rounded-lg border border-border">
-                  <table className="w-full text-sm">
-                    <thead className="bg-card">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                          Server
-                        </th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                          Tenant
-                        </th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                          State
-                        </th>
-                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableHeader>Server</TableHeader>
+                        <TableHeader>Tenant</TableHeader>
+                        <TableHeader>State</TableHeader>
+                        <TableHeader className="text-right">Actions</TableHeader>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
                       {remotes.map((r) => (
-                        <tr key={`${r.tenant}/${r.server}`} className="border-t border-border">
-                          <td className="px-4 py-3 font-mono text-muted-foreground">{r.server}</td>
-                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                        <TableRow key={`${r.tenant}/${r.server}`}>
+                          <TableCell className="font-mono text-muted-foreground">
+                            {r.server}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
                             {r.tenant}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-                              {r.connectionState}
-                            </span>
-                          </td>
-                          <td className="flex items-center justify-end gap-3 px-4 py-3 text-right">
-                            <a
-                              href={`/mcp/inspect?tenant=${encodeURIComponent(r.tenant)}&server=${encodeURIComponent(r.server)}`}
-                              className="text-xs font-medium text-success hover:text-success"
-                            >
-                              Inspect
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => void handleDisconnect(r.server)}
-                              className="text-xs font-medium text-error hover:text-error"
-                            >
-                              Disconnect
-                            </button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                          <TableCell>
+                            <Badge color="success">{r.connectionState}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-3">
+                              <a
+                                href={`/mcp/inspect?tenant=${encodeURIComponent(r.tenant)}&server=${encodeURIComponent(r.server)}`}
+                                className="text-xs font-medium text-success hover:text-success"
+                              >
+                                Inspect
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => void handleDisconnect(r.server)}
+                                className="text-xs font-medium text-error hover:text-error"
+                              >
+                                Disconnect
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </section>
@@ -317,42 +314,34 @@ export default function McpCatalogPage() {
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
-                  <table className="w-full text-sm">
-                    <thead className="bg-card">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                          Slug
-                        </th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                          Label
-                        </th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                          Exposure
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableHeader>Slug</TableHeader>
+                        <TableHeader>Label</TableHeader>
+                        <TableHeader>Exposure</TableHeader>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
                       {collections.map((c) => (
-                        <tr key={c.slug} className="border-t border-border">
-                          <td className="px-4 py-3 font-mono text-muted-foreground">{c.slug}</td>
-                          <td className="px-4 py-3 text-muted-foreground">
+                        <TableRow key={c.slug}>
+                          <TableCell className="font-mono text-muted-foreground">
+                            {c.slug}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {c.labelPlural ?? c.label}
-                          </td>
-                          <td className="px-4 py-3">
+                          </TableCell>
+                          <TableCell>
                             {c.mcpResource ? (
-                              <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
-                                exposed
-                              </span>
+                              <Badge color="success">exposed</Badge>
                             ) : (
-                              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                                hidden
-                              </span>
+                              <Badge color="muted">hidden</Badge>
                             )}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </section>

@@ -38,12 +38,12 @@ function FormField({
       </FormLabel>
       {children}
       {description && !error && (
-        <p id={descriptionId} className="text-xs text-zinc-500 dark:text-zinc-400">
+        <p id={descriptionId} className="text-xs text-muted-foreground">
           {description}
         </p>
       )}
       {error && (
-        <p id={errorId} role="alert" className="text-xs text-red-600 dark:text-red-400">
+        <p id={errorId} role="alert" className="text-xs text-destructive">
           {error}
         </p>
       )}
