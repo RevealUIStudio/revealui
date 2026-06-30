@@ -37,10 +37,10 @@ export function ErrorFallback({
       <div
         style={{
           padding: '12px',
-          backgroundColor: '#fee',
-          border: '1px solid #fcc',
+          backgroundColor: 'var(--rvui-error-subtle, #fee)',
+          border: '1px solid var(--rvui-error, #fcc)',
           borderRadius: '4px',
-          color: '#c00',
+          color: 'var(--rvui-error, #c00)',
         }}
       >
         <strong>{title}</strong>
@@ -53,7 +53,7 @@ export function ErrorFallback({
               marginTop: '8px',
               padding: '4px 12px',
               fontSize: '12px',
-              backgroundColor: '#c00',
+              backgroundColor: 'var(--rvui-error, #c00)',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
@@ -74,15 +74,15 @@ export function ErrorFallback({
         padding: '24px',
         maxWidth: '600px',
         margin: '40px auto',
-        backgroundColor: '#fff',
-        border: '2px solid #f44336',
+        backgroundColor: 'var(--rvui-surface-0, #fff)',
+        border: '2px solid var(--rvui-error, #f44336)',
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       }}
     >
-      <h2 style={{ color: '#f44336', marginTop: 0 }}>{title}</h2>
+      <h2 style={{ color: 'var(--rvui-error, #f44336)', marginTop: 0 }}>{title}</h2>
 
-      <p style={{ color: '#666', lineHeight: 1.6 }}>
+      <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>
         {message || 'An unexpected error occurred. Please try again.'}
       </p>
 
@@ -92,9 +92,9 @@ export function ErrorFallback({
             style={{
               cursor: 'pointer',
               fontWeight: 'bold',
-              color: '#333',
+              color: 'var(--rvui-text-1, #333)',
               padding: '8px',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: 'var(--rvui-surface-2, #f5f5f5)',
               borderRadius: '4px',
             }}
           >
@@ -105,11 +105,11 @@ export function ErrorFallback({
             style={{
               marginTop: '8px',
               padding: '12px',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: 'var(--rvui-surface-2, #f5f5f5)',
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '12px',
-              color: '#c00',
+              color: 'var(--rvui-error, #c00)',
             }}
           >
             {error.name}: {error.message}
@@ -125,7 +125,7 @@ export function ErrorFallback({
             onClick={onRetry}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#2196f3',
+              backgroundColor: 'var(--rvui-brand, #2196f3)',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
@@ -143,9 +143,9 @@ export function ErrorFallback({
             onClick={onDismiss}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#fff',
-              color: '#666',
-              border: '1px solid #ddd',
+              backgroundColor: 'var(--rvui-surface-0, #fff)',
+              color: 'var(--rvui-text-2, #666)',
+              border: '1px solid var(--rvui-border, #ddd)',
               borderRadius: '4px',
               cursor: 'pointer',
             }}
@@ -178,8 +178,8 @@ export function NetworkErrorFallback({
       }}
     >
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>📡</div>
-      <h3 style={{ color: '#333', marginTop: 0 }}>Connection Error</h3>
-      <p style={{ color: '#666', lineHeight: 1.6 }}>{message}</p>
+      <h3 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>Connection Error</h3>
+      <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>{message}</p>
       {onRetry && (
         <button
           type="button"
@@ -187,7 +187,7 @@ export function NetworkErrorFallback({
           style={{
             marginTop: '16px',
             padding: '10px 20px',
-            backgroundColor: '#2196f3',
+            backgroundColor: 'var(--rvui-brand, #2196f3)',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
@@ -224,8 +224,8 @@ export function NotFoundFallback({
       }}
     >
       <div style={{ fontSize: '72px', marginBottom: '16px' }}>404</div>
-      <h2 style={{ color: '#333', marginTop: 0 }}>{title}</h2>
-      <p style={{ color: '#666', lineHeight: 1.6 }}>{message}</p>
+      <h2 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>{title}</h2>
+      <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>{message}</p>
       {onGoHome && (
         <button
           type="button"
@@ -233,7 +233,7 @@ export function NotFoundFallback({
           style={{
             marginTop: '16px',
             padding: '10px 20px',
-            backgroundColor: '#2196f3',
+            backgroundColor: 'var(--rvui-brand, #2196f3)',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
@@ -298,13 +298,13 @@ export function LoadingFallback({
           width: '40px',
           height: '40px',
           margin: '0 auto 16px',
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #2196f3',
+          border: '4px solid var(--rvui-surface-2, #f3f3f3)',
+          borderTop: '4px solid var(--rvui-brand, #2196f3)',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
         }}
       />
-      <p style={{ color: '#666' }}>{message}</p>
+      <p style={{ color: 'var(--rvui-text-2, #666)' }}>{message}</p>
 
       <style>
         {`
@@ -333,10 +333,10 @@ export function OfflineFallback({
       <div
         style={{
           padding: '12px 16px',
-          backgroundColor: '#fff3cd',
-          borderBottom: '1px solid #ffc107',
+          backgroundColor: 'var(--rvui-warning-subtle, #fff3cd)',
+          borderBottom: '1px solid var(--rvui-warning, #ffc107)',
           textAlign: 'center',
-          color: '#856404',
+          color: 'var(--rvui-warning-text, #856404)',
         }}
       >
         <strong>⚠️ Offline Mode</strong>
@@ -370,10 +370,10 @@ export function DegradedServiceFallback({
       <div
         style={{
           padding: '12px 16px',
-          backgroundColor: '#fff3cd',
-          borderBottom: '1px solid #ffc107',
+          backgroundColor: 'var(--rvui-warning-subtle, #fff3cd)',
+          borderBottom: '1px solid var(--rvui-warning, #ffc107)',
           textAlign: 'center',
-          color: '#856404',
+          color: 'var(--rvui-warning-text, #856404)',
         }}
       >
         <strong>⚠️ Service Degraded</strong>
@@ -406,10 +406,14 @@ export function MaintenanceFallback({
       }}
     >
       <div style={{ fontSize: '64px', marginBottom: '24px' }}>🔧</div>
-      <h1 style={{ color: '#333', marginTop: 0 }}>{title}</h1>
-      <p style={{ color: '#666', lineHeight: 1.6, fontSize: '16px' }}>{message}</p>
+      <h1 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>{title}</h1>
+      <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6, fontSize: '16px' }}>
+        {message}
+      </p>
       {estimatedTime && (
-        <p style={{ color: '#999', marginTop: '16px' }}>Estimated completion: {estimatedTime}</p>
+        <p style={{ color: 'var(--rvui-text-2, #999)', marginTop: '16px' }}>
+          Estimated completion: {estimatedTime}
+        </p>
       )}
     </div>
   );
@@ -437,8 +441,8 @@ export function PermissionDeniedFallback({
       }}
     >
       <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔒</div>
-      <h2 style={{ color: '#333', marginTop: 0 }}>Access Denied</h2>
-      <p style={{ color: '#666', lineHeight: 1.6 }}>{message}</p>
+      <h2 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>Access Denied</h2>
+      <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>{message}</p>
       <div style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
         {onRequestAccess && (
           <button
@@ -446,7 +450,7 @@ export function PermissionDeniedFallback({
             onClick={onRequestAccess}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#2196f3',
+              backgroundColor: 'var(--rvui-brand, #2196f3)',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
@@ -463,9 +467,9 @@ export function PermissionDeniedFallback({
             onClick={onGoBack}
             style={{
               padding: '10px 20px',
-              backgroundColor: '#fff',
-              color: '#666',
-              border: '1px solid #ddd',
+              backgroundColor: 'var(--rvui-surface-0, #fff)',
+              color: 'var(--rvui-text-2, #666)',
+              border: '1px solid var(--rvui-border, #ddd)',
               borderRadius: '4px',
               cursor: 'pointer',
             }}
@@ -583,8 +587,8 @@ export function FeatureUnavailableFallback({
       }}
     >
       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
-      <h3 style={{ color: '#333', marginTop: 0 }}>Feature Unavailable</h3>
-      <p style={{ color: '#666', lineHeight: 1.6 }}>
+      <h3 style={{ color: 'var(--rvui-text-1, #333)', marginTop: 0 }}>Feature Unavailable</h3>
+      <p style={{ color: 'var(--rvui-text-2, #666)', lineHeight: 1.6 }}>
         {message || `The "${featureName}" feature is currently unavailable.`}
       </p>
     </div>
@@ -606,10 +610,10 @@ export function InlineError({
       role="alert"
       style={{
         padding: '12px 16px',
-        backgroundColor: '#fee',
-        border: '1px solid #fcc',
+        backgroundColor: 'var(--rvui-error-subtle, #fee)',
+        border: '1px solid var(--rvui-error, #fcc)',
         borderRadius: '4px',
-        color: '#c00',
+        color: 'var(--rvui-error, #c00)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -626,7 +630,7 @@ export function InlineError({
           style={{
             background: 'none',
             border: 'none',
-            color: '#c00',
+            color: 'var(--rvui-error, #c00)',
             cursor: 'pointer',
             fontSize: '18px',
             padding: '0 4px',
@@ -654,10 +658,10 @@ export function SuccessMessage({
     <output
       style={{
         padding: '12px 16px',
-        backgroundColor: '#efe',
-        border: '1px solid #cec',
+        backgroundColor: 'var(--rvui-success-subtle, #efe)',
+        border: '1px solid var(--rvui-success, #cec)',
         borderRadius: '4px',
-        color: '#060',
+        color: 'var(--rvui-success, #060)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -674,7 +678,7 @@ export function SuccessMessage({
           style={{
             background: 'none',
             border: 'none',
-            color: '#060',
+            color: 'var(--rvui-success, #060)',
             cursor: 'pointer',
             fontSize: '18px',
             padding: '0 4px',
@@ -711,10 +715,30 @@ export function Toast({
   }, [duration, onDismiss]);
 
   const colors = {
-    success: { bg: '#efe', border: '#cec', text: '#060', icon: '✓' },
-    error: { bg: '#fee', border: '#fcc', text: '#c00', icon: '✗' },
-    warning: { bg: '#fff3cd', border: '#ffc107', text: '#856404', icon: '!' },
-    info: { bg: '#e7f3ff', border: '#2196f3', text: '#0c5393', icon: 'i' },
+    success: {
+      bg: 'var(--rvui-success-subtle, #efe)',
+      border: 'var(--rvui-success, #cec)',
+      text: 'var(--rvui-success, #060)',
+      icon: '✓',
+    },
+    error: {
+      bg: 'var(--rvui-error-subtle, #fee)',
+      border: 'var(--rvui-error, #fcc)',
+      text: 'var(--rvui-error, #c00)',
+      icon: '✗',
+    },
+    warning: {
+      bg: 'var(--rvui-warning-subtle, #fff3cd)',
+      border: 'var(--rvui-warning, #ffc107)',
+      text: 'var(--rvui-warning-text, #856404)',
+      icon: '!',
+    },
+    info: {
+      bg: 'var(--rvui-info-subtle, #e7f3ff)',
+      border: 'var(--rvui-brand, #2196f3)',
+      text: 'var(--rvui-brand, #0c5393)',
+      icon: 'i',
+    },
   };
 
   const color = colors[type];
@@ -779,7 +803,7 @@ export function Skeleton({
         width,
         height,
         borderRadius,
-        backgroundColor: '#e0e0e0',
+        backgroundColor: 'var(--rvui-surface-2, #e0e0e0)',
         animation: 'pulse 1.5s ease-in-out infinite',
       }}
     >
