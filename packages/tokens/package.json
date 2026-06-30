@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
-    "postcss": "^8.5.10",
+    "postcss": "^8.5.16",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
