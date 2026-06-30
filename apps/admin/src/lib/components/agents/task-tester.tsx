@@ -1,7 +1,8 @@
 'use client';
 
 import type { A2ATask } from '@revealui/contracts';
-import { Badge, ButtonCVA } from '@revealui/presentation';
+import { Badge, ButtonCVA, Textarea } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import { useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -112,22 +113,18 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <label
-          htmlFor="instruction"
-          className="block text-sm font-medium text-muted-foreground mb-1.5"
-        >
+      <Field>
+        <Label>
           Send a task to <span className="text-foreground">{agentName}</span>
-        </label>
-        <textarea
-          id="instruction"
+        </Label>
+        <Textarea
+          name="instruction"
           rows={4}
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           placeholder={`Tell ${agentName} what to do...`}
-          className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
         />
-      </div>
+      </Field>
 
       <ButtonCVA
         type="button"

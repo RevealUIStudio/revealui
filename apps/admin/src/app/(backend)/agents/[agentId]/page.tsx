@@ -1,7 +1,16 @@
 'use client';
 
 import type { A2AAgentCard } from '@revealui/contracts';
-import { Badge, Breadcrumb, ButtonCVA, Card, LinkButton } from '@revealui/presentation';
+import {
+  Badge,
+  Breadcrumb,
+  ButtonCVA,
+  Card,
+  Input,
+  LinkButton,
+  Textarea,
+} from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, use, useEffect, useState } from 'react';
 import { AgentContexts } from '@/lib/components/agents/agent-contexts';
@@ -188,63 +197,39 @@ export default function AgentDetailPage({ params }: PageProps) {
                 <Card className="p-5">
                   {isEditing ? (
                     <div className="flex flex-col gap-4">
-                      <div>
-                        <label
-                          htmlFor="edit-name"
-                          className="block text-xs font-medium text-muted-foreground mb-1.5"
-                        >
-                          Name
-                        </label>
-                        <input
-                          id="edit-name"
+                      <Field>
+                        <Label>Name</Label>
+                        <Input
+                          name="editName"
                           type="text"
                           value={editName}
-                          onChange={(
-                            e: ChangeEvent<
-                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                            >,
-                          ) => setEditName(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setEditName(e.target.value)
+                          }
                         />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="edit-description"
-                          className="block text-xs font-medium text-muted-foreground mb-1.5"
-                        >
-                          Description
-                        </label>
-                        <input
-                          id="edit-description"
+                      </Field>
+                      <Field>
+                        <Label>Description</Label>
+                        <Input
+                          name="editDescription"
                           type="text"
                           value={editDescription}
-                          onChange={(
-                            e: ChangeEvent<
-                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                            >,
-                          ) => setEditDescription(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setEditDescription(e.target.value)
+                          }
                         />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="edit-system-prompt"
-                          className="block text-xs font-medium text-muted-foreground mb-1.5"
-                        >
-                          System Prompt
-                        </label>
-                        <textarea
-                          id="edit-system-prompt"
+                      </Field>
+                      <Field>
+                        <Label>System Prompt</Label>
+                        <Textarea
+                          name="editSystemPrompt"
                           rows={7}
                           value={editSystemPrompt}
-                          onChange={(
-                            e: ChangeEvent<
-                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                            >,
-                          ) => setEditSystemPrompt(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
+                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                            setEditSystemPrompt(e.target.value)
+                          }
                         />
-                      </div>
+                      </Field>
                       {/* Inline save error — Alert primitive is a modal dialog, not applicable */}
                       {saveError && (
                         <div
