@@ -61,13 +61,21 @@ export {
 } from './dropdown.js';
 export { EmptyState } from './empty-state.js';
 export { FormLabel, type FormLabelProps } from './FormLabel.js';
-export { Field, FieldGroup, Fieldset, Legend } from './fieldset.js';
+export {
+  Description,
+  ErrorMessage,
+  Field,
+  FieldGroup,
+  Fieldset,
+  Label as FieldLabel,
+  Legend,
+} from './fieldset.js';
 export { FormField, type FormFieldProps } from './form-field.js';
 export { Heading, Subheading } from './heading.js';
 export { Input as InputCVA, type InputProps } from './Input.js';
 export { Input, InputGroup } from './input-headless.js';
 export { Kbd, KbdShortcut } from './kbd.js';
-export { Label, type LabelProps } from './Label.js';
+export { Label, Label as ControlLabel, type LabelProps } from './Label.js';
 export {
   type LinkBehavior,
   LinkButton,

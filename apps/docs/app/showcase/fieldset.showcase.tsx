@@ -5,9 +5,9 @@ import {
   FieldGroup,
   Fieldset,
   FieldsetLabel,
+  Input,
   Legend,
 } from '@revealui/presentation/client';
-import { InputCVA } from '@revealui/presentation/server';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
 const story: ShowcaseStory = {
@@ -27,12 +27,12 @@ const story: ShowcaseStory = {
       <FieldGroup>
         <Field>
           <FieldsetLabel>Full Name</FieldsetLabel>
-          <InputCVA placeholder="Jane Doe" />
+          <Input placeholder="Jane Doe" />
         </Field>
         <Field>
           <FieldsetLabel>Email</FieldsetLabel>
           <Description>We&apos;ll never share your email.</Description>
-          <InputCVA type="email" placeholder="jane@example.com" />
+          <Input type="email" placeholder="jane@example.com" />
         </Field>
       </FieldGroup>
     </Fieldset>
@@ -47,7 +47,7 @@ const story: ShowcaseStory = {
           <FieldGroup>
             <Field>
               <FieldsetLabel>Password</FieldsetLabel>
-              <InputCVA type="password" placeholder="••••••••" />
+              <Input type="password" placeholder="••••••••" />
               <ErrorMessage>Password must be at least 8 characters.</ErrorMessage>
             </Field>
           </FieldGroup>

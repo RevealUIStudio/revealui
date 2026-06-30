@@ -32,7 +32,7 @@ export { EmptyState } from './components/empty-state.js';
 export { FormLabel, type FormLabelProps } from './components/FormLabel.js';
 export { FormField, type FormFieldProps } from './components/form-field.js';
 export { Input as InputCVA, type InputProps } from './components/Input.js';
-export { Label, type LabelProps } from './components/Label.js';
+export { Label, Label as ControlLabel, type LabelProps } from './components/Label.js';
 export {
   Pagination,
   PaginationContent,

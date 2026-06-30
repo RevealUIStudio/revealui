@@ -74,12 +74,14 @@ export {
   Field,
   FieldGroup,
   Fieldset,
+  Label,
   Label as FieldsetLabel,
   Legend,
 } from './components/fieldset.js';
 export { Heading, Subheading } from './components/heading.js';
 export { Input, InputGroup } from './components/input-headless.js';
 export { Kbd, KbdShortcut } from './components/kbd.js';
+export { Label as ControlLabel, type LabelProps } from './components/Label.js';
 export {
   LinkButton,
   type LinkButtonOwnProps,
