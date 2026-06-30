@@ -14,7 +14,8 @@
 
 'use client';
 
-import { Breadcrumb, ButtonCVA, Card } from '@revealui/presentation';
+import { Breadcrumb, ButtonCVA, Card, Select, Textarea } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { type ChangeEvent, use, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -67,38 +68,32 @@ export default function AgentRunPage({ params }: PageProps) {
 
         <Card className="p-4">
           <form onSubmit={handleStart} className="space-y-3">
-            <label
-              htmlFor="instruction"
-              className="block text-sm font-medium text-muted-foreground"
-            >
-              Instruction
-            </label>
-            <textarea
-              id="instruction"
-              value={instruction}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setInstruction(e.target.value)}
-              disabled={stream.isStreaming}
-              rows={4}
-              placeholder="What would you like the agent to do?"
-              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
-            />
+            <Field>
+              <Label>Instruction</Label>
+              <Textarea
+                name="instruction"
+                value={instruction}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setInstruction(e.target.value)}
+                disabled={stream.isStreaming}
+                rows={4}
+                placeholder="What would you like the agent to do?"
+              />
+            </Field>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Mode</span>
-                <select
+              <Field>
+                <Label>Mode</Label>
+                <Select
+                  name="mode"
                   value={mode}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => setMode(e.target.value as 'admin' | 'coding')}
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    setMode(e.target.value as 'admin' | 'coding')
+                  }
                   disabled={stream.isStreaming}
-                  className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-60"
                 >
                   <option value="admin">admin</option>
                   <option value="coding">coding</option>
-                </select>
-              </label>
+                </Select>
+              </Field>
               <div className="flex-1" />
               {!stream.isStreaming && (
                 <ButtonCVA type="submit" disabled={!instruction.trim()} variant="default" size="sm">

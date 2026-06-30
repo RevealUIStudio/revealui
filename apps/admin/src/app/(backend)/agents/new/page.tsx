@@ -1,6 +1,15 @@
 'use client';
 
-import { Badge, Breadcrumb, ButtonCVA, Card, LinkButton } from '@revealui/presentation';
+import {
+  Badge,
+  Breadcrumb,
+  ButtonCVA,
+  Card,
+  Input,
+  LinkButton,
+  Textarea,
+} from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useReducer } from 'react';
@@ -288,24 +297,19 @@ export default function NewAgentPage() {
                   2. Configure agent
                 </h2>
 
-                {/* Agent Name */}
-                <div>
-                  <label
-                    htmlFor="agent-name"
-                    className="block text-sm font-medium text-muted-foreground mb-1.5"
-                  >
+                <Field>
+                  <Label>
                     Name <span className="text-error">*</span>
-                  </label>
-                  <input
-                    id="agent-name"
+                  </Label>
+                  <Input
+                    name="name"
                     type="text"
                     required
                     value={name}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => handleNameChange(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      handleNameChange(e.target.value)
+                    }
                     placeholder={`e.g. ${tpl?.label ?? 'My Agent'}`}
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   />
                   {name.trim() && (
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -319,47 +323,33 @@ export default function NewAgentPage() {
                       </code>
                     </p>
                   )}
-                </div>
+                </Field>
 
-                {/* Description */}
-                <div>
-                  <label
-                    htmlFor="agent-desc"
-                    className="block text-sm font-medium text-muted-foreground mb-1.5"
-                  >
-                    Description
-                  </label>
-                  <input
-                    id="agent-desc"
+                <Field>
+                  <Label>Description</Label>
+                  <Input
+                    name="description"
                     type="text"
                     value={description}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })
+                    }
                     placeholder={tpl?.description ?? 'What does this agent do?'}
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
                   />
-                </div>
+                </Field>
 
-                {/* System Prompt */}
-                <div>
-                  <label
-                    htmlFor="agent-prompt"
-                    className="block text-sm font-medium text-muted-foreground mb-1.5"
-                  >
-                    System Prompt
-                  </label>
-                  <textarea
-                    id="agent-prompt"
+                <Field>
+                  <Label>System Prompt</Label>
+                  <Textarea
+                    name="systemPrompt"
                     rows={6}
                     value={systemPrompt}
-                    onChange={(
-                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                    ) => dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                      dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })
+                    }
                     placeholder="Describe the agent's role, personality, and constraints..."
-                    className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none resize-none"
                   />
-                </div>
+                </Field>
 
                 {/* Model info (read-only) */}
                 <Card className="px-4 py-3 text-xs text-muted-foreground">
