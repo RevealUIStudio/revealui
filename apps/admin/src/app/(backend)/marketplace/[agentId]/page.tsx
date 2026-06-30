@@ -1,9 +1,9 @@
 'use client';
 
-import { Badge, ButtonCVA, Card, Skeleton } from '@revealui/presentation';
+import { Badge, ButtonCVA, Card, Select, Skeleton, Slider, Textarea } from '@revealui/presentation';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -318,13 +318,11 @@ function ReviewsPanel({
             <div className="mb-3">
               <label className="block text-sm text-muted-foreground mb-1">
                 Comment (optional)
-                <textarea
+                <Textarea
                   value={comment}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => setComment(e.target.value)}
+                  onChange={(e) => setComment(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                  className="mt-1"
                   placeholder="Share your experience..."
                 />
               </label>
@@ -450,19 +448,17 @@ function SubmitTaskPanel({
           {skills.length === 0 ? (
             <span className="block mt-1 text-muted-foreground">No skills available</span>
           ) : (
-            <select
+            <Select
               value={selectedSkill}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setSelectedSkill(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-border bg-card px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => setSelectedSkill(e.target.value)}
+              className="mt-1"
             >
               {skills.map((skill) => (
                 <option key={skill.id} value={skill.name}>
                   {skill.name} - {skill.description}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </label>
       </div>
@@ -471,13 +467,11 @@ function SubmitTaskPanel({
       <div className="mb-4">
         <label className="block text-sm text-muted-foreground mb-1">
           Input (JSON)
-          <textarea
+          <Textarea
             value={inputJson}
-            onChange={(
-              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-            ) => setInputJson(e.target.value)}
+            onChange={(e) => setInputJson(e.target.value)}
             rows={8}
-            className="mt-1 w-full font-mono rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+            className="mt-1 font-mono"
             placeholder='{"key": "value"}'
           />
         </label>
@@ -485,19 +479,15 @@ function SubmitTaskPanel({
 
       {/* Priority */}
       <div className="mb-4">
-        <label className="block text-sm text-muted-foreground mb-1">
-          Priority (1=low, 5=critical)
-          <input
-            type="range"
-            min={1}
-            max={5}
-            value={priority}
-            onChange={(
-              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-            ) => setPriority(Number(e.target.value))}
-            className="mt-1 w-full"
-          />
-        </label>
+        <Slider
+          label="Priority (1=low, 5=critical)"
+          min={1}
+          max={5}
+          step={1}
+          value={priority}
+          onChange={(value) => setPriority(value)}
+          className="mt-1"
+        />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>Low</span>
           <span>Normal</span>
