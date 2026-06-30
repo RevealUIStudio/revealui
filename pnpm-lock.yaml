@@ -339,7 +339,7 @@ importers:
         version: 13.3.0
       '@vercel/speed-insights':
         specifier: ^2.0.0
-        version: 2.0.0(next@16.2.9(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
+        version: 2.0.0(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -527,7 +527,7 @@ importers:
         version: 10.59.0(react@19.2.7)
       '@vercel/speed-insights':
         specifier: ^2.0.0
-        version: 2.0.0(next@16.2.9(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
+        version: 2.0.0(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
       react:
         specifier: '>=19.2.4'
         version: 19.2.7
@@ -591,13 +591,13 @@ importers:
         version: 2.1.0(typescript@6.0.3)
       '@hono/node-server':
         specifier: ^1.19.14
-        version: 1.19.14(hono@4.12.26)
+        version: 1.19.14(hono@4.12.27)
       '@hono/node-ws':
         specifier: ^1.3.1
-        version: 1.3.1(@hono/node-server@1.19.14(hono@4.12.26))(hono@4.12.26)
+        version: 1.3.1(@hono/node-server@1.19.14(hono@4.12.27))(hono@4.12.27)
       '@hono/swagger-ui':
         specifier: ^0.6.1
-        version: 0.6.1(hono@4.12.26)
+        version: 0.6.1(hono@4.12.27)
       '@resvg/resvg-wasm':
         specifier: ^2.6.2
         version: 2.6.2
@@ -638,8 +638,8 @@ importers:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.5.3)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.22.0)
       hono:
-        specifier: 4.12.26
-        version: 4.12.26
+        specifier: 4.12.27
+        version: 4.12.27
       jose:
         specifier: 'catalog:'
         version: 5.10.0
@@ -1213,8 +1213,8 @@ importers:
         specifier: 'catalog:'
         version: 25.9.4
       hono:
-        specifier: 4.12.26
-        version: 4.12.26
+        specifier: 4.12.27
+        version: 4.12.27
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(@microsoft/api-extractor@7.58.9(@types/node@25.9.4))(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
@@ -1246,8 +1246,8 @@ importers:
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.17)
       hono:
-        specifier: ^4.12.26
-        version: 4.12.26
+        specifier: ^4.12.27
+        version: 4.12.27
       react:
         specifier: '>=19.2.4'
         version: 19.2.7
@@ -1359,13 +1359,13 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: ^1.19.14
-        version: 1.19.14(hono@4.12.26)
+        version: 1.19.14(hono@4.12.27)
       '@revealui/utils':
         specifier: workspace:*
         version: link:../utils
       hono:
-        specifier: 4.12.26
-        version: 4.12.26
+        specifier: 4.12.27
+        version: 4.12.27
     devDependencies:
       '@testing-library/jest-dom':
         specifier: 'catalog:'
@@ -1628,8 +1628,8 @@ importers:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.5.3)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.22.0)
       hono:
-        specifier: 4.12.26
-        version: 4.12.26
+        specifier: 4.12.27
+        version: 4.12.27
       stripe:
         specifier: 'catalog:'
         version: 22.2.2(@types/node@25.9.4)
@@ -6092,8 +6092,8 @@ packages:
     resolution: {integrity: sha512-Ox1pJVrDCyGHMG9CFg1tmrRUMRPRsAWYc/PinY0XzJU4K7y7vjNoLKIQ7BR5UJMCxNN8EM1MNDmHWA/B3aZUuw==}
     engines: {node: '>=6'}
 
-  hono@4.12.26:
-    resolution: {integrity: sha512-uyZtpnYxM9CmQ7QsQknM4zN8EftNqhON1qYeIKM0Se67CCEe2c44xyGURwB0axX2fBDu1dqHrHAc1hmNT8ITkw==}
+  hono@4.12.27:
+    resolution: {integrity: sha512-1yrb/+w6HWQJrUCLkJ2IF5jNIPvvFkblV5RNOYl6bV+OA6p9GLcMpHFFGTosSvHvcAUibuUukRqhlYI4z32C7Q==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@6.0.0:
@@ -9252,22 +9252,22 @@ snapshots:
 
   '@hexagon/base64@1.1.28': {}
 
-  '@hono/node-server@1.19.14(hono@4.12.26)':
+  '@hono/node-server@1.19.14(hono@4.12.27)':
     dependencies:
-      hono: 4.12.26
+      hono: 4.12.27
 
-  '@hono/node-ws@1.3.1(@hono/node-server@1.19.14(hono@4.12.26))(hono@4.12.26)':
+  '@hono/node-ws@1.3.1(@hono/node-server@1.19.14(hono@4.12.27))(hono@4.12.27)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.26)
-      hono: 4.12.26
+      '@hono/node-server': 1.19.14(hono@4.12.27)
+      hono: 4.12.27
       ws: 8.21.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@hono/swagger-ui@0.6.1(hono@4.12.26)':
+  '@hono/swagger-ui@0.6.1(hono@4.12.27)':
     dependencies:
-      hono: 4.12.26
+      hono: 4.12.27
 
   '@img/colour@1.1.0': {}
 
@@ -9893,7 +9893,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.29.0(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.26)
+      '@hono/node-server': 1.19.14(hono@4.12.27)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
@@ -9903,7 +9903,7 @@ snapshots:
       eventsource-parser: 3.1.0
       express: 5.2.1
       express-rate-limit: 8.5.2(express@5.2.1)
-      hono: 4.12.26
+      hono: 4.12.27
       jose: 6.2.3
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -9915,7 +9915,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.29.0(zod@4.4.3)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.26)
+      '@hono/node-server': 1.19.14(hono@4.12.27)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
@@ -9925,7 +9925,7 @@ snapshots:
       eventsource-parser: 3.1.0
       express: 5.2.1
       express-rate-limit: 8.5.2(express@5.2.1)
-      hono: 4.12.26
+      hono: 4.12.27
       jose: 6.2.3
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -11793,7 +11793,7 @@ snapshots:
     dependencies:
       zod: 4.4.3
 
-  '@vercel/speed-insights@2.0.0(next@16.2.9(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)':
+  '@vercel/speed-insights@2.0.0(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)':
     optionalDependencies:
       next: 16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react: 19.2.7
@@ -13220,7 +13220,7 @@ snapshots:
 
   hex-rgb@4.3.0: {}
 
-  hono@4.12.26: {}
+  hono@4.12.27: {}
 
   html-encoding-sniffer@6.0.0(@noble/hashes@1.8.0):
     dependencies:
