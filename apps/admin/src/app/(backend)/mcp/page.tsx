@@ -16,6 +16,7 @@
 import {
   Badge,
   ButtonCVA,
+  Input,
   LinkButton,
   Table,
   TableBody,
@@ -24,7 +25,8 @@ import {
   TableHeader,
   TableRow,
 } from '@revealui/presentation';
-import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { Field, Label } from '@revealui/presentation/client';
+import { useCallback, useEffect, useState } from 'react';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { UsageDashboard } from '@/lib/components/mcp/usage-dashboard';
 import type { CollectionMcpSummary } from '@/lib/mcp/collections';
@@ -199,39 +201,32 @@ export default function McpCatalogPage() {
               onSubmit={handleLoadTenant}
               className="mb-8 rounded-lg border border-border bg-card p-4"
             >
-              <label
-                htmlFor="tenant-input"
-                className="mb-1.5 block text-sm font-medium text-muted-foreground"
-              >
-                Tenant
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  id="tenant-input"
-                  name="tenant"
-                  type="text"
-                  value={tenant}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => setTenant(e.target.value)}
-                  pattern="[A-Za-z0-9_-]{1,64}"
-                  placeholder="acme"
-                  className="w-64 rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-                <ButtonCVA
-                  type="submit"
-                  variant="outline"
-                  disabled={!tenant.trim() || state === 'loading'}
-                >
-                  {state === 'loading' ? 'Loading…' : 'Load'}
-                </ButtonCVA>
-                {activeTenant && state === 'ready' && (
-                  <span className="text-xs text-muted-foreground">
-                    Showing remote servers for{' '}
-                    <span className="font-mono text-muted-foreground">{activeTenant}</span>
-                  </span>
-                )}
-              </div>
+              <Field>
+                <Label>Tenant</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    name="tenant"
+                    type="text"
+                    value={tenant}
+                    onChange={(e) => setTenant(e.target.value)}
+                    pattern="[A-Za-z0-9_-]{1,64}"
+                    placeholder="acme"
+                  />
+                  <ButtonCVA
+                    type="submit"
+                    variant="outline"
+                    disabled={!tenant.trim() || state === 'loading'}
+                  >
+                    {state === 'loading' ? 'Loading…' : 'Load'}
+                  </ButtonCVA>
+                  {activeTenant && state === 'ready' && (
+                    <span className="text-xs text-muted-foreground">
+                      Showing remote servers for{' '}
+                      <span className="font-mono text-muted-foreground">{activeTenant}</span>
+                    </span>
+                  )}
+                </div>
+              </Field>
             </form>
 
             {/* Remote servers (per tenant) */}

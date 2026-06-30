@@ -14,7 +14,8 @@
 
 'use client';
 
-import { ButtonCVA } from '@revealui/presentation';
+import { ButtonCVA, Input, Select } from '@revealui/presentation';
+import { Description, Field, Label } from '@revealui/presentation/client';
 import { useState } from 'react';
 
 // ---------------------------------------------------------------------------
@@ -49,7 +50,6 @@ interface ArgumentFieldProps {
 }
 
 export function ArgumentField({ name, prop, required, value, onChange }: ArgumentFieldProps) {
-  const inputId = `arg-${name}`;
   const placeholder =
     prop.default !== undefined
       ? `default: ${JSON.stringify(prop.default)}`
@@ -58,43 +58,34 @@ export function ArgumentField({ name, prop, required, value, onChange }: Argumen
         : (prop.type ?? 'string');
 
   return (
-    <div>
-      <label htmlFor={inputId} className="mb-1 block text-xs font-medium text-muted-foreground">
+    <Field>
+      <Label>
         {name}
         {required && <span className="ml-1 text-error">*</span>}
         <span className="ml-2 font-mono text-[10px] text-muted-foreground">
           {prop.type ?? 'string'}
         </span>
-      </label>
+      </Label>
       {prop.enum && prop.enum.length > 0 ? (
-        <select
-          id={inputId}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-        >
+        <Select value={value} onChange={(e) => onChange(e.target.value)}>
           <option value="">—</option>
           {prop.enum.map((opt) => (
             <option key={String(opt)} value={String(opt)}>
               {String(opt)}
             </option>
           ))}
-        </select>
+        </Select>
       ) : (
-        <input
-          id={inputId}
+        <Input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           required={required}
-          className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
         />
       )}
-      {prop.description && (
-        <p className="mt-1 text-[11px] text-muted-foreground">{prop.description}</p>
-      )}
-    </div>
+      {prop.description && <Description>{prop.description}</Description>}
+    </Field>
   );
 }
 
