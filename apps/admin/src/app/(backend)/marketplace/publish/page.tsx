@@ -1,9 +1,18 @@
 'use client';
 
-import { ButtonCVA, Card } from '@revealui/presentation';
+import {
+  ButtonCVA,
+  Card,
+  InputCVA,
+  Radio,
+  RadioField,
+  RadioGroup,
+  Select,
+  Textarea,
+} from '@revealui/presentation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -354,13 +363,11 @@ function StepBasicInfo({
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Agent Name</span>
-        <input
+        <InputCVA
           type="text"
           value={name}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setName(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          onChange={(e) => setName(e.target.value)}
+          className="mt-1 w-full"
           placeholder="Code Reviewer Pro"
         />
         {fieldError('name') && <p className="mt-1 text-xs text-error">{fieldError('name')}</p>}
@@ -368,13 +375,11 @@ function StepBasicInfo({
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Description</span>
-        <textarea
+        <Textarea
           value={description}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setDescription(e.target.value)
-          }
+          onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          className="mt-1"
           placeholder="An AI agent that reviews code for best practices, security issues, and performance..."
         />
         {fieldError('description') && (
@@ -384,30 +389,22 @@ function StepBasicInfo({
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Category</span>
-        <select
-          value={category}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setCategory(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-        >
+        <Select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1">
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Tags (comma-separated)</span>
-        <input
+        <InputCVA
           type="text"
           value={tags}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setTags(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          onChange={(e) => setTags(e.target.value)}
+          className="mt-1 w-full"
           placeholder="typescript, react, code-review"
         />
       </label>
@@ -456,37 +453,27 @@ function StepConfiguration({
 
       <div>
         <span className="block text-sm text-muted-foreground mb-2">Pricing Model</span>
-        <div className="space-y-2">
+        <RadioGroup
+          name="pricingModel"
+          value={pricingModel}
+          onChange={(value) => setPricingModel(value)}
+        >
           {PRICING_MODELS.map((pm) => (
-            <label
-              key={pm.value}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 cursor-pointer hover:border-border transition-colors"
-            >
-              <input
-                type="radio"
-                name="pricingModel"
-                value={pm.value}
-                checked={pricingModel === pm.value}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) => setPricingModel(e.target.value)}
-                className="accent-primary"
-              />
+            <RadioField key={pm.value}>
+              <Radio value={pm.value} />
               <span className="text-sm text-muted-foreground">{pm.label}</span>
-            </label>
+            </RadioField>
           ))}
-        </div>
+        </RadioGroup>
       </div>
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Base Price (USDC)</span>
-        <input
+        <InputCVA
           type="text"
           value={basePriceUsdc}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setBasePriceUsdc(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          onChange={(e) => setBasePriceUsdc(e.target.value)}
+          className="mt-1 w-full"
           placeholder="0.10"
         />
         {fieldError('basePriceUsdc') && (
@@ -496,27 +483,23 @@ function StepConfiguration({
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Max Execution Time (seconds)</span>
-        <input
+        <InputCVA
           type="number"
           value={maxExecutionSecs}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setMaxExecutionSecs(Number(e.target.value))
-          }
+          onChange={(e) => setMaxExecutionSecs(Number(e.target.value))}
           min={10}
           max={3600}
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          className="mt-1 w-full"
         />
       </label>
 
       <label className="block">
         <span className="text-sm text-muted-foreground">Agent Definition (JSON)</span>
-        <textarea
+        <Textarea
           value={definitionJson}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setDefinitionJson(e.target.value)
-          }
+          onChange={(e) => setDefinitionJson(e.target.value)}
           rows={8}
-          className="mt-1 w-full font-mono rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          className="mt-1 font-mono"
         />
         {fieldError('definition') && (
           <p className="mt-1 text-xs text-error">{fieldError('definition')}</p>
@@ -586,13 +569,11 @@ function StepSkills({
 
           <label className="block">
             <span className="text-xs text-muted-foreground">Name</span>
-            <input
+            <InputCVA
               type="text"
               value={skill.name}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'name', e.target.value)}
-              className="mt-1 w-full rounded border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => updateSkill(i, 'name', e.target.value)}
+              className="mt-1 w-full"
               placeholder="code-review"
             />
             {fieldError(`skill-${i}-name`) && (
@@ -602,13 +583,11 @@ function StepSkills({
 
           <label className="block">
             <span className="text-xs text-muted-foreground">Description</span>
-            <input
+            <InputCVA
               type="text"
               value={skill.description}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'description', e.target.value)}
-              className="mt-1 w-full rounded border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => updateSkill(i, 'description', e.target.value)}
+              className="mt-1 w-full"
               placeholder="Reviews code for bugs, security issues, and best practices"
             />
             {fieldError(`skill-${i}-description`) && (
@@ -618,13 +597,11 @@ function StepSkills({
 
           <label className="block">
             <span className="text-xs text-muted-foreground">Input Schema (JSON)</span>
-            <textarea
+            <Textarea
               value={skill.inputSchema}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'inputSchema', e.target.value)}
+              onChange={(e) => updateSkill(i, 'inputSchema', e.target.value)}
               rows={3}
-              className="mt-1 w-full font-mono rounded border border-border bg-muted px-3 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
+              className="mt-1 font-mono text-xs"
             />
             {fieldError(`skill-${i}-input`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-input`)}</p>
@@ -633,13 +610,11 @@ function StepSkills({
 
           <label className="block">
             <span className="text-xs text-muted-foreground">Output Schema (JSON)</span>
-            <textarea
+            <Textarea
               value={skill.outputSchema}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'outputSchema', e.target.value)}
+              onChange={(e) => updateSkill(i, 'outputSchema', e.target.value)}
               rows={3}
-              className="mt-1 w-full font-mono rounded border border-border bg-muted px-3 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
+              className="mt-1 font-mono text-xs"
             />
             {fieldError(`skill-${i}-output`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-output`)}</p>

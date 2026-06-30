@@ -158,7 +158,13 @@
         "useSimplifiedLogicExpression": "warn"
       },
       "a11y": {
-        "recommended": true
+        "recommended": true,
+        "noLabelWithoutControl": {
+          "level": "error",
+          "options": {
+            "inputComponents": ["Input", "InputCVA", "Textarea", "Select", "Slider", "Checkbox"]
+          }
+        }
       }
     }
   },

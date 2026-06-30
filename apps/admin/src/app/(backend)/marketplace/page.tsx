@@ -1,8 +1,8 @@
 'use client';
 
-import { Badge, EmptyState, LinkButton, Skeleton } from '@revealui/presentation';
+import { Badge, EmptyState, InputCVA, LinkButton, Select, Skeleton } from '@revealui/presentation';
 import Link from 'next/link';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -103,44 +103,30 @@ export default function MarketplacePage() {
         <div className="border-b border-border bg-muted px-6 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             {/* Search */}
-            <input
+            <InputCVA
               type="text"
               placeholder="Search agents..."
               value={search}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setSearch(e.target.value)}
-              className="flex-1 rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1"
             />
 
             {/* Category filter */}
-            <select
-              value={category}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setCategory(e.target.value)}
-              className="rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-            >
+            <Select value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat === 'all' ? 'All Categories' : cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </option>
               ))}
-            </select>
+            </Select>
 
             {/* Sort */}
-            <select
-              value={sort}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setSort(e.target.value as SortOption)}
-              className="rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-            >
+            <Select value={sort} onChange={(e) => setSort(e.target.value as SortOption)}>
               <option value="rating">Highest Rated</option>
               <option value="tasks">Most Used</option>
               <option value="newest">Newest</option>
               <option value="price">Lowest Price</option>
-            </select>
+            </Select>
           </div>
         </div>
 
