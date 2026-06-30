@@ -12,7 +12,7 @@
  * via the revvault-backed `McpOAuthProvider`.
  */
 
-import { ButtonCVA, Card } from '@revealui/presentation/server';
+import { ButtonCVA, Card, FormLabel, InputCVA } from '@revealui/presentation/server';
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -74,20 +74,16 @@ export default async function ConnectMcpServerPage({
           <form method="GET" action="/api/mcp/oauth/initiate">
             <div className="grid gap-4">
               <div>
-                <label
-                  htmlFor="tenant"
-                  className="mb-1.5 block text-sm font-medium text-muted-foreground"
-                >
+                <FormLabel htmlFor="tenant" required>
                   Tenant
-                </label>
-                <input
+                </FormLabel>
+                <InputCVA
                   id="tenant"
                   name="tenant"
                   type="text"
                   required
                   pattern="[A-Za-z0-9_-]{1,64}"
                   placeholder="acme"
-                  className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
                   Identifier under which tokens are scoped in revvault. Alphanumeric, underscore,
@@ -96,20 +92,16 @@ export default async function ConnectMcpServerPage({
               </div>
 
               <div>
-                <label
-                  htmlFor="server"
-                  className="mb-1.5 block text-sm font-medium text-muted-foreground"
-                >
+                <FormLabel htmlFor="server" required>
                   Server name
-                </label>
-                <input
+                </FormLabel>
+                <InputCVA
                   id="server"
                   name="server"
                   type="text"
                   required
                   pattern="[A-Za-z0-9_-]{1,64}"
                   placeholder="linear"
-                  className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
                   Short identifier for this MCP server. Used as the revvault path segment.
@@ -117,19 +109,15 @@ export default async function ConnectMcpServerPage({
               </div>
 
               <div>
-                <label
-                  htmlFor="serverUrl"
-                  className="mb-1.5 block text-sm font-medium text-muted-foreground"
-                >
+                <FormLabel htmlFor="serverUrl" required>
                   Server URL
-                </label>
-                <input
+                </FormLabel>
+                <InputCVA
                   id="serverUrl"
                   name="serverUrl"
                   type="url"
                   required
                   placeholder="https://mcp.example.com"
-                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
                   The MCP server&rsquo;s base URL. Must be HTTPS in production (localhost allowed

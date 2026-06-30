@@ -9,7 +9,8 @@
 
 'use client';
 
-import { ButtonCVA } from '@revealui/presentation';
+import { ButtonCVA, Select } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface LogEntry {
@@ -139,22 +140,20 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
-        <label htmlFor="log-level" className="text-xs font-medium text-muted-foreground">
-          Level
-        </label>
-        <select
-          id="log-level"
-          value={level}
-          onChange={(e) => setLevel(e.target.value as Level)}
-          disabled={state === 'streaming' || state === 'connecting'}
-          className="rounded-md border border-border bg-muted px-2 py-1 font-mono text-xs text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-        >
-          {LEVELS.map((l) => (
-            <option key={l} value={l}>
-              {l}
-            </option>
-          ))}
-        </select>
+        <Field>
+          <Label>Level</Label>
+          <Select
+            value={level}
+            onChange={(e) => setLevel(e.target.value as Level)}
+            disabled={state === 'streaming' || state === 'connecting'}
+          >
+            {LEVELS.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </Select>
+        </Field>
         {state === 'streaming' || state === 'connecting' ? (
           <ButtonCVA type="button" variant="outline" size="sm" onClick={stop}>
             Stop
