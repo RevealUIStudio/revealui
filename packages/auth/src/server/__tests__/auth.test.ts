@@ -68,6 +68,8 @@ vi.mock('@revealui/db/client', () => ({
 vi.mock('@revealui/db/schema', () => ({
   users: { email: 'email', id: 'id' },
   oauthAccounts: { providerEmail: 'providerEmail', id: 'id' },
+  accounts: { id: 'id', slug: 'slug' },
+  accountMemberships: { id: 'id', accountId: 'accountId', userId: 'userId' },
 }));
 
 vi.mock('drizzle-orm', () => ({
@@ -355,6 +357,35 @@ describe('auth', () => {
   // signUp
   // =========================================================================
   describe('signUp', () => {
+    // Personal-account provisioning at signup is hosted-only (license signing
+    // key present). Default to absent (Forge) so existing cases are unaffected;
+    // the hosted case sets it explicitly.
+    beforeEach(() => {
+      delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    });
+
+    it('provisions a personal account + owner membership on hosted SaaS', async () => {
+      process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'test-signing-key';
+      mockLimit.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      const result = await signUp('acct@example.com', 'StrongPass1', 'Acct User');
+      expect(result.success).toBe(true);
+
+      const valueCalls = mockInsertValues.mock.calls.map((c) => c[0]);
+      // account insert (Workspace name + slug) + owner membership insert
+      expect(
+        valueCalls.some(
+          (v) =>
+            typeof v.name === 'string' &&
+            v.name.includes('Workspace') &&
+            typeof v.slug === 'string',
+        ),
+      ).toBe(true);
+      expect(
+        valueCalls.some((v) => v.role === 'owner' && v.status === 'active' && Boolean(v.accountId)),
+      ).toBe(true);
+    });
+
     it('creates user and returns session token on success', async () => {
       // First limit call: user lookup (no existing)
       // Second limit call: OAuth check (no existing)

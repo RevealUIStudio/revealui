@@ -4,14 +4,17 @@ const SUCCESS_DISMISS_MS = 5_000;
 const ERROR_DISMISS_MS = 8_000;
 
 import { useMFASetup, usePasskeyRegister } from '@revealui/auth/react';
+import { Input } from '@revealui/presentation';
 import {
   Dialog,
   DialogActions,
   DialogDescription,
   DialogTitle,
+  Field,
+  Label,
 } from '@revealui/presentation/client';
 import { QRCodeSVG } from 'qrcode.react';
-import { type ChangeEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
@@ -516,28 +519,24 @@ function SecuritySettingsContent() {
                   </div>
 
                   {/* Verification */}
-                  <div>
-                    <label
-                      htmlFor="mfa-verify-code"
-                      className="text-xs font-medium text-muted-foreground"
-                    >
+                  <Field>
+                    <Label className="text-xs font-medium text-muted-foreground">
                       Enter a code from your authenticator app to verify
-                    </label>
+                    </Label>
                     <div className="mt-1 flex gap-2">
-                      <input
-                        id="mfa-verify-code"
+                      <Input
                         type="text"
                         inputMode="numeric"
                         autoComplete="one-time-code"
                         maxLength={6}
                         value={verifyCode}
-                        onChange={(
-                          e: ChangeEvent<
-                            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                          >,
-                        ) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+                        onChange={(e) =>
+                          setVerifyCode(
+                            [...e.target.value].filter((c) => c >= '0' && c <= '9').join(''),
+                          )
+                        }
                         placeholder="000000"
-                        className="w-32 rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+                        className="w-32"
                       />
                       <button
                         type="button"
@@ -555,7 +554,7 @@ function SecuritySettingsContent() {
                         Cancel
                       </button>
                     </div>
-                  </div>
+                  </Field>
                 </div>
               )}
 
@@ -578,44 +577,38 @@ function SecuritySettingsContent() {
                       {/* Disable 2FA */}
                       {showDisableForm ? (
                         <div className="rounded-lg border border-border p-3">
-                          <label
-                            htmlFor="mfa-disable-password"
-                            className="text-xs font-medium text-muted-foreground"
-                          >
-                            Confirm your password to disable 2FA
-                          </label>
-                          <div className="mt-1.5 flex flex-wrap gap-2">
-                            <input
-                              id="mfa-disable-password"
-                              type="password"
-                              value={disablePassword}
-                              onChange={(
-                                e: ChangeEvent<
-                                  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                                >,
-                              ) => setDisablePassword(e.target.value)}
-                              placeholder="Password"
-                              className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none sm:w-48"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => void handleDisableMFA()}
-                              disabled={disabling || !disablePassword.trim()}
-                              className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {disabling ? 'Disabling...' : 'Confirm'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowDisableForm(false);
-                                setDisablePassword('');
-                              }}
-                              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                          <Field>
+                            <Label className="text-xs font-medium text-muted-foreground">
+                              Confirm your password to disable 2FA
+                            </Label>
+                            <div className="mt-1.5 flex flex-wrap gap-2">
+                              <Input
+                                type="password"
+                                value={disablePassword}
+                                onChange={(e) => setDisablePassword(e.target.value)}
+                                placeholder="Password"
+                                className="w-full sm:w-48"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => void handleDisableMFA()}
+                                disabled={disabling || !disablePassword.trim()}
+                                className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {disabling ? 'Disabling...' : 'Confirm'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowDisableForm(false);
+                                  setDisablePassword('');
+                                }}
+                                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </Field>
                         </div>
                       ) : (
                         <button
@@ -708,19 +701,15 @@ function SecuritySettingsContent() {
                         <div>
                           {renamingId === passkey.id ? (
                             <div className="flex gap-1.5">
-                              <input
+                              <Input
                                 type="text"
                                 value={renameValue}
-                                onChange={(
-                                  e: ChangeEvent<
-                                    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                                  >,
-                                ) => setRenameValue(e.target.value)}
+                                onChange={(e) => setRenameValue(e.target.value)}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') void submitRename(passkey.id);
                                   if (e.key === 'Escape') cancelRename();
                                 }}
-                                className="w-36 rounded border border-border bg-muted px-2 py-0.5 text-sm text-foreground focus:border-ring focus:outline-none"
+                                className="w-36"
                               />
                               <button
                                 type="button"

@@ -1,5 +1,5 @@
+import { cn } from '@revealui/presentation/server';
 import type { ComponentProps, ReactNode } from 'react';
-import { cn } from '@/lib/utils/cn';
 import { Container } from './container';
 import { Eyebrow } from './eyebrow';
 import { Subheading } from './subheading';

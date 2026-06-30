@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge, Card, EmptyState, Skeleton, Stat } from '@revealui/presentation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -90,41 +91,36 @@ export default function EarningsDashboardPage() {
             <>
               {/* Summary cards */}
               <div className="grid gap-4 sm:grid-cols-3 mb-8">
-                <SummaryCard
+                <Stat
                   label="Total Earnings"
                   value={`$${summary.totalEarningsUsdc.toFixed(2)}`}
-                  sublabel="USDC"
+                  description="USDC"
                 />
-                <SummaryCard
+                <Stat
                   label="Tasks Completed"
                   value={String(summary.totalTasks)}
-                  sublabel="across all agents"
+                  description="across all agents"
                 />
-                <SummaryCard
+                <Stat
                   label="Published Agents"
                   value={String(summary.agentCount)}
-                  sublabel="active in marketplace"
+                  description="active in marketplace"
                 />
               </div>
 
               {/* Agent earnings breakdown */}
               <h2 className="text-lg font-medium text-foreground mb-4">Earnings by Agent</h2>
               {summary.agents.length === 0 ? (
-                <div className="flex flex-col items-center py-12 text-center">
-                  <p className="text-muted-foreground">No published agents yet</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Publish an agent to start earning
-                  </p>
-                </div>
+                <EmptyState
+                  title="No published agents yet"
+                  description="Publish an agent to start earning"
+                />
               ) : (
                 <div className="space-y-3">
                   {summary.agents.map((agent) => {
                     const earnings = agent.taskCount * Number.parseFloat(agent.basePriceUsdc);
                     return (
-                      <div
-                        key={agent.id}
-                        className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3"
-                      >
+                      <Card key={agent.id} className="flex items-center gap-4 px-4 py-3">
                         <div className="flex-1">
                           <Link
                             href={`/marketplace/${agent.id}`}
@@ -137,15 +133,9 @@ export default function EarningsDashboardPage() {
                               ★ {agent.rating.toFixed(1)} ({agent.reviewCount})
                             </span>
                             <span>{agent.taskCount} tasks</span>
-                            <span
-                              className={`rounded px-2 py-0.5 text-xs ${
-                                agent.status === 'published'
-                                  ? 'bg-success/10 text-success'
-                                  : 'bg-muted text-muted-foreground'
-                              }`}
-                            >
+                            <Badge color={agent.status === 'published' ? 'success' : 'muted'}>
                               {agent.status}
-                            </span>
+                            </Badge>
                           </div>
                         </div>
                         <div className="text-right">
@@ -156,7 +146,7 @@ export default function EarningsDashboardPage() {
                             ${agent.basePriceUsdc}/task
                           </p>
                         </div>
-                      </div>
+                      </Card>
                     );
                   })}
                 </div>
@@ -170,28 +160,6 @@ export default function EarningsDashboardPage() {
 }
 
 // =============================================================================
-// Summary Card
-// =============================================================================
-
-function SummaryCard({
-  label,
-  value,
-  sublabel,
-}: {
-  label: string;
-  value: string;
-  sublabel: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-card p-5">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{sublabel}</p>
-    </div>
-  );
-}
-
-// =============================================================================
 // Skeleton
 // =============================================================================
 
@@ -201,26 +169,14 @@ function EarningsSkeleton() {
       <div className="grid gap-4 sm:grid-cols-3 mb-8">
         {Array.from({ length: 3 }, (_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-          <div key={i} className="animate-pulse rounded-lg border border-border bg-card p-5">
-            <div className="h-3 w-20 rounded bg-foreground/10" />
-            <div className="mt-2 h-7 w-24 rounded bg-foreground/10" />
-            <div className="mt-1 h-2.5 w-16 rounded bg-foreground/10" />
-          </div>
+          <Skeleton key={i} className="h-28 rounded-lg" />
         ))}
       </div>
-      <div className="h-5 w-32 rounded bg-foreground/10 mb-4" />
+      <Skeleton className="h-5 w-32 mb-4" />
       <div className="space-y-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-            key={i}
-            className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
-          >
-            <div className="flex items-center gap-4">
-              <div className="h-4 w-40 rounded bg-foreground/10" />
-              <div className="ml-auto h-4 w-16 rounded bg-foreground/10" />
-            </div>
-          </div>
+          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
+          <Skeleton key={i} className="h-14 rounded-lg" />
         ))}
       </div>
     </>

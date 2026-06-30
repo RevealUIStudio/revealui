@@ -1,6 +1,6 @@
+import { cn } from '@revealui/presentation/server';
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
-import { cn } from '@/lib/utils/cn';
 
 export function RevealUILink({
   href,

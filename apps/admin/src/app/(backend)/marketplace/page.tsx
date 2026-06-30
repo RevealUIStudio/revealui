@@ -1,7 +1,8 @@
 'use client';
 
+import { Badge, EmptyState, Input, LinkButton, Select, Skeleton } from '@revealui/presentation';
 import Link from 'next/link';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -87,24 +88,13 @@ export default function MarketplacePage() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Link
-                href="/marketplace/tasks"
-                className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-              >
+              <LinkButton href="/marketplace/tasks" variant="outline" size="sm">
                 My Tasks
-              </Link>
-              <Link
-                href="/marketplace/analytics"
-                className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-              >
+              </LinkButton>
+              <LinkButton href="/marketplace/analytics" variant="outline" size="sm">
                 Analytics
-              </Link>
-              <Link
-                href="/marketplace/publish"
-                className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                Publish Agent
-              </Link>
+              </LinkButton>
+              <LinkButton href="/marketplace/publish">Publish Agent</LinkButton>
             </div>
           </div>
         </div>
@@ -112,45 +102,31 @@ export default function MarketplacePage() {
         {/* Search + Filters */}
         <div className="border-b border-border bg-muted px-6 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            {/* Search */}
-            <input
+            {/* Search — no label; bare Input intentional for search-box pattern */}
+            <Input
               type="text"
               placeholder="Search agents..."
               value={search}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setSearch(e.target.value)}
-              className="flex-1 rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1"
             />
 
-            {/* Category filter */}
-            <select
-              value={category}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setCategory(e.target.value)}
-              className="rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-            >
+            {/* Category filter — no label; bare Select intentional */}
+            <Select value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat === 'all' ? 'All Categories' : cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </option>
               ))}
-            </select>
+            </Select>
 
-            {/* Sort */}
-            <select
-              value={sort}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => setSort(e.target.value as SortOption)}
-              className="rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-            >
+            {/* Sort filter — no label; bare Select intentional */}
+            <Select value={sort} onChange={(e) => setSort(e.target.value as SortOption)}>
               <option value="rating">Highest Rated</option>
               <option value="tasks">Most Used</option>
               <option value="newest">Newest</option>
               <option value="price">Lowest Price</option>
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -163,12 +139,10 @@ export default function MarketplacePage() {
               Failed to load agents: {error}
             </div>
           ) : agents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-lg text-muted-foreground">No agents found</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {search ? 'Try a different search term' : 'No agents published yet'}
-              </p>
-            </div>
+            <EmptyState
+              title="No agents found"
+              description={search ? 'Try a different search term' : 'No agents published yet'}
+            />
           ) : (
             <>
               <p className="mb-4 text-sm text-muted-foreground">
@@ -204,18 +178,16 @@ function MarketplaceAgentCard({ agent }: { agent: MarketplaceAgent }) {
           </h3>
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
         </div>
-        <span className="ml-3 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
-          {agent.category}
-        </span>
+        <Badge color="muted">{agent.category}</Badge>
       </div>
 
       {/* Tags */}
       {agent.tags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1">
           {agent.tags.slice(0, 4).map((tag) => (
-            <span key={tag} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+            <Badge key={tag} color="muted">
               {tag}
-            </span>
+            </Badge>
           ))}
           {agent.tags.length > 4 && (
             <span className="text-xs text-muted-foreground">+{agent.tags.length - 4}</span>
@@ -247,15 +219,7 @@ function AgentGridSkeleton() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }, (_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-        <div key={i} className="animate-pulse rounded-lg border border-border bg-card p-5">
-          <div className="h-4 w-2/3 rounded bg-foreground/10" />
-          <div className="mt-2 h-3 w-full rounded bg-foreground/10" />
-          <div className="mt-1 h-3 w-4/5 rounded bg-foreground/10" />
-          <div className="mt-4 flex gap-4">
-            <div className="h-3 w-16 rounded bg-foreground/10" />
-            <div className="h-3 w-12 rounded bg-foreground/10" />
-          </div>
-        </div>
+        <Skeleton key={i} className="h-40 rounded-lg" />
       ))}
     </div>
   );

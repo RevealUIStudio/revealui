@@ -1,5 +1,7 @@
 'use client';
 
+import { cn } from '@revealui/presentation';
+
 import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState } from 'react';
 
@@ -120,21 +122,6 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   // skipped too.
   if (AUTH_ROUTES.has(pathname)) {
     return null;
-  }
-
-  function cn(
-    baseClasses: string,
-    conditionalClasses: { block: boolean; hidden: boolean },
-  ): string {
-    const classes = [baseClasses];
-
-    Object.entries(conditionalClasses).forEach(([className, condition]) => {
-      if (condition) {
-        classes.push(className);
-      }
-    });
-
-    return classes.filter(Boolean).join(' ');
   }
 
   return (

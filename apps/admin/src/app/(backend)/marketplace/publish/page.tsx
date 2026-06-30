@@ -1,8 +1,19 @@
 'use client';
 
+import {
+  ButtonCVA,
+  Card,
+  Input,
+  Radio,
+  RadioField,
+  RadioGroup,
+  Select,
+  Textarea,
+} from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -351,74 +362,58 @@ function StepBasicInfo({
     <div className="space-y-4">
       <h2 className="text-lg font-medium text-foreground">Basic Information</h2>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Agent Name</span>
-        <input
+      <Field>
+        <Label className="text-sm text-muted-foreground">Agent Name</Label>
+        <Input
           type="text"
           value={name}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setName(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          onChange={(e) => setName(e.target.value)}
+          className="mt-1 w-full"
           placeholder="Code Reviewer Pro"
         />
         {fieldError('name') && <p className="mt-1 text-xs text-error">{fieldError('name')}</p>}
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Description</span>
-        <textarea
+      <Field>
+        <Label className="text-sm text-muted-foreground">Description</Label>
+        <Textarea
           value={description}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setDescription(e.target.value)
-          }
+          onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          className="mt-1"
           placeholder="An AI agent that reviews code for best practices, security issues, and performance..."
         />
         {fieldError('description') && (
           <p className="mt-1 text-xs text-error">{fieldError('description')}</p>
         )}
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Category</span>
-        <select
-          value={category}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setCategory(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-        >
+      <Field>
+        <Label className="text-sm text-muted-foreground">Category</Label>
+        <Select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1">
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </option>
           ))}
-        </select>
-      </label>
+        </Select>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Tags (comma-separated)</span>
-        <input
+      <Field>
+        <Label className="text-sm text-muted-foreground">Tags (comma-separated)</Label>
+        <Input
           type="text"
           value={tags}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setTags(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          onChange={(e) => setTags(e.target.value)}
+          className="mt-1 w-full"
           placeholder="typescript, react, code-review"
         />
-      </label>
+      </Field>
 
       <div className="pt-4">
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
+        <ButtonCVA type="button" onClick={onNext}>
           Next: Configuration
-        </button>
+        </ButtonCVA>
       </div>
     </div>
   );
@@ -459,88 +454,66 @@ function StepConfiguration({
 
       <div>
         <span className="block text-sm text-muted-foreground mb-2">Pricing Model</span>
-        <div className="space-y-2">
+        <RadioGroup
+          name="pricingModel"
+          value={pricingModel}
+          onChange={(value) => setPricingModel(value)}
+        >
           {PRICING_MODELS.map((pm) => (
-            <label
-              key={pm.value}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 cursor-pointer hover:border-border transition-colors"
-            >
-              <input
-                type="radio"
-                name="pricingModel"
-                value={pm.value}
-                checked={pricingModel === pm.value}
-                onChange={(
-                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                ) => setPricingModel(e.target.value)}
-                className="accent-primary"
-              />
+            <RadioField key={pm.value}>
+              <Radio value={pm.value} />
               <span className="text-sm text-muted-foreground">{pm.label}</span>
-            </label>
+            </RadioField>
           ))}
-        </div>
+        </RadioGroup>
       </div>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Base Price (USDC)</span>
-        <input
+      <Field>
+        <Label className="text-sm text-muted-foreground">Base Price (USDC)</Label>
+        <Input
           type="text"
           value={basePriceUsdc}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setBasePriceUsdc(e.target.value)
-          }
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          onChange={(e) => setBasePriceUsdc(e.target.value)}
+          className="mt-1 w-full"
           placeholder="0.10"
         />
         {fieldError('basePriceUsdc') && (
           <p className="mt-1 text-xs text-error">{fieldError('basePriceUsdc')}</p>
         )}
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Max Execution Time (seconds)</span>
-        <input
+      <Field>
+        <Label className="text-sm text-muted-foreground">Max Execution Time (seconds)</Label>
+        <Input
           type="number"
           value={maxExecutionSecs}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setMaxExecutionSecs(Number(e.target.value))
-          }
+          onChange={(e) => setMaxExecutionSecs(Number(e.target.value))}
           min={10}
           max={3600}
-          className="mt-1 w-full rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          className="mt-1 w-full"
         />
-      </label>
+      </Field>
 
-      <label className="block">
-        <span className="text-sm text-muted-foreground">Agent Definition (JSON)</span>
-        <textarea
+      <Field>
+        <Label className="text-sm text-muted-foreground">Agent Definition (JSON)</Label>
+        <Textarea
           value={definitionJson}
-          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-            setDefinitionJson(e.target.value)
-          }
+          onChange={(e) => setDefinitionJson(e.target.value)}
           rows={8}
-          className="mt-1 w-full font-mono rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          className="mt-1 font-mono"
         />
         {fieldError('definition') && (
           <p className="mt-1 text-xs text-error">{fieldError('definition')}</p>
         )}
-      </label>
+      </Field>
 
       <div className="flex gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={onBack}>
           Back
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
+        </ButtonCVA>
+        <ButtonCVA type="button" onClick={onNext}>
           Next: Skills
-        </button>
+        </ButtonCVA>
       </div>
     </div>
   );
@@ -571,115 +544,93 @@ function StepSkills({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium text-foreground">Skills</h2>
-        <button
-          type="button"
-          onClick={addSkill}
-          className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={addSkill}>
           + Add Skill
-        </button>
+        </ButtonCVA>
       </div>
       <p className="text-sm text-muted-foreground">
         Define the capabilities your agent offers. Each skill has an input and output schema.
       </p>
 
       {skills.map((skill, i) => (
-        <div
-          key={skill.name || `skill-${i}`}
-          className="rounded-lg border border-border bg-card p-4 space-y-3"
-        >
+        <Card key={skill.name || `skill-${i}`} className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-foreground">Skill {i + 1}</h3>
             {skills.length > 1 && (
-              <button
+              <ButtonCVA
                 type="button"
+                variant="ghost"
                 onClick={() => removeSkill(i)}
                 className="text-xs text-error hover:text-error"
               >
                 Remove
-              </button>
+              </ButtonCVA>
             )}
           </div>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Name</span>
-            <input
+          <Field>
+            <Label className="text-xs text-muted-foreground">Name</Label>
+            <Input
               type="text"
               value={skill.name}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'name', e.target.value)}
-              className="mt-1 w-full rounded border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => updateSkill(i, 'name', e.target.value)}
+              className="mt-1 w-full"
               placeholder="code-review"
             />
             {fieldError(`skill-${i}-name`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-name`)}</p>
             )}
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Description</span>
-            <input
+          <Field>
+            <Label className="text-xs text-muted-foreground">Description</Label>
+            <Input
               type="text"
               value={skill.description}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'description', e.target.value)}
-              className="mt-1 w-full rounded border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
+              onChange={(e) => updateSkill(i, 'description', e.target.value)}
+              className="mt-1 w-full"
               placeholder="Reviews code for bugs, security issues, and best practices"
             />
             {fieldError(`skill-${i}-description`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-description`)}</p>
             )}
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Input Schema (JSON)</span>
-            <textarea
+          <Field>
+            <Label className="text-xs text-muted-foreground">Input Schema (JSON)</Label>
+            <Textarea
               value={skill.inputSchema}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'inputSchema', e.target.value)}
+              onChange={(e) => updateSkill(i, 'inputSchema', e.target.value)}
               rows={3}
-              className="mt-1 w-full font-mono rounded border border-border bg-muted px-3 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
+              className="mt-1 font-mono text-xs"
             />
             {fieldError(`skill-${i}-input`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-input`)}</p>
             )}
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Output Schema (JSON)</span>
-            <textarea
+          <Field>
+            <Label className="text-xs text-muted-foreground">Output Schema (JSON)</Label>
+            <Textarea
               value={skill.outputSchema}
-              onChange={(
-                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-              ) => updateSkill(i, 'outputSchema', e.target.value)}
+              onChange={(e) => updateSkill(i, 'outputSchema', e.target.value)}
               rows={3}
-              className="mt-1 w-full font-mono rounded border border-border bg-muted px-3 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
+              className="mt-1 font-mono text-xs"
             />
             {fieldError(`skill-${i}-output`) && (
               <p className="mt-1 text-xs text-error">{fieldError(`skill-${i}-output`)}</p>
             )}
-          </label>
-        </div>
+          </Field>
+        </Card>
       ))}
 
       <div className="flex gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={onBack}>
           Back
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
+        </ButtonCVA>
+        <ButtonCVA type="button" onClick={onNext}>
           Next: Review
-        </button>
+        </ButtonCVA>
       </div>
     </div>
   );
@@ -721,7 +672,7 @@ function StepReview({
       <h2 className="text-lg font-medium text-foreground">Review & Publish</h2>
 
       {/* Summary */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      <Card className="p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-muted-foreground">Name:</span>{' '}
@@ -754,7 +705,7 @@ function StepReview({
             <span className="text-foreground">{skills.filter((s) => s.name).length}</span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Skills summary */}
       <div>
@@ -787,21 +738,12 @@ function StepReview({
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-lg border border-border px-6 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-        >
+        <ButtonCVA type="button" variant="outline" onClick={onBack}>
           Back
-        </button>
-        <button
-          type="button"
-          onClick={onPublish}
-          disabled={submitting}
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-        >
+        </ButtonCVA>
+        <ButtonCVA type="button" onClick={onPublish} disabled={submitting}>
           {submitting ? 'Publishing...' : 'Publish Agent'}
-        </button>
+        </ButtonCVA>
       </div>
 
       <p className="text-xs text-muted-foreground">

@@ -1,9 +1,8 @@
 import type { EmailField } from '@revealui/core/plugins';
-import { InputCVA as Input } from '@revealui/presentation/server';
+import { InputCVA as Input, Label } from '@revealui/presentation/server';
 import { FormFieldError } from '@/lib/blocks/Form/Error';
 import type { BaseFormFieldProps } from '@/lib/blocks/Form/types';
 import { Width } from '@/lib/blocks/Form/Width';
-import { Label } from '@/lib/components/ui/primitives/label';
 
 export const Email = ({
   name,

@@ -150,8 +150,9 @@ revealui/prod/email/reply-to                 # EMAIL_REPLY_TO
 **License signing (Ed25519)**
 
 ```
-revealui/prod/license/private-key   # REVEALUI_LICENSE_PRIVATE_KEY — migrated RS256 → Ed25519 (CR8-P0-01 Phase D 2026-05-04)
-revealui/prod/license/public-key    # REVEALUI_LICENSE_PUBLIC_KEY — rotating invalidates all issued customer licenses
+revdev/license-signing-private-key  # REVEALUI_LICENSE_PRIVATE_KEY — canonical Ed25519 signing key; sourced to Vercel revealui-api + revealui-admin via scripts/sync/revvault-vercel.toml
+revdev/license-signing-public-key   # REVEALUI_LICENSE_PUBLIC_KEY — rotating invalidates all issued customer licenses
+# Retired: revealui/prod/license/{private,public}-key held the stale pre-cutover RS256 pair (migrated to the revdev/ Ed25519 keypair above; CR8-P0-01 Phase D 2026-05-04).
 ```
 
 **Passkeys**
@@ -265,8 +266,10 @@ revdev/tauri-signing-public-key           # updater public key (also embedded in
 
 ```
 revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/revfleet/revealui/.envrc via `revvault export-env`)
-revealui/prod/license/private-key        # Ed25519 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`)
-revealui/prod/license/public-key         # Ed25519 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`)
+# Production REVEALUI_LICENSE_{PRIVATE,PUBLIC}_KEY source from the canonical
+# revdev/license-signing-{private,public}-key paths (see the RevDev section above) and are
+# mirrored to Vercel `revealui-api` + `revealui-admin` via scripts/sync/revvault-vercel.toml.
+# Retired: revealui/prod/license/{private,public}-key held the stale pre-cutover RS256 pair.
 ```
 
 ### LLM / AI providers

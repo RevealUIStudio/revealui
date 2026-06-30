@@ -10,6 +10,8 @@
 
 'use client';
 
+import { ButtonCVA, Input } from '@revealui/presentation';
+import { Description, Field, Label } from '@revealui/presentation/client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -183,13 +185,9 @@ function PromptCard({ prompt, tenant, server }: PromptCardProps) {
         ))}
 
         <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-success px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <ButtonCVA type="submit" disabled={submitting}>
             {submitting ? 'Resolving…' : 'Resolve'}
-          </button>
+          </ButtonCVA>
           {error && <span className="text-xs text-error">{error}</span>}
         </div>
       </form>
@@ -220,8 +218,7 @@ function PromptArgumentField({
   value,
   onChange,
 }: PromptArgumentFieldProps) {
-  const inputId = `prompt-arg-${prompt}-${arg.name}`;
-  const listId = `${inputId}-suggestions`;
+  const listId = `prompt-arg-${prompt}-${arg.name}-suggestions`;
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -265,20 +262,18 @@ function PromptArgumentField({
   }, [value, prompt, arg.name, tenant, server]);
 
   return (
-    <div>
-      <label htmlFor={inputId} className="mb-1 block text-xs font-medium text-muted-foreground">
+    <Field>
+      <Label>
         {arg.name}
         {arg.required && <span className="ml-1 text-error">*</span>}
-      </label>
-      <input
-        id={inputId}
+      </Label>
+      <Input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         list={suggestions.length > 0 ? listId : undefined}
         required={arg.required}
         autoComplete="off"
-        className="w-full rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
       />
       {suggestions.length > 0 && (
         <datalist id={listId}>
@@ -287,10 +282,8 @@ function PromptArgumentField({
           ))}
         </datalist>
       )}
-      {arg.description && (
-        <p className="mt-1 text-[11px] text-muted-foreground">{arg.description}</p>
-      )}
-    </div>
+      {arg.description && <Description>{arg.description}</Description>}
+    </Field>
   );
 }
 

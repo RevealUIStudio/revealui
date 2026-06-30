@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge, Card, EmptyState, LinkButton, Skeleton } from '@revealui/presentation';
 import type { TaskSubmissionRecord } from '@revealui/sync';
 import { useTaskSubmissions } from '@revealui/sync';
 import Link from 'next/link';
@@ -20,13 +21,13 @@ interface TaskProgress {
 
 type StatusFilter = 'all' | 'pending' | 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-warning/10 text-warning-foreground',
-  queued: 'bg-primary/10 text-primary',
-  running: 'bg-primary/10 text-primary',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-error/10 text-error',
-  cancelled: 'bg-muted text-muted-foreground',
+const STATUS_BADGE_COLORS: Record<string, 'warning' | 'brand' | 'success' | 'danger' | 'muted'> = {
+  pending: 'warning',
+  queued: 'brand',
+  running: 'brand',
+  completed: 'success',
+  failed: 'danger',
+  cancelled: 'muted',
 };
 
 // =============================================================================
@@ -113,18 +114,13 @@ export default function TaskDashboardPage() {
               Failed to load tasks: {error.message}
             </div>
           ) : filteredTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-lg text-muted-foreground">No tasks found</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {filter !== 'all' ? 'Try a different filter' : 'Submit a task from the marketplace'}
-              </p>
-              <Link
-                href="/marketplace"
-                className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-              >
-                Browse Agents
-              </Link>
-            </div>
+            <EmptyState
+              title="No tasks found"
+              description={
+                filter !== 'all' ? 'Try a different filter' : 'Submit a task from the marketplace'
+              }
+              action={<LinkButton href="/marketplace">Browse Agents</LinkButton>}
+            />
           ) : (
             <div className="space-y-3">
               {filteredTasks.map((task) => (
@@ -184,19 +180,15 @@ function TaskRow({
     };
   }, [apiUrl, task.id, task.status]);
 
-  const statusClass = STATUS_COLORS[task.status] ?? 'bg-muted text-muted-foreground';
-
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <Card>
       {/* Row header */}
       <button
         type="button"
         onClick={onToggle}
         className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-muted transition-colors"
       >
-        <span className={`rounded px-2.5 py-0.5 text-xs font-medium ${statusClass}`}>
-          {task.status}
-        </span>
+        <Badge color={STATUS_BADGE_COLORS[task.status] ?? 'muted'}>{task.status}</Badge>
         <span className="flex-1 text-sm text-foreground truncate">{task.skill_name}</span>
         <span className="text-xs text-muted-foreground">P{task.priority}</span>
         {task.cost_usdc && <span className="text-xs text-muted-foreground">${task.cost_usdc}</span>}
@@ -288,7 +280,7 @@ function TaskRow({
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -300,17 +292,8 @@ function TaskTableSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 5 }, (_, i) => (
-        <div
-          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
-          key={i}
-          className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
-        >
-          <div className="flex items-center gap-4">
-            <div className="h-5 w-16 rounded bg-muted" />
-            <div className="h-4 w-48 rounded bg-muted" />
-            <div className="ml-auto h-3 w-20 rounded bg-muted" />
-          </div>
-        </div>
+        // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders
+        <Skeleton key={i} className="h-12 rounded-lg" />
       ))}
     </div>
   );

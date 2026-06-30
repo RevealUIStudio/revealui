@@ -1,9 +1,8 @@
 import type { TextField } from '@revealui/core/plugins';
-import { TextareaCVA as TextAreaComponent } from '@revealui/presentation/server';
+import { Label, TextareaCVA as TextAreaComponent } from '@revealui/presentation/server';
 import { FormFieldError } from '@/lib/blocks/Form/Error';
 import type { BaseFormFieldProps } from '@/lib/blocks/Form/types';
 import { Width } from '@/lib/blocks/Form/Width';
-import { Label } from '@/lib/components/ui/primitives/label';
 
 export const Textarea = ({
   name,

@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 
 interface AgentActionRow {
@@ -19,6 +20,12 @@ interface TaskHistoryProps {
   /** Increment to trigger a refresh */
   refreshKey?: number;
 }
+
+const STATUS_BADGE_COLOR = {
+  completed: 'success',
+  failed: 'danger',
+  cancelled: 'muted',
+} as const satisfies Record<string, 'success' | 'danger' | 'muted'>;
 
 /**
  * Displays the last 20 completed A2A tasks for an agent.
@@ -114,13 +121,8 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    completed: 'bg-success/10 text-success',
-    failed: 'bg-error/10 text-error',
-    cancelled: 'bg-muted text-muted-foreground',
-  };
-  const color = colors[status] ?? 'bg-muted text-muted-foreground';
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>{status}</span>;
+  const color = (STATUS_BADGE_COLOR as Record<string, string>)[status] ?? 'muted';
+  return <Badge color={color as 'success' | 'danger' | 'muted'}>{status}</Badge>;
 }
 
 /** Pull the user text from the tasks/send params */

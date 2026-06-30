@@ -1,8 +1,8 @@
+import { cn } from '@revealui/presentation/server';
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { Container } from '@/components/revealui/elements/container';
 import { ArrowNarrowRightIcon } from '@/components/revealui/icons/arrow-narrow-right-icon';
-import { cn } from '@/lib/utils/cn';
 
 export function FooterCategory({
   title,

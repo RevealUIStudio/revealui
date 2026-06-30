@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge, Card, EmptyState, Skeleton } from '@revealui/presentation';
 import type { CoordinationSessionRecord } from '@revealui/sync';
 import { useCoordinationSessions } from '@revealui/sync';
 import { useState } from 'react';
@@ -26,12 +27,6 @@ function isStaleSession(record: CoordinationSessionRecord): boolean {
 // =============================================================================
 // Helpers
 // =============================================================================
-
-const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-success/10 text-success',
-  ended: 'bg-muted text-muted-foreground',
-  crashed: 'bg-error/10 text-error',
-};
 
 function formatAge(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
@@ -135,12 +130,12 @@ function CoordinationDashboard() {
               <div
                 // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
                 key={i}
-                className="animate-pulse rounded-lg border border-border bg-card px-4 py-3"
+                className="rounded-lg border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-5 w-16 rounded-full bg-foreground/10" />
-                  <div className="h-4 flex-1 rounded bg-foreground/10" />
-                  <div className="h-3 w-32 rounded bg-foreground/10" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-4 flex-1" />
+                  <Skeleton className="h-3 w-32" />
                 </div>
               </div>
             ))}
@@ -153,7 +148,30 @@ function CoordinationDashboard() {
             {error.message}
           </div>
         ) : displayed.length === 0 ? (
-          <EmptyState scope={scope} />
+          <EmptyState
+            icon={
+              <svg
+                className="h-6 w-6 text-muted-foreground"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+                />
+              </svg>
+            }
+            title={scope === 'active' ? 'No active sessions' : 'No sessions found'}
+            description={
+              scope === 'active'
+                ? 'No active coordination sessions. The daemon writes here when started with POSTGRES_URL set; sessions appear within seconds of session.register.'
+                : 'No coordination sessions found. Either no daemons have run with POSTGRES_URL set, or all sessions have ended.'
+            }
+          />
         ) : (
           <>
             <div className="mb-3 text-xs text-muted-foreground">
@@ -206,15 +224,6 @@ function StatPill({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const color = STATUS_COLORS[status] ?? 'bg-muted text-muted-foreground';
-  return (
-    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
-      {status}
-    </span>
-  );
-}
-
 function SessionRow({
   session,
   expanded,
@@ -227,8 +236,15 @@ function SessionRow({
   const age = ageSeconds(session.started_at);
   const stale = isStaleSession(session);
 
+  const statusColor = (status: string) => {
+    if (status === 'active') return 'success' as const;
+    if (status === 'ended') return 'muted' as const;
+    if (status === 'crashed') return 'danger' as const;
+    return 'muted' as const;
+  };
+
   return (
-    <div className="rounded-lg border border-border bg-card transition-colors hover:border-ring">
+    <Card className="hover:border-ring transition-colors">
       <button
         type="button"
         onClick={onToggle}
@@ -236,7 +252,7 @@ function SessionRow({
         aria-expanded={expanded}
       >
         <div className="flex items-center gap-3">
-          <StatusBadge status={session.status} />
+          <Badge color={statusColor(session.status)}>{session.status}</Badge>
           <span className="truncate font-mono text-sm text-muted-foreground">
             {session.agent_id}
           </span>
@@ -247,12 +263,9 @@ function SessionRow({
             {formatAge(age)}
           </span>
           {stale && (
-            <span
-              title="Session has not ended after 7+ days — likely a stale row"
-              className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning-foreground"
-            >
+            <Badge color="warning" title="Session has not ended after 7+ days — likely a stale row">
               stale
-            </span>
+            </Badge>
           )}
           <ChevronIcon expanded={expanded} />
         </div>
@@ -275,12 +288,11 @@ function SessionRow({
                 <h4 className="mb-1 text-xs font-medium text-muted-foreground">Tool counters</h4>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(session.tools).map(([tool, n]) => (
-                    <span
-                      key={tool}
-                      className="rounded bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground"
-                    >
-                      {tool}: {n}
-                    </span>
+                    <Badge key={tool} color="muted">
+                      <span className="font-mono">
+                        {tool}: {n}
+                      </span>
+                    </Badge>
                   ))}
                 </div>
               </div>
@@ -288,7 +300,7 @@ function SessionRow({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -312,34 +324,5 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
     >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
-  );
-}
-
-function EmptyState({ scope }: { scope: Scope }) {
-  const message =
-    scope === 'active'
-      ? 'No active coordination sessions. The daemon writes here when started with POSTGRES_URL set; sessions appear within seconds of session.register.'
-      : 'No coordination sessions found. Either no daemons have run with POSTGRES_URL set, or all sessions have ended.';
-
-  return (
-    <div className="flex flex-col items-center py-16">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <svg
-          className="h-6 w-6 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
-          />
-        </svg>
-      </div>
-      <p className="max-w-md text-center text-sm text-muted-foreground">{message}</p>
-    </div>
   );
 }

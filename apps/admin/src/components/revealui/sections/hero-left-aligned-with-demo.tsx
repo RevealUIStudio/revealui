@@ -1,8 +1,8 @@
+import { cn } from '@revealui/presentation/server';
 import type { ComponentProps, ReactNode } from 'react';
 import { Container } from '@/components/revealui/elements/container';
 import { Heading } from '@/components/revealui/elements/heading';
 import { Text } from '@/components/revealui/elements/text';
-import { cn } from '@/lib/utils/cn';
 
 export function HeroLeftAlignedWithDemo({
   eyebrow,

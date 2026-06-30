@@ -1,5 +1,5 @@
+import { cn } from '@revealui/presentation/server';
 import Image from 'next/image';
-import { cn } from '@/lib/styles/classnames';
 
 export interface StatItem {
   label: string;
