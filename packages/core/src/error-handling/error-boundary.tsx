@@ -137,8 +137,16 @@ function DefaultErrorFallback({
 }: DefaultErrorFallbackProps): React.ReactElement {
   if (isolate) {
     return (
-      <div style={{ padding: '16px', border: '1px solid #f44336', borderRadius: '4px' }}>
-        <p style={{ color: '#f44336', fontWeight: 'bold' }}>Something went wrong</p>
+      <div
+        style={{
+          padding: '16px',
+          border: '1px solid var(--rvui-error, #f44336)',
+          borderRadius: '4px',
+        }}
+      >
+        <p style={{ color: 'var(--rvui-error, #f44336)', fontWeight: 'bold' }}>
+          Something went wrong
+        </p>
       </div>
     );
   }
@@ -150,14 +158,16 @@ function DefaultErrorFallback({
         padding: '24px',
         maxWidth: '600px',
         margin: '40px auto',
-        backgroundColor: '#fff',
-        border: '1px solid #f44336',
+        backgroundColor: 'var(--rvui-surface-0, #fff)',
+        border: '1px solid var(--rvui-error, #f44336)',
         borderRadius: '8px',
       }}
     >
-      <h2 style={{ color: '#f44336', marginTop: 0 }}>Something went wrong</h2>
+      <h2 style={{ color: 'var(--rvui-error, #f44336)', marginTop: 0 }}>Something went wrong</h2>
 
-      <p style={{ color: '#666' }}>An error occurred while rendering this component.</p>
+      <p style={{ color: 'var(--rvui-text-2, #666)' }}>
+        An error occurred while rendering this component.
+      </p>
 
       {process.env.NODE_ENV === 'development' && (
         <details style={{ marginTop: '16px' }}>
@@ -167,7 +177,7 @@ function DefaultErrorFallback({
             style={{
               marginTop: '8px',
               padding: '12px',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: 'var(--rvui-surface-2, #f5f5f5)',
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '12px',
@@ -180,7 +190,7 @@ function DefaultErrorFallback({
             style={{
               marginTop: '8px',
               padding: '12px',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: 'var(--rvui-surface-2, #f5f5f5)',
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '12px',
@@ -197,7 +207,7 @@ function DefaultErrorFallback({
         style={{
           marginTop: '16px',
           padding: '8px 16px',
-          backgroundColor: '#2196f3',
+          backgroundColor: 'var(--rvui-brand, #2196f3)',
           color: '#fff',
           border: 'none',
           borderRadius: '4px',
