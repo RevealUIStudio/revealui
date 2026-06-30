@@ -1,5 +1,7 @@
 'use client';
 
+import { Select, Textarea } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
@@ -895,22 +897,21 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
               Coding
             </button>
           </div>
-          <label htmlFor="model-select" className="text-xs text-muted-foreground">
-            Model
-          </label>
-          <select
-            id="model-select"
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            disabled={stream.isStreaming}
-            className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
-          >
-            {MODEL_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Field className="flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">Model</Label>
+            <Select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              disabled={stream.isStreaming}
+              className="rounded-md border border-border bg-muted px-2 py-1 text-xs text-foreground outline-none focus:border-ring"
+            >
+              {MODEL_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
           {selectedModel !== 'auto' && (
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {MODEL_OPTIONS.find((m) => m.id === selectedModel)?.model || 'default'}
@@ -918,7 +919,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
           )}
         </div>
         <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-2 sm:gap-3">
-          <textarea
+          <Textarea
             ref={textareaRef}
             className="flex-1 resize-none rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 sm:px-4 sm:py-3"
             value={input}

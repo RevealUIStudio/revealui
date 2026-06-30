@@ -5,6 +5,7 @@
  * Supports Cmd+K / Ctrl+K keyboard shortcut to focus.
  */
 
+import { Input } from '@revealui/presentation';
 import { useNavigate } from '@revealui/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SearchResult } from '../lib/search-index';
@@ -127,7 +128,7 @@ export function SearchBar() {
   return (
     <div className="relative w-full">
       <div className="relative">
-        <input
+        <Input
           ref={inputRef}
           type="search"
           placeholder="Search docs..."
@@ -144,7 +145,7 @@ export function SearchBar() {
           className="w-full rounded-lg border border-border bg-surface py-2 pr-10 pl-3 font-sans text-[0.8125rem] text-text-primary transition-all focus:border-accent focus:shadow-[0_0_0_3px_var(--color-accent-bg)] focus:outline-none"
         />
         <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-text-muted">
-          {'\u2318'}K
+          {'⌘'}K
         </span>
       </div>
 

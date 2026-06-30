@@ -4,6 +4,8 @@ import {
   Badge,
   ButtonCVA,
   Card,
+  Input,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -11,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@revealui/presentation';
-import { type ChangeEvent, useEffect, useReducer } from 'react';
+import { Description, Field, Label } from '@revealui/presentation/client';
+import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -331,80 +334,51 @@ function RefundsDashboard() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Payment Intent / Charge ID */}
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="refund-identifier"
-                  className="mb-1.5 block text-sm font-medium text-foreground"
-                >
-                  Payment Intent or Charge ID
-                </label>
-                <input
-                  id="refund-identifier"
+              <Field className="sm:col-span-2">
+                <Label>Payment Intent or Charge ID</Label>
+                <Input
                   type="text"
                   value={identifier}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
+                  onChange={(e) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
                   placeholder="pi_abc123 or ch_abc123"
                   required
-                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
+                <Description>
                   Prefix determines type: pi_ for payment intents, ch_ for charges
-                </p>
-              </div>
+                </Description>
+              </Field>
 
               {/* Amount */}
-              <div>
-                <label
-                  htmlFor="refund-amount"
-                  className="mb-1.5 block text-sm font-medium text-foreground"
-                >
-                  Amount (USD)
-                </label>
-                <input
-                  id="refund-amount"
+              <Field>
+                <Label>Amount (USD)</Label>
+                <Input
                   type="number"
                   value={amountInput}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) => dispatch({ type: 'SET_AMOUNT', value: e.target.value })}
+                  onChange={(e) => dispatch({ type: 'SET_AMOUNT', value: e.target.value })}
                   placeholder="Leave empty for full refund"
                   min="0.01"
                   step="0.01"
-                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Optional. Omit for a full refund.
-                </p>
-              </div>
+                <Description>Optional. Omit for a full refund.</Description>
+              </Field>
 
               {/* Reason */}
-              <div>
-                <label
-                  htmlFor="refund-reason"
-                  className="mb-1.5 block text-sm font-medium text-foreground"
-                >
-                  Reason
-                </label>
-                <select
-                  id="refund-reason"
+              <Field>
+                <Label>Reason</Label>
+                <Select
                   value={reason}
-                  onChange={(
-                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-                  ) =>
+                  onChange={(e) =>
                     dispatch({
                       type: 'SET_REASON',
                       value: e.target.value as State['reason'],
                     })
                   }
-                  className="w-full rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
                 >
                   <option value="requested_by_customer">Requested by customer</option>
                   <option value="duplicate">Duplicate charge</option>
                   <option value="fraudulent">Fraudulent</option>
-                </select>
-              </div>
+                </Select>
+              </Field>
             </div>
 
             {/* Submit */}
