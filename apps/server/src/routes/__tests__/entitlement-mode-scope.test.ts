@@ -58,8 +58,8 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
 }));
 
-import { eq } from 'drizzle-orm';
 import { accountEntitlements } from '@revealui/db/schema';
+import { eq } from 'drizzle-orm';
 import { entitlementMiddleware } from '../../middleware/entitlements.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
