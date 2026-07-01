@@ -610,7 +610,12 @@ async function getHostedSubscriptionSnapshot(userId: string): Promise<{
       graceUntil: accountEntitlements.graceUntil,
     })
     .from(accountEntitlements)
-    .where(eq(accountEntitlements.accountId, membership.accountId))
+    .where(
+      and(
+        eq(accountEntitlements.accountId, membership.accountId),
+        eq(accountEntitlements.mode, getConfiguredStripeMode()),
+      ),
+    )
     .limit(1);
 
   if (!entitlement?.tier) return null;
@@ -1019,7 +1024,13 @@ async function getUserLicenseKey(userId: string): Promise<string | null> {
   const [row] = await getClient()
     .select({ licenseKey: licenses.licenseKey })
     .from(licenses)
-    .where(and(eq(licenses.userId, userId), isNull(licenses.deletedAt)))
+    .where(
+      and(
+        eq(licenses.userId, userId),
+        isNull(licenses.deletedAt),
+        eq(licenses.mode, getConfiguredStripeMode()),
+      ),
+    )
     .orderBy(desc(licenses.createdAt))
     .limit(1);
   return row?.licenseKey ?? null;
@@ -1069,7 +1080,13 @@ app.openapi(subscriptionRoute, async (c) => {
       supportExpiresAt: licenses.supportExpiresAt,
     })
     .from(licenses)
-    .where(and(eq(licenses.userId, user.id), isNull(licenses.deletedAt)))
+    .where(
+      and(
+        eq(licenses.userId, user.id),
+        isNull(licenses.deletedAt),
+        eq(licenses.mode, getConfiguredStripeMode()),
+      ),
+    )
     .orderBy(desc(licenses.createdAt))
     .limit(1);
 
