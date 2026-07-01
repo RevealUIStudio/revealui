@@ -3,7 +3,7 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "RevealUI Contracts (Types Mirror)",
-    "version": "0.5.0",
+    "version": "0.6.1",
     "description": "OpenAPI 3.1 mirror of `@revealui/contracts` Zod schemas, emitted by `@revealui/openapi`'s `scripts/emit-from-mcp.ts` from the MCP contracts catalog. Drives cross-language codegen (Go via `oapi-codegen`, Rust via `progenitor`) so per-language consumers replace hand-mirrors with generated types from a single source of truth. See `docs/decisions/2026-05-03-contracts-protocol-pyramid.md` §Phase 3 in the revealui-jv repo.",
     "license": {
       "name": "MIT",
@@ -3421,9 +3421,6 @@
             "properties": {
               "usdc": {
                 "type": "string"
-              },
-              "rvui": {
-                "type": "string"
               }
             },
             "required": [
@@ -3837,9 +3834,6 @@
                 "type": "object",
                 "properties": {
                   "usdc": {
-                    "type": "string"
-                  },
-                  "rvui": {
                     "type": "string"
                   }
                 },
@@ -20357,7 +20351,7 @@
             "minimum": 0,
             "maximum": 9007199254740991
           },
-          "publishAt": {
+          "scheduledAt": {
             "type": "string",
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
@@ -24764,9 +24758,6 @@
           "label"
         ],
         "additionalProperties": false
-      },
-      "revealcoin_tokenConfig": {
-        "$comment": "JSON Schema serialization failed: BigInt cannot be represented in JSON Schema"
       },
       "secrets_rotationEvent": {
         "type": "object",

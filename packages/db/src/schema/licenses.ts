@@ -66,6 +66,9 @@ export const licenses = pgTable(
 
     /** Soft-delete  -  license records must never be hard-deleted for audit trail */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+
+    /** Stripe billing mode (live / test) of the event that created this license */
+    mode: text('mode').notNull().default('live'),
   },
   (table) => [
     index('licenses_customer_id_idx').on(table.customerId),
@@ -73,6 +76,7 @@ export const licenses = pgTable(
     index('licenses_status_idx').on(table.status),
     index('licenses_subscription_id_idx').on(table.subscriptionId),
     index('licenses_deleted_at_idx').on(table.deletedAt),
+    index('licenses_mode_idx').on(table.mode),
     uniqueIndex('licenses_customer_subscription_unique').on(table.customerId, table.subscriptionId),
     // Prevent duplicate active perpetual licenses for the same user+tier.
     // Subscriptions use subscriptionId (covered above); perpetual licenses have
@@ -92,6 +96,7 @@ export const licenses = pgTable(
       'licenses_status_check',
       sql`status IN ('active', 'expired', 'revoked', 'support_expired')`,
     ),
+    check('licenses_mode_check', sql`mode IN ('live', 'test')`),
   ],
 );
 

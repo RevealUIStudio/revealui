@@ -5,7 +5,7 @@
   "description": "RevealUI admin dashboard",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/client": "^1.5.21",
+    "@electric-sql/client": "^1.5.22",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
@@ -18,7 +18,7 @@
     "@revealui/setup": "workspace:*",
     "@revealui/sync": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@sentry/nextjs": "^10.59.0",
+    "@sentry/nextjs": "^10.62.0",
     "@simplewebauthn/browser": "catalog:",
     "@vercel/speed-insights": "^2.0.0",
     "cross-env": "^10.1.0",
@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.9",
-    "@simplewebauthn/server": "^13.3.1",
+    "@simplewebauthn/server": "^13.3.2",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",

@@ -545,6 +545,8 @@ async function syncHostedSubscriptionState(
      *  guarded with `WHERE updated_at < eventTimestamp` so out-of-order
      *  webhook deliveries cannot overwrite fresher state. */
     eventTimestamp?: Date;
+    /** Stripe billing mode of the event. Prevents test-era rows granting live access. */
+    mode: 'live' | 'test';
   },
 ): Promise<void> {
   const maxUsers = params.tier ? (getHostedLimitsForTier(params.tier).maxUsers ?? null) : null;
@@ -591,6 +593,7 @@ async function syncHostedSubscriptionState(
     currentPeriodStart: params.currentPeriodStart ?? null,
     currentPeriodEnd: params.currentPeriodEnd ?? null,
     cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? false,
+    mode: params.mode,
     updatedAt: now,
   };
 
@@ -630,6 +633,7 @@ async function syncHostedSubscriptionState(
     limits: getHostedLimitsForTier(resolvedTier),
     meteringStatus:
       params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
+    mode: params.mode,
     graceUntil: params.graceUntil ?? null,
     updatedAt: now,
   };
@@ -1265,6 +1269,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   perpetual: true,
                   supportExpiresAt,
                   githubUsername,
+                  mode: event.livemode ? 'live' : 'test',
                   createdAt: new Date(),
                   updatedAt: new Date(),
                 });
@@ -1554,6 +1559,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 customerId,
                 status: licenseStatus,
                 expiresAt: licenseExpiresAt,
+                mode: event.livemode ? 'live' : 'test',
                 createdAt: new Date(),
                 updatedAt: new Date(),
               });
@@ -1583,6 +1589,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   : licenseExpiresAt,
                 cancelAtPeriodEnd: checkoutSubscription?.cancel_at_period_end ?? false,
                 graceUntil: licenseExpiresAt,
+                mode: event.livemode ? 'live' : 'test',
                 eventTimestamp: new Date(event.created * 1000),
               });
               return {};
@@ -1738,6 +1745,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
                 currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                mode: event.livemode ? 'live' : 'test',
                 eventTimestamp: new Date(event.created * 1000),
               });
               return {};
@@ -1816,6 +1824,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 customerId,
                 subscriptionId: null,
                 status: 'revoked',
+                mode: event.livemode ? 'live' : 'test',
                 eventTimestamp: new Date(event.created * 1000),
               });
               return {};
@@ -1945,6 +1954,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   graceUntil: isPastDue
                     ? getSubscriptionPeriodDate(subscription, 'current_period_end')
                     : null,
+                  mode: event.livemode ? 'live' : 'test',
                   eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
@@ -2049,6 +2059,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     getSubscriptionPeriodDate(subscription, 'current_period_end') ?? cancelAt,
                   cancelAtPeriodEnd: true,
                   graceUntil: cancelAt,
+                  mode: event.livemode ? 'live' : 'test',
                   eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
@@ -2194,6 +2205,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     subscription.cancel_at_period_end && subscription.cancel_at
                       ? new Date(subscription.cancel_at * 1000)
                       : null,
+                  mode: event.livemode ? 'live' : 'test',
                   eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
@@ -2296,6 +2308,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                   cancelAtPeriodEnd: false,
                   graceUntil: null,
+                  mode: event.livemode ? 'live' : 'test',
                   eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
@@ -2335,6 +2348,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
                 graceUntil: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+                mode: event.livemode ? 'live' : 'test',
                 eventTimestamp: new Date(event.created * 1000),
               });
               return {};
@@ -2412,6 +2426,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                   cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
                   graceUntil: null,
+                  mode: event.livemode ? 'live' : 'test',
                   eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
@@ -2490,6 +2505,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               subscription.status === 'trialing' && subscription.trial_end
                 ? new Date(subscription.trial_end * 1000)
                 : null,
+            mode: event.livemode ? 'live' : 'test',
             eventTimestamp: new Date(event.created * 1000),
           });
         }
@@ -2687,6 +2703,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           currentPeriodEnd: getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
           cancelAtPeriodEnd: recoveredSubscription.cancel_at_period_end ?? false,
           graceUntil: null,
+          mode: event.livemode ? 'live' : 'test',
           eventTimestamp: new Date(event.created * 1000),
         });
 
@@ -2846,6 +2863,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           subscriptionId,
           status: entitlementStatus,
           graceUntil,
+          mode: event.livemode ? 'live' : 'test',
           eventTimestamp: new Date(event.created * 1000),
         });
 
@@ -3000,6 +3018,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               tier: (restoredSub?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
               status: 'active',
               graceUntil: null,
+              mode: event.livemode ? 'live' : 'test',
               eventTimestamp: new Date(event.created * 1000),
             });
 
@@ -3080,6 +3099,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           customerId: disputeCustomerId,
           subscriptionId: null,
           status: 'revoked',
+          mode: event.livemode ? 'live' : 'test',
           eventTimestamp: new Date(event.created * 1000),
         });
 
@@ -3479,6 +3499,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             customerId,
             subscriptionId: null,
             status: 'revoked',
+            mode: event.livemode ? 'live' : 'test',
             eventTimestamp: new Date(event.created * 1000),
           });
 
