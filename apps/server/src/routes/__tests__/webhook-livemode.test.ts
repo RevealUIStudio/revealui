@@ -317,4 +317,85 @@ describe('D.1 / L.4 — Webhook livemode cross-check', () => {
       expect(res.status).not.toBe(400);
     });
   });
+
+  describe('Mode column threading — writer tests (GAP-266 Track B)', () => {
+    function makeSubscriptionCreatedEvent(id: string, livemode: boolean) {
+      return {
+        id,
+        type: 'customer.subscription.created',
+        created: 1700000000,
+        livemode,
+        data: {
+          object: {
+            id: 'sub_mode_test',
+            customer: 'cus_mode_test',
+            status: 'active',
+            metadata: {},
+            cancel_at_period_end: false,
+            items: { data: [] },
+          },
+        },
+      };
+    }
+
+    function makeSelectWithAccount(accountId: string) {
+      return {
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([{ accountId }]),
+          }),
+        }),
+      };
+    }
+
+    it('writes mode=live on every insert when event.livemode=true', async () => {
+      process.env.STRIPE_LIVE_MODE = 'true';
+
+      // First db.select() is from resolveHostedAccountId — return an account so
+      // syncHostedSubscriptionState proceeds to the insert path.
+      mockDb.select.mockReturnValueOnce(makeSelectWithAccount('acct_mode_live'));
+
+      const capturedInserts: Record<string, unknown>[] = [];
+      mockDbInsertChain.values.mockImplementation((vals: Record<string, unknown>) => {
+        capturedInserts.push(vals);
+        return Promise.resolve(undefined);
+      });
+
+      const event = makeSubscriptionCreatedEvent('evt_mode_live_writer', true);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      const modeInserts = capturedInserts.filter((v) => 'mode' in v);
+      expect(modeInserts.length).toBeGreaterThan(0);
+      for (const row of modeInserts) {
+        expect(row.mode).toBe('live');
+      }
+    });
+
+    it('writes mode=test on every insert when event.livemode=false', async () => {
+      process.env.STRIPE_LIVE_MODE = 'false';
+
+      mockDb.select.mockReturnValueOnce(makeSelectWithAccount('acct_mode_test'));
+
+      const capturedInserts: Record<string, unknown>[] = [];
+      mockDbInsertChain.values.mockImplementation((vals: Record<string, unknown>) => {
+        capturedInserts.push(vals);
+        return Promise.resolve(undefined);
+      });
+
+      const event = makeSubscriptionCreatedEvent('evt_mode_test_writer', false);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      const modeInserts = capturedInserts.filter((v) => 'mode' in v);
+      expect(modeInserts.length).toBeGreaterThan(0);
+      for (const row of modeInserts) {
+        expect(row.mode).toBe('test');
+      }
+    });
+  });
 });

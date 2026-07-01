@@ -85,6 +85,7 @@ export const accountSubscriptions = pgTable(
     currentPeriodStart: timestamp('current_period_start', { withTimezone: true }),
     currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+    mode: text('mode').notNull().default('live'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .$onUpdateFn(() => new Date())
@@ -97,10 +98,12 @@ export const accountSubscriptions = pgTable(
     index('account_subscriptions_stripe_customer_idx').on(table.stripeCustomerId),
     index('account_subscriptions_status_idx').on(table.status),
     index('account_subscriptions_account_status_idx').on(table.accountId, table.status),
+    index('account_subscriptions_mode_idx').on(table.mode),
     check(
       'account_subscriptions_status_check',
       sql`status IN ('active', 'past_due', 'canceled', 'trialing', 'unpaid', 'expired', 'revoked', 'paused')`,
     ),
+    check('account_subscriptions_mode_check', sql`mode IN ('live', 'test')`),
   ],
 );
 
@@ -123,6 +126,7 @@ export const accountEntitlements = pgTable(
       .notNull()
       .default({}),
     meteringStatus: text('metering_status').notNull().default('active'),
+    mode: text('mode').notNull().default('live'),
     graceUntil: timestamp('grace_until', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .$onUpdateFn(() => new Date())
@@ -133,6 +137,7 @@ export const accountEntitlements = pgTable(
     index('account_entitlements_tier_idx').on(table.tier),
     index('account_entitlements_status_idx').on(table.status),
     index('account_entitlements_account_status_idx').on(table.accountId, table.status),
+    index('account_entitlements_mode_idx').on(table.mode),
     check('account_entitlements_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
     check(
       'account_entitlements_status_check',
@@ -142,6 +147,7 @@ export const accountEntitlements = pgTable(
       'account_entitlements_metering_status_check',
       sql`metering_status IN ('active', 'paused', 'exceeded')`,
     ),
+    check('account_entitlements_mode_check', sql`mode IN ('live', 'test')`),
   ],
 );
 

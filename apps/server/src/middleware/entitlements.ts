@@ -6,6 +6,7 @@
  * account, membership, and entitlement context to the request.
  */
 
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
 import { accountEntitlements, accountMemberships } from '@revealui/db/schema';
@@ -87,7 +88,12 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
         limits: accountEntitlements.limits,
       })
       .from(accountEntitlements)
-      .where(eq(accountEntitlements.accountId, membership.accountId))
+      .where(
+        and(
+          eq(accountEntitlements.accountId, membership.accountId),
+          eq(accountEntitlements.mode, getConfiguredStripeMode()),
+        ),
+      )
       .limit(1);
 
     c.set('entitlements', {
