@@ -81,6 +81,13 @@ vi.mock('../../middleware/x402.js', () => ({
   getAdvertisedCurrencyLabel: vi.fn(() => 'usdc-only'),
 }));
 
+// Dunning rows are live-mode billing data; seed rows default to mode='live'.
+// Mock getConfiguredStripeMode so the entitlement middleware's mode filter
+// matches the seeded rows regardless of CI environment key configuration.
+vi.mock('@revealui/config/stripe-mode', () => ({
+  getConfiguredStripeMode: vi.fn(() => 'live' as const),
+}));
+
 // ─── Imports (after mocks) ──────────────────────────────────────────────────
 
 import { entitlementMiddleware } from '../../middleware/entitlements.js';
