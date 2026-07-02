@@ -263,6 +263,48 @@ describe('LoginForm post-sign-in navigation', () => {
     vi.unstubAllGlobals();
   });
 
+  it('attaches the CSRF token to the resend request when the csrf cookie is present', async () => {
+    // The resend POST is NOT in the proxy's CSRF_EXEMPT_PREFIXES, and the proxy
+    // CSRF gate keys on session-cookie PRESENCE (not validity). With a stale
+    // leftover session cookie a raw fetch gets a 403 that resolves — the user
+    // would see "sent" while nothing was sent. The handler must go through
+    // apiFetch so the revealui-csrf double-submit token rides along.
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
+    vi.stubGlobal('fetch', fetchMock);
+    document.cookie = 'revealui-csrf=test-csrf-token';
+    mockSignIn.mockResolvedValue({
+      success: false,
+      error: 'Please verify your email address before signing in.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+
+    try {
+      render(<LoginForm oauthProviders={[]} />);
+      fillAndSubmit();
+
+      const resendButton = await screen.findByRole('button', {
+        name: 'Resend verification email',
+      });
+      fireEvent.click(resendButton);
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/auth/resend-verification',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({ 'X-CSRF-Token': 'test-csrf-token' }),
+            body: JSON.stringify({ email: 'owner@example.com' }),
+          }),
+        );
+      });
+    } finally {
+      document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('full-navigates home after a successful passkey sign-in (no soft push)', async () => {
     mockPasskeySupported = true;
     mockPasskeySignIn.mockResolvedValue(true);
