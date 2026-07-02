@@ -208,6 +208,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
   isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
+  lt: vi.fn((_col: unknown, _val: unknown) => `lt(${String(_col)},${String(_val)})`),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────

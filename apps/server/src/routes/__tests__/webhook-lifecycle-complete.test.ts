@@ -214,6 +214,7 @@ vi.mock('drizzle-orm', () => ({
   desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
   isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
   ne: vi.fn((_col: unknown, _val: unknown) => `ne(${String(_col)},${String(_val)})`),
+  lt: vi.fn((_col: unknown, _val: unknown) => `lt(${String(_col)},${String(_val)})`),
 }));
 
 // Email mocks  -  track which email functions are called
