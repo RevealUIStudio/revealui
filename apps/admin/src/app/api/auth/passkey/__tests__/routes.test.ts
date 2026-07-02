@@ -598,6 +598,77 @@ describe('POST /api/auth/passkey/register-verify', () => {
     }
   });
 
+  it('still enforces the deployment-license cap on self-hosted (Forge) passkey signup', async () => {
+    // Self-hosted (Forge) mode: no REVEALUI_LICENSE_PRIVATE_KEY. The seat cap is
+    // legitimate for a stamped kit and must still reject over-cap signups with
+    // 403 USER_LIMIT_REACHED and no session. Mirrors the OAuth callback suite's
+    // forge-cap test; guards the `&& isSelfHostedForge` gate from regressing to
+    // always-skip (which would silently disable Forge seat enforcement here).
+    const prevKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    mockGetMaxUsers.mockReturnValueOnce(3);
+    mockVerifyCookiePayload.mockReturnValue({
+      challenge: 'signup-challenge',
+      userId: 'temp-user-id',
+      email: 'overcap@example.com',
+      name: 'Over Cap',
+      expiresAt: Date.now() + 300000,
+    });
+    mockVerifyRegistration.mockResolvedValue({
+      verified: true,
+      registrationInfo: {
+        fmt: 'none',
+        aaguid: '00000000-0000-0000-0000-000000000000',
+        credential: {
+          id: 'overcap-credential-id',
+          publicKey: new Uint8Array([1]),
+          counter: 0,
+        },
+        credentialType: 'public-key',
+        userVerified: true,
+        credentialDeviceType: 'singleDevice',
+        credentialBackedUp: false,
+        attestationObject: new Uint8Array(),
+        origin: 'http://localhost:4000',
+      },
+    });
+    // The cap check runs inside db.transaction (advisory lock + active-user
+    // count). Provide a tx whose count query reports the cap already reached.
+    const tx = {
+      execute: vi.fn(() => Promise.resolve(undefined)),
+      select: vi.fn(() => tx),
+      from: vi.fn(() => tx),
+      where: vi.fn(() => Promise.resolve([{ total: 3 }])),
+    };
+    mockDb.transaction.mockImplementation(
+      async (cb: (t: typeof tx) => Promise<void>) => await cb(tx),
+    );
+
+    try {
+      const request = createChallengeRequest(
+        'http://localhost:3000/api/auth/passkey/register-verify',
+        { attestationResponse: { id: 'cred-id', response: {} } },
+      );
+      const response = await handler(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toBe('USER_LIMIT_REACHED');
+      expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+      expect(tx.execute).toHaveBeenCalledTimes(1); // advisory xact lock taken
+      // No account, no session: signup must not proceed past the cap.
+      expect(mockStorePasskey).not.toHaveBeenCalled();
+      expect(mockCreateSession).not.toHaveBeenCalled();
+      expect(response.cookies.get('revealui-session')).toBeUndefined();
+    } finally {
+      if (prevKey === undefined) {
+        delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+      } else {
+        process.env.REVEALUI_LICENSE_PRIVATE_KEY = prevKey;
+      }
+    }
+  });
+
   it('should reject sign-up when email is taken (race condition)', async () => {
     mockVerifyCookiePayload.mockReturnValue({
       challenge: 'signup-challenge',
