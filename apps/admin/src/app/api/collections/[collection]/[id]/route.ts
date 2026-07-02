@@ -1,6 +1,8 @@
+import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -16,6 +18,16 @@ async function proxyRequest(
   { params }: RouteParams,
   method: string,
 ): Promise<NextResponse> {
+  // Fail-closed session gate, mirroring the sibling list proxy
+  // (app/api/collections/[collection]/route.ts). The api server enforces
+  // per-collection permissions on the forwarded cookie, but this proxy must
+  // not forward at all without a validated session — defence-in-depth so an
+  // unauthenticated request never reaches the content API.
+  const session = await getSession(request.headers, extractRequestContext(request));
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { collection, id } = await params;
 
   const headers = await apiForwardHeaders(request);
