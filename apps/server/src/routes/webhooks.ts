@@ -2190,10 +2190,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 };
               },
               compensate: async (ctx, output) => {
-                const { previousStatus, previousTier } = output as {
+                const { previousStatus, previousTier, skipped } = output as {
                   previousStatus: string;
                   previousTier: string;
+                  skipped?: boolean;
                 };
+                // Nothing to roll back if the forward write was stale-skipped —
+                // the DB still holds the newer state we deliberately left intact.
+                if (skipped) return;
                 await ctx.db
                   .update(licenses)
                   .set({
