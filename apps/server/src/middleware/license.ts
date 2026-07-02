@@ -83,6 +83,7 @@ let dbUnreachableSince: number | null = null;
 type RequestEntitlements = {
   accountId?: string | null;
   subscriptionStatus?: string | null;
+  graceUntil?: Date | null;
   tier?: LicenseTier;
   features?: Partial<Record<keyof FeatureFlags, boolean>>;
 };
