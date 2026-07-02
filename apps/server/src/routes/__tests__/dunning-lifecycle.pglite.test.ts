@@ -327,23 +327,26 @@ describe('sweep-grace-periods against real DB', () => {
 // ─── Full lifecycle: seed → sweep → gate ────────────────────────────────────
 
 describe('dunning lifecycle end-to-end', () => {
-  it('past_due with expired grace → sweep → gate blocks access', async () => {
+  it('past_due with expired grace → gate blocks at request time, before AND after the sweep', async () => {
     // 1. Customer is in past_due with grace that just expired.
     const { userId, accountId } = await seedPaidUser({
       status: 'past_due',
       graceUntil: new Date(Date.now() - 1000),
     });
 
-    // 2. Before the sweep runs, they still have access — grace has not
-    //    yet been swept even though it ended. This is the expected
-    //    behavior (sweep runs daily on Hobby; tighten via external
-    //    scheduler if needed).
+    // 2. The request-time gate blocks IMMEDIATELY — graceUntil is resolved at
+    //    request time, so a paused/undeployed sweep cron cannot leave a
+    //    delinquent account on Pro. (This is the GAP-282 hardening; previously
+    //    access leaked until the daily sweep ran.)
     const preSweep = await protectedApp().request('/protected', {
       headers: { 'x-test-user-id': userId },
     });
-    expect(preSweep.status).toBe(200);
+    expect(preSweep.status).toBe(403);
+    const preSweepBody = (await preSweep.json()) as { error: string };
+    expect(preSweepBody.error).toContain('past due');
 
-    // 3. The cron runs and transitions the row.
+    // 3. The cron still runs and durably transitions the row to 'expired'
+    //    (cleanup / persistent state), independent of the request-time gate.
     const sweep = await sweepGracePeriodsApp.fetch(cronRequest());
     expect(sweep.status).toBe(200);
 
@@ -353,7 +356,7 @@ describe('dunning lifecycle end-to-end', () => {
       .where(eq(accountEntitlements.accountId, accountId));
     expect(row?.status).toBe('expired');
 
-    // 4. Now the gate blocks.
+    // 4. Still blocked after the sweep (now via the 'expired' status path).
     const postSweep = await protectedApp().request('/protected', {
       headers: { 'x-test-user-id': userId },
     });
