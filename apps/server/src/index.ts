@@ -52,7 +52,7 @@ import {
   validateStartup,
 } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
-import { authMiddleware } from './middleware/auth.js';
+import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { bodyLimitGate } from './middleware/body-limits.js';
 import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
@@ -1198,8 +1198,10 @@ app.use('/api/v1/console-auth/*', routeLimit('terminal-auth'));
 app.route('/api/console-auth', terminalAuthRoute);
 
 // Terminal WebSocket bridge  -  daemon PTY sessions for remote access
-// Auth required: terminal sessions give PTY access to the server
+// Operator-gated: terminal sessions give PTY access to the server host, so
+// bare authentication is not enough — only owner/admin may reach the surface.
 app.use('/api/terminal/*', writeProtected);
+app.use('/api/terminal/*', requireRole('owner', 'admin'));
 app.use('/api/terminal/*', routeLimit('terminal-sessions'));
 export const terminalWs = createTerminalRoute();
 app.route('/api/terminal', terminalWs.app);
