@@ -1707,6 +1707,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 )
                 .limit(1);
 
+              // WH-3: monotonic-timestamp guard against out-of-order delivery —
+              // a stale event whose created time predates the row's last update
+              // must not overwrite a newer license state (mirrors the guard
+              // syncHostedSubscriptionState applies to account_entitlements).
               await ctx.db
                 .update(licenses)
                 .set({ status: 'revoked', updatedAt: new Date() })
@@ -1715,6 +1719,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscription.id),
                     isNull(licenses.deletedAt),
+                    lt(licenses.updatedAt, new Date(event.created * 1000)),
                   ),
                 );
 
