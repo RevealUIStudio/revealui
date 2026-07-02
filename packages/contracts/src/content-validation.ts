@@ -6,6 +6,7 @@
  * - javascript: URLs (XSS via link nodes)
  * - data: URLs (XSS via image/link nodes)
  * - vbscript: URLs
+ * - Disallowed heading/list `tag` values (XSS via script-tagged element nodes)
  * - Excessively deep nesting (>20 levels)
  * - Excessively large payloads (>5MB)
  *
@@ -86,6 +87,20 @@ function isDangerousUrl(value: string): boolean {
 }
 
 // =============================================================================
+// Element Tag Allow-List
+// =============================================================================
+
+/**
+ * Lexical node types whose `tag` field is rendered as a JSX element name.
+ * A forged tag (e.g. "script") on one of these nodes would render as that
+ * element, so tags are allow-listed per node type at the write boundary.
+ * Scoped to heading/list nodes to avoid rejecting unrelated block fields
+ * that happen to be named `tag`.
+ */
+const TAG_VALIDATED_NODE_TYPES = new Set(['heading', 'list']);
+const ALLOWED_ELEMENT_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ol', 'ul']);
+
+// =============================================================================
 // Recursive Tree Walker
 // =============================================================================
 
@@ -120,6 +135,17 @@ function walkNode(node: unknown, depth: number, path: string, errors: string[]):
         if (isDangerousUrl(value)) {
           errors.push(`Dangerous URL protocol detected in field "${key}" at ${path}.${key}`);
         }
+      }
+
+      // Check element-node tags against the allow-list
+      if (
+        key === 'tag' &&
+        typeof value === 'string' &&
+        typeof obj.type === 'string' &&
+        TAG_VALIDATED_NODE_TYPES.has(obj.type) &&
+        !ALLOWED_ELEMENT_TAGS.has(value.toLowerCase())
+      ) {
+        errors.push(`Disallowed element tag "${value}" in "${obj.type}" node at ${path}.${key}`);
       }
 
       // Recurse into nested objects and arrays
