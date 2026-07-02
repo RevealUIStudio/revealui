@@ -74,7 +74,9 @@ describe('Edge Cases', () => {
     beforeAll(async () => {
       testDb = await createTestDb();
       db = testDb.drizzle as unknown as Database;
-    }, 30_000);
+      // PGlite init is heavy; under the gate's parallel load this beforeAll can
+      // exceed 30s. 90s matches performance.test.ts (the sibling that never flaked).
+    }, 90_000);
 
     afterAll(async () => {
       await testDb?.close();
