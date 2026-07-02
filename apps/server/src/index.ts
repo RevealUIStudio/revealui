@@ -71,7 +71,7 @@ import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rat
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits.js';
 import { requireTaskQuota } from './middleware/task-quota.js';
-import { tenantMiddleware } from './middleware/tenant.js';
+import { createTenantMembershipValidator, tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminCoordinationRoute from './routes/admin/coordination.js';
 import adminInferenceConfigRoute from './routes/admin/inference-config.js';
