@@ -34,6 +34,12 @@ const IS_CODE = 16;
 const IS_SUBSCRIPT = 32;
 const IS_SUPERSCRIPT = 64;
 
+// Heading `tag` values come from stored, author-controlled Lexical JSON and
+// are rendered as JSX element names — allow-list them (a forged tag like
+// "script" would otherwise render a live <script> element, whose text
+// children React does not escape).
+const HEADING_TAGS: ReadonlySet<string> = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
 // ============================================
 // TYPES
 // ============================================
@@ -134,7 +140,7 @@ interface SerializeOptions {
     children: JSX.Element | null,
     index: number,
   ) => JSX.Element;
-  /** Custom image renderer */
+  /** Custom image renderer. `data.src` arrives already sanitized. */
   renderImage?: (
     data: {
       src?: string;
@@ -142,6 +148,16 @@ interface SerializeOptions {
       width?: number;
       height?: number;
       caption?: string;
+    },
+    index: number,
+  ) => JSX.Element | null;
+  /** Custom upload-node renderer. `data.url` arrives already sanitized. */
+  renderUpload?: (
+    data: {
+      url?: string;
+      alt?: string;
+      width?: number;
+      height?: number;
     },
     index: number,
   ) => JSX.Element | null;
@@ -235,9 +251,9 @@ function serializeNode(
     return <p key={index}>{serializeChildren(n.children, options)}</p>;
   }
 
-  // Heading
+  // Heading — the stored tag is author-controlled; render only allow-listed h1-h6
   if (node.type === 'heading') {
-    const Tag = (n.tag || 'h1') as keyof JSX.IntrinsicElements;
+    const Tag = (n.tag && HEADING_TAGS.has(n.tag) ? n.tag : 'h1') as keyof JSX.IntrinsicElements;
     return <Tag key={index}>{serializeChildren(n.children, options)}</Tag>;
   }
 
@@ -332,9 +348,9 @@ function serializeNode(
     const height = imageNode.fields?.height;
     const caption = imageNode.fields?.caption;
 
-    // Allow custom image renderer
+    // Allow custom image renderer — hand it the sanitized src, never the raw one
     if (options?.renderImage) {
-      return options.renderImage(imageNode.fields || {}, index);
+      return options.renderImage({ ...(imageNode.fields || {}), src }, index);
     }
 
     // Default image rendering
@@ -362,6 +378,57 @@ function serializeNode(
             }}
           >
             {caption}
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
+
+  // Upload (media-collection reference from the rich-text upload feature).
+  // The stored value.url is author-controlled; sanitize before any renderer
+  // sees it.
+  if (node.type === 'upload') {
+    const uploadNode = node as SerializedElementNode & {
+      value?: { url?: string; alt?: string; width?: number; height?: number } | string;
+    };
+    const value = uploadNode.value;
+    if (!value || typeof value === 'string' || !value.url) {
+      return null;
+    }
+
+    const url = sanitizeUrl(value.url, 'image');
+
+    if (options?.renderUpload) {
+      return options.renderUpload(
+        { url, alt: value.alt, width: value.width, height: value.height },
+        index,
+      );
+    }
+
+    return (
+      <figure key={index} style={{ margin: '16px 0' }}>
+        {/* biome-ignore lint/performance/noImgElement: SSR output doesn't require Next.js Image. */}
+        <img
+          src={url}
+          alt={value.alt || ''}
+          width={value.width}
+          height={value.height}
+          style={{
+            maxWidth: '100%',
+            height: 'auto',
+            display: 'block',
+          }}
+        />
+        {value.alt && (
+          <figcaption
+            style={{
+              marginTop: '8px',
+              fontSize: '14px',
+              color: 'var(--rvui-text-2, #64748b)',
+              fontStyle: 'italic',
+            }}
+          >
+            {value.alt}
           </figcaption>
         )}
       </figure>
@@ -569,6 +636,15 @@ export interface RichTextContentProps {
     },
     index: number,
   ) => JSX.Element | null;
+  renderUpload?: (
+    data: {
+      url?: string;
+      alt?: string;
+      width?: number;
+      height?: number;
+    },
+    index: number,
+  ) => JSX.Element | null;
 }
 
 export function RichTextContent({
@@ -577,6 +653,7 @@ export function RichTextContent({
   renderBlock,
   renderLink,
   renderImage,
+  renderUpload,
 }: RichTextContentProps) {
   if (!data) {
     return null;
@@ -586,6 +663,7 @@ export function RichTextContent({
     renderBlock: renderBlock || undefined,
     renderLink: renderLink || undefined,
     renderImage: renderImage || undefined,
+    renderUpload: renderUpload || undefined,
   });
 
   if (!content) {
