@@ -1916,6 +1916,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   )
                   .limit(1);
 
+                // WH-3: guard against out-of-order delivery (see reactivate).
                 await ctx.db
                   .update(licenses)
                   .set({ status: 'expired', updatedAt: new Date() })
@@ -1924,6 +1925,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date(event.created * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
