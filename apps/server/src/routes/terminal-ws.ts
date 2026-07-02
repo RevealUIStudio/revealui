@@ -15,11 +15,50 @@
  */
 
 import { createConnection } from 'node:net';
+import { resolve, sep } from 'node:path';
 import type { ServerType } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
+import { zValidator } from '@revealui/openapi';
 import { Hono } from 'hono';
+import { z } from 'zod';
 
 const DAEMON_SOCKET = `${process.env.HOME ?? '/tmp'}/.local/share/revealui/harness.sock`;
+
+/**
+ * Runtime validation for the spawn body. The previous `c.req.json<{...}>()`
+ * was a TypeScript cast only — nothing constrained the values at runtime on a
+ * PTY-spawning (code-execution-adjacent) endpoint.
+ */
+const SpawnTerminalSessionSchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  cols: z.number().int().min(1).max(1024).optional(),
+  rows: z.number().int().min(1).max(1024).optional(),
+  cwd: z.string().min(1).max(4096).optional(),
+});
+
+/**
+ * Bound the requested PTY working directory to the terminal workspace root
+ * (REVEALUI_TERMINAL_WORKSPACE_ROOT, default $HOME — the daemon's own default).
+ *
+ * - omitted cwd → the root itself (matches the daemon's HOME fallback);
+ * - relative cwd → resolved under the root;
+ * - absolute cwd → admitted only when lexically inside the root;
+ * - anything escaping the root (traversal or foreign absolute path) → null.
+ *
+ * Lexical bound only (no realpath) — the daemon additionally stat()s the
+ * directory before spawning. Exported for direct unit testing.
+ */
+export function resolveWorkspaceCwd(requested: string | undefined): string | null {
+  const root = resolve(process.env.REVEALUI_TERMINAL_WORKSPACE_ROOT ?? process.env.HOME ?? '/tmp');
+  if (!requested) {
+    return root;
+  }
+  const target = resolve(root, requested);
+  if (target === root || target.startsWith(root + sep)) {
+    return target;
+  }
+  return null;
+}
 
 /** JSON-RPC call to the harness daemon over Unix socket. */
 function daemonRpc(method: string, params: Record<string, unknown>): Promise<unknown> {
@@ -82,13 +121,15 @@ export function createTerminalRoute(): {
   });
 
   // ── REST: spawn session ────────────────────────────────────────────
-  app.post('/sessions', async (c) => {
-    const body = await c.req.json<{
-      name?: string;
-      cols?: number;
-      rows?: number;
-      cwd?: string;
-    }>();
+  app.post('/sessions', zValidator('json', SpawnTerminalSessionSchema), async (c) => {
+    const body = c.req.valid('json');
+
+    // Reject any cwd escaping the workspace root BEFORE the daemon RPC — the
+    // daemon only stat()s the directory; it does not bound the path itself.
+    const cwd = resolveWorkspaceCwd(body.cwd);
+    if (cwd === null) {
+      return c.json({ error: 'cwd is outside the terminal workspace root' }, 400);
+    }
 
     const name = body.name ?? `remote-${Date.now().toString(36)}`;
     try {
@@ -97,7 +138,7 @@ export function createTerminalRoute(): {
         backend: 'ClaudeCode',
         model: 'claude-opus-4-6',
         prompt: '',
-        cwd: body.cwd ?? null,
+        cwd,
         cols: body.cols ?? 120,
         rows: body.rows ?? 30,
       });

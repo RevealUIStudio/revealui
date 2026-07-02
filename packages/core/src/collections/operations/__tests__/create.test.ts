@@ -270,3 +270,62 @@ describe('create operation', () => {
     expect(insertCall[1]).not.toContain('hello');
   });
 });
+
+describe('create operation — typed-storage write seam', () => {
+  const seamConfig: RevealCollectionConfig = {
+    slug: 'pages',
+    fields: [{ name: 'title', type: 'text', required: true }],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns the adapter document and skips the dynamic SQL path when handled', async () => {
+    const handledDoc = { id: 'p1', title: 'Home' };
+    const db = {
+      query: vi.fn(),
+      collectionStorage: { create: vi.fn().mockResolvedValue(handledDoc) },
+    };
+
+    const result = await create(seamConfig, db as never, { data: { title: 'Home' } });
+
+    expect(result).toEqual(handledDoc);
+    expect(db.collectionStorage.create).toHaveBeenCalledWith(seamConfig, {
+      data: { title: 'Home' },
+    });
+    // The typed adapter owns the write — the dynamic-SQL path must not run.
+    expect(db.query).not.toHaveBeenCalled();
+    expect(findByID).not.toHaveBeenCalled();
+  });
+
+  it('falls through to the dynamic SQL path when the adapter returns undefined', async () => {
+    const db = {
+      query: vi.fn().mockResolvedValue({ rows: [] } as DatabaseResult),
+      collectionStorage: { create: vi.fn().mockResolvedValue(undefined) },
+    };
+    const dynamicDoc = { id: 'p2', title: 'Home' };
+    vi.mocked(findByID).mockResolvedValue(dynamicDoc as never);
+
+    const result = await create(seamConfig, db as never, { data: { title: 'Home' } });
+
+    expect(db.collectionStorage.create).toHaveBeenCalled();
+    expect(db.query).toHaveBeenCalled(); // dynamic INSERT ran
+    expect(result).toEqual(dynamicDoc);
+  });
+
+  it('forwards req to the adapter when present', async () => {
+    const db = {
+      query: vi.fn(),
+      collectionStorage: { create: vi.fn().mockResolvedValue({ id: 'p3', title: 'Home' }) },
+    };
+    const req = { context: {} } as never;
+
+    await create(seamConfig, db as never, { data: { title: 'Home' }, req });
+
+    expect(db.collectionStorage.create).toHaveBeenCalledWith(seamConfig, {
+      data: { title: 'Home' },
+      req,
+    });
+  });
+});
