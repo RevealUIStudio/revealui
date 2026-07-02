@@ -667,8 +667,14 @@ app.use('/api/v1/waitlist', waitlistLimit);
 const optionalAuth = authMiddleware({ required: false });
 app.use('/api/*', optionalAuth);
 app.use('/api/v1/*', optionalAuth);
-// Multi-tenant context (optional by default  -  routes that require it use requireTenant())
-const optionalTenant = tenantMiddleware({ required: false });
+// Multi-tenant context (optional by default  -  routes that require it use requireTenant()).
+// Membership-validated: a request may only claim a tenant its authenticated user
+// belongs to (active accountMemberships row); anything else is 403'd here, before
+// any tenant-scoped vault/DB/MCP access runs.
+const optionalTenant = tenantMiddleware({
+  required: false,
+  validateTenant: createTenantMembershipValidator(getClient),
+});
 app.use('/api/*', optionalTenant);
 app.use('/api/v1/*', optionalTenant);
 // Additive hosted-SaaS entitlement context. Does not replace legacy license gates yet.
