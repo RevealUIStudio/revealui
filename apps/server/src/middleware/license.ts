@@ -216,16 +216,34 @@ export const checkLicenseStatus = (
   return async (c, next) => {
     const requestEntitlements = getRequestEntitlements(c);
     if (requestEntitlements?.accountId) {
-      if (requestEntitlements.subscriptionStatus === 'revoked') {
+      const status = requestEntitlements.subscriptionStatus;
+      if (status === 'revoked') {
         throw new HTTPException(403, {
           message: `Your subscription has been revoked. Contact ${SUPPORT_EMAIL}`,
         });
       }
 
-      if (requestEntitlements.subscriptionStatus === 'expired') {
+      if (status === 'expired') {
         throw new HTTPException(403, {
           message: `Your subscription has expired. Renew at ${PRICING_URL}`,
         });
+      }
+
+      // Enforce past_due at request time, not solely via the sweep-grace-periods
+      // cron: once graceUntil has elapsed, deny regardless of whether the cron has
+      // flipped the row to 'expired' yet. This mirrors the cron's exact transition
+      // (status 'past_due' AND graceUntil <= now) so a paused/undeployed/mis-secreted
+      // cron cannot leave a delinquent account on Pro indefinitely. A past_due row
+      // with a null or future graceUntil is left to the grace window / the
+      // entitlement-tier downgrade in entitlementMiddleware.
+      if (status === 'past_due') {
+        const graceUntil = requestEntitlements.graceUntil;
+        const graceElapsed = graceUntil != null && graceUntil.getTime() <= Date.now();
+        if (graceElapsed) {
+          throw new HTTPException(403, {
+            message: `Your subscription is past due and the grace period has ended. Renew at ${PRICING_URL}`,
+          });
+        }
       }
 
       await next();

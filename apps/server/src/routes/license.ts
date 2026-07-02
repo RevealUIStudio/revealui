@@ -221,6 +221,7 @@ app.openapi(verifyRoute, async (c) => {
   // was issued but before its exp timestamp.
   let dbStatus: string | null = null;
   let supportExpiresAt: Date | null = null;
+  let dbCheckFailed = false;
   try {
     const db = getClient();
     const [row] = await db
@@ -237,9 +238,31 @@ app.openapi(verifyRoute, async (c) => {
       supportExpiresAt = row.supportExpiresAt;
     }
   } catch (err) {
-    logger.warn('Failed to check DB revocation status during verify  -  trusting JWT', {
+    dbCheckFailed = true;
+    logger.warn('Failed to check DB revocation status during verify  -  failing closed', {
       error: err instanceof Error ? err.message : 'unknown',
     });
+  }
+
+  // Fail closed on an unverifiable revocation status. A structurally-valid JWT
+  // whose current revocation state could NOT be read (DB outage) must not be
+  // trusted: a revoked-but-unexpired token would otherwise report valid for the
+  // duration of any DB blip. Report not-authorized (free tier) so the caller
+  // treats it as unlicensed rather than granting the JWT's paid tier.
+  if (dbCheckFailed) {
+    return c.json(
+      {
+        valid: false,
+        reason: 'unverifiable' as const,
+        tier: 'free' as const,
+        customerId: null,
+        features: getFeaturesForTier('free'),
+        maxSites: 1,
+        maxUsers: 3,
+        expiresAt: null,
+      },
+      200,
+    );
   }
 
   if (dbStatus === 'revoked' || dbStatus === 'expired') {
