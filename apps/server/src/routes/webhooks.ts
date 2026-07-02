@@ -1719,7 +1719,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscription.id),
                     isNull(licenses.deletedAt),
-                    lt(licenses.updatedAt, new Date(event.created * 1000)),
+                    lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                   ),
                 );
 
@@ -1925,7 +1925,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
-                      lt(licenses.updatedAt, new Date(event.created * 1000)),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -2033,7 +2033,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
-                      lt(licenses.updatedAt, new Date(event.created * 1000)),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousExpiresAt: prev?.expiresAt ?? null };
@@ -2173,7 +2173,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
-                      lt(licenses.updatedAt, new Date(event.created * 1000)),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 const reactivateStale =
@@ -2305,7 +2305,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
-                      lt(licenses.updatedAt, new Date(event.created * 1000)),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -2425,7 +2425,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
-                      lt(licenses.updatedAt, new Date(event.created * 1000)),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
