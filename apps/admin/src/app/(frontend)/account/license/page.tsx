@@ -307,6 +307,43 @@ export default function LicensePage() {
                 </pre>
               </div>
             </div>
+            {publicKey && (
+              <div className="rounded-lg border p-3 dark:border-zinc-800">
+                <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2">
+                  Daemon public key
+                </p>
+                <div className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+                  <p>
+                    The RevDev daemon also needs the vendor public key to verify your license.
+                    Without it, a valid Pro license silently runs as Free. Set it as{' '}
+                    <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
+                      REVDEV_LICENSE_PUBLIC_KEY
+                    </code>
+                    :
+                  </p>
+                  <div className="relative">
+                    <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs font-mono text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                      {publicKey}
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(publicKey);
+                        setPubCopied(true);
+                        setTimeout(() => setPubCopied(false), 2000);
+                      }}
+                      className="absolute right-2 top-2 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                    >
+                      {pubCopied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    Newer daemon builds bake this key in, so this step is only needed for older
+                    builds or after a key rotation.
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
