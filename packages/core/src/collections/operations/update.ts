@@ -169,6 +169,22 @@ export async function update(
     data.password = await bcrypt.hash(data.password, saltRounds);
   }
 
+  // Typed-storage write seam: a registered collectionStorage adapter may own
+  // this collection's writes. It receives the hook-processed `data` and returns
+  // the updated document, throws for not-found / optimistic-lock 409, or returns
+  // `undefined` to defer to the dynamic-SQL path below (same not-handled
+  // contract as the read seam).
+  if (db?.collectionStorage?.update) {
+    const doc = await db.collectionStorage.update(config, {
+      id,
+      data,
+      ...(options.req ? { req: options.req } : {}),
+    });
+    if (doc !== undefined) {
+      return doc;
+    }
+  }
+
   if (db?.query) {
     // Dynamic collection storage is quarantined in sqlAdapter.ts until this
     // layer is redesigned around typed tables that Drizzle can model directly.
