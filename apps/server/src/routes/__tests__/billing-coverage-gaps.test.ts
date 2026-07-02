@@ -545,7 +545,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_LIVE_MODE = 'false';
     });
 
-    it('restores license when dispute is won', async () => {
+    it('does not auto-restore a won dispute when the charge cannot be scoped to a subscription', async () => {
       const event = {
         id: 'evt_dispute_won_1',
         type: 'charge.dispute.closed',
@@ -560,19 +560,19 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
         },
       };
       mockConstructEvent.mockReturnValueOnce(event);
+      // Charge has no invoice → subscription unresolvable. The won-path no longer
+      // blanket-restores every revoked license (GAP-283 scoping); it audits for
+      // manual review instead, so no license is flipped to active.
       mockChargesRetrieve.mockResolvedValueOnce({ customer: 'cus_won_1' });
-      // syncHostedSubscriptionState: resolveHostedAccountId lookup
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ accountId: 'acct_won' }]);
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ status: 'revoked' }]);
 
       const app = createWebhookApp();
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Should restore license to 'active'
-      expect(mockDb.update).toHaveBeenCalledWith(licenses);
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(setCall.status).toBe('active');
+      const restored = mockDbUpdateChain.set.mock.calls.some(
+        (c) => (c[0] as Record<string, unknown>)?.status === 'active',
+      );
+      expect(restored).toBe(false);
     });
 
     it('revokes license when dispute is lost', async () => {
