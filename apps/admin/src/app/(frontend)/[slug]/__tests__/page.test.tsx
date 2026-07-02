@@ -58,7 +58,7 @@ vi.mock('@revealui/utils/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
 }));
 
-import Page from '../page';
+import Page, { generateMetadata } from '../page';
 
 function params(slug: string) {
   return { params: Promise.resolve({ slug }) };
@@ -171,5 +171,37 @@ describe('(frontend)/[slug] — role-gated visibility (S2 + role-gate)', () => {
     expect(mockGetSession).toHaveBeenCalledOnce();
     const secondArg = mockGetSession.mock.calls[0]?.[1] as { userAgent?: string } | undefined;
     expect(secondArg?.userAgent).toBe('test-ua');
+  });
+});
+
+describe('(frontend)/[slug] — generateMetadata reserved slugs', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockDraftMode.mockResolvedValue({ isEnabled: false });
+    mockGetSession.mockResolvedValue(null);
+    mockFind.mockResolvedValue({ docs: [] });
+  });
+
+  it.each([
+    'login',
+    'signup',
+    'mfa',
+    'rotate-password',
+    'forgot-password',
+    'reset-password',
+    'setup',
+  ])('does not query content from generateMetadata for reserved slug %s', async (slug) => {
+    // The reserved-slug guard lives in queryPageBySlug, the shared entry point
+    // for both Page() and generateMetadata(), so the metadata path must skip
+    // the content query too — a future refactor moving the guard back into
+    // Page() would re-open reserved-slug metadata queries; this pins it.
+    await generateMetadata(params(slug));
+    expect(mockFind).not.toHaveBeenCalled();
+  });
+
+  it('queries content from generateMetadata for an ordinary slug', async () => {
+    mockFind.mockResolvedValueOnce({ docs: [{ id: '1', hero: null, layout: [] }] });
+    await generateMetadata(params('ordinary-meta'));
+    expect(mockFind).toHaveBeenCalledOnce();
   });
 });
