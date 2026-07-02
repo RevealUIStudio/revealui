@@ -121,13 +121,15 @@ export function createTerminalRoute(): {
   });
 
   // ── REST: spawn session ────────────────────────────────────────────
-  app.post('/sessions', async (c) => {
-    const body = await c.req.json<{
-      name?: string;
-      cols?: number;
-      rows?: number;
-      cwd?: string;
-    }>();
+  app.post('/sessions', zValidator('json', SpawnTerminalSessionSchema), async (c) => {
+    const body = c.req.valid('json');
+
+    // Reject any cwd escaping the workspace root BEFORE the daemon RPC — the
+    // daemon only stat()s the directory; it does not bound the path itself.
+    const cwd = resolveWorkspaceCwd(body.cwd);
+    if (cwd === null) {
+      return c.json({ error: 'cwd is outside the terminal workspace root' }, 400);
+    }
 
     const name = body.name ?? `remote-${Date.now().toString(36)}`;
     try {
@@ -136,7 +138,7 @@ export function createTerminalRoute(): {
         backend: 'ClaudeCode',
         model: 'claude-opus-4-6',
         prompt: '',
-        cwd: body.cwd ?? null,
+        cwd,
         cols: body.cols ?? 120,
         rows: body.rows ?? 30,
       });
