@@ -68,6 +68,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
   isNull: vi.fn((_col: unknown) => ({ type: 'isNull' })),
   count: vi.fn(() => ({ type: 'count' })),
+  sql: vi.fn((..._args: unknown[]) => ({ type: 'sql' })),
 }));
 
 // Mock the database client (both barrel and internal path for inlined resolution)
