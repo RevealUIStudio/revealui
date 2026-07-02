@@ -17,7 +17,6 @@ type CMSLinkType = {
   size?: ButtonProps['size'] | null;
   type?: 'custom' | 'reference' | null;
   url?: string | null;
-  href?: string | null;
 };
 
 export const CMSLink = (props: CMSLinkType) => {
