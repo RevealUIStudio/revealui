@@ -185,10 +185,17 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     if (!SESSION_ONLY_PATHS.has(pathname)) {
       const role = request.cookies.get('revealui-role')?.value;
       if (role !== 'admin') {
-        // User is authenticated but not admin — redirect to login (no admin home for non-admins)
-        const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = '/login';
-        return NextResponse.redirect(loginUrl);
+        // Authenticated but not an admin. Redirect to /welcome (their session-only
+        // home), NOT /login. Bouncing an already-signed-in user to the login form
+        // they just used produces a silent flash-and-reappear loop with no feedback
+        // (a user-role account sent to an admin route via a ?redirect= intent).
+        // The `denied` param lets /welcome explain that the admin area needs an
+        // admin role.
+        const welcomeUrl = request.nextUrl.clone();
+        welcomeUrl.pathname = '/welcome';
+        welcomeUrl.search = '';
+        welcomeUrl.searchParams.set('denied', 'admin');
+        return NextResponse.redirect(welcomeUrl);
       }
     }
 

@@ -200,6 +200,69 @@ describe('LoginForm post-sign-in navigation', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('offers a verification resend when sign-in fails with EMAIL_NOT_VERIFIED', async () => {
+    mockSignIn.mockResolvedValue({
+      success: false,
+      error: 'Please verify your email address before signing in.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    // Friendly message shown (not the raw code), plus a recovery affordance.
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Please verify your email address before signing in.',
+    );
+    expect(screen.getByRole('button', { name: 'Resend verification email' })).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not offer a resend for a generic sign-in failure', async () => {
+    mockSignIn.mockResolvedValue({ success: false, error: 'Invalid email or password' });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await screen.findByRole('alert');
+    expect(
+      screen.queryByRole('button', { name: 'Resend verification email' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('resends the verification email to the sign-in address and confirms', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
+    vi.stubGlobal('fetch', fetchMock);
+    mockSignIn.mockResolvedValue({
+      success: false,
+      error: 'Please verify your email address before signing in.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    const resendButton = await screen.findByRole('button', { name: 'Resend verification email' });
+    fireEvent.click(resendButton);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/auth/resend-verification',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ email: 'owner@example.com' }),
+        }),
+      );
+    });
+    expect(
+      await screen.findByText((content) => content.includes('verification link is on its way')),
+    ).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
   it('full-navigates home after a successful passkey sign-in (no soft push)', async () => {
     mockPasskeySupported = true;
     mockPasskeySignIn.mockResolvedValue(true);
