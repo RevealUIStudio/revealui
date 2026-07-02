@@ -214,6 +214,38 @@ describe('checkLicenseStatus', () => {
     expect(body.error).toContain('revoked');
     expect(queryFn).not.toHaveBeenCalled();
   });
+
+  it('returns 403 for a past_due hosted account whose graceUntil has passed (request-time, cron-independent)', async () => {
+    mockedGetLicensePayload.mockReturnValue(null);
+    const queryFn = vi.fn();
+
+    const app = createApp(queryFn, {
+      accountId: 'acct_123',
+      subscriptionStatus: 'past_due',
+      graceUntil: new Date(Date.now() - 60_000), // grace ended a minute ago
+    });
+    const res = await app.request('/resource');
+
+    expect(res.status).toBe(403);
+    const body = await parseBody(res);
+    expect(body.error).toContain('past due');
+    expect(queryFn).not.toHaveBeenCalled();
+  });
+
+  it('allows a past_due hosted account still inside its grace window', async () => {
+    mockedGetLicensePayload.mockReturnValue(null);
+    const queryFn = vi.fn();
+
+    const app = createApp(queryFn, {
+      accountId: 'acct_123',
+      subscriptionStatus: 'past_due',
+      graceUntil: new Date(Date.now() + 3_600_000), // grace still open
+    });
+    const res = await app.request('/resource');
+
+    expect(res.status).toBe(200);
+    expect(queryFn).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------
