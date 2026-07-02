@@ -52,7 +52,7 @@ import {
   validateStartup,
 } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
-import { authMiddleware } from './middleware/auth.js';
+import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { bodyLimitGate } from './middleware/body-limits.js';
 import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
