@@ -2152,7 +2152,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   normalizedKey,
                 );
 
-                await ctx.db
+                // WH-3: monotonic-timestamp guard against out-of-order delivery.
+                // THIS is the resurrection vector: a delayed .updated(active)
+                // delivered after a .deleted must NOT flip a revoked license back
+                // to active. The row's wall-clock updatedAt (set by the newer
+                // .deleted) will not be < this stale event's created time, so the
+                // write affects 0 rows and the revocation stands.
+                const reactivateResult = await ctx.db
                   .update(licenses)
                   .set({
                     status: 'active',
@@ -2165,12 +2171,22 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date(event.created * 1000)),
                     ),
                   );
+                const reactivateStale =
+                  ((reactivateResult as { rowCount?: number }).rowCount ?? 0) === 0;
+                if (reactivateStale) {
+                  logger.info('Stale reactivate skipped — newer license state already applied', {
+                    customerId,
+                    subscriptionId: subscription.id,
+                    eventTimestamp: new Date(event.created * 1000).toISOString(),
+                  });
+                }
                 return {
                   previousStatus: prev?.status ?? 'active',
                   previousTier: prev?.tier ?? newTier,
-                  skipped: false,
+                  skipped: reactivateStale,
                 };
               },
               compensate: async (ctx, output) => {
