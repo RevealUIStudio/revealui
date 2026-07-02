@@ -1,5 +1,6 @@
 import type { Page, Post } from '@revealui/core/types/admin';
 import { ButtonCVA as Button, type ButtonProps, cn } from '@revealui/presentation/server';
+import { sanitizeUrl } from '@revealui/security/sanitize';
 import Link from 'next/link';
 import type React from 'react';
 
@@ -16,7 +17,6 @@ type CMSLinkType = {
   size?: ButtonProps['size'] | null;
   type?: 'custom' | 'reference' | null;
   url?: string | null;
-  href?: string | null;
 };
 
 export const CMSLink = (props: CMSLinkType) => {
@@ -41,13 +41,19 @@ export const CMSLink = (props: CMSLinkType) => {
 
   if (!href) return null;
 
+  // Single URL chokepoint for every CMS-authored link surface (inline rich
+  // text, CTA and hero buttons). The stored url is author-controlled and
+  // Next <Link> renders javascript: hrefs verbatim, so unsafe schemes must
+  // collapse to '#' here.
+  const safeHref = sanitizeUrl(href, 'link');
+
   const size = appearance === 'link' ? 'clear' : sizeFromProps;
   const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {};
 
   /* Ensure we don't break any styles set by richText */
   if (appearance === 'inline') {
     return (
-      <Link className={cn(className)} href={href || url || '/'} {...newTabProps}>
+      <Link className={cn(className)} href={safeHref} {...newTabProps}>
         {label}
         {children}
       </Link>
@@ -56,7 +62,7 @@ export const CMSLink = (props: CMSLinkType) => {
 
   return (
     <Button asChild className={className} size={size} variant={appearance}>
-      <Link className={cn(className)} href={href || url || '/'} {...newTabProps}>
+      <Link className={cn(className)} href={safeHref} {...newTabProps}>
         {label}
         {children}
       </Link>
