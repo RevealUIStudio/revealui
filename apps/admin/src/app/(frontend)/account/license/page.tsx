@@ -61,7 +61,7 @@ export default function LicensePage() {
   const [copied, setCopied] = useState(false);
   const [pubCopied, setPubCopied] = useState(false);
   // Vendor Ed25519 public key (PEM). The daemon needs it to verify a license;
-  // without it a valid Pro license silently runs Free (GAP-268). Public material.
+  // without it a valid Pro license silently runs Free. Public material.
   const [publicKey, setPublicKey] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
