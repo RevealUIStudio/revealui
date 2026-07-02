@@ -106,6 +106,7 @@ interface MockDatabase {
   update: MockFn;
   set: MockFn;
   delete: MockFn;
+  transaction: MockFn;
 }
 
 const mockDb: MockDatabase = {
@@ -119,6 +120,10 @@ const mockDb: MockDatabase = {
   update: vi.fn(() => mockDb),
   set: vi.fn(() => mockDb),
   delete: vi.fn(() => mockDb),
+  // Rejects by default so any test that reaches the seat-cap transaction
+  // without opting in (mockImplementation) fails loudly — this is what keeps
+  // the hosted-skip test a real tripwire (cap block executing ⇒ 503, not 200).
+  transaction: vi.fn(() => Promise.reject(new Error('db.transaction not mocked for this test'))),
 };
 
 const mockSession = {
