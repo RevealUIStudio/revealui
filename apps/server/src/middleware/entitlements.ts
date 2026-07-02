@@ -18,6 +18,12 @@ export interface EntitlementContext {
   accountId: string | null;
   membershipRole: string | null;
   subscriptionStatus: string | null;
+  /**
+   * When the paid grace window ends for a degraded subscription (past_due /
+   * canceled / revoked). Null when there is no grace window. Read at request
+   * time so enforcement does not depend on the sweep-grace-periods cron.
+   */
+  graceUntil: Date | null;
   tier: 'free' | 'pro' | 'max' | 'enterprise';
   features: Record<string, boolean>;
   limits: {
@@ -46,11 +52,21 @@ function createFreeEntitlements(userId: string | null): EntitlementContext {
     accountId: null,
     membershipRole: null,
     subscriptionStatus: null,
+    graceUntil: null,
     tier: 'free',
     features: {},
     limits: {},
     resolvedAt: new Date(),
   };
+}
+
+/**
+ * A subscription status that still confers the paid tier. Anything else is a
+ * degraded state (past_due / canceled / revoked / expired) that only retains
+ * access while inside the grace window.
+ */
+function isHealthyStatus(status: string | null): boolean {
+  return status === 'active' || status === 'trialing';
 }
 
 export const entitlementMiddleware = (): MiddlewareHandler => {
@@ -84,6 +100,7 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
       .select({
         tier: accountEntitlements.tier,
         status: accountEntitlements.status,
+        graceUntil: accountEntitlements.graceUntil,
         features: accountEntitlements.features,
         limits: accountEntitlements.limits,
       })
@@ -96,25 +113,32 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
       )
       .limit(1);
 
+    const status = entitlement?.status ?? null;
+    const graceUntil = entitlement?.graceUntil ?? null;
+    const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
+    const rawTier = (entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free';
+
+    // Request-time fail-safe: a degraded subscription (not active/trialing) whose
+    // grace window has passed (or was never set) is treated as free HERE, without
+    // waiting for the sweep-grace-periods cron to flip the row. This prevents a
+    // delinquent account from retaining paid features indefinitely if the cron is
+    // paused, undeployed, or mis-secreted.
+    const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
+    const effectiveTier: EntitlementContext['tier'] = graceExpired ? 'free' : rawTier;
+
     c.set('entitlements', {
       userId,
       accountId: membership.accountId,
       membershipRole: membership.role,
-      subscriptionStatus: entitlement?.status ?? null,
-      tier: (entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free',
-      features:
-        entitlement?.features && Object.keys(entitlement.features).length > 0
+      subscriptionStatus: status,
+      graceUntil,
+      tier: effectiveTier,
+      features: graceExpired
+        ? {}
+        : entitlement?.features && Object.keys(entitlement.features).length > 0
           ? toFeatureRecord(entitlement.features)
-          : toFeatureRecord(
-              getFeaturesForTier(
-                ((entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free') as
-                  | 'free'
-                  | 'pro'
-                  | 'max'
-                  | 'enterprise',
-              ),
-            ),
-      limits: entitlement?.limits ?? {},
+          : toFeatureRecord(getFeaturesForTier(effectiveTier)),
+      limits: graceExpired ? {} : (entitlement?.limits ?? {}),
       resolvedAt: new Date(),
     } satisfies EntitlementContext);
 
