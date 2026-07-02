@@ -18,9 +18,13 @@ const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 // Mock auth  -  proxy routes now require a valid session
+import { getSession } from '@revealui/auth/server';
+
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn().mockResolvedValue({ userId: 'test-user', token: 'tok' }),
 }));
+
+const mockGetSession = vi.mocked(getSession);
 
 vi.mock('@/lib/utils/request-context', () => ({
   extractRequestContext: vi.fn().mockReturnValue({}),
@@ -309,6 +313,80 @@ describe('DELETE /api/collections/[collection]/[id]', () => {
       params: Promise.resolve({ collection: 'posts', id: 'gone' }),
     });
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests  -  fail-closed session gate (S3): unauthenticated requests never
+// reach the content API. Covers the two proxies that previously lacked the
+// gate — collections/[id] and globals/[slug] — plus the collections list.
+// ---------------------------------------------------------------------------
+
+describe('session gate — no session → 401, no upstream forward', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('collections/[id] GET rejects a request with no session (401, no fetch)', async () => {
+    mockGetSession.mockResolvedValueOnce(null);
+    const req = new NextRequest('http://localhost/api/collections/pages/p-1');
+    const res = await collectionItemGet(req, {
+      params: Promise.resolve({ collection: 'pages', id: 'p-1' }),
+    });
+    expect(res.status).toBe(401);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('collections/[id] PATCH rejects a request with no session (401, no fetch)', async () => {
+    mockGetSession.mockResolvedValueOnce(null);
+    const req = new NextRequest('http://localhost/api/collections/pages/p-1', {
+      method: 'PATCH',
+      body: '{}',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await collectionItemPatch(req, {
+      params: Promise.resolve({ collection: 'pages', id: 'p-1' }),
+    });
+    expect(res.status).toBe(401);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('collections/[id] DELETE rejects a request with no session (401, no fetch)', async () => {
+    mockGetSession.mockResolvedValueOnce(null);
+    const req = new NextRequest('http://localhost/api/collections/pages/p-1', {
+      method: 'DELETE',
+    });
+    const res = await collectionItemDelete(req, {
+      params: Promise.resolve({ collection: 'pages', id: 'p-1' }),
+    });
+    expect(res.status).toBe(401);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('globals/[slug] GET rejects a request with no session (401, no fetch)', async () => {
+    mockGetSession.mockResolvedValueOnce(null);
+    const req = new NextRequest('http://localhost/api/globals/nav');
+    const res = await globalsGet(req, { params: Promise.resolve({ slug: 'nav' }) });
+    expect(res.status).toBe(401);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('globals/[slug] POST rejects a request with no session (401, no fetch)', async () => {
+    mockGetSession.mockResolvedValueOnce(null);
+    const req = new NextRequest('http://localhost/api/globals/nav', {
+      method: 'POST',
+      body: '{}',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await globalsPost(req, { params: Promise.resolve({ slug: 'nav' }) });
+    expect(res.status).toBe(401);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('forwards to upstream when a session is present (gate open)', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ title: 'Nav' }));
+    const req = new NextRequest('http://localhost/api/globals/nav');
+    const res = await globalsGet(req, { params: Promise.resolve({ slug: 'nav' }) });
+    expect(res.status).toBe(200);
+    expect(mockFetch).toHaveBeenCalledOnce();
   });
 });
 

@@ -98,3 +98,31 @@ describe('admin proxy — authenticated redirect off /login + /signup (#1107)', 
     expect(redirectPath(res)).not.toBe('/welcome');
   });
 });
+
+describe('admin proxy — /forgot-password is not public (S1)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+  });
+
+  it('redirects an UNAUTHENTICATED /forgot-password request to /login (no longer whitelisted public)', async () => {
+    // /forgot-password was in PUBLIC_PATHS but has no route — it fell through to
+    // the (frontend)/[slug] CMS catch-all unauthenticated. It is now protected;
+    // an anonymous request is bounced to /login (with the original path preserved).
+    const res = await proxy(req('/forgot-password'));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/login');
+    expect(url?.searchParams.get('redirect')).toBe('/forgot-password');
+  });
+
+  it('still treats /reset-password as public (recovery flow entry point)', async () => {
+    const res = await proxy(req('/reset-password'));
+    // Public path → no auth redirect to /login.
+    expect(redirectPath(res)).not.toBe('/login');
+  });
+});

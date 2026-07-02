@@ -1,5 +1,7 @@
+import { getSession } from '@revealui/auth/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -30,6 +32,14 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<NextResponse> {
+  // Fail-closed session gate, mirroring the collections list proxy. The api
+  // server enforces per-global permissions on the forwarded cookie, but this
+  // proxy must not forward at all without a validated session.
+  const session = await getSession(request.headers, extractRequestContext(request));
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { slug } = await params;
   const { searchParams } = new URL(request.url);
 
@@ -52,6 +62,11 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<NextResponse> {
+  const session = await getSession(request.headers, extractRequestContext(request));
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { slug } = await params;
   const body = await request.json();
 
