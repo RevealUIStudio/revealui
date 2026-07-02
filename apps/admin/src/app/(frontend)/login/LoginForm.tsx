@@ -19,6 +19,7 @@ import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 import { buildAuthIntentQuery, readAuthIntent, resolveAuthDest } from '@/lib/utils/auth-redirect';
+import { apiFetch } from '@/lib/utils/csrf';
 
 export type OAuthProvider = 'github' | 'google' | 'vercel' | 'linkedin';
 
