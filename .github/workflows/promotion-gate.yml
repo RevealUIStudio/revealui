@@ -20,10 +20,20 @@ jobs:
   promotion-gate:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify head branch is 'test'
+      - name: Verify head branch is 'test' from the canonical repo
         env:
           HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
         run: |
+          # A fork can name a branch 'test' and open a PR to main; head_ref alone
+          # ('test') would pass, and the ancestry check below only proves the fork
+          # branch contains main — not that the changes were promoted through THIS
+          # repo's test branch. Require the PR to originate from this repository.
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error title=Cross-repo promotion::Promotion PRs to main must come from '$BASE_REPO' (this repo's 'test' branch), not a fork. Got head repo: '$HEAD_REPO'."
+            exit 1
+          fi
           if [ "$HEAD_REF" != "test" ]; then
             echo "::error title=Wrong head branch::Promotion PRs to main must come from 'test'. Got: '$HEAD_REF'."
             echo ""
