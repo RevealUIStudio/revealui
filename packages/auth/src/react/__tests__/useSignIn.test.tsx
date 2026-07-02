@@ -66,6 +66,37 @@ describe('useSignIn', () => {
     }
   });
 
+  it('surfaces the human message for display and the machine code for branching', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetch(
+        {
+          error: 'EMAIL_NOT_VERIFIED',
+          message: 'Please verify your email address before signing in.',
+          code: 'EMAIL_NOT_VERIFIED',
+        },
+        403,
+      ),
+    );
+
+    const { result } = renderHook(() => useSignIn());
+
+    let signInResult: Awaited<ReturnType<typeof result.current.signIn>>;
+    await waitFor(async () => {
+      signInResult = await result.current.signIn({
+        email: 'unverified@example.com',
+        password: 'password123',
+      });
+    });
+
+    expect(signInResult!.success).toBe(false);
+    if (!signInResult!.success && 'error' in signInResult!) {
+      // Display copy is the human message, never the raw code.
+      expect(signInResult!.error).toBe('Please verify your email address before signing in.');
+      expect(signInResult!.code).toBe('EMAIL_NOT_VERIFIED');
+    }
+  });
+
   it('returns MFA challenge when required', async () => {
     vi.stubGlobal('fetch', mockFetch({ requiresMfa: true, mfaUserId: 'user-mfa-1' }));
 

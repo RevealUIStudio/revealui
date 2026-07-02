@@ -20,15 +20,22 @@ const CLI_INSTALL_COMMAND = 'pnpm create revealui my-app';
  * The success banner only renders when `?success=true` is in the URL —
  * direct visits (revisiting the page later) show the same three CTAs
  * without the celebratory framing.
+ *
+ * The `?denied=admin` banner renders when the proxy redirected an
+ * authenticated non-admin here from an admin-only route. It explains why they
+ * are not in the admin area instead of silently bouncing them to the login
+ * form they just used (see apps/admin/src/proxy.ts).
  */
 export default function WelcomePage() {
   const { tier } = useLicense();
   const [isPostPurchase, setIsPostPurchase] = useState(false);
+  const [deniedAdmin, setDeniedAdmin] = useState(false);
   const [cliCopied, setCliCopied] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setIsPostPurchase(params.get('success') === 'true');
+    setDeniedAdmin(params.get('denied') === 'admin');
   }, []);
 
   const tierLabel = TIER_LABELS[tier] ?? 'Free';
@@ -47,6 +54,17 @@ export default function WelcomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 lg:px-8">
+      {/* Access-denied notice: authenticated, but the admin area needs an admin role. */}
+      {deniedAdmin && (
+        <div
+          role="status"
+          className="mb-8 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300"
+        >
+          You are signed in, but the admin area requires an admin role. Here is your account home.
+          If you need admin access, contact your workspace administrator.
+        </div>
+      )}
+
       {/* Hero */}
       <div className="text-center mb-12">
         {isPostPurchase && isPaidTier && (
