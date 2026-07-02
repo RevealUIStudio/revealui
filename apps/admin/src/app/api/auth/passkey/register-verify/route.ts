@@ -114,11 +114,18 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
       // Sign-up flow: create user, store passkey, create session
       const db = getClient();
 
+      // The deployment-license user cap is a self-hosted (Forge) concept and must
+      // NOT gate hosted onboarding. A global active-user count would cap the whole
+      // control plane at the free seat count. Mirrors apps/server validate-startup
+      // and the password sign-up route: license-signing-key presence ⇒ hosted
+      // multi-tenant mode, where admission is governed per-account, not by a
+      // deployment-global seat count.
+      const isSelfHostedForge = !process.env.REVEALUI_LICENSE_PRIVATE_KEY;
       // Enforce user limit based on license tier (R5-H11 fix  -  was missing from passkey flow)
       try {
         await initializeLicense();
         const maxUsers = getMaxUsers();
-        if (maxUsers !== Infinity) {
+        if (maxUsers !== Infinity && isSelfHostedForge) {
           let limitExceeded = false;
           let limitMsg = '';
           await db.transaction(async (tx) => {

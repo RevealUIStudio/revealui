@@ -40,6 +40,10 @@ const SUCCESS_MESSAGES: Record<string, string> = {
   already_verified: 'Your email is already verified — sign in to continue.',
 };
 
+// Sign-in error code (from the API `code` field) that the login form can
+// recover from in-place by offering to resend the verification email.
+const EMAIL_NOT_VERIFIED_CODE = 'EMAIL_NOT_VERIFIED';
+
 const OAUTH_META: Record<OAuthProvider, { label: string; href: string; Icon: typeof GitHubIcon }> =
   {
     github: { label: 'GitHub', href: '/api/auth/github', Icon: GitHubIcon },
@@ -90,6 +94,10 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const [error, setError] = useState<string | null>(
     oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Sign-in failed. Please try again.') : null,
   );
+  // When sign-in fails with EMAIL_NOT_VERIFIED, hold the address so the user can
+  // resend their verification link in-place instead of hitting a dead end.
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const messageKey = searchParams.get('message');
   const successMessage = messageKey ? SUCCESS_MESSAGES[messageKey] : undefined;
   const { upgrade, redirect } = readAuthIntent(searchParams);
@@ -100,6 +108,8 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setUnverifiedEmail(null);
+    setResendState('idle');
 
     const result = await signIn({ email, password });
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
@@ -118,11 +128,33 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     } else {
       const errorMessage = 'error' in result ? result.error : 'Failed to sign in';
       setError(errorMessage || 'Failed to sign in');
+      // Offer a self-service resend when the wall is an unverified email, so a
+      // never-delivered verification link is recoverable from the login screen.
+      const code = 'code' in result ? result.code : undefined;
+      setUnverifiedEmail(code === EMAIL_NOT_VERIFIED_CODE ? email : null);
     }
+  };
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResendState('sending');
+    try {
+      await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: unverifiedEmail }),
+      });
+    } catch {
+      // The endpoint returns a constant accepted response by design (anti-
+      // enumeration), so even a transient failure shows the same confirmation.
+    }
+    setResendState('sent');
   };
 
   const handlePasskeySignIn = async () => {
     setError(null);
+    setUnverifiedEmail(null);
+    setResendState('idle');
     const success = await passkeySignIn();
     if (success) {
       // Passkey sign-in returns no user object, so role-default falls back to '/'.
@@ -151,6 +183,32 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
           className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400"
         >
           {error ?? passkeyError}
+        </div>
+      )}
+
+      {unverifiedEmail && (
+        <div
+          role="status"
+          className="rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300"
+        >
+          {resendState === 'sent' ? (
+            <p>
+              If that account exists and is unverified, a new verification link is on its way. Check
+              your inbox.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <p>Your email address is not verified yet.</p>
+              <button
+                type="button"
+                onClick={() => void handleResendVerification()}
+                disabled={resendState === 'sending'}
+                className="self-start rounded-md bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 ring-1 ring-amber-300 transition-colors hover:bg-amber-200 disabled:opacity-60 dark:bg-amber-900/40 dark:text-amber-200 dark:ring-amber-800"
+              >
+                {resendState === 'sending' ? 'Sending…' : 'Resend verification email'}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
