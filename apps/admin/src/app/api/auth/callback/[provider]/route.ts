@@ -103,12 +103,16 @@ export async function GET(
       return loginUrl('not_allowed');
     }
 
-    // Enforce user limit for new OAuth signups (CR5-2)
-    // Only check if this OAuth identity doesn't already map to a user
+    // Enforce user limit for new OAuth signups (CR5-2).
+    // Only check if this OAuth identity doesn't already map to a user. The
+    // deployment-license cap is a self-hosted (Forge) concept; hosted admission
+    // is per-account, so a deployment-global seat cap must not gate hosted OAuth
+    // onboarding (mirrors the password sign-up route + apps/server validate-startup).
+    const isSelfHostedForge = !process.env.REVEALUI_LICENSE_PRIVATE_KEY;
     try {
       await initializeLicense();
       const maxUsers = getMaxUsers();
-      if (maxUsers !== Infinity && !existingOAuth) {
+      if (maxUsers !== Infinity && !existingOAuth && isSelfHostedForge) {
         const activeCount = await countActiveUsers(db);
         if (activeCount >= maxUsers) {
           return loginUrl('user_limit_reached');

@@ -334,6 +334,67 @@ describe('GET /api/auth/callback/[provider] (OAuth callback)', () => {
     expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('user');
   });
 
+  it('does NOT seat-cap hosted OAuth signup even at/over the free cap', async () => {
+    // Hosted mode: REVEALUI_LICENSE_PRIVATE_KEY present. The deployment-license
+    // seat cap must not gate hosted OAuth onboarding, so the global active-user
+    // count is never consulted and the flow proceeds to session creation.
+    setupHappyPath();
+    mockGetMaxUsers.mockReturnValueOnce(3);
+    mockCountActiveUsers.mockResolvedValueOnce(5); // over the free cap
+    const prevKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'test-signing-key';
+    try {
+      const GET = await loadRoute();
+      const res = await GET(
+        makeCallbackRequest({
+          searchParams: { code: 'auth-code', state: 'valid-state' },
+          stateCookie: 'valid-cookie',
+        }),
+        { params: Promise.resolve({ provider: 'github' }) },
+      );
+
+      expect((res as MockRes).url).not.toContain('user_limit_reached');
+      expect((res as MockRes).cookies.has('revealui-session')).toBe(true);
+      // Global active-user count must not even be queried on hosted.
+      expect(mockCountActiveUsers).not.toHaveBeenCalled();
+    } finally {
+      if (prevKey === undefined) {
+        delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+      } else {
+        process.env.REVEALUI_LICENSE_PRIVATE_KEY = prevKey;
+      }
+    }
+  });
+
+  it('still enforces the deployment-license cap on self-hosted (Forge) OAuth signup', async () => {
+    // Self-hosted (Forge) mode: no REVEALUI_LICENSE_PRIVATE_KEY. The seat cap is
+    // legitimate for a stamped kit and must still reject over-cap signups.
+    setupHappyPath();
+    mockGetMaxUsers.mockReturnValueOnce(3);
+    mockCountActiveUsers.mockResolvedValueOnce(5); // over the free cap
+    const prevKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    try {
+      const GET = await loadRoute();
+      const res = await GET(
+        makeCallbackRequest({
+          searchParams: { code: 'auth-code', state: 'valid-state' },
+          stateCookie: 'valid-cookie',
+        }),
+        { params: Promise.resolve({ provider: 'github' }) },
+      );
+
+      expect((res as MockRes).url).toContain('user_limit_reached');
+      expect((res as MockRes).cookies.has('revealui-session')).toBe(false);
+    } finally {
+      if (prevKey === undefined) {
+        delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+      } else {
+        process.env.REVEALUI_LICENSE_PRIVATE_KEY = prevKey;
+      }
+    }
+  });
+
   it('sets admin role cookie for admin users', async () => {
     setupHappyPath({ userRole: 'admin' });
 
