@@ -10,6 +10,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 import { errorHandler } from '../error.js';
 import {
+  createTenantMembershipValidator,
   getTenantFromContext,
   requireTenant,
   type TenantContext,
