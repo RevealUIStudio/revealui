@@ -59,20 +59,30 @@ export default function LicensePage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
   const [githubUsername, setGithubUsername] = useState('');
   const [copied, setCopied] = useState(false);
+  const [pubCopied, setPubCopied] = useState(false);
+  // Vendor Ed25519 public key (PEM). The daemon needs it to verify a license;
+  // without it a valid Pro license silently runs Free (GAP-268). Public material.
+  const [publicKey, setPublicKey] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
-      const [subRes, featRes, pricingRes] = await Promise.all([
+      const [subRes, featRes, pricingRes, pubKeyRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
         fetch(`${apiUrl}/api/license/features`),
         fetch(`${apiUrl}/api/pricing`),
+        fetch(`${apiUrl}/api/license/public-key`),
       ]);
 
       if (subRes.ok) {
         const data = (await subRes.json()) as SubscriptionData;
         setSubscription(data);
+      }
+
+      if (pubKeyRes.ok) {
+        const data = (await pubKeyRes.json()) as { publicKey: string | null };
+        setPublicKey(data.publicKey);
       }
 
       if (featRes.ok) {
