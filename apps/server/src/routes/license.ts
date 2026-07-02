@@ -26,7 +26,15 @@ const LicenseVerifyRequestSchema = z.object({
 const LicenseVerifyResponseSchema = z.object({
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
   reason: z
-    .enum(['valid', 'expired', 'revoked', 'support_expired', 'invalid', 'misconfigured'])
+    .enum([
+      'valid',
+      'expired',
+      'revoked',
+      'support_expired',
+      'invalid',
+      'misconfigured',
+      'unverifiable',
+    ])
     .optional()
     .openapi({
       description:
