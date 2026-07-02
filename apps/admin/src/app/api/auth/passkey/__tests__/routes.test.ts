@@ -52,10 +52,14 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: (request: NextRequest) => Promise<Response>) => handler),
 }));
 
+// Reassignable so individual tests can exercise the deployment-license seat cap.
+// Default: no limit, matching a hosted/unlicensed test environment.
+const mockGetMaxUsers = vi.fn(() => Infinity);
+
 // Mock license module  -  tests run without a license server, so report no limit
 vi.mock('@revealui/core/license', () => ({
   initializeLicense: vi.fn(() => Promise.resolve()),
-  getMaxUsers: vi.fn(() => Infinity),
+  getMaxUsers: () => mockGetMaxUsers(),
 }));
 
 // Mock drizzle-orm operators
@@ -506,6 +510,83 @@ describe('POST /api/auth/passkey/register-verify', () => {
     // Challenge cookie should be cleared
     const challengeCookie = response.cookies.get('passkey-challenge');
     expect(challengeCookie?.value).toBe('');
+  });
+
+  it('does NOT seat-cap hosted passkey signup even at/over the free cap', async () => {
+    // Hosted mode: REVEALUI_LICENSE_PRIVATE_KEY present. The deployment-license
+    // seat cap must be skipped entirely. Even with a finite getMaxUsers, the
+    // cap block (which would run db.transaction) must not execute. If the gate
+    // regressed, the route would hit the un-mocked db.transaction and 503;
+    // a 200 proves the block was correctly skipped on hosted.
+    const prevKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'test-signing-key';
+    mockGetMaxUsers.mockReturnValueOnce(3);
+    mockVerifyCookiePayload.mockReturnValue({
+      challenge: 'signup-challenge',
+      userId: 'temp-user-id',
+      email: 'hosted@example.com',
+      name: 'Hosted User',
+      expiresAt: Date.now() + 300000,
+    });
+    mockDb.limit.mockResolvedValue([]); // No existing user
+    mockDb.returning.mockResolvedValue([
+      { id: 'hosted-user-id', email: 'hosted@example.com', name: 'Hosted User', password: null },
+    ]);
+    mockVerifyRegistration.mockResolvedValue({
+      verified: true,
+      registrationInfo: {
+        fmt: 'none',
+        aaguid: '00000000-0000-0000-0000-000000000000',
+        credential: {
+          id: 'hosted-credential-id',
+          publicKey: new Uint8Array([7, 8, 9]),
+          counter: 0,
+          transports: ['internal'],
+        },
+        credentialType: 'public-key',
+        userVerified: true,
+        credentialDeviceType: 'singleDevice',
+        credentialBackedUp: false,
+        attestationObject: new Uint8Array(),
+        origin: 'http://localhost:4000',
+      },
+    });
+    mockStorePasskey.mockResolvedValue({
+      id: 'passkey-id',
+      userId: 'hosted-user-id',
+      credentialId: 'hosted-credential-id',
+      deviceName: null,
+      createdAt: new Date(),
+    });
+    mockInitiateMFASetup.mockResolvedValue({
+      success: true,
+      secret: 'TOTP_SECRET',
+      uri: 'otpauth://totp/RevealUI:hosted@example.com',
+      backupCodes: ['b1', 'b2', 'b3'],
+    });
+    mockCreateSession.mockResolvedValue({
+      token: 'hosted-session-token',
+      session: { id: 'hosted-session-id' } as never,
+    });
+
+    try {
+      const request = createChallengeRequest(
+        'http://localhost:3000/api/auth/passkey/register-verify',
+        { attestationResponse: { id: 'cred-id', response: {} } },
+      );
+      const response = await handler(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.user.email).toBe('hosted@example.com');
+    } finally {
+      if (prevKey === undefined) {
+        delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+      } else {
+        process.env.REVEALUI_LICENSE_PRIVATE_KEY = prevKey;
+      }
+    }
   });
 
   it('should reject sign-up when email is taken (race condition)', async () => {
