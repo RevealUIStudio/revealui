@@ -238,6 +238,9 @@ beforeEach(() => {
   mockDb.update.mockReturnValue(mockDb);
   mockDb.set.mockReturnValue(mockDb);
   mockDb.delete.mockReturnValue(mockDb);
+  mockDb.transaction.mockImplementation(() =>
+    Promise.reject(new Error('db.transaction not mocked for this test')),
+  );
 });
 
 // ============================================================================
