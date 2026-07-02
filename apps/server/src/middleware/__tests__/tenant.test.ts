@@ -347,3 +347,161 @@ describe('requireTenant', () => {
     expect(res.status).toBe(403);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tests  -  validateTenant authorization hook
+// ---------------------------------------------------------------------------
+describe('tenantMiddleware validateTenant', () => {
+  it('rejects with 403 (not 404) when the validator denies the claim', async () => {
+    const app = new Hono();
+    app.use('*', tenantMiddleware({ required: false, validateTenant: async () => false }));
+    app.get('/test', (c) => c.json({ tenant: getTenantFromContext(c) }));
+    app.onError(errorHandler);
+
+    const res = await app.request('/test', {
+      headers: { 'X-Tenant-ID': 'someone-elses-tenant' },
+    });
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as ErrorBody;
+    expect(body.error).toContain('Tenant access denied');
+  });
+
+  it('passes the tenant id AND the request context to the validator', async () => {
+    const seen: { tenantId?: string; user?: unknown } = {};
+    const app = new Hono();
+    app.use('*', async (c, next) => {
+      c.set('user', { id: 'user-1' });
+      await next();
+    });
+    app.use(
+      '*',
+      tenantMiddleware({
+        required: false,
+        validateTenant: async (tenantId, c) => {
+          seen.tenantId = tenantId;
+          seen.user = c.get('user');
+          return true;
+        },
+      }),
+    );
+    app.get('/test', (c) => c.json({ tenant: getTenantFromContext(c) }));
+    app.onError(errorHandler);
+
+    const res = await app.request('/test', { headers: { 'X-Tenant-ID': 'acme-corp' } });
+
+    expect(res.status).toBe(200);
+    expect(seen.tenantId).toBe('acme-corp');
+    expect(seen.user).toEqual({ id: 'user-1' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests  -  createTenantMembershipValidator
+// ---------------------------------------------------------------------------
+
+/**
+ * Stub drizzle client: one select() chain whose limit() resolves to the rows
+ * configured per test. No module mocks  -  the validator takes the client as
+ * a parameter, and the real drizzle operators/schema build inert query nodes.
+ */
+function createStubDb(rows: Array<{ accountId: string }>) {
+  const calls = { select: 0 };
+  const chain = {
+    select: () => {
+      calls.select += 1;
+      return chain;
+    },
+    from: () => chain,
+    innerJoin: () => chain,
+    where: () => chain,
+    limit: () => Promise.resolve(rows),
+  };
+  // biome-ignore lint/suspicious/noExplicitAny: structural stub for the query chain
+  return { db: chain as any, calls };
+}
+
+function contextWithUser(user: unknown): { get: (key: string) => unknown } {
+  return { get: (key: string) => (key === 'user' ? user : undefined) };
+}
+
+describe('createTenantMembershipValidator', () => {
+  it('rejects anonymous requests without touching the database', async () => {
+    const { db, calls } = createStubDb([{ accountId: 'acct-1' }]);
+    const validate = createTenantMembershipValidator(() => db);
+
+    await expect(validate('acct-1', contextWithUser(undefined))).resolves.toBe(false);
+    expect(calls.select).toBe(0);
+  });
+
+  it('admits a user with an active membership in the claimed tenant', async () => {
+    const { db } = createStubDb([{ accountId: 'acct-1' }]);
+    const validate = createTenantMembershipValidator(() => db);
+
+    await expect(validate('acct-1', contextWithUser({ id: 'user-1' }))).resolves.toBe(true);
+  });
+
+  it('rejects a user with no membership in the claimed tenant', async () => {
+    const { db } = createStubDb([]);
+    const validate = createTenantMembershipValidator(() => db);
+
+    await expect(validate('victim-tenant', contextWithUser({ id: 'attacker' }))).resolves.toBe(
+      false,
+    );
+  });
+
+  it('blocks a spoofed X-Tenant-ID before the handler runs (agent-stream class)', async () => {
+    // Regression for the cross-tenant credential leak: an authenticated user
+    // claiming another tenant's id must be 403'd at the middleware chokepoint,
+    // before any tenant-scoped vault/MCP/DB work in the route body.
+    const { db } = createStubDb([]); // no membership rows for this user
+    let handlerReached = false;
+
+    const app = new Hono();
+    app.use('*', async (c, next) => {
+      c.set('user', { id: 'attacker-with-valid-session' });
+      await next();
+    });
+    app.use(
+      '*',
+      tenantMiddleware({
+        required: false,
+        validateTenant: createTenantMembershipValidator(() => db),
+      }),
+    );
+    app.post('/api/agent-stream', (c) => {
+      handlerReached = true;
+      return c.json({ tenant: getTenantFromContext(c) });
+    });
+    app.onError(errorHandler);
+
+    const res = await app.request('/api/agent-stream', {
+      method: 'POST',
+      headers: { 'X-Tenant-ID': 'victim-tenant-id' },
+    });
+
+    expect(res.status).toBe(403);
+    expect(handlerReached).toBe(false);
+  });
+
+  it('still admits requests that claim no tenant at all (optional mount)', async () => {
+    const { db, calls } = createStubDb([]);
+    const app = new Hono();
+    app.use(
+      '*',
+      tenantMiddleware({
+        required: false,
+        validateTenant: createTenantMembershipValidator(() => db),
+      }),
+    );
+    app.get('/test', (c) => c.json({ tenant: getTenantFromContext(c) }));
+    app.onError(errorHandler);
+
+    const res = await app.request('/test');
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as TenantBody;
+    expect(body.tenant).toBeNull();
+    expect(calls.select).toBe(0);
+  });
+});
