@@ -1192,8 +1192,10 @@ app.use('/api/v1/console-auth/*', routeLimit('terminal-auth'));
 app.route('/api/console-auth', terminalAuthRoute);
 
 // Terminal WebSocket bridge  -  daemon PTY sessions for remote access
-// Auth required: terminal sessions give PTY access to the server
+// Operator-gated: terminal sessions give PTY access to the server host, so
+// bare authentication is not enough — only owner/admin may reach the surface.
 app.use('/api/terminal/*', writeProtected);
+app.use('/api/terminal/*', requireRole('owner', 'admin'));
 app.use('/api/terminal/*', routeLimit('terminal-sessions'));
 export const terminalWs = createTerminalRoute();
 app.route('/api/terminal', terminalWs.app);
