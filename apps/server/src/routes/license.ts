@@ -432,4 +432,37 @@ app.openapi(featuresRoute, async (c) => {
   );
 });
 
+// GET /api/license/public-key  -  Public: the vendor Ed25519 public key (PEM)
+const publicKeyRoute = createRoute({
+  method: 'get',
+  path: '/public-key',
+  tags: ['license'],
+  summary: 'Get the vendor license public key (PEM)',
+  description:
+    'Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a buyer sets it as REVDEV_LICENSE_PUBLIC_KEY so the RevDev daemon can verify their license. Null when the server has no key configured.',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            publicKey: z.string().nullable().openapi({
+              description: 'Ed25519 vendor public key in PEM, or null when unconfigured',
+              example: '-----BEGIN PUBLIC KEY-----\\n...\\n-----END PUBLIC KEY-----',
+            }),
+          }),
+        },
+      },
+      description: 'Vendor public key (PEM), or null when the server has none configured',
+    },
+  },
+});
+
+app.openapi(publicKeyRoute, async (c) => {
+  // Non-secret verification material. Unescape literal \n (Vercel stores
+  // multi-line PEMs escaped) with replaceAll, NOT the :156 regex (no-regex rule
+  // for new code); mirrors the generate route's normalize at :372.
+  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replaceAll('\\n', '\n') ?? null;
+  return c.json({ publicKey }, 200);
+});
+
 export default app;

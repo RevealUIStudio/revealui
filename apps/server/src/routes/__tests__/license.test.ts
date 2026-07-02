@@ -445,3 +445,37 @@ describe('GET /features', () => {
     expect(body.enterprise.analytics).toBe(true);
   });
 });
+
+describe('GET /public-key', () => {
+  const ORIGINAL = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+
+  beforeEach(() => {
+    if (ORIGINAL === undefined) {
+      delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    } else {
+      process.env.REVEALUI_LICENSE_PUBLIC_KEY = ORIGINAL;
+    }
+  });
+
+  it('returns the vendor public key PEM, unescaping literal \\n', async () => {
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY =
+      '-----BEGIN PUBLIC KEY-----\\nMCowBQYDK2VwAyEA0000000000000000000000000000\\n-----END PUBLIC KEY-----';
+    const app = createApp();
+    const res = await app.request('/public-key');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.publicKey.startsWith('-----BEGIN PUBLIC KEY-----')).toBe(true);
+    // Literal backslash-n must be converted to a real newline (no-regex replaceAll).
+    expect(body.publicKey.includes('\\n')).toBe(false);
+    expect(body.publicKey.includes('\n')).toBe(true);
+  });
+
+  it('returns publicKey:null when the key is not configured', async () => {
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+    const app = createApp();
+    const res = await app.request('/public-key');
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+    expect(body.publicKey).toBeNull();
+  });
+});
