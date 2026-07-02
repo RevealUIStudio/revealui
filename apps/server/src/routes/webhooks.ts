@@ -2982,9 +2982,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const wonChargeId =
             typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
           let wonCustomerId: string | null = null;
+          let wonCharge: Stripe.Charge | null = null;
           try {
-            const charge = await stripe.charges.retrieve(wonChargeId);
-            wonCustomerId = resolveCustomerId(charge.customer);
+            wonCharge = await stripe.charges.retrieve(wonChargeId);
+            wonCustomerId = resolveCustomerId(wonCharge.customer);
           } catch (firstErr) {
             logger.warn('Charge retrieve failed for won dispute, retrying once', {
               chargeId: wonChargeId,
@@ -2994,8 +2995,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
             // Retry once before giving up  -  a transient Stripe outage must not
             // silently drop license restoration for a customer who won their dispute.
             try {
-              const charge = await stripe.charges.retrieve(wonChargeId);
-              wonCustomerId = resolveCustomerId(charge.customer);
+              wonCharge = await stripe.charges.retrieve(wonChargeId);
+              wonCustomerId = resolveCustomerId(wonCharge.customer);
             } catch (retryErr) {
               logger.error('Charge retrieve failed after retry for won dispute', undefined, {
                 chargeId: wonChargeId,
