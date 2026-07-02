@@ -65,7 +65,7 @@ RevealUI does not store credit card numbers or payment method details. All payme
 
 ### Authorization
 
-- **RBAC + ABAC**: Role-based access control combined with attribute-based policies. 59 enforcement tests verify role isolation.
+- **RBAC + ABAC**: Role-based access control combined with attribute-based policies. 60 enforcement tests verify role isolation.
 - **Collection-level access**: Every database operation enforces `access.read`, `access.update`, and `access.delete` policies.
 - **Admin gate**: Proxy middleware checks role cookies for /admin routes (defense-in-depth).
 - **Feature gating**: Pro features require valid license checks via `isLicensed('pro')` and `isFeatureEnabled()`.

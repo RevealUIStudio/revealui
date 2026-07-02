@@ -43,7 +43,7 @@ export const GOVERNANCE_PAGE = {
     },
     {
       title: 'One policy over people and agents',
-      body: 'A single RBAC + ABAC policy governs your team, your agents, and your service accounts, proven by 59 enforcement tests. Set the rules once; agents inherit the same boundaries.',
+      body: 'A single RBAC + ABAC policy governs your team, your agents, and your service accounts, proven by 60 enforcement tests. Set the rules once; agents inherit the same boundaries.',
       linkLabel: 'See the policy engine',
       linkHref: POLICY_HREF,
     },

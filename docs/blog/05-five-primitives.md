@@ -127,7 +127,7 @@ export const hasAnyRole = (roles: string[]) => ({ req }) =>
   !!req.user && roles.some((role) => req.user?.roles?.includes(role));
 ```
 
-These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 59 enforcement tests proving role isolation.
+These functions return booleans or `WhereClause` objects, enabling row-level security. A `WhereClause` return lets you say "authenticated users can read, but only their own records." The access control system has 60 enforcement tests proving role isolation.
 
 ### How Users connects to everything else
 
