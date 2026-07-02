@@ -96,7 +96,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     forYou: {
       headline: 'Auth, roles, and compliance, handled',
       description:
-        'Session-based auth, RBAC with 59 enforcement tests, rate limiting, brute-force protection, and GDPR compliance. No auth library decisions. No JWT debates.',
+        'Session-based auth, RBAC with 60 enforcement tests, rate limiting, brute-force protection, and GDPR compliance. No auth library decisions. No JWT debates.',
     },
     forAgents: {
       headline: 'RBAC governs agent access per tenant',
