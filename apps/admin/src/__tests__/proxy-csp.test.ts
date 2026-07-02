@@ -106,13 +106,18 @@ describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => 
     expect(res.headers.get('location')).toContain('/login');
   });
 
-  it('still enforces the admin role on other backend pages (non-admin session redirects to /login)', async () => {
+  it('still enforces the admin role on other backend pages (non-admin session is sent to /welcome, not /login)', async () => {
     const res = await proxy(
       new NextRequest('https://admin.example.com/posts', {
         headers: { cookie: 'revealui-session=tok; revealui-role=user' },
       }),
     );
-    expect(res.headers.get('location')).toContain('/login');
+    // Admin role is still enforced: a non-admin cannot reach /posts. It now lands
+    // on /welcome (their session home) with a denial notice rather than being
+    // bounced to the login form they already used.
+    const location = res.headers.get('location');
+    expect(location).toContain('/welcome');
+    expect(location).not.toContain('/login');
   });
 
   it('lets an authenticated non-admin (subscriber) reach /account/billing without bouncing to /login', async () => {
