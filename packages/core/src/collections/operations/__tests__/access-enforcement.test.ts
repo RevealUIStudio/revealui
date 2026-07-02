@@ -249,6 +249,29 @@ describe('access control enforcement', () => {
       expect(db.collectionStorage.find).not.toHaveBeenCalled();
     });
 
+    it('runs the access rule (published-only, NOT deny-all) for a truthy user-LESS req', async () => {
+      // Mirrors the admin `authenticatedOrPublished` rule: no user on req →
+      // return the published-only WhereClause rather than a boolean. This is
+      // the anonymous / non-admin CMS render path: passing `{}` (truthy, no
+      // user) must run the rule and scope to published docs — NOT hit the
+      // `if (!req) return false` deny-all guard that an `undefined` req trips.
+      const accessRead = ({ req: accessReq }: { req: RevealRequest }) =>
+        accessReq.user ? true : { status: { equals: 'published' } };
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { read: accessRead },
+      };
+      const db = createMockDbWithCollectionStorage(testDocs);
+
+      // Truthy user-less req — the render path's anonymous/non-admin shape.
+      const result = await find(config, db as never, { req: {} as RevealRequest });
+
+      // Only the published doc comes back — draft/private are filtered out,
+      // and the result is NOT the empty deny-all set.
+      expect(result.docs.map((d) => (d as { id: string }).id)).toEqual(['1']);
+      expect(db.collectionStorage.find).toHaveBeenCalledTimes(1);
+    });
+
     it('handles async access.read functions', async () => {
       const accessReadSpy = vi.fn().mockResolvedValue(false);
       const config: RevealCollectionConfig = {

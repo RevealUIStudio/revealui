@@ -4,11 +4,14 @@ import type { Page as PageType } from '@revealui/core/types/admin';
 import { logger } from '@revealui/utils/logger';
 import type { Metadata } from 'next';
 import { draftMode, headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { cache } from 'react';
+import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { RenderBlocks } from '@/lib/blocks/RenderBlocks';
 import { generateMeta } from '@/lib/cms/generateMeta';
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
 import { RenderHero } from '@/lib/heros/RenderHero';
+import { extractRequestContext } from '@/lib/utils/request-context';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 // Force dynamic rendering to prevent build-time RevealUI admin initialization
@@ -22,6 +25,11 @@ export const dynamicParams = true;
 // `reset-password` and `setup` DO have real route files that shadow this
 // catch-all, but they are listed for defence-in-depth so the deny-list is the
 // complete reserved set regardless of future route-file changes.
+//
+// The guard is enforced inside queryPageBySlug (so generateMetadata is covered
+// too); the render function additionally maps a reserved slug to notFound()
+// rather than the redirects collection, which is allow-all and could itself
+// map a reserved slug to an arbitrary destination.
 const RESERVED_AUTH_SLUGS = new Set([
   'login',
   'signup',
@@ -39,9 +47,10 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
   const { slug = 'home' } = await params;
   const url = `/${slug}`;
 
-  // A CMS page must never impersonate an auth-flow URL.
+  // A CMS page must never impersonate an auth-flow URL. Reserved slugs are
+  // hard 404s here — not routed through the allow-all redirects collection.
   if (RESERVED_AUTH_SLUGS.has(slug)) {
-    return <RevealUIRedirects url={url} />;
+    notFound();
   }
 
   const page = await queryPageBySlug({
@@ -102,32 +111,47 @@ const queryPageBySlug = cache(async ({ slug }: { slug: string }) => {
     return null;
   }
 
+  // Reserved auth-flow slugs never resolve CMS content, on any entry point
+  // (render OR generateMetadata).
+  if (RESERVED_AUTH_SLUGS.has(slug)) {
+    return null;
+  }
+
   try {
     const { isEnabled: draft } = await draftMode();
 
     // Validate the session server-side. The proxy gate only checks cookie
-    // PRESENCE; the render path must not trust that. A valid session admits
-    // the caller to draft/unpublished content via the collection's
-    // `authenticatedOrPublished` access rule; an anonymous (or forged-cookie)
-    // request resolves to a null user and sees PUBLISHED content only.
-    // Draft preview is likewise gated on a real session, so toggling the
-    // draft-mode cookie without authenticating cannot surface drafts.
-    const session = await getSession(await headers());
-    const req: RevealRequest | undefined = session
-      ? {
-          user: {
-            id: session.user.id,
-            email: session.user.email ?? '',
-            roles: [session.user.role],
-          },
-        }
-      : undefined;
+    // PRESENCE (and trusts a client-set `revealui-role`); the render path must
+    // not trust either. Draft / unpublished content is admin-only: only a real
+    // session whose role is in the admin set builds a user-bearing `req` and
+    // enables draft mode. Every other caller — anonymous, forged-cookie, or a
+    // non-admin (e.g. public-signup `user`) session — gets a user-LESS `req`
+    // so the collection's `authenticatedOrPublished` rule yields the
+    // published-only filter (NOT deny-all: passing `undefined` would trip
+    // find()'s `if (!req) return false` and 404 every public page).
+    const hdrs = await headers();
+    const requestContext = extractRequestContext(
+      new Request('http://localhost', { headers: hdrs }),
+    );
+    const session = await getSession(hdrs, requestContext);
+    const isAdmin = Boolean(session) && isAdminRole(session?.user.role);
+
+    const req: RevealRequest =
+      isAdmin && session
+        ? {
+            user: {
+              id: session.user.id,
+              email: session.user.email ?? '',
+              roles: [session.user.role],
+            },
+          }
+        : {};
 
     const revealui = await getRevealUIInstance();
 
     const result = await revealui.find({
       collection: 'pages',
-      draft: draft && Boolean(session),
+      draft: draft && isAdmin,
       limit: 1,
       req,
       where: {

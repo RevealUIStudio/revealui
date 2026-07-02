@@ -48,7 +48,7 @@ All gates must pass on the `main` branch before deploy.
 - [ ] Bcrypt cost factor is 12 rounds **(blocking)**
 - [ ] AES-256-GCM encryption keys are non-extractable by default **(blocking)**
 - [ ] Rate limiting active on auth endpoints and `/api/webhooks` (100 req/min) **(blocking)**
-- [ ] RBAC + ABAC policy engine tests pass (59 enforcement tests) **(blocking)**
+- [ ] RBAC + ABAC policy engine tests pass (60 enforcement tests) **(blocking)**
 - [ ] `SECURITY.md` exists at repository root **(blocking)**
 - [ ] Incident response plan reviewed: `docs/security/INCIDENT_RESPONSE.md` **(advisory)**
 - [ ] `docs/security/INFORMATION_SECURITY_POLICY.md` reviewed and current **(advisory)**
