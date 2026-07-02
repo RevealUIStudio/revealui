@@ -66,3 +66,38 @@ describe('delete operation', () => {
     expect(mockDb.query).not.toHaveBeenCalled();
   });
 });
+
+describe('deleteDocument — typed-storage write seam', () => {
+  const seamConfig: RevealCollectionConfig = { slug: 'pages', fields: [] };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns the adapter result and skips the dynamic delete when handled', async () => {
+    const handled = { id: 'p1' };
+    const db = {
+      query: vi.fn(),
+      collectionStorage: { delete: vi.fn().mockResolvedValue(handled) },
+    };
+
+    const result = await deleteDocument(seamConfig, db as never, { id: 'p1' });
+
+    expect(result).toEqual(handled);
+    expect(db.collectionStorage.delete).toHaveBeenCalledWith(seamConfig, { id: 'p1' });
+    expect(db.query).not.toHaveBeenCalled();
+  });
+
+  it('falls through to the dynamic delete when the adapter returns undefined', async () => {
+    const db = {
+      query: vi.fn().mockResolvedValue({ rows: [] } as DatabaseResult),
+      collectionStorage: { delete: vi.fn().mockResolvedValue(undefined) },
+    };
+
+    const result = await deleteDocument(seamConfig, db as never, { id: 'p2' });
+
+    expect(db.collectionStorage.delete).toHaveBeenCalled();
+    expect(db.query).toHaveBeenCalled(); // dynamic DELETE ran
+    expect(result).toEqual({ id: 'p2' });
+  });
+});

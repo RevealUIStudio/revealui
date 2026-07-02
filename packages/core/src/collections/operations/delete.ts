@@ -76,6 +76,21 @@ export async function deleteDocument(
     }
   }
 
+  // Typed-storage write seam: a registered collectionStorage adapter may own
+  // this collection's deletes (e.g. soft-delete semantics on a typed table). It
+  // returns the deleted document, throws for not-found, or returns `undefined`
+  // to defer to the dynamic-SQL path below (same not-handled contract as the
+  // read seam).
+  if (db?.collectionStorage?.delete) {
+    const result = await db.collectionStorage.delete(config, {
+      id,
+      ...(options.req ? { req: options.req } : {}),
+    });
+    if (result !== undefined) {
+      return result;
+    }
+  }
+
   if (db?.query) {
     // Dynamic collection storage is quarantined in sqlAdapter.ts until this
     // layer is redesigned around typed tables that Drizzle can model directly.

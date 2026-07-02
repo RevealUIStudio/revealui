@@ -116,6 +116,21 @@ export async function create(
     data.password = await bcrypt.hash(data.password, saltRounds);
   }
 
+  // Typed-storage write seam: a registered collectionStorage adapter (e.g. the
+  // typed Drizzle bridge) may own this collection's writes. It receives the
+  // fully hook-processed `data` and returns the created document, or `undefined`
+  // to defer to the dynamic-SQL path below — same not-handled contract as the
+  // read seam in findById.ts / find.ts.
+  if (db?.collectionStorage?.create) {
+    const doc = await db.collectionStorage.create(config, {
+      data,
+      ...(options.req ? { req: options.req } : {}),
+    });
+    if (doc !== undefined) {
+      return doc;
+    }
+  }
+
   if (db?.query) {
     // Dynamic collection storage is quarantined in sqlAdapter.ts until this
     // layer is redesigned around typed tables that Drizzle can model directly.

@@ -267,6 +267,34 @@ export interface CollectionStorageAdapter {
     collection: RevealCollectionConfig,
     options: RevealFindOptions,
   ) => Promise<RevealPaginatedResult | undefined>;
+  /**
+   * Typed create. Return `undefined` to signal "not handled by this adapter" —
+   * the caller falls through to the dynamic-SQL path. Return the created
+   * document on success; throw for a handled-but-failed write. Mirrors the
+   * `undefined` = not-handled contract used by `findByID`/`find`.
+   */
+  create?: (
+    collection: RevealCollectionConfig,
+    options: { data: RevealDataObject; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
+  /**
+   * Typed update. `undefined` = not handled (fall through to dynamic SQL). A
+   * document = the updated row. Throw for handled-but-not-found or an
+   * optimistic-lock conflict (statusCode 409).
+   */
+  update?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; data: RevealDataObject; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
+  /**
+   * Typed delete. `undefined` = not handled (fall through to dynamic SQL). A
+   * document (at minimum `{ id }`) = the deleted row. Throw for
+   * handled-but-not-found.
+   */
+  delete?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
 }
 
 export interface QueryableDatabaseAdapter {
