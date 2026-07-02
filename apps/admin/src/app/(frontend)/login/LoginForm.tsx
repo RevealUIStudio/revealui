@@ -140,7 +140,11 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
     if (!unverifiedEmail) return;
     setResendState('sending');
     try {
-      await fetch('/api/auth/resend-verification', {
+      // apiFetch, not raw fetch: the admin proxy demands a CSRF token on this
+      // POST whenever ANY revealui-session cookie is present (stale or live),
+      // and a 403 here resolves (not throws) — a raw fetch would silently
+      // no-op while still showing the "sent" confirmation. Mirrors SignupForm.
+      await apiFetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: unverifiedEmail }),
