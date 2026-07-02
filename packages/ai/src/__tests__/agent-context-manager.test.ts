@@ -46,7 +46,9 @@ describe('AgentContextManager', () => {
     // probes for an existing row and correctly returns undefined.
     testDb = await createTestDb({ enableVector: true });
     db = testDb.drizzle as unknown as Database;
-  }, 30_000);
+    // PGlite + pgvector init is heavy; under the gate's parallel load this
+    // beforeAll can exceed 30s. 90s matches performance.test.ts (never flaked).
+  }, 90_000);
 
   afterAll(async () => {
     await testDb?.close();
