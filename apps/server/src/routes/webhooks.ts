@@ -3016,40 +3016,76 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           if (wonCustomerId) {
-            // Restore revoked licenses and resolve subscription context so
-            // entitlements are fully reinstated (tier, features, limits).
+            // S2 (won-path): scope the restore to the DISPUTED subscription,
+            // mirroring the lost-path scoping. A customer who wins ONE dispute
+            // must not have EVERY revoked license reinstated — some may have been
+            // revoked for unrelated reasons for which no money was returned. When
+            // the charge cannot be traced to a subscription, DON'T blanket-restore
+            // (the dangerous over-grant direction); audit for manual review.
+            const wonSubscriptionId = wonCharge
+              ? await resolveSubscriptionIdFromCharge(stripe, wonCharge)
+              : null;
+
+            if (!wonSubscriptionId) {
+              logger.warn(
+                'Won dispute could not be scoped to a subscription  -  manual review required',
+                {
+                  customerId: wonCustomerId,
+                  chargeId: wonChargeId,
+                  disputeId: dispute.id,
+                },
+              );
+              auditLicenseEvent(db, 'license.restoration_unscoped.dispute_won', 'warn', {
+                customerId: wonCustomerId,
+                chargeId: wonChargeId,
+                disputeId: dispute.id,
+                reason: 'subscription_unresolved_from_charge',
+              });
+              break;
+            }
+
+            const wonRestoreScope = and(
+              eq(licenses.customerId, wonCustomerId),
+              eq(licenses.status, 'revoked'),
+              eq(licenses.subscriptionId, wonSubscriptionId),
+              isNull(licenses.deletedAt),
+            );
+
             const revokedLicenses = await db
               .select({
                 subscriptionId: licenses.subscriptionId,
                 tier: licenses.tier,
               })
               .from(licenses)
-              .where(
-                and(
-                  eq(licenses.customerId, wonCustomerId),
-                  eq(licenses.status, 'revoked'),
-                  isNull(licenses.deletedAt),
-                ),
-              )
+              .where(wonRestoreScope)
               .limit(1);
 
             const restoredSub = revokedLicenses[0];
 
+            if (!restoredSub) {
+              // No revoked license for the disputed subscription — nothing to
+              // restore. Do NOT sync an 'active' entitlement out of thin air.
+              logger.info(
+                'Won dispute resolved but no revoked license for the disputed subscription',
+                {
+                  customerId: wonCustomerId,
+                  chargeId: wonChargeId,
+                  disputeId: dispute.id,
+                  subscriptionId: wonSubscriptionId,
+                },
+              );
+              break;
+            }
+
             await db
               .update(licenses)
               .set({ status: 'active', updatedAt: new Date() })
-              .where(
-                and(
-                  eq(licenses.customerId, wonCustomerId),
-                  eq(licenses.status, 'revoked'),
-                  isNull(licenses.deletedAt),
-                ),
-              );
+              .where(wonRestoreScope);
 
             await syncHostedSubscriptionState(db, {
               customerId: wonCustomerId,
-              subscriptionId: restoredSub?.subscriptionId ?? null,
-              tier: (restoredSub?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
+              subscriptionId: restoredSub.subscriptionId ?? wonSubscriptionId,
+              tier: (restoredSub.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
               status: 'active',
               graceUntil: null,
               mode: event.livemode ? 'live' : 'test',
