@@ -379,15 +379,20 @@ describe('POST /verify  -  DB revocation override', () => {
     expect(body.reason).toBe('revoked');
   });
 
-  it('trusts the JWT when DB check throws (fails open)', async () => {
+  it('fails closed (valid:false, reason:unverifiable) when the DB revocation check throws', async () => {
     mockedValidate.mockResolvedValue(VALID_PAYLOAD as never);
     mockDbThrow();
 
     const app = createApp();
     const res = await app.request('/verify', post('/verify', { licenseKey: 'valid.jwt' }));
+    expect(res.status).toBe(200);
     const body = await parseBody(res);
-    expect(body.valid).toBe(true);
-    expect(body.tier).toBe('pro');
+    // A structurally-valid JWT whose revocation status could not be confirmed must
+    // NOT be trusted: a revoked-but-unexpired token would otherwise report valid
+    // for the duration of any DB outage. Fail closed to free tier.
+    expect(body.valid).toBe(false);
+    expect(body.reason).toBe('unverifiable');
+    expect(body.tier).toBe('free');
   });
 
   it('returns reason:revoked when JWT is invalid and DB row is revoked', async () => {
