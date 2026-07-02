@@ -413,7 +413,10 @@ describe('POST /stripe webhook  -  expansion events', () => {
       expect(setCall.status).toBe('revoked');
     });
 
-    it('restores revoked license when dispute is won', async () => {
+    it('does not auto-restore a won dispute when the charge cannot be scoped to a subscription', async () => {
+      // Charge has no invoice → subscription unresolvable. The won-path no
+      // longer blanket-restores every revoked license (GAP-283 scoping); it
+      // audits for manual review instead, so no license is flipped to active.
       mockChargesRetrieve.mockResolvedValueOnce({
         id: 'ch_disputed',
         customer: 'cus_dispute',
@@ -426,13 +429,13 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // License is restored to active on won disputes
-      expect(mockDb.update).toHaveBeenCalled();
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(setCall.status).toBe('active');
+      const restored = mockDbUpdateChain.set.mock.calls.some(
+        (c) => (c[0] as Record<string, unknown>)?.status === 'active',
+      );
+      expect(restored).toBe(false);
     });
 
-    it('restores revoked license when dispute status is warning_closed', async () => {
+    it('does not auto-restore a warning_closed dispute when the charge cannot be scoped to a subscription', async () => {
       mockChargesRetrieve.mockResolvedValueOnce({
         id: 'ch_disputed',
         customer: 'cus_dispute',
@@ -445,9 +448,10 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalled();
-      const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(setCall.status).toBe('active');
+      const restored = mockDbUpdateChain.set.mock.calls.some(
+        (c) => (c[0] as Record<string, unknown>)?.status === 'active',
+      );
+      expect(restored).toBe(false);
     });
 
     it('writes critical audit entry on lost dispute', async () => {
