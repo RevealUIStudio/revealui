@@ -48,6 +48,7 @@ vi.mock('@revealui/db/schema', () => ({
     mode: 'ae.mode',
     tier: 'ae.tier',
     status: 'ae.status',
+    graceUntil: 'ae.graceUntil',
     features: 'ae.features',
     limits: 'ae.limits',
   },
