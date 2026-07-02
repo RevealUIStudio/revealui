@@ -34,7 +34,11 @@ async function parseBody(res: Response): Promise<any> {
 
 function createApp(
   queryFn: (customerId: string) => Promise<string | null>,
-  entitlements?: { accountId?: string | null; subscriptionStatus?: string | null },
+  entitlements?: {
+    accountId?: string | null;
+    subscriptionStatus?: string | null;
+    graceUntil?: Date | null;
+  },
 ) {
   const app = new Hono<{
     Variables: {
@@ -42,6 +46,7 @@ function createApp(
         | {
             accountId?: string | null;
             subscriptionStatus?: string | null;
+            graceUntil?: Date | null;
           }
         | undefined;
     };
