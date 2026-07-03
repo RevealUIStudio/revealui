@@ -2,13 +2,17 @@ import type { Page, Post } from '@revealui/core/types/admin';
 import type { Metadata } from 'next';
 import { mergeOpenGraph } from './mergeOpenGraph';
 
-// Type for documents with optional meta fields
+// Type for documents with optional SEO/meta fields. Pages (canonical-direct)
+// carry `seo`; posts still carry the legacy `meta` group — accept either.
+type SeoFields = {
+  title?: string | null;
+  description?: string | null;
+  image?: { url?: string } | null;
+} | null;
+
 type DocWithMeta = {
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    image?: { url?: string } | null;
-  } | null;
+  seo?: SeoFields;
+  meta?: SeoFields;
   slug?: string | string[] | null;
 };
 
@@ -17,7 +21,8 @@ export async function generateMeta(args: {
 }): Promise<Metadata> {
   const { doc } = args || {};
 
-  const meta = doc?.meta as DocWithMeta['meta'];
+  const docFields = doc as DocWithMeta | null;
+  const meta = docFields?.seo ?? docFields?.meta;
   const ogImage =
     typeof meta?.image === 'object' &&
     meta.image !== null &&

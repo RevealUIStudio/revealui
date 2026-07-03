@@ -10,7 +10,6 @@ import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { RenderBlocks } from '@/lib/blocks/RenderBlocks';
 import { generateMeta } from '@/lib/cms/generateMeta';
 import { RevealUIRedirects } from '@/lib/components/RevealUIRedirects';
-import { RenderHero } from '@/lib/heros/RenderHero';
 import { extractRequestContext } from '@/lib/utils/request-context';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
@@ -61,17 +60,16 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
     return <RevealUIRedirects url={url} />;
   }
 
-  const { hero, layout } = page;
+  // Canonical-direct model: ALL page content (hero included, as the first
+  // block) lives in the `blocks` array — there is no separate hero/layout.
+  const { blocks } = page;
 
   return (
     <article className="pt-16 pb-24">
       {/* Allows redirects for valid pages too */}
       <RevealUIRedirects disableNotFound url={url} />
 
-      {hero && <RenderHero {...(hero as Parameters<typeof RenderHero>[0])} />}
-      {layout && Array.isArray(layout) && (
-        <RenderBlocks blocks={layout as unknown as PageType['layout']} />
-      )}
+      {Array.isArray(blocks) && <RenderBlocks blocks={blocks as unknown as PageType['blocks']} />}
     </article>
   );
 }
