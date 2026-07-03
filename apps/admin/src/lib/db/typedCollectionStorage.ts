@@ -639,7 +639,7 @@ async function createTypedPage(
   const { data } = options;
   const slug = typeof data.slug === 'string' && data.slug.length > 0 ? data.slug : undefined;
   const title = typeof data.title === 'string' && data.title.length > 0 ? data.title : undefined;
-  if (!slug || !title) {
+  if (!(slug && title)) {
     // Collection validation runs before this seam; a missing slug/title here
     // is a programming error, not a user error — fail loudly, never row-less.
     throw new Error('pages create requires a non-empty title and slug');
