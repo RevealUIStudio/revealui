@@ -27,6 +27,18 @@ type TypedCollectionHandler = {
     collection: RevealCollectionConfig,
     options: RevealFindOptions,
   ) => Promise<RevealPaginatedResult | undefined>;
+  create?: (
+    collection: RevealCollectionConfig,
+    options: { data: RevealDataObject; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
+  update?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; data: RevealDataObject; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
+  delete?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
 };
 
 type LocalCollectionStorageAdapter = {
@@ -38,6 +50,18 @@ type LocalCollectionStorageAdapter = {
     collection: RevealCollectionConfig,
     options: RevealFindOptions,
   ) => Promise<RevealPaginatedResult | undefined>;
+  create?: (
+    collection: RevealCollectionConfig,
+    options: { data: RevealDataObject; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
+  update?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; data: RevealDataObject; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
+  delete?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
 };
 
 function isSqlCondition(value: SQL<unknown> | null | undefined): value is SQL<unknown> {
