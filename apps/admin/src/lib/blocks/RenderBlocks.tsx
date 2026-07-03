@@ -192,6 +192,10 @@ export const RenderBlocks = ({
         const renderBlock = (): React.ReactNode => {
           try {
             switch (blockType) {
+              case 'hero': {
+                if (!isBlockType<HeroBlockProps>(block, 'hero')) return null;
+                return <RenderHero {...block} />;
+              }
               case 'archive': {
                 if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null;
                 const normalizedArchive = asNormalizedProps<
