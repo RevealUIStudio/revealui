@@ -13,6 +13,7 @@ import { MediaBlock } from './MediaBlock/Component';
 import { validateAndTransformBlocks } from './schema-adapter';
 
 // Define individual block types from generated types
+type HeroBlockProps = Extract<Page['blocks'][0], { blockType: 'hero' }>;
 type CallToActionBlockProps = Extract<Page['blocks'][0], { blockType: 'cta' }>;
 type ContentBlockProps = Extract<Page['blocks'][0], { blockType: 'content' }>;
 type FormBlockProps = Extract<Page['blocks'][0], { blockType: 'formBlock' }>;
@@ -21,6 +22,7 @@ type MediaBlockProps = Extract<Page['blocks'][0], { blockType: 'mediaBlock' }>;
 
 // Combine all block props into a single union type
 export type BlockProps =
+  | HeroBlockProps
   | CallToActionBlockProps
   | ContentBlockProps
   | FormBlockProps
