@@ -117,6 +117,7 @@ export function isBlockType<T extends BlockType>(
  * Maps generated block type names to schema block type names
  */
 export const BLOCK_TYPE_MAP: Record<GeneratedBlockType, BlockType | 'component'> = {
+  hero: 'component',
   cta: 'button',
   content: 'text',
   formBlock: 'form',
