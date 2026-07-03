@@ -4,6 +4,7 @@ import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { Fragment } from 'react';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
+import { RenderHero } from '@/lib/heros/RenderHero';
 import { asNormalizedProps } from '@/lib/utils/type-guards';
 import { ArchiveBlock } from './ArchiveBlock/Component';
 import { CallToActionBlock } from './CallToAction/Component';
