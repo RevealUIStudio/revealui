@@ -787,5 +787,26 @@ export function createTypedCollectionStorage(): LocalCollectionStorageAdapter | 
       const handler = typedCollectionHandlers[collection.slug]?.find;
       return handler ? handler(collection, options) : Promise.resolve(undefined);
     },
+    create(
+      collection: RevealCollectionConfig,
+      options: { data: RevealDataObject; req?: RevealRequest },
+    ): Promise<RevealDocument | undefined> {
+      const handler = typedCollectionHandlers[collection.slug]?.create;
+      return handler ? handler(collection, options) : Promise.resolve(undefined);
+    },
+    update(
+      collection: RevealCollectionConfig,
+      options: { id: string | number; data: RevealDataObject; req?: RevealRequest },
+    ): Promise<RevealDocument | undefined> {
+      const handler = typedCollectionHandlers[collection.slug]?.update;
+      return handler ? handler(collection, options) : Promise.resolve(undefined);
+    },
+    delete(
+      collection: RevealCollectionConfig,
+      options: { id: string | number; req?: RevealRequest },
+    ): Promise<RevealDocument | undefined> {
+      const handler = typedCollectionHandlers[collection.slug]?.delete;
+      return handler ? handler(collection, options) : Promise.resolve(undefined);
+    },
   };
 }
