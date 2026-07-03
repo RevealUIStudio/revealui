@@ -52,7 +52,7 @@ import {
   validateStartup,
 } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
-import { authMiddleware } from './middleware/auth.js';
+import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { bodyLimitGate } from './middleware/body-limits.js';
 import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
@@ -71,7 +71,7 @@ import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rat
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits.js';
 import { requireTaskQuota } from './middleware/task-quota.js';
-import { tenantMiddleware } from './middleware/tenant.js';
+import { createTenantMembershipValidator, tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminCoordinationRoute from './routes/admin/coordination.js';
 import adminInferenceConfigRoute from './routes/admin/inference-config.js';
@@ -667,8 +667,14 @@ app.use('/api/v1/waitlist', waitlistLimit);
 const optionalAuth = authMiddleware({ required: false });
 app.use('/api/*', optionalAuth);
 app.use('/api/v1/*', optionalAuth);
-// Multi-tenant context (optional by default  -  routes that require it use requireTenant())
-const optionalTenant = tenantMiddleware({ required: false });
+// Multi-tenant context (optional by default  -  routes that require it use requireTenant()).
+// Membership-validated: a request may only claim a tenant its authenticated user
+// belongs to (active accountMemberships row); anything else is 403'd here, before
+// any tenant-scoped vault/DB/MCP access runs.
+const optionalTenant = tenantMiddleware({
+  required: false,
+  validateTenant: createTenantMembershipValidator(getClient),
+});
 app.use('/api/*', optionalTenant);
 app.use('/api/v1/*', optionalTenant);
 // Additive hosted-SaaS entitlement context. Does not replace legacy license gates yet.
@@ -1192,8 +1198,10 @@ app.use('/api/v1/console-auth/*', routeLimit('terminal-auth'));
 app.route('/api/console-auth', terminalAuthRoute);
 
 // Terminal WebSocket bridge  -  daemon PTY sessions for remote access
-// Auth required: terminal sessions give PTY access to the server
+// Operator-gated: terminal sessions give PTY access to the server host, so
+// bare authentication is not enough — only owner/admin may reach the surface.
 app.use('/api/terminal/*', writeProtected);
+app.use('/api/terminal/*', requireRole('owner', 'admin'));
 app.use('/api/terminal/*', routeLimit('terminal-sessions'));
 export const terminalWs = createTerminalRoute();
 app.route('/api/terminal', terminalWs.app);
