@@ -185,42 +185,8 @@ export interface Tenant {
 export interface Page {
   id: number
   title: string
-  hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact'
-    richText?: {
-      root: {
-        type: string
-        children: {
-          type: string
-          version: number
-          [key: string]: unknown
-        }[]
-        direction: ('ltr' | 'rtl') | null
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
-        indent: number
-        version: number
-      }
-      [key: string]: unknown
-    } | null
-    links?:
-      | {
-          link: {
-            type?: ('reference' | 'custom') | null
-            newTab?: boolean | null
-            reference?: {
-              relationTo: 'pages'
-              value: number | Page
-            } | null
-            url?: string | null
-            label: string
-            appearance?: ('default' | 'outline') | null
-          }
-          id?: string | null
-        }[]
-      | null
-    media?: (number | null) | Media
-  }
-  layout: (
+  blocks: (
+    | HeroBlock
     | CallToActionBlock
     | ContentBlock
     | MediaBlock
@@ -229,7 +195,7 @@ export interface Page {
     | CodeBlock
     | BannerBlock
   )[]
-  meta?: {
+  seo?: {
     image?: (number | null) | Media
     title?: string | null
     description?: string | null
@@ -240,6 +206,48 @@ export interface Page {
   updatedAt: string
   createdAt: string
   _status?: ('draft' | 'published') | null
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact'
+  richText?: {
+    root: {
+      type: string
+      children: {
+        type: string
+        version: number
+        [key: string]: unknown
+      }[]
+      direction: ('ltr' | 'rtl') | null
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | ''
+      indent: number
+      version: number
+    }
+    [key: string]: unknown
+  } | null
+  links?:
+    | {
+        link: {
+          type?: ('reference' | 'custom') | null
+          newTab?: boolean | null
+          reference?: {
+            relationTo: 'pages'
+            value: number | Page
+          } | null
+          url?: string | null
+          label: string
+          appearance?: ('default' | 'outline') | null
+        }
+        id?: string | null
+      }[]
+    | null
+  media?: (number | null) | Media
+  id?: string | null
+  blockName?: string | null
+  blockType: 'hero'
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
