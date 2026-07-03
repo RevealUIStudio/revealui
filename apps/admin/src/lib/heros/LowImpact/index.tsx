@@ -1,4 +1,4 @@
-import type { Page } from '@revealui/core/types/admin';
+import type { HeroBlock } from '@revealui/core/types/admin';
 import type React from 'react';
 import RichText from '@/lib/components/RichText/index';
 
@@ -7,9 +7,9 @@ type LowImpactHeroType =
       children?: React.ReactNode;
       richText?: never;
     }
-  | (Omit<Page['hero'], 'richText'> & {
+  | (Omit<HeroBlock, 'richText'> & {
       children?: never;
-      richText?: Page['hero']['richText'];
+      richText?: HeroBlock['richText'];
     });
 
 export const LowImpactHero = ({ children, richText }: LowImpactHeroType) => {

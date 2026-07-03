@@ -50,12 +50,12 @@ describe('RenderBlocks', () => {
   });
 
   it('renders nothing when blocks is null', () => {
-    const { container } = render(<RenderBlocks blocks={null as unknown as Page['layout']} />);
+    const { container } = render(<RenderBlocks blocks={null as unknown as Page['blocks']} />);
     expect(container.firstChild).toBeNull();
   });
 
   it('renders CTA block correctly', () => {
-    const blocks: Page['layout'] = [
+    const blocks: Page['blocks'] = [
       {
         blockType: 'cta',
         links: [
@@ -75,7 +75,7 @@ describe('RenderBlocks', () => {
   });
 
   it('renders content block correctly', () => {
-    const blocks: Page['layout'] = [
+    const blocks: Page['blocks'] = [
       {
         blockType: 'content',
         columns: [
@@ -107,7 +107,7 @@ describe('RenderBlocks', () => {
   });
 
   it('handles unknown block types gracefully', () => {
-    const blocks: Page['layout'] = [
+    const blocks: Page['blocks'] = [
       {
         blockType: 'unknown' as 'cta',
         id: 'test',

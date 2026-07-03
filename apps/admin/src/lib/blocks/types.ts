@@ -12,8 +12,8 @@ import type { Page } from '@revealui/core/types/admin';
 import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter';
 
 // Map generated block types to schema block types
-export type GeneratedBlockType = Page['layout'][number]['blockType'];
-export type GeneratedBlock = NonNullable<Page['layout'][number]>;
+export type GeneratedBlockType = Page['blocks'][number]['blockType'];
+export type GeneratedBlock = NonNullable<Page['blocks'][number]>;
 
 /**
  * Type guard to check if an unknown value is a valid schema Block
@@ -55,7 +55,7 @@ export function isSchemaBlock(block: unknown): block is Block {
  * // Now you can use schemaBlock with schema validation
  * ```
  */
-export function convertGeneratedBlockToSchema(block: Page['layout'][number]): Block {
+export function convertGeneratedBlockToSchema(block: Page['blocks'][number]): Block {
   // Delegate to the schema-adapter transformation function
   // This maintains the API while using the actual implementation
   const result = transformPageBlockToSchema(block);
@@ -94,7 +94,7 @@ export function convertGeneratedBlockToSchema(block: Page['layout'][number]): Bl
  * // Now you can use generatedBlock in Page layout
  * ```
  */
-export function convertSchemaBlockToGenerated(block: Block): Page['layout'][number] {
+export function convertSchemaBlockToGenerated(block: Block): Page['blocks'][number] {
   // Delegate to the schema-adapter reverse transformation function
   return createBlockFromSchema(block);
 }
@@ -117,6 +117,7 @@ export function isBlockType<T extends BlockType>(
  * Maps generated block type names to schema block type names
  */
 export const BLOCK_TYPE_MAP: Record<GeneratedBlockType, BlockType | 'component'> = {
+  hero: 'component',
   cta: 'button',
   content: 'text',
   formBlock: 'form',

@@ -40,8 +40,8 @@ interface LinkReference {
   value: Page | Post | string | number;
 }
 
-type CtaBlockFields = Extract<Page['layout'][0], { blockType: 'cta' }>;
-type MediaBlockFields = Extract<Page['layout'][0], { blockType: 'mediaBlock' }>;
+type CtaBlockFields = Extract<Page['blocks'][0], { blockType: 'cta' }>;
+type MediaBlockFields = Extract<Page['blocks'][0], { blockType: 'mediaBlock' }>;
 
 // Lexical omits `checked: false` on unchecked checklist items (only
 // `checked: true` is ever serialized upstream), so normalize before
