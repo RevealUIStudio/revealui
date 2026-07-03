@@ -53,6 +53,8 @@ async function main(): Promise<void> {
 
   const db = getClient('rest');
 
+  // drizzle-raw: read-only invariant aggregate — count(*) FILTER + jsonb_typeof/
+  // jsonb_array_length are not expressible through the query builder; no user input.
   const result = await db.execute(sql`
     select
       count(*)::int as total,
