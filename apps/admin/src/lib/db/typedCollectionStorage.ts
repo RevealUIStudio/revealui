@@ -414,7 +414,349 @@ async function findTypedTenants(
   };
 }
 
+// ─── Pages (canonical site-scoped model — READ + WRITE bridge) ──────────────
+
+type DbPage = typeof pages.$inferSelect;
+type NewPage = typeof pages.$inferInsert;
+
+/**
+ * Site every CMS-authored page belongs to until the dashboard grows a site
+ * picker. The canonical `pages` table requires a NOT NULL site_id; the
+ * dynamic-SQL engine path can never satisfy it — pages writes are ONLY viable
+ * through this bridge.
+ */
+const DEFAULT_PAGE_SITE_ID = 'fleet-marketing';
+
+function pagePathFromSlug(slug: string): string {
+  return slug === 'home' ? '/' : `/${slug}`;
+}
+
+/**
+ * Map a canonical row to the collection document shape. `_status` mirrors the
+ * `status` column so the collection's `authenticatedOrPublished` access rule,
+ * the drafts UI, and the revalidate hook keep their existing contract.
+ */
+function mapPageDocument(row: DbPage): RevealDocument {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    path: row.path,
+    siteId: row.siteId,
+    blocks: Array.isArray(row.blocks) ? (row.blocks as RevealDocument['blocks' & string][]) : [],
+    seo: isRecord(row.seo) ? row.seo : undefined,
+    status: row.status,
+    _status: row.status,
+    publishedAt: row.publishedAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  } as unknown as RevealDocument;
+}
+
+/**
+ * Flatten a find `where` into `[field, condition]` entries. The access-merged
+ * where arrives as `{ and: [userWhere, accessWhere] }` (see core find.ts), so
+ * `and` arrays are flattened recursively. Returns null for any shape this
+ * handler cannot faithfully express (`or`, non-equals operators) — the caller
+ * then signals not-handled and the engine falls through.
+ */
+function flattenWhereEntries(
+  where: RevealFindOptions['where'],
+): Array<[string, unknown]> | null | undefined {
+  if (!where) return undefined;
+  if (!isRecord(where)) return null;
+
+  const entries: Array<[string, unknown]> = [];
+  for (const [key, value] of Object.entries(where)) {
+    if (key === 'and') {
+      if (!Array.isArray(value)) return null;
+      for (const nested of value) {
+        const nestedEntries = flattenWhereEntries(nested as RevealFindOptions['where']);
+        if (nestedEntries === null) return null;
+        if (nestedEntries) entries.push(...nestedEntries);
+      }
+      continue;
+    }
+    if (key === 'or') {
+      return null;
+    }
+    entries.push([key, value]);
+  }
+  return entries;
+}
+
+function buildPagesWhere(where: RevealFindOptions['where']) {
+  const entries = flattenWhereEntries(where);
+  if (entries === null) return null;
+
+  const conditions: (SQL<unknown> | null)[] = [isNull(pages.deletedAt)];
+  for (const [field, condition] of entries ?? []) {
+    if (!(isRecord(condition) && 'equals' in condition)) {
+      return null;
+    }
+    const value = condition.equals;
+    switch (field) {
+      case 'id':
+        conditions.push(eq(pages.id, String(value)));
+        break;
+      case 'slug':
+        conditions.push(typeof value === 'string' ? eq(pages.slug, value) : null);
+        break;
+      case 'path':
+        conditions.push(typeof value === 'string' ? eq(pages.path, value) : null);
+        break;
+      case 'siteId':
+        conditions.push(typeof value === 'string' ? eq(pages.siteId, value) : null);
+        break;
+      case 'status':
+      case '_status':
+        conditions.push(typeof value === 'string' ? eq(pages.status, value) : null);
+        break;
+      default:
+        return null;
+    }
+  }
+
+  if (conditions.some((entry) => entry === null)) {
+    return null;
+  }
+  const validConditions = conditions.filter(isSqlCondition);
+  return validConditions.length === 1 ? validConditions[0] : and(...validConditions);
+}
+
+function buildPagesOrderBy(sort: RevealFindOptions['sort']) {
+  if (!sort) return [];
+  if (!isRecord(sort)) return null;
+
+  const orderBy = Object.entries(sort).map(([field, direction]) => {
+    switch (field) {
+      case 'title':
+        return direction === '-1' ? desc(pages.title) : asc(pages.title);
+      case 'slug':
+        return direction === '-1' ? desc(pages.slug) : asc(pages.slug);
+      case 'path':
+        return direction === '-1' ? desc(pages.path) : asc(pages.path);
+      case 'publishedAt':
+        return direction === '-1' ? desc(pages.publishedAt) : asc(pages.publishedAt);
+      case 'createdAt':
+        return direction === '-1' ? desc(pages.createdAt) : asc(pages.createdAt);
+      case 'updatedAt':
+        return direction === '-1' ? desc(pages.updatedAt) : asc(pages.updatedAt);
+      default:
+        return null;
+    }
+  });
+
+  return orderBy.some((entry) => entry === null) ? null : orderBy.filter(isSqlCondition);
+}
+
+function toDateOrNull(value: unknown): Date | null {
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' && value.length > 0) {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+function pageStatusFromData(data: RevealDataObject): string | undefined {
+  const raw = data._status ?? data.status;
+  return typeof raw === 'string' && raw.length > 0 ? raw : undefined;
+}
+
+async function findTypedPageByID(
+  collection: RevealCollectionConfig,
+  options: { id: string | number },
+): Promise<RevealDocument | null | undefined> {
+  if (collection.slug !== 'pages') {
+    return undefined;
+  }
+
+  const db = getRestClient();
+  const row = await getPageById(db, String(options.id));
+  return row ? mapPageDocument(row) : null;
+}
+
+async function findTypedPages(
+  collection: RevealCollectionConfig,
+  options: RevealFindOptions,
+): Promise<RevealPaginatedResult | undefined> {
+  if (collection.slug !== 'pages') {
+    return undefined;
+  }
+
+  const where = buildPagesWhere(options.where);
+  if (where === null) {
+    return undefined;
+  }
+
+  const orderBy = buildPagesOrderBy(options.sort);
+  if (orderBy === null) {
+    return undefined;
+  }
+
+  const db = getRestClient();
+  const limit = options.limit ?? 10;
+  const page = options.page ?? 1;
+  const offset = (page - 1) * limit;
+
+  const rows = await db
+    .select()
+    .from(pages)
+    .where(where)
+    .orderBy(...(orderBy.length > 0 ? orderBy : [asc(pages.path)]))
+    .limit(limit)
+    .offset(offset);
+  const [{ value: totalDocs = 0 } = { value: 0 }] = await db
+    .select({ value: count() })
+    .from(pages)
+    .where(where);
+
+  const totalPages = totalDocs > 0 ? Math.ceil(totalDocs / limit) : 0;
+
+  return {
+    docs: rows.map(mapPageDocument),
+    totalDocs,
+    limit,
+    totalPages,
+    page,
+    pagingCounter: totalDocs > 0 ? offset + 1 : 0,
+    hasPrevPage: page > 1,
+    hasNextPage: page < totalPages,
+    prevPage: page > 1 ? page - 1 : null,
+    nextPage: page < totalPages ? page + 1 : null,
+  };
+}
+
+async function createTypedPage(
+  collection: RevealCollectionConfig,
+  options: { data: RevealDataObject; req?: RevealRequest },
+): Promise<RevealDocument | undefined> {
+  if (collection.slug !== 'pages') {
+    return undefined;
+  }
+
+  const { data } = options;
+  const slug = typeof data.slug === 'string' && data.slug.length > 0 ? data.slug : undefined;
+  const title = typeof data.title === 'string' && data.title.length > 0 ? data.title : undefined;
+  if (!slug || !title) {
+    // Collection validation runs before this seam; a missing slug/title here
+    // is a programming error, not a user error — fail loudly, never row-less.
+    throw new Error('pages create requires a non-empty title and slug');
+  }
+
+  const blocks = Array.isArray(data.blocks) ? data.blocks : [];
+  const values: NewPage = {
+    id: typeof data.id === 'string' && data.id.length > 0 ? data.id : `rvl_${crypto.randomUUID()}`,
+    siteId:
+      typeof data.siteId === 'string' && data.siteId.length > 0
+        ? data.siteId
+        : DEFAULT_PAGE_SITE_ID,
+    title,
+    slug,
+    path:
+      typeof data.path === 'string' && data.path.length > 0 ? data.path : pagePathFromSlug(slug),
+    status: pageStatusFromData(data) ?? 'draft',
+    blocks,
+    blockCount: blocks.length,
+    seo: isRecord(data.seo) ? data.seo : null,
+    publishedAt: toDateOrNull(data.publishedAt),
+  };
+
+  const db = getRestClient();
+  const row = await createPage(db, values);
+  if (!row) {
+    throw new Error('pages create failed: no row returned');
+  }
+  return mapPageDocument(row);
+}
+
+async function updateTypedPage(
+  collection: RevealCollectionConfig,
+  options: { id: string | number; data: RevealDataObject; req?: RevealRequest },
+): Promise<RevealDocument | undefined> {
+  if (collection.slug !== 'pages') {
+    return undefined;
+  }
+
+  const db = getRestClient();
+  const id = String(options.id);
+
+  // getPageById filters soft-deleted rows; updatePage alone would resurrect
+  // them. Handled-but-not-found throws per the seam contract.
+  const existing = await getPageById(db, id);
+  if (!existing) {
+    throw new Error(`pages update: page not found: ${id}`);
+  }
+
+  const { data } = options;
+  const patch: Partial<NewPage> = {};
+
+  if (typeof data.title === 'string' && data.title.length > 0) {
+    patch.title = data.title;
+  }
+  if (typeof data.slug === 'string' && data.slug.length > 0) {
+    patch.slug = data.slug;
+    // Keep path in lockstep with slug unless the caller pins it explicitly.
+    patch.path =
+      typeof data.path === 'string' && data.path.length > 0
+        ? data.path
+        : pagePathFromSlug(data.slug);
+  } else if (typeof data.path === 'string' && data.path.length > 0) {
+    patch.path = data.path;
+  }
+  if (typeof data.siteId === 'string' && data.siteId.length > 0) {
+    patch.siteId = data.siteId;
+  }
+  if (Array.isArray(data.blocks)) {
+    patch.blocks = data.blocks;
+    patch.blockCount = data.blocks.length;
+  }
+  if ('seo' in data) {
+    patch.seo = isRecord(data.seo) ? data.seo : null;
+  }
+  const status = pageStatusFromData(data);
+  if (status) {
+    patch.status = status;
+  }
+  if ('publishedAt' in data) {
+    patch.publishedAt = toDateOrNull(data.publishedAt);
+  }
+
+  const row = await updatePage(db, id, patch);
+  if (!row) {
+    throw new Error(`pages update: page not found: ${id}`);
+  }
+  return mapPageDocument(row);
+}
+
+async function deleteTypedPage(
+  collection: RevealCollectionConfig,
+  options: { id: string | number; req?: RevealRequest },
+): Promise<RevealDocument | undefined> {
+  if (collection.slug !== 'pages') {
+    return undefined;
+  }
+
+  const db = getRestClient();
+  const id = String(options.id);
+  const existing = await getPageById(db, id);
+  if (!existing) {
+    throw new Error(`pages delete: page not found: ${id}`);
+  }
+
+  await deletePage(db, id);
+  return mapPageDocument(existing);
+}
+
 const typedCollectionHandlers: Record<string, TypedCollectionHandler> = {
+  pages: {
+    findByID: findTypedPageByID,
+    find: findTypedPages,
+    create: createTypedPage,
+    update: updateTypedPage,
+    delete: deleteTypedPage,
+  },
   tenants: {
     findByID: findTypedTenantByID,
     find: findTypedTenants,
