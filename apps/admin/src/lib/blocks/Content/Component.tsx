@@ -30,7 +30,7 @@ type ColumnType = {
 };
 
 // Props type for the ContentBlock component
-export type Props = Extract<Page['layout'][0], { blockType: 'content' }> & {
+export type Props = Extract<Page['blocks'][0], { blockType: 'content' }> & {
   columns: ColumnType[];
 };
 

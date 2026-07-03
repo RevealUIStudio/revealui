@@ -5,7 +5,7 @@ import { memo } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import RichText from '@/lib/components/RichText/index';
 
-type Props = Extract<Page['layout'][0], { blockType: 'cta' }>;
+type Props = Extract<Page['blocks'][0], { blockType: 'cta' }>;
 
 export const CallToActionBlock = memo(({ links, richText }: Props) => {
   // Runtime validation with ButtonBlockSchema

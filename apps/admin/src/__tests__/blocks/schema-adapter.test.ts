@@ -14,7 +14,7 @@ import {
 describe('schema-adapter', () => {
   describe('transformPageBlockToSchema', () => {
     it('transforms CTA block to button block', () => {
-      const ctaBlock: Page['layout'][0] = {
+      const ctaBlock: Page['blocks'][0] = {
         blockType: 'cta',
         links: [
           {
@@ -36,7 +36,7 @@ describe('schema-adapter', () => {
     });
 
     it('transforms form block', () => {
-      const formBlock: Page['layout'][0] = {
+      const formBlock: Page['blocks'][0] = {
         blockType: 'formBlock',
         form: {
           id: 1,
@@ -56,7 +56,7 @@ describe('schema-adapter', () => {
     });
 
     it('transforms code block', () => {
-      const codeBlock: Page['layout'][0] = {
+      const codeBlock: Page['blocks'][0] = {
         blockType: 'code',
         code: 'console.log("hello")',
         language: 'javascript',
@@ -73,7 +73,7 @@ describe('schema-adapter', () => {
 
   describe('validateAndTransformBlocks', () => {
     it('validates and transforms multiple blocks', () => {
-      const blocks: Page['layout'] = [
+      const blocks: Page['blocks'] = [
         {
           blockType: 'cta',
           links: [

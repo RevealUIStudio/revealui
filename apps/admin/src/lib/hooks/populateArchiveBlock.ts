@@ -2,7 +2,7 @@ import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
 import type { Page } from '@revealui/core/types/admin';
 import { asRecord } from '@/lib/utils/type-guards';
 
-type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
+type ArchiveBlockProps = Extract<Page['blocks'][0], { blockType: 'archive' }>;
 
 type ArchiveBlockWithDocs = ArchiveBlockProps & {
   populatedDocs: Array<{
