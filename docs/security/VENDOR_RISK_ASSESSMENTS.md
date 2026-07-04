@@ -217,9 +217,9 @@ Each vendor is evaluated against the following criteria:
 | DPA | In effect | GitHub DPA covers npm (TP-004) as well |
 | Encryption at rest | AES-256 | Repository data, secrets encrypted |
 | Encryption in transit | TLS 1.2+ | All GitHub traffic encrypted |
-| Access controls | Organization RBAC, branch protection, CODEOWNERS | Meets requirements |
-| MFA | Required for all org members | Enforced at organization level |
-| Audit logging | Organization audit log | Available for security events |
+| Access controls | Account-level permissions, branch protection + required status checks (public repos), CODEOWNERS | Single-owner **User** account (not a GitHub Organization) |
+| MFA | Enabled on the account owner | Account-level 2FA (single-owner User account) |
+| Audit logging | Account security log | Org-level audit log not applicable (User account) |
 | Incident response | Documented | Status page at githubstatus.com |
 | Breach notification | Per DPA terms | Timely notification committed |
 | SLA uptime | 99.9% | Meets requirements |
