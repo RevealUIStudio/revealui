@@ -18,6 +18,7 @@ import type {
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js';
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
+import { runFieldValidators } from './fieldValidation.js';
 import { find } from './find.js';
 import { findByID } from './findById.js';
 import {
@@ -159,6 +160,11 @@ export async function update(
       }
     }
   }
+
+  // Run field-level `validate` predicates for the fields present in this patch,
+  // after the built-in email check and before beforeChange hooks. Throws a
+  // ValidationError (HTTP 400) on the first failing field.
+  await runFieldValidators(config, data, 'update', options.req);
 
   // Run beforeChange field hooks after validation but before the DB write.
   await runBeforeFieldHooks(config, data, 'update', 'beforeChange', undefined, options.req);
