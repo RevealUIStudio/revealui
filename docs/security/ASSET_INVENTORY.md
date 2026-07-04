@@ -4,7 +4,7 @@ status: verified
 audience: maintainer
 title: Asset Inventory
 description: Formal inventory of all services, data stores, third-party processors, and security tooling for SOC 2 compliance.
-last-updated: 2026-05-29
+last-updated: 2026-07-04
 review-cadence: quarterly
 owner: RevealUI Studio <founder@revealui.com>
 classification: internal
@@ -19,8 +19,8 @@ This document provides a comprehensive inventory of all assets managed under the
 This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair Source Pro packages) and all associated infrastructure.
 
 > **Infrastructure-in-transition note (added 2026-05-29).** Several entries below are mid-migration and their status is **transitional**, not steady-state:
-> - **Supabase (DS-002, TP-006)** is a *legacy secondary* store being phased out — target is NeonDB-primary + ElectricSQL; new features must not depend on Supabase (ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md)). The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
-> - The **ElectricSQL sync host (DS-003, TP-007)** is migrating **Railway → Fly.io** (infrastructure ADR dated 2026-05-18; migration phases 0–3 shipped, 4–6 pending). "Railway" rows reflect the current host until the cutover completes.
+> - **Supabase (DS-002, TP-006)** is **decommissioned as an internal datastore** per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md) — RAG/vector embeddings now live on NeonDB `pgvector`. Rows below are retained as historical records while credential offboarding completes. The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
+> - The **ElectricSQL sync host (DS-003, TP-007)** is re-platforming **Railway → Fly.io** (infrastructure ADR dated 2026-05-18). Railway no longer runs an active RevealUI service — the sync capability is out of production service pending the Fly.io re-platform — so "Railway" rows below are historical.
 > - **Storage** is Cloudflare R2 (S3-compatible); the legacy Vercel Blob backend is being retired (GAP-208).
 > - **RevealCoin (SVC-007)** was cancelled 2026-05-29 (repo private+archived, keys destroyed).
 >
@@ -61,7 +61,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | PKG-015 | @revealui/dev | Shared configs (Biome, TS, Tailwind) | npm | Public |
 | PKG-016 | @revealui/test | E2E specs, integration tests, fixtures, mocks | npm | Public |
 | PKG-018 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery | npm | Public |
-| PKG-019 | @revealui/services | Stripe + Supabase integrations | npm | Public |
+| PKG-019 | @revealui/services | Stripe + email integrations | npm | Public |
 | PKG-020 | create-revealui | `npm create revealui` initializer | npm | Public |
 
 ### 2.3 Pro Packages (Fair Source, FSL-1.1-MIT)
@@ -76,8 +76,8 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | ID | Store | Type | Provider | Location | Data Classification | Encryption at Rest | Encryption in Transit | Backup Policy | Recovery Objective |
 |----|-------|------|----------|----------|---------------------|--------------------|-----------------------|---------------|-------------------|
 | DS-001 | NeonDB (Primary) | Managed PostgreSQL | Neon | Cloud (provider-managed) | Confidential | AES-256 (provider-managed) | TLS 1.2+ | Continuous (provider PITR) | RPO: near-zero; RTO: minutes |
-| DS-002 | Supabase (Secondary — **legacy, phasing out**) | Managed PostgreSQL + pgvector | Supabase | Cloud (provider-managed) | Confidential | AES-256 (provider-managed) | TLS 1.2+ | Daily snapshots (provider) | RPO: 24 hours; RTO: hours |
-| DS-003 | ElectricSQL Proxy | Real-time sync proxy | Railway (**migrating → Fly.io**, ADR 2026-05-18) | Cloud | Internal | Provider-managed | TLS 1.2+ | N/A (stateless proxy) | N/A |
+| DS-002 | Supabase (**decommissioned** — historical record) | Managed PostgreSQL + pgvector | Supabase | Cloud (provider-managed) | Confidential | AES-256 (provider-managed) | TLS 1.2+ | Daily snapshots (provider) | RPO: 24 hours; RTO: hours |
+| DS-003 | ElectricSQL Proxy | Real-time sync proxy (**not currently in production service**) | Fly.io (re-platform target, ADR 2026-05-18) | Cloud | Internal | Provider-managed | TLS 1.2+ | N/A (stateless proxy) | N/A |
 | DS-004 | PGlite (Browser/Test) | In-memory PostgreSQL | Local | Browser or CI runner | Internal | N/A (ephemeral) | N/A (local) | N/A (ephemeral) | N/A |
 
 ### 3.1 Data Categories by Store
@@ -92,7 +92,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 - GDPR consent and anonymization records
 - AI agent coordination data, CRDT operations
 
-**Supabase (DS-002 — legacy, phasing out):** Vector embeddings, secondary auth, and specialized workloads. Being consolidated onto NeonDB pgvector; new features must not depend on Supabase.
+**Supabase (DS-002 — decommissioned):** Historically held vector embeddings, secondary auth, and specialized workloads. RAG/vector data now lives on NeonDB pgvector (ADR 2026-05-01); no internal RevealUI feature depends on Supabase. Historical data categories:
 - Vector embeddings for RAG (pgvector)
 - OAuth account linkage
 - Supabase Auth sessions (where used)
@@ -111,15 +111,15 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | TP-003 | GitHub | Source code hosting, CI/CD, package registry, security advisories | Source code, CI logs, secrets (encrypted), security alerts | GitHub DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
 | TP-004 | npm (GitHub) | Package distribution (public OSS packages) | Published package source, package metadata | Covered by GitHub DPA | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
 | TP-005 | Neon | Managed PostgreSQL (primary database) | All relational data (users, content, payments metadata, sessions) | Neon DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
-| TP-006 | Supabase (**legacy, phasing out**) | Managed PostgreSQL + vectors, secondary auth | Vector embeddings, OAuth linkage, secondary auth sessions | Supabase DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
-| TP-007 | Railway (**migrating → Fly.io**, ADR 2026-05-18) | ElectricSQL proxy hosting | Sync protocol traffic (encrypted in transit, no persistent storage) | Railway ToS | Review pending | 2026-04-12 | 2026-07-12 |
+| TP-006 | Supabase (**decommissioned** — offboarding) | Managed PostgreSQL + vectors, secondary auth (historical) | None currently (historically: vector embeddings, OAuth linkage, secondary auth sessions) | Supabase DPA in effect | SOC 2 Type II | 2026-04-12 | — (no forward review; credential offboarding tracked) |
+| TP-007 | Railway (**decommissioning** — no active service; Fly.io re-platform per ADR 2026-05-18) | ElectricSQL proxy hosting (historical) | None currently (historically: sync protocol traffic, encrypted in transit, no persistent storage) | Railway ToS | Review pending | 2026-04-12 | — (no forward review; decommission in progress) |
 | TP-008 | Google Workspace | Email (Gmail API for transactional email) | Recipient email addresses, email content | Google Workspace DPA | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
 
 ### 4.1 Subprocessor Notes
 
 - **Stripe** is a PCI DSS Level 1 service provider. RevealUI never stores, processes, or transmits cardholder data. Only Stripe customer IDs, subscription IDs, and webhook event metadata are persisted in NeonDB.
 - **npm** provenance attestations (SLSA Build Level 2) are generated via OIDC trusted publishing in the release workflow. No long-lived NPM_TOKEN is required.
-- **Railway** currently hosts the ElectricSQL sync proxy, which is stateless. Data passes through encrypted in transit but is not persisted on the proxy host. This host is migrating Railway → Fly.io per ADR 2026-05-18 (phases 4–6 pending); the stateless property is unchanged by the move.
+- **Railway** no longer runs an active RevealUI service: apps/server deploys on Vercel, and the legacy Railway-hosted ElectricSQL proxy is out of production service pending the Fly.io re-platform (ADR 2026-05-18). The proxy was stateless — sync traffic passed through encrypted in transit and was never persisted on the proxy host.
 
 ## 5. Security Tooling Inventory
 
@@ -198,16 +198,16 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
               +---------+  +---------+  +---------+  +---------+
               | NeonDB  |  |Supabase |  |Electric |  | Stripe  |
               |(DS-001) |  |(DS-002) |  |SQL Proxy|  |(TP-002) |
-              |Primary  |  |Vectors  |  |(DS-003) |  |Payments |
+              |Primary  |  |(hist.)  |  |(DS-003) |  |Payments |
               |Confid.  |  |Confid.  |  |Internal |  |PCI L1   |
               +---------+  +---------+  +----+----+  +---------+
                                              |
                                              v
                                      +---------------+
-                                     | Railway→Fly.io|
+                                     | Fly.io (plan) |
                                      | (TP-007)      |
                                      | Sync Hosting  |
-                                     | (migrating)   |
+                                     | (not in svc)  |
                                      +---------------+
 
               +------------------+    +------------------+
@@ -272,11 +272,11 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 |--------|-----------|-------|-------|--------|
 | Asset Inventory Review | Quarterly | Founder | All sections of this document | Updated ASSET_INVENTORY.md, change log entry |
 | Third-Party Processor Review | Quarterly | Founder | Section 4 (DPA status, SOC 2 reports, data shared) | Updated processor table, risk notes |
-| Access Control Audit | Quarterly | Founder | GitHub org, Vercel, NeonDB, Supabase, Stripe access | Access review log, revocations if needed |
+| Access Control Audit | Quarterly | Founder | GitHub org, Vercel, NeonDB, Stripe access (+ legacy Supabase credentials until offboarding completes) | Access review log, revocations if needed |
 | Dependency Vulnerability Review | Weekly (automated), monthly (manual) | Founder | Dependabot alerts, pnpm audit, CodeQL findings | Remediation PRs, risk acceptance notes |
 | Security Tooling Effectiveness | Semi-annually | Founder | Sections 5.1 through 5.4 | Tool coverage report, gap analysis |
 | Data Flow Review | Semi-annually | Founder | Section 6 | Updated diagrams, new integration assessment |
-| Backup and Recovery Test | Semi-annually | Founder | DS-001, DS-002 | Recovery test results, RTO/RPO validation |
+| Backup and Recovery Test | Semi-annually | Founder | DS-001 (DS-002 decommissioned) | Recovery test results, RTO/RPO validation |
 | Incident Response Drill | Annually | Founder | INCIDENT_RESPONSE.md procedures | Drill report, procedure updates |
 
 ### 8.2 Change Management
