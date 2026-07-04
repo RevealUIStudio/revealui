@@ -66,7 +66,7 @@ Hooks NEVER write to the workboard by design. The workboard is a manual coordina
 
 ### Workboard automation (M10)
 
-Two scripts govern the fleet-level workboard (maintained in the private revealui-jv coordination repo):
+Two scripts govern the fleet-level workboard (maintained in the private coordination hub):
 
 - `workboard-check.js` — read-only drift detector, fired on session-start. Reports stale rows and unresolved gaps without modifying the file.
 - `workboard-sweep.js` — idempotent cleanup. The agent reviews the diff and commits manually; the script never auto-commits.
@@ -101,10 +101,10 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 
 | Topic | Canonical source |
 |-------|-----------------|
-| Audit-first SDLC (M5) | `RevealUIStudio/revealui-jv/.claude/rules/audit-first-sdlc.md` (private) |
+| Audit-first SDLC (M5) | internal audit-first SDLC rule (private coordination hub) |
 | No-regex (M2) | `~/.claude/rules/` global rules |
 | Versioning (M6) | `~/.claude/rules/versioning.md` |
 | Secrets (M4) | `~/.claude/rules/secrets.md` + `docs/SECRETS.md` |
 | Hooks architecture (M8/M9/M10) | `~/.claude/rules/hooks-architecture.md` (private) |
-| 7-tier rename glossary (M1) | `RevealUIStudio/revealui-jv/docs/glossary.md` (private) |
+| 7-tier rename glossary (M1) | internal glossary (private coordination hub) |
 | Charge-readiness detail (M11) | `docs/MASTER_PLAN.md` §Billing |

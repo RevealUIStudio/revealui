@@ -12,7 +12,7 @@
  * **Phase 1.6 (stubs only).** This module ships the namespace + interfaces
  * + an explicit `AuthorSdkNotImplementedError` per function. The concrete
  * implementation lands after the first external venue requirement surfaces
- * (per `docs/lanes/marketplace-extraction/plan.md` Risk R8 — "Phase 1.6
+ * (per the internal marketplace-extraction plan Risk R8 — "Phase 1.6
  * author SDK design constrains future venue plugins; ship stubs only,
  * flesh out API in a follow-up ADR after first external venue interest").
  *

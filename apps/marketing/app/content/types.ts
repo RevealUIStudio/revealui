@@ -1,6 +1,6 @@
 // Shared content types for marketing/app/content/*
 // Sourced from extraction of inline JSX content per
-// docs/lanes/marketing-overhaul/plan.md §4.4 (Phase 1).
+// the internal marketing-overhaul plan §4.4 (Phase 1).
 
 export interface Cta {
   readonly label: string;

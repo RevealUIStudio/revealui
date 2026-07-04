@@ -6,7 +6,7 @@
 // FSL package detail references METRICS: 21 MIT + 5 FSL + 1 internal = 27 total
 // (matches validator licenseSplit; counted against packages/ on 2026-06-17 —
 // @revealui/tokens addition took MIT 20→21 and total 26→27).
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Per the internal marketing-overhaul plan §4.4.
 
 import { METRICS, SITE } from './site';
 import type { Cta, FaqItem } from './types';

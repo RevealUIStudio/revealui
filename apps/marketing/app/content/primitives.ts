@@ -3,7 +3,7 @@
 //   - HomePrimitive: label + body only (used by landing Primitives.tsx)
 //   - ProductsPrimitive: full forYou/forAgents/together/features deep-dive (used by ProductsPage.tsx)
 //   Both are canonical here. Phase 4 reconciles any copy redundancy.
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Per the internal marketing-overhaul plan §4.4.
 // Agents primitive MCP count is sourced from METRICS.mcpServers
 // (currently 14, per docs/MARKETING_METRICS.md §1) — never hardcoded here.
 

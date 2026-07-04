@@ -9,17 +9,17 @@ repo: revealui
 last-updated: 2026-05-01
 owner: RevealUI Studio
 staleness-status: STALE
-note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (last updated 2026-05-10). Quarterly refresh cadence per ADR revealui-jv:docs/decisions/2026-05-11-master-plan-public-quarterly-snapshot.md.
+note: public snapshot — canonical version in the private coordination hub (last updated 2026-05-10). Quarterly refresh cadence per internal ADR 2026-05-11 (master-plan public quarterly snapshot).
 ---
 
 # RevealUI Master Plan
 
 > **AGENTS:** This is the PUBLIC SNAPSHOT. The canonical, day-to-day version lives in the internal planning hub.
-> **Cadence:** quarterly refresh (Mar 11 / Jun 11 / Sep 11 / Dec 11) per ADR `revealui-jv:docs/decisions/2026-05-11-master-plan-public-quarterly-snapshot.md`. For current state, see public RevealUI signals: blog posts, release notes, GitHub Issues, and `pnpm validate:claims` output.
+> **Cadence:** quarterly refresh (Mar 11 / Jun 11 / Sep 11 / Dec 11) per internal ADR 2026-05-11 (master-plan public quarterly snapshot). For current state, see public RevealUI signals: blog posts, release notes, GitHub Issues, and `pnpm validate:claims` output.
 > Always read and update the internal version. Do NOT update this file outside the quarterly refresh.
 
 **Last Updated:** 2026-05-01 (Current Reality block refreshed; numbering aligned to Phase 5)
-**Status:** Public snapshot  -  canonical version in revealui-jv
+**Status:** Public snapshot  -  canonical version in the private coordination hub
 **Owner:** RevealUI Studio
 
 > This document supersedes all previous roadmaps, action plans, and status docs.
@@ -673,7 +673,7 @@ Phase D  -  Agent publisher tools (agent):
 
 **Goal:** Achieve SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required to close Enterprise tier deals.
 
-**Gap file:** `docs/gaps/GAP-047.yml`
+**Gap file:** GAP-047 (internal tracker)
 
 **Existing controls (already implemented):**
 - RBAC/ABAC policy engine, session auth, bcrypt (12 rounds), brute-force protection
@@ -866,7 +866,7 @@ Holster:          "Here is the shared state where coordination happens"
 - [x] Audit config formats for backwards-compat fields that can be dropped
 - [x] Audit hook scripts for patterns that pre-date the current architecture
 - [x] Audit test files for mocks of removed or renamed interfaces
-- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — tracked in the private revealui-jv repo's audit log (62 findings, 6 categories, 17 actionable in Tier 1)
+- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — tracked in the private coordination hub's audit log (62 findings, 6 categories, 17 actionable in Tier 1)
 
 ### Phase B: Codemod Infrastructure
 

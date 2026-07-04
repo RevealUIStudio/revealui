@@ -88,6 +88,6 @@ See `docs/methodology.md` for the canonical M2-M12 statement — audit-first SDL
 
 - Deployment guide: [`docs/FLEET.md`](./FLEET.md) — RevealUI Fleet self-hosted runtime kit
 - Methodology: `docs/methodology.md`
-- Internal glossary (private): `RevealUIStudio/revealui-jv/docs/glossary.md`
-- ADR for rename: `RevealUIStudio/revealui-jv/docs/decisions/2026-05-03-revfleet-rename.md`
+- Internal glossary: private coordination hub
+- ADR for rename: internal ADR 2026-05-03 (private coordination hub)
 - Per-product pages: [`docs/fleet/`](./fleet/)

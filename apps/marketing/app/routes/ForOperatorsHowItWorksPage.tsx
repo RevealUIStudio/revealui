@@ -1,6 +1,6 @@
 // Page 2 of the operator lane — process description that removes the fear
 // by making the engagement concrete and bounded.
-// Spec: ~/revfleet/.jv/docs/spec-2026-05-14-non-technical-lane.md §3.3 Page 2.
+// Spec: internal non-technical-lane spec (2026-05-14) §3.3 Page 2.
 // Phase 4 of the spec's §8 sequence.
 
 import { Footer } from '../components/Footer';

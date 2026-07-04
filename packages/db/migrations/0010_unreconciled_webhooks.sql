@@ -14,7 +14,7 @@
 -- apply against a production DB that already has the table. On a fresh DB
 -- it creates the table + indexes from scratch.
 --
--- See ~/suite/.jv/docs/cr8-p3-02-retention-design.md for the discovery
+-- See the internal retention design record (cr8-p3-02) for the discovery
 -- context (was found while scoping the operational-hygiene retention work).
 
 CREATE TABLE IF NOT EXISTS "unreconciled_webhooks" (

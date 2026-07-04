@@ -7,7 +7,7 @@
  *
  * Module: packages/db/src/cleanup/log-retention.ts
  * Schemas: packages/db/src/schema/app-logs.ts, error-events.ts
- * Design: ~/revfleet/.jv/docs/cr8-p3-02-retention-design.md
+ * Design: internal retention design record (cr8-p3-02)
  */
 
 import { cleanupOldLogs } from '@revealui/db/cleanup';
