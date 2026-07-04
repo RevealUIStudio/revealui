@@ -12,6 +12,30 @@ name: Build & Push Forge Docker Images
 # (supply-chain parity with the npm --provenance release flow).
 
 on:
+  push:
+    branches: [test, main]
+    paths:
+      - apps/admin/**
+      - apps/server/**
+      - packages/auth/**
+      - packages/cache/**
+      - packages/config/**
+      - packages/contracts/**
+      - packages/core/**
+      - packages/db/**
+      - packages/openapi/**
+      - packages/paywall/**
+      - packages/presentation/**
+      - packages/resilience/**
+      - packages/router/**
+      - packages/security/**
+      - packages/sync/**
+      - packages/utils/**
+      - package.json
+      - pnpm-lock.yaml
+      - turbo.json
+      - .github/workflows/docker.yml
+      - .github/actions/setup-pnpm-node/**
   workflow_dispatch:
     inputs:
       version:
