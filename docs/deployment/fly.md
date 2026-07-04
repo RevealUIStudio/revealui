@@ -18,7 +18,7 @@ latency on shape queries via the worker's Hono app surface).
 | Fly app | Purpose | Status |
 |---------|---------|--------|
 | `revealui-worker` | apps/server long-running subset (alerting, Yjs collab WS, agent-collab WS, terminal-ws Forge-gated, RVMarket executor flag-gated) | Phase 3 — scaffolded, first deploy pending |
-| `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from Railway |
+| `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from the retired Railway host (ADR 2026-05-18) |
 
 ## First deploy (one-time setup)
 
@@ -166,6 +166,6 @@ unhealthy. Investigate via `flyctl logs --app revealui-worker`.
 ElectricSQL Fly setup lives in a separate `fly.electric.toml`
 (landing in Phase 5 of the infra-consolidation lane). Same region
 (iad), same Fly account. Connects to the same Neon `POSTGRES_URL`
-the worker uses. The cutover from Railway-hosted Electric to
-Fly-hosted Electric is the load-bearing piece of Phase 5 — see the
-lane plan for sequencing.
+the worker uses. The cutover from the retired Railway-hosted Electric
+(dropped per ADR 2026-05-18) to Fly-hosted Electric is the load-bearing
+piece of Phase 5 — see the lane plan for sequencing.
