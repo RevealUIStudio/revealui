@@ -131,8 +131,8 @@ export function buildContractsOpenApi(): OpenApiSpec {
         'contracts catalog. Drives cross-language codegen (Go via ' +
         '`oapi-codegen`, Rust via `progenitor`) so per-language consumers ' +
         'replace hand-mirrors with generated types from a single source of ' +
-        'truth. See `docs/decisions/2026-05-03-contracts-protocol-pyramid.md` ' +
-        '§Phase 3 in the revealui-jv repo.',
+        'truth. See the internal contracts-protocol-pyramid ADR (2026-05-03) ' +
+        '§Phase 3.',
       license: { name: 'MIT', identifier: 'MIT' },
     },
     components: { schemas },

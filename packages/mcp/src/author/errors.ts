@@ -12,8 +12,8 @@
  * a phantom success that surfaces as missing artifacts downstream.
  */
 
-/** Tracking issue for the full author-SDK implementation surface. */
-export const AUTHOR_SDK_TRACKING_ISSUE = 'https://github.com/RevealUIStudio/revealui-jv/issues/47';
+/** Public tracker for the full author-SDK implementation surface. */
+export const AUTHOR_SDK_TRACKING_ISSUE = 'https://github.com/RevealUIStudio/revealui/issues';
 
 export class AuthorSdkNotImplementedError extends Error {
   /** The exported function name that was called (e.g. "scaffold"). */

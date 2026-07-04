@@ -31,7 +31,7 @@ describe('@revealui/mcp/author — Phase 1.6 stub surface', () => {
       const err = new AuthorSdkNotImplementedError('publish', '@revealui/mcp/author/publish');
 
       expect(err.message).toContain(AUTHOR_SDK_TRACKING_ISSUE);
-      expect(AUTHOR_SDK_TRACKING_ISSUE).toContain('revealui-jv/issues/');
+      expect(AUTHOR_SDK_TRACKING_ISSUE).toContain('RevealUIStudio/revealui/issues');
     });
 
     it('mentions Phase 1.6 + L2 lock so readers know the deliberate-stub posture', () => {
