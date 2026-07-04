@@ -47,26 +47,29 @@ type MediaBlockFields = Extract<Page['blocks'][0], { blockType: 'mediaBlock' }>;
 // `checked: true` is ever serialized upstream), so normalize before
 // serializing — otherwise an unchecked item is indistinguishable from a
 // plain list item.
-function normalizeChecklists(node: Record<string, unknown>): void {
+//
+// Pure: returns a normalized copy and never mutates the input `node`. The
+// caller's `content` object may be shared or memoized across renders, so an
+// in-place `checked = false` would leak into other consumers and make a second
+// render observe the first render's side effect.
+function normalizeChecklists(node: Record<string, unknown>): Record<string, unknown> {
   const children = node.children;
   if (!Array.isArray(children)) {
-    return;
+    return node;
   }
-  if (node.type === 'list' && node.listType === 'check') {
-    for (const item of children) {
-      if (item && typeof item === 'object') {
-        const itemRecord = item as Record<string, unknown>;
-        if (itemRecord.checked !== true) {
-          itemRecord.checked = false;
-        }
-      }
+  const isCheckList = node.type === 'list' && node.listType === 'check';
+  const normalizedChildren = children.map((child) => {
+    if (!child || typeof child !== 'object') {
+      return child;
     }
-  }
-  for (const child of children) {
-    if (child && typeof child === 'object') {
-      normalizeChecklists(child as Record<string, unknown>);
+    let childRecord = child as Record<string, unknown>;
+    // Fill the omitted `checked: false` on direct items of a check list.
+    if (isCheckList && childRecord.checked !== true) {
+      childRecord = { ...childRecord, checked: false };
     }
-  }
+    return normalizeChecklists(childRecord);
+  });
+  return { ...node, children: normalizedChildren };
 }
 
 // App-specific renderers injected into the shared @revealui/core serializer.
@@ -177,7 +180,10 @@ const RichText = ({ className, content, enableGutter = true, enableProse = true 
     return null;
   }
 
-  normalizeChecklists(content.root as unknown as Record<string, unknown>);
+  // Normalize into a fresh copy — never mutate the caller's (possibly shared)
+  // content object — then serialize the copy.
+  const normalizedRoot = normalizeChecklists(content.root as unknown as Record<string, unknown>);
+  const normalizedContent = { ...content, root: normalizedRoot };
 
   return (
     <div
@@ -190,7 +196,7 @@ const RichText = ({ className, content, enableGutter = true, enableProse = true 
         className,
       )}
     >
-      {serializeLexicalState(content as unknown as SerializedEditorState, {
+      {serializeLexicalState(normalizedContent as unknown as SerializedEditorState, {
         renderBlock,
         renderLink,
         renderUpload,
