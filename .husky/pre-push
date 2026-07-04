@@ -4,6 +4,33 @@ if [ -z "$BASH_VERSION" ]; then
   exec bash -e "$0" "$@"
 fi
 
+# ── Gate scope: decided by the refs being pushed, not the checked-out branch ──
+# git feeds pre-push one "<local ref> <local sha> <remote ref> <remote sha>"
+# line per pushed ref on stdin. Tag pushes and ref deletions add no commits
+# to any branch, so they never gate; branch pushes gate on the remote branch
+# being pushed, regardless of which branch is checked out.
+ZERO_SHA=0000000000000000000000000000000000000000
+PROTECTED_BRANCH=""
+FEATURE_BRANCH=""
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  [ -z "$remote_ref" ] && continue
+  [ "$local_sha" = "$ZERO_SHA" ] && continue # deletion: no local commits to validate
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/test)
+      PROTECTED_BRANCH="${remote_ref#refs/heads/}"
+      ;;
+    refs/heads/*)
+      FEATURE_BRANCH="${remote_ref#refs/heads/}"
+      ;;
+  esac
+done
+
+if [ -z "$PROTECTED_BRANCH" ] && [ -z "$FEATURE_BRANCH" ]; then
+  echo ""
+  echo "No branch refs in this push (tags or deletions only); skipping CI gate."
+  exit 0
+fi
+
 # ── Sentinel file: signals to auto-commit hook that a gate is running ──
 GIT_DIR=$(git rev-parse --git-dir)
 GATE_SENTINEL="$GIT_DIR/gate-in-progress"
@@ -60,25 +87,21 @@ else
   echo "(Dirty file handling by coordinated push script)"
 fi
 
-# Branch-aware gate strictness
+# Branch-aware gate strictness, keyed to the pushed refs
 #   main/test: quality + typecheck (build + tests deferred to CI)
 #   feature/*: quality-only (local dev, no CI)
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GATE_EXIT=0
-case "$BRANCH" in
-  main|test)
-    echo ""
-    echo "Running CI gate for protected branch '$BRANCH' (quality + typecheck; build + tests run in CI)..."
-    echo ""
-    pnpm gate --no-build --no-test || GATE_EXIT=$?
-    ;;
-  *)
-    echo ""
-    echo "Running quality checks for '$BRANCH'..."
-    echo ""
-    pnpm gate --phase=1 --changed || GATE_EXIT=$?
-    ;;
-esac
+if [ -n "$PROTECTED_BRANCH" ]; then
+  echo ""
+  echo "Running CI gate for protected branch '$PROTECTED_BRANCH' (quality + typecheck; build + tests run in CI)..."
+  echo ""
+  pnpm gate --no-build --no-test || GATE_EXIT=$?
+else
+  echo ""
+  echo "Running quality checks for '$FEATURE_BRANCH'..."
+  echo ""
+  pnpm gate --phase=1 --changed || GATE_EXIT=$?
+fi
 
 # Restore saved files (plain copy — never conflicts)
 if [ -n "$SAVE_DIR" ] && [ -f "$SAVE_DIR/manifest" ]; then
