@@ -311,7 +311,7 @@ pnpm db:status
 
 - `DATABASE_URL` - PostgreSQL connection string
 - `POSTGRES_URL` - Alternative name (Neon convention)
-- `SUPABASE_DATABASE_URI` - Supabase-specific
+- `SUPABASE_DATABASE_URI` - Supabase-specific (legacy, being retired)
 
 **Format:**
 
