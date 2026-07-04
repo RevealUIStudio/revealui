@@ -233,7 +233,7 @@ graph TB
 
     subgraph Server[Server Database Layer]
         NeonDB[(NeonDB - primary<br/>POSTGRES_URL<br/>REST + agent_memories<br/>via pgvector)]
-        Supabase[(Supabase - optional<br/>SUPABASE_DATABASE_URL<br/>RAG chunk embeddings)]
+        Supabase[(Supabase - legacy sidecar<br/>retired for internal use<br/>RAG now on Neon pgvector)]
     end
 
     React --> ElectricClient
