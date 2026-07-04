@@ -10,12 +10,16 @@
 import type Stripe from 'stripe';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-// Skip all tests if Stripe test key is not available
-const hasTestKey = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
+// Skip all tests if a Stripe test-mode key is not available. Accept both a full
+// test secret key (sk_test_) and a restricted test key (rk_test_); CI uses a
+// least-privilege restricted key scoped to the resources these tests touch.
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+const hasTestKey =
+  stripeKey?.startsWith('sk_test_') === true || stripeKey?.startsWith('rk_test_') === true;
 
 // Fail fast in CI when credentials are expected but missing
 if (process.env.RUN_INTEGRATION === 'true' && !hasTestKey) {
-  throw new Error('STRIPE_SECRET_KEY (sk_test_*) required when RUN_INTEGRATION=true');
+  throw new Error('STRIPE_SECRET_KEY (sk_test_* or rk_test_*) required when RUN_INTEGRATION=true');
 }
 
 // Require an explicit opt-in, not merely the presence of an `sk_test_`-prefixed
@@ -241,5 +245,5 @@ describe.skipIf(!runStripeTests)('Stripe Integration', () => {
 });
 
 describe.skipIf(hasTestKey)('Stripe Integration (skipped)', () => {
-  it.skip('STRIPE_SECRET_KEY not configured  -  set sk_test_* key to enable');
+  it.skip('STRIPE_SECRET_KEY not configured  -  set an sk_test_* or rk_test_* key to enable');
 });

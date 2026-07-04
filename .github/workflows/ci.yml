@@ -717,12 +717,13 @@ jobs:
   # pgvector Postgres (full schema applied) so we can see what is green
   # before promoting it to a required status check.
   #
-  # Deliberately does NOT set RUN_INTEGRATION or STRIPE_SECRET_KEY: the Stripe
-  # contract test (services/stripe.integration.test.ts) self-skips without a
-  # test-mode key (describe.skipIf), and setting RUN_INTEGRATION without a key
-  # makes it throw. A test-mode key must be provisioned from revvault by the
-  # owner before billing integration can gate CI; until then this stays
-  # advisory (not added to branch-protection required_status_checks).
+  # Billing integration is gated on the STRIPE_SECRET_KEY (sk_test_*) repo secret.
+  # RUN_INTEGRATION is set to 'true' only when that secret is present, so the
+  # Stripe contract test (services/stripe.integration.test.ts) activates once a
+  # test-mode key is provisioned and self-skips otherwise. This is inert until
+  # then (the secret is empty pre-provisioning; fork PRs never receive secrets,
+  # so they stay green). Promote to a required status check after a green
+  # stability window with billing actually exercised.
   # ---------------------------------------------------------------------------
   test-integration-extended:
     name: Integration Tests (extended)
@@ -786,6 +787,9 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
+          # Billing integration self-activates only when the test-mode key secret is set.
+          RUN_INTEGRATION: ${{ secrets.STRIPE_SECRET_KEY != '' && 'true' || 'false' }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
   # ---------------------------------------------------------------------------
   # CI Feedback — notify harness daemon of CI results
