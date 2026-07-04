@@ -253,11 +253,11 @@ graph TB
 - Supports `pgvector` for vector embeddings inline with relational data.
 - Serverless / scale-to-zero for variable workload.
 
-#### Supabase RAG sidecar (optional)
+#### Supabase RAG sidecar (retired — legacy)
 
-- Only enable when ingesting large document corpora for retrieval-augmented agent contexts.
-- Today's role per [`memory: project_supabase_usage_minimal`](../../.jv/memory): RAG chunks + a duplicate billing copy (legacy). Auth/storage/realtime/RLS/edge-fn are NOT used.
-- Phase 7 plan: consolidate onto NeonDB pgvector and retire this sidecar.
+- RAG chunk embeddings now live on NeonDB `pgvector` (see NeonDB above); the standalone Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Auth/storage/realtime/RLS/edge-fn were never used.
+- Legacy Supabase code remains in tree during phase-out; new features must not depend on Supabase-specific behavior.
+- The customer-facing Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) is a separate, retained integration for customers who run Supabase — distinct from RevealUI's own (removed) sidecar usage.
 
 #### ElectricSQL sync (optional)
 
