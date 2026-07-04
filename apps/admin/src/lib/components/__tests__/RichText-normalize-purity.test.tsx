@@ -71,7 +71,8 @@ describe('RichText checklist normalization purity', () => {
     expect(content).toEqual(before);
     const list = (content.root as unknown as { children: Array<{ children: unknown[] }> })
       .children[0];
-    const uncheckedItem = list.children[1] as Record<string, unknown>;
+    const uncheckedItem = list?.children[1] as Record<string, unknown> | undefined;
+    expect(uncheckedItem).toBeDefined();
     expect(uncheckedItem).not.toHaveProperty('checked');
   });
 
