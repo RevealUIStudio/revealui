@@ -254,7 +254,7 @@ _Historical assessment (retained for audit trail):_
 | Vendor | Asset IDs | Risk Rating | Key Strengths | Watchlist Items |
 |--------|-----------|-------------|---------------|-----------------|
 | Neon | DS-001, TP-005 | Low | SOC 2 Type II, PITR, standard PostgreSQL | Monitor for pricing changes, verify DPA annually |
-| Supabase (legacy, phasing out) | DS-002, TP-006 | Low | SOC 2 Type II, RLS, pgvector | Phase-out in progress (ADR 2026-05-01) → NeonDB pgvector; no new Supabase dependencies; verify DPA while in service |
+| ~~Supabase~~ (DECOMMISSIONED — internal datastore usage removed) | DS-002, TP-006 | n/a | _(historical)_ SOC 2 Type II, RLS, pgvector | Decommissioned as an internal datastore (ADR 2026-05-01) → RAG/vectors on NeonDB pgvector; legacy code phase-out tracked separately; customer-facing MCP adapter retained separately (not a RevealUI data dependency) |
 | Vercel | TP-001 | Low | SOC 2 Type II, 99.99% SLA, instant rollback | Monitor for env var handling changes |
 | Stripe | TP-002 | Low | PCI DSS L1, SOC 2 Type II, no card data exposure | Monitor test-to-live mode transition readiness |
 | GitHub | TP-003, TP-004 | Low | SOC 2 Type II, OIDC publishing, secret scanning | Monitor for Actions pricing changes, audit log retention |
