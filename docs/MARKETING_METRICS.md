@@ -171,10 +171,7 @@ When this doc disagrees with marketing copy, file a `gh issue` titled `marketing
 ---
 
 **Related references:**
-- Lane plan: `.jv/docs/lanes/marketing-overhaul/plan.md`
-- Voice rules: `.jv/docs/lanes/_closed/messaging-funnel-audit/voice-and-headline-rules.md`
-- Positioning shifts: `.jv/docs/lanes/_closed/messaging-funnel-audit/shifts.md`
-- Brand naming: `.jv/docs/brand-naming.md`
+- Lane plans, voice rules, positioning shifts, and brand naming are maintained in the private revealui-jv coordination repo.
 - Validator source: `scripts/validate/claim-drift.ts`
 - Pricing canonical: `packages/contracts/src/pricing.ts`
 - Brand tokens: `packages/presentation/src/tokens.css`
