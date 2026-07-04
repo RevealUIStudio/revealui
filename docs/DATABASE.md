@@ -9,7 +9,7 @@ audience: developer
 
 This guide describes the RevealUI database workflow and the underlying database scripts it orchestrates across different development environments.
 
-**Last Updated:** 2026-01-31
+**Last Updated:** 2026-07-04
 
 ---
 
@@ -755,7 +755,7 @@ pnpm db:restore backup.json
 
 ---
 
-**Last Updated:** 2026-01-31
+**Last Updated:** 2026-07-04
 **Part of:** Development Guide consolidation
 
 ---
