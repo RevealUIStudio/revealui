@@ -235,7 +235,7 @@ Each vendor is evaluated against the following criteria:
 - Security scanning results (CodeQL, Dependabot, Gitleaks)
 
 **Compensating controls:**
-- Two-factor authentication required for organization membership
+- Two-factor authentication enabled on the account owner (single-owner User account)
 - Branch protection on `main` and `test` (require CI pass before merge)
 - npm publishing uses OIDC trusted publishing (no long-lived NPM_TOKEN)
 - SLSA Build Level 2 provenance attestations on published packages
