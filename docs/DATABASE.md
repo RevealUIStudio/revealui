@@ -130,7 +130,7 @@ pnpm revealui dev up
 
 - `DATABASE_URL` (primary)
 - `POSTGRES_URL` (fallback)
-- `SUPABASE_DATABASE_URI` (Supabase-specific)
+- `SUPABASE_DATABASE_URI` (Supabase-specific — legacy, being retired; see the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md))
 
 **Usage:**
 
