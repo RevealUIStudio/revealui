@@ -1311,9 +1311,9 @@ Customer-facing meters should map to business activity rather than upstream infr
 - **Supabase RAG sidecar**: retired for internal use — `rag_chunks` and `agent_memories` now live on NeonDB `pgvector` (per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md)). Legacy Supabase code remains in tree during phase-out; auth / storage / realtime / RLS / edge-functions were never used.
 - **ElectricSQL**: optional sync layer; service connects to NeonDB. Agent tables (`agent_contexts`, `agent_memories`, `conversations`) can be electrified when sync is enabled. Off by default.
 
-### Phase 7: Consolidate RAG onto NeonDB (planned)
+### Phase 7: Consolidate RAG onto NeonDB (RAG cutover landed; legacy phase-out ongoing)
 
-Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary, retire the Supabase dependency for RAG entirely).
+Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary, retire the Supabase dependency for RAG entirely). The RAG cutover has landed — `rag_chunks` and `agent_memories` are served from NeonDB `pgvector`; the remaining work is removing legacy Supabase code from the tree. The historical phase order is preserved below for reference.
 
 Phase order (ship-order, not calendar):
 
