@@ -53,6 +53,31 @@ export {
   findHarnessProcesses,
   findProcesses,
 } from './detection/process-detector.js';
+// Goals (goal-driven coordination; propose-only)
+export type {
+  CreateGoalInput,
+  CriterionRecordResult,
+  CriterionStatus,
+  GoalAction,
+  GoalActionItem,
+  GoalHarnessOptions,
+  GoalOwner,
+  GoalPriority,
+  GoalProgress,
+  GoalStatus,
+  GoalTransitionResult,
+  GoalWithCriteria,
+  ProposeTaskResult,
+} from './goals/index.js';
+export {
+  CRITERION_STATUSES,
+  createGoalInputSchema,
+  GOAL_ACTIONS,
+  GOAL_OWNERS,
+  GOAL_PRIORITIES,
+  GOAL_STATUSES,
+  GoalHarness,
+} from './goals/index.js';
 // Harness Protocol (was VAUGHN until 2026-05-18; see docs/HARNESS_PROTOCOL.md)
 export type {
   ClaudeCodeSettings,
@@ -114,6 +139,8 @@ export type {
   AgentTask,
   DaemonEvent,
   FileReservation,
+  GoalCriterionRow,
+  GoalRow,
 } from './storage/schema.js';
 export { SCHEMA_SQL } from './storage/schema.js';
 export type { HarnessAdapter } from './types/adapter.js';
