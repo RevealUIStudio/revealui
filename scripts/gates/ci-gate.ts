@@ -273,6 +273,16 @@ async function gate(): Promise<void> {
         args: ['validate:versions'],
       },
       {
+        // Dec-2025 React RSC CVE series (CVE-2025-55182 "React2Shell" +
+        // follow-ups; final fix 19.2.4): react / react-dom /
+        // react-server-dom-webpack must RESOLVE >=19.2.4 and in lockstep.
+        // Absent packages pass. Mirrored in CI by the Quality job step in
+        // .github/workflows/ci.yml.
+        name: 'React RSC CVE floor (hard fail)',
+        command: 'pnpm',
+        args: ['validate:react-floor'],
+      },
+      {
         name: 'Catalog changeset check',
         command: 'pnpm',
         args: ['validate:catalog'],

@@ -72,6 +72,18 @@ jobs:
       - name: Version policy validation
         run: pnpm validate:versions
 
+      - name: React RSC CVE floor validation (hard fail)
+        # react / react-dom / react-server-dom-webpack must each RESOLVE at
+        # >=19.2.4 (final fix for the Dec-2025 React RSC CVE series:
+        # CVE-2025-55182 "React2Shell" RCE, CVE-2025-55184/55183,
+        # CVE-2025-67779) and in lockstep: version skew between react and
+        # its server-dom binding is an RSC flight-protocol failure mode.
+        # Reads resolved versions (pnpm virtual store), not declared ranges;
+        # absent packages pass, so the guard engages automatically when
+        # @revealui/router 0.4.0 adds react-server-dom-webpack. Mirrors the
+        # local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:react-floor
+
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
 
