@@ -182,7 +182,6 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [x] Renewal catalog entries (`renewal:pro`, `renewal:max`, `renewal:enterprise`)  -  2026-04-05
 - [x] Stripe seed script: 3 renewal products with env key mappings  -  2026-04-05
 - [x] Stripe products seeded in test mode: Pro/Agency/Forge Perpetual + 3 renewal products  -  `seed-stripe.ts` ran 2026-04-05 (9 products created, 21 prices configured)
-- **Stripe live-mode flip is BLOCKED on GAP-124 (billing audit closure).** Pre-launch posture is "TEST mode in production with loud warning"; do not propose flipping `STRIPE_LIVE_MODE=true` or rotating to `sk_live_*` until the GAP-124 billing audit closes. See `~/revfleet/.jv/docs/billing-audit/READINESS.md` (12 surfaces signed off CLEAN, awaiting owner sign-off).
 - [ ] **Owner action (gated on GAP-124):** Switch Stripe to live mode and re-run `seed-stripe.ts`, or verify products in Stripe dashboard
 
 #### 5.4 Forge Self-Hosted Delivery
