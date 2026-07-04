@@ -4,7 +4,8 @@
  * Validates Lexical editor JSON content structure.
  * Rejects payloads with:
  * - javascript: URLs (XSS via link nodes)
- * - data: URLs (XSS via image/link nodes)
+ * - data: URLs (XSS via image/link nodes) — except `data:image/…` on an image
+ *   `src`, which the renderer allows via sanitizeUrl(url, 'image')
  * - vbscript: URLs
  * - Disallowed heading/list `tag` values (XSS via script-tagged element nodes)
  * - Excessively deep nesting (>20 levels)
@@ -75,14 +76,31 @@ const URL_FIELD_NAMES = new Set(['url', 'src', 'href']);
 const DANGEROUS_PROTOCOLS = ['javascript:', 'vbscript:', 'data:'];
 
 /**
+ * Image `src` fields may legitimately carry an inline `data:image/…` URI. The
+ * renderer allows exactly this shape via `isSafeUrl(url, 'image')`, so rejecting
+ * it at ingress would refuse a payload the renderer would safely display. Kept
+ * in lockstep with `SAFE_IMAGE_DATA_URI` in @revealui/security (contracts cannot
+ * import security — security depends on contracts, not the reverse).
+ */
+const SAFE_IMAGE_DATA_PREFIX = 'data:image/';
+
+/**
  * Tests whether a string value contains a dangerous URL protocol.
  * Strips whitespace and control characters before comparing, since browsers
  * normalize these away (e.g., `java\x00script:alert(1)` executes).
+ *
+ * Context-aware: an image `src` carrying a `data:image/…` URI is NOT dangerous
+ * (matches the renderer's image context). Every other field, and every other
+ * `data:` shape (`data:text/html`, `data:application/…`) plus `javascript:` /
+ * `vbscript:`, stays blocked.
  */
-function isDangerousUrl(value: string): boolean {
+function isDangerousUrl(value: string, field: string): boolean {
   // Strip all whitespace and ASCII control characters (0x00-0x1F, 0x7F)
   // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional -- strip control chars that browsers silently normalize
   const normalized = value.replace(/[\s\x00-\x1f\x7f]/g, '').toLowerCase();
+  if (field === 'src' && normalized.startsWith(SAFE_IMAGE_DATA_PREFIX)) {
+    return false;
+  }
   return DANGEROUS_PROTOCOLS.some((protocol) => normalized.startsWith(protocol));
 }
 
@@ -130,9 +148,10 @@ function walkNode(node: unknown, depth: number, path: string, errors: string[]):
     for (const key of Object.keys(obj)) {
       const value = obj[key];
 
-      // Check URL fields for dangerous protocols
+      // Check URL fields for dangerous protocols (context-aware by field name:
+      // an image `src` may carry a data:image/… URI the renderer allows)
       if (URL_FIELD_NAMES.has(key) && typeof value === 'string') {
-        if (isDangerousUrl(value)) {
+        if (isDangerousUrl(value, key)) {
           errors.push(`Dangerous URL protocol detected in field "${key}" at ${path}.${key}`);
         }
       }
