@@ -16,6 +16,8 @@ import type {
   AgentWorktree,
   DaemonEvent,
   FileReservation,
+  GoalCriterionRow,
+  GoalRow,
   MergeRequest,
 } from './schema.js';
 import { SCHEMA_SQL } from './schema.js';
@@ -294,6 +296,13 @@ export class DaemonStore {
       [task.id, task.description],
     );
     return result.rows[0] as AgentTask;
+  }
+
+  /** Get a task by ID. */
+  async getTask(taskId: string): Promise<AgentTask | null> {
+    const db = this.getDb();
+    const result = await db.query<AgentTask>('SELECT * FROM tasks WHERE id = $1', [taskId]);
+    return result.rows[0] ?? null;
   }
 
   /** Claim a task atomically (CAS: fails if already claimed by another agent). */
@@ -687,5 +696,183 @@ export class DaemonStore {
       params,
     );
     return result.rows;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Goals
+  // ---------------------------------------------------------------------------
+
+  /** Create a goal. Duplicate ids fail loudly (goals are durable objectives). */
+  async createGoal(goal: {
+    id: string;
+    title: string;
+    description?: string;
+    priority?: GoalRow['priority'];
+    owner?: GoalRow['owner'];
+    parentGoalId?: string;
+    blockedBy?: string[];
+    createdBy?: string;
+  }): Promise<GoalRow> {
+    const db = this.getDb();
+    const result = await db.query<GoalRow>(
+      `INSERT INTO goals (id, title, description, priority, owner, parent_goal_id, blocked_by, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [
+        goal.id,
+        goal.title,
+        goal.description ?? '',
+        goal.priority ?? 'medium',
+        goal.owner ?? 'agent',
+        goal.parentGoalId ?? null,
+        JSON.stringify(goal.blockedBy ?? []),
+        goal.createdBy ?? '',
+      ],
+    );
+    // RETURNING * always produces a row for a plain INSERT
+    return result.rows[0] as GoalRow;
+  }
+
+  /** Get a goal by ID. */
+  async getGoal(id: string): Promise<GoalRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GoalRow>('SELECT * FROM goals WHERE id = $1', [id]);
+    return result.rows[0] ?? null;
+  }
+
+  /** List goals, optionally filtered by status, priority, owner, and/or parent. */
+  async listGoals(filter?: {
+    status?: string;
+    priority?: string;
+    owner?: string;
+    parentGoalId?: string;
+  }): Promise<GoalRow[]> {
+    const db = this.getDb();
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let paramIdx = 1;
+
+    if (filter?.status) {
+      conditions.push(`status = $${paramIdx++}`);
+      params.push(filter.status);
+    }
+    if (filter?.priority) {
+      conditions.push(`priority = $${paramIdx++}`);
+      params.push(filter.priority);
+    }
+    if (filter?.owner) {
+      conditions.push(`owner = $${paramIdx++}`);
+      params.push(filter.owner);
+    }
+    if (filter?.parentGoalId) {
+      conditions.push(`parent_goal_id = $${paramIdx++}`);
+      params.push(filter.parentGoalId);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await db.query<GoalRow>(
+      `SELECT * FROM goals ${where} ORDER BY created_at`,
+      params,
+    );
+    return result.rows;
+  }
+
+  /** Set a goal's status (records closed_at for terminal statuses). */
+  async setGoalStatus(
+    id: string,
+    status: GoalRow['status'],
+    reason: string,
+  ): Promise<GoalRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GoalRow>(
+      `UPDATE goals SET
+         status = $2,
+         status_reason = $3,
+         updated_at = NOW(),
+         closed_at = CASE WHEN $2 = 'done' OR $2 = 'abandoned' THEN NOW() ELSE NULL END
+       WHERE id = $1
+       RETURNING *`,
+      [id, status, reason],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Add an acceptance criterion to a goal. */
+  async addGoalCriterion(criterion: {
+    id: string;
+    goalId: string;
+    description: string;
+  }): Promise<GoalCriterionRow> {
+    const db = this.getDb();
+    const result = await db.query<GoalCriterionRow>(
+      `INSERT INTO goal_criteria (id, goal_id, description)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [criterion.id, criterion.goalId, criterion.description],
+    );
+    // RETURNING * always produces a row for a plain INSERT
+    return result.rows[0] as GoalCriterionRow;
+  }
+
+  /** Get a criterion by ID. */
+  async getGoalCriterion(id: string): Promise<GoalCriterionRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GoalCriterionRow>('SELECT * FROM goal_criteria WHERE id = $1', [
+      id,
+    ]);
+    return result.rows[0] ?? null;
+  }
+
+  /** List criteria for a goal (oldest first). */
+  async listGoalCriteria(goalId: string): Promise<GoalCriterionRow[]> {
+    const db = this.getDb();
+    const result = await db.query<GoalCriterionRow>(
+      'SELECT * FROM goal_criteria WHERE goal_id = $1 ORDER BY created_at',
+      [goalId],
+    );
+    return result.rows;
+  }
+
+  /** Record a criterion verdict with evidence and verifier. */
+  async recordGoalCriterion(update: {
+    id: string;
+    status: 'met' | 'failed';
+    evidence: string;
+    verifiedBy: string;
+  }): Promise<GoalCriterionRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GoalCriterionRow>(
+      `UPDATE goal_criteria SET status = $2, evidence = $3, verified_by = $4, verified_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [update.id, update.status, update.evidence, update.verifiedBy],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Reset a failed criterion to pending (clears evidence + task link for rework). */
+  async resetGoalCriterion(id: string): Promise<GoalCriterionRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GoalCriterionRow>(
+      `UPDATE goal_criteria SET
+         status = 'pending', evidence = '', verified_by = NULL, verified_at = NULL, task_id = NULL
+       WHERE id = $1 AND status = 'failed'
+       RETURNING *`,
+      [id],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Link a claimable task to a criterion. */
+  async linkGoalCriterionTask(
+    criterionId: string,
+    taskId: string,
+  ): Promise<GoalCriterionRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GoalCriterionRow>(
+      'UPDATE goal_criteria SET task_id = $2 WHERE id = $1 RETURNING *',
+      [criterionId, taskId],
+    );
+    return result.rows[0] ?? null;
   }
 }

@@ -6,5 +6,7 @@ export type {
   AgentTask,
   DaemonEvent,
   FileReservation,
+  GoalCriterionRow,
+  GoalRow,
 } from './schema.js';
 export { SCHEMA_SQL } from './schema.js';
