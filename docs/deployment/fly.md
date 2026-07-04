@@ -166,6 +166,6 @@ unhealthy. Investigate via `flyctl logs --app revealui-worker`.
 ElectricSQL Fly setup lives in a separate `fly.electric.toml`
 (landing in Phase 5 of the infra-consolidation lane). Same region
 (iad), same Fly account. Connects to the same Neon `POSTGRES_URL`
-the worker uses. The cutover from Railway-hosted Electric to
-Fly-hosted Electric is the load-bearing piece of Phase 5 — see the
-lane plan for sequencing.
+the worker uses. The cutover from the retired Railway-hosted Electric
+(dropped per ADR 2026-05-18) to Fly-hosted Electric is the load-bearing
+piece of Phase 5 — see the lane plan for sequencing.
