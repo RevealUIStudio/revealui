@@ -240,7 +240,7 @@ graph TB
     ElectricClient --> LocalCache
     ElectricClient <--> ElectricService
     ElectricService <--> NeonDB
-    NeonDB -.optional RAG.-> Supabase
+    NeonDB -.legacy RAG.-> Supabase
 ```
 
 > **Note on `agent_memories`:** Despite the historical "vector database" framing, `agent_memories` lives in **NeonDB** (not Supabase) because of FK constraints on `sites` / `users`. NeonDB supports `pgvector`. See [`packages/db/src/schema/vector.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/vector.ts) for the canonical comment. RAG chunk embeddings likewise live on NeonDB `pgvector`; the historical Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Legacy Supabase code remains in tree during phase-out, and new features must not depend on Supabase-specific behavior.
