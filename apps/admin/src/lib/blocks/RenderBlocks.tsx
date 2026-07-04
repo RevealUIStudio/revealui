@@ -4,6 +4,7 @@ import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { Fragment } from 'react';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
+import { RenderHero } from '@/lib/heros/RenderHero';
 import { asNormalizedProps } from '@/lib/utils/type-guards';
 import { ArchiveBlock } from './ArchiveBlock/Component';
 import { CallToActionBlock } from './CallToAction/Component';
@@ -13,14 +14,16 @@ import { MediaBlock } from './MediaBlock/Component';
 import { validateAndTransformBlocks } from './schema-adapter';
 
 // Define individual block types from generated types
-type CallToActionBlockProps = Extract<Page['layout'][0], { blockType: 'cta' }>;
-type ContentBlockProps = Extract<Page['layout'][0], { blockType: 'content' }>;
-type FormBlockProps = Extract<Page['layout'][0], { blockType: 'formBlock' }>;
-type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;
-type MediaBlockProps = Extract<Page['layout'][0], { blockType: 'mediaBlock' }>;
+type HeroBlockProps = Extract<Page['blocks'][0], { blockType: 'hero' }>;
+type CallToActionBlockProps = Extract<Page['blocks'][0], { blockType: 'cta' }>;
+type ContentBlockProps = Extract<Page['blocks'][0], { blockType: 'content' }>;
+type FormBlockProps = Extract<Page['blocks'][0], { blockType: 'formBlock' }>;
+type ArchiveBlockProps = Extract<Page['blocks'][0], { blockType: 'archive' }>;
+type MediaBlockProps = Extract<Page['blocks'][0], { blockType: 'mediaBlock' }>;
 
 // Combine all block props into a single union type
 export type BlockProps =
+  | HeroBlockProps
   | CallToActionBlockProps
   | ContentBlockProps
   | FormBlockProps
@@ -37,7 +40,7 @@ function isBlockType<T extends BlockProps>(block: BlockProps, blockType: string)
 // Type assertions are used because generated types and component props have structural
 // differences but are runtime-compatible (components handle the conversions)
 function normalizeArchiveBlockProps(
-  block: Extract<Page['layout'][0], { blockType: 'archive' }>,
+  block: Extract<Page['blocks'][0], { blockType: 'archive' }>,
 ): ArchiveBlockProps {
   // Type assertion needed because we're converting number IDs to strings
   // The component handles both at runtime
@@ -53,7 +56,7 @@ function normalizeArchiveBlockProps(
   return asNormalizedProps<ArchiveBlockProps>(normalized);
 }
 function normalizeFormBlockProps(
-  block: Extract<Page['layout'][0], { blockType: 'formBlock' }>,
+  block: Extract<Page['blocks'][0], { blockType: 'formBlock' }>,
 ): FormBlockProps {
   const normalized = {
     ...block,
@@ -67,7 +70,7 @@ function normalizeFormBlockProps(
 }
 
 function normalizeMediaBlockProps(
-  block: Extract<Page['layout'][0], { blockType: 'mediaBlock' }>,
+  block: Extract<Page['blocks'][0], { blockType: 'mediaBlock' }>,
 ): MediaBlockProps & { id?: string } {
   const normalized = {
     ...block,
@@ -102,7 +105,7 @@ export const RenderBlocks = ({
   blocks,
   strictMode = true,
 }: {
-  blocks: Page['layout'];
+  blocks: Page['blocks'];
   strictMode?: boolean;
 }) => {
   // Validate input
@@ -190,6 +193,10 @@ export const RenderBlocks = ({
         const renderBlock = (): React.ReactNode => {
           try {
             switch (blockType) {
+              case 'hero': {
+                if (!isBlockType<HeroBlockProps>(block, 'hero')) return null;
+                return <RenderHero {...block} />;
+              }
               case 'archive': {
                 if (!isBlockType<ArchiveBlockProps>(block, 'archive')) return null;
                 const normalizedArchive = asNormalizedProps<

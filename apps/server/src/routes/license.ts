@@ -26,7 +26,15 @@ const LicenseVerifyRequestSchema = z.object({
 const LicenseVerifyResponseSchema = z.object({
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
   reason: z
-    .enum(['valid', 'expired', 'revoked', 'support_expired', 'invalid', 'misconfigured'])
+    .enum([
+      'valid',
+      'expired',
+      'revoked',
+      'support_expired',
+      'invalid',
+      'misconfigured',
+      'unverifiable',
+    ])
     .optional()
     .openapi({
       description:
@@ -213,6 +221,7 @@ app.openapi(verifyRoute, async (c) => {
   // was issued but before its exp timestamp.
   let dbStatus: string | null = null;
   let supportExpiresAt: Date | null = null;
+  let dbCheckFailed = false;
   try {
     const db = getClient();
     const [row] = await db
@@ -229,9 +238,31 @@ app.openapi(verifyRoute, async (c) => {
       supportExpiresAt = row.supportExpiresAt;
     }
   } catch (err) {
-    logger.warn('Failed to check DB revocation status during verify  -  trusting JWT', {
+    dbCheckFailed = true;
+    logger.warn('Failed to check DB revocation status during verify  -  failing closed', {
       error: err instanceof Error ? err.message : 'unknown',
     });
+  }
+
+  // Fail closed on an unverifiable revocation status. A structurally-valid JWT
+  // whose current revocation state could NOT be read (DB outage) must not be
+  // trusted: a revoked-but-unexpired token would otherwise report valid for the
+  // duration of any DB blip. Report not-authorized (free tier) so the caller
+  // treats it as unlicensed rather than granting the JWT's paid tier.
+  if (dbCheckFailed) {
+    return c.json(
+      {
+        valid: false,
+        reason: 'unverifiable' as const,
+        tier: 'free' as const,
+        customerId: null,
+        features: getFeaturesForTier('free'),
+        maxSites: 1,
+        maxUsers: 3,
+        expiresAt: null,
+      },
+      200,
+    );
   }
 
   if (dbStatus === 'revoked' || dbStatus === 'expired') {
@@ -430,6 +461,39 @@ app.openapi(featuresRoute, async (c) => {
     },
     200,
   );
+});
+
+// GET /api/license/public-key  -  Public: the vendor Ed25519 public key (PEM)
+const publicKeyRoute = createRoute({
+  method: 'get',
+  path: '/public-key',
+  tags: ['license'],
+  summary: 'Get the vendor license public key (PEM)',
+  description:
+    'Returns the Ed25519 public key used to verify license JWTs. This is PUBLIC material (no auth): a buyer sets it as REVDEV_LICENSE_PUBLIC_KEY so the RevDev daemon can verify their license. Null when the server has no key configured.',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            publicKey: z.string().nullable().openapi({
+              description: 'Ed25519 vendor public key in PEM, or null when unconfigured',
+              example: '-----BEGIN PUBLIC KEY-----\\n...\\n-----END PUBLIC KEY-----',
+            }),
+          }),
+        },
+      },
+      description: 'Vendor public key (PEM), or null when the server has none configured',
+    },
+  },
+});
+
+app.openapi(publicKeyRoute, async (c) => {
+  // Non-secret verification material. Unescape literal \n (Vercel stores
+  // multi-line PEMs escaped) with replaceAll, NOT the :156 regex (no-regex rule
+  // for new code); mirrors the generate route's normalize at :372.
+  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replaceAll('\\n', '\n') ?? null;
+  return c.json({ publicKey }, 200);
 });
 
 export default app;

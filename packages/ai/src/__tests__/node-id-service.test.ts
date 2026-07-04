@@ -28,7 +28,9 @@ beforeAll(async () => {
   // PGlite's Drizzle client is structurally compatible with the Database
   // union type for the surface NodeIdService uses (select/insert/update).
   db = testDb.drizzle as unknown as Database;
-}, 30_000);
+  // PGlite + pgvector init is heavy; under the gate's parallel load this beforeAll
+  // can exceed 30s. 90s matches performance.test.ts (the sibling that never flaked).
+}, 90_000);
 
 afterAll(async () => {
   await testDb?.close();

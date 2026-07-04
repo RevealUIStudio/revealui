@@ -1,3 +1,4 @@
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import type { Database } from '@revealui/db/client';
 import { accountEntitlements, accountSubscriptions, licenses } from '@revealui/db/schema';
 import { and, desc, eq, sql } from 'drizzle-orm';
@@ -15,7 +16,11 @@ export async function queryBillingStatusByCustomerId(
   const [license] = await db
     .select({ status: licenses.status, expiresAt: licenses.expiresAt })
     .from(licenses)
-    .where(eq(licenses.customerId, customerId))
+    // Scope to the configured Stripe mode: a leftover test-mode 'active' row must
+    // not sort ahead of and mask a live-mode 'revoked' row for the same customer.
+    // Completes #1700, which mode-scoped the other license readers but missed
+    // this one (checkLicenseStatus is mounted globally on /api/*).
+    .where(and(eq(licenses.customerId, customerId), eq(licenses.mode, getConfiguredStripeMode())))
     // Prefer active/support_expired licenses over expired/revoked  -  a customer may have
     // both a perpetual (active or support_expired) and a subscription (revoked) license.
     .orderBy(
@@ -52,7 +57,14 @@ export async function queryBillingStatusByCustomerId(
       graceUntil: accountEntitlements.graceUntil,
     })
     .from(accountEntitlements)
-    .where(eq(accountEntitlements.accountId, accountSubscription.accountId))
+    // Mode-scope the entitlement read for the same reason as the license read
+    // above: a test-mode entitlement row must not answer for a live deployment.
+    .where(
+      and(
+        eq(accountEntitlements.accountId, accountSubscription.accountId),
+        eq(accountEntitlements.mode, getConfiguredStripeMode()),
+      ),
+    )
     .limit(1);
 
   if (!entitlement?.status) return null;
@@ -100,7 +112,14 @@ export async function querySupportExpiry(
       status: licenses.status,
     })
     .from(licenses)
-    .where(and(eq(licenses.customerId, customerId), eq(licenses.perpetual, true)))
+    // Mode-scope the perpetual-support read (completes #1700, same class as above).
+    .where(
+      and(
+        eq(licenses.customerId, customerId),
+        eq(licenses.perpetual, true),
+        eq(licenses.mode, getConfiguredStripeMode()),
+      ),
+    )
     // Prefer active over support_expired; skip revoked/expired entirely
     .orderBy(
       sql`CASE WHEN ${licenses.status} = 'active' THEN 0 WHEN ${licenses.status} = 'support_expired' THEN 1 ELSE 2 END`,

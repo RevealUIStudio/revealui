@@ -84,6 +84,9 @@ export default defineConfig({
       '@/globals': path.resolve(__dirname, './src/lib/globals'),
       '@/heros': path.resolve(__dirname, './src/lib/heros'),
       '@/lib': path.resolve(__dirname, './src/lib'),
+      // tsconfig paths alias used by Media components (ImageMedia); reached in
+      // tests since RenderBlocks renders hero blocks via RenderHero.
+      cssVariables: path.resolve(__dirname, './cssVariables.js'),
     },
   },
 });

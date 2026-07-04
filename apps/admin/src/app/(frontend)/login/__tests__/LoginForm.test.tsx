@@ -200,6 +200,111 @@ describe('LoginForm post-sign-in navigation', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('offers a verification resend when sign-in fails with EMAIL_NOT_VERIFIED', async () => {
+    mockSignIn.mockResolvedValue({
+      success: false,
+      error: 'Please verify your email address before signing in.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    // Friendly message shown (not the raw code), plus a recovery affordance.
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Please verify your email address before signing in.',
+    );
+    expect(screen.getByRole('button', { name: 'Resend verification email' })).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not offer a resend for a generic sign-in failure', async () => {
+    mockSignIn.mockResolvedValue({ success: false, error: 'Invalid email or password' });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    await screen.findByRole('alert');
+    expect(
+      screen.queryByRole('button', { name: 'Resend verification email' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('resends the verification email to the sign-in address and confirms', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
+    vi.stubGlobal('fetch', fetchMock);
+    mockSignIn.mockResolvedValue({
+      success: false,
+      error: 'Please verify your email address before signing in.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+
+    render(<LoginForm oauthProviders={[]} />);
+    fillAndSubmit();
+
+    const resendButton = await screen.findByRole('button', { name: 'Resend verification email' });
+    fireEvent.click(resendButton);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/auth/resend-verification',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ email: 'owner@example.com' }),
+        }),
+      );
+    });
+    expect(
+      await screen.findByText((content) => content.includes('verification link is on its way')),
+    ).toBeInTheDocument();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('attaches the CSRF token to the resend request when the csrf cookie is present', async () => {
+    // The resend POST is NOT in the proxy's CSRF_EXEMPT_PREFIXES, and the proxy
+    // CSRF gate keys on session-cookie PRESENCE (not validity). With a stale
+    // leftover session cookie a raw fetch gets a 403 that resolves — the user
+    // would see "sent" while nothing was sent. The handler must go through
+    // apiFetch so the revealui-csrf double-submit token rides along.
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({ success: true }) });
+    vi.stubGlobal('fetch', fetchMock);
+    document.cookie = 'revealui-csrf=test-csrf-token';
+    mockSignIn.mockResolvedValue({
+      success: false,
+      error: 'Please verify your email address before signing in.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+
+    try {
+      render(<LoginForm oauthProviders={[]} />);
+      fillAndSubmit();
+
+      const resendButton = await screen.findByRole('button', {
+        name: 'Resend verification email',
+      });
+      fireEvent.click(resendButton);
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/auth/resend-verification',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({ 'X-CSRF-Token': 'test-csrf-token' }),
+            body: JSON.stringify({ email: 'owner@example.com' }),
+          }),
+        );
+      });
+    } finally {
+      document.cookie = 'revealui-csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('full-navigates home after a successful passkey sign-in (no soft push)', async () => {
     mockPasskeySupported = true;
     mockPasskeySignIn.mockResolvedValue(true);

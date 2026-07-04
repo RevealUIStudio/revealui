@@ -7,7 +7,7 @@ import { memo } from 'react';
 import { Media } from '@/lib/components/Media/index';
 import RichText, { type RichTextContent } from '@/lib/components/RichText/index';
 
-type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
+type Props = Extract<Page['blocks'][0], { blockType: 'mediaBlock' }> & {
   breakout?: boolean;
   captionClassName?: string;
   className?: string;

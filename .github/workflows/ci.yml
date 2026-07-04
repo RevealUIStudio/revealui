@@ -284,6 +284,15 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
+      # Root scripts/ is not a turbo workspace, so `pnpm test` does not discover
+      # it. Wire the secret-path lockstep gate explicitly (no live API): asserts
+      # the Vercel/Fly manifests, SECRET_PATHS, and docs/SECRETS.md all agree.
+      - name: Secret-path lockstep drift gate (hard fail)
+        run: pnpm validate:secret-paths
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 3a.1: Integration tests (all PRs + push to main — requires DB)
   # ---------------------------------------------------------------------------

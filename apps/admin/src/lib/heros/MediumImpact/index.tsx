@@ -1,10 +1,10 @@
-import type { Page } from '@revealui/core/types/admin';
+import type { HeroBlock } from '@revealui/core/types/admin';
 import { CMSLink } from '@/lib/components/Link/index';
 import { Media } from '@/lib/components/Media/index';
 import RichText from '@/lib/components/RichText/index';
 
-export const MediumImpactHero = ({ links, media, richText }: Page['hero']) => {
-  const getLinkKey = (item: NonNullable<Page['hero']['links']>[number]) => {
+export const MediumImpactHero = ({ links, media, richText }: HeroBlock) => {
+  const getLinkKey = (item: NonNullable<HeroBlock['links']>[number]) => {
     if (item.id) return item.id;
 
     const referenceValue = item.link?.reference?.value;

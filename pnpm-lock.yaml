@@ -224,6 +224,9 @@ importers:
       dotenv-cli:
         specifier: ^11.0.0
         version: 11.0.0
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@electric-sql/pglite@0.5.3)(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.22.0)
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
@@ -251,6 +254,9 @@ importers:
       size-limit:
         specifier: ^12.1.0
         version: 12.1.0(jiti@2.7.0)
+      smol-toml:
+        specifier: '>=1.6.1'
+        version: 1.7.0
       supabase-mcp:
         specifier: ^1.5.0
         version: 1.5.0

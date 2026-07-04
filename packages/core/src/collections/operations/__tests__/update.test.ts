@@ -279,3 +279,51 @@ describe('update operation', () => {
     expect(updateCall[1]).toContain('new-title');
   });
 });
+
+describe('update operation — typed-storage write seam', () => {
+  const seamConfig: RevealCollectionConfig = {
+    slug: 'pages',
+    fields: [{ name: 'title', type: 'text' }],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns the adapter document and skips the dynamic SQL path when handled', async () => {
+    const handledDoc = { id: 'p1', title: 'Updated' };
+    const db = {
+      query: vi.fn(),
+      collectionStorage: { update: vi.fn().mockResolvedValue(handledDoc) },
+    };
+
+    const result = await update(seamConfig, db as never, { id: 'p1', data: { title: 'Updated' } });
+
+    expect(result).toEqual(handledDoc);
+    expect(db.collectionStorage.update).toHaveBeenCalledWith(seamConfig, {
+      id: 'p1',
+      data: { title: 'Updated' },
+    });
+    expect(db.query).not.toHaveBeenCalled();
+    expect(findByID).not.toHaveBeenCalled();
+  });
+
+  it('falls through to the dynamic SQL path when the adapter returns undefined', async () => {
+    const db = {
+      query: vi.fn(),
+      collectionStorage: { update: vi.fn().mockResolvedValue(undefined) },
+    };
+    // No JSON fields → update verifies existence (rows[0] truthy) then runs UPDATE.
+    db.query
+      .mockResolvedValueOnce({ rows: [{ id: 'p2' }] } as DatabaseResult) // existence check
+      .mockResolvedValueOnce({ rows: [] } as DatabaseResult); // UPDATE
+    const dynamicDoc = { id: 'p2', title: 'Updated' };
+    vi.mocked(findByID).mockResolvedValue(dynamicDoc as never);
+
+    const result = await update(seamConfig, db as never, { id: 'p2', data: { title: 'Updated' } });
+
+    expect(db.collectionStorage.update).toHaveBeenCalled();
+    expect(db.query).toHaveBeenCalled(); // dynamic UPDATE ran
+    expect(result).toEqual(dynamicDoc);
+  });
+});

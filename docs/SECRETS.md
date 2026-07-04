@@ -66,143 +66,106 @@ revealui/dev/founder-license-key    # RVUI-<tier>-<32hex>; founder dev license c
 
 #### Production runtime
 
-These paths are the canonical source for Vercel sync
-(`scripts/sync/revvault-vercel.toml`) and CI secrets.
+These paths are the canonical source for the Vercel + Fly sync manifests
+(`scripts/sync/revvault-vercel.toml`, `scripts/sync/revvault-fly.toml`) and the
+CI secret mirrors. The table below is a DERIVED VIEW of the machine spec at
+`scripts/sync/secret-paths.ts` - do not hand-edit it (see the marker note).
 
-**Core app secrets**
+<!-- BEGIN GENERATED:secret-paths -->
 
-```
-revealui/prod/secret                 # REVEALUI_SECRET — JWT/session signing, ≥32 chars
-revealui/prod/cron-secret            # REVEALUI_CRON_SECRET — cron endpoint auth
-revealui/prod/kek                    # REVEALUI_KEK — envelope encryption key; see rotation landmines
-revealui/prod/audit-hmac-secret      # REVEALUI_AUDIT_HMAC_SECRET — audit-log HMAC; rotating breaks prior log verification
-revealui/prod/cors-origin            # CORS_ORIGIN — allowed origin for the API
-revealui/prod/session-cookie-domain  # SESSION_COOKIE_DOMAIN
-revealui/prod/alert-email            # REVEALUI_ALERT_EMAIL — required at prod boot; apps/api refuses to start without it
-revealui/prod/marketplace-connect-return-url  # MARKETPLACE_CONNECT_RETURN_URL
-```
+_Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-paths.ts) by
+`scripts/sync/render-secrets-md.ts` - do NOT hand-edit. The lockstep test
+(`scripts/sync/__tests__/secret-paths-lockstep.test.ts`) fails CI if this drifts from the
+spec, the Vercel/Fly sync manifests, or their sensitivity markers. Change `secret-paths.ts`
+and re-run the renderer._
 
-**Admin subsystem**
+Production runtime paths synced to Vercel + Fly (60 paths). `sensitive` = the
+value is never UI/API-revealable after write (credentials + private signing keys).
 
-```
-revealui/prod/admin/api-key          # REVEALUI_ADMIN_API_KEY
-revealui/prod/admin/email            # REVEALUI_ADMIN_EMAIL
-revealui/prod/admin/password         # REVEALUI_ADMIN_PASSWORD
-```
+| Path | Kind | Sensitive | Consumers | Notes |
+| --- | --- | --- | --- | --- |
+| `revdev/license-signing-private-key` | signing-private | yes | vercel:api, vercel:admin, fly:worker, with-secrets:license-signing | → migrating to `revealui/prod/license/private-key` (since 2026-06-28); Ed25519 license-signing key - the fleet crown jewel; only api mints |
+| `revdev/license-signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker, with-secrets:license | → migrating to `revealui/prod/license/public-key` (since 2026-06-28); Ed25519 verification key - rotating invalidates all issued customer licenses |
+| `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
+| `revealui/prod/admin/password` | credential | yes | vercel:admin |  |
+| `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/api refuses to start without it |
+| `revealui/prod/audit-hmac-secret` | credential | yes | vercel:api, fly:worker | audit-log HMAC - rotating breaks prior-log verification (Phase 1 makes it required) |
+| `revealui/prod/billing/portal-config-id` | public-config | no | fly:worker | → migrating to `revealui/prod/stripe/billing-portal-config-id` (since 2026-07-01); R18 - Fly-side duplicate of the stripe/ canonical; converge in P3-3 |
+| `revealui/prod/cors-origin` | public-config | no | vercel:api, fly:worker |  |
+| `revealui/prod/cron-secret` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/db/neon-api-key` | credential | yes | vercel:admin |  |
+| `revealui/prod/db/postgres-url` | credential | yes | vercel:api, vercel:admin, fly:worker | required@boot; canonical Neon pooled url - feeds POSTGRES_URL + DATABASE_URL |
+| `revealui/prod/electric/secret` | credential | yes | vercel:api, vercel:admin, fly:worker | currently empty in the vault (GAP-230/231); the worker does not require it |
+| `revealui/prod/electric/service-url` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/email/from` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/email/reply-to` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/google/private-key` | credential | yes | vercel:api, vercel:admin, fly:worker | PKCS8 PEM - Gmail SA domain-wide delegation |
+| `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/kek` | credential | yes | vercel:api, vercel:admin, fly:worker | REVEALUI_KEK - AES-256-GCM envelope key; has a NEXT dual-slot rotation story |
+| `revealui/prod/marketplace-connect-return-url` | public-config | no | vercel:api, fly:worker |  |
+| `revealui/prod/passkey/origin` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/passkey/rp-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/passkey/rp-name` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/public/api-url` | public-config | no | vercel:admin, vercel:marketing, vercel:docs |  |
+| `revealui/prod/public/is-live` | public-config | no | vercel:admin, vercel:marketing | NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag |
+| `revealui/prod/public/server-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, fly:worker |  |
+| `revealui/prod/r2/access-key-id` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/r2/account-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/r2/bucket` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/r2/public-base-url` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/r2/secret-access-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/secret` | credential | yes | vercel:api, vercel:admin, fly:worker | REVEALUI_SECRET - session/CSRF/internal-token signer |
+| `revealui/prod/sentry/auth-token` | credential | yes | vercel:admin | CI/CD source-map upload (build-time) |
+| `revealui/prod/sentry/dsn` | public-config | no | vercel:api, fly:worker | required@boot; server DSN - required by validate-startup REQUIRED_IN_PRODUCTION_HOSTED |
+| `revealui/prod/sentry/dsn-admin` | public-config | no | vercel:admin |  |
+| `revealui/prod/sentry/org` | public-config | no | vercel:admin |  |
+| `revealui/prod/sentry/project-admin` | public-config | no | vercel:admin |  |
+| `revealui/prod/session-cookie-domain` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/agent-meter-event-name` | public-config | no | vercel:api, fly:worker |  |
+| `revealui/prod/stripe/agent-overage-price-id` | price-id | no | vercel:api, fly:worker |  |
+| `revealui/prod/stripe/billing-portal-config-id` | public-config | no | vercel:api | canonical billing-portal config id (Vercel api) |
+| `revealui/prod/stripe/credits-scale-price-id` | price-id | no | vercel:api, fly:worker |  |
+| `revealui/prod/stripe/credits-standard-price-id` | price-id | no | vercel:api, fly:worker |  |
+| `revealui/prod/stripe/credits-starter-price-id` | price-id | no | vercel:api, fly:worker |  |
+| `revealui/prod/stripe/enterprise-annual-price-id` | price-id | no | vercel:api, vercel:admin |  |
+| `revealui/prod/stripe/enterprise-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/max-annual-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/max-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/perpetual-enterprise-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/perpetual-max-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/perpetual-pro-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/pro-annual-price-id` | price-id | no | vercel:api, vercel:admin |  |
+| `revealui/prod/stripe/pro-price-id` | price-id | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/publishable-key` | public-config | no | vercel:admin | pk_live_* - publishable by design (client SDK) |
+| `revealui/prod/stripe/renewal-enterprise-price-id` | price-id | no | vercel:api |  |
+| `revealui/prod/stripe/renewal-max-price-id` | price-id | no | vercel:api |  |
+| `revealui/prod/stripe/renewal-pro-price-id` | price-id | no | vercel:api |  |
+| `revealui/prod/stripe/secret-key` | credential | yes | vercel:api, vercel:admin | sk_live_* - set Fly-direct (mode-gated), not synced to the worker |
+| `revealui/prod/stripe/webhook-secret` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/stripe/webhook-secret-live` | credential | yes | vercel:api, fly:worker |  |
 
-**Database**
+<!-- END GENERATED:secret-paths -->
 
-```
-revealui/prod/db/postgres-url        # POSTGRES_URL + DATABASE_URL — canonical Neon pooled connection string
-revealui/prod/db/neon-api-key        # NEON_API_KEY — Neon control-plane API (admin + migrations)
-```
+> **Not in the machine-checked synced set (documented for completeness):**
+> - `revealui/prod/api-keys/vercel-token` - `VERCEL_TOKEN`; the token that DRIVES sync/deploy,
+>   not a value synced BY it (also mirrored to the GH `VERCEL_TOKEN` secret).
+> - `revealui/prod/sentry/project-server` - `SENTRY_PROJECT` for apps/server; referenced by code
+>   but not currently emitted by either sync manifest.
+> Both fold into the spec in a later phase.
 
-> **Stale duplicate:** `revealui/prod/neon/postgres-url` exists in the vault as a leftover
-> from an earlier naming scheme. The manifest and all consuming code use `revealui/prod/db/postgres-url`.
-> The `neon/postgres-url` entry is slated for deletion by the owner — do not add new consumers.
+> **Stale duplicates slated for owner delete (P3-3) - do not add consumers:**
+> `revealui/prod/neon/postgres-url` + `revealui/db/neon-production` - both leftover from an
+> earlier scheme; the manifests + all code use the canonical `revealui/prod/db/postgres-url`.
+> The billing-portal config id is a LIVE unconverged duplicate - the Fly worker reads
+> `revealui/prod/billing/portal-config-id` while Vercel reads the canonical
+> `revealui/prod/stripe/billing-portal-config-id`; both appear in the table above (the Fly path
+> marked migrating). Converging the two onto the stripe/ canonical is also P3-3.
 
-> **GitHub Actions secret mirrors of this value** (all sourced from `revealui/prod/db/postgres-url`):
-> - `POSTGRES_URL` + `DATABASE_URL` — consumed by `db-backup.yml` and `webhook-reconciliation.yml`.
-> - `PROD_POSTGRES_URL` — consumed by `deploy.yml`'s migrate job. Needed because `vercel env pull`
->   returns empty strings for the Sensitive Vercel `POSTGRES_URL`, so the migrate step requires the
->   actual value out-of-band. (`revvault-vercel-sync` Phase 5 will retire this mirror.)
->
-> These three repo secrets hold the same prod Neon URL; consolidating the names is an owner
-> repo-settings task (not a code change). Rotating the value means updating all three.
-
-**Electric (real-time sync)**
-
-```
-revealui/prod/electric/service-url   # ELECTRIC_SERVICE_URL
-revealui/prod/electric/secret        # ELECTRIC_SECRET — rotating also requires updating the Electric service
-```
-
-**Stripe**
-
-```
-revealui/prod/stripe/secret-key               # STRIPE_SECRET_KEY — sk_live_*
-revealui/prod/stripe/publishable-key          # NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY — pk_live_*
-revealui/prod/stripe/webhook-secret           # STRIPE_WEBHOOK_SECRET
-revealui/prod/stripe/webhook-secret-live      # STRIPE_WEBHOOK_SECRET_LIVE (live endpoint duplicate)
-revealui/prod/stripe/agent-meter-event-name   # STRIPE_AGENT_METER_EVENT_NAME
-revealui/prod/stripe/agent-overage-price-id
-revealui/prod/stripe/pro-price-id
-revealui/prod/stripe/max-price-id
-revealui/prod/stripe/max-annual-price-id
-revealui/prod/stripe/enterprise-price-id
-revealui/prod/stripe/perpetual-pro-price-id
-revealui/prod/stripe/perpetual-max-price-id
-revealui/prod/stripe/perpetual-enterprise-price-id
-revealui/prod/stripe/credits-starter-price-id
-revealui/prod/stripe/credits-standard-price-id
-revealui/prod/stripe/credits-scale-price-id
-```
-
-**Email transport (Gmail service account)**
-
-```
-revealui/prod/google/service-account-email   # GOOGLE_SERVICE_ACCOUNT_EMAIL
-revealui/prod/google/private-key             # GOOGLE_PRIVATE_KEY — PKCS8 PEM
-revealui/prod/email/from                     # EMAIL_FROM — sending address (Workspace user with domain-wide delegation)
-revealui/prod/email/reply-to                 # EMAIL_REPLY_TO
-```
-
-**License signing (Ed25519)**
-
-```
-revdev/license-signing-private-key  # REVEALUI_LICENSE_PRIVATE_KEY — canonical Ed25519 signing key; sourced to Vercel revealui-api + revealui-admin via scripts/sync/revvault-vercel.toml
-revdev/license-signing-public-key   # REVEALUI_LICENSE_PUBLIC_KEY — rotating invalidates all issued customer licenses
-# Retired: revealui/prod/license/{private,public}-key held the stale pre-cutover RS256 pair (migrated to the revdev/ Ed25519 keypair above; CR8-P0-01 Phase D 2026-05-04).
-```
-
-**Passkeys**
-
-```
-revealui/prod/passkey/origin    # PASSKEY_ORIGIN
-revealui/prod/passkey/rp-id     # PASSKEY_RP_ID
-revealui/prod/passkey/rp-name   # PASSKEY_RP_NAME
-```
-
-**Observability (Sentry)**
-
-```
-revealui/prod/sentry/dsn           # SENTRY_DSN — server (Hono); required by validate-startup.ts in REQUIRED_IN_PRODUCTION_HOSTED
-revealui/prod/sentry/dsn-admin     # NEXT_PUBLIC_SENTRY_DSN — admin (Next.js); enables withSentryConfig wrapper
-revealui/prod/sentry/auth-token    # SENTRY_AUTH_TOKEN — CI/CD source-map upload
-revealui/prod/sentry/org           # SENTRY_ORG — org slug
-revealui/prod/sentry/project-server  # SENTRY_PROJECT for apps/server
-revealui/prod/sentry/project-admin   # SENTRY_PROJECT for apps/admin
-```
-
-**Storage**
-
-```
-revealui/prod/r2/account-id          # R2_ACCOUNT_ID — Cloudflare R2 account ID (canonical object-storage backend)
-revealui/prod/r2/access-key-id       # R2_ACCESS_KEY_ID — R2 API token Access Key ID
-revealui/prod/r2/secret-access-key   # R2_SECRET_ACCESS_KEY — R2 API token Secret Access Key
-revealui/prod/r2/bucket              # R2_BUCKET — R2 bucket name (canonical: revealui-media)
-revealui/prod/r2/public-base-url     # R2_PUBLIC_BASE_URL — public-read base; sticky (baked into stored media URLs)
-```
-
-**Billing**
-
-```
-revealui/prod/billing/portal-config-id  # Stripe customer-portal configuration ID
-```
-
-**Public / non-secret config (kept canonical for reproducibility)**
-
-```
-revealui/prod/public/api-url     # NEXT_PUBLIC_API_URL + REVEALUI_API_URL
-revealui/prod/public/server-url  # NEXT_PUBLIC_SERVER_URL + REVEALUI_PUBLIC_SERVER_URL
-revealui/prod/public/is-live     # NEXT_PUBLIC_IS_LIVE — feature-flag: Stripe live mode
-```
-
-**Deployment tokens (prod)**
-
-```
-revealui/prod/api-keys/vercel-token         # VERCEL_TOKEN — Vercel API token for sync + deploy; also mirrored to GH secret VERCEL_TOKEN
-```
+> **GitHub Actions secret mirrors of the Neon URL** (all sourced from `revealui/prod/db/postgres-url`):
+> `POSTGRES_URL` + `DATABASE_URL` (db-backup.yml, webhook-reconciliation.yml) and `PROD_POSTGRES_URL`
+> (deploy.yml migrate job - `vercel env pull` returns empty for the Sensitive Vercel `POSTGRES_URL`, so
+> the value is needed out-of-band). Rotating the value means updating all three repo secrets.
 
 #### API keys namespace
 
@@ -248,8 +211,8 @@ revealui/env/supabase
 ### RevDev
 
 ```
-revdev/license-signing-private-key       # Ed25519 license signing key (canonical keypair)
-revdev/license-signing-public-key        # Ed25519 license verification key (canonical keypair)
+revdev/license-signing-private-key       # Ed25519 license signing key (canonical keypair) - prod-consumed; see the Production runtime table (migrating to revealui/prod/license/*)
+revdev/license-signing-public-key        # Ed25519 license verification key (canonical keypair) - prod-consumed; see the Production runtime table
 revdev/github-token                      # perpetual license GitHub provisioning
 revdev/tauri-signing-private-key          # Tauri updater signing key (Studio auto-update; generated 2026-06-11)
 revdev/tauri-signing-private-key-password # password for the Tauri updater key
@@ -264,12 +227,19 @@ revdev/tauri-signing-public-key           # updater public key (also embedded in
 
 ### Licensing (RevealUI)
 
+The canonical license-signing keypair (`revdev/license-signing-{private,public}-key`) is a
+production-runtime secret - it appears in the machine-checked Production runtime table above,
+carrying its declared migration target `revealui/prod/license/{private,public}-key` (the
+value-move is P3-4, owner-gated). The `revealui/env/license` bundle below is the local-dev
+`with-secrets` mirror of that keypair, consumed by `~/revfleet/revealui/.envrc` via
+`revvault export-env`.
+
 ```
-revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/revfleet/revealui/.envrc via `revvault export-env`)
-# Production REVEALUI_LICENSE_{PRIVATE,PUBLIC}_KEY source from the canonical
-# revdev/license-signing-{private,public}-key paths (see the RevDev section above) and are
-# mirrored to Vercel `revealui-api` + `revealui-admin` via scripts/sync/revvault-vercel.toml.
-# Retired: revealui/prod/license/{private,public}-key held the stale pre-cutover RS256 pair.
+revealui/env/license   # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY
+# Reserved: revealui/prod/license/{private,public}-key - the DECLARED Ed25519 migration target (P3-4).
+# It previously held a pre-cutover RSA/RS256 pair. The target is UNVERIFIED: a stale RSA-era value
+# may still occupy this path (RSA is incompatible with the Ed25519 runtime verifier), so the P3-4
+# value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
 ```
 
 ### LLM / AI providers

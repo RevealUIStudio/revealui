@@ -3,6 +3,7 @@
  */
 
 import type { Page, Post } from '@revealui/core/types/admin';
+import { sanitizeUrl } from '@revealui/security/sanitize';
 import type { FooterType } from '@/lib/globals/Footer/Component';
 import type { HeaderType } from '@/lib/globals/Header/Component';
 
@@ -15,9 +16,11 @@ export function getLinkUrl(
     | NonNullable<HeaderType['navItems']>[0]['link']
     | NonNullable<FooterType['navItems']>[0]['link'],
 ): string {
-  // Custom URL
+  // Custom URL — author-controlled and rendered straight into <Link href> by
+  // the Header nav, so unsafe schemes must collapse to '#' here (the Footer's
+  // identical data goes through CMSLink, which sanitizes on its own).
   if (link.type === 'custom' && link.url) {
-    return link.url;
+    return sanitizeUrl(link.url, 'link');
   }
 
   // Reference link

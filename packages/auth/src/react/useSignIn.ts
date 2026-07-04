@@ -33,9 +33,14 @@ function toUser(validated: z.infer<typeof SignInUserSchema>): User {
   return validated as unknown as User;
 }
 
-// Validation schemas for sign-in response
+// Validation schemas for sign-in response. The error body carries both a
+// human-readable `message` and a machine `code` (see createApplicationErrorResponseData
+// in @revealui/core); `error` mirrors the code. All optional so a terse body
+// still parses.
 const SignInErrorResponseSchema = z.object({
   error: z.string().optional(),
+  message: z.string().optional(),
+  code: z.string().optional(),
 });
 
 const SignInSuccessResponseSchema = z.object({
@@ -52,7 +57,7 @@ export interface UseSignInResult {
     input: SignInInput,
   ) => Promise<
     | { success: true; user: User }
-    | { success: false; error: string }
+    | { success: false; error: string; code?: string }
     | { success: false; requiresMfa: true; mfaUserId: string }
   >;
   isLoading: boolean;
@@ -109,9 +114,14 @@ export function useSignIn(): UseSignInResult {
 
       if (!response.ok) {
         const errorData = SignInErrorResponseSchema.parse(json);
+        // Prefer the human-readable `message` for display; fall back to the
+        // machine `error` code, then a generic default. `code` (e.g.
+        // 'EMAIL_NOT_VERIFIED') lets callers branch — e.g. offer a
+        // resend-verification action — without string-matching display copy.
         return {
           success: false as const,
-          error: errorData.error || 'Failed to sign in',
+          error: errorData.message || errorData.error || 'Failed to sign in',
+          code: errorData.code,
         };
       }
 

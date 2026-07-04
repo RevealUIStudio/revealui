@@ -29,7 +29,7 @@ import { z } from 'zod/v4';
 import { countryOptions } from './Form/Country/options';
 import { stateOptions } from './Form/State/options';
 
-type GeneratedBlockType = Page['layout'][number];
+type GeneratedBlockType = Page['blocks'][number];
 type GeneratedBlock = NonNullable<GeneratedBlockType>;
 
 /**
@@ -395,7 +395,7 @@ export function transformPageBlockToSchema(block: GeneratedBlock): Result<Block,
 /**
  * Validates and transforms an array of generated blocks to schema blocks
  */
-export function validateAndTransformBlocks(blocks: Page['layout']): Result<Block[], z.ZodError> {
+export function validateAndTransformBlocks(blocks: Page['blocks']): Result<Block[], z.ZodError> {
   if (!Array.isArray(blocks) || blocks.length === 0) {
     return { success: true, data: [] };
   }

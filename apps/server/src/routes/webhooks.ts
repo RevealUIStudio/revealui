@@ -1707,6 +1707,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 )
                 .limit(1);
 
+              // WH-3: monotonic-timestamp guard against out-of-order delivery —
+              // a stale event whose created time predates the row's last update
+              // must not overwrite a newer license state (mirrors the guard
+              // syncHostedSubscriptionState applies to account_entitlements).
               await ctx.db
                 .update(licenses)
                 .set({ status: 'revoked', updatedAt: new Date() })
@@ -1715,6 +1719,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscription.id),
                     isNull(licenses.deletedAt),
+                    lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                   ),
                 );
 
@@ -1911,6 +1916,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   )
                   .limit(1);
 
+                // WH-3: guard against out-of-order delivery (see reactivate).
                 await ctx.db
                   .update(licenses)
                   .set({ status: 'expired', updatedAt: new Date() })
@@ -1919,6 +1925,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -2017,6 +2024,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   )
                   .limit(1);
 
+                // WH-3: guard against out-of-order delivery (see deleted-revoke).
                 await ctx.db
                   .update(licenses)
                   .set({ expiresAt: cancelAt, updatedAt: new Date() })
@@ -2025,6 +2033,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousExpiresAt: prev?.expiresAt ?? null };
@@ -2145,7 +2154,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   normalizedKey,
                 );
 
-                await ctx.db
+                // WH-3: monotonic-timestamp guard against out-of-order delivery.
+                // THIS is the resurrection vector: a delayed .updated(active)
+                // delivered after a .deleted must NOT flip a revoked license back
+                // to active. The row's wall-clock updatedAt (set by the newer
+                // .deleted) will not be < this stale event's created time, so the
+                // write affects 0 rows and the revocation stands.
+                const reactivateResult = await ctx.db
                   .update(licenses)
                   .set({
                     status: 'active',
@@ -2158,19 +2173,33 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
+                const reactivateStale =
+                  ((reactivateResult as { rowCount?: number }).rowCount ?? 0) === 0;
+                if (reactivateStale) {
+                  logger.info('Stale reactivate skipped — newer license state already applied', {
+                    customerId,
+                    subscriptionId: subscription.id,
+                    eventTimestamp: new Date(event.created * 1000).toISOString(),
+                  });
+                }
                 return {
                   previousStatus: prev?.status ?? 'active',
                   previousTier: prev?.tier ?? newTier,
-                  skipped: false,
+                  skipped: reactivateStale,
                 };
               },
               compensate: async (ctx, output) => {
-                const { previousStatus, previousTier } = output as {
+                const { previousStatus, previousTier, skipped } = output as {
                   previousStatus: string;
                   previousTier: string;
+                  skipped?: boolean;
                 };
+                // Nothing to roll back if the forward write was stale-skipped —
+                // the DB still holds the newer state we deliberately left intact.
+                if (skipped) return;
                 await ctx.db
                   .update(licenses)
                   .set({
@@ -2267,6 +2296,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   )
                   .limit(1);
 
+                // WH-3: guard against out-of-order delivery (see reactivate).
                 await ctx.db
                   .update(licenses)
                   .set({ status: 'revoked', updatedAt: new Date() })
@@ -2275,6 +2305,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -2385,6 +2416,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   )
                   .limit(1);
 
+                // WH-3: guard against out-of-order delivery (see reactivate).
                 await ctx.db
                   .update(licenses)
                   .set({ status: 'expired', updatedAt: new Date() })
@@ -2393,6 +2425,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
                       isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -2949,9 +2982,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const wonChargeId =
             typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
           let wonCustomerId: string | null = null;
+          let wonCharge: Stripe.Charge | null = null;
           try {
-            const charge = await stripe.charges.retrieve(wonChargeId);
-            wonCustomerId = resolveCustomerId(charge.customer);
+            wonCharge = await stripe.charges.retrieve(wonChargeId);
+            wonCustomerId = resolveCustomerId(wonCharge.customer);
           } catch (firstErr) {
             logger.warn('Charge retrieve failed for won dispute, retrying once', {
               chargeId: wonChargeId,
@@ -2961,8 +2995,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
             // Retry once before giving up  -  a transient Stripe outage must not
             // silently drop license restoration for a customer who won their dispute.
             try {
-              const charge = await stripe.charges.retrieve(wonChargeId);
-              wonCustomerId = resolveCustomerId(charge.customer);
+              wonCharge = await stripe.charges.retrieve(wonChargeId);
+              wonCustomerId = resolveCustomerId(wonCharge.customer);
             } catch (retryErr) {
               logger.error('Charge retrieve failed after retry for won dispute', undefined, {
                 chargeId: wonChargeId,
@@ -2982,40 +3016,76 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           if (wonCustomerId) {
-            // Restore revoked licenses and resolve subscription context so
-            // entitlements are fully reinstated (tier, features, limits).
+            // S2 (won-path): scope the restore to the DISPUTED subscription,
+            // mirroring the lost-path scoping. A customer who wins ONE dispute
+            // must not have EVERY revoked license reinstated — some may have been
+            // revoked for unrelated reasons for which no money was returned. When
+            // the charge cannot be traced to a subscription, DON'T blanket-restore
+            // (the dangerous over-grant direction); audit for manual review.
+            const wonSubscriptionId = wonCharge
+              ? await resolveSubscriptionIdFromCharge(stripe, wonCharge)
+              : null;
+
+            if (!wonSubscriptionId) {
+              logger.warn(
+                'Won dispute could not be scoped to a subscription  -  manual review required',
+                {
+                  customerId: wonCustomerId,
+                  chargeId: wonChargeId,
+                  disputeId: dispute.id,
+                },
+              );
+              auditLicenseEvent(db, 'license.restoration_unscoped.dispute_won', 'warn', {
+                customerId: wonCustomerId,
+                chargeId: wonChargeId,
+                disputeId: dispute.id,
+                reason: 'subscription_unresolved_from_charge',
+              });
+              break;
+            }
+
+            const wonRestoreScope = and(
+              eq(licenses.customerId, wonCustomerId),
+              eq(licenses.status, 'revoked'),
+              eq(licenses.subscriptionId, wonSubscriptionId),
+              isNull(licenses.deletedAt),
+            );
+
             const revokedLicenses = await db
               .select({
                 subscriptionId: licenses.subscriptionId,
                 tier: licenses.tier,
               })
               .from(licenses)
-              .where(
-                and(
-                  eq(licenses.customerId, wonCustomerId),
-                  eq(licenses.status, 'revoked'),
-                  isNull(licenses.deletedAt),
-                ),
-              )
+              .where(wonRestoreScope)
               .limit(1);
 
             const restoredSub = revokedLicenses[0];
 
+            if (!restoredSub) {
+              // No revoked license for the disputed subscription — nothing to
+              // restore. Do NOT sync an 'active' entitlement out of thin air.
+              logger.info(
+                'Won dispute resolved but no revoked license for the disputed subscription',
+                {
+                  customerId: wonCustomerId,
+                  chargeId: wonChargeId,
+                  disputeId: dispute.id,
+                  subscriptionId: wonSubscriptionId,
+                },
+              );
+              break;
+            }
+
             await db
               .update(licenses)
               .set({ status: 'active', updatedAt: new Date() })
-              .where(
-                and(
-                  eq(licenses.customerId, wonCustomerId),
-                  eq(licenses.status, 'revoked'),
-                  isNull(licenses.deletedAt),
-                ),
-              );
+              .where(wonRestoreScope);
 
             await syncHostedSubscriptionState(db, {
               customerId: wonCustomerId,
-              subscriptionId: restoredSub?.subscriptionId ?? null,
-              tier: (restoredSub?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
+              subscriptionId: restoredSub.subscriptionId ?? wonSubscriptionId,
+              tier: (restoredSub.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
               status: 'active',
               graceUntil: null,
               mode: event.livemode ? 'live' : 'test',

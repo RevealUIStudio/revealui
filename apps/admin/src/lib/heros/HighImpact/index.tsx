@@ -1,19 +1,19 @@
 'use client';
-import type { Page } from '@revealui/core/types/admin';
+import type { HeroBlock } from '@revealui/core/types/admin';
 import React, { useEffect } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import { Media } from '@/lib/components/Media/index';
 import RichText from '@/lib/components/RichText/index';
 import { useHeaderTheme } from '@/lib/providers/HeaderTheme/index';
 
-export const HighImpactHero = ({ links, media, richText }: Page['hero']) => {
+export const HighImpactHero = ({ links, media, richText }: HeroBlock) => {
   const { setHeaderTheme } = useHeaderTheme();
 
   useEffect(() => {
     setHeaderTheme('dark');
   });
 
-  const getLinkKey = (item: NonNullable<Page['hero']['links']>[number]) => {
+  const getLinkKey = (item: NonNullable<HeroBlock['links']>[number]) => {
     if (item.id) return item.id;
 
     const referenceValue = item.link?.reference?.value;

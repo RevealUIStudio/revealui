@@ -37,12 +37,19 @@ const allowedOrigins = process.env.REVEALUI_CORS_ORIGINS
 // Public paths in the (frontend) route group: no session required.
 // Any (backend) page resolves to a path that is NOT in this set and is NOT
 // internal (`/api/`, `/_next/`), so the auth gate kicks in.
+//
+// NOTE: `/forgot-password` is deliberately NOT here. No route renders it —
+// the password-recovery flow starts at `/reset-password` (linked from the
+// login form). Whitelisting it as public meant the request fell through to
+// the `(frontend)/[slug]` CMS catch-all UNAUTHENTICATED, so a CMS page with
+// slug `forgot-password` would render publicly. Dropping it makes the auth
+// gate treat it as protected; the catch-all also refuses reserved auth slugs
+// (see RESERVED_AUTH_SLUGS in app/(frontend)/[slug]/page.tsx).
 const PUBLIC_PATHS = new Set([
   '/login',
   '/signup',
   '/mfa',
   '/rotate-password',
-  '/forgot-password',
   '/reset-password',
   '/setup',
 ]);
@@ -149,7 +156,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
 
   // Already-authenticated admins have no reason to see the login/signup screens.
   // Redirect them to the dashboard. Scoped to /login + /signup ONLY — /setup,
-  // /rotate-password, /forgot-password, /reset-password, /mfa stay reachable for an
+  // /rotate-password, /reset-password, /mfa stay reachable for an
   // authenticated or partially-authenticated user (forced rotation, MFA enrollment,
   // etc.). The `revealui-role` cookie is normalized to 'admin' | 'user' at sign-in
   // (defense-in-depth UI hint), and this predicate matches the auth gate's admit
@@ -185,10 +192,17 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     if (!SESSION_ONLY_PATHS.has(pathname)) {
       const role = request.cookies.get('revealui-role')?.value;
       if (role !== 'admin') {
-        // User is authenticated but not admin — redirect to login (no admin home for non-admins)
-        const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = '/login';
-        return NextResponse.redirect(loginUrl);
+        // Authenticated but not an admin. Redirect to /welcome (their session-only
+        // home), NOT /login. Bouncing an already-signed-in user to the login form
+        // they just used produces a silent flash-and-reappear loop with no feedback
+        // (a user-role account sent to an admin route via a ?redirect= intent).
+        // The `denied` param lets /welcome explain that the admin area needs an
+        // admin role.
+        const welcomeUrl = request.nextUrl.clone();
+        welcomeUrl.pathname = '/welcome';
+        welcomeUrl.search = '';
+        welcomeUrl.searchParams.set('denied', 'admin');
+        return NextResponse.redirect(welcomeUrl);
       }
     }
 

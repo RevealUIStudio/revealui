@@ -48,6 +48,7 @@ vi.mock('@revealui/db/schema', () => ({
     mode: 'ae.mode',
     tier: 'ae.tier',
     status: 'ae.status',
+    graceUntil: 'ae.graceUntil',
     features: 'ae.features',
     limits: 'ae.limits',
   },
@@ -157,6 +158,61 @@ describe('Entitlement middleware — mode-scoped reader (GAP-266 Track B)', () =
       expect(body.tier).toBe('free');
       // Mode filter must NOT fire when there's no membership (avoids unnecessary DB call)
       expect(vi.mocked(eq)).not.toHaveBeenCalledWith(accountEntitlements.mode, expect.anything());
+    });
+  });
+
+  describe('grace-window request-time fail-safe (GAP-282)', () => {
+    it('downgrades a past_due entitlement whose graceUntil has passed to free tier', async () => {
+      mockGetConfiguredStripeMode.mockReturnValue('live');
+      mockDbLimitFn
+        .mockResolvedValueOnce([{ accountId: 'acct_pd', role: 'owner' }])
+        .mockResolvedValueOnce([
+          {
+            tier: 'pro',
+            status: 'past_due',
+            graceUntil: new Date(Date.now() - 60_000), // grace ended
+            features: { ai: true },
+            limits: { maxSites: 5 },
+          },
+        ]);
+
+      const app = createApp();
+      const res = await app.request(new Request('http://localhost/', { method: 'GET' }));
+      const body = (await res.json()) as {
+        tier: string;
+        features: Record<string, boolean>;
+        limits: Record<string, number>;
+        subscriptionStatus: string;
+      };
+
+      // Fail-safe: no paid tier/features/limits once grace has elapsed, without
+      // waiting for the sweep-grace-periods cron to flip the row.
+      expect(body.tier).toBe('free');
+      expect(body.features).toEqual({});
+      expect(body.limits).toEqual({});
+      // The raw status is still surfaced so the request-time license gate can 403.
+      expect(body.subscriptionStatus).toBe('past_due');
+    });
+
+    it('retains the paid tier for a past_due entitlement still inside its grace window', async () => {
+      mockGetConfiguredStripeMode.mockReturnValue('live');
+      mockDbLimitFn
+        .mockResolvedValueOnce([{ accountId: 'acct_pd2', role: 'owner' }])
+        .mockResolvedValueOnce([
+          {
+            tier: 'pro',
+            status: 'past_due',
+            graceUntil: new Date(Date.now() + 3_600_000), // grace still open
+            features: { ai: true },
+            limits: {},
+          },
+        ]);
+
+      const app = createApp();
+      const res = await app.request(new Request('http://localhost/', { method: 'GET' }));
+      const body = (await res.json()) as { tier: string };
+
+      expect(body.tier).toBe('pro');
     });
   });
 });
