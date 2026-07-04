@@ -18,7 +18,7 @@ latency on shape queries via the worker's Hono app surface).
 | Fly app | Purpose | Status |
 |---------|---------|--------|
 | `revealui-worker` | apps/server long-running subset (alerting, Yjs collab WS, agent-collab WS, terminal-ws Forge-gated, RVMarket executor flag-gated) | Phase 3 — scaffolded, first deploy pending |
-| `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from Railway |
+| `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from the retired Railway host (ADR 2026-05-18) |
 
 ## First deploy (one-time setup)
 
