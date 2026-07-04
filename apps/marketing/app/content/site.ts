@@ -2,7 +2,7 @@
 // Sourced from extraction of inline JSX content in:
 //   app/components/Footer.tsx, app/components/GetStarted.tsx,
 //   app/components/landing/Hero.tsx, app/routes/*.tsx
-// Per docs/lanes/marketing-overhaul/plan.md §4.4 (Phase 1).
+// Per the internal marketing-overhaul plan §4.4 (Phase 1).
 // Phase 1b additions: repoRoadmap, apiDocs.
 // Phase 1c additions: adminLogin, x, linkedin, forum, repoChangelog, repoLicense.
 // Phase 3 addition: METRICS export — canonical numbers from docs/MARKETING_METRICS.md §1

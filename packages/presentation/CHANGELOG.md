@@ -132,7 +132,7 @@
 
   Supports all standard `Button` variants (`variant`, `size`, `isLoading`, `disabled`, `external`). Disabled state preserves the anchor's `href` and uses `aria-disabled="true"` + `tabIndex={-1}` + `onClick` preventDefault to enforce the disabled semantics without changing the underlying anchor contract. Loading state shows a spinner + `aria-busy="true"` + `pointer-events:none`.
 
-  Spec: [`docs/specs/linkbutton-primitive.md`](https://github.com/RevealUIStudio/revealui-jv) (revealui-jv).
+  Spec: internal LinkButton primitive spec (private coordination hub).
 
   Zero new runtime dependencies. The `LinkBehaviorProvider` is a tiny React context — `@revealui/presentation` continues to ship with React/ReactDOM as the only peer deps.
 

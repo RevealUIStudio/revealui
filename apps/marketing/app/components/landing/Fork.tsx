@@ -3,7 +3,7 @@
 // landed: "built for me" is now the non-technical mode itself (the in-hero
 // Technical/Non-technical switch), so this fork only carries the two technical
 // paths — build it yourself (A) and build it for your clients (C).
-// Original spec: ~/revfleet/.jv/docs/spec-2026-05-14-non-technical-lane.md §4.3.
+// Original spec: internal non-technical-lane spec (2026-05-14) §4.3.
 
 import { HOME_FORK } from '../../content/home';
 

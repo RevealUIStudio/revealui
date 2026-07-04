@@ -145,7 +145,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Ph
   - "The OSS business runtime where your agents are first-class users."
   - "Auth, billing, content, and AI primitives — governed by one policy, audited by hash-chained logs, owned by you. From `npx create-revealui` to first paying customer in a weekend."
 
-## 8. Voice rules (defined in the private revealui-jv coordination repo)
+## 8. Voice rules (defined in the private coordination hub)
 
 Five testable rules — Phase 5 audits every page against these:
 
@@ -171,7 +171,7 @@ When this doc disagrees with marketing copy, file a `gh issue` titled `marketing
 ---
 
 **Related references:**
-- Lane plans, voice rules, positioning shifts, and brand naming are maintained in the private revealui-jv coordination repo.
+- Lane plans, voice rules, positioning shifts, and brand naming are maintained in the private coordination hub.
 - Validator source: `scripts/validate/claim-drift.ts`
 - Pricing canonical: `packages/contracts/src/pricing.ts`
 - Brand tokens: `packages/presentation/src/tokens.css`

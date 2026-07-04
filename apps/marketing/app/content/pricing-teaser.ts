@@ -1,5 +1,5 @@
 // Sourced from: app/components/landing/PricingTeaser.tsx (Phase 1c, no copy changes).
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Per the internal marketing-overhaul plan §4.4.
 // Tier copy lives here; runtime pricing (prices/periods) fetched from /api/pricing in the component.
 
 import type { LicenseTierId } from '@revealui/contracts/pricing';

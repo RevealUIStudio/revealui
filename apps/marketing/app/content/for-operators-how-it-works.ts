@@ -7,8 +7,8 @@
 // - OQ-6: agency-site coupling — CTA routes to ${SITE.urls.agency}/contact.
 //
 // Voice constraints honored:
-// - The 5 voice rules (R1-R5) per docs/lanes/_closed/messaging-funnel-audit/
-//   voice-and-headline-rules.md.
+// - The 5 voice rules (R1-R5) per the internal messaging-funnel audit
+//   (voice-and-headline rules).
 // - Operator-lane register per non-technical-lane spec §7 (first-person plural
 //   about the studio + third-person about the runtime + second-person about
 //   the operator).

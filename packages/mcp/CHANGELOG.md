@@ -540,7 +540,7 @@ allowedModels, defaultModel, namespace: server, onEvent })` and pass
 
   Stages 2 (apps/server `/openapi.json` route exposing the contracts doc) and 3 (revdev/apps/console oapi-codegen + revvault Rust progenitor consumer wiring) are deferred to follow-on PRs — Stage 1 is complete-on-its-own infrastructure.
 
-  Per [`docs/decisions/2026-05-03-contracts-protocol-pyramid.md`](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/decisions/2026-05-03-contracts-protocol-pyramid.md) §"Phase 3" in the internal `revealui-jv` repo.
+  Per the internal contracts-protocol-pyramid ADR (2026-05-03) §"Phase 3".
 
 ### Patch Changes
 

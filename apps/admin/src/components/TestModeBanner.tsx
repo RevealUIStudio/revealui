@@ -6,7 +6,7 @@
  * Shows a warning above billing CTAs when Stripe is running in test mode
  * (publishable key prefix `pk_test_*` OR no key configured). Live mode is
  * gated on the billing-readiness audit per the locked posture in
- * `revealui-jv` MASTER_PLAN; this banner makes the test-mode posture
+ * the internal master plan; this banner makes the test-mode posture
  * explicit so users do not assume cards will be charged.
  *
  * Detection: client-side `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` prefix.

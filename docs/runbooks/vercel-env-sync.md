@@ -115,12 +115,12 @@ Outputs JSON describing every variable's diff state per project (Add / Update / 
 
 ## Out of scope (deferred to v2)
 
-- Preview + development env target sync — production-only in v1 per [`vercel-env-canonical-mapping.md`](../../../revealui-jv/docs/vercel-env-canonical-mapping.md) Q4
+- Preview + development env target sync — production-only in v1 per the internal canonical env-var mapping doc Q4
 - Per-var Sensitive flag policy — gated on revvault adding `var_type` plumbing per concern C2 in the design doc
 - Auto-rotation chain — `revvault rotate <path>` triggering Vercel sync; design doc Phase 5
 
 ## See also
 
-- Design doc: [`revvault-vercel-sync.md` (private revealui-jv repo)](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/revvault-vercel-sync.md)
-- Canonical env-var mapping: [`vercel-env-canonical-mapping.md` (private revealui-jv repo)](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/vercel-env-canonical-mapping.md)
+- Design doc: internal revvault-vercel sync design (private coordination hub)
+- Canonical env-var mapping: internal canonical-mapping doc (private coordination hub)
 - Secrets rule: [`~/revfleet/.claude/rules/secrets.md`](../../../.claude/rules/secrets.md)

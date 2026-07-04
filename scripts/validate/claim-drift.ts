@@ -975,7 +975,7 @@ const SCAN_DIRS = [
  * Files excluded from claim-drift scanning:
  *   - CRASH-POSTMORTEMS.md: historical document where counts were accurate at time of writing.
  *   - docs/MASTER_PLAN.md: per `single-source-of-truth.md`, the canonical plan lives in
- *     ~/revfleet/.jv/docs/MASTER_PLAN.md; this public-repo copy is an allowed-stale snapshot
+ *     the private coordination hub's master plan; this public-repo copy is an allowed-stale snapshot
  *     and is also hook-blocked from agent edits, so numeric counts here cannot be kept in sync.
  */
 const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', 'docs/MASTER_PLAN.md'];
@@ -1438,7 +1438,7 @@ interface FleetProductMatch {
  * docs-pro/{ai,inference,editors}/index.md, ROADMAP.md, blog posts,
  * HARNESS_PROTOCOL.md, SECRETS.md, REST API reference) is queued for
  * follow-up PRs after the remaining attribution in those files is tightened.
- * The honesty audit at `~/revfleet/.jv/docs/audits/docs-claims-2026-04-26.md`
+ * The internal honesty audit (docs-claims, 2026-04-26)
  * tracks the coverage queue.
  */
 const FLEET_ATTRIBUTION_SCAN_FILES = [

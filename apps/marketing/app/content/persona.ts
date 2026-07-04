@@ -1,5 +1,5 @@
 // Sourced from: app/components/landing/Persona.tsx (Phase 1c extraction).
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Per the internal marketing-overhaul plan §4.4.
 // 2026-05-23: founder-first plain-language rewrite of section heading + card
 //   copy (owner-directed). Jargon (procurement review, identity gates, RBAC +
 //   ABAC, hash-chained, runtime) translated into outcomes founders recognize.

@@ -84,7 +84,7 @@ The committed `contracts.openapi.json` is the single source of truth — Go and 
 
 The emitter consumes `@revealui/mcp/contracts-server`'s `getContractsCatalog()` helper (added in the same PR) so the schema list is single-sourced via the contracts MCP server's registry — no risk of the OpenAPI mirror drifting from the MCP server's resource list.
 
-See [`docs/decisions/2026-05-03-contracts-protocol-pyramid.md`](https://github.com/RevealUIStudio/revealui-jv) §"Phase 3" in the internal `revealui-jv` repo for the full L3-OpenAPI rationale within the protocol-pyramid (L1 Zod → L2 MCP+A2A → L3 OpenAPI).
+See the internal contracts-protocol-pyramid ADR (2026-05-03) §"Phase 3" for the full L3-OpenAPI rationale within the protocol-pyramid (L1 Zod → L2 MCP+A2A → L3 OpenAPI).
 
 ## Related
 
