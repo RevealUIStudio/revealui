@@ -180,7 +180,10 @@ const RichText = ({ className, content, enableGutter = true, enableProse = true 
     return null;
   }
 
-  normalizeChecklists(content.root as unknown as Record<string, unknown>);
+  // Normalize into a fresh copy — never mutate the caller's (possibly shared)
+  // content object — then serialize the copy.
+  const normalizedRoot = normalizeChecklists(content.root as unknown as Record<string, unknown>);
+  const normalizedContent = { ...content, root: normalizedRoot };
 
   return (
     <div
@@ -193,7 +196,7 @@ const RichText = ({ className, content, enableGutter = true, enableProse = true 
         className,
       )}
     >
-      {serializeLexicalState(content as unknown as SerializedEditorState, {
+      {serializeLexicalState(normalizedContent as unknown as SerializedEditorState, {
         renderBlock,
         renderLink,
         renderUpload,
