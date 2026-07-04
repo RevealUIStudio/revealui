@@ -17,19 +17,25 @@ on:
     paths:
       - apps/admin/**
       - apps/server/**
+      - packages/ai/**
       - packages/auth/**
       - packages/cache/**
       - packages/config/**
       - packages/contracts/**
       - packages/core/**
       - packages/db/**
+      - packages/dev/**
+      - packages/mcp/**
       - packages/openapi/**
       - packages/paywall/**
       - packages/presentation/**
       - packages/resilience/**
       - packages/router/**
       - packages/security/**
+      - packages/services/**
+      - packages/setup/**
       - packages/sync/**
+      - packages/tokens/**
       - packages/utils/**
       - package.json
       - pnpm-lock.yaml
