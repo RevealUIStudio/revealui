@@ -1308,7 +1308,7 @@ Customer-facing meters should map to business activity rather than upstream infr
 ### Current Status
 
 - **NeonDB primary**: source of truth for everything, including `agent_memories` (NeonDB pgvector)
-- **Supabase RAG sidecar**: optional; today used only for `rag_chunks` plus a legacy duplicate billing copy. Auth / storage / realtime / RLS / edge-functions are unused.
+- **Supabase RAG sidecar**: retired for internal use — `rag_chunks` and `agent_memories` now live on NeonDB `pgvector` (per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md)). Legacy Supabase code remains in tree during phase-out; auth / storage / realtime / RLS / edge-functions were never used.
 - **ElectricSQL**: optional sync layer; service connects to NeonDB. Agent tables (`agent_contexts`, `agent_memories`, `conversations`) can be electrified when sync is enabled. Off by default.
 
 ### Phase 7: Consolidate RAG onto NeonDB (planned)
