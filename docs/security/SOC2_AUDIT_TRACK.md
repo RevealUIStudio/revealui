@@ -5,7 +5,7 @@ audience: maintainer
 title: SOC2 Type II Audit Track
 status: planning
 owner: RevealUI Studio
-last-updated: 2026-05-29
+last-updated: 2026-07-04
 ---
 
 # SOC2 Type II Audit Track
@@ -14,7 +14,7 @@ last-updated: 2026-05-29
 
 This document tracks progress toward SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required for Enterprise tier customers.
 
-> **Infrastructure-in-transition note (2026-05-29).** The infrastructure under audit is mid-migration: Supabase (secondary) is phasing out (ADR 2026-05-01), the ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18), and RevealCoin was cancelled 2026-05-29. The audit baseline must track these to completion; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative current status.
+> **Infrastructure-in-transition note (2026-05-29).** The infrastructure under audit is mid-transition: Supabase is decommissioned as an internal datastore (ADR 2026-05-01; credential offboarding completing), the ElectricSQL sync host is re-platforming Railway → Fly.io (ADR 2026-05-18; the legacy Railway proxy is out of production service), and RevealCoin was cancelled 2026-05-29. The audit baseline must track these to completion; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative current status.
 
 ## Prerequisites (Complete)
 
@@ -46,7 +46,7 @@ This document tracks progress toward SOC2 Type II certification covering the Com
 | `api.revealui.com` | Black-box + gray-box | Full REST API, auth flows, Stripe webhooks |
 | `admin.revealui.com` | Authenticated testing | RBAC bypass, XSS, CSRF, privilege escalation |
 | `revealui.com` | Light scan | Marketing site, minimal attack surface |
-| Infrastructure | Config review | Vercel, NeonDB, Supabase security settings |
+| Infrastructure | Config review | Vercel, NeonDB security settings |
 | Dependencies | SCA | npm audit, CodeQL, Gitleaks (already in CI) |
 
 **Vendor Shortlist (evaluate before engaging):**
@@ -76,7 +76,7 @@ This document tracks progress toward SOC2 Type II certification covering the Com
 
 - Licensed CPA firm with SOC2 specialization
 - Experience with small/solo-founder SaaS companies
-- Familiar with cloud-native infrastructure (Vercel, Neon, Supabase)
+- Familiar with cloud-native infrastructure (Vercel, Neon)
 - Reasonable cost for Type I (budget: $15k-$30k range)
 
 ### Step 3: Evidence Collection Period (6-12 months)
