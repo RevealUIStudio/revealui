@@ -302,3 +302,4 @@ A vendor replacement is triggered if:
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-04-12 | RevealUI Studio | Initial vendor risk assessments for all five vendors. |
+| 2026-07-04 | RevealUI Studio | Internal audit (2026-07-03): Supabase (§3.2 + Risk Summary) marked decommissioned — internal datastore usage removed per ADR 2026-05-01 (RAG/vectors on NeonDB `pgvector`); customer-facing MCP adapter noted as a retained, out-of-scope integration. Corrected GitHub posture to a single-owner **User** account (account-level access controls / 2FA / security log), not a GitHub Organization. |
