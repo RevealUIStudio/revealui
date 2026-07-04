@@ -866,7 +866,7 @@ Holster:          "Here is the shared state where coordination happens"
 - [x] Audit config formats for backwards-compat fields that can be dropped
 - [x] Audit hook scripts for patterns that pre-date the current architecture
 - [x] Audit test files for mocks of removed or renamed interfaces
-- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — see `~/revfleet/.jv/docs/audits/legacy-sweep-2026-04-27.md` (62 findings, 6 categories, 17 actionable in Tier 1)
+- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — tracked in the private revealui-jv repo's audit log (62 findings, 6 categories, 17 actionable in Tier 1)
 
 ### Phase B: Codemod Infrastructure
 

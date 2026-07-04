@@ -145,7 +145,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Ph
   - "The OSS business runtime where your agents are first-class users."
   - "Auth, billing, content, and AI primitives — governed by one policy, audited by hash-chained logs, owned by you. From `npx create-revealui` to first paying customer in a weekend."
 
-## 8. Voice rules (per `.jv/docs/lanes/_closed/messaging-funnel-audit/voice-and-headline-rules.md`)
+## 8. Voice rules (defined in the private revealui-jv coordination repo)
 
 Five testable rules — Phase 5 audits every page against these:
 

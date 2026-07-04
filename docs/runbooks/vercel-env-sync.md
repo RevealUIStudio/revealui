@@ -121,6 +121,6 @@ Outputs JSON describing every variable's diff state per project (Add / Update / 
 
 ## See also
 
-- Design doc: [`~/revfleet/.jv/docs/revvault-vercel-sync.md`](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/revvault-vercel-sync.md)
-- Canonical env-var mapping: [`~/revfleet/.jv/docs/vercel-env-canonical-mapping.md`](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/vercel-env-canonical-mapping.md)
+- Design doc: [`revvault-vercel-sync.md` (private revealui-jv repo)](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/revvault-vercel-sync.md)
+- Canonical env-var mapping: [`vercel-env-canonical-mapping.md` (private revealui-jv repo)](https://github.com/RevealUIStudio/revealui-jv/blob/main/docs/vercel-env-canonical-mapping.md)
 - Secrets rule: [`~/revfleet/.claude/rules/secrets.md`](../../../.claude/rules/secrets.md)

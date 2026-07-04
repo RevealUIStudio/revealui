@@ -66,7 +66,7 @@ Hooks NEVER write to the workboard by design. The workboard is a manual coordina
 
 ### Workboard automation (M10)
 
-Two scripts govern the fleet-level workboard at `~/revfleet/.jv/.claude/workboard.md`:
+Two scripts govern the fleet-level workboard (maintained in the private revealui-jv coordination repo):
 
 - `workboard-check.js` — read-only drift detector, fired on session-start. Reports stale rows and unresolved gaps without modifying the file.
 - `workboard-sweep.js` — idempotent cleanup. The agent reviews the diff and commits manually; the script never auto-commits.

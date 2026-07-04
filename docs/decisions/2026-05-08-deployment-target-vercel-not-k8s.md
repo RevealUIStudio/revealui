@@ -96,7 +96,7 @@ The newer starting point would not be the historical scaffolding regardless. For
 
 ## References
 
-- Audit: `~/revfleet/.jv/docs/audits/2026-05-08-fleet-doc-quality-audit.md` (commit `e0a59018c` on `revealui-jv:main`)
+- Audit: fleet doc-quality audit (2026-05-08), tracked in the private revealui-jv repo
 - [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — Vercel production pipeline (validate → migrate → matrix-deploy → smoke → auto-rollback)
 - [`.github/workflows/docker.yml`](../../.github/workflows/docker.yml) — Forge Docker image build + GHCR push
 - [`docker-compose.forge.yml`](../../docker-compose.forge.yml) — Forge self-hosted stack with license enforcement
