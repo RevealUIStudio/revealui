@@ -4,6 +4,17 @@ if [ -z "$BASH_VERSION" ]; then
   exec bash -e "$0" "$@"
 fi
 
+# ── Execute from memory: the whole body is parsed before any of it runs ──
+# The dirty-save below reverts tracked files with `git checkout -- .` and
+# copies them back after the gate; when .husky/pre-push is itself dirty,
+# both steps rewrite this file on disk while it is executing (peer sessions
+# switching the shared checkout mid-push can do the same). A shell may
+# re-read a running script from disk between commands, so a mid-run rewrite
+# can corrupt execution, including the final gate exit status. Every code
+# path below exits inside this brace group, so the on-disk file is never
+# read again once the group has been parsed.
+{
+
 # ── Gate scope: decided by the refs being pushed, not the checked-out branch ──
 # git feeds pre-push one "<local ref> <local sha> <remote ref> <remote sha>"
 # line per pushed ref on stdin. Tag pushes and ref deletions add no commits
@@ -117,3 +128,4 @@ if [ -n "$SAVE_DIR" ] && [ -f "$SAVE_DIR/manifest" ]; then
 fi
 
 exit $GATE_EXIT
+}
