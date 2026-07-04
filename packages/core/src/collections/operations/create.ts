@@ -17,6 +17,7 @@ import type {
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js';
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
+import { runFieldValidators } from './fieldValidation.js';
 import { findByID } from './findById.js';
 import { insertDocumentQuery } from './sqlAdapter.js';
 
@@ -106,6 +107,12 @@ export async function create(
       }
     }
   }
+
+  // Run field-level `validate` predicates after the built-in required/email
+  // checks and before beforeChange hooks (Payload's beforeValidate → validate →
+  // beforeChange ordering). Throws a ValidationError (HTTP 400) on the first
+  // failing field.
+  await runFieldValidators(config, data, 'create', options.req);
 
   // Run beforeChange field hooks after validation but before the DB write.
   await runBeforeFieldHooks(config, data, 'create', 'beforeChange', undefined, options.req);
