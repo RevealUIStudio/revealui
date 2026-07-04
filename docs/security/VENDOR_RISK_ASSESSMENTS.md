@@ -81,14 +81,20 @@ Each vendor is evaluated against the following criteria:
 
 ---
 
-### 3.2 Supabase (Secondary Database — legacy, phasing out)
+### 3.2 Supabase — DECOMMISSIONED (internal datastore usage removed)
 
-> **Status note (2026-05-29):** Supabase is a *legacy secondary* store being phased out per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md) (target: NeonDB-primary + ElectricSQL). It remains in service during phase-out, so this assessment stays in force; new features must not add Supabase dependencies. The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
+> **Decommissioned (internal usage) per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md).** RevealUI's internal Supabase datastore dependency has been removed: RAG chunk embeddings and vector tables now live on NeonDB `pgvector`, and auth/storage/realtime/RLS/edge-fn were never used. Legacy Supabase code remains in tree during phase-out (final code removal tracked separately); no new features may depend on Supabase.
+>
+> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) is a *retained customer integration* — it is not a RevealUI vendor data dependency and is out of scope for this assessment.
+>
+> The vendor assessment below is retained as a **historical** record for the audit trail. RevealUI holds no active Supabase data dependency, so there is no forward review date.
 
 **Vendor:** Supabase Inc.
-**Service:** Managed PostgreSQL + pgvector, Auth (legacy secondary — phase-out in progress)
+**Service:** Managed PostgreSQL + pgvector, Auth (decommissioned as an internal RevealUI datastore)
 **Asset ID:** DS-002, TP-006 (see Asset Inventory)
-**Data classification:** Confidential (vector embeddings, OAuth linkage)
+**Data classification:** Confidential (historical — vector embeddings, OAuth linkage)
+
+_Historical assessment (retained for audit trail):_
 
 | Category | Assessment | Notes |
 |----------|-----------|-------|
@@ -105,19 +111,18 @@ Each vendor is evaluated against the following criteria:
 | Data portability | Standard PostgreSQL + pg_dump | Standard migration path |
 | Backup/Recovery | Daily snapshots (provider-managed) | RPO: 24 hours, RTO: hours |
 
-**Data shared with Supabase:**
-- Vector embeddings for RAG functionality
+**Data formerly shared with Supabase:**
+- Vector embeddings for RAG functionality (now on NeonDB `pgvector`)
 - OAuth account linkage records
-- Auth session data (where Supabase Auth is used)
+- Auth session data (where Supabase Auth was used)
 
-**Compensating controls:**
+**Historical compensating controls:**
 - Service role keys restricted to server-side use only
 - Anon keys have RLS policies enforced
 - Cross-DB cleanup (`@revealui/db/cleanup`) handles orphaned data after site deletion
 - Supabase imports restricted to permitted paths via `supabase-boundary.js` hook
 
-**Risk rating:** Low
-**Next review:** 2026-07-12
+**Status:** Decommissioned as an internal datastore (ADR 2026-05-01) — RAG/vectors migrated to NeonDB `pgvector`; legacy code phase-out tracked separately. No forward review.
 
 ---
 
