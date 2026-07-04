@@ -231,8 +231,8 @@ const REQUIRED_IN_PRODUCTION_FORGE = [
  *   - When `STRIPE_LIVE_MODE` is unset or any other value: enforces `sk_test_`
  *     / `pk_test_` prefixes and emits a loud boot-time warning that the API
  *     is running with TEST Stripe keys in production. This is the
- *     pre-launch / pre-LLC / pre-billing-audit posture (gated on GAP-124
- *     in revealui-jv).
+ *     pre-launch / pre-LLC / pre-billing-audit posture (gated on GAP-124,
+ *     internal tracker).
  *
  * Honors `SKIP_ENV_VALIDATION=true` so Docker-build and other build-only
  * contexts can compile without live credentials present. Forge customer
@@ -727,7 +727,7 @@ export function emitStripeTestModeWarning(): void {
     '⚠️  ║  the test environment.                                           ║',
     '⚠️  ║                                                                  ║',
     '⚠️  ║  Flip STRIPE_LIVE_MODE=true ONLY after the billing-readiness     ║',
-    '⚠️  ║  audit (revealui-jv GAP-124) closes — every money-touching path ║',
+    '⚠️  ║  audit (internal GAP-124) closes — every money-touching path    ║',
     '⚠️  ║  must be bulletproof first.                                      ║',
     '⚠️  ╚══════════════════════════════════════════════════════════════════╝',
     '',
