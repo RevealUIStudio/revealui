@@ -790,3 +790,125 @@ describe('parseLicenseCacheTtlEnv', () => {
     expect(MAX_LICENSE_CACHE_TTL_MS).toBe(900_000);
   });
 });
+
+// =============================================================================
+// validateLicenseKey — multi-key rotation (GAP-259 P0-3)
+// =============================================================================
+
+describe('validateLicenseKey — multi-key rotation (GAP-259 P0-3)', () => {
+  let nextPublicKeyPem: string;
+  let nextPrivateKeyPem: string;
+  let otherPublicKeyPem: string;
+  let otherPrivateKeyPem: string;
+
+  beforeAll(() => {
+    const next = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    nextPublicKeyPem = next.publicKey;
+    nextPrivateKeyPem = next.privateKey;
+    const other = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    otherPublicKeyPem = other.publicKey;
+    otherPrivateKeyPem = other.privateKey;
+  });
+
+  afterEach(() => {
+    delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+  });
+
+  it('verifies a token signed by the CURRENT key when both keys are offered', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_cur' },
+      privateKeyPem,
+      3600,
+      publicKeyPem,
+    );
+    const payload = await validateLicenseKey(jwt, [publicKeyPem, nextPublicKeyPem]);
+    expect(payload?.tier).toBe('pro');
+    expect(payload?.customerId).toBe('cus_cur');
+  });
+
+  it('verifies a NEXT-kid-signed token against ordered [current, next] candidates', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'max', customerId: 'cus_next' },
+      nextPrivateKeyPem,
+      3600,
+      nextPublicKeyPem,
+    );
+    // The token's kid is the NEXT key's fingerprint, not the current key's.
+    expect(decodeProtectedHeader(jwt).kid).toBe(await computeKeyId(nextPublicKeyPem));
+
+    const payload = await validateLicenseKey(jwt, [publicKeyPem, nextPublicKeyPem]);
+    expect(payload).not.toBeNull();
+    expect(payload?.tier).toBe('max');
+    expect(payload?.customerId).toBe('cus_next');
+  });
+
+  it('rejects a token signed by a key in NEITHER slot', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_x' },
+      otherPrivateKeyPem,
+      3600,
+      otherPublicKeyPem,
+    );
+    expect(await validateLicenseKey(jwt, [publicKeyPem, nextPublicKeyPem])).toBeNull();
+  });
+
+  it('verifies a token that carries no kid against whichever offered key signed it', async () => {
+    // No publicKey arg → generateLicenseKey omits the kid header.
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_nokid' },
+      nextPrivateKeyPem,
+    );
+    expect(decodeProtectedHeader(jwt).kid).toBeUndefined();
+    const payload = await validateLicenseKey(jwt, [publicKeyPem, nextPublicKeyPem]);
+    expect(payload?.customerId).toBe('cus_nokid');
+  });
+
+  it('keeps single-string behavior unchanged (backward compatible)', async () => {
+    const own = await generateLicenseKey({ tier: 'pro', customerId: 'cus_single' }, privateKeyPem);
+    expect(await validateLicenseKey(own, publicKeyPem)).not.toBeNull();
+    const foreign = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_f' },
+      nextPrivateKeyPem,
+    );
+    expect(await validateLicenseKey(foreign, publicKeyPem)).toBeNull();
+  });
+
+  it('returns null for an empty candidate list', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_empty' }, privateKeyPem);
+    expect(await validateLicenseKey(jwt, [])).toBeNull();
+  });
+
+  it('initializeLicense verifies a NEXT-signed token via REVEALUI_LICENSE_PUBLIC_KEY_NEXT', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'max', customerId: 'cus_rotate' },
+      nextPrivateKeyPem,
+      3600,
+      nextPublicKeyPem,
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem; // current, did NOT sign
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = nextPublicKeyPem; // incoming, DID sign
+    expect(await initializeLicense()).toBe('max');
+    expect(getCurrentTier()).toBe('max');
+  });
+
+  it('normalizes a single-line NEXT key with literal newline escapes (Docker/.env form)', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_nl' },
+      nextPrivateKeyPem,
+      3600,
+      nextPublicKeyPem,
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    // Collapse real newlines to the literal two-character escape sequence.
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = nextPublicKeyPem.split('\n').join('\\n');
+    expect(await initializeLicense()).toBe('pro');
+  });
+});
