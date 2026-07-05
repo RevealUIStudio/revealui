@@ -212,6 +212,7 @@ function AdminSidebarContent({ siteName }: { siteName: string }) {
 export function AdminSidebarLayout({
   children,
   siteName = 'RevealUI',
+  isFleetMode = false,
 }: {
   children: React.ReactNode;
   /**
@@ -221,12 +222,18 @@ export function AdminSidebarLayout({
    * inlined at framework build time and miss the kit's stamped value.
    */
   siteName?: string;
+  /**
+   * Fleet-mode flag passed from the parent server component. When true,
+   * SaaS-only UI (subscriber billing banner, upgrade dialog) is suppressed —
+   * fleet kits use a forge license, not a Stripe subscription.
+   */
+  isFleetMode?: boolean;
 }) {
   return (
     <SidebarLayout navbar={<span />} sidebar={<AdminSidebarContent siteName={siteName} />}>
-      <FreeTierBanner />
+      {isFleetMode ? null : <FreeTierBanner />}
       {children}
-      <UpgradeDialog />
+      {isFleetMode ? null : <UpgradeDialog />}
     </SidebarLayout>
   );
 }
