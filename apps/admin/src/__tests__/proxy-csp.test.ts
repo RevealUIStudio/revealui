@@ -13,7 +13,7 @@
  * inspected with `split('; ')` + `startsWith` + `includes`.
  */
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import proxy from '../proxy';
 
@@ -83,6 +83,48 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
       'script-src',
     );
     expect(a).not.toBe(b);
+  });
+});
+
+describe('admin proxy — CSP fleet mode (GAP-290)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+    vi.stubEnv('REVEALUI_FLEET_MODE', 'true');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('strips hosted-SDK domains from script-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    expect(scriptSrc).not.toContain('https://js.stripe.com');
+    expect(scriptSrc).not.toContain('https://checkout.stripe.com');
+    expect(scriptSrc).not.toContain('https://maps.googleapis.com');
+    expect(scriptSrc).not.toContain('https://res.cloudinary.com');
+    expect(scriptSrc).not.toContain('https://cdn.vercel-insights.com');
+  });
+
+  it('still carries a nonce in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    expect(scriptSrc).toContain("'nonce-");
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+  });
+
+  it('strips Stripe from frame-src and connect-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const csp = res.headers.get('content-security-policy') ?? '';
+    const frameSrc = directive(csp, 'frame-src');
+    const connectSrc = directive(csp, 'connect-src');
+    expect(frameSrc).not.toContain('stripe.com');
+    expect(connectSrc).not.toContain('stripe.com');
+    expect(connectSrc).not.toContain('maps.googleapis.com');
   });
 });
 
