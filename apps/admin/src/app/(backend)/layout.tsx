@@ -19,12 +19,15 @@ type Args = {
 // framework build time, missing the kit's stamped value at runtime).
 // `||` not `??`: Compose `${VAR:-}` delivers unset vars as empty strings.
 const siteName = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
+const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
 
 const Layout = ({ children }: Args) => (
   <RootLayout config={config} importMap={importMap}>
     <LicenseProvider>
       <ErrorBoundary>
-        <AdminSidebarLayout siteName={siteName}>{children}</AdminSidebarLayout>
+        <AdminSidebarLayout siteName={siteName} isFleetMode={isFleetMode}>
+          {children}
+        </AdminSidebarLayout>
       </ErrorBoundary>
     </LicenseProvider>
   </RootLayout>
