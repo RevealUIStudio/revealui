@@ -1,5 +1,5 @@
 /**
- * Admin proxy CSP tests (GAP-219 hardening).
+ * Admin proxy CSP tests (GAP-219 hardening; GAP-290 fleet-mode gate).
  *
  * Verifies the per-request nonce Content-Security-Policy set by `src/proxy.ts`:
  *   - script-src carries a 'nonce-…' and NO 'unsafe-inline'
@@ -7,6 +7,7 @@
  *   - the same unified policy is the single CSP source for page and /api responses
  *   - a fresh nonce is generated per request
  *   - style-src intentionally retains 'unsafe-inline'
+ *   - hosted SDK domains are stripped in fleet mode (REVEALUI_FLEET_MODE=true)
  *
  * No regex is authored here (per the fleet no-regex posture) — the CSP string is
  * inspected with `split('; ')` + `startsWith` + `includes`.
