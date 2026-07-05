@@ -93,6 +93,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     isVercelProd: process.env.VERCEL_ENV === 'production',
     apiUrl: (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim(),
     serverUrl: (process.env.NEXT_PUBLIC_SERVER_URL || '').trim(),
+    isFleetMode: process.env.REVEALUI_FLEET_MODE === 'true',
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
