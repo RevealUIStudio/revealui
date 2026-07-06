@@ -199,25 +199,27 @@ describe('admin proxy — fleet-mode page guard (GAP-289)', () => {
     vi.unstubAllEnvs();
   });
 
-  it('redirects /upgrade to /dashboard for an authenticated admin in fleet mode', async () => {
+  it('redirects /upgrade to / for an authenticated admin in fleet mode', async () => {
     const res = await proxy(
       new NextRequest('https://admin.example.com/upgrade', {
         headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
       }),
     );
     const location = res.headers.get('location');
-    expect(location).toContain('/dashboard');
+    expect(location).not.toBeNull();
+    expect(new URL(location!).pathname).toBe('/');
     expect(location).not.toContain('/upgrade');
   });
 
-  it('redirects /account/billing to /dashboard for an authenticated admin in fleet mode', async () => {
+  it('redirects /account/billing to / for an authenticated admin in fleet mode', async () => {
     const res = await proxy(
       new NextRequest('https://admin.example.com/account/billing', {
         headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
       }),
     );
     const location = res.headers.get('location');
-    expect(location).toContain('/dashboard');
+    expect(location).not.toBeNull();
+    expect(new URL(location!).pathname).toBe('/');
     expect(location).not.toContain('/billing');
   });
 

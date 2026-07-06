@@ -99,6 +99,34 @@ describe('admin proxy — authenticated redirect off /login + /signup (#1107)', 
   });
 });
 
+describe('admin proxy — /dashboard redirect to / (GAP-292)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+  });
+
+  it('redirects an authenticated admin off /dashboard to /', async () => {
+    // (frontend)/[slug] has higher Next.js routing priority than (backend)/[[...segments]]
+    // for single-segment paths. Without this proxy redirect, authenticated admins
+    // hit the CMS catch-all which throws when getCachedRedirects() fails — "We hit a snag".
+    const res = await proxy(req('/dashboard', ADMIN_COOKIES));
+    expect(res.status).toBe(307);
+    expect(redirectPath(res)).toBe('/');
+  });
+
+  it('redirects an unauthenticated /dashboard request to /login (auth gate)', async () => {
+    const res = await proxy(req('/dashboard'));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/login');
+    expect(url?.searchParams.get('redirect')).toBe('/dashboard');
+  });
+});
+
 describe('admin proxy — /forgot-password is not public (S1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
