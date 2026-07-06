@@ -218,15 +218,15 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
 
   // Fleet-mode page guard: upgrade and billing pages are SaaS-only surfaces.
   // Fleet kits ship with a forge license rather than a Stripe subscription;
-  // redirect these routes to /dashboard so fleet users don't see Stripe checkout UI.
+  // redirect these routes to / (the admin home) so fleet users don't see Stripe checkout UI.
   if (
     process.env.REVEALUI_FLEET_MODE === 'true' &&
     (pathname === '/upgrade' || pathname === '/account/billing')
   ) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = '/dashboard';
-    dashboardUrl.search = '';
-    return NextResponse.redirect(dashboardUrl);
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = '/';
+    homeUrl.search = '';
+    return NextResponse.redirect(homeUrl);
   }
 
   // Strip overrideAccess from external API requests — only server-side code may use it.

@@ -37,6 +37,10 @@ const RESERVED_AUTH_SLUGS = new Set([
   'forgot-password',
   'reset-password',
   'setup',
+  // /dashboard has a dedicated static route in (backend)/dashboard/page.tsx.
+  // Defense-in-depth: if routing priority ever changes, hard-404 here rather
+  // than falling through to RevealUIRedirects with a reserved slug.
+  'dashboard',
 ]);
 
 // Removed generateStaticParams to prevent build-time initialization
