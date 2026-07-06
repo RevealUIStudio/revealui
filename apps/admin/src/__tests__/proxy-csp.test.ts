@@ -120,6 +120,13 @@ describe('admin proxy — CSP fleet mode (GAP-290)', () => {
     expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 
+  it('strips Stripe from img-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const imgSrc = directive(res.headers.get('content-security-policy') ?? '', 'img-src');
+    expect(imgSrc).not.toContain('stripe.com');
+    expect(imgSrc).not.toContain('cloudinary.com');
+  });
+
   it('strips Stripe from frame-src and connect-src in fleet mode', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
     const csp = res.headers.get('content-security-policy') ?? '';
