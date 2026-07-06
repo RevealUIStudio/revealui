@@ -187,3 +187,47 @@ describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => 
     expect(res.headers.get('location')).toContain('/login');
   });
 });
+
+describe('admin proxy — fleet-mode page guard (GAP-289)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ needed: false }) });
+    vi.stubEnv('REVEALUI_FLEET_MODE', 'true');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('redirects /upgrade to /dashboard for an authenticated admin in fleet mode', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/upgrade', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    const location = res.headers.get('location');
+    expect(location).toContain('/dashboard');
+    expect(location).not.toContain('/upgrade');
+  });
+
+  it('redirects /account/billing to /dashboard for an authenticated admin in fleet mode', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/account/billing', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    const location = res.headers.get('location');
+    expect(location).toContain('/dashboard');
+    expect(location).not.toContain('/billing');
+  });
+
+  it('does not redirect /upgrade in non-fleet mode', async () => {
+    vi.unstubAllEnvs();
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/upgrade', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    expect(res.headers.get('location')).toBeNull();
+  });
+});
