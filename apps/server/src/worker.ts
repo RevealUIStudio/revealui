@@ -66,6 +66,7 @@ audit.setStorage(new PostgresAuditStorage());
 validateStartup();
 validateLicenseAtStartup()
   .then(() => validateBillingCatalogAtStartup())
+  .then(() => runHostedLicenseCanary())
   .then(() => initializeLicense())
   .then((tier) => {
     logger.info(`License tier: ${tier}`);

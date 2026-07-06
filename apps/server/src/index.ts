@@ -1316,6 +1316,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // mode (prevents mid-customer-transaction 500s).
     validateLicenseAtStartup()
       .then(() => validateBillingCatalogAtStartup())
+      .then(() => runHostedLicenseCanary())
       .then(() => initializeLicense())
       .then((tier) => {
         logger.info(`License tier: ${tier}`);

@@ -382,6 +382,100 @@ async function orderCandidatesByKid(
 }
 
 /**
+ * Outcome of a signing-keypair self-test. See {@link selfVerifyLicenseKeypair}.
+ */
+export type KeypairCanaryResult =
+  | { status: 'ok'; kid: string | undefined }
+  | { status: 'mismatch' }
+  | { status: 'degraded'; reason: string };
+
+/**
+ * Self-test a signing keypair by signing a throwaway token with `privateKey`
+ * and verifying it against the ordered `publicKeys` list — the SAME multi-key
+ * path real tokens take. Used by the hosted boot canary (GAP-259 P0-4).
+ *
+ * Distinguishes three outcomes so the caller can react correctly:
+ *  - `ok`       — a token the private key signed verifies against a configured
+ *                 public key, and its kid resolves to a configured key.
+ *  - `mismatch` — imports all succeeded but NO public key verifies the token:
+ *                 the private key does not pair with any verification key. A
+ *                 definitive fault the caller should fail loud on.
+ *  - `degraded` — a jose/parse exception (malformed PEM), no public key to
+ *                 verify against, or a kid outside the configured allowlist.
+ *                 Ambiguous / possibly environmental; the caller should alert,
+ *                 not crash.
+ *
+ * Never throws — every jose exception collapses to `degraded`. The parse of the
+ * public PEMs happens up front precisely so a malformed public key is reported
+ * as `degraded` rather than masquerading as a `mismatch` (validateLicenseKey
+ * collapses import failures and signature failures alike to null). Edge-compatible.
+ */
+export async function selfVerifyLicenseKeypair(
+  privateKey: string,
+  publicKeys: readonly string[],
+): Promise<KeypairCanaryResult> {
+  if (publicKeys.length === 0) {
+    return { status: 'degraded', reason: 'no public key configured to verify against' };
+  }
+
+  const jose = await getJose();
+
+  // Pre-parse every public PEM so a MALFORMED public key surfaces as `degraded`
+  // (a jose import exception) instead of an indistinguishable `mismatch`.
+  for (const pk of publicKeys) {
+    try {
+      await jose.importSPKI(pk, 'EdDSA');
+    } catch (err) {
+      return {
+        status: 'degraded',
+        reason: `public key import failed: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  }
+
+  // Sign a throwaway token with the deployment's own private key. A malformed
+  // private PEM throws inside generateLicenseKey (importPKCS8) → degraded.
+  const firstKey = publicKeys[0] as string;
+  let token: string;
+  try {
+    token = await generateLicenseKey(
+      { tier: 'pro', customerId: 'canary' },
+      privateKey,
+      60,
+      firstKey,
+    );
+  } catch (err) {
+    return {
+      status: 'degraded',
+      reason: `canary token signing failed: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+
+  // Verify against the ordered public-key list. A null result AFTER imports
+  // succeeded means no configured key verifies a token our own private key
+  // signed: a definitive keypair mismatch.
+  const payload = await validateLicenseKey(token, publicKeys);
+  if (payload === null) {
+    return { status: 'mismatch' };
+  }
+
+  // kid allowlist: the token's kid must resolve to a configured public key.
+  const header = jose.decodeProtectedHeader(token);
+  const kid = typeof header.kid === 'string' ? header.kid : undefined;
+  if (kid !== undefined) {
+    const allowed = await Promise.all(publicKeys.map((pk) => computeKeyId(pk)));
+    if (!allowed.includes(kid)) {
+      return {
+        status: 'degraded',
+        reason: `signed token kid "${kid}" is not among the configured public-key ids [${allowed.join(', ')}]`,
+      };
+    }
+  }
+
+  return { status: 'ok', kid };
+}
+
+/**
  * Initialize the license system. Call once at application startup.
  * Reads REVEALUI_LICENSE_KEY and REVEALUI_LICENSE_PUBLIC_KEY from environment.
  *
