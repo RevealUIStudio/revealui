@@ -64,7 +64,9 @@ export async function register() {
     if (failures.length === 0) {
       try {
         const { validateLicenseKey } = await import('@revealui/core/license');
-        const publicKey = (process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? '').replace(/\\n/g, '\n');
+        // Restore real newlines in a single-line PEM (split/join, no authored
+        // regex — mirrors @revealui/core/license normalizePem). GAP-259 P0-4.
+        const publicKey = (process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? '').split('\\n').join('\n');
         const payload = await validateLicenseKey(process.env.REVEALUI_LICENSE_KEY ?? '', publicKey);
         if (!payload) {
           failures.push(

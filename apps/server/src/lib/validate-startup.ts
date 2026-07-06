@@ -503,8 +503,9 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
   }
 
   // Restore real newlines if the public key landed as a single-line PEM
-  // (the .env-encoded format that stamp.sh produces).
-  const publicKey = env.REVEALUI_LICENSE_PUBLIC_KEY.replace(/\\n/g, '\n');
+  // (the .env-encoded format that stamp.sh produces). Split/join, no authored
+  // regex — mirrors @revealui/core/license normalizePem. GAP-259 P0-4.
+  const publicKey = env.REVEALUI_LICENSE_PUBLIC_KEY.split('\\n').join('\n');
   // Phase 1 audit B-2: bind the license to a specific customer when the
   // operator has provided REVEALUI_LICENSED_CUSTOMER_ID. Without this, a
   // leaked JWT from one customer would license another customer's

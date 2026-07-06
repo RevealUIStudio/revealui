@@ -45,6 +45,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { audit } from '@revealui/core/security';
 import app, { initAlerting, terminalWs } from './index.js';
 import { hydrateInferenceConfigs } from './lib/hydrate-inference-configs.js';
+import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import {
   validateBillingCatalogAtStartup,
@@ -65,6 +66,7 @@ audit.setStorage(new PostgresAuditStorage());
 validateStartup();
 validateLicenseAtStartup()
   .then(() => validateBillingCatalogAtStartup())
+  .then(() => runHostedLicenseCanary())
   .then(() => initializeLicense())
   .then((tier) => {
     logger.info(`License tier: ${tier}`);
