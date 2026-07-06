@@ -120,7 +120,7 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     `script-src ${scriptSrc.join(' ')}`,
     "child-src 'self'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    `img-src 'self' ${isFleetMode ? '' : 'https://res.cloudinary.com '}https://*.stripe.com data: https://www.gravatar.com`,
+    `img-src 'self' ${isFleetMode ? '' : 'https://res.cloudinary.com https://*.stripe.com '}data: https://www.gravatar.com`,
     "font-src 'self' https://fonts.gstatic.com",
     `frame-src ${frameSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,

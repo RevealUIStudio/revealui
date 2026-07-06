@@ -49,9 +49,12 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
 
   it('preserves the external-script host allowlist and does not use strict-dynamic', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
-    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    const csp = res.headers.get('content-security-policy') ?? '';
+    const scriptSrc = directive(csp, 'script-src');
     expect(scriptSrc).toContain('https://js.stripe.com');
     expect(scriptSrc).not.toContain("'strict-dynamic'");
+    // Stripe img-src is present in hosted (non-fleet) mode.
+    expect(directive(csp, 'img-src')).toContain('https://*.stripe.com');
   });
 
   it('keeps unsafe-inline on style-src (intentional — Tailwind/Next/tenant inline styles)', async () => {
