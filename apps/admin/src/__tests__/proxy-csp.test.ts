@@ -49,9 +49,12 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
 
   it('preserves the external-script host allowlist and does not use strict-dynamic', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
-    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    const csp = res.headers.get('content-security-policy') ?? '';
+    const scriptSrc = directive(csp, 'script-src');
     expect(scriptSrc).toContain('https://js.stripe.com');
     expect(scriptSrc).not.toContain("'strict-dynamic'");
+    // Stripe img-src is present in hosted (non-fleet) mode.
+    expect(directive(csp, 'img-src')).toContain('https://*.stripe.com');
   });
 
   it('keeps unsafe-inline on style-src (intentional — Tailwind/Next/tenant inline styles)', async () => {
@@ -115,6 +118,13 @@ describe('admin proxy — CSP fleet mode (GAP-290)', () => {
     const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
     expect(scriptSrc).toContain("'nonce-");
     expect(scriptSrc).not.toContain("'unsafe-inline'");
+  });
+
+  it('strips Stripe from img-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const imgSrc = directive(res.headers.get('content-security-policy') ?? '', 'img-src');
+    expect(imgSrc).not.toContain('stripe.com');
+    expect(imgSrc).not.toContain('cloudinary.com');
   });
 
   it('strips Stripe from frame-src and connect-src in fleet mode', async () => {
