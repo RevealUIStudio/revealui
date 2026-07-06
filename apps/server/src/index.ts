@@ -51,6 +51,7 @@ import {
   validateLicenseAtStartup,
   validateStartup,
 } from './lib/validate-startup.js';
+import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';

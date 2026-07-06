@@ -161,7 +161,10 @@ const verifyRoute = createRoute({
 
 app.openapi(verifyRoute, async (c) => {
   const { licenseKey } = c.req.valid('json');
-  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replace(/\\n/g, '\n') ?? undefined;
+  // Restore real newlines in a single-line PEM (split/join, no authored regex
+  // — mirrors @revealui/core/license normalizePem). GAP-259 P0-4.
+  const publicKey =
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY?.split('\\n').join('\n') ?? undefined;
 
   if (!publicKey) {
     logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured');

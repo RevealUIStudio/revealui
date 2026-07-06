@@ -198,7 +198,7 @@ let cachedState: LicenseState = {
  * (Docker / .env files commonly do this). Fixed-string split/join — no
  * authored regex, per the fleet no-regex rule.
  */
-function normalizePem(raw: string): string {
+export function normalizePem(raw: string): string {
   return raw.split('\\n').join('\n');
 }
 
@@ -211,8 +211,13 @@ function normalizePem(raw: string): string {
  * signed by EITHER key verifies GREEN and no customer is interrupted while
  * re-minted tokens propagate. In production the current key is provisioned
  * from the license server; both read from env here.
+ *
+ * Exported so the hosted boot canary (`apps/server` validate path) builds the
+ * SAME ordered, newline-normalized list the request path uses — a NEXT-signed
+ * token must pass the canary during a rotation window exactly as it passes a
+ * live request.
  */
-function getPublicKeys(): string[] {
+export function getPublicKeys(): string[] {
   const keys: string[] = [];
   const current = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
   if (current) keys.push(normalizePem(current));

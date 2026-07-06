@@ -51,6 +51,7 @@ import {
   validateLicenseAtStartup,
   validateStartup,
 } from './lib/validate-startup.js';
+import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { startExecutor } from './services/revmarket-executor.js';
 
 // Persistent audit storage (replaces default InMemoryAuditStorage).

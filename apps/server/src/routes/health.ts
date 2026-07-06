@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
+import { getLicenseStatus } from '@revealui/core/license';
 import {
   createDatabaseHealthCheck,
   createMemoryHealthCheck,
@@ -9,7 +10,11 @@ import {
 import { getClient } from '@revealui/db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { sql } from 'drizzle-orm';
-import { corsConfigMissing } from '../lib/startup-state.js';
+import {
+  corsConfigMissing,
+  licenseCanaryDegraded,
+  licenseCanaryDegradedReason,
+} from '../lib/startup-state.js';
 
 const app = new OpenAPIHono();
 
@@ -48,6 +53,36 @@ healthCheck.register(
 );
 
 healthCheck.register(createMemoryHealthCheck(90));
+
+// License readiness — surfaces the otherwise-silent hosted `initializeLicense`
+// free-fall (GAP-259 P0-4). When a license key is present but fails validation,
+// initializeLicense degrades to free tier with keyPresentButInvalid set, which
+// getLicenseStatus() reports as mode 'expired'. Reuse that state (do not
+// re-derive it) and report unhealthy so /health/ready flips red — a deployment
+// silently serving free tier after a broken license key is a readiness fault,
+// not a healthy boot. `critical: true` so an unhealthy result drives the overall
+// status to 'unhealthy' (→ 503), matching the corsConfigMissing posture.
+healthCheck.register({
+  name: 'license',
+  critical: true,
+  timeout: 1000,
+  check: async () => {
+    const status = getLicenseStatus();
+    if (status.mode === 'expired') {
+      return {
+        status: 'unhealthy',
+        message:
+          status.reason ?? 'License key present but failed validation (degraded to free tier)',
+        details: { mode: status.mode, tier: status.tier },
+      };
+    }
+    return {
+      status: 'healthy',
+      message: `License mode: ${status.mode}`,
+      details: { mode: status.mode, tier: status.tier },
+    };
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Routes
@@ -177,7 +212,10 @@ app.openapi(readyRoute, async (c) => {
   const startTime = Date.now();
   const health = await healthCheck.checkHealth();
 
-  const ready = health.status !== 'unhealthy' && !corsConfigMissing;
+  // Readiness-red on: any critical check unhealthy (DB, license free-fall),
+  // a missing CORS config, or a degraded hosted license canary (a jose/parse
+  // fault caught at boot that keeps the process alive but must not take traffic).
+  const ready = health.status !== 'unhealthy' && !corsConfigMissing && !licenseCanaryDegraded;
 
   const duration = Date.now() - startTime;
   trackHTTPRequest('GET', '/health/ready', ready ? 200 : 503, duration);
@@ -191,6 +229,10 @@ app.openapi(readyRoute, async (c) => {
       uptime: health.uptime,
       checks: health.checks,
       ...(corsConfigMissing && { corsConfigMissing: true }),
+      ...(licenseCanaryDegraded && {
+        licenseCanaryDegraded: true,
+        licenseCanaryReason: licenseCanaryDegradedReason,
+      }),
     },
     ready ? 200 : 503,
   );
