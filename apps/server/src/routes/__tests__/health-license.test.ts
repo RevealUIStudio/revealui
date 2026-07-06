@@ -7,13 +7,13 @@ vi.mock('@revealui/db', () => ({
   getPoolMetrics: vi.fn().mockReturnValue([]),
 }));
 
-import { getClient } from '@revealui/db';
 import {
   generateLicenseKey,
   getLicenseStatus,
   initializeLicense,
   resetLicenseState,
 } from '@revealui/core/license';
+import { getClient } from '@revealui/db';
 import { setCorsConfigMissing, setLicenseCanaryDegraded } from '../../lib/startup-state.js';
 import healthApp from '../health.js';
 

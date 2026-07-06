@@ -15,7 +15,6 @@ let publicKeyA: string;
 let privateKeyA: string;
 let publicKeyB: string;
 let privateKeyB: string;
-let publicKeyC: string;
 let privateKeyC: string;
 
 beforeAll(() => {
@@ -37,7 +36,6 @@ beforeAll(() => {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
-  publicKeyC = pairC.publicKey;
   privateKeyC = pairC.privateKey;
 });
 
