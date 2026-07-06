@@ -28,7 +28,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-06-22 (
 | Packages in `packages/` | **27** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
 | Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (one app removed per PR #936 + #946 + #947). |
 | Workspaces (monorepo total) | **31** | `countWorkspaces()` (= 27 packages + 4 apps) | |
-| Test files | **1971** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "1900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
+| Test files | **984** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
 | UI components in `packages/presentation/` | **60** | `countUIComponents()` | Marketing copy says "60 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
 | DB tables (Drizzle pgTable) | **85** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
