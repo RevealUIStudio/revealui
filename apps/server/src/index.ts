@@ -45,13 +45,13 @@ import { logger as honoLogger } from 'hono/logger';
 // CR8-P2-01 phase C.
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
   validateStartup,
 } from './lib/validate-startup.js';
-import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';

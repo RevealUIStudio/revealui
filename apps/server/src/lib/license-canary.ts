@@ -2,7 +2,7 @@ import { getPublicKeys, normalizePem, selfVerifyLicenseKeypair } from '@revealui
 import { logger } from '@revealui/core/observability/logger';
 import { sendCronFailureAlert } from './cron-alerts.js';
 import { setLicenseCanaryDegraded } from './startup-state.js';
-import { type EnvMap, detectDeploymentMode } from './validate-startup.js';
+import { detectDeploymentMode, type EnvMap } from './validate-startup.js';
 
 const CANARY_JOB = 'hosted-license-canary';
 
