@@ -216,20 +216,6 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
-  // /dashboard is served by (backend)/[[...segments]] but (frontend)/[slug] has
-  // higher Next.js routing priority for single-segment paths. When no CMS page
-  // exists for slug "dashboard" the CMS catch-all calls getCachedRedirects()
-  // with no error handling — if getRevealUIInstance() throws, that propagates
-  // to (frontend)/error.tsx ("We hit a snag"). Redirect authenticated admins
-  // to / (the real admin home, served by (backend)) before Next.js can route
-  // them to the (frontend) group at all.
-  if (pathname === '/dashboard') {
-    const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = '/';
-    homeUrl.search = '';
-    return NextResponse.redirect(homeUrl);
-  }
-
   // Fleet-mode page guard: upgrade and billing pages are SaaS-only surfaces.
   // Fleet kits ship with a forge license rather than a Stripe subscription;
   // redirect these routes to / (the admin home) so fleet users don't see Stripe checkout UI.
