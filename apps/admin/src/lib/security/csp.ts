@@ -15,12 +15,13 @@
  *     `Content-Security-Policy` header and applies it to its framework, bundle,
  *     and inline bootstrap scripts (plus `<Script>` components).
  *   - We deliberately KEEP the external-script host allowlist (Stripe, Maps,
- *     Cloudinary, Vercel insights) and do NOT use `'strict-dynamic'`, which
- *     would make those host-sources be ignored. So `<script src>` to allow-
- *     listed hosts keeps working exactly as before; only inline scripts now
- *     require the nonce. (`'unsafe-inline'` is ignored by CSP3 browsers whenever
- *     a nonce is present, so dropping it is the intended tightening, not a
- *     behaviour change for compliant browsers.)
+ *     Cloudinary, Vercel insights) in non-fleet mode and do NOT use
+ *     `'strict-dynamic'`, which would make those host-sources be ignored. In
+ *     fleet mode (`REVEALUI_FLEET_MODE=true`) the hosted third-party SDK domains
+ *     are omitted — fleet kits are self-hosted and must not phone home to
+ *     SaaS-specific endpoints. (`'unsafe-inline'` is ignored by CSP3 browsers
+ *     whenever a nonce is present, so dropping it is the intended tightening,
+ *     not a behaviour change for compliant browsers.)
  *   - `'unsafe-eval'` stays dev-only — React uses `eval` for dev error overlays;
  *     production React/Next do not.
  *   - `style-src` keeps `'unsafe-inline'` by design: Tailwind v4, Next, and the
@@ -45,6 +46,13 @@ export interface AdminCspOptions {
   apiUrl: string;
   /** `NEXT_PUBLIC_SERVER_URL` — optional deployment origin; `''` when unset. */
   serverUrl: string;
+  /**
+   * `REVEALUI_FLEET_MODE === 'true'` — running as a fleet kit.
+   * When true, hosted third-party SDK domains (Stripe.js, Vercel Analytics,
+   * Google Maps, Cloudinary) are omitted from every CSP directive. Fleet kits
+   * are self-hosted and must not include SaaS-specific external origins.
+   */
+  isFleetMode?: boolean;
 }
 
 /**
@@ -67,34 +75,38 @@ export function generateNonce(): string {
  * the admin's same-origin live-preview iframe keeps working.
  */
 export function buildAdminCsp(options: AdminCspOptions): string {
-  const { nonce, isDev, isVercel, isVercelProd, apiUrl, serverUrl } = options;
+  const { nonce, isDev, isVercel, isVercelProd, apiUrl, serverUrl, isFleetMode = false } = options;
   const vercelPreview = isVercel && !isVercelProd;
 
   const scriptSrc = [
     "'self'",
     `'nonce-${nonce}'`,
     ...(isDev ? ["'unsafe-eval'"] : []),
-    'https://checkout.stripe.com',
-    'https://js.stripe.com',
-    'https://maps.googleapis.com',
-    'https://res.cloudinary.com',
-    'https://cdn.vercel-insights.com',
+    ...(isFleetMode
+      ? []
+      : [
+          'https://checkout.stripe.com',
+          'https://js.stripe.com',
+          'https://maps.googleapis.com',
+          'https://res.cloudinary.com',
+          'https://cdn.vercel-insights.com',
+        ]),
     ...(vercelPreview ? ['https://vercel.live', 'https://*.vercel.live'] : []),
   ];
 
   const frameSrc = [
     "'self'",
-    'https://checkout.stripe.com',
-    'https://js.stripe.com',
-    'https://hooks.stripe.com',
+    ...(isFleetMode
+      ? []
+      : ['https://checkout.stripe.com', 'https://js.stripe.com', 'https://hooks.stripe.com']),
     ...(vercelPreview ? ['https://vercel.live', 'https://*.vercel.live'] : []),
   ];
 
   const connectSrc = [
     "'self'",
-    'https://checkout.stripe.com',
-    'https://api.stripe.com',
-    'https://maps.googleapis.com',
+    ...(isFleetMode
+      ? []
+      : ['https://checkout.stripe.com', 'https://api.stripe.com', 'https://maps.googleapis.com']),
     apiUrl,
     ...(serverUrl ? [serverUrl] : []),
     ...(vercelPreview
@@ -108,11 +120,11 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     `script-src ${scriptSrc.join(' ')}`,
     "child-src 'self'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' https://res.cloudinary.com https://*.stripe.com data: https://www.gravatar.com",
+    `img-src 'self' ${isFleetMode ? '' : 'https://res.cloudinary.com '}https://*.stripe.com data: https://www.gravatar.com`,
     "font-src 'self' https://fonts.gstatic.com",
     `frame-src ${frameSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
-    'object-src https://res.cloudinary.com',
+    ...(isFleetMode ? [] : ['object-src https://res.cloudinary.com']),
     "base-uri 'self'",
     "form-action 'self'",
     'upgrade-insecure-requests',
