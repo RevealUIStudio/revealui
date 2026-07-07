@@ -655,7 +655,7 @@ test.describe('Admin Dashboard Access @auth @admin', () => {
       },
       {
         name: 'revealui-role',
-        value: 'user',
+        value: 'viewer',
         domain: hostname,
         path: '/',
       },
