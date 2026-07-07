@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
-    "@electric-sql/pglite-pgvector": "^0.0.4",
+    "@electric-sql/pglite-pgvector": "^0.0.5",
     "@playwright/test": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",

@@ -4,7 +4,7 @@ packages:
 
 catalog:
   '@biomejs/biome': ^2.5.2
-  '@electric-sql/pglite': ^0.5.3
+  '@electric-sql/pglite': ^0.5.4
   '@neondatabase/serverless': ^1.1.0
   '@playwright/test': ^1.61.1
   '@simplewebauthn/browser': ^13.3.0
