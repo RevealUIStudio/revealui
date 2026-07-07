@@ -15,9 +15,12 @@ name: Dependabot Catalog Lockfile Auto-Fix
 #   3. Runs `pnpm install --lockfile-only --ignore-scripts`, which
 #      regenerates importer specifiers back to 'catalog:' against the
 #      already-correct workspace catalog.
-#   4. If the lockfile drifted, commits the fix (authored by
-#      github-actions[bot]) and pushes to the PR head using a GitHub App
-#      installation token (the revfleet-backflow App), NOT GITHUB_TOKEN.
+#   4. If the lockfile drifted, commits the fix to the PR head via the
+#      GitHub Contents API using a GitHub App installation token (the
+#      revfleet-backflow App), NOT GITHUB_TOKEN. An API commit is signed by
+#      GitHub's web-flow key ("Verified"), so it satisfies the
+#      require-signed-commits ruleset; a local `git push` was unsigned and
+#      left every catalog-touching Dependabot PR blocked.
 #
 # Why a GitHub App token instead of GITHUB_TOKEN: a push made with the
 # default GITHUB_TOKEN does NOT trigger `pull_request` /
@@ -117,12 +120,28 @@ jobs:
             git --no-pager diff --stat pnpm-lock.yaml
           fi
 
-      - name: Commit + push catalog specifier fix
+      # Commit the lockfile fix through the GitHub Contents API (NOT a local
+      # `git push`). A commit created via the API with the App installation
+      # token is signed by GitHub's web-flow key and lands "Verified", so it
+      # satisfies the `require-signed-commits` ruleset — a plain
+      # `git commit && git push` produced an UNSIGNED commit that the ruleset
+      # rejected, leaving every catalog-touching Dependabot PR blocked. The
+      # App-token write still fires the `synchronize` event (re-running ci.yml
+      # on the fixed head) and the push-loop guard above still short-circuits
+      # the re-triggered autofix run.
+      - name: Commit catalog specifier fix (signed via GitHub API)
         if: steps.drift.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml
-          git -c core.fileMode=false commit -m "fix(deps): restore catalog specifiers in pnpm-lock.yaml"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          echo "::notice::Pushed catalog-specifier fix to ${{ github.event.pull_request.head.ref }}"
+          base64 -w0 pnpm-lock.yaml > /tmp/lock.b64
+          sha="$(gh api "repos/${{ github.repository }}/contents/pnpm-lock.yaml?ref=${BRANCH}" --jq .sha)"
+          jq -n \
+            --arg message "fix(deps): restore catalog specifiers in pnpm-lock.yaml" \
+            --rawfile content /tmp/lock.b64 \
+            --arg sha "$sha" \
+            --arg branch "$BRANCH" \
+            '{message:$message, content:($content|rtrimstr("\n")), sha:$sha, branch:$branch}' > /tmp/lockfix.json
+          gh api --method PUT "repos/${{ github.repository }}/contents/pnpm-lock.yaml" --input /tmp/lockfix.json >/dev/null
+          echo "::notice::Committed catalog-specifier fix via GitHub API (signed) to ${BRANCH}"
