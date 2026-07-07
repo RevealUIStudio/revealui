@@ -32,7 +32,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "next": "^16.2.10",
-    "next-devtools-mcp": "^0.3.10",
+    "next-devtools-mcp": "^0.4.0",
     "pg": "catalog:",
     "playwright": "^1.61.1",
     "size-limit": "^12.1.0",
