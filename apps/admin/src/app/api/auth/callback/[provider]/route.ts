@@ -24,7 +24,6 @@ import { getOAuthAccountByProviderUser } from '@revealui/db/queries/oauth-accoun
 import { countActiveUsers } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
@@ -156,9 +155,9 @@ export async function GET(
 
     const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
 
-    // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
-    const userRole = (user as { role?: string }).role ?? 'user';
-    response.cookies.set('revealui-role', isAdminRole(userRole) ? 'admin' : 'user', {
+    // Set role cookie for proxy.ts role-aware gate (defense-in-depth).
+    const userRole = (user as { role?: string }).role ?? 'viewer';
+    response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

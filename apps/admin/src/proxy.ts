@@ -54,16 +54,18 @@ const PUBLIC_PATHS = new Set([
   '/setup',
 ]);
 
-// Session-only paths in the (backend) route group: require an authenticated
-// session but NOT the admin role. `/welcome` is the post-checkout landing
-// (Stripe `success_url` in apps/server billing.ts) and every self-serve
-// subscriber has role `user`, not `admin` — gating it on admin would bounce a
-// paying customer to /login at the moment of conversion. The page is a client
-// component that renders only the user's own tier + generic CTAs (no privileged
-// data), so a valid session is sufficient.
-// `/account/billing` is also session-only: subscribers arriving from /welcome
-// via the "Billing portal" link need to reach checkout without admin role.
-const SESSION_ONLY_PATHS = new Set(['/welcome', '/account/billing']);
+// Roles that grant full dashboard access including admin-only paths.
+const ADMIN_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'super-admin']);
+
+// Admin-only paths require owner/admin role. Non-admin authenticated users
+// are redirected to /welcome when they try to access these.
+const ADMIN_ONLY_PREFIXES = ['/settings', '/users'] as const;
+
+function isAdminOnlyPath(pathname: string): boolean {
+  return ADMIN_ONLY_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
 
 // Legacy `/admin/*` paths from before the chip-2 URL flatten (#644) — 301 to
 // flat path. Catches stale bookmarks and any external links written against
@@ -155,28 +157,24 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
-  // Already-authenticated admins have no reason to see the login/signup screens.
-  // Redirect them to the dashboard. Scoped to /login + /signup ONLY — /setup,
-  // /rotate-password, /reset-password, /mfa stay reachable for an
-  // authenticated or partially-authenticated user (forced rotation, MFA enrollment,
-  // etc.). The `revealui-role` cookie is normalized to 'admin' | 'user' at sign-in
-  // (defense-in-depth UI hint), and this predicate matches the auth gate's admit
-  // check below, so an admin sent to '/' always passes that gate — no redirect loop.
+  // Already-authenticated users have no reason to see the login/signup screens.
+  // Admins go to /, non-admins go to /welcome.
   if (pathname === '/login' || pathname === '/signup') {
     const session = request.cookies.get('revealui-session')?.value;
     const role = request.cookies.get('revealui-role')?.value;
-    if (session && role === 'admin') {
+    if (session && role) {
       const homeUrl = request.nextUrl.clone();
-      homeUrl.pathname = '/';
+      homeUrl.pathname = ADMIN_ROLES.has(role) ? '/' : '/welcome';
       homeUrl.search = '';
       return NextResponse.redirect(homeUrl);
     }
   }
 
-  // Auth gate: protect (backend) pages — every path that isn't public and
-  // isn't internal needs a session + admin role. The role cookie is a
-  // defense-in-depth UI hint (set at login). Real enforcement is at the API
-  // level via collection access.read checks.
+  // Auth gate: protect (backend) pages. Every path that isn't public and
+  // isn't internal needs an authenticated session. Admin-only paths
+  // (/settings, /users) additionally require an admin role. The role cookie
+  // is a defense-in-depth UI hint — real enforcement is at the API level via
+  // collection access.read checks.
   const isInternal = pathname.startsWith('/api/') || pathname.startsWith('/_next/');
   const isPublic = PUBLIC_PATHS.has(pathname) || pathname.startsWith('/legal/');
   if (!(isInternal || isPublic)) {
@@ -188,17 +186,11 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       return NextResponse.redirect(loginUrl);
     }
 
-    // Admin-role requirement. Skipped for session-only paths (e.g. /welcome),
-    // which any authenticated user may reach.
-    if (!SESSION_ONLY_PATHS.has(pathname)) {
+    // Role-aware gate: admin-only paths require owner/admin/super-admin.
+    // All other authenticated paths are open to any role.
+    if (isAdminOnlyPath(pathname)) {
       const role = request.cookies.get('revealui-role')?.value;
-      if (role !== 'admin') {
-        // Authenticated but not an admin. Redirect to /welcome (their session-only
-        // home), NOT /login. Bouncing an already-signed-in user to the login form
-        // they just used produces a silent flash-and-reappear loop with no feedback
-        // (a user-role account sent to an admin route via a ?redirect= intent).
-        // The `denied` param lets /welcome explain that the admin area needs an
-        // admin role.
+      if (!role || !ADMIN_ROLES.has(role)) {
         const welcomeUrl = request.nextUrl.clone();
         welcomeUrl.pathname = '/welcome';
         welcomeUrl.search = '';
