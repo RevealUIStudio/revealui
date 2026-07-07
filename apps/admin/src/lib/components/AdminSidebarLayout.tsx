@@ -20,6 +20,7 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ReactNode;
+  adminOnly?: boolean;
 }
 
 function NavIcon({ d }: { d: string }) {
@@ -141,19 +142,22 @@ const bottomItems: NavItem[] = [
   {
     href: '/settings',
     label: 'Settings',
+    adminOnly: true,
     icon: (
       <NavIcon d="M8 10a2 2 0 1 1 4 0 2 2 0 0 1-4 0Zm2-5.5A1.5 1.5 0 0 1 11.5 6c0 .587.268 1.089.689 1.24a4.98 4.98 0 0 1 1.271.733c.403.29.94.284 1.365.026A1.5 1.5 0 0 1 17.5 9.5c0 .587-.268 1.089-.689 1.24a4.98 4.98 0 0 0 0 2.52c.421.151.689.653.689 1.24a1.5 1.5 0 0 1-2.675 1.001c-.425-.258-.962-.264-1.365.026a4.98 4.98 0 0 1-1.271.733c-.421.151-.689.653-.689 1.24A1.5 1.5 0 0 1 10 19.5a1.5 1.5 0 0 1-1.5-1.5c0-.587-.268-1.089-.689-1.24a4.98 4.98 0 0 1-1.271-.733c-.403-.29-.94-.284-1.365-.026A1.5 1.5 0 0 1 2.5 14.5c0-.587.268-1.089.689-1.24a4.98 4.98 0 0 0 0-2.52C2.768 10.589 2.5 10.087 2.5 9.5A1.5 1.5 0 0 1 5.175 8.499c.425.258.962.264 1.365-.026a4.98 4.98 0 0 1 1.271-.733C8.232 7.589 8.5 7.087 8.5 6.5A1.5 1.5 0 0 1 10 5Z" />
     ),
   },
 ];
 
-function AdminSidebarContent({ siteName }: { siteName: string }) {
+function AdminSidebarContent({ siteName, isAdmin }: { siteName: string; isAdmin: boolean }) {
   const pathname = usePathname();
 
   const isCurrent = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
   };
+
+  const visibleBottomItems = isAdmin ? bottomItems : bottomItems.filter((item) => !item.adminOnly);
 
   return (
     <Sidebar>
@@ -194,7 +198,7 @@ function AdminSidebarContent({ siteName }: { siteName: string }) {
         </SidebarSection>
         <SidebarSpacer />
         <SidebarSection>
-          {bottomItems.map((item) => (
+          {visibleBottomItems.map((item) => (
             <SidebarItem key={item.href} href={item.href} current={isCurrent(item.href)}>
               {item.icon}
               <SidebarLabel>{item.label}</SidebarLabel>
@@ -213,24 +217,18 @@ export function AdminSidebarLayout({
   children,
   siteName = 'RevealUI',
   isFleetMode = false,
+  isAdmin = true,
 }: {
   children: React.ReactNode;
-  /**
-   * Resolved tenant name for the admin shell footer. Read by the parent
-   * server component from REVEALUI_BRAND_NAME / REVEALUI_TENANT_NAME and
-   * passed down — `process.env` references in this client file would be
-   * inlined at framework build time and miss the kit's stamped value.
-   */
   siteName?: string;
-  /**
-   * Fleet-mode flag passed from the parent server component. When true,
-   * SaaS-only UI (subscriber billing banner, upgrade dialog) is suppressed —
-   * fleet kits use a forge license, not a Stripe subscription.
-   */
   isFleetMode?: boolean;
+  isAdmin?: boolean;
 }) {
   return (
-    <SidebarLayout navbar={<span />} sidebar={<AdminSidebarContent siteName={siteName} />}>
+    <SidebarLayout
+      navbar={<span />}
+      sidebar={<AdminSidebarContent siteName={siteName} isAdmin={isAdmin} />}
+    >
       {isFleetMode ? null : <FreeTierBanner />}
       {children}
       {isFleetMode ? null : <UpgradeDialog />}
