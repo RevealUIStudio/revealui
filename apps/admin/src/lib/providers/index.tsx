@@ -5,7 +5,12 @@ import { HeaderThemeProvider } from './HeaderTheme/index';
 import { LicenseProvider } from './LicenseProvider';
 import { ThemeProvider } from './Theme/index';
 
-export const Providers = ({ children }: { children: React.ReactNode }) => {
+interface ProvidersProps {
+  children: React.ReactNode;
+  isFleetMode?: boolean;
+}
+
+export const Providers = ({ children, isFleetMode = false }: ProvidersProps) => {
   return (
     <ElectricProvider
       serviceUrl={process.env.NEXT_PUBLIC_ELECTRIC_SERVICE_URL}
@@ -13,9 +18,9 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
     >
       <ThemeProvider>
         <HeaderThemeProvider>
-          <LicenseProvider>
+          <LicenseProvider isFleetMode={isFleetMode}>
             {children}
-            <UpgradeDialog />
+            {isFleetMode ? null : <UpgradeDialog />}
           </LicenseProvider>
         </HeaderThemeProvider>
       </ThemeProvider>

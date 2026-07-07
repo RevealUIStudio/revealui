@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ) : null}
         </head>
         <body>
-          <Providers>
+          <Providers isFleetMode={isFleetMode}>
             <ErrorBoundary>
               <AdminBar
                 adminBarProps={{

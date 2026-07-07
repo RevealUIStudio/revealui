@@ -16,9 +16,7 @@ export interface LicenseContextValue {
   refetch: () => Promise<void>;
 }
 
-async function resolveTier(): Promise<string> {
-  // Skip if API URL is not configured  -  prevents CORS errors in local dev
-  // and avoids calling the production API from self-hosted instances.
+async function resolveSaasTier(): Promise<string> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (!apiUrl) return 'free';
 
@@ -37,7 +35,13 @@ async function resolveTier(): Promise<string> {
   return 'free';
 }
 
-export function LicenseProvider({ children }: { children: React.ReactNode }) {
+interface LicenseProviderProps {
+  children: React.ReactNode;
+  isFleetMode?: boolean;
+}
+
+export function LicenseProvider({ children, isFleetMode = false }: LicenseProviderProps) {
+  const resolveTier = isFleetMode ? () => Promise.resolve('enterprise') : resolveSaasTier;
   return (
     <PaywallProvider paywall={paywall} resolveTier={resolveTier}>
       {children}
