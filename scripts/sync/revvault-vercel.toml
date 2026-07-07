@@ -30,8 +30,8 @@
 #                               sensitivity on re-create whenever any remote row
 #                               of the same key is already sensitive.
 #
-# Owner-ratified conventions: see ~/revfleet/.jv/docs/vercel-env-canonical-mapping.md
-# Design doc: ~/revfleet/.jv/docs/revvault-vercel-sync.md
+# Owner-ratified conventions: see the internal canonical env-var mapping doc
+# Design doc: internal revvault-vercel sync design (private coordination hub)
 # Requires revvault >= 0.3.0 (sensitive markers + preserve-on-recreate; older
 # binaries fail loudly on the inline `sensitive` key — by design) and PR #40
 # (per-var path overrides via `vars` table)

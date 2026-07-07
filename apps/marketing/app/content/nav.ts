@@ -1,5 +1,5 @@
 // Sourced from: app/components/NavBar.tsx, app/components/Footer.tsx (Phase 1c, no copy changes).
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Per the internal marketing-overhaul plan §4.4.
 
 import { SITE } from './site';
 import type { NavLink } from './types';

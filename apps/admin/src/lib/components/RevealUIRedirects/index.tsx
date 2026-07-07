@@ -13,7 +13,15 @@ interface Props {
 export const RevealUIRedirects = async ({ disableNotFound, url }: Props) => {
   const slug = url.startsWith('/') ? url : `${url}`;
 
-  const redirects = await getCachedRedirects()();
+  let redirects: Redirect[];
+  try {
+    redirects = await getCachedRedirects()();
+  } catch {
+    // Admin engine not ready (e.g. cold boot before initialization completes).
+    // Fall through to notFound() rather than propagating to the error boundary.
+    if (disableNotFound) return null;
+    return notFound();
+  }
 
   const redirectItem = redirects.find((redirectItem: Redirect) => redirectItem.from === slug);
 

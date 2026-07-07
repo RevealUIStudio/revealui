@@ -353,8 +353,8 @@ Update the deployment step in `.github/workflows/staging-performance.yml`:
     # Vercel
     npx vercel --prod=false
 
-    # Railway
-    railway deploy
+    # Fly.io (Railway was the retired origin — dropped per ADR 2026-05-18)
+    flyctl deploy
 
     # Render
     # Configure webhook deployment

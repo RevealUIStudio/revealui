@@ -67,11 +67,15 @@ const Users: RevealCollectionConfig<User> = {
       options: [
         {
           label: 'Super Admin',
-          value: 'super-admin', // Differentiate value
+          value: 'super-admin',
         },
         {
           label: 'Admin',
-          value: 'admin', // Differentiate value
+          value: 'admin',
+        },
+        {
+          label: 'Viewer',
+          value: 'viewer',
         },
       ],
     },

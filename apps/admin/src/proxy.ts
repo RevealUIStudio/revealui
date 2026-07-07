@@ -93,6 +93,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     isVercelProd: process.env.VERCEL_ENV === 'production',
     apiUrl: (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim(),
     serverUrl: (process.env.NEXT_PUBLIC_SERVER_URL || '').trim(),
+    isFleetMode: process.env.REVEALUI_FLEET_MODE === 'true',
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
@@ -213,6 +214,19 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       rotateUrl.pathname = '/rotate-password';
       return NextResponse.redirect(rotateUrl);
     }
+  }
+
+  // Fleet-mode page guard: upgrade and billing pages are SaaS-only surfaces.
+  // Fleet kits ship with a forge license rather than a Stripe subscription;
+  // redirect these routes to / (the admin home) so fleet users don't see Stripe checkout UI.
+  if (
+    process.env.REVEALUI_FLEET_MODE === 'true' &&
+    (pathname === '/upgrade' || pathname === '/account/billing')
+  ) {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = '/';
+    homeUrl.search = '';
+    return NextResponse.redirect(homeUrl);
   }
 
   // Strip overrideAccess from external API requests — only server-side code may use it.

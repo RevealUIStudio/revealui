@@ -3,8 +3,8 @@
 /**
  * KEK rotation tool — re-encrypt every KEK-encrypted row with a new key.
  *
- * Two surfaces in scope (per the GAP-126 Phase 1 survey at
- * `revealui-jv/docs/security/kek-encrypted-surfaces.md`):
+ * Two surfaces in scope (per the GAP-126 Phase 1 survey,
+ * internal KEK-encrypted-surfaces doc):
  *
  *   1. user_api_keys.encrypted_key  (NOT NULL, strict envelope)
  *   2. users.mfa_secret             (NULLABLE, rolling-migration aware)

@@ -26,10 +26,10 @@
     "@vitest/coverage-v8": "^4.1.9",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.16",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tailwindcss": "^4.3.1",
+    "tailwindcss": "^4.3.2",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "^4.1.9"

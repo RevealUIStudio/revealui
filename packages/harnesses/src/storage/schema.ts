@@ -1,12 +1,17 @@
 /**
  * PGlite schema for the RevDev Harness daemon.
  *
- * Five tables provide persistent state for multi-agent coordination:
+ * These tables provide persistent state for multi-agent coordination:
  *   - agent_sessions: active and historical agent sessions
  *   - agent_messages: inter-agent mailbox (point-to-point + broadcast)
  *   - file_reservations: advisory file locks with CAS semantics
  *   - tasks: claimable work items with CAS ownership
  *   - events: append-only event log for audit trail
+ *   - worktrees: per-agent git worktree registrations
+ *   - agent_memory: typed per-agent memory entries
+ *   - merge_requests: agent-branch merge lifecycle tracking
+ *   - goals: durable verifiable objectives (goal harness)
+ *   - goal_criteria: acceptance criteria gating goal completion
  *
  * Uses raw SQL (no Drizzle ORM) to keep the daemon dependency-free.
  * PGlite runs in-process  -  no external database needed.
@@ -122,6 +127,43 @@ export const SCHEMA_SQL = `
 
   CREATE INDEX IF NOT EXISTS idx_merge_requests_pr
     ON merge_requests (pr_number) WHERE pr_number IS NOT NULL;
+
+  CREATE TABLE IF NOT EXISTS goals (
+    id             TEXT PRIMARY KEY,
+    title          TEXT NOT NULL,
+    description    TEXT NOT NULL DEFAULT '',
+    status         TEXT NOT NULL DEFAULT 'open',
+    priority       TEXT NOT NULL DEFAULT 'medium',
+    owner          TEXT NOT NULL DEFAULT 'agent',
+    parent_goal_id TEXT,
+    blocked_by     JSONB NOT NULL DEFAULT '[]',
+    created_by     TEXT NOT NULL DEFAULT '',
+    status_reason  TEXT NOT NULL DEFAULT '',
+    created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+    closed_at      TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_goals_status
+    ON goals (status);
+
+  CREATE INDEX IF NOT EXISTS idx_goals_parent
+    ON goals (parent_goal_id) WHERE parent_goal_id IS NOT NULL;
+
+  CREATE TABLE IF NOT EXISTS goal_criteria (
+    id           TEXT PRIMARY KEY,
+    goal_id      TEXT NOT NULL,
+    description  TEXT NOT NULL,
+    status       TEXT NOT NULL DEFAULT 'pending',
+    evidence     TEXT NOT NULL DEFAULT '',
+    verified_by  TEXT,
+    verified_at  TIMESTAMP,
+    task_id      TEXT,
+    created_at   TIMESTAMP NOT NULL DEFAULT NOW()
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_goal_criteria_goal
+    ON goal_criteria (goal_id);
 `;
 
 /** Session row shape. */
@@ -219,5 +261,35 @@ export interface AgentMemoryEntry {
   memory_type: 'thought' | 'action' | 'result' | 'decision' | 'disagreement';
   content: string;
   metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+/** Goal row shape. */
+export interface GoalRow {
+  id: string;
+  title: string;
+  description: string;
+  status: 'open' | 'active' | 'blocked' | 'done' | 'abandoned';
+  priority: 'blocker' | 'high' | 'medium' | 'low';
+  owner: 'agent' | 'human';
+  parent_goal_id: string | null;
+  blocked_by: string[];
+  created_by: string;
+  status_reason: string;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+}
+
+/** Goal acceptance-criterion row shape. */
+export interface GoalCriterionRow {
+  id: string;
+  goal_id: string;
+  description: string;
+  status: 'pending' | 'met' | 'failed';
+  evidence: string;
+  verified_by: string | null;
+  verified_at: string | null;
+  task_id: string | null;
   created_at: string;
 }

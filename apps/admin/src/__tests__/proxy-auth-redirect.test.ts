@@ -99,6 +99,34 @@ describe('admin proxy — authenticated redirect off /login + /signup (#1107)', 
   });
 });
 
+describe('admin proxy — /dashboard auth gate (GAP-292)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+  });
+
+  it('redirects an unauthenticated /dashboard request to /login (auth gate)', async () => {
+    // /dashboard is not in PUBLIC_PATHS — auth gate protects it and redirects
+    // unauthenticated requests to /login with the original path preserved.
+    const res = await proxy(req('/dashboard'));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/login');
+    expect(url?.searchParams.get('redirect')).toBe('/dashboard');
+  });
+
+  it('does not redirect an authenticated admin off /dashboard (served by static route)', async () => {
+    // /dashboard is served by (backend)/dashboard/page.tsx (static route, higher
+    // priority than (frontend)/[slug]). The proxy should pass it through — no redirect.
+    const res = await proxy(req('/dashboard', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+});
+
 describe('admin proxy — /forgot-password is not public (S1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

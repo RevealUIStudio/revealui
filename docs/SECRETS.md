@@ -62,6 +62,14 @@ revealui/dev/admin-password
 revealui/dev/admin-session-cookie
 revealui/dev/electric/service-url
 revealui/dev/founder-license-key    # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon
+# Stripe TEST-mode keys (dev namespace) — used by local dev + the CI integration suite.
+revealui/dev/stripe/restricted-ci-test     # rk_test_* restricted (Write: PaymentIntents/Products/Prices/Checkout) — mirrored to CI as STRIPE_SECRET_KEY (see CI / publishing)
+revealui/dev/stripe/secret-key             # sk_test_* full test secret (broader; CI uses the restricted key above)
+revealui/dev/stripe/restricted-ro-test     # rk_test_* read-only
+revealui/dev/stripe/restricted-ro-live     # rk_live_* read-only
+revealui/dev/stripe/publishable-key        # pk_test_*
+revealui/dev/stripe/webhook-secret         # whsec_* (test)
+# revealui/dev/stripe/{pro,max,enterprise}-price-id also exist for local dev
 ```
 
 #### Production runtime
@@ -259,6 +267,14 @@ credentials/exa/api-key                 # Exa search
 # revealui/api-keys/npm-automation-token (+ prod mirror) was revoked on npm.org + removed from
 # the vault 2026-05-23 — see revealui#1016. (The credentials/npm/token path never existed.)
 credentials/sentry/auth-token           # error tracking (CI + runtime)
+# revealui CI integration tests (the "Integration Tests (extended)" job): the Stripe billing
+# contract test reads a least-privilege TEST restricted key, mirrored into revealui's Actions
+# secrets as STRIPE_SECRET_KEY (value piped, never echoed or written to disk):
+#   revvault --json get revealui/dev/stripe/restricted-ci-test | jq -r .value | gh secret set STRIPE_SECRET_KEY -R RevealUIStudio/revealui
+# The job self-activates only when the secret is present (RUN_INTEGRATION is gated on it in
+# .github/workflows/ci.yml). Rotation: create a new rk_test_ key in the Stripe TEST dashboard
+# (Write on PaymentIntents/Products/Prices/Checkout), revvault set --force the path, re-mirror
+# the Actions secret, then revoke the old key.
 ```
 
 ### Shared / cross-project credentials

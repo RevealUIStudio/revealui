@@ -8,6 +8,7 @@ export default defineConfig({
     'src/types/index.ts',
     'src/content/index.ts',
     'src/storage/index.ts',
+    'src/goals/index.ts',
   ],
   format: ['esm'],
   dts: true,

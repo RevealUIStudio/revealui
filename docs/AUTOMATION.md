@@ -58,7 +58,7 @@ The previous `.cursor/mcp-config.json` configuration file is not present in this
 
 ## Branch Protection
 
-Branch protection for the RevealUI Studio fleet is declared as code in the **private** `revealui-jv` coordination repo. The desired state for each repo lives at `branch-protection/<repo>.json`; a small bash + `jq` + `gh api` script (`scripts/apply-branch-protection.sh`) diffs declarations against live GitHub state and pushes them via `PUT /repos/{owner}/{repo}/branches/{branch}/protection`. The script is idempotent.
+Branch protection for the RevealUI Studio fleet is declared as code in the private coordination hub. The desired state for each repo lives at `branch-protection/<repo>.json`; a small bash + `jq` + `gh api` script (`scripts/apply-branch-protection.sh`) diffs declarations against live GitHub state and pushes them via `PUT /repos/{owner}/{repo}/branches/{branch}/protection`. The script is idempotent.
 
 ### Posture
 

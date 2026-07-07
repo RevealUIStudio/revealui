@@ -299,7 +299,7 @@ function main(): void {
     'Convention: prefer text-foreground / text-muted-foreground / text-primary semantic tokens.\n',
   );
   process.stdout.write(
-    'See: docs/decisions/2026-05-19-semantic-text-tokens.md (in revealui-jv) or design-system/CLAUDE.md.\n\n',
+    'See: the internal semantic-text-tokens ADR (2026-05-19) or design-system/CLAUDE.md.\n\n',
   );
 
   const sortedFiles = Array.from(byFile.keys()).sort();

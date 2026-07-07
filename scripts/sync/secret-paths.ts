@@ -58,6 +58,13 @@ export interface SecretPathDef {
   consumers: string[];
   /** Feeds P0-5 (⊇ REQUIRED_IN_PRODUCTION_HOSTED). Set only where confirmed required-at-boot. */
   requiredInProdHosted?: boolean;
+  /**
+   * Env var name(s) this vault path is consumed as. REQUIRED for entries with
+   * `requiredInProdHosted` — P0-5 (prod-required-coverage.test.ts) asserts each
+   * is enforced at hosted-prod boot, via validate-startup's
+   * REQUIRED_IN_PRODUCTION_HOSTED or a REQUIRED_ALWAYS_GROUPS alias group.
+   */
+  envVars?: string[];
   /** Declared in-flight rename target (zero-downtime). The value has NOT moved yet. */
   migratingTo?: string;
   /** ISO date the migration was declared. Lingering past one release window is a finding. */
@@ -176,6 +183,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'prod',
     consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
     requiredInProdHosted: true,
+    envVars: ['POSTGRES_URL', 'DATABASE_URL'],
     note: 'canonical Neon pooled url - feeds POSTGRES_URL + DATABASE_URL',
   },
   {
@@ -248,6 +256,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'prod',
     consumers: ['vercel:api', 'fly:worker'],
     requiredInProdHosted: true,
+    envVars: ['REVEALUI_ALERT_EMAIL'],
     note: 'required at prod boot - apps/api refuses to start without it',
   },
   // ── Admin subsystem ───────────────────────────────────────────────────────
@@ -406,6 +415,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'prod',
     consumers: ['vercel:api', 'fly:worker'],
     requiredInProdHosted: true,
+    envVars: ['SENTRY_DSN'],
     note: 'server DSN - required by validate-startup REQUIRED_IN_PRODUCTION_HOSTED',
   },
   {

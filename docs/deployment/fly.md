@@ -18,7 +18,7 @@ latency on shape queries via the worker's Hono app surface).
 | Fly app | Purpose | Status |
 |---------|---------|--------|
 | `revealui-worker` | apps/server long-running subset (alerting, Yjs collab WS, agent-collab WS, terminal-ws Forge-gated, RVMarket executor flag-gated) | Phase 3 — scaffolded, first deploy pending |
-| `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from Railway |
+| `revealui-electric` | ElectricSQL sync service, replicates from Neon | Phase 5 — Electric cutover from the retired Railway host (ADR 2026-05-18) |
 
 ## First deploy (one-time setup)
 
@@ -34,33 +34,22 @@ flyctl auth login
 # 2. Create the Fly app (one-time per environment)
 flyctl apps create revealui-worker --org personal
 
-# 3. Mirror prod secrets from revvault → Fly.
+# 3. Mirror prod secrets from revvault → Fly via the sync target.
 #
-#    NOTE: `revvault sync fly` is NOT YET IMPLEMENTED — the installed revvault
-#    CLI only supports `sync vercel`. Until it lands, set the secrets with
-#    `flyctl secrets set`, reading EVERY var under [fly-apps.revealui-worker.vars]
-#    in scripts/sync/revvault-fly.toml. The worker imports the full Hono app, so
-#    it needs API-PARITY env (same set as the Vercel revealui-api project) — a
-#    minimal subset fails startup validation. Example (abbreviated — include the
-#    full manifest set: R2_*, GOOGLE_*, EMAIL_*, PASSKEY_*, STRIPE price/webhook,
-#    CORS_ORIGIN, SESSION_COOKIE_DOMAIN, …):
-flyctl secrets set --stage --app revealui-worker \
-  POSTGRES_URL="$(revvault --json get revealui/prod/db/postgres-url | jq -r .value)" \
-  REVEALUI_SECRET="$(revvault --json get revealui/prod/secret | jq -r .value)" \
-  REVEALUI_KEK="$(revvault --json get revealui/prod/kek | jq -r .value)" \
-  REVEALUI_PUBLIC_SERVER_URL="$(revvault --json get revealui/prod/public/server-url | jq -r .value)" \
-  NEXT_PUBLIC_SERVER_URL="$(revvault --json get revealui/prod/public/server-url | jq -r .value)" \
-  REVEALUI_ALERT_EMAIL="$(revvault --json get revealui/prod/alert-email | jq -r .value)" \
-  REVEALUI_BILLING_PORTAL_CONFIG_ID="$(revvault --json get revealui/prod/billing/portal-config-id | jq -r .value)" \
-  REVEALUI_LICENSE_PRIVATE_KEY="$(revvault --json get revealui/prod/license/private-key | jq -r .value)" \
-  REVEALUI_LICENSE_PUBLIC_KEY="$(revvault --json get revealui/prod/license/public-key | jq -r .value)" \
-  SENTRY_DSN="$(revvault --json get revealui/prod/sentry/dsn | jq -r .value)"
+#    The manifest at scripts/sync/revvault-fly.toml defines the worker's full
+#    secret set ([fly-apps.revealui-worker.vars]). The worker imports the full
+#    Hono app, so it needs API-PARITY env (same set as the Vercel revealui-api
+#    project) — a minimal subset fails startup validation. Auth via
+#    FLY_API_TOKEN (or --token). Dry-run first (prints the add/set/orphan
+#    diff, writes nothing), then apply:
+revvault sync fly --manifest scripts/sync/revvault-fly.toml
+revvault sync fly --manifest scripts/sync/revvault-fly.toml --apply
 
-# 3b. STRIPE — set Fly-direct, NOT from the vault secret-key path. In the current
-#     test-mode posture (STRIPE_LIVE_MODE unset), startup validation REQUIRES
-#     STRIPE_SECRET_KEY to be a sk_test_ key; revealui/prod/stripe/secret-key
-#     holds the staged LIVE key. Set the prod TEST key directly:
-flyctl secrets set --stage --app revealui-worker STRIPE_SECRET_KEY="sk_test_..."
+# 3b. STRIPE — set Fly-direct, NOT via the sync target. STRIPE_SECRET_KEY and
+#     STRIPE_LIVE_MODE are on the manifest's `skip` list: startup validation
+#     requires the key's sk_test_/sk_live_ prefix to agree with STRIPE_LIVE_MODE,
+#     so the pair is set together, mode-gated, directly on the app:
+flyctl secrets set --stage --app revealui-worker STRIPE_SECRET_KEY="sk_..." STRIPE_LIVE_MODE="..."
 
 # 4. Deploy
 flyctl deploy --config apps/server/fly.toml \
@@ -99,9 +88,16 @@ The worker's full secret set (API-PARITY with the Vercel `revealui-api`
 project) is defined in
 [`scripts/sync/revvault-fly.toml`](../../scripts/sync/revvault-fly.toml).
 
-The `revvault sync fly` target that would push it is **not yet implemented**
-(the CLI only supports `sync vercel`); until it lands, set them manually with
-`flyctl secrets set` as in §First deploy. `STRIPE_SECRET_KEY` + `STRIPE_LIVE_MODE`
+Push it with the `revvault sync fly` target — dry-run by default, `--apply`
+to write (see §First deploy step 3):
+
+```bash
+revvault sync fly --manifest scripts/sync/revvault-fly.toml [--apply]
+```
+
+The sync adds absent secrets and re-sets present ones; secrets that exist on
+the Fly app but not in the manifest are surfaced as orphans, never deleted.
+`STRIPE_SECRET_KEY` + `STRIPE_LIVE_MODE` are on the manifest's `skip` list and
 are set Fly-direct (mode-gated), not synced.
 
 **Never** paste secrets into `apps/server/fly.toml` — that file is
@@ -166,6 +162,6 @@ unhealthy. Investigate via `flyctl logs --app revealui-worker`.
 ElectricSQL Fly setup lives in a separate `fly.electric.toml`
 (landing in Phase 5 of the infra-consolidation lane). Same region
 (iad), same Fly account. Connects to the same Neon `POSTGRES_URL`
-the worker uses. The cutover from Railway-hosted Electric to
-Fly-hosted Electric is the load-bearing piece of Phase 5 — see the
-lane plan for sequencing.
+the worker uses. The cutover from the retired Railway-hosted Electric
+(dropped per ADR 2026-05-18) to Fly-hosted Electric is the load-bearing
+piece of Phase 5 — see the lane plan for sequencing.

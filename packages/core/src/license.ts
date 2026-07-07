@@ -194,14 +194,36 @@ let cachedState: LicenseState = {
 };
 
 /**
- * The public key used to verify license JWTs.
- * In production, this is fetched from the license server.
- * For local development, it reads from REVEALUI_LICENSE_PUBLIC_KEY env var.
+ * Restore real newlines in a PEM stored single-line with literal `\n`
+ * (Docker / .env files commonly do this). Fixed-string split/join — no
+ * authored regex, per the fleet no-regex rule.
  */
-function getPublicKey(): string | null {
-  const raw = process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? null;
-  // Docker/env files store PEM as single-line with literal \n  -  restore real newlines
-  return raw ? raw.replace(/\\n/g, '\n') : null;
+export function normalizePem(raw: string): string {
+  return raw.split('\\n').join('\n');
+}
+
+/**
+ * The ordered public-key candidates used to verify license JWTs.
+ *
+ * Index 0 is the current key (`REVEALUI_LICENSE_PUBLIC_KEY`); index 1, when
+ * present, is the incoming rotation key (`REVEALUI_LICENSE_PUBLIC_KEY_NEXT`).
+ * During a zero-downtime key rotation BOTH are configured at once, so a token
+ * signed by EITHER key verifies GREEN and no customer is interrupted while
+ * re-minted tokens propagate. In production the current key is provisioned
+ * from the license server; both read from env here.
+ *
+ * Exported so the hosted boot canary (`apps/server` validate path) builds the
+ * SAME ordered, newline-normalized list the request path uses — a NEXT-signed
+ * token must pass the canary during a rotation window exactly as it passes a
+ * live request.
+ */
+export function getPublicKeys(): string[] {
+  const keys: string[] = [];
+  const current = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+  if (current) keys.push(normalizePem(current));
+  const next = process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
+  if (next) keys.push(normalizePem(next));
+  return keys;
 }
 
 /**
@@ -235,6 +257,16 @@ export async function computeKeyId(publicKeyPem: string): Promise<string> {
  * Validates a license key JWT and returns the decoded payload.
  * Returns null if the key is invalid, expired, or missing.
  *
+ * Multi-key rotation (GAP-259 P0-3): `publicKey` accepts either a single PEM
+ * or an ORDERED list of candidate PEMs (current first, then the incoming
+ * rotation key). The token is verified against each candidate in turn and is
+ * accepted on the FIRST success; it is rejected only when EVERY candidate
+ * fails. The JWT `kid` header (a SHA-256 fingerprint via `computeKeyId`) is a
+ * perf hint used to try the matching key first — it is NOT authoritative, so a
+ * token with no `kid` (or a stale one) still verifies against whichever key
+ * actually signed it. This lets a deployment run both keys at once during a
+ * zero-downtime rotation. A single string keeps the legacy behavior unchanged.
+ *
  * Phase 1 audit B-2: when `expectedCustomerId` is supplied, the JWT's
  * `customerId` claim must match exactly — otherwise the token is rejected
  * even when the signature + iss + aud + exp are all valid. This binds a
@@ -248,32 +280,55 @@ export async function computeKeyId(publicKeyPem: string): Promise<string> {
  */
 export async function validateLicenseKey(
   licenseKey: string,
-  publicKey: string,
+  publicKey: string | readonly string[],
   expectedCustomerId?: string,
 ): Promise<LicensePayload | null> {
+  const candidates = typeof publicKey === 'string' ? [publicKey] : [...publicKey];
+  if (candidates.length === 0) return null;
   try {
     const jose = await getJose();
-    // Extract kid from JWT header for forward-compatible key rotation
+    // The kid header is a rotation hint: try the key whose fingerprint matches
+    // first, then still fall through to the rest (a token may carry no kid).
     const header = jose.decodeProtectedHeader(licenseKey);
-    const expectedKid = await computeKeyId(publicKey);
-    if (header.kid && header.kid !== expectedKid) {
-      logger.warn(
-        `JWT kid mismatch: token has "${header.kid}", current key is "${expectedKid}". ` +
-          'Token may have been signed with a rotated key.',
-      );
+    const ordered = await orderCandidatesByKid(candidates, header.kid);
+
+    let verifiedPayload: unknown = null;
+    let verified = false;
+    for (const candidate of ordered) {
+      try {
+        const key = await jose.importSPKI(candidate, 'EdDSA');
+        // Accept tokens expired within the subscription grace window so the
+        // payload is available for grace-period calculations in isLicensed().
+        const { payload } = await jose.jwtVerify(licenseKey, key, {
+          algorithms: ['EdDSA'],
+          clockTolerance: graceConfig.subscriptionDays * 86_400,
+          issuer: LICENSE_ISSUER,
+          audience: LICENSE_AUDIENCE,
+        });
+        verifiedPayload = payload;
+        verified = true;
+        break;
+      } catch {
+        // This candidate did not verify (wrong key, malformed PEM, bad
+        // iss/aud, or expired beyond grace) — try the next before giving up.
+      }
     }
 
-    const key = await jose.importSPKI(publicKey, 'EdDSA');
-    // Accept tokens expired within the subscription grace window so the
-    // payload is available for grace-period calculations in isLicensed().
-    const { payload } = await jose.jwtVerify(licenseKey, key, {
-      algorithms: ['EdDSA'],
-      clockTolerance: graceConfig.subscriptionDays * 86_400,
-      issuer: LICENSE_ISSUER,
-      audience: LICENSE_AUDIENCE,
-    });
+    if (!verified) {
+      // Rejected by every configured key. Warn once (no key material leaked)
+      // to aid diagnosing a rotation where the token's signer is not yet — or
+      // no longer — in REVEALUI_LICENSE_PUBLIC_KEY[_NEXT].
+      if (header.kid) {
+        logger.warn(
+          `License JWT rejected: token kid "${header.kid}" did not verify against ` +
+            `any of the ${candidates.length} configured public key(s). ` +
+            'The signing key may not be in REVEALUI_LICENSE_PUBLIC_KEY / _NEXT.',
+        );
+      }
+      return null;
+    }
 
-    const result = licensePayloadSchema.safeParse(payload);
+    const result = licensePayloadSchema.safeParse(verifiedPayload);
     if (!result.success) {
       return null;
     }
@@ -298,6 +353,129 @@ export async function validateLicenseKey(
 }
 
 /**
+ * Order candidate PEMs so the one whose `computeKeyId` fingerprint matches the
+ * token's `kid` header is tried first. A perf hint only — when `kid` is absent
+ * or matches nothing, the original order is preserved and the caller still
+ * tries every candidate. Never throws (a malformed candidate simply does not
+ * match and is left in place).
+ */
+async function orderCandidatesByKid(
+  candidates: string[],
+  kid: string | undefined,
+): Promise<string[]> {
+  if (!kid || candidates.length < 2) return candidates;
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    if (!candidate) continue;
+    let fingerprint: string | null = null;
+    try {
+      fingerprint = await computeKeyId(candidate);
+    } catch {
+      fingerprint = null;
+    }
+    if (fingerprint === kid) {
+      if (i === 0) return candidates;
+      return [candidate, ...candidates.slice(0, i), ...candidates.slice(i + 1)];
+    }
+  }
+  return candidates;
+}
+
+/**
+ * Outcome of a signing-keypair self-test. See {@link selfVerifyLicenseKeypair}.
+ */
+export type KeypairCanaryResult =
+  | { status: 'ok'; kid: string | undefined }
+  | { status: 'mismatch' }
+  | { status: 'degraded'; reason: string };
+
+/**
+ * Self-test a signing keypair by signing a throwaway token with `privateKey`
+ * and verifying it against the ordered `publicKeys` list — the SAME multi-key
+ * path real tokens take. Used by the hosted boot canary (GAP-259 P0-4).
+ *
+ * Distinguishes three outcomes so the caller can react correctly:
+ *  - `ok`       — a token the private key signed verifies against a configured
+ *                 public key, and its kid resolves to a configured key.
+ *  - `mismatch` — imports all succeeded but NO public key verifies the token:
+ *                 the private key does not pair with any verification key. A
+ *                 definitive fault the caller should fail loud on.
+ *  - `degraded` — a jose/parse exception (malformed PEM), no public key to
+ *                 verify against, or a kid outside the configured allowlist.
+ *                 Ambiguous / possibly environmental; the caller should alert,
+ *                 not crash.
+ *
+ * Never throws — every jose exception collapses to `degraded`. The parse of the
+ * public PEMs happens up front precisely so a malformed public key is reported
+ * as `degraded` rather than masquerading as a `mismatch` (validateLicenseKey
+ * collapses import failures and signature failures alike to null). Edge-compatible.
+ */
+export async function selfVerifyLicenseKeypair(
+  privateKey: string,
+  publicKeys: readonly string[],
+): Promise<KeypairCanaryResult> {
+  if (publicKeys.length === 0) {
+    return { status: 'degraded', reason: 'no public key configured to verify against' };
+  }
+
+  const jose = await getJose();
+
+  // Pre-parse every public PEM so a MALFORMED public key surfaces as `degraded`
+  // (a jose import exception) instead of an indistinguishable `mismatch`.
+  for (const pk of publicKeys) {
+    try {
+      await jose.importSPKI(pk, 'EdDSA');
+    } catch (err) {
+      return {
+        status: 'degraded',
+        reason: `public key import failed: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+  }
+
+  // Sign a throwaway token with the deployment's own private key. A malformed
+  // private PEM throws inside generateLicenseKey (importPKCS8) → degraded.
+  const firstKey = publicKeys[0] as string;
+  let token: string;
+  try {
+    token = await generateLicenseKey(
+      { tier: 'pro', customerId: 'canary' },
+      privateKey,
+      60,
+      firstKey,
+    );
+  } catch (err) {
+    return {
+      status: 'degraded',
+      reason: `canary token signing failed: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+
+  // Verify against the ordered public-key list. A null result AFTER imports
+  // succeeded means no configured key verifies a token our own private key
+  // signed: a definitive keypair mismatch.
+  const payload = await validateLicenseKey(token, publicKeys);
+  if (payload === null) {
+    return { status: 'mismatch' };
+  }
+
+  // kid allowlist: the token's kid must resolve to a configured public key.
+  const header = jose.decodeProtectedHeader(token);
+  const kid = typeof header.kid === 'string' ? header.kid : undefined;
+  if (kid !== undefined) {
+    const allowed = await Promise.all(publicKeys.map((pk) => computeKeyId(pk)));
+    if (!allowed.includes(kid)) {
+      return {
+        status: 'degraded',
+        reason: `signed token kid "${kid}" is not among the configured public-key ids [${allowed.join(', ')}]`,
+      };
+    }
+  }
+
+  return { status: 'ok', kid };
+}
+
+/**
  * Initialize the license system. Call once at application startup.
  * Reads REVEALUI_LICENSE_KEY and REVEALUI_LICENSE_PUBLIC_KEY from environment.
  *
@@ -305,9 +483,9 @@ export async function validateLicenseKey(
  */
 export async function initializeLicense(): Promise<LicenseTier> {
   const licenseKey = await getLicenseKey();
-  const publicKey = getPublicKey();
+  const publicKeys = getPublicKeys();
 
-  if (!(licenseKey && publicKey)) {
+  if (!(licenseKey && publicKeys.length > 0)) {
     cachedState = {
       tier: 'free',
       payload: null,
@@ -318,7 +496,7 @@ export async function initializeLicense(): Promise<LicenseTier> {
     return 'free';
   }
 
-  const payload = await validateLicenseKey(licenseKey, publicKey);
+  const payload = await validateLicenseKey(licenseKey, publicKeys);
 
   if (!payload) {
     // Key was present but failed validation (expired beyond grace, invalid signature, etc.)

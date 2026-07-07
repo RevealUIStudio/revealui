@@ -1,6 +1,6 @@
 // Sponsor page content.
 // Sourced from extraction of app/routes/SponsorPage.tsx (Phase 1, no copy changes).
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Per the internal marketing-overhaul plan §4.4.
 
 import { SITE } from './site';
 import type { Cta } from './types';

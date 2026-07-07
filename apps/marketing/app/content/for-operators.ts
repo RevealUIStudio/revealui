@@ -1,4 +1,4 @@
-// Sourced from `~/revfleet/.jv/docs/specs/2026-05-28-for-operators-page-1-copy.md`
+// Sourced from the internal for-operators page-1 copy spec (2026-05-28)
 // (the COMMIT-phase copy artifact for spec-2026-05-14-non-technical-lane.md Phase 1).
 // Voice §5 self-check 12/12 documented in that spec.
 // Locked decisions from spec §9.4: CTA "Book a build call" (OQ-3); nav label

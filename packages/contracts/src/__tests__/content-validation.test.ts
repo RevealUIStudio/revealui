@@ -135,3 +135,50 @@ describe('validateBlocks — write-API surface', () => {
     expect(validateBlocks(blocks).valid).toBe(true);
   });
 });
+
+describe('validateContent — data:image/ on image src (render-contract parity)', () => {
+  function imageContent(src: string) {
+    return {
+      root: {
+        type: 'root',
+        children: [{ type: 'image', src, version: 1 }],
+      },
+    };
+  }
+
+  it('accepts a data:image/png src (the renderer allows it via sanitizeUrl image context)', () => {
+    const png =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==';
+    expect(validateContent(imageContent(png)).valid).toBe(true);
+  });
+
+  it('rejects a data:text/html src (not an image data URI)', () => {
+    const result = validateContent(imageContent('data:text/html,<script>alert(1)</script>'));
+    expect(result.valid).toBe(false);
+    expect(result.errors?.[0]).toContain('Dangerous URL protocol');
+  });
+
+  it('rejects a javascript: src', () => {
+    expect(validateContent(imageContent('javascript:alert(1)')).valid).toBe(false);
+  });
+
+  it('rejects data:image/ on a link url (link context, not image)', () => {
+    const result = validateContent({
+      root: {
+        type: 'root',
+        children: [{ type: 'link', fields: { url: 'data:image/png;base64,AAAA' } }],
+      },
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects data:image/ on an href field (link context, not image)', () => {
+    const result = validateContent({
+      root: {
+        type: 'root',
+        children: [{ type: 'link', href: 'data:image/png;base64,AAAA' }],
+      },
+    });
+    expect(result.valid).toBe(false);
+  });
+});

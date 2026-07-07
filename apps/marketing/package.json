@@ -12,7 +12,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/router": "workspace:*",
-    "@sentry/react": "^10.62.0",
+    "@sentry/react": "^10.63.0",
     "@vercel/speed-insights": "^2.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",
-    "@tailwindcss/vite": "^4.3.1",
+    "@tailwindcss/vite": "^4.3.2",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",

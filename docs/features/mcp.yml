@@ -72,7 +72,7 @@ test-coverage:
 limitations:
   - id: dist-only
     surface: api
-    summary: "@revealui/mcp is dist-only in public repo — source in private revealui-jv"
+    summary: "@revealui/mcp is dist-only in public repo — source in the private coordination hub"
   - id: license-required
     surface: api
     summary: "Requires Pro/Enterprise tier — current checks are license-centric and should converge on account-level entitlements"

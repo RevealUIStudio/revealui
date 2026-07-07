@@ -34,7 +34,7 @@ api-surface:
     endpoint: ".github/workflows/release-pro.yml — Pro dist-only (stub)"
     openapi: false
     tested: false
-    notes: "Intentional no-op — Pro packages publish from private revealui-jv repo"
+    notes: "Intentional no-op — Pro packages publish from the private coordination hub"
 
 local-gate:
   command: "pnpm gate"

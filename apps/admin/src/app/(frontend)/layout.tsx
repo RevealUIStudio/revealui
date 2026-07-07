@@ -100,8 +100,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {isFleetMode ? null : <Footer />}
             </ErrorBoundary>
           </Providers>
-          {/* Vercel Speed Insights for performance monitoring */}
-          {process.env.NEXT_PUBLIC_VERCEL_ENV ? <SpeedInsights /> : null}
+          {/* Vercel Speed Insights — SaaS deployments only, not fleet kits */}
+          {process.env.NEXT_PUBLIC_VERCEL_ENV && !isFleetMode ? <SpeedInsights /> : null}
         </body>
       </html>
     );

@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from '@revealui/core/richtext/client';
+import { sanitizeUrl } from '@revealui/security/sanitize';
 import { $getNodeByKey } from 'lexical';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
@@ -49,6 +50,15 @@ export const EmbedNodeComponent = (props: Props) => {
     });
   }, [editor, nodeKey]);
 
+  // Route both URL sinks through the shared sanitizer (the same chokepoint
+  // CMSLink uses on the render path). A generic embed URL is author-controlled
+  // and `new URL()` accepts `javascript:`/`data:` schemes, so an unsanitized
+  // href here is the same XSS vector as the render path — neutralized to '#'.
+  const safeHref =
+    source.type === 'youtube'
+      ? sanitizeUrl(source.embedUrl, 'link')
+      : sanitizeUrl(source.url, 'link');
+
   return (
     <div className="embed-node shadow-sm p-3 pt-2 bg-gray-100 border border-gray-200 font-body mb-6 w-[560px]">
       <div className="embed-node__controls relative flex justify-between pb-1">
@@ -83,7 +93,7 @@ export const EmbedNodeComponent = (props: Props) => {
       {source.type === 'youtube' ? (
         <iframe
           className="w-full h-80"
-          src={source.embedUrl}
+          src={safeHref}
           title="YouTube video player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerPolicy="strict-origin-when-cross-origin"
@@ -91,7 +101,7 @@ export const EmbedNodeComponent = (props: Props) => {
         />
       ) : (
         <a
-          href={source.url}
+          href={safeHref}
           target="_blank"
           rel="noopener noreferrer"
           className="block p-4 bg-white rounded border border-gray-300 text-blue-600 hover:underline break-all"

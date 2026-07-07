@@ -55,7 +55,7 @@ Session-based auth (no JWT for user-facing auth, per [ADR-004](./architecture/AD
 **Not yet tested with paying users.**
 
 ### Stripe payments
-Webhook handlers for `checkout.session.completed`, `customer.subscription.updated`, license key generation, revocation tracking, and a DB-backed circuit breaker. **Stripe runs in TEST MODE in production** — `STRIPE_LIVE_MODE` toggle exists, but the flip is gated on the internal billing-readiness audit (GAP-124). The full subscription lifecycle (signup to cancel to refund) has been exercised in test mode end-to-end; live-mode lifecycle is gated on the audit.
+Webhook handlers for `checkout.session.completed`, `customer.subscription.updated`, license key generation, revocation tracking, and a DB-backed circuit breaker. **Stripe live mode is ON in production** (flipped 2026-06-26 after the internal billing-readiness audit closed). The full subscription lifecycle (signup to cancel to refund) was exercised end-to-end in test mode before the flip.
 
 ### REST API
 Hono-based API with OpenAPI spec generation, Swagger docs, authentication middleware,
@@ -68,7 +68,7 @@ LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-com
 ### Security
 RBAC + ABAC policy engine (50+ enforcement tests), AES-256-GCM encryption,
 Content Security Policy headers, CORS, HSTS, rate limiting, webhook rate limiting, audit-log framework, and GDPR compliance utilities (consent, deletion, export, anonymization).
-**Security has been audited internally multiple times. A professional penetration test is on the pre-launch checklist; KEK rotation tooling is tracked as an open gap (GAP-126) — until that ships, KEK rotation requires a coordinated maintenance window.**
+**Security has been audited internally multiple times. A professional penetration test is on the pre-launch checklist; KEK rotation tooling ships in `scripts/security/rotate-kek.ts` (zero-downtime dual-key path).**
 
 ### License enforcement
 JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-facing auth which is session-only) with tier checks (free / pro / max / enterprise), feature gating, grace periods (3-day subscription, 30-day perpetual, 7-day infrastructure), and revocation via DB status checks. Perpetual and subscription models supported.
@@ -85,8 +85,8 @@ Honest list of things that are not done, not deployed, or not verified.
 - **Docs site is live but external traffic is near-zero.** Deployed at [docs.revealui.com](https://docs.revealui.com); same caveat.
 - **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Fly, Hetzner, Docker, Fleet kit when GHCR images publish) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
 - **Fleet Docker images not yet published to GHCR.** The `docker/` stack and stamp scripts are production-ready, but the images at `ghcr.io/revealuistudio/revealui-{api,admin}` have not yet been published. Until then, Fleet customers build from source.
-- **Stripe is in TEST MODE in production.** No real money has been processed. The live-mode flip is gated on the billing-readiness audit (GAP-124) closing.
-- **REVEALUI_KEK rotation tooling is not yet built** (GAP-126 open). KEK rotation requires a coordinated maintenance window with manual data re-encryption today.
+- **Stripe live mode is ON in production** (flipped 2026-06-26 after the billing-readiness audit closed).
+- **REVEALUI_KEK rotation tooling ships** (`scripts/security/rotate-kek.ts`) — zero-downtime dual-key rotation; see the credential-rotation runbook.
 - **No status page publicly advertised.** Uptime monitoring is configured.
 - **No public support channel.** There is no public support email, chat, or ticketing system yet.
 - **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.

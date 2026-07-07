@@ -45,6 +45,7 @@ import { logger as honoLogger } from 'hono/logger';
 // CR8-P2-01 phase C.
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import {
   validateBillingCatalogAtStartup,
@@ -1315,6 +1316,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // mode (prevents mid-customer-transaction 500s).
     validateLicenseAtStartup()
       .then(() => validateBillingCatalogAtStartup())
+      .then(() => runHostedLicenseCanary())
       .then(() => initializeLicense())
       .then((tier) => {
         logger.info(`License tier: ${tier}`);

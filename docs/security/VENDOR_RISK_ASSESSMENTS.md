@@ -81,14 +81,20 @@ Each vendor is evaluated against the following criteria:
 
 ---
 
-### 3.2 Supabase (Secondary Database — legacy, phasing out)
+### 3.2 Supabase — DECOMMISSIONED (internal datastore usage removed)
 
-> **Status note (2026-05-29):** Supabase is a *legacy secondary* store being phased out per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md) (target: NeonDB-primary + ElectricSQL). It remains in service during phase-out, so this assessment stays in force; new features must not add Supabase dependencies. The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
+> **Decommissioned (internal usage) per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md).** RevealUI's internal Supabase datastore dependency has been removed: RAG chunk embeddings and vector tables now live on NeonDB `pgvector`, and auth/storage/realtime/RLS/edge-fn were never used. Legacy Supabase code remains in tree during phase-out (final code removal tracked separately); no new features may depend on Supabase.
+>
+> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) is a *retained customer integration* — it is not a RevealUI vendor data dependency and is out of scope for this assessment.
+>
+> The vendor assessment below is retained as a **historical** record for the audit trail. RevealUI holds no active Supabase data dependency, so there is no forward review date.
 
 **Vendor:** Supabase Inc.
-**Service:** Managed PostgreSQL + pgvector, Auth (legacy secondary — phase-out in progress)
+**Service:** Managed PostgreSQL + pgvector, Auth (decommissioned as an internal RevealUI datastore)
 **Asset ID:** DS-002, TP-006 (see Asset Inventory)
-**Data classification:** Confidential (vector embeddings, OAuth linkage)
+**Data classification:** Confidential (historical — vector embeddings, OAuth linkage)
+
+_Historical assessment (retained for audit trail):_
 
 | Category | Assessment | Notes |
 |----------|-----------|-------|
@@ -105,19 +111,18 @@ Each vendor is evaluated against the following criteria:
 | Data portability | Standard PostgreSQL + pg_dump | Standard migration path |
 | Backup/Recovery | Daily snapshots (provider-managed) | RPO: 24 hours, RTO: hours |
 
-**Data shared with Supabase:**
-- Vector embeddings for RAG functionality
+**Data formerly shared with Supabase:**
+- Vector embeddings for RAG functionality (now on NeonDB `pgvector`)
 - OAuth account linkage records
-- Auth session data (where Supabase Auth is used)
+- Auth session data (where Supabase Auth was used)
 
-**Compensating controls:**
+**Historical compensating controls:**
 - Service role keys restricted to server-side use only
 - Anon keys have RLS policies enforced
 - Cross-DB cleanup (`@revealui/db/cleanup`) handles orphaned data after site deletion
 - Supabase imports restricted to permitted paths via `supabase-boundary.js` hook
 
-**Risk rating:** Low
-**Next review:** 2026-07-12
+**Status:** Decommissioned as an internal datastore (ADR 2026-05-01) — RAG/vectors migrated to NeonDB `pgvector`; legacy code phase-out tracked separately. No forward review.
 
 ---
 
@@ -217,9 +222,9 @@ Each vendor is evaluated against the following criteria:
 | DPA | In effect | GitHub DPA covers npm (TP-004) as well |
 | Encryption at rest | AES-256 | Repository data, secrets encrypted |
 | Encryption in transit | TLS 1.2+ | All GitHub traffic encrypted |
-| Access controls | Organization RBAC, branch protection, CODEOWNERS | Meets requirements |
-| MFA | Required for all org members | Enforced at organization level |
-| Audit logging | Organization audit log | Available for security events |
+| Access controls | Account-level permissions, branch protection + required status checks (public repos), CODEOWNERS | Single-owner **User** account (not a GitHub Organization) |
+| MFA | Enabled on the account owner | Account-level 2FA (single-owner User account) |
+| Audit logging | Account security log | Org-level audit log not applicable (User account) |
 | Incident response | Documented | Status page at githubstatus.com |
 | Breach notification | Per DPA terms | Timely notification committed |
 | SLA uptime | 99.9% | Meets requirements |
@@ -235,7 +240,7 @@ Each vendor is evaluated against the following criteria:
 - Security scanning results (CodeQL, Dependabot, Gitleaks)
 
 **Compensating controls:**
-- Two-factor authentication required for organization membership
+- Two-factor authentication enabled on the account owner (single-owner User account)
 - Branch protection on `main` and `test` (require CI pass before merge)
 - npm publishing uses OIDC trusted publishing (no long-lived NPM_TOKEN)
 - SLSA Build Level 2 provenance attestations on published packages
@@ -249,7 +254,7 @@ Each vendor is evaluated against the following criteria:
 | Vendor | Asset IDs | Risk Rating | Key Strengths | Watchlist Items |
 |--------|-----------|-------------|---------------|-----------------|
 | Neon | DS-001, TP-005 | Low | SOC 2 Type II, PITR, standard PostgreSQL | Monitor for pricing changes, verify DPA annually |
-| Supabase (legacy, phasing out) | DS-002, TP-006 | Low | SOC 2 Type II, RLS, pgvector | Phase-out in progress (ADR 2026-05-01) → NeonDB pgvector; no new Supabase dependencies; verify DPA while in service |
+| ~~Supabase~~ (DECOMMISSIONED — internal datastore usage removed) | DS-002, TP-006 | n/a | _(historical)_ SOC 2 Type II, RLS, pgvector | Decommissioned as an internal datastore (ADR 2026-05-01) → RAG/vectors on NeonDB pgvector; legacy code phase-out tracked separately; customer-facing MCP adapter retained separately (not a RevealUI data dependency) |
 | Vercel | TP-001 | Low | SOC 2 Type II, 99.99% SLA, instant rollback | Monitor for env var handling changes |
 | Stripe | TP-002 | Low | PCI DSS L1, SOC 2 Type II, no card data exposure | Monitor test-to-live mode transition readiness |
 | GitHub | TP-003, TP-004 | Low | SOC 2 Type II, OIDC publishing, secret scanning | Monitor for Actions pricing changes, audit log retention |
@@ -297,3 +302,4 @@ A vendor replacement is triggered if:
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-04-12 | RevealUI Studio | Initial vendor risk assessments for all five vendors. |
+| 2026-07-04 | RevealUI Studio | Internal audit (2026-07-03): Supabase (§3.2 + Risk Summary) marked decommissioned — internal datastore usage removed per ADR 2026-05-01 (RAG/vectors on NeonDB `pgvector`); customer-facing MCP adapter noted as a retained, out-of-scope integration. Corrected GitHub posture to a single-owner **User** account (account-level access controls / 2FA / security log), not a GitHub Organization. |

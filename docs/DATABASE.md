@@ -9,7 +9,7 @@ audience: developer
 
 This guide describes the RevealUI database workflow and the underlying database scripts it orchestrates across different development environments.
 
-**Last Updated:** 2026-01-31
+**Last Updated:** 2026-07-04
 
 ---
 
@@ -63,7 +63,7 @@ The older `pnpm db:*` scripts still exist and remain useful as lower-level build
 
 | Command              | Description                                     | File                                   | Environment Variables Required                             |
 | -------------------- | ----------------------------------------------- | -------------------------------------- | ---------------------------------------------------------- |
-| `pnpm db:init`       | Initialize database connection and verify setup | `scripts/setup/database.ts`            | `POSTGRES_URL`, `DATABASE_URL`, or `SUPABASE_DATABASE_URI` |
+| `pnpm db:init`       | Initialize database connection and verify setup | `scripts/setup/database.ts`            | `POSTGRES_URL`, `DATABASE_URL` (or the legacy `SUPABASE_DATABASE_URI`) |
 | `pnpm db:migrate`    | Run Drizzle migrations                          | `scripts/setup/migrations.ts`          | `POSTGRES_URL` or `DATABASE_URL`                           |
 | `pnpm db:reset`      | Drop all tables and recreate schema             | `scripts/setup/reset-database.ts`      | Same as init                                               |
 | `pnpm db:seed`       | Seed the database — composite of the three seeders below | `apps/admin/src/seed.ts`, `scripts/seed-fleet-marketing-site.ts`, `scripts/setup/seed-billing.ts` | Same as init                          |
@@ -130,7 +130,7 @@ pnpm revealui dev up
 
 - `DATABASE_URL` (primary)
 - `POSTGRES_URL` (fallback)
-- `SUPABASE_DATABASE_URI` (Supabase-specific)
+- `SUPABASE_DATABASE_URI` (Supabase-specific — legacy, being retired; see the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md))
 
 **Usage:**
 
@@ -311,7 +311,7 @@ pnpm db:status
 
 - `DATABASE_URL` - PostgreSQL connection string
 - `POSTGRES_URL` - Alternative name (Neon convention)
-- `SUPABASE_DATABASE_URI` - Supabase-specific
+- `SUPABASE_DATABASE_URI` - Supabase-specific (legacy, being retired)
 
 **Format:**
 
@@ -755,7 +755,7 @@ pnpm db:restore backup.json
 
 ---
 
-**Last Updated:** 2026-01-31
+**Last Updated:** 2026-07-04
 **Part of:** Development Guide consolidation
 
 ---

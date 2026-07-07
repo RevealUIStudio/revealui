@@ -70,7 +70,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 ### Core Systems
 
 1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 85 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
-2. **Supabase (SUPABASE_DATABASE_URL — optional RAG sidecar)**: Hosts `rag_chunks` and related embedding tables when an Ollama/cloud RAG path is wired. Phase 7 (in roadmap) consolidates RAG embeddings onto NeonDB pgvector and retires the Supabase sidecar; current usage is minimal.
+2. **Supabase (legacy RAG sidecar — retired for internal use)**: Historically hosted `rag_chunks` and related embedding tables; RAG embeddings now live on NeonDB `pgvector` and the sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Legacy Supabase code remains in tree during phase-out.
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
 5. **Cloudflare R2 (S3-compatible)**: Media and file storage — the sole object-storage backend (GAP-208)
@@ -233,17 +233,17 @@ graph TB
 
     subgraph Server[Server Database Layer]
         NeonDB[(NeonDB - primary<br/>POSTGRES_URL<br/>REST + agent_memories<br/>via pgvector)]
-        Supabase[(Supabase - optional<br/>SUPABASE_DATABASE_URL<br/>RAG chunk embeddings)]
+        Supabase[(Supabase - legacy sidecar<br/>retired for internal use<br/>RAG now on Neon pgvector)]
     end
 
     React --> ElectricClient
     ElectricClient --> LocalCache
     ElectricClient <--> ElectricService
     ElectricService <--> NeonDB
-    NeonDB -.optional RAG.-> Supabase
+    NeonDB -.legacy RAG.-> Supabase
 ```
 
-> **Note on `agent_memories`:** Despite the historical "vector database" framing, `agent_memories` lives in **NeonDB** (not Supabase) because of FK constraints on `sites` / `users`. NeonDB supports `pgvector`. See [`packages/db/src/schema/vector.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/vector.ts) for the canonical comment. The Supabase sidecar today is used for RAG chunk embeddings only; the Phase 7 consolidation goal is to move RAG onto NeonDB pgvector and retire the Supabase sidecar entirely.
+> **Note on `agent_memories`:** Despite the historical "vector database" framing, `agent_memories` lives in **NeonDB** (not Supabase) because of FK constraints on `sites` / `users`. NeonDB supports `pgvector`. See [`packages/db/src/schema/vector.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/vector.ts) for the canonical comment. RAG chunk embeddings likewise live on NeonDB `pgvector`; the historical Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Legacy Supabase code remains in tree during phase-out, and new features must not depend on Supabase-specific behavior.
 
 ### When to enable each layer
 
@@ -253,11 +253,11 @@ graph TB
 - Supports `pgvector` for vector embeddings inline with relational data.
 - Serverless / scale-to-zero for variable workload.
 
-#### Supabase RAG sidecar (optional)
+#### Supabase RAG sidecar (retired — legacy)
 
-- Only enable when ingesting large document corpora for retrieval-augmented agent contexts.
-- Today's role per [`memory: project_supabase_usage_minimal`](../../.jv/memory): RAG chunks + a duplicate billing copy (legacy). Auth/storage/realtime/RLS/edge-fn are NOT used.
-- Phase 7 plan: consolidate onto NeonDB pgvector and retire this sidecar.
+- RAG chunk embeddings now live on NeonDB `pgvector` (see NeonDB above); the standalone Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Auth/storage/realtime/RLS/edge-fn were never used.
+- Legacy Supabase code remains in tree during phase-out; new features must not depend on Supabase-specific behavior.
+- The customer-facing Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) is a separate, retained integration for customers who run Supabase — distinct from RevealUI's own (removed) sidecar usage.
 
 #### ElectricSQL sync (optional)
 
@@ -1308,12 +1308,12 @@ Customer-facing meters should map to business activity rather than upstream infr
 ### Current Status
 
 - **NeonDB primary**: source of truth for everything, including `agent_memories` (NeonDB pgvector)
-- **Supabase RAG sidecar**: optional; today used only for `rag_chunks` plus a legacy duplicate billing copy. Auth / storage / realtime / RLS / edge-functions are unused.
+- **Supabase RAG sidecar**: retired for internal use — `rag_chunks` and `agent_memories` now live on NeonDB `pgvector` (per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md)). Legacy Supabase code remains in tree during phase-out; auth / storage / realtime / RLS / edge-functions were never used.
 - **ElectricSQL**: optional sync layer; service connects to NeonDB. Agent tables (`agent_contexts`, `agent_memories`, `conversations`) can be electrified when sync is enabled. Off by default.
 
-### Phase 7: Consolidate RAG onto NeonDB (planned)
+### Phase 7: Consolidate RAG onto NeonDB (RAG cutover landed; legacy phase-out ongoing)
 
-Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary, retire the Supabase dependency for RAG entirely).
+Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary, retire the Supabase dependency for RAG entirely). The RAG cutover has landed — `rag_chunks` and `agent_memories` are served from NeonDB `pgvector`; the remaining work is removing legacy Supabase code from the tree. The historical phase order is preserved below for reference.
 
 Phase order (ship-order, not calendar):
 

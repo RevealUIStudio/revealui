@@ -601,27 +601,49 @@ function FieldInput({ field, value, onChange }: FieldInputProps) {
         />
       );
 
-    case 'select':
+    case 'select': {
+      const isMulti = (field as unknown as { hasMany?: boolean }).hasMany === true;
+      const selectClasses = `${baseClasses} text-foreground bg-card`;
+      const optionNodes = field.options?.map((option) => {
+        const optValue = typeof option === 'string' ? option : option.value;
+        const optLabel = typeof option === 'string' ? option : option.label;
+        return (
+          <option key={optValue} value={optValue}>
+            {optLabel}
+          </option>
+        );
+      });
+      if (isMulti) {
+        const selected = Array.isArray(value) ? (value as string[]) : value ? [String(value)] : [];
+        return (
+          <select
+            id={field.name}
+            multiple
+            value={selected}
+            onChange={(e) => {
+              const vals = Array.from(e.target.selectedOptions).map((o) => o.value);
+              onChange(vals);
+            }}
+            className={`${selectClasses} h-32`}
+            required={field.required}
+          >
+            {optionNodes}
+          </select>
+        );
+      }
       return (
         <select
           id={field.name}
           value={formatTextValue(value)}
           onChange={(e) => onChange(e.target.value)}
-          className={baseClasses}
+          className={selectClasses}
           required={field.required}
         >
           <option value="">Select an option</option>
-          {field.options?.map((option) => {
-            const optValue = typeof option === 'string' ? option : option.value;
-            const optLabel = typeof option === 'string' ? option : option.label;
-            return (
-              <option key={optValue} value={optValue}>
-                {optLabel}
-              </option>
-            );
-          })}
+          {optionNodes}
         </select>
       );
+    }
 
     case 'radio':
       return (

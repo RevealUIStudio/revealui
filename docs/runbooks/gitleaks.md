@@ -66,4 +66,4 @@ A failure dumps a JSON report as the `gitleaks-report` artifact (uploaded on fai
 - Workflow: `.github/workflows/security.yml` → `gitleaks` job
 - Working-tree allowlist (paths/patterns): `.gitleaks.toml` `[allowlist]`
 - Per-finding allowlist: `.gitleaksignore`
-- Rotation prerequisite: rotate the leaked credential *before* bumping the cutoff (rotation procedures live in the private `~/revfleet/.jv/scripts/rotation/` toolkit; follow whichever script matches the credential class)
+- Rotation prerequisite: rotate the leaked credential *before* bumping the cutoff (rotation procedures live in the private coordination hub's rotation toolkit; follow whichever script matches the credential class)

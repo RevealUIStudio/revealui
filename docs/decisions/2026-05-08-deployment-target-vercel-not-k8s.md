@@ -9,7 +9,7 @@ audience: user
 **Date:** 2026-05-08
 **Status:** Decided — final
 **Phase:** 5 — Agent-First Infrastructure
-**Audit:** [`docs/audits/2026-05-08-fleet-doc-quality-audit.md`](https://github.com/RevealUIStudio/revealui-jv) (revealui-jv repo, commit `e0a59018c`)
+**Audit:** internal fleet doc-quality audit 2026-05-08 (private coordination hub, commit `e0a59018c`)
 **Companion PR:** [revealui#782](https://github.com/RevealUIStudio/revealui/pull/782) — folds the doc-quality `CI_CD_GUIDE.md` shrink with the dead-infra deletion this ADR documents.
 
 ## Context
@@ -25,7 +25,7 @@ Inventory of what existed:
 - `infrastructure/docker/Dockerfile.base`, `Dockerfile.admin` — zero references; per-app `Dockerfile.forge` is the live path
 - `infrastructure/docker/nginx/`, `infrastructure/docker/prometheus/` — zero references; HTTPS termination + observability not part of any active stack
 
-None of these were wired into [`.github/workflows/`](../../.github/workflows/), `package.json` scripts, `turbo.json`, any cross-fleet repo (`revealui-jv`, `revcon`, `revdev`), or `docker-compose.{yml,forge.yml}` (the only refs were commented-out nginx volume mounts removed alongside this ADR).
+None of these were wired into [`.github/workflows/`](../../.github/workflows/), `package.json` scripts, `turbo.json`, any cross-fleet repo (the private coordination hub, `revcon`, `revdev`), or `docker-compose.{yml,forge.yml}` (the only refs were commented-out nginx volume mounts removed alongside this ADR).
 
 ## Decision
 
@@ -96,7 +96,7 @@ The newer starting point would not be the historical scaffolding regardless. For
 
 ## References
 
-- Audit: `~/revfleet/.jv/docs/audits/2026-05-08-fleet-doc-quality-audit.md` (commit `e0a59018c` on `revealui-jv:main`)
+- Audit: fleet doc-quality audit (2026-05-08), tracked in the private coordination hub
 - [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — Vercel production pipeline (validate → migrate → matrix-deploy → smoke → auto-rollback)
 - [`.github/workflows/docker.yml`](../../.github/workflows/docker.yml) — Forge Docker image build + GHCR push
 - [`docker-compose.forge.yml`](../../docker-compose.forge.yml) — Forge self-hosted stack with license enforcement

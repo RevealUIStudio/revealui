@@ -1,5 +1,5 @@
 /**
- * Admin proxy CSP tests (GAP-219 hardening).
+ * Admin proxy CSP tests (GAP-219 hardening; GAP-290 fleet-mode gate).
  *
  * Verifies the per-request nonce Content-Security-Policy set by `src/proxy.ts`:
  *   - script-src carries a 'nonce-…' and NO 'unsafe-inline'
@@ -7,12 +7,13 @@
  *   - the same unified policy is the single CSP source for page and /api responses
  *   - a fresh nonce is generated per request
  *   - style-src intentionally retains 'unsafe-inline'
+ *   - hosted SDK domains are stripped in fleet mode (REVEALUI_FLEET_MODE=true)
  *
  * No regex is authored here (per the fleet no-regex posture) — the CSP string is
  * inspected with `split('; ')` + `startsWith` + `includes`.
  */
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import proxy from '../proxy';
 
@@ -48,9 +49,12 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
 
   it('preserves the external-script host allowlist and does not use strict-dynamic', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
-    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    const csp = res.headers.get('content-security-policy') ?? '';
+    const scriptSrc = directive(csp, 'script-src');
     expect(scriptSrc).toContain('https://js.stripe.com');
     expect(scriptSrc).not.toContain("'strict-dynamic'");
+    // Stripe img-src is present in hosted (non-fleet) mode.
+    expect(directive(csp, 'img-src')).toContain('https://*.stripe.com');
   });
 
   it('keeps unsafe-inline on style-src (intentional — Tailwind/Next/tenant inline styles)', async () => {
@@ -82,6 +86,55 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
       'script-src',
     );
     expect(a).not.toBe(b);
+  });
+});
+
+describe('admin proxy — CSP fleet mode (GAP-290)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+    vi.stubEnv('REVEALUI_FLEET_MODE', 'true');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('strips hosted-SDK domains from script-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    expect(scriptSrc).not.toContain('https://js.stripe.com');
+    expect(scriptSrc).not.toContain('https://checkout.stripe.com');
+    expect(scriptSrc).not.toContain('https://maps.googleapis.com');
+    expect(scriptSrc).not.toContain('https://res.cloudinary.com');
+    expect(scriptSrc).not.toContain('https://cdn.vercel-insights.com');
+  });
+
+  it('still carries a nonce in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const scriptSrc = directive(res.headers.get('content-security-policy'), 'script-src');
+    expect(scriptSrc).toContain("'nonce-");
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+  });
+
+  it('strips Stripe from img-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const imgSrc = directive(res.headers.get('content-security-policy') ?? '', 'img-src');
+    expect(imgSrc).not.toContain('stripe.com');
+    expect(imgSrc).not.toContain('cloudinary.com');
+  });
+
+  it('strips Stripe from frame-src and connect-src in fleet mode', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const csp = res.headers.get('content-security-policy') ?? '';
+    const frameSrc = directive(csp, 'frame-src');
+    const connectSrc = directive(csp, 'connect-src');
+    expect(frameSrc).not.toContain('stripe.com');
+    expect(connectSrc).not.toContain('stripe.com');
+    expect(connectSrc).not.toContain('maps.googleapis.com');
   });
 });
 
@@ -132,5 +185,51 @@ describe('admin proxy — /welcome auth gate (post-checkout subscriber)', () => 
   it('still requires a session for /account/billing (no session redirects to /login)', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/account/billing'));
     expect(res.headers.get('location')).toContain('/login');
+  });
+});
+
+describe('admin proxy — fleet-mode page guard (GAP-289)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ needed: false }) });
+    vi.stubEnv('REVEALUI_FLEET_MODE', 'true');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('redirects /upgrade to / for an authenticated admin in fleet mode', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/upgrade', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    const location = res.headers.get('location');
+    expect(location).not.toBeNull();
+    expect(new URL(location!).pathname).toBe('/');
+    expect(location).not.toContain('/upgrade');
+  });
+
+  it('redirects /account/billing to / for an authenticated admin in fleet mode', async () => {
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/account/billing', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    const location = res.headers.get('location');
+    expect(location).not.toBeNull();
+    expect(new URL(location!).pathname).toBe('/');
+    expect(location).not.toContain('/billing');
+  });
+
+  it('does not redirect /upgrade in non-fleet mode', async () => {
+    vi.unstubAllEnvs();
+    const res = await proxy(
+      new NextRequest('https://admin.example.com/upgrade', {
+        headers: { cookie: 'revealui-session=tok; revealui-role=admin' },
+      }),
+    );
+    expect(res.headers.get('location')).toBeNull();
   });
 });

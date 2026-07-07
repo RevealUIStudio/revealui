@@ -4,7 +4,7 @@
 // MIT" was off-by-one — pre-Phase-3 audit counted create-revealui (MIT, separate
 // workspace) into the 21 but didn't account for the internal-only `test` workspace.
 // New phrasing: "20 of 26 MIT" + explicit accounting in the body prose.
-// Per docs/lanes/marketing-overhaul/plan.md §4.4 + docs/MARKETING_METRICS.md §1.
+// Per the internal marketing-overhaul plan §4.4 + docs/MARKETING_METRICS.md §1.
 
 import { METRICS, SITE } from './site';
 import type { FaqItem } from './types';

@@ -1,4 +1,4 @@
-// Sourced from: app/routes/RoadmapPage.tsx (Phase 1, no copy changes). Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Sourced from: app/routes/RoadmapPage.tsx (Phase 1, no copy changes). Per the internal marketing-overhaul plan §4.4.
 // Phase 4 complete: page renders at /roadmap via RoadmapPage.tsx; /coming-soon 308-redirects in vercel.json.
 
 import { SITE } from './site';

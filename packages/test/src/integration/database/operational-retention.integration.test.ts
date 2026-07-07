@@ -11,7 +11,7 @@
  *
  * Module: packages/db/src/cleanup/operational-retention.ts
  * Schemas: packages/db/src/schema/{jobs,webhook-events}.ts
- * Design: ~/revfleet/.jv/docs/cr8-p3-02-retention-design.md
+ * Design: internal retention design record (cr8-p3-02)
  */
 
 import { cleanupOperational } from '@revealui/db/cleanup';

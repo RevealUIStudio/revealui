@@ -9,17 +9,17 @@ repo: revealui
 last-updated: 2026-05-01
 owner: RevealUI Studio
 staleness-status: STALE
-note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (last updated 2026-05-10). Quarterly refresh cadence per ADR revealui-jv:docs/decisions/2026-05-11-master-plan-public-quarterly-snapshot.md.
+note: public snapshot — canonical version in the private coordination hub (last updated 2026-05-10). Quarterly refresh cadence per internal ADR 2026-05-11 (master-plan public quarterly snapshot).
 ---
 
 # RevealUI Master Plan
 
 > **AGENTS:** This is the PUBLIC SNAPSHOT. The canonical, day-to-day version lives in the internal planning hub.
-> **Cadence:** quarterly refresh (Mar 11 / Jun 11 / Sep 11 / Dec 11) per ADR `revealui-jv:docs/decisions/2026-05-11-master-plan-public-quarterly-snapshot.md`. For current state, see public RevealUI signals: blog posts, release notes, GitHub Issues, and `pnpm validate:claims` output.
+> **Cadence:** quarterly refresh (Mar 11 / Jun 11 / Sep 11 / Dec 11) per internal ADR 2026-05-11 (master-plan public quarterly snapshot). For current state, see public RevealUI signals: blog posts, release notes, GitHub Issues, and `pnpm validate:claims` output.
 > Always read and update the internal version. Do NOT update this file outside the quarterly refresh.
 
 **Last Updated:** 2026-05-01 (Current Reality block refreshed; numbering aligned to Phase 5)
-**Status:** Public snapshot  -  canonical version in revealui-jv
+**Status:** Public snapshot  -  canonical version in the private coordination hub
 **Owner:** RevealUI Studio
 
 > This document supersedes all previous roadmaps, action plans, and status docs.
@@ -36,7 +36,7 @@ note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (
 - **Codebase:** ~270,000 lines of TypeScript/Rust/Go across apps + packages
 - **History:** 2,400+ commits (Dec 30, 2025 – May 2026), solo developer
 - **Apps:** 4 (server, admin, docs, marketing) — `apps/api` was renamed to `apps/server` in CHIP-4 (revealui#649, 2026-04-28); `marketing` migrated from Next.js to Vite (2026-04-28); the agency site (revealuistudio.com) extracted into a separate repo (2026-04-29); the revealcoin dashboard relocated to RevealUIStudio/revealcoin `apps/dashboard/` (2026-05-17)
-- **Packages:** 26 packages + 4 apps = 30 workspaces
+- **Packages:** 27 packages + 4 apps = 31 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
 - **Database:** 85 tables (Drizzle ORM on **Neon** — primary). Supabase phase-out is in flight: GAP-129 PR-A/B/D shipped (2026-05-01); PR-C dual-DB client collapse shipped 2026-05-11 ([#800](https://github.com/RevealUIStudio/revealui/pull/800)). RAG tables (`ragDocuments`, `ragChunks`) and the legacy Supabase MCP server adapter remain in-tree during the transition. 61 CHECK constraints enforced (migration 0001 applied 2026-04-15).
 - **UI Components:** 60 native components (Tailwind v4, zero external UI deps)
@@ -182,7 +182,6 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [x] Renewal catalog entries (`renewal:pro`, `renewal:max`, `renewal:enterprise`)  -  2026-04-05
 - [x] Stripe seed script: 3 renewal products with env key mappings  -  2026-04-05
 - [x] Stripe products seeded in test mode: Pro/Agency/Forge Perpetual + 3 renewal products  -  `seed-stripe.ts` ran 2026-04-05 (9 products created, 21 prices configured)
-- **Stripe live-mode flip is BLOCKED on GAP-124 (billing audit closure).** Pre-launch posture is "TEST mode in production with loud warning"; do not propose flipping `STRIPE_LIVE_MODE=true` or rotating to `sk_live_*` until the GAP-124 billing audit closes. See `~/revfleet/.jv/docs/billing-audit/READINESS.md` (12 surfaces signed off CLEAN, awaiting owner sign-off).
 - [ ] **Owner action (gated on GAP-124):** Switch Stripe to live mode and re-run `seed-stripe.ts`, or verify products in Stripe dashboard
 
 #### 5.4 Forge Self-Hosted Delivery
@@ -674,7 +673,7 @@ Phase D  -  Agent publisher tools (agent):
 
 **Goal:** Achieve SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required to close Enterprise tier deals.
 
-**Gap file:** `docs/gaps/GAP-047.yml`
+**Gap file:** GAP-047 (internal tracker)
 
 **Existing controls (already implemented):**
 - RBAC/ABAC policy engine, session auth, bcrypt (12 rounds), brute-force protection
@@ -867,7 +866,7 @@ Holster:          "Here is the shared state where coordination happens"
 - [x] Audit config formats for backwards-compat fields that can be dropped
 - [x] Audit hook scripts for patterns that pre-date the current architecture
 - [x] Audit test files for mocks of removed or renamed interfaces
-- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — see `~/revfleet/.jv/docs/audits/legacy-sweep-2026-04-27.md` (62 findings, 6 categories, 17 actionable in Tier 1)
+- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — tracked in the private coordination hub's audit log (62 findings, 6 categories, 17 actionable in Tier 1)
 
 ### Phase B: Codemod Infrastructure
 
