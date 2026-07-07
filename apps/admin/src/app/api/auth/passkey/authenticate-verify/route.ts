@@ -16,7 +16,6 @@ import { getUserById } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
 import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
 import { type NextRequest, NextResponse } from 'next/server';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
@@ -155,9 +154,9 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       domain: sessionCookieDomain({ logIfMissing: true }),
     });
 
-    // Set role hint cookie
-    const userRole = user.role ?? 'user';
-    response.cookies.set('revealui-role', isAdminRole(userRole) ? 'admin' : 'user', {
+    // Set role cookie for proxy.ts role-aware gate
+    const userRole = user.role ?? 'viewer';
+    response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
