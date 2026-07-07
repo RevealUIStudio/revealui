@@ -45,7 +45,7 @@ export default async function Layout({ children }: Args) {
           dangerouslySetInnerHTML={{ __html: 'window.__RVUI__=1;' }}
         />
       ) : null}
-      <LicenseProvider>
+      <LicenseProvider isFleetMode={isFleetMode}>
         <ErrorBoundary>
           <AdminSidebarLayout siteName={siteName} isFleetMode={isFleetMode} isAdmin={isAdmin}>
             {children}
