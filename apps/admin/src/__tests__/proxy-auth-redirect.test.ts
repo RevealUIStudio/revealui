@@ -1,12 +1,11 @@
 /**
- * Admin proxy — authenticated-user redirect off /login + /signup (#1107).
+ * Admin proxy — role-aware auth gate and redirect tests.
  *
- * An admin holding a valid `revealui-session` has no reason to see the
- * login/signup screens. Verifies `src/proxy.ts` redirects such a user to '/',
- * scoped to /login + /signup only, and leaves the other public auth-flow pages
- * (forgot/reset/rotate-password, mfa, setup) reachable. The `revealui-role`
- * cookie is normalized to 'admin' | 'user' at sign-in, so the redirect predicate
- * matches the auth gate's admit check — no redirect loop.
+ * The `revealui-role` cookie carries the actual DB role (owner, admin, editor,
+ * viewer, agent, contributor). The proxy uses this for two purposes:
+ * 1. Redirect authenticated users off /login + /signup (admins → /, others → /welcome)
+ * 2. Gate admin-only paths (/settings, /users) — non-admin roles → /welcome?denied=admin
+ * 3. All other authenticated paths are open to any role
  *
  * No regex authored (fleet posture): assertions use URL parsing + equality.
  */
@@ -34,9 +33,11 @@ function redirectPath(res: Response): string | null {
 }
 
 const ADMIN_COOKIES = 'revealui-session=sess-abc; revealui-role=admin';
-const USER_COOKIES = 'revealui-session=sess-abc; revealui-role=user';
+const OWNER_COOKIES = 'revealui-session=sess-abc; revealui-role=owner';
+const VIEWER_COOKIES = 'revealui-session=sess-abc; revealui-role=viewer';
+const EDITOR_COOKIES = 'revealui-session=sess-abc; revealui-role=editor';
 
-describe('admin proxy — authenticated redirect off /login + /signup (#1107)', () => {
+describe('admin proxy — authenticated redirect off /login + /signup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockResolvedValue({
@@ -47,6 +48,12 @@ describe('admin proxy — authenticated redirect off /login + /signup (#1107)', 
 
   it('redirects an authenticated admin off /login to /', async () => {
     const res = await proxy(req('/login', ADMIN_COOKIES));
+    expect(res.status).toBe(307);
+    expect(redirectPath(res)).toBe('/');
+  });
+
+  it('redirects an authenticated owner off /login to /', async () => {
+    const res = await proxy(req('/login', OWNER_COOKIES));
     expect(res.status).toBe(307);
     expect(redirectPath(res)).toBe('/');
   });
@@ -62,9 +69,16 @@ describe('admin proxy — authenticated redirect off /login + /signup (#1107)', 
     expect(redirectPath(res)).not.toBe('/');
   });
 
-  it('does not redirect an authenticated non-admin (role=user) off /login', async () => {
-    const res = await proxy(req('/login', USER_COOKIES));
-    expect(redirectPath(res)).not.toBe('/');
+  it('redirects an authenticated viewer off /login to /welcome', async () => {
+    const res = await proxy(req('/login', VIEWER_COOKIES));
+    expect(res.status).toBe(307);
+    expect(redirectPath(res)).toBe('/welcome');
+  });
+
+  it('redirects an authenticated editor off /login to /welcome', async () => {
+    const res = await proxy(req('/login', EDITOR_COOKIES));
+    expect(res.status).toBe(307);
+    expect(redirectPath(res)).toBe('/welcome');
   });
 
   it('does not redirect an authenticated admin off /forgot-password', async () => {
@@ -76,24 +90,57 @@ describe('admin proxy — authenticated redirect off /login + /signup (#1107)', 
     const res = await proxy(req('/rotate-password', ADMIN_COOKIES));
     expect(redirectPath(res)).not.toBe('/');
   });
+});
 
-  it('sends an authenticated non-admin off an admin route to /welcome, not /login', async () => {
-    // The bug: a signed-in user-role account hitting an admin route was bounced
-    // to /login (the form they just used) — a silent flash-and-reappear loop.
-    // Fix: redirect to /welcome with a ?denied=admin notice instead.
-    const res = await proxy(req('/settings', USER_COOKIES));
+describe('admin proxy — role-aware admin-only gate', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ needed: false }),
+    });
+  });
+
+  it('sends a viewer off /settings to /welcome?denied=admin', async () => {
+    const res = await proxy(req('/settings', VIEWER_COOKIES));
     expect(res.status).toBe(307);
     const location = res.headers.get('location');
     const url = location ? new URL(location) : null;
     expect(url?.pathname).toBe('/welcome');
-    expect(url?.pathname).not.toBe('/login');
     expect(url?.searchParams.get('denied')).toBe('admin');
   });
 
+  it('sends a viewer off /users to /welcome?denied=admin', async () => {
+    const res = await proxy(req('/users', VIEWER_COOKIES));
+    expect(res.status).toBe(307);
+    const location = res.headers.get('location');
+    const url = location ? new URL(location) : null;
+    expect(url?.pathname).toBe('/welcome');
+    expect(url?.searchParams.get('denied')).toBe('admin');
+  });
+
+  it('lets an admin through to /settings', async () => {
+    const res = await proxy(req('/settings', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+
+  it('lets an owner through to /settings', async () => {
+    const res = await proxy(req('/settings', OWNER_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+
+  it('lets a viewer through to non-admin paths like /dashboard', async () => {
+    const res = await proxy(req('/dashboard', VIEWER_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+
+  it('lets an editor through to non-admin paths like /content', async () => {
+    const res = await proxy(req('/content', EDITOR_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+
   it('does not bounce an authenticated non-admin off /welcome (no loop)', async () => {
-    // /welcome is session-only, so the target of the deny redirect is itself
-    // reachable — guarantees the deny path terminates instead of looping.
-    const res = await proxy(req('/welcome', USER_COOKIES));
+    const res = await proxy(req('/welcome', VIEWER_COOKIES));
     expect(redirectPath(res)).not.toBe('/login');
     expect(redirectPath(res)).not.toBe('/welcome');
   });
@@ -109,8 +156,6 @@ describe('admin proxy — /dashboard auth gate (GAP-292)', () => {
   });
 
   it('redirects an unauthenticated /dashboard request to /login (auth gate)', async () => {
-    // /dashboard is not in PUBLIC_PATHS — auth gate protects it and redirects
-    // unauthenticated requests to /login with the original path preserved.
     const res = await proxy(req('/dashboard'));
     expect(res.status).toBe(307);
     const location = res.headers.get('location');
@@ -119,10 +164,13 @@ describe('admin proxy — /dashboard auth gate (GAP-292)', () => {
     expect(url?.searchParams.get('redirect')).toBe('/dashboard');
   });
 
-  it('does not redirect an authenticated admin off /dashboard (served by static route)', async () => {
-    // /dashboard is served by (backend)/dashboard/page.tsx (static route, higher
-    // priority than (frontend)/[slug]). The proxy should pass it through — no redirect.
+  it('does not redirect an authenticated admin off /dashboard', async () => {
     const res = await proxy(req('/dashboard', ADMIN_COOKIES));
+    expect(redirectPath(res)).toBeNull();
+  });
+
+  it('does not redirect an authenticated viewer off /dashboard (role-aware gate)', async () => {
+    const res = await proxy(req('/dashboard', VIEWER_COOKIES));
     expect(redirectPath(res)).toBeNull();
   });
 });

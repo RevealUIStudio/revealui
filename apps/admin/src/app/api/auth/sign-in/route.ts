@@ -11,7 +11,6 @@ import config from '@revealui/config';
 import { SignInRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
@@ -109,10 +108,11 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       ...(result.requiresPasswordRotation ? { requiresPasswordRotation: true } : {}),
     });
 
-    // Set role hint cookie for proxy.ts admin gate (defense-in-depth, not the security boundary).
-    // The real enforcement is at the API level via collection access.read checks.
-    const userRole = result.user.role ?? 'user';
-    response.cookies.set('revealui-role', isAdminRole(userRole) ? 'admin' : 'user', {
+    // Set role cookie for proxy.ts role-aware gate (defense-in-depth, not the
+    // security boundary). Carries the actual DB role so the proxy can route
+    // admin-only paths without blocking non-admin users entirely.
+    const userRole = result.user.role ?? 'viewer';
+    response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
