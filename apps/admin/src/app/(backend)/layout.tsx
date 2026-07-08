@@ -1,5 +1,5 @@
 import { RootLayout } from '@revealui/core/admin';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import Script from 'next/script';
 /* RevealUI Admin Layout - Local implementation */
 import type React from 'react';
@@ -28,9 +28,12 @@ export const dynamic = 'force-dynamic';
 // `||` not `??`: Compose `${VAR:-}` delivers unset vars as empty strings.
 const siteName = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
 const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
+const ADMIN_ROLES = new Set(['owner', 'admin', 'super-admin']);
 
 export default async function Layout({ children }: Args) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const role = (await cookies()).get('revealui-role')?.value ?? '';
+  const isAdmin = ADMIN_ROLES.has(role);
   return (
     <RootLayout config={config} importMap={importMap}>
       {nonce ? (
@@ -42,9 +45,9 @@ export default async function Layout({ children }: Args) {
           dangerouslySetInnerHTML={{ __html: 'window.__RVUI__=1;' }}
         />
       ) : null}
-      <LicenseProvider>
+      <LicenseProvider isFleetMode={isFleetMode}>
         <ErrorBoundary>
-          <AdminSidebarLayout siteName={siteName} isFleetMode={isFleetMode}>
+          <AdminSidebarLayout siteName={siteName} isFleetMode={isFleetMode} isAdmin={isAdmin}>
             {children}
           </AdminSidebarLayout>
         </ErrorBoundary>
