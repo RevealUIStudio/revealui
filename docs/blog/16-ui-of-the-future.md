@@ -59,6 +59,8 @@ Today, RevealUI is the runtime layer of that thesis. Five primitives that every 
 
 Today, you still need to be the kind of person who can run your own infrastructure. The owner-operators come first: the founders and small teams who run their business on their own AI and want the receipts to prove what it did. They are who this is built with, right now, in production, by the one engineer in Tennessee writing this.
 
+I can tell you the receipts matter because I run on them. For the past several months this company has been operated by me and a fleet of AI agents working around the clock: agents that write code, review each other's pull requests, file the paperwork, and hand work to each other between sessions like a shift change. Hundreds of merged pull requests have moved through that system. And the moments that taught me the most were not the wins. Twice, an agent marked a bug as fixed because the code had merged, and the record showed that nobody had ever watched it actually work. The fix for that was not a smarter model. It was a rule that a claim without evidence does not close, and a ledger nobody can quietly edit. Just today, an agent refused an instruction that arrived through a side channel under my name, because the provenance did not check out. That is governance doing its job. I trust my agents the way I trusted the teams I managed for a decade: exactly as far as the records go.
+
 The non-technical future I just described is the horizon, not the current release. I am not going to pretend otherwise. But every piece of it depends on the same two preconditions, and those are built. Proof and ownership do not get easier to retrofit later. They are the foundation or they are nowhere.
 
 ## The reveal
