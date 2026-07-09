@@ -18,6 +18,7 @@ import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
 import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
+import { ServicesPage } from './routes/ServicesPage';
 import { SponsorPage } from './routes/SponsorPage';
 import { StatusPage } from './routes/StatusPage';
 import { SubprocessorsPage } from './routes/SubprocessorsPage';
@@ -29,7 +30,7 @@ export function App() {
   const registered = useRef(false);
 
   // Register routes synchronously during the first render so <Routes /> can
-  // match on the initial paint — avoids a 404 flash. The /*notfound wildcard
+  // match on the initial paint, avoiding a 404 flash. The /*notfound wildcard
   // MUST be registered last so it only matches when no specific route does.
   if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
@@ -51,6 +52,11 @@ export function App() {
         meta: { title: 'Provable agent governance | RevealUI' },
       },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
+      {
+        path: '/services',
+        component: ServicesPage,
+        meta: { title: 'Services | RevealUI Studio' },
+      },
       { path: '/blog', component: BlogIndexPage, meta: { title: 'Blog | RevealUI' } },
       { path: '/blog/:slug', component: BlogPostPage, meta: { title: 'Blog | RevealUI' } },
       { path: '/contact', component: ContactPage, meta: { title: 'Contact | RevealUI' } },

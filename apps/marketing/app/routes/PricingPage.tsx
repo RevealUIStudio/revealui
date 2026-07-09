@@ -2,6 +2,7 @@ import { ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
+import { CostCalculator } from '../components/landing/CostCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PERPETUAL_TIERS,
@@ -157,7 +158,7 @@ export function PricingPage() {
             <p className="mt-4 text-lg text-muted-foreground">{PRICING_TRACK_A_SECTION.body}</p>
           </div>
 
-          {/* Value band — you own the runtime (no competitor prices) */}
+          {/* Value band: you own the runtime (no competitor prices) */}
           <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
             <h3 className="text-2xl font-bold tracking-tight text-foreground">
               {PRICING_VALUE_BAND.heading}
@@ -174,6 +175,8 @@ export function PricingPage() {
               ))}
             </ul>
           </div>
+
+          <CostCalculator />
 
           {showAnnualToggle && (
             <div className="mb-8 flex justify-center">
@@ -275,6 +278,12 @@ export function PricingPage() {
           <p className="mt-8 text-center text-sm text-muted-foreground">{PRICING_TRIAL_NOTE}</p>
         </div>
       </section>
+
+      {/* Cost calculator: moved here from the homepage (internal marketing
+          funnel audit, 2026-07-09), right after the value band above so the
+          rented-stack ranges it produces are the one anchor number set for
+          this comparison. */}
+      <CostCalculator />
 
       {/* Perpetual licenses */}
       <section id="perpetual" className="bg-secondary py-24 sm:py-32">

@@ -21,7 +21,6 @@ describe('selectHomeHero', () => {
     expect(HOME_HERO_FOUNDATION.subtitle).toEqual(HOME_HERO.subtitle);
     expect(HOME_HERO_FOUNDATION.eyebrow).toBe(HOME_HERO.eyebrow);
     expect(HOME_HERO_FOUNDATION.cta).toEqual(HOME_HERO.cta);
-    expect(HOME_HERO_FOUNDATION.shipsToday).toEqual(HOME_HERO.shipsToday);
   });
 
   it('matches the corpus §4.1 H1 lock verbatim', () => {

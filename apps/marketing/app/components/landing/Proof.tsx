@@ -1,5 +1,6 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { PROOF_GOVERNANCE } from '../../content/governance';
+import { PERSONA_CARD, PERSONA_SECTION } from '../../content/persona';
 import {
   PROOF_CI_SIGNALS,
   PROOF_LOCAL_AI,
@@ -9,8 +10,26 @@ import {
   PROOF_STACK,
   PROOF_STACK_PANEL,
   PROOF_TRUST,
+  PROOF_VERIFY_LINK,
 } from '../../content/proof';
 import { LiveMetricsBadge } from './LiveMetricsBadge';
+
+function CheckIcon() {
+  return (
+    <svg
+      className="mt-1 h-5 w-5 flex-shrink-0 text-primary"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <title>Check</title>
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
 
 export function Proof() {
   return (
@@ -26,7 +45,9 @@ export function Proof() {
           <p className="mt-6 text-lg leading-8 text-muted-foreground">{PROOF_SECTION.body}</p>
         </div>
 
-        {/* Live-metrics snapshot badge (Phase D): gate-pinned counts + validator link. */}
+        {/* Live-metrics snapshot badge (Phase D): gate-pinned counts + validator link.
+            Carries the 3 strongest hero metrics (packages, MCP servers, DB tables)
+            among its six, since the hero's "What ships today" grid was removed. */}
         <div className="mt-16">
           <LiveMetricsBadge />
         </div>
@@ -99,6 +120,14 @@ export function Proof() {
                   </li>
                 ))}
               </ul>
+              <a
+                href={PROOF_VERIFY_LINK.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
+              >
+                {PROOF_VERIFY_LINK.label}
+              </a>
             </div>
           </div>
 
@@ -177,6 +206,22 @@ export function Proof() {
           </div>
         </div>
 
+        {/* Persona checklist (merged from the former standalone Persona section):
+            what a team needs before they can put agents in front of customers. */}
+        <div className="mx-auto mt-16 max-w-3xl">
+          <div className="rounded-2xl bg-card p-8 ring-1 ring-border">
+            <h3 className="text-lg font-semibold text-foreground">{PERSONA_SECTION.heading}</h3>
+            <ul className="mt-6 space-y-3">
+              {PERSONA_CARD.checklist.map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-foreground">
+                  <CheckIcon />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
         {/* Local-AI proof beat: in-boundary by default, dogfooded by RevDev. */}
         <div className="mx-auto mt-16 max-w-5xl">
           <div className="rounded-2xl bg-secondary p-8 ring-1 ring-border">
@@ -194,7 +239,8 @@ export function Proof() {
           </div>
         </div>
 
-        {/* Governance proof beat (Phase F): read every line + prove what agents did. */}
+        {/* Governance proof beat: the audit-chain claim's one appearance in this
+            section, leading with the expanded foil variant. */}
         <div className="mx-auto mt-6 max-w-5xl">
           <div className="rounded-2xl bg-primary/5 p-8 ring-1 ring-primary/20">
             <p className="text-xs font-semibold uppercase tracking-widest text-primary">

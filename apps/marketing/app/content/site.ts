@@ -5,17 +5,17 @@
 // Per the internal marketing-overhaul plan §4.4 (Phase 1).
 // Phase 1b additions: repoRoadmap, apiDocs.
 // Phase 1c additions: adminLogin, x, linkedin, forum, repoChangelog, repoLicense.
-// Phase 3 addition: METRICS export — canonical numbers from docs/MARKETING_METRICS.md §1
+// Phase 3 addition: METRICS export, canonical numbers from docs/MARKETING_METRICS.md §1
 //   (validated by `pnpm tsx scripts/validate/claim-drift.ts`). All content/* files
 //   that reference a count import METRICS rather than hardcoding the integer.
 //   When the underlying code changes (new package, new MCP server, etc.):
 //     1. Update docs/MARKETING_METRICS.md §1
 //     2. Update METRICS below to match
 //     3. Run claim-drift validator to confirm
-//     4. marketing content automatically reflects the new number — no copy edit needed
+//     4. marketing content automatically reflects the new number; no copy edit needed
 
 /**
- * Canonical marketing metrics — pinned-truth, sourced from
+ * Canonical marketing metrics: pinned-truth, sourced from
  * docs/MARKETING_METRICS.md §1. Do NOT hardcode these integers anywhere
  * else in apps/marketing/app/content/*.
  */
@@ -42,9 +42,9 @@ export const METRICS = {
   licenseSplit: {
     /** MIT-licensed packages. */
     mit: 21,
-    /** Fair Source (FSL-1.1-MIT) packages — @revealui/ai, engines, harnesses, mcp, services. */
+    /** Fair Source (FSL-1.1-MIT) packages: @revealui/ai, engines, harnesses, mcp, services. */
     fsl: 5,
-    /** Internal/none — `test` workspace package (private, no public license). */
+    /** Internal/none: `test` workspace package (private, no public license). */
     internal: 1,
   },
 } as const;
@@ -74,7 +74,6 @@ export const SITE = {
     adminLogin: 'https://admin.revealui.com/login',
     x: 'https://x.com/revealui',
     linkedin: 'https://www.linkedin.com/company/revealui',
-    forum: 'https://github.com/RevealUIStudio/revealui/discussions',
     repoChangelog: 'https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md',
     repoLicense: 'https://github.com/RevealUIStudio/revealui/blob/main/LICENSE',
   },
