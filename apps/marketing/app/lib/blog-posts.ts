@@ -31,6 +31,15 @@ interface PostMeta {
 
 const POST_METADATA: PostMeta[] = [
   {
+    slug: 'ui-of-the-future',
+    title: 'The UI of the Future Has Yet to Reveal Itself',
+    excerpt:
+      "The interface of the AI era is not a smarter chat window. It is your business itself, run by agents you own and can audit. If an agent did it, there's a receipt.",
+    publishedAt: '2026-07-09T12:00:00.000Z',
+    author: 'Joshua Vaughn',
+    file: '16-ui-of-the-future.md',
+  },
+  {
     slug: 'revfleet-product-family',
     title: 'One Runtime, Eight Products: The RevFleet Family',
     excerpt:
