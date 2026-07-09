@@ -19,6 +19,16 @@
 - [GitHub](https://github.com/RevealUIStudio/revealui): All code lives in the public repo. OSS subset under MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) under FSL-1.1-MIT (Fair Source — source-visible, auto-converts to MIT after 2 years).
 - [Fair Source explainer](https://docs.revealui.com/FAIR_SOURCE): What FSL-1.1-MIT means in practice
 
+## The thesis
+
+RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.
+
+If an agent did it, there's a receipt.
+
+Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
+
+- [Read the full thesis](https://revealui.com/blog/ui-of-the-future): "The UI of the Future Has Yet to Reveal Itself"
+
 ## Pricing
 
 - [Pricing page](https://revealui.com/pricing): Free, Pro, Max, Enterprise tiers; perpetual licenses; professional services
