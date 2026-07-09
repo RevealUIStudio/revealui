@@ -1,14 +1,14 @@
 // Sourced from: app/components/landing/Hero.tsx, app/components/landing/Problem.tsx,
 //   app/components/landing/Demo.tsx, app/components/landing/Faq.tsx,
 //   app/components/GetStarted.tsx (Phase 1c extraction).
-// Phase 3 (2026-05-18) update: Hero "What ships today" metrics now reference
-// METRICS from site.ts (single source per docs/MARKETING_METRICS.md §1).
-// FSL package detail references METRICS: 21 MIT + 5 FSL + 1 internal = 27 total
-// (matches validator licenseSplit; counted against packages/ on 2026-06-17 —
-// @revealui/tokens addition took MIT 20→21 and total 26→27).
 // Per the internal marketing-overhaul plan §4.4.
+// 2026-07-09: homepage funnel declutter (internal marketing funnel audit). Hero
+// subtitle now carries the canonical positioning sentence + foil; the "What
+// ships today" grid, the audience Fork, and the Objections section moved out
+// (their 3 strongest metrics live in the Proof section; the two objection
+// cards became the first two FAQ items below).
 
-import { METRICS, SITE } from './site';
+import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
 // ---------------------------------------------------------------------------
@@ -19,14 +19,11 @@ export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable. Audit-ready.',
   h1: 'Run your whole business on one runtime you own.',
   subtitle: {
-    lead: 'Stop renting your stack from a half-dozen vendors.',
-    strong:
-      'Auth, content, offers, and payments, pre-wired into one open-source runtime you self-host.',
-    body: 'Ship one product, or stamp a branded, self-hosted copy for every client you serve. Your team and your AI agents work in it under the same permissions and the same tamper-evident audit trail. Build it yourself with',
-    cliSuffix: 'or hire',
-    agencyLabel: 'RevealUI Studio',
-    agencyHref: SITE.urls.agency,
-    agencySuffix: 'to build it for you.',
+    foil: "If an agent did it, there's a receipt.",
+    sentence1:
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
+    sentence2: 'Every agent is a governed and audited user that lives on your infrastructure.',
+    support: 'It runs on any AI provider you choose.',
   },
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
@@ -34,50 +31,22 @@ export const HOME_HERO = {
   },
   agencyCta: {
     prefix: 'Want it built for you?',
-    label: 'RevealUI Studio builds your AI product on RevealUI →',
-    href: SITE.urls.agency,
+    label: 'See services.',
+    href: '/services',
+  },
+  agencyLicensingCta: {
+    prefix: 'Building for clients?',
+    label: 'See agency licensing.',
+    href: '/pricing#perpetual',
   },
   cliCaption: 'Local dev stack in 60 seconds. No credit card.',
-  shipsToday: {
-    heading: 'What ships today',
-    items: [
-      {
-        metric: `${METRICS.packages} packages`,
-        detail: `${METRICS.licenseSplit.mit} MIT-licensed forever + ${METRICS.licenseSplit.fsl} Fair Source (FSL-1.1-MIT, convert to MIT after 2 years) + ${METRICS.licenseSplit.internal} internal-only test workspace. Source at packages/.`,
-      },
-      {
-        metric: `${METRICS.dbTables} database tables`,
-        detail:
-          'Every table maps to a primitive: people, content, offers, payments, or agents. See the [database reference](https://docs.revealui.com/database).',
-      },
-      {
-        metric: `${METRICS.mcpServers} first-party MCP servers`,
-        detail:
-          'Your agents discover every primitive through one open protocol. See the [MCP reference](https://docs.revealui.com/ai).',
-      },
-      {
-        metric: 'Pro license enforcement, signed and verified',
-        detail:
-          'Pro features check against your license server-side, with no manual install gates. See the [Pro reference](https://docs.revealui.com/pro).',
-      },
-      {
-        metric: `FSL-1.1-MIT on ${METRICS.licenseSplit.fsl} Fair Source packages`,
-        detail: 'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
-      },
-      {
-        metric: 'Same permissions. Same audit chain. Same API.',
-        detail:
-          'One permission model and one tamper-evident chain, for your team and your agents alike. See the [architecture](https://docs.revealui.com/architecture).',
-      },
-    ],
-  },
 } as const;
 
 // ---------------------------------------------------------------------------
-// Hero — "Foundation" A/B variant (canonical lock).
+// Hero: "Foundation" A/B variant (canonical lock).
 // Per docs/marketing/06-copy-corpus.md §4.1 (sanctioned A/B variant under ADR
 // 2026-06-07 decision 6, hero only): H1 reframes around "foundation"; subtitle
-// inherits the default unchanged. The noun-test is the H1 only — the subtitle
+// inherits the default unchanged. The noun-test is the H1 only; the subtitle
 // keeps the canonical "runtime" noun. Served via selectHomeHero()
 // (app/lib/hero-variant.ts): the homepage hero renders this variant when the
 // URL carries ?hero=foundation, else HOME_HERO. An automatic traffic split +
@@ -90,8 +59,8 @@ export const HOME_HERO_FOUNDATION = {
   h1: 'The foundation your business runs on.',
 } as const;
 
-// Full-width thesis band — a no-card rhythm break between the Primitives and
-// What's-shipped grids. One bold line + a short contrast sub.
+// Full-width thesis band: a no-card rhythm break between the Primitives and
+// Local-AI sections. One bold line + a short contrast sub.
 export const HOME_THESIS_BAND = {
   line: 'You bring the business. The runtime handles the rest.',
   sub: 'Not a starter kit, and not glue between five SaaS tools. One system, already wired together.',
@@ -152,77 +121,7 @@ export const HOME_PROBLEM = {
     },
   ] as readonly ProblemRow[],
   footnote:
-    'Capability comparison only; the monthly cost is the calculator below. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
-} as const;
-
-// ---------------------------------------------------------------------------
-// Cost calculator (interactive; replaces the former static cost row)
-// ---------------------------------------------------------------------------
-// Output is ALWAYS a sanctioned range from 00-truth-source §3 (entry ~$320-380,
-// climbing past $700-1,000+). The inputs move you between those sourced brackets;
-// the component never invents a precise figure outside the §3 band. No vendor
-// names. Honesty: sourced + time-sensitive + excludes payment processing +
-// RevealUI is self-hosted (you pay your own Postgres + compute).
-
-export interface CostTier {
-  readonly id: string;
-  readonly range: string;
-  readonly note: string;
-}
-
-export const HOME_COST_CALCULATOR = {
-  eyebrow: 'The rented stack',
-  heading: 'Add up what you would otherwise rent.',
-  body: 'A multi-product team rents auth, content, billing, observability, and background jobs from four to six vendors. Estimate the monthly bill for that rented stack, then compare it to one runtime you own.',
-  inputs: {
-    products: { label: 'Products you run', min: 1, max: 8, step: 1, default: 2 },
-    vendors: { label: 'Vendor services you would replace', min: 3, max: 6, step: 1, default: 5 },
-    mrr: { label: 'Monthly recurring revenue', min: 0, max: 50000, step: 5000, default: 10000 },
-  },
-  tiers: [
-    {
-      id: 'entry',
-      range: '$320 to $380 / month',
-      note: 'Entry tiers across four or five vendors.',
-    },
-    {
-      id: 'growth',
-      range: '$450 to $700 / month',
-      note: 'More products and seats push you up the published tiers.',
-    },
-    {
-      id: 'scale',
-      range: '$700 to $1,000+ / month',
-      note: 'Enterprise SSO, compliance tiers, or higher-tier auth enter.',
-    },
-  ] as const satisfies readonly CostTier[],
-  rentedLabel: 'The rented stack',
-  revealui: { label: 'RevealUI', value: '$49 / month', sub: '+ your own Postgres and compute' },
-  footnote:
-    'A sourced estimate from current 2026 published pricing, time-sensitive. It excludes payment processing, and RevealUI is self-hosted, so you still pay for your own Postgres and compute. Figures are ranges, not a quote.',
-} as const;
-
-// ---------------------------------------------------------------------------
-// Objections (surfaced high: the two questions skeptical engineers ask first)
-// Concise answers to the two hardest objections (lock-in, production-readiness),
-// promoted above the FAQ so a skeptic gets them without scrolling. Full detail
-// lives in HOME_FAQ + PROOF_*; the cards link onward to #faq.
-// ---------------------------------------------------------------------------
-
-export const HOME_OBJECTIONS = {
-  eyebrow: 'Before you ask',
-  heading: 'The two questions every engineer asks first.',
-  cards: [
-    {
-      heading: 'Will I get locked in?',
-      body: 'No. Open standards end-to-end: OAuth, JWT, Stripe webhooks, MCP, OpenAPI, and plain Postgres. Deploy anywhere Node runs, and take your data, your code, and your infra with you. RevealUI is the runtime, not the prison.',
-    },
-    {
-      heading: 'Is it production-ready?',
-      body: 'Every PR clears a 3-phase gate before it lands: Biome, Vitest unit and integration, Playwright E2E, CodeQL, and Gitleaks. This site and the agency site at revealuistudio.com both run on RevealUI in production.',
-    },
-  ],
-  cta: { label: 'See all the questions →', href: '#faq' },
+    'Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -265,12 +164,27 @@ export const HOME_DEMO = {
 
 // ---------------------------------------------------------------------------
 // FAQ
+// The first two items are the merged former-Objections cards (the two
+// questions skeptical engineers ask first, surfaced at the top of the FAQ
+// rather than in their own pre-FAQ section). Their answers replace the
+// near-duplicate lock-in / production-ready entries that used to live further
+// down this list, so each claim appears once.
 // ---------------------------------------------------------------------------
 
 export const HOME_FAQ = {
   eyebrow: 'FAQ',
   heading: 'Common questions.',
   items: [
+    {
+      question: 'Will I get locked in?',
+      answer:
+        'No. Open standards end-to-end: OAuth, JWT, Stripe webhooks, MCP, and OpenAPI, over plain Postgres. Deploy anywhere Node runs, and take your data, your code, and your infrastructure with you. RevealUI is the runtime, not the prison.',
+    },
+    {
+      question: 'Is it production-ready?',
+      answer:
+        'Every PR clears a 3-phase gate before it lands: Biome, Vitest unit and integration tests, Playwright end-to-end tests, CodeQL, and Gitleaks. This site and the agency site at revealuistudio.com both run on RevealUI in production.',
+    },
     {
       question:
         'How is this different from stitching together separate auth, database, CMS, and background-job services?',
@@ -280,7 +194,7 @@ export const HOME_FAQ = {
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. 21 of 27 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier, with no vendor-specific edge runtimes and no proprietary database.',
+        'Yes. 21 of 27 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infrastructure at any tier, with no vendor-specific edge runtimes and no proprietary database.',
     },
     {
       question: 'What does "agent-native" actually mean in code?',
@@ -288,29 +202,14 @@ export const HOME_FAQ = {
         'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call, gated by the same RBAC + ABAC policy. Agents are first-class principals: scope one to a collection, give it a budget, watch every action sign into the audit chain, revoke when done. The runtime is the contract, not a glue layer.',
     },
     {
-      question: "What's the lock-in story?",
-      answer:
-        'Open standards, end-to-end. OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Postgres for data. Deploy anywhere Node runs: Vercel, Cloudflare, Fly, Hetzner, your own metal. Your data, your code, your infra. RevealUI is the runtime, not the prison.',
-    },
-    {
-      question: 'Production-ready?',
-      answer:
-        'Behind a 3-phase CI gate: Biome lint, Vitest unit + integration, Playwright E2E, CodeQL, Gitleaks, claim-drift validator. Every PR runs the gate before it can land. The marketing site you are reading runs on @revealui/router and @revealui/presentation; the agency site at revealuistudio.com runs on the same packages. View the source on GitHub.',
-    },
-    {
-      question: "What's the rest of RevFleet?",
-      answer:
-        'RevFleet is the umbrella. RevealUI is the runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness (multi-agent coordination across Claude / Cursor / Copilot). RevCon syncs editor configs. RevSkills is the skills library. RevForge is the operator-side stamping tool that produces white-label trial kits. Use RevealUI standalone, or compose what you need.',
-    },
-    {
       question: 'How does AI inference work?',
       answer:
-        'Pair RevealUI with Ollama or Ubuntu Inference Snaps. Bring Gemma 4 or Phi-4-mini locally, so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+        'Agents run on an open-weight model on your own infrastructure by default, with Claude, GPT, or any other provider one config line away. See the local AI docs at revealui.com/local-ai for the full pathway.',
     },
     {
       question: 'How do agent payments work?',
       answer:
-        "x402-native. RevealUI implements the HTTP 402 payment protocol, compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. The protocol is the load-bearing piece; the agent-payment rails are in development.",
+        'RevealUI implements the HTTP 402 payment protocol so agents can pay each other over standard HTTP, with the payment rails still in development. See the agents section of the pricing page for the current status.',
     },
   ] as readonly FaqItem[],
 } as const;
@@ -335,8 +234,8 @@ export const HOME_GET_STARTED = {
 // Three actors (cast explainer)
 // Defines the three roles the rest of the copy assumes: developer, operator,
 // agent. Two human roles (build, run) plus the AI role (work inside). Sits
-// between the hero and the audience fork so "agents" in the hero h1 is defined
-// within one scroll, before the visitor self-identifies in the fork below.
+// between the hero and the Problem section so "agents" in the hero h1 is
+// defined within one scroll.
 // ---------------------------------------------------------------------------
 
 export interface Actor {
@@ -367,30 +266,4 @@ export const HOME_ACTORS = {
     },
   ] as readonly Actor[],
   tagline: 'Developers build it. Operators run it. Agents work in it.',
-} as const;
-
-// ---------------------------------------------------------------------------
-// Homepage audience fork
-// Per spec-2026-05-14-non-technical-lane.md §4.3 (Phase 2 of the spec sequence).
-// Two technical-lane branches; visitor self-identifies before the technical-lane
-// content below. Branch A scrolls past the fork into the existing technical
-// homepage (OQ-5 locked); Branch C routes studios/agencies to the Agency
-// Perpetual pricing band. The former Branch B ("I want it built for me") was
-// removed when the audience toggle landed: "built for me" is now the
-// non-technical mode itself (the in-hero Technical/Non-technical switch).
-// Decisions consumed: §9.4 OQ-5 (Branch A stays on /).
-// ---------------------------------------------------------------------------
-
-export const HOME_FORK = {
-  branchA: {
-    title: "I'm building this myself.",
-    body: 'Source, packages, the CLI, and docs. Read on.',
-    cta: 'Keep reading →',
-  },
-  branchC: {
-    title: 'I build software for my clients.',
-    body: 'License once, then ship a branded, self-hosted instance for every client you serve.',
-    cta: 'See agency licensing →',
-    href: '/pricing#perpetual',
-  },
 } as const;

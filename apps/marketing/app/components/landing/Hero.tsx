@@ -1,7 +1,6 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { useLocation } from '@revealui/router';
 import { FOR_OPERATORS_HERO } from '../../content/for-operators';
-import { SITE } from '../../content/site';
 import { selectAudience } from '../../lib/audience';
 import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
@@ -27,7 +26,7 @@ const ArrowIcon = () => (
 );
 
 /**
- * Hero background — a layered brand "mesh + motif" over a top-down wash:
+ * Hero background: a layered brand "mesh + motif" over a top-down wash, with
  * several soft, blurred cobalt/azure/violet glows (the generative mesh) plus one
  * faint conic disc (an abstract motif, not iconography). All layers live inside
  * an overflow-hidden box so the off-canvas offsets never create a scrollbar.
@@ -37,18 +36,18 @@ function HeroBackground() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
-      {/* Mesh — overlapping soft glows, asymmetric */}
+      {/* Mesh: overlapping soft glows, asymmetric */}
       <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl" />
       <div className="absolute -left-32 top-1/4 h-[420px] w-[420px] rounded-full bg-[radial-gradient(closest-side,oklch(0.62_0.16_265/0.16),transparent_75%)] blur-3xl" />
       <div className="absolute -right-24 bottom-0 h-[460px] w-[520px] translate-y-1/4 rounded-full bg-[radial-gradient(closest-side,oklch(0.58_0.15_220/0.13),transparent_75%)] blur-3xl" />
       <div className="absolute bottom-1/4 left-1/3 h-[360px] w-[360px] rounded-full bg-[radial-gradient(closest-side,oklch(0.60_0.17_290/0.10),transparent_75%)] blur-3xl" />
-      {/* Motif — a soft conic disc, abstract, off-center */}
+      {/* Motif: a soft conic disc, abstract, off-center */}
       <div className="absolute right-[22%] top-10 h-[320px] w-[320px] rounded-full opacity-[0.10] blur-2xl bg-[conic-gradient(from_140deg,oklch(0.55_0.18_245/0.6),oklch(0.62_0.16_290/0.35),oklch(0.58_0.15_220/0.2),transparent_72%)]" />
     </div>
   );
 }
 
-/** Technical hero — the canonical developer-facing pitch (CLI, GitHub, ships-today). */
+/** Technical hero: the canonical developer-facing pitch (CLI, GitHub, positioning). */
 function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
   return (
     <>
@@ -57,23 +56,8 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
       </h1>
 
       <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-        <strong className="text-foreground">
-          {hero.subtitle.lead} {hero.subtitle.strong}
-        </strong>{' '}
-        {hero.subtitle.body}{' '}
-        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-base text-foreground">
-          {SITE.cli.create}
-        </code>{' '}
-        {hero.subtitle.cliSuffix}{' '}
-        <a
-          href={hero.subtitle.agencyHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-primary hover:underline"
-        >
-          {hero.subtitle.agencyLabel}
-        </a>{' '}
-        {hero.subtitle.agencySuffix}
+        <strong className="block text-foreground">{hero.subtitle.foil}</strong>
+        {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
       </p>
 
       <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -94,7 +78,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         </ButtonCVA>
       </div>
 
-      {/* Trust strip — the signals the retired eyebrow pill used to carry. */}
+      {/* Trust strip: the signals the retired eyebrow pill used to carry. */}
       <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
         {TRUST_SIGNALS.map((signal) => (
           <li key={signal} className="flex items-center gap-2">
@@ -104,15 +88,18 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
         ))}
       </ul>
 
+      {/* Two quiet pathway lines: done-for-you and agency licensing. Neither
+          competes with the primary/secondary CTAs above. */}
       <p className="mt-6 text-sm text-muted-foreground">
         {hero.agencyCta.prefix}{' '}
-        <a
-          href={hero.agencyCta.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-primary hover:underline"
-        >
+        <a href={hero.agencyCta.href} className="font-medium text-primary hover:underline">
           {hero.agencyCta.label}
+        </a>
+      </p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {hero.agencyLicensingCta.prefix}{' '}
+        <a href={hero.agencyLicensingCta.href} className="font-medium text-primary hover:underline">
+          {hero.agencyLicensingCta.label}
         </a>
       </p>
 
@@ -124,41 +111,12 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
       </div>
 
       <p className="mt-4 text-sm text-muted-foreground">{hero.cliCaption}</p>
-
-      <div className="mt-16 border-t border-border pt-10">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-6">
-          {hero.shipsToday.heading}
-        </h2>
-        <ul className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3 list-none">
-          {hero.shipsToday.items.map((item) => (
-            <li key={item.metric} className="flex gap-3">
-              <svg
-                className="mt-0.5 h-4 w-4 shrink-0 text-primary"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <title>Check</title>
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-foreground">{item.metric}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">{item.detail}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
     </>
   );
 }
 
 /**
- * Non-technical hero — the operator-facing pitch. Reuses the /for-operators hero
+ * Non-technical hero: the operator-facing pitch. Reuses the /for-operators hero
  * copy and deliberately omits the developer-only surfaces (CLI block, GitHub
  * CTA, ships-today).
  */
@@ -187,7 +145,7 @@ function NonTechnicalHero() {
         </ButtonCVA>
       </div>
 
-      {/* Trust strip — mirror of TechnicalHero; same signals for the operator view. */}
+      {/* Trust strip: mirror of TechnicalHero; same signals for the operator view. */}
       <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground list-none p-0">
         {TRUST_SIGNALS.map((signal) => (
           <li key={signal} className="flex items-center gap-2">
@@ -211,7 +169,7 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
-          {/* Audience switch — replaces the former eyebrow pill. */}
+          {/* Audience switch: replaces the former eyebrow pill. */}
           <div className="mb-8 flex justify-center">
             <AudienceToggle current={audience} />
           </div>

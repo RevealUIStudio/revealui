@@ -32,6 +32,13 @@ export const PROOF_CI_SIGNALS: readonly string[] = [
   'Affected-only PR gate',
 ] as const;
 
+// Replaces the former standalone WhatsShipped capabilities grid (2026-07-09
+// funnel declutter): one link into the repo instead of a nine-card section.
+export const PROOF_VERIFY_LINK = {
+  label: 'Verify the internals in the repo →',
+  href: SITE.urls.repo,
+} as const;
+
 export const PROOF_STACK: readonly StackItem[] = [
   { label: 'Vite', kind: 'Marketing + docs frontends' },
   { label: 'Next.js 16', kind: 'Admin frontend' },

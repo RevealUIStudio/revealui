@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HOME_COST_CALCULATOR as C } from '../../content/home';
+import { PRICING_COST_CALCULATOR as C } from '../../content/pricing';
 
 /**
  * Interactive cost calculator. Replaces the former static HOME_PROBLEM cost row.
