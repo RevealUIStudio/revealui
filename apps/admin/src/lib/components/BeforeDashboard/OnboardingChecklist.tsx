@@ -1,39 +1,44 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SITE_NAME } from '@/lib/utils/siteBranding';
 
 const DISMISSED_KEY = 'revealui-onboarding-dismissed';
 
+type ItemKey = 'agents' | 'agentTasks' | 'pages' | 'products';
+
 interface ChecklistItem {
+  key: ItemKey;
   label: string;
   description: string;
   href: string;
-  external?: boolean;
 }
 
 const items: ChecklistItem[] = [
   {
+    key: 'agents',
+    label: 'Run your first agent',
+    description: 'Talk to an agent and watch it take an action on your behalf.',
+    href: '/agents',
+  },
+  {
+    key: 'agentTasks',
+    label: 'See the receipt',
+    description: 'Every agent action leaves a task record you can inspect.',
+    href: '/agent-tasks',
+  },
+  {
+    key: 'pages',
     label: 'Create your first page',
     description: 'Add a homepage, about page, or blog post to get started.',
     href: '/pages',
   },
   {
+    key: 'products',
     label: 'Add a product',
     description: 'Set up your first product with pricing and details.',
     href: '/products',
-  },
-  {
-    label: 'Configure settings',
-    description: 'Set your site name, branding, and preferences.',
-    href: '/settings',
-  },
-  {
-    label: 'Explore the docs',
-    description: 'Guides for content, payments, AI, and deployment.',
-    href: 'https://docs.revealui.com',
-    external: true,
   },
 ];
 
@@ -45,8 +50,70 @@ function wasDismissed(): boolean {
   }
 }
 
+/** Resolve a boolean from a same-origin admin collections proxy (pages, products). */
+async function hasAnyDoc(collection: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/collections/${collection}?limit=1&depth=0`, {
+      credentials: 'include',
+    });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { docs?: unknown[] };
+    return (data.docs?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Derive checklist completion from live data rather than click tracking, so
+ * the checklist reflects what the account has actually done. Every source
+ * fails closed to `false` on its own  -  a 403 from an ungated tier or a
+ * network hiccup on one item just leaves that item unchecked, it never
+ * throws. `null` is returned only when derivation could not be attempted at
+ * all, so the caller falls back to the plain static list.
+ */
+async function fetchCompletionState(apiUrl: string): Promise<Record<ItemKey, boolean> | null> {
+  try {
+    const [agentsDone, agentTasksDone, pagesDone, productsDone] = await Promise.all([
+      fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' })
+        .then((r) => (r.ok ? r.json() : { agents: [] }))
+        .then((data: { agents?: unknown[] }) => (data.agents?.length ?? 0) > 0)
+        .catch(() => false),
+      fetch(`${apiUrl}/a2a/agent-tasks/exists`, { credentials: 'include' })
+        .then((r) => (r.ok ? r.json() : { exists: false }))
+        .then((data: { exists?: boolean }) => data.exists ?? false)
+        .catch(() => false),
+      hasAnyDoc('pages'),
+      hasAnyDoc('products'),
+    ]);
+
+    return {
+      agents: agentsDone,
+      agentTasks: agentTasksDone,
+      pages: pagesDone,
+      products: productsDone,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function OnboardingChecklist() {
   const [dismissed, setDismissed] = useState(wasDismissed);
+  const [completion, setCompletion] = useState<Record<ItemKey, boolean> | null>(null);
+
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+
+  useEffect(() => {
+    if (dismissed) return;
+    let cancelled = false;
+    fetchCompletionState(apiUrl).then((state) => {
+      if (!cancelled) setCompletion(state);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [dismissed, apiUrl]);
 
   if (dismissed) return null;
 
@@ -78,20 +145,23 @@ export default function OnboardingChecklist() {
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
-        {items.map((item) => {
-          const props = item.external
-            ? { target: '_blank' as const, rel: 'noopener noreferrer' }
-            : {};
+        {items.map((item, index) => {
+          const checked = completion?.[item.key] ?? false;
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className="flex items-start gap-3 rounded-lg border border-zinc-700/50 bg-zinc-800 p-3 transition-colors hover:border-zinc-500 hover:bg-zinc-750"
-              {...props}
             >
-              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-zinc-600 text-xs text-zinc-500">
-                {items.indexOf(item) + 1}
+              <span
+                className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs ${
+                  checked
+                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
+                    : 'border-zinc-600 text-zinc-500'
+                }`}
+              >
+                {checked ? <span aria-hidden="true">&#10003;</span> : index + 1}
               </span>
               <div>
                 <p className="text-sm font-medium text-white">{item.label}</p>

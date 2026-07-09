@@ -419,6 +419,64 @@ describe('GET /a2a/agents/:id/tasks', () => {
   });
 });
 
+describe('GET /a2a/agent-tasks/exists', () => {
+  beforeEach(resetMocks);
+
+  it('returns 401 when caller is not authenticated', async () => {
+    const app = makeA2AApp();
+    const res = await app.request(get('/agent-tasks/exists'));
+
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Authentication');
+  });
+
+  it('returns exists: true when at least one agent_actions row exists', async () => {
+    const chain = makeSelectChain([{ id: 'action-1' }]);
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(chain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/agent-tasks/exists'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { exists: boolean };
+    expect(body.exists).toBe(true);
+  });
+
+  it('returns exists: false when no agent_actions rows exist', async () => {
+    const chain = makeSelectChain([]);
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(chain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/agent-tasks/exists'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { exists: boolean };
+    expect(body.exists).toBe(false);
+  });
+
+  it('returns exists: false when the DB query fails', async () => {
+    const chain = makeSelectChain([], { throws: true });
+    mockGetClient.mockReturnValue({
+      select: vi.fn().mockReturnValue(chain),
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
+    } as any);
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(get('/agent-tasks/exists'));
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { exists: boolean };
+    expect(body.exists).toBe(false);
+  });
+});
+
 describe('GET /a2a/stream/:taskId  -  SSE stream', () => {
   beforeEach(resetMocks);
 
