@@ -27,6 +27,12 @@ vi.mock('@revealui/db/schema', () => ({
     accountId: 'account_id',
     userId: 'user_id',
     status: 'status',
+    role: 'role',
+    createdAt: 'created_at',
+  },
+  accounts: {
+    id: 'id',
+    status: 'status',
   },
   usageMeters: {
     accountId: 'account_id',
@@ -36,6 +42,13 @@ vi.mock('@revealui/db/schema', () => ({
     durationMs: 'duration_ms',
     errored: 'errored',
     source: 'source',
+    createdAt: 'created_at',
+  },
+  users: {
+    id: 'id',
+    createdAt: 'created_at',
+    lastActiveAt: 'last_active_at',
+    deletedAt: 'deleted_at',
   },
 }));
 
@@ -43,6 +56,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => ({ _and: args })),
   eq: vi.fn((col: unknown, val: unknown) => ({ _eq: [col, val] })),
   gte: vi.fn((col: unknown, val: unknown) => ({ _gte: [col, val] })),
+  isNull: vi.fn((col: unknown) => ({ _isNull: col })),
   sql: Object.assign(
     (strings: TemplateStringsArray, ..._values: unknown[]) => ({ _sql: strings.join('') }),
     {},
@@ -335,6 +349,85 @@ describe('GET /analytics/by-source', () => {
     expect(body.sources[0]?.source).toBe('agent');
     expect(body.sources[0]?.errored).toBe(2);
     expect(body.sources[1]?.source).toBe('user');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /analytics/activation
+// ---------------------------------------------------------------------------
+
+function adminUser(): MockUser {
+  return { id: 'u_admin', email: 'admin@example.com', name: 'Admin User', role: 'admin' };
+}
+
+function dbForActivation(perAccountRows: unknown[], day7Rows: unknown[]) {
+  const calls: number[] = [];
+  return {
+    select: vi.fn().mockImplementation(() => {
+      const idx = calls.length;
+      calls.push(idx);
+      return idx === 0 ? makeAggregateChain(perAccountRows) : makeAggregateChain(day7Rows);
+    }),
+  };
+}
+
+describe('GET /analytics/activation', () => {
+  it('returns 401 when no user is set', async () => {
+    const app = createApp();
+    const res = await app.request('/analytics/activation', { method: 'GET' });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 403 for a non-admin authenticated user', async () => {
+    mockedGetClient.mockReturnValue(dbForActivation([], []) as never);
+    const app = createApp(authedUser());
+    const res = await app.request('/analytics/activation', { method: 'GET' });
+    expect(res.status).toBe(403);
+  });
+
+  it('computes activation counts and day-7 return rate for an admin', async () => {
+    const db = dbForActivation(
+      [
+        {
+          accountId: 'acct_1',
+          ownerCreatedAt: '2026-01-01T00:00:00Z',
+          firstAgentActionAt: '2026-01-02T00:00:00Z',
+        },
+        { accountId: 'acct_2', ownerCreatedAt: '2026-01-01T00:00:00Z', firstAgentActionAt: null },
+      ],
+      [{ eligibleUsers: 10, returnedUsers: 3 }],
+    );
+    mockedGetClient.mockReturnValue(db as never);
+
+    const app = createApp(adminUser());
+    const res = await app.request('/analytics/activation', { method: 'GET' });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: Record<string, unknown> };
+    expect(body.data.accountsWithFirstAgentAction).toBe(1);
+    expect(body.data.accountsWithoutFirstAgentAction).toBe(1);
+    expect(body.data.averageTimeToFirstAgentActionMs).toBe(24 * 60 * 60 * 1000);
+    expect(body.data.medianTimeToFirstAgentActionMs).toBe(24 * 60 * 60 * 1000);
+    expect(body.data.day7EligibleUsers).toBe(10);
+    expect(body.data.day7ReturnedUsers).toBe(3);
+    expect(body.data.day7ReturnRate).toBe(30);
+  });
+
+  it('returns nulls for the time-to-activation stats when no account has activated', async () => {
+    const db = dbForActivation(
+      [{ accountId: 'acct_1', ownerCreatedAt: '2026-01-01T00:00:00Z', firstAgentActionAt: null }],
+      [{ eligibleUsers: 0, returnedUsers: 0 }],
+    );
+    mockedGetClient.mockReturnValue(db as never);
+
+    const app = createApp(adminUser());
+    const res = await app.request('/analytics/activation', { method: 'GET' });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: Record<string, unknown> };
+    expect(body.data.averageTimeToFirstAgentActionMs).toBeNull();
+    expect(body.data.medianTimeToFirstAgentActionMs).toBeNull();
+    expect(body.data.day7ReturnRate).toBeNull();
   });
 });
 

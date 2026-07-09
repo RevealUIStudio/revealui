@@ -32,6 +32,9 @@ const DEFAULT_SESSION_BINDING: SessionBindingConfig = {
   warnOnIpChange: true,
 };
 
+/** Minimum interval between users.lastActiveAt writes for a given user. */
+const LAST_ACTIVE_THROTTLE_MS = 60 * 60 * 1000;
+
 let sessionBindingConfig: SessionBindingConfig = { ...DEFAULT_SESSION_BINDING };
 
 /** Override session binding behaviour (useful for tests or strict deployments). */
@@ -223,6 +226,20 @@ export async function getSession(
     } catch {
       // Log but don't fail - last activity update is not critical
       logger.warn('Error updating last activity');
+    }
+
+    // Throttled users.lastActiveAt writer  -  fire-and-forget, never awaited,
+    // so auth latency is unaffected. Only touches the row when the stored
+    // value is null or older than the throttle window, keeping write volume
+    // to roughly one row-update per active user per hour instead of one per
+    // request.
+    if (!user.lastActiveAt || Date.now() - user.lastActiveAt.getTime() > LAST_ACTIVE_THROTTLE_MS) {
+      db.update(users)
+        .set({ lastActiveAt: new Date() })
+        .where(eq(users.id, user.id))
+        .catch(() => {
+          logger.warn('Error updating user lastActiveAt');
+        });
     }
 
     return {

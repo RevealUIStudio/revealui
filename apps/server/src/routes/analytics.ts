@@ -22,9 +22,9 @@
 
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
-import { accountMemberships, usageMeters } from '@revealui/db/schema';
+import { accountMemberships, accounts, usageMeters, users } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, isNull, sql } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
@@ -48,6 +48,21 @@ const DEFAULT_DAYS = 30;
 function requireUser(c: Context): UserContext {
   const user = c.get('user') as UserContext | undefined;
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+  return user;
+}
+
+/**
+ * The activation endpoint aggregates across every account, unlike the
+ * single-account-scoped endpoints above  -  it is a platform-wide funnel
+ * view, not a tenant's own usage. Require admin on top of the router's
+ * 'analytics' entitlement gate so a Pro-tier customer in hosted
+ * multi-tenant mode cannot read other tenants' activation data.
+ */
+function requireAdmin(c: Context): UserContext {
+  const user = requireUser(c);
+  if (user.role !== 'admin') {
+    throw new HTTPException(403, { message: 'Admin role required' });
+  }
   return user;
 }
 
@@ -319,6 +334,132 @@ app.openapi(
       accountId,
       days,
       sources,
+    });
+  },
+);
+
+// ─── GET /api/analytics/activation ────────────────────────────────────────
+
+const ActivationShape = z.object({
+  accountsWithFirstAgentAction: z.number(),
+  accountsWithoutFirstAgentAction: z.number(),
+  averageTimeToFirstAgentActionMs: z.number().nullable(),
+  medianTimeToFirstAgentActionMs: z.number().nullable(),
+  day7EligibleUsers: z.number(),
+  day7ReturnedUsers: z.number(),
+  day7ReturnRate: z.number().nullable(),
+});
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/activation',
+    tags: ['Analytics'],
+    summary: 'Platform-wide onboarding activation funnel (admin only)',
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({ success: z.literal(true), data: ActivationShape }),
+          },
+        },
+        description: 'Time-to-first-agent-action and day-7 return rate across all accounts',
+      },
+      403: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Admin role required',
+      },
+    },
+  }),
+  async (c) => {
+    requireAdmin(c);
+    const db = c.get('db') ?? getClient();
+
+    // Per-account: the owner's signup time vs. that account's first
+    // agent-sourced usage_meters event. Correlated subqueries are fine here
+    // -  accounts is a small, admin-only aggregation, not a hot path.
+    const perAccountRows = await db
+      .select({
+        accountId: accounts.id,
+        ownerCreatedAt: sql<string | null>`(
+          select ${users.createdAt} from ${accountMemberships}
+          join ${users} on ${users.id} = ${accountMemberships.userId}
+          where ${accountMemberships.accountId} = ${accounts.id}
+            and ${accountMemberships.role} = 'owner'
+            and ${accountMemberships.status} = 'active'
+          order by ${accountMemberships.createdAt} asc
+          limit 1
+        )`,
+        firstAgentActionAt: sql<string | null>`(
+          select min(${usageMeters.createdAt}) from ${usageMeters}
+          where ${usageMeters.accountId} = ${accounts.id}
+            and ${usageMeters.source} = 'agent'
+        )`,
+      })
+      .from(accounts)
+      .where(eq(accounts.status, 'active'));
+
+    const ttfaaMsList: number[] = [];
+    let withFirstAgentAction = 0;
+    let withoutFirstAgentAction = 0;
+
+    for (const row of perAccountRows) {
+      if (row.firstAgentActionAt) {
+        withFirstAgentAction += 1;
+        if (row.ownerCreatedAt) {
+          const ms =
+            new Date(row.firstAgentActionAt).getTime() - new Date(row.ownerCreatedAt).getTime();
+          if (ms >= 0) ttfaaMsList.push(ms);
+        }
+      } else {
+        withoutFirstAgentAction += 1;
+      }
+    }
+
+    ttfaaMsList.sort((a, b) => a - b);
+    const averageTimeToFirstAgentActionMs =
+      ttfaaMsList.length > 0
+        ? Math.round(ttfaaMsList.reduce((sum, ms) => sum + ms, 0) / ttfaaMsList.length)
+        : null;
+    const medianTimeToFirstAgentActionMs =
+      ttfaaMsList.length > 0 ? ttfaaMsList[Math.floor(ttfaaMsList.length / 2)] : null;
+
+    // Day-7 return: among users old enough for the 7-day window to have
+    // elapsed, how many were still (or again) active 7+ days after signup.
+    // Sparse until users.lastActiveAt (throttled writer) has accumulated
+    // history  -  this returns whatever exists today rather than backfilling.
+    const [day7Row] = await db
+      .select({
+        eligibleUsers: sql<number>`coalesce(count(*) filter (
+          where ${users.createdAt} <= now() - interval '7 days'
+        ), 0)::int`,
+        returnedUsers: sql<number>`coalesce(count(*) filter (
+          where ${users.createdAt} <= now() - interval '7 days'
+            and ${users.lastActiveAt} is not null
+            and ${users.lastActiveAt} >= ${users.createdAt} + interval '7 days'
+        ), 0)::int`,
+      })
+      .from(users)
+      .where(isNull(users.deletedAt));
+
+    const day7EligibleUsers = Number(day7Row?.eligibleUsers ?? 0);
+    const day7ReturnedUsers = Number(day7Row?.returnedUsers ?? 0);
+    const day7ReturnRate =
+      day7EligibleUsers > 0
+        ? Number(((day7ReturnedUsers / day7EligibleUsers) * 100).toFixed(2))
+        : null;
+
+    return c.json({
+      success: true as const,
+      data: {
+        accountsWithFirstAgentAction: withFirstAgentAction,
+        accountsWithoutFirstAgentAction: withoutFirstAgentAction,
+        averageTimeToFirstAgentActionMs,
+        medianTimeToFirstAgentActionMs,
+        day7EligibleUsers,
+        day7ReturnedUsers,
+        day7ReturnRate,
+      },
     });
   },
 );
