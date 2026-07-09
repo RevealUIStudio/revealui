@@ -78,6 +78,7 @@ function BillingContent() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
+  const [subscriptionLoadFailed, setSubscriptionLoadFailed] = useState(false);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
@@ -87,7 +88,7 @@ function BillingContent() {
     return `${t.price}${t.period ?? ''}`;
   };
 
-  const fetchSubscription = useCallback(async () => {
+  const attemptFetchSubscription = useCallback(async (): Promise<boolean> => {
     try {
       const [subRes, usageRes, pricingRes, seatsRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
@@ -111,12 +112,34 @@ function BillingContent() {
         const data = (await seatsRes.json()) as SeatsData;
         setSeats(data);
       }
+      return subRes.ok;
     } catch {
-      setError('Failed to load subscription data');
-    } finally {
-      setIsLoading(false);
+      return false;
     }
   }, [apiUrl]);
+
+  /**
+   * Fetches subscription data with one automatic retry on failure. The
+   * auto-checkout effect below only fires once `subscription` is populated,
+   * so a hard failure here must never be silent  -  it has to leave a trail
+   * (`subscriptionLoadFailed`) the UI can act on, especially when the user
+   * arrived mid-purchase with an `?upgrade=` param.
+   */
+  const fetchSubscription = useCallback(async () => {
+    setError(null);
+    setSubscriptionLoadFailed(false);
+
+    let ok = await attemptFetchSubscription();
+    if (!ok) {
+      ok = await attemptFetchSubscription();
+    }
+
+    if (!ok) {
+      setError('Failed to load subscription data');
+      setSubscriptionLoadFailed(true);
+    }
+    setIsLoading(false);
+  }, [attemptFetchSubscription]);
 
   useEffect(() => {
     if (!sessionLoading && session) {
@@ -351,6 +374,20 @@ function BillingContent() {
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
           {error}
+        </div>
+      )}
+
+      {subscriptionLoadFailed && upgrade && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+          We could not load your subscription, so checkout did not start automatically.
+          <button
+            type="button"
+            onClick={() => void handleCheckout(upgrade)}
+            disabled={actionLoading}
+            className="ml-2 font-medium underline hover:text-red-900 disabled:cursor-not-allowed dark:hover:text-red-200"
+          >
+            Continue to checkout
+          </button>
         </div>
       )}
 
