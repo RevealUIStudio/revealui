@@ -9,10 +9,15 @@ import { GOVERNANCE_PAGE } from '../content/governance';
  * layer-1 ownership lead, NOT a third pillar. Capability, not certification:
  * no SOC2/ISO/SSO/SCIM claims. One primary CTA.
  */
+// index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette
+// remap); this renders cobalt today, not emerald.
+const HERO_SECTION_CLASS_NAME =
+  'relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-emerald-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8'; // adherence-ignore: emerald-utility - zero visual change, see comment above
+
 export function GovernancePage() {
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-emerald-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className={HERO_SECTION_CLASS_NAME}>
         <div className="mx-auto max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
             {GOVERNANCE_PAGE.eyebrow}

@@ -98,12 +98,12 @@ export default function UpgradePage() {
                   <th
                     key={t.id}
                     className={`py-3 px-4 text-center font-medium ${
-                      t.id === currentTier ? 'text-emerald-600' : 'text-zinc-900 dark:text-white'
+                      t.id === currentTier ? 'text-success' : 'text-zinc-900 dark:text-white'
                     }`}
                   >
                     {t.name}
                     {t.id === currentTier && (
-                      <span className="block text-xs text-emerald-500">Current</span>
+                      <span className="block text-xs text-success">Current</span>
                     )}
                   </th>
                 ))}
@@ -186,7 +186,7 @@ export default function UpgradePage() {
                       return (
                         <td key={t.id} className="py-3 px-4 text-center">
                           {enabled ? (
-                            <span className="text-emerald-600" role="img" aria-label="Included">
+                            <span className="text-success" role="img" aria-label="Included">
                               &#10003;
                             </span>
                           ) : (

@@ -174,7 +174,7 @@ function docsCopyPlugin() {
 
       // Copy the file
       await fs.copyFile(normalizedFile, destPath);
-      if (DEBUG) console.log(`[docs-copy] ✓ Copied: ${relativePath}`);
+      if (DEBUG) console.log(`[docs-copy] ✓ Copied: ${relativePath}`); // adherence-ignore: checkmark-glyph - build-plugin debug log, not UI copy
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
       if (err.code === 'ENOENT') {
@@ -205,7 +205,7 @@ function docsCopyPlugin() {
 
       // Delete the file
       await fs.unlink(destPath);
-      if (DEBUG) console.log(`[docs-copy] ✗ Deleted: ${relativePath}`);
+      if (DEBUG) console.log(`[docs-copy] ✗ Deleted: ${relativePath}`); // adherence-ignore: checkmark-glyph - build-plugin debug log, not UI copy
 
       // Clean up empty directories
       let currentDir = path.dirname(destPath);
@@ -216,7 +216,7 @@ function docsCopyPlugin() {
             await fs.rmdir(currentDir);
             if (DEBUG)
               console.log(
-                `[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`,
+                `[docs-copy] ✗ Removed empty directory: ${path.relative(docsDest, currentDir)}`, // adherence-ignore: checkmark-glyph - build-plugin debug log, not UI copy
               );
             currentDir = path.dirname(currentDir);
           } else {
@@ -255,10 +255,10 @@ function docsCopyPlugin() {
 
       if (DEBUG)
         console.log(
-          '[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory',
+          '[docs-copy] ✓ Initial copy completed: All documentation files copied to public directory', // adherence-ignore: checkmark-glyph - build-plugin debug log, not UI copy
         );
     } catch (error) {
-      console.error('[docs-copy] ✗ Failed to copy docs files:', error);
+      console.error('[docs-copy] ✗ Failed to copy docs files:', error); // adherence-ignore: checkmark-glyph - build-plugin error log, not UI copy
       if (error instanceof Error && error.stack) {
         console.error('[docs-copy] Stack trace:', error.stack);
       }

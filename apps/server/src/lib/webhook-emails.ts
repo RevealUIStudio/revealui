@@ -11,6 +11,10 @@ import { appLogs } from '@revealui/db/schema';
 import { sendEmail } from './email.js';
 import { escapeHtml } from './html.js';
 
+// Email clients can't consume CSS custom properties, so table borders in
+// these templates ship as literal sRGB values instead of var(--mkt-border).
+const EMAIL_BORDER = '#e5e7eb'; // adherence-ignore: grey-hex - literal sRGB equivalent of --mkt-border; email HTML can't reference CSS custom properties, reviewed for email-safety
+
 const ZERO_DECIMAL_CURRENCIES = new Set([
   'bif',
   'clp',
@@ -295,15 +299,15 @@ export async function sendPaymentReceiptEmail(
       `<h1 style="color: #16a34a;">Payment Received</h1>
 <p>Thank you for your RevealUI <strong>${label}</strong> subscription payment.</p>
 <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
-  <tr style="border-bottom: 1px solid #e5e7eb;">
+  <tr style="border-bottom: 1px solid ${EMAIL_BORDER};">
     <td style="padding: 8px 0; color: #666;">Amount</td>
     <td style="padding: 8px 0; text-align: right; font-weight: bold;">${currency} ${amount}</td>
   </tr>
-  <tr style="border-bottom: 1px solid #e5e7eb;">
+  <tr style="border-bottom: 1px solid ${EMAIL_BORDER};">
     <td style="padding: 8px 0; color: #666;">Plan</td>
     <td style="padding: 8px 0; text-align: right;">${label}</td>
   </tr>
-  <tr style="border-bottom: 1px solid #e5e7eb;">
+  <tr style="border-bottom: 1px solid ${EMAIL_BORDER};">
     <td style="padding: 8px 0; color: #666;">Invoice</td>
     <td style="padding: 8px 0; text-align: right;">${escapeHtml(invoiceNum)}</td>
   </tr>

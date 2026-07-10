@@ -52,9 +52,9 @@ export interface ProductStatusStyle {
 
 export const PRODUCT_STATUS_STYLES: Readonly<Record<ProductStatus, ProductStatusStyle>> = {
   Beta: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-700',
-    ring: 'ring-emerald-500/30',
+    bg: 'bg-emerald-500/10', // adherence-ignore: emerald-utility - apps/marketing/app/index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette remap); renders cobalt today, zero visual change
+    text: 'text-emerald-700', // adherence-ignore: emerald-utility - see index.css:80-92 emerald->cobalt remap; renders cobalt today, zero visual change
+    ring: 'ring-emerald-500/30', // adherence-ignore: emerald-utility - see index.css:80-92 emerald->cobalt remap; renders cobalt today, zero visual change
   },
   Alpha: {
     bg: 'bg-amber-500/10',

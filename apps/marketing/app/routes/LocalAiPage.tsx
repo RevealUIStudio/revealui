@@ -4,6 +4,10 @@ import { FrontierPathway } from '../components/landing/FrontierPathway';
 import { ProviderSwitch } from '../components/landing/ProviderSwitch';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 
+// index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette
+// remap); this renders cobalt today, not emerald.
+const SNIPPET_CODE_CLASS_NAME = 'text-emerald-400'; // adherence-ignore: emerald-utility - zero visual change, see comment above
+
 /**
  * Standalone /local-ai page (positioning decision c: standalone, not folded in).
  * Consolidates the economics, in-boundary sovereignty, and frontier-pathway
@@ -50,7 +54,7 @@ export function LocalAiPage() {
                   key={line.code}
                   className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3"
                 >
-                  <code className="text-emerald-400">{line.code}</code>
+                  <code className={SNIPPET_CODE_CLASS_NAME}>{line.code}</code>
                   <span className="text-background/60"># {line.note}</span>
                 </li>
               ))}

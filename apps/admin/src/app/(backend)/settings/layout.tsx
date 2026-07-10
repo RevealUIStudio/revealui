@@ -65,7 +65,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             Back to Admin
           </Link>
 
-          <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-2 px-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Settings
           </h2>
 

@@ -120,9 +120,9 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
   {
     name: 'Content',
     icon: 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-500/10',
-    ringColor: 'ring-emerald-500/20',
+    color: 'text-emerald-600', // adherence-ignore: emerald-utility - apps/marketing/app/index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette remap); renders cobalt today, zero visual change
+    bgColor: 'bg-emerald-500/10', // adherence-ignore: emerald-utility - see index.css:80-92 emerald->cobalt remap; renders cobalt today, zero visual change
+    ringColor: 'ring-emerald-500/20', // adherence-ignore: emerald-utility - see index.css:80-92 emerald->cobalt remap; renders cobalt today, zero visual change
     forYou: {
       headline: 'Define collections in TypeScript, get an API and admin UI',
       description:
