@@ -24,7 +24,7 @@
 export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 
 // =============================================================================
-// Feature Flag Key (mirrors @revealui/core/features  -  defined here to avoid
+// Feature Flag Key (mirrors @revealui/core/features, defined here to avoid
 // circular dependency since core depends on contracts, not the reverse)
 // =============================================================================
 
@@ -167,8 +167,9 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     // Deep-links into the existing checkout path: /signup?plan=pro ->
     // /account/billing?upgrade=pro -> auto-checkout (7-day trial via
     // REVEALUI_TRIAL_DAYS). Marketing prefixes the admin origin onto
-    // '/'-relative hrefs. Signup stays 403 until REVEALUI_SIGNUP_OPEN flips
-    // (GAP-240), the same gate the marketing hero CTA already fronts.
+    // '/'-relative hrefs. Signup is gated server-side by REVEALUI_SIGNUP_OPEN /
+    // REVEALUI_SIGNUP_WHITELIST (default closed, so white-label kits ship
+    // sealed), the same gate the marketing hero CTA already fronts.
     cta: 'Start your 7-day free trial',
     ctaHref: '/signup?plan=pro',
     highlighted: true,
@@ -203,7 +204,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Unlimited users/editors',
       'Session-based auth + OAuth',
       'Full inference suite (all open models)',
-      'x402 agent payments (USDC)',
+      'x402 agent payments (USDC, coming soon)',
       'Unlimited agent tasks',
       'Slack support (4h SLA)',
       'Annual pricing available',
@@ -389,7 +390,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     description: 'Pro features, forever. No subscription required.',
     features: [
       'All Pro tier features',
-      'License key  -  never expires',
+      'License key never expires',
       '1 year priority support included',
       'All Pro updates released during support period',
       'Private GitHub repo access',
@@ -404,7 +405,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
       'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
     features: [
       'All Max tier features',
-      'License key  -  never expires',
+      'License key never expires',
       'Up to 10 client deployments',
       '1 year priority support included',
       'All Max updates released during support period',
@@ -419,7 +420,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     description: 'Full self-hosted Enterprise tier with unlimited deployments.',
     features: [
       'All Enterprise tier features',
-      'License key  -  never expires',
+      'License key never expires',
       'Unlimited self-hosted deployments',
       '1 year priority support included',
       'All Enterprise tier updates released during support period',
