@@ -5,12 +5,12 @@
 //   Both are canonical here. Phase 4 reconciles any copy redundancy.
 // Per the internal marketing-overhaul plan §4.4.
 // Agents primitive MCP count is sourced from METRICS.mcpServers
-// (currently 14, per docs/MARKETING_METRICS.md §1) — never hardcoded here.
+// (currently 14, per docs/MARKETING_METRICS.md §1); never hardcoded here.
 
 import { METRICS, SITE } from './site';
 
 // ---------------------------------------------------------------------------
-// Landing (Home) primitives — compact card data
+// Landing (Home) primitives: compact card data
 // ---------------------------------------------------------------------------
 
 export interface HomePrimitive {
@@ -23,7 +23,7 @@ export interface HomePrimitive {
 export const HOME_PRIMITIVES_SECTION = {
   eyebrow: 'Five primitives. One login. One audit trail.',
   heading: "Everything a business needs. Nothing you don't.",
-  body: 'People, content, offers, payments, and agents: the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
+  body: 'People, content, offers, payments, and agents: the five things every product needs.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
 } as const;
 
@@ -66,7 +66,7 @@ export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Products page primitives — full deep-dive
+// Products page primitives: full deep-dive
 // ---------------------------------------------------------------------------
 
 export interface PrimitiveTriplet {

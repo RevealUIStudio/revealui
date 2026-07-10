@@ -519,4 +519,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is the open runtime for businesses that run their own AI. The core — Users, Content, Products, and Payments — is MIT licensed and free forever. Intelligence (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the open runtime for businesses that run their own AI. The core, People, Content, Offers, and Payments, is MIT licensed and free forever. The Agents primitive (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

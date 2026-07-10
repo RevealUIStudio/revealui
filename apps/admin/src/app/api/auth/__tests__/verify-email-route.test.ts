@@ -1,18 +1,25 @@
 /**
  * Tests for GET /api/auth/verify-email
  *
- * Email verification via hashed token comparison. All paths redirect.
- * Rate limited by IP, fails closed if rate limit store is unavailable.
+ * Email verification via hashed token comparison. On a valid, unexpired,
+ * single-use token, establishes a session immediately (mirroring sign-up's
+ * auto-promoted first-user path) and redirects to the resolved destination
+ * (billing checkout when `?upgrade=` is present, `/welcome` or `/` otherwise).
+ * Every other path  -  expired, reused, garbage, or already-verified token  -
+ * must never create a session. Rate limited by IP, fails closed if the rate
+ * limit store is unavailable.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockCheckRateLimit = vi.fn();
+const mockCreateSession = vi.fn();
 const mockGetUserByVerificationToken = vi.fn();
 const mockUpdateUser = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
+  createSession: (...args: unknown[]) => mockCreateSession(...args),
 }));
 
 vi.mock('@revealui/utils/logger', () => ({
@@ -29,13 +36,27 @@ vi.mock('@revealui/db/queries/users', () => ({
 }));
 
 vi.mock('next/server', () => {
+  class MockCookies {
+    private store = new Map<string, { value: string; options: Record<string, unknown> }>();
+    set(name: string, value: string, options?: Record<string, unknown>) {
+      this.store.set(name, { value, options: options ?? {} });
+    }
+    get(name: string) {
+      return this.store.get(name);
+    }
+    has(name: string) {
+      return this.store.has(name);
+    }
+  }
   class MockNextResponse {
     body: unknown;
     status: number;
+    cookies: MockCookies;
     url?: string;
     constructor(body: unknown, init?: { status?: number }) {
       this.body = body;
       this.status = init?.status ?? 200;
+      this.cookies = new MockCookies();
     }
     static json(data: unknown, init?: { status?: number }) {
       return new MockNextResponse(data, init);
@@ -49,13 +70,24 @@ vi.mock('next/server', () => {
   return { NextResponse: MockNextResponse };
 });
 
-function makeRequest(token?: string) {
+type MockRes = {
+  status: number;
+  url?: string;
+  cookies: {
+    get: (n: string) => { value: string; options: Record<string, unknown> } | undefined;
+    has: (n: string) => boolean;
+  };
+};
+
+function makeRequest(token?: string, upgrade?: string) {
   const url = new URL('http://localhost:4000/api/auth/verify-email');
   if (token) url.searchParams.set('token', token);
+  if (upgrade) url.searchParams.set('upgrade', upgrade);
   return {
     headers: {
       get: (key: string) => {
         if (key === 'x-forwarded-for') return '10.0.0.1';
+        if (key === 'user-agent') return 'vitest';
         return null;
       },
     },
@@ -81,7 +113,8 @@ describe('GET /api/auth/verify-email', () => {
   it('redirects with missing_token when no token param', async () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest());
-    expect((res as { url: string }).url).toContain('error=missing_token');
+    expect((res as MockRes).url).toContain('error=missing_token');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
   it('redirects with too_many_attempts when rate limited', async () => {
@@ -93,7 +126,8 @@ describe('GET /api/auth/verify-email', () => {
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));
-    expect((res as { url: string }).url).toContain('error=too_many_attempts');
+    expect((res as MockRes).url).toContain('error=too_many_attempts');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
   it('fails closed  -  redirects with error when rate limit check throws', async () => {
@@ -101,39 +135,127 @@ describe('GET /api/auth/verify-email', () => {
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));
-    expect((res as { url: string }).url).toContain('error=verification_failed');
+    expect((res as MockRes).url).toContain('error=verification_failed');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
-  it('redirects with invalid_token when no matching user found', async () => {
+  it('garbage token: redirects with invalid_token and creates no session', async () => {
     mockGetUserByVerificationToken.mockResolvedValue(null);
 
     const GET = await loadRoute();
-    const res = await GET(makeRequest('bad-token'));
-    expect((res as { url: string }).url).toContain('error=invalid_token');
+    const res = await GET(makeRequest('garbage-token'));
+    expect((res as MockRes).url).toContain('error=invalid_token');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
-  it('redirects with already_verified when email already verified', async () => {
+  it('expired token: getUserByVerificationToken finds no row, redirects with invalid_token and creates no session', async () => {
+    // The query's WHERE clause excludes expired tokens, so an expired token
+    // surfaces identically to a garbage one  -  no matching row.
+    mockGetUserByVerificationToken.mockResolvedValue(null);
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('expired-token'));
+    expect((res as MockRes).url).toContain('error=invalid_token');
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
+  it('reused token: the token column is nulled after first use, so a second attempt finds no row and creates no session', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue(null);
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('already-consumed-token'));
+    expect((res as MockRes).url).toContain('error=invalid_token');
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
+  it('redirects with already_verified when email already verified, and creates no session', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: true });
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token'));
-    expect((res as { url: string }).url).toContain('message=already_verified');
+    expect((res as MockRes).url).toContain('message=already_verified');
+    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockUpdateUser).not.toHaveBeenCalled();
   });
 
-  it('verifies email and redirects with success message', async () => {
+  it('fails closed when updateUser returns no row, and creates no session', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue(null);
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token'));
-    expect((res as { url: string }).url).toContain('message=email_verified');
+    expect((res as MockRes).url).toContain('error=verification_failed');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
-  it('redirects with error on unexpected DB failure', async () => {
+  it('valid token: establishes a session, sets cookies, and redirects to billing checkout with the upgrade param', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockCreateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('valid-token', 'pro'));
+
+    expect(mockCreateSession).toHaveBeenCalledWith('u1', expect.any(Object));
+    expect((res as MockRes).url).toContain('/account/billing?upgrade=pro');
+    expect((res as MockRes).cookies.get('revealui-session')?.value).toBe('session-token-abc');
+    expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('viewer');
+  });
+
+  it('valid token without an upgrade param: redirects a non-admin to /welcome', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockCreateSession.mockResolvedValue({
+      token: 'session-token-xyz',
+      session: { id: 'sess2', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('valid-token'));
+
+    expect((res as MockRes).url).toContain('/welcome');
+    expect((res as MockRes).cookies.has('revealui-session')).toBe(true);
+  });
+
+  it('valid token for an admin without an upgrade param: redirects to /', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u2', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u2', role: 'admin', emailVerified: true });
+    mockCreateSession.mockResolvedValue({
+      token: 'session-token-admin',
+      session: { id: 'sess3', userId: 'u2' },
+    });
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('valid-token'));
+
+    expect((res as MockRes).url).toMatch(/\/$/);
+    expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('admin');
+  });
+
+  it('ignores an unrecognized upgrade value (no open redirect)', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockCreateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('valid-token', 'enterprise'));
+
+    expect((res as MockRes).url).toContain('/welcome');
+    expect((res as MockRes).url).not.toContain('enterprise');
+  });
+
+  it('redirects with error on unexpected DB failure, and creates no session', async () => {
     mockGetUserByVerificationToken.mockRejectedValue(new Error('DB connection lost'));
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));
-    expect((res as { url: string }).url).toContain('error=verification_failed');
+    expect((res as MockRes).url).toContain('error=verification_failed');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 });

@@ -34,27 +34,8 @@ export function LocalAi() {
           ))}
         </div>
 
-        {/* One-config-line provider snippet (grep-accurate to packages/ai). */}
-        <div className="mx-auto mt-10 max-w-4xl">
-          <div className="rounded-2xl bg-foreground p-6 ring-1 ring-background/10">
-            <ul className="space-y-2 font-mono text-sm list-none p-0">
-              {LOCAL_AI_SECTION.snippet.lines.map((line) => (
-                <li
-                  key={line.code}
-                  className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3"
-                >
-                  <code className="text-emerald-400">{line.code}</code>
-                  <span className="text-background/60"># {line.note}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <p className="mt-3 text-center text-sm text-muted-foreground">
-            {LOCAL_AI_SECTION.snippet.caption}
-          </p>
-        </div>
-
-        {/* Provider-switch interactive + frontier-pathway visual (Phase D). */}
+        {/* Provider-switch interactive + frontier-pathway visual (Phase D). The
+            one-config-line snippet itself lives on /local-ai only. */}
         <ProviderSwitch />
         <FrontierPathway />
 

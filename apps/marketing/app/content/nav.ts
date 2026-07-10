@@ -28,6 +28,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     heading: 'Product',
     links: [
       { label: 'Products', href: '/products' },
+      { label: 'Services', href: '/services' },
       { label: 'Local AI', href: '/local-ai' },
       { label: 'Governance', href: '/governance' },
       { label: 'Pricing', href: '/pricing' },
@@ -41,7 +42,6 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     links: [
       { label: 'GitHub', href: SITE.urls.repo, external: true },
       { label: 'Discussions', href: SITE.urls.repoDiscussions, external: true },
-      { label: 'Forum', href: SITE.urls.forum, external: true },
       { label: 'Sponsor', href: '/sponsor' },
       { label: 'RevealUI Studio (agency) →', href: SITE.urls.agency, external: true },
       { label: 'Contact', href: '/contact' },

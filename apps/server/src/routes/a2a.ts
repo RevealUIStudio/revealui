@@ -603,6 +603,45 @@ a2a.openapi(
   },
 );
 
+/**
+ * Cheapest possible existence check for onboarding-checklist derivation  -
+ * requires auth + 'ai' feature, same gate as the task-history route above.
+ * A single-row LIMIT 1 across all agents (agent_actions carries no
+ * account scoping today), not a count.
+ */
+a2a.openapi(
+  createRoute({
+    method: 'get',
+    path: '/agent-tasks/exists',
+    tags: ['a2a'],
+    summary: 'Check whether any agent task has ever run',
+    middleware: [requireFeature('ai', { mode: 'entitlements' })] as const,
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.object({ exists: z.boolean() }) } },
+        description: 'Whether at least one agent task exists',
+      },
+      401: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'Authentication required',
+      },
+    },
+  }),
+  async (c) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ error: 'Authentication required' }, 401);
+    }
+    try {
+      const db = getClient();
+      const rows = await db.select({ id: agentActions.id }).from(agentActions).limit(1);
+      return c.json({ exists: rows.length > 0 });
+    } catch {
+      return c.json({ exists: false });
+    }
+  },
+);
+
 /** Update an agent's mutable fields  -  requires auth + 'ai' feature */
 a2a.openapi(
   createRoute({

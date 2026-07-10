@@ -13,13 +13,19 @@ const CLI_INSTALL_COMMAND = 'pnpm create revealui my-app';
  * Post-purchase welcome page.
  *
  * Reachable at `/welcome` (with optional `?success=true` from Stripe checkout
- * return). Lands a paying customer on three concrete first actions instead of
+ * return). Lands a paying customer on concrete first actions instead of
  * a billing dashboard. Without this, a Pro customer paying $49/mo would be
  * confronted with a CMS admin and no guidance.
  *
  * The success banner only renders when `?success=true` is in the URL —
- * direct visits (revisiting the page later) show the same three CTAs
+ * direct visits (revisiting the page later) show the same CTAs
  * without the celebratory framing.
+ *
+ * When the paid-success state renders (`?success=true` and a paid tier),
+ * the license key and first-agent CTAs lead, ahead of the CLI/source/guide
+ * CTAs — a paying customer's next move is using what they paid for, not
+ * reading docs. Non-paid variants keep the original order and simply gain
+ * the agent CTA at the end.
  *
  * The `?denied=admin` banner renders when the proxy redirected an
  * authenticated non-admin here from an admin-only route. It explains why they
@@ -40,6 +46,7 @@ export default function WelcomePage() {
 
   const tierLabel = TIER_LABELS[tier] ?? 'Free';
   const isPaidTier = tier !== 'free';
+  const isPaidSuccess = isPostPurchase && isPaidTier;
 
   const handleCopyCli = async () => {
     try {
@@ -82,17 +89,57 @@ export default function WelcomePage() {
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
           {isPostPurchase
-            ? 'Three concrete first actions to put your subscription to work.'
-            : 'New here? Start with one of these three tracks.'}
+            ? 'Concrete first actions to put your subscription to work.'
+            : 'New here? Start with one of these tracks.'}
         </p>
       </div>
 
-      {/* Three CTAs */}
+      {/* CTAs */}
       <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-3">
-        {/* CTA 1: Install the CLI */}
+        {isPaidSuccess && (
+          <>
+            {/* CTA 1: License key */}
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <span className="text-lg font-semibold">1</span>
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">Your license key</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Find your license key and manage your subscription from account settings.
+              </p>
+              <a
+                href="/account/license"
+                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+              >
+                View your license
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+
+            {/* CTA 2: Run your first agent */}
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <span className="text-lg font-semibold">2</span>
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">Run your first agent</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Talk to an agent and watch it take a real action in your workspace.
+              </p>
+              <a
+                href="/agents"
+                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+              >
+                Open agents
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            </div>
+          </>
+        )}
+
+        {/* CTA: Install the CLI */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
           <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <span className="text-lg font-semibold">1</span>
+            <span className="text-lg font-semibold">{isPaidSuccess ? 3 : 1}</span>
           </div>
           <h2 className="text-lg font-semibold text-foreground">Install the CLI</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -111,10 +158,10 @@ export default function WelcomePage() {
           </div>
         </div>
 
-        {/* CTA 2: Clone the starter */}
+        {/* CTA: Clone the starter */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
           <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <span className="text-lg font-semibold">2</span>
+            <span className="text-lg font-semibold">{isPaidSuccess ? 4 : 2}</span>
           </div>
           <h2 className="text-lg font-semibold text-foreground">Clone the source</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -132,10 +179,10 @@ export default function WelcomePage() {
           </a>
         </div>
 
-        {/* CTA 3: Read the first guide */}
+        {/* CTA: Read the first guide */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
           <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <span className="text-lg font-semibold">3</span>
+            <span className="text-lg font-semibold">{isPaidSuccess ? 5 : 3}</span>
           </div>
           <h2 className="text-lg font-semibold text-foreground">Read the quick-start</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -152,6 +199,26 @@ export default function WelcomePage() {
             <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
+
+        {!isPaidSuccess && (
+          /* CTA 4: Run your first agent (appended for non-paid variants) */
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md">
+            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="text-lg font-semibold">4</span>
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Run your first agent</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Talk to an agent and watch it take a real action in your workspace.
+            </p>
+            <a
+              href="/agents"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              Open agents
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Account-management footer */}

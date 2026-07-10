@@ -22,6 +22,15 @@ import { apiFetch } from '@/lib/utils/csrf';
 
 type TemplateKey = 'content' | 'code' | 'support' | 'analytics';
 
+/**
+ * Empty string, mirroring the chat model picker's 'Auto' option (see
+ * MODEL_OPTIONS in src/lib/components/Agent/index.tsx). The dispatch runtime
+ * resolves the actual model from the account's configured provider
+ * (Settings > API Keys) — it never reads a hardcoded id off the agent
+ * definition, so the template default must not imply one specific vendor.
+ */
+const AUTO_MODEL = '';
+
 interface AgentTemplate {
   key: TemplateKey;
   label: string;
@@ -39,7 +48,7 @@ const TEMPLATES: AgentTemplate[] = [
     label: 'Content Writer',
     description: 'Creates blog posts, landing pages, product descriptions, and marketing copy.',
     capabilities: ['content-generation', 'seo', 'copywriting'],
-    model: 'claude-sonnet-4-6',
+    model: AUTO_MODEL,
     temperature: 0.8,
     maxTokens: 4096,
     systemPromptFn: (name) =>
@@ -51,7 +60,7 @@ const TEMPLATES: AgentTemplate[] = [
     description:
       'Reviews TypeScript/React code, generates implementations, fixes bugs, and enforces coding conventions.',
     capabilities: ['code-review', 'code-generation', 'debugging', 'refactoring'],
-    model: 'claude-sonnet-4-6',
+    model: AUTO_MODEL,
     temperature: 0.2,
     maxTokens: 8192,
     systemPromptFn: (name) =>
@@ -63,7 +72,7 @@ const TEMPLATES: AgentTemplate[] = [
     description:
       'Triages support tickets, answers common questions, and escalates complex issues to the team.',
     capabilities: ['ticket-management', 'search', 'escalation', 'customer-support'],
-    model: 'claude-haiku-4-5-20251001',
+    model: AUTO_MODEL,
     temperature: 0.3,
     maxTokens: 2048,
     systemPromptFn: (name) =>
@@ -75,7 +84,7 @@ const TEMPLATES: AgentTemplate[] = [
     description:
       'Queries application metrics, identifies trends, and generates actionable reports for the team.',
     capabilities: ['data-analysis', 'reporting', 'metrics', 'visualization'],
-    model: 'claude-sonnet-4-6',
+    model: AUTO_MODEL,
     temperature: 0.3,
     maxTokens: 4096,
     systemPromptFn: (name) =>
@@ -353,13 +362,24 @@ export default function NewAgentPage() {
 
                 {/* Model info (read-only) */}
                 <Card className="px-4 py-3 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">Model:</span> {tpl?.model}
+                  <span className="font-medium text-foreground">Model:</span>{' '}
+                  {tpl?.model || 'Auto (resolved from your configured provider)'}
                   &nbsp;·&nbsp;
                   <span className="font-medium text-foreground">Temp:</span> {tpl?.temperature}
                   &nbsp;·&nbsp;
                   <span className="font-medium text-foreground">Max tokens:</span>{' '}
                   {tpl?.maxTokens?.toLocaleString()}
                 </Card>
+                <p className="text-xs text-muted-foreground">
+                  Model providers are configured in{' '}
+                  <Link
+                    href="/settings/api-keys"
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Settings, API Keys
+                  </Link>
+                  .
+                </p>
 
                 {/* Error — inline banner; Alert primitive is a modal dialog, not applicable */}
                 {error && (

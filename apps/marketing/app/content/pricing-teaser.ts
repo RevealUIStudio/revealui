@@ -18,9 +18,12 @@ export interface TeaserTier {
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
   heading: 'Start free. Pay when you scale.',
-  body: 'Self-host the open-source stack at no cost. Paid tiers (Pro, Max, Enterprise) are previews. Subscription billing opens when we flip Stripe live mode.',
+  body: 'Self-host the open-source stack at no cost. Pro, Max, and Enterprise add runtime entitlements and an agent task allowance. Pro and Max include a 7-day free trial.',
 } as const;
 
+// Free and Pro get full cards, since they cover the self-serve path most
+// visitors take. Max and Enterprise collapse to PRICING_TEASER_LINKS below;
+// full pricing for both lives on /pricing.
 export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
   {
     id: 'free',
@@ -51,35 +54,27 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     href: '/pricing',
     highlight: true,
   },
+] as const;
+
+export interface TeaserLink {
+  readonly id: LicenseTierId;
+  readonly name: string;
+  readonly description: string;
+  readonly href: string;
+}
+
+export const PRICING_TEASER_LINKS: readonly TeaserLink[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'For teams that need AI memory, advanced inference, and compliance tooling.',
-    features: [
-      'Everything in Pro',
-      'Full AI memory (working + episodic + vector)',
-      'Audit logging + 50,000 agent tasks / month',
-      'Up to 15 sites and 100 users',
-    ],
-    cta: 'See Max pricing',
+    description: 'AI memory, advanced inference, and compliance tooling.',
     href: '/pricing',
-    highlight: false,
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description:
-      'Full ecosystem access with scale, compliance, and agent payments. SSO/SAML and on-prem on the roadmap.',
-    features: [
-      'Everything in Max',
-      'SSO/SAML authentication (coming soon)',
-      'x402 agent payments (USDC)',
-      'RevealUI Fleet white-label license',
-      'Unlimited sites, users, and agent tasks',
-    ],
-    cta: 'Talk to us',
-    href: '/contact',
-    highlight: false,
+    description: 'Scale, compliance, and agent payments.',
+    href: '/pricing',
   },
 ] as const;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CAPABILITIES, CAPABILITIES_SECTION } from '../capabilities';
-import { HOME_ACTORS, HOME_FORK, HOME_OBJECTIONS } from '../home';
+import { HOME_ACTORS } from '../home';
 import { HOME_PRIMITIVES, PRODUCTS_PRIMITIVES } from '../primitives';
 import { ROADMAP_SHIPPED, ROADMAP_UPCOMING } from '../roadmap';
 import { METRICS, SITE } from '../site';
@@ -30,7 +30,7 @@ describe('marketing content contracts', () => {
   describe('capabilities', () => {
     it('exposes nine capabilities, matching the section copy', () => {
       expect(CAPABILITIES).toHaveLength(9);
-      // The heading copy spells the count ("Nine ...") — keep them in lockstep.
+      // The heading copy spells the count ("Nine ..."); keep them in lockstep.
       expect(CAPABILITIES_SECTION.body.toLowerCase()).toContain('nine');
     });
 
@@ -100,22 +100,6 @@ describe('marketing content contracts', () => {
     });
   });
 
-  describe('homepage fork', () => {
-    it('exposes two self-identification branches, each fully populated', () => {
-      const branches = [HOME_FORK.branchA, HOME_FORK.branchC];
-      expect(branches).toHaveLength(2);
-      for (const branch of branches) {
-        expect(branch.title.length, 'empty title').toBeGreaterThan(0);
-        expect(branch.body.length, 'empty body').toBeGreaterThan(0);
-        expect(branch.cta.length, 'empty cta').toBeGreaterThan(0);
-      }
-    });
-
-    it('the navigating branch carries an href', () => {
-      expect(HOME_FORK.branchC.href.length).toBeGreaterThan(0);
-    });
-  });
-
   describe('three actors', () => {
     it('defines exactly three actors, each fully populated', () => {
       expect(HOME_ACTORS.actors).toHaveLength(3);
@@ -131,21 +115,6 @@ describe('marketing content contracts', () => {
       expect(roles.some((r) => r.includes('develop'))).toBe(true);
       expect(roles.some((r) => r.includes('operator'))).toBe(true);
       expect(roles.some((r) => r.includes('agent'))).toBe(true);
-    });
-  });
-
-  describe('objections', () => {
-    it('surfaces exactly two objection cards, each fully populated', () => {
-      expect(HOME_OBJECTIONS.cards).toHaveLength(2);
-      for (const card of HOME_OBJECTIONS.cards) {
-        expect(card.heading.length, 'empty heading').toBeGreaterThan(0);
-        expect(card.body.length, 'empty body').toBeGreaterThan(0);
-      }
-    });
-
-    it('links onward to the full FAQ', () => {
-      expect(HOME_OBJECTIONS.cta.href).toBe('#faq');
-      expect(HOME_OBJECTIONS.cta.label.length).toBeGreaterThan(0);
     });
   });
 });

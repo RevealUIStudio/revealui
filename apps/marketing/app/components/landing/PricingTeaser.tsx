@@ -3,6 +3,7 @@ import { ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import {
   PRICING_TEASER_FOOTER,
+  PRICING_TEASER_LINKS,
   PRICING_TEASER_SECTION,
   PRICING_TEASER_TIERS,
 } from '../../content/pricing-teaser';
@@ -55,7 +56,7 @@ export function PricingTeaser() {
           </p>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-16 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
           {PRICING_TEASER_TIERS.map((t) => {
             const { price, period } = prices[t.id];
             return (
@@ -136,6 +137,19 @@ export function PricingTeaser() {
               </div>
             );
           })}
+        </div>
+
+        {/* Max and Enterprise collapse to single-line links; full pricing on /pricing. */}
+        <div className="mx-auto mt-8 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm sm:flex-row sm:gap-6">
+          {PRICING_TEASER_LINKS.map((tier) => (
+            <a
+              key={tier.id}
+              href={tier.href}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <span className="font-medium text-foreground">{tier.name}</span> {tier.description}
+            </a>
+          ))}
         </div>
 
         <div className="mt-12 text-center">

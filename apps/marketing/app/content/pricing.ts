@@ -2,6 +2,10 @@
 // Phase 3 (2026-05-18) update: agent-section MCP count now references
 // METRICS.mcpServers (canonical 14 per docs/MARKETING_METRICS.md §1).
 // Canonical pricing numbers re-exported from @revealui/contracts/pricing for component convenience.
+// 2026-07-09: PRICING_COST_CALCULATOR moved here from the homepage (internal
+// marketing funnel audit); it is the one anchor number set for the
+// rented-stack cost comparison. PRICING_VALUE_BAND no longer states its own
+// figure so the two surfaces cannot drift apart.
 
 export {
   PERPETUAL_TIERS,
@@ -25,7 +29,7 @@ export interface AgentFeatureCard {
 
 export const PRICING_HERO: SectionHeading = {
   title: 'Two ways to use RevealUI',
-  subtitle: 'Subscribe monthly or buy a perpetual license. Start free. Upgrade when you need to.',
+  subtitle: 'Subscribe, or buy a perpetual license. Start free. Upgrade when you need to.',
 };
 
 export const PRICING_HERO_SUBTEXT = {
@@ -37,32 +41,82 @@ export const PRICING_HERO_SUBTEXT = {
 } as const;
 
 export const PRICING_HERO_NAV_ANCHORS = [
-  { label: 'Monthly plans', href: '#subscriptions' },
-  { label: 'Perpetual licenses', href: '#perpetual' },
+  { label: 'Subscription', href: '#subscriptions' },
+  { label: 'Perpetual', href: '#perpetual' },
 ] as const;
 
 export const PRICING_TRACK_A_SECTION = {
-  eyebrow: 'Subscriptions',
-  heading: 'Subscribe monthly',
-  body: 'Monthly subscriptions with a task allowance included. 7-day free trial on Pro and Max.',
+  eyebrow: 'Subscription',
+  heading: 'Subscribe monthly or annually',
+  body: 'Every subscription includes an agent task allowance. 7-day free trial on Pro and Max.',
 } as const;
 
 // Replaces the former CFO competitor-comparison panel (which named Convex / Supabase /
 // Clerk / Trigger.dev prices), cut 2026-05-26 per owner directive. This value framing
 // names no third-party prices. Deploy targets follow the drop-railway-for-fly ADR
-// (Vercel / Cloudflare / Fly / Hetzner — Railway dropped).
+// (Vercel / Cloudflare / Fly / Hetzner; Railway dropped).
 export const PRICING_VALUE_BAND = {
   heading: 'You own the runtime.',
-  // Cost anchor reconciled to the homepage comparison table (HOME_PROBLEM,
-  // content/home.ts: ~$1,200/mo for a 5-dev mid-startup) so the two surfaces
-  // agree. Time-sensitive: re-verify past mid-2026.
-  body: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors. On a typical mid-startup invoice that runs about $1,200 a month for a five-developer team, and climbs further once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
+  // No standalone dollar figure here by design: PRICING_COST_CALCULATOR below
+  // is the one anchor number set for the rented-stack comparison.
+  body: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors, and the bill climbs further once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
   points: [
     'One runtime, not five separate SaaS subscriptions',
     'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
     'Full source code access on every tier',
     "Open-weight AI by default: your bill doesn't scale with usage",
   ],
+} as const;
+
+// ---------------------------------------------------------------------------
+// Cost calculator (interactive). Moved here from the homepage (internal
+// marketing funnel audit, 2026-07-09) so PRICING_VALUE_BAND above and this
+// calculator are the single cost-comparison surface, instead of two separate
+// anchor figures on two pages.
+//
+// Output is ALWAYS a sanctioned range from 00-truth-source §3 (entry ~$320-380,
+// climbing past $700-1,000+). The inputs move you between those sourced brackets;
+// the component never invents a precise figure outside the §3 band. No vendor
+// names. Honesty: sourced + time-sensitive + excludes payment processing +
+// RevealUI is self-hosted (you pay your own Postgres + compute).
+// ---------------------------------------------------------------------------
+
+export interface CostTier {
+  readonly id: string;
+  readonly range: string;
+  readonly note: string;
+}
+
+export const PRICING_COST_CALCULATOR = {
+  eyebrow: 'The rented stack',
+  heading: 'Add up what you would otherwise rent.',
+  body: 'A multi-product team rents auth, content, billing, observability, and background jobs from four to six vendors. Estimate the monthly bill for that rented stack, then compare it to one runtime you own.',
+  inputs: {
+    products: { label: 'Products you run', min: 1, max: 8, step: 1, default: 2 },
+    vendors: { label: 'Vendor services you would replace', min: 3, max: 6, step: 1, default: 5 },
+    mrr: { label: 'Monthly recurring revenue', min: 0, max: 50000, step: 5000, default: 10000 },
+  },
+  tiers: [
+    {
+      id: 'entry',
+      range: '$320 to $380 / month',
+      note: 'Entry tiers across four or five vendors.',
+    },
+    {
+      id: 'growth',
+      range: '$450 to $700 / month',
+      note: 'More products and seats push you up the published tiers.',
+    },
+    {
+      id: 'scale',
+      range: '$700 to $1,000+ / month',
+      note: 'Enterprise SSO, compliance tiers, or higher-tier auth enter.',
+    },
+  ] as const satisfies readonly CostTier[],
+  rentedLabel: 'The rented stack',
+  revealui: { label: 'RevealUI', value: '$49 / month', sub: '+ your own Postgres and compute' },
+  footnote:
+    'A sourced estimate from current 2026 published pricing, time-sensitive. It excludes payment processing, and RevealUI is self-hosted, so you still pay for your own Postgres and compute. Figures are ranges, not a quote.',
 } as const;
 
 // 'Recommended' is an honest editorial signal; 'Most Popular' implied a
@@ -119,7 +173,7 @@ export const PRICING_AGENT_X402 = {
 export const PRICING_AGENT_MCP = {
   heading: 'MCP Servers',
   // Count sourced from METRICS.mcpServers (canonical per docs/MARKETING_METRICS.md §1).
-  body: `${METRICS.mcpServers} production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.`,
+  body: `${METRICS.mcpServers} production MCP servers including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.`,
   docsLink: {
     label: 'MCP docs →',
     href: SITE.urls.docsMcp,
@@ -140,7 +194,7 @@ export const PRICING_AGENT_CTA_LINKS = {
 
 // Done-for-you rung: surfaces the agency engagement ladder where the buying
 // decision happens, instead of a bare link out. Name + price derive from
-// content/for-operators.ts AGENCY_ENGAGEMENT_LADDER — the single source of
+// content/for-operators.ts AGENCY_ENGAGEMENT_LADDER, the single source of
 // truth for the three published "from" anchors. Per-rung `note` copy is
 // surface-specific (band-voice, shorter than the agency-page rung body), so
 // only the name + price are reused. The discovery call doubles as the

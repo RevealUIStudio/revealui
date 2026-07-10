@@ -84,11 +84,12 @@ export const GOVERNANCE_PAGE = {
   },
 } as const;
 
-// Home/products governance proof beat. Pairs "their security team can read every
-// line" with "and prove what every agent did". Links onward to /governance.
+// Home/products governance proof beat. The Proof section's one audit-chain
+// claim (the hero carries the short foil once; this is the expanded variant,
+// used exactly once, as this beat's lead line). Links onward to /governance.
 export const PROOF_GOVERNANCE = {
   eyebrow: 'Provable governance',
-  heading: 'Read every line, and prove what every agent did.',
+  heading: 'Every agent action leaves a receipt you can check.',
   body: 'The whole runtime is open source in the repo, and every action by a person or an agent signs into a tamper-evident hash chain governed by one RBAC + ABAC policy. The answer to who did what is in the record, not a promise.',
   linkLabel: 'See provable governance →',
   linkHref: '/governance',

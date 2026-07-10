@@ -9,38 +9,35 @@ import { Proof as OperatorProof } from '../components/for-operators/Proof';
 import { WhatYouGet } from '../components/for-operators/WhatYouGet';
 import { GetStarted } from '../components/GetStarted';
 import { Actors } from '../components/landing/Actors';
-import { CostCalculator } from '../components/landing/CostCalculator';
 import { Demo } from '../components/landing/Demo';
 import { Faq } from '../components/landing/Faq';
-import { Fork } from '../components/landing/Fork';
 import { Hero } from '../components/landing/Hero';
 import { LocalAi } from '../components/landing/LocalAi';
-import { Objections } from '../components/landing/Objections';
-import { Persona } from '../components/landing/Persona';
 import { PricingTeaser } from '../components/landing/PricingTeaser';
 import { Primitives } from '../components/landing/Primitives';
 import { Problem } from '../components/landing/Problem';
 import { Proof } from '../components/landing/Proof';
 import { ThesisBand } from '../components/landing/ThesisBand';
-import { WhatsShipped } from '../components/landing/WhatsShipped';
 import { selectAudience } from '../lib/audience';
 import { useAudienceHead } from '../lib/use-audience-head';
 
-/** Developer-facing landing — `/?for=technical`. */
+/**
+ * Developer-facing landing: `/?for=technical`, and the default `/` since the
+ * 2026-07-09 funnel declutter (internal marketing funnel audit). 17 sections
+ * trimmed to ~11. The Fork, the "What ships today" grid, the Objections
+ * section, the standalone Persona section, and the WhatsShipped capabilities
+ * grid were removed or merged elsewhere (Proof, FAQ); the cost calculator
+ * moved to /pricing.
+ */
 function TechnicalLanding() {
   return (
     <>
       <Hero />
       <Actors />
-      <Fork />
       <Problem />
-      <CostCalculator />
       <Demo />
-      <Objections />
       <Primitives />
       <ThesisBand />
-      <WhatsShipped />
-      <Persona />
       <LocalAi />
       <Proof />
       <PricingTeaser />
@@ -52,11 +49,12 @@ function TechnicalLanding() {
 }
 
 /**
- * Non-technical (operator) landing — the default `/`. Composes the existing
- * `for-operators/*` section components inline. The shared <Hero/> self-selects
- * the non-technical hero from the audience param, so it is not duplicated here.
- * (The standalone /for-operators route still renders these too; it is retired
- * and redirected here in PR 3.)
+ * Non-technical (operator) landing: `?for=non-technical`. Composes the
+ * existing `for-operators/*` section components inline. The shared <Hero/>
+ * self-selects the non-technical hero from the audience param, so it is not
+ * duplicated here. The same content also lives at its own URL, `/services`
+ * (ServicesPage.tsx), using the standalone for-operators Hero component; this
+ * audience-param route is kept as an alias.
  */
 function NonTechnicalLanding() {
   return (
