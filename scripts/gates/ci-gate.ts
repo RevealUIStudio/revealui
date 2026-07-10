@@ -320,6 +320,17 @@ async function gate(): Promise<void> {
         args: ['validate:marketing-voice'],
       },
       {
+        // Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
+        // plus apps/marketing/app/content/**/*.ts marketing-copy string
+        // literals (TypeScript AST, no identifiers/imports/comments). A
+        // baseline grandfathers the corpus at seed time; CI hard-fails only
+        // on NEW (file::ruleId) occurrences. Mirrored in CI by the Quality
+        // job step in .github/workflows/ci.yml.
+        name: 'Doc-currency (hard fail)',
+        command: 'pnpm',
+        args: ['validate:doc-currency', '--mode=ci'],
+      },
+      {
         name: 'Design-context drift (hard fail)',
         command: 'pnpm',
         args: ['validate:design-context'],
