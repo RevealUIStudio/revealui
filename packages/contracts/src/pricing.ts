@@ -204,7 +204,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Unlimited users/editors',
       'Session-based auth + OAuth',
       'Full inference suite (all open models)',
-      'x402 agent payments (USDC)',
+      'x402 agent payments (USDC, coming soon)',
       'Unlimited agent tasks',
       'Slack support (4h SLA)',
       'Annual pricing available',
