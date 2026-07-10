@@ -41,14 +41,14 @@ export const PRICING_HERO_SUBTEXT = {
 } as const;
 
 export const PRICING_HERO_NAV_ANCHORS = [
-  { label: 'Monthly plans', href: '#subscriptions' },
-  { label: 'Perpetual licenses', href: '#perpetual' },
+  { label: 'Subscription', href: '#subscriptions' },
+  { label: 'Perpetual', href: '#perpetual' },
 ] as const;
 
 export const PRICING_TRACK_A_SECTION = {
-  eyebrow: 'Subscriptions',
-  heading: 'Subscribe monthly',
-  body: 'Monthly subscriptions with a task allowance included. 7-day free trial on Pro and Max.',
+  eyebrow: 'Subscription',
+  heading: 'Subscribe monthly or annually',
+  body: 'Every subscription includes an agent task allowance. 7-day free trial on Pro and Max.',
 } as const;
 
 // Replaces the former CFO competitor-comparison panel (which named Convex / Supabase /
