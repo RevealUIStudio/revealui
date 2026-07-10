@@ -1,9 +1,8 @@
 {
   "note": "Grandfathered doc-currency occurrences. Regenerate via `pnpm validate:doc-currency --update-baseline`. Each entry is a (file::ruleId) pair known to exist as of generation; CI fails only on NEW pairs. Shrinking this list is progress.",
-  "count": 27,
+  "count": 26,
   "keys": [
     "apps/marketing/app/content/marketplace.ts::supabase-as-current",
-    "apps/marketing/app/content/pricing-teaser.ts::stripe-not-live-claim",
     "docs/ARCHITECTURE.md::supabase-as-current",
     "docs/AUTH.md::supabase-as-current",
     "docs/CREDENTIAL-ROTATION-RUNBOOK.md::supabase-as-current",
