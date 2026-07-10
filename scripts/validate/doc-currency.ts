@@ -1,0 +1,622 @@
+#!/usr/bin/env tsx
+// console-allowed
+
+/**
+ * Doc-Currency Validator — stale-fact drift guard for prose and marketing copy.
+ *
+ * Scans two surfaces for terms that present a retired, renamed, or reversed
+ * fact as if it were still current:
+ *
+ *   1. Markdown prose under `docs/**` and `apps/marketing/**` (line-based
+ *      substring scan, mirroring the fenced-import scanner style already
+ *      used by `docs-import-drift.ts`).
+ *   2. Marketing copy string literals under
+ *      `apps/marketing/app/content/**\/*.ts`, extracted via the TypeScript
+ *      compiler API. Only literal string content is scanned — string
+ *      literals, no-substitution template literals, and the literal text
+ *      spans of template expressions (head/middle/tail). Identifiers,
+ *      import/export module specifiers, and comments are never scanned.
+ *
+ * Zero authored regex — substring (`.includes`) + `Set<string>` only, per
+ * the repo's no-regex convention. The one exception is the TypeScript
+ * compiler API itself, used structurally (AST node kinds), never as a
+ * pattern-matching engine.
+ *
+ * Design (why it won't flag legitimate historical references):
+ *   1. SKIP whole files that are inherently historical: anything under an
+ *      archive/ or _closed/ path segment, any HANDOFF-*.md session
+ *      snapshot, or any file whose first ~20 lines carry a
+ *      SUPERSEDED/CANCELLED/HISTORICAL/ARCHIVED/RETIRED banner.
+ *   2. Per-occurrence EXONERATION: a banned term appearing alongside a
+ *      past-tense / correction marker (cancelled, dropped, retired, →, "no
+ *      longer", exempt, instead, legacy, …) is not a hit. This lets prose
+ *      say "Railway was dropped for Fly" without tripping.
+ *   3. BASELINE allow-list (doc-currency-baseline.json): the corpus's known
+ *      occurrences at seed time are grandfathered. CI hard-fails only on
+ *      NEW, non-exonerated hits (the gitleaks-baseline pattern) — shrinking
+ *      the baseline is progress, growing it needs justification.
+ *
+ * Usage:
+ *   tsx scripts/validate/doc-currency.ts                 # report (exit 0)
+ *   tsx scripts/validate/doc-currency.ts --mode=ci        # exit 1 on new drift
+ *   tsx scripts/validate/doc-currency.ts --update-baseline   # regenerate baseline
+ *
+ * Exit 0 = clean (or report mode). Exit 1 = new drift (ci mode). Exit 2 = bad arg.
+ */
+
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import ts from 'typescript';
+
+const ROOT = path.resolve(import.meta.dirname, '../..');
+const BASELINE_PATH = path.join(ROOT, 'scripts/validate/doc-currency-baseline.json');
+
+export interface Rule {
+  id: string;
+  /** A occurrence is a candidate hit if it contains (case-insensitive) ANY of these. */
+  anyOf: string[];
+  /** …UNLESS the same occurrence also contains ANY of these exoneration markers. */
+  unlessLineHas: string[];
+  message: string;
+}
+
+export interface Hit {
+  /** Relative to ROOT, forward-slash separated. */
+  file: string;
+  line: number;
+  ruleId: string;
+  excerpt: string;
+}
+
+// ---------------------------------------------------------------------------
+// CLI parsing — no regex; explicit string ops.
+// ---------------------------------------------------------------------------
+export function parseArgs(argv: readonly string[]): {
+  quiet: boolean;
+  updateBaseline: boolean;
+  mode: 'cli' | 'ci';
+  error?: string;
+} {
+  let quiet = false;
+  let updateBaseline = false;
+  let mode: 'cli' | 'ci' = 'cli';
+
+  for (const arg of argv) {
+    if (arg === '--quiet') quiet = true;
+    else if (arg === '--update-baseline') updateBaseline = true;
+    else if (arg.startsWith('--mode=')) {
+      const v = arg.slice('--mode='.length);
+      if (v === 'ci' || v === 'cli') mode = v;
+    } else {
+      return { quiet, updateBaseline, mode, error: `unknown arg: ${arg}` };
+    }
+  }
+  return { quiet, updateBaseline, mode };
+}
+
+// ---------------------------------------------------------------------------
+// Rules — derived from an internal audit (2026-07-09) of shipped
+// infrastructure and billing pivots that had not yet propagated to prose.
+// Generous exoneration: better to miss a stale reference than flag a
+// correct historical one — a noisy gate gets disabled, and the value here
+// comes from the gate existing and catching new drift, not zero misses.
+// ---------------------------------------------------------------------------
+
+/** Shared past-tense / correction markers — if any appears alongside the
+ *  banned term, the term is being discussed as past/known, not asserted as
+ *  current. */
+export const COMMON_EXON: readonly string[] = [
+  'cancel',
+  'dropped',
+  'drop ',
+  'remov',
+  'retir',
+  'superseded',
+  'supersede',
+  'deprecat',
+  'former',
+  'historical',
+  'history',
+  'archive',
+  'legacy',
+  'no longer',
+  'not required',
+  'not used',
+  'instead',
+  'migrat',
+  'replaced',
+  'sunset',
+  'void',
+  'was ',
+  'were ',
+  'used to',
+  'transitional',
+  'exempt',
+  '→',
+  '->',
+  '~~',
+  'do not',
+  "don't",
+  'never',
+  'pending',
+  'not yet',
+  'will be',
+  'once ',
+  'before ',
+  'n/a',
+  'obsolete',
+  'phased out',
+  'wind down',
+  'winding down',
+  'decommiss',
+];
+
+/**
+ * Bespoke exoneration list for `stripe-not-live-claim` — NOT `COMMON_EXON`,
+ * whose "not yet" / "pending" / "before" / "will be" markers would exonerate
+ * the exact phrasing a stale not-flipped claim uses. This list exonerates
+ * flip-done / rollback / past-tense markers instead.
+ */
+export const STRIPE_LIVE_EXON: readonly string[] = [
+  'flipped 2026-06-26',
+  'flipped on 2026-06-26',
+  'executed 2026-06-26',
+  'was flipped',
+  'has been flipped',
+  'now flipped',
+  'now live',
+  'went live',
+  'rollback',
+  'roll back',
+  '~~',
+  'previously',
+  'used to',
+  'formerly',
+  'no longer',
+  'historical',
+  'archive',
+  'superseded',
+  'retired',
+  'was ',
+  'were ',
+];
+
+export const RULES: readonly Rule[] = [
+  {
+    id: 'revealcoin-as-current',
+    anyOf: ['revealcoin', 'rvc ', '$rvc', '$rvui', 'rvui-payment', 'rvui payment'],
+    unlessLineHas: [...COMMON_EXON, 'cancelled 2026-05-29', 'shelved'],
+    message:
+      'RevealCoin/RVC/$RVUI was cancelled. Present it as past only, not a current or planned payment rail.',
+  },
+  {
+    id: 'railway-as-current',
+    anyOf: ['railway'],
+    unlessLineHas: [...COMMON_EXON, 'fly.io', 'fly machine', 'not railway'],
+    message:
+      'Railway was dropped as an infrastructure target (stack is Vercel + Neon + Fly). Do not present Railway as a live deployment target.',
+  },
+  {
+    id: 'vercel-blob-as-current',
+    anyOf: ['blob_read_write_token', 'vercel blob', '@vercel/blob', 'vercel/postgres'],
+    unlessLineHas: [...COMMON_EXON, 'r2', 'cloudflare'],
+    message:
+      'Vercel Blob is being retired in favor of Cloudflare R2 as canonical object storage. Do not instruct provisioning a new Blob token.',
+  },
+  {
+    id: 'supabase-as-current',
+    anyOf: ['supabase'],
+    unlessLineHas: [
+      ...COMMON_EXON,
+      'neon',
+      'electric',
+      'removal',
+      'boundary',
+      'rag',
+      'dual-db',
+      'dual db',
+    ],
+    message:
+      'Supabase is being removed in favor of the RevealUI-native stack (Neon + ElectricSQL). Present Supabase as transitional or legacy only.',
+  },
+  {
+    // Inverse of a retired `stripe-live-claim`: Stripe live mode was flipped
+    // ON, so a doc still asserting Stripe is NOT flipped / test-mode AS
+    // CURRENT is the drift. Uses the bespoke STRIPE_LIVE_EXON list, not
+    // COMMON_EXON — see the constant's doc comment for why.
+    id: 'stripe-not-live-claim',
+    anyOf: [
+      'stripe live mode is not flipped',
+      'stripe live-mode is not flipped',
+      'stripe live-flip is not',
+      'stripe live-flip has not',
+      'stripe live-flip is owner-gated and has not',
+      'stripe is not flipped',
+      'stripe not flipped',
+      'stripe live keys are not flipped',
+      'stripe live mode is still false',
+      'stripe live-mode is still false',
+      'stripe_live_mode is still false',
+      'payments are not live',
+      'billing is not live',
+      'stripe live mode has not executed',
+      'stripe live-flip has not executed',
+      'flip stripe live mode',
+      'flip stripe live-mode',
+    ],
+    unlessLineHas: STRIPE_LIVE_EXON,
+    message:
+      'Stripe live mode is on. Do not present Stripe billing as not yet flipped, or test-mode as the current state.',
+  },
+  {
+    id: 'forge-tier-name',
+    anyOf: [
+      'forge tier',
+      'forge perpetual',
+      'forge (enterprise)',
+      'enterprise (forge)',
+      '"forge" tier',
+    ],
+    unlessLineHas: [...COMMON_EXON, 'renamed', 'now enterprise'],
+    message:
+      'The billing tier "Forge" was renamed to "Enterprise". Use "Enterprise" going forward.',
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Shared matching helpers
+// ---------------------------------------------------------------------------
+
+export function ruleMatches(lowerText: string, rule: Rule): boolean {
+  let matched = false;
+  for (const term of rule.anyOf) {
+    if (lowerText.includes(term)) {
+      matched = true;
+      break;
+    }
+  }
+  if (!matched) return false;
+  for (const ex of rule.unlessLineHas) {
+    if (lowerText.includes(ex)) return false;
+  }
+  return true;
+}
+
+export function hitKey(h: Pick<Hit, 'file' | 'ruleId'>): string {
+  return `${h.file}::${h.ruleId}`;
+}
+
+// ---------------------------------------------------------------------------
+// Historical-file skip — shared by markdown and TS content scanning.
+// ---------------------------------------------------------------------------
+
+const HISTORICAL_PATH_MARKERS: readonly string[] = ['/archive/', '/_closed/', '/handoffs/archive/'];
+
+const BANNER_MARKERS: readonly string[] = [
+  'superseded',
+  'cancelled',
+  'canceled',
+  'historical record',
+  'do not action',
+  'archived',
+  'retired',
+  'point-in-time snapshot',
+  'preserved for history',
+  'status: superseded',
+  'status: cancelled',
+  'status: historical',
+  'status: archived',
+  'status: closed',
+];
+
+export function isHistoricalPath(relSlash: string): boolean {
+  for (const m of HISTORICAL_PATH_MARKERS) if (relSlash.includes(m)) return true;
+  return false;
+}
+
+/** True when the file's first ~20 lines carry a superseded/historical banner,
+ *  or (markdown only) the basename is a HANDOFF-* session snapshot. */
+export function shouldSkipFile(rel: string, abs: string): boolean {
+  const relSlash = rel.split(path.sep).join('/');
+  if (isHistoricalPath(relSlash)) return true;
+  const base = path.basename(rel);
+  if (base.startsWith('HANDOFF-')) return true;
+  let head: string;
+  try {
+    head = fs.readFileSync(abs, 'utf8').slice(0, 2000).toLowerCase();
+  } catch {
+    return true;
+  }
+  const headLines = head.split('\n').slice(0, 20).join('\n');
+  for (const m of BANNER_MARKERS) if (headLines.includes(m)) return true;
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// Markdown scan — line-based, mirrors the original fleet scanner.
+// ---------------------------------------------------------------------------
+
+const SKIP_DIR_SEGMENTS: ReadonlySet<string> = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  '.next',
+  'build',
+  '.turbo',
+]);
+
+const MARKDOWN_ROOTS: readonly string[] = ['docs', 'apps/marketing'];
+
+function walkMarkdownFiles(dir: string, acc: string[]): void {
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const e of entries) {
+    if (e.isDirectory()) {
+      if (SKIP_DIR_SEGMENTS.has(e.name)) continue;
+      walkMarkdownFiles(path.join(dir, e.name), acc);
+    } else if (e.isFile() && e.name.endsWith('.md')) {
+      acc.push(path.join(dir, e.name));
+    }
+  }
+}
+
+export function collectMarkdownFiles(root: string): string[] {
+  const acc: string[] = [];
+  for (const rel of MARKDOWN_ROOTS) walkMarkdownFiles(path.join(root, rel), acc);
+  return acc;
+}
+
+export function scanMarkdownFile(root: string, abs: string): Hit[] {
+  const rel = path.relative(root, abs).split(path.sep).join('/');
+  if (shouldSkipFile(rel, abs)) return [];
+  let content: string;
+  try {
+    content = fs.readFileSync(abs, 'utf8');
+  } catch {
+    return [];
+  }
+  const hits: Hit[] = [];
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i] ?? '';
+    const lower = raw.toLowerCase();
+    for (const rule of RULES) {
+      if (!ruleMatches(lower, rule)) continue;
+      hits.push({ file: rel, line: i + 1, ruleId: rule.id, excerpt: raw.trim().slice(0, 160) });
+    }
+  }
+  return hits;
+}
+
+// ---------------------------------------------------------------------------
+// Marketing-copy TS scan — TypeScript compiler API, string-literal text only.
+// ---------------------------------------------------------------------------
+
+const CONTENT_ROOT_REL = 'apps/marketing/app/content';
+
+function isScannableContentFile(name: string): boolean {
+  if (!name.endsWith('.ts')) return false;
+  if (name.endsWith('.d.ts')) return false;
+  if (name.endsWith('.test.ts')) return false;
+  if (name === 'types.ts') return false;
+  return true;
+}
+
+function walkContentFiles(dir: string, acc: string[]): void {
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const e of entries) {
+    if (e.isDirectory()) {
+      if (e.name === '__tests__' || e.name === 'node_modules') continue;
+      walkContentFiles(path.join(dir, e.name), acc);
+    } else if (e.isFile() && isScannableContentFile(e.name)) {
+      acc.push(path.join(dir, e.name));
+    }
+  }
+}
+
+export function collectContentFiles(root: string): string[] {
+  const acc: string[] = [];
+  walkContentFiles(path.join(root, CONTENT_ROOT_REL), acc);
+  return acc;
+}
+
+export interface StringLiteralSpan {
+  text: string;
+  /** 1-indexed line at the start of the literal. */
+  line: number;
+}
+
+const LITERAL_TEXT_KINDS: ReadonlySet<ts.SyntaxKind> = new Set([
+  ts.SyntaxKind.StringLiteral,
+  ts.SyntaxKind.NoSubstitutionTemplateLiteral,
+  ts.SyntaxKind.TemplateHead,
+  ts.SyntaxKind.TemplateMiddle,
+  ts.SyntaxKind.TemplateTail,
+]);
+
+/**
+ * Extract literal string text from a TypeScript source file: string
+ * literals, no-substitution template literals, and the literal text spans
+ * of template expressions (head/middle/tail — NOT the `${...}`
+ * expressions themselves). Import and export module specifiers are
+ * skipped entirely (their string content is a module path, never copy).
+ * Identifiers and comments are never visited by this walk in the first
+ * place — only literal-like AST nodes are matched.
+ */
+export function extractStringLiterals(sourceText: string, fileName: string): StringLiteralSpan[] {
+  const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true);
+  const spans: StringLiteralSpan[] = [];
+
+  function visit(node: ts.Node): void {
+    if (ts.isImportDeclaration(node)) return;
+    if (ts.isImportEqualsDeclaration(node)) return;
+    if (ts.isExportDeclaration(node) && node.moduleSpecifier !== undefined) return;
+
+    if (LITERAL_TEXT_KINDS.has(node.kind)) {
+      const literal = node as ts.LiteralLikeNode;
+      const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+      spans.push({ text: literal.text, line: line + 1 });
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return spans;
+}
+
+export function scanContentFile(root: string, abs: string): Hit[] {
+  const rel = path.relative(root, abs).split(path.sep).join('/');
+  if (shouldSkipFile(rel, abs)) return [];
+  let content: string;
+  try {
+    content = fs.readFileSync(abs, 'utf8');
+  } catch {
+    return [];
+  }
+  const hits: Hit[] = [];
+  for (const span of extractStringLiterals(content, abs)) {
+    const lower = span.text.toLowerCase();
+    for (const rule of RULES) {
+      if (!ruleMatches(lower, rule)) continue;
+      hits.push({
+        file: rel,
+        line: span.line,
+        ruleId: rule.id,
+        excerpt: span.text.trim().slice(0, 160),
+      });
+    }
+  }
+  return hits;
+}
+
+// ---------------------------------------------------------------------------
+// Combined scan
+// ---------------------------------------------------------------------------
+
+export function scanAll(root: string = ROOT): {
+  hits: Hit[];
+  markdownCount: number;
+  tsCount: number;
+} {
+  const markdownFiles = collectMarkdownFiles(root);
+  const contentFiles = collectContentFiles(root);
+
+  const hits: Hit[] = [];
+  for (const abs of markdownFiles) hits.push(...scanMarkdownFile(root, abs));
+  for (const abs of contentFiles) hits.push(...scanContentFile(root, abs));
+
+  return { hits, markdownCount: markdownFiles.length, tsCount: contentFiles.length };
+}
+
+// ---------------------------------------------------------------------------
+// Baseline
+// ---------------------------------------------------------------------------
+
+interface BaselineFile {
+  note: string;
+  count: number;
+  keys: string[];
+}
+
+export function loadBaseline(baselinePath: string = BASELINE_PATH): Set<string> {
+  if (!fs.existsSync(baselinePath)) return new Set();
+  try {
+    const parsed = JSON.parse(fs.readFileSync(baselinePath, 'utf8')) as { keys?: string[] };
+    return new Set(parsed.keys ?? []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function writeBaseline(hits: readonly Hit[], baselinePath: string = BASELINE_PATH): number {
+  const keys = Array.from(new Set(hits.map(hitKey))).sort();
+  const payload: BaselineFile = {
+    note:
+      'Grandfathered doc-currency occurrences. Regenerate via `pnpm validate:doc-currency --update-baseline`. ' +
+      'Each entry is a (file::ruleId) pair known to exist as of generation; CI fails only on NEW pairs. ' +
+      'Shrinking this list is progress.',
+    count: keys.length,
+    keys,
+  };
+  fs.writeFileSync(baselinePath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+  return keys.length;
+}
+
+// ---------------------------------------------------------------------------
+// CLI
+// ---------------------------------------------------------------------------
+
+function main(): void {
+  const parsed = parseArgs(process.argv.slice(2));
+  if (parsed.error) {
+    process.stderr.write(`[doc-currency] ${parsed.error}\n`);
+    process.exit(2);
+  }
+  const { quiet, updateBaseline, mode } = parsed;
+
+  const { hits, markdownCount, tsCount } = scanAll(ROOT);
+
+  if (updateBaseline) {
+    const count = writeBaseline(hits);
+    process.stdout.write(
+      `[doc-currency] baseline written: ${count} grandfathered (file::ruleId) pairs → ${path.relative(ROOT, BASELINE_PATH)}\n`,
+    );
+    process.exit(0);
+  }
+
+  const baseline = loadBaseline();
+  const newHits = hits.filter((h) => !baseline.has(hitKey(h)));
+
+  const ruleMsg = new Map(RULES.map((r) => [r.id, r.message]));
+
+  if (!quiet) {
+    const grandfathered = hits.length - newHits.length;
+    process.stdout.write(
+      `[doc-currency] scanned ${markdownCount} markdown file(s) + ${tsCount} marketing-copy file(s); ` +
+        `${hits.length} non-exonerated occurrence(s) — ${grandfathered} baselined, ${newHits.length} NEW.\n`,
+    );
+  }
+
+  if (newHits.length === 0) {
+    if (!quiet) process.stdout.write('[doc-currency] OK — no new stale-fact drift.\n');
+    process.exit(0);
+  }
+
+  process.stderr.write(
+    `\n[doc-currency] ${newHits.length} NEW stale-fact occurrence(s) (not in baseline):\n\n`,
+  );
+  const byRule = new Map<string, Hit[]>();
+  for (const h of newHits) {
+    const arr = byRule.get(h.ruleId) ?? [];
+    arr.push(h);
+    byRule.set(h.ruleId, arr);
+  }
+  for (const [ruleId, arr] of byRule) {
+    process.stderr.write(`  ● ${ruleId} — ${ruleMsg.get(ruleId) ?? ''}\n`);
+    for (const h of arr) {
+      process.stderr.write(`      ${h.file}:${h.line}  ${h.excerpt}\n`);
+    }
+    process.stderr.write('\n');
+  }
+  process.stderr.write(
+    'Fix the copy (present the fact as past/exonerated), OR — if this is a legitimate new historical record —\n' +
+      'add an exoneration marker, mark the file with a SUPERSEDED/HISTORICAL banner, or regenerate the baseline\n' +
+      'with `pnpm validate:doc-currency --update-baseline` (shrinking the baseline is the goal; growing it needs justification).\n',
+  );
+
+  process.exit(mode === 'ci' ? 1 : 0);
+}
+
+const invokedDirectly =
+  process.argv[1] !== undefined && import.meta.url === `file://${process.argv[1]}`;
+if (invokedDirectly) main();

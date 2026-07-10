@@ -2436,7 +2436,7 @@ app.openapi(reportOverageRoute, async (c) => {
 // POST /api/billing/sweep-expired-licenses  -  Internal cron: mark expired licenses as 'expired'
 // Finds non-perpetual licenses where expiresAt < now() and status = 'active', updates them to
 // status = 'expired'. Also finds perpetual licenses where supportExpiresAt < now() and marks
-// them as 'support_expired' (license remains valid, premium features downgrade to free).
+// them as 'support_expired' (license and its purchased tier remain valid; updates and support stop).
 // Clears the DB status cache so changes take effect immediately.
 // Protected by X-Cron-Secret. Run daily (or hourly for tighter enforcement).
 const SweepExpiredLicensesResponseSchema = z.object({
@@ -2517,8 +2517,8 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
 
   // ── Phase 2: Mark perpetual licenses with expired support ───────────────
   // Perpetual licenses never expire, but their support contract does.
-  // status = 'support_expired' signals that premium features are downgraded
-  // to free tier while basic admin access remains perpetual.
+  // status = 'support_expired' signals that the support contract lapsed. The
+  // purchased tier and its entitlements are retained; only updates and support stop.
   const supportExpiring = await db
     .select({ id: licenses.id })
     .from(licenses)

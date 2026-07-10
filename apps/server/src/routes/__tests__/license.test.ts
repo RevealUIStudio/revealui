@@ -326,7 +326,7 @@ describe('POST /verify  -  DB revocation override', () => {
     exp: Math.floor(Date.now() / 1000) + 86400,
   };
 
-  function mockDb(rows: { status: string }[]) {
+  function mockDb(rows: { status: string; supportExpiresAt?: Date | null; perpetual?: boolean }[]) {
     vi.mocked(getClient).mockReturnValueOnce({
       select: () => ({
         from: () => ({
@@ -426,6 +426,104 @@ describe('POST /verify  -  DB revocation override', () => {
     const body = await parseBody(res);
     expect(body.valid).toBe(false);
     expect(body.reason).toBe('invalid');
+  });
+
+  // ── Perpetual support lapse ────────────────────────────────────────────────
+  // A perpetual license is sold as permanent ownership. When the annual support
+  // contract lapses, the purchased tier and its entitlements are frozen in place,
+  // not revoked  -  only update delivery and support stop. Verifies the fix for
+  // the downgrade-to-free-tier defect on this path.
+
+  const PAST = new Date(Date.now() - 86_400_000);
+  const FUTURE = new Date(Date.now() + 86_400_000);
+
+  const PERPETUAL_PAYLOAD = {
+    tier: 'enterprise' as const,
+    customerId: 'cus_perp',
+    perpetual: true,
+    // Perpetual payloads carry no `exp`.
+  };
+
+  it('keeps tier features and limits when a perpetual license support contract has lapsed', async () => {
+    mockedValidate.mockResolvedValue(PERPETUAL_PAYLOAD as never);
+    mockDb([{ status: 'active', perpetual: true, supportExpiresAt: PAST }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'perpetual.jwt' }));
+    expect(res.status).toBe(200);
+    const body = await parseBody(res);
+
+    expect(body.valid).toBe(true);
+    expect(body.reason).toBe('support_expired');
+    expect(body.supportExpired).toBe(true);
+    expect(body.supportExpiresAt).toBe(PAST.toISOString());
+
+    // The purchased tier survives the lapse  -  this is the ownership promise.
+    expect(body.tier).toBe('enterprise');
+    expect(body.features.ai).toBe(true);
+    expect(body.features.analytics).toBe(true);
+    // Enterprise limits are unbounded, not the free tier's 1 site / 3 users.
+    expect(body.maxSites).toBeNull();
+    expect(body.maxUsers).toBeNull();
+  });
+
+  it('keeps tier features and limits when the DB row is already marked support_expired', async () => {
+    // The nightly sweep marks lapsed perpetuals as status='support_expired'.
+    mockedValidate.mockResolvedValue({
+      tier: 'pro' as const,
+      customerId: 'cus_perp',
+      perpetual: true,
+    } as never);
+    mockDb([{ status: 'support_expired', perpetual: true, supportExpiresAt: PAST }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'perpetual.jwt' }));
+    const body = await parseBody(res);
+
+    expect(body.valid).toBe(true);
+    expect(body.reason).toBe('support_expired');
+    expect(body.supportExpired).toBe(true);
+    expect(body.tier).toBe('pro');
+    expect(body.features.ai).toBe(true);
+    expect(body.features.collaboration).toBe(true);
+    // Pro defaults, not the free tier's 1 / 3.
+    expect(body.maxSites).toBe(5);
+    expect(body.maxUsers).toBe(25);
+  });
+
+  it('reports a perpetual license with active support as valid, supportExpired:false', async () => {
+    mockedValidate.mockResolvedValue(PERPETUAL_PAYLOAD as never);
+    mockDb([{ status: 'active', perpetual: true, supportExpiresAt: FUTURE }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'perpetual.jwt' }));
+    const body = await parseBody(res);
+
+    expect(body.valid).toBe(true);
+    expect(body.reason).toBe('valid');
+    expect(body.supportExpired).toBe(false);
+    expect(body.supportExpiresAt).toBe(FUTURE.toISOString());
+    expect(body.tier).toBe('enterprise');
+    // A perpetual license never expires.
+    expect(body.expiresAt).toBeNull();
+  });
+
+  it('leaves subscription licenses unaffected by the support-lapse path', async () => {
+    // VALID_PAYLOAD is a non-perpetual pro subscription with a future exp.
+    mockedValidate.mockResolvedValue(VALID_PAYLOAD as never);
+    mockDb([{ status: 'active' }]);
+
+    const app = createApp();
+    const res = await app.request('/verify', post('/verify', { licenseKey: 'subscription.jwt' }));
+    const body = await parseBody(res);
+
+    expect(body.valid).toBe(true);
+    expect(body.reason).toBe('valid');
+    expect(body.supportExpired).toBe(false);
+    // No support contract is read for a non-perpetual license.
+    expect(body.supportExpiresAt).toBeNull();
+    expect(body.tier).toBe('pro');
+    expect(body.expiresAt).toBe(new Date(VALID_PAYLOAD.exp * 1000).toISOString());
   });
 });
 

@@ -12,7 +12,6 @@ import { PricingPage } from '../routes/PricingPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
 import { ProductsPage } from '../routes/ProductsPage';
 import { RoadmapPage } from '../routes/RoadmapPage';
-import { SponsorPage } from '../routes/SponsorPage';
 import { TermsPage } from '../routes/TermsPage';
 
 describe('marketing route registry', () => {
@@ -27,7 +26,6 @@ describe('marketing route registry', () => {
       { path: '/contact', component: ContactPage },
       { path: '/fair-source', component: FairSourcePage },
       { path: '/roadmap', component: RoadmapPage },
-      { path: '/sponsor', component: SponsorPage },
       { path: '/privacy', component: PrivacyPage },
       { path: '/terms', component: TermsPage },
       { path: '/*notfound', component: NotFoundPage },
@@ -46,7 +44,6 @@ describe('marketing route registry', () => {
       '/contact',
       '/fair-source',
       '/roadmap',
-      '/sponsor',
       '/privacy',
       '/terms',
     ];
@@ -110,6 +107,20 @@ describe('marketing route registry', () => {
       'the /for-operators → /?for=non-technical redirect must be present',
     ).toBeDefined();
     expect(redirect?.destination).toBe('/?for=non-technical');
+    expect(redirect?.permanent).toBe(true);
+  });
+
+  it('redirects the removed /sponsor path to /roadmap', () => {
+    // /sponsor was removed (GAP-305): every sponsorship CTA pointed at a GitHub
+    // Sponsors listing that was never enabled (hasSponsorsListing: false), so
+    // the page was a dead end. A permanent edge redirect (vercel.json)
+    // preserves the repo's FUNDING.yml custom link and any indexed links.
+    const vercelConfig = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
+    ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
+    const redirect = vercelConfig.redirects?.find((entry) => entry.source === '/sponsor');
+    expect(redirect, 'the /sponsor → /roadmap redirect must be present').toBeDefined();
+    expect(redirect?.destination).toBe('/roadmap');
     expect(redirect?.permanent).toBe(true);
   });
 });

@@ -1,5 +1,11 @@
-// Content for the Local-first AI home section (LocalAi.tsx) and the standalone
-// /local-ai page (LocalAiPage.tsx).
+// Content for the standalone /local-ai page (LocalAiPage.tsx). The former
+// home-section wrapper (LocalAi.tsx) was removed in frontend-excellence
+// Phase 1 (11->7 section cut): its strongest single beat already lives in
+// Proof (PROOF_LOCAL_AI, content/proof.ts), and the interactive
+// ProviderSwitch/FrontierPathway + one-config-line snippet live on this page.
+// LOCAL_AI_SECTION.eyebrow/heading/body/beats/cta are retained as documented
+// corpus content (shared with LOCAL_AI_PAGE.honesty below) even though the
+// homepage no longer renders them directly.
 //
 // Copy is locked to the merged Phase B corpus:
 //   - docs/marketing/06-copy-corpus.md §4.11 (frontier pathway), §4.12 (local-first AI)

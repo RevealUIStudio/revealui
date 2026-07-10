@@ -7,6 +7,11 @@
 // ships today" grid, the audience Fork, and the Objections section moved out
 // (their 3 strongest metrics live in the Proof section; the two objection
 // cards became the first two FAQ items below).
+// 2026-07-10: frontend-excellence Phase 1 (11->7 section cut, ADR
+// 2026-07-10-frontend-design-direction). HOME_ACTORS and HOME_THESIS_BAND
+// removed (thin vocabulary/pull-quote content, no longer rendered anywhere);
+// HOME_HERO's agency CTAs moved to the footer, its CLI block moved into
+// HOME_GET_STARTED.cli.
 
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
@@ -29,17 +34,6 @@ export const HOME_HERO = {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'See it on GitHub', href: SITE.urls.repo, external: true } satisfies Cta,
   },
-  agencyCta: {
-    prefix: 'Want it built for you?',
-    label: 'See services.',
-    href: '/services',
-  },
-  agencyLicensingCta: {
-    prefix: 'Building for clients?',
-    label: 'See agency licensing.',
-    href: '/pricing#perpetual',
-  },
-  cliCaption: 'Local dev stack in 60 seconds. No credit card.',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -57,13 +51,6 @@ export const HOME_HERO = {
 export const HOME_HERO_FOUNDATION = {
   ...HOME_HERO,
   h1: 'The foundation your business runs on.',
-} as const;
-
-// Full-width thesis band: a no-card rhythm break between the Primitives and
-// Local-AI sections. One bold line + a short contrast sub.
-export const HOME_THESIS_BAND = {
-  line: 'You bring the business. The runtime handles the rest.',
-  sub: 'Not a starter kit, and not glue between five SaaS tools. One system, already wired together.',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -225,45 +212,14 @@ export const HOME_GET_STARTED = {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
   },
+  // CLI quick-start, moved here from the hero (frontend-excellence Phase 1
+  // hero declutter): a fresh stack in one command belongs next to the closing
+  // CTA, not competing with the hero's primary/secondary buttons.
+  cli: {
+    command: ['npx', 'create-revealui@latest', 'my-app'],
+    caption: 'Local dev stack in 60 seconds. No credit card.',
+  },
   newsletter: {
     label: 'Not ready to start? Get product updates and engineering insights.',
   },
-} as const;
-
-// ---------------------------------------------------------------------------
-// Three actors (cast explainer)
-// Defines the three roles the rest of the copy assumes: developer, operator,
-// agent. Two human roles (build, run) plus the AI role (work inside). Sits
-// between the hero and the Problem section so "agents" in the hero h1 is
-// defined within one scroll.
-// ---------------------------------------------------------------------------
-
-export interface Actor {
-  readonly role: string;
-  readonly action: string;
-  readonly body: string;
-}
-
-export const HOME_ACTORS = {
-  eyebrow: 'Who does what',
-  heading: 'Three actors, one runtime.',
-  body: 'RevealUI runs people and AI under one set of rules: the same permissions and the same tamper-evident audit trail.',
-  actors: [
-    {
-      role: 'Developers',
-      action: 'build it.',
-      body: 'Install RevealUI, write the code, own the stack.',
-    },
-    {
-      role: 'Operators',
-      action: 'run it.',
-      body: 'Log into the admin to manage customers, content, and billing. No code required.',
-    },
-    {
-      role: 'Agents',
-      action: 'work inside it.',
-      body: 'An agent is an AI that works through the same APIs you do: read and update your data, send notifications, look up customers and billing. Every action runs under the same permissions and the same audit trail as a person.',
-    },
-  ] as readonly Actor[],
-  tagline: 'Developers build it. Operators run it. Agents work in it.',
 } as const;
