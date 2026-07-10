@@ -19,6 +19,24 @@
 @import "tailwindcss";
 @import "@revealui/presentation/tokens.css";
 
+/* ── Self-hosted variable-font family mapping (production font fix) ──
+ * The self-hosted fonts come from @fontsource-variable/{inter,inter-tight,
+ * jetbrains-mono} (imported in app/entry.client.tsx). Fontsource registers
+ * these under the "* Variable" family names ("Inter Variable",
+ * "Inter Tight Variable", "JetBrains Mono Variable"), so the canonical token
+ * stack from @revealui/tokens ('Inter', 'Inter Tight', 'JetBrains Mono')
+ * does not resolve to any self-hosted face on its own. The CSP in vercel.json
+ * intentionally blocks third-party font hosts (font-src 'self' data:), so
+ * Google Fonts cannot fill the gap either. Redeclare the tokens here, after
+ * the canonical import, so the "* Variable" families lead each stack while the
+ * original fallbacks stay intact. The canonical values in @revealui/tokens are
+ * left untouched. */
+:root {
+  --rvui-font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --rvui-font-display: 'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --rvui-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
 /* Tailwind v4 does not scan node_modules by default. Without this, the utility
  * classes baked into @revealui/presentation components (ButtonCVA's bg-primary,
  * Input / Callout / FormField styles, etc.) are never generated and the native
