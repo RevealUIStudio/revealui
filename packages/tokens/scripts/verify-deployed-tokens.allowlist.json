@@ -3,8 +3,12 @@
   "overrides": {
     "www.revealui.com": {
       "--rvui-font-sans": ["'Inter Variable', 'Inter', system-ui, sans-serif"],
-      "--rvui-font-mono": ["'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace"],
-      "--rvui-font-display": ["'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif"]
+      "--rvui-font-mono": [
+        "'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace"
+      ],
+      "--rvui-font-display": [
+        "'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif"
+      ]
     }
   }
 }
