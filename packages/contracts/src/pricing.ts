@@ -24,7 +24,7 @@
 export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 
 // =============================================================================
-// Feature Flag Key (mirrors @revealui/core/features  -  defined here to avoid
+// Feature Flag Key (mirrors @revealui/core/features, defined here to avoid
 // circular dependency since core depends on contracts, not the reverse)
 // =============================================================================
 
