@@ -29,7 +29,7 @@ export interface AgentFeatureCard {
 
 export const PRICING_HERO: SectionHeading = {
   title: 'Two ways to use RevealUI',
-  subtitle: 'Subscribe monthly or buy a perpetual license. Start free. Upgrade when you need to.',
+  subtitle: 'Subscribe, or buy a perpetual license. Start free. Upgrade when you need to.',
 };
 
 export const PRICING_HERO_SUBTEXT = {
