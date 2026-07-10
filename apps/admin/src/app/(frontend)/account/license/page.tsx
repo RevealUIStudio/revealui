@@ -213,9 +213,7 @@ export default function LicensePage() {
           {subscription?.perpetual && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-zinc-600">License Type</span>
-              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                Perpetual
-              </span>
+              <span className="text-sm font-medium text-success">Perpetual</span>
             </div>
           )}
           {subscription?.perpetual && subscription.supportExpiresAt && (
@@ -446,7 +444,7 @@ export default function LicensePage() {
                   className={`rounded-full px-3 py-1 text-xs font-medium ${
                     new Date(subscription.supportExpiresAt) < new Date()
                       ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                      : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                      : 'bg-success/15 text-success'
                   }`}
                 >
                   {new Date(subscription.supportExpiresAt) < new Date() ? 'Expired' : 'Active'}

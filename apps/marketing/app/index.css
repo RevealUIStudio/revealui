@@ -4,8 +4,8 @@
  * Changes vs v4:
  *   - Adds @theme block at the bottom that remaps Tailwind's
  *     `emerald-*` palette → cobalt ladder, and `gray-*` → cool
- *     smoke ladder. Every `text-emerald-700`, `bg-emerald-50`,
- *     `ring-emerald-200`, `text-gray-950`, `bg-gray-50`, etc.
+ *     smoke ladder. Every `text-emerald-700`, `bg-emerald-50`, (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
+ *     `ring-emerald-200`, `text-gray-950`, `bg-gray-50`, etc. (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
  *     in the codebase now resolves to the brand-aligned hue
  *     WITHOUT touching a single component file.
  *   - `blue-*`, `amber-*`, `cyan-*`, `violet-*` are LEFT ALONE
@@ -87,8 +87,8 @@
 
 /* ── Palette remap: emerald → cobalt, gray → cool smoke ──
  *
- * Every utility class in the codebase (`text-emerald-700`,
- * `bg-emerald-50`, `ring-emerald-200`, `text-gray-950`, …)
+ * Every utility class in the codebase (`text-emerald-700`, (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
+ * `bg-emerald-50`, `ring-emerald-200`, `text-gray-950`, …) (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
  * now resolves through these custom properties. Hue and chroma
  * are held constant per ladder; only lightness ramps.
  *

@@ -353,7 +353,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
 
       {passkeySupported ? (
         <>
-          <p className="text-center text-[11px] uppercase tracking-wider text-muted-foreground">
+          <p className="text-center text-[11px] uppercase tracking-widest text-muted-foreground">
             or
           </p>
           <Button

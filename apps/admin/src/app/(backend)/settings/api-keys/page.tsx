@@ -197,7 +197,27 @@ export default function ApiKeysPage() {
                   disabled={!apiKey.trim()}
                   className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {saved ? 'Saved ✓' : 'Save Key'}
+                  {saved ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Saved
+                    </span>
+                  ) : (
+                    'Save Key'
+                  )}
                 </button>
                 {currentProvider && (
                   <button

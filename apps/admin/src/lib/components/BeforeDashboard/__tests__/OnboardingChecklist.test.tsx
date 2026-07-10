@@ -78,7 +78,7 @@ describe('OnboardingChecklist', () => {
     render(<OnboardingChecklist />);
 
     await waitFor(() => {
-      expect(screen.getAllByText('✓')).toHaveLength(3);
+      expect(screen.getAllByText('✓')).toHaveLength(3); // adherence-ignore: checkmark-glyph - asserts against OnboardingChecklist.tsx's existing &#10003; entity output, not UI copy authored here
     });
     // "Add a product" stays unchecked (no docs)
     expect(screen.getByText('4')).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe('OnboardingChecklist', () => {
     render(<OnboardingChecklist />);
 
     await waitFor(() => {
-      expect(screen.queryAllByText('✓')).toHaveLength(0);
+      expect(screen.queryAllByText('✓')).toHaveLength(0); // adherence-ignore: checkmark-glyph - asserts against OnboardingChecklist.tsx's existing &#10003; entity output, not UI copy authored here
     });
     expect(screen.getByText('1')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
@@ -107,7 +107,7 @@ describe('OnboardingChecklist', () => {
     // Never breaks the dashboard: items still render, none crash-derived.
     expect(screen.getByText('Run your first agent')).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.queryAllByText('✓')).toHaveLength(0);
+      expect(screen.queryAllByText('✓')).toHaveLength(0); // adherence-ignore: checkmark-glyph - asserts against OnboardingChecklist.tsx's existing &#10003; entity output, not UI copy authored here
     });
   });
 

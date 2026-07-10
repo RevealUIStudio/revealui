@@ -1010,6 +1010,11 @@ app.get('/docs', (c) =>
   c.html(SWAGGER_HTML, 200, { 'cache-control': 'public, max-age=300, must-revalidate' }),
 );
 
+// This page ships as a standalone HTML string with its own <style> block and
+// no stylesheet link, so it can't reference the app's --rvui-font-sans custom
+// property. The literal stack below mirrors that token (Inter first).
+const LANDING_FONT_SANS = `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif`;
+
 const LANDING_HTML = `<!doctype html>
 <html lang="en">
   <head>
@@ -1022,7 +1027,7 @@ const LANDING_HTML = `<!doctype html>
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-family: ${LANDING_FONT_SANS};
         background: #0b0b0f;
         color: #e6e6ea;
         min-height: 100vh;

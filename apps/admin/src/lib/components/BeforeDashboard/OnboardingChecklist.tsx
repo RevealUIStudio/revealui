@@ -157,7 +157,7 @@ export default function OnboardingChecklist() {
               <span
                 className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-xs ${
                   checked
-                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
+                    ? 'border-success bg-success/20 text-success'
                     : 'border-zinc-600 text-zinc-500'
                 }`}
               >
