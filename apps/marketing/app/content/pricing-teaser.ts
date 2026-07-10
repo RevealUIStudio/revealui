@@ -18,7 +18,7 @@ export interface TeaserTier {
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
   heading: 'Start free. Pay when you scale.',
-  body: 'Self-host the open-source stack at no cost. Paid tiers (Pro, Max, Enterprise) are previews. Subscription billing opens when we flip Stripe live mode.',
+  body: 'Self-host the open-source stack at no cost. Pro, Max, and Enterprise add runtime entitlements and an agent task allowance. Pro and Max include a 7-day free trial.',
 } as const;
 
 // Free and Pro get full cards, since they cover the self-serve path most
