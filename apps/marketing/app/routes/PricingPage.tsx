@@ -176,8 +176,6 @@ export function PricingPage() {
             </ul>
           </div>
 
-          <CostCalculator />
-
           {showAnnualToggle && (
             <div className="mb-8 flex justify-center">
               <div className="inline-flex items-center rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
