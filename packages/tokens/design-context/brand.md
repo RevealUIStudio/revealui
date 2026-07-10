@@ -2,11 +2,11 @@
 title: "Cobalt — Electric Verdigris"
 description: "Voice/headline rules consolidation deferred to lane Phase 3 (DS-V1). Canonical voice corpus: .jv messaging-funnel-audit/voice-and-headline-rules.md"
 visibility: internal
-status: generated
+status: verified
 audience: maintainer
 ---
 
-<!-- GENERATED from packages/presentation/src/tokens.css — DO NOT EDIT — run pnpm --filter @revealui/presentation gen:design-context -->
+<!-- Hand-authored from packages/tokens/design-context/brand-meta.json. Brand tokens mirror the canonical packages/tokens/src/tokens.css. -->
 
 # Cobalt — Electric Verdigris
 
@@ -32,5 +32,5 @@ Voice/headline rules consolidation deferred to lane Phase 3 (DS-V1). Canonical v
 
 ---
 
-> This file is GENERATED from packages/presentation/src/tokens.css — DO NOT EDIT — run pnpm --filter @revealui/presentation gen:design-context.
-> Edit `packages/presentation/src/tokens.css` (canonical) then re-run the generator.
+> This file is hand-authored from `packages/tokens/design-context/brand-meta.json`.
+> Brand tokens mirror `packages/tokens/src/tokens.css` (canonical). Keep both in sync when brand values change.
