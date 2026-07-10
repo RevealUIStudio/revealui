@@ -26,23 +26,18 @@ const ArrowIcon = () => (
 );
 
 /**
- * Hero background: a layered brand "mesh + motif" over a top-down wash, with
- * several soft, blurred cobalt/azure/violet glows (the generative mesh) plus one
- * faint conic disc (an abstract motif, not iconography). All layers live inside
- * an overflow-hidden box so the off-canvas offsets never create a scrollbar.
+ * Hero background: one quiet signature background (frontend-excellence Phase 1;
+ * ADR 2026-07-10-frontend-design-direction hard rule "kill the 5-blob gradient
+ * stack"). A top-down token wash plus a single subtle radial glow, both keyed
+ * to `--color-primary` rather than a literal color. Lives inside an
+ * overflow-hidden box so the off-canvas offset never creates a scrollbar.
  * Reads in both light and dark.
  */
 function HeroBackground() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
-      {/* Mesh: overlapping soft glows, asymmetric */}
-      <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl" />
-      <div className="absolute -left-32 top-1/4 h-[420px] w-[420px] rounded-full bg-[radial-gradient(closest-side,oklch(0.62_0.16_265/0.16),transparent_75%)] blur-3xl" />
-      <div className="absolute -right-24 bottom-0 h-[460px] w-[520px] translate-y-1/4 rounded-full bg-[radial-gradient(closest-side,oklch(0.58_0.15_220/0.13),transparent_75%)] blur-3xl" />
-      <div className="absolute bottom-1/4 left-1/3 h-[360px] w-[360px] rounded-full bg-[radial-gradient(closest-side,oklch(0.60_0.17_290/0.10),transparent_75%)] blur-3xl" />
-      {/* Motif: a soft conic disc, abstract, off-center */}
-      <div className="absolute right-[22%] top-10 h-[320px] w-[320px] rounded-full opacity-[0.10] blur-2xl bg-[conic-gradient(from_140deg,oklch(0.55_0.18_245/0.6),oklch(0.62_0.16_290/0.35),oklch(0.58_0.15_220/0.2),transparent_72%)]" />
+      <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--color-primary),transparent_70%)] opacity-10 blur-3xl" />
     </div>
   );
 }
@@ -87,30 +82,6 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
           </li>
         ))}
       </ul>
-
-      {/* Two quiet pathway lines: done-for-you and agency licensing. Neither
-          competes with the primary/secondary CTAs above. */}
-      <p className="mt-6 text-sm text-muted-foreground">
-        {hero.agencyCta.prefix}{' '}
-        <a href={hero.agencyCta.href} className="font-medium text-primary hover:underline">
-          {hero.agencyCta.label}
-        </a>
-      </p>
-      <p className="mt-2 text-sm text-muted-foreground">
-        {hero.agencyLicensingCta.prefix}{' '}
-        <a href={hero.agencyLicensingCta.href} className="font-medium text-primary hover:underline">
-          {hero.agencyLicensingCta.label}
-        </a>
-      </p>
-
-      <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10">
-        <span className="select-none text-background/50">$</span>
-        <span className="text-emerald-400">npx</span>
-        <span className="text-background">create-revealui@latest</span>
-        <span className="text-blue-300">my-app</span>
-      </div>
-
-      <p className="mt-4 text-sm text-muted-foreground">{hero.cliCaption}</p>
     </>
   );
 }

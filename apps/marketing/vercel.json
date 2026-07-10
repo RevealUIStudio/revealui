@@ -50,6 +50,7 @@
     { "source": "/pro", "destination": "/pricing", "permanent": false },
     { "source": "/coming-soon", "destination": "/roadmap", "permanent": true },
     { "source": "/marketplace", "destination": "/roadmap", "permanent": true },
+    { "source": "/sponsor", "destination": "/roadmap", "permanent": true },
     {
       "source": "/community",
       "destination": "https://github.com/RevealUIStudio/revealui/discussions",
