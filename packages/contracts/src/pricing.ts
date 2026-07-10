@@ -167,8 +167,9 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     // Deep-links into the existing checkout path: /signup?plan=pro ->
     // /account/billing?upgrade=pro -> auto-checkout (7-day trial via
     // REVEALUI_TRIAL_DAYS). Marketing prefixes the admin origin onto
-    // '/'-relative hrefs. Signup stays 403 until REVEALUI_SIGNUP_OPEN flips
-    // (GAP-240), the same gate the marketing hero CTA already fronts.
+    // '/'-relative hrefs. Signup is gated server-side by REVEALUI_SIGNUP_OPEN /
+    // REVEALUI_SIGNUP_WHITELIST (default closed, so white-label kits ship
+    // sealed), the same gate the marketing hero CTA already fronts.
     cta: 'Start your 7-day free trial',
     ctaHref: '/signup?plan=pro',
     highlighted: true,
