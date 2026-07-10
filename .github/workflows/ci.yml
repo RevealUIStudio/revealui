@@ -93,6 +93,15 @@ jobs:
       - name: Marketing voice validation (hard fail)
         run: pnpm validate:marketing-voice
 
+      - name: Doc-currency validation (hard fail)
+        # Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
+        # plus apps/marketing/app/content/**/*.ts marketing-copy string
+        # literals (TypeScript AST — string literals only, no
+        # identifiers/imports/comments). A baseline grandfathers the corpus
+        # at seed time; CI hard-fails only on NEW (file::ruleId)
+        # occurrences. Mirrors the local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:doc-currency --mode=ci
+
       - name: Migration journal validation (hard fail)
         run: pnpm validate:migrations
 

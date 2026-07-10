@@ -1,0 +1,32 @@
+{
+  "note": "Grandfathered doc-currency occurrences. Regenerate via `pnpm validate:doc-currency --update-baseline`. Each entry is a (file::ruleId) pair known to exist as of generation; CI fails only on NEW pairs. Shrinking this list is progress.",
+  "count": 26,
+  "keys": [
+    "apps/marketing/app/content/marketplace.ts::supabase-as-current",
+    "docs/ARCHITECTURE.md::supabase-as-current",
+    "docs/AUTH.md::supabase-as-current",
+    "docs/CREDENTIAL-ROTATION-RUNBOOK.md::supabase-as-current",
+    "docs/DATABASE.md::supabase-as-current",
+    "docs/ENVIRONMENT-VARIABLES-GUIDE.md::supabase-as-current",
+    "docs/MASTER_PLAN.md::forge-tier-name",
+    "docs/PRO.md::supabase-as-current",
+    "docs/REFERENCE.md::supabase-as-current",
+    "docs/SECRETS.md::supabase-as-current",
+    "docs/THIRD_PARTY_LICENSES.md::vercel-blob-as-current",
+    "docs/agent-rules/evaluation-log.md::supabase-as-current",
+    "docs/agent-rules/safety.md::supabase-as-current",
+    "docs/blog/05-five-primitives.md::supabase-as-current",
+    "docs/blog/08-getting-started.md::supabase-as-current",
+    "docs/decisions/2026-05-01-supabase-removal.md::supabase-as-current",
+    "docs/decisions/2026-05-08-deployment-target-vercel-not-k8s.md::forge-tier-name",
+    "docs/fleet/revvault.md::supabase-as-current",
+    "docs/security/ACCESS_REVIEW_POLICY.md::supabase-as-current",
+    "docs/security/ASSET_INVENTORY.md::supabase-as-current",
+    "docs/security/BACKUP_VERIFICATION.md::supabase-as-current",
+    "docs/security/CHANGE_MANAGEMENT_POLICY.md::supabase-as-current",
+    "docs/security/INCIDENT_RESPONSE.md::supabase-as-current",
+    "docs/security/INFORMATION_SECURITY_POLICY.md::supabase-as-current",
+    "docs/security/VENDOR_RISK_ASSESSMENTS.md::railway-as-current",
+    "docs/security/VENDOR_RISK_ASSESSMENTS.md::supabase-as-current"
+  ]
+}
