@@ -35,6 +35,9 @@ dist/
 .next/
 out/
 
+# Design-system preview generator output (apps/docs gen:previews)
+preview-dist/
+
 # Misc
 .DS_Store
 *.pem

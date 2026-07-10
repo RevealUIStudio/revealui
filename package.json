@@ -173,6 +173,7 @@
     "dev:up": "bash scripts/dev-tools/revealui-shell.sh",
     "dev:watched": "tsx scripts/dev-tools/dev-watchdog.ts",
     "docs:generate:api": "tsx scripts/docs/generate-api.ts",
+    "gen:previews": "pnpm --filter docs gen:previews",
     "revforge:issue-license": "tsx scripts/setup/issue-revforge-license.ts",
     "format": "biome format --write .",
     "gate": "tsx scripts/gates/ci-gate.ts",
