@@ -10,6 +10,7 @@
  * limit store is unavailable.
  */
 
+import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockCheckRateLimit = vi.fn();
@@ -91,6 +92,15 @@ function makeRequest(token?: string, upgrade?: string) {
         return null;
       },
     },
+    nextUrl: url,
+  } as never;
+}
+
+function makeRequestWithHeaders(token: string, headers: Record<string, string>) {
+  const url = new URL('http://localhost:4000/api/auth/verify-email');
+  url.searchParams.set('token', token);
+  return {
+    headers: { get: (key: string) => headers[key] ?? null },
     nextUrl: url,
   } as never;
 }
@@ -257,5 +267,74 @@ describe('GET /api/auth/verify-email', () => {
     const res = await GET(makeRequest('some-token'));
     expect((res as MockRes).url).toContain('error=verification_failed');
     expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
+  it('hashes the raw token with SHA-256 before the DB lookup, never passing it through verbatim', async () => {
+    const rawToken = 'my-secret-token';
+    const expectedHash = createHash('sha256').update(rawToken).digest('hex');
+    mockGetUserByVerificationToken.mockResolvedValue(null);
+
+    const GET = await loadRoute();
+    await GET(makeRequest(rawToken));
+
+    expect(mockGetUserByVerificationToken).toHaveBeenCalledWith(expect.anything(), expectedHash);
+    expect(mockGetUserByVerificationToken).not.toHaveBeenCalledWith(expect.anything(), rawToken);
+  });
+
+  it('marks the email verified and consumes the token in a single update', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockCreateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    await GET(makeRequest('valid-token'));
+
+    expect(mockUpdateUser).toHaveBeenCalledTimes(1);
+    expect(mockUpdateUser).toHaveBeenCalledWith(
+      expect.anything(),
+      'u1',
+      expect.objectContaining({
+        emailVerified: true,
+        emailVerificationToken: null,
+      }),
+    );
+  });
+
+  it('rate-limit key uses only the first x-forwarded-for hop', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue(null);
+
+    const GET = await loadRoute();
+    await GET(makeRequestWithHeaders('some-token', { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }));
+
+    expect(mockCheckRateLimit).toHaveBeenCalledWith(
+      'verify_email:1.2.3.4',
+      expect.objectContaining({ maxAttempts: 10, windowMs: 15 * 60 * 1000 }),
+    );
+  });
+
+  it('rate-limit key prefers x-real-ip over x-forwarded-for', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue(null);
+
+    const GET = await loadRoute();
+    await GET(
+      makeRequestWithHeaders('some-token', {
+        'x-real-ip': '10.9.8.7',
+        'x-forwarded-for': '1.2.3.4',
+      }),
+    );
+
+    expect(mockCheckRateLimit).toHaveBeenCalledWith('verify_email:10.9.8.7', expect.any(Object));
+  });
+
+  it('rate-limit key falls back to "unknown" when no IP headers are present', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue(null);
+
+    const GET = await loadRoute();
+    await GET(makeRequestWithHeaders('some-token', {}));
+
+    expect(mockCheckRateLimit).toHaveBeenCalledWith('verify_email:unknown', expect.any(Object));
   });
 });
