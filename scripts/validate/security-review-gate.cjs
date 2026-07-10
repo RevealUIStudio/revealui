@@ -58,6 +58,15 @@ const SECURITY_PATHS = [
   'sanitize',
   'RichText/',
   'content-validation',
+  // Agent-payment + marketplace money surfaces. Added after an internal
+  // review found the x402 payment-verification path was not listed: a PR
+  // moving the verifier passed this gate unflagged and had to self-declare
+  // its review hold in the PR body.
+  'middleware/x402',
+  'packages/paywall/',
+  'routes/a2a',
+  'routes/marketplace',
+  'routes/revmarket',
 ];
 
 // A recorded reviewer verdict = an approving GH review OR one of these labels.
