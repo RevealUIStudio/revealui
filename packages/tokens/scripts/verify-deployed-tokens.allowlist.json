@@ -1,0 +1,14 @@
+{
+  "_comment": "Extra --rvui-* values a deployed host may carry BEYOND the canonical tokens.css set. Scoped by hostname. Values are normalized (numeric/quote/formatting-insensitive) before comparison, so raw source formatting here is fine. Seeded with the three --rvui-font-* app-level overrides apps/marketing redeclares so its self-hosted @fontsource-variable families (Inter Variable / Inter Tight Variable / JetBrains Mono Variable) lead the stack. Anything not listed here that differs from canonical fails verification.",
+  "overrides": {
+    "www.revealui.com": {
+      "--rvui-font-sans": ["'Inter Variable', 'Inter', system-ui, sans-serif"],
+      "--rvui-font-mono": [
+        "'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace"
+      ],
+      "--rvui-font-display": [
+        "'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif"
+      ]
+    }
+  }
+}
