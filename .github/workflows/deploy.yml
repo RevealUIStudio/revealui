@@ -578,6 +578,65 @@ jobs:
           DETECT_MATRIX: ${{ needs.detect.outputs.matrix }}
 
   # ---------------------------------------------------------------------------
+  # Post-deploy design-system verification (marketing + docs)
+  # Runs AFTER the smoke test / alias verification against the live production
+  # URLs. Fetches the deployed HTML + same-origin CSS and asserts two things
+  # static checks cannot: (1) every canonical --rvui-* token survived the
+  # build/CDN round-trip with a numerically-identical value, and (2) each
+  # --rvui-font-* stack actually resolves — a leading family is registered by
+  # an @font-face in the deployed CSS, or is loadable under the live CSP.
+  #
+  # This is post-deploy ALERT semantics: the deploy already happened, so a
+  # failure here is the signal that production drifted from the design system
+  # (e.g. the 2026-07 fonts bug — token-correct CSS whose brand fonts never
+  # loaded because the CSP blocked Google Fonts and the self-hosted family
+  # names did not match the token stacks). Failing the workflow surfaces it.
+  # ---------------------------------------------------------------------------
+  design-verify:
+    name: Verify Design System
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [detect, deploy, smoke-test]
+    if: needs.detect.outputs.has-apps == 'true' && (contains(needs.detect.outputs.app-list, 'marketing') || contains(needs.detect.outputs.app-list, 'docs'))
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Verify deployed tokens + font resolution
+        # The verifier is dependency-free (Node 24 global fetch) and reads the
+        # canonical tokens.css + allowlist straight from the checkout, so no
+        # `pnpm install` is required. It maps the affected apps to their
+        # production hostnames and exits non-zero on any parity or font-
+        # resolvability failure, which fails this job (and the workflow).
+        env:
+          APP_LIST: ${{ needs.detect.outputs.app-list }}
+        run: |
+          ARGS=""
+          case " $APP_LIST " in
+            *" marketing "*) ARGS="$ARGS --url https://www.revealui.com" ;;
+          esac
+          case " $APP_LIST " in
+            *" docs "*) ARGS="$ARGS --url https://docs.revealui.com" ;;
+          esac
+          if [ -z "$ARGS" ]; then
+            echo "::notice::No design-system surface (marketing/docs) in this deploy — skipping"
+            exit 0
+          fi
+          echo "Verifying deployed design system:$ARGS"
+          node packages/tokens/scripts/verify-deployed-tokens.cjs $ARGS
+
+  # ---------------------------------------------------------------------------
   # Summary
   # ---------------------------------------------------------------------------
   summary:
