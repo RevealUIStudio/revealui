@@ -36,6 +36,28 @@ export function GetStarted() {
             </ButtonCVA>
           </div>
 
+          {/* CLI quick-start, moved here from the hero (frontend-excellence
+              Phase 1 hero declutter). */}
+          <div className="mt-8 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10">
+            <span className="select-none text-background/50">$</span>
+            {HOME_GET_STARTED.cli.command.map((token, index) => (
+              <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: static, order-fixed command tokens
+                key={index}
+                className={
+                  index === 0
+                    ? 'text-emerald-400'
+                    : index === HOME_GET_STARTED.cli.command.length - 1
+                      ? 'text-blue-300'
+                      : 'text-background'
+                }
+              >
+                {token}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">{HOME_GET_STARTED.cli.caption}</p>
+
           {/* Newsletter */}
           <div className="mt-16 pt-10 border-t border-border">
             <p className="text-sm font-medium text-muted-foreground mb-4">

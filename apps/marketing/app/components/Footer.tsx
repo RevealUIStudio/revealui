@@ -3,6 +3,7 @@ import {
   FOOTER_COLUMNS,
   FOOTER_LEGAL,
   FOOTER_LEGAL_LINKS,
+  FOOTER_SERVICE_LINKS,
   FOOTER_SOLO_OPERATOR_NOTE,
   FOOTER_TAGLINE,
 } from '../content/nav';
@@ -24,6 +25,16 @@ export function Footer() {
             <p className="text-muted-foreground text-xs leading-6 max-w-sm mt-3">
               {FOOTER_SOLO_OPERATOR_NOTE}
             </p>
+            <div className="mt-3 space-y-1">
+              {FOOTER_SERVICE_LINKS.map((item) => (
+                <p key={item.label} className="text-muted-foreground text-xs leading-6">
+                  {item.prefix}{' '}
+                  <a href={item.href} className="font-medium text-primary hover:underline">
+                    {item.label}
+                  </a>
+                </p>
+              ))}
+            </div>
             <div className="mt-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
                 Stay in the loop

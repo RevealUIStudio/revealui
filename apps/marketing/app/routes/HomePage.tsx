@@ -8,40 +8,39 @@ import { HowWeDeliver } from '../components/for-operators/HowWeDeliver';
 import { Proof as OperatorProof } from '../components/for-operators/Proof';
 import { WhatYouGet } from '../components/for-operators/WhatYouGet';
 import { GetStarted } from '../components/GetStarted';
-import { Actors } from '../components/landing/Actors';
 import { Demo } from '../components/landing/Demo';
-import { Faq } from '../components/landing/Faq';
 import { Hero } from '../components/landing/Hero';
-import { LocalAi } from '../components/landing/LocalAi';
 import { PricingTeaser } from '../components/landing/PricingTeaser';
 import { Primitives } from '../components/landing/Primitives';
 import { Problem } from '../components/landing/Problem';
 import { Proof } from '../components/landing/Proof';
-import { ThesisBand } from '../components/landing/ThesisBand';
 import { selectAudience } from '../lib/audience';
 import { useAudienceHead } from '../lib/use-audience-head';
 
 /**
  * Developer-facing landing: `/?for=technical`, and the default `/` since the
- * 2026-07-09 funnel declutter (internal marketing funnel audit). 17 sections
- * trimmed to ~11. The Fork, the "What ships today" grid, the Objections
- * section, the standalone Persona section, and the WhatsShipped capabilities
- * grid were removed or merged elsewhere (Proof, FAQ); the cost calculator
- * moved to /pricing.
+ * 2026-07-09 funnel declutter. 17 sections trimmed to 11, then 11 to 7 in
+ * frontend-excellence Phase 1 (ADR 2026-07-10-frontend-design-direction hard
+ * rule: marketing homepage <= 7 sections). Cut in this pass: Actors (thin
+ * vocab explainer, superseded by the audience toggle + Primitives' Agents
+ * row), ThesisBand (a single pull-quote restating the hero/Problem
+ * positioning), LocalAi (its strongest beat already lives in Proof's
+ * PROOF_LOCAL_AI card; the interactive provider-switch + snippet live on the
+ * dedicated /local-ai page), and Faq (5 of 7 answers duplicated Proof's
+ * CI-signals/license-split/portability/dogfooding content; the remaining two
+ * are single-fact pointers already covered by Primitives' Agents row and the
+ * pricing page's agents section). The hero's CLI block moved to GetStarted;
+ * its two inline text CTAs (services, agency licensing) moved to the footer.
  */
 function TechnicalLanding() {
   return (
     <>
       <Hero />
-      <Actors />
       <Problem />
       <Demo />
       <Primitives />
-      <ThesisBand />
-      <LocalAi />
       <Proof />
       <PricingTeaser />
-      <Faq />
       <GetStarted />
       <Footer />
     </>

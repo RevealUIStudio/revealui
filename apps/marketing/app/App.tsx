@@ -19,7 +19,6 @@ import { ProductsPage } from './routes/ProductsPage';
 import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
 import { ServicesPage } from './routes/ServicesPage';
-import { SponsorPage } from './routes/SponsorPage';
 import { StatusPage } from './routes/StatusPage';
 import { SubprocessorsPage } from './routes/SubprocessorsPage';
 import { SupportPage } from './routes/SupportPage';
@@ -76,7 +75,6 @@ export function App() {
         meta: { title: 'RevealUI Cloud (roadmap) | RevealUI Studio' },
       },
       { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap | RevealUI' } },
-      { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor | RevealUI' } },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy | RevealUI' } },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
       { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },

@@ -63,7 +63,6 @@ export const SITE = {
     repoRoadmap: 'https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md',
     repoDiscussions: 'https://github.com/RevealUIStudio/revealui/discussions',
     repoIssues: 'https://github.com/RevealUIStudio/revealui/issues',
-    sponsors: 'https://github.com/sponsors/RevealUIStudio',
     agency: 'https://revealuistudio.com',
     api: 'https://api.revealui.com',
     apiAgent: 'https://api.revealui.com/.well-known/agent.json',
