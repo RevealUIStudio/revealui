@@ -51,6 +51,7 @@ import type {
   idempotencyKeys,
   jobs,
   licenses,
+  lifecycleEmailsSent,
   magicLinks,
   marketplaceAgents,
   marketplaceServers,
@@ -309,6 +310,11 @@ export type JobsUpdate = Partial<JobsInsert>
 export type LicensesRow = typeof licenses.$inferSelect
 export type LicensesInsert = typeof licenses.$inferInsert
 export type LicensesUpdate = Partial<LicensesInsert>
+
+// Lifecycle Emails Sent
+export type LifecycleEmailsSentRow = typeof lifecycleEmailsSent.$inferSelect
+export type LifecycleEmailsSentInsert = typeof lifecycleEmailsSent.$inferInsert
+export type LifecycleEmailsSentUpdate = Partial<LifecycleEmailsSentInsert>
 
 // Magic Links
 export type MagicLinksRow = typeof magicLinks.$inferSelect
@@ -591,6 +597,7 @@ export type DatabaseRelationships = {
   idempotencyKeys: Relationship[]
   jobs: Relationship[]
   licenses: Relationship[]
+  lifecycleEmailsSent: Relationship[]
   magicLinks: Relationship[]
   marketplaceAgents: Relationship[]
   marketplaceServers: Relationship[]
@@ -793,6 +800,9 @@ export const jobsRelationships: readonly Relationship[] = []
 export const licensesRelationships = [
   { foreignKeyName: 'licenses_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// LifecycleEmailsSent relationships
+export const lifecycleEmailsSentRelationships: readonly Relationship[] = []
 
 // MagicLinks relationships
 export const magicLinksRelationships = [
@@ -1271,6 +1281,12 @@ export type Database = {
         Insert: LicensesInsert
         Update: LicensesUpdate
         Relationships: typeof licensesRelationships
+      }
+      lifecycle_emails_sent: {
+        Row: LifecycleEmailsSentRow
+        Insert: LifecycleEmailsSentInsert
+        Update: LifecycleEmailsSentUpdate
+        Relationships: typeof lifecycleEmailsSentRelationships
       }
       magic_links: {
         Row: MagicLinksRow

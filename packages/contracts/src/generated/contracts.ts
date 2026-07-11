@@ -1107,6 +1107,32 @@ export const LicensesInsertContract = createContract({
 })
 
 // =============================================================================
+// LifecycleEmailsSent Contracts
+// =============================================================================
+
+/**
+ * Contract for lifecycleEmailsSent row (Select)
+ * Database table: lifecycle_emails_sent
+ */
+export const LifecycleEmailsSentRowContract = createContract({
+  name: 'LifecycleEmailsSentRow',
+  version: '1',
+  description: 'Database row contract for lifecycle_emails_sent table',
+  schema: Schemas.LifecycleEmailsSentSelectSchema,
+})
+
+/**
+ * Contract for lifecycleEmailsSent insert
+ * Database table: lifecycle_emails_sent
+ */
+export const LifecycleEmailsSentInsertContract = createContract({
+  name: 'LifecycleEmailsSentInsert',
+  version: '1',
+  description: 'Database insert contract for lifecycle_emails_sent table',
+  schema: Schemas.LifecycleEmailsSentInsertSchema,
+})
+
+// =============================================================================
 // MagicLinks Contracts
 // =============================================================================
 

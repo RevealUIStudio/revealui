@@ -9,6 +9,15 @@ import { logger } from '@revealui/core/observability/logger';
 import type { Database } from '@revealui/db/client';
 import { appLogs } from '@revealui/db/schema';
 import { sendEmail } from './email.js';
+import {
+  adminUrl,
+  billingUrl,
+  ctaButton,
+  emailShell,
+  supportEmail,
+  supportFooter,
+  tierLabel,
+} from './email-templates.js';
 import { escapeHtml } from './html.js';
 
 // Email clients can't consume CSS custom properties, so table borders in
@@ -41,52 +50,6 @@ function formatStripeAmount(amountInSmallest: number, currency: string): string 
     style: 'currency',
     currency: cur.toUpperCase(),
   }).format(value);
-}
-
-// =============================================================================
-// Shared helpers
-// =============================================================================
-
-function tierLabel(tier: string): string {
-  if (tier === 'enterprise') return 'Enterprise';
-  if (tier === 'max') return 'Max';
-  return 'Pro';
-}
-
-function adminUrl(): string {
-  return (
-    process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://admin.revealui.com'
-  );
-}
-
-function billingUrl(): string {
-  return `${adminUrl()}/account/billing`;
-}
-
-function supportEmail(): string {
-  return process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.com';
-}
-
-function emailShell(title: string, body: string): string {
-  return `<!DOCTYPE html>
-<html>
-  <head><meta charset="utf-8"><title>${title}</title></head>
-  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    ${body}
-  </body>
-</html>`;
-}
-
-function ctaButton(href: string, label: string, color = '#2563eb'): string {
-  return `<p style="text-align: center; margin: 30px 0;">
-  <a href="${href}" style="background-color: ${color}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-    ${label}
-  </a>
-</p>`;
-}
-
-function supportFooter(prefix = 'If you have questions'): string {
-  return `<p style="color: #666; font-size: 14px;">${prefix}, contact ${supportEmail()}.</p>`;
 }
 
 // =============================================================================
