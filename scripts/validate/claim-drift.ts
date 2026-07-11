@@ -1217,7 +1217,7 @@ const BLOCKLIST: BlocklistEntry[] = [
   {
     token: /\b(SSO|single sign-on)\b/i,
     label: 'SSO',
-    why: 'sso marked planned in packages/core/src/features.ts',
+    why: 'SSO/SAML is roadmap-only (designed, not built) per apps/marketing/app/content/roadmap.ts',
   },
   {
     token: /\bSCIM\b/i,

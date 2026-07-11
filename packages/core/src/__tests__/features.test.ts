@@ -43,7 +43,6 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'payments',
   'multiTenant',
   'whiteLabel',
-  'sso',
   'aiInference',
   'auditLog',
   'advancedSync',
@@ -80,14 +79,14 @@ const MAX_FEATURES: (keyof FeatureFlags)[] = [
 ];
 
 /** Features that require Enterprise tier */
-const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel', 'sso'];
+const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel'];
 
 /**
  * Features hardcoded to false (B-02: unimplemented, unsafe to expose).
- * whiteLabel and sso exist in the tier map but getFeatures/isFeatureEnabled/
- * getFeaturesForTier force them off until the implementations ship.
+ * whiteLabel exists in the tier map but getFeatures/isFeatureEnabled/
+ * getFeaturesForTier force it off until the implementation ships.
  */
-const DISABLED_FEATURES: (keyof FeatureFlags)[] = ['whiteLabel', 'sso'];
+const DISABLED_FEATURES: (keyof FeatureFlags)[] = ['whiteLabel'];
 
 /** All features that can actually be enabled (excludes hardcoded-off) */
 const ENABLEABLE_FEATURES = ALL_FEATURES.filter((f) => !DISABLED_FEATURES.includes(f));
@@ -189,16 +188,16 @@ describe('getFeatures', () => {
     for (const feature of ENABLEABLE_FEATURES) {
       expect(features[feature]).toBe(true);
     }
-    // B-02: whiteLabel and sso are hardcoded off (unimplemented)
+    // B-02: whiteLabel is hardcoded off (unimplemented)
     for (const feature of DISABLED_FEATURES) {
       expect(features[feature]).toBe(false);
     }
   });
 
-  it('returns a FeatureFlags object with exactly 17 keys', () => {
+  it('returns a FeatureFlags object with exactly 16 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(17);
+    expect(Object.keys(features)).toHaveLength(16);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -262,7 +261,7 @@ describe('isFeatureEnabled', () => {
       expect(isFeatureEnabled(feature)).toBe(true);
     });
 
-    // B-02: whiteLabel and sso are hardcoded off
+    // B-02: whiteLabel is hardcoded off
     it.each(DISABLED_FEATURES)('returns false for %s (hardcoded off)', (feature) => {
       expect(isFeatureEnabled(feature)).toBe(false);
     });
@@ -278,7 +277,7 @@ describe('isFeatureEnabled', () => {
     isFeatureEnabled('aiMemory');
     expect(mockIsLicensed).toHaveBeenCalledWith('max');
 
-    // B-02: sso is hardcoded off, so isFeatureEnabled short-circuits before
+    // B-02: whiteLabel is hardcoded off, so isFeatureEnabled short-circuits before
     // calling isLicensed. Use multiTenant to verify enterprise tier delegation.
     mockIsLicensed.mockClear();
     isFeatureEnabled('multiTenant');
@@ -336,7 +335,7 @@ describe('getFeaturesForTier', () => {
     for (const feature of ENABLEABLE_FEATURES) {
       expect(features[feature]).toBe(true);
     }
-    // B-02: whiteLabel and sso are hardcoded off
+    // B-02: whiteLabel is hardcoded off
     for (const feature of DISABLED_FEATURES) {
       expect(features[feature]).toBe(false);
     }
@@ -355,7 +354,7 @@ describe('getFeaturesForTier', () => {
     for (const feature of ENABLEABLE_FEATURES) {
       expect(enterpriseFeatures[feature]).toBe(true);
     }
-    // B-02: whiteLabel and sso remain off regardless of tier
+    // B-02: whiteLabel remains off regardless of tier
     for (const feature of DISABLED_FEATURES) {
       expect(enterpriseFeatures[feature]).toBe(false);
     }
@@ -419,10 +418,6 @@ describe('getRequiredTier', () => {
     expect(getRequiredTier('whiteLabel')).toBe('enterprise');
   });
 
-  it('returns enterprise for sso feature', () => {
-    expect(getRequiredTier('sso')).toBe('enterprise');
-  });
-
   it('returns pro for vaultDesktop feature', () => {
     expect(getRequiredTier('vaultDesktop')).toBe('pro');
   });
@@ -446,7 +441,7 @@ describe('tier progression', () => {
     free: 1, // aiLocal
     pro: 10, // 1 free + 9 pro features (incl. vaultDesktop, vaultRotation)
     max: 14, // 1 free + 9 pro + 4 max features (incl. devkitProfiles)
-    enterprise: 15, // 17 total minus 2 hardcoded-off (whiteLabel, sso)
+    enterprise: 15, // 16 total minus 1 hardcoded-off (whiteLabel)
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {
@@ -496,10 +491,6 @@ describe('feature blocking  -  free tier restrictions', () => {
 
   it('blocks multi-tenancy', () => {
     expect(isFeatureEnabled('multiTenant')).toBe(false);
-  });
-
-  it('blocks SSO/SAML authentication', () => {
-    expect(isFeatureEnabled('sso')).toBe(false);
   });
 
   it('blocks white-label dashboard', () => {
