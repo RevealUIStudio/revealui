@@ -82,6 +82,10 @@
       "types": "./dist/pricing.d.ts",
       "import": "./dist/pricing.js"
     },
+    "./receipts-audit": {
+      "types": "./dist/receipts-audit.d.ts",
+      "import": "./dist/receipts-audit.js"
+    },
     "./generated": {
       "types": "./dist/generated/database.d.ts",
       "import": "./dist/generated/database.js"

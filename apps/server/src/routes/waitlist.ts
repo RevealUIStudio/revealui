@@ -43,6 +43,7 @@
  * are silently 200'd (no DB write) so bots don't learn.
  */
 
+import { RECEIPTS_AUDIT_REMEDIATION_ITEMS } from '@revealui/contracts/receipts-audit';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
@@ -98,6 +99,64 @@ interface LeadNotifyContext {
   ipAddress: string | null;
 }
 
+interface EmailContent {
+  subject: string;
+  html: string;
+  text: string;
+}
+
+const RECEIPTS_AUDIT_PAGE_URL = 'https://revealui.com/receipts-audit';
+
+/** Builds the subscriber-facing confirmation email content for a lead source. */
+function buildConfirmationEmail(source: string): EmailContent {
+  if (source === 'receipts-audit') {
+    const htmlItems = RECEIPTS_AUDIT_REMEDIATION_ITEMS.map(
+      (item) => `<li><strong>${escapeHtml(item.title)}.</strong> ${escapeHtml(item.fix)}</li>`,
+    ).join('\n');
+    const textItems = RECEIPTS_AUDIT_REMEDIATION_ITEMS.map(
+      (item, i) => `${i + 1}. ${item.title}\n   ${item.fix}`,
+    ).join('\n\n');
+
+    return {
+      subject: 'Your Agent Receipts Audit remediation guide',
+      html: [
+        '<h2>Your remediation guide</h2>',
+        '<p>Here is the fix for every gap the Agent Receipts Audit found, one per question.</p>',
+        `<ol>${htmlItems}</ol>`,
+        `<p>Revisit the interactive version any time: <a href="${RECEIPTS_AUDIT_PAGE_URL}">${RECEIPTS_AUDIT_PAGE_URL}</a></p>`,
+        '<p>The RevealUI team</p>',
+      ].join('\n'),
+      text: [
+        'Your remediation guide',
+        '',
+        'Here is the fix for every gap the Agent Receipts Audit found, one per question.',
+        '',
+        textItems,
+        '',
+        `Revisit the interactive version any time: ${RECEIPTS_AUDIT_PAGE_URL}`,
+        '',
+        'The RevealUI team',
+      ].join('\n'),
+    };
+  }
+
+  return {
+    subject: 'You are on the RevealUI waitlist',
+    html: [
+      '<h2>You are on the list</h2>',
+      '<p>Thanks for your interest in RevealUI. We will email you the moment access opens.</p>',
+      '<p>The RevealUI team</p>',
+    ].join('\n'),
+    text: [
+      'You are on the list',
+      '',
+      'Thanks for your interest in RevealUI. We will email you the moment access opens.',
+      '',
+      'The RevealUI team',
+    ].join('\n'),
+  };
+}
+
 /**
  * Send the operator alert + the subscriber confirmation for a new lead.
  * Best-effort: every failure is logged and swallowed so a capture that has
@@ -130,21 +189,12 @@ async function sendLeadNotifications(ctx: LeadNotifyContext): Promise<void> {
     ].join('\n'),
   });
 
+  const confirmationContent = buildConfirmationEmail(source);
   const confirmation = sendEmail({
     to: email,
-    subject: 'You are on the RevealUI waitlist',
-    html: [
-      '<h2>You are on the list</h2>',
-      '<p>Thanks for your interest in RevealUI. We will email you the moment access opens.</p>',
-      '<p>— The RevealUI team</p>',
-    ].join('\n'),
-    text: [
-      'You are on the list',
-      '',
-      'Thanks for your interest in RevealUI. We will email you the moment access opens.',
-      '',
-      '— The RevealUI team',
-    ].join('\n'),
+    subject: confirmationContent.subject,
+    html: confirmationContent.html,
+    text: confirmationContent.text,
   });
 
   const results = await Promise.allSettled([teamAlert, confirmation]);
