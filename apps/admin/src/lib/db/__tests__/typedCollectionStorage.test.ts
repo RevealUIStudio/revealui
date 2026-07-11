@@ -92,7 +92,7 @@ describe('typedCollectionStorage', () => {
     const storage = createTypedCollectionStorage();
     const result = await storage?.find?.(
       {
-        slug: 'posts',
+        slug: 'media',
         fields: [],
       },
       {},
@@ -493,7 +493,196 @@ describe('typedCollectionStorage pages bridge', () => {
 
     const storage = createTypedCollectionStorage();
     await expect(
-      storage?.create?.({ slug: 'posts', fields: [] }, { data: { title: 'x' } }),
+      storage?.create?.({ slug: 'media', fields: [] }, { data: { title: 'x' } }),
     ).resolves.toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Posts — blog read + write bridge (twin of the pages bridge)
+// ---------------------------------------------------------------------------
+
+const postRow = {
+  id: 'post_1',
+  schemaVersion: '1',
+  version: 1,
+  title: 'Hello World',
+  slug: 'hello-world',
+  excerpt: 'An intro',
+  content: { root: { children: [] } },
+  featuredImageId: 'media_1',
+  authorId: 'user_1',
+  status: 'published',
+  published: true,
+  meta: { title: 'Hello World' },
+  categories: ['cat_1'],
+  createdAt: new Date('2026-07-01T00:00:00Z'),
+  updatedAt: new Date('2026-07-02T00:00:00Z'),
+  publishedAt: new Date('2026-07-02T00:00:00Z'),
+  deletedAt: null,
+};
+
+const postsCollection = { slug: 'posts', fields: [] };
+
+describe('typedCollectionStorage posts bridge', () => {
+  beforeEach(() => {
+    process.env.POSTGRES_URL = 'postgresql://example';
+  });
+
+  it('maps a post row for findByID (single authorId -> authors[], _status mirror)', async () => {
+    const { chain } = createPagesChain([[postRow]]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    const doc = await storage?.findByID?.(postsCollection, { id: 'post_1' });
+
+    expect(doc).toMatchObject({
+      id: 'post_1',
+      title: 'Hello World',
+      slug: 'hello-world',
+      excerpt: 'An intro',
+      featuredImageId: 'media_1',
+      authorId: 'user_1',
+      authors: ['user_1'],
+      categories: ['cat_1'],
+      meta: { title: 'Hello World' },
+      status: 'published',
+      _status: 'published',
+    });
+  });
+
+  it('handles the access-merged and-where (slug + _status -> status column)', async () => {
+    const { chain } = createPagesChain([[postRow], [{ value: 1 }]]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    const result = await storage?.find?.(postsCollection, {
+      where: {
+        and: [{ slug: { equals: 'hello-world' } }, { _status: { equals: 'published' } }],
+      },
+      limit: 1,
+      page: 1,
+    });
+
+    expect(result).toMatchObject({
+      totalDocs: 1,
+      docs: [expect.objectContaining({ id: 'post_1', _status: 'published' })],
+    });
+  });
+
+  it('signals not-handled for where shapes it cannot express (or)', async () => {
+    const { chain } = createPagesChain([]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    const result = await storage?.find?.(postsCollection, {
+      where: { or: [{ slug: { equals: 'hello-world' } }] },
+      limit: 1,
+      page: 1,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  /**
+   * Prove-red: the camelCase-column round-trip. The dynamic-SQL write path
+   * emits `publishedAt` / `featuredImageId` / `authors` verbatim as SQL column
+   * identifiers, which do not exist on the snake_case `posts` table (the
+   * camelCase-column trap). The typed bridge maps each to its Drizzle column:
+   * camelCase Drizzle fields (`publishedAt`, `featuredImageId`, `authorId`)
+   * that Drizzle renders as the correct snake_case columns, `authors[]`
+   * collapsed to the single `author_id`, and `_status` to `status`.
+   */
+  it('creates a post, mapping camelCase/hasMany fields onto real columns', async () => {
+    const inserted = {
+      ...postRow,
+      id: 'post_new',
+      title: 'Second Post',
+      slug: 'second-post',
+      status: 'draft',
+      published: false,
+      publishedAt: null,
+    };
+    const { chain, calls } = createPagesChain([[inserted]]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    const doc = await storage?.create?.(postsCollection, {
+      data: {
+        title: 'Second Post',
+        slug: 'second-post',
+        content: { root: { children: [] } },
+        featuredImageId: 'media_9',
+        authors: ['user_7', 'user_8'],
+        categories: [{ id: 'cat_2' }, 'cat_3'],
+        publishedAt: '2026-07-05T00:00:00Z',
+        _status: 'draft',
+      },
+    });
+
+    expect(calls.values[0]).toMatchObject({
+      title: 'Second Post',
+      slug: 'second-post',
+      featuredImageId: 'media_9',
+      authorId: 'user_7',
+      categories: ['cat_2', 'cat_3'],
+      status: 'draft',
+      published: false,
+    });
+    // publishedAt is coerced to a Date, never passed through as a camelCase string column.
+    expect((calls.values[0] as { publishedAt: unknown }).publishedAt).toBeInstanceOf(Date);
+    expect(doc).toMatchObject({ id: 'post_new', slug: 'second-post', _status: 'draft' });
+  });
+
+  it('throws (handled-but-invalid) when create is missing a slug', async () => {
+    const { chain } = createPagesChain([]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    await expect(
+      storage?.create?.(postsCollection, { data: { title: 'No Slug' } }),
+    ).rejects.toThrow('posts create requires');
+  });
+
+  it('updates a post, mirroring _status -> status/published and authors -> authorId', async () => {
+    const updated = { ...postRow, status: 'published', published: true, authorId: 'user_2' };
+    const { chain, calls } = createPagesChain([[postRow], [updated]]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    const doc = await storage?.update?.(postsCollection, {
+      id: 'post_1',
+      data: { authors: ['user_2'], _status: 'published' },
+    });
+
+    expect(calls.set[0]).toMatchObject({
+      authorId: 'user_2',
+      status: 'published',
+      published: true,
+    });
+    expect(doc).toMatchObject({ authorId: 'user_2', authors: ['user_2'], _status: 'published' });
+  });
+
+  it('throws handled-but-not-found on update of a missing (or soft-deleted) post', async () => {
+    const { chain } = createPagesChain([[]]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    await expect(
+      storage?.update?.(postsCollection, { id: 'ghost', data: { title: 'X' } }),
+    ).rejects.toThrow('not found');
+  });
+
+  it('soft-deletes and returns the deleted document', async () => {
+    // deleteTypedPost awaits: own getPostById, then deletePost's soft-delete
+    // update (deletePost has no inner read, unlike deletePage).
+    const { chain, calls } = createPagesChain([[postRow], []]);
+    getRestClient.mockReturnValue(chain);
+
+    const storage = createTypedCollectionStorage();
+    const doc = await storage?.delete?.(postsCollection, { id: 'post_1' });
+
+    expect(doc).toMatchObject({ id: 'post_1', slug: 'hello-world' });
+    expect(calls.set[0]).toMatchObject({ deletedAt: expect.any(Date) });
   });
 });
