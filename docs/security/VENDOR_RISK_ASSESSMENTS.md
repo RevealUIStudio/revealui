@@ -3,7 +3,7 @@ visibility: internal
 status: verified
 audience: maintainer
 title: Vendor Risk Assessments
-description: Third-party vendor risk assessments for Neon, Supabase (legacy, phasing out), Vercel, Stripe, and GitHub covering SOC 2 compliance, data handling, and business continuity.
+description: Third-party vendor risk assessments for Neon, Supabase (decommissioned as an internal datastore), Vercel, Stripe, and GitHub covering SOC 2 compliance, data handling, and business continuity.
 last-updated: 2026-05-29
 review-cadence: quarterly
 owner: RevealUI Studio <founder@revealui.com>
@@ -85,7 +85,7 @@ Each vendor is evaluated against the following criteria:
 
 > **Decommissioned (internal usage) per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md).** RevealUI's internal Supabase datastore dependency has been removed: RAG chunk embeddings and vector tables now live on NeonDB `pgvector`, and auth/storage/realtime/RLS/edge-fn were never used. Legacy Supabase code remains in tree during phase-out (final code removal tracked separately); no new features may depend on Supabase.
 >
-> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) is a *retained customer integration* — it is not a RevealUI vendor data dependency and is out of scope for this assessment.
+> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) is a legacy, retained customer integration that lets installers who chose Supabase point agents at their own database. It is no longer a RevealUI vendor data dependency and is out of scope for this assessment.
 >
 > The vendor assessment below is retained as a **historical** record for the audit trail. RevealUI holds no active Supabase data dependency, so there is no forward review date.
 
@@ -201,7 +201,7 @@ _Historical assessment (retained for audit trail):_
 - Secret keys stored in Vercel environment variables, never in source
 - Webhook endpoints verify Stripe signatures before processing
 - Webhook rate limiting: 100 requests/minute on `/api/webhooks`
-- Currently in test mode; live mode switch requires explicit owner action
+- Live mode active since 2026-06-26; the live-flip is owner-gated (see `docs/runbooks/stripe-go-live-cutover.md`)
 
 **Risk rating:** Low
 **Next review:** 2026-07-12
@@ -256,7 +256,7 @@ _Historical assessment (retained for audit trail):_
 | Neon | DS-001, TP-005 | Low | SOC 2 Type II, PITR, standard PostgreSQL | Monitor for pricing changes, verify DPA annually |
 | ~~Supabase~~ (DECOMMISSIONED — internal datastore usage removed) | DS-002, TP-006 | n/a | _(historical)_ SOC 2 Type II, RLS, pgvector | Decommissioned as an internal datastore (ADR 2026-05-01) → RAG/vectors on NeonDB pgvector; legacy code phase-out tracked separately; customer-facing MCP adapter retained separately (not a RevealUI data dependency) |
 | Vercel | TP-001 | Low | SOC 2 Type II, 99.99% SLA, instant rollback | Monitor for env var handling changes |
-| Stripe | TP-002 | Low | PCI DSS L1, SOC 2 Type II, no card data exposure | Monitor test-to-live mode transition readiness |
+| Stripe | TP-002 | Low | PCI DSS L1, SOC 2 Type II, no card data exposure | Live since 2026-06-26; monitor webhook delivery and reconciliation health |
 | GitHub | TP-003, TP-004 | Low | SOC 2 Type II, OIDC publishing, secret scanning | Monitor for Actions pricing changes, audit log retention |
 
 **Overall vendor risk posture:** Low. All vendors maintain SOC 2 Type II certification and offer encryption at rest and in transit. No material gaps identified.
@@ -267,7 +267,7 @@ _Historical assessment (retained for audit trail):_
 
 | Vendor | Replacement Options | Migration Difficulty | Data Portability |
 |--------|-------------------|---------------------|-----------------|
-| Neon | Any managed PostgreSQL (Supabase, AWS RDS, Railway) | Low (standard pg_dump) | Full SQL export |
+| Neon | Any managed PostgreSQL (Supabase, AWS RDS, Google Cloud SQL) | Low (standard pg_dump) | Full SQL export |
 | Supabase | Any PostgreSQL with pgvector (Neon, self-hosted) | Low (standard pg_dump) | Full SQL export |
 | Vercel | Netlify, Cloudflare Pages, AWS Amplify, self-hosted | Medium (redeploy config) | Application code is portable |
 | Stripe | Paddle, LemonSqueezy | Medium (customer migration) | Full data export via API |

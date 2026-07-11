@@ -11,9 +11,9 @@ last-updated: 2026-05-29
 
 ## 1. Purpose
 
-This document defines how RevealUI detects, responds to, and recovers from security incidents. It covers the production infrastructure (Vercel, NeonDB, Supabase, Stripe) and the open-source supply chain (npm, GitHub).
+This document defines how RevealUI detects, responds to, and recovers from security incidents. It covers the production infrastructure (Vercel, NeonDB, Cloudflare R2, Stripe) and the open-source supply chain (npm, GitHub).
 
-> **Infrastructure-in-transition note (2026-05-29).** Supabase is a *legacy secondary* store phasing out (ADR 2026-05-01) and the ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18). The Supabase/Railway key-rotation and log-review steps below remain valid **while those systems are in service**; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
+> **Infrastructure note (updated 2026-07-11).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`); NeonDB is the sole database and the runtime no longer reads Supabase credentials. Railway was dropped as a hosting target (the ElectricSQL sync host re-platforms to Fly.io); no Railway service is in production. The retired Supabase and Railway steps have been removed from the runbooks below. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative infrastructure status.
 
 ## 2. Contacts
 
@@ -133,9 +133,8 @@ Store post-incident reports in `docs/security/incidents/` (private repo) or as G
 
 1. **Rotate immediately**:
    - NeonDB: Generate new connection string in the Neon console. Update Vercel environment variables.
-   - Supabase: Rotate service role key and anon key in Supabase dashboard. Update Vercel environment variables.
 2. **Redeploy**: Trigger production deploy from `main` to pick up new environment variables.
-3. **Audit**: Review NeonDB and Supabase query logs for unauthorized access during the exposure window.
+3. **Audit**: Review NeonDB query logs for unauthorized access during the exposure window.
 4. **Check for data exfiltration**: Compare row counts, check for bulk SELECT queries, review access patterns.
 5. **If data was accessed**: Escalate to data breach runbook (7.3).
 
@@ -158,7 +157,7 @@ Store post-incident reports in `docs/security/incidents/` (private repo) or as G
 **Indicators**: Unauthorized database access confirmed, PII found in public logs, user report of account compromise.
 
 1. **Contain**: Rotate all database credentials (runbook 7.1). Revoke all active sessions by rotating the session signing key.
-2. **Assess scope**: Identify which users and what data types were exposed. Check both NeonDB and Supabase.
+2. **Assess scope**: Identify which users and what data types were exposed. Check NeonDB.
 3. **Notify affected users** within 72 hours with:
    - What data was exposed
    - What actions RevealUI has taken
@@ -192,7 +191,7 @@ Store post-incident reports in `docs/security/incidents/` (private repo) or as G
    - If Vercel-level mitigation is insufficient, contact Vercel support.
 3. **If application error**:
    - Check recent deployments. Roll back via Vercel dashboard if a recent deploy caused the issue.
-   - Check NeonDB and Supabase status pages for upstream outages.
+   - Check the NeonDB status page for upstream outages.
    - Check Stripe status for payment-related failures.
 4. **Communicate**: Post status update if outage exceeds 30 minutes.
 
@@ -219,7 +218,7 @@ Store post-incident reports in `docs/security/incidents/` (private repo) or as G
 | Pre-launch checklist | `pnpm preflight` |
 | Rotate Vercel env vars | Vercel Dashboard > Settings > Environment Variables |
 | Rotate NeonDB credentials | Neon Console > Connection Details > Reset Password |
-| Rotate Supabase keys | Supabase Dashboard > Settings > API |
+| Rotate Cloudflare R2 keys | Cloudflare Dashboard > R2 > Manage API Tokens |
 | Rotate Stripe keys | Stripe Dashboard > Developers > API Keys > Roll Key |
 | Invalidate sessions | Rotate `SESSION_SECRET` in Vercel env vars + redeploy |
 | View Vercel deployment logs | Vercel Dashboard > Deployments > Functions |

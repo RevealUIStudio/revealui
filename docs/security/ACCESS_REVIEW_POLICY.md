@@ -16,14 +16,14 @@ classification: internal
 
 This policy establishes the cadence, process, and documentation requirements for periodic access reviews across all RevealUI systems and services. Access reviews ensure that permissions remain appropriate, accounts are active, and the principle of least privilege is maintained.
 
-> **Infrastructure-in-transition note (2026-05-29).** Supabase is a *legacy secondary* store being phased out (ADR 2026-05-01; new features must not depend on it) and the ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18, phases 4–6 pending). Supabase/Railway references below remain in force **while those systems are in service**; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for the authoritative transition status.
+> **Infrastructure note (updated 2026-07-11).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`) and RevealUI holds no active Supabase organization to review. Railway was dropped as a hosting target (the ElectricSQL sync host re-platforms to Fly.io). The 2026-Q2 record in §6 is preserved as a dated point-in-time artifact; the current review scope and template below no longer include Supabase. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for the authoritative infrastructure status.
 
 ## 2. Scope
 
 This policy covers access to:
 
 - **Source code**: GitHub organization (`RevealUIStudio`), repository permissions, branch protections
-- **Infrastructure**: Vercel team, NeonDB projects, Supabase organizations, Stripe dashboard
+- **Infrastructure**: Vercel team, NeonDB projects, Cloudflare R2, Stripe dashboard
 - **CI/CD**: GitHub Actions secrets, deployment tokens, npm publishing credentials
 - **Secret management**: RevVault access, Vercel environment variables
 - **Communication**: Security contact lists, incident response channels
@@ -49,7 +49,7 @@ This policy covers access to:
 
 ### 4.1 Pre-Review Preparation
 
-1. Export current access lists from each system (GitHub members, Vercel team, NeonDB roles, Supabase members, Stripe users).
+1. Export current access lists from each system (GitHub members, Vercel team, NeonDB roles, Cloudflare R2 tokens, Stripe users).
 2. Retrieve the previous quarter's review record for comparison.
 3. Collect any personnel changes, role changes, or access requests since the last review.
 
@@ -99,8 +99,8 @@ For each system, verify:
 |-------------|-------------|--------|--------|
 | | | | |
 
-### Supabase
-| Account/Role | Access Level | Status | Action |
+### Cloudflare R2
+| Account/Token | Access Level | Status | Action |
 |-------------|-------------|--------|--------|
 | | | | |
 
@@ -149,12 +149,12 @@ Reviewed by: [Name] ([email]) on [YYYY-MM-DD]
 |-------------|-------------|--------|--------|
 | Founder | Project owner | Active, sole accessor | None |
 
-### Supabase
+### Supabase (decommissioned as an internal datastore since 2026-05 per ADR 2026-05-01; retained as the 2026-Q2 historical record)
 
 | Account/Role | Access Level | Status | Action |
 |-------------|-------------|--------|--------|
-| Founder | Organization owner | Active, sole accessor | None |
-| Service role key | Server-side only | Active, RLS enforced for anon key | None |
+| Founder | Organization owner | Active at time of review, sole accessor | None |
+| Service role key | Server-side only | Active at time of review, RLS enforced for anon key | None |
 
 ### Stripe
 
