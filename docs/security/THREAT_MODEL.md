@@ -22,7 +22,7 @@ It is a working document. Comprehensive coverage will accrete over multiple sess
 - The `AuditPolicyEngine` and MCP dispatch boundary in `@revealui/ai` and `@revealui/mcp`
 - The RevDev daemon's RPC interface (`revdev/packages/daemon`)
 - Secret handling via revvault and Vercel environment variables
-- Production deployment topology: Vercel-hosted Next.js + Hono on Vercel functions, NeonDB primary, Supabase legacy, Stripe payments
+- Production deployment topology: Vercel-hosted Next.js + Hono on Vercel functions, NeonDB primary (sole database; Supabase was removed as an internal datastore per ADR 2026-05-01), Cloudflare R2 object storage, Stripe payments
 
 **Out of scope:**
 - Self-hosted customer deployments — see [LIMITATIONS.md §3.7](./LIMITATIONS.md)
@@ -35,7 +35,7 @@ It is a working document. Comprehensive coverage will accrete over multiple sess
 
 | Asset | Description | Where it lives |
 |-------|-------------|----------------|
-| User PII | Email, name, password hash, OAuth tokens, TOTP secrets | NeonDB `users` table + Supabase legacy auth |
+| User PII | Email, name, password hash, OAuth tokens, TOTP secrets | NeonDB `users` table |
 | Session state | Active session cookies, signing key | NeonDB `sessions` table; signing key in revvault under the `revealui/prod/session-secret` path |
 | Payment data | Stripe customer IDs, subscription IDs, webhook event metadata (no PAN — never stored) | NeonDB `billing_*` tables; Stripe is canonical |
 | Application secrets | Database URLs, Stripe keys, OAuth client secrets, webhook signing secrets | Revvault (canonical), Vercel env vars (mirror) |
@@ -52,7 +52,7 @@ Adapted from the four-boundary structure that recurs in modern agentic threat mo
 | ID | Boundary | Crosses |
 |----|----------|---------|
 | **B1** | Human ↔ App | Browser sessions to Next.js / Hono entry points |
-| **B2** | App ↔ External services | Outbound to Stripe, Vercel, Neon, Supabase, OAuth providers, LLM providers, npm registry |
+| **B2** | App ↔ External services | Outbound to Stripe, Vercel, Neon, Cloudflare R2, OAuth providers, LLM providers, npm registry |
 | **B3** | Agent ↔ Tool (MCP) | Agents in `@revealui/ai` dispatching to MCP servers in `@revealui/mcp` |
 | **B4** | Agent ↔ Agent (Daemon) | Cross-agent coordination via the RevDev daemon RPC interface |
 
@@ -119,7 +119,7 @@ Controls that apply across multiple boundaries.
 | Tamper-evident audit | HMAC-SHA256 signature + `previousSignature` hash chain | All admin actions, all agent tool calls, all policy violations |
 | Secret hygiene | Revvault canonical; tmpfs restore; zeroized on exit; pre-commit Gitleaks; CI Gitleaks | All boundaries; `docs/SECRETS.md` is the path index |
 | Dependency hygiene | Pinned `pnpm.overrides`; Dependabot; CodeQL; `pnpm audit` in CI | All packages; B2 supply-chain protection |
-| GDPR data subject rights | `@revealui/security` GDPR framework; cross-DB cleanup via `@revealui/db/cleanup` | B1 PII, B2 PII-in-Stripe (revealui#789 GDPR `stripe.customers.del`) |
+| GDPR data subject rights | `@revealui/security` GDPR framework; Neon `pgvector` cleanup via `@revealui/db/cleanup` (the "cross-DB" name is historical) | B1 PII, B2 PII-in-Stripe (revealui#789 GDPR `stripe.customers.del`) |
 | Pre-launch checklist | `pnpm preflight` — 15-point check | All boundaries before production deploy |
 
 ## 7. Residual risks

@@ -31,9 +31,14 @@
   --color-code-block: var(--rvui-midnight, oklch(0.16 0.03 260)); /* midnight; --rvui-midnight not yet a token, fallback = surface-0 dark value */
   --color-ink: var(--rvui-text-0);
 
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --font-display: "Inter Tight", "Inter", sans-serif;
+  /* Self-hosted variable fonts (@fontsource-variable/*, imported in
+   * app/entry.client.tsx) register under the "* Variable" family names, so each
+   * stack leads with those; the original Google names stay as fallbacks. The CSP
+   * in vercel.json blocks third-party font hosts (font-src 'self' data:), so the
+   * self-hosted faces are the only ones that resolve. GAP-324, mirrors marketing. */
+  --font-sans: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-display: "Inter Tight Variable", "Inter Tight", "Inter", sans-serif;
 
   --width-sidebar: 272px;
   --width-content: 820px;

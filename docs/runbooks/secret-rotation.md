@@ -67,7 +67,8 @@ revvault set revealui/prod/stripe/webhook-secret-live --force
 revvault set revealui/prod/stripe/publishable-key --force
 # Other providers
 revvault set revealui/prod/sentry/auth-token --force          # Sentry → Auth Tokens (DSN is semi-public, optional)
-revvault set revealui/prod/blob/read-write-token --force      # Vercel → Storage → Blob
+revvault set revealui/prod/r2/access-key-id --force           # Cloudflare R2 → Manage API Tokens (Access Key ID; the legacy Vercel Blob token was retired with the R2 swap)
+revvault set revealui/prod/r2/secret-access-key --force       # Cloudflare R2 → Manage API Tokens (Secret Access Key; issued together with the ID)
 revvault set revealui/prod/google/private-key --force         # GCP IAM → SA → new key → paste private_key
 revvault set revealui/prod/db/neon-api-key --force            # Neon → API keys
 ```

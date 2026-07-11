@@ -16,7 +16,7 @@ classification: internal
 
 This policy formalizes the change management procedures for all modifications to RevealUI source code, infrastructure, and configuration. It ensures that changes are reviewed, tested, approved, and deployed in a controlled manner with appropriate rollback capabilities.
 
-> **Infrastructure-in-transition note (2026-05-29).** The Supabase secondary store is *legacy* and phasing out (ADR 2026-05-01). Its rollback reference below remains valid while Supabase is in service; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
+> **Infrastructure note (updated 2026-07-11).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`); NeonDB is the sole database. The Supabase rollback reference has been removed from §7.2 below. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative infrastructure status.
 
 ## 2. Scope
 
@@ -70,7 +70,7 @@ Changes to the following areas require additional scrutiny:
 | Area | Packages/Files | Additional Requirements |
 |------|---------------|----------------------|
 | Authentication | `@revealui/auth`, `apps/server/src/routes/auth*` | Review for bypass vulnerabilities, timing attacks |
-| Authorization | `@revealui/core` (RBAC/ABAC), `proxy.ts` | Verify role isolation tests pass (58 tests) |
+| Authorization | `@revealui/core` (RBAC/ABAC), `proxy.ts` | Verify role isolation tests pass (60 tests) |
 | Cryptography | `@revealui/security` (encryption, signing) | Review algorithm choices, key management |
 | Payments | `@revealui/services` (Stripe), webhook routes | Verify signature validation, rate limiting |
 | Database schema | `@revealui/db` (migrations) | Verify backward compatibility, data preservation |
@@ -176,7 +176,6 @@ Staging (preview) deployments are manually triggered for the `test` branch:
 | Schema migration failure | Reverse migration script | Zero (pre-deploy) | Minutes |
 | Data corruption | NeonDB PITR (Point-in-Time Recovery) | Near-zero | Minutes |
 | Full database failure | NeonDB automated recovery | Near-zero | Minutes |
-| Supabase data issue | Supabase daily snapshot restore | Up to 24 hours | Hours |
 
 ### 7.3 Configuration Rollback
 

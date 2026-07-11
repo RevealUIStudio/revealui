@@ -11,6 +11,7 @@
  *   - DB error → 500 with friendly message
  */
 
+import { RECEIPTS_AUDIT_REMEDIATION_ITEMS } from '@revealui/contracts/receipts-audit';
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -182,6 +183,87 @@ describe('waitlist route', () => {
     expect(mockedSendEmail).toHaveBeenCalledWith(
       expect.objectContaining({ to: 'audit@example.com' }),
     );
+  });
+
+  it('sends the receipts-audit confirmation with the actual remediation guide, not the generic message', async () => {
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    await post(createApp(), { email: 'audit@example.com', source: 'receipts-audit' });
+
+    const confirmationCall = mockedSendEmail.mock.calls.find(
+      (call) => call[0].to === 'audit@example.com',
+    );
+    expect(confirmationCall).toBeDefined();
+    const confirmation = confirmationCall?.[0] as {
+      subject: string;
+      html: string;
+      text: string;
+    };
+
+    // The email promises the guide, so it must actually carry the guide: the
+    // subject names it, and all twelve remediation titles appear in the body.
+    expect(confirmation.subject).toContain('remediation guide');
+    expect(confirmation.subject).not.toBe('You are on the RevealUI waitlist');
+    const remediationTitles = [
+      'List every action from last week',
+      'Give every agent its own identity',
+      'Revoke one agent without collateral damage',
+      'See and undo what an agent changed',
+      'Cap what an agent can spend',
+      'Know which provider saw your data',
+      'Prove who sent it',
+      'Version your prompts and policies',
+      'Pause everything at once',
+      'Run agents on your own infrastructure',
+      'Hear about a failure before your customer does',
+      'Produce the log in minutes',
+    ];
+    for (const title of remediationTitles) {
+      expect(confirmation.text, `text body missing "${title}"`).toContain(title);
+      expect(confirmation.html, `html body missing "${title}"`).toContain(title);
+    }
+    expect(confirmation.text).toContain('https://revealui.com/receipts-audit');
+  });
+
+  it('renders exactly the items @revealui/contracts/receipts-audit exports (drift guard)', async () => {
+    // Guards against apps/server re-hand-duplicating the guide: the email
+    // builder must render RECEIPTS_AUDIT_REMEDIATION_ITEMS itself, not a
+    // local copy that could silently drift from the shared source.
+    expect(RECEIPTS_AUDIT_REMEDIATION_ITEMS).toHaveLength(12);
+
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    await post(createApp(), { email: 'drift@example.com', source: 'receipts-audit' });
+
+    const confirmationCall = mockedSendEmail.mock.calls.find(
+      (call) => call[0].to === 'drift@example.com',
+    );
+    const confirmation = confirmationCall?.[0] as { html: string; text: string };
+
+    for (const item of RECEIPTS_AUDIT_REMEDIATION_ITEMS) {
+      expect(confirmation.text).toContain(item.title);
+      expect(confirmation.text).toContain(item.fix);
+      expect(confirmation.html).toContain(item.title);
+    }
+  });
+
+  it('keeps the generic confirmation for a non-receipts-audit lead (no guide leak)', async () => {
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    await post(createApp(), { email: 'lead3@example.com', source: 'managed-cloud' });
+
+    const confirmationCall = mockedSendEmail.mock.calls.find(
+      (call) => call[0].to === 'lead3@example.com',
+    );
+    const confirmation = confirmationCall?.[0] as { subject: string; text: string };
+    expect(confirmation.subject).toBe('You are on the RevealUI waitlist');
+    expect(confirmation.text).not.toContain('remediation guide');
   });
 
   it('does not email for a newsletter signup (subscription, not a lead)', async () => {

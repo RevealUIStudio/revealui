@@ -295,6 +295,26 @@ export interface CollectionStorageAdapter {
     collection: RevealCollectionConfig,
     options: { id: string | number; req?: RevealRequest },
   ) => Promise<RevealDocument | undefined>;
+  /**
+   * Capture a point-in-time revision of a document (the `page_revisions`
+   * pattern: per-doc revision number, content snapshot, createdBy,
+   * changeDescription). `undefined` = not handled — snapshots require a typed
+   * revision store, so there is no dynamic-SQL fallback. The created revision =
+   * success. Throw for handled-but-not-found.
+   */
+  snapshot?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; req?: RevealRequest; changeDescription?: string },
+  ) => Promise<RevealDocument | undefined>;
+  /**
+   * Restore a document to a stored revision, writing the revision's content back
+   * over the live document. `undefined` = not handled. The restored document =
+   * success. Throw for handled-but-not-found (document or revision).
+   */
+  restore?: (
+    collection: RevealCollectionConfig,
+    options: { id: string | number; revisionId: string | number; req?: RevealRequest },
+  ) => Promise<RevealDocument | undefined>;
 }
 
 export interface QueryableDatabaseAdapter {

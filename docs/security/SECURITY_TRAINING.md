@@ -124,7 +124,7 @@ RevealUI uses tooling as a continuous training reinforcement mechanism:
 | pnpm audit | Surfaces dependency vulnerabilities with fix suggestions | Module 2 |
 | Pre-push gate | Blocks unsafe code from reaching protected branches | Module 3 |
 | Custom AST analyzer | Catches execSync injection, TOCTOU, ReDoS patterns | Module 2 |
-| RBAC enforcement tests | 58 tests continuously verify role isolation | Module 2 |
+| RBAC enforcement tests | 60 tests continuously verify role isolation | Module 2 |
 
 These tools serve as both security controls and training aids. When a tool blocks a commit or PR, the error message includes remediation guidance that reinforces the training material.
 

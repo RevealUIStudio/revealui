@@ -19,7 +19,7 @@ This document provides a comprehensive inventory of all assets managed under the
 This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair Source Pro packages) and all associated infrastructure.
 
 > **Infrastructure-in-transition note (added 2026-05-29).** Several entries below are mid-migration and their status is **transitional**, not steady-state:
-> - **Supabase (DS-002, TP-006)** is **decommissioned as an internal datastore** per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md) — RAG/vector embeddings now live on NeonDB `pgvector`. Rows below are retained as historical records while credential offboarding completes. The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
+> - **Supabase (DS-002, TP-006)** is **decommissioned as an internal datastore** per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md). RAG and vector embeddings now live on NeonDB `pgvector`. Credential offboarding is complete: no `SUPABASE_*` variable is read by the runtime or required by any env validator. Rows below are retained as historical records for the audit trail. The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
 > - The **ElectricSQL sync host (DS-003, TP-007)** is re-platforming **Railway → Fly.io** (infrastructure ADR dated 2026-05-18). Railway no longer runs an active RevealUI service — the sync capability is out of production service pending the Fly.io re-platform — so "Railway" rows below are historical.
 > - **Storage** is Cloudflare R2 (S3-compatible); the legacy Vercel Blob backend is being retired (GAP-208).
 > - **RevealCoin (SVC-007)** was cancelled 2026-05-29 (repo private+archived, keys destroyed).
@@ -46,7 +46,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 |----|---------|---------|----------|---------------------|
 | PKG-001 | @revealui/core | Admin engine, REST API, auth, rich text, plugins | npm | Public |
 | PKG-002 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) | npm | Public |
-| PKG-003 | @revealui/db | Drizzle ORM schema (86 tables), dual-DB support | npm | Public |
+| PKG-003 | @revealui/db | Drizzle ORM schema (86 tables) on NeonDB (Postgres) | npm | Public |
 | PKG-004 | @revealui/auth | Session auth, password reset, rate limiting | npm | Public |
 | PKG-005 | @revealui/presentation | 61 native UI components (Tailwind v4) | npm | Public |
 | PKG-006 | @revealui/router | Lightweight file-based router with SSR | npm | Public |
@@ -95,8 +95,8 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 **Supabase (DS-002 — decommissioned):** Historically held vector embeddings, secondary auth, and specialized workloads. RAG/vector data now lives on NeonDB pgvector (ADR 2026-05-01); no internal RevealUI feature depends on Supabase. Historical data categories:
 - Vector embeddings for RAG (pgvector)
 - OAuth account linkage
-- Supabase Auth sessions (where used)
-- Cross-DB cleanup targets after site deletion
+- Supabase Auth sessions (historical, where used)
+- Cross-DB cleanup targets after site deletion (now a Neon-only path)
 
 **ElectricSQL (DS-003):** Stateless sync proxy only. No persistent data storage.
 

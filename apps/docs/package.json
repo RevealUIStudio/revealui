@@ -4,6 +4,9 @@
   "description": "Documentation site for RevealUI",
   "private": true,
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.5",
+    "@fontsource-variable/inter-tight": "^5.2.5",
+    "@fontsource-variable/jetbrains-mono": "^5.2.5",
     "@revealui/core": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/router": "workspace:*",

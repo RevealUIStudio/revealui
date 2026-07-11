@@ -6,11 +6,15 @@
 // checklist below is revealed inline.
 //
 // Copy is owner-authored verbatim for the title, subhead, questions, and score
-// bands. The remediation checklist is written in the same voice, mapping each
-// gap to a runtime primitive (People / Content / Offers / Payments / Agents)
-// and a concrete mechanism. No em dashes (owner style); voice-and-headline
-// rules apply (validated by scripts/validate/marketing-voice.ts).
+// bands. The remediation items themselves (title/gap/fix, one per question)
+// are NOT owned here: they live in @revealui/contracts/receipts-audit, the
+// single source of truth also consumed by apps/server's confirmation email
+// (precedent: ARCHITECTURE_REVIEW_PRICE in @revealui/contracts/pricing). This
+// file only wraps that array with the page-specific heading + intro. No em
+// dashes (owner style); voice-and-headline rules apply (validated by
+// scripts/validate/marketing-voice.ts).
 
+import { RECEIPTS_AUDIT_REMEDIATION_ITEMS } from '@revealui/contracts/receipts-audit';
 import type { AuditAnswer, BandId } from '../lib/receipts-audit';
 import { SITE } from './site';
 import type { Cta } from './types';
@@ -40,7 +44,7 @@ export const RECEIPTS_AUDIT_QUESTIONS: readonly AuditQuestion[] = [
   },
   {
     id: 2,
-    text: "Does every agent act as its own user with its own identity, or do your agents share a human's credentials?",
+    text: "Does every agent act as its own user with its own identity, separate from any human's credentials?",
     positiveAnswer: 'yes',
   },
   {
@@ -155,105 +159,11 @@ export const RECEIPTS_AUDIT_FORM = {
   successMessage: 'Here is the remediation guide. A copy is on its way to your inbox.',
 } as const;
 
-export type RuntimePrimitive = 'People' | 'Content' | 'Offers' | 'Payments' | 'Agents';
-
-export interface RemediationItem {
-  /** Maps 1:1 to the question of the same id. */
-  readonly id: number;
-  readonly primitive: RuntimePrimitive;
-  readonly title: string;
-  readonly gap: string;
-  readonly fix: string;
-}
+export type { RemediationItem, RuntimePrimitive } from '@revealui/contracts/receipts-audit';
 
 export const RECEIPTS_AUDIT_REMEDIATION = {
   heading: 'The remediation guide',
   intro:
     'One fix per receipt, mapped to the runtime primitive that closes it. Read it here, and check your inbox for a copy.',
-  items: [
-    {
-      id: 1,
-      primitive: 'Agents',
-      title: 'List every action from last week',
-      gap: 'You cannot reconstruct last week because agent actions were never written to one durable place.',
-      fix: 'Every agent action signs into a tamper-evident audit log, so a full week of activity is one query away.',
-    },
-    {
-      id: 2,
-      primitive: 'People',
-      title: 'Give every agent its own identity',
-      gap: 'Agents that borrow a human login are invisible in your records and impossible to tell apart.',
-      fix: 'Each agent becomes its own governed user with its own identity, so every action traces back to the exact actor.',
-    },
-    {
-      id: 3,
-      primitive: 'People',
-      title: 'Revoke one agent without collateral damage',
-      gap: 'Shared credentials mean pulling one agent breaks the humans and agents sitting next to it.',
-      fix: 'Per-agent identity lets you revoke one agent in a click, with no collateral outage.',
-    },
-    {
-      id: 4,
-      primitive: 'Content',
-      title: 'See and undo what an agent changed',
-      gap: 'A content change with no history is a change you can neither review nor undo.',
-      fix: 'Content edits are versioned, so you see the exact diff an agent made and roll it back.',
-    },
-    {
-      id: 5,
-      primitive: 'Payments',
-      title: 'Cap what an agent can spend',
-      gap: 'An agent that can spend without a ceiling is an incident waiting to bill you.',
-      fix: 'A spend limit caps each agent, and the runtime blocks the transaction that would cross it.',
-    },
-    {
-      id: 6,
-      primitive: 'Agents',
-      title: 'Know which provider saw your data',
-      gap: 'If you cannot name the provider that saw your customer data, you cannot answer for where it went.',
-      fix: 'You choose the AI provider per workload, and the runtime records which one handled each request.',
-    },
-    {
-      id: 7,
-      primitive: 'Agents',
-      title: 'Prove who sent it',
-      gap: 'Without a record of who acted, human versus agent is a guess.',
-      fix: 'Every message carries the identity that produced it, so you answer a customer with the record, not a hunch.',
-    },
-    {
-      id: 8,
-      primitive: 'Content',
-      title: 'Version your prompts and policies',
-      gap: "Prompts and policies kept in someone's head cannot be reviewed or rolled back.",
-      fix: 'Prompts and policies live as versioned records a reviewer can read, compare, and revert.',
-    },
-    {
-      id: 9,
-      primitive: 'Agents',
-      title: 'Pause everything at once',
-      gap: 'If pausing agents means chasing processes, you cannot stop an incident fast enough.',
-      fix: 'One kill switch pauses every agent at once, in seconds, from a single screen.',
-    },
-    {
-      id: 10,
-      primitive: 'Agents',
-      title: 'Run agents on your own infrastructure',
-      gap: "Agents on someone else's infrastructure put your data and your controls outside your reach.",
-      fix: 'The runtime is self-hosted, so agents run on infrastructure you control and the data stays with you.',
-    },
-    {
-      id: 11,
-      primitive: 'Agents',
-      title: 'Hear about a failure before your customer does',
-      gap: 'A silent failure is one your customer reports before you do.',
-      fix: 'A failed agent action raises an alert to a human first, so you reach the customer before the complaint does.',
-    },
-    {
-      id: 12,
-      primitive: 'Agents',
-      title: 'Produce the log in minutes',
-      gap: 'An audit that takes days of log-digging is an audit you are not ready for.',
-      fix: 'A hash-chained activity log exports in minutes, so an auditor gets a clean record on the day they ask.',
-    },
-  ] as readonly RemediationItem[],
+  items: RECEIPTS_AUDIT_REMEDIATION_ITEMS,
 } as const;

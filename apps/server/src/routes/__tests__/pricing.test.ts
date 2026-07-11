@@ -223,7 +223,30 @@ describe('GET /api/pricing', () => {
     const free = data.subscriptions.find((t: { id: string }) => t.id === 'free');
     expect(free.name).toBe('Free (OSS)');
     expect(free.features.length).toBeGreaterThan(0);
-    expect(free.cta).toBe('Get Started');
+    expect(free.cta).toBe('Start free');
+  });
+
+  it('includes the enterprise annual price once the annual price-ID guard is set, matching the marketing fallback', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', '');
+    vi.stubEnv('STRIPE_ENTERPRISE_ANNUAL_PRICE_ID', 'price_test_enterprise_annual');
+    const res = await app.request('/');
+    const data = await res.json();
+
+    // Must match apps/marketing/app/lib/pricing-fallbacks.ts
+    // ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS.enterprise ($14,390 / Save $3,598/yr).
+    const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
+    expect(enterprise.annualPrice).toBe('$14,390');
+    expect(enterprise.annualPeriod).toBe('/year');
+  });
+
+  it('omits the enterprise annual price when the annual price-ID guard is unset', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', '');
+    const res = await app.request('/');
+    const data = await res.json();
+
+    const enterprise = data.subscriptions.find((t: { id: string }) => t.id === 'enterprise');
+    expect(enterprise.annualPrice).toBeUndefined();
+    expect(enterprise.annualPeriod).toBeUndefined();
   });
 
   it('sets cache headers', async () => {

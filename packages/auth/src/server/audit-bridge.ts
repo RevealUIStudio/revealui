@@ -6,6 +6,7 @@
  * avoid circular dependency issues at module load time.
  */
 
+import { logger } from '@revealui/core/observability/logger';
 import type { AuditEvent, AuditSystem } from '@revealui/security/server';
 
 type AuditEventInput = Omit<AuditEvent, 'id' | 'timestamp'>;
@@ -25,15 +26,23 @@ async function getAudit(): Promise<AuditSystem | null> {
 }
 
 /**
- * Internal helper  -  logs an audit event, silently skipping if the
- * audit system is unavailable.
+ * Internal helper  -  logs an audit event best-effort. Silently skips when the
+ * audit system is unavailable, and swallows (but logs) a write failure so the
+ * operation being audited  -  e.g. a login  -  never fails because its audit
+ * record could not be persisted.
  */
 async function logAuditEvent(event: AuditEventInput): Promise<void> {
   const auditSystem = await getAudit();
   if (!auditSystem) {
     return;
   }
-  await auditSystem.log(event);
+  try {
+    await auditSystem.log(event);
+  } catch (error) {
+    logger.error('Failed to write audit event', error instanceof Error ? error : undefined, {
+      type: event.type,
+    });
+  }
 }
 
 /**

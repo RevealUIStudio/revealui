@@ -213,6 +213,7 @@ export async function update(
       'created_at',
       'updated_at',
       '_json',
+      '_status',
       'password',
     ]);
     if (config.fields) {

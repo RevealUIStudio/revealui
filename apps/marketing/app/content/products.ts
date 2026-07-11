@@ -39,7 +39,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Eight products on one foundation, all built and operated by RevealUI Studio, every one shipping today except the agent marketplace, which is on the way.',
+    'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio, every one shipping today except the agent marketplace, which is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
