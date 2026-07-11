@@ -166,6 +166,10 @@
       "types": "./dist/queries/posts.d.ts",
       "import": "./dist/queries/posts.js"
     },
+    "./queries/globals": {
+      "types": "./dist/queries/globals.d.ts",
+      "import": "./dist/queries/globals.js"
+    },
     "./queries/media": {
       "types": "./dist/queries/media.d.ts",
       "import": "./dist/queries/media.js"
