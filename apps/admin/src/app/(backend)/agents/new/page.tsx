@@ -9,10 +9,15 @@ import {
   LinkButton,
   Textarea,
 } from '@revealui/presentation';
-import { Field, Label } from '@revealui/presentation/client';
+import { Callout, Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useReducer } from 'react';
+import { type ChangeEvent, useEffect, useReducer, useState } from 'react';
+import {
+  INFERENCE_PREREQUISITE_COPY,
+  type InferenceKeyMetadata,
+  resolveInferencePrerequisite,
+} from '@/lib/agents/inference-prerequisite';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -152,6 +157,27 @@ export default function NewAgentPage() {
 
   const [state, dispatch] = useReducer(formReducer, initialState);
   const { selectedTemplate, name, description, systemPrompt, submitting, error } = state;
+
+  // Resolve the inference-provider prerequisite up front. `null` means the check
+  // has not resolved yet (still loading, or the request failed) — we only block
+  // when we positively know no provider key is configured.
+  const [providerConfigured, setProviderConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/user/api-keys')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: InferenceKeyMetadata | null) => {
+        if (active) setProviderConfigured(resolveInferencePrerequisite(data).configured);
+      })
+      .catch(() => {
+        // Leave the prerequisite unresolved on a fetch error so a flaky request
+        // never blocks agent creation.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function applyTemplate(key: TemplateKey) {
     const tpl = TEMPLATES.find((t) => t.key === key);
@@ -381,6 +407,18 @@ export default function NewAgentPage() {
                   .
                 </p>
 
+                {providerConfigured === false && (
+                  <Callout variant="warning" role="alert" title={INFERENCE_PREREQUISITE_COPY.title}>
+                    {INFERENCE_PREREQUISITE_COPY.body}{' '}
+                    <Link
+                      href="/settings/api-keys"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {INFERENCE_PREREQUISITE_COPY.linkLabel}
+                    </Link>
+                  </Callout>
+                )}
+
                 {/* Error — inline banner; Alert primitive is a modal dialog, not applicable */}
                 {error && (
                   <div
@@ -395,7 +433,7 @@ export default function NewAgentPage() {
                 <div className="flex gap-3 pt-2">
                   <ButtonCVA
                     type="submit"
-                    disabled={submitting || !name.trim()}
+                    disabled={submitting || !name.trim() || providerConfigured === false}
                     variant="default"
                     size="sm"
                   >

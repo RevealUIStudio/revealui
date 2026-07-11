@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { agentCardRegistry } from '../card.js';
+import { agentCardRegistry, PROVIDER_RESOLVED_MODEL } from '../card.js';
 import { handleA2AJsonRpc } from '../handler.js';
 import {
   appendArtifact,
@@ -58,6 +58,19 @@ describe('a2a agent card registry', () => {
       name: 'Ticket Agent',
       url: 'https://api.revealui.test/a2a',
     });
+  });
+
+  it('built-in agents defer model selection to the configured provider, not a vendor', () => {
+    for (const agentId of ['revealui-creator', 'revealui-ticket-agent']) {
+      const def = agentCardRegistry.getDef(agentId);
+      expect(def).toBeDefined();
+      // No hardcoded default: the model resolves from the account's configured
+      // open-model provider at dispatch time.
+      expect(def?.model).toBe(PROVIDER_RESOLVED_MODEL);
+      const serialized = JSON.stringify(def).toLowerCase();
+      expect(serialized).not.toContain('claude');
+      expect(serialized).not.toContain('anthropic');
+    }
   });
 
   it('supports register, update, unregister, and lookup', () => {
