@@ -279,7 +279,7 @@ function main(): void {
   try {
     execFileSync('bash', [copyDocsScript], { stdio: 'inherit' });
   } catch {
-    write('✗ docs link check: scripts/copy-docs.sh failed; cannot build the served set.');
+    write('✗ docs link check: scripts/copy-docs.sh failed; cannot build the served set.'); // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
     process.exitCode = 1;
     return;
   }
@@ -290,7 +290,7 @@ function main(): void {
 
   if (broken.length === 0) {
     write(
-      `✓ docs link check: ${served.size} served pages, 0 broken relative .md links, ` +
+      `✓ docs link check: ${served.size} served pages, 0 broken relative .md links, ` + // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
         'sidebar nav links all resolve.',
     );
     return;
@@ -305,7 +305,7 @@ function main(): void {
 
   write('');
   write(
-    `✗ docs link check: ${broken.length} broken link(s) across ${bySource.size} source(s) (served pages + sidebar nav).`,
+    `✗ docs link check: ${broken.length} broken link(s) across ${bySource.size} source(s) (served pages + sidebar nav).`, // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
   );
   write('');
   for (const src of [...bySource.keys()].sort()) {

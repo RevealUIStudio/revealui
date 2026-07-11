@@ -1,8 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  
-  <rect width="512" height="512" rx="116" fill="#003d94"></rect>
-  <g transform="translate(123 96) scale(3.45)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M22 84 V12 H44 A17 17 0 0 1 44 46 H22 M34 46 L54 84" stroke="#f8fafd"></path>
-  </g>
-  <circle cx="372" cy="372" r="34" fill="#eeb300"></circle>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 82 100" fill="none">
+  <defs>
+    <linearGradient id="s" x1="24" y1="11" x2="24" y2="86" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#002a63"></stop><stop offset="1" stop-color="#003d94"></stop></linearGradient>
+    <linearGradient id="u" x1="44" y1="11" x2="44" y2="65" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#003d94"></stop><stop offset="1" stop-color="#002a63"></stop></linearGradient>
+    <linearGradient id="l" x1="30" y1="48" x2="70" y2="86" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#003d94"></stop><stop offset="1" stop-color="#eeb300"></stop></linearGradient>
+  </defs>
+  <path d="M26 50 H44 L69 86 H51 L32 61 H26 Z" fill="url(#l)" stroke="#eeb300" stroke-width="3.4" stroke-linejoin="round"></path>
+  <path fill-rule="evenodd" d="M34 11 h13 a27 27 0 0 1 0 54 h-13 v-15 h12 a12 12 0 0 0 0 -24 h-12 z" fill="url(#u)" stroke="#eeb300" stroke-width="3.4" stroke-linejoin="round"></path>
+  <path d="M17 11 h17 v75 h-17 z" fill="url(#s)" stroke="#eeb300" stroke-width="3.4" stroke-linejoin="round"></path>
 </svg>

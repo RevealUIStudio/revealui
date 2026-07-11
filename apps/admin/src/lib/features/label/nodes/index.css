@@ -1,6 +1,6 @@
 .rich-text-label {
 	text-transform: uppercase;
-	font-family: "Roboto Mono", monospace;
+	font-family: var(--rvui-font-mono);
 	letter-spacing: 2px;
 	font-size: base(0.5);
 	margin: 0 0 base(1);

@@ -29,7 +29,7 @@ export const METRICS = {
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 984,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
-  uiComponents: 60,
+  uiComponents: 61,
   /**
    * MCP servers in `packages/mcp/src/servers/*.ts` (excluding underscore-prefixed
    * utilities). Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon concrete
@@ -63,7 +63,6 @@ export const SITE = {
     repoRoadmap: 'https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md',
     repoDiscussions: 'https://github.com/RevealUIStudio/revealui/discussions',
     repoIssues: 'https://github.com/RevealUIStudio/revealui/issues',
-    sponsors: 'https://github.com/sponsors/RevealUIStudio',
     agency: 'https://revealuistudio.com',
     api: 'https://api.revealui.com',
     apiAgent: 'https://api.revealui.com/.well-known/agent.json',

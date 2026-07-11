@@ -38,7 +38,7 @@ const LicenseVerifyResponseSchema = z.object({
     .optional()
     .openapi({
       description:
-        'Why the license is invalid or degraded. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "support_expired": perpetual license with expired support contract (basic admin still valid, premium features downgraded). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
+        'Why the license is invalid or degraded. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "support_expired": perpetual license whose support contract has lapsed (the purchased tier and its features are retained; only updates and support stop). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
       example: 'revoked',
     }),
   tier: z.enum(['free', 'pro', 'max', 'enterprise']).openapi({
@@ -287,8 +287,14 @@ app.openapi(verifyRoute, async (c) => {
   const isSupportExpired =
     payload.perpetual === true && supportExpiresAt !== null && supportExpiresAt < now;
 
-  // Perpetual license with expired support: license is still valid but premium
-  // features are downgraded to free tier. Basic admin access remains perpetual.
+  const features = getFeaturesForTier(payload.tier);
+  const defaultMaxSites = payload.tier === 'enterprise' ? null : (payload.maxSites ?? 5);
+  const defaultMaxUsers = payload.tier === 'enterprise' ? null : (payload.maxUsers ?? 25);
+
+  // A lapsed support contract freezes the purchased tier, it does not revoke it.
+  // Perpetual licenses are sold as permanent ownership, so entitlements stay at
+  // the tier that was bought. What lapses is update delivery and support, and
+  // neither is gated on this path. Only `supportExpired` changes here.
   if (dbStatus === 'support_expired' || isSupportExpired) {
     return c.json(
       {
@@ -296,9 +302,10 @@ app.openapi(verifyRoute, async (c) => {
         reason: 'support_expired' as const,
         tier: payload.tier,
         customerId: payload.customerId,
-        features: getFeaturesForTier('free'),
-        maxSites: 1,
-        maxUsers: 3,
+        features,
+        maxSites: defaultMaxSites,
+        maxUsers: defaultMaxUsers,
+        // Perpetual payloads omit `exp`, so there is no expiry to report.
         expiresAt: null,
         supportExpiresAt: supportExpiresAt?.toISOString() ?? null,
         supportExpired: true,
@@ -306,10 +313,6 @@ app.openapi(verifyRoute, async (c) => {
       200,
     );
   }
-
-  const features = getFeaturesForTier(payload.tier);
-  const defaultMaxSites = payload.tier === 'enterprise' ? null : (payload.maxSites ?? 5);
-  const defaultMaxUsers = payload.tier === 'enterprise' ? null : (payload.maxUsers ?? 25);
 
   return c.json(
     {

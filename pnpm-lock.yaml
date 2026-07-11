@@ -630,6 +630,9 @@ importers:
       '@revealui/openapi':
         specifier: workspace:*
         version: link:../../packages/openapi
+      '@revealui/paywall':
+        specifier: workspace:*
+        version: link:../../packages/paywall
       '@revealui/security':
         specifier: workspace:*
         version: link:../../packages/security

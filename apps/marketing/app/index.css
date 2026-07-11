@@ -4,8 +4,8 @@
  * Changes vs v4:
  *   - Adds @theme block at the bottom that remaps Tailwind's
  *     `emerald-*` palette → cobalt ladder, and `gray-*` → cool
- *     smoke ladder. Every `text-emerald-700`, `bg-emerald-50`,
- *     `ring-emerald-200`, `text-gray-950`, `bg-gray-50`, etc.
+ *     smoke ladder. Every `text-emerald-700`, `bg-emerald-50`, (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
+ *     `ring-emerald-200`, `text-gray-950`, `bg-gray-50`, etc. (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
  *     in the codebase now resolves to the brand-aligned hue
  *     WITHOUT touching a single component file.
  *   - `blue-*`, `amber-*`, `cyan-*`, `violet-*` are LEFT ALONE
@@ -18,6 +18,24 @@
 
 @import "tailwindcss";
 @import "@revealui/presentation/tokens.css";
+
+/* ── Self-hosted variable-font family mapping (production font fix) ──
+ * The self-hosted fonts come from @fontsource-variable/{inter,inter-tight,
+ * jetbrains-mono} (imported in app/entry.client.tsx). Fontsource registers
+ * these under the "* Variable" family names ("Inter Variable",
+ * "Inter Tight Variable", "JetBrains Mono Variable"), so the canonical token
+ * stack from @revealui/tokens ('Inter', 'Inter Tight', 'JetBrains Mono')
+ * does not resolve to any self-hosted face on its own. The CSP in vercel.json
+ * intentionally blocks third-party font hosts (font-src 'self' data:), so
+ * Google Fonts cannot fill the gap either. Redeclare the tokens here, after
+ * the canonical import, so the "* Variable" families lead each stack while the
+ * original fallbacks stay intact. The canonical values in @revealui/tokens are
+ * left untouched. */
+:root {
+  --rvui-font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --rvui-font-display: 'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --rvui-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
 
 /* Tailwind v4 does not scan node_modules by default. Without this, the utility
  * classes baked into @revealui/presentation components (ButtonCVA's bg-primary,
@@ -69,8 +87,8 @@
 
 /* ── Palette remap: emerald → cobalt, gray → cool smoke ──
  *
- * Every utility class in the codebase (`text-emerald-700`,
- * `bg-emerald-50`, `ring-emerald-200`, `text-gray-950`, …)
+ * Every utility class in the codebase (`text-emerald-700`, (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
+ * `bg-emerald-50`, `ring-emerald-200`, `text-gray-950`, …) (adherence-ignore: emerald-utility - documentation of the remap itself, not a live utility)
  * now resolves through these custom properties. Hue and chroma
  * are held constant per ladder; only lightness ramps.
  *

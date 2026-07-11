@@ -174,10 +174,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
       </Heading>
 
       {successMessage && !(error ?? passkeyError) && (
-        <div
-          role="status"
-          className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
-        >
+        <div role="status" className="rounded-md bg-success/10 p-3 text-sm text-success">
           {successMessage}
         </div>
       )}
@@ -268,7 +265,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
 
       {hasAlternates ? (
         <>
-          <p className="text-center text-[11px] uppercase tracking-wider text-muted-foreground">
+          <p className="text-center text-[11px] uppercase tracking-widest text-muted-foreground">
             or continue with
           </p>
 

@@ -174,3 +174,4 @@ export { Textarea } from './textarea-headless.js';
 export { Timeline, TimelineItem } from './timeline.js';
 export { ToastProvider, useToast } from './toast.js';
 export { Tooltip } from './tooltip.js';
+export { RevealUIWordmark, type RevealUIWordmarkProps } from './wordmark.js';

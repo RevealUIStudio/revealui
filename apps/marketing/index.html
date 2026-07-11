@@ -18,9 +18,10 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Fonts are self-hosted via @fontsource-variable/* (imported in
+         app/entry.client.tsx). No third-party font host is referenced here:
+         the CSP in vercel.json (font-src 'self' data:) blocks external font
+         CDNs, so a hosted Google Fonts link would be dead weight. -->
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="RevealUI | Your business grows with you, and stays at the frontier." />

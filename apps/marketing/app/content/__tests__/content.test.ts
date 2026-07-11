@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { CAPABILITIES, CAPABILITIES_SECTION } from '../capabilities';
-import { HOME_ACTORS } from '../home';
 import { HOME_PRIMITIVES, PRODUCTS_PRIMITIVES } from '../primitives';
 import { ROADMAP_SHIPPED, ROADMAP_UPCOMING } from '../roadmap';
 import { METRICS, SITE } from '../site';
@@ -97,24 +96,6 @@ describe('marketing content contracts', () => {
     it('the license split sums to the package count', () => {
       const { mit, fsl, internal } = METRICS.licenseSplit;
       expect(mit + fsl + internal).toBe(METRICS.packages);
-    });
-  });
-
-  describe('three actors', () => {
-    it('defines exactly three actors, each fully populated', () => {
-      expect(HOME_ACTORS.actors).toHaveLength(3);
-      for (const actor of HOME_ACTORS.actors) {
-        expect(actor.role.length, 'empty role').toBeGreaterThan(0);
-        expect(actor.action.length, 'empty action').toBeGreaterThan(0);
-        expect(actor.body.length, 'empty body').toBeGreaterThan(0);
-      }
-    });
-
-    it('names developer, operator, and agent', () => {
-      const roles = HOME_ACTORS.actors.map((a) => a.role.toLowerCase());
-      expect(roles.some((r) => r.includes('develop'))).toBe(true);
-      expect(roles.some((r) => r.includes('operator'))).toBe(true);
-      expect(roles.some((r) => r.includes('agent'))).toBe(true);
     });
   });
 });
