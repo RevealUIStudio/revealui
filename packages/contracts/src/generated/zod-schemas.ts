@@ -1080,6 +1080,162 @@ export type JobsRow = z.infer<typeof JobsSelectSchema>
 export type JobsInsert = z.infer<typeof JobsInsertSchema>
 
 // =============================================================================
+// KgEdgeEpisodes Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kgEdgeEpisodes rows from database
+ * Generated from Drizzle table definition: tables.kgEdgeEpisodes
+ */
+export const KgEdgeEpisodesSelectSchema = createSelectSchema(tables.kgEdgeEpisodes)
+
+/**
+ * Zod schema for inserting kgEdgeEpisodes rows to database
+ * Generated from Drizzle table definition: tables.kgEdgeEpisodes
+ */
+export const KgEdgeEpisodesInsertSchema = createInsertSchema(tables.kgEdgeEpisodes)
+
+/**
+ * TypeScript type for kgEdgeEpisodes row (Select)
+ */
+export type KgEdgeEpisodesRow = z.infer<typeof KgEdgeEpisodesSelectSchema>
+
+/**
+ * TypeScript type for kgEdgeEpisodes insert
+ */
+export type KgEdgeEpisodesInsert = z.infer<typeof KgEdgeEpisodesInsertSchema>
+
+// =============================================================================
+// KgEdges Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kgEdges rows from database
+ * Generated from Drizzle table definition: tables.kgEdges
+ */
+export const KgEdgesSelectSchema = createSelectSchema(tables.kgEdges)
+
+/**
+ * Zod schema for inserting kgEdges rows to database
+ * Generated from Drizzle table definition: tables.kgEdges
+ */
+export const KgEdgesInsertSchema = createInsertSchema(tables.kgEdges)
+
+/**
+ * TypeScript type for kgEdges row (Select)
+ */
+export type KgEdgesRow = z.infer<typeof KgEdgesSelectSchema>
+
+/**
+ * TypeScript type for kgEdges insert
+ */
+export type KgEdgesInsert = z.infer<typeof KgEdgesInsertSchema>
+
+// =============================================================================
+// KgEpisodes Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kgEpisodes rows from database
+ * Generated from Drizzle table definition: tables.kgEpisodes
+ */
+export const KgEpisodesSelectSchema = createSelectSchema(tables.kgEpisodes)
+
+/**
+ * Zod schema for inserting kgEpisodes rows to database
+ * Generated from Drizzle table definition: tables.kgEpisodes
+ */
+export const KgEpisodesInsertSchema = createInsertSchema(tables.kgEpisodes)
+
+/**
+ * TypeScript type for kgEpisodes row (Select)
+ */
+export type KgEpisodesRow = z.infer<typeof KgEpisodesSelectSchema>
+
+/**
+ * TypeScript type for kgEpisodes insert
+ */
+export type KgEpisodesInsert = z.infer<typeof KgEpisodesInsertSchema>
+
+// =============================================================================
+// KgNodeAliases Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kgNodeAliases rows from database
+ * Generated from Drizzle table definition: tables.kgNodeAliases
+ */
+export const KgNodeAliasesSelectSchema = createSelectSchema(tables.kgNodeAliases)
+
+/**
+ * Zod schema for inserting kgNodeAliases rows to database
+ * Generated from Drizzle table definition: tables.kgNodeAliases
+ */
+export const KgNodeAliasesInsertSchema = createInsertSchema(tables.kgNodeAliases)
+
+/**
+ * TypeScript type for kgNodeAliases row (Select)
+ */
+export type KgNodeAliasesRow = z.infer<typeof KgNodeAliasesSelectSchema>
+
+/**
+ * TypeScript type for kgNodeAliases insert
+ */
+export type KgNodeAliasesInsert = z.infer<typeof KgNodeAliasesInsertSchema>
+
+// =============================================================================
+// KgNodes Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kgNodes rows from database
+ * Generated from Drizzle table definition: tables.kgNodes
+ */
+export const KgNodesSelectSchema = createSelectSchema(tables.kgNodes)
+
+/**
+ * Zod schema for inserting kgNodes rows to database
+ * Generated from Drizzle table definition: tables.kgNodes
+ */
+export const KgNodesInsertSchema = createInsertSchema(tables.kgNodes)
+
+/**
+ * TypeScript type for kgNodes row (Select)
+ */
+export type KgNodesRow = z.infer<typeof KgNodesSelectSchema>
+
+/**
+ * TypeScript type for kgNodes insert
+ */
+export type KgNodesInsert = z.infer<typeof KgNodesInsertSchema>
+
+// =============================================================================
+// KgOutbox Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kgOutbox rows from database
+ * Generated from Drizzle table definition: tables.kgOutbox
+ */
+export const KgOutboxSelectSchema = createSelectSchema(tables.kgOutbox)
+
+/**
+ * Zod schema for inserting kgOutbox rows to database
+ * Generated from Drizzle table definition: tables.kgOutbox
+ */
+export const KgOutboxInsertSchema = createInsertSchema(tables.kgOutbox)
+
+/**
+ * TypeScript type for kgOutbox row (Select)
+ */
+export type KgOutboxRow = z.infer<typeof KgOutboxSelectSchema>
+
+/**
+ * TypeScript type for kgOutbox insert
+ */
+export type KgOutboxInsert = z.infer<typeof KgOutboxInsertSchema>
+
+// =============================================================================
 // Licenses Schemas
 // =============================================================================
 

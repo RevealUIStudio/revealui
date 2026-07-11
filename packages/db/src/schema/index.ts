@@ -44,6 +44,8 @@ export {
 // Re-export everything for backward compatibility
 export * from './rest.js';
 export * from './vector.js';
+// Fleet knowledge graph (GAP-340) — bi-temporal, content-addressed graph tables.
+export * from './knowledge-graph.js';
 
 // Note: We don't export * from './agents.js' to avoid duplicate exports.
 // agentMemories is exported via './rest' (it lives in NeonDB due to FK constraints).

@@ -11,33 +11,9 @@
  */
 
 import { sql } from 'drizzle-orm';
-import {
-  check,
-  customType,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-} from 'drizzle-orm/pg-core';
+import { check, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { vector } from './_vector-type.js';
 import { sites } from './sites.js';
-
-// =============================================================================
-// Custom Vector Type (768-dim for nomic-embed-text)
-// =============================================================================
-
-const vector = customType<{ data: number[]; driverData: string }>({
-  dataType(config) {
-    return `vector(${(config as { dimensions: number })?.dimensions ?? 768})`;
-  },
-  toDriver(value: number[]): string {
-    return `[${value.join(',')}]`;
-  },
-  fromDriver(value: string): number[] {
-    return JSON.parse(value) as number[];
-  },
-});
 
 // =============================================================================
 // rag_documents  -  one row per indexed source

@@ -38,6 +38,12 @@
       "rationale": "I-2 from Phase 1 payment audit: GDPR Article 17 erasure path never called stripe.customers.del, leaving EU PII in Stripe. Adds stripe_deletion_status (text, CHECK IN ('deleted','failed')) and stripe_deletion_at (timestamptz) to users table to record Stripe-side erasure outcome. Hand-written with ADD COLUMN IF NOT EXISTS + DO $$ CHECK CONSTRAINT ... EXCEPTION WHEN duplicate_object for idempotency. drizzle-kit generates ADD COLUMN without IF NOT EXISTS guard; the idempotency requirement mandates the hand-written form per the 0011 precedent.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries. Drizzle schema change at packages/db/src/schema/users.ts adds stripeDeletionStatus and stripeDeletionAt columns at the type level; consumers query via Drizzle ORM."
+    },
+    {
+      "tag": "0021_knowledge_graph",
+      "rationale": "GAP-340 P1 fleet knowledge graph: CREATE TABLE for kg_episodes/kg_nodes/kg_edges/kg_edge_episodes/kg_node_aliases/kg_outbox. Hand-written because the migration adds pgvector vector(768) columns + HNSW indexes (vector_cosine_ops), tsvector GENERATED ALWAYS AS STORED columns + GIN indexes, and partial current-edge indexes (WHERE invalid_at IS NULL AND expired_at IS NULL) — none expressible in Drizzle's schema DSL, following the 0002_triggers_search_vectors precedent. All statements are CREATE ... IF NOT EXISTS with inline REFERENCES/CHECK (no ALTER ADD CONSTRAINT), idempotent against fresh + re-applied environments. Companion Drizzle schema at packages/db/src/schema/knowledge-graph.ts models the plain columns for ORM typing.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as 0002/0003/0008: `pnpm --filter @revealui/db db:generate` against a clean DB once the pgvector-column snapshot debt is worked through. The Drizzle schema at knowledge-graph.ts already reflects the tables at the type level; the graph package queries retrieval-heavy paths via raw SQL and Drizzle inserts otherwise."
     }
   ]
 }
