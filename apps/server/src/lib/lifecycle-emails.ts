@@ -52,11 +52,11 @@ export function buildDay0Welcome(tier: LifecycleTier): LifecycleEmailContent {
 <p>Welcome to RevealUI ${label}. Here are the two things worth doing first.</p>
 <p>Your license key is waiting on your account page. Wire it into your runtime and your ${label} features turn on.</p>
 ${ctaButton(licenseUrl(), 'View your license key')}
-<p>Then run your first agent. Hand it a task on your own data, and check the receipt it leaves behind. If an agent did it, there is a receipt.</p>
+<p>Then run your first agent. Hand it a task on your own data, and check the receipt it leaves behind. If an agent did it, there's a receipt.</p>
 ${ctaButton(dashboardUrl(), 'Run your first agent')}
 ${supportFooter('If you have questions')}`,
       ),
-      text: `Welcome to RevealUI ${label}. Two things worth doing first.\n\n1. Your license key is waiting on your account page. Wire it into your runtime and your ${label} features turn on: ${licenseUrl()}\n\n2. Run your first agent. Hand it a task on your own data, and check the receipt it leaves behind. If an agent did it, there is a receipt: ${dashboardUrl()}`,
+      text: `Welcome to RevealUI ${label}. Two things worth doing first.\n\n1. Your license key is waiting on your account page. Wire it into your runtime and your ${label} features turn on: ${licenseUrl()}\n\n2. Run your first agent. Hand it a task on your own data, and check the receipt it leaves behind. If an agent did it, there's a receipt: ${dashboardUrl()}`,
     };
   }
 
@@ -123,12 +123,12 @@ ${supportFooter('If you have questions')}`,
     html: emailShell(
       'Your first week with RevealUI',
       `<h1 style="color: #2563eb;">Your first week with RevealUI</h1>
-<p>You are a week into RevealUI and your agents have not acted yet. That is an honest zero, so here it is.</p>
+<p>You are a week into RevealUI and your agents have not acted yet. We would rather show you an honest zero than dress it up.</p>
 <p>The value shows up the moment an agent does something on your data, because it leaves a receipt you can check. One task is enough to see it.</p>
 ${ctaButton(dashboardUrl(), 'Run your first agent')}
 ${supportFooter('If you have questions')}`,
     ),
-    text: `You are a week into RevealUI and your agents have not acted yet. That is an honest zero, so here it is.\n\nThe value shows up the moment an agent does something on your data, because it leaves a receipt you can check. One task is enough to see it: ${dashboardUrl()}`,
+    text: `You are a week into RevealUI and your agents have not acted yet. We would rather show you an honest zero than dress it up.\n\nThe value shows up the moment an agent does something on your data, because it leaves a receipt you can check. One task is enough to see it: ${dashboardUrl()}`,
   };
 }
 
