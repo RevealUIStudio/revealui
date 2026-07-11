@@ -1,0 +1,89 @@
+{
+  "name": "@revealui/knowledge-graph",
+  "version": "0.1.0",
+  "description": "Fleet knowledge graph — bi-temporal, content-addressed graph (ontology, deterministic IDs, deterministic ingestion, hybrid search) over Neon + pgvector. GAP-340.",
+  "keywords": [
+    "knowledge-graph",
+    "temporal",
+    "graphiti",
+    "pgvector",
+    "revealui"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./ontology": {
+      "types": "./dist/ontology/index.d.ts",
+      "import": "./dist/ontology/index.js"
+    },
+    "./ingest": {
+      "types": "./dist/ingest/index.d.ts",
+      "import": "./dist/ingest/index.js"
+    },
+    "./search": {
+      "types": "./dist/search/index.d.ts",
+      "import": "./dist/search/index.js"
+    },
+    "./extractors": {
+      "types": "./dist/extractors/index.d.ts",
+      "import": "./dist/extractors/index.js"
+    },
+    "./ddl": {
+      "types": "./dist/db/ddl.d.ts",
+      "import": "./dist/db/ddl.js"
+    }
+  },
+  "bin": {
+    "revkg": "./dist/cli/revkg.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@revealui/db": "workspace:*",
+    "typescript": "catalog:",
+    "yaml": "catalog:",
+    "zod": "catalog:"
+  },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:*"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "catalog:",
+    "@revealui/dev": "workspace:*",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/knowledge-graph"
+  },
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  }
+}
