@@ -11,7 +11,7 @@ audience: developer
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-06-11
+**Last updated:** 2026-07-11
 
 ---
 
@@ -97,20 +97,6 @@ RevealUI is the runtime at the center of a three-project ecosystem. Each project
 
 ### Near-Term (Q2 2026)
 
-#### admin Dashboard Agent Chat
-Give users the ability to interact with an AI agent directly from the admin dashboard. Ask it to create content, query data, manage collections, and automate workflows  -  all through natural language.
-
-- Streaming responses with markdown rendering
-- admin-aware tools (create/update/delete posts, query collections, manage users)
-- Conversation history and persistence
-- Confirmation prompts for destructive actions
-
-#### Documentation Improvements
-- Deploy docs site to `docs.revealui.com`
-- Expand quick-start guide with video walkthroughs
-- API reference for all packages
-- Collection cookbook with common patterns
-
 #### Ecosystem Integration — [#528](https://github.com/RevealUIStudio/revealui/issues/528)
 - RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
 - RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: the Rust rotation subsystem ships in the [RevVault repo](https://github.com/RevealUIStudio/revvault) at `crates/core/src/rotation/` (executor, provider framework, sync hooks) with a `revvault rotate <provider>` CLI supporting `--dry-run` (`crates/cli/src/commands/rotate.rs`); a small set of internal interactive rotation scripts covers providers not yet migrated._
@@ -146,8 +132,8 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap
 
 ### Long-Term (Q4 2026+)
 
-#### Visual Builder
-A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
+#### Visual Editing — [#1816](https://github.com/RevealUIStudio/revealui/issues/1816)
+Edit a site's content by clicking on the real rendered page from the admin dashboard. A live-preview canvas supports block-level editing, starting with text and rich text and extending to images, links, and block insert and reorder. Edits publish atomically with instant cache invalidation, and every session keeps drafts, snapshots, and a full event record. New sites get a template-seeded guided setup, and agents can propose edits into a session for a person to review before publish.
 
 #### SOC2 Type II Compliance — [#516](https://github.com/RevealUIStudio/revealui/issues/516)
 RevealUI Fleet security certification for teams that require it.
