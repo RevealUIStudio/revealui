@@ -160,7 +160,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 ## Packages
 
-### OSS Packages (MIT) — 20
+### OSS Packages (MIT) — 21
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
@@ -182,6 +182,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`@revealui/paywall`](packages/paywall)                 | Runtime license enforcement, feature gating, upgrade UI |
+| [`@revealui/tokens`](packages/tokens)                   | Design tokens (CSS variables, typed TS export, brand canon) |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
 | [`revealui`](packages/revealui)                         | Meta-installer (proxies to `create-revealui`; unpublished) |
 
@@ -299,7 +300,7 @@ revealui/
 - **[Admin Guide](docs/ADMIN_GUIDE.md):** Collections, fields, access control
 - **[Testing](docs/TESTING.md):** Vitest, Playwright, coverage
 - **[Deployment](docs/guides/deployment.md):** Vercel, Fly, or self-host
-- **[All docs](docs/INDEX.md):** Full index (25 guides)
+- **[All docs](docs/INDEX.md):** Full documentation index
 
 ## Contributing
 

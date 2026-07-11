@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-05-26
+> Last verified: 2026-07-11
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -22,10 +22,10 @@ Full content management engine with collections, access control, hooks, field ty
 and a REST API. The heart of RevealUI and the most mature part of the codebase.
 
 ### UI component library
-**61 native React components in `@revealui/presentation`** (80 total with `@revealui/core` admin/richtext), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
+**61 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**85 PostgreSQL tables** with Drizzle ORM, **61 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
+**85 PostgreSQL tables** with Drizzle ORM, **72 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -36,7 +36,7 @@ ElectricSQL integration for real-time data synchronization. Proxy, auth, and sha
 have been verified working between Fly and NeonDB. Off by default — opt-in via env vars when you want it.
 
 ### CLI scaffolding
-**`create-revealui` published to npm at v0.5.6**. `@revealui/cli` is at v0.7.1. Bootstraps a new RevealUI project with working config, database setup, and development server.
+**`create-revealui` published to npm at v0.5.12**. `@revealui/cli` is at v0.8.3. Bootstraps a new RevealUI project with working config, database setup, and development server.
 
 ### CI and code quality
 3-phase CI gate (lint, typecheck, test, build) with an extensive test suite across
@@ -59,7 +59,7 @@ Webhook handlers for `checkout.session.completed`, `customer.subscription.update
 
 ### REST API
 Hono-based API with OpenAPI spec generation, Swagger docs, authentication middleware,
-rate limiting, CSRF protection, and 120+ route files. Serves the admin dashboard. Deployed to `api.revealui.com`. **Has not handled production traffic from paying users.**
+rate limiting, CSRF protection, and route handlers across `apps/server/src/routes`. Serves the admin dashboard. Deployed to `api.revealui.com`. **Has not handled production traffic from paying users.**
 
 ### AI agent system
 LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source / FSL-1.1-MIT.
@@ -102,18 +102,21 @@ Honest list of things that are not done, not deployed, or not verified.
 
 | Metric | Value | Verified |
 |--------|-------|----------|
-| Workspaces (apps + packages) | 30 | Yes |
+| Workspaces (apps + packages) | 31 | Yes |
 | Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
-| OSS packages (MIT) | 20 | Yes |
+| OSS packages (MIT) | 21 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 1 (`@revealui/scripts`, unlicensed build tooling) | Yes |
-| UI components | 59 in `@revealui/presentation` (80 with `@revealui/core`) | Yes |
+| UI components | 61 in `@revealui/presentation` | Yes |
 | Database tables | 85 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
-| MCP servers (`packages/mcp/src/servers/`) | 13 | Yes |
+| CHECK constraints | 72 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
+| MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
-| API route files | 120+ | Approximate |
+| API route files | run `find apps/server/src/routes -name '*.ts' -not -name '*.test.ts' \| wc -l` | Reproducible |
 | Real production users | 0 | Yes |
+
+> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, which includes the `adapter.ts` framework module (so the honest total is 14, not 13). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json`. **Database tables** counts `pgTable(` declarations; the **license split** is read from each `packages/*/package.json` `license` field.
 
 ---
 
