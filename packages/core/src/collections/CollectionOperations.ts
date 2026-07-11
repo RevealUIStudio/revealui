@@ -28,6 +28,12 @@ import { deleteDocument } from './operations/delete.js';
 import { deleteMany } from './operations/deleteMany.js';
 import { find } from './operations/find.js';
 import { findByID } from './operations/findById.js';
+import {
+  createSnapshot,
+  type RestoreOptions,
+  restoreSnapshot,
+  type SnapshotOptions,
+} from './operations/snapshot.js';
 import { update } from './operations/update.js';
 import { updateMany } from './operations/updateMany.js';
 
@@ -55,6 +61,8 @@ export class RevealUICollection {
     depth?: number;
     req?: RevealRequest;
     populate?: PopulateType;
+    overrideAccess?: boolean;
+    draft?: boolean;
   }): Promise<RevealDocument | null> {
     return findByID(this.config, this.db, options);
   }
@@ -81,5 +89,13 @@ export class RevealUICollection {
 
   async deleteMany(options: BatchDeleteOptions): Promise<BatchResult<RevealDocument>> {
     return deleteMany(this.config, this.db, options);
+  }
+
+  async snapshot(options: SnapshotOptions): Promise<RevealDocument> {
+    return createSnapshot(this.config, this.db, options);
+  }
+
+  async restore(options: RestoreOptions): Promise<RevealDocument> {
+    return restoreSnapshot(this.config, this.db, options);
   }
 }

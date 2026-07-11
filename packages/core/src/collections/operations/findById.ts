@@ -15,6 +15,7 @@ import type {
   SanitizedCollectionConfig,
 } from '../../types/index.js';
 import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { publishedOnlyReadFilter } from './drafts.js';
 import { find } from './find.js';
 import { selectByIdQuery } from './sqlAdapter.js';
 
@@ -27,16 +28,17 @@ export async function findByID(
     req?: RevealRequest;
     populate?: PopulateType;
     overrideAccess?: boolean;
+    draft?: boolean;
   },
 ): Promise<RevealDocument | null> {
-  const { id, depth = 0, req, populate: populateOption } = options;
+  const { id, depth = 0, req, populate: populateOption, draft = false } = options;
 
   // Validate depth
   if (depth < 0 || depth > 3) {
     throw new Error(`Depth must be between 0 and 3, got ${depth}`);
   }
 
-  // --- Access control enforcement ---
+  // --- Access control + draft enforcement ---
   if (!options.overrideAccess) {
     const accessConfig = (
       config as {
@@ -45,6 +47,7 @@ export async function findByID(
     ).access;
     const readAccess = accessConfig?.read;
 
+    let accessWhere: RevealWhere | undefined;
     if (readAccess) {
       if (!req) return null; // No request context = deny
 
@@ -52,23 +55,34 @@ export async function findByID(
 
       if (result === false) return null;
 
-      if (result !== true) {
-        // Row-level access: a WhereClause means "allowed only for rows matching
-        // this filter". Confirm THIS row matches before returning it — otherwise
-        // findByID hands back rows the ownership rule was meant to scope out
-        // (cross-tenant / unpublished-draft leakage). Reuse find()'s AND-merge so
-        // the filter runs through the same proven path the list view uses (both
-        // storage adapters); overrideAccess skips re-evaluating the rule.
-        const scoped = await find(config, db, {
-          where: { and: [{ id: { equals: id } }, result as RevealWhere] },
-          limit: 1,
-          depth,
-          req,
-          ...(populateOption !== undefined ? { populate: populateOption } : {}),
-          overrideAccess: true,
-        });
-        return scoped.docs[0] ?? null;
-      }
+      if (result !== true) accessWhere = result as RevealWhere;
+    }
+
+    // For a drafts-enabled collection read without draft mode, the row must also
+    // be published. draft=true drops THIS filter only — accessWhere still stands.
+    const statusFilter = publishedOnlyReadFilter(config, draft);
+
+    if (accessWhere || statusFilter) {
+      // Row-level access and/or the published-only filter apply. Route through
+      // find()'s AND-merge — the same proven path the list view uses on both
+      // storage adapters — so findByID cannot hand back a row the ownership rule
+      // or draft state was meant to scope out (cross-tenant / draft leakage).
+      // overrideAccess skips re-evaluating access.read; find() re-derives the
+      // published-only filter itself from `draft`, so only accessWhere is merged
+      // in here.
+      const where: RevealWhere = accessWhere
+        ? { and: [{ id: { equals: id } }, accessWhere] }
+        : { id: { equals: id } };
+      const scoped = await find(config, db, {
+        where,
+        limit: 1,
+        depth,
+        req,
+        draft,
+        ...(populateOption !== undefined ? { populate: populateOption } : {}),
+        overrideAccess: true,
+      });
+      return scoped.docs[0] ?? null;
     }
   }
 
@@ -91,7 +105,7 @@ export async function findByID(
           currentDepth: 1,
           depth,
           doc,
-          draft: false,
+          draft,
           fallbackLocale: req.fallbackLocale || 'en',
           findMany: false,
           flattenLocales: true,
@@ -144,7 +158,7 @@ export async function findByID(
         currentDepth: 1,
         depth,
         doc,
-        draft: false,
+        draft,
         fallbackLocale: req.fallbackLocale || 'en',
         findMany: false,
         flattenLocales: true,
