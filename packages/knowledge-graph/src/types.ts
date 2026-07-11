@@ -10,9 +10,20 @@
 
 import type { EdgeRelation, NodeKind } from './ontology/index.js';
 
-/** Minimal query surface. `pg.Pool` and `PGlite` both satisfy this via a thin adapter. */
+/**
+ * Minimal query surface. `pg.Pool` and `PGlite` both satisfy this via a thin
+ * adapter (see `db/executor.ts`).
+ *
+ * `transaction` runs `fn` with an executor bound to a single BEGIN/COMMIT
+ * session: on success the session commits, on a thrown error it rolls back
+ * and the error propagates. Spec §6 requires per-episode transactional
+ * application, so `applyScan`/`ingestEpisode` wrap their op-batch (including
+ * outbox writes) in one; embedding backfill is best-effort derived data and
+ * always runs outside the transaction.
+ */
 export interface KgExecutor {
   query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]>;
+  transaction<T>(fn: (tx: KgExecutor) => Promise<T>): Promise<T>;
 }
 
 /** A reference to a node by its ontology kind + natural key (ids are derived, never assigned). */

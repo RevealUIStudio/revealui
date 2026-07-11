@@ -9,7 +9,7 @@
  */
 
 export { KG_TABLES, type KgDdlOptions, kgDdlStatements } from './db/ddl.js';
-export { makeExecutor } from './db/executor.js';
+export { makeExecutor, makePoolExecutor } from './db/executor.js';
 export {
   additiveExtractors,
   type Extractor,

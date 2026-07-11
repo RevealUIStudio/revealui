@@ -16,7 +16,7 @@
 
 import { hostname } from 'node:os';
 import { basename, dirname, join } from 'node:path';
-import { makeExecutor } from '../db/executor.js';
+import { makePoolExecutor } from '../db/executor.js';
 import { additiveExtractors, tier1Extractors } from '../extractors/index.js';
 import { isDir, readJsonFile, readTextFile } from '../extractors/shared.js';
 import { applyScan, ingestEpisode } from '../ingest/index.js';
@@ -70,7 +70,7 @@ async function getExecutor(): Promise<{ exec: KgExecutor; close: () => Promise<v
   const pool = await import('@revealui/db/pool');
   const client = pool.getPool();
   return {
-    exec: makeExecutor(client),
+    exec: makePoolExecutor(client),
     close: () => client.end(),
   };
 }
