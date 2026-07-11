@@ -74,7 +74,7 @@ The runtime is provider-agnostic by contract and ships with no default AI vendor
 | Target | Role |
 |---|---|
 | **Vercel** | HTTP layer (`apps/marketing`, `apps/docs`, `apps/admin`, `apps/server` functions). |
-| **Fly** | Long-running services (ElectricSQL sync, optional dedicated `apps/server` machine) per ADR `2026-05-18-drop-railway-migrate-to-vercel-fly`. |
+| **Fly** | Long-running services (ElectricSQL sync, optional dedicated `apps/server` worker) configured via `apps/server/fly.toml` + `apps/server/Dockerfile.worker`. Railway was dropped as a target. |
 | **Self-host** | Any infrastructure that runs Node 24 + Postgres + Hono. The runtime is portable by contract. |
 
 ## License posture

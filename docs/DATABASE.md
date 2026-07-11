@@ -2,7 +2,7 @@
 visibility: public
 status: verified
 title: "Database Management Guide"
-description: "Drizzle ORM schema, migrations, NeonDB setup (with optional legacy Supabase RAG sidecar), and seeding"
+description: "Drizzle ORM schema, migrations, single Neon-primary setup (vector and RAG tables included via pgvector), and seeding"
 category: guide
 audience: developer
 ---
@@ -197,7 +197,7 @@ CI=true pnpm db:migrate
 - `--no-backup` - Skip backup creation
 - `--seed` - Seed sample data after reset
 - `--database=rest` - Reset only REST database (Neon)
-- `--database=vector` - Reset only the vector database (optional Supabase RAG sidecar)
+- `--database=vector` - Legacy dual-database holdover. The separate Supabase vector store was removed per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md); vector and RAG tables now live in the single Neon database via pgvector.
 - `--force` - Allow in CI environment
 
 **Safety Features:**
@@ -322,8 +322,8 @@ postgresql://user:password@host:port/database
 # Neon (serverless)
 postgresql://user:password@host.neon.tech/database?sslmode=require
 
-# Supabase (optional RAG sidecar — legacy, being retired; connection pooling)
-postgresql://postgres:password@db.project.supabase.co:5432/postgres
+# Supabase Postgres via the legacy SUPABASE_DATABASE_URI alias (being retired; treated as a generic Postgres host, not a RAG sidecar)
+postgresql://postgres:password@db.project.supabase.co:5432/postgres  # legacy alias, being retired
 ```
 
 ### Optional Variables
