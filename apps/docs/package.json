@@ -38,6 +38,7 @@
     "check:links": "tsx scripts/check-links.ts",
     "clean": "rm -rf .next dist .turbo public/docs",
     "dev": "bash scripts/copy-docs.sh && vite dev",
+    "gen:previews": "pnpm --filter @revealui/presentation build && tsx scripts/gen-previews/index.ts",
     "lint": "biome check .",
     "preview": "vite preview",
     "start": "vite preview",
