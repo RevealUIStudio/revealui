@@ -217,7 +217,7 @@ RevealUI's business primitives — auth, content, collections, the REST API, the
 
 The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available.
 
-To be precise about the split: 21 of the 27 packages are MIT, forever. The five Pro packages — `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services` — are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. (One workspace package is internal build tooling with no public license.) MCP integration is a Pro capability today, not a free add-on — I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
+To be precise about the split: 22 of the 28 packages are MIT, forever. The five Pro packages — `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services` — are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. (One workspace package is internal build tooling with no public license.) MCP integration is a Pro capability today, not a free add-on — I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
 
 ## What makes RevealUI different
 
@@ -229,8 +229,8 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **31 workspaces** across the monorepo (4 apps + 27 packages — 21 MIT, 5 Fair Source, 1 internal)
-- **86 database tables** via Drizzle ORM on NeonDB (Postgres)
+- **32 workspaces** across the monorepo (4 apps + 28 packages — 22 MIT, 5 Fair Source, 1 internal)
+- **92 database tables** via Drizzle ORM on NeonDB (Postgres)
 - **61 UI components** in `@revealui/presentation` — one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package
 - **14 first-party MCP servers** in `@revealui/mcp`
 - **Extensive test coverage** across unit, integration, and E2E layers (run `pnpm test` for the current count)
