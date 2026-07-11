@@ -312,8 +312,8 @@ export default function LicensePage() {
                 </p>
                 <div className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
                   <p>
-                    The RevDev daemon also needs the vendor public key to verify your license.
-                    Without it, a valid Pro license silently runs as Free. Set it as{' '}
+                    The RevDev daemon can also verify your license against the vendor public key.
+                    Set it as{' '}
                     <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-900">
                       REVDEV_LICENSE_PUBLIC_KEY
                     </code>

@@ -279,7 +279,7 @@ Enterprise tier feature. Controls the look and feel of admin UI and transactiona
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `REVEALUI_LICENSE_KEY` | No | None | RevealUI Pro/Enterprise license key. Unlocks commercial features. Format: `rui_live_...`. | MEDIUM | admin, api |
+| `REVEALUI_LICENSE_KEY` | No | None | RevealUI Pro/Enterprise license key. Unlocks commercial features. Format: an EdDSA-signed JWT (`eyJhbGciOiJFZERTQSIs...`). | MEDIUM | admin, api |
 | `REVEALUI_LICENSE_ENCRYPTION_KEY` | No | None | AES-256-GCM encryption key for license keys at rest. 32-byte hex (64 chars). Generate with `bash scripts/generate-secret.sh`. | HIGH (server-only) | api |
 | `LICENSE_CACHE_TTL_MS` | No | `15000` | License cache TTL in milliseconds. Lower values detect revocations faster; higher values reduce DB pressure. | LOW | api |
 

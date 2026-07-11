@@ -1332,13 +1332,13 @@ After the 12-month update period, the license continues to work indefinitely on 
 
 ## License key format
 
-Perpetual license keys are JWT-signed:
+Perpetual license keys are EdDSA-signed JWTs, the same format as subscription keys:
 
 ```
-rui_perpetual_<base64-payload>.<signature>
+eyJhbGciOiJFZERTQSIs... // gitleaks:allow
 ```
 
-The payload encodes: `domain`, `issuedAt`, `expiresAt` (update window end), and `tier`.
+The payload encodes: `customerId`, `tier`, `perpetual: true` (the `exp` claim is omitted), and optional `domains`/`maxSites`/`maxUsers` limits.
 
 ## Validating a license
 
@@ -1346,7 +1346,7 @@ The payload encodes: `domain`, `issuedAt`, `expiresAt` (update window end), and 
 POST /api/license/verify
 Content-Type: application/json
 
-{ "licenseKey": "rui_perpetual_..." }
+{ "licenseKey": "eyJhbGciOiJFZERTQSIs..." } // gitleaks:allow
 ```
 
 ```json
@@ -1407,7 +1407,7 @@ Customers buy the Enterprise tier of RevealUI ($1,499/mo); the RevealUI Fleet ki
 - **Hosted Enterprise** — RevealUI Studio manages infrastructure. You get a dedicated instance on `revealui.com` infrastructure, domain-configured for your organization.
 - **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`.
 
-Both paths use the same Enterprise license tier and the same `REVFORGE_LICENSE_KEY` format (`rui_forge_...`). The difference is where the stack runs.
+Both paths use the same Enterprise license tier and the same EdDSA-signed JWT format for `REVFORGE_LICENSE_KEY`. The difference is where the stack runs.
 
 ## RevealUI Fleet — Self-Hosted Deployment
 
