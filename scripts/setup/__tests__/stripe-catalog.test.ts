@@ -6,6 +6,7 @@ import {
   findOrphanProducts,
   isManagedProduct,
   type ManagedProductView,
+  validateStripeSecretKeyPrefix,
 } from '../stripe-catalog.js';
 
 /**
@@ -184,5 +185,55 @@ describe('findCatalogDrift', () => {
         (i) => i.kind === 'missing' && i.productKey === 'revealui_enterprise',
       ),
     ).toBe(true);
+  });
+});
+
+describe('validateStripeSecretKeyPrefix', () => {
+  it('accepts a full secret key in check mode', () => {
+    expect(validateStripeSecretKeyPrefix('sk_test_abc', true)).toEqual({
+      ok: true,
+      isLive: false,
+    });
+    expect(validateStripeSecretKeyPrefix('sk_live_abc', true)).toEqual({
+      ok: true,
+      isLive: true,
+    });
+  });
+
+  it('accepts a full secret key in seed/mutating mode', () => {
+    expect(validateStripeSecretKeyPrefix('sk_test_abc', false)).toEqual({
+      ok: true,
+      isLive: false,
+    });
+    expect(validateStripeSecretKeyPrefix('sk_live_abc', false)).toEqual({
+      ok: true,
+      isLive: true,
+    });
+  });
+
+  it('accepts a restricted key in check mode (least-privilege read-only gate)', () => {
+    expect(validateStripeSecretKeyPrefix('rk_test_abc', true)).toEqual({
+      ok: true,
+      isLive: false,
+    });
+    expect(validateStripeSecretKeyPrefix('rk_live_abc', true)).toEqual({
+      ok: true,
+      isLive: true,
+    });
+  });
+
+  it('rejects a restricted key in seed/mutating mode (can create/archive products)', () => {
+    const testResult = validateStripeSecretKeyPrefix('rk_test_abc', false);
+    expect(testResult.ok).toBe(false);
+    expect(testResult.message).toContain('restricted rk_ keys are not permitted');
+
+    const liveResult = validateStripeSecretKeyPrefix('rk_live_abc', false);
+    expect(liveResult.ok).toBe(false);
+    expect(liveResult.isLive).toBe(true);
+  });
+
+  it('rejects a garbage prefix in either mode', () => {
+    expect(validateStripeSecretKeyPrefix('pk_test_abc', true).ok).toBe(false);
+    expect(validateStripeSecretKeyPrefix('pk_test_abc', false).ok).toBe(false);
   });
 });
