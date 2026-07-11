@@ -13,7 +13,7 @@ status: active
 
 This document defines the backup inventory, restore drill procedures, and verification criteria for all RevealUI data stores. It ensures that backups are functional, recovery objectives are achievable, and audit evidence is collected for SOC2 compliance (specifically CC6.1, CC7.5, A1.2, and A1.3).
 
-> **Infrastructure-in-transition note (2026-05-29).** The Supabase secondary store is *legacy* and phasing out (ADR 2026-05-01 → NeonDB pgvector); its restore drill below remains valid **while Supabase is in service**. The ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18) but holds no persistent data, so it is out of backup scope either way. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
+> **Infrastructure note (updated 2026-07-11).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`); NeonDB is the sole database and there is no Supabase secondary store to back up. The Supabase inventory rows and restore drill have been replaced with the NeonDB coverage that actually runs (Neon-managed PITR plus the automated daily logical backup in [`.github/workflows/db-backup.yml`](../../.github/workflows/db-backup.yml)). The ElectricSQL sync host re-platforms to Fly.io and holds no persistent data, so it is out of backup scope either way. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative infrastructure status.
 
 Restore drills are conducted quarterly. Each drill validates at least one data store end to end, with a full rotation across all stores every 12 months.
 
@@ -25,7 +25,7 @@ Restore drills are conducted quarterly. Each drill validates at least one data s
 |------------|--------------|-----------|-----------|----------|-------|
 | **NeonDB (primary database)** | Managed point-in-time recovery (PITR) | Continuous (WAL streaming) | 7 days (Free), 30 days (Pro) | Neon cloud, same region | Neon (managed) |
 | **NeonDB branch snapshots** | On-demand branch creation | Before each migration, weekly | 30 days or manual cleanup | Neon cloud | RevealUI Studio |
-| **Supabase (secondary database)** | Managed daily backups + PITR (Pro) | Daily automatic, continuous PITR | 7 days (Pro) | Supabase cloud, same region | Supabase (managed) |
+| **NeonDB logical backup** | Automated `pg_dump` via `db-backup.yml` | Daily, 02:00 UTC (+ manual dispatch) | 7 dumps (script) + 30-day GitHub artifact | GitHub Actions artifact | RevealUI Studio |
 | **Source code** | Git (distributed VCS) | Every push | Indefinite (full history) | GitHub (primary), LTS drive (mirror) | RevealUI Studio |
 | **Secrets and credentials** | RevVault (encrypted Rust CLI store) | On every secret change | Indefinite (versioned) | Local encrypted store, LTS backup | RevealUI Studio |
 | **npm packages** | Published to npm registry | Every release | Indefinite (immutable once published) | npm registry | RevealUI Studio |
@@ -49,7 +49,7 @@ These items are excluded by design, with justification:
 | Data Store | RTO (Recovery Time) | RPO (Recovery Point) | Notes |
 |------------|--------------------|-----------------------|-------|
 | **NeonDB** | 15 minutes | < 1 minute (PITR) | Branch restore is near-instant. Full PITR depends on WAL position. |
-| **Supabase** | 30 minutes | 24 hours (daily backup) or < 1 minute (PITR on Pro) | Daily backups are automatic. PITR requires Pro plan. |
+| **NeonDB logical backup** | 30 minutes | 24 hours (daily dump) | Restore the most recent `db-backup.yml` artifact with `psql`. Independent of the provider PITR path. |
 | **Source code (GitHub)** | 5 minutes | 0 (last push) | Clone from GitHub or LTS mirror. Branch protection prevents force-push. |
 | **Secrets (RevVault)** | 15 minutes | Last export (manual trigger) | Decrypt from LTS backup if local store is lost. |
 | **npm packages** | 0 (already published) | 0 (immutable) | Published packages are immutable. Rebuild from source if registry is unavailable. |
@@ -67,7 +67,7 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 | Quarter | Primary Drill Target | Secondary Drill Target |
 |---------|---------------------|----------------------|
 | Q1 (Jan) | NeonDB PITR restore | Source code (GitHub clone) |
-| Q2 (Apr) | Supabase restore | Secrets (RevVault decrypt) |
+| Q2 (Apr) | NeonDB logical-backup restore (`db-backup.yml` artifact) | Secrets (RevVault decrypt) |
 | Q3 (Jul) | NeonDB branch restore | Vercel deployment rollback |
 | Q4 (Oct) | Full disaster recovery (all stores) | LTS drive restore |
 
@@ -151,42 +151,52 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 5. Record results in the drill log (Section 6).
 
-### 4.4 Supabase Restore Drill
+### 4.4 NeonDB Logical Backup Restore Drill
 
-**Objective**: Verify that Supabase daily backups or PITR can restore the secondary database.
+**Objective**: Verify that the automated daily logical backup (`db-backup.yml`) can restore the database independently of the Neon-managed PITR path.
+
+**Prerequisites**:
+- Read access to the most recent `db-backup-*` artifact from the `Database Backup` workflow run
+- An empty scratch Postgres target (a fresh Neon branch or a local Postgres) to restore into
 
 **Steps**:
 
-1. Record current Supabase state (vector store counts, storage bucket sizes):
+1. Record the current state of the production database (baseline row counts):
    ```bash
-   psql "$SUPABASE_DATABASE_URL" -c "
-     SELECT schemaname, tablename, n_live_tup
-     FROM pg_stat_user_tables
-     WHERE schemaname = 'public'
-     ORDER BY n_live_tup DESC
-     LIMIT 10;
+   psql "$NEON_DATABASE_URL" -c "
+     SELECT 'users' as table_name, count(*) FROM users
+     UNION ALL SELECT 'sites', count(*) FROM sites
+     UNION ALL SELECT 'content', count(*) FROM content;
    "
    ```
 
-2. Initiate a restore via the Supabase dashboard:
-   - Navigate to **Project Settings > Backups**.
-   - Select the most recent daily backup (or a PITR timestamp if on Pro).
-   - Restore to a new project (never overwrite production).
+2. Download the most recent backup artifact:
+   - Open the latest `Database Backup` workflow run in GitHub Actions.
+   - Download the `db-backup-<run_id>` artifact (30-day retention) and extract the dump from `.revealui/backups/`.
 
-3. Connect to the restored project and compare table counts against the baseline.
-
-4. Verify vector data integrity (if applicable):
+3. Restore the dump into the scratch target (never restore over production):
    ```bash
-   psql "$RESTORED_SUPABASE_URL" -c "
-     SELECT count(*) FROM documents WHERE embedding IS NOT NULL;
-   "
+   psql "$SCRATCH_DATABASE_URL" -f <extracted-dump-file>
    ```
 
-5. Verify Supabase Auth user count matches expectations.
+4. Compare table counts against the baseline:
+   ```bash
+   psql "$SCRATCH_DATABASE_URL" -c "
+     SELECT 'users' as table_name, count(*) FROM users
+     UNION ALL SELECT 'sites', count(*) FROM sites
+     UNION ALL SELECT 'content', count(*) FROM content;
+   "
+   ```
+   They should match the baseline (allowing for changes made after the dump timestamp).
 
-6. Delete the test project after verification.
+5. Run a sample application query to confirm data integrity:
+   ```bash
+   psql "$SCRATCH_DATABASE_URL" -c "SELECT id, email, created_at FROM users ORDER BY created_at DESC LIMIT 5;"
+   ```
 
-7. Record results in the drill log (Section 6).
+6. Confirm the workflow's own verify step is green (`scripts/commands/database/verify-backup.ts --max-age=1` runs in `db-backup.yml`).
+
+7. Drop the scratch target and record results in the drill log (Section 6).
 
 ### 4.5 Source Code Restore Drill
 
@@ -340,7 +350,7 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 After every restore drill, complete this checklist before marking the drill as passed.
 
-### 5.1 Database Restores (NeonDB, Supabase)
+### 5.1 Database Restores (NeonDB)
 
 - [ ] Row counts for critical tables match baseline (within expected delta)
 - [ ] Schema version matches the target restore point
@@ -440,7 +450,7 @@ If a restore drill fails or a production restore is unsuccessful, follow this es
 
 | Severity | Definition | Examples |
 |----------|-----------|----------|
-| **Low** | Drill inconvenience; data is recoverable through an alternate path. | LTS mirror is stale by 2 weeks. Supabase daily backup is 23 hours old. |
+| **Low** | Drill inconvenience; data is recoverable through an alternate path. | LTS mirror is stale by 2 weeks. The daily NeonDB logical backup is 23 hours old but Neon PITR is current. |
 | **Medium** | Primary restore path failed; secondary path is available. | NeonDB PITR branch creation fails; manual export is still possible. RevVault backup decryption fails on LTS copy; local copy is intact. |
 | **High** | No verified restore path exists for a critical data store. | NeonDB PITR and branch restores both fail. GitHub repository is inaccessible and LTS mirror is corrupted. |
 | **Critical** | Active data loss in production with no working restore. | Production database is corrupted and PITR cannot recover to a clean state. |
@@ -461,7 +471,6 @@ If a restore drill fails or a production restore is unsuccessful, follow this es
 2. Activate the Incident Response Plan (see `INCIDENT_RESPONSE.md`).
 3. Contact the managed service provider directly:
    - **NeonDB**: Support portal at console.neon.tech or support@neon.tech.
-   - **Supabase**: Support portal at supabase.com/dashboard or support@supabase.io.
    - **GitHub**: Support portal at support.github.com.
    - **Vercel**: Support portal at vercel.com/support.
 4. Document all actions taken, timestamps, and provider responses.
