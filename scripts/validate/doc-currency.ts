@@ -7,9 +7,13 @@
  * Scans two surfaces for terms that present a retired, renamed, or reversed
  * fact as if it were still current:
  *
- *   1. Markdown prose under `docs/**` and `apps/marketing/**` (line-based
- *      substring scan, mirroring the fenced-import scanner style already
- *      used by `docs-import-drift.ts`).
+ *   1. Markdown prose across the repo's reader-facing surfaces (line-based
+ *      substring scan, mirroring the fenced-import scanner style already used
+ *      by `docs-import-drift.ts`): the whole `docs/**` tree (including the
+ *      public `docs/blog` posts and `apps/docs/public` mirror via `apps/**`),
+ *      every package `README.md`, and the root-level docs
+ *      (README/CLAUDE/AGENTS/SECURITY/…). CHANGELOGs and archived/handoff
+ *      records are skipped as inherently historical.
  *   2. Marketing copy string literals under
  *      `apps/marketing/app/content/**\/*.ts`, extracted via the TypeScript
  *      compiler API. Only literal string content is scanned — string
@@ -261,6 +265,37 @@ export const RULES: readonly Rule[] = [
     message:
       'The billing tier "Forge" was renamed to "Enterprise". Use "Enterprise" going forward.',
   },
+  {
+    // Pricing-truth guard. The Max subscription is $299/mo; the cents-of-record
+    // is scripts/setup/stripe-catalog.ts (revealui_max_monthly.unitAmount =
+    // 29900). The retired $149/mo Max figure presented as current is stale
+    // drift. Enumerated tier+price phrasings (like stripe-not-live-claim) rather
+    // than a bare '$149' term, because $149 is a legitimate current figure
+    // elsewhere (the Pro Perpetual support renewal is $149/yr) — anchoring the
+    // Max name beside the price avoids flagging those.
+    id: 'max-price-stale',
+    anyOf: [
+      'max $149',
+      'max: $149',
+      'max - $149',
+      'max — $149',
+      'max plan $149',
+      'max tier $149',
+      'max is $149',
+      'max at $149',
+      'max ($149',
+      'revealui max $149',
+      '| max | $149',
+      '$149/mo max',
+      '$149/month max',
+      '$149 for max',
+      '$149/mo for max',
+      '$149/month for max',
+    ],
+    unlessLineHas: [...COMMON_EXON, '$299', '299/mo', 'perpetual', 'renewal'],
+    message:
+      'RevealUI Max is $299/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 as the current Max price.',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -321,6 +356,8 @@ export function shouldSkipFile(rel: string, abs: string): boolean {
   if (isHistoricalPath(relSlash)) return true;
   const base = path.basename(rel);
   if (base.startsWith('HANDOFF-')) return true;
+  // CHANGELOGs are inherently historical change logs; they record past states.
+  if (base.startsWith('CHANGELOG')) return true;
   let head: string;
   try {
     head = fs.readFileSync(abs, 'utf8').slice(0, 2000).toLowerCase();
@@ -345,9 +382,16 @@ const SKIP_DIR_SEGMENTS: ReadonlySet<string> = new Set([
   '.turbo',
 ]);
 
-const MARKDOWN_ROOTS: readonly string[] = ['docs', 'apps/marketing'];
+// Directories walked in full for `.md` prose. `apps` covers the public docs
+// mirror (apps/docs/public) and the marketing markdown; `docs` covers the whole
+// documentation tree including docs/blog (public posts stay in scope, guarded by
+// per-line exoneration, not skipped).
+const MARKDOWN_ROOTS: readonly string[] = ['docs', 'apps'];
 
-function walkMarkdownFiles(dir: string, acc: string[]): void {
+const isMarkdown = (name: string): boolean => name.endsWith('.md');
+const isReadme = (name: string): boolean => name === 'README.md';
+
+function walkMarkdownFiles(dir: string, acc: string[], accept: (name: string) => boolean): void {
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -357,8 +401,8 @@ function walkMarkdownFiles(dir: string, acc: string[]): void {
   for (const e of entries) {
     if (e.isDirectory()) {
       if (SKIP_DIR_SEGMENTS.has(e.name)) continue;
-      walkMarkdownFiles(path.join(dir, e.name), acc);
-    } else if (e.isFile() && e.name.endsWith('.md')) {
+      walkMarkdownFiles(path.join(dir, e.name), acc, accept);
+    } else if (e.isFile() && accept(e.name)) {
       acc.push(path.join(dir, e.name));
     }
   }
@@ -366,7 +410,21 @@ function walkMarkdownFiles(dir: string, acc: string[]): void {
 
 export function collectMarkdownFiles(root: string): string[] {
   const acc: string[] = [];
-  for (const rel of MARKDOWN_ROOTS) walkMarkdownFiles(path.join(root, rel), acc);
+  for (const rel of MARKDOWN_ROOTS) walkMarkdownFiles(path.join(root, rel), acc, isMarkdown);
+  // Under packages/, only READMEs are reader-facing prose; the rest of the tree
+  // is test fixtures, generated files, and per-package CHANGELOGs.
+  walkMarkdownFiles(path.join(root, 'packages'), acc, isReadme);
+  // Root-level markdown (README, CLAUDE, AGENTS, SECURITY, CONTRIBUTING, …);
+  // CHANGELOG.md is dropped by shouldSkipFile's historical-log rule.
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    entries = [];
+  }
+  for (const e of entries) {
+    if (e.isFile() && isMarkdown(e.name)) acc.push(path.join(root, e.name));
+  }
   return acc;
 }
 

@@ -1,7 +1,8 @@
 {
   "note": "Grandfathered doc-currency occurrences. Regenerate via `pnpm validate:doc-currency --update-baseline`. Each entry is a (file::ruleId) pair known to exist as of generation; CI fails only on NEW pairs. Shrinking this list is progress.",
-  "count": 26,
+  "count": 34,
   "keys": [
+    "apps/docs/public/docs-pro/mcp/index.md::supabase-as-current",
     "apps/marketing/app/content/marketplace.ts::supabase-as-current",
     "docs/ARCHITECTURE.md::supabase-as-current",
     "docs/AUTH.md::supabase-as-current",
@@ -27,6 +28,13 @@
     "docs/security/INCIDENT_RESPONSE.md::supabase-as-current",
     "docs/security/INFORMATION_SECURITY_POLICY.md::supabase-as-current",
     "docs/security/VENDOR_RISK_ASSESSMENTS.md::railway-as-current",
-    "docs/security/VENDOR_RISK_ASSESSMENTS.md::supabase-as-current"
+    "docs/security/VENDOR_RISK_ASSESSMENTS.md::supabase-as-current",
+    "packages/mcp/README.md::supabase-as-current",
+    "packages/mcp/configs/README.md::supabase-as-current",
+    "packages/mcp/docs/README.md::supabase-as-current",
+    "packages/resilience/README.md::supabase-as-current",
+    "packages/setup/README.md::supabase-as-current",
+    "packages/test/README.md::supabase-as-current",
+    "packages/test/src/units/README.md::supabase-as-current"
   ]
 }

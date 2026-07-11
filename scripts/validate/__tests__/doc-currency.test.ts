@@ -127,6 +127,39 @@ describe('stripe-not-live-claim', () => {
   });
 });
 
+describe('max-price-stale', () => {
+  const maxRule = rule('max-price-stale');
+
+  it('flags Max presented at the retired $149/mo price', () => {
+    expect(ruleMatches('revealui max $149/mo — ai memory and audit logs', maxRule)).toBe(true);
+  });
+
+  it('flags a stale pricing-table row (| Max | $149/mo |)', () => {
+    expect(ruleMatches('| max | $149/mo | advanced inference | 70% |', maxRule)).toBe(true);
+  });
+
+  it('does not flag the current Max price ($299) even when $149 appears alongside', () => {
+    expect(ruleMatches('max is $299/mo (was $149 during the preview)', maxRule)).toBe(false);
+  });
+
+  it('does not flag the legitimate Pro Perpetual $149/yr support renewal', () => {
+    expect(ruleMatches('pro perpetual: $149/yr for continued support', maxRule)).toBe(false);
+  });
+
+  it('does not flag Max at $149 when the line marks it as a past figure', () => {
+    expect(ruleMatches('max was $149/mo before the price change', maxRule)).toBe(false);
+  });
+
+  it('fires from a marketing-copy content .ts string literal', () => {
+    const source = `
+      export const MAX_TIER = {
+        priceLabel: 'Max — $149/mo',
+      } as const;
+    `;
+    expect(ruleIdsInSource(source)).toContain('max-price-stale');
+  });
+});
+
 describe('extractStringLiterals — AST scope', () => {
   it('does not scan import module specifiers', () => {
     const source = `import { Railway } from 'railway-sdk';\nexport const x = 'clean copy';`;
@@ -188,6 +221,12 @@ describe('shouldSkipFile — historical exemptions', () => {
     const abs = path.join(tmpRoot, 'HANDOFF-2026-01-01-topic.md');
     fs.writeFileSync(abs, 'Supabase is our database.');
     expect(shouldSkipFile('docs/HANDOFF-2026-01-01-topic.md', abs)).toBe(true);
+  });
+
+  it('skips CHANGELOG files as inherently historical logs', () => {
+    const abs = path.join(tmpRoot, 'CHANGELOG.md');
+    fs.writeFileSync(abs, 'Deploy to Railway today.');
+    expect(shouldSkipFile('packages/foo/CHANGELOG.md', abs)).toBe(true);
   });
 
   it('skips a file whose head carries a SUPERSEDED banner', () => {
