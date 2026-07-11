@@ -34,7 +34,6 @@ vi.mock('@revealui/core/features', () => ({
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
-      sso: 'enterprise',
     };
     return map[feature] ?? 'enterprise';
   }),
@@ -55,7 +54,6 @@ vi.mock('@revealui/core/features', () => ({
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
-      sso: 'enterprise',
     };
     const flags: Record<string, boolean> = {};
     for (const [f, req] of Object.entries(map)) {
@@ -103,7 +101,7 @@ const PRO_FEATURES = [
   'analytics',
 ] as const;
 const MAX_FEATURES = ['aiMemory', 'aiInference', 'auditLog'] as const;
-const ENTERPRISE_FEATURES = ['multiTenant', 'whiteLabel', 'sso'] as const;
+const ENTERPRISE_FEATURES = ['multiTenant', 'whiteLabel'] as const;
 
 /** Hosted tier limits (must match getHostedLimitsForTier in apps/server/src/lib/tier-limits.ts) */
 const HOSTED_LIMITS: Record<Tier, { maxSites: number; maxUsers: number; maxAgentTasks: number }> = {
@@ -266,22 +264,18 @@ describe('Checkout-to-Feature E2E Flow', () => {
       expect(await testFeatureAccess('free', 'aiLocal')).toBe(200);
       expect(await testFeatureAccess('free', 'ai')).toBe(403);
       expect(await testFeatureAccess('free', 'aiMemory')).toBe(403);
-      expect(await testFeatureAccess('free', 'sso')).toBe(403);
 
       // At pro: ai unlocked, aiMemory still blocked
       expect(await testFeatureAccess('pro', 'ai')).toBe(200);
       expect(await testFeatureAccess('pro', 'aiMemory')).toBe(403);
-      expect(await testFeatureAccess('pro', 'sso')).toBe(403);
 
-      // At max: aiMemory unlocked, sso still blocked
+      // At max: aiMemory unlocked
       expect(await testFeatureAccess('max', 'ai')).toBe(200);
       expect(await testFeatureAccess('max', 'aiMemory')).toBe(200);
-      expect(await testFeatureAccess('max', 'sso')).toBe(403);
 
       // At enterprise: everything unlocked
       expect(await testFeatureAccess('enterprise', 'ai')).toBe(200);
       expect(await testFeatureAccess('enterprise', 'aiMemory')).toBe(200);
-      expect(await testFeatureAccess('enterprise', 'sso')).toBe(200);
     });
   });
 

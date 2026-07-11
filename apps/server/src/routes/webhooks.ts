@@ -339,7 +339,6 @@ const KNOWN_FEATURE_KEYS = new Set<string>([
   'payments',
   'multiTenant',
   'whiteLabel',
-  'sso',
   'aiInference',
   'auditLog',
   'advancedSync',

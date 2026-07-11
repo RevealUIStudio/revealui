@@ -60,7 +60,6 @@ describe('createPaywall  -  zero-config (defaults)', () => {
       expect(paywall.isFeatureEnabled('enterprise', 'ai')).toBe(true);
       expect(paywall.isFeatureEnabled('enterprise', 'multiTenant')).toBe(true);
       expect(paywall.isFeatureEnabled('enterprise', 'whiteLabel')).toBe(false); // planned
-      expect(paywall.isFeatureEnabled('enterprise', 'sso')).toBe(false); // planned
     });
   });
 

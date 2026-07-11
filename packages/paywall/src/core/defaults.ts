@@ -36,7 +36,6 @@ export const DEFAULT_FEATURES: Record<string, FeatureDefinition<DefaultTier>> = 
   // --- Enterprise tier ---
   multiTenant: { tier: 'enterprise', label: 'Multi-Tenant' },
   whiteLabel: { tier: 'enterprise', label: 'White Label', planned: true },
-  sso: { tier: 'enterprise', label: 'SSO / SAML', planned: true },
 };
 
 /** Standard resource limits. */

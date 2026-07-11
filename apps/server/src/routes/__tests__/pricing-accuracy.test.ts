@@ -43,7 +43,6 @@ const EXPECTED_FEATURE_TIER_MAP: Record<FeatureFlagKey, LicenseTierId> = {
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
-  sso: 'enterprise',
 };
 
 /** Must match getHostedLimitsForTier in apps/server/src/lib/tier-limits.ts */
@@ -145,9 +144,9 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
   });
 
   describe('Feature flag consistency', () => {
-    it('all 14 feature flags have tier assignments', () => {
+    it('all 13 feature flags have tier assignments', () => {
       const featureKeys = Object.keys(EXPECTED_FEATURE_TIER_MAP);
-      expect(featureKeys).toHaveLength(14);
+      expect(featureKeys).toHaveLength(13);
     });
 
     it('aiLocal is the only free-tier feature', () => {
@@ -179,14 +178,14 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(maxFeatures).toContain('auditLog');
     });
 
-    it('enterprise-tier has 3 features', () => {
+    it('enterprise-tier has 2 features', () => {
       const enterpriseFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'enterprise')
         .map(([feature]) => feature);
 
-      expect(enterpriseFeatures).toHaveLength(3);
+      expect(enterpriseFeatures).toHaveLength(2);
       expect(enterpriseFeatures).toContain('multiTenant');
-      expect(enterpriseFeatures).toContain('sso');
+      expect(enterpriseFeatures).toContain('whiteLabel');
     });
   });
 

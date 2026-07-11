@@ -27,8 +27,6 @@ export interface FeatureFlags {
   multiTenant: boolean;
   /** White-label admin dashboard (planned  -  not yet implemented) */
   whiteLabel: boolean;
-  /** SSO/SAML authentication (planned  -  not yet implemented) */
-  sso: boolean;
   /** Open-model inference configuration  -  snaps, Ollama, harness (Max+) */
   aiInference: boolean;
   /** Audit logging and compliance trail */
@@ -63,11 +61,10 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
-  // NOTE: whiteLabel and sso are planned but not yet implemented.
+  // NOTE: whiteLabel is planned but not yet implemented.
   // Forced to false below in getFeatures/getFeaturesForTier/isFeatureEnabled
   // to avoid advertising features that don't exist. Re-enable when implemented.
   whiteLabel: 'enterprise',
-  sso: 'enterprise',
   vaultDesktop: 'pro',
   vaultRotation: 'pro',
   devkitProfiles: 'max',
@@ -95,7 +92,6 @@ export function getFeatures(): FeatureFlags {
 
   // Planned but not yet implemented  -  force false to avoid false advertising
   flags.whiteLabel = false;
-  flags.sso = false;
 
   return flags;
 }
@@ -114,7 +110,7 @@ export function getFeatures(): FeatureFlags {
  */
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
   // Planned but not yet implemented  -  always return false
-  if (feature === 'whiteLabel' || feature === 'sso') return false;
+  if (feature === 'whiteLabel') return false;
 
   const requiredTier = featureTierMap[feature];
   return isLicensed(requiredTier);
@@ -139,7 +135,6 @@ export function getFeaturesForTier(tier: LicenseTier): FeatureFlags {
 
   // Planned but not yet implemented  -  force false to avoid false advertising
   flags.whiteLabel = false;
-  flags.sso = false;
 
   return flags;
 }

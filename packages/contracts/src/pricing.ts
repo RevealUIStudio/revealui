@@ -42,7 +42,6 @@ export type FeatureFlagKey =
   | 'auditLog'
   | 'multiTenant'
   | 'whiteLabel'
-  | 'sso'
   | 'vaultDesktop'
   | 'vaultRotation'
   | 'devkitProfiles';
@@ -83,7 +82,6 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   auditLog: 'Audit Logging',
   multiTenant: 'Multi-site Content Management',
   whiteLabel: 'White-label Branding (managed setup via revforge)',
-  sso: 'SSO/SAML Authentication (Coming Soon)',
   vaultDesktop: 'RevVault Desktop App',
   vaultRotation: 'RevVault Rotation Engine',
   devkitProfiles: 'RevKit Environment Provisioning',
