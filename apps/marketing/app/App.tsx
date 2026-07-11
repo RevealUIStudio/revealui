@@ -16,6 +16,7 @@ import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
+import { ReceiptsAuditPage } from './routes/ReceiptsAuditPage';
 import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
 import { ServicesPage } from './routes/ServicesPage';
@@ -51,6 +52,11 @@ export function App() {
         meta: { title: 'Provable agent governance | RevealUI' },
       },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
+      {
+        path: '/receipts-audit',
+        component: ReceiptsAuditPage,
+        meta: { title: 'The Agent Receipts Audit | RevealUI' },
+      },
       {
         path: '/services',
         component: ServicesPage,

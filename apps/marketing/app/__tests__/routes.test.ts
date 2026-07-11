@@ -11,6 +11,7 @@ import { NotFoundPage } from '../routes/NotFoundPage';
 import { PricingPage } from '../routes/PricingPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
 import { ProductsPage } from '../routes/ProductsPage';
+import { ReceiptsAuditPage } from '../routes/ReceiptsAuditPage';
 import { RoadmapPage } from '../routes/RoadmapPage';
 import { TermsPage } from '../routes/TermsPage';
 
@@ -21,6 +22,7 @@ describe('marketing route registry', () => {
       { path: '/', component: HomePage },
       { path: '/products', component: ProductsPage },
       { path: '/pricing', component: PricingPage },
+      { path: '/receipts-audit', component: ReceiptsAuditPage },
       { path: '/blog', component: BlogIndexPage },
       { path: '/blog/:slug', component: BlogPostPage },
       { path: '/contact', component: ContactPage },
@@ -38,6 +40,7 @@ describe('marketing route registry', () => {
       '/',
       '/products',
       '/pricing',
+      '/receipts-audit',
       '/blog',
       '/blog/getting-started',
       '/blog/ui-of-the-future',

@@ -26,7 +26,13 @@ export interface WaitlistPayload {
    * Segmentation key — matches the server's WAITLIST_SOURCES enum.
    * e.g. 'managed-cloud' (RevealUI Cloud waitlist), 'newsletter'.
    */
-  source: 'managed-cloud' | 'newsletter' | 'landing-page' | 'blog';
+  source: 'managed-cloud' | 'newsletter' | 'landing-page' | 'blog' | 'receipts-audit';
+  /**
+   * Honeypot — the server silently 200s any submission with a non-empty value
+   * (packages/../waitlist.ts). Forms render it hidden via CSS; humans leave it
+   * empty, bots fill it. Omitted from the request body when empty.
+   */
+  website?: string;
 }
 
 export interface BlogPost {
@@ -68,10 +74,15 @@ export async function submitContact(payload: ContactPayload): Promise<string | n
  */
 export async function submitWaitlist(payload: WaitlistPayload): Promise<string | null> {
   try {
+    const body: { email: string; source: WaitlistPayload['source']; website?: string } = {
+      email: payload.email,
+      source: payload.source,
+    };
+    if (payload.website) body.website = payload.website;
     const res = await fetch(`${API_URL}/api/waitlist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: payload.email, source: payload.source }),
+      body: JSON.stringify(body),
     });
     if (res.ok) return null;
     // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.
@@ -92,6 +103,23 @@ export async function submitWaitlist(payload: WaitlistPayload): Promise<string |
  */
 export async function submitNewsletter(payload: NewsletterPayload): Promise<string | null> {
   return submitWaitlist({ email: payload.email, source: 'newsletter' });
+}
+
+/**
+ * Capture a lead from the Agent Receipts Audit lead magnet
+ * (revealui.com/receipts-audit). A thin wrapper over submitWaitlist that pins
+ * the source to 'receipts-audit' (a LEAD source: the server fires a team alert
+ * + a confirmation email). `website` is the honeypot the form passes through.
+ */
+export async function submitReceiptsAudit(payload: {
+  email: string;
+  website?: string;
+}): Promise<string | null> {
+  return submitWaitlist({
+    email: payload.email,
+    source: 'receipts-audit',
+    website: payload.website,
+  });
 }
 
 /**
