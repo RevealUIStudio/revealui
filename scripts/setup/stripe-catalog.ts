@@ -419,3 +419,44 @@ export function findCatalogDrift(active: readonly ManagedProductView[]): Catalog
 
   return issues;
 }
+
+export interface StripeKeyPrefixValidation {
+  ok: boolean;
+  /** Error message to log when ok is false. */
+  message?: string;
+  /** True when the accepted key targets Stripe live mode (sk_live_ or rk_live_). */
+  isLive: boolean;
+}
+
+/**
+ * Validates STRIPE_SECRET_KEY's prefix against the operation mode.
+ *
+ * --check (the scheduled read-only drift gate, see
+ * .github/workflows/stripe-catalog-check.yml) only ever reads the catalog, so
+ * a least-privilege Stripe RESTRICTED key (rk_test_/rk_live_) is the correct
+ * credential there and must be accepted.
+ *
+ * Seeding/mutating runs (the default `pnpm stripe:seed` -- no --check) can
+ * create or archive products, so a restricted key must never be accepted for
+ * them -- only a full secret key (sk_test_/sk_live_) may run them.
+ */
+export function validateStripeSecretKeyPrefix(
+  secretKey: string,
+  checkMode: boolean,
+): StripeKeyPrefixValidation {
+  const validPrefixes = checkMode
+    ? ['sk_test_', 'sk_live_', 'rk_test_', 'rk_live_']
+    : ['sk_test_', 'sk_live_'];
+  const ok = validPrefixes.some((prefix) => secretKey.startsWith(prefix));
+  const isLive = secretKey.startsWith('sk_live_') || secretKey.startsWith('rk_live_');
+  if (ok) {
+    return { ok, isLive };
+  }
+  return {
+    ok,
+    isLive,
+    message: checkMode
+      ? 'STRIPE_SECRET_KEY must start with sk_test_, sk_live_, rk_test_, or rk_live_'
+      : 'STRIPE_SECRET_KEY must start with sk_test_ or sk_live_ (restricted rk_ keys are not permitted for seeding/mutating runs)',
+  };
+}
