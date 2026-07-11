@@ -117,7 +117,7 @@ pnpm build:admin            # Build auth + Admin
 
 ### Testing
 ```bash
-pnpm test                   # Run all tests (turbo, 15 concurrency)
+pnpm test                   # Run all tests (turbo, concurrency 2)
 pnpm test:coverage          # Tests with coverage
 pnpm test:e2e               # Playwright E2E tests
 pnpm test:integration       # Integration tests
@@ -233,7 +233,7 @@ Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audi
 - Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in admin sign-up
 - Encryption keys: non-extractable by default (configurable via `extractable` option)
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
-- Webhook rate limiting: 100 req/min on /api/webhooks
+- Webhook rate limiting: 500 req/min on /api/webhooks
 - Cross-DB cleanup: `@revealui/db/cleanup` for orphaned legacy-Supabase data after site deletion (relevant during migration; will retire once phase-out completes)
 - RBAC + ABAC policy engine in core (enforcement tests in `packages/core/src/__tests__/auth/` and `packages/core/src/collections/operations/__tests__/access-enforcement.test.ts` prove role isolation)
 - GDPR compliance framework (consent, deletion, anonymization)
