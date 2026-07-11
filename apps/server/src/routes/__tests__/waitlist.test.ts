@@ -166,6 +166,24 @@ describe('waitlist route', () => {
     );
   });
 
+  it('emails the team + confirms the lead for a receipts-audit signup', async () => {
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    const res = await post(createApp(), { email: 'audit@example.com', source: 'receipts-audit' });
+
+    expect(res.status).toBe(200);
+    // receipts-audit is a LEAD source: one operator alert + one confirmation.
+    expect(mockedSendEmail).toHaveBeenCalledTimes(2);
+    expect(mockedSendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ replyTo: 'audit@example.com' }),
+    );
+    expect(mockedSendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'audit@example.com' }),
+    );
+  });
+
   it('does not email for a newsletter signup (subscription, not a lead)', async () => {
     const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
     // biome-ignore lint/suspicious/noExplicitAny: test mock
