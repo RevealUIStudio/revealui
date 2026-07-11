@@ -1,5 +1,5 @@
 ---
-title: "60 Components, One Dependency"
+title: "61 Components, One Dependency"
 description: "*By Joshua Vaughn, RevealUI Studio*"
 visibility: public
 status: narrative
@@ -9,7 +9,7 @@ author: Joshua Vaughn
 
 Open the `package.json` of a typical React app and trace the dependency tree under your UI. A component library. The headless-primitive library it sits on. An icon set. A class-merging utility. A variants helper. A few polyfills the library pulls in. Every one of those is a version you have to track, a breaking change you have to absorb on someone else's schedule, and a styling opinion you have to work around.
 
-RevealUI's UI layer, `@revealui/presentation`, has exactly one third-party runtime dependency. Not one UI framework. One npm package: `tailwind-merge`. Its design tokens come from a sibling in-house package, `@revealui/tokens`. Everything else, the 60 components and the machinery that powers them, is in the box and MIT licensed.
+RevealUI's UI layer, `@revealui/presentation`, has exactly one third-party runtime dependency. Not one UI framework. One npm package: `tailwind-merge`. Its design tokens come from a sibling in-house package, `@revealui/tokens`. Everything else, the 61 components and the machinery that powers them, is in the box and MIT licensed.
 
 This post is about why a component library should be something you own outright, and how this one is built.
 
@@ -23,7 +23,7 @@ I have done that enough times to want a different deal.
 
 ## What ships in the box
 
-`@revealui/presentation` is 60 native React components. Not wrappers around another library. Components, built directly on Tailwind v4 and React.
+`@revealui/presentation` is 61 native React components. Not wrappers around another library. Components, built directly on Tailwind v4 and React.
 
 The set is meant to cover real business software, not just a demo: `accordion`, `alert`, `avatar`, `badge`, `breadcrumb`, `callout`, `card`, `checkbox`, `code-block`, `combobox`, `dialog`, `drawer`, `divider`, `description-list`, and on through the list. Form controls, overlays, navigation, data display. The pieces you reach for on day one and the ones you need in month three.
 
@@ -84,7 +84,7 @@ That split matters for a framework. The styled components get you to a working p
 
 ## Theming is tokens, not hardcoded colors
 
-Colors are not baked into the components. They resolve through a semantic design-token layer in `tokens.css`: `bg-background`, `text-foreground`, `border-border`, `text-primary`, and so on. The tokens carry RevealUI's cobalt palette and adapt to light and dark. Retheme the whole system by changing the token values in one place; you do not touch 60 component files to change your brand color.
+Colors are not baked into the components. They resolve through a semantic design-token layer in `tokens.css`: `bg-background`, `text-foreground`, `border-border`, `text-primary`, and so on. The tokens carry RevealUI's cobalt palette and adapt to light and dark. Retheme the whole system by changing the token values in one place; you do not touch 61 component files to change your brand color.
 
 Because the tokens are semantic rather than literal, a component never says "blue." It says "primary," and the token decides what primary means in the current theme.
 
