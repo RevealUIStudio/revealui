@@ -14,7 +14,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { checkRateLimit, createSession } from '@revealui/auth/server';
+import { auditLoginSuccess, checkRateLimit, rotateSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { getUserByVerificationToken, updateUser } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
@@ -95,18 +95,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.redirect(`${baseUrl}/login?error=verification_failed`);
     }
 
-    // Establish a session for this user, mirroring the session-creation
-    // mechanism sign-up uses for the auto-promoted first user.
+    // Establish a session for this user. Use rotateSession (revoke-then-issue)
+    // for parity with the sign-in path: it deletes any prior sessions for the
+    // user, then mints a fresh one. The signup-time session row is only ever
+    // handed to the client as a cookie once the email is verified (sign-up
+    // route sets the cookie behind `isVerified`), so for a verifying user it is
+    // an undelivered orphan row that rotate cleanly reclaims.
     const userAgent = request.headers.get('user-agent') || undefined;
     const ipAddress =
       request.headers.get('x-real-ip') ||
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
-    const { token: sessionToken } = await createSession(updatedUser.id, {
+    const { token: sessionToken } = await rotateSession(updatedUser.id, {
       userAgent,
       ipAddress,
     });
+
+    // First login on email verification: land a success receipt in the audit
+    // trail (best-effort; auditLoginSuccess never throws).
+    await auditLoginSuccess(updatedUser.id, ipAddress ?? 'unknown', userAgent ?? 'unknown');
 
     const dest = resolveAuthDest({
       upgrade,

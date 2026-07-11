@@ -14,13 +14,15 @@ import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockCheckRateLimit = vi.fn();
-const mockCreateSession = vi.fn();
+const mockRotateSession = vi.fn();
+const mockAuditLoginSuccess = vi.fn();
 const mockGetUserByVerificationToken = vi.fn();
 const mockUpdateUser = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
-  createSession: (...args: unknown[]) => mockCreateSession(...args),
+  rotateSession: (...args: unknown[]) => mockRotateSession(...args),
+  auditLoginSuccess: (...args: unknown[]) => mockAuditLoginSuccess(...args),
 }));
 
 vi.mock('@revealui/utils/logger', () => ({
@@ -113,6 +115,7 @@ describe('GET /api/auth/verify-email', () => {
       remaining: 9,
       resetAt: Date.now() + 60000,
     });
+    mockAuditLoginSuccess.mockResolvedValue(undefined);
   });
 
   async function loadRoute() {
@@ -124,7 +127,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest());
     expect((res as MockRes).url).toContain('error=missing_token');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('redirects with too_many_attempts when rate limited', async () => {
@@ -137,7 +140,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));
     expect((res as MockRes).url).toContain('error=too_many_attempts');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('fails closed  -  redirects with error when rate limit check throws', async () => {
@@ -146,7 +149,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));
     expect((res as MockRes).url).toContain('error=verification_failed');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('garbage token: redirects with invalid_token and creates no session', async () => {
@@ -155,7 +158,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('garbage-token'));
     expect((res as MockRes).url).toContain('error=invalid_token');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('expired token: getUserByVerificationToken finds no row, redirects with invalid_token and creates no session', async () => {
@@ -166,7 +169,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('expired-token'));
     expect((res as MockRes).url).toContain('error=invalid_token');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('reused token: the token column is nulled after first use, so a second attempt finds no row and creates no session', async () => {
@@ -175,7 +178,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('already-consumed-token'));
     expect((res as MockRes).url).toContain('error=invalid_token');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('redirects with already_verified when email already verified, and creates no session', async () => {
@@ -184,7 +187,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token'));
     expect((res as MockRes).url).toContain('message=already_verified');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
     expect(mockUpdateUser).not.toHaveBeenCalled();
   });
 
@@ -195,13 +198,13 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token'));
     expect((res as MockRes).url).toContain('error=verification_failed');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('valid token: establishes a session, sets cookies, and redirects to billing checkout with the upgrade param', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'session-token-abc',
       session: { id: 'sess1', userId: 'u1' },
     });
@@ -209,16 +212,59 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token', 'pro'));
 
-    expect(mockCreateSession).toHaveBeenCalledWith('u1', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('u1', expect.any(Object));
     expect((res as MockRes).url).toContain('/account/billing?upgrade=pro');
     expect((res as MockRes).cookies.get('revealui-session')?.value).toBe('session-token-abc');
     expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('viewer');
   });
 
+  it('valid token: mints the session via rotateSession (revoke-then-issue) for parity with sign-in', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockRotateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    await GET(makeRequest('valid-token'));
+
+    // rotateSession revokes every prior session for the user before minting a
+    // fresh one (proven by @revealui/auth session tests); calling it with the
+    // verified user's id is the parity contract with the sign-in path.
+    expect(mockRotateSession).toHaveBeenCalledTimes(1);
+    expect(mockRotateSession).toHaveBeenCalledWith('u1', expect.any(Object));
+  });
+
+  it('valid token: lands exactly one login-success audit event with the actor id', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockRotateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    await GET(makeRequest('valid-token'));
+
+    expect(mockAuditLoginSuccess).toHaveBeenCalledTimes(1);
+    expect(mockAuditLoginSuccess.mock.calls[0][0]).toBe('u1');
+  });
+
+  it('does not emit a login-success audit event when no session is created', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: true });
+
+    const GET = await loadRoute();
+    await GET(makeRequest('valid-token'));
+
+    expect(mockRotateSession).not.toHaveBeenCalled();
+    expect(mockAuditLoginSuccess).not.toHaveBeenCalled();
+  });
+
   it('valid token without an upgrade param: redirects a non-admin to /welcome', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'session-token-xyz',
       session: { id: 'sess2', userId: 'u1' },
     });
@@ -233,7 +279,7 @@ describe('GET /api/auth/verify-email', () => {
   it('valid token for an admin without an upgrade param: redirects to /', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u2', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u2', role: 'admin', emailVerified: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'session-token-admin',
       session: { id: 'sess3', userId: 'u2' },
     });
@@ -248,7 +294,7 @@ describe('GET /api/auth/verify-email', () => {
   it('ignores an unrecognized upgrade value (no open redirect)', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'session-token-abc',
       session: { id: 'sess1', userId: 'u1' },
     });
@@ -266,7 +312,7 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));
     expect((res as MockRes).url).toContain('error=verification_failed');
-    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(mockRotateSession).not.toHaveBeenCalled();
   });
 
   it('hashes the raw token with SHA-256 before the DB lookup, never passing it through verbatim', async () => {
@@ -284,7 +330,7 @@ describe('GET /api/auth/verify-email', () => {
   it('marks the email verified and consumes the token in a single update', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'session-token-abc',
       session: { id: 'sess1', userId: 'u1' },
     });

@@ -49,6 +49,14 @@ vi.mock('../session.js', () => ({
   rotateSession: (...args: unknown[]) => mockRotateSession(...args),
 }));
 
+// Mock audit bridge
+const mockAuditLoginSuccess = vi.fn();
+const mockAuditLoginFailure = vi.fn();
+vi.mock('../audit-bridge.js', () => ({
+  auditLoginSuccess: (...args: unknown[]) => mockAuditLoginSuccess(...args),
+  auditLoginFailure: (...args: unknown[]) => mockAuditLoginFailure(...args),
+}));
+
 // Chain mocks for drizzle-orm query builder
 const mockReturning = vi.fn();
 const mockInsertValues = vi.fn().mockReturnValue({ returning: mockReturning });
@@ -129,6 +137,8 @@ describe('auth', () => {
     mockClearFailedAttempts.mockResolvedValue(undefined);
     mockCreateSession.mockResolvedValue({ token: 'session-token-abc', session: {} });
     mockRotateSession.mockResolvedValue({ token: 'session-token-abc', session: {} });
+    mockAuditLoginSuccess.mockResolvedValue(undefined);
+    mockAuditLoginFailure.mockResolvedValue(undefined);
     mockBcryptCompare.mockResolvedValue(true);
     mockBcryptHash.mockResolvedValue('$2a$12$newhashedpassword');
     mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
@@ -350,6 +360,64 @@ describe('auth', () => {
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(true);
       expect(result.sessionToken).toBe('session-token-abc');
+    });
+
+    // =======================================================================
+    // Audit-trail wiring
+    // =======================================================================
+    it('lands exactly one login-success audit event with the actor id on success', async () => {
+      mockLimit.mockResolvedValueOnce([makeUser()]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123', {
+        ipAddress: '1.2.3.4',
+        userAgent: 'test-agent',
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockAuditLoginSuccess).toHaveBeenCalledTimes(1);
+      expect(mockAuditLoginSuccess).toHaveBeenCalledWith('user-1', '1.2.3.4', 'test-agent');
+      expect(mockAuditLoginFailure).not.toHaveBeenCalled();
+    });
+
+    it('lands exactly one login-failure audit event on invalid password', async () => {
+      mockLimit.mockResolvedValueOnce([makeUser()]);
+      mockBcryptCompare.mockResolvedValueOnce(false);
+
+      const result = await signIn('test@example.com', 'WrongPass1', {
+        ipAddress: '1.2.3.4',
+        userAgent: 'test-agent',
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockAuditLoginFailure).toHaveBeenCalledTimes(1);
+      expect(mockAuditLoginFailure).toHaveBeenCalledWith(
+        'test@example.com',
+        '1.2.3.4',
+        'test-agent',
+        'invalid_credentials',
+      );
+      expect(mockAuditLoginSuccess).not.toHaveBeenCalled();
+    });
+
+    it('lands a login-failure audit event for a nonexistent user', async () => {
+      mockLimit.mockResolvedValueOnce([]);
+
+      await signIn('nobody@example.com', 'Password123');
+
+      expect(mockAuditLoginFailure).toHaveBeenCalledTimes(1);
+      expect(mockAuditLoginSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not emit a login-success event when MFA is still pending (no session yet)', async () => {
+      mockLimit.mockResolvedValueOnce([makeUser({ mfaEnabled: true })]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+
+      expect(result.success).toBe(true);
+      expect(mockAuditLoginSuccess).not.toHaveBeenCalled();
+      expect(mockAuditLoginFailure).not.toHaveBeenCalled();
     });
   });
 
