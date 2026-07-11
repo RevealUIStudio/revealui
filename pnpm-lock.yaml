@@ -436,6 +436,15 @@ importers:
 
   apps/docs:
     dependencies:
+      '@fontsource-variable/inter':
+        specifier: ^5.2.5
+        version: 5.2.8
+      '@fontsource-variable/inter-tight':
+        specifier: ^5.2.5
+        version: 5.2.7
+      '@fontsource-variable/jetbrains-mono':
+        specifier: ^5.2.5
+        version: 5.2.8
       '@revealui/core':
         specifier: workspace:*
         version: link:../../packages/core
