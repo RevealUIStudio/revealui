@@ -18,10 +18,13 @@
  * Used by:
  *   - revealui.com /for-operators/managed — RevealUI Cloud waitlist
  *     (source: 'managed-cloud')
+ *   - revealui.com /receipts-audit         — Agent Receipts Audit lead magnet
+ *     (source: 'receipts-audit')
  *   - revealui.com footer + GetStarted     — newsletter capture
  *     (source: 'newsletter')
  *
- * Notifications (LEAD sources only — 'managed-cloud', 'landing-page'):
+ * Notifications (LEAD sources only — 'managed-cloud', 'landing-page',
+ * 'receipts-audit'):
  *   - the operator team gets an alert email (Reply-To the lead) so a
  *     high-intent signup is acted on immediately, not left sitting in a table;
  *   - the lead gets a confirmation email closing the loop.
@@ -53,12 +56,20 @@ import { escapeHtml } from '../lib/html.js';
 // Closed enum keeps the segmentation column clean + queryable. Add a source
 // here when a new capture surface ships — a one-line API change, deliberate
 // so the `source` dimension never accumulates free-text drift.
-const WAITLIST_SOURCES = ['managed-cloud', 'newsletter', 'landing-page', 'blog'] as const;
+const WAITLIST_SOURCES = [
+  'managed-cloud',
+  'newsletter',
+  'landing-page',
+  'blog',
+  'receipts-audit',
+] as const;
 
 // Sources that represent a product LEAD (vs. a newsletter subscription). Only
 // these trigger a team alert + subscriber confirmation; newsletter/blog are
-// list subscriptions handled separately.
-const LEAD_SOURCES = new Set<string>(['managed-cloud', 'landing-page']);
+// list subscriptions handled separately. 'receipts-audit' is a high-intent
+// self-assessment lead: the operator team should act on it like a managed-cloud
+// signup, and the submitter gets the confirmation that closes the loop.
+const LEAD_SOURCES = new Set<string>(['managed-cloud', 'landing-page', 'receipts-audit']);
 
 // Operator inbox for new-lead alerts. Validated at startup
 // (lib/validate-startup.ts); the founder fallback matches the other server

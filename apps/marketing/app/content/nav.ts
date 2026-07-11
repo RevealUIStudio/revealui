@@ -31,6 +31,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'Services', href: '/services' },
       { label: 'Local AI', href: '/local-ai' },
       { label: 'Governance', href: '/governance' },
+      { label: 'Agent Receipts Audit', href: '/receipts-audit' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Documentation', href: SITE.urls.docs },
       { label: 'Blog', href: '/blog' },

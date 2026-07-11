@@ -109,6 +109,13 @@ export const HOME_PROBLEM = {
   ] as readonly ProblemRow[],
   footnote:
     'Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
+  // Quiet contextual link back to the receipt foil, near the audit-log row of
+  // the comparison. Not a section, not a CTA button: one calm inline link.
+  receiptsAudit: {
+    prefix: 'Not sure you could prove what your agents did?',
+    label: 'Take the Agent Receipts Audit.',
+    href: '/receipts-audit',
+  },
 } as const;
 
 // ---------------------------------------------------------------------------
