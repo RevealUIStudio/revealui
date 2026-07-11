@@ -5,7 +5,12 @@
  * Uses the cached license state from @revealui/core  -  no DB call per request.
  */
 
-import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/core/features';
+import {
+  type FeatureFlags,
+  getFeaturesForTier,
+  getRequiredTier,
+  isFeatureEnabled,
+} from '@revealui/core/features';
 import {
   getCurrentTier,
   getGraceConfig,
@@ -14,6 +19,7 @@ import {
   hostMatchesLicensedDomains,
   type LicenseTier,
 } from '@revealui/core/license';
+import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -86,7 +92,106 @@ type RequestEntitlements = {
   graceUntil?: Date | null;
   tier?: LicenseTier;
   features?: Partial<Record<keyof FeatureFlags, boolean>>;
+  /**
+   * True when the license is in read-only mode (perpetual support lapsed past
+   * grace): the purchased tier + features are retained for reads, but writes
+   * are blocked by {@link enforceReadOnlyWrites}. GAP-310.
+   */
+  readOnly?: boolean;
 };
+
+// ---------------------------------------------------------------------------
+// Read-only enforcement for lapsed perpetual support (GAP-310)
+// ---------------------------------------------------------------------------
+
+/**
+ * Read-only enforcement mode, from `LICENSE_READ_ONLY_ENFORCE`:
+ *   - `off` (default): inert — the historical free-tier downgrade is preserved
+ *     and nothing is blocked. Behavior is byte-identical to pre-GAP-310.
+ *   - `shadow`: the tier stays downgraded (no loosening) and the write-gate LOGS
+ *     what it would block without blocking — used to confirm the exempt set is
+ *     complete before enforcing.
+ *   - `enforce`: the purchased tier is retained for reads AND writes are blocked.
+ *     Both halves land together (the gap invariant: restoring the tier without
+ *     the write-block would be a strict loosening).
+ */
+export type ReadOnlyMode = 'off' | 'shadow' | 'enforce';
+
+/** Context key carrying the read-only signal from checkSupportExpiry to the gate. */
+type ReadOnlyPending = { tier: LicenseTier; mode: ReadOnlyMode };
+
+function getReadOnlyEnforcementMode(): ReadOnlyMode {
+  const value = process.env.LICENSE_READ_ONLY_ENFORCE;
+  if (value === 'enforce') return 'enforce';
+  if (value === 'shadow') return 'shadow';
+  return 'off';
+}
+
+/**
+ * Paths always allowed even for a read-only (lapsed-support) license, matched by
+ * prefix (zero authored regex per the fleet no-regex rule). This is the
+ * load-bearing safety surface of the gate: a miss either locks the customer out
+ * (can't renew or sign in) or leaks a write, so entries err toward the clearly
+ * safe read/escape routes.
+ */
+const READ_ONLY_EXEMPT: readonly string[] = [
+  // The renewal escape hatch — a lapsed customer MUST be able to buy back support.
+  '/api/billing/checkout-support-renewal',
+  '/api/v1/billing/checkout-support-renewal',
+  // Auth / session — must be able to sign in to reach anything at all.
+  '/api/auth/',
+  '/api/v1/auth/',
+  '/api/studio-auth/',
+  '/api/v1/studio-auth/',
+  '/api/terminal-auth/',
+  '/api/v1/terminal-auth/',
+  // License verify/features are reads despite arriving as POST; machines re-check.
+  '/api/license/verify',
+  '/api/v1/license/verify',
+  '/api/license/features',
+  '/api/v1/license/features',
+  // Machine webhooks (Stripe etc.). Renewal settles here — never block a machine write.
+  '/api/webhooks/',
+  '/api/v1/webhooks/',
+  // Safe diagnostics.
+  '/api/pricing',
+  '/api/v1/pricing',
+  '/health',
+];
+
+/**
+ * Explicit read/write overrides for the few routes the HTTP-method baseline gets
+ * wrong (reads-over-POST, GETs with side effects, `/a2a` semantics). Keyed by
+ * path prefix, first match wins, and evaluated BEFORE the method baseline so an
+ * override can actually override it. Starts empty on purpose — shadow-mode
+ * logging surfaces real misclassifications, which then earn an explicit entry
+ * (the design's "grows only when a real false-classification is found").
+ */
+const READ_ONLY_OVERRIDES: ReadonlyArray<{ prefix: string; kind: 'read' | 'write' }> = [];
+
+const WRITE_METHODS: ReadonlySet<string> = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function isReadOnlyExempt(path: string): boolean {
+  for (const prefix of READ_ONLY_EXEMPT) {
+    if (path === prefix || path.startsWith(prefix)) return true;
+  }
+  return false;
+}
+
+/**
+ * Classify a request as `read` or `write` for read-only enforcement.
+ * Order: explicit override → HTTP-method baseline. (Exempt paths are handled by
+ * the caller before this runs.) The override precedes the method baseline so it
+ * can correct method-baseline mistakes; `/a2a` task dispatch is a POST (already a
+ * write) and result polling is a GET (already a read), so the baseline covers
+ * both until a real exception is observed.
+ */
+function classifyReadOnlyRequest(method: string, path: string): 'read' | 'write' {
+  for (const override of READ_ONLY_OVERRIDES) {
+    if (path === override.prefix || path.startsWith(override.prefix)) return override.kind;
+  }
+  return WRITE_METHODS.has(method.toUpperCase()) ? 'write' : 'read';
+}
 
 type FeatureGateMode = 'hybrid' | 'entitlements';
 type FeatureGateOptions = {
@@ -482,17 +587,35 @@ export const checkSupportExpiry = (
         c.header('X-Support-Status', 'grace');
         c.header('X-Support-Grace-Remaining', String(graceRemainingDays));
       } else {
-        // Grace exhausted — read-only mode.
-        // The perpetual license keeps basic admin read access,
-        // but writes and premium features are blocked.
+        // Grace exhausted — read-only mode (GAP-310). In `enforce`, retain the
+        // purchased tier for reads and mark `readOnly` so the write-gate blocks
+        // writes (both halves land together). In `off`/`shadow`, preserve the
+        // historical free-tier downgrade so nothing loosens before enforcement.
+        const mode = getReadOnlyEnforcementMode();
         const requestEntitlements = getRequestEntitlements(c);
         if (requestEntitlements) {
-          c.set('entitlements', {
-            ...requestEntitlements,
-            tier: 'free' as const,
-            features: {},
-            subscriptionStatus: 'support_expired',
-          });
+          if (mode === 'enforce') {
+            c.set('entitlements', {
+              ...requestEntitlements,
+              tier: payload.tier,
+              features: getFeaturesForTier(payload.tier),
+              subscriptionStatus: 'support_expired',
+              readOnly: true,
+            });
+          } else {
+            c.set('entitlements', {
+              ...requestEntitlements,
+              tier: 'free' as const,
+              features: {},
+              subscriptionStatus: 'support_expired',
+            });
+          }
+        }
+
+        // Hand the write-gate its signal. Skipped in `off` so that mode stays a
+        // true no-op; set in `shadow` so the gate can log would-be blocks.
+        if (mode !== 'off') {
+          c.set('readOnlyPending', { tier: payload.tier, mode } satisfies ReadOnlyPending);
         }
 
         c.header('X-Support-Status', 'expired');
@@ -501,6 +624,66 @@ export const checkSupportExpiry = (
     }
 
     await next();
+  };
+};
+
+/**
+ * Write-gate for lapsed-perpetual-support (read-only) licenses — GAP-310.
+ *
+ * Consumes the `readOnlyPending` signal set by {@link checkSupportExpiry}. Mount
+ * AFTER checkSupportExpiry (which sets the signal) and BEFORE the feature gates
+ * and route handlers, on the same path prefixes checkSupportExpiry covers.
+ *
+ * Behavior by mode (see {@link ReadOnlyMode}):
+ *   - `off`: no signal is set, so this is a pass-through.
+ *   - `shadow`: logs what it WOULD block; blocks nothing.
+ *   - `enforce`: blocks non-exempt writes with 403; reads and exempt writes pass.
+ *
+ * The tier-restore half lives in checkSupportExpiry and is gated on the SAME
+ * mode, so the tier is only restored when writes are actually blocked (both
+ * halves together — the gap invariant).
+ */
+export const enforceReadOnlyWrites = (): MiddlewareHandler => {
+  return async (c, next) => {
+    const pending = c.get('readOnlyPending') as ReadOnlyPending | undefined;
+    if (!pending || pending.mode === 'off') {
+      await next();
+      return;
+    }
+
+    const path = c.req.path;
+    const method = c.req.method;
+
+    // Reads and exempt routes always pass, in every mode.
+    if (isReadOnlyExempt(path) || classifyReadOnlyRequest(method, path) === 'read') {
+      await next();
+      return;
+    }
+
+    // A write on a non-exempt route by a read-only (lapsed-support) license.
+    if (pending.mode === 'shadow') {
+      logger.info('license.read-only would block write (shadow mode)', {
+        path,
+        method,
+        tier: pending.tier,
+      });
+      await next();
+      return;
+    }
+
+    // enforce: block the write with an actionable, honest message.
+    c.header('X-License-Mode', 'read-only');
+    c.header('X-Support-Status', 'expired');
+    return c.json(
+      {
+        error: 'support_expired_read_only',
+        message:
+          'Your license is active and your tier is retained for reads, but support has lapsed so writes are blocked. Renew support to restore write access.',
+        renewUrl: PRICING_URL,
+        supportEmail: SUPPORT_EMAIL,
+      },
+      403,
+    );
   };
 };
 

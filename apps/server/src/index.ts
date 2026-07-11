@@ -64,6 +64,7 @@ import { errorHandler } from './middleware/error.js';
 import {
   checkLicenseStatus,
   checkSupportExpiry,
+  enforceReadOnlyWrites,
   requireAIAccess,
   requireDomain,
   requireFeature,
@@ -709,6 +710,14 @@ app.use('/api/v1/*', supportExpiryCheck);
 app.use('/a2a/*', entitlementMiddleware());
 app.use('/a2a/*', licenseStatusCheck);
 app.use('/a2a/*', supportExpiryCheck);
+
+// GAP-310: block writes for lapsed-perpetual (read-only) licenses. Runs after
+// checkSupportExpiry (which sets the read-only signal) and before the feature
+// gates + route handlers. Governed by LICENSE_READ_ONLY_ENFORCE
+// (off default / shadow / enforce); inert unless a license is in read-only mode.
+app.use('/api/*', enforceReadOnlyWrites());
+app.use('/api/v1/*', enforceReadOnlyWrites());
+app.use('/a2a/*', enforceReadOnlyWrites());
 
 // License enforcement  -  gate premium routes by feature
 // Agent stream + tasks: free tier allowed with local inference, Pro+ for cloud providers

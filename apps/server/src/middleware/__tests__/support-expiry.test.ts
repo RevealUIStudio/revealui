@@ -15,6 +15,11 @@ vi.mock('@revealui/core/license', () => ({
 vi.mock('@revealui/core/features', () => ({
   isFeatureEnabled: vi.fn(() => true),
   getRequiredTier: vi.fn(() => 'pro'),
+  // Non-free tiers get real features; free is empty. Lets the read-only tests
+  // assert that a lapsed license retains (or loses) features per mode.
+  getFeaturesForTier: vi.fn((tier: string) =>
+    tier === 'free' ? {} : { ai: true, dashboard: true, analytics: true },
+  ),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -22,7 +27,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 import { getLicensePayload } from '@revealui/core/license';
-import { checkSupportExpiry, resetSupportExpiryCache } from '../license.js';
+import { logger } from '@revealui/core/observability/logger';
+import { checkSupportExpiry, enforceReadOnlyWrites, resetSupportExpiryCache } from '../license.js';
 
 const mockedGetLicensePayload = vi.mocked(getLicensePayload);
 
@@ -66,6 +72,8 @@ function createApp(
 
 afterEach(() => {
   resetSupportExpiryCache();
+  delete process.env.LICENSE_READ_ONLY_ENFORCE;
+  vi.mocked(logger.info).mockClear();
 });
 
 // ---------------------------------------------------------------------------
@@ -252,5 +260,129 @@ describe('checkSupportExpiry', () => {
     // Should query again
     await app.request('/resource');
     expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Read-only write gate (GAP-310)
+// ---------------------------------------------------------------------------
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** A perpetual license whose support lapsed 60 days ago (past the 30-day grace). */
+function lapsedPerpetual() {
+  mockedGetLicensePayload.mockReturnValue({
+    tier: 'pro',
+    customerId: 'cus_lapsed',
+    perpetual: true,
+  });
+  return vi
+    .fn()
+    .mockResolvedValue({ supportExpiresAt: new Date(Date.now() - 60 * DAY_MS), perpetual: true });
+}
+
+/** Mount entitlements → checkSupportExpiry → enforceReadOnlyWrites → echo handler. */
+function createGateApp(queryFn: QueryFn) {
+  const app = new Hono();
+  app.use('*', async (c, next) => {
+    c.set('entitlements', { accountId: 'acc_1', tier: 'pro', features: { ai: true } });
+    await next();
+  });
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
+  app.use('*', checkSupportExpiry(queryFn) as any);
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
+  app.use('*', enforceReadOnlyWrites() as any);
+  app.all('*', (c) => c.json({ ok: true, entitlements: c.get('entitlements') }));
+  return app;
+}
+
+describe('enforceReadOnlyWrites (GAP-310)', () => {
+  it('enforce: a lapsed perpetual retains its tier + features for reads', async () => {
+    process.env.LICENSE_READ_ONLY_ENFORCE = 'enforce';
+    const app = createGateApp(lapsedPerpetual());
+
+    const res = await app.request('/api/admin/resource'); // GET = read
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      entitlements: { tier: string; features: object; readOnly?: boolean };
+    };
+    expect(body.entitlements.tier).toBe('pro');
+    expect(Object.keys(body.entitlements.features).length).toBeGreaterThan(0);
+    expect(body.entitlements.readOnly).toBe(true);
+  });
+
+  it('enforce: a write on a non-exempt route is blocked with 403 + read-only header', async () => {
+    process.env.LICENSE_READ_ONLY_ENFORCE = 'enforce';
+    const app = createGateApp(lapsedPerpetual());
+
+    const res = await app.request('/api/admin/resource', { method: 'POST' });
+    expect(res.status).toBe(403);
+    expect(res.headers.get('X-License-Mode')).toBe('read-only');
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('support_expired_read_only');
+  });
+
+  it('enforce: renewal, auth, license-verify, and webhook writes stay reachable (no lockout)', async () => {
+    process.env.LICENSE_READ_ONLY_ENFORCE = 'enforce';
+    const app = createGateApp(lapsedPerpetual());
+
+    for (const path of [
+      '/api/billing/checkout-support-renewal',
+      '/api/auth/signin',
+      '/api/license/verify',
+      '/api/webhooks/stripe',
+    ]) {
+      const res = await app.request(path, { method: 'POST' });
+      expect(res.status, `${path} must be exempt`).toBe(200);
+    }
+  });
+
+  it('enforce: /a2a task dispatch (POST) is blocked while result polling (GET) is allowed', async () => {
+    process.env.LICENSE_READ_ONLY_ENFORCE = 'enforce';
+    const app = createGateApp(lapsedPerpetual());
+
+    const dispatch = await app.request('/a2a/tasks', { method: 'POST' });
+    expect(dispatch.status).toBe(403);
+
+    const poll = await app.request('/a2a/tasks/abc123'); // GET = read
+    expect(poll.status).toBe(200);
+  });
+
+  it('shadow: a would-be-blocked write proceeds but is logged, and the tier stays downgraded', async () => {
+    process.env.LICENSE_READ_ONLY_ENFORCE = 'shadow';
+    const app = createGateApp(lapsedPerpetual());
+
+    const res = await app.request('/api/admin/resource', { method: 'POST' });
+    expect(res.status).toBe(200); // shadow blocks nothing
+    expect(vi.mocked(logger.info)).toHaveBeenCalled();
+    const body = (await res.json()) as { entitlements: { tier: string } };
+    expect(body.entitlements.tier).toBe('free'); // no loosening in shadow
+  });
+
+  it('off (default): identical to pre-GAP-310 — write allowed, tier downgraded, nothing logged', async () => {
+    // LICENSE_READ_ONLY_ENFORCE unset → off
+    const app = createGateApp(lapsedPerpetual());
+
+    const res = await app.request('/api/admin/resource', { method: 'POST' });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { entitlements: { tier: string; readOnly?: boolean } };
+    expect(body.entitlements.tier).toBe('free');
+    expect(body.entitlements.readOnly).toBeUndefined();
+    expect(vi.mocked(logger.info)).not.toHaveBeenCalled();
+  });
+
+  it('enforce: a within-grace perpetual is unaffected — writes allowed, no read-only signal', async () => {
+    process.env.LICENSE_READ_ONLY_ENFORCE = 'enforce';
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'pro',
+      customerId: 'cus_grace',
+      perpetual: true,
+    });
+    const queryFn = vi
+      .fn()
+      .mockResolvedValue({ supportExpiresAt: new Date(Date.now() - 10 * DAY_MS), perpetual: true });
+    const app = createGateApp(queryFn);
+
+    const res = await app.request('/api/admin/resource', { method: 'POST' });
+    expect(res.status).toBe(200);
   });
 });
