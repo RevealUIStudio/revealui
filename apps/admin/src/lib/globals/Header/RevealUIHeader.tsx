@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { RevealUIWordmark } from '@revealui/presentation/server';
 import { ButtonLink, PlainButtonLink } from '@/components/revealui/elements';
 import {
   NavbarLink,
@@ -37,17 +37,7 @@ export function RevealUIHeader({ header }: RevealUIHeaderProps) {
       })}
       logo={
         <NavbarLogo href="/">
-          {/* Use existing Logo component, but adapt for navbar size */}
-          <div className="flex items-center">
-            <Image
-              src="/revealui-logo.svg"
-              alt="RevealUI Logo"
-              width={113}
-              height={28}
-              className="h-7 w-auto dark:invert"
-              priority
-            />
-          </div>
+          <RevealUIWordmark className="text-2xl" />
         </NavbarLogo>
       }
       actions={

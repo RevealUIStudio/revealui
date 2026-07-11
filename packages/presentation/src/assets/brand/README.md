@@ -35,18 +35,42 @@ pupil shape.
 - `revealui-mark-mono.svg` — single-colour mark (`currentColor`, no amber
   stroke). In app code prefer the `RevealUIMark` React component from
   `@revealui/presentation`, which renders this same glyph.
-- `revealui-logo.svg` / `revealui-logo-dark.svg` — horizontal lockups (mark +
-  wordmark). **Not yet updated to the new emblem** — the wordmark lockup is a
-  separate, still-open decision, so these two files still carry the prior
-  glyph. Treat as known drift until that decision lands.
+- `wordmark-light.svg` / `wordmark-dark.svg` — the canonical wordmark (mark +
+  "RevealUI" lockup). Canon adopted 2026-07-11 (owner decision): the
+  design-system project's wordmark pair. Use `wordmark-light.svg` on light
+  surfaces, `wordmark-dark.svg` on dark surfaces. **Known limitation:** the
+  "RevealUI" text in these files is live SVG `<text>`, not outlined paths.
+  SVG `<text>` does not inherit the host page's fonts, so on a machine
+  without "Inter Tight" installed it silently falls back to that platform's
+  default sans-serif. There is no font-outlining tooling in this repo yet
+  (see "Regenerating" below); outlining this text into paths is a follow-up.
+  **In app code, prefer the `RevealUIWordmark` React component** from
+  `@revealui/presentation` — it renders "RevealUI" as real HTML text, which
+  reliably inherits page fonts, and it reuses `RevealUIMark`'s exact
+  monogram paths. Reach for the static files only where a file is required
+  (README badges, email templates).
+- `revealui-logo.svg` / `revealui-logo-dark.svg` — the prior horizontal
+  lockup (mark + wordmark). Superseded by `wordmark-light.svg` /
+  `wordmark-dark.svg` and `RevealUIWordmark` above. Still referenced by
+  `apps/admin` at the time of writing; retire once nothing references it.
 - `icon-maskable.svg`, `icon-192.png`, `icon-512.png` — full-bleed PWA
   maskable icon + its rasters. **Not yet updated to the new emblem** and,
   as of 2026-07-10, unreferenced by any app (no `manifest.json` /
   `site.webmanifest` wires them up). Known drift; update or remove in a
   follow-up.
 
-The wordmark in the lockups is outlined Inter Tight Bold (vector paths, no runtime
-font dependency).
+The wordmark in the `revealui-logo*.svg` lockups is outlined Inter Tight Bold
+(vector paths, no runtime font dependency). The newer `wordmark-*.svg` pair
+is not outlined yet (see above) — that's the known defect this canon carries
+forward until outlining tooling exists.
+
+Minor cross-format note: `wordmark-*.svg` preserves the design tool's
+monogram markup byte-for-byte, which draws the outline stroke at
+`stroke-width="3"`. The `RevealUIMark` component (and `revealui-mark.svg`)
+draws the same paths at `stroke-width="3.4"`. Both read as the same mark at
+normal sizes; reconciling the two stroke weights is a follow-up for the
+design tool, not something this change silently "fixed" in either
+direction.
 
 ## Per-app deployables
 
