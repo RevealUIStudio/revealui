@@ -11,6 +11,7 @@ import { accountMemberships, accounts, oauthAccounts, users } from '@revealui/db
 import bcrypt from 'bcryptjs';
 import { and, eq, isNull } from 'drizzle-orm';
 import type { SignInResult, SignUpResult, User } from '../types.js';
+import { auditLoginFailure, auditLoginSuccess } from './audit-bridge.js';
 import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js';
 import { validatePasswordStrength } from './password-validation.js';
 import { checkRateLimit } from './rate-limit.js';
@@ -103,23 +104,32 @@ export async function signIn(
     // Always return same error message to prevent user enumeration
     const invalidCredentialsMessage = 'Invalid email or password';
 
-    if (!user) {
+    // Record a failed credential attempt: bump the brute-force counter AND
+    // land a failed-login receipt in the audit trail. recordFailedAttempt only
+    // feeds lockout accounting; without the audit emit a failed sign-in leaves
+    // no receipt. auditLoginFailure is best-effort and never throws.
+    const failInvalidCredentials = async (): Promise<SignInResult> => {
       await recordFailedAttempt(email);
+      await auditLoginFailure(
+        email,
+        options?.ipAddress ?? 'unknown',
+        options?.userAgent ?? 'unknown',
+        'invalid_credentials',
+      );
       return {
         success: false,
         reason: 'invalid_credentials',
         error: invalidCredentialsMessage,
       };
+    };
+
+    if (!user) {
+      return failInvalidCredentials();
     }
 
     // Check if user has a password (not OAuth-only user)
     if (!user.password) {
-      await recordFailedAttempt(email);
-      return {
-        success: false,
-        reason: 'invalid_credentials',
-        error: invalidCredentialsMessage,
-      };
+      return failInvalidCredentials();
     }
 
     // Verify password hash
@@ -128,21 +138,11 @@ export async function signIn(
       isValid = await bcrypt.compare(password, user.password);
     } catch {
       logger.error('Error comparing password');
-      await recordFailedAttempt(email);
-      return {
-        success: false,
-        reason: 'invalid_credentials',
-        error: invalidCredentialsMessage,
-      };
+      return failInvalidCredentials();
     }
 
     if (!isValid) {
-      await recordFailedAttempt(email);
-      return {
-        success: false,
-        reason: 'invalid_credentials',
-        error: invalidCredentialsMessage,
-      };
+      return failInvalidCredentials();
     }
 
     // Successful login - clear failed attempts
@@ -187,6 +187,15 @@ export async function signIn(
         error: 'Failed to create session',
       };
     }
+
+    // A fresh session was minted: the login succeeded. Land a success receipt
+    // in the audit trail (best-effort; auditLoginSuccess never throws, so an
+    // audit-write failure cannot fail the login).
+    await auditLoginSuccess(
+      user.id,
+      options?.ipAddress ?? 'unknown',
+      options?.userAgent ?? 'unknown',
+    );
 
     // Check if password rotation is required (e.g., bootstrapped admin accounts)
     if (user.mustRotatePassword) {
