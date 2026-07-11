@@ -45,7 +45,7 @@ claim-drift: docs/blog/09-component-library.md
   -> fix the copy or fix the count, but they must agree
 ```
 
-That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 27 packages, 61 UI components, 14 first-party MCP servers, 85 database tables, 59 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.
+That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 27 packages, 61 UI components, 14 first-party MCP servers, 86 database tables, 59 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.
 
 ## The validator practices what we preach
 

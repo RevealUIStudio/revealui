@@ -21,6 +21,7 @@ import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
 import drainUnreconciledApp from './drain-unreconciled.js';
 import jobsSafetyNetApp from './jobs-safety-net.js';
+import lifecycleEmailsApp from './lifecycle-emails.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import reconcileCustomersApp from './reconcile-customers.js';
@@ -76,6 +77,10 @@ const JOBS = [
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
   { name: 'marketplace-payouts', app: marketplacePayoutsApp, path: '/marketplace-payouts' },
   { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
+  // lifecycle-emails evaluates onboarding day-0/day-1/day-7 sends. Disarmed by
+  // default (LIFECYCLE_EMAILS_ENABLED must be 'true' to call the transport);
+  // otherwise it only records would-send decisions.
+  { name: 'lifecycle-emails', app: lifecycleEmailsApp, path: '/lifecycle-emails' },
   { name: 'uptime-check', app: uptimeCheckApp, path: '/uptime-check' },
   { name: 'jobs-safety-net', app: jobsSafetyNetApp, path: '/jobs-safety-net' },
   // report-agent-overage emits previous-cycle agent_task_overage to Stripe

@@ -32,7 +32,7 @@ RevealUI's core framework is **real and substantial**  -  auth, billing, runtime
 | Claim | Where | Actual | Fix |
 |-------|-------|--------|-----|
 | TypeScript 5.9 | README badge | **6.0.2** | Update badge |
-| 85 database tables | README, CLAUDE.md, QUICK_START | **85 pgTable declarations** | ✅ Fixed — references corrected to 85 |
+| 86 database tables | README, CLAUDE.md, QUICK_START | **86 pgTable declarations** | ✅ Fixed — references corrected to 86 |
 | ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed  -  revealcoin listed as experimental |
 | Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor  -  acceptable |
 

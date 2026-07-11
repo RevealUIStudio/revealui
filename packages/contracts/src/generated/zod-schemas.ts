@@ -1106,6 +1106,32 @@ export type LicensesRow = z.infer<typeof LicensesSelectSchema>
 export type LicensesInsert = z.infer<typeof LicensesInsertSchema>
 
 // =============================================================================
+// LifecycleEmailsSent Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting lifecycleEmailsSent rows from database
+ * Generated from Drizzle table definition: tables.lifecycleEmailsSent
+ */
+export const LifecycleEmailsSentSelectSchema = createSelectSchema(tables.lifecycleEmailsSent)
+
+/**
+ * Zod schema for inserting lifecycleEmailsSent rows to database
+ * Generated from Drizzle table definition: tables.lifecycleEmailsSent
+ */
+export const LifecycleEmailsSentInsertSchema = createInsertSchema(tables.lifecycleEmailsSent)
+
+/**
+ * TypeScript type for lifecycleEmailsSent row (Select)
+ */
+export type LifecycleEmailsSentRow = z.infer<typeof LifecycleEmailsSentSelectSchema>
+
+/**
+ * TypeScript type for lifecycleEmailsSent insert
+ */
+export type LifecycleEmailsSentInsert = z.infer<typeof LifecycleEmailsSentInsertSchema>
+
+// =============================================================================
 // MagicLinks Schemas
 // =============================================================================
 
