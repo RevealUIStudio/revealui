@@ -1,6 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
 import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -8,6 +9,45 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.REVEALUI_PUBLIC_SERVER_URL ||
   'http://localhost:3004';
+
+/**
+ * Pages are the one site-scoped content collection: the API exposes list/create
+ * only under `/sites/:siteId/pages`, while every other collection lists/creates
+ * flat under `/:collection`. The dashboard supplies the site scope here — an
+ * explicit `siteId` when a site is selected, otherwise the server-resolved
+ * default site (single-site operators never choose one). All other collections
+ * keep the flat path unchanged.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+async function resolveListTarget(
+  collection: string,
+  searchParams: URLSearchParams,
+): Promise<string> {
+  if (collection !== 'pages') {
+    return `${API_URL}/api/content/${collection}?${searchParams.toString()}`;
+  }
+  const forwarded = new URLSearchParams(searchParams);
+  const explicit = forwarded.get('siteId');
+  forwarded.delete('siteId');
+  const siteId = explicit && explicit.length > 0 ? explicit : await resolveDefaultSiteId();
+  const query = forwarded.toString();
+  return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages${query ? `?${query}` : ''}`;
+}
+
+async function resolveCreateTarget(collection: string, body: unknown): Promise<string> {
+  if (collection !== 'pages') {
+    return `${API_URL}/api/content/${collection}`;
+  }
+  const explicit =
+    isRecord(body) && typeof body.siteId === 'string' && body.siteId.length > 0
+      ? body.siteId
+      : undefined;
+  const siteId = explicit ?? (await resolveDefaultSiteId());
+  return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages`;
+}
 
 function apiUnavailable(collection: string, error: unknown): NextResponse {
   const err = error instanceof Error ? error : new Error(String(error));
@@ -51,12 +91,9 @@ export async function GET(
   const { searchParams } = new URL(request.url);
 
   try {
-    const apiResponse = await fetch(
-      `${API_URL}/api/content/${collection}?${searchParams.toString()}`,
-      {
-        headers: await apiForwardHeaders(request),
-      },
-    );
+    const apiResponse = await fetch(await resolveListTarget(collection, searchParams), {
+      headers: await apiForwardHeaders(request),
+    });
     return proxyResponse(apiResponse);
   } catch (err) {
     return apiUnavailable(collection, err);
@@ -76,7 +113,7 @@ export async function POST(
   const body = await request.json();
 
   try {
-    const apiResponse = await fetch(`${API_URL}/api/content/${collection}`, {
+    const apiResponse = await fetch(await resolveCreateTarget(collection, body), {
       method: 'POST',
       headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),
