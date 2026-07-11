@@ -1,3 +1,4 @@
+import { RevealUIWordmark } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { getCachedGlobal } from '@/lib/cms/getGlobals';
 import { CMSLink } from '@/lib/components/Link/index';
@@ -31,10 +32,26 @@ export async function Footer() {
   return (
     <footer className="border-t border-border bg-black dark:bg-card text-white">
       <div className="container py-8 gap-8 flex flex-col md:flex-row md:justify-between">
-        <Link className="flex items-center" href="/">
-          <picture>
-            <img alt="RevealUI Logo" className="max-w-24 invert-0" src="/revealui-logo.svg" />
-          </picture>
+        {/*
+          This footer is a fixed-dark surface regardless of page theme
+          (`bg-black` in light mode, `dark:bg-card` in dark mode - both
+          dark). Pin the wordmark's brand-ink and accent tokens to their
+          dark-theme values directly, rather than letting them inherit the
+          page's ambient [data-theme]: on a light-themed page the inherited
+          light-theme ink is a dark navy that reads as invisible against
+          this always-black surface.
+        */}
+        <Link
+          className="flex items-center"
+          href="/"
+          style={
+            {
+              '--rvui-brand-text': 'oklch(0.78 0.100 240)',
+              '--rvui-accent': 'oklch(0.80 0.165 85)',
+            } as React.CSSProperties
+          }
+        >
+          <RevealUIWordmark className="text-2xl" />
         </Link>
 
         <nav className="flex flex-col md:flex-row gap-4">
