@@ -34,6 +34,16 @@ vi.mock('@revealui/utils/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
+// Pages are site-scoped: the list/create proxy resolves the default site
+// server-side. Mock the resolver so the target URL is deterministic.
+import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
+
+vi.mock('@/lib/db/defaultSite', () => ({
+  resolveDefaultSiteId: vi.fn().mockResolvedValue('fleet-marketing'),
+}));
+
+const mockResolveDefaultSiteId = vi.mocked(resolveDefaultSiteId);
+
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
 // ---------------------------------------------------------------------------
@@ -219,6 +229,82 @@ describe('POST /api/collections/[collection]', () => {
       params: Promise.resolve({ collection: 'posts' }),
     });
     expect(res.status).toBe(503);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests  -  pages are site-scoped (default-site convention)
+// The API exposes page list/create only under /sites/:siteId/pages. The proxy
+// supplies the site scope: an explicit siteId when selected, otherwise the
+// server-resolved default site. Every other collection stays on the flat path.
+// ---------------------------------------------------------------------------
+
+describe('pages site-scoping', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResolveDefaultSiteId.mockResolvedValue('fleet-marketing');
+  });
+
+  it('GET pages lists the default site and preserves other query params', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
+    const req = new NextRequest('http://localhost/api/collections/pages?limit=1&depth=0');
+    const res = await collectionsGet(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(200);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/fleet-marketing/pages');
+    expect(url).toContain('limit=1');
+    expect(url).toContain('depth=0');
+    // The { data } envelope from the site-scoped list normalizes to { docs }.
+    const body = await res.json();
+    expect(Array.isArray(body.docs)).toBe(true);
+  });
+
+  it('GET pages honors an explicit siteId without forwarding it as a query param', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
+    const req = new NextRequest('http://localhost/api/collections/pages?siteId=acme');
+    const res = await collectionsGet(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(200);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/acme/pages');
+    expect(url).not.toContain('siteId');
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
+  });
+
+  it('POST pages create attaches the default site', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: { id: 'p1' } }, 201));
+    const req = new NextRequest('http://localhost/api/collections/pages', {
+      method: 'POST',
+      body: JSON.stringify({ title: 'Home', slug: 'home', path: '/' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await collectionsPost(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(201);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/fleet-marketing/pages');
+  });
+
+  it('POST pages create honors an explicit siteId in the body', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: { id: 'p1' } }, 201));
+    const req = new NextRequest('http://localhost/api/collections/pages', {
+      method: 'POST',
+      body: JSON.stringify({ title: 'Home', slug: 'home', path: '/', siteId: 'acme' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await collectionsPost(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(201);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/acme/pages');
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
+  });
+
+  it('leaves a non-pages collection on the flat content path', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ docs: [] }));
+    const req = new NextRequest('http://localhost/api/collections/products?limit=1');
+    await collectionsGet(req, { params: Promise.resolve({ collection: 'products' }) });
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/products?limit=1');
+    expect(url).not.toContain('/sites/');
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
   });
 });
 

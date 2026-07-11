@@ -12,6 +12,7 @@ import { pages } from '@revealui/db/schema/pages';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
 import { and, asc, count, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
+import { DEFAULT_CMS_SITE_ID } from './defaultSite';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
 type UserSort = NonNullable<RevealFindOptions['sort']>;
@@ -419,14 +420,6 @@ async function findTypedTenants(
 type DbPage = typeof pages.$inferSelect;
 type NewPage = typeof pages.$inferInsert;
 
-/**
- * Site every CMS-authored page belongs to until the dashboard grows a site
- * picker. The canonical `pages` table requires a NOT NULL site_id; the
- * dynamic-SQL engine path can never satisfy it — pages writes are ONLY viable
- * through this bridge.
- */
-const DEFAULT_PAGE_SITE_ID = 'fleet-marketing';
-
 function pagePathFromSlug(slug: string): string {
   return slug === 'home' ? '/' : `/${slug}`;
 }
@@ -649,9 +642,7 @@ async function createTypedPage(
   const values: NewPage = {
     id: typeof data.id === 'string' && data.id.length > 0 ? data.id : `rvl_${crypto.randomUUID()}`,
     siteId:
-      typeof data.siteId === 'string' && data.siteId.length > 0
-        ? data.siteId
-        : DEFAULT_PAGE_SITE_ID,
+      typeof data.siteId === 'string' && data.siteId.length > 0 ? data.siteId : DEFAULT_CMS_SITE_ID,
     title,
     slug,
     path:
