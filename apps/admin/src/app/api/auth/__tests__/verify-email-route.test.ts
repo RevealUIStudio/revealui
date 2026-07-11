@@ -248,7 +248,7 @@ describe('GET /api/auth/verify-email', () => {
     await GET(makeRequest('valid-token'));
 
     expect(mockAuditLoginSuccess).toHaveBeenCalledTimes(1);
-    expect(mockAuditLoginSuccess.mock.calls[0][0]).toBe('u1');
+    expect(mockAuditLoginSuccess.mock.calls[0]?.[0]).toBe('u1');
   });
 
   it('does not emit a login-success audit event when no session is created', async () => {
