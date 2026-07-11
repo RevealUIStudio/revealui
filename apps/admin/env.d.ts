@@ -21,3 +21,10 @@ interface ImportMeta {
 declare module 'process' {
   interface Env extends ImportMetaEnv {}
 }
+
+// Side-effect font imports have no runtime API; declare the @fontsource-variable
+// CSS-only modules so TS doesn't complain. Self-hosted admin fonts imported in
+// src/app/(frontend)/layout.tsx (GAP-324). Lives here because src/**/*.d.ts is
+// gitignored (generated types); env.d.ts is the tracked, tsconfig-included d.ts.
+declare module '@fontsource-variable/inter';
+declare module '@fontsource-variable/inter-tight';
