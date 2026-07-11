@@ -43,6 +43,7 @@
  * are silently 200'd (no DB write) so bots don't learn.
  */
 
+import { RECEIPTS_AUDIT_REMEDIATION_ITEMS } from '@revealui/contracts/receipts-audit';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
@@ -104,74 +105,15 @@ interface EmailContent {
   text: string;
 }
 
-/**
- * The twelve Agent Receipts Audit remediation items, one title + fix per
- * question. Duplicated from apps/marketing/app/content/receipts-audit.ts
- * (RECEIPTS_AUDIT_REMEDIATION.items) — apps/server and apps/marketing are
- * separate deployables with no shared content package, so this list must be
- * kept in sync by hand when the marketing copy changes. Order matches the
- * twelve audit questions.
- */
-const RECEIPTS_AUDIT_GUIDE: ReadonlyArray<{ title: string; fix: string }> = [
-  {
-    title: 'List every action from last week',
-    fix: 'Every agent action signs into a tamper-evident, hash-chained audit log, so a full week of activity is one query away.',
-  },
-  {
-    title: 'Give every agent its own identity',
-    fix: 'Each agent becomes its own governed user, distinct from any human account, so every action traces back to the exact actor.',
-  },
-  {
-    title: 'Revoke one agent without collateral damage',
-    fix: "Per-agent identity means revoking one agent's access does not touch anyone else's, human or agent.",
-  },
-  {
-    title: 'See and undo what an agent changed',
-    fix: 'The fix starts with logging every content update against the agent that made it, so you know who touched what and when. Pair that with versioned backups so a bad edit is always recoverable.',
-  },
-  {
-    title: 'Cap what an agent can spend',
-    fix: "The fix is a spend limit enforced before a transaction clears, not audited after. Give every agent a ceiling it has no way around, and treat 'no limit' as a finding, not a default.",
-  },
-  {
-    title: 'Know which provider saw your data',
-    fix: 'You choose the AI provider per workload, and the same audit log that records every action records which model ran it, so tracing a request back to a provider is a lookup, not a guess.',
-  },
-  {
-    title: 'Prove who sent it',
-    fix: 'Every action signs into the audit log against the identity that produced it, human or agent, so the answer to a customer is in the record, not a promise.',
-  },
-  {
-    title: 'Version your prompts and policies',
-    fix: 'Keep policies as code: reviewed, diffed, and versioned like everything else you ship. Give prompts the same discipline, written down and revertable.',
-  },
-  {
-    title: 'Pause everything at once',
-    fix: 'The fix is a single control that pauses every agent at once. If reaching one today means chasing individual processes, close that gap before the next incident, not during it.',
-  },
-  {
-    title: 'Run agents on your own infrastructure',
-    fix: 'A self-hosted runtime keeps agents on infrastructure you control end to end, so the data and the controls never leave your boundary.',
-  },
-  {
-    title: 'Hear about a failure before your customer does',
-    fix: 'The fix is routing a failure straight to a human, not just into a log someone might check later.',
-  },
-  {
-    title: 'Produce the log in minutes',
-    fix: 'The same hash-chained audit log exports on demand, filtered by date or agent, so an auditor gets a clean record without days of log-digging.',
-  },
-];
-
 const RECEIPTS_AUDIT_PAGE_URL = 'https://revealui.com/receipts-audit';
 
 /** Builds the subscriber-facing confirmation email content for a lead source. */
 function buildConfirmationEmail(source: string): EmailContent {
   if (source === 'receipts-audit') {
-    const htmlItems = RECEIPTS_AUDIT_GUIDE.map(
+    const htmlItems = RECEIPTS_AUDIT_REMEDIATION_ITEMS.map(
       (item) => `<li><strong>${escapeHtml(item.title)}.</strong> ${escapeHtml(item.fix)}</li>`,
     ).join('\n');
-    const textItems = RECEIPTS_AUDIT_GUIDE.map(
+    const textItems = RECEIPTS_AUDIT_REMEDIATION_ITEMS.map(
       (item, i) => `${i + 1}. ${item.title}\n   ${item.fix}`,
     ).join('\n\n');
 

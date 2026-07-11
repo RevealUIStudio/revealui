@@ -11,6 +11,7 @@
  *   - DB error → 500 with friendly message
  */
 
+import { RECEIPTS_AUDIT_REMEDIATION_ITEMS } from '@revealui/contracts/receipts-audit';
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -224,6 +225,30 @@ describe('waitlist route', () => {
       expect(confirmation.html, `html body missing "${title}"`).toContain(title);
     }
     expect(confirmation.text).toContain('https://revealui.com/receipts-audit');
+  });
+
+  it('renders exactly the items @revealui/contracts/receipts-audit exports (drift guard)', async () => {
+    // Guards against apps/server re-hand-duplicating the guide: the email
+    // builder must render RECEIPTS_AUDIT_REMEDIATION_ITEMS itself, not a
+    // local copy that could silently drift from the shared source.
+    expect(RECEIPTS_AUDIT_REMEDIATION_ITEMS).toHaveLength(12);
+
+    const { db } = makeDb(vi.fn().mockResolvedValue(undefined));
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    mockedGetClient.mockReturnValue(db as any);
+
+    await post(createApp(), { email: 'drift@example.com', source: 'receipts-audit' });
+
+    const confirmationCall = mockedSendEmail.mock.calls.find(
+      (call) => call[0].to === 'drift@example.com',
+    );
+    const confirmation = confirmationCall?.[0] as { html: string; text: string };
+
+    for (const item of RECEIPTS_AUDIT_REMEDIATION_ITEMS) {
+      expect(confirmation.text).toContain(item.title);
+      expect(confirmation.text).toContain(item.fix);
+      expect(confirmation.html).toContain(item.title);
+    }
   });
 
   it('keeps the generic confirmation for a non-receipts-audit lead (no guide leak)', async () => {
