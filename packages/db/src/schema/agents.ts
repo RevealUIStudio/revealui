@@ -11,7 +11,6 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   check,
-  customType,
   index,
   integer,
   jsonb,
@@ -21,26 +20,9 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
+import { vector } from './_vector-type.js';
 import { sites } from './sites.js';
 import { users } from './users.js';
-
-// =============================================================================
-// Custom Vector Type for pgvector
-// =============================================================================
-
-// Define vector type for embeddings (requires pgvector extension)
-const vector = customType<{ data: number[]; driverData: string }>({
-  dataType(config) {
-    return `vector(${(config as { dimensions: number })?.dimensions ?? 1536})`;
-  },
-  toDriver(value: number[]): string {
-    return `[${value.join(',')}]`;
-  },
-  fromDriver(value: string): number[] {
-    // Parse PostgreSQL vector format: [1,2,3]
-    return JSON.parse(value) as number[];
-  },
-});
 
 // =============================================================================
 // Agent Contexts Table

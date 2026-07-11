@@ -50,6 +50,12 @@ import type {
   globalSettings,
   idempotencyKeys,
   jobs,
+  kgEdgeEpisodes,
+  kgEdges,
+  kgEpisodes,
+  kgNodeAliases,
+  kgNodes,
+  kgOutbox,
   licenses,
   lifecycleEmailsSent,
   magicLinks,
@@ -305,6 +311,36 @@ export type IdempotencyKeysUpdate = Partial<IdempotencyKeysInsert>
 export type JobsRow = typeof jobs.$inferSelect
 export type JobsInsert = typeof jobs.$inferInsert
 export type JobsUpdate = Partial<JobsInsert>
+
+// Kg Edge Episodes
+export type KgEdgeEpisodesRow = typeof kgEdgeEpisodes.$inferSelect
+export type KgEdgeEpisodesInsert = typeof kgEdgeEpisodes.$inferInsert
+export type KgEdgeEpisodesUpdate = Partial<KgEdgeEpisodesInsert>
+
+// Kg Edges
+export type KgEdgesRow = typeof kgEdges.$inferSelect
+export type KgEdgesInsert = typeof kgEdges.$inferInsert
+export type KgEdgesUpdate = Partial<KgEdgesInsert>
+
+// Kg Episodes
+export type KgEpisodesRow = typeof kgEpisodes.$inferSelect
+export type KgEpisodesInsert = typeof kgEpisodes.$inferInsert
+export type KgEpisodesUpdate = Partial<KgEpisodesInsert>
+
+// Kg Node Aliases
+export type KgNodeAliasesRow = typeof kgNodeAliases.$inferSelect
+export type KgNodeAliasesInsert = typeof kgNodeAliases.$inferInsert
+export type KgNodeAliasesUpdate = Partial<KgNodeAliasesInsert>
+
+// Kg Nodes
+export type KgNodesRow = typeof kgNodes.$inferSelect
+export type KgNodesInsert = typeof kgNodes.$inferInsert
+export type KgNodesUpdate = Partial<KgNodesInsert>
+
+// Kg Outbox
+export type KgOutboxRow = typeof kgOutbox.$inferSelect
+export type KgOutboxInsert = typeof kgOutbox.$inferInsert
+export type KgOutboxUpdate = Partial<KgOutboxInsert>
 
 // Licenses
 export type LicensesRow = typeof licenses.$inferSelect
@@ -596,6 +632,12 @@ export type DatabaseRelationships = {
   globalSettings: Relationship[]
   idempotencyKeys: Relationship[]
   jobs: Relationship[]
+  kgEdgeEpisodes: Relationship[]
+  kgEdges: Relationship[]
+  kgEpisodes: Relationship[]
+  kgNodeAliases: Relationship[]
+  kgNodes: Relationship[]
+  kgOutbox: Relationship[]
   licenses: Relationship[]
   lifecycleEmailsSent: Relationship[]
   magicLinks: Relationship[]
@@ -795,6 +837,24 @@ export const idempotencyKeysRelationships: readonly Relationship[] = []
 
 // Jobs relationships
 export const jobsRelationships: readonly Relationship[] = []
+
+// KgEdgeEpisodes relationships
+export const kgEdgeEpisodesRelationships: readonly Relationship[] = []
+
+// KgEdges relationships
+export const kgEdgesRelationships: readonly Relationship[] = []
+
+// KgEpisodes relationships
+export const kgEpisodesRelationships: readonly Relationship[] = []
+
+// KgNodeAliases relationships
+export const kgNodeAliasesRelationships: readonly Relationship[] = []
+
+// KgNodes relationships
+export const kgNodesRelationships: readonly Relationship[] = []
+
+// KgOutbox relationships
+export const kgOutboxRelationships: readonly Relationship[] = []
 
 // Licenses relationships
 export const licensesRelationships = [
@@ -1275,6 +1335,42 @@ export type Database = {
         Insert: JobsInsert
         Update: JobsUpdate
         Relationships: typeof jobsRelationships
+      }
+      kg_edge_episodes: {
+        Row: KgEdgeEpisodesRow
+        Insert: KgEdgeEpisodesInsert
+        Update: KgEdgeEpisodesUpdate
+        Relationships: typeof kgEdgeEpisodesRelationships
+      }
+      kg_edges: {
+        Row: KgEdgesRow
+        Insert: KgEdgesInsert
+        Update: KgEdgesUpdate
+        Relationships: typeof kgEdgesRelationships
+      }
+      kg_episodes: {
+        Row: KgEpisodesRow
+        Insert: KgEpisodesInsert
+        Update: KgEpisodesUpdate
+        Relationships: typeof kgEpisodesRelationships
+      }
+      kg_node_aliases: {
+        Row: KgNodeAliasesRow
+        Insert: KgNodeAliasesInsert
+        Update: KgNodeAliasesUpdate
+        Relationships: typeof kgNodeAliasesRelationships
+      }
+      kg_nodes: {
+        Row: KgNodesRow
+        Insert: KgNodesInsert
+        Update: KgNodesUpdate
+        Relationships: typeof kgNodesRelationships
+      }
+      kg_outbox: {
+        Row: KgOutboxRow
+        Insert: KgOutboxInsert
+        Update: KgOutboxUpdate
+        Relationships: typeof kgOutboxRelationships
       }
       licenses: {
         Row: LicensesRow

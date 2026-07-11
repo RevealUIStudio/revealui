@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **61 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**86 PostgreSQL tables** with Drizzle ORM, **72 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
+**92 PostgreSQL tables** with Drizzle ORM, **72 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -130,7 +130,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 31 workspaces
+pnpm typecheck:all       # Typecheck all 32 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 
