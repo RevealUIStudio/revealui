@@ -13,8 +13,8 @@
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse as parseToml } from 'smol-toml';
 import { describe, expect, it } from 'vitest';
+import { collectVars } from '../parse-manifests.js';
 import {
   extractGeneratedPaths,
   renderSecretPathsBlock,
@@ -33,7 +33,6 @@ import {
   findSensitivityGaps,
   findSpecSensitivityInconsistencies,
   isSensitiveKind,
-  type ManifestVar,
   RETIRED_PATHS,
   SECRET_PATHS,
   SYNCED_PATHS,
@@ -42,42 +41,6 @@ import {
 const HERE = dirname(fileURLToPath(import.meta.url));
 const VERCEL_MANIFEST = resolve(HERE, '../revvault-vercel.toml');
 const FLY_MANIFEST = resolve(HERE, '../revvault-fly.toml');
-
-/** A manifest var value is either a bare path string or an inline table with `path`/`sensitive`. */
-function readVarPath(value: unknown): { path: string; sensitive: boolean } | null {
-  if (typeof value === 'string') return { path: value, sensitive: false };
-  if (value !== null && typeof value === 'object' && 'path' in value) {
-    const obj = value as { path: unknown; sensitive?: unknown };
-    if (typeof obj.path === 'string') {
-      return { path: obj.path, sensitive: obj.sensitive === true };
-    }
-  }
-  return null;
-}
-
-/** Collect every synced var from a manifest's app/project blocks under `containerKey`. */
-function collectVars(tomlText: string, containerKey: string, sourceLabel: string): ManifestVar[] {
-  const parsed = parseToml(tomlText) as Record<string, unknown>;
-  const container = parsed[containerKey];
-  if (container === undefined || container === null || typeof container !== 'object') return [];
-  const out: ManifestVar[] = [];
-  for (const [slug, block] of Object.entries(container as Record<string, unknown>)) {
-    if (block === null || typeof block !== 'object') continue;
-    const vars = (block as Record<string, unknown>).vars;
-    if (vars === undefined || vars === null || typeof vars !== 'object') continue;
-    for (const [name, value] of Object.entries(vars as Record<string, unknown>)) {
-      const parsedVar = readVarPath(value);
-      if (parsedVar === null) continue;
-      out.push({
-        name,
-        path: parsedVar.path,
-        sensitive: parsedVar.sensitive,
-        source: `${sourceLabel}:${slug}`,
-      });
-    }
-  }
-  return out;
-}
 
 const vercelVars = collectVars(readFileSync(VERCEL_MANIFEST, 'utf8'), 'projects', 'vercel');
 const flyVars = collectVars(readFileSync(FLY_MANIFEST, 'utf8'), 'fly-apps', 'fly');
