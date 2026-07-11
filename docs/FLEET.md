@@ -34,7 +34,7 @@ Fleet sits beside, not underneath, the hosted pricing model:
 ## Prerequisites
 
 - Docker Engine 24+ and Docker Compose v2
-- A Fleet license key (issued at checkout once live billing is enabled — `rui_forge_...`)
+- A Fleet license key, an EdDSA-signed JWT issued at checkout once live billing is enabled
 - A domain you control (e.g. `admin.acme.com`)
 - Stripe keys for billing (if you want to use the billing stack)
 - A NeonDB or PostgreSQL 16 database URL
@@ -68,7 +68,7 @@ POSTGRES_URL=postgresql://user:pass@db:5432/revealui
 REVEALUI_SECRET=<32+ char random string>
 
 # Fleet license
-REVFORGE_LICENSE_KEY=rui_forge_...
+REVFORGE_LICENSE_KEY=eyJhbGciOiJFZERTQSIs...
 REVFORGE_LICENSED_DOMAIN=admin.acme.com
 
 # Admin URL (used by API for redirects)
@@ -113,7 +113,7 @@ All Fleet-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VA
 
 | Variable | Required | Description |
 |---|---|---|
-| `REVFORGE_LICENSE_KEY` | Yes | Your Fleet license JWT (`rui_forge_...`) |
+| `REVFORGE_LICENSE_KEY` | Yes | Your Fleet license JWT (`eyJhbGciOiJFZERTQSIs...`) |
 | `REVFORGE_LICENSED_DOMAIN` | Yes | The domain this instance is locked to |
 | `POSTGRES_URL` | Yes | PostgreSQL 16 connection URL |
 | `REVEALUI_SECRET` | Yes | 32+ char application secret (session signing, CSRF, HMAC operations) |
