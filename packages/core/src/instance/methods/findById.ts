@@ -15,6 +15,8 @@ export async function findByID(
     id: string | number;
     depth?: number;
     req?: RevealRequest;
+    draft?: boolean;
+    overrideAccess?: boolean;
   },
 ): Promise<RevealDocument | null> {
   await ensureDbConnected();

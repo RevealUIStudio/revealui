@@ -17,6 +17,7 @@ import type {
   SanitizedCollectionConfig,
 } from '../../types/index.js';
 import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { publishedOnlyReadFilter } from './drafts.js';
 import { countDocumentsQuery, escapeIdentifier, listDocumentsQuery } from './sqlAdapter.js';
 
 /**
@@ -53,7 +54,16 @@ export async function find(
   db: QueryableDatabaseAdapter | null,
   options: RevealFindOptions,
 ): Promise<RevealPaginatedResult> {
-  const { where, limit = 10, page = 1, sort, depth = 0, req, populate: populateOption } = options;
+  const {
+    where,
+    limit = 10,
+    page = 1,
+    sort,
+    depth = 0,
+    req,
+    populate: populateOption,
+    draft = false,
+  } = options;
 
   // Validate depth
   if (depth < 0 || depth > 3) {
@@ -79,9 +89,23 @@ export async function find(
     };
   }
 
-  // Merge access-control WhereClause with user-provided where filter
-  const mergedWhere =
-    accessResult === true ? where : where ? { and: [where, accessResult] } : accessResult;
+  // Merge, with AND, three independent restrictions:
+  //   1. the user-provided where filter,
+  //   2. the access.read WhereClause (when access returned a clause, not `true`),
+  //   3. the drafts published-only filter (drafts-enabled collection, draft!==true).
+  // draft=true relaxes ONLY (3); it never removes (2), so a caller scoped to
+  // published content by access.read stays published-only even with draft=true.
+  const statusFilter = publishedOnlyReadFilter(config, draft);
+  const andClauses: RevealWhere[] = [];
+  if (where) andClauses.push(where);
+  if (accessResult !== true) andClauses.push(accessResult);
+  if (statusFilter) andClauses.push(statusFilter);
+  const mergedWhere: RevealWhere | undefined =
+    andClauses.length === 0
+      ? undefined
+      : andClauses.length === 1
+        ? andClauses[0]
+        : { and: andClauses };
 
   // Replace where in options for downstream use.
   // When access returned a WhereClause (not just boolean true), set overrideAccess: true
@@ -110,7 +134,7 @@ export async function find(
               currentDepth: 1,
               depth,
               doc,
-              draft: false,
+              draft,
               fallbackLocale: req.fallbackLocale || 'en',
               findMany: true,
               flattenLocales: true,
@@ -247,7 +271,7 @@ export async function find(
             currentDepth: 1,
             depth,
             doc,
-            draft: false,
+            draft,
             fallbackLocale: req.fallbackLocale || 'en',
             findMany: true,
             flattenLocales: true,
