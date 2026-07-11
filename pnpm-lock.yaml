@@ -294,6 +294,12 @@ importers:
       '@electric-sql/client':
         specifier: ^1.5.23
         version: 1.5.23
+      '@fontsource-variable/inter':
+        specifier: ^5.2.5
+        version: 5.2.8
+      '@fontsource-variable/inter-tight':
+        specifier: ^5.2.5
+        version: 5.2.7
       '@revealui/ai':
         specifier: workspace:^
         version: link:../../packages/ai

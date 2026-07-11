@@ -67,8 +67,12 @@
   --color-mist-950: oklch(14.8% 0.004 228.8);
 
   /* RevealUI Theme - Typography */
-  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
+  /* Self-hosted variable fonts (@fontsource-variable/*, imported in the
+   * (frontend) layout) register under the "* Variable" family names, so each
+   * stack leads with those; the Google names stay as fallbacks. The admin CSP
+   * (lib/security/csp.ts) no longer allows third-party font hosts. GAP-324. */
+  --font-display: 'Inter Tight Variable', 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
 
   /* Custom Colors (Keep existing for compatibility) */
   --color-scrapBlack: #020617;

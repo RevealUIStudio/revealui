@@ -11,6 +11,8 @@ import { Footer } from '@/lib/globals/Footer/Component';
 import { Header } from '@/lib/globals/Header/Component';
 import { Providers } from '@/lib/providers';
 import { InitTheme } from '@/lib/providers/Theme/InitTheme';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/inter-tight';
 import '@revealui/presentation/tokens.css';
 import './styles.css';
 
@@ -34,8 +36,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Customers with light brand colours must override this with a dark value (e.g. '#0f172a')
   // to maintain WCAG contrast — there is no automatic contrast computation by design.
   const brandOnColor = process.env.REVEALUI_TENANT_BRAND_ON ?? 'white';
-  // Optional tenant font family — must already be loaded as a stylesheet (see <link> tags below).
-  // Built-in supported values today: 'Inter', 'Inter Tight'. Unset → falls back to Inter Tight.
+  // Optional tenant font family. Inter / Inter Tight ship self-hosted (see the
+  // @fontsource-variable imports at the top of this file); a CUSTOM tenant font
+  // must be loaded by the tenant. The body fallback below leads with the tenant
+  // value then the self-hosted "* Variable" families, so a built-in value like
+  // 'Inter Tight' still resolves without any third-party font host. Unset → the
+  // default self-hosted stack via --font-sans.
   const tenantFont = process.env.REVEALUI_TENANT_FONT?.trim();
   // Fleet kits hide the RevealUI-branded Header/Footer by default. Customer-side
   // navigation/footer is out of scope for v1; future work can expose a tenant
@@ -53,17 +59,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <InitTheme nonce={nonce} />
           <link href="/favicon.ico" rel="icon" sizes="32x32" />
           <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
-          {/* RevealUI Theme Fonts */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap"
-            rel="stylesheet"
-          />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-            rel="stylesheet"
-          />
+          {/* RevealUI Theme Fonts are self-hosted via @fontsource-variable/*
+              (imported at the top of this layout); no third-party font hosts. GAP-324. */}
           {primaryColor || tenantFont ? (
             <style
               // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; both values are server-side env vars, no user-html injection surface
@@ -76,7 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   tenantFont ? `--tenant-font: '${tenantFont}';` : '',
                   '}',
                   tenantFont
-                    ? `body { font-family: var(--tenant-font), system-ui, -apple-system, sans-serif; }`
+                    ? `body { font-family: var(--tenant-font), 'Inter Tight Variable', 'Inter Variable', system-ui, -apple-system, sans-serif; }`
                     : '',
                 ]
                   .filter(Boolean)
