@@ -7,9 +7,13 @@ vi.mock('@revealui/auth/react', () => ({
 }));
 
 const mockPush = vi.fn();
+// Stable reference, matching real next/navigation useRouter(). A fresh object
+// per render would make effects that list `router` in their deps re-fire on
+// every re-render, which does not happen in production.
+const mockRouter = { push: mockPush };
 let searchParams = new URLSearchParams();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => mockRouter,
   useSearchParams: () => searchParams,
 }));
 
@@ -26,6 +30,11 @@ vi.mock('@/lib/utils/safe-stripe-redirect', () => ({
   safeStripeRedirect: (url: string) => mockSafeStripeRedirect(url),
 }));
 
+const mockLoggerError = vi.fn();
+vi.mock('@revealui/utils/logger', () => ({
+  logger: { error: (...args: unknown[]) => mockLoggerError(...args) },
+}));
+
 import BillingPage from '../page';
 
 afterEach(() => {
@@ -39,7 +48,7 @@ beforeEach(() => {
 });
 
 describe('BillingPage checkout hardening', () => {
-  it('retries the subscription fetch once before giving up', async () => {
+  it('retries the subscription fetch after a transient failure', async () => {
     let subscriptionCalls = 0;
     global.fetch = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
@@ -63,6 +72,28 @@ describe('BillingPage checkout hardening', () => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
     expect(screen.queryByText(/could not load your subscription/)).not.toBeInTheDocument();
+  });
+
+  it('bounds the retry at three attempts and logs the persistent failure', async () => {
+    searchParams = new URLSearchParams('upgrade=pro');
+    let subscriptionCalls = 0;
+    global.fetch = vi.fn((input: RequestInfo | URL) => {
+      if (String(input).includes('/api/billing/subscription')) {
+        subscriptionCalls += 1;
+      }
+      return Promise.reject(new Error('network down'));
+    });
+
+    render(<BillingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/could not load your subscription/)).toBeInTheDocument();
+    });
+    expect(subscriptionCalls).toBe(3);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'Billing subscription fetch failed after retries',
+      expect.objectContaining({ attempts: 3, plan: 'pro' }),
+    );
   });
 
   it('never auto-fires checkout when subscription data never loaded', async () => {
