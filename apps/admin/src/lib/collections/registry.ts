@@ -13,14 +13,10 @@
  */
 
 import type { CollectionConfig } from '@revealui/contracts/admin';
-import Banners from './Banners';
-import Cards from './Cards';
 import Categories from './Categories';
 import Contents from './Contents';
 import { Conversations } from './Conversations';
 import Events from './Events';
-import Heros from './Heros';
-import Layouts from './Layouts';
 import { Media } from './Media';
 import { Orders } from './Orders';
 import { Pages } from './Pages/index';
@@ -37,19 +33,15 @@ export const allCollections = [
   Tenants,
   Pages,
   Media,
-  Layouts,
   Contents,
   Categories,
   Tags,
   Events,
-  Cards,
-  Heros,
   Products,
   Prices,
   Orders,
   Posts,
   Subscriptions,
-  Banners,
   Conversations,
   // biome-ignore lint/suspicious/noExplicitAny: heterogeneous collection array requires invariant generic
 ] as CollectionConfig<any>[];

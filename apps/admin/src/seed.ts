@@ -175,36 +175,6 @@ const sampleContent = {
         'Users. Content. Products. Payments. Intelligence. Every action by every human and every agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain. Define once; both audiences operate immediately.',
     },
   ],
-  cards: [
-    {
-      name: 'Quick Start',
-      label: 'Get Running',
-      cta: 'npx create-revealui',
-      href: '/getting-started',
-      loading: 'eager' as const,
-    },
-    {
-      name: 'Documentation',
-      label: 'Learn More',
-      cta: 'Read the Docs',
-      href: '/docs',
-      loading: 'lazy' as const,
-    },
-    {
-      name: 'Pro Tier',
-      label: 'AI Agents',
-      cta: 'Explore Pro',
-      href: '/docs/pro',
-      loading: 'lazy' as const,
-    },
-  ],
-  heros: [
-    {
-      href: 'https://revealui.com',
-      altText: 'RevealUI, agentic business runtime',
-      video: 'https://revealui.com',
-    },
-  ],
   events: [
     {
       title: 'LAUNCH',
@@ -219,25 +189,6 @@ const sampleContent = {
       description:
         'You build the product. Agents extend it. Bring your own model: default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) so the inference bill does not scale with usage; switch to Claude or GPT in one config line. The runtime is provider-agnostic.',
       alt: 'RevealUI agentic vision',
-    },
-  ],
-  banners: [
-    {
-      heading: 'Stop building the backend. Ship the AI business.',
-      subheading: 'Open-source. Self-hostable. Audit-grade.',
-      description:
-        'Auth, billing, content, and agents - wired, audited, yours. Five primitives, one audit log, one policy plane. From npx create-revealui to first paying customer in a weekend.',
-      cta: 'Get Started',
-      highlight: 'Open Source',
-      punctuation: '.',
-      alt: 'RevealUI banner',
-      link: { href: '/getting-started', text: 'Start Building' },
-      stats: [
-        { label: 'Packages', value: '26' },
-        { label: 'MCP Servers', value: '13' },
-        { label: 'UI Components', value: '58' },
-        { label: 'MIT', value: '20/26' },
-      ],
     },
   ],
 };
@@ -322,10 +273,7 @@ async function seedPages(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
 
 async function seedContent(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
   await seedCollection(revealui, 'contents', sampleContent.contents, 'name', 'Contents');
-  await seedCollection(revealui, 'cards', sampleContent.cards, 'name', 'Cards');
-  await seedCollection(revealui, 'heros', sampleContent.heros, 'href', 'Heros');
   await seedCollection(revealui, 'events', sampleContent.events, 'title', 'Events');
-  await seedCollection(revealui, 'banners', sampleContent.banners, 'heading', 'Banners');
 }
 
 // --- Main ---
