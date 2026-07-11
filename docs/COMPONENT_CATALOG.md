@@ -7,27 +7,31 @@ category: reference
 audience: developer
 ---
 
-**Last Updated:** 2026-05-02
+**Last Updated:** 2026-07-11
 **Packages:** `@revealui/presentation`, `@revealui/core`
-**Total Components:** 80 across both packages — **59 in `@revealui/presentation`** (the standalone UI library) plus 21 admin / richtext components in `@revealui/core`.
+**Total Components:** **61 native components in `@revealui/presentation`** (this catalog also documents admin and rich-text UI in `@revealui/core`, listed separately below).
+
+> Counting rule (enforced in CI by `pnpm validate:claims`; canonical source `scripts/validate/claim-drift.ts` `countUIComponents()`, canonical value in `apps/marketing/app/content/site.ts` `METRICS`): the 61 figure counts `.tsx` files directly in `packages/presentation/src/components/`, excluding `_`-prefixed internal helpers. The package's `packages/presentation/src/primitives/` subpath (Box, Flex, Grid, Text, Heading, Slot; 6 files, listed under Primitives below) ships from the same package but is a separate directory the validator does not scan, so it is not part of the 61. `@revealui/core` admin/rich-text counts below are catalog-maintained, not CI-gated.
 
 ---
 
 ## Table of Contents
 
 ### Presentation Components (@revealui/presentation)
-1. [Primitives](#primitives) (6 components)
-2. [Form Controls](#form-controls) (14 components)
-3. [Data Display](#data-display) (8 components)
-4. [Navigation](#navigation) (4 components)
-5. [Feedback](#feedback) (3 components)
-6. [Layout](#layout) (4 components)
+1. [Primitives](#primitives) (6 components, `primitives/` subpath)
+2. [Form Controls](#form-controls) (17 components)
+3. [Data Display](#data-display) (14 components)
+4. [Navigation](#navigation) (7 components)
+5. [Feedback](#feedback) (8 components)
+6. [Layout](#layout) (5 components)
 7. [Headless Components](#headless-components) (5 components)
+8. [Utility & Brand](#utility--brand) (5 components)
 
 ### Core Components (@revealui/core)
-8. [Admin Dashboard Components](#admin-admin-components) (3 components)
-9. [Admin UI Components](#admin-ui-components) (8 components)
-10. [Rich Text Editor](#rich-text-editor) (7 components)
+9. [Admin Dashboard Components](#admin-dashboard-components) (4 components)
+10. [Admin UI Components](#admin-ui-components) (8 components)
+11. [admin Hooks](#admin-hooks) (3 hooks)
+12. [Rich Text Editor](#rich-text-editor) (10 components)
 
 ---
 
@@ -170,9 +174,11 @@ import { Slot } from '@revealui/presentation/primitives'
 
 Interactive form input components.
 
-### Button
+### Button (exported as `ButtonCVA`)
 
-Primary action button with variants.
+Brand-token-driven button with `variant`/`size` props; re-themes automatically with the active brand token (`--rvui-brand`). This is the canonical button used across the marketing, admin, and docs apps. Source: `Button.tsx`.
+
+> Naming note (verified against `packages/presentation/src/components/index.ts`): this component is exported as **`ButtonCVA`**, not bare `Button`. The bare `Button` export resolves to a different, Catalyst-style `color`-prop button from `button-headless.tsx`. See [button-headless](#button-headless) below. This is an intentional package-wide `*CVA` naming convention, not a typo; importing `Button` when you want variant/size props is the most common integration mistake this catalog can prevent.
 
 **Props:**
 ```typescript
@@ -180,45 +186,48 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'destructive' | 'ghost' | 'link' | 'outline' | 'primary' | 'secondary'
   size?: 'default' | 'sm' | 'lg' | 'icon' | 'clear'
   asChild?: boolean
+  isLoading?: boolean
+  glow?: boolean   // brand-glow halo for emphasis CTAs
+  shine?: boolean  // hover light-sweep; ignored when asChild is set
 }
 ```
 
 **Variants:**
-- `default` - Primary blue button
-- `destructive` - Red button for dangerous actions
+- `default` - Primary token-driven button
+- `destructive` - Destructive-token button for dangerous actions
 - `ghost` - Transparent button
 - `link` - Text link style
 - `outline` - Outlined button
-- `primary` - Primary accent
+- `primary` - Primary accent (alias of `default`)
 - `secondary` - Secondary accent
 
 **Sizes:**
-- `default` - h-10 px-4 py-2
-- `sm` - h-9 px-3
-- `lg` - h-11 px-8
-- `icon` - size-10 (square)
+- `default` - h-11 px-4 py-2.5
+- `sm` - h-10 px-3
+- `lg` - h-12 px-8 py-3
+- `icon` - size-11 (square)
 - `clear` - No size styling
 
 **Usage:**
 ```tsx
-import { Button } from '@revealui/presentation'
+import { Button as ButtonCVA } from '@revealui/presentation'
 
-<Button variant="primary" size="lg">
+<ButtonCVA variant="primary" size="lg">
   Click Me
-</Button>
+</ButtonCVA>
 
-<Button variant="destructive" size="sm">
+<ButtonCVA variant="destructive" size="sm">
   Delete
-</Button>
+</ButtonCVA>
 
-<Button variant="ghost" size="icon">
+<ButtonCVA variant="ghost" size="icon">
   <IconSearch />
-</Button>
+</ButtonCVA>
 
 // Render as child element
-<Button asChild>
+<ButtonCVA asChild>
   <a href="/link">Link Button</a>
-</Button>
+</ButtonCVA>
 ```
 
 ---
@@ -238,6 +247,10 @@ interface LinkButtonOwnProps {
   size?: 'default' | 'sm' | 'lg' | 'icon' | 'clear'
   /** Show a loading spinner and disable interaction. Sets aria-busy="true". */
   isLoading?: boolean
+  /** Brand-glow halo for emphasis CTAs, driven by the `--rvui-shadow-glow` token. */
+  glow?: boolean
+  /** Subtle light sweep across the button on hover. */
+  shine?: boolean
   /** Visually disabled + ARIA-disabled. Anchor href preserved; click prevented; tabIndex=-1. */
   disabled?: boolean
   className?: string
@@ -338,11 +351,18 @@ import { Textarea } from '@revealui/presentation'
 
 ### Select
 
-Dropdown select input.
+Native `<select>` wrapper (headless-styled). Renders a real `<select>` element, so native props (`defaultValue`, `<option>` children, etc.) work as expected.
+
+> Naming note (verified against `packages/presentation/src/components/index.ts`): the bare `Select` export resolves to `select-headless.tsx` (this entry). A separate Radix-style compound select (`Select`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectValue`, `SelectGroup`, `SelectLabel`, `SelectSeparator`) lives in `Select.tsx` and is exported as **`SelectCVA`**, following the same bare-name-vs-`*CVA` convention as `Button`/`ButtonCVA`.
 
 **Props:**
 ```typescript
-extends React.SelectHTMLAttributes<HTMLSelectElement>
+type SelectProps = {
+  className?: string
+  multiple?: boolean
+  disabled?: boolean
+  invalid?: boolean
+} & Omit<React.ComponentPropsWithoutRef<'select'>, 'className'>
 ```
 
 **Usage:**
@@ -360,11 +380,16 @@ import { Select } from '@revealui/presentation'
 
 ### Checkbox
 
-Checkbox input with label support.
+Checkbox input with label support. Controlled via `checked`/`onCheckedChange`, not the native `checked`/`onChange` pair. Those are omitted from the base `InputHTMLAttributes` extension and replaced.
 
 **Props:**
 ```typescript
-extends React.InputHTMLAttributes<HTMLInputElement>
+interface CheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'checked' | 'defaultChecked' | 'type' | 'onChange'> {
+  checked?: boolean
+  defaultChecked?: boolean
+  onCheckedChange?(checked: boolean | 'indeterminate'): void
+}
 ```
 
 **Usage:**
@@ -373,6 +398,9 @@ import { Checkbox } from '@revealui/presentation'
 
 <Checkbox id="terms" defaultChecked />
 <label htmlFor="terms">Accept terms</label>
+
+// Controlled
+<Checkbox checked={accepted} onCheckedChange={(checked) => setAccepted(checked === true)} />
 ```
 
 ---
@@ -525,13 +553,44 @@ import { Dropdown, DropdownMenu, DropdownItem } from '@revealui/presentation'
 
 ---
 
+### Additional Form Controls
+
+Present in `packages/presentation/src/components/` but not yet given a full props/usage writeup here. Verify props against source before use.
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `FormField` | `form-field.tsx` | Wraps a label, an input/select/textarea, an error message, and helper text; links label to input via a shared `id`. |
+| `Rating` | `rating.tsx` | Star-style rating input/display. |
+| `Slider` | `slider.tsx` | Range input control. |
+| `SelectCVA` | `Select.tsx` | Radix-style compound select (`SelectCVA`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectValue`, `SelectGroup`, `SelectLabel`, `SelectSeparator`, `SelectScrollUpButton`, `SelectScrollDownButton`). See the naming note under [Select](#select) above. |
+
+---
+
 ## Headless Components
 
 Unstyled, accessible components for custom styling.
 
 ### button-headless
 
-Headless button primitive.
+Catalyst-style button with its own `color` / `outline` / `plain` palette system (20 fixed color palettes). Used internally to compose `Dropdown`. **This is what the bare `Button` export resolves to.** See the naming note under [Button (exported as `ButtonCVA`)](#button) above.
+
+**Props:**
+```typescript
+type ButtonProps =
+  | { color?: <one of 20 fixed palette keys>; outline?: never; plain?: never }
+  | { color?: never; outline: true; plain?: never }
+  | { color?: never; outline?: never; plain: true }
+```
+`color`, `outline`, and `plain` are mutually exclusive (enforced at the type level).
+
+**Usage:**
+```tsx
+import { Button } from '@revealui/presentation'
+
+<Button color="dark/zinc">Save</Button>
+<Button outline>Cancel</Button>
+<Button plain>Dismiss</Button>
+```
 
 **Location:** `@revealui/presentation/components/button-headless`
 
@@ -664,27 +723,51 @@ import {
 
 ### Avatar
 
-User avatar component.
+User avatar component. Falls back to `initials` when `src` is omitted or fails to load. Also exports `AvatarButton` (same props, renders as a clickable button/link).
+
+**Props:**
+```typescript
+type AvatarProps = {
+  src?: string | null
+  square?: boolean
+  initials?: string
+  alt?: string
+  className?: string
+}
+```
 
 **Usage:**
 ```tsx
-import { Avatar } from '@revealui/presentation'
+import { Avatar, AvatarButton } from '@revealui/presentation'
 
 <Avatar src="/avatar.jpg" alt="User Name" />
+<Avatar initials="JV" square alt="Joshua Vaughn" />
+<AvatarButton src="/avatar.jpg" alt="User Name" onClick={openMenu} />
 ```
 
 ---
 
 ### Badge
 
-Badge component for status indicators.
+Badge component for status indicators. Also exports `BadgeButton` (same color palette, renders as a clickable button or, with `href`, an anchor).
+
+**Props:**
+```typescript
+type BadgeProps = {
+  color?: 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan'
+    | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia' | 'pink' | 'rose' | 'zinc'
+    | 'brand' | 'success' | 'warning' | 'danger' | 'muted'  // default 'zinc'
+} & React.ComponentPropsWithoutRef<'span'>
+```
 
 **Usage:**
 ```tsx
-import { Badge } from '@revealui/presentation'
+import { Badge, BadgeButton } from '@revealui/presentation'
 
 <Badge>New</Badge>
 <Badge color="lime">Active</Badge>
+<Badge color="danger">Failed</Badge>
+<BadgeButton color="brand" href="/billing">Upgrade</BadgeButton>
 ```
 
 ---
@@ -734,6 +817,21 @@ import { Code, Strong, Text, TextLink } from '@revealui/presentation'
   or <TextLink href="/docs">inline link</TextLink>.
 </Text>
 ```
+
+---
+
+### Additional Data Display Components
+
+Present in `packages/presentation/src/components/` but not yet given a full props/usage writeup here. Verify props against source before use.
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `Accordion` / `AccordionItem` | `accordion.tsx` | Collapsible disclosure panels for showing/hiding grouped content. |
+| `AvatarGroup` | `avatar-group.tsx` | Stacks multiple `Avatar` components with overlap and an optional "+N" overflow indicator. |
+| `CodeBlock` | `code-block.tsx` | Syntax-highlighted code display with copy-to-clipboard. |
+| `PricingTable` | `pricing-table.tsx` | Plan/tier comparison table; highlights the active tier and reports tier selection via a callback. |
+| `Stat` | `stat.tsx` | Labeled numeric/metric display (KPI tile). |
+| `Timeline` / `TimelineItem` | `timeline.tsx` | Vertical timeline of dated events. |
 
 ---
 
@@ -803,6 +901,18 @@ import { Pagination } from '@revealui/presentation'
   onPageChange={(page) => console.log(page)}
 />
 ```
+
+---
+
+### Additional Navigation Components
+
+Present in `packages/presentation/src/components/` but not yet given a full props/usage writeup here. Verify props against source before use.
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `Breadcrumb` | `breadcrumb.tsx` | Hierarchical page-path navigation trail. |
+| `Stepper` | `stepper.tsx` | Multi-step progress indicator for wizards and flows. |
+| `Tabs` | `tabs.tsx` | Tabbed panel navigation. |
 
 ---
 
@@ -892,6 +1002,54 @@ import {
 
 ---
 
+### Toast
+
+Global toast notification queue, mounted via a portal to `document.body`.
+
+**Package:** `@revealui/presentation`
+
+**API:**
+```typescript
+function ToastProvider({ children }: { children: React.ReactNode }): React.ReactElement
+
+function useToast(): {
+  addToast: (toast: { title: string; description?: string; variant?: 'default' | 'success' | 'error' | 'warning' | 'info'; duration?: number }) => string
+  removeToast: (id: string) => void
+}
+```
+
+**Usage:**
+```tsx
+import { ToastProvider, useToast } from '@revealui/presentation'
+
+// Once, near the app root:
+<ToastProvider>
+  <App />
+</ToastProvider>
+
+// From any descendant:
+const { addToast } = useToast();
+addToast({ title: 'Saved', description: 'Your changes were saved.', variant: 'success' });
+```
+
+`useToast` throws if called outside a `ToastProvider`. Toasts auto-dismiss after `duration` ms (default 5000; pass `0` to persist until dismissed).
+
+---
+
+### Additional Feedback Components
+
+Present in `packages/presentation/src/components/` but not yet given a full props/usage writeup here. Verify props against source before use.
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `Callout` | `callout.tsx` | Inline highlighted message box (`info` / `warning` / `error` / `success` / `tip` variants). |
+| `Tooltip` | `tooltip.tsx` | Hover/focus-triggered contextual label. |
+| `Drawer` / `DrawerHeader` / `DrawerBody` / `DrawerFooter` | `drawer.tsx` | Slide-in side-panel overlay. |
+| `Skeleton` / `SkeletonText` / `SkeletonCard` | `skeleton.tsx` | Loading-state placeholder blocks. |
+| `Progress` | `progress.tsx` | Determinate/indeterminate progress bar. |
+
+---
+
 ## Layout
 
 Page layout components.
@@ -938,6 +1096,31 @@ import { StackedLayout } from '@revealui/presentation'
   {/* Stacked content sections */}
 </StackedLayout>
 ```
+
+---
+
+### Additional Layout Components
+
+Present in `packages/presentation/src/components/` but not yet given a full props/usage writeup here. Verify props against source before use.
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `EmptyState` | `empty-state.tsx` | Placeholder for empty lists/collections with an optional icon and action. |
+| `SplitAuthLayout` | `split-auth-layout.tsx` | Two-panel auth screen layout (brand panel + form panel) with responsive stacking. |
+
+---
+
+## Utility & Brand
+
+Low-level display helpers and brand assets that ship from `packages/presentation/src/components/` but don't fit the categories above. Verify props against source before use.
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| `IconChevronDown`, `IconCheck`, `IconAlertCircle`, etc. | `icon.tsx` | Icon set of 40+ stroke icons sharing a common 24x24 base wrapper. |
+| `Kbd` / `KbdShortcut` | `kbd.tsx` | Styled keyboard-key label for documenting shortcuts. |
+| `RevealUIMark` | `brand-mark.tsx` | The RevealUI logomark (faceted "R"); inherits `currentColor`. |
+| `RevealUIWordmark` | `wordmark.tsx` | Logomark plus "RevealUI" wordmark lockup; the text is real HTML, not SVG, so it inherits page fonts. |
+| `BuiltWithRevealUI` | `BuiltWithRevealUI.tsx` | "Built with RevealUI" attribution badge; positionable inline or fixed to a corner, with a light/dark color scheme. |
 
 ---
 
@@ -1040,6 +1223,38 @@ import { DocumentForm } from '@revealui/core/client/admin'
   onSave={handleSave}
   onCancel={handleCancel}
   saving={isSaving}
+/>
+```
+
+---
+
+### GlobalForm
+
+Form for creating/editing RevealUI global (singleton) documents.
+
+**Package:** `@revealui/core/client/admin`
+
+**Props:**
+```typescript
+interface GlobalFormProps {
+  global: RevealGlobalConfig
+  document?: RevealDocument
+  onSave: (data: Record<string, unknown>) => void
+  onCancel: () => void
+  isLoading?: boolean
+}
+```
+
+**Usage:**
+```tsx
+import { GlobalForm } from '@revealui/core/client/admin'
+
+<GlobalForm
+  global={globalConfig}
+  document={existingDoc}
+  onSave={handleSave}
+  onCancel={handleCancel}
+  isLoading={isSaving}
 />
 ```
 
@@ -1447,6 +1662,18 @@ Plugin for image upload and management.
 
 ---
 
+### Additional Rich Text Editor Plugins
+
+Present in `packages/core/src/client/richtext/plugins/` but not yet given a full features/usage writeup here. Verify against source before use.
+
+| Plugin | Purpose |
+|--------|---------|
+| `CollaborationPlugin` | Wires Lexical to a Yjs CRDT provider for real-time collaborative editing, including agent/human cursor presence. |
+| `CursorsOverlayPlugin` | Renders and fades remote collaborator cursor overlays; times out inactive cursors. |
+| `PastePlugin` | Sanitizes and converts pasted HTML clipboard content into Lexical nodes; blocks `javascript:`/`vbscript:`/`data:` URLs. |
+
+---
+
 ## Component Patterns
 
 ### Composition with `asChild`
@@ -1541,20 +1768,31 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (61 components)
-- 6 Primitives (Box, Flex, Grid, Text, Heading, Slot)
-- 14 Form Controls (Button, LinkButton, Input, Textarea, Select, Checkbox, Radio, etc.)
-- 8 Data Display (Card, Table, Avatar, Badge, etc.)
-- 4 Navigation (Link, Navbar, Sidebar, Pagination)
-- 3 Feedback (Alert, Dialog, Toast)
-- 4 Layout (auth-layout, sidebar-layout, stacked-layout, empty-state)
-- 5 Headless variants
+### @revealui/presentation (61 components in `components/`, per the validated count; plus 6 in the separate `primitives/` subpath)
+- 6 Primitives (Box, Flex, Grid, Text, Heading, Slot), `primitives/` subpath, not counted in the 61
+- 17 Form Controls (Button, LinkButton, Input, Textarea, Select, Checkbox, Radio, Switch, Label, FormLabel, Fieldset, Combobox, Listbox, Dropdown, FormField, Rating, Slider)
+- 14 Data Display (Card, Table, Description List, Avatar, Badge, Divider, Heading, Text, Accordion, AvatarGroup, CodeBlock, PricingTable, Stat, Timeline)
+- 7 Navigation (Link, Navbar, Sidebar, Pagination, Breadcrumb, Stepper, Tabs)
+- 8 Feedback (Alert, Dialog, Toast, Callout, Tooltip, Drawer, Skeleton, Progress)
+- 5 Layout (auth-layout, sidebar-layout, stacked-layout, EmptyState, SplitAuthLayout)
+- 5 Headless variants (button, input, textarea, select, checkbox)
+- 5 Utility & Brand (Icon set, Kbd, RevealUIMark, RevealUIWordmark, BuiltWithRevealUI)
 
-### @revealui/core (21 components)
-- 3 Admin Components (AdminDashboard, CollectionList, DocumentForm)
+### @revealui/core (25 components, catalog-maintained, not CI-gated)
+- 4 Admin Dashboard Components (AdminDashboard, CollectionList, DocumentForm, GlobalForm)
 - 8 Admin UI Components (TextInput, Button, SelectInput, Textarea, Checkbox, FieldLabel, ModalProvider, FieldsDrawer)
-- 7 Rich Text Editor (RichTextEditor, ImageNode, ImageNodeComponent, ImageUploadButton, ToolbarPlugin, FloatingToolbarPlugin, ImagePlugin)
+- 10 Rich Text Editor (RichTextEditor, ImageNode, ImageNodeComponent, ImageUploadButton, ToolbarPlugin, FloatingToolbarPlugin, ImagePlugin, CollaborationPlugin, CursorsOverlayPlugin, PastePlugin)
 - 3 Form Hooks (useFormFields, useField, useModal)
+
+---
+
+## Prop-Table Verification Scope
+
+This pass (2026-07-11) verified every per-component entry in `packages/presentation/src/components/` against real source files (61 files) and added rows for the 25 that had no catalog entry. Full prop tables were spot-verified against TypeScript source for the 10 most-used components (by import frequency across `apps/`): `Label`, `Input`, `Button` (`ButtonCVA`), `Badge`, `Card`, `Select`, `Textarea`, `LinkButton`, `Checkbox`, `Avatar`. Four of those ten had real drift, now fixed: `Button`/`Select` were documented under the wrong export name (see the naming notes on each entry), and `LinkButton`/`Checkbox`/`Avatar`/`Badge` prop tables were missing real props (`glow`, `shine`, `onCheckedChange`, `square`, `initials`, the full color union, `AvatarButton`, `BadgeButton`).
+
+The remaining detailed entries (`Box`, `Flex`, `Grid`, `Text`, `Heading`, `Slot`, `Input`, `Textarea`, `Radio`, `Switch`, `Label`, `FormLabel`, `Fieldset`, `Combobox`, `Listbox`, `Dropdown`, headless variants, `Table`, `Description List`, `Divider`, `Heading`/`Text` (Component), `Link`, `Navbar`, `Sidebar`, `Pagination`, `Alert`, `Dialog`, `Toast`, layout components, and the `@revealui/core` admin/rich-text entries) are carried forward from the prior pass, not re-verified line-by-line in this sweep. The 25 newly added rows (in the "Additional \<Category\> Components" tables) intentionally carry name + one-line purpose only, no prop tables, so they don't imply a verification depth this pass didn't do.
+
+Prop tables regenerate against source, not against this document. When in doubt, read the linked `.tsx` file. It is always the source of truth (see the repo's code-over-docs convention).
 
 ---
 
@@ -1568,5 +1806,5 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ---
 
-**Last Updated:** 2026-05-02
-**Packages:** `@revealui/presentation` (61 components), `@revealui/core` (21 components)
+**Last Updated:** 2026-07-11
+**Packages:** `@revealui/presentation` (61 components, per the validated count; see the counting-rule note at the top of this document), `@revealui/core` (25 components, catalog-maintained)
