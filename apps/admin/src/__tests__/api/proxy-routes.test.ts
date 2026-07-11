@@ -88,13 +88,16 @@ function makeUpstreamError(status: number, text = 'upstream error') {
 describe('GET /api/globals/[slug]', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('proxies a 200 response from the API', async () => {
-    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ title: 'Home' }));
-    const req = new NextRequest('http://localhost/api/globals/home');
-    const res = await globalsGet(req, { params: Promise.resolve({ slug: 'home' }) });
+  it('forwards to /api/content/globals and unwraps { success, data } to { doc }', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({ success: true, data: { id: '1', schemaVersion: '1' } }),
+    );
+    const req = new NextRequest('http://localhost/api/globals/header');
+    const res = await globalsGet(req, { params: Promise.resolve({ slug: 'header' }) });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.title).toBe('Home');
+    expect(body.doc).toEqual({ id: '1', schemaVersion: '1' });
+    expect(String(mockFetch.mock.calls[0]?.[0])).toContain('/api/content/globals/header');
   });
 
   it('returns sanitized 404 when upstream returns 404', async () => {
@@ -132,17 +135,22 @@ describe('GET /api/globals/[slug]', () => {
 describe('POST /api/globals/[slug]', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('proxies a 200 POST response', async () => {
-    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ updated: true }));
-    const req = new NextRequest('http://localhost/api/globals/nav', {
+  it('forwards as PATCH to /api/content/globals and unwraps to { doc }', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({ success: true, data: { id: '1', schemaVersion: '1' } }),
+    );
+    const req = new NextRequest('http://localhost/api/globals/header', {
       method: 'POST',
-      body: JSON.stringify({ links: [] }),
+      body: JSON.stringify({ logoId: 'logo-1' }),
       headers: { 'Content-Type': 'application/json' },
     });
-    const res = await globalsPost(req, { params: Promise.resolve({ slug: 'nav' }) });
+    const res = await globalsPost(req, { params: Promise.resolve({ slug: 'header' }) });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.updated).toBe(true);
+    expect(body.doc).toEqual({ id: '1', schemaVersion: '1' });
+    const [url, init] = mockFetch.mock.calls[0] ?? [];
+    expect(String(url)).toContain('/api/content/globals/header');
+    expect((init as RequestInit).method).toBe('PATCH');
   });
 
   it('returns sanitized 403 for forbidden POST', async () => {

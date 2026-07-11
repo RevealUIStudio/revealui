@@ -28,13 +28,25 @@ function sanitizeErrorResponse(status: number): string {
   }
 }
 
+/**
+ * The canonical content endpoint returns `{ success, data }`; the admin client
+ * (packages/core client apiClient) consumes the engine-REST `{ doc }` shape.
+ * Adapt here so the dashboard global editor keeps its expected response.
+ */
+function unwrapGlobal(payload: unknown): unknown {
+  if (payload !== null && typeof payload === 'object' && 'data' in payload) {
+    return (payload as { data: unknown }).data;
+  }
+  return payload;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<NextResponse> {
-  // Fail-closed session gate, mirroring the collections list proxy. The api
-  // server enforces per-global permissions on the forwarded cookie, but this
-  // proxy must not forward at all without a validated session.
+  // Fail-closed session gate, mirroring the collections list proxy. The read
+  // side of the canonical endpoint is public, but this admin proxy only serves
+  // authenticated dashboard sessions, so it must not forward without one.
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -43,9 +55,12 @@ export async function GET(
   const { slug } = await params;
   const { searchParams } = new URL(request.url);
 
-  const apiResponse = await fetch(`${API_URL}/api/globals/${slug}?${searchParams.toString()}`, {
-    headers: await apiForwardHeaders(request),
-  });
+  const apiResponse = await fetch(
+    `${API_URL}/api/content/globals/${slug}?${searchParams.toString()}`,
+    {
+      headers: await apiForwardHeaders(request),
+    },
+  );
 
   if (!apiResponse.ok) {
     return NextResponse.json(
@@ -55,7 +70,7 @@ export async function GET(
   }
 
   const data = await apiResponse.json();
-  return NextResponse.json(data, { status: apiResponse.status });
+  return NextResponse.json({ doc: unwrapGlobal(data) }, { status: apiResponse.status });
 }
 
 export async function POST(
@@ -70,8 +85,8 @@ export async function POST(
   const { slug } = await params;
   const body = await request.json();
 
-  const apiResponse = await fetch(`${API_URL}/api/globals/${slug}`, {
-    method: 'POST',
+  const apiResponse = await fetch(`${API_URL}/api/content/globals/${slug}`, {
+    method: 'PATCH',
     headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
     body: JSON.stringify(body),
   });
@@ -84,5 +99,5 @@ export async function POST(
   }
 
   const data = await apiResponse.json();
-  return NextResponse.json(data, { status: apiResponse.status });
+  return NextResponse.json({ doc: unwrapGlobal(data) }, { status: apiResponse.status });
 }
