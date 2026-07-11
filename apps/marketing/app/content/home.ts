@@ -13,6 +13,7 @@
 // HOME_HERO's agency CTAs moved to the footer, its CLI block moved into
 // HOME_GET_STARTED.cli.
 
+import { SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
@@ -107,8 +108,7 @@ export const HOME_PROBLEM = {
       revealui: 'Hash-chained, in DB',
     },
   ] as readonly ProblemRow[],
-  footnote:
-    'Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is $49/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.',
+  footnote: `Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.`,
   // Quiet contextual link back to the receipt foil, near the audit-log row of
   // the comparison. Not a section, not a CTA button: one calm inline link.
   receiptsAudit: {

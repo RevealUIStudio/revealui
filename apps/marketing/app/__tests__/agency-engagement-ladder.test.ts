@@ -1,10 +1,10 @@
 /**
  * Drift gate: asserts that the agency engagement ladder
  * (`AGENCY_ENGAGEMENT_LADDER` in `app/content/for-operators.ts`) is the
- * single source of truth for the three published "from" anchors —
- * Architecture Review, Fleet deployment, Custom Build — and that every
- * marketing surface that displays them derives from it instead of
- * authoring the literals inline.
+ * single source of truth for the four published engagement anchors —
+ * Architecture Review, Launch Package, Fleet deployment, Custom Build —
+ * and that every marketing surface that displays them derives from it
+ * instead of authoring the literals inline.
  *
  * Failure mode the gate forbids: a future edit that re-introduces a
  * hand-typed "$25,000" or "$50,000" in any marketing content/* module
@@ -50,19 +50,21 @@ function countOccurrencesInCode(source: string, needle: string): number {
 }
 
 describe('AGENCY_ENGAGEMENT_LADDER — canonical anchors', () => {
-  it('pins the three published "from" anchors', () => {
+  it('pins the four published anchors, Launch Package between Architecture Review and Fleet deployment', () => {
     expect(AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, e.name, e.price, e.startsFrom])).toEqual([
       ['architecture-review', 'Architecture Review', '$3,500', false],
+      ['launch-package', 'Launch Package', '$7,500', false],
       ['fleet-deployment', 'Fleet deployment', '$25,000', true],
       ['custom-build', 'Custom Build', '$50,000', true],
     ]);
   });
 
-  it('renders Architecture Review as a flat price and the rest with a "from" prefix', () => {
+  it('renders Architecture Review and Launch Package as flat prices, and the rest with a "from" prefix', () => {
     const display = Object.fromEntries(
       AGENCY_ENGAGEMENT_LADDER.map((e) => [e.id, agencyEngagementPriceDisplay(e)]),
     );
     expect(display['architecture-review']).toBe('$3,500');
+    expect(display['launch-package']).toBe('$7,500');
     expect(display['fleet-deployment']).toBe('from $25,000');
     expect(display['custom-build']).toBe('from $50,000');
   });
@@ -116,7 +118,7 @@ describe('single ownership of agency-only price anchors', () => {
   }
 });
 
-describe('FOUNDER_SERVICE_OFFERINGS — founder-led services, NOT the agency ladder', () => {
+describe('FOUNDER_SERVICE_OFFERINGS — founder-led services menu', () => {
   it('does not include Fleet deployment or Custom Build', () => {
     const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
     expect(names).not.toContain('Fleet deployment');
@@ -129,20 +131,23 @@ describe('FOUNDER_SERVICE_OFFERINGS — founder-led services, NOT the agency lad
     expect(review?.price).toBe(ladderReview?.price);
   });
 
-  // $7,500 is the Launch Package price — founder-led services only. It must
-  // not leak into the agency-tier marketing surfaces (the analog of the
-  // $25,000 / $50,000 single-ownership rules above, in the opposite
-  // direction).
-  it('Launch Package price ($7,500) is owned exclusively by FOUNDER_SERVICE_OFFERINGS', () => {
+  // Launch Package is the second rung shared between the founder-led menu
+  // and the agency ladder (same pattern as Architecture Review above): both
+  // surfaces import LAUNCH_PACKAGE_PRICE from @revealui/contracts/pricing
+  // rather than re-authoring "$7,500", so this checks the two stay equal
+  // instead of asserting the literal never appears anywhere else.
+  it('agrees with the ladder on the shared Launch Package price', () => {
     const launch = FOUNDER_SERVICE_OFFERINGS.find((s) => s.id === 'launch-package');
+    const ladderLaunch = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'launch-package');
     expect(launch?.price).toBe('$7,500');
+    expect(launch?.price).toBe(ladderLaunch?.price);
   });
 
-  it('$7,500 does not appear in content/for-operators.ts code', () => {
+  it('$7,500 does not appear as a hand-typed literal in content/for-operators.ts code (imports LAUNCH_PACKAGE_PRICE instead)', () => {
     expect(countOccurrencesInCode(FOR_OPERATORS_SRC, '$7,500')).toBe(0);
   });
 
-  it('$7,500 does not appear in content/pricing.ts code', () => {
+  it('$7,500 does not appear as a hand-typed literal in content/pricing.ts code (band derives via import)', () => {
     expect(countOccurrencesInCode(PRICING_SRC, '$7,500')).toBe(0);
   });
 });
