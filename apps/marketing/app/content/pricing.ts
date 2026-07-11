@@ -13,6 +13,7 @@ export {
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 
+import { SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import {
   AGENCY_ENGAGEMENT_LADDER,
   type AgencyEngagement,
@@ -114,7 +115,11 @@ export const PRICING_COST_CALCULATOR = {
     },
   ] as const satisfies readonly CostTier[],
   rentedLabel: 'The rented stack',
-  revealui: { label: 'RevealUI', value: '$49 / month', sub: '+ your own Postgres and compute' },
+  revealui: {
+    label: 'RevealUI',
+    value: `${SUBSCRIPTION_PRICE_FALLBACKS.pro.price} / month`,
+    sub: '+ your own Postgres and compute',
+  },
   footnote:
     'A sourced estimate from current 2026 published pricing, time-sensitive. It excludes payment processing, and RevealUI is self-hosted, so you still pay for your own Postgres and compute. Figures are ranges, not a quote.',
 } as const;
@@ -195,7 +200,7 @@ export const PRICING_AGENT_CTA_LINKS = {
 // Done-for-you rung: surfaces the agency engagement ladder where the buying
 // decision happens, instead of a bare link out. Name + price derive from
 // content/for-operators.ts AGENCY_ENGAGEMENT_LADDER, the single source of
-// truth for the three published "from" anchors. Per-rung `note` copy is
+// truth for the published engagement anchors. Per-rung `note` copy is
 // surface-specific (band-voice, shorter than the agency-page rung body), so
 // only the name + price are reused. The discovery call doubles as the
 // mid-funnel capture for buyers who are not ready to self-serve (06-10
@@ -203,6 +208,8 @@ export const PRICING_AGENT_CTA_LINKS = {
 const DONE_FOR_YOU_RUNG_NOTES: Record<AgencyEngagementId, string> = {
   'architecture-review':
     'Fixed-bid written assessment of your project, schema, deployment, and security posture. Credited toward a Fleet deployment if you proceed within 30 days.',
+  'launch-package':
+    'Your RevealUI instance is set up, configured, and deployed to production, with a full handoff session included.',
   'fleet-deployment':
     'A branded, self-hosted RevealUI deployment for your business or your clients. Starting point, scoped in discovery.',
   'custom-build':

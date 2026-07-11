@@ -7,7 +7,7 @@
 // The future managed offering is named "RevealUI Cloud" (OQ-1) — referenced
 // only via the inline link to /for-operators/managed (Page 3, not this PR).
 
-import { ARCHITECTURE_REVIEW_PRICE } from '@revealui/contracts/pricing';
+import { ARCHITECTURE_REVIEW_PRICE, LAUNCH_PACKAGE_PRICE } from '@revealui/contracts/pricing';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
@@ -92,10 +92,12 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 
 // ---------------------------------------------------------------------------
 // Agency engagement ladder — single source of truth for the agency-only "from"
-// anchors RevealUI Studio offers (Fleet deployment, Custom Build). The shared
-// Architecture Review rung imports its price from @revealui/contracts/pricing
-// (`ARCHITECTURE_REVIEW_PRICE`) so the agency surface cannot drift from the
-// self-serve FOUNDER_SERVICE_OFFERINGS menu that also lists it.
+// anchors RevealUI Studio offers (Fleet deployment, Custom Build), plus the two
+// fixed-price entry rungs it shares with the self-serve founder-led menu
+// (Architecture Review, Launch Package). The shared rungs import their price
+// from @revealui/contracts/pricing (`ARCHITECTURE_REVIEW_PRICE`,
+// `LAUNCH_PACKAGE_PRICE`) so the agency surface cannot drift from the
+// self-serve FOUNDER_SERVICE_OFFERINGS menu that also lists them.
 //
 // Two surfaces consume the ladder: this file's FOR_OPERATORS_PRICING (the
 // agency page at /for-operators) and content/pricing.ts's PRICING_DONE_FOR_YOU
@@ -110,7 +112,11 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
 // __tests__/agency-engagement-ladder.test.ts.
 // ---------------------------------------------------------------------------
 
-export type AgencyEngagementId = 'architecture-review' | 'fleet-deployment' | 'custom-build';
+export type AgencyEngagementId =
+  | 'architecture-review'
+  | 'launch-package'
+  | 'fleet-deployment'
+  | 'custom-build';
 
 export interface AgencyEngagement {
   readonly id: AgencyEngagementId;
@@ -124,6 +130,12 @@ export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
     id: 'architecture-review',
     name: 'Architecture Review',
     price: ARCHITECTURE_REVIEW_PRICE,
+    startsFrom: false,
+  },
+  {
+    id: 'launch-package',
+    name: 'Launch Package',
+    price: LAUNCH_PACKAGE_PRICE,
     startsFrom: false,
   },
   { id: 'fleet-deployment', name: 'Fleet deployment', price: '$25,000', startsFrom: true },
@@ -142,6 +154,7 @@ function findEngagement(id: AgencyEngagementId): AgencyEngagement {
 }
 
 const ARCHITECTURE_REVIEW = findEngagement('architecture-review');
+const LAUNCH_PACKAGE = findEngagement('launch-package');
 const FLEET_DEPLOYMENT = findEngagement('fleet-deployment');
 const CUSTOM_BUILD = findEngagement('custom-build');
 
@@ -169,6 +182,12 @@ export const FOR_OPERATORS_PRICING = {
       price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
       body: 'A two-week, fixed-bid plan for a self-hosted, audited product your clients own: a reference architecture, a data-flow and audit map, a model plan, and a priced path to launch. Credited toward a Fleet deployment if you start one within 30 days.',
       cta: { label: 'Book the scoping call', href: AGENCY_CONTACT, external: true },
+    },
+    {
+      title: LAUNCH_PACKAGE.name,
+      price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
+      body: 'A fixed-bid setup, live in two to four weeks: we configure your RevealUI instance, deploy it to production, and hand you the keys with a full handoff session. The fastest path from a signed engagement to a live product you operate yourself.',
+      cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
     {
       title: FLEET_DEPLOYMENT.name,
@@ -235,7 +254,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer: `The discovery call scopes the engagement. A ${ARCHITECTURE_REVIEW.price} fixed-bid ${ARCHITECTURE_REVIEW.name} is the written-assessment starting point, and it credits toward what you build next. From there, ${FLEET_DEPLOYMENT.name}s start at ${FLEET_DEPLOYMENT.price} and ${CUSTOM_BUILD.name}s at ${CUSTOM_BUILD.price}; the discovery call scopes the final number.`,
+      answer: `The discovery call scopes the engagement. A ${ARCHITECTURE_REVIEW.price} fixed-bid ${ARCHITECTURE_REVIEW.name} is the written-assessment starting point, and it credits toward what you build next. A ${LAUNCH_PACKAGE.price} ${LAUNCH_PACKAGE.name} takes you from that plan to a live product in two to four weeks. From there, ${FLEET_DEPLOYMENT.name}s start at ${FLEET_DEPLOYMENT.price} and ${CUSTOM_BUILD.name}s at ${CUSTOM_BUILD.price}; the discovery call scopes the final number.`,
     },
     {
       question: 'How long does it take?',
