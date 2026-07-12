@@ -28,12 +28,18 @@ export {
   AuditReportGenerator,
   AuditSystem,
   AuditTrail,
+  AuditWriteError,
   audit,
   createAuditMiddleware,
   InMemoryAuditStorage,
   signAuditEntry,
   verifyAuditEntry,
 } from './audit.js';
+export type { AuditWriteFailureReason } from './audit-write-failures.js';
+export {
+  classifyAuditWriteFailure,
+  recordAuditWriteResult,
+} from './audit-write-failures.js';
 export type {
   OAuthConfig,
   User,

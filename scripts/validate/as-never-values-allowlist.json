@@ -1,0 +1,16 @@
+{
+  "$comment": "RevealUI audit-remediation Stage 0 as-never-values validator allowlist. Both entries are the two pre-existing broken audit_log writers (event/actor/meta columns that do not exist on the table; real columns are event_type/agent_id/payload) that Stage 0 deliberately does NOT fix — only makes their failure loud (see apps/admin/src/app/api/setup/route.ts and scripts/admin/bootstrap.ts catch blocks). Stage 1 fixes the column mapping and removes both entries.",
+  "version": 1,
+  "entries": [
+    {
+      "path": "apps/admin/src/app/api/setup/route.ts",
+      "line": 104,
+      "reason": "Stage 1 fixes the event/actor/meta -> event_type/agent_id/payload column mapping; Stage 0 only makes the write's failure loud (structured log + classified reason) instead of silently swallowing it."
+    },
+    {
+      "path": "scripts/admin/bootstrap.ts",
+      "line": 205,
+      "reason": "Stage 1 fixes the event/actor/meta -> event_type/agent_id/payload column mapping; Stage 0 only makes the write's failure loud (classified console.warn) instead of silently swallowing it."
+    }
+  ]
+}

@@ -21,6 +21,7 @@ import type { A2AJsonRpcRequest } from '@revealui/contracts';
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
+import { classifyAuditWriteFailure } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
@@ -1208,11 +1209,12 @@ a2a.openapi(
     // Fire-and-forget: persist task execution record to agentActions
     if (executionMethods.has(req.method)) {
       const status = taskState === 'failed' ? 'failed' : 'completed';
+      const actionId = crypto.randomUUID();
       void (async () => {
         try {
           const db = getClient();
           await db.insert(agentActions).values({
-            id: crypto.randomUUID(),
+            id: actionId,
             agentId: agentId ?? 'revealui-creator',
             tool: req.method,
             params: (req.params ?? null) as Record<string, unknown> | null,
@@ -1222,8 +1224,14 @@ a2a.openapi(
             completedAt: new Date(completedAt),
             durationMs: completedAt - startedAt,
           });
-        } catch {
+        } catch (err) {
           // Non-fatal  -  in-memory task store remains authoritative for active tasks
+          logger.warn('agentActions write failed', {
+            eventId: actionId,
+            eventType: req.method,
+            reason: classifyAuditWriteFailure(err),
+            error: err instanceof Error ? err.message : String(err),
+          });
         }
       })();
     }

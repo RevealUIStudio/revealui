@@ -9,6 +9,7 @@
 
 import { healthCheck } from '@revealui/core/observability';
 import { logger } from '@revealui/core/observability/logger';
+import { AuditWriteError, classifyAuditWriteFailure } from '@revealui/core/security';
 import { Hono } from 'hono';
 
 const app = new Hono();
@@ -52,8 +53,17 @@ app.get('/', async (c) => {
         uptimeSeconds: health.uptime,
       },
     });
-  } catch {
-    // Audit system unavailable; health check data still logged to stdout
+  } catch (err) {
+    // Audit write failed (or the write path itself threw before reaching
+    // storage) — health check data is still on stdout above, but a failed
+    // SLA-tracking write must not vanish silently.
+    const cause = err instanceof AuditWriteError ? err.cause : err;
+    logger.warn('Uptime-check audit write failed', {
+      eventId: err instanceof AuditWriteError ? err.event.id : undefined,
+      eventType: err instanceof AuditWriteError ? err.event.type : undefined,
+      reason: classifyAuditWriteFailure(cause),
+      error: cause instanceof Error ? cause.message : String(cause),
+    });
   }
 
   return c.json(result, health.status === 'healthy' ? 200 : 503);
