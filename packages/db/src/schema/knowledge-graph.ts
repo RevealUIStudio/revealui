@@ -84,6 +84,15 @@ export const kgNodes = pgTable(
     repo: text('repo'),
     /** Derived (class 3): deterministic template first, LLM refinement later. */
     summary: text('summary'),
+    /**
+     * Derived (class 3, GAP-349): normalized rendering of name + naturalKey +
+     * summary (separators → spaces, camelCase boundaries → spaces) that the
+     * generated `search` tsvector indexes, so word-level FTS queries match
+     * file/host-type tokens like `electric-proxy.ts`. Written by the ingest
+     * engine on every node upsert; see `@revealui/knowledge-graph`
+     * `search/normalize-text.ts`.
+     */
+    searchText: text('search_text').notNull().default(''),
     /** Zod-validated per kind. Mutable values are per-key LWW registers. */
     attributes: jsonb('attributes').default({}),
     /** Sibling clock for `attributes`: per-key `(timestamp, siteId)` LWW tiebreak. */

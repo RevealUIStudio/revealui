@@ -104,9 +104,20 @@ export function isDir(path: string): boolean {
   }
 }
 
+/**
+ * Directory listing, sorted. `readdirSync` order is POSIX-unspecified (ext4
+ * htree order is a function of filename hashing, not alphabetical, and is
+ * not guaranteed stable across kernel/filesystem versions or cache states)
+ * — every extractor that folds a directory listing into a `Map` with
+ * last-write-wins semantics (e.g. `workspace.ts`'s `packageKindByName`, keyed
+ * by iteration order over discovered package dirs) would otherwise be able
+ * to pick a DIFFERENT winner on a rescan of an unchanged tree, flipping a
+ * natural key and producing false invalidate+insert churn (GAP-349 item 2).
+ * Sorting at this single source closes the whole class for every consumer.
+ */
 export function listDir(path: string): string[] {
   try {
-    return readdirSync(path);
+    return readdirSync(path).sort();
   } catch {
     return [];
   }
