@@ -13,9 +13,14 @@
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "@revealui/knowledge-graph": "workspace:*",
     "@revealui/security": "workspace:*",
     "dotenv": "catalog:",
     "jose": "catalog:"
+  },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
@@ -62,6 +67,10 @@
     "./docs-server": {
       "types": "./dist/servers/factories/docs.d.ts",
       "import": "./dist/servers/factories/docs.js"
+    },
+    "./kg-server": {
+      "types": "./dist/servers/factories/knowledge-graph.d.ts",
+      "import": "./dist/servers/factories/knowledge-graph.js"
     },
     "./hypervisor": {
       "types": "./dist/hypervisor.d.ts",

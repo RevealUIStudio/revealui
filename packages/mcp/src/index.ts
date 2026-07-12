@@ -177,6 +177,13 @@ export {
   type ResolveResult,
   resolveLibrary,
 } from './servers/factories/docs.js';
+// Knowledge graph server (GAP-349 P2 — kg_search/kg_get_node/kg_neighbors/
+// kg_add_episode/kg_path/kg_at_time/kg_context over @revealui/knowledge-graph)
+export {
+  type AssembledContext,
+  type CreateKnowledgeGraphServerOptions,
+  createKnowledgeGraphServer,
+} from './servers/factories/knowledge-graph.js';
 // First-party server factories (Stage 1 PR-1.2 — dual-mode template)
 export {
   createRevealuiContentServer,
