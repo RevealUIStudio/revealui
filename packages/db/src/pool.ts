@@ -186,27 +186,44 @@ function onPoolError(err: Error) {
   );
 }
 
+/**
+ * Validate `value` is a finite, positive, safe integer and format it as a
+ * bare numeric literal for interpolation into a `SET` statement. Postgres'
+ * `SET` command does not accept bind parameters ("syntax error at or near
+ * $1" on every connection — the defect this replaces), so the value must be
+ * interpolated directly into the query text. `value` is always the already
+ * `parseInt`-ed `poolConfig.statement_timeout`, never user input, and this
+ * validator only ever emits digits, so there is no injection surface.
+ */
+export function formatValidatedStatementTimeoutMs(value: unknown): string {
+  const ms = typeof value === 'number' ? value : Number(value);
+  if (!(Number.isFinite(ms) && Number.isInteger(ms)) || ms <= 0) {
+    throw new Error(`invalid statement_timeout value: ${String(value)}`);
+  }
+  return String(ms);
+}
+
+async function initializeConnection(client: PoolClient): Promise<void> {
+  const timeoutMs = formatValidatedStatementTimeoutMs(poolConfig.statement_timeout || 10000);
+  // One multi-statement round trip (simple query protocol) so the three
+  // setup statements execute as a single sequential flow on this client
+  // instead of three separate awaited `client.query()` calls racing for
+  // the connection.
+  await client.query(
+    `SET timezone TO 'UTC'; SET statement_timeout TO ${timeoutMs}; SET track_io_timing = on`,
+  );
+}
+
 function onPoolConnect(client: PoolClient) {
   const pid = (client as PoolClientWithPID).processID;
   logger.info(`Database connection established (PID: ${pid})`);
 
-  void (async () => {
-    try {
-      // Set timezone
-      await client.query("SET timezone TO 'UTC'");
-
-      // Set statement timeout (parameterized to prevent injection)
-      await client.query('SET statement_timeout TO $1', [poolConfig.statement_timeout || 10000]);
-
-      // Enable query statistics
-      await client.query('SET track_io_timing = on');
-    } catch (error) {
-      logger.error(
-        'Error initializing database client',
-        error instanceof Error ? error : new Error(String(error)),
-      );
-    }
-  })();
+  void initializeConnection(client).catch((error) => {
+    logger.error(
+      'Error initializing database client',
+      error instanceof Error ? error : new Error(String(error)),
+    );
+  });
 }
 
 function onPoolAcquire(client: PoolClient) {
