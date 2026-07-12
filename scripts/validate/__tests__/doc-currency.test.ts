@@ -1,9 +1,11 @@
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   COMMON_EXON,
+  collectMarkdownFiles,
   extractStringLiterals,
   type Hit,
   hitKey,
@@ -239,6 +241,35 @@ describe('shouldSkipFile — historical exemptions', () => {
     const abs = path.join(tmpRoot, 'current.md');
     fs.writeFileSync(abs, '# Current\n\nWe use Neon and ElectricSQL.');
     expect(shouldSkipFile('docs/current.md', abs)).toBe(false);
+  });
+});
+
+describe('collectMarkdownFiles — gitignored generated files', () => {
+  let tmpRoot: string;
+
+  beforeEach(() => {
+    tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'doc-currency-gitignore-'));
+    fs.mkdirSync(path.join(tmpRoot, 'docs'), { recursive: true });
+    fs.writeFileSync(path.join(tmpRoot, 'docs', 'current.md'), '# Current\n');
+    fs.writeFileSync(path.join(tmpRoot, 'docs', 'generated.md'), '# Generated\n');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  it('drops gitignored files inside a git repo (generated mirrors are not scanned)', () => {
+    execFileSync('git', ['-C', tmpRoot, 'init', '--quiet']);
+    fs.writeFileSync(path.join(tmpRoot, '.gitignore'), 'docs/generated.md\n');
+    const files = collectMarkdownFiles(tmpRoot);
+    expect(files.some((f) => f.endsWith('current.md'))).toBe(true);
+    expect(files.some((f) => f.endsWith('generated.md'))).toBe(false);
+  });
+
+  it('passes everything through outside a git repo (unit-test temp dirs)', () => {
+    const files = collectMarkdownFiles(tmpRoot);
+    expect(files.some((f) => f.endsWith('current.md'))).toBe(true);
+    expect(files.some((f) => f.endsWith('generated.md'))).toBe(true);
   });
 });
 
