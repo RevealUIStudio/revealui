@@ -7,6 +7,7 @@
  *   revkg node <naturalKey>
  *   revkg neighbors <naturalKey> [--depth <n>] [--at <iso>]
  *   revkg at <naturalKey> <iso>
+ *   revkg drift [--repo <name>] [--json]                   doc-currency drift report (spec §8.5)
  *
  * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
  * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
@@ -32,7 +33,7 @@ import { isDir, readJsonFile, readTextFile } from '../extractors/shared.js';
 import { applyScan, ingestEpisode } from '../ingest/index.js';
 import { resolveNaturalKey } from '../ingest/resolve.js';
 import type { NodeKind } from '../ontology/index.js';
-import { kgAtTime, kgNeighbors, kgSearch } from '../search/index.js';
+import { type DriftCandidate, kgAtTime, kgDrift, kgNeighbors, kgSearch } from '../search/index.js';
 import type { Embedder, KgExecutor } from '../types.js';
 
 /** Long-running-ingest pool tuning (spec: cold Neon compute + big-repo scans). */
@@ -73,7 +74,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
   const flags = new Map<string, string>();
   const bools = new Set<string>();
-  const boolFlags = new Set(['fleet']);
+  const boolFlags = new Set(['fleet', 'json']);
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === undefined) continue;
@@ -288,6 +289,28 @@ async function cmdAt(args: ParsedArgs): Promise<void> {
   }
 }
 
+function formatDriftRow(c: DriftCandidate): string {
+  const days = (c.deltaSeconds / 86_400).toFixed(1);
+  const episodes = c.episodeIds.length > 0 ? c.episodeIds.join(',') : 'none';
+  return `  +${days}d  doc=[${c.docKind}] ${c.docNaturalKey}  code=[${c.codeKind}] ${c.codeNaturalKey}  episodes=${episodes}`;
+}
+
+async function cmdDrift(args: ParsedArgs): Promise<void> {
+  const repo = args.flags.get('repo');
+  const { exec, close } = await getExecutor();
+  try {
+    const candidates = await kgDrift(exec, { repo });
+    if (args.bools.has('json')) {
+      out(JSON.stringify(candidates, null, 2));
+      return;
+    }
+    out(`drift candidates (${candidates.length}):`);
+    for (const c of candidates) out(formatDriftRow(c));
+  } finally {
+    await close();
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
@@ -307,8 +330,11 @@ async function main(): Promise<void> {
     case 'at':
       await cmdAt(args);
       break;
+    case 'drift':
+      await cmdDrift(args);
+      break;
     default:
-      out('usage: revkg <scan|search|node|neighbors|at> [...]');
+      out('usage: revkg <scan|search|node|neighbors|at|drift> [...]');
       process.exit(command ? 1 : 0);
   }
 }

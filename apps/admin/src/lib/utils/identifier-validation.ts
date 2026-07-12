@@ -32,3 +32,23 @@ const IDENTIFIER_CHARS = new Set(
 export function isSyncIdentifier(value: string): boolean {
   return value.length > 0 && Array.from(value).every((c) => IDENTIFIER_CHARS.has(c));
 }
+
+const REPO_IDENTIFIER_CHARS = new Set(
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.',
+);
+const MAX_REPO_IDENTIFIER_LENGTH = 128;
+
+/**
+ * Fleet repo identifier: non-empty, alphanumeric plus hyphen/underscore/dot,
+ * bounded length. Superset of {@link isSyncIdentifier}'s charset (adds `.`)
+ * to cover repo names like `.jv`. Used to validate the `repo` denormalized
+ * partition column (design spec §8.2) before it is inlined into an Electric
+ * shape `where` clause — never accept an unvalidated value there.
+ */
+export function isRepoIdentifier(value: string): boolean {
+  return (
+    value.length > 0 &&
+    value.length <= MAX_REPO_IDENTIFIER_LENGTH &&
+    Array.from(value).every((c) => REPO_IDENTIFIER_CHARS.has(c))
+  );
+}
