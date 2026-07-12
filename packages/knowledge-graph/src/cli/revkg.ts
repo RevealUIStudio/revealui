@@ -7,11 +7,22 @@
  *   revkg node <naturalKey>
  *   revkg neighbors <naturalKey> [--depth <n>] [--at <iso>]
  *   revkg at <naturalKey> <iso>
+ *   revkg drift [--repo <name>] [--json]                   doc-currency drift report (spec §8.5)
  *
- * Connects to Neon via `@revealui/db` (POSTGRES_URL / DATABASE_URL). Embeddings,
- * when a local model is available, come from `@revealui/ai` — loaded lazily so
- * the graph still ingests (with NULL embeddings, deferred backfill) when it is
- * absent or Ollama is down.
+ * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
+ * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
+ * app pool: the shared pool's server-tuned defaults (5s connect timeout, 10s
+ * query/statement timeout) are wrong for a long-running ingest — they killed
+ * real fleet scans against a cold Neon compute (a connect timeout, then a
+ * mid-scan "Query read timeout" on the largest repo). This pool uses a much
+ * longer connect timeout and a 5-minute query/statement budget, and a small
+ * `max` since a CLI scan is a single-threaded ingest, not a request-serving
+ * pool. `createPool` (not a direct `pg` import — the raw-SQL `direct-import`
+ * gate only allows `pg` inside `packages/db/src/`) is the sanctioned way for
+ * this package to get a `pg.Pool`. Embeddings, when a local model is
+ * available, come from `@revealui/ai` — loaded lazily so the graph still
+ * ingests (with NULL embeddings, deferred backfill) when it is absent or
+ * Ollama is down.
  */
 
 import { hostname } from 'node:os';
@@ -22,8 +33,27 @@ import { isDir, readJsonFile, readTextFile } from '../extractors/shared.js';
 import { applyScan, ingestEpisode } from '../ingest/index.js';
 import { resolveNaturalKey } from '../ingest/resolve.js';
 import type { NodeKind } from '../ontology/index.js';
-import { kgAtTime, kgNeighbors, kgSearch } from '../search/index.js';
+import { type DriftCandidate, kgAtTime, kgDrift, kgNeighbors, kgSearch } from '../search/index.js';
 import type { Embedder, KgExecutor } from '../types.js';
+
+/** Long-running-ingest pool tuning (spec: cold Neon compute + big-repo scans). */
+const CLI_POOL_CONNECT_TIMEOUT_MS = 30_000;
+const CLI_POOL_QUERY_TIMEOUT_MS = 300_000;
+const CLI_POOL_MAX_CLIENTS = 5;
+
+/** Target host to surface on a connection error, without ever printing the full URL/credentials. */
+let lastTargetHost: string | undefined;
+
+function describeTargetHost(identity: { connectionString?: string; host?: string }): string {
+  if (identity.connectionString) {
+    try {
+      return new URL(identity.connectionString).hostname;
+    } catch {
+      return '(unparseable connection string)';
+    }
+  }
+  return identity.host ?? 'localhost';
+}
 
 function out(line: string): void {
   process.stdout.write(`${line}\n`);
@@ -44,7 +74,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
   const flags = new Map<string, string>();
   const bools = new Set<string>();
-  const boolFlags = new Set(['fleet']);
+  const boolFlags = new Set(['fleet', 'json']);
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === undefined) continue;
@@ -67,11 +97,25 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 async function getExecutor(): Promise<{ exec: KgExecutor; close: () => Promise<void> }> {
-  const pool = await import('@revealui/db/pool');
-  const client = pool.getPool();
+  const { createPool, getConnectionIdentity } = await import('@revealui/db/pool');
+  const identity = getConnectionIdentity();
+  lastTargetHost = describeTargetHost(identity);
+
+  const pool = createPool({
+    connectionTimeoutMillis: CLI_POOL_CONNECT_TIMEOUT_MS,
+    queryTimeoutMillis: CLI_POOL_QUERY_TIMEOUT_MS,
+    statementTimeoutMillis: CLI_POOL_QUERY_TIMEOUT_MS,
+    max: CLI_POOL_MAX_CLIENTS,
+  });
+  pool.on('error', (error) => {
+    process.stderr.write(
+      `revkg: pool error (host: ${lastTargetHost}): ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  });
+
   return {
-    exec: makePoolExecutor(client),
-    close: () => client.end(),
+    exec: makePoolExecutor(pool),
+    close: () => pool.end(),
   };
 }
 
@@ -245,6 +289,28 @@ async function cmdAt(args: ParsedArgs): Promise<void> {
   }
 }
 
+function formatDriftRow(c: DriftCandidate): string {
+  const days = (c.deltaSeconds / 86_400).toFixed(1);
+  const episodes = c.episodeIds.length > 0 ? c.episodeIds.join(',') : 'none';
+  return `  +${days}d  doc=[${c.docKind}] ${c.docNaturalKey}  code=[${c.codeKind}] ${c.codeNaturalKey}  episodes=${episodes}`;
+}
+
+async function cmdDrift(args: ParsedArgs): Promise<void> {
+  const repo = args.flags.get('repo');
+  const { exec, close } = await getExecutor();
+  try {
+    const candidates = await kgDrift(exec, { repo });
+    if (args.bools.has('json')) {
+      out(JSON.stringify(candidates, null, 2));
+      return;
+    }
+    out(`drift candidates (${candidates.length}):`);
+    for (const c of candidates) out(formatDriftRow(c));
+  } finally {
+    await close();
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
@@ -264,12 +330,16 @@ async function main(): Promise<void> {
     case 'at':
       await cmdAt(args);
       break;
+    case 'drift':
+      await cmdDrift(args);
+      break;
     default:
-      out('usage: revkg <scan|search|node|neighbors|at> [...]');
+      out('usage: revkg <scan|search|node|neighbors|at|drift> [...]');
       process.exit(command ? 1 : 0);
   }
 }
 
 main().catch((error: unknown) => {
-  fail(error instanceof Error ? error.message : String(error));
+  const hostSuffix = lastTargetHost ? ` (target host: ${lastTargetHost})` : '';
+  fail(`${error instanceof Error ? error.message : String(error)}${hostSuffix}`);
 });

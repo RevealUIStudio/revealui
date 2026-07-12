@@ -324,6 +324,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revealui/knowledge-graph':
+        specifier: workspace:*
+        version: link:../../packages/knowledge-graph
       '@revealui/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp

@@ -1,13 +1,16 @@
 /**
  * Knowledge-graph DDL builder — the single source for graph table structure.
  *
- * The production migration (`packages/db/migrations/0021_knowledge_graph.sql`)
- * ships the `vector`-variant DDL (with HNSW indexes) and is validated for drift
- * against this builder by a unit test. Tests build the same tables in PGlite via
- * the `portable` variant (embedding as `real[]`, no HNSW) so FTS, temporal, BFS
- * and RRF behavior is exercised against real Postgres semantics without the
- * pgvector extension. tsvector generated columns, GIN, and partial current-edge
- * indexes are identical across both variants.
+ * The production migrations (`packages/db/migrations/0021_knowledge_graph.sql`
+ * + `0022_kg_search_text.sql`, which adds `kg_nodes.search_text` and repoints
+ * the generated `search` tsvector at it — GAP-349) together ship the
+ * `vector`-variant DDL this builder describes (with HNSW indexes), and are
+ * validated for drift against this builder by a unit test. Tests build the
+ * same tables in PGlite via the `portable` variant (embedding as `real[]`,
+ * no HNSW) so FTS, temporal, BFS and RRF behavior is exercised against real
+ * Postgres semantics without the pgvector extension. tsvector generated
+ * columns, GIN, and partial current-edge indexes are identical across both
+ * variants.
  */
 
 export interface KgDdlOptions {
@@ -51,6 +54,7 @@ export function kgDdlStatements(options: KgDdlOptions): string[] {
     `CREATE INDEX IF NOT EXISTS "kg_episodes_reference_time_idx" ON "kg_episodes" ("reference_time")`,
   );
 
+  // kg_nodes — 0021 shape (original CREATE TABLE, verbatim).
   statements.push(`CREATE TABLE IF NOT EXISTS "kg_nodes" (
   "id"                text PRIMARY KEY,
   "kind"              text NOT NULL,
@@ -84,6 +88,21 @@ export function kgDdlStatements(options: KgDdlOptions): string[] {
     statements.push(`CREATE INDEX IF NOT EXISTS "kg_nodes_embedding_idx" ON "kg_nodes"
   USING hnsw ("embedding" vector_cosine_ops) WITH (m = 16, ef_construction = 64)`);
   }
+
+  // kg_nodes — 0022 shape (GAP-349: search_text + repointed search tsvector,
+  // verbatim ALTER sequence). Drops and recreates the generated `search`
+  // column (Postgres has no `ALTER COLUMN ... SET EXPRESSION`), which also
+  // drops and requires recreating the dependent GIN index.
+  statements.push(
+    `ALTER TABLE "kg_nodes" ADD COLUMN IF NOT EXISTS "search_text" text NOT NULL DEFAULT ''`,
+  );
+  statements.push(`ALTER TABLE "kg_nodes" DROP COLUMN IF EXISTS "search"`);
+  statements.push(`ALTER TABLE "kg_nodes" ADD COLUMN "search" tsvector GENERATED ALWAYS AS (
+    to_tsvector('english', coalesce("search_text", ''))
+  ) STORED`);
+  statements.push(
+    `CREATE INDEX IF NOT EXISTS "kg_nodes_search_idx" ON "kg_nodes" USING gin ("search")`,
+  );
 
   statements.push(`CREATE TABLE IF NOT EXISTS "kg_edges" (
   "id"         text PRIMARY KEY,

@@ -67,6 +67,14 @@ const SECURITY_PATHS = [
   'routes/a2a',
   'routes/marketplace',
   'routes/revmarket',
+  // Electric shape + sync routes (GAP-349): the shape-route template
+  // (apps/admin/src/lib/api/electric-proxy.ts) authenticates + row-filters
+  // before proxying to Electric, and sync mutation endpoints are the
+  // write-through path Electric itself never touches. Widened ahead of the
+  // fleet knowledge-graph's own kg-nodes/kg-edges shape routes (P4) landing
+  // unflagged. Keep in lockstep with .jv scripts/security-pr-review-check.js.
+  'api/shapes/',
+  'api/sync/',
 ];
 
 // A recorded reviewer verdict = an approving GH review OR one of these labels.

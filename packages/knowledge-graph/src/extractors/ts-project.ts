@@ -7,6 +7,10 @@
  * edges (to another file for relative specifiers, to a `dependency` node for
  * bare specifiers). One combined `ScanProduct` per repo so re-scan diffing
  * stays correct across the whole `ts-project` scope.
+ *
+ * When the repo has no `pnpm-workspace.yaml`, the repo root itself is walked
+ * as a single implicit package (its `src` directory), matching the fallback
+ * the `workspace` extractor uses so both derive the identical `packageKey`.
  */
 
 import { dirname, join, relative } from 'node:path';
@@ -15,6 +19,8 @@ import type { EdgeInput, NodeInput } from '../types.js';
 import {
   dependencyKey,
   fileKey,
+  hasPnpmWorkspace,
+  implicitPackageName,
   isDir,
   listDir,
   packageKey,
@@ -43,6 +49,9 @@ function mapKey(kind: string, naturalKey: string): string {
 }
 
 function discoverPackages(repoRoot: string): DiscoveredPackage[] {
+  if (!hasPnpmWorkspace(repoRoot)) {
+    return [{ dir: '', kind: 'package', name: implicitPackageName(repoRoot) }];
+  }
   const out: DiscoveredPackage[] = [];
   for (const [topDir, kind] of [
     ['packages', 'package'],

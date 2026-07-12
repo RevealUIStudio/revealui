@@ -21,18 +21,25 @@ function collapse(sql: string): string {
   return tokens.join(' ');
 }
 
-const MIGRATION_PATH = join(
-  import.meta.dirname,
-  '..',
-  '..',
-  '..',
-  'db',
-  'migrations',
-  '0021_knowledge_graph.sql',
-);
+const MIGRATIONS_DIR = join(import.meta.dirname, '..', '..', '..', 'db', 'migrations');
+
+/**
+ * The DDL builder describes the graph tables' FULL current shape as a
+ * sequence of statements (PGlite tests build fresh tables straight from it);
+ * production ships that same statement sequence across two migrations. 0021
+ * created the tables; 0022 (GAP-349) appended the ALTER sequence that adds
+ * `kg_nodes.search_text` and repoints the generated `search` column at it.
+ * Concatenating both files is the migration-side mirror of the builder's
+ * statement list.
+ */
+const MIGRATION_TAGS = ['0021_knowledge_graph', '0022_kg_search_text'];
 
 describe('DDL / migration sync', () => {
-  const migration = collapse(readFileSync(MIGRATION_PATH, 'utf-8'));
+  const migration = collapse(
+    MIGRATION_TAGS.map((tag) => readFileSync(join(MIGRATIONS_DIR, `${tag}.sql`), 'utf-8')).join(
+      '\n',
+    ),
+  );
 
   it('the shipped migration contains every production (vector-variant) DDL statement', () => {
     // The migration is the single source's `vector` rendering; drift here means

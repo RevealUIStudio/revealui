@@ -12,13 +12,30 @@
 
 export type {
   CollabDocumentState,
+  KgViewAnnotation,
+  KgViewLayoutPosition,
+  KgViewPresenceEntry,
+  KgViewState,
   UseCollaborationOptions,
   UseCollaborationResult,
+  UseKgViewDocumentResult,
 } from './collab/index.js';
 export {
+  buildAnnotationPatch,
+  buildKgViewDocumentId,
+  buildLayoutPatch,
+  buildPinPatch,
+  buildPresencePatch,
   CollabProvider,
+  isKgViewDocumentId,
+  isPresenceStale,
+  isValidKgViewSlug,
+  KG_VIEW_ID_PREFIX,
+  PRESENCE_STALE_MS,
+  parseKgViewState,
   useCollabDocument,
   useCollaboration,
+  useKgViewDocument,
 } from './collab/index.js';
 export type {
   ConflictInfo,
@@ -66,6 +83,21 @@ export type {
   UseCoordinationWorkItemsResult,
 } from './hooks/useCoordinationWorkItems.js';
 export { useCoordinationWorkItems } from './hooks/useCoordinationWorkItems.js';
+export type {
+  KgEdgeEpisodeRecord,
+  KgEdgeRecord,
+  KgNodeRecord,
+  UseKgEdgeEpisodesResult,
+  UseKgEdgesResult,
+  UseKgNodesResult,
+  UseKnowledgeGraphResult,
+} from './hooks/useKnowledgeGraph.js';
+export {
+  useKgEdgeEpisodes,
+  useKgEdges,
+  useKgNodes,
+  useKnowledgeGraph,
+} from './hooks/useKnowledgeGraph.js';
 export { useOfflineCache } from './hooks/useOfflineCache.js';
 export type { OnlineStatusResult } from './hooks/useOnlineStatus.js';
 export { useOnlineStatus } from './hooks/useOnlineStatus.js';

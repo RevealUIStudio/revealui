@@ -25,6 +25,7 @@
 
 import { deriveEdgeId, deriveEpisodeId, deriveNodeId, SEP } from '../ids.js';
 import { validateNodeAttributes } from '../ontology/index.js';
+import { buildSearchText } from '../search/normalize-text.js';
 import type {
   EdgeInput,
   Embedder,
@@ -80,6 +81,7 @@ function nodeOp(node: NodeInput, referenceTime: Date): KgOp {
       natural_key: node.naturalKey,
       repo: node.repo ?? null,
       summary: node.summary ?? null,
+      search_text: buildSearchText(node.name, node.naturalKey, node.summary),
       attributes: validation.data ?? {},
       first_seen_at: iso,
       last_confirmed_at: iso,

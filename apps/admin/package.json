@@ -13,6 +13,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
+    "@revealui/knowledge-graph": "workspace:*",
     "@revealui/mcp": "workspace:*",
     "@revealui/paywall": "workspace:*",
     "@revealui/presentation": "workspace:*",
