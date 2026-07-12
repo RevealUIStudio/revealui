@@ -171,21 +171,84 @@ export interface AsNeverValuesHit {
 }
 
 /**
- * Walk a source file's AST for `<expr>.values(...)` calls whose argument
- * (or an element of an array-literal argument) is `as never`.
+ * Walk a source file's AST for `<expr>.values(...)` calls whose argument is
+ * `as never` (or `<never>expr`), including through one level of
+ * parentheses, an array-literal element, a conditional (ternary) branch, or
+ * a hoisted local variable's own declaration.
+ *
+ * This is a SYNTACTIC check with no type-checker/Program construction (same
+ * trade-off `doc-currency.ts`'s literal-extraction walk already accepts), so
+ * it is a speed bump against the SPECIFIC pattern that shipped two broken
+ * audit_log writers — not a comprehensive guarantee. It catches the direct
+ * cast, `as unknown as never`, an array element, a ternary branch, and a
+ * SINGLE hop through a local `const`/`let` declaration (the single most
+ * natural way to write this — hoisting the cast object to a variable before
+ * passing it). It does NOT catch: a value threaded through more than one
+ * variable, a spread of an array assembled/cast elsewhere, or `as any`
+ * (a different, broader pattern this check does not attempt to police). The
+ * variable lookup is also NOT scope-aware — it matches by name across the
+ * whole file, so it can misidentify which declaration feeds a given call in
+ * a large or shadowed-name file. See scripts/validate/__tests__/as-never-values.test.ts
+ * for the exact set of variants this does and does not catch.
  */
 export function findAsNeverValuesCalls(sourceText: string, fileName: string): AsNeverValuesHit[] {
   const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true);
   const hits: AsNeverValuesHit[] = [];
 
-  function isAsNever(node: ts.Node): boolean {
-    return ts.isAsExpression(node) && node.type.kind === ts.SyntaxKind.NeverKeyword;
+  // Best-effort, whole-file, name-based index of `const`/`let` declarations
+  // with an initializer — used only to follow the single most common
+  // bypass (hoisting the cast to a variable) one hop back to its
+  // declaration. Not scope-aware; last declaration with a given name wins.
+  const declarationsByName = new Map<string, ts.Expression>();
+  function indexDeclarations(node: ts.Node): void {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      declarationsByName.set(node.name.text, node.initializer);
+    }
+    ts.forEachChild(node, indexDeclarations);
+  }
+  indexDeclarations(sourceFile);
+
+  function unwrapParens(node: ts.Expression): ts.Expression {
+    let current = node;
+    while (ts.isParenthesizedExpression(current)) {
+      current = current.expression;
+    }
+    return current;
+  }
+
+  function isAsNever(node: ts.Expression): boolean {
+    const unwrapped = unwrapParens(node);
+    if (ts.isAsExpression(unwrapped)) {
+      return unwrapped.type.kind === ts.SyntaxKind.NeverKeyword;
+    }
+    // Angle-bracket cast syntax: `<never>expr`.
+    if (ts.isTypeAssertionExpression(unwrapped)) {
+      return unwrapped.type.kind === ts.SyntaxKind.NeverKeyword;
+    }
+    return false;
+  }
+
+  function exprHasAsNever(expr: ts.Expression, hops: number): boolean {
+    const unwrapped = unwrapParens(expr);
+    if (isAsNever(unwrapped)) return true;
+    if (ts.isConditionalExpression(unwrapped)) {
+      return exprHasAsNever(unwrapped.whenTrue, hops) || exprHasAsNever(unwrapped.whenFalse, hops);
+    }
+    // Follow a SINGLE hop through a local variable's own declaration —
+    // the "hoist to a variable" bypass. Bounded to one hop so this can't
+    // loop on a cyclic/self-referential name index.
+    if (hops > 0 && ts.isIdentifier(unwrapped)) {
+      const declared = declarationsByName.get(unwrapped.text);
+      if (declared) return exprHasAsNever(declared, hops - 1);
+    }
+    return false;
   }
 
   function argHasAsNever(arg: ts.Expression): boolean {
-    if (isAsNever(arg)) return true;
-    if (ts.isArrayLiteralExpression(arg)) {
-      return arg.elements.some((el) => isAsNever(el));
+    if (exprHasAsNever(arg, 1)) return true;
+    const unwrapped = unwrapParens(arg);
+    if (ts.isArrayLiteralExpression(unwrapped)) {
+      return unwrapped.elements.some((el) => exprHasAsNever(el, 1));
     }
     return false;
   }

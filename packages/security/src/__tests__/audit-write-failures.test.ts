@@ -1,3 +1,4 @@
+import { logger } from '@revealui/utils/logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   classifyAuditWriteFailure,
@@ -97,5 +98,90 @@ describe('recordAuditWriteResult — ratio tracking', () => {
     const stats = getAuditWriteFailureStatsForTest();
     expect(stats.attempted).toBe(1);
     expect(stats.failed).toBe(0);
+  });
+
+  // B2: this module must never log per-attempt or per-failure — every call
+  // site already owns its own event-level logging at its own cadence (e.g.
+  // middleware/audit.ts's 1-in-10 throttle). A per-failure log here would sit
+  // underneath that throttle and multiply log volume during exactly the
+  // near-100%-failure condition this module exists to catch.
+  it('never logs on an individual failure, no matter how many are recorded', () => {
+    for (let i = 0; i < 50; i++) {
+      recordAuditWriteResult({ ok: false, reason: 'constraint_violation' });
+    }
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it('never logs on an individual success', () => {
+    for (let i = 0; i < 50; i++) {
+      recordAuditWriteResult({ ok: true });
+    }
+    expect(logger.warn).not.toHaveBeenCalled();
+    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  it('escalates via logger.error exactly once while the ratio stays above threshold', () => {
+    for (let i = 0; i < 30; i++) {
+      recordAuditWriteResult({ ok: false, reason: 'constraint_violation' });
+    }
+    // Escalation fires the moment the window first reaches MIN_SAMPLE_SIZE
+    // (20) with 100% failures, not after all 30 have been recorded — the
+    // alarm latches at that point and the remaining 10 calls in this loop
+    // don't re-fire it.
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      'Audit write failure ratio exceeded threshold',
+      expect.objectContaining({
+        ratio: 1,
+        windowSize: 20,
+        byReason: expect.objectContaining({ constraint_violation: 20 }),
+      }),
+    );
+
+    // More failures while still above threshold: no repeat escalation.
+    for (let i = 0; i < 10; i++) {
+      recordAuditWriteResult({ ok: false, reason: 'constraint_violation' });
+    }
+    expect(logger.error).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not escalate below the 1% threshold', () => {
+    // Establish a large pool of successes FIRST so the single failure below
+    // is already diluted the instant it's recorded — the ratio is checked on
+    // every call, so a failure recorded while the window is still small
+    // would transiently exceed 1% even if the eventual steady-state ratio is
+    // fine. This ordering is what "below threshold, never escalates" means
+    // in a rolling-window check.
+    for (let i = 0; i < 200; i++) {
+      recordAuditWriteResult({ ok: true });
+    }
+    recordAuditWriteResult({ ok: false, reason: 'db_error' });
+    // 1 failure / 201 attempts ≈ 0.5%, below the 1% threshold.
+    expect(logger.error).not.toHaveBeenCalled();
+  });
+
+  // S1: the ratio must be windowed (rolling), not a lifetime cumulative
+  // count, so the alarm can re-arm after a recovery and fire again on a
+  // later, independent failure spike.
+  it('re-arms and re-fires after the ratio recovers below threshold and spikes again', () => {
+    for (let i = 0; i < 30; i++) {
+      recordAuditWriteResult({ ok: false, reason: 'constraint_violation' });
+    }
+    expect(logger.error).toHaveBeenCalledTimes(1);
+
+    // Recover: enough successes to age every failure out of the rolling
+    // window and push the ratio back under 1%.
+    for (let i = 0; i < 500; i++) {
+      recordAuditWriteResult({ ok: true });
+    }
+    const recovered = getAuditWriteFailureStatsForTest();
+    expect(recovered.failed).toBe(0);
+
+    // A second, independent spike must escalate again — proves the alarm
+    // did not latch permanently after the first escalation.
+    for (let i = 0; i < 30; i++) {
+      recordAuditWriteResult({ ok: false, reason: 'schema_mismatch' });
+    }
+    expect(logger.error).toHaveBeenCalledTimes(2);
   });
 });

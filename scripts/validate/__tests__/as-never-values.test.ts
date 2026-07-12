@@ -64,4 +64,54 @@ describe('findAsNeverValuesCalls', () => {
     const hits = findAsNeverValuesCalls(src, 'fixture.ts');
     expect(hits).toEqual([{ line: 3 }]);
   });
+
+  // The bypasses an adversarial review demonstrated against the first cut of
+  // this matcher. Four are now caught; two remain uncaught by design — see
+  // the function's own doc comment for why (a spread requires data-flow
+  // analysis this syntactic check doesn't do, and `as any` is a different,
+  // broader pattern this check does not police).
+
+  it('follows a SINGLE hop through a hoisted local variable (the bypass that matters most)', () => {
+    const src = `
+      const p = { a: 1 } as never;
+      await db.insert(t).values(p);
+    `;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(1);
+  });
+
+  it('does not flag a hoisted variable that was never cast `as never`', () => {
+    const src = `
+      const p = { a: 1 };
+      await db.insert(t).values(p);
+    `;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(0);
+  });
+
+  it('flags the angle-bracket cast syntax `<never>expr`', () => {
+    const src = `await db.insert(t).values(<never>{ a: 1 });`;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(1);
+  });
+
+  it('flags `as never` wrapped in an extra layer of parentheses', () => {
+    const src = `await db.insert(t).values(({ a: 1 } as never));`;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(1);
+  });
+
+  it('flags `as never` in either branch of a ternary argument', () => {
+    const src = `await db.insert(t).values(c ? (x as never) : y);`;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(1);
+  });
+
+  it('does NOT flag a spread of an array cast/assembled elsewhere (known gap — no data-flow analysis)', () => {
+    const src = `
+      const rowsCastElsewhere = build() as never;
+      await db.insert(t).values([...rowsCastElsewhere]);
+    `;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(0);
+  });
+
+  it('does NOT flag `as any` (a different, broader pattern this check does not police)', () => {
+    const src = `await db.insert(t).values({ a: 1 } as any);`;
+    expect(findAsNeverValuesCalls(src, 'fixture.ts')).toHaveLength(0);
+  });
 });

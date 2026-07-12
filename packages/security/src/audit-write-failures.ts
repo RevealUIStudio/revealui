@@ -1,5 +1,5 @@
 /**
- * Audit write failure classification + ratio tracking.
+ * Audit write failure classification + rolling-ratio tracking.
  *
  * Stage 0 finding: an audit write can fail for four distinct reasons
  * (a rejected severity value, a missing signing secret, a schema mismatch in
@@ -10,12 +10,27 @@
  * place, and a failure ratio that would otherwise mean "the audit trail has
  * gone silent" gets escalated loudly instead.
  *
+ * This module counts SILENTLY. It never logs per attempt or per failure —
+ * each call site already owns its own event-level logging at whatever
+ * cadence makes sense for that call site (e.g. `middleware/audit.ts`'s
+ * existing 1-in-10 throttle). The only thing this module ever emits is the
+ * rolling-ratio escalation below. Emitting a log line here on every failure
+ * would sit underneath every call site's own throttle and multiply log
+ * volume during exactly the condition (near-100% failure) this module
+ * exists to catch — that was tried and reverted.
+ *
  * There is no metrics/counter primitive (StatsD, prom-client, Sentry metrics)
- * anywhere in this repo today — see the Stage 0 PR description. This module
- * is deliberately just a structured-logger-backed counter, not a new metrics
- * system: `audit_write_failures_total` is a stable log event name intended
- * for log-based counting (Vercel Logs / Datadog / Sentry breadcrumbs), not a
- * Prometheus counter.
+ * anywhere in this repo today — see the Stage 0 PR description. This is an
+ * in-process counter, not a new metrics system.
+ *
+ * The ratio is computed over a fixed-size ROLLING WINDOW of the last
+ * `WINDOW_SIZE` attempts, not a lifetime cumulative count. A cumulative
+ * count never decays: once enough failures accrue to cross the threshold,
+ * diluting it back down would require roughly 100x as many subsequent
+ * successes, so in practice the alarm could fire at most once per process
+ * and could never re-arm for a second, later failure spike. The rolling
+ * window ages failures out as new attempts come in, so the ratio reflects
+ * recent behavior and the alarm can legitimately re-fire after a recovery.
  */
 
 import { logger } from '@revealui/utils/logger';
@@ -79,10 +94,20 @@ export function classifyAuditWriteFailure(error: unknown): AuditWriteFailureReas
   return 'db_error';
 }
 
-/** Minimum sample size before the ratio alarm can fire — avoids noise on cold start. */
+/** Number of most-recent attempts the rolling ratio is computed over. */
+const WINDOW_SIZE = 500;
+/** Minimum attempts IN THE WINDOW before the ratio alarm can fire — avoids noise on cold start. */
 const MIN_SAMPLE_SIZE = 20;
 /** Failure ratio above which the whole audit trail is suspect. */
 const FAILURE_RATIO_THRESHOLD = 0.01;
+
+export interface AuditWriteOutcome {
+  ok: boolean;
+  reason?: AuditWriteFailureReason;
+  /** The failed/succeeded event's id, when known — surfaced only in the ratio-escalation log, never per-attempt. */
+  eventId?: string;
+  eventType?: string;
+}
 
 interface FailureCounters {
   attempted: number;
@@ -90,28 +115,24 @@ interface FailureCounters {
   byReason: Record<AuditWriteFailureReason, number>;
 }
 
-function emptyCounters(): FailureCounters {
-  return {
-    attempted: 0,
-    failed: 0,
-    byReason: {
-      constraint_violation: 0,
-      missing_secret: 0,
-      schema_mismatch: 0,
-      db_error: 0,
-    },
-  };
+function emptyByReason(): Record<AuditWriteFailureReason, number> {
+  return { constraint_violation: 0, missing_secret: 0, schema_mismatch: 0, db_error: 0 };
 }
 
-let counters = emptyCounters();
+let window: AuditWriteOutcome[] = [];
 let ratioAlarmFired = false;
+let lastFailure: AuditWriteOutcome | undefined;
 
-export interface AuditWriteOutcome {
-  ok: boolean;
-  reason?: AuditWriteFailureReason;
-  /** The failed/succeeded event's id, when known — for correlating the log line to a record. */
-  eventId?: string;
-  eventType?: string;
+function computeCounters(): FailureCounters {
+  const byReason = emptyByReason();
+  let failed = 0;
+  for (const outcome of window) {
+    if (!outcome.ok) {
+      failed++;
+      if (outcome.reason) byReason[outcome.reason]++;
+    }
+  }
+  return { attempted: window.length, failed, byReason };
 }
 
 /**
@@ -119,26 +140,21 @@ export interface AuditWriteOutcome {
  * every audit write path (success AND failure) so the ratio reflects the
  * whole system rather than one call site's private view of it.
  *
- * Emits `audit_write_failures_total` on every failure (the log-based counter
- * this module stands in for a real metrics backend), and escalates to
- * `logger.error` once the rolling failure ratio crosses 1% — the signal that
- * would have caught every Stage 0 bug on day one.
+ * Counts silently. Escalates to `logger.error` once the rolling failure
+ * ratio (over the last `WINDOW_SIZE` attempts) crosses 1% — the signal that
+ * would have caught every Stage 0 bug on day one — and stays quiet while the
+ * ratio remains above threshold so the escalation itself doesn't spam.
  */
 export function recordAuditWriteResult(outcome: AuditWriteOutcome): void {
-  counters.attempted++;
-
+  window.push(outcome);
+  if (window.length > WINDOW_SIZE) {
+    window.shift();
+  }
   if (!outcome.ok) {
-    counters.failed++;
-    if (outcome.reason) {
-      counters.byReason[outcome.reason]++;
-    }
-    logger.warn('audit_write_failures_total', {
-      reason: outcome.reason,
-      eventId: outcome.eventId,
-      eventType: outcome.eventType,
-    });
+    lastFailure = outcome;
   }
 
+  const counters = computeCounters();
   if (counters.attempted < MIN_SAMPLE_SIZE) return;
 
   const ratio = counters.failed / counters.attempted;
@@ -146,11 +162,13 @@ export function recordAuditWriteResult(outcome: AuditWriteOutcome): void {
     if (!ratioAlarmFired) {
       ratioAlarmFired = true;
       logger.error('Audit write failure ratio exceeded threshold', {
-        attempted: counters.attempted,
+        windowSize: counters.attempted,
         failed: counters.failed,
         ratio,
         threshold: FAILURE_RATIO_THRESHOLD,
         byReason: { ...counters.byReason },
+        lastFailureEventId: lastFailure?.eventId,
+        lastFailureEventType: lastFailure?.eventType,
       });
     }
   } else {
@@ -160,11 +178,12 @@ export function recordAuditWriteResult(outcome: AuditWriteOutcome): void {
 
 /** Test-only accessor — never call from production code. */
 export function getAuditWriteFailureStatsForTest(): FailureCounters {
-  return { ...counters, byReason: { ...counters.byReason } };
+  return computeCounters();
 }
 
 /** Test-only reset — never call from production code. */
 export function resetAuditWriteFailureStatsForTest(): void {
-  counters = emptyCounters();
+  window = [];
   ratioAlarmFired = false;
+  lastFailure = undefined;
 }
