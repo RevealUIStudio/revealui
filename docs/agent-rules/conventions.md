@@ -35,7 +35,8 @@ Standards for TypeScript, git, and configuration in the RevealUI monorepo.
 - Chore: `chore/<short-description>`
 
 ### Identity
-- Professional repos (RevealUIStudio): RevealUI Studio <founder@revealui.com>
+- Professional repos (RevealUIStudio): RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>
+- Amended 2026-07-10. The prior founder@revealui.com address is retired: commits carrying it render Unverified under required signatures. Do not restore it.
 
 ## Parameterization
 

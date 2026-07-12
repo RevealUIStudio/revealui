@@ -34,6 +34,16 @@ vi.mock('@revealui/utils/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
+// Pages are site-scoped: the list/create proxy resolves the default site
+// server-side. Mock the resolver so the target URL is deterministic.
+import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
+
+vi.mock('@/lib/db/defaultSite', () => ({
+  resolveDefaultSiteId: vi.fn().mockResolvedValue('fleet-marketing'),
+}));
+
+const mockResolveDefaultSiteId = vi.mocked(resolveDefaultSiteId);
+
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
 // ---------------------------------------------------------------------------
@@ -78,13 +88,16 @@ function makeUpstreamError(status: number, text = 'upstream error') {
 describe('GET /api/globals/[slug]', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('proxies a 200 response from the API', async () => {
-    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ title: 'Home' }));
-    const req = new NextRequest('http://localhost/api/globals/home');
-    const res = await globalsGet(req, { params: Promise.resolve({ slug: 'home' }) });
+  it('forwards to /api/content/globals and unwraps { success, data } to { doc }', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({ success: true, data: { id: '1', schemaVersion: '1' } }),
+    );
+    const req = new NextRequest('http://localhost/api/globals/header');
+    const res = await globalsGet(req, { params: Promise.resolve({ slug: 'header' }) });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.title).toBe('Home');
+    expect(body.doc).toEqual({ id: '1', schemaVersion: '1' });
+    expect(String(mockFetch.mock.calls[0]?.[0])).toContain('/api/content/globals/header');
   });
 
   it('returns sanitized 404 when upstream returns 404', async () => {
@@ -122,17 +135,22 @@ describe('GET /api/globals/[slug]', () => {
 describe('POST /api/globals/[slug]', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('proxies a 200 POST response', async () => {
-    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ updated: true }));
-    const req = new NextRequest('http://localhost/api/globals/nav', {
+  it('forwards as PATCH to /api/content/globals and unwraps to { doc }', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({ success: true, data: { id: '1', schemaVersion: '1' } }),
+    );
+    const req = new NextRequest('http://localhost/api/globals/header', {
       method: 'POST',
-      body: JSON.stringify({ links: [] }),
+      body: JSON.stringify({ logoId: 'logo-1' }),
       headers: { 'Content-Type': 'application/json' },
     });
-    const res = await globalsPost(req, { params: Promise.resolve({ slug: 'nav' }) });
+    const res = await globalsPost(req, { params: Promise.resolve({ slug: 'header' }) });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.updated).toBe(true);
+    expect(body.doc).toEqual({ id: '1', schemaVersion: '1' });
+    const [url, init] = mockFetch.mock.calls[0] ?? [];
+    expect(String(url)).toContain('/api/content/globals/header');
+    expect((init as RequestInit).method).toBe('PATCH');
   });
 
   it('returns sanitized 403 for forbidden POST', async () => {
@@ -219,6 +237,82 @@ describe('POST /api/collections/[collection]', () => {
       params: Promise.resolve({ collection: 'posts' }),
     });
     expect(res.status).toBe(503);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tests  -  pages are site-scoped (default-site convention)
+// The API exposes page list/create only under /sites/:siteId/pages. The proxy
+// supplies the site scope: an explicit siteId when selected, otherwise the
+// server-resolved default site. Every other collection stays on the flat path.
+// ---------------------------------------------------------------------------
+
+describe('pages site-scoping', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResolveDefaultSiteId.mockResolvedValue('fleet-marketing');
+  });
+
+  it('GET pages lists the default site and preserves other query params', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
+    const req = new NextRequest('http://localhost/api/collections/pages?limit=1&depth=0');
+    const res = await collectionsGet(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(200);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/fleet-marketing/pages');
+    expect(url).toContain('limit=1');
+    expect(url).toContain('depth=0');
+    // The { data } envelope from the site-scoped list normalizes to { docs }.
+    const body = await res.json();
+    expect(Array.isArray(body.docs)).toBe(true);
+  });
+
+  it('GET pages honors an explicit siteId without forwarding it as a query param', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
+    const req = new NextRequest('http://localhost/api/collections/pages?siteId=acme');
+    const res = await collectionsGet(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(200);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/acme/pages');
+    expect(url).not.toContain('siteId');
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
+  });
+
+  it('POST pages create attaches the default site', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: { id: 'p1' } }, 201));
+    const req = new NextRequest('http://localhost/api/collections/pages', {
+      method: 'POST',
+      body: JSON.stringify({ title: 'Home', slug: 'home', path: '/' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await collectionsPost(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(201);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/fleet-marketing/pages');
+  });
+
+  it('POST pages create honors an explicit siteId in the body', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: { id: 'p1' } }, 201));
+    const req = new NextRequest('http://localhost/api/collections/pages', {
+      method: 'POST',
+      body: JSON.stringify({ title: 'Home', slug: 'home', path: '/', siteId: 'acme' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await collectionsPost(req, { params: Promise.resolve({ collection: 'pages' }) });
+    expect(res.status).toBe(201);
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/sites/acme/pages');
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
+  });
+
+  it('leaves a non-pages collection on the flat content path', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ docs: [] }));
+    const req = new NextRequest('http://localhost/api/collections/products?limit=1');
+    await collectionsGet(req, { params: Promise.resolve({ collection: 'products' }) });
+    const url = String(mockFetch.mock.calls[0]?.[0]);
+    expect(url).toContain('/api/content/products?limit=1');
+    expect(url).not.toContain('/sites/');
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
   });
 });
 

@@ -26,7 +26,6 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [Audit Chain](./guides/audit-chain.md): Tamper-evident audit log — schema, signing, verification
 - [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, environment setup
 - [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
@@ -46,7 +45,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 
 - [Package Reference](./REFERENCE.md): Core, contracts, DB, config, presentation, utils, router, CLI
 - [Core Stability](./CORE_STABILITY.md): API stability tiers, production verification status, version policy
-- [Component Catalog](./COMPONENT_CATALOG.md): 61 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
+- [Component Catalog](./COMPONENT_CATALOG.md): 61 native UI components in `@revealui/presentation` (plus admin and rich-text UI in `@revealui/core`)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
 - [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevForge, RevSkills) — what each does and how they compose

@@ -33,8 +33,8 @@ This document is the honest disclosure of what the RevealUI security stack gover
 | Tool dispatch | All agent tool calls funnel through `@revealui/mcp`; tier-based JWT authorization on tool invocation; per-tool permission lists | `packages/mcp/src/auth.ts` |
 | Input validation | Zod-typed schemas from `@revealui/contracts`; `isSafeUrl()` blocks `javascript:` / `vbscript:` / `data:` in Lexical rendering; Drizzle parameterized queries | `@revealui/contracts`, Lexical link/image rendering |
 | Webhook integrity | Stripe webhook signature verification; per-endpoint rate limiting (100 req/min) | `apps/server/src/routes/webhooks.ts` |
-| GDPR | Consent management, data deletion, PII anonymization, cross-DB cleanup | `@revealui/security` GDPR framework |
-| Supply chain | Pinned dependency overrides for known CVEs; Dependabot + CodeQL + Gitleaks in CI; `pnpm audit` in CI gate | Root `package.json` `pnpm.overrides`, `.github/workflows/security-audit.yml` |
+| GDPR | Consent management, data deletion, PII anonymization, Neon `pgvector` cleanup | `@revealui/security` GDPR framework |
+| Supply chain | Pinned dependency overrides for known CVEs; Dependabot + CodeQL + Gitleaks in CI; `pnpm audit` in CI gate | Root `package.json` `pnpm.overrides`, `.github/workflows/security.yml` |
 
 ## 3. What the security stack does NOT govern (explicit non-scope)
 
@@ -102,9 +102,9 @@ This is the correct default for an audit-driven engine (no false positives on st
 
 DID + Ed25519 per-RPC signature verification is on the roadmap (§7).
 
-### 4.4 No supply-chain attestation on npm publishes
+### 4.4 npm publish provenance is SLSA Level 2, not Level 3
 
-Publishes to npm do not currently produce Sigstore-signed attestations, in-toto link files, or SLSA build provenance. Dependency hygiene is enforced via pinned overrides, Dependabot, CodeQL, and Gitleaks; package-publish provenance is not.
+Publishes to npm produce Sigstore-signed SLSA Build Level 2 provenance via OIDC trusted publishing (`release.yml`, no long-lived `NPM_TOKEN`). What is not yet produced: SLSA Level 3 hermetic/isolated builds and per-step in-toto link files across the full build graph. Dependency hygiene is additionally enforced via pinned overrides, Dependabot, CodeQL, and Gitleaks.
 
 ### 4.5 No marketplace yet — extension surface is in-tree only
 
@@ -146,7 +146,7 @@ Tracked in `docs/MASTER_PLAN.md`. Cited here so the limitations above are not pe
 - **DID + Ed25519 RPC signing for the RevDev daemon** — per-call cryptographic identity verification. Closes §4.3.
 - **MCP Security Scanner at server registration** — tool-poisoning / typosquatting / hidden-instruction detection before a third-party MCP server can expose a tool. Required before marketplace opens. Closes §4.5.
 - **AI Bill of Materials (AI-BOM)** — model name, weights SHA-256, source registry, fine-tuning lineage, dataset cards, signature. Supports EU AI Act Article 53.
-- **Sigstore-signed npm publishes** — package provenance via `attest-build-provenance` GitHub Action. Closes §4.4.
+- **SLSA Level 3 npm publishes.** Hermetic builds and per-step in-toto attestations on top of the SLSA Level 2 provenance that already ships via OIDC trusted publishing. Narrows §4.4 (Level 2 provenance is live).
 
 ## 8. Document maintenance
 

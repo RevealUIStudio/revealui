@@ -81,7 +81,6 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Stripe payments** | -- | Built-in | Built-in | Built-in |
 | **Monitoring dashboard** | -- | Yes | Yes | Yes |
 | **Custom domains** | -- | Yes | Yes | Yes |
-| **Audit logging** | -- | -- | Yes | Yes |
 | **Multi-tenant** | -- | -- | -- | Yes |
 | **White-label** | -- | -- | -- | Yes (planned) |
 | **Support** | Community | Email (48h) | Email (24h) | Slack (planned) |

@@ -38,6 +38,7 @@ import {
   type ManagedProductView,
   PRICE_ENV_KEYS,
   PRICE_SERVER_ENV_KEYS,
+  validateStripeSecretKeyPrefix,
 } from './stripe-catalog.js';
 import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
 import { priceMatchesDefinition, priceSharesHandle } from './stripe-price-match.js';
@@ -764,12 +765,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (!(secretKey.startsWith('sk_test_') || secretKey.startsWith('sk_live_'))) {
-    log.error('STRIPE_SECRET_KEY must start with sk_test_ or sk_live_');
+  const keyValidation = validateStripeSecretKeyPrefix(secretKey, checkMode);
+  if (!keyValidation.ok) {
+    log.error(keyValidation.message ?? 'STRIPE_SECRET_KEY has an invalid prefix');
     process.exit(1);
   }
 
-  if (secretKey.startsWith('sk_live_')) {
+  if (keyValidation.isLive) {
     log.warn('Using LIVE Stripe key  -  resources will be created in production!');
     log.info('Press Ctrl+C within 5 seconds to abort...');
     await new Promise((r) => setTimeout(r, 5000));

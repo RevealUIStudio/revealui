@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isSyncIdentifier, isUuid } from '../identifier-validation';
+import { isRepoIdentifier, isSyncIdentifier, isUuid } from '../identifier-validation';
 
 describe('isUuid', () => {
   it('accepts lowercase UUIDs', () => {
@@ -58,5 +58,38 @@ describe('isSyncIdentifier', () => {
 
   it('rejects non-ASCII characters', () => {
     expect(isSyncIdentifier('agént')).toBe(false);
+  });
+});
+
+describe('isRepoIdentifier', () => {
+  it('accepts plain repo names', () => {
+    expect(isRepoIdentifier('revealui')).toBe(true);
+    expect(isRepoIdentifier('revdev')).toBe(true);
+    expect(isRepoIdentifier('agent-system-2')).toBe(true);
+  });
+
+  it('accepts dotted repo names', () => {
+    expect(isRepoIdentifier('.jv')).toBe(true);
+    expect(isRepoIdentifier('revealui-jv')).toBe(true);
+  });
+
+  it('rejects the empty string', () => {
+    expect(isRepoIdentifier('')).toBe(false);
+  });
+
+  it('rejects whitespace, slashes, and quoting attempts', () => {
+    expect(isRepoIdentifier('reveal ui')).toBe(false);
+    expect(isRepoIdentifier('reveal/ui')).toBe(false);
+    expect(isRepoIdentifier("'; DROP TABLE kg_nodes;--")).toBe(false);
+    expect(isRepoIdentifier("revealui' OR '1'='1")).toBe(false);
+  });
+
+  it('rejects non-ASCII characters', () => {
+    expect(isRepoIdentifier('révealui')).toBe(false);
+  });
+
+  it('rejects values over the length bound', () => {
+    expect(isRepoIdentifier('a'.repeat(128))).toBe(true);
+    expect(isRepoIdentifier('a'.repeat(129))).toBe(false);
   });
 });

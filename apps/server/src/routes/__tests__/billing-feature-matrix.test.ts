@@ -5,7 +5,7 @@
  * and blocked at lower tiers. This is the "promise-to-delivery" verification layer.
  *
  * Tests:
- * 1. requireFeature() enforcement for all 15 features × 4 tiers
+ * 1. requireFeature() enforcement for all 13 features × 4 tiers
  * 2. Error response format (upgrade URL, required tier name)
  * 3. Resource limits match documented tier definitions
  */
@@ -31,7 +31,6 @@ vi.mock('@revealui/core/features', () => ({
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
-      sso: 'enterprise',
     };
     return map[feature] ?? 'enterprise';
   }),
@@ -52,7 +51,6 @@ vi.mock('@revealui/core/features', () => ({
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
-      sso: 'enterprise',
     };
     const flags: Record<string, boolean> = {};
     for (const [feature, requiredTier] of Object.entries(map)) {
@@ -104,7 +102,6 @@ const ALL_FEATURES = [
   'auditLog',
   'multiTenant',
   'whiteLabel',
-  'sso',
 ] as const;
 type Feature = (typeof ALL_FEATURES)[number];
 
@@ -123,7 +120,6 @@ const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
-  sso: 'enterprise',
 };
 
 /** Documented resource limits per tier */
@@ -238,7 +234,6 @@ describe('Feature Gate Error Response Format', () => {
     ['multiTenant', 'free', 'enterprise'],
     ['multiTenant', 'pro', 'enterprise'],
     ['multiTenant', 'max', 'enterprise'],
-    ['sso', 'free', 'enterprise'],
   ];
 
   it.each(
@@ -318,16 +313,15 @@ describe('Resource Limits Match Tier Definitions', () => {
     expect(enabledFeatures).toContain('auditLog');
   });
 
-  it('enterprise tier gets all 14 features', () => {
+  it('enterprise tier gets all 13 features', () => {
     const features = getFeaturesForTier('enterprise') as Record<string, boolean>;
     const enabledFeatures = Object.entries(features)
       .filter(([, v]) => v)
       .map(([k]) => k);
 
-    expect(enabledFeatures).toHaveLength(14);
+    expect(enabledFeatures).toHaveLength(13);
     expect(enabledFeatures).toContain('multiTenant');
     expect(enabledFeatures).toContain('whiteLabel');
-    expect(enabledFeatures).toContain('sso');
   });
 
   it('documented resource limits match hosted tier definitions', () => {
@@ -383,7 +377,7 @@ describe('Feature Tier Boundary Precision', () => {
   });
 
   it('enterprise features are blocked on max but allowed on enterprise', async () => {
-    const enterpriseFeatures: Feature[] = ['multiTenant', 'whiteLabel', 'sso'];
+    const enterpriseFeatures: Feature[] = ['multiTenant', 'whiteLabel'];
 
     for (const feature of enterpriseFeatures) {
       const blocked = await makeFeatureRequest(createFeatureGatedApp(feature).app, feature, 'max');

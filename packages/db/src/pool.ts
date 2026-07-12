@@ -44,13 +44,34 @@ function assertProductionConfig(): void {
   }
 }
 
+/**
+ * Connection identity: a URL (DATABASE_URL, then POSTGRES_URL) wins when
+ * present; discrete DATABASE_* vars are the fallback. The two forms must not
+ * be mixed in one config object: pg gives explicitly-set fields precedence
+ * over connectionString parts, so a `host: 'localhost'` default alongside a
+ * URL silently redirects the URL's host to localhost. That was the defect
+ * this replaced (the URL was consulted only for SSL while host/port stayed on
+ * the discrete defaults, and assertProductionConfig accepted a URL it then
+ * ignored).
+ */
+export function getConnectionIdentity(
+  env: NodeJS.ProcessEnv = process.env,
+): Pick<PoolConfig, 'connectionString' | 'host' | 'port' | 'database' | 'user' | 'password'> {
+  const url = env.DATABASE_URL || env.POSTGRES_URL;
+  if (url) {
+    return { connectionString: url };
+  }
+  return {
+    host: env.DATABASE_HOST || 'localhost',
+    port: parseInt(env.DATABASE_PORT || '5432', 10),
+    database: env.DATABASE_NAME,
+    user: env.DATABASE_USER,
+    password: env.DATABASE_PASSWORD,
+  };
+}
+
 const poolConfig: PoolConfig = {
-  // Connection details
-  host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.DATABASE_PORT || '5432', 10),
-  database: process.env.DATABASE_NAME,
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
+  ...getConnectionIdentity(),
 
   // SSL configuration (auto-detected from connection string if available)
   ssl: getPoolSSLConfig(),
@@ -119,6 +140,41 @@ export function getPool(): Pool {
   return _pool;
 }
 
+export interface CreatePoolOptions {
+  connectionTimeoutMillis?: number;
+  queryTimeoutMillis?: number;
+  statementTimeoutMillis?: number;
+  max?: number;
+}
+
+/**
+ * Create a standalone pool for a caller whose workload doesn't fit the
+ * shared app pool's server-tuned defaults (5s connect, 10s query/statement)
+ * -- e.g. a long-running CLI ingest against a cold Neon compute. Reuses the
+ * same connection-identity + SSL resolution as `getPool()`, but does NOT
+ * attach the shared `onPoolConnect` setup handler: that handler's `SET
+ * statement_timeout` is pinned to the shared pool's own budget
+ * (`poolConfig.statement_timeout`) and would silently override a caller's
+ * longer override on every connection. `statement_timeout`/`query_timeout`
+ * passed here are instead applied by the pg driver itself as connection
+ * startup parameters (see `Client#getStartupConf` in `pg`), so no manual
+ * `SET` round trip is needed for a pool that isn't the shared one. This is
+ * the only sanctioned way for non-`packages/db` code to obtain a `pg.Pool`
+ * (the raw-SQL `direct-import` gate blocks importing `pg` elsewhere).
+ */
+export function createPool(options: CreatePoolOptions = {}): Pool {
+  const pool = new Pool({
+    ...getConnectionIdentity(),
+    ssl: getPoolSSLConfig(),
+    connectionTimeoutMillis: options.connectionTimeoutMillis,
+    query_timeout: options.queryTimeoutMillis,
+    statement_timeout: options.statementTimeoutMillis,
+    max: options.max,
+  });
+  pool.on('error', onPoolError);
+  return pool;
+}
+
 // ===========================================================================
 // ERROR HANDLING
 // ===========================================================================
@@ -130,27 +186,44 @@ function onPoolError(err: Error) {
   );
 }
 
+/**
+ * Validate `value` is a finite, positive, safe integer and format it as a
+ * bare numeric literal for interpolation into a `SET` statement. Postgres'
+ * `SET` command does not accept bind parameters ("syntax error at or near
+ * $1" on every connection — the defect this replaces), so the value must be
+ * interpolated directly into the query text. `value` is always the already
+ * `parseInt`-ed `poolConfig.statement_timeout`, never user input, and this
+ * validator only ever emits digits, so there is no injection surface.
+ */
+export function formatValidatedStatementTimeoutMs(value: unknown): string {
+  const ms = typeof value === 'number' ? value : Number(value);
+  if (!(Number.isFinite(ms) && Number.isInteger(ms)) || ms <= 0) {
+    throw new Error(`invalid statement_timeout value: ${String(value)}`);
+  }
+  return String(ms);
+}
+
+async function initializeConnection(client: PoolClient): Promise<void> {
+  const timeoutMs = formatValidatedStatementTimeoutMs(poolConfig.statement_timeout || 10000);
+  // One multi-statement round trip (simple query protocol) so the three
+  // setup statements execute as a single sequential flow on this client
+  // instead of three separate awaited `client.query()` calls racing for
+  // the connection.
+  await client.query(
+    `SET timezone TO 'UTC'; SET statement_timeout TO ${timeoutMs}; SET track_io_timing = on`,
+  );
+}
+
 function onPoolConnect(client: PoolClient) {
   const pid = (client as PoolClientWithPID).processID;
   logger.info(`Database connection established (PID: ${pid})`);
 
-  void (async () => {
-    try {
-      // Set timezone
-      await client.query("SET timezone TO 'UTC'");
-
-      // Set statement timeout (parameterized to prevent injection)
-      await client.query('SET statement_timeout TO $1', [poolConfig.statement_timeout || 10000]);
-
-      // Enable query statistics
-      await client.query('SET track_io_timing = on');
-    } catch (error) {
-      logger.error(
-        'Error initializing database client',
-        error instanceof Error ? error : new Error(String(error)),
-      );
-    }
-  })();
+  void initializeConnection(client).catch((error) => {
+    logger.error(
+      'Error initializing database client',
+      error instanceof Error ? error : new Error(String(error)),
+    );
+  });
 }
 
 function onPoolAcquire(client: PoolClient) {

@@ -27,6 +27,12 @@ export interface WaitlistPayload {
    * e.g. 'managed-cloud' (RevealUI Cloud waitlist), 'newsletter'.
    */
   source: 'managed-cloud' | 'newsletter' | 'landing-page' | 'blog';
+  /**
+   * Honeypot — the server silently 200s any submission with a non-empty value
+   * (packages/../waitlist.ts). Forms render it hidden via CSS; humans leave it
+   * empty, bots fill it. Omitted from the request body when empty.
+   */
+  website?: string;
 }
 
 export interface BlogPost {
@@ -68,10 +74,15 @@ export async function submitContact(payload: ContactPayload): Promise<string | n
  */
 export async function submitWaitlist(payload: WaitlistPayload): Promise<string | null> {
   try {
+    const body: { email: string; source: WaitlistPayload['source']; website?: string } = {
+      email: payload.email,
+      source: payload.source,
+    };
+    if (payload.website) body.website = payload.website;
     const res = await fetch(`${API_URL}/api/waitlist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: payload.email, source: payload.source }),
+      body: JSON.stringify(body),
     });
     if (res.ok) return null;
     // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.

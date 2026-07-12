@@ -101,6 +101,7 @@ export function PricingPage() {
       price: tier.price ?? fallback?.price,
       priceNote: tier.priceNote ?? fallback?.priceNote,
       renewal: tier.renewal ?? fallback?.renewal,
+      ctaHref: tier.ctaHref.startsWith('/') ? `${ADMIN_URL}${tier.ctaHref}` : tier.ctaHref,
     };
   });
 
@@ -587,7 +588,13 @@ export function PricingPage() {
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
-              <a href={`${ADMIN_URL}${PRICING_FINAL_CTA_LINKS.getStarted.href}`}>
+              <a
+                href={
+                  PRICING_FINAL_CTA_LINKS.getStarted.href.startsWith('/')
+                    ? `${ADMIN_URL}${PRICING_FINAL_CTA_LINKS.getStarted.href}`
+                    : PRICING_FINAL_CTA_LINKS.getStarted.href
+                }
+              >
                 {PRICING_FINAL_CTA_LINKS.getStarted.label}
               </a>
             </ButtonCVA>

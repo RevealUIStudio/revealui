@@ -13,7 +13,7 @@ RevealUI takes the opposite position on every one of those. The database is stan
 
 ## Standard Postgres, not a proprietary database
 
-RevealUI runs on Postgres. Specifically NeonDB, which is Postgres, the real thing, with the standard wire protocol and `pg_dump` that does exactly what you expect. The schema is 85 tables defined with Drizzle ORM, typed end to end, and it is not hiding any vendor-only behavior in the hot path.
+RevealUI runs on Postgres. Specifically NeonDB, which is Postgres, the real thing, with the standard wire protocol and `pg_dump` that does exactly what you expect. The schema is 92 tables defined with Drizzle ORM, typed end to end, and it is not hiding any vendor-only behavior in the hot path.
 
 That choice has a few consequences worth naming:
 

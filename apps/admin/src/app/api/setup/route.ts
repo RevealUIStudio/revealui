@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { type BootstrapResult, bootstrap, type RevealUILike } from '@revealui/setup/bootstrap';
 import { logger } from '@revealui/utils/logger';
 import { NextResponse } from 'next/server';
@@ -95,19 +96,51 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
       try {
         const { hostname } = await import('node:os');
         const { auditLog } = await import('@revealui/db/schema');
-        await db.insert(auditLog).values({
-          event: 'admin.bootstrap.completed',
-          actor: 'web',
-          severity: 'info',
-          meta: {
+        const { classifyAuditWriteFailure, recordAuditWriteResult } = await import(
+          '@revealui/core/security'
+        );
+        const eventId = crypto.randomUUID();
+        try {
+          await db.insert(auditLog).values({
+            event: 'admin.bootstrap.completed',
+            actor: 'web',
+            severity: 'info',
+            meta: {
+              email: parsed.data.email,
+              source: 'web',
+              hostname: hostname(),
+              seeded: parsed.data.seed ?? true,
+            },
+          } as never);
+          recordAuditWriteResult({ ok: true, eventId, eventType: 'admin.bootstrap.completed' });
+        } catch (auditError) {
+          const reason = classifyAuditWriteFailure(auditError);
+          recordAuditWriteResult({
+            ok: false,
+            reason,
+            eventId,
+            eventType: 'admin.bootstrap.completed',
+          });
+          // Non-fatal — the admin account was already created above. Loud,
+          // classified log instead of a silent catch: this writer targets
+          // columns (`event`/`actor`/`meta`) that do not exist on audit_log
+          // (real columns are `event_type`/`agent_id`/`payload`) and has
+          // never successfully persisted a row in any environment. Stage 1
+          // fixes the column mapping; Stage 0 only makes the failure visible.
+          logger.error('Bootstrap audit log write failed', {
             email: parsed.data.email,
-            source: 'web',
-            hostname: hostname(),
-            seeded: parsed.data.seed ?? true,
-          },
-        } as never);
-      } catch {
-        // Non-fatal — audit log may not be available in all environments
+            eventId,
+            reason,
+            error: auditError instanceof Error ? auditError.message : String(auditError),
+          });
+        }
+      } catch (auditSetupError) {
+        // Non-fatal — audit log subsystem may not be available in all environments
+        logger.error('Bootstrap audit log setup failed', {
+          email: parsed.data.email,
+          error:
+            auditSetupError instanceof Error ? auditSetupError.message : String(auditSetupError),
+        });
       }
     } catch (dbError) {
       // DB client unavailable — the admin was still created by bootstrap(), but

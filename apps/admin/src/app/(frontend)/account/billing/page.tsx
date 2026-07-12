@@ -15,12 +15,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@revealui/presentation';
+import { logger } from '@revealui/utils/logger';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
 import { apiFetch } from '@/lib/utils/csrf';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
+
+// Bounded retry for the subscription fetch that gates auto-checkout. A short
+// linear backoff spaces the attempts so a brief blip on the buyer's connection
+// (or a cold API instance) resolves before we surrender to the manual fallback.
+const MAX_SUBSCRIPTION_FETCH_ATTEMPTS = 3;
+const SUBSCRIPTION_RETRY_BASE_DELAY_MS = 150;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 interface SubscriptionData {
   tier: LicenseTierId;
@@ -119,27 +132,36 @@ function BillingContent() {
   }, [apiUrl]);
 
   /**
-   * Fetches subscription data with one automatic retry on failure. The
-   * auto-checkout effect below only fires once `subscription` is populated,
-   * so a hard failure here must never be silent  -  it has to leave a trail
-   * (`subscriptionLoadFailed`) the UI can act on, especially when the user
-   * arrived mid-purchase with an `?upgrade=` param.
+   * Fetches subscription data with a bounded retry (short linear backoff
+   * between attempts). The auto-checkout effect below only fires once
+   * `subscription` is populated, so a hard failure here must never be silent
+   * - it logs the failure and leaves a trail (`subscriptionLoadFailed`) the UI
+   * can act on, especially when the user arrived mid-purchase with an
+   * `?upgrade=` param.
    */
   const fetchSubscription = useCallback(async () => {
     setError(null);
     setSubscriptionLoadFailed(false);
 
-    let ok = await attemptFetchSubscription();
-    if (!ok) {
+    let ok = false;
+    for (let attempt = 1; attempt <= MAX_SUBSCRIPTION_FETCH_ATTEMPTS; attempt += 1) {
       ok = await attemptFetchSubscription();
+      if (ok) break;
+      if (attempt < MAX_SUBSCRIPTION_FETCH_ATTEMPTS) {
+        await delay(SUBSCRIPTION_RETRY_BASE_DELAY_MS * attempt);
+      }
     }
 
     if (!ok) {
+      logger.error('Billing subscription fetch failed after retries', {
+        attempts: MAX_SUBSCRIPTION_FETCH_ATTEMPTS,
+        plan: upgrade,
+      });
       setError('Failed to load subscription data');
       setSubscriptionLoadFailed(true);
     }
     setIsLoading(false);
-  }, [attemptFetchSubscription]);
+  }, [attemptFetchSubscription, upgrade]);
 
   useEffect(() => {
     if (!sessionLoading && session) {

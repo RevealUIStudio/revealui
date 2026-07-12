@@ -14,7 +14,7 @@ last-updated: 2026-07-04
 
 This document tracks progress toward SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required for Enterprise tier customers.
 
-> **Infrastructure-in-transition note (2026-05-29).** The infrastructure under audit is mid-transition: Supabase is decommissioned as an internal datastore (ADR 2026-05-01; credential offboarding completing), the ElectricSQL sync host is re-platforming Railway → Fly.io (ADR 2026-05-18; the legacy Railway proxy is out of production service), and RevealCoin was cancelled 2026-05-29. The audit baseline must track these to completion; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative current status.
+> **Infrastructure note (updated 2026-07-11).** Two infrastructure changes are complete and one remains in flight: Supabase is decommissioned as an internal datastore (ADR 2026-05-01; credential offboarding complete, no `SUPABASE_*` variable is read by the runtime), RevealCoin was cancelled 2026-05-29, and the ElectricSQL sync host is still re-platforming off the dropped Railway host to Fly.io (the legacy Railway proxy is out of production service). See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative current status.
 
 ## Prerequisites (Complete)
 

@@ -356,6 +356,11 @@ async function gate(): Promise<void> {
         args: ['validate:empty-catch'],
       },
       {
+        name: 'as-never on drizzle .values() (hard fail)',
+        command: 'pnpm',
+        args: ['validate:as-never-values'],
+      },
+      {
         name: 'Stripe-client consolidation (hard fail)',
         command: 'pnpm',
         args: ['validate:stripe-client'],

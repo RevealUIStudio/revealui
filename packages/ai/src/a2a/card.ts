@@ -14,6 +14,16 @@ import { type A2AAgentCard, agentDefinitionToCard } from '@revealui/contracts';
 // Built-in agent definitions
 // =============================================================================
 
+/**
+ * Built-in platform agents defer model selection to the inference provider the
+ * account configures on the API Keys page. The dispatch runtime resolves the
+ * real model from that provider, so the definition itself names no vendor. An
+ * empty value means "use the configured provider's model". Claude and other
+ * model ids stay valid where an operator wires a compatible provider; they are
+ * no longer the hardcoded default.
+ */
+export const PROVIDER_RESOLVED_MODEL = '';
+
 /** RevealUI platform meta-agent  -  "The Creator" */
 const THE_CREATOR_DEF: AgentDefinition = {
   id: 'revealui-creator',
@@ -23,7 +33,7 @@ const THE_CREATOR_DEF: AgentDefinition = {
     'The RevealUI platform agent. Scaffolds new AI agents, manages agent lifecycles, ' +
     'orchestrates multi-agent workflows, and acts as the primary interface for AI capabilities ' +
     'on the RevealUI platform.',
-  model: 'claude-opus-4-6',
+  model: PROVIDER_RESOLVED_MODEL,
   systemPrompt:
     'You are The Creator, the meta-agent for RevealUI. You design, configure, and deploy ' +
     'purpose-built AI agents for RevealUI users. You have access to agent scaffolding tools, ' +
@@ -83,7 +93,7 @@ const TICKET_AGENT_DEF: AgentDefinition = {
   description:
     'Handles support tickets, resolves user issues, and escalates when needed. ' +
     'Uses the RevealUI admin to create and update tickets.',
-  model: 'claude-sonnet-4-6',
+  model: PROVIDER_RESOLVED_MODEL,
   systemPrompt:
     'You are the RevealUI Ticket Agent. You help users resolve issues by creating tickets, ' +
     'searching for solutions, and escalating complex problems to the support team.',

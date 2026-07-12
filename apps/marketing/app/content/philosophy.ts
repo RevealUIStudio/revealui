@@ -15,7 +15,7 @@ export const PHILOSOPHY = {
       body: 'Most software effort evaporates. The project ships, the lessons scatter, and the next project starts from zero. Tools that promise productivity make the work faster. They do not make the next project start further ahead.',
     },
     {
-      body: 'RevealUI is built for compounding. Five primitives, People, Content, Offers, Payments, and Agents, are a contract you implement once and reuse in every product you ship. A deployment that works becomes a RevealUI Fleet kit, branded and domain-locked for the next client you serve. An agent that works in your business keeps its memory in a store you own. Every action lands in a tamper-evident audit log, so the record of your work is an asset, not an afterthought.',
+      body: 'RevealUI is built for compounding. Five primitives, People, Content, Offers, Payments, and Agents, are a contract you implement once and reuse in every product you ship. A deployment that works becomes a RevealUI Fleet kit, branded and domain-locked for the next client you serve. An agent that works in your business keeps its memory in a store you own, so the record of your work is an asset, not an afterthought.',
     },
     {
       body: "Large organizations buy this kind of accumulation with headcount. RevealUI packages it as software you self-host, so a small team can build on yesterday's work instead of repeating it.",

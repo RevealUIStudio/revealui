@@ -64,6 +64,7 @@ import { errorHandler } from './middleware/error.js';
 import {
   checkLicenseStatus,
   checkSupportExpiry,
+  enforceReadOnlyWrites,
   requireAIAccess,
   requireDomain,
   requireFeature,
@@ -94,6 +95,7 @@ import cronCleanupRoute from './routes/cron/cleanup.js';
 import cronDispatchRoute from './routes/cron/dispatch.js';
 import cronDrainUnreconciledRoute from './routes/cron/drain-unreconciled.js';
 import cronJobsSafetyNetRoute from './routes/cron/jobs-safety-net.js';
+import cronLifecycleEmailsRoute from './routes/cron/lifecycle-emails.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
 import cronReconcileCustomersRoute from './routes/cron/reconcile-customers.js';
@@ -710,6 +712,14 @@ app.use('/a2a/*', entitlementMiddleware());
 app.use('/a2a/*', licenseStatusCheck);
 app.use('/a2a/*', supportExpiryCheck);
 
+// GAP-310: block writes for lapsed-perpetual (read-only) licenses. Runs after
+// checkSupportExpiry (which sets the read-only signal) and before the feature
+// gates + route handlers. Governed by LICENSE_READ_ONLY_ENFORCE
+// (off default / shadow / enforce); inert unless a license is in read-only mode.
+app.use('/api/*', enforceReadOnlyWrites());
+app.use('/api/v1/*', enforceReadOnlyWrites());
+app.use('/a2a/*', enforceReadOnlyWrites());
+
 // License enforcement  -  gate premium routes by feature
 // Agent stream + tasks: free tier allowed with local inference, Pro+ for cloud providers
 app.use('/api/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
@@ -1185,6 +1195,7 @@ app.route('/api/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/cron', cronCleanupRoute);
 app.route('/api/cron', cronJobsSafetyNetRoute);
+app.route('/api/cron', cronLifecycleEmailsRoute);
 app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
@@ -1250,6 +1261,7 @@ app.route('/api/v1/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/cron', cronCleanupRoute);
 app.route('/api/v1/cron', cronJobsSafetyNetRoute);
+app.route('/api/v1/cron', cronLifecycleEmailsRoute);
 app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);

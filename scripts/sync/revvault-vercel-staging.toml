@@ -1,0 +1,267 @@
+# revvault → Vercel STAGING sync manifest (GAP-343 Phase 3)
+#
+# Drives `revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml
+# [--apply]` — a SEPARATE manifest from revvault-vercel.toml, deliberately, so a
+# routine `pnpm vercel:sync:apply` (prod) can never touch staging, and
+# `pnpm vercel:sync:staging:apply` can never touch production. Same schema as
+# the prod manifest (see its header docblock for the full field reference);
+# this header only documents what is DIFFERENT here.
+#
+# Requires revvault >= the build that ships `git_branch` support (revvault#127
+# / GAP-346, landed on revvault `test`, NOT `main` as of this writing — the
+# owner's installed revvault binary must be built from `test` before running
+# this manifest). Older binaries reject the `git_branch` key at parse time.
+#
+# git_branch semantics (see revvault crates/core/src/sync/vercel.rs):
+#   - Every var in every block below is created with `targets = ["preview"]`
+#     and `git_branch = "staging"`, so it is exposed ONLY to the `staging`
+#     branch's preview deployments, not every branch's previews. Vercel
+#     rejects `git_branch` unless `targets` includes `"preview"` — revvault
+#     enforces this client-side and fails loudly rather than a bare Vercel 400.
+#   - `git_branch` is applied on CREATE only. Update (PATCH) sends `value` only
+#     and Vercel preserves the existing row's `gitBranch` as-is. If a `preview`
+#     row for one of these keys already exists on the project (e.g. from an
+#     earlier ad-hoc `deploy-test.yml` dispatch) with no branch scope, the
+#     first sync will PATCH its value but leave it branch-UNSCOPED — visible to
+#     every branch's previews. Delete any pre-existing unscoped preview row for
+#     these keys before the first `--apply`, or `git_branch` never takes effect
+#     for it.
+#
+# Three project blocks, one per app that gets a staging.revealui.com subtree
+# host (docs is excluded — not deployed to staging, see the lane plan Phase 4).
+# Same Vercel project IDs as the prod manifest (same projects, different env
+# target + branch scope) — vault_prefix is staging-namespaced so an unmatched
+# var falls back under revealui/staging/vercel/<app>/<VAR_NAME> rather than
+# ever defaulting into a revealui/prod/* fallback path.
+#
+# Var buckets (full rationale: .jv docs/lanes/staging-environment/plan.md
+# §Phase 3 bucket table):
+#   - Vaulted fresh under revealui/staging/*        — new staging-only values
+#   - Vaulted but reusing the SAME prod path         — explicitly marked below
+#     ("reuse prod" comment); low-risk shared config (transactional email
+#     transport, one Stripe meter-event name), not per-environment secrets.
+#   - Listed in `skip` (name known, never synced)    — STRIPE_LIVE_MODE. Kept
+#     in `skip` rather than omitted so sync explicitly refuses to manage it
+#     instead of reporting it as an untracked Vercel orphan. Staying unset is
+#     what keeps staging in Stripe test mode.
+#   - Dropped entirely (absent from this file)       — STRIPE_WEBHOOK_SECRET_LIVE
+#     (handler falls back to STRIPE_WEBHOOK_SECRET; unset flag +
+#     livemode:false test events pass the gate), NEON_API_KEY,
+#     MARKETPLACE_CONNECT_RETURN_URL, NEXT_PUBLIC_IS_LIVE (true orphan,
+#     GAP-345), ELECTRIC_* (no walked UI consumes shapes on staging).
+
+# ── revealui-api-staging ────────────────────────────────────────────────────
+[projects.revealui-api-staging]
+project_id = "prj_zk6EQijYXwd9L7BccuBssi436ktM"
+vault_prefix = "revealui/staging/api"
+targets = ["preview"]
+git_branch = "staging"
+skip = [
+  "NODE_ENV",
+  # Deliberately never synced: staying unset keeps Stripe in test mode and
+  # the webhook handler on the STRIPE_WEBHOOK_SECRET fallback (see header).
+  "STRIPE_LIVE_MODE",
+]
+
+[projects.revealui-api-staging.vars]
+# Stripe — keys + secrets. Phase 3 declares the paths; Phase 2 (owner-run
+# `stripe:seed` against the isolated staging Stripe test account) fills them.
+STRIPE_SECRET_KEY     = { path = "revealui/staging/stripe/secret-key", sensitive = true }
+STRIPE_WEBHOOK_SECRET = { path = "revealui/staging/stripe/webhook-secret", sensitive = true }
+# reuse prod: Vercel-side Stripe meter event name is not secret and identical
+# across environments; no reason to fork it.
+STRIPE_AGENT_METER_EVENT_NAME = "revealui/prod/stripe/agent-meter-event-name"
+
+# Stripe — price ids (literal, low-secrecy; Phase 2 fills after test-mode catalog seed)
+STRIPE_PRO_PRICE_ID                  = "revealui/staging/stripe/pro-price-id"
+STRIPE_MAX_PRICE_ID                  = "revealui/staging/stripe/max-price-id"
+STRIPE_ENTERPRISE_PRICE_ID           = "revealui/staging/stripe/enterprise-price-id"
+STRIPE_PERPETUAL_PRO_PRICE_ID        = "revealui/staging/stripe/perpetual-pro-price-id"
+STRIPE_PERPETUAL_MAX_PRICE_ID        = "revealui/staging/stripe/perpetual-max-price-id"
+STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID = "revealui/staging/stripe/perpetual-enterprise-price-id"
+STRIPE_RENEWAL_PRO_PRICE_ID          = "revealui/staging/stripe/renewal-pro-price-id"
+STRIPE_RENEWAL_MAX_PRICE_ID          = "revealui/staging/stripe/renewal-max-price-id"
+STRIPE_RENEWAL_ENTERPRISE_PRICE_ID   = "revealui/staging/stripe/renewal-enterprise-price-id"
+STRIPE_CREDITS_STARTER_PRICE_ID      = "revealui/staging/stripe/credits-starter-price-id"
+STRIPE_CREDITS_STANDARD_PRICE_ID     = "revealui/staging/stripe/credits-standard-price-id"
+STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/staging/stripe/credits-scale-price-id"
+STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/staging/stripe/agent-overage-price-id"
+STRIPE_PRO_ANNUAL_PRICE_ID           = "revealui/staging/stripe/pro-annual-price-id"
+STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/staging/stripe/max-annual-price-id"
+STRIPE_ENTERPRISE_ANNUAL_PRICE_ID    = "revealui/staging/stripe/enterprise-annual-price-id"
+
+# Observability — Sentry. Separate STAGING Sentry project (not prod's DSN) so
+# staging errors never pollute the prod error budget.
+SENTRY_DSN = "revealui/staging/sentry/dsn"
+
+# Admin API key (parity with admin) — fresh staging value
+REVEALUI_ADMIN_API_KEY = { path = "revealui/staging/admin/api-key", sensitive = true }
+
+# Database — Phase 1 (owner-run, empty Neon branch + full migrate) fills this
+POSTGRES_URL = { path = "revealui/staging/db/postgres-url", sensitive = true }
+DATABASE_URL = { path = "revealui/staging/db/postgres-url", sensitive = true }
+
+# Encryption + signing — all FRESH staging values (gen-staging-secrets.ts fills)
+REVEALUI_KEK                = { path = "revealui/staging/kek", sensitive = true }
+# Fresh staging Ed25519 pair — deliberately NOT the prod revdev/license-signing-*
+# pair (isolation: a staging-minted license JWT must never verify against prod).
+REVEALUI_LICENSE_PRIVATE_KEY = { path = "revealui/staging/license/private-key", sensitive = true }
+REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/staging/license/public-key"
+REVEALUI_AUDIT_HMAC_SECRET   = { path = "revealui/staging/audit-hmac-secret", sensitive = true }
+# Must resolve to the SAME path as admin's REVEALUI_SECRET below — CSRF tokens
+# are cross-verified between the two apps.
+REVEALUI_SECRET              = { path = "revealui/staging/secret", sensitive = true }
+
+# Cron + alerting
+REVEALUI_CRON_SECRET = { path = "revealui/staging/cron-secret", sensitive = true }
+REVEALUI_ALERT_EMAIL = "revealui/staging/alert-email"
+
+# Storage — Cloudflare R2. Staging-scoped bucket + token, not the prod bucket
+# (prod is a write-capable credential; the 9-path walk never uploads, but a
+# staging-scoped bucket costs nothing and removes the shared-blast-radius risk).
+R2_ACCOUNT_ID         = "revealui/staging/r2/account-id"
+R2_ACCESS_KEY_ID      = { path = "revealui/staging/r2/access-key-id", sensitive = true }
+R2_SECRET_ACCESS_KEY  = { path = "revealui/staging/r2/secret-access-key", sensitive = true }
+R2_BUCKET             = "revealui/staging/r2/bucket"
+R2_PUBLIC_BASE_URL    = "revealui/staging/r2/public-base-url"
+
+# Email transport (Gmail SA) — reuse prod: real verification/receipt/license
+# mail must land in a real inbox for the walk; forking transport credentials
+# buys no isolation the walk needs.
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
+GOOGLE_PRIVATE_KEY            = { path = "revealui/prod/google/private-key", sensitive = true }
+EMAIL_FROM                    = "revealui/prod/email/from"
+EMAIL_REPLY_TO                = "revealui/prod/email/reply-to"
+
+# Auth + session — staging.revealui.com subtree (gen-staging-secrets.ts fills
+# with the deterministic values; see the lane plan §The URL decision)
+PASSKEY_ORIGIN         = "revealui/staging/passkey/origin"
+PASSKEY_RP_ID          = "revealui/staging/passkey/rp-id"
+PASSKEY_RP_NAME        = "revealui/staging/passkey/rp-name"
+SESSION_COOKIE_DOMAIN  = "revealui/staging/session-cookie-domain"
+CORS_ORIGIN            = "revealui/staging/cors-origin"
+
+# Billing (Stripe customer-portal config id) — Phase 2 fills after the
+# test-mode billing portal config is created
+REVEALUI_BILLING_PORTAL_CONFIG_ID = "revealui/staging/stripe/billing-portal-config-id"
+
+# Public (bundled into client; not secret, kept canonical for reproducibility).
+# server-url == the admin app's own origin (https://admin.staging.revealui.com);
+# see apps/admin/src/proxy.ts + apps/server validate-startup license domain
+# binding, both of which treat NEXT_PUBLIC_SERVER_URL as the admin origin.
+NEXT_PUBLIC_SERVER_URL     = "revealui/staging/public/server-url"
+REVEALUI_PUBLIC_SERVER_URL = "revealui/staging/public/server-url"
+
+
+# ── revealui-admin-staging ──────────────────────────────────────────────────
+[projects.revealui-admin-staging]
+project_id = "prj_7sEFDg4MH6C26nJPjrukK86QdwfG"
+vault_prefix = "revealui/staging/admin"
+targets = ["preview"]
+git_branch = "staging"
+skip = [
+  "NODE_ENV",
+  "NEXT_TELEMETRY_DISABLED",
+]
+
+[projects.revealui-admin-staging.vars]
+# Stripe — keys (parity with api; same staging paths as the api block above)
+STRIPE_SECRET_KEY     = { path = "revealui/staging/stripe/secret-key", sensitive = true }
+STRIPE_WEBHOOK_SECRET = { path = "revealui/staging/stripe/webhook-secret", sensitive = true }
+
+# Stripe — publishable key (admin-side client SDK)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "revealui/staging/stripe/publishable-key"
+
+# Stripe — price IDs (parity twins; same staging canonical paths as api)
+NEXT_PUBLIC_STRIPE_PRO_PRICE_ID        = "revealui/staging/stripe/pro-price-id"
+NEXT_PUBLIC_STRIPE_MAX_PRICE_ID        = "revealui/staging/stripe/max-price-id"
+NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = "revealui/staging/stripe/enterprise-price-id"
+NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID        = "revealui/staging/stripe/pro-annual-price-id"
+NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID        = "revealui/staging/stripe/max-annual-price-id"
+NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL_PRICE_ID = "revealui/staging/stripe/enterprise-annual-price-id"
+NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID        = "revealui/staging/stripe/perpetual-pro-price-id"
+NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID        = "revealui/staging/stripe/perpetual-max-price-id"
+NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID = "revealui/staging/stripe/perpetual-enterprise-price-id"
+# Bare versions on admin (server-side reads in Next.js api routes; same values)
+STRIPE_MAX_PRICE_ID        = "revealui/staging/stripe/max-price-id"
+STRIPE_PRO_ANNUAL_PRICE_ID        = "revealui/staging/stripe/pro-annual-price-id"
+STRIPE_MAX_ANNUAL_PRICE_ID        = "revealui/staging/stripe/max-annual-price-id"
+STRIPE_ENTERPRISE_ANNUAL_PRICE_ID = "revealui/staging/stripe/enterprise-annual-price-id"
+
+# Database — same staging Neon branch as api
+POSTGRES_URL = { path = "revealui/staging/db/postgres-url", sensitive = true }
+# NEON_API_KEY intentionally excluded — real consumer is the Neon MCP server,
+# not exercised by the 9-path conversion walk.
+
+# Encryption + signing (parity with api — same staging KEK/license/secret)
+REVEALUI_KEK                 = { path = "revealui/staging/kek", sensitive = true }
+REVEALUI_LICENSE_PRIVATE_KEY = { path = "revealui/staging/license/private-key", sensitive = true }
+REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/staging/license/public-key"
+REVEALUI_SECRET              = { path = "revealui/staging/secret", sensitive = true }
+
+# Auth — passkey / WebAuthn (admin serves the passkey ceremony at
+# admin.staging.revealui.com; rp-id=staging.revealui.com is its registrable parent)
+PASSKEY_ORIGIN         = "revealui/staging/passkey/origin"
+PASSKEY_RP_ID          = "revealui/staging/passkey/rp-id"
+PASSKEY_RP_NAME        = "revealui/staging/passkey/rp-name"
+
+# Cron + alerting (parity with api)
+REVEALUI_CRON_SECRET = { path = "revealui/staging/cron-secret", sensitive = true }
+
+# Storage — Cloudflare R2 (staging-scoped bucket; parity with api)
+R2_ACCOUNT_ID         = "revealui/staging/r2/account-id"
+R2_ACCESS_KEY_ID      = { path = "revealui/staging/r2/access-key-id", sensitive = true }
+R2_SECRET_ACCESS_KEY  = { path = "revealui/staging/r2/secret-access-key", sensitive = true }
+R2_BUCKET             = "revealui/staging/r2/bucket"
+R2_PUBLIC_BASE_URL    = "revealui/staging/r2/public-base-url"
+
+# Email transport (parity with api — reuse prod, see api block comment)
+EMAIL_FROM                   = "revealui/prod/email/from"
+EMAIL_REPLY_TO               = "revealui/prod/email/reply-to"
+GOOGLE_PRIVATE_KEY           = { path = "revealui/prod/google/private-key", sensitive = true }
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
+
+# Auth + session (parity with api)
+SESSION_COOKIE_DOMAIN = "revealui/staging/session-cookie-domain"
+
+# Public URLs (parity twins across api/admin/marketing)
+NEXT_PUBLIC_API_URL        = "revealui/staging/public/api-url"
+REVEALUI_API_URL           = "revealui/staging/public/api-url"
+NEXT_PUBLIC_SERVER_URL     = "revealui/staging/public/server-url"
+REVEALUI_PUBLIC_SERVER_URL = "revealui/staging/public/server-url"
+
+# Observability — Sentry (separate STAGING Sentry project; parity with api block)
+NEXT_PUBLIC_SENTRY_DSN = "revealui/staging/sentry/dsn-admin"
+SENTRY_AUTH_TOKEN      = { path = "revealui/staging/sentry/auth-token", sensitive = true }
+SENTRY_ORG             = "revealui/staging/sentry/org"
+SENTRY_PROJECT         = "revealui/staging/sentry/project-admin"
+
+# Admin-specific — fresh staging bootstrap credentials so the owner can sign in
+REVEALUI_ADMIN_EMAIL         = "revealui/staging/admin/email"
+REVEALUI_ADMIN_PASSWORD      = { path = "revealui/staging/admin/password", sensitive = true }
+REVEALUI_ADMIN_API_KEY       = { path = "revealui/staging/admin/api-key", sensitive = true }
+
+
+# ── revealui-marketing-staging ──────────────────────────────────────────────
+[projects.revealui-marketing-staging]
+project_id = "prj_frTIYlnONVPLNIjKnQpINiGb5lm0"
+vault_prefix = "revealui/staging/marketing"
+targets = ["preview"]
+git_branch = "staging"
+skip = [
+  "NODE_ENV",
+]
+
+[projects.revealui-marketing-staging.vars]
+# THE anti-cross-wire var this whole manifest exists to set explicitly: prod
+# marketing has NO VITE_API_URL today and hard-falls-back to the LIVE
+# api.revealui.com in every PROD build (apps/marketing/app/lib/api.ts:8-10).
+# Without this line, staging marketing would silently call the live api.
+VITE_API_URL               = "revealui/staging/public/api-url"
+NEXT_PUBLIC_API_URL        = "revealui/staging/public/api-url"
+REVEALUI_API_URL           = "revealui/staging/public/api-url"
+NEXT_PUBLIC_SERVER_URL     = "revealui/staging/public/server-url"
+REVEALUI_PUBLIC_SERVER_URL = "revealui/staging/public/server-url"
+# NEXT_PUBLIC_IS_LIVE intentionally excluded — genuine orphan, no code reader
+# (GAP-345), and dropping it for staging removes one class of confusion this
+# environment exists to avoid.

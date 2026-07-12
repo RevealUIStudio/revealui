@@ -17,6 +17,9 @@
  * Pages:     GET|POST /api/content/sites/:siteId/pages
  *            GET|PATCH|DELETE /api/content/pages/:id
  *
+ * Globals:   GET /api/content/globals/:slug (public)
+ *            PATCH /api/content/globals/:slug (content:update)
+ *
  * Users:     GET /api/content/users (admin-only, paginated)
  *            GET|PATCH|DELETE /api/content/users/:id
  *
@@ -35,6 +38,7 @@ import type { DatabaseClient } from '@revealui/db/client';
 import { OpenAPIHono } from '@revealui/openapi';
 import batchRoutes from './batch.js';
 import exportRoutes from './export.js';
+import globalsRoutes from './globals.js';
 import mediaRoutes from './media.js';
 import ordersRoutes from './orders.js';
 import pagesRoutes from './pages.js';
@@ -55,6 +59,7 @@ app.route('/', postsRoutes);
 app.route('/', mediaRoutes);
 app.route('/', sitesRoutes);
 app.route('/', pagesRoutes);
+app.route('/', globalsRoutes);
 app.route('/', searchRoutes);
 app.route('/', usersRoutes);
 app.route('/', productsRoutes);

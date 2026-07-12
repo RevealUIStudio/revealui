@@ -1,0 +1,83 @@
+/**
+ * Deterministic, content-addressed id derivation.
+ *
+ * Extends the SHA-256 node-id pattern from `@revealui/db` node-ids to the graph:
+ * ids are pure functions of content / natural keys, so the same fact derived on
+ * two sites collides into one row (spec §8.1 class 1). Ids are canonical
+ * RFC-4122 v5-shaped UUIDs (deterministic, valid for a Postgres uuid column,
+ * though the columns are declared `text` to keep the driver simple).
+ */
+
+import { createHash } from 'node:crypto';
+import type { EdgeRelation, NodeKind } from './ontology/index.js';
+import type { EpisodeInput } from './types.js';
+
+/**
+ * Field-join separator for id-derivation inputs: the unit separator control
+ * character (code point 31 decimal), written in source as the six-character
+ * JS string escape sequence (backslash, u, 0, 0, 1, F), never as a raw byte.
+ * A raw control byte in source makes git classify the file as binary
+ * (breaking diff/blame/review), and because this value is the join separator
+ * inside deriveEdgeId/deriveEpisodeId, any tool that silently strips or
+ * mangles a raw control byte would silently re-key the whole graph.
+ */
+export const SEP = '\u001F';
+
+function sha256Hex(input: string): string {
+  return createHash('sha256').update(input, 'utf8').digest('hex');
+}
+
+/**
+ * Map an arbitrary string to a deterministic, canonical UUID (v5-shaped).
+ * Uses the first 16 bytes of the SHA-256 digest, then stamps the version (5)
+ * and RFC-4122 variant bits so the value is a well-formed UUID.
+ */
+export function deterministicUuid(input: string): string {
+  const nibbles = sha256Hex(input).slice(0, 32).split('');
+  // Version 5 in the high nibble of time_hi_and_version (index 12).
+  nibbles[12] = '5';
+  // Variant 10xx in the high nibble of clock_seq_hi (index 16): force top bits to 10.
+  const variant = Number.parseInt(nibbles[16] ?? '0', 16);
+  nibbles[16] = ((variant & 0x3) | 0x8).toString(16);
+  const s = nibbles.join('');
+  return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20, 32)}`;
+}
+
+/** Stable JSON serialization (sorted keys) so structurally-equal objects hash equal. */
+export function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, v]) => v !== undefined)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`).join(',')}}`;
+}
+
+/** Node id = SHA-256 UUID over `kind + ':' + naturalKey`. */
+export function deriveNodeId(kind: NodeKind, naturalKey: string): string {
+  return deterministicUuid(`${kind}:${naturalKey}`);
+}
+
+/** Edge id = SHA-256 UUID over (sourceId, targetId, relation, validAt). */
+export function deriveEdgeId(
+  sourceId: string,
+  targetId: string,
+  relation: EdgeRelation,
+  validAt: Date,
+): string {
+  return deterministicUuid([sourceId, targetId, relation, validAt.toISOString()].join(SEP));
+}
+
+/** Episode id = SHA-256 UUID over (episodeType, source, contentRef, referenceTime). */
+export function deriveEpisodeId(
+  episode: Pick<EpisodeInput, 'episodeType' | 'source' | 'contentRef' | 'referenceTime'>,
+): string {
+  return deterministicUuid(
+    [
+      episode.episodeType,
+      episode.source,
+      stableStringify(episode.contentRef ?? {}),
+      episode.referenceTime.toISOString(),
+    ].join(SEP),
+  );
+}

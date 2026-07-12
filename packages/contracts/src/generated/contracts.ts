@@ -1081,6 +1081,162 @@ export const JobsInsertContract = createContract({
 })
 
 // =============================================================================
+// KgEdgeEpisodes Contracts
+// =============================================================================
+
+/**
+ * Contract for kgEdgeEpisodes row (Select)
+ * Database table: kg_edge_episodes
+ */
+export const KgEdgeEpisodesRowContract = createContract({
+  name: 'KgEdgeEpisodesRow',
+  version: '1',
+  description: 'Database row contract for kg_edge_episodes table',
+  schema: Schemas.KgEdgeEpisodesSelectSchema,
+})
+
+/**
+ * Contract for kgEdgeEpisodes insert
+ * Database table: kg_edge_episodes
+ */
+export const KgEdgeEpisodesInsertContract = createContract({
+  name: 'KgEdgeEpisodesInsert',
+  version: '1',
+  description: 'Database insert contract for kg_edge_episodes table',
+  schema: Schemas.KgEdgeEpisodesInsertSchema,
+})
+
+// =============================================================================
+// KgEdges Contracts
+// =============================================================================
+
+/**
+ * Contract for kgEdges row (Select)
+ * Database table: kg_edges
+ */
+export const KgEdgesRowContract = createContract({
+  name: 'KgEdgesRow',
+  version: '1',
+  description: 'Database row contract for kg_edges table',
+  schema: Schemas.KgEdgesSelectSchema,
+})
+
+/**
+ * Contract for kgEdges insert
+ * Database table: kg_edges
+ */
+export const KgEdgesInsertContract = createContract({
+  name: 'KgEdgesInsert',
+  version: '1',
+  description: 'Database insert contract for kg_edges table',
+  schema: Schemas.KgEdgesInsertSchema,
+})
+
+// =============================================================================
+// KgEpisodes Contracts
+// =============================================================================
+
+/**
+ * Contract for kgEpisodes row (Select)
+ * Database table: kg_episodes
+ */
+export const KgEpisodesRowContract = createContract({
+  name: 'KgEpisodesRow',
+  version: '1',
+  description: 'Database row contract for kg_episodes table',
+  schema: Schemas.KgEpisodesSelectSchema,
+})
+
+/**
+ * Contract for kgEpisodes insert
+ * Database table: kg_episodes
+ */
+export const KgEpisodesInsertContract = createContract({
+  name: 'KgEpisodesInsert',
+  version: '1',
+  description: 'Database insert contract for kg_episodes table',
+  schema: Schemas.KgEpisodesInsertSchema,
+})
+
+// =============================================================================
+// KgNodeAliases Contracts
+// =============================================================================
+
+/**
+ * Contract for kgNodeAliases row (Select)
+ * Database table: kg_node_aliases
+ */
+export const KgNodeAliasesRowContract = createContract({
+  name: 'KgNodeAliasesRow',
+  version: '1',
+  description: 'Database row contract for kg_node_aliases table',
+  schema: Schemas.KgNodeAliasesSelectSchema,
+})
+
+/**
+ * Contract for kgNodeAliases insert
+ * Database table: kg_node_aliases
+ */
+export const KgNodeAliasesInsertContract = createContract({
+  name: 'KgNodeAliasesInsert',
+  version: '1',
+  description: 'Database insert contract for kg_node_aliases table',
+  schema: Schemas.KgNodeAliasesInsertSchema,
+})
+
+// =============================================================================
+// KgNodes Contracts
+// =============================================================================
+
+/**
+ * Contract for kgNodes row (Select)
+ * Database table: kg_nodes
+ */
+export const KgNodesRowContract = createContract({
+  name: 'KgNodesRow',
+  version: '1',
+  description: 'Database row contract for kg_nodes table',
+  schema: Schemas.KgNodesSelectSchema,
+})
+
+/**
+ * Contract for kgNodes insert
+ * Database table: kg_nodes
+ */
+export const KgNodesInsertContract = createContract({
+  name: 'KgNodesInsert',
+  version: '1',
+  description: 'Database insert contract for kg_nodes table',
+  schema: Schemas.KgNodesInsertSchema,
+})
+
+// =============================================================================
+// KgOutbox Contracts
+// =============================================================================
+
+/**
+ * Contract for kgOutbox row (Select)
+ * Database table: kg_outbox
+ */
+export const KgOutboxRowContract = createContract({
+  name: 'KgOutboxRow',
+  version: '1',
+  description: 'Database row contract for kg_outbox table',
+  schema: Schemas.KgOutboxSelectSchema,
+})
+
+/**
+ * Contract for kgOutbox insert
+ * Database table: kg_outbox
+ */
+export const KgOutboxInsertContract = createContract({
+  name: 'KgOutboxInsert',
+  version: '1',
+  description: 'Database insert contract for kg_outbox table',
+  schema: Schemas.KgOutboxInsertSchema,
+})
+
+// =============================================================================
 // Licenses Contracts
 // =============================================================================
 
@@ -1104,6 +1260,32 @@ export const LicensesInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for licenses table',
   schema: Schemas.LicensesInsertSchema,
+})
+
+// =============================================================================
+// LifecycleEmailsSent Contracts
+// =============================================================================
+
+/**
+ * Contract for lifecycleEmailsSent row (Select)
+ * Database table: lifecycle_emails_sent
+ */
+export const LifecycleEmailsSentRowContract = createContract({
+  name: 'LifecycleEmailsSentRow',
+  version: '1',
+  description: 'Database row contract for lifecycle_emails_sent table',
+  schema: Schemas.LifecycleEmailsSentSelectSchema,
+})
+
+/**
+ * Contract for lifecycleEmailsSent insert
+ * Database table: lifecycle_emails_sent
+ */
+export const LifecycleEmailsSentInsertContract = createContract({
+  name: 'LifecycleEmailsSentInsert',
+  version: '1',
+  description: 'Database insert contract for lifecycle_emails_sent table',
+  schema: Schemas.LifecycleEmailsSentInsertSchema,
 })
 
 // =============================================================================

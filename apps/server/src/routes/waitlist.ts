@@ -87,6 +87,31 @@ interface LeadNotifyContext {
   ipAddress: string | null;
 }
 
+interface EmailContent {
+  subject: string;
+  html: string;
+  text: string;
+}
+
+/** Builds the subscriber-facing confirmation email content for a new lead. */
+function buildConfirmationEmail(): EmailContent {
+  return {
+    subject: 'You are on the RevealUI waitlist',
+    html: [
+      '<h2>You are on the list</h2>',
+      '<p>Thanks for your interest in RevealUI. We will email you the moment access opens.</p>',
+      '<p>The RevealUI team</p>',
+    ].join('\n'),
+    text: [
+      'You are on the list',
+      '',
+      'Thanks for your interest in RevealUI. We will email you the moment access opens.',
+      '',
+      'The RevealUI team',
+    ].join('\n'),
+  };
+}
+
 /**
  * Send the operator alert + the subscriber confirmation for a new lead.
  * Best-effort: every failure is logged and swallowed so a capture that has
@@ -119,21 +144,12 @@ async function sendLeadNotifications(ctx: LeadNotifyContext): Promise<void> {
     ].join('\n'),
   });
 
+  const confirmationContent = buildConfirmationEmail();
   const confirmation = sendEmail({
     to: email,
-    subject: 'You are on the RevealUI waitlist',
-    html: [
-      '<h2>You are on the list</h2>',
-      '<p>Thanks for your interest in RevealUI. We will email you the moment access opens.</p>',
-      '<p>— The RevealUI team</p>',
-    ].join('\n'),
-    text: [
-      'You are on the list',
-      '',
-      'Thanks for your interest in RevealUI. We will email you the moment access opens.',
-      '',
-      '— The RevealUI team',
-    ].join('\n'),
+    subject: confirmationContent.subject,
+    html: confirmationContent.html,
+    text: confirmationContent.text,
   });
 
   const results = await Promise.allSettled([teamAlert, confirmation]);

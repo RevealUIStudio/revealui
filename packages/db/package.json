@@ -134,6 +134,10 @@
       "types": "./dist/schema/rag.d.ts",
       "import": "./dist/schema/rag.js"
     },
+    "./schema/knowledge-graph": {
+      "types": "./dist/schema/knowledge-graph.d.ts",
+      "import": "./dist/schema/knowledge-graph.js"
+    },
     "./generated/zod-schemas": {
       "types": "./dist/generated/zod-schemas.d.ts",
       "import": "./dist/generated/zod-schemas.js"
@@ -161,6 +165,10 @@
     "./queries/posts": {
       "types": "./dist/queries/posts.d.ts",
       "import": "./dist/queries/posts.js"
+    },
+    "./queries/globals": {
+      "types": "./dist/queries/globals.d.ts",
+      "import": "./dist/queries/globals.js"
     },
     "./queries/media": {
       "types": "./dist/queries/media.d.ts",

@@ -21,7 +21,9 @@ Agentic business runtime. People, content, offers, payments, and agents  -  pre-
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
 
 ## Git Identity
-RevealUI Studio <founder@revealui.com>
+RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>
+
+> Amended 2026-07-10. The prior founder@revealui.com address is retired: commits carrying it render Unverified under required signatures. Do not restore it.
 
 ## Branch Pipeline
 ```
@@ -62,7 +64,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (85 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
+| @revealui/db | Drizzle ORM schema (92 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -115,7 +117,7 @@ pnpm build:admin            # Build auth + Admin
 
 ### Testing
 ```bash
-pnpm test                   # Run all tests (turbo, 15 concurrency)
+pnpm test                   # Run all tests (turbo, concurrency 2)
 pnpm test:coverage          # Tests with coverage
 pnpm test:e2e               # Playwright E2E tests
 pnpm test:integration       # Integration tests
@@ -231,7 +233,7 @@ Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audi
 - Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in admin sign-up
 - Encryption keys: non-extractable by default (configurable via `extractable` option)
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
-- Webhook rate limiting: 100 req/min on /api/webhooks
+- Webhook rate limiting: 500 req/min on /api/webhooks
 - Cross-DB cleanup: `@revealui/db/cleanup` for orphaned legacy-Supabase data after site deletion (relevant during migration; will retire once phase-out completes)
 - RBAC + ABAC policy engine in core (enforcement tests in `packages/core/src/__tests__/auth/` and `packages/core/src/collections/operations/__tests__/access-enforcement.test.ts` prove role isolation)
 - GDPR compliance framework (consent, deletion, anonymization)

@@ -13,14 +13,14 @@ last-updated: 2026-05-29
 
 This policy defines how RevealUI protects user data, application secrets, and infrastructure across its open-core monorepo (MIT core + Fair Source Pro packages). It applies to all code, services, and data managed under the RevealUI project.
 
-> **Infrastructure-in-transition note (2026-05-29).** Supabase is a *legacy secondary* store phasing out (ADR 2026-05-01 → NeonDB-primary). Supabase references below remain in force while it is in service; new features must not add Supabase dependencies. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
+> **Infrastructure note (updated 2026-07-11).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`). NeonDB is the sole primary database, RAG and vector data live on Neon `pgvector`, and the RevealUI runtime no longer reads Supabase credentials. Supabase survives only as an optional customer-facing MCP adapter (`packages/mcp/src/servers/supabase.ts`) for installs that choose Supabase as their own backend, which is out of scope for RevealUI's own controls. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative infrastructure status.
 
 ## 2. Scope
 
 This policy covers:
 
 - **Source code**: The RevealUI monorepo (all packages and apps)
-- **Production infrastructure**: Vercel deployments, NeonDB databases, Supabase instances, Stripe payment processing
+- **Production infrastructure**: Vercel deployments, NeonDB database, Cloudflare R2 object storage, Stripe payment processing
 - **User data**: Account information, session tokens, content stored in RevealUI-powered applications
 - **Secrets**: API keys, database credentials, encryption keys, webhook signing secrets
 - **CI/CD**: GitHub Actions pipelines, automated testing, deployment workflows
@@ -36,7 +36,7 @@ RevealUI is currently maintained by a solo developer (RevealUI Studio, founder@r
 | Security Lead | Founder | Vulnerability triage, incident response, security reviews |
 | Release Manager | Founder | Dependency updates, CI gate maintenance, publish workflow |
 | Code Reviewer | Founder + community | PR security review, access control audits |
-| Infrastructure | Founder | Vercel, NeonDB, Supabase, Stripe configuration |
+| Infrastructure | Founder | Vercel, NeonDB, Cloudflare R2, Stripe configuration |
 
 **Growth plan**: As contributors join, security-sensitive areas (auth, crypto, payments) require founder approval for all changes. Community contributors may own non-sensitive packages after establishing trust through multiple accepted PRs.
 
@@ -76,7 +76,7 @@ RevealUI does not store credit card numbers or payment method details. All payme
 - **GitHub**: Two-factor authentication required. Branch protection on `main` and `test`.
 - **Vercel**: SSO via GitHub. Production deployments only from `main` branch via CI.
 - **NeonDB**: Connection strings stored in Vercel environment variables. IP allowlisting where supported.
-- **Supabase**: Service role keys restricted to server-side use only. Anon keys have RLS policies.
+- **Cloudflare R2**: S3-compatible object storage. Access keys stored in RevVault (`revealui/prod/r2/*`), scoped to the media bucket; served over TLS.
 - **Stripe**: Secret keys in Vercel environment variables. Webhook endpoints verify signatures.
 
 ## 6. Encryption Standards
@@ -93,7 +93,7 @@ RevealUI does not store credit card numbers or payment method details. All payme
 - **Key management**: Non-extractable CryptoKey objects by default (configurable via `extractable` option).
 - **Signing**: HMAC-SHA256 for webhook verification and signed cookies.
 - **Timing-safe comparisons**: All secret comparisons use constant-time functions to prevent timing attacks.
-- **Database encryption**: NeonDB and Supabase provide encryption at rest by default.
+- **Database encryption**: NeonDB provides encryption at rest by default.
 
 ### Secrets Management
 
@@ -132,7 +132,7 @@ RevealUI does not store credit card numbers or payment method details. All payme
 All changes pass through the CI gate before reaching `test` or `main`:
 
 1. **Quality** (parallel): Biome lint (hard fail), security audits (warn), structure checks (warn)
-2. **Type checking** (serial): TypeScript strict mode across all 31 workspaces
+2. **Type checking** (serial): TypeScript strict mode across all 32 workspaces
 3. **Test + Build** (parallel): Vitest (full suite, hard fail), Turborepo build verification
 
 ### Branch Pipeline
@@ -140,11 +140,11 @@ All changes pass through the CI gate before reaching `test` or `main`:
 ```
 feature/* --PR--> test --PR--> main
                    |            |
-              CI + canary    production deploy
+                  CI       production deploy
 ```
 
 - Feature branches: PR-level checks (affected typecheck + build, unit tests)
-- `test` branch: Full gate, canary npm releases, manual preview deploys
+- `test` branch: Full gate, manual preview deploys (the `release-canary.yml` workflow was decommissioned 2026-05-20; npm publishes go through `release.yml` OIDC trusted publishing)
 - `main` branch: Full gate + integration + E2E, automatic production deploy
 
 ### Code Review Requirements
@@ -170,9 +170,9 @@ feature/* --PR--> test --PR--> main
 RevealUI includes a GDPR compliance framework in `@revealui/security`:
 
 - **Consent management**: Tracking and enforcement of user consent.
-- **Data deletion**: Full user data deletion workflow across both databases.
+- **Data deletion**: Full user data deletion workflow across the Neon database.
 - **Data anonymization**: PII anonymization for retained analytics.
-- **Cross-DB cleanup**: `@revealui/db/cleanup` handles orphaned Supabase data after site deletion.
+- **Vector-data cleanup**: `@revealui/db/cleanup` removes orphaned `pgvector` data (agent memories, RAG documents and chunks) in Neon after site deletion. The "cross-DB" name is historical from the retired dual-DB era.
 
 ### Audit Logging
 

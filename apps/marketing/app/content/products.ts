@@ -17,15 +17,19 @@
 // says it is "on the way" — the marketing guardrail wins over internal status.
 //
 // Conversion pass (2026-06-09): per the e-commerce-PDP optimization framework
-// (digitalapplied.com), three "test-first" wins applied to this product-family
+// (digitalapplied.com), two "test-first" wins applied to this product-family
 // page — (1) price/license transparency surfaced on every card via priceLabel
 // instead of buried behind /pricing; (2) scannable bulleted highlights replace
-// prose card bodies (Nielsen Norman scan-not-read); (3) the flagship gains a
-// real-screenshot showcase (PRODUCTS_FLAGSHIP_SHOWCASE) so visitors can evaluate
-// the product visually, not from a line icon. priceLabel values are derived from
-// the authoritative license catalog in content/{home,pricing-faq}.ts, not from
-// repo SPDX (RevVault CLI MIT / RevDev Studio+Console MIT / RevCon MIT / RevSkills
-// MIT / RevForge operator-only / RevMarket integrations bundled with the runtime).
+// prose card bodies (Nielsen Norman scan-not-read). priceLabel values are
+// derived from the authoritative license catalog in content/{home,pricing-faq}.ts,
+// not from repo SPDX (RevVault CLI MIT / RevDev Studio+Console MIT / RevCon MIT /
+// RevSkills MIT / RevForge operator-only / RevMarket integrations bundled with
+// the runtime).
+//
+// 2026-07-11 (homepage-truth): the flagship's real-screenshot showcase
+// (PRODUCTS_FLAGSHIP_SHOWCASE, ex-ProductMockup) removed. The screenshots it
+// rendered were byte-identical dev-scaffold captures from 2026-04-27, not the
+// current product; no honest replacement imagery exists yet.
 //
 // Status semantics:
 //   Beta         — production-ready code, limited paying users / dogfooded
@@ -39,7 +43,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Eight products on one foundation, all built and operated by RevealUI Studio, every one shipping today except the agent marketplace, which is on the way.',
+    'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio, every one shipping today except the agent marketplace, which is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
@@ -119,14 +123,6 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
     pricing: { label: 'View pricing', href: '/pricing' },
     repo: { label: 'GitHub →', href: SITE.urls.repo, external: true },
   },
-} as const;
-
-// Flagship visual showcase — real admin screenshots (PDP-framework: shoppers
-// evaluate from imagery, not a line icon). Renders the existing <ProductMockup>.
-export const PRODUCTS_FLAGSHIP_SHOWCASE = {
-  eyebrow: 'Inside the flagship',
-  heading: 'See what you actually ship',
-  body: 'Content, users, billing, AI agents, and live monitoring: the real RevealUI admin running on the open-source stack, captured from a fresh install.',
 } as const;
 
 export interface SisterProduct {

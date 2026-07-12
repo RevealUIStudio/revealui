@@ -34,7 +34,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'ui-of-the-future',
     title: 'The UI of the Future Has Yet to Reveal Itself',
     excerpt:
-      "The interface of the AI era is not a smarter chat window. It is your business itself, run by agents you own and can audit. If an agent did it, there's a receipt.",
+      'The interface of the AI era is not a smarter chat window. It is your business itself, run by agents you own.',
     publishedAt: '2026-07-09T12:00:00.000Z',
     author: 'Joshua Vaughn',
     file: '16-ui-of-the-future.md',
@@ -52,7 +52,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'dashboard-agent-chat',
     title: 'Run Your Admin by Talking to It',
     excerpt:
-      'Open the admin, type what you want done, and watch the agent do it, with streaming output, full tool visibility, and the same access control your users get.',
+      'Open the admin, type what you want done, and watch the agent do it, with streaming output and full tool visibility.',
     publishedAt: '2026-06-17T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '15-dashboard-agent-chat.md',

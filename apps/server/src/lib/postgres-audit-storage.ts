@@ -16,6 +16,7 @@
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { AuditEvent, AuditQuery, AuditStorage } from '@revealui/core/security';
+import { classifyAuditWriteFailure, recordAuditWriteResult } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import { auditLog } from '@revealui/db/schema';
 import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
@@ -90,24 +91,29 @@ export function verifyAuditSignature(
 
 export class PostgresAuditStorage implements AuditStorage {
   async write(event: AuditEvent): Promise<void> {
-    const db = getClient();
-    const ts = event.timestamp;
-    const entry = {
-      timestamp: ts,
-      eventType: event.type,
-      severity: event.severity,
-      agentId: event.actor.id,
-      payload: event as unknown,
-    };
-    const previousSig = lastSignature;
-    const signature = computeSignature(entry, previousSig);
-    if (signature) {
-      lastSignature = signature;
-    }
+    try {
+      const db = getClient();
+      const ts = event.timestamp;
+      const entry = {
+        timestamp: ts,
+        eventType: event.type,
+        severity: event.severity,
+        agentId: event.actor.id,
+        payload: event as unknown,
+      };
+      const previousSig = lastSignature;
+      const signature = computeSignature(entry, previousSig);
+      if (signature) {
+        lastSignature = signature;
+      }
 
-    await db
-      .insert(auditLog)
-      .values({
+      // No .onConflictDoNothing(): event.id is a fresh crypto.randomUUID()
+      // minted once per AuditSystem.log() call (packages/security/src/audit.ts),
+      // never a caller-supplied idempotency key. A duplicate id can only mean
+      // the same already-constructed event was submitted twice, which is a bug
+      // — silently dropping that row would also leave a gap in the hash chain
+      // that Stage 1 depends on, which is worse than a loud failure.
+      await db.insert(auditLog).values({
         id: event.id,
         timestamp: new Date(ts),
         eventType: event.type,
@@ -119,8 +125,18 @@ export class PostgresAuditStorage implements AuditStorage {
         policyViolations: [],
         signature: signature || null,
         previousSignature: previousSig,
-      })
-      .onConflictDoNothing();
+      });
+
+      recordAuditWriteResult({ ok: true, eventId: event.id, eventType: event.type });
+    } catch (err) {
+      recordAuditWriteResult({
+        ok: false,
+        reason: classifyAuditWriteFailure(err),
+        eventId: event.id,
+        eventType: event.type,
+      });
+      throw err;
+    }
   }
 
   async query(query: AuditQuery): Promise<AuditEvent[]> {

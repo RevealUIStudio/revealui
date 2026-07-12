@@ -31,7 +31,7 @@ export interface LocalAiBeat {
 export const LOCAL_AI_SECTION = {
   eyebrow: 'Local-first AI',
   heading: 'Your agents run on models you own.',
-  body: 'Your Agents run on open-weight models on your own infrastructure by default. The content they read and write never leaves your boundary, your AI bill is your own inference cost, and the same permissions and audit log cover every action.',
+  body: 'Your Agents run on open-weight models on your own infrastructure by default. The content they read and write never leaves your boundary, and your AI bill is your own inference cost.',
   beats: [
     {
       title: 'Sovereignty',
@@ -44,10 +44,6 @@ export const LOCAL_AI_SECTION = {
     {
       title: 'Pathway',
       body: 'When you want a frontier model, add it in one config line: opt-in, never assumed.',
-    },
-    {
-      title: 'Governance',
-      body: 'Either way, the same permissions govern every action and the same audit log records it.',
     },
   ] as readonly LocalAiBeat[],
   // Grep-accurate to packages/ai/src/llm/client.ts createLLMClientFromEnv().
@@ -94,13 +90,13 @@ export const LOCAL_AI_PAGE = {
     },
     {
       title: 'Frontier is one opt-in line away',
-      body: 'Start fully on open weights running locally. When a task needs a frontier model, add the provider as an opt-in adapter, never the default. The same permissions govern every action and the same audit log records it, whichever model runs.',
+      body: 'Start fully on open weights running locally. When a task needs a frontier model, add the provider as an opt-in adapter, never the default.',
     },
   ],
   marketProof: {
     eyebrow: 'Why local-first matters',
     heading: 'Open and local models already run where data cannot leave.',
-    body: 'Across regulated, high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary. RevealUI adds the governance layer on top: one permission model over people and agents, and a tamper-evident audit on every action.',
+    body: 'Across regulated, high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary.',
     adopters: [
       {
         name: 'HSBC',
@@ -141,13 +137,13 @@ export const LOCAL_AI_PAGE = {
 } as const;
 
 // Provider-switch interactive (anchors the local-AI section). Toggling Local <->
-// Frontier changes the model, the data locus, and the cost model, while the
-// governance and audit row stays identical. The frontier-pathway made tangible.
+// Frontier changes the model, the data locus, and the cost model. The
+// frontier-pathway made tangible.
 // Honesty: the local LLM_PROVIDER value is grep-accurate; frontier is described
 // as an opt-in adapter (the locked Pillar-2 framing), not a fabricated env value.
 export const PROVIDER_SWITCH = {
-  eyebrow: 'Local or frontier, same governance',
-  heading: 'Switch the model. The rules do not move.',
+  eyebrow: 'Local or frontier',
+  heading: 'Switch the model.',
   modes: {
     local: {
       label: 'Local',
@@ -174,16 +170,11 @@ export const PROVIDER_SWITCH = {
   ],
   constant: {
     label: 'Constant either way',
-    items: [
-      'The same RBAC + ABAC permissions',
-      'The same tamper-evident audit log',
-      'The same MCP tools',
-    ],
+    items: ['The same MCP tools'],
   },
 } as const;
 
-// Frontier-pathway visual: open-weight default -> add adapter -> governed and
-// audited, three steps, governance constant across all of them.
+// Frontier-pathway visual: open-weight default -> add adapter, two steps.
 export interface FrontierStep {
   readonly n: string;
   readonly title: string;
@@ -204,11 +195,5 @@ export const FRONTIER_PATHWAY = {
       title: 'Add an adapter',
       body: 'When a task needs a frontier model, add the provider in one config line. Opt-in, never assumed.',
     },
-    {
-      n: '3',
-      title: 'Governed and audited',
-      body: 'Whichever model runs, the same permissions govern it and the same audit log records it.',
-    },
   ] as readonly FrontierStep[],
-  constant: 'Governance and audit stay identical across all three steps.',
 } as const;

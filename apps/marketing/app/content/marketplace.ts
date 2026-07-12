@@ -28,7 +28,7 @@ export interface DiscoveryStep {
 
 export const MARKETPLACE_HERO: SectionHeading = {
   title: 'MCP server catalog',
-  subtitle: `${METRICS.mcpServers} first-party MCP servers, RBAC-scoped and audit-logged. Agents discover tools via MCP. RevealUI implements MCP natively.`,
+  subtitle: `${METRICS.mcpServers} first-party MCP servers. Agents discover tools via MCP. RevealUI implements MCP natively.`,
 };
 
 export const MARKETPLACE_HERO_NAV_ANCHORS = [
@@ -51,22 +51,20 @@ export const MARKETPLACE_DISCOVERY_STEPS: readonly DiscoveryStep[] = [
   },
   {
     step: '2',
-    title: 'Authenticate',
-    description:
-      'The agent authenticates using the same RBAC system that governs your users. Permissions are scoped per tenant and per role.',
+    title: 'Route',
+    description: 'The MCP hypervisor routes the call to the right server.',
   },
   {
     step: '3',
     title: 'Execute',
-    description:
-      'The agent calls the tool through a standardized JSON-RPC interface. Results are typed, validated, and logged for audit.',
+    description: 'The agent calls the tool through a standardized, typed JSON-RPC interface.',
   },
 ];
 
 export const MARKETPLACE_SERVERS_SECTION = {
   eyebrow: 'Open Source',
   heading: `${METRICS.mcpServers} First-Party MCP Servers`,
-  body: 'MCP servers included with RevealUI. Each server is rate-limited, audited, and governed by RBAC.',
+  body: 'MCP servers included with RevealUI.',
 } as const;
 
 export const MARKETPLACE_MCP_SERVERS: readonly McpServer[] = [

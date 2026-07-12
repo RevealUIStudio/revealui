@@ -9,6 +9,7 @@
 
 import { logger } from '@revealui/core/observability/logger';
 import type { AuditEventType, AuditSystem } from '@revealui/core/security';
+import { AuditWriteError, classifyAuditWriteFailure } from '@revealui/core/security';
 import type { MiddlewareHandler } from 'hono';
 
 /** Tracks consecutive audit write failures for observability. */
@@ -79,10 +80,18 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
       })
       .catch((err: unknown) => {
         auditWriteFailures++;
+        // The write itself is already counted (success and failure) inside
+        // PostgresAuditStorage.write() — the single point every AuditSystem
+        // consumer's write funnels through. This catch classifies + logs the
+        // failure for THIS request's context; it does not double-count it.
+        const cause = err instanceof AuditWriteError ? err.cause : err;
         if (auditWriteFailures % FAILURE_LOG_INTERVAL === 1) {
           logger.warn('Audit log write failed', {
             consecutiveFailures: auditWriteFailures,
-            error: err instanceof Error ? err.message : String(err),
+            eventId: err instanceof AuditWriteError ? err.event.id : undefined,
+            eventType: err instanceof AuditWriteError ? err.event.type : undefined,
+            reason: classifyAuditWriteFailure(cause),
+            error: cause instanceof Error ? cause.message : String(cause),
           });
         }
       });

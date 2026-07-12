@@ -139,6 +139,8 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
       id: string | number;
       depth?: number;
       req?: import('../types/index.js').RevealRequest;
+      draft?: boolean;
+      overrideAccess?: boolean;
     }): Promise<RevealDocument | null> {
       return findByID(revealUIInstance, ensureDbConnected, options);
     },

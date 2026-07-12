@@ -63,6 +63,16 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
     expect(styleSrc).toContain("'unsafe-inline'");
   });
 
+  it('allows no third-party font host — fonts are self-hosted (GAP-324)', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const csp = res.headers.get('content-security-policy') ?? '';
+    // style-src no longer whitelists fonts.googleapis.com; font-src is 'self' data:.
+    expect(directive(csp, 'style-src')).not.toContain('fonts.googleapis.com');
+    const fontSrc = directive(csp, 'font-src');
+    expect(fontSrc).not.toContain('fonts.gstatic.com');
+    expect(fontSrc).toContain("'self'");
+  });
+
   it('applies the same unified nonce CSP to /api responses (single script-src directive)', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/api/health'));
     const csp = res.headers.get('content-security-policy') ?? '';

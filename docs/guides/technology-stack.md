@@ -22,7 +22,7 @@ RevealUI is a framework, not a stack. The five primitives (people, content, offe
 
 | Choice | Role | Why |
 |---|---|---|
-| **NeonDB** (Postgres) | Primary database — 85 tables across the five primitives | Serverless Postgres; pgvector supported; any standard Postgres works as a substitute (the agnosticism principle is a contract, not a coupling). |
+| **NeonDB** (Postgres) | Primary database — 92 tables across the five primitives | Serverless Postgres; pgvector supported; any standard Postgres works as a substitute (the agnosticism principle is a contract, not a coupling). |
 | **Drizzle ORM** | Schema definition + type-safe queries | Schema-first, accurate types, no runtime overhead, no proprietary query DSL. |
 | **Cloudflare R2** | Canonical object-storage backend | S3-compatible, no egress fees; `@aws-sdk/client-s3` is the client. The legacy Vercel Blob backend is being retired per GAP-208. |
 | **ElectricSQL** (optional) | Real-time browser sync layer | Off by default. When enabled, syncs Postgres tables to a local PGlite store in the browser for offline-capable UIs. |
@@ -74,14 +74,14 @@ The runtime is provider-agnostic by contract and ships with no default AI vendor
 | Target | Role |
 |---|---|
 | **Vercel** | HTTP layer (`apps/marketing`, `apps/docs`, `apps/admin`, `apps/server` functions). |
-| **Fly** | Long-running services (ElectricSQL sync, optional dedicated `apps/server` machine) per ADR `2026-05-18-drop-railway-migrate-to-vercel-fly`. |
+| **Fly** | Long-running services (ElectricSQL sync, optional dedicated `apps/server` worker) configured via `apps/server/fly.toml` + `apps/server/Dockerfile.worker`. Railway was dropped as a target. |
 | **Self-host** | Any infrastructure that runs Node 24 + Postgres + Hono. The runtime is portable by contract. |
 
 ## License posture
 
-- **21 of 27 packages MIT-licensed** (forever).
-- **5 of 27 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
-- **1 of 27 packages internal** (`@revealui/scripts`) — unlicensed build tooling.
+- **22 of 28 packages MIT-licensed** (forever).
+- **5 of 28 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
+- **1 of 28 packages internal** (`@revealui/scripts`) — unlicensed build tooling.
 
 See [FAIR_SOURCE.md](../FAIR_SOURCE.md) for the licensing rationale.
 
@@ -92,4 +92,3 @@ See [FAIR_SOURCE.md](../FAIR_SOURCE.md) for the licensing rationale.
 - [AI.md](../AI.md) — AI package, MCP server catalog, agent runtime
 - [PRO.md](../PRO.md) — Pro packages, license enforcement, commercial features
 - [REFERENCE.md](../REFERENCE.md) — package-by-package API reference
-- [audit-chain.md](./audit-chain.md) — tamper-evident audit log

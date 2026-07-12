@@ -69,7 +69,7 @@ export const FO_MANAGED_WOULD_BE = {
     },
     {
       title: 'Operate via the admin dashboard.',
-      body: 'Same admin UI as the agency-delivered version. Same RBAC, same audit chain, same primitives.',
+      body: 'Same admin UI as the agency-delivered version. Same RBAC, same primitives.',
     },
     {
       title: 'Receive product support directly.',

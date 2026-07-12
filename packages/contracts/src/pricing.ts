@@ -42,7 +42,6 @@ export type FeatureFlagKey =
   | 'auditLog'
   | 'multiTenant'
   | 'whiteLabel'
-  | 'sso'
   | 'vaultDesktop'
   | 'vaultRotation'
   | 'devkitProfiles';
@@ -83,7 +82,6 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   auditLog: 'Audit Logging',
   multiTenant: 'Multi-site Content Management',
   whiteLabel: 'White-label Branding (managed setup via revforge)',
-  sso: 'SSO/SAML Authentication (Coming Soon)',
   vaultDesktop: 'RevVault Desktop App',
   vaultRotation: 'RevVault Rotation Engine',
   devkitProfiles: 'RevKit Environment Provisioning',
@@ -140,8 +138,8 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Community support',
       'Full source code access',
     ],
-    cta: 'Get Started',
-    ctaHref: 'https://docs.revealui.com',
+    cta: 'Start free',
+    ctaHref: '/signup',
     highlighted: false,
   },
   {
@@ -274,9 +272,10 @@ export interface PerpetualTier {
 // (Architecture Review, Launch Package, Migration Assist, Consulting Hour).
 // These are NOT the agency-tier offerings — the Fleet deployment ($25K+) and
 // Custom Build ($50K+) tiers live in apps/marketing/app/content/pricing.ts
-// under PRICING_DONE_FOR_YOU.rungs (agency segment, different buyer). The two
-// surfaces share only the Architecture Review entry-point, whose canonical
-// price is owned here; marketing imports it rather than re-authoring.
+// under PRICING_DONE_FOR_YOU.rungs (agency segment, different buyer). The
+// two surfaces also share the Architecture Review and Launch Package entry
+// points, whose canonical prices are owned here; marketing imports them
+// rather than re-authoring.
 // =============================================================================
 
 export interface ServiceOffering {
@@ -300,6 +299,16 @@ export interface ServiceOffering {
  */
 export const ARCHITECTURE_REVIEW_PRICE = '$3,500' as const;
 
+/**
+ * Canonical price of the Launch Package. Owned here for the same reason as
+ * `ARCHITECTURE_REVIEW_PRICE`: `AGENCY_ENGAGEMENT_LADDER` in
+ * `apps/marketing/app/content/for-operators.ts` imports it rather than
+ * re-authoring the literal, so the Launch Package rung on /pricing and
+ * /for-operators cannot drift from this menu. Same cross-package guard in
+ * `apps/marketing/app/__tests__/agency-engagement-ladder.test.ts`.
+ */
+export const LAUNCH_PACKAGE_PRICE = '$7,500' as const;
+
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'architecture-review',
@@ -322,7 +331,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
   {
     id: 'launch-package',
     name: 'Launch Package',
-    price: '$7,500',
+    price: LAUNCH_PACKAGE_PRICE,
     description:
       'Go from zero to production. I set up your RevealUI instance, configure your content model, deploy to Vercel, and hand you the keys with a full handoff session.',
     includes: [
@@ -395,8 +404,8 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
       'All Pro updates released during support period',
       'Private GitHub repo access',
     ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Pro%20Perpetual%20License',
+    cta: 'Buy Pro Perpetual',
+    ctaHref: '/account/license',
     comingSoon: false,
   },
   {
