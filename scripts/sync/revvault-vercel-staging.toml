@@ -40,9 +40,13 @@
 #   - Vaulted but reusing the SAME prod path         — explicitly marked below
 #     ("reuse prod" comment); low-risk shared config (transactional email
 #     transport, one Stripe meter-event name), not per-environment secrets.
-#   - Dropped entirely (not in this file)            — STRIPE_LIVE_MODE,
-#     STRIPE_WEBHOOK_SECRET_LIVE (handler falls back to STRIPE_WEBHOOK_SECRET;
-#     unset flag + livemode:false test events pass the gate), NEON_API_KEY,
+#   - Listed in `skip` (name known, never synced)    — STRIPE_LIVE_MODE. Kept
+#     in `skip` rather than omitted so sync explicitly refuses to manage it
+#     instead of reporting it as an untracked Vercel orphan. Staying unset is
+#     what keeps staging in Stripe test mode.
+#   - Dropped entirely (absent from this file)       — STRIPE_WEBHOOK_SECRET_LIVE
+#     (handler falls back to STRIPE_WEBHOOK_SECRET; unset flag +
+#     livemode:false test events pass the gate), NEON_API_KEY,
 #     MARKETPLACE_CONNECT_RETURN_URL, NEXT_PUBLIC_IS_LIVE (true orphan,
 #     GAP-345), ELECTRIC_* (no walked UI consumes shapes on staging).
 
