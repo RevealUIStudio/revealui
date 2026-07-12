@@ -1,5 +1,4 @@
 import { HOME_DEMO } from '../../content/home';
-import { ProductMockup } from '../ProductMockup';
 
 export function Demo() {
   return (
@@ -13,21 +12,6 @@ export function Demo() {
             {HOME_DEMO.heading}
           </h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">{HOME_DEMO.body}</p>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-5xl">
-          <div className="relative rounded-3xl bg-foreground p-2 ring-1 ring-foreground/10 shadow-2xl">
-            <div className="relative overflow-hidden rounded-2xl bg-background">
-              <ProductMockup />
-            </div>
-          </div>
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            {HOME_DEMO.mockupCaption.prefix}{' '}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
-              {HOME_DEMO.mockupCaption.code}
-            </code>
-            {HOME_DEMO.mockupCaption.suffix}
-          </p>
         </div>
 
         <div className="mx-auto mt-20 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">

@@ -2,12 +2,10 @@ import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
 import { Proof } from '../components/landing/Proof';
-import { ProductMockup } from '../components/ProductMockup';
 import {
   PRODUCT_STATUS_STYLES,
   PRODUCTS_CTA_SECTION,
   PRODUCTS_FLAGSHIP,
-  PRODUCTS_FLAGSHIP_SHOWCASE,
   PRODUCTS_PAGE_HERO,
   PRODUCTS_SISTERS,
   PRODUCTS_STATS_SECTION,
@@ -169,26 +167,6 @@ export function ProductsPage() {
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Flagship showcase — real admin screenshots, not a line icon */}
-      <section className="bg-background py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              {PRODUCTS_FLAGSHIP_SHOWCASE.eyebrow}
-            </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              {PRODUCTS_FLAGSHIP_SHOWCASE.heading}
-            </h2>
-            <p className="mt-4 text-lg leading-7 text-muted-foreground">
-              {PRODUCTS_FLAGSHIP_SHOWCASE.body}
-            </p>
-          </div>
-          <div className="mt-12">
-            <ProductMockup />
           </div>
         </div>
       </section>
