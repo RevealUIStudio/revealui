@@ -140,6 +140,41 @@ export function getPool(): Pool {
   return _pool;
 }
 
+export interface CreatePoolOptions {
+  connectionTimeoutMillis?: number;
+  queryTimeoutMillis?: number;
+  statementTimeoutMillis?: number;
+  max?: number;
+}
+
+/**
+ * Create a standalone pool for a caller whose workload doesn't fit the
+ * shared app pool's server-tuned defaults (5s connect, 10s query/statement)
+ * -- e.g. a long-running CLI ingest against a cold Neon compute. Reuses the
+ * same connection-identity + SSL resolution as `getPool()`, but does NOT
+ * attach the shared `onPoolConnect` setup handler: that handler's `SET
+ * statement_timeout` is pinned to the shared pool's own budget
+ * (`poolConfig.statement_timeout`) and would silently override a caller's
+ * longer override on every connection. `statement_timeout`/`query_timeout`
+ * passed here are instead applied by the pg driver itself as connection
+ * startup parameters (see `Client#getStartupConf` in `pg`), so no manual
+ * `SET` round trip is needed for a pool that isn't the shared one. This is
+ * the only sanctioned way for non-`packages/db` code to obtain a `pg.Pool`
+ * (the raw-SQL `direct-import` gate blocks importing `pg` elsewhere).
+ */
+export function createPool(options: CreatePoolOptions = {}): Pool {
+  const pool = new Pool({
+    ...getConnectionIdentity(),
+    ssl: getPoolSSLConfig(),
+    connectionTimeoutMillis: options.connectionTimeoutMillis,
+    query_timeout: options.queryTimeoutMillis,
+    statement_timeout: options.statementTimeoutMillis,
+    max: options.max,
+  });
+  pool.on('error', onPoolError);
+  return pool;
+}
+
 // ===========================================================================
 // ERROR HANDLING
 // ===========================================================================

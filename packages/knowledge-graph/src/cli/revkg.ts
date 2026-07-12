@@ -8,10 +8,20 @@
  *   revkg neighbors <naturalKey> [--depth <n>] [--at <iso>]
  *   revkg at <naturalKey> <iso>
  *
- * Connects to Neon via `@revealui/db` (POSTGRES_URL / DATABASE_URL). Embeddings,
- * when a local model is available, come from `@revealui/ai` — loaded lazily so
- * the graph still ingests (with NULL embeddings, deferred backfill) when it is
- * absent or Ollama is down.
+ * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
+ * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
+ * app pool: the shared pool's server-tuned defaults (5s connect timeout, 10s
+ * query/statement timeout) are wrong for a long-running ingest — they killed
+ * real fleet scans against a cold Neon compute (a connect timeout, then a
+ * mid-scan "Query read timeout" on the largest repo). This pool uses a much
+ * longer connect timeout and a 5-minute query/statement budget, and a small
+ * `max` since a CLI scan is a single-threaded ingest, not a request-serving
+ * pool. `createPool` (not a direct `pg` import — the raw-SQL `direct-import`
+ * gate only allows `pg` inside `packages/db/src/`) is the sanctioned way for
+ * this package to get a `pg.Pool`. Embeddings, when a local model is
+ * available, come from `@revealui/ai` — loaded lazily so the graph still
+ * ingests (with NULL embeddings, deferred backfill) when it is absent or
+ * Ollama is down.
  */
 
 import { hostname } from 'node:os';
@@ -24,6 +34,25 @@ import { resolveNaturalKey } from '../ingest/resolve.js';
 import type { NodeKind } from '../ontology/index.js';
 import { kgAtTime, kgNeighbors, kgSearch } from '../search/index.js';
 import type { Embedder, KgExecutor } from '../types.js';
+
+/** Long-running-ingest pool tuning (spec: cold Neon compute + big-repo scans). */
+const CLI_POOL_CONNECT_TIMEOUT_MS = 30_000;
+const CLI_POOL_QUERY_TIMEOUT_MS = 300_000;
+const CLI_POOL_MAX_CLIENTS = 5;
+
+/** Target host to surface on a connection error, without ever printing the full URL/credentials. */
+let lastTargetHost: string | undefined;
+
+function describeTargetHost(identity: { connectionString?: string; host?: string }): string {
+  if (identity.connectionString) {
+    try {
+      return new URL(identity.connectionString).hostname;
+    } catch {
+      return '(unparseable connection string)';
+    }
+  }
+  return identity.host ?? 'localhost';
+}
 
 function out(line: string): void {
   process.stdout.write(`${line}\n`);
@@ -67,11 +96,25 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 async function getExecutor(): Promise<{ exec: KgExecutor; close: () => Promise<void> }> {
-  const pool = await import('@revealui/db/pool');
-  const client = pool.getPool();
+  const { createPool, getConnectionIdentity } = await import('@revealui/db/pool');
+  const identity = getConnectionIdentity();
+  lastTargetHost = describeTargetHost(identity);
+
+  const pool = createPool({
+    connectionTimeoutMillis: CLI_POOL_CONNECT_TIMEOUT_MS,
+    queryTimeoutMillis: CLI_POOL_QUERY_TIMEOUT_MS,
+    statementTimeoutMillis: CLI_POOL_QUERY_TIMEOUT_MS,
+    max: CLI_POOL_MAX_CLIENTS,
+  });
+  pool.on('error', (error) => {
+    process.stderr.write(
+      `revkg: pool error (host: ${lastTargetHost}): ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  });
+
   return {
-    exec: makePoolExecutor(client),
-    close: () => client.end(),
+    exec: makePoolExecutor(pool),
+    close: () => pool.end(),
   };
 }
 
@@ -271,5 +314,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  fail(error instanceof Error ? error.message : String(error));
+  const hostSuffix = lastTargetHost ? ` (target host: ${lastTargetHost})` : '';
+  fail(`${error instanceof Error ? error.message : String(error)}${hostSuffix}`);
 });
