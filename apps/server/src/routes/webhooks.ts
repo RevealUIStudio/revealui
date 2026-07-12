@@ -10,8 +10,7 @@
  */
 
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
-import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
-import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
+import { generateLicenseKey, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { DrizzleAuditStore, executeSaga, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
@@ -32,6 +31,11 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
+import {
+  buildHostedEntitlementValues,
+  coerceHostedTier,
+  type HostedTier,
+} from '../lib/hosted-entitlement.js';
 import { assertSeatAvailable } from '../lib/seat-count-guard.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
@@ -60,7 +64,6 @@ import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/licen
 
 const app = new OpenAPIHono();
 
-type HostedTier = 'free' | LicenseTier;
 type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -314,55 +317,16 @@ function resolveOptionalTier(
       },
     );
   } else if (metadata) {
-    // Metadata exists but tier key is absent  -  Stripe product misconfiguration
-    logger.warn('Stripe metadata missing tier key  -  callers will default to pro', {
+    // Metadata exists but tier key is absent  -  Stripe product misconfiguration.
+    // F3: an unresolvable tier is NOT defaulted. syncHostedSubscriptionState
+    // skips the entitlement write, logs at ERROR, and records an
+    // `entitlement.unresolved-tier` row for the drainer. Nothing defaults to pro.
+    logger.warn('Stripe metadata missing tier key  -  entitlement write will be skipped', {
       metadataKeys: Object.keys(metadata),
       context,
     });
   }
   return undefined;
-}
-
-function coerceHostedTier(value: string | null | undefined): HostedTier | undefined {
-  if (value === 'free' || value === 'pro' || value === 'max' || value === 'enterprise') {
-    return value;
-  }
-  return undefined;
-}
-
-/** Known feature keys from {@link FeatureFlags}. Used to warn on unexpected keys. */
-const KNOWN_FEATURE_KEYS = new Set<string>([
-  'aiLocal',
-  'ai',
-  'aiMemory',
-  'mcp',
-  'payments',
-  'multiTenant',
-  'whiteLabel',
-  'aiInference',
-  'auditLog',
-  'advancedSync',
-  'dashboard',
-  'customDomain',
-  'analytics',
-] satisfies (keyof FeatureFlags)[]);
-
-function toFeatureRecord(features: object | null | undefined): Record<string, boolean> {
-  if (!features) {
-    return {};
-  }
-
-  const entries = Object.entries(features).filter(
-    (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
-  );
-
-  for (const [key] of entries) {
-    if (!KNOWN_FEATURE_KEYS.has(key)) {
-      logger.warn('Unknown feature key encountered in toFeatureRecord', { key });
-    }
-  }
-
-  return Object.fromEntries(entries);
 }
 
 /**
@@ -692,19 +656,17 @@ async function syncHostedSubscriptionState(
     return;
   }
 
-  const entitlementValues = {
-    planId: resolvedTier,
+  // Shared with the entitlement-consistency reconciler (lib/hosted-entitlement.ts)
+  // so a healed row and a webhook-written row can never grant different features
+  // for the same tier.
+  const entitlementValues = buildHostedEntitlementValues({
     tier: resolvedTier,
     status: params.status,
-    features: toFeatureRecord(getFeaturesForTier(resolvedTier)),
-    limits: getHostedLimitsForTier(resolvedTier),
-    meteringStatus:
-      params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
     mode: params.mode,
     graceUntil: params.graceUntil ?? null,
     lastEventAt: params.eventTimestamp ?? null,
-    updatedAt: now,
-  };
+    now,
+  });
 
   let entitlementApplied = false;
   if (existingEntitlement?.accountId) {
