@@ -39,14 +39,6 @@ const CONSTRAINT_VIOLATION_CODES = new Set([CHECK_VIOLATION, UNIQUE_VIOLATION, N
 const SCHEMA_MISMATCH_CODES = new Set([UNDEFINED_COLUMN, UNDEFINED_TABLE]);
 
 /**
- * Classify a thrown/rejected audit-write error into one of the four Stage 0
- * failure modes. Checks the `getAuditSecret()` message first (that path
- * throws before any query ever reaches Postgres, so it has no `.code`), then
- * the Postgres SQLSTATE (`.code`) surfaced by both `pg` and
- * `@neondatabase/serverless`, and falls back to `db_error` for anything else
- * (connection failures, timeouts, driver errors).
- */
-/**
  * Extract a Postgres SQLSTATE `.code` from an error, checking the error
  * itself and then one level of `.cause` — drizzle-orm wraps every driver
  * error in a `DrizzleQueryError` whose own `.code` is undefined; the real
@@ -67,6 +59,14 @@ function extractPgErrorCode(error: unknown): string | undefined {
   return undefined;
 }
 
+/**
+ * Classify a thrown/rejected audit-write error into one of the four Stage 0
+ * failure modes. Checks the `getAuditSecret()` message first (that path
+ * throws before any query ever reaches Postgres, so it has no `.code`), then
+ * the Postgres SQLSTATE (`.code`) surfaced by both `pg` and
+ * `@neondatabase/serverless`, and falls back to `db_error` for anything else
+ * (connection failures, timeouts, driver errors).
+ */
 export function classifyAuditWriteFailure(error: unknown): AuditWriteFailureReason {
   if (error instanceof Error && error.message.startsWith('Audit HMAC signing requires')) {
     return 'missing_secret';
