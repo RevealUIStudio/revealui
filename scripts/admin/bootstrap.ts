@@ -22,7 +22,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { randomFillSync } from 'node:crypto';
+import { randomFillSync, randomUUID } from 'node:crypto';
 import { hostname } from 'node:os';
 
 // ---------------------------------------------------------------------------
@@ -195,24 +195,47 @@ async function main(): Promise<void> {
   }
 
   // Audit log entry
-  try {
+  {
     const { auditLog } = await import('@revealui/db/schema');
-    await db.insert(auditLog).values({
-      event: 'admin.bootstrap.completed',
-      actor: 'cli',
-      severity: 'info',
-      meta: {
-        email,
-        env,
-        source: 'revvault',
-        hostname: hostname(),
-        forceRotate,
-        seeded: result.seeded ?? false,
-      },
-    } as never);
-  } catch {
-    // Non-fatal — audit log may not be available in all environments
-    console.warn('[bootstrap] audit log entry skipped (table may not exist)');
+    const { classifyAuditWriteFailure, recordAuditWriteResult } = await import(
+      '@revealui/core/security'
+    );
+    const eventId = randomUUID();
+    try {
+      await db.insert(auditLog).values({
+        event: 'admin.bootstrap.completed',
+        actor: 'cli',
+        severity: 'info',
+        meta: {
+          email,
+          env,
+          source: 'revvault',
+          hostname: hostname(),
+          forceRotate,
+          seeded: result.seeded ?? false,
+        },
+      } as never);
+      recordAuditWriteResult({ ok: true, eventId, eventType: 'admin.bootstrap.completed' });
+      console.log('[bootstrap] recorded audit log entry');
+    } catch (err) {
+      const reason = classifyAuditWriteFailure(err);
+      recordAuditWriteResult({
+        ok: false,
+        reason,
+        eventId,
+        eventType: 'admin.bootstrap.completed',
+      });
+      // Non-fatal — the admin account was already created above. This writer
+      // targets columns (`event`/`actor`/`meta`) that do not exist on
+      // audit_log (real columns are `event_type`/`agent_id`/`payload`) and
+      // has never successfully persisted a row in any environment. Stage 1
+      // fixes the column mapping; Stage 0 only makes the failure visible —
+      // previously this printed a misleading "table may not exist" guess
+      // without the real error.
+      console.warn(
+        `[bootstrap] audit log entry failed (reason: ${reason}): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   }
 
   console.log(`[bootstrap] ${result.message}`);

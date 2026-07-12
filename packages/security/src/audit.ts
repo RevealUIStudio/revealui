@@ -84,6 +84,24 @@ export interface AuditStorage {
 }
 
 /**
+ * Thrown when `AuditSystem.log()` fails to persist an event. Carries the full
+ * constructed event (including the generated `id`) so any catch site can
+ * correlate the failure with exactly which event was dropped and classify
+ * the underlying cause — without this, a `.catch()` only sees a raw
+ * storage-layer error with no way to say which audit record never landed.
+ */
+export class AuditWriteError extends Error {
+  constructor(
+    public readonly event: AuditEvent,
+    public readonly cause: unknown,
+  ) {
+    const causeMessage = cause instanceof Error ? cause.message : String(cause);
+    super(`Audit write failed for event ${event.id} (${event.type}): ${causeMessage}`);
+    this.name = 'AuditWriteError';
+  }
+}
+
+/**
  * Audit logging system
  */
 export class AuditSystem {
@@ -103,9 +121,12 @@ export class AuditSystem {
   }
 
   /**
-   * Log audit event
+   * Log audit event. Returns the full constructed event (including the
+   * generated `id`/`timestamp`) so callers can correlate it with later
+   * failures; throws `AuditWriteError` (wrapping the storage-layer cause) on
+   * a failed persist so the event that was lost is never anonymous.
    */
-  async log(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<void> {
+  async log(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<AuditEvent> {
     const fullEvent: AuditEvent = {
       ...event,
       id: crypto.randomUUID(),
@@ -116,10 +137,16 @@ export class AuditSystem {
     const shouldLog = this.filters.every((filter) => filter(fullEvent));
 
     if (!shouldLog) {
-      return;
+      return fullEvent;
     }
 
-    await this.storage.write(fullEvent);
+    try {
+      await this.storage.write(fullEvent);
+    } catch (cause) {
+      throw new AuditWriteError(fullEvent, cause);
+    }
+
+    return fullEvent;
   }
 
   /**

@@ -138,6 +138,26 @@ describe('validateStartup — production presence', () => {
   });
 });
 
+describe('validateStartup — audit HMAC secret (both modes)', () => {
+  it('rejects a too-short REVEALUI_AUDIT_HMAC_SECRET override even when REVEALUI_SECRET is valid', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'short' })),
+    ).toThrow(/REVEALUI_AUDIT_HMAC_SECRET/);
+  });
+
+  it('accepts a valid REVEALUI_AUDIT_HMAC_SECRET override', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'z'.repeat(32) })),
+    ).not.toThrow();
+  });
+
+  it('falls back to REVEALUI_SECRET when REVEALUI_AUDIT_HMAC_SECRET is unset', () => {
+    // validLiveProdEnv() ships REVEALUI_SECRET (32 chars) and no override —
+    // the fallback alone must satisfy the check.
+    expect(() => validateStartup(validLiveProdEnv())).not.toThrow();
+  });
+});
+
 describe('validateStartup — production format checks (live mode)', () => {
   it('rejects STRIPE_SECRET_KEY without sk_live_ prefix', () => {
     expect(() => validateStartup(validLiveProdEnv({ STRIPE_SECRET_KEY: 'sk_test_abc' }))).toThrow(
@@ -673,6 +693,21 @@ describe('validateStartup — forge mode', () => {
     expect(() => validateStartup(validForgeProdEnv({ REVEALUI_SECRET: 'short' }))).toThrow(
       /REVEALUI_SECRET/,
     );
+  });
+
+  it('rejects a too-short REVEALUI_AUDIT_HMAC_SECRET override in forge mode even when REVEALUI_SECRET is valid', () => {
+    // REVEALUI_AUDIT_HMAC_SECRET takes priority over the REVEALUI_SECRET
+    // fallback (mirrors getAuditSecret()'s `??` chain) — a short override was
+    // never validated anywhere before this check existed.
+    expect(() =>
+      validateStartup(validForgeProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'short' })),
+    ).toThrow(/REVEALUI_AUDIT_HMAC_SECRET/);
+  });
+
+  it('accepts a valid REVEALUI_AUDIT_HMAC_SECRET override in forge mode', () => {
+    expect(() =>
+      validateStartup(validForgeProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'y'.repeat(32) })),
+    ).not.toThrow();
   });
 
   it('still enforces URL parity when both URLs are set in forge mode', () => {

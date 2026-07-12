@@ -11,6 +11,8 @@
 
 import crypto from 'node:crypto';
 import { LLM_PROVIDERS } from '@revealui/contracts';
+import { logger } from '@revealui/core/observability/logger';
+import { classifyAuditWriteFailure, recordAuditWriteResult } from '@revealui/core/security';
 import { getClient, withTransaction } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
@@ -37,16 +39,26 @@ async function recordCredentialEvent(
     label?: string | null;
   },
 ): Promise<void> {
+  const eventId = crypto.randomUUID();
   try {
     await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
+      id: eventId,
       eventType,
       severity: 'info',
       agentId: userId,
       payload,
       policyViolations: [],
     });
-  } catch {
+    recordAuditWriteResult({ ok: true, eventId, eventType });
+  } catch (err) {
+    const reason = classifyAuditWriteFailure(err);
+    recordAuditWriteResult({ ok: false, reason, eventId, eventType });
+    logger.error('Credential audit write failed', {
+      eventId,
+      eventType,
+      reason,
+      error: err instanceof Error ? err.message : String(err),
+    });
     // best-effort; never block the caller on audit-write failure
   }
 }
