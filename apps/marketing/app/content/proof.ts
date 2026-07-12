@@ -31,7 +31,7 @@ export const PROOF_SECTION = {
 // answers is whether their security team can read the code, not what
 // framework it runs on.
 export const PROOF_TRUST = {
-  body: 'Their security team can read every line. The whole runtime is open source, MIT or Fair Source, sitting in the repo. No closed binary to explain away when procurement comes asking.',
+  body: 'Your security team can read every line. The whole runtime is open source, MIT or Fair Source, sitting in the repo. There is no closed binary to explain away when procurement comes asking.',
   linkLabel: 'Read the LICENSE',
   linkHref: SITE.urls.repoLicense,
   changelogCta: {
