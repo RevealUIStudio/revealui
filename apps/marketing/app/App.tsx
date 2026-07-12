@@ -8,7 +8,6 @@ import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
 import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
-import { GovernancePage } from './routes/GovernancePage';
 import { HomePage } from './routes/HomePage';
 import { LocalAiPage } from './routes/LocalAiPage';
 import { NotFoundPage } from './routes/NotFoundPage';
@@ -16,7 +15,6 @@ import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
-import { ReceiptsAuditPage } from './routes/ReceiptsAuditPage';
 import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
 import { ServicesPage } from './routes/ServicesPage';
@@ -46,17 +44,7 @@ export function App() {
         component: LocalAiPage,
         meta: { title: 'Local-first AI | RevealUI' },
       },
-      {
-        path: '/governance',
-        component: GovernancePage,
-        meta: { title: 'Provable agent governance | RevealUI' },
-      },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing | RevealUI' } },
-      {
-        path: '/receipts-audit',
-        component: ReceiptsAuditPage,
-        meta: { title: 'The Agent Receipts Audit | RevealUI' },
-      },
       {
         path: '/services',
         component: ServicesPage,

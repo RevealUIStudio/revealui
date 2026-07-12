@@ -21,7 +21,7 @@ export interface HomePrimitive {
 }
 
 export const HOME_PRIMITIVES_SECTION = {
-  eyebrow: 'Five primitives. One login. One audit trail.',
+  eyebrow: 'Five primitives. One login.',
   heading: "Everything a business needs. Nothing you don't.",
   body: 'People, content, offers, payments, and agents: the five things every product needs.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
@@ -30,7 +30,7 @@ export const HOME_PRIMITIVES_SECTION = {
 export const HOME_PRIMITIVES: readonly HomePrimitive[] = [
   {
     label: 'People',
-    body: 'Auth, sessions, RBAC + ABAC. Same policy governs human and agent access.',
+    body: 'Auth, sessions, RBAC + ABAC for your team.',
     color: 'emerald',
     iconPath:
       'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
@@ -99,21 +99,20 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
         'Session-based auth, RBAC with 60 enforcement tests, rate limiting, brute-force protection, and GDPR compliance. No auth library decisions. No JWT debates.',
     },
     forAgents: {
-      headline: 'RBAC governs agent access per tenant',
+      headline: 'Agents call the same identity-aware API',
       description:
-        'Every agent action is scoped by the same role and permission system that governs your users. Audit logs track every agent operation with full attribution.',
+        'Agents reach the runtime through the identical REST and MCP surface your app uses. Scoping what an individual agent can do through the RBAC + ABAC engine is not shipped yet.',
     },
     together: {
-      headline: 'Set permissions once. Agents respect them automatically.',
+      headline: 'One access control engine for your team, today.',
       description:
-        'Define your access control rules for humans. Agents inherit the same boundaries. Every action, human or machine, is attributable and auditable.',
+        'RBAC + ABAC governs your human users, proven by 60 enforcement tests. Extending that same engine to scope agents individually is on our list, not yet shipped.',
     },
     features: [
       'Session-based auth (httpOnly, secure, sameSite)',
       'RBAC + ABAC policy engine',
       'Rate limiting and brute-force protection',
       'GDPR compliance framework',
-      'Audit logging with agent attribution',
       'Multi-tenant user isolation',
     ],
   },

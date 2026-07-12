@@ -18,13 +18,10 @@
  * Used by:
  *   - revealui.com /for-operators/managed — RevealUI Cloud waitlist
  *     (source: 'managed-cloud')
- *   - revealui.com /receipts-audit         — Agent Receipts Audit lead magnet
- *     (source: 'receipts-audit')
  *   - revealui.com footer + GetStarted     — newsletter capture
  *     (source: 'newsletter')
  *
- * Notifications (LEAD sources only — 'managed-cloud', 'landing-page',
- * 'receipts-audit'):
+ * Notifications (LEAD sources only — 'managed-cloud', 'landing-page'):
  *   - the operator team gets an alert email (Reply-To the lead) so a
  *     high-intent signup is acted on immediately, not left sitting in a table;
  *   - the lead gets a confirmation email closing the loop.
@@ -43,7 +40,6 @@
  * are silently 200'd (no DB write) so bots don't learn.
  */
 
-import { RECEIPTS_AUDIT_REMEDIATION_ITEMS } from '@revealui/contracts/receipts-audit';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
@@ -57,20 +53,12 @@ import { escapeHtml } from '../lib/html.js';
 // Closed enum keeps the segmentation column clean + queryable. Add a source
 // here when a new capture surface ships — a one-line API change, deliberate
 // so the `source` dimension never accumulates free-text drift.
-const WAITLIST_SOURCES = [
-  'managed-cloud',
-  'newsletter',
-  'landing-page',
-  'blog',
-  'receipts-audit',
-] as const;
+const WAITLIST_SOURCES = ['managed-cloud', 'newsletter', 'landing-page', 'blog'] as const;
 
 // Sources that represent a product LEAD (vs. a newsletter subscription). Only
 // these trigger a team alert + subscriber confirmation; newsletter/blog are
-// list subscriptions handled separately. 'receipts-audit' is a high-intent
-// self-assessment lead: the operator team should act on it like a managed-cloud
-// signup, and the submitter gets the confirmation that closes the loop.
-const LEAD_SOURCES = new Set<string>(['managed-cloud', 'landing-page', 'receipts-audit']);
+// list subscriptions handled separately.
+const LEAD_SOURCES = new Set<string>(['managed-cloud', 'landing-page']);
 
 // Operator inbox for new-lead alerts. Validated at startup
 // (lib/validate-startup.ts); the founder fallback matches the other server
@@ -105,41 +93,8 @@ interface EmailContent {
   text: string;
 }
 
-const RECEIPTS_AUDIT_PAGE_URL = 'https://revealui.com/receipts-audit';
-
-/** Builds the subscriber-facing confirmation email content for a lead source. */
-function buildConfirmationEmail(source: string): EmailContent {
-  if (source === 'receipts-audit') {
-    const htmlItems = RECEIPTS_AUDIT_REMEDIATION_ITEMS.map(
-      (item) => `<li><strong>${escapeHtml(item.title)}.</strong> ${escapeHtml(item.fix)}</li>`,
-    ).join('\n');
-    const textItems = RECEIPTS_AUDIT_REMEDIATION_ITEMS.map(
-      (item, i) => `${i + 1}. ${item.title}\n   ${item.fix}`,
-    ).join('\n\n');
-
-    return {
-      subject: 'Your Agent Receipts Audit remediation guide',
-      html: [
-        '<h2>Your remediation guide</h2>',
-        '<p>Here is the fix for every gap the Agent Receipts Audit found, one per question.</p>',
-        `<ol>${htmlItems}</ol>`,
-        `<p>Revisit the interactive version any time: <a href="${RECEIPTS_AUDIT_PAGE_URL}">${RECEIPTS_AUDIT_PAGE_URL}</a></p>`,
-        '<p>The RevealUI team</p>',
-      ].join('\n'),
-      text: [
-        'Your remediation guide',
-        '',
-        'Here is the fix for every gap the Agent Receipts Audit found, one per question.',
-        '',
-        textItems,
-        '',
-        `Revisit the interactive version any time: ${RECEIPTS_AUDIT_PAGE_URL}`,
-        '',
-        'The RevealUI team',
-      ].join('\n'),
-    };
-  }
-
+/** Builds the subscriber-facing confirmation email content for a new lead. */
+function buildConfirmationEmail(): EmailContent {
   return {
     subject: 'You are on the RevealUI waitlist',
     html: [
@@ -189,7 +144,7 @@ async function sendLeadNotifications(ctx: LeadNotifyContext): Promise<void> {
     ].join('\n'),
   });
 
-  const confirmationContent = buildConfirmationEmail(source);
+  const confirmationContent = buildConfirmationEmail();
   const confirmation = sendEmail({
     to: email,
     subject: confirmationContent.subject,

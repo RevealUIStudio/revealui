@@ -9,7 +9,7 @@ import { AudienceToggle } from './AudienceToggle';
 // Rendered above BOTH hero H1 variants and for both audiences, so the
 // "Local-first AI" chip lands without forking the ?hero=foundation A/B or
 // adding a third hero variant (positioning decision d).
-const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Audit-ready', 'Local-first AI'] as const;
+const TRUST_SIGNALS = ['Open source', 'Self-hostable', 'Local-first AI'] as const;
 
 const ArrowIcon = () => (
   <svg
@@ -51,8 +51,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
       </h1>
 
       <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-        <strong className="block text-foreground">{hero.subtitle.foil}</strong>
-        {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
+        {hero.subtitle.sentence1} {hero.subtitle.support}
       </p>
 
       <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -131,7 +131,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
   {
     heading: '5. Data Retention',
     paragraphs: [
-      'Account data is retained while your account is active. After account deletion, we permanently remove your personal data within 30 days. Application logs and error events are retained for 90 days. Agent activity audit logs are retained indefinitely for security and compliance purposes. Infrastructure server logs (IP address, request path, user agent) are retained by our hosting provider per their policy. Billing records are retained as required by tax law (typically 7 years).',
+      'Account data is retained while your account is active. After account deletion, we permanently remove your personal data within 30 days. Application logs and error events are retained for 90 days. Infrastructure server logs (IP address, request path, user agent) are retained by our hosting provider per their policy. Billing records are retained as required by tax law (typically 7 years).',
     ],
   },
   {

@@ -1,5 +1,4 @@
 import { ButtonCVA } from '@revealui/presentation';
-import { PROOF_GOVERNANCE } from '../../content/governance';
 import { PERSONA_CARD, PERSONA_SECTION } from '../../content/persona';
 import {
   PROOF_CI_SIGNALS,
@@ -235,26 +234,6 @@ export function Proof() {
               className="mt-4 inline-block text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
             >
               {PROOF_LOCAL_AI.linkLabel}
-            </a>
-          </div>
-        </div>
-
-        {/* Governance proof beat: the audit-chain claim's one appearance in this
-            section, leading with the expanded foil variant. */}
-        <div className="mx-auto mt-6 max-w-5xl">
-          <div className="rounded-2xl bg-primary/5 p-8 ring-1 ring-primary/20">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {PROOF_GOVERNANCE.eyebrow}
-            </p>
-            <h3 className="mt-2 text-xl font-semibold text-foreground">
-              {PROOF_GOVERNANCE.heading}
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{PROOF_GOVERNANCE.body}</p>
-            <a
-              href={PROOF_GOVERNANCE.linkHref}
-              className="mt-4 inline-block text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
-            >
-              {PROOF_GOVERNANCE.linkLabel}
             </a>
           </div>
         </div>

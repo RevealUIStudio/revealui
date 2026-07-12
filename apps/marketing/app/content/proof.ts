@@ -86,12 +86,6 @@ export const PROOF_TRUST = {
       linkHref: SITE.urls.repoLicense,
     },
     {
-      title: 'Prove what happened, by anyone or anything.',
-      body: 'Every change, by a person or an agent, signs into a tamper-evident chain. Alter one record and the chain breaks. Nothing gets quietly rewritten.',
-      linkLabel: 'See the schema',
-      linkHref: `${SITE.urls.repo}/blob/main/packages/db/src/schema/audit-log.ts`,
-    },
-    {
       title: 'We bet our own business on it.',
       body: 'This site and our agency site both run on RevealUI, and the code, data, and infrastructure are yours to keep. If it breaks for you, it breaks for us first, and you are never stranded with a vendor.',
       linkLabel: 'Read the source',

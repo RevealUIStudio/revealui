@@ -15,8 +15,7 @@ export const PERSONA_CARD = {
   quote:
     'You’ve got a working AI demo. Then your first serious customer asks the hard questions: who can see this data, who can shut an agent down at 3am, and can you prove everything it did? You need answers before you can charge them, and you shouldn’t have to rebuild what you’ve already shipped to get there.',
   checklist: [
-    'An audit trail of every action, by people and by agents, that you can prove was not edited after the fact',
-    'One set of permission rules covering your team, your agents, and your service accounts',
+    'One set of permission rules covering your team',
     'GDPR consent, deletion, and anonymization built into the data model',
     'Stripe billing that catches the payment events most apps quietly drop',
     'Source-visible code your customer’s security team can actually read and review',

@@ -88,16 +88,6 @@ export function Problem() {
         <p className="mx-auto mt-6 max-w-3xl text-center text-xs text-muted-foreground">
           {HOME_PROBLEM.footnote}
         </p>
-
-        <p className="mx-auto mt-4 max-w-3xl text-center text-sm text-muted-foreground">
-          {HOME_PROBLEM.receiptsAudit.prefix}{' '}
-          <a
-            href={HOME_PROBLEM.receiptsAudit.href}
-            className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
-          >
-            {HOME_PROBLEM.receiptsAudit.label}
-          </a>
-        </p>
       </div>
     </section>
   );

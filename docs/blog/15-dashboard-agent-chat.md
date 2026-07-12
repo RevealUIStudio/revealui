@@ -23,9 +23,9 @@ It is not a chatbot bolted onto a sidebar that can only answer questions. It ope
 
 The reason this needed almost no new surface area is the architecture underneath. In RevealUI, every collection you define is automatically exposed as a tool an agent can call. Define a `Posts` collection and you get a REST API, an admin UI, and an agent-callable tool, simultaneously, from one definition.
 
-So when you ask the agent to draft a post, it is not reaching through a special integration. It is calling the exact same create-post operation a human triggers from the dashboard. There is no separate "agent path" to keep in sync with the real one, which means the agent cannot do anything your own access control does not already allow.
+So when you ask the agent to draft a post, it is not reaching through a special integration. It is calling the exact same create-post operation a human triggers from the dashboard. There is no separate "agent path" to keep in sync with the real one.
 
-That last part matters. Every action the agent takes is governed by the same RBAC and ABAC rules that govern your users, and every operation is attributed in the audit log. The agent does not get a backstage pass. It gets a seat with the same permissions as the account it is acting for.
+That last part matters, and it is also today's limitation. The agent does not get its own identity or its own policy check; it runs with exactly the same permissions as the account or session that launched it, nothing more and nothing less. Per-agent policy scoping through the RBAC + ABAC engine, and a full audit trail of what the agent did, are not shipped yet.
 
 ## It runs on your models, not someone's API
 
