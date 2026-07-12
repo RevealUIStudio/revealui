@@ -10,7 +10,7 @@
  *   1. Markdown prose across the repo's reader-facing surfaces (line-based
  *      substring scan, mirroring the fenced-import scanner style already used
  *      by `docs-import-drift.ts`): the whole `docs/**` tree (including the
- *      public `docs/blog` posts and `apps/docs/public` mirror via `apps/**`),
+ *      public `docs/blog` posts) plus `apps/**` markdown,
  *      every package `README.md`, and the root-level docs
  *      (README/CLAUDE/AGENTS/SECURITY/…). CHANGELOGs and archived/handoff
  *      records are skipped as inherently historical.
@@ -48,6 +48,7 @@
  * Exit 0 = clean (or report mode). Exit 1 = new drift (ci mode). Exit 2 = bad arg.
  */
 
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import ts from 'typescript';
@@ -408,6 +409,34 @@ function walkMarkdownFiles(dir: string, acc: string[], accept: (name: string) =>
   }
 }
 
+/**
+ * Drop gitignored files from a collected list. Gitignored markdown is
+ * generated output (e.g. the `apps/docs/public` mirror that `copy-docs.sh`
+ * regenerates from `docs/`): its sources are already scanned directly, its
+ * paths are absent from the baseline, and CI checkouts never contain it —
+ * so scanning it yields only machine-dependent duplicate findings.
+ * Outside a git repo (unit-test temp dirs), the list passes through as-is.
+ */
+function filterGitignored(root: string, files: string[]): string[] {
+  if (files.length === 0) return files;
+  let out: string;
+  try {
+    out = execFileSync('git', ['-C', root, 'check-ignore', '--stdin'], {
+      input: files.join('\n'),
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+  } catch (err) {
+    const e = err as { status?: number | null; stdout?: unknown };
+    // Exit code 1 means "no paths are ignored"; anything else (128 = not a
+    // git repo, ENOENT = no git binary) falls back to scanning everything.
+    if (e.status !== 1) return files;
+    out = typeof e.stdout === 'string' ? e.stdout : '';
+  }
+  const ignored = new Set(out.split('\n').filter((line) => line.length > 0));
+  return files.filter((f) => !ignored.has(f));
+}
+
 export function collectMarkdownFiles(root: string): string[] {
   const acc: string[] = [];
   for (const rel of MARKDOWN_ROOTS) walkMarkdownFiles(path.join(root, rel), acc, isMarkdown);
@@ -425,7 +454,7 @@ export function collectMarkdownFiles(root: string): string[] {
   for (const e of entries) {
     if (e.isFile() && isMarkdown(e.name)) acc.push(path.join(root, e.name));
   }
-  return acc;
+  return filterGitignored(root, acc);
 }
 
 export function scanMarkdownFile(root: string, abs: string): Hit[] {
@@ -484,7 +513,7 @@ function walkContentFiles(dir: string, acc: string[]): void {
 export function collectContentFiles(root: string): string[] {
   const acc: string[] = [];
   walkContentFiles(path.join(root, CONTENT_ROOT_REL), acc);
-  return acc;
+  return filterGitignored(root, acc);
 }
 
 export interface StringLiteralSpan {
