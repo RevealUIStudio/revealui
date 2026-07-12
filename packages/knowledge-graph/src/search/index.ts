@@ -17,6 +17,9 @@ import type { EdgeRelation, NodeKind } from '../ontology/index.js';
 import type { KgExecutor } from '../types.js';
 import { applyEpisodeMentions, applyNodeDistance, rankByScore, rrfFuse } from './rrf.js';
 
+export type { DriftCandidate, KgDriftOptions } from './drift.js';
+export { kgDrift } from './drift.js';
+
 export interface KgSearchQuery {
   query: string;
   /** Anchor node id for the traversal channel + node-distance reranker. */

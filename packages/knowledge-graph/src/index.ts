@@ -40,9 +40,12 @@ export {
   validateNodeAttributes,
 } from './ontology/index.js';
 export {
+  type DriftCandidate,
+  type KgDriftOptions,
   type KgSearchQuery,
   type KgSearchResult,
   kgAtTime,
+  kgDrift,
   kgNeighbors,
   kgPath,
   kgSearch,
