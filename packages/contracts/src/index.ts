@@ -539,16 +539,6 @@ export {
 } from './pricing.js';
 
 // =============================================================================
-// Receipts Audit (remediation guide)
-// =============================================================================
-
-export {
-  RECEIPTS_AUDIT_REMEDIATION_ITEMS,
-  type RemediationItem,
-  type RuntimePrimitive,
-} from './receipts-audit.js';
-
-// =============================================================================
 // Stripe Webhook Events (canonical list — single source of truth)
 // =============================================================================
 

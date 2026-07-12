@@ -3,9 +3,8 @@ import { PROVIDER_SWITCH as P } from '../../content/local-ai';
 
 /**
  * Provider-switch interactive. Toggling Local <-> Frontier changes the model,
- * data locus, cost model, and config line, while the governance/audit row stays
- * fixed. Anchors the local-AI section; the frontier-pathway made tangible.
- * CSR-only (Vite SPA).
+ * data locus, cost model, and config line. Anchors the local-AI section; the
+ * frontier-pathway made tangible. CSR-only (Vite SPA).
  */
 type Mode = 'local' | 'frontier';
 
@@ -61,7 +60,7 @@ export function ProviderSwitch() {
         ))}
       </dl>
 
-      {/* Constant governance row */}
+      {/* Constant-either-way row */}
       <div className="mt-4 rounded-xl bg-primary/5 p-4 ring-1 ring-primary/20">
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">
           {P.constant.label}

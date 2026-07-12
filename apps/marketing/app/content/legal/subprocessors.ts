@@ -14,7 +14,7 @@ export interface Subprocessor {
 
 export const SUBPROCESSORS_META = {
   title: 'Subprocessors',
-  lastUpdated: 'May 28, 2026',
+  lastUpdated: 'July 11, 2026',
   intro:
     'A subprocessor is a third-party service we use to operate RevealUI on your behalf. Every entry below stores, processes, or transmits some category of customer data. The table is dated and we commit to updating it before adding a new subprocessor, not after. See the change-log at the bottom of this page.',
 } as const;
@@ -43,12 +43,7 @@ export const SUBPROCESSORS: readonly Subprocessor[] = [
     name: 'NeonDB',
     role: 'PostgreSQL database (primary store)',
     location: 'United States (primary: us-east-1)',
-    dataCategories: [
-      'Account records',
-      'License records',
-      'Site and content data',
-      'Agent memory and audit logs',
-    ],
+    dataCategories: ['Account records', 'License records', 'Site and content data', 'Agent memory'],
     privacyPolicyUrl: 'https://neon.tech/privacy-policy',
     dpaUrl: 'https://neon.tech/dpa',
     since: '2026-03',
@@ -96,6 +91,11 @@ export interface ChangeLogEntry {
  * entry here in the same commit. Entries are most-recent-first.
  */
 export const SUBPROCESSORS_CHANGELOG: readonly ChangeLogEntry[] = [
+  {
+    date: '2026-07-11',
+    summary:
+      "Corrected NeonDB's data categories: removed 'audit logs'. Production audit-log storage does not persist to Postgres today, so listing it as a stored data category was inaccurate.",
+  },
   {
     date: '2026-05-28',
     summary:

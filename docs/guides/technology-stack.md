@@ -92,4 +92,3 @@ See [FAIR_SOURCE.md](../FAIR_SOURCE.md) for the licensing rationale.
 - [AI.md](../AI.md) — AI package, MCP server catalog, agent runtime
 - [PRO.md](../PRO.md) — Pro packages, license enforcement, commercial features
 - [REFERENCE.md](../REFERENCE.md) — package-by-package API reference
-- [audit-chain.md](./audit-chain.md) — tamper-evident audit log

@@ -27,10 +27,10 @@ describe('marketing content contracts', () => {
   });
 
   describe('capabilities', () => {
-    it('exposes nine capabilities, matching the section copy', () => {
-      expect(CAPABILITIES).toHaveLength(9);
-      // The heading copy spells the count ("Nine ..."); keep them in lockstep.
-      expect(CAPABILITIES_SECTION.body.toLowerCase()).toContain('nine');
+    it('exposes eight capabilities, matching the section copy', () => {
+      expect(CAPABILITIES).toHaveLength(8);
+      // The heading copy spells the count ("Eight ..."); keep them in lockstep.
+      expect(CAPABILITIES_SECTION.body.toLowerCase()).toContain('eight');
     });
 
     it('every capability cites a real repo source file', () => {

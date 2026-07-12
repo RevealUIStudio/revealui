@@ -1,9 +1,9 @@
 import { FRONTIER_PATHWAY as F } from '../../content/local-ai';
 
 /**
- * Frontier-pathway visual: a three-step progression (open-weight default -> add
- * an adapter -> governed and audited) with a constant-governance footer. Static
- * (no state); pairs with the interactive ProviderSwitch in the local-AI section.
+ * Frontier-pathway visual: a two-step progression (open-weight default -> add
+ * an adapter). Static (no state); pairs with the interactive ProviderSwitch in
+ * the local-AI section.
  */
 export function FrontierPathway() {
   return (
@@ -13,7 +13,7 @@ export function FrontierPathway() {
         <h3 className="mt-2 text-xl font-semibold text-foreground">{F.heading}</h3>
       </div>
 
-      <ol className="mt-8 grid grid-cols-1 gap-4 list-none p-0 sm:grid-cols-3">
+      <ol className="mt-8 grid grid-cols-1 gap-4 list-none p-0 sm:grid-cols-2">
         {F.steps.map((step) => (
           <li key={step.n} className="rounded-2xl bg-card p-6 ring-1 ring-border">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-mono text-sm font-semibold text-primary">
@@ -24,8 +24,6 @@ export function FrontierPathway() {
           </li>
         ))}
       </ol>
-
-      <p className="mt-4 text-center text-sm font-medium text-primary">{F.constant}</p>
     </div>
   );
 }

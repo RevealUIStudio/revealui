@@ -22,13 +22,11 @@ import type { Cta, FaqItem } from './types';
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO = {
-  eyebrow: 'Open source. Self-hostable. Audit-ready.',
+  eyebrow: 'Open source. Self-hostable.',
   h1: 'Run your whole business on one runtime you own.',
   subtitle: {
-    foil: "If an agent did it, there's a receipt.",
     sentence1:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
-    sentence2: 'Every agent is a governed and audited user that lives on your infrastructure.',
     support: 'It runs on any AI provider you choose.',
   },
   cta: {
@@ -99,23 +97,10 @@ export const HOME_PROBLEM = {
       capability: 'MCP tools for every API',
       sprawl: 'Per-collection plugin',
       agentOnly: 'Tool registry only',
-      revealui: 'Auto-exposed, RBAC-governed',
-    },
-    {
-      capability: 'Tamper-evident audit log',
-      sprawl: 'An observability vendor, plus custom hashing',
-      agentOnly: 'Logs only',
-      revealui: 'Hash-chained, in DB',
+      revealui: 'Auto-exposed',
     },
   ] as readonly ProblemRow[],
   footnote: `Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.`,
-  // Quiet contextual link back to the receipt foil, near the audit-log row of
-  // the comparison. Not a section, not a CTA button: one calm inline link.
-  receiptsAudit: {
-    prefix: 'Not sure you could prove what your agents did?',
-    label: 'Take the Agent Receipts Audit.',
-    href: '/receipts-audit',
-  },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -183,7 +168,7 @@ export const HOME_FAQ = {
       question:
         'How is this different from stitching together separate auth, database, CMS, and background-job services?',
       answer:
-        'Each of those covers one slice: a real-time database, a Postgres-plus-auth backend, a session service, a jobs runner. RevealUI is the whole runtime: auth, content, billing, admin UI, and an agent layer governed by one RBAC policy and one tamper-evident audit chain. Self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.)',
+        'Each of those covers one slice: a real-time database, a Postgres-plus-auth backend, a session service, a jobs runner. RevealUI is the whole runtime: auth, content, billing, admin UI, and an agent layer, self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.)',
     },
     {
       question: 'Can I self-host?',
@@ -193,7 +178,7 @@ export const HOME_FAQ = {
     {
       question: 'What does "agent-native" actually mean in code?',
       answer:
-        'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call, gated by the same RBAC + ABAC policy. Agents are first-class principals: scope one to a collection, give it a budget, watch every action sign into the audit chain, revoke when done. The runtime is the contract, not a glue layer.',
+        'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call. The runtime is the contract, not a glue layer.',
     },
     {
       question: 'How does AI inference work?',

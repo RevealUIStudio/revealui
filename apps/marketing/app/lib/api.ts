@@ -26,7 +26,7 @@ export interface WaitlistPayload {
    * Segmentation key — matches the server's WAITLIST_SOURCES enum.
    * e.g. 'managed-cloud' (RevealUI Cloud waitlist), 'newsletter'.
    */
-  source: 'managed-cloud' | 'newsletter' | 'landing-page' | 'blog' | 'receipts-audit';
+  source: 'managed-cloud' | 'newsletter' | 'landing-page' | 'blog';
   /**
    * Honeypot — the server silently 200s any submission with a non-empty value
    * (packages/../waitlist.ts). Forms render it hidden via CSS; humans leave it
@@ -103,23 +103,6 @@ export async function submitWaitlist(payload: WaitlistPayload): Promise<string |
  */
 export async function submitNewsletter(payload: NewsletterPayload): Promise<string | null> {
   return submitWaitlist({ email: payload.email, source: 'newsletter' });
-}
-
-/**
- * Capture a lead from the Agent Receipts Audit lead magnet
- * (revealui.com/receipts-audit). A thin wrapper over submitWaitlist that pins
- * the source to 'receipts-audit' (a LEAD source: the server fires a team alert
- * + a confirmation email). `website` is the honeypot the form passes through.
- */
-export async function submitReceiptsAudit(payload: {
-  email: string;
-  website?: string;
-}): Promise<string | null> {
-  return submitWaitlist({
-    email: payload.email,
-    source: 'receipts-audit',
-    website: payload.website,
-  });
 }
 
 /**

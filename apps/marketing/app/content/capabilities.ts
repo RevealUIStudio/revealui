@@ -16,21 +16,15 @@ const REPO_TREE = `${SITE.urls.repo}/tree/main`;
 export const CAPABILITIES_SECTION = {
   eyebrow: 'Capabilities, file by file',
   heading: "What's actually shipped.",
-  body: 'Nine load-bearing primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
+  body: 'Eight load-bearing primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
   footnote:
     'Trust through specificity. These are primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
 } as const;
 
 export const CAPABILITIES: readonly Capability[] = [
   {
-    title: 'Tamper-evident audit chain',
-    body: 'Every mutation across every primitive, by humans or agents, signs into an HMAC-SHA256 hash chain. Tampering breaks the chain.',
-    path: 'packages/db/src/schema/audit-log.ts',
-    href: `${REPO_ROOT}/packages/db/src/schema/audit-log.ts`,
-  },
-  {
-    title: 'Unified RBAC + ABAC policy engine',
-    body: 'One policy plane covering humans, agents, and service accounts. Role checks, attribute checks, and action attribution all in one engine.',
+    title: 'RBAC + ABAC policy engine',
+    body: 'Role checks, attribute checks, and action attribution for every human user, proven by enforcement tests.',
     path: 'packages/security/src/authorization.ts',
     href: `${REPO_ROOT}/packages/security/src/authorization.ts`,
   },
@@ -60,7 +54,7 @@ export const CAPABILITIES: readonly Capability[] = [
   },
   {
     title: 'MCP hypervisor + introspection',
-    body: 'One process supervises all MCP servers, surfaces their tool registries, and gates calls through the same RBAC + ABAC plane the rest of the runtime uses.',
+    body: 'One process supervises all MCP servers and surfaces their tool registries, so every adapter is discoverable from a single place.',
     path: 'packages/mcp/src/hypervisor.ts',
     href: `${REPO_ROOT}/packages/mcp/src/hypervisor.ts`,
   },

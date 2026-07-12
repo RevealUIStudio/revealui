@@ -1,6 +1,6 @@
 ---
 title: "The UI of the Future Has Yet to Reveal Itself"
-description: "The interface of the AI era is not a smarter chat window. It is your business itself, run by agents you own and can audit. If an agent did it, there's a receipt."
+description: "The interface of the AI era is not a smarter chat window. It is your business itself, run by agents you own."
 visibility: public
 status: narrative
 audience: user

@@ -8,10 +8,12 @@
 // work, hardcoded the retired emerald 10b981 brand color, and made third-party
 // requests on every page load); the raw tech-stack grid and CI-tool list (a
 // buyer does not care that this runs on Vite); the governance/receipt proof
-// beat (a parallel code audit found the audit-chain and tamper-evidence claims
-// are not yet true in the shipped code, see content/governance.ts
-// PROOF_GOVERNANCE, now unused here and tracked separately with the owner in
-// the loop); the persona checklist (duplicated the "who it's for" framing and
+// beat (two independent code audits found the audit-chain and tamper-evidence
+// claims are not true in the shipped code: prod never installs Postgres audit
+// storage, request-level writes are rejected by a CHECK constraint, and no row
+// has ever carried a signature. content/governance.ts and its PROOF_GOVERNANCE
+// are deleted in this PR; the rebuild is tracked as a gap with the owner in the
+// loop); the persona checklist (duplicated the "who it's for" framing and
 // led with the same unproven audit-trail claim); and the local-AI beat (its
 // own page covers this). What remains is what a buyer needs to decide whether
 // to trust the repo: it is inspectable, and the numbers are checkable.
