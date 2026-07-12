@@ -30,6 +30,10 @@ import { DECLARED_PATHS } from './secret-paths.js';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const VERCEL_MANIFEST = resolve(HERE, 'revvault-vercel.toml');
 const FLY_MANIFEST = resolve(HERE, 'revvault-fly.toml');
+// Separate staging manifest (GAP-343 Phase 3) - project slugs already
+// disambiguate (e.g. "vercel:revealui-api-staging"), so it shares the same
+// 'vercel' sourceLabel as the prod manifest rather than inventing a new one.
+const STAGING_MANIFEST = resolve(HERE, 'revvault-vercel-staging.toml');
 
 export type DriftCategory = 'orphan' | 'missing' | 'shape-violation';
 
@@ -118,6 +122,7 @@ function manifestNamePathIndex(): Map<string, Map<string, string>> {
   };
   add(VERCEL_MANIFEST, 'projects', 'vercel');
   add(FLY_MANIFEST, 'fly-apps', 'fly');
+  add(STAGING_MANIFEST, 'projects', 'vercel');
   return index;
 }
 

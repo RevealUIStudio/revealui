@@ -41,10 +41,15 @@ import {
 const HERE = dirname(fileURLToPath(import.meta.url));
 const VERCEL_MANIFEST = resolve(HERE, '../revvault-vercel.toml');
 const FLY_MANIFEST = resolve(HERE, '../revvault-fly.toml');
+const STAGING_MANIFEST = resolve(HERE, '../revvault-vercel-staging.toml');
 
 const vercelVars = collectVars(readFileSync(VERCEL_MANIFEST, 'utf8'), 'projects', 'vercel');
 const flyVars = collectVars(readFileSync(FLY_MANIFEST, 'utf8'), 'fly-apps', 'fly');
-const allManifestPaths = [...vercelVars, ...flyVars].map((v) => v.path);
+// The staging manifest (GAP-343 Phase 3) is a SEPARATE file from the prod
+// Vercel manifest by design, but must get the same declared/synced/
+// sensitivity/kebab lockstep coverage - fed into the same predicates below.
+const stagingVars = collectVars(readFileSync(STAGING_MANIFEST, 'utf8'), 'projects', 'vercel');
+const allManifestPaths = [...vercelVars, ...flyVars, ...stagingVars].map((v) => v.path);
 const secretsMd = readFileSync(SECRETS_MD_PATH, 'utf8');
 const docPaths = extractGeneratedPaths(secretsMd);
 
@@ -68,6 +73,10 @@ describe('manifest ↔ spec lockstep', () => {
     expect(flyVars.length).toBeGreaterThan(20);
   });
 
+  it('parses the staging manifest to a non-trivial var set (GAP-343)', () => {
+    expect(stagingVars.length).toBeGreaterThan(40);
+  });
+
   it('no undeclared manifest path and every synced spec path is explicitly listed', () => {
     expect(findManifestDrift(allManifestPaths)).toEqual([]);
   });
@@ -80,11 +89,49 @@ describe('manifest ↔ spec lockstep', () => {
     expect(findSensitivityGaps(vercelVars)).toEqual([]);
   });
 
+  it('sensitivity-completeness holds for the staging manifest too (GAP-343)', () => {
+    expect(findSensitivityGaps(stagingVars)).toEqual([]);
+  });
+
   it('the license private key is sensitive and the public key is bare in the Vercel manifest', () => {
     const priv = vercelVars.find((v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY');
     const pub = vercelVars.find((v) => v.name === 'REVEALUI_LICENSE_PUBLIC_KEY');
     expect(priv?.sensitive).toBe(true);
     expect(pub?.sensitive).toBe(false);
+  });
+
+  it('the staging license private key is sensitive and the public key is bare', () => {
+    const priv = stagingVars.find((v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY');
+    const pub = stagingVars.find((v) => v.name === 'REVEALUI_LICENSE_PUBLIC_KEY');
+    expect(priv?.sensitive).toBe(true);
+    expect(pub?.sensitive).toBe(false);
+  });
+
+  it('the staging license keypair path is isolated from the prod revdev/* pair', () => {
+    const priv = stagingVars.find((v) => v.name === 'REVEALUI_LICENSE_PRIVATE_KEY');
+    const pub = stagingVars.find((v) => v.name === 'REVEALUI_LICENSE_PUBLIC_KEY');
+    expect(priv?.path).toBe('revealui/staging/license/private-key');
+    expect(pub?.path).toBe('revealui/staging/license/public-key');
+  });
+
+  // GAP-343: the staging manifest reuses exactly five prod paths on purpose
+  // (Gmail SA transport + one Stripe meter-event name - see the manifest
+  // header + the consumers additions on those prod SECRET_PATHS entries).
+  // Any OTHER revealui/prod/* reference in the staging manifest is an
+  // accidental leak, not a deliberate reuse - this is the machine-checked
+  // form of the PR's "grep the diff for revealui/prod/ paths" instruction.
+  it('the staging manifest references revealui/prod/* only for the documented reuse set', () => {
+    const allowedProdReuse: ReadonlySet<string> = new Set([
+      'revealui/prod/stripe/agent-meter-event-name',
+      'revealui/prod/google/service-account-email',
+      'revealui/prod/google/private-key',
+      'revealui/prod/email/from',
+      'revealui/prod/email/reply-to',
+    ]);
+    const unexpectedProdPaths = stagingVars
+      .map((v) => v.path)
+      .filter((path) => path.startsWith('revealui/prod/') && !allowedProdReuse.has(path));
+    expect(unexpectedProdPaths).toEqual([]);
   });
 });
 

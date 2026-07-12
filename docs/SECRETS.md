@@ -79,6 +79,12 @@ These paths are the canonical source for the Vercel + Fly sync manifests
 CI secret mirrors. The table below is a DERIVED VIEW of the machine spec at
 `scripts/sync/secret-paths.ts` - do not hand-edit it (see the marker note).
 
+The `revealui/staging/*` rows below (GAP-343) are synced by a SEPARATE
+manifest, `scripts/sync/revvault-vercel-staging.toml`, deliberately never the
+prod one - see that file's header for the `git_branch` preview-scoping
+mechanics and `scripts/setup/gen-staging-secrets.ts` for the owner-run
+generator that fills the "fresh value" paths.
+
 <!-- BEGIN GENERATED:secret-paths -->
 
 _Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-paths.ts) by
@@ -87,7 +93,7 @@ _Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-
 spec, the Vercel/Fly sync manifests, or their sensitivity markers. Change `secret-paths.ts`
 and re-run the renderer._
 
-Production runtime paths synced to Vercel + Fly (60 paths). `sensitive` = the
+Production runtime paths synced to Vercel + Fly (108 paths). `sensitive` = the
 value is never UI/API-revealable after write (credentials + private signing keys).
 
 | Path | Kind | Sensitive | Consumers | Notes |
@@ -106,10 +112,10 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/db/postgres-url` | credential | yes | vercel:api, vercel:admin, fly:worker | required@boot; canonical Neon pooled url - feeds POSTGRES_URL + DATABASE_URL |
 | `revealui/prod/electric/secret` | credential | yes | vercel:api, vercel:admin, fly:worker | currently empty in the vault (GAP-230/231); the worker does not require it |
 | `revealui/prod/electric/service-url` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
-| `revealui/prod/email/from` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
-| `revealui/prod/email/reply-to` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
-| `revealui/prod/google/private-key` | credential | yes | vercel:api, vercel:admin, fly:worker | PKCS8 PEM - Gmail SA domain-wide delegation |
-| `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/email/from` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
+| `revealui/prod/email/reply-to` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
+| `revealui/prod/google/private-key` | credential | yes | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging | PKCS8 PEM - Gmail SA domain-wide delegation; also read by staging (GAP-343) |
+| `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
 | `revealui/prod/kek` | credential | yes | vercel:api, vercel:admin, fly:worker | REVEALUI_KEK - AES-256-GCM envelope key; has a NEXT dual-slot rotation story |
 | `revealui/prod/marketplace-connect-return-url` | public-config | no | vercel:api, fly:worker |  |
 | `revealui/prod/passkey/origin` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
@@ -130,7 +136,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/sentry/org` | public-config | no | vercel:admin |  |
 | `revealui/prod/sentry/project-admin` | public-config | no | vercel:admin |  |
 | `revealui/prod/session-cookie-domain` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
-| `revealui/prod/stripe/agent-meter-event-name` | public-config | no | vercel:api, fly:worker |  |
+| `revealui/prod/stripe/agent-meter-event-name` | public-config | no | vercel:api, fly:worker, vercel:api-staging |  |
 | `revealui/prod/stripe/agent-overage-price-id` | price-id | no | vercel:api, fly:worker |  |
 | `revealui/prod/stripe/billing-portal-config-id` | public-config | no | vercel:api | canonical billing-portal config id (Vercel api) |
 | `revealui/prod/stripe/credits-scale-price-id` | price-id | no | vercel:api, fly:worker |  |
@@ -152,6 +158,54 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/stripe/secret-key` | credential | yes | vercel:api, vercel:admin | sk_live_* - set Fly-direct (mode-gated), not synced to the worker |
 | `revealui/prod/stripe/webhook-secret` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/stripe/webhook-secret-live` | credential | yes | vercel:api, fly:worker |  |
+| `revealui/staging/admin/api-key` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/admin/email` | public-config | no | vercel:admin-staging | owner sets by hand - fresh staging bootstrap admin user |
+| `revealui/staging/admin/password` | credential | yes | vercel:admin-staging | owner sets by hand - fresh staging bootstrap admin user |
+| `revealui/staging/alert-email` | public-config | no | vercel:api-staging | owner sets by hand - not derivable, not generated by gen-staging-secrets.ts |
+| `revealui/staging/audit-hmac-secret` | credential | yes | vercel:api-staging |  |
+| `revealui/staging/cors-origin` | public-config | no | vercel:api-staging |  |
+| `revealui/staging/cron-secret` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/db/postgres-url` | credential | yes | vercel:api-staging, vercel:admin-staging | Phase 1 (owner-run empty Neon branch + full migrate) fills this |
+| `revealui/staging/kek` | credential | yes | vercel:api-staging, vercel:admin-staging | fresh staging value (scripts/setup/gen-staging-secrets.ts) |
+| `revealui/staging/license/private-key` | signing-private | yes | vercel:api-staging, vercel:admin-staging | fresh Ed25519 pair, isolated from revdev/license-signing-* (GAP-343 decision 1) |
+| `revealui/staging/license/public-key` | signing-public | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/passkey/origin` | public-config | no | vercel:api-staging, vercel:admin-staging | the admin app origin, https://admin.staging.revealui.com |
+| `revealui/staging/passkey/rp-id` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/passkey/rp-name` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/public/api-url` | public-config | no | vercel:admin-staging, vercel:marketing-staging | the api own origin; also VITE_API_URL on marketing (the anti-cross-wire fix, GAP-343) |
+| `revealui/staging/public/server-url` | public-config | no | vercel:api-staging, vercel:admin-staging, vercel:marketing-staging | the admin app own origin (parity with the prod server-url leaf) |
+| `revealui/staging/r2/access-key-id` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/r2/account-id` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/r2/bucket` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/r2/public-base-url` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/r2/secret-access-key` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/secret` | credential | yes | vercel:api-staging, vercel:admin-staging | must match across api + admin - CSRF tokens are cross-verified |
+| `revealui/staging/sentry/auth-token` | credential | yes | vercel:admin-staging |  |
+| `revealui/staging/sentry/dsn` | public-config | no | vercel:api-staging | separate staging Sentry project - prod error budget stays clean |
+| `revealui/staging/sentry/dsn-admin` | public-config | no | vercel:admin-staging |  |
+| `revealui/staging/sentry/org` | public-config | no | vercel:admin-staging |  |
+| `revealui/staging/sentry/project-admin` | public-config | no | vercel:admin-staging |  |
+| `revealui/staging/session-cookie-domain` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/agent-overage-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/billing-portal-config-id` | public-config | no | vercel:api-staging |  |
+| `revealui/staging/stripe/credits-scale-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/credits-standard-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/credits-starter-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/enterprise-annual-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/enterprise-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/max-annual-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/max-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/perpetual-enterprise-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/perpetual-max-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/perpetual-pro-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/pro-annual-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/pro-price-id` | price-id | no | vercel:api-staging, vercel:admin-staging |  |
+| `revealui/staging/stripe/publishable-key` | public-config | no | vercel:admin-staging | pk_test_* |
+| `revealui/staging/stripe/renewal-enterprise-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/renewal-max-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/renewal-pro-price-id` | price-id | no | vercel:api-staging |  |
+| `revealui/staging/stripe/secret-key` | credential | yes | vercel:api-staging, vercel:admin-staging | sk_test_* - isolated staging Stripe test account (Phase 2) |
+| `revealui/staging/stripe/webhook-secret` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
 
 <!-- END GENERATED:secret-paths -->
 

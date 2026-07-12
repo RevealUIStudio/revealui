@@ -41,7 +41,7 @@ export type SecretKind =
   | 'price-id'; // Stripe price/product ids (low-secrecy identifiers)          → NOT sensitive
 
 /** Secrecy tier (by secrecy, not by vault namespace). */
-export type SecretTier = 'prod' | 'dev' | 'env' | 'credentials' | 'agents' | 'forge';
+export type SecretTier = 'prod' | 'staging' | 'dev' | 'env' | 'credentials' | 'agents' | 'forge';
 
 export interface SecretPathDef {
   /** Canonical revvault path, lower-kebab, a leaf XOR a directory prefix (never both). */
@@ -119,7 +119,9 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:api', 'fly:worker'],
+    // Also read by the staging api project (revvault-vercel-staging.toml) -
+    // not secret, not per-environment, deliberately shared (GAP-343 Phase 3).
+    consumers: ['vercel:api', 'fly:worker', 'vercel:api-staging'],
   },
   {
     path: 'revealui/prod/stripe/billing-portal-config-id',
@@ -323,29 +325,56 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
+    // Reused as-is by staging (revvault-vercel-staging.toml) - real
+    // verification/receipt/license mail must land in a real inbox during the
+    // 9-path walk; forking transport credentials buys no isolation (GAP-343).
+    consumers: [
+      'vercel:api',
+      'vercel:admin',
+      'fly:worker',
+      'vercel:api-staging',
+      'vercel:admin-staging',
+    ],
   },
   {
     path: 'revealui/prod/google/private-key',
     kind: 'credential',
     sensitive: true,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
-    note: 'PKCS8 PEM - Gmail SA domain-wide delegation',
+    consumers: [
+      'vercel:api',
+      'vercel:admin',
+      'fly:worker',
+      'vercel:api-staging',
+      'vercel:admin-staging',
+    ],
+    note: 'PKCS8 PEM - Gmail SA domain-wide delegation; also read by staging (GAP-343)',
   },
   {
     path: 'revealui/prod/email/from',
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
+    consumers: [
+      'vercel:api',
+      'vercel:admin',
+      'fly:worker',
+      'vercel:api-staging',
+      'vercel:admin-staging',
+    ],
   },
   {
     path: 'revealui/prod/email/reply-to',
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
+    consumers: [
+      'vercel:api',
+      'vercel:admin',
+      'fly:worker',
+      'vercel:api-staging',
+      'vercel:admin-staging',
+    ],
   },
   // ── Auth / session ────────────────────────────────────────────────────────
   {
@@ -470,6 +499,301 @@ export const SECRET_PATHS: SecretPathDef[] = [
     consumers: ['vercel:admin', 'vercel:marketing'],
     note: 'NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag',
   },
+  // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────
+  // The revealui/staging/* surface synced by scripts/sync/revvault-vercel-staging.toml
+  // (a SEPARATE manifest from the prod one - see its header). Same subsystem
+  // grouping as the prod entries above; consumers use the *-staging tokens
+  // (vercel:api-staging / vercel:admin-staging / vercel:marketing-staging) so
+  // "which manifest reads this" stays visible without inventing a new field.
+  // Reused-from-prod values (Gmail SA, one Stripe meter-event name) are NOT
+  // duplicated here - see the consumers additions on the prod entries above.
+  {
+    path: 'revealui/staging/stripe/secret-key',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+    note: 'sk_test_* - isolated staging Stripe test account (Phase 2)',
+  },
+  {
+    path: 'revealui/staging/stripe/webhook-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/stripe/publishable-key',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+    note: 'pk_test_*',
+  },
+  {
+    path: 'revealui/staging/stripe/billing-portal-config-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging'],
+  },
+  ...(
+    [
+      ['revealui/staging/stripe/pro-price-id', ['vercel:api-staging', 'vercel:admin-staging']],
+      ['revealui/staging/stripe/max-price-id', ['vercel:api-staging', 'vercel:admin-staging']],
+      [
+        'revealui/staging/stripe/enterprise-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      [
+        'revealui/staging/stripe/pro-annual-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      [
+        'revealui/staging/stripe/max-annual-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      [
+        'revealui/staging/stripe/enterprise-annual-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      [
+        'revealui/staging/stripe/perpetual-pro-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      [
+        'revealui/staging/stripe/perpetual-max-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      [
+        'revealui/staging/stripe/perpetual-enterprise-price-id',
+        ['vercel:api-staging', 'vercel:admin-staging'],
+      ],
+      ['revealui/staging/stripe/renewal-pro-price-id', ['vercel:api-staging']],
+      ['revealui/staging/stripe/renewal-max-price-id', ['vercel:api-staging']],
+      ['revealui/staging/stripe/renewal-enterprise-price-id', ['vercel:api-staging']],
+      ['revealui/staging/stripe/credits-starter-price-id', ['vercel:api-staging']],
+      ['revealui/staging/stripe/credits-standard-price-id', ['vercel:api-staging']],
+      ['revealui/staging/stripe/credits-scale-price-id', ['vercel:api-staging']],
+      ['revealui/staging/stripe/agent-overage-price-id', ['vercel:api-staging']],
+    ] as const
+  ).map(
+    ([path, consumers]): SecretPathDef => ({
+      path,
+      kind: 'price-id',
+      sensitive: false,
+      tier: 'staging',
+      consumers: [...consumers],
+    }),
+  ),
+  {
+    path: 'revealui/staging/db/postgres-url',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+    note: 'Phase 1 (owner-run empty Neon branch + full migrate) fills this',
+  },
+  {
+    path: 'revealui/staging/kek',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+    note: 'fresh staging value (scripts/setup/gen-staging-secrets.ts)',
+  },
+  {
+    path: 'revealui/staging/secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+    note: 'must match across api + admin - CSRF tokens are cross-verified',
+  },
+  {
+    path: 'revealui/staging/audit-hmac-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging'],
+  },
+  {
+    path: 'revealui/staging/license/private-key',
+    kind: 'signing-private',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+    note: 'fresh Ed25519 pair, isolated from revdev/license-signing-* (GAP-343 decision 1)',
+  },
+  {
+    path: 'revealui/staging/license/public-key',
+    kind: 'signing-public',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/cron-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/alert-email',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging'],
+    note: 'owner sets by hand - not derivable, not generated by gen-staging-secrets.ts',
+  },
+  {
+    path: 'revealui/staging/admin/api-key',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/admin/email',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+    note: 'owner sets by hand - fresh staging bootstrap admin user',
+  },
+  {
+    path: 'revealui/staging/admin/password',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+    note: 'owner sets by hand - fresh staging bootstrap admin user',
+  },
+  {
+    path: 'revealui/staging/r2/account-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/r2/access-key-id',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/r2/secret-access-key',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/r2/bucket',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/r2/public-base-url',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/passkey/origin',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+    note: 'the admin app origin, https://admin.staging.revealui.com',
+  },
+  {
+    path: 'revealui/staging/passkey/rp-id',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/passkey/rp-name',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/session-cookie-domain',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/cors-origin',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging'],
+  },
+  {
+    path: 'revealui/staging/sentry/dsn',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging'],
+    note: 'separate staging Sentry project - prod error budget stays clean',
+  },
+  {
+    path: 'revealui/staging/sentry/dsn-admin',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/sentry/auth-token',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/sentry/org',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/sentry/project-admin',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging'],
+  },
+  {
+    path: 'revealui/staging/public/server-url',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging', 'vercel:marketing-staging'],
+    note: 'the admin app own origin (parity with the prod server-url leaf)',
+  },
+  {
+    path: 'revealui/staging/public/api-url',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'staging',
+    consumers: ['vercel:admin-staging', 'vercel:marketing-staging'],
+    note: 'the api own origin; also VITE_API_URL on marketing (the anti-cross-wire fix, GAP-343)',
+  },
+
   // ── Env bundle (derived, verify-only - NOT synced to any platform) ────────
   // Tracked here to enforce the R8 invariant: with-secrets loads the license
   // keypair from a SEPARATE bundle path. intentionallyUnsynced excludes it from

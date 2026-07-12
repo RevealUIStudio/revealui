@@ -10,6 +10,7 @@
     "@electric-sql/pglite": "catalog:",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@playwright/test": "catalog:",
+    "@revealui/core": "workspace:*",
     "@revealui/services": "workspace:*",
     "@size-limit/file": "^12.1.0",
     "@size-limit/webpack": "^12.1.0",
@@ -198,6 +199,7 @@
     "scripts": "tsx scripts/cli/scripts.ts",
     "secrets:scan": "tsx scripts/secrets/scan.ts",
     "setup:mcp": "tsx scripts/setup/setup-mcp.ts",
+    "setup:staging-secrets": "tsx scripts/setup/gen-staging-secrets.ts",
     "stripe:seed": "tsx scripts/setup/seed-stripe.ts",
     "stripe:catalog:check": "tsx scripts/setup/seed-stripe.ts --check",
     "studio:build": "cd apps/studio/src-tauri && cargo tauri build",
@@ -240,7 +242,9 @@
     "kek:rotate": "tsx scripts/security/rotate-kek.ts",
     "vercel:sync": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml",
     "vercel:sync:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
-    "vercel:drift-check": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json"
+    "vercel:drift-check": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json",
+    "vercel:sync:staging": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml",
+    "vercel:sync:staging:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml --apply"
   },
   "type": "module"
 }
