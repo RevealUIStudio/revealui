@@ -5,6 +5,11 @@
  * form is handled) and each discovered package/app's `package.json`. Emits the
  * repo node, one package/app node per workspace member, one dependency node
  * per distinct external dependency, and `contains` / `depends-on` edges.
+ *
+ * When the repo has no `pnpm-workspace.yaml` (a non-monorepo fleet checkout,
+ * e.g. a bare Vite SPA), the repo root itself is treated as a single implicit
+ * package so the `ts-project` extractor still has a package to scope its
+ * `src` walk under (see `implicitPackageName` in shared.ts).
  */
 
 import { join } from 'node:path';
@@ -12,6 +17,8 @@ import { parse } from 'yaml';
 import type { EdgeInput, NodeInput } from '../types.js';
 import {
   dependencyKey,
+  hasPnpmWorkspace,
+  implicitPackageName,
   isDir,
   listDir,
   packageKey,
@@ -82,7 +89,8 @@ function discoverWorkspaceDirs(repoRoot: string): string[] {
 export const workspaceExtractor: Extractor = {
   name: 'workspace',
   async extract(ctx: ExtractorContext): Promise<ScanProduct[]> {
-    const dirs = discoverWorkspaceDirs(ctx.repoRoot);
+    const isWorkspace = hasPnpmWorkspace(ctx.repoRoot);
+    const dirs = isWorkspace ? discoverWorkspaceDirs(ctx.repoRoot) : [];
     const nodes = new Map<string, NodeInput>();
     const edges: EdgeInput[] = [];
 
@@ -100,6 +108,16 @@ export const workspaceExtractor: Extractor = {
       if (!pkgJson?.name) continue;
       const kind: 'package' | 'app' = dir.startsWith('apps/') ? 'app' : 'package';
       discovered.push({ dir, kind, name: pkgJson.name, pkgJson });
+    }
+
+    if (!isWorkspace) {
+      const pkgJson = readJsonFile<PackageJsonShape>(join(ctx.repoRoot, 'package.json')) ?? {};
+      discovered.push({
+        dir: '',
+        kind: 'package',
+        name: implicitPackageName(ctx.repoRoot),
+        pkgJson,
+      });
     }
 
     const packageKindByName = new Map<string, 'package' | 'app'>();
