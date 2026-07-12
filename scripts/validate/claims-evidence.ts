@@ -65,7 +65,9 @@ function collectStrings(
     return;
   }
   if (Array.isArray(node)) {
-    node.forEach((item, i) => collectStrings(file, item, `${path}[${i}]`, key, out));
+    for (let i = 0; i < node.length; i++) {
+      collectStrings(file, node[i], `${path}[${i}]`, key, out);
+    }
     return;
   }
   if (node !== null && typeof node === 'object') {
