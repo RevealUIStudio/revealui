@@ -28,7 +28,12 @@
  * severity vocabulary reaches this table). Once Stage 1 lands, this exact
  * assertion becomes false and the test FAILS — forcing Stage 1's author to
  * consciously rewrite it to the new correct behavior. That failure-on-fix is
- * the acceptance-criteria mechanism, not a bug in this test.
+ * the acceptance-criteria mechanism, not a bug in this test. Both tests in
+ * this file pass today with no wrapper and no inversion — `pnpm vitest run
+ * packages/db` is part of the shared CI `test` job every other PR in this
+ * repo depends on, so a red test here is never acceptable, on this branch or
+ * any other, until someone consciously decides the pinned behavior should
+ * change.
  */
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

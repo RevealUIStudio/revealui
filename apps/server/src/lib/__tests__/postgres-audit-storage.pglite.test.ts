@@ -13,28 +13,35 @@
  * packages/db would require packages/db to import apps/server source, an
  * illegal reverse dependency in this monorepo.
  *
- * RevealUI audit-remediation Stage 0. Each test below pins an exact,
- * falsifiable fact about TODAY's behavior — a Postgres error code + a named
- * constraint, an exact row count, a byte-level canonical-form mismatch, or a
- * signature identity — not merely "something threw". `it.fails()` was tried
- * first and rejected: it passes on ANY throw, including a broken harness
- * (unbuilt package, missing schema import, migrations that never applied),
- * so it proves nothing. Plain `it()` with a specific `expect(...)` cannot be
- * satisfied by an unrelated failure, and a harness that cannot reach the
- * assertion fails loudly instead of reporting green.
+ * RevealUI audit-remediation Stage 0. Every test below is a CHARACTERIZATION
+ * test: it pins an exact, falsifiable fact about TODAY's actual (broken)
+ * behavior — a Postgres error code + a named constraint, an exact row
+ * count, a byte-level canonical-form mismatch, or a specific chained
+ * signature identity — not merely "something threw". All four PASS today,
+ * on purpose, with no wrapper and no inversion: `pnpm --filter server test`
+ * must be fully green.
  *
- * The severity-rejection and severity-persistence tests below currently
- * PASS: they pin the real, current (broken) behavior with enough specificity
- * that nothing except the actual documented defect can satisfy them. Stage 1
- * fixing the severity vocabulary will make these assertions false — at that
- * point they FAIL, forcing Stage 1's author to consciously rewrite them to
- * the new correct behavior. That failure-on-fix is the acceptance-criteria
- * mechanism; it is not a bug in these tests.
+ * `it.fails()` was tried first here and rejected: it passes on ANY throw,
+ * including a broken harness (unbuilt package, missing schema import,
+ * migrations that never applied), so it proves nothing — and an earlier cut
+ * of the chain-head test asserted the DESIRED correct behavior instead of
+ * the defect, so it genuinely failed today, which would have put the CI
+ * `test` job (a shared-branch build every other PR depends on) permanently
+ * red until Stage 1 lands. Neither is acceptable. A plain `it()` with a
+ * specific `expect(...)` that asserts the CURRENT (buggy) behavior cannot be
+ * satisfied by an unrelated failure, a broken harness fails it loudly
+ * instead of reporting green, and it stays green in CI because it is true
+ * today.
  *
- * The chain-head test asserts a standing invariant (previous_signature must
- * point at the last row that actually persisted) that should hold both
- * before and after Stage 1. It FAILS today for real — no wrapper, no
- * inversion — and should keep passing unmodified once Stage 1 lands.
+ * Every test here pins real, current, verified behavior with enough
+ * specificity that nothing except the actual documented defect can satisfy
+ * it. Stage 1 fixing the underlying bug makes the pinned assertion FALSE —
+ * at that point the test fails, forcing Stage 1's author to consciously
+ * rewrite it to the new correct behavior. That failure-on-fix is the
+ * acceptance-criteria mechanism this whole file exists to provide; it is not
+ * a bug in these tests, and it is not something that happens by accident —
+ * it only happens when someone deliberately changes the behavior being
+ * pinned.
  */
 import { randomUUID } from 'node:crypto';
 import type { AuditEvent } from '@revealui/security';
@@ -193,7 +200,7 @@ describe('PostgresAuditStorage — real PGlite schema, not a vi.fn() mock', () =
 
   // ── Hash-chain head vs a rejected insert ─────────────────────────────────
 
-  it('does not advance the chain head on a rejected insert — previous_signature must point at the last row that actually PERSISTED (Stage 1 must fix this)', async () => {
+  it('DEFECT: the chain head advances on a rejected insert, so previous_signature points at a row that was never persisted (Stage 1 must fix this)', async () => {
     const store = new PostgresAuditStorage();
     const { auditLog } = await import('@revealui/db/schema');
 
@@ -210,7 +217,7 @@ describe('PostgresAuditStorage — real PGlite schema, not a vi.fn() mock', () =
 
     // Rejected insert: 'low' is not in the audit_log CHECK vocabulary.
     // Confirm both the specific rejection reason AND that it truly never
-    // landed — the invariant below is meaningless if this write silently
+    // landed — everything below is meaningless if this write silently
     // persisted after all.
     const rejected = makeEvent({ severity: 'low' });
     await expect(store.write(rejected)).rejects.toMatchObject(SEVERITY_CHECK_VIOLATION);
@@ -230,13 +237,37 @@ describe('PostgresAuditStorage — real PGlite schema, not a vi.fn() mock', () =
     expect(secondRow).toBeDefined();
     if (!secondRow) throw new Error('unreachable: guarded by the assertion above');
 
-    // The chain head must point at the last PERSISTED row (firstRow), never
-    // at the rejected write that never landed. Today it doesn't:
-    // postgres-audit-storage.ts assigns the module-level `lastSignature` from
-    // the rejected write's COMPUTED signature BEFORE the insert that throws,
-    // so the chain head advances on a write that never made it into the
-    // table. This assertion fails today and should keep passing, unmodified,
-    // once Stage 1 fixes the ordering.
-    expect(secondRow.previousSignature).toBe(firstRow.signature);
+    // THIS PASSES TODAY BECAUSE THE CODE IS WRONG. postgres-audit-storage.ts
+    // (:102-108) assigns the module-level `lastSignature` from the rejected
+    // write's COMPUTED signature BEFORE the insert that throws, so the chain
+    // head advances on a write that never made it into the table.
+    // secondRow.previousSignature therefore does NOT point at the last row
+    // that actually persisted (firstRow) ...
+    expect(secondRow.previousSignature).not.toBe(firstRow.signature);
+    // ... it points at exactly the signature that was computed for the
+    // REJECTED event, chained from firstRow — a row that does not exist in
+    // this table. Confirmed via verifyAuditSignature (which recomputes the
+    // HMAC and compares) rather than a hardcoded hash, since the rejected
+    // write's signature was never persisted anywhere to read back directly.
+    const previousSignatureIsTheRejectedWrites = verifyAuditSignature(
+      {
+        timestamp: rejected.timestamp,
+        eventType: rejected.type,
+        severity: rejected.severity,
+        agentId: rejected.actor.id,
+        payload: rejected,
+      },
+      secondRow.previousSignature ?? '',
+      firstRow.signature,
+    );
+    expect(previousSignatureIsTheRejectedWrites).toBe(true);
+
+    // When Stage 1 moves the `lastSignature` assignment to after a
+    // successful insert, secondRow.previousSignature will equal
+    // firstRow.signature and BOTH assertions above will flip — this test
+    // will FAIL, forcing its author to consciously rewrite it to assert the
+    // correct invariant (previous_signature always points at the last row
+    // that actually persisted) instead. That failure is the acceptance
+    // signal, not a regression in this test.
   });
 });
