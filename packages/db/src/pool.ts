@@ -44,13 +44,34 @@ function assertProductionConfig(): void {
   }
 }
 
+/**
+ * Connection identity: a URL (DATABASE_URL, then POSTGRES_URL) wins when
+ * present; discrete DATABASE_* vars are the fallback. The two forms must not
+ * be mixed in one config object: pg gives explicitly-set fields precedence
+ * over connectionString parts, so a `host: 'localhost'` default alongside a
+ * URL silently redirects the URL's host to localhost. That was the defect
+ * this replaced (the URL was consulted only for SSL while host/port stayed on
+ * the discrete defaults, and assertProductionConfig accepted a URL it then
+ * ignored).
+ */
+export function getConnectionIdentity(
+  env: NodeJS.ProcessEnv = process.env,
+): Pick<PoolConfig, 'connectionString' | 'host' | 'port' | 'database' | 'user' | 'password'> {
+  const url = env.DATABASE_URL || env.POSTGRES_URL;
+  if (url) {
+    return { connectionString: url };
+  }
+  return {
+    host: env.DATABASE_HOST || 'localhost',
+    port: parseInt(env.DATABASE_PORT || '5432', 10),
+    database: env.DATABASE_NAME,
+    user: env.DATABASE_USER,
+    password: env.DATABASE_PASSWORD,
+  };
+}
+
 const poolConfig: PoolConfig = {
-  // Connection details
-  host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.DATABASE_PORT || '5432', 10),
-  database: process.env.DATABASE_NAME,
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
+  ...getConnectionIdentity(),
 
   // SSL configuration (auto-detected from connection string if available)
   ssl: getPoolSSLConfig(),
