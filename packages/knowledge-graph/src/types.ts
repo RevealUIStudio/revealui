@@ -103,6 +103,13 @@ export interface NodeRow {
   natural_key: string;
   repo: string | null;
   summary: string | null;
+  /**
+   * Derived (class 3): normalized rendering of name + naturalKey + summary
+   * (separators → spaces, camelCase boundaries → spaces) that the generated
+   * `search` tsvector indexes — word-level FTS queries match file/host-type
+   * tokens like `electric-proxy.ts`. See `search/normalize-text.ts`.
+   */
+  search_text: string;
   attributes: Record<string, unknown>;
   first_seen_at: string;
   last_confirmed_at: string;

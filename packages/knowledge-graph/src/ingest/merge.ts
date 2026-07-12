@@ -55,13 +55,14 @@ export async function applyOp(
       const r = op.row;
       await exec.query(
         `INSERT INTO kg_nodes
-           (id, kind, name, natural_key, repo, summary, attributes,
+           (id, kind, name, natural_key, repo, summary, search_text, attributes,
             first_seen_at, last_confirmed_at, deleted_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::timestamptz, $9::timestamptz, $10::timestamptz)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::timestamptz, $10::timestamptz, $11::timestamptz)
          ON CONFLICT (id) DO UPDATE SET
            name = EXCLUDED.name,
            repo = COALESCE(EXCLUDED.repo, kg_nodes.repo),
            summary = COALESCE(EXCLUDED.summary, kg_nodes.summary),
+           search_text = EXCLUDED.search_text,
            attributes = kg_nodes.attributes || EXCLUDED.attributes,
            first_seen_at = LEAST(kg_nodes.first_seen_at, EXCLUDED.first_seen_at),
            last_confirmed_at = GREATEST(kg_nodes.last_confirmed_at, EXCLUDED.last_confirmed_at),
@@ -73,6 +74,7 @@ export async function applyOp(
           r.natural_key,
           r.repo,
           r.summary,
+          r.search_text,
           json(r.attributes),
           r.first_seen_at,
           r.last_confirmed_at,
