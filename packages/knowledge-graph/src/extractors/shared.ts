@@ -7,7 +7,7 @@
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { basename, join, relative } from 'node:path';
 import type { EpisodeInput } from '../types.js';
 
 // =============================================================================
@@ -110,6 +110,28 @@ export function listDir(path: string): string[] {
   } catch {
     return [];
   }
+}
+
+// =============================================================================
+// Single-package (non-monorepo) repo fallback
+// =============================================================================
+
+/** True when `repoRoot` declares a pnpm workspace (has a readable `pnpm-workspace.yaml`). */
+export function hasPnpmWorkspace(repoRoot: string): boolean {
+  return readTextFile(join(repoRoot, 'pnpm-workspace.yaml')) !== null;
+}
+
+/**
+ * Name for the implicit single-package fallback used when a repo has no
+ * `pnpm-workspace.yaml` (e.g. a bare Vite SPA checkout): the repo root's own
+ * `package.json` name, or the repo root directory's basename when no
+ * `package.json` exists. Shared by the `workspace` and `ts-project`
+ * extractors so both derive the identical `packageKey`, keeping their
+ * natural keys (and therefore deterministic node ids) convergent.
+ */
+export function implicitPackageName(repoRoot: string): string {
+  const pkgJson = readJsonFile<{ name?: string }>(join(repoRoot, 'package.json'));
+  return pkgJson?.name ?? basename(repoRoot);
 }
 
 const DEFAULT_IGNORE = new Set(['node_modules', 'dist', '.git', '.turbo', 'coverage', '.next']);
