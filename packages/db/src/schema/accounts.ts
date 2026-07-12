@@ -87,6 +87,7 @@ export const accountSubscriptions = pgTable(
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
     mode: text('mode').notNull().default('live'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    lastEventAt: timestamp('last_event_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .$onUpdateFn(() => new Date())
       .defaultNow()
@@ -128,6 +129,7 @@ export const accountEntitlements = pgTable(
     meteringStatus: text('metering_status').notNull().default('active'),
     mode: text('mode').notNull().default('live'),
     graceUntil: timestamp('grace_until', { withTimezone: true }),
+    lastEventAt: timestamp('last_event_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .$onUpdateFn(() => new Date())
       .defaultNow()
@@ -141,7 +143,7 @@ export const accountEntitlements = pgTable(
     check('account_entitlements_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
     check(
       'account_entitlements_status_check',
-      sql`status IN ('active', 'past_due', 'canceled', 'expired', 'revoked')`,
+      sql`status IN ('active', 'trialing', 'past_due', 'canceled', 'expired', 'revoked')`,
     ),
     check(
       'account_entitlements_metering_status_check',
