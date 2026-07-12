@@ -29,7 +29,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import { assertSeatAvailable } from '../lib/seat-count-guard.js';
@@ -540,9 +540,13 @@ async function syncHostedSubscriptionState(
     currentPeriodEnd?: Date | null;
     cancelAtPeriodEnd?: boolean;
     graceUntil?: Date | null;
-    /** WH-3: Stripe event creation timestamp. When provided, UPDATEs are
-     *  guarded with `WHERE updated_at < eventTimestamp` so out-of-order
-     *  webhook deliveries cannot overwrite fresher state. */
+    /** WH-3: Stripe event creation timestamp (`event.created`). When provided,
+     *  each table's UPDATE is guarded per-row with
+     *  `WHERE last_event_at IS NULL OR last_event_at < eventTimestamp` so an
+     *  out-of-order delivery cannot overwrite state written by a newer event.
+     *  The comparison is event-to-event (both sides are Stripe timestamps), not
+     *  wall-clock-to-event; `updated_at` stays bookkeeping-only. Callers that
+     *  omit this keep unconditional-apply behavior. */
     eventTimestamp?: Date;
     /** Stripe billing mode of the event. Prevents test-era rows granting live access. */
     mode: 'live' | 'test';
@@ -566,43 +570,65 @@ async function syncHostedSubscriptionState(
 
   const now = new Date();
   const [existingSubscription] = await db
-    .select({ id: accountSubscriptions.id, planId: accountSubscriptions.planId })
+    .select({
+      id: accountSubscriptions.id,
+      planId: accountSubscriptions.planId,
+      lastEventAt: accountSubscriptions.lastEventAt,
+    })
     .from(accountSubscriptions)
     .where(eq(accountSubscriptions.accountId, accountId))
     .limit(1);
 
   const [existingEntitlement] = await db
-    .select({ accountId: accountEntitlements.accountId, tier: accountEntitlements.tier })
+    .select({
+      accountId: accountEntitlements.accountId,
+      tier: accountEntitlements.tier,
+      lastEventAt: accountEntitlements.lastEventAt,
+    })
     .from(accountEntitlements)
     .where(eq(accountEntitlements.accountId, accountId))
     .limit(1);
 
-  const resolvedTier: HostedTier =
+  // F3 (D4): resolve the tier WITHOUT a 'free' fallback. A null result means no
+  // caller-supplied tier and no existing entitlement/subscription tier, i.e. the
+  // tier is unknown. Writing 'free' from that ignorance is a silent downgrade;
+  // the entitlement write below is skipped and alerted instead.
+  const resolvedTier =
     params.tier ??
     coerceHostedTier(existingEntitlement?.tier) ??
     coerceHostedTier(existingSubscription?.planId) ??
-    'free';
+    null;
+
+  // The subscription row is not the access gate; keep the prior 'free' fallback
+  // so an unknown-tier subscription is still recorded for the reconcile cron.
+  const subscriptionTier: HostedTier = resolvedTier ?? 'free';
 
   const subscriptionValues = {
     accountId,
     stripeCustomerId: params.customerId,
     stripeSubscriptionId: params.subscriptionId,
-    planId: resolvedTier,
+    planId: subscriptionTier,
     status: params.status,
     currentPeriodStart: params.currentPeriodStart ?? null,
     currentPeriodEnd: params.currentPeriodEnd ?? null,
     cancelAtPeriodEnd: params.cancelAtPeriodEnd ?? false,
     mode: params.mode,
+    lastEventAt: params.eventTimestamp ?? null,
     updatedAt: now,
   };
 
+  // F2 (D2): the staleness guard is per-table and event-to-event. A skipped
+  // subscription UPDATE must NOT skip the entitlement write, so each table
+  // guards and reports independently (no shared early return). NULL last_event_at
+  // always passes; a strictly-older event is skipped for that row only.
   if (existingSubscription?.id) {
-    // WH-3: guard against out-of-order webhook deliveries. If eventTimestamp
-    // is provided, only update when the existing row is older than this event.
     const subWhere = params.eventTimestamp
       ? and(
           eq(accountSubscriptions.id, existingSubscription.id),
-          lt(accountSubscriptions.updatedAt, params.eventTimestamp),
+          or(
+            isNull(accountSubscriptions.lastEventAt),
+            lt(accountSubscriptions.lastEventAt, params.eventTimestamp),
+          ),
         )
       : eq(accountSubscriptions.id, existingSubscription.id);
 
@@ -614,14 +640,56 @@ async function syncHostedSubscriptionState(
         subscriptionId: params.subscriptionId,
         eventTimestamp: params.eventTimestamp.toISOString(),
       });
-      return;
     }
   } else {
+    // INSERT-when-missing runs regardless of the guard.
     await db.insert(accountSubscriptions).values({
       id: crypto.randomUUID(),
       ...subscriptionValues,
       createdAt: now,
     });
+  }
+
+  // F3 (D4): never write a 'free' entitlement from ignorance. When the tier is
+  // unknown, skip the entitlement write entirely, log at ERROR, and record an
+  // idempotent unreconciled-webhook row (retries collide on the synthetic
+  // event_id) so the drainer/owner can reconcile. Explicit downgrade paths pass
+  // a concrete status against an existing tier, so they resolve above and are
+  // unaffected.
+  if (resolvedTier === null) {
+    logger.error(
+      'Hosted entitlement write skipped: tier unresolvable (no event tier, no existing entitlement/subscription tier) — refusing to write a free entitlement from ignorance',
+      undefined,
+      {
+        accountId,
+        customerId: params.customerId,
+        subscriptionId: params.subscriptionId,
+        status: params.status,
+      },
+    );
+    try {
+      await db
+        .insert(unreconciledWebhooks)
+        .values({
+          eventId: `entitlement-unresolved-tier:${accountId}`,
+          eventType: 'entitlement.unresolved-tier',
+          customerId: params.customerId,
+          stripeObjectId: params.subscriptionId ?? null,
+          objectType: 'subscription',
+          errorTrace:
+            `Entitlement tier unresolvable for account ${accountId} ` +
+            `(customer ${params.customerId}, status ${params.status}): no tier on the webhook, ` +
+            'entitlement, or subscription. Entitlement write skipped to avoid a silent downgrade ' +
+            'to free. Remedy: fix the Stripe product/price tier metadata and resend the event.',
+        })
+        .onConflictDoNothing();
+    } catch (insertErr) {
+      logger.error('Failed to record unresolved-tier entitlement for reconciliation', undefined, {
+        accountId,
+        detail: insertErr instanceof Error ? insertErr.message : 'unknown',
+      });
+    }
+    return;
   }
 
   const entitlementValues = {
@@ -634,28 +702,45 @@ async function syncHostedSubscriptionState(
       params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
     mode: params.mode,
     graceUntil: params.graceUntil ?? null,
+    lastEventAt: params.eventTimestamp ?? null,
     updatedAt: now,
   };
 
+  let entitlementApplied = false;
   if (existingEntitlement?.accountId) {
     const entWhere = params.eventTimestamp
       ? and(
           eq(accountEntitlements.accountId, accountId),
-          lt(accountEntitlements.updatedAt, params.eventTimestamp),
+          or(
+            isNull(accountEntitlements.lastEventAt),
+            lt(accountEntitlements.lastEventAt, params.eventTimestamp),
+          ),
         )
       : eq(accountEntitlements.accountId, accountId);
 
-    await db.update(accountEntitlements).set(entitlementValues).where(entWhere);
+    const entResult = await db.update(accountEntitlements).set(entitlementValues).where(entWhere);
+    if (params.eventTimestamp && (entResult as { rowCount?: number }).rowCount === 0) {
+      logger.info('Stale webhook skipped for accountEntitlements — newer state already applied', {
+        accountId,
+        subscriptionId: params.subscriptionId,
+        eventTimestamp: params.eventTimestamp.toISOString(),
+      });
+    } else {
+      entitlementApplied = true;
+    }
   } else {
+    // INSERT-when-missing runs regardless of the guard.
     await db.insert(accountEntitlements).values({
       accountId,
       ...entitlementValues,
     });
+    entitlementApplied = true;
   }
 
-  // GAP-105 M-03: Proactive resource capping on downgrade
+  // GAP-105 M-03: Proactive resource capping on downgrade. Gated on an applied
+  // entitlement write so a stale-skipped downgrade event never caps resources.
   const oldTier = (existingEntitlement?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? 'free';
-  if (isDowngrade(oldTier, resolvedTier)) {
+  if (entitlementApplied && isDowngrade(oldTier, resolvedTier)) {
     // GAP-141 resilience: try/catch around cap so a transient throw (DB blip,
     // network glitch) does NOT propagate up. The entitlement upsert above has
     // ALREADY committed when the cap runs — propagating an error would cause
