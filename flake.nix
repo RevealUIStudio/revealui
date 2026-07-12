@@ -110,7 +110,7 @@
             # session that enters this dev environment.
             db-start() {
               if [ ! -d "$PGDATA" ]; then
-                echo "❌ PostgreSQL not initialized. Run 'revealui db init' first."
+                echo "❌ PostgreSQL not initialized. Run 'db-init' first."
                 return 1
               fi
               if pg_ctl status -D "$PGDATA" &>/dev/null; then
@@ -168,7 +168,7 @@ host    all             all             127.0.0.1/32            trust
 host    all             all             ::1/128                 trust
 PGHBA
               echo "✅ PostgreSQL initialized at $PGDATA"
-              echo "   Run 'revealui db start' to start the server"
+              echo "   Run 'db-start' to start the server"
             }
 
             db-reset() {
@@ -180,7 +180,7 @@ PGHBA
 
             db-psql() {
               if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo "❌ PostgreSQL is not running. Run 'revealui db start' first."
+                echo "❌ PostgreSQL is not running. Run 'db-start' first."
                 return 1
               fi
               psql -h "$PGHOST" -U postgres -d postgres "$@"
@@ -227,7 +227,7 @@ PGHBA
             [ "$_ENV" = "production"  ] && _ENV="prod"
 
             # ── Boxed header ───────────────────────────────────────────────────
-            _TITLE="  RevealUI  ·  Business OS  ·  $_ENV  "
+            _TITLE="  RevealUI  ·  Agentic Business Runtime  ·  $_ENV  "
             _W=''${#_TITLE}
             _LINE=$(printf '─%.0s' $(seq 1 "$_W"))
             echo ""
@@ -251,11 +251,11 @@ PGHBA
             _warn() { _WARNS="$_WARNS   ''${_AMBER}⚠  $1''${_NC}\n"; }
 
             if [ ! -d "$PGDATA" ]; then
-              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}revealui db init''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db-init''${_NC}"
             elif pg_ctl status -D "$PGDATA" &>/dev/null; then
               _ok "''${_GREEN}✓ postgres''${_NC}"; _PG_READY=1
             else
-              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}revealui db start''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db-start''${_NC}"
             fi
 
             if [ -d "node_modules" ]; then
@@ -268,22 +268,22 @@ PGHBA
               && _ok "''${_GREEN}✓ docker''${_NC}" \
               || _warn "docker  ''${_DIM}→''${_NC}  start Docker Desktop"
 
-            { [ -n "''${VERCEL_API_KEY:-}" ] || [ -n "''${STRIPE_SECRET_KEY:-}" ]; } \
-              && _ok "''${_GREEN}✓ mcp''${_NC}" \
-              || _warn "mcp  ''${_DIM}→''${_NC}  ''${_CYAN}dev up --include mcp''${_NC}"
+            # Secrets are revvault-first: check the vault store, not env vars.
+            [ -d "''${REVVAULT_STORE:-$HOME/.revealui/passage-store}" ] \
+              && _ok "''${_GREEN}✓ vault''${_NC}" \
+              || _warn "vault  ''${_DIM}→''${_NC}  ''${_CYAN}revvault init''${_NC}"
 
-            [ "''${TERM_PROGRAM:-}" = "zed" ] \
-              && _ok "''${_GREEN}✓ acp''${_NC}" \
-              || _warn "acp  ''${_DIM}→''${_NC}  open Zed + connect"
+            # ACP only applies inside Zed — a plain terminal is not degraded.
+            [ "''${TERM_PROGRAM:-}" = "zed" ] && _ok "''${_GREEN}✓ acp''${_NC}"
 
             echo ""
             [ -n "$_OK"    ] && echo -e "   $_OK"
             [ -n "$_WARNS" ] && printf "\n%b" "$_WARNS"
 
             # ── Quick commands ─────────────────────────────────────────────────
-            _CMDS="''${_CYAN}dev''${_NC}  ''${_DIM}·''${_NC}  ''${_CYAN}wb''${_NC}"
+            _CMDS="''${_CYAN}pnpm dev''${_NC}  ''${_DIM}·''${_NC}  ''${_CYAN}wb''${_NC}"
             [ "$_PG_READY"   = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}db-psql''${_NC}"
-            [ "$_DEPS_READY" = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}gate:quick''${_NC}"
+            [ "$_DEPS_READY" = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}pnpm gate:quick''${_NC}"
             echo -e "\n   $_CMDS\n"
 
             unset _B _AMBER _GREEN _CYAN _DIM _NC
@@ -291,9 +291,14 @@ PGHBA
             unset _OK _WARNS _PG_READY _DEPS_READY _CMDS
             unset -f _ok _warn
 
-            # Live workboard watcher — renders .claude/workboard.md every 3 s
+            # Live workboard watcher — renders the workboard every 3 s.
+            # The in-repo .claude/workboard.md may be a redirect stub; set
+            # REVEALUI_WORKBOARD (e.g. in .envrc.local) to watch the real one.
             # Usage: wb
-            wb() { watch -n3 "glow '$PWD/.claude/workboard.md' 2>/dev/null || cat '$PWD/.claude/workboard.md'"; }
+            wb() {
+              local _wb="''${REVEALUI_WORKBOARD:-$PWD/.claude/workboard.md}"
+              watch -n3 "glow '$_wb' 2>/dev/null || cat '$_wb'"
+            }
             export -f wb
 
             # opensrc — fetch package source for agent context
