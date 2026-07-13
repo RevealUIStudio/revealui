@@ -27,7 +27,7 @@
  *
  * Exit 0 when every URL passes; exit 1 with a per-failure report otherwise.
  *
- * Two checks per URL:
+ * Three checks per URL:
  *   1. TOKEN PARITY — every canonical --rvui-* token is present in the
  *      deployed CSS with a numerically-identical value (minifier formatting
  *      normalized away). A deployed token may carry EXTRA values only when
@@ -40,6 +40,16 @@
  *      cascade means only the effective value renders — an app override that
  *      redeclares --rvui-font-sans leaves the canonical stack in the bundle
  *      but it never paints, so flagging it would be a false positive.
+ *   3. FONT ASSET REACHABILITY — a name match against an @font-face rule
+ *      (check 2) proves the CSS TEXT is self-consistent; it proves nothing
+ *      about whether the browser can actually download the face. A deploy
+ *      can ship a byte-perfect @font-face rule whose `src: url(...)` 404s
+ *      (stale build hash, purged CDN, broken asset pipeline) and still pass
+ *      check 2 while rendering system fonts — the identical visual defect
+ *      check 2 exists to catch, invisible to a text-only comparison. This
+ *      check fetches the font asset for every family a stack names and that
+ *      an @font-face rule claims to register, and fails the token if none of
+ *      that family's declared files are reachable.
  */
 
 const { readFileSync } = require('node:fs');
@@ -131,6 +141,37 @@ function stripQuotes(s) {
     return t.slice(1, -1);
   }
   return t;
+}
+
+// Family names (lowercased) -> the raw src url(...) tokens their @font-face
+// rules declare, in source order. A name appearing in extractFontFaceFamilies
+// with no entry (or an empty array) here means the rule had no parseable
+// src url — that's a CSS authoring gap, not an asset-reachability failure, so
+// callers should treat "no urls" as "nothing to verify," not as a failure.
+function extractFontFaceSrcUrls(css) {
+  const clean = stripComments(css);
+  const map = new Map();
+  // regex-ok: locate @font-face blocks, then their font-family + src descriptors.
+  const blockRe = /@font-face\s*\{([^}]*)\}/gi;
+  let block;
+  while ((block = blockRe.exec(clean)) !== null) {
+    const body = block[1];
+    const fam = /font-family\s*:\s*([^;]+)/i.exec(body);
+    if (!fam) continue;
+    const family = stripQuotes(fam[1].trim()).toLowerCase();
+    const src = /src\s*:\s*([^;]+)/i.exec(body);
+    if (!src) continue;
+    // regex-ok: extract each url(...) token from a (possibly comma-separated,
+    // multi-format) src descriptor already isolated to one @font-face block.
+    const urlRe = /url\(\s*["']?([^"')]+)["']?\s*\)/gi;
+    let um;
+    const urls = [];
+    while ((um = urlRe.exec(src[1])) !== null) urls.push(um[1]);
+    if (urls.length === 0) continue;
+    if (!map.has(family)) map.set(family, []);
+    map.get(family).push(...urls);
+  }
+  return map;
 }
 
 const GENERIC_FAMILIES = new Set([
@@ -259,6 +300,69 @@ function checkFontResolvability(fontDecls, fontFaceFamilies, csp, externalFontRe
   return failures;
 }
 
+// Default reachability probe: HEAD (falling back to GET on 405, since some
+// CDNs/dev servers reject HEAD) and treat any 2xx as reachable. A data: URI
+// is embedded in the CSS itself — no network round-trip needed to resolve it.
+async function defaultFetchAsset(absUrl) {
+  if (absUrl.startsWith('data:')) return true;
+  try {
+    const res = await fetch(absUrl, { method: 'HEAD', redirect: 'follow' });
+    if (res.ok) return true;
+    if (res.status !== 405) return false;
+  } catch {
+    return false;
+  }
+  try {
+    const res = await fetch(absUrl, { method: 'GET', redirect: 'follow' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/* ── font asset reachability ──────────────────────────────────────────
+ * A name match against fontFaceFamilies (checkFontResolvability's job)
+ * proves the CSS text is internally consistent; it says nothing about
+ * whether the browser can actually download the face. This walks every
+ * family a font token's stack names AND an @font-face rule claims to
+ * register, and fetches that family's declared src urls (relative to
+ * pageOrigin — the deployed font paths in this fleet are root-relative).
+ * A family with zero declared urls is skipped (nothing to verify, not a
+ * failure — see extractFontFaceSrcUrls). Returns one failure per
+ * (token, family) pair where every declared url is unreachable. */
+async function checkFontAssetReachability(fontDecls, fontFaceFamilies, fontFaceSrcUrls, pageOrigin, fetchAsset = defaultFetchAsset) {
+  const cache = new Map();
+  const failures = [];
+  for (const [tokenName, stacks] of fontDecls) {
+    const checkedFamilies = new Set();
+    for (const stack of stacks) {
+      for (const fam of namedFamilies(stack)) {
+        const key = fam.toLowerCase();
+        if (!fontFaceFamilies.has(key) || checkedFamilies.has(key)) continue;
+        checkedFamilies.add(key);
+        const urls = fontFaceSrcUrls.get(key) || [];
+        if (urls.length === 0) continue;
+        let reachable = false;
+        for (const rel of urls) {
+          let abs;
+          try {
+            abs = new URL(rel, pageOrigin).href;
+          } catch {
+            continue;
+          }
+          if (!cache.has(abs)) cache.set(abs, await fetchAsset(abs));
+          if (cache.get(abs)) {
+            reachable = true;
+            break;
+          }
+        }
+        if (!reachable) failures.push({ token: tokenName, family: fam, urls });
+      }
+    }
+  }
+  return failures;
+}
+
 /* ── HTML / CSS discovery ─────────────────────────────────────────────── */
 function discoverFromHtml(html, pageUrl) {
   const pageOrigin = new URL(pageUrl).origin;
@@ -376,19 +480,27 @@ function loadAllowlist(path, host) {
 /* ── per-URL verification ─────────────────────────────────────────────── */
 async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlistPath) {
   const host = new URL(pageUrl).hostname;
+  const pageOrigin = new URL(pageUrl).origin;
   const { css, csp, externalFontRefs, cssBundleCount } = await fetchDeployed(pageUrl);
   const deployedTokens = extractTokenDecls(css);
   const deployedFonts = extractFontDecls(css);
   const fontFaceFamilies = extractFontFaceFamilies(css);
+  const fontFaceSrcUrls = extractFontFaceSrcUrls(css);
   const allowlist = loadAllowlist(allowlistPath, host);
 
   const parity = compareTokens(canonicalTokens, deployedTokens, allowlist);
   const fontFailures = checkFontResolvability(deployedFonts, fontFaceFamilies, csp, externalFontRefs);
+  const assetFailures = await checkFontAssetReachability(deployedFonts, fontFaceFamilies, fontFaceSrcUrls, pageOrigin);
 
-  // Only assert resolvability on canonical font tokens (ignore any app-only ones).
+  // Only assert resolvability/reachability on canonical font tokens (ignore any app-only ones).
   const relevantFontFailures = fontFailures.filter((f) => canonicalFontNames.has(f.token));
+  const relevantAssetFailures = assetFailures.filter((f) => canonicalFontNames.has(f.token));
 
-  const ok = parity.missing.length === 0 && parity.extra.length === 0 && relevantFontFailures.length === 0;
+  const ok =
+    parity.missing.length === 0 &&
+    parity.extra.length === 0 &&
+    relevantFontFailures.length === 0 &&
+    relevantAssetFailures.length === 0;
   return {
     url: pageUrl,
     ok,
@@ -397,6 +509,7 @@ async function verifyUrl(pageUrl, canonicalTokens, canonicalFontNames, allowlist
     externalFontRefs,
     parity,
     fontFailures: relevantFontFailures,
+    assetFailures: relevantAssetFailures,
   };
 }
 
@@ -440,6 +553,10 @@ function reportHuman(results) {
       }
       console.error(`    @font-face registers: ${f.fontFaceRegistered.join(', ') || '(none)'}`);
     }
+    for (const a of r.assetFailures) {
+      console.error(`  FONT ASSET ${a.token} — "${a.family}" is registered but unreachable:`);
+      console.error(`    tried: ${a.urls.join(', ')}`);
+    }
   }
 }
 
@@ -467,7 +584,14 @@ async function main() {
       r.parityCount = canonicalTokens.size;
       results.push(r);
     } catch (err) {
-      results.push({ url, ok: false, error: String(err && err.message ? err.message : err), parity: { missing: [], extra: [] }, fontFailures: [] });
+      results.push({
+        url,
+        ok: false,
+        error: String(err && err.message ? err.message : err),
+        parity: { missing: [], extra: [] },
+        fontFailures: [],
+        assetFailures: [],
+      });
     }
   }
 
@@ -496,6 +620,8 @@ module.exports = {
   cspAllows,
   compareTokens,
   checkFontResolvability,
+  extractFontFaceSrcUrls,
+  checkFontAssetReachability,
   discoverFromHtml,
   discoverCssImports,
   loadAllowlist,
