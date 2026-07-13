@@ -52,10 +52,14 @@
   --rvui-duration-normal: 200ms;
   --rvui-duration-slow: 350ms;
 
-  /* ── Typography ── */
-  --rvui-font-sans: 'Inter', system-ui, sans-serif;
-  --rvui-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-  --rvui-font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  /* ── Typography ──
+   * Self-hosted @font-face blocks (@fontsource-variable/*, GAP-324) register
+   * these families as "Inter Variable" / "Inter Tight Variable" /
+   * "JetBrains Mono Variable". CSS font-family matching is exact, so each
+   * stack leads with the registered name; the prior names stay as fallbacks. */
+  --rvui-font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --rvui-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --rvui-font-display: 'Inter Tight Variable', 'Inter Tight', 'Inter Variable', 'Inter', system-ui, sans-serif;
 
   --rvui-text-xs: 0.75rem;
   --rvui-text-sm: 0.875rem;
