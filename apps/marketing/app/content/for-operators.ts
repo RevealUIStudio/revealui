@@ -6,6 +6,10 @@
 // agency-site receiving surface (OQ-6).
 // The future managed offering is named "RevealUI Cloud" (OQ-1) — referenced
 // only via the inline link to /for-operators/managed (Page 3, not this PR).
+//
+// claims-ratchet 2026-07-12: the agent-layer card drops "processes orders"
+// because an email-agent template ships (packages/ai/src/templates) but no
+// order-processing template exists.
 
 import { ARCHITECTURE_REVIEW_PRICE, LAUNCH_PACKAGE_PRICE } from '@revealui/contracts/pricing';
 import { SITE } from './site';
@@ -64,7 +68,7 @@ export const FOR_OPERATORS_WHAT_YOU_GET = {
     },
     {
       title: 'The software can do work on its own.',
-      body: 'An agent layer that drafts emails, processes orders, and runs recurring tasks. It runs on open AI models on your infrastructure, not on a per-token API. The AI bill is your inference cost, not a per-task tax.',
+      body: 'An agent layer that drafts emails and runs recurring tasks. It runs on open AI models on your infrastructure, not on a per-token API. The AI bill is your inference cost, not a per-task tax.',
     },
     {
       title: 'It is yours.',
@@ -269,7 +273,7 @@ export const FOR_OPERATORS_FAQ = {
     {
       question: 'What about AI?',
       answer:
-        "The runtime ships an agent layer that can draft emails, process orders, and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API. The AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
+        "The runtime ships an agent layer that can draft emails and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API. The AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
     },
   ] as readonly FaqItem[],
 } as const;

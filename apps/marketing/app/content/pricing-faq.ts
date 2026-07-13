@@ -1,3 +1,6 @@
+// 2026-07-12 claims-ratchet 2: FAQ prose is code-indexed in claims-evidence.ts;
+// the overage-billing and open-weight-model answers corrected to match shipped
+// code (no pre-overage dashboard; model names generalized).
 // Sourced from: app/routes/PricingPage.tsx (Phase 1, no copy changes). Per the internal marketing-overhaul plan §4.4.
 
 import { SITE } from './site';
@@ -21,7 +24,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'How does agent task billing work?',
     answer:
-      'Every paid subscription includes a monthly task allowance: 10,000 tasks on Pro, 50,000 on Max, unlimited on Enterprise. Usage beyond the allowance is not billed today. Metered overage billing ships later, and usage is visible in your dashboard before any overage charge ever applies.',
+      'Every paid subscription includes a monthly task allowance: 10,000 tasks on Pro, 50,000 on Max, unlimited on Enterprise. Metered overage billing ships later; nothing is charged beyond the allowance today.',
   },
   {
     question: 'What are perpetual licenses?',
@@ -35,7 +38,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'How does AI inference work?',
     answer:
-      'Bring your own model. The default ships open-weight (Gemma 4, Phi-4-mini) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+      'Bring your own model. The default ships open-weight (Gemma-family and other open-weight models) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any OpenAI-compatible provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
   },
   {
     question: 'What does "full source code access" mean?',

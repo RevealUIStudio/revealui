@@ -38,6 +38,7 @@ import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
+import { isSyntheticEventId } from '../../lib/synthetic-events.js';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
 import webhooksApp from '../webhooks.js';
 
@@ -53,7 +54,9 @@ type Outcome =
   | 'event-missing'
   | 'stripe-error'
   | 'handler-error'
-  | 'timeout';
+  | 'timeout'
+  /** A cron-authored alert marker, not a Stripe event. Left unresolved on purpose. */
+  | 'skipped-synthetic';
 
 interface Result {
   eventId: string;
@@ -136,6 +139,24 @@ app.post('/drain-unreconciled', async (c) => {
     const ageMs = Date.now() - row.createdAt.getTime();
     const critical = ageMs >= CRITICAL_AGE_MS;
     if (critical) criticalCount += 1;
+
+    // Synthetic ids are cron-authored alert markers, not Stripe events. Passing
+    // one to stripe.events.retrieve() 404s, which this drainer classifies as
+    // `event-missing` and RESOLVES — silently closing an open alert that no
+    // human has acted on. Worse, the raising cron then never re-raises it,
+    // because its idempotency check keys on event_id alone. Skip them: they stay
+    // unresolved until the raising cron heals the underlying drift (and resolves
+    // its own row) or an operator does. See lib/synthetic-events.ts.
+    if (isSyntheticEventId(row.eventId)) {
+      results.push({
+        eventId: row.eventId,
+        eventType: row.eventType,
+        outcome: 'skipped-synthetic',
+        ageMs,
+        critical,
+      });
+      continue;
+    }
 
     if (Date.now() - startedAt >= durationBudgetMs) {
       results.push({

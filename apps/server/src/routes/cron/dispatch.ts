@@ -25,6 +25,7 @@ import lifecycleEmailsApp from './lifecycle-emails.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import reconcileCustomersApp from './reconcile-customers.js';
+import reconcileEntitlementsApp from './reconcile-entitlements.js';
 import reconcileStripeSubscriptionsApp from './reconcile-stripe-subscriptions.js';
 import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
@@ -75,6 +76,26 @@ const JOBS = [
   { name: 'billing-readiness', app: billingReadinessApp, path: '/billing-readiness' },
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
+  // reconcile-entitlements (GAP-356 F4) checks the one invariant none of the
+  // crons above cover: a healthy, FRESH subscription (or an active license) MUST
+  // have a matching `account_entitlements` row. Alerts on drift; heals upward
+  // from the local subscription row.
+  //
+  // It runs AFTER sweep-grace-periods on purpose. All ~13 jobs share ONE 30s
+  // function (Vercel Hobby allows a single daily cron), so a job that overruns
+  // starves every job behind it. sweep-grace-periods is the cron that EXPIRES
+  // access for non-payers; letting a healer that GRANTS access run ahead of the
+  // revoker means a bad day for the healer becomes a free-access day for
+  // everyone who stopped paying. Revoke first, then heal.
+  //
+  // Running after the sweep also means this job sees the sweep's own
+  // expirations, so it will not re-grant what was just expired: the sweep sets
+  // account_subscriptions.status = 'expired', which fails the healthy check.
+  {
+    name: 'reconcile-entitlements',
+    app: reconcileEntitlementsApp,
+    path: '/reconcile-entitlements',
+  },
   { name: 'marketplace-payouts', app: marketplacePayoutsApp, path: '/marketplace-payouts' },
   { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
   // lifecycle-emails evaluates onboarding day-0/day-1/day-7 sends. Disarmed by

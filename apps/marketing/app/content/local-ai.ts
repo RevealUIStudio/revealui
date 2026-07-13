@@ -19,6 +19,10 @@
 // provider snippet is grep-accurate to packages/ai/src/llm/client.ts
 // (LLM_PROVIDER; inference-snaps default gemma3 :9090, ollama gemma4 :11434).
 // Positioning guardrail (Phase C): ownership stays the lead; local AI is its proof.
+//
+// claims-ratchet 2026-07-12: frontier-mode provider naming scoped to the shipped
+// adapters (openai-compat, groq, ollama, huggingface). The prior Claude/Bedrock
+// naming was removed because no Claude or Bedrock adapter ships in packages/ai.
 
 import { SITE } from './site';
 
@@ -156,7 +160,7 @@ export const PROVIDER_SWITCH = {
     frontier: {
       label: 'Frontier',
       badge: 'opt-in',
-      model: 'Claude, GPT, or Bedrock',
+      model: 'GPT or any OpenAI-compatible provider',
       locus: 'Calls the vendor API you choose',
       cost: 'Per-token vendor pricing',
       config: 'add a frontier adapter, one config line',

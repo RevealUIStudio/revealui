@@ -31,6 +31,13 @@
 // rendered were byte-identical dev-scaffold captures from 2026-04-27, not the
 // current product; no honest replacement imagery exists yet.
 //
+// 2026-07-12 (claims-ratchet): product versions re-pinned (RevVault 0.3.0,
+// RevDev 0.1.1), RevForge switched to a Contact-us CTA with a private-preview
+// price label (the repo is private, the old GitHub link 404s for the public),
+// and the RevDev adapter claim corrected to the real daemon JSON-RPC
+// coordination (vendor adapters are roadmap-only). Every sentence on this page
+// is indexed in content/claims-evidence.ts.
+//
 // Status semantics:
 //   Beta         — production-ready code, limited paying users / dogfooded
 //   Alpha        — development-preview quality; works, ships, may break
@@ -43,7 +50,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio, every one shipping today except the agent marketplace, which is on the way.',
+    'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio. Five are yours to use today, RevForge runs in private preview, and the agent marketplace is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
@@ -149,11 +156,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     tagline: 'Age-encrypted secret vault',
     highlights: [
       'Rust CLI + Tauri desktop app',
-      'Age-encrypted, 100% passage-compatible',
+      'Age-encrypted, passage-compatible store format',
       'Canonical secret store, no .env plaintext',
     ],
     status: 'Beta',
-    version: 'v0.2.0',
+    version: 'v0.3.0',
     priceLabel: 'Free · MIT CLI',
     iconPath:
       'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z',
@@ -173,13 +180,12 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
       'Self-hosted runtime instances',
     ],
     status: 'Alpha',
-    priceLabel: 'Operator tool',
+    priceLabel: 'Operator tool · private preview',
     iconPath:
       'M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766m-2.704 3.796-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z',
     primaryCta: {
-      label: 'GitHub →',
-      href: 'https://github.com/RevealUIStudio/revforge',
-      external: true,
+      label: 'Contact us',
+      href: 'mailto:founder@revealui.com',
     },
   },
   {
@@ -189,10 +195,10 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     highlights: [
       'Desktop Studio + Console + Node daemon',
       'Coordinates agents across a multi-repo workspace',
-      'Claude, Cursor, Copilot',
+      'Registers and coordinates agents over JSON-RPC',
     ],
     status: 'Alpha',
-    version: 'v0.1.0',
+    version: 'v0.1.1',
     priceLabel: 'Free · MIT core',
     iconPath: 'M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5',
     primaryCta: {
@@ -206,7 +212,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     name: 'RevCon',
     tagline: 'Editor config sync',
     highlights: [
-      'Zed, VS Code, Cursor configs',
+      'Zed and Cursor configs',
       'Symlinked into every project',
       'Edit once, propagate fleet-wide',
     ],
@@ -225,7 +231,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     name: 'RevSkills',
     tagline: 'Claude Code skills library',
     highlights: [
-      'Auth flows, schema patterns, test scaffolds',
+      'Drizzle schemas, Vitest patterns, security hardening',
       'Drop into any Claude Code agent',
       'Free, open, importable',
     ],

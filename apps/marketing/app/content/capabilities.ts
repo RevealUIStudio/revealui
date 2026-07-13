@@ -24,13 +24,13 @@ export const CAPABILITIES_SECTION = {
 export const CAPABILITIES: readonly Capability[] = [
   {
     title: 'RBAC + ABAC policy engine',
-    body: 'Role checks, attribute checks, and action attribution for every human user, proven by enforcement tests.',
+    body: 'Role checks with inheritance and attribute policies with condition operators, proven by roughly 95 authorization tests in the security package alone.',
     path: 'packages/security/src/authorization.ts',
     href: `${REPO_ROOT}/packages/security/src/authorization.ts`,
   },
   {
     title: 'Stripe webhook reconciliation',
-    body: 'Most apps lose webhooks silently. This schema stores every event, retries failed handlers, and surfaces drift between Stripe and the local DB.',
+    body: 'Every event is recorded for idempotency, failed handlers are replayed from Stripe by a drain cron, and reconcile crons surface drift between Stripe and the local DB.',
     path: 'packages/db/src/schema/webhook-reconciliation.ts',
     href: `${REPO_ROOT}/packages/db/src/schema/webhook-reconciliation.ts`,
   },
@@ -42,13 +42,13 @@ export const CAPABILITIES: readonly Capability[] = [
   },
   {
     title: 'Circuit breakers + retry + bulkhead',
-    body: 'Production resilience patterns wired into the runtime: adaptive timeouts, retry budgets, and bulkhead isolation that early-stage SaaS usually skips.',
+    body: 'Production resilience patterns wired into the runtime: circuit breakers with adaptive failure thresholds, configurable retry with backoff, and bulkhead isolation that early-stage SaaS usually skips.',
     path: 'packages/resilience/src/circuit-breaker.ts',
     href: `${REPO_ROOT}/packages/resilience/src/circuit-breaker.ts`,
   },
   {
-    title: 'Multi-agent harness',
-    body: 'Claude, Cursor, and Copilot coordinate on the same project through a shared workboard, a product category of its own that ships in the runtime.',
+    title: 'Agent harness + shared workboard',
+    body: 'A working agent adapter, a shared workboard manager for cross-session coordination, and a translation layer. Adapter profiles for Claude Code and Cursor are specced on the roadmap, not shipped.',
     path: 'packages/harnesses',
     href: `${REPO_TREE}/packages/harnesses`,
   },
@@ -60,14 +60,14 @@ export const CAPABILITIES: readonly Capability[] = [
   },
   {
     title: 'Envelope encryption + key rotation',
-    body: 'Sensitive fields wrapped in per-record DEKs encrypted by a KEK. Rotation is online, with no downtime and no re-encrypt-the-world batch job.',
+    body: 'Sensitive fields wrapped in per-record DEKs encrypted by a KEK, with a rotation manager that re-encrypts records under a new key.',
     path: 'packages/security/src/encryption.ts',
     href: `${REPO_ROOT}/packages/security/src/encryption.ts`,
   },
   {
-    title: 'Code provenance tracking',
-    body: 'Every commit attributed to human, agent, or model. A real supply-chain primitive baked into the data model, not bolted on after the fact.',
-    path: 'packages/db/src/schema/code-provenance.ts',
-    href: `${REPO_ROOT}/packages/db/src/schema/code-provenance.ts`,
+    title: 'Agent edit attribution',
+    body: 'Every collaborative edit records whether a human or an agent made it, and which model. A commit-level provenance schema and API ship alongside; the automatic commit ingest is on the roadmap.',
+    path: 'apps/server/src/collab/provenance-logger.ts',
+    href: `${REPO_ROOT}/apps/server/src/collab/provenance-logger.ts`,
   },
 ] as const;

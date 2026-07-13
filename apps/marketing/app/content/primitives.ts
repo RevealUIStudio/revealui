@@ -6,6 +6,12 @@
 // Per the internal marketing-overhaul plan §4.4.
 // Agents primitive MCP count is sourced from METRICS.mcpServers
 // (currently 14, per docs/MARKETING_METRICS.md §1); never hardcoded here.
+//
+// 2026-07-12 (claims-ratchet): Content media claim re-grounded to the R2 +
+// CDN backend, Offers perpetual-license and agent-task-quota copy corrected to
+// what ships (perpetual checkout is live, task quotas are metered per tier, not
+// unlimited), and the Agents feature list gained ElectricSQL coordination sync.
+// Every sentence in PRODUCTS_PRIMITIVES is indexed in content/claims-evidence.ts.
 
 import { METRICS, SITE } from './site';
 
@@ -143,7 +149,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
       'REST API with OpenAPI spec',
       'Draft/live publishing workflow',
       'Media management and CDN delivery',
-      'Real-time sync across sessions',
+      'R2-backed media with CDN delivery',
     ],
   },
   {
@@ -155,7 +161,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     forYou: {
       headline: 'Product catalog, pricing tiers, and usage tracking',
       description:
-        'Define products, pricing tiers, and feature gates in one place. License enforcement and upgrade prompts are built in. Subscription billing via Stripe with perpetual license support.',
+        'Define products, pricing tiers, and feature gates in one place. License enforcement and upgrade prompts are built in. Subscription billing via Stripe, and perpetual licenses you can buy today.',
     },
     forAgents: {
       headline: 'Feature gates control which agent capabilities are enabled per tier',
@@ -168,12 +174,12 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
         'Upgrade a customer and their agents get smarter. One product catalog, one billing system, one set of feature gates, applied consistently to every user and every agent.',
     },
     features: [
-      'Two pricing tracks (subscription, services). Perpetual licenses coming soon.',
+      'Subscription and perpetual pricing tracks, live today.',
       'Feature gating with tier enforcement',
       'Usage tracking and limit enforcement',
       'License key management',
       'Upgrade prompts and billing portal',
-      'Agent task billing in development: unlimited during early access',
+      'Agent task quotas metered and enforced per tier',
     ],
   },
   {
@@ -230,6 +236,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
       `${METRICS.mcpServers} production MCP servers`,
       'A2A agent-to-agent protocol',
       'Multi-agent coordination and orchestration',
+      'Real-time coordination sync (ElectricSQL)',
     ],
   },
 ] as const;
