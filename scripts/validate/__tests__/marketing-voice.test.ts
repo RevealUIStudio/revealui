@@ -4,10 +4,12 @@ import {
   hasEmDash,
   hasEmoji,
   hasSentenceExclamation,
+  isClaimsEvidenceIndex,
   isContentFile,
   isVoiceExempt,
   type LineScanOptions,
   matchesSequence,
+  scanAll,
   scanLine,
   tokenize,
 } from '../marketing-voice.js';
@@ -132,6 +134,20 @@ describe('scanLine — skips imports and comments', () => {
     expect(scanLine('  // a powerful, cutting-edge comment', CONTENT)).toEqual([]);
     expect(scanLine('   * jsdoc powerful line', CONTENT)).toEqual([]);
     expect(scanLine('  // product roster — em dashes fine in comments', CONTENT)).toEqual([]);
+  });
+});
+
+describe('claims-evidence index exemption', () => {
+  it('isClaimsEvidenceIndex matches only the index file', () => {
+    expect(isClaimsEvidenceIndex('apps/marketing/app/content/claims-evidence.ts')).toBe(true);
+    expect(isClaimsEvidenceIndex('apps/marketing/app/content/home.ts')).toBe(false);
+    expect(isClaimsEvidenceIndex('apps/marketing/app/content/for-operators.ts')).toBe(false);
+  });
+  it('scanAll produces zero findings attributed to the claims-evidence index file', () => {
+    const findings = scanAll();
+    expect(findings.some((f) => f.file === 'apps/marketing/app/content/claims-evidence.ts')).toBe(
+      false,
+    );
   });
 });
 

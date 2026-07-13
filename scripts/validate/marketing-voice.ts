@@ -29,6 +29,12 @@
  *     with class names.
  *   - em-dash: every marketing file — the character never appears in class
  *     names, and comment lines (including JSX comments) are skipped.
+ *   - `content/claims-evidence.ts` is exempt from every rule above (see
+ *     `isClaimsEvidenceIndex`): it is the claims registry, not copy — it
+ *     quotes other content files' prose verbatim so the register rules would
+ *     double-count real (or already-baselined) findings at the index's own
+ *     file:line. The copy it quotes still runs through the normal scan via
+ *     the content file it was copied from.
  *
  * A baseline (`marketing-voice-baseline.json`) grandfathers the current
  * corpus; CI fails only on NEW `(file::ruleId::token)` triples. Shrinking the
@@ -320,6 +326,25 @@ export function scanLine(line: string, opts: LineScanOptions): RawFinding[] {
 const MARKETING_APP = 'apps/marketing/app';
 const SCAN_SUBDIRS = ['content', 'components', 'routes', 'layouts'];
 
+/**
+ * The claims-evidence index (`content/claims-evidence.ts`) quotes copy
+ * verbatim from the files it indexes — that is the entire point of
+ * exact-text pinning (see claims-evidence.ts's own header comment). It is
+ * not customer-facing copy itself, so running the register rules over it is
+ * a false-positive generator: a quoted sentence trips hype/codename/voice
+ * findings at the INDEX's file:line in addition to the real finding (or
+ * baseline entry) at the copy's own file:line, and the only way to silence
+ * the duplicate was to paraphrase the pin away from the exact text it exists
+ * to preserve. The copy it indexes still goes through the normal scan via
+ * `COVERED_FILES` in claims-evidence.ts, so exempting this one file does not
+ * reduce voice coverage of the site.
+ */
+const CLAIMS_EVIDENCE_INDEX_REL = 'apps/marketing/app/content/claims-evidence.ts';
+
+export function isClaimsEvidenceIndex(rel: string): boolean {
+  return rel === CLAIMS_EVIDENCE_INDEX_REL;
+}
+
 /** `for-operators/*` + blog surfaces speak in the studio's first-person voice
  *  by design (corpus §2.1) — exempt from the fleet-voice register rule. */
 export function isVoiceExempt(rel: string): boolean {
@@ -372,6 +397,7 @@ export function baselineKey(f: Pick<Finding, 'file' | 'ruleId' | 'token'>): stri
 
 function scanFile(absPath: string): Finding[] {
   const rel = path.relative(ROOT, absPath).split(path.sep).join('/');
+  if (isClaimsEvidenceIndex(rel)) return [];
   const content = fs.readFileSync(absPath, 'utf8');
   const lines = content.split('\n');
   const content_ = isContentFile(rel);

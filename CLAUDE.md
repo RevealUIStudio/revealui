@@ -91,7 +91,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/engines | Unified entry point for the five business primitives (private workspace package) |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
-| @revealui/services | Stripe (billing + circuit breaker), Vercel (deploy + DNS) |
+| @revealui/services | Stripe (payment processing + circuit breaker), email (Gmail API delivery) |
 
 ### Internal Package (no license, build tooling) — 1
 | Package | Purpose |
@@ -178,7 +178,7 @@ pnpm --filter admin dev                # Dev one app
 ```
 
 ### admin Collections
-Collections are defined in `apps/admin/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
+Collections are defined in `apps/admin/src/lib/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
 
 ### Feature Gating
 Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise.
