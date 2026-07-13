@@ -2968,7 +2968,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'local-ai.ts',
     exportPath: 'PROVIDER_SWITCH.modes.frontier.model',
-    text: 'Switch to GPT or any OpenAI-compatible provider with one config line. Groq, Hugging Face, and Ollama adapters ship in the box.',
+    text: 'GPT or any OpenAI-compatible provider',
     evidence: [OPENAI_COMPAT, OLLAMA, LLM_CLIENT],
   },
   {

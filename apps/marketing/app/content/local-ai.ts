@@ -160,8 +160,7 @@ export const PROVIDER_SWITCH = {
     frontier: {
       label: 'Frontier',
       badge: 'opt-in',
-      model:
-        'Switch to GPT or any OpenAI-compatible provider with one config line. Groq, Hugging Face, and Ollama adapters ship in the box.',
+      model: 'GPT or any OpenAI-compatible provider',
       locus: 'Calls the vendor API you choose',
       cost: 'Per-token vendor pricing',
       config: 'add a frontier adapter, one config line',

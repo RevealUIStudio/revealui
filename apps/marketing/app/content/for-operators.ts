@@ -273,7 +273,7 @@ export const FOR_OPERATORS_FAQ = {
     {
       question: 'What about AI?',
       answer:
-        "The runtime ships an agent layer that can draft emails, process orders, and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API. The AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
+        "The runtime ships an agent layer that can draft emails and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API. The AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
     },
   ] as readonly FaqItem[],
 } as const;
