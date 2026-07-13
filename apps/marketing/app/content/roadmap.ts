@@ -1,5 +1,8 @@
 // Sourced from: app/routes/RoadmapPage.tsx (Phase 1, no copy changes). Per the internal marketing-overhaul plan §4.4.
 // Phase 4 complete: page renders at /roadmap via RoadmapPage.tsx; /coming-soon 308-redirects in vercel.json.
+// claims-ratchet 2026-07-12: Perpetual Licenses moved from Coming next to Recently
+// shipped (status Available) because perpetual checkout is live in
+// apps/server/src/routes/billing.ts (perpetualCheckoutRoute); description made present tense.
 
 import { SITE } from './site';
 import type { Cta, SectionHeading } from './types';
@@ -27,6 +30,13 @@ export const ROADMAP_SHIPPED_SECTION: SectionHeading = {
 
 export const ROADMAP_SHIPPED: readonly RoadmapItem[] = [
   {
+    name: 'Perpetual Licenses (Track C)',
+    description:
+      'Buy a license once and own Pro, Max, or Enterprise tier features for life, with no subscription required. Perpetual checkout is live today, and each license includes 1 year of priority support and updates.',
+    status: 'Available',
+    category: 'Billing',
+  },
+  {
     name: 'Dashboard Agent Chat',
     description:
       'Interact with an AI agent directly from the admin dashboard. Create content, query data, manage collections, and automate workflows through natural language, with streaming responses, tool visibility, and conversation history.',
@@ -47,13 +57,6 @@ export const ROADMAP_UPCOMING_SECTION: SectionHeading = {
 };
 
 export const ROADMAP_UPCOMING: readonly RoadmapItem[] = [
-  {
-    name: 'Perpetual Licenses (Track C)',
-    description:
-      'One-time purchase for lifetime access to Pro, Max, or Enterprise tier features. No subscription required. Includes 1 year of priority support and updates.',
-    status: 'Coming soon',
-    category: 'Billing',
-  },
   {
     name: 'MCP Marketplace',
     description:

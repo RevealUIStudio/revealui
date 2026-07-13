@@ -1,10 +1,10 @@
 // Sourced from: app/routes/FairSourcePage.tsx (Phase 1 extraction).
-// Phase 3 (2026-05-18) update: hero headline + body math now reference METRICS
-// license split (validator: 20 MIT + 5 FSL + 1 internal = 26). Original "21 of 26
-// MIT" was off-by-one — pre-Phase-3 audit counted create-revealui (MIT, separate
-// workspace) into the 21 but didn't account for the internal-only `test` workspace.
-// New phrasing: "20 of 26 MIT" + explicit accounting in the body prose.
+// Hero headline + body math reference the METRICS license split
+// (validator: 22 MIT + 5 FSL + 1 internal = 28 packages). The single internal
+// package is @revealui/scripts (private build tooling, no license field).
 // Per the internal marketing-overhaul plan §4.4 + docs/MARKETING_METRICS.md §1.
+// claims-ratchet 2026-07-12: services description scoped to Stripe + email,
+// internal-package identity corrected, MIT-conversion example made version-agnostic.
 
 import { METRICS, SITE } from './site';
 import type { FaqItem } from './types';
@@ -40,7 +40,7 @@ export const FAIR_SOURCE_HERO = {
     prefix: `${METRICS.licenseSplit.mit} RevealUI packages ship under plain MIT and stay that way. ${METRICS.licenseSplit.fsl} packages ship under`,
     fslLabel: 'FSL-1.1-MIT',
     fslHref: SITE.urls.fslSoftware,
-    suffix: `: source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace package is an internal-only test harness, not customer-facing.)`,
+    suffix: `: source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace package is @revealui/scripts, internal build tooling with no license field, not customer-facing.)`,
   },
   ogTitle: 'Fair Source',
   ogSubtitle: 'Source-visible. Commercially usable. MIT in two years.',
@@ -115,7 +115,7 @@ export const FAIR_SOURCE_PACKAGES: readonly FslPackage[] = [
   },
   {
     name: '@revealui/services',
-    purpose: 'External service integrations: Stripe, Solana, Vercel',
+    purpose: 'External service integrations: Stripe billing and email delivery.',
     license: 'FSL-1.1-MIT',
     repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/services',
     npm: 'https://www.npmjs.com/package/@revealui/services',
@@ -186,7 +186,7 @@ export const FAIR_SOURCE_FAQS: readonly FaqItem[] = [
   {
     question: 'When exactly does each release convert to MIT?',
     answer:
-      "Two years after the publish date of that specific release. So today's 0.4.0 release of @revealui/ai becomes MIT on its 2-year anniversary; a future 0.5.0 starts its own clock from its own publish date. Older releases reach MIT first; this is intentional.",
+      'Two years after the publish date of that specific release. So each release of @revealui/ai becomes MIT on its own 2-year anniversary, and a newer release starts its own clock from its own publish date. Older releases reach MIT first; this is intentional.',
   },
   {
     question: 'Why not just use plain MIT for everything?',
