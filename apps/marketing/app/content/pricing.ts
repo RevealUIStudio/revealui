@@ -1,3 +1,6 @@
+// 2026-07-12 claims-ratchet 2: pricing-cluster copy is code-indexed in
+// claims-evidence.ts; white-label, x402, and open-weight lines corrected to
+// match the shipped code (whiteLabel forced false, x402 rail off by default).
 // Sourced from: app/routes/PricingPage.tsx (Phase 1 extraction).
 // Phase 3 (2026-05-18) update: agent-section MCP count now references
 // METRICS.mcpServers (canonical 14 per docs/MARKETING_METRICS.md §1).
@@ -147,7 +150,7 @@ export const PRICING_AGENCY_VALUE_BAND = {
   body: 'Building or reselling software for more than one client means re-licensing auth, billing, content, and an admin for every account you take on. An Agency Perpetual license covers the runtime once, so you ship a branded, self-hosted instance per client instead.',
   points: [
     'One license, a branded instance per client. No per-client SaaS re-licensing.',
-    'White-label stamping built in via RevForge trial kits.',
+    'White-label stamping via RevForge, in private preview.',
     'Each client owns their data, infrastructure, and Stripe account. Clean handoff, no lock-in.',
     'One runtime, one upgrade cadence across every client you serve.',
   ],
@@ -172,7 +175,7 @@ export const PRICING_AGENT_A2A = {
 
 export const PRICING_AGENT_X402 = {
   heading: 'x402-Native Payments',
-  body: "RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. No accounts, no subscriptions.",
+  body: 'RevealUI implements the HTTP 402 payment protocol. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. Agents pay agents over standard HTTP. No accounts, no subscriptions. The rail ships in the code and activates when the operator configures a receiving wallet; it is not switched on today.',
 } as const;
 
 export const PRICING_AGENT_MCP = {
