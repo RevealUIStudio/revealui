@@ -56,6 +56,8 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'proof.ts' },
   { file: 'pricing-teaser.ts' },
   { file: 'site.ts' },
+  { file: 'pricing.ts' },
+  { file: 'pricing-faq.ts' },
 ] as const;
 
 const AUTH_SESSIONS: EvidenceRef = {
@@ -191,9 +193,43 @@ const NO_TELEMETRY: EvidenceRef = {
 const DEPLOY_TARGETS: EvidenceRef = {
   kind: 'code',
   ref: 'docs/guides/deployment.md',
-  note: 'Vercel, Cloudflare, Fly, Hetzner, self-host deploy paths',
+  note: 'self-host deployment guide; named hosts in copy are examples of standard Node targets, the guide covers the primary paths',
 };
 const DOCS: EvidenceRef = { kind: 'url', ref: 'https://docs.revealui.com' };
+const LIVE_AGENT_CARD: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://api.revealui.com/.well-known/agent.json',
+  note: 'returns 200 on live prod, verified 2026-07-12; route at apps/server/src/routes/a2a.ts',
+};
+const FEATURES_MATRIX: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/features.ts',
+  note: 'per-tier feature flags (getFeaturesForTier)',
+};
+const X402_FACILITATOR: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/paywall/src/x402',
+  note: 'Coinbase-compatible USDC-on-Base facilitator; gated behind X402_ENABLED, default off',
+};
+const COMMERCIAL_POLICY: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://revealui.com/pricing',
+  note: 'owner-committed commercial policy (service rungs, credits, custom pricing/SLA); no code artifact by nature. Policy-page follow-up tracked in the coordination hub',
+};
+const FAIR_SOURCE_PAGE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/routes/FairSourcePage.tsx',
+};
+const INFRA_COST_ESTIMATE: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://revealui.com/pricing',
+  note: 'infra cost estimate of the rented stack, not a RevealUI price',
+};
+const WAITLIST: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/waitlist.ts',
+  note: 'newsletter/release-updates capture endpoint',
+};
 
 // ── claims-ratchet 2026-07-12 evidence (products/capabilities/primitives) ────
 const HARNESS_WORKBOARD: EvidenceRef = {
@@ -1437,6 +1473,617 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PRODUCTS_PRIMITIVES[4].features[5]',
     text: 'Real-time coordination sync (ElectricSQL)',
     evidence: [ELECTRIC_SYNC],
+  },
+
+  // ── pricing.ts (claims-ratchet 2, 2026-07-12) ───────────────────────────
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_HERO.subtitle',
+    text: 'Subscribe, or buy a perpetual license. Start free. Upgrade when you need to.',
+    evidence: [PERPETUAL, TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_HERO_SUBTEXT.prefix',
+    text: 'All plans run as self-hosted installations under your license. Managed deployment available as a service add-on. Want to deploy a branded version for your own customers? See',
+    evidence: [SELF_HOST, COMMERCIAL_POLICY, PERPETUAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_HERO_SUBTEXT.suffix',
+    text: 'for RevealUI Fleet licensing.',
+    evidence: [PERPETUAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_TRACK_A_SECTION.heading',
+    text: 'Subscribe monthly or annually',
+    evidence: [BILLING],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_TRACK_A_SECTION.body',
+    text: 'Every subscription includes an agent task allowance. 7-day free trial on Pro and Max.',
+    evidence: [TIER_LIMITS, TRIAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_VALUE_BAND.body',
+    text: 'Teams shipping more than one product typically rent auth, content, billing, and observability from four or five vendors, and the bill climbs further once enterprise SSO or compliance tiers enter. RevealUI replaces the rented stack with one runtime you own. You still pay for your own Postgres and compute.',
+    evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_VALUE_BAND.points[0]',
+    text: 'One runtime, not five separate SaaS subscriptions',
+    evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_VALUE_BAND.points[1]',
+    text: 'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
+    evidence: [DEPLOY_TARGETS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_VALUE_BAND.points[2]',
+    text: 'Full source code access on every tier',
+    evidence: [LICENSE_MIT, REPO],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_VALUE_BAND.points[3]',
+    text: "Open-weight AI by default: your bill doesn't scale with usage",
+    evidence: [OPEN_WEIGHT],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.heading',
+    text: 'Add up what you would otherwise rent.',
+    evidence: [INFRA_COST_ESTIMATE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.body',
+    text: 'A multi-product team rents auth, content, billing, observability, and background jobs from four to six vendors. Estimate the monthly bill for that rented stack, then compare it to one runtime you own.',
+    evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.inputs.vendors.label',
+    text: 'Vendor services you would replace',
+    evidence: [INFRA_COST_ESTIMATE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.tiers[0].note',
+    text: 'Entry tiers across four or five vendors.',
+    evidence: [INFRA_COST_ESTIMATE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.tiers[1].note',
+    text: 'More products and seats push you up the published tiers.',
+    evidence: [INFRA_COST_ESTIMATE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.tiers[2].note',
+    text: 'Enterprise SSO, compliance tiers, or higher-tier auth enter.',
+    evidence: [INFRA_COST_ESTIMATE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.revealui.sub',
+    text: '+ your own Postgres and compute',
+    evidence: [SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_COST_CALCULATOR.footnote',
+    text: 'A sourced estimate from current 2026 published pricing, time-sensitive. It excludes payment processing, and RevealUI is self-hosted, so you still pay for your own Postgres and compute. Figures are ranges, not a quote.',
+    evidence: [INFRA_COST_ESTIMATE, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_TRIAL_NOTE',
+    text: 'Pro and Max include a 7-day free trial. Cancel during the trial and you pay nothing.',
+    evidence: [TRIAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_TRACK_C_SECTION.body',
+    text: 'A perpetual license costs about three years of the subscription. Pay once, own it forever, and renew support only if you want it.',
+    evidence: [PERPETUAL, COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENCY_VALUE_BAND.heading',
+    text: 'One runtime. Every client gets their own.',
+    evidence: [PERPETUAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENCY_VALUE_BAND.body',
+    text: 'Building or reselling software for more than one client means re-licensing auth, billing, content, and an admin for every account you take on. An Agency Perpetual license covers the runtime once, so you ship a branded, self-hosted instance per client instead.',
+    evidence: [PERPETUAL, REVFORGE_REF],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENCY_VALUE_BAND.points[0]',
+    text: 'One license, a branded instance per client. No per-client SaaS re-licensing.',
+    evidence: [PERPETUAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENCY_VALUE_BAND.points[1]',
+    text: 'White-label stamping via RevForge, in private preview.',
+    evidence: [REVFORGE_REF, FEATURES_MATRIX],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENCY_VALUE_BAND.points[2]',
+    text: 'Each client owns their data, infrastructure, and Stripe account. Clean handoff, no lock-in.',
+    evidence: [SELF_HOST, COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENCY_VALUE_BAND.points[3]',
+    text: 'One runtime, one upgrade cadence across every client you serve.',
+    evidence: [PERPETUAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENTS_SECTION.subhead',
+    text: 'Agents discover, authenticate, and pay without human intervention.',
+    evidence: [LIVE_AGENT_CARD, AUTH_SESSIONS, X402],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENT_A2A.body.prefix',
+    text: 'Agents find RevealUI via a standard Agent Card at',
+    evidence: [LIVE_AGENT_CARD, A2A_ROUTES],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENT_A2A.body.suffix',
+    text: '. Capabilities, skills, and pricing all machine-readable.',
+    evidence: [LIVE_AGENT_CARD],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENT_X402.body',
+    text: 'RevealUI implements the HTTP 402 payment protocol. Built on the open x402 standard, with a Coinbase-compatible facilitator implemented. Agents pay agents over standard HTTP. No accounts, no subscriptions. The rail ships in the code and activates when the operator configures a receiving wallet; it is not switched on today.',
+    evidence: [X402, X402_FACILITATOR],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_AGENT_MCP.body',
+    text: 'N production MCP servers including Stripe, Neon, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon. (interpolated: N from METRICS.mcpServers)',
+    match: 'path',
+    evidence: [MCP_SERVERS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.heading',
+    text: 'Want it built and handed over?',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.body',
+    text: 'RevealUI Studio (the agency) ships fixed-bid engagements on the runtime: scoped in a discovery call, delivered with a full handoff, owned by you afterward.',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.rungs[0].note',
+    text: 'Fixed-bid written assessment of your project, schema, deployment, and security posture. Credited toward a Fleet deployment if you proceed within 30 days.',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.rungs[1].note',
+    text: 'Your RevealUI instance is set up, configured, and deployed to production, with a full handoff session included.',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.rungs[2].note',
+    text: 'A branded, self-hosted RevealUI deployment for your business or your clients. Starting point, scoped in discovery.',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.rungs[3].note',
+    text: 'Bespoke platform engagement, 4 to 12 week sprints. Starting point, scoped in discovery.',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_DONE_FOR_YOU.secondaryCta.label',
+    text: 'Visit revealuistudio.com →',
+    evidence: [{ kind: 'url', ref: 'https://revealuistudio.com', note: 'agency site link label' }],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_FINAL_CTA.title',
+    text: 'Start free with full source access.',
+    evidence: [LICENSE_MIT, TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_FINAL_CTA.subtitle',
+    text: 'Every tier ships the complete source. Upgrade when your business needs Pro features.',
+    evidence: [LICENSE_MIT, TIER_GATES],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_NEWSLETTER_LABEL',
+    text: 'Not ready yet? Get release updates by email.',
+    evidence: [WAITLIST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[0].description',
+    text: 'Perfect for trying out RevealUI and small projects.',
+    evidence: [TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[0].features[0]',
+    text: 'Unlimited admin collections',
+    evidence: [COLLECTIONS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[0].features[5]',
+    text: 'Local AI inference (Inference Snaps / Ollama)',
+    evidence: [OPEN_WEIGHT],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].description',
+    text: 'For software companies building production products.',
+    evidence: [TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[0]',
+    text: 'Unlimited admin collections',
+    evidence: [COLLECTIONS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[4]',
+    text: 'AI agents (local + cloud via RevealUI harness)',
+    evidence: [OPEN_WEIGHT, PROVIDERS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[9]',
+    text: '10,000 agent tasks/month included',
+    evidence: [TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[10]',
+    text: 'RevVault desktop app (encrypted secret management)',
+    evidence: [REVVAULT_REPO],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[11]',
+    text: 'RevVault rotation engine (automated credential lifecycle)',
+    evidence: [REVVAULT_REPO],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[12]',
+    text: 'Email support (48h response)',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[1].cta',
+    text: 'Start your 7-day free trial',
+    evidence: [TRIAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].description',
+    text: 'For teams that need AI memory, advanced inference, and compliance tooling.',
+    evidence: [MEMORY, PROVIDERS, RBAC_ABAC],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[3]',
+    text: 'Full AI memory (working + episodic + vector)',
+    evidence: [MEMORY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
+    text: 'Advanced inference configuration (coming soon)',
+    evidence: [PROVIDERS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[6]',
+    text: '50,000 agent tasks/month included',
+    evidence: [TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[7]',
+    text: 'RevKit environment provisioning (coming soon)',
+    evidence: [ROADMAP],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[8]',
+    text: 'Email support (24h response)',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].cta',
+    text: 'Start your 7-day free trial',
+    evidence: [TRIAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[3].description',
+    text: 'Full ecosystem access with scale, compliance, and agent payments.',
+    evidence: [TIER_LIMITS, RBAC_ABAC, X402],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[3].features[3]',
+    text: 'Session-based auth + OAuth',
+    evidence: [AUTH_SESSIONS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[3].features[4]',
+    text: 'Full inference suite (all open models)',
+    evidence: [PROVIDERS, OPEN_WEIGHT],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[3].features[5]',
+    text: 'x402 agent payments (USDC, coming soon)',
+    evidence: [X402, X402_FACILITATOR],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[0].description',
+    text: 'Pro features, forever. No subscription required.',
+    evidence: [PERPETUAL],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[0].features[2]',
+    text: '1 year priority support included',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[0].features[3]',
+    text: 'All Pro updates released during support period',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[0].features[4]',
+    text: 'Private GitHub repo access',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].description',
+    text: 'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
+    evidence: [PERPETUAL, REVFORGE_REF],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].features[2]',
+    text: 'Up to 10 client deployments',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].features[3]',
+    text: '1 year priority support included',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].features[4]',
+    text: 'All Max updates released during support period',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].features[5]',
+    text: 'Private GitHub repo access',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].description',
+    text: 'Full self-hosted Enterprise tier with unlimited deployments.',
+    evidence: [PERPETUAL, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].features[0]',
+    text: 'All Enterprise tier features',
+    evidence: [TIER_LIMITS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].features[2]',
+    text: 'Unlimited self-hosted deployments',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].features[3]',
+    text: '1 year priority support included',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].features[4]',
+    text: 'All Enterprise tier updates released during support period',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].features[5]',
+    text: 'Private GitHub repo + Docker image access',
+    evidence: [COMMERCIAL_POLICY],
+  },
+
+  // ── pricing-faq.ts (claims-ratchet 2, 2026-07-12) ───────────────────────
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[0].question',
+    text: 'Can I use the Free tier for commercial projects?',
+    evidence: [
+      { kind: 'code', ref: 'LICENSE', note: 'question copy; the answer carries the claims' },
+    ],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[0].answer',
+    text: 'Yes. The Free tier is fully open-source (MIT) and can be used for commercial projects. You get full source code access and can deploy it anywhere you like.',
+    evidence: [LICENSE_MIT, SELF_HOST],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[1].question',
+    text: 'What happens after the free trial ends?',
+    evidence: [TRIAL],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[1].answer',
+    text: "Pro and Max tiers include a 7-day free trial. After the trial ends, you'll be charged the monthly rate. You can cancel anytime during the trial without being charged.",
+    evidence: [TRIAL, BILLING],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[2].question',
+    text: 'How does agent task billing work?',
+    evidence: [TASK_QUOTA],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[2].answer',
+    text: 'Every paid subscription includes a monthly task allowance: 10,000 tasks on Pro, 50,000 on Max, unlimited on Enterprise. Metered overage billing ships later; nothing is charged beyond the allowance today.',
+    evidence: [TIER_LIMITS, TASK_QUOTA],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[3].question',
+    text: 'What are perpetual licenses?',
+    evidence: [PERPETUAL],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[3].answer',
+    text: 'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have.',
+    evidence: [PERPETUAL, COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[4].question',
+    text: 'Can I upgrade or downgrade my plan?',
+    evidence: [BILLING],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[4].answer',
+    text: "Yes, you can upgrade your plan at any time. You'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support. (interpolated: SITE.emails.support)",
+    match: 'path',
+    evidence: [BILLING],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[5].question',
+    text: 'How does AI inference work?',
+    evidence: [OPEN_WEIGHT],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[5].answer',
+    text: 'Bring your own model. The default ships open-weight (Gemma-family and other open-weight models) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+    evidence: [OPEN_WEIGHT, PROVIDERS],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[6].question',
+    text: 'What does "full source code access" mean?',
+    evidence: [LICENSE_MIT],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[6].answer',
+    text: 'You get the complete RevealUI source code: every app and package is published in the public monorepo. Infrastructure packages (@revealui/core, auth, db, contracts, security, utils, config, cache, resilience, openapi, sync) are MIT-licensed. The five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) ship under Fair Source (FSL-1.1-MIT): source is visible, commercial use is permitted except for building a directly competing developer platform, and each release automatically converts to plain MIT two years after publication. All paid tiers add runtime entitlements (license validation, feature gates, priority updates) on top of that source access, and nothing is hidden behind a closed binary.',
+    evidence: [LICENSE_SPLIT, LICENSE_MIT, REPO, TIER_GATES],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[7].question',
+    text: 'What is Fair Source (FSL-1.1-MIT)?',
+    evidence: [FAIR_SOURCE_PAGE],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[7].answer',
+    text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.",
+    evidence: [LICENSE_SPLIT, FAIR_SOURCE_PAGE, REPO],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[8].question',
+    text: 'Do you offer custom pricing for large teams?',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[8].answer',
+    text: 'Yes. If you need more than what the Enterprise tier offers, contact us to discuss custom pricing and SLAs. (interpolated: SITE.emails.support)',
+    match: 'path',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[9].answer',
+    text: 'RevFleet is the RevealUI Studio product family: seven products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Claude Code skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevMarket is the agent tool marketplace (bundled with the runtime, on the way). Use RevealUI standalone, or compose what you need.',
+    evidence: [
+      REVVAULT_REPO,
+      REVDEV_REPO,
+      REVCON_REPO,
+      REVSKILLS_REPO,
+      REVFORGE_REF,
+      ROADMAP,
+      REPO,
+    ],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQ_SECTION.heading',
+    text: 'Frequently Asked Questions',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://revealui.com/pricing',
+        note: 'section framing only; individual FAQ answers below carry the claims',
+      },
+    ],
   },
 ] as const;
 
