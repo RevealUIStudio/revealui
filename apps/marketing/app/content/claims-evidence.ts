@@ -228,6 +228,11 @@ const FAIR_SOURCE_PAGE: EvidenceRef = {
   kind: 'code',
   ref: 'apps/marketing/app/routes/FairSourcePage.tsx',
 };
+const SLA_PAGE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/routes/SlaPage.tsx',
+  note: 'published support-response and infrastructure-uptime commitments',
+};
 const INFRA_COST_ESTIMATE: EvidenceRef = {
   kind: 'url',
   ref: 'https://revealui.com/pricing',
@@ -2145,9 +2150,9 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[8].answer',
-    text: 'Yes. If you need more than what the Enterprise tier offers, contact us to discuss custom pricing and SLAs. (interpolated: SITE.emails.support)',
+    text: 'Yes. If you need more than what the Enterprise tier offers, contact us to discuss custom pricing. See /sla for our standard support and uptime commitments. (interpolated: SITE.emails.support)',
     match: 'path',
-    evidence: [COMMERCIAL_POLICY],
+    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },
   {
     file: 'pricing-faq.ts',

@@ -49,6 +49,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     links: [
       { label: 'Status', href: '/status' },
       { label: 'Support', href: '/support' },
+      { label: 'SLA', href: '/sla' },
       { label: 'Security', href: '/security' },
       { label: 'Subprocessors', href: '/legal/subprocessors' },
     ],
@@ -59,7 +60,7 @@ export const FOOTER_TAGLINE =
   'Agentic business runtime. People, content, offers, payments, and agents, pre-wired, open source, and ready to deploy.' as const;
 
 export const FOOTER_SOLO_OPERATOR_NOTE =
-  'Built by one engineer in Tennessee. See Support for response SLAs.' as const;
+  'Built by one engineer in Tennessee. See our SLA for response times.' as const;
 
 export interface FooterServiceLink {
   readonly prefix: string;
@@ -85,6 +86,8 @@ export const FOOTER_LEGAL = {
 export const FOOTER_LEGAL_LINKS: readonly NavLink[] = [
   { label: 'Privacy', href: '/privacy' },
   { label: 'Terms', href: '/terms' },
+  { label: 'Refund Policy', href: '/refund-policy' },
+  { label: 'SLA', href: '/sla' },
   { label: 'Security', href: '/security' },
   { label: 'Subprocessors', href: '/legal/subprocessors' },
 ] as const;

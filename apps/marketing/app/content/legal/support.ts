@@ -16,7 +16,7 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
     heading: '1. Choose your channel',
     listPreamble: 'Different questions land best in different places. In rough order of speed:',
     listItems: [
-      `**Documentation** at https://docs.revealui.com: covers setup, configuration, the API surface, and most "how do I do X with RevealUI" questions. Always check here first; if the answer is there, you have it now instead of in 48 hours.`,
+      `**Documentation** at https://docs.revealui.com: covers setup, configuration, the API surface, and most "how do I do X with RevealUI" questions. Always check here first; if the answer is there, you have it now instead of waiting on an email reply.`,
       `**GitHub Discussions** at https://github.com/RevealUIStudio/revealui/discussions: community-friendly format for design questions, "is there a better way to do X", and ideas. Other users and the maintainer both watch this. Best for questions where a public answer benefits more than just you.`,
       `**GitHub Issues** at https://github.com/RevealUIStudio/revealui/issues: for confirmed bugs and feature requests. Include reproduction steps. See §5 below for "bug vs support" guidance.`,
       `**Email** at ${SITE.emails.support}: for account-specific issues (billing, license keys, your data), security concerns, and questions you cannot ask in public.`,
@@ -25,9 +25,9 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   {
     heading: '2. Response SLA',
     paragraphs: [
-      `Email to ${SITE.emails.support}: we aim for a substantive response within **48 business hours** (Monday through Friday, U.S. Central Time, excluding U.S. federal holidays). Acknowledgement is usually faster, within one business day, and complex issues may require multiple rounds of correspondence.`,
+      `Email to ${SITE.emails.support}: we respond within **24 hours** during business hours (Monday through Friday, 9am to 5pm U.S. Central Time, excluding U.S. federal holidays), and within **4 hours** any day for a critical issue (your data is at risk, or you cannot use the product you purchased at all). Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our SLA page at https://revealui.com/sla.`,
       'GitHub Issues and Discussions: best-effort. We read them, but we may not respond instantly. If something is urgent, email is the right channel.',
-      'Security reports: see the dedicated security policy at https://revealui.com/security. Those go to a separate address with separate SLAs.',
+      'Security reports: see the dedicated security policy at https://revealui.com/security. Those go to a separate address with a separate response commitment.',
     ],
   },
   {
@@ -75,7 +75,7 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   {
     heading: '7. Premium support',
     paragraphs: [
-      'The published pricing page describes the response targets for the Pro tier (48 business hours), Max tier (24 business hours), and Enterprise tier (4-hour Slack SLA). These targets are aspirational at launch and we will publish the actual achieved response times once we have data. We would rather measure honestly than over-promise.',
+      'Today, every paid tier gets the same response commitment described in §2 and on our SLA page: 24 hours during business hours, 4 hours for a critical issue. We do not yet offer a faster tiered SLA, and we would rather tell you that plainly than promise a tier we cannot staff as a solo operator.',
       'Enterprise customers who need a dedicated Slack channel, a named technical contact, or scheduled architecture reviews should contact us before purchase to confirm scope and timeline.',
     ],
   },

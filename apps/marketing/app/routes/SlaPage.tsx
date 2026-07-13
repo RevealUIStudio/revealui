@@ -1,36 +1,28 @@
 import { Callout } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
-import { SUPPORT_META, SUPPORT_SECTIONS } from '../content/legal/support';
-import { SITE } from '../content/site';
+import { SLA_META, SLA_SECTIONS } from '../content/legal/sla';
 
-export function SupportPage() {
+export function SlaPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-6 pt-24 lg:px-8">
-        <Callout variant="info" title="One channel for direct support, three for community + docs">
-          The fastest path is to check{' '}
-          <a className="underline" href={SITE.urls.docs} target="_blank" rel="noopener noreferrer">
-            the documentation
-          </a>{' '}
-          first. For account-specific issues, billing, or anything sensitive, email{' '}
-          <a className="underline" href={`mailto:${SITE.emails.support}`}>
-            {SITE.emails.support}
-          </a>
-          . We reply within 24 hours during business hours (Mon-Fri, U.S. Central), and within 4
-          hours any day for a critical issue. Full detail is on our{' '}
-          <a className="underline" href="/sla">
-            SLA page
+        <Callout variant="info" title="The short version">
+          We respond within 24 hours during U.S. business hours, and within 4 hours for anything
+          critical. Our license and download infrastructure targets 99% monthly uptime. Live status
+          is always at{' '}
+          <a className="underline" href="/status">
+            revealui.com/status
           </a>
           .
         </Callout>
       </div>
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-12 lg:px-8 prose prose-gray">
-        <h1>{SUPPORT_META.title}</h1>
-        <p className="text-sm text-muted-foreground">Last updated: {SUPPORT_META.lastUpdated}</p>
+        <h1>{SLA_META.title}</h1>
+        <p className="text-sm text-muted-foreground">Last updated: {SLA_META.lastUpdated}</p>
 
-        <p>{SUPPORT_META.intro}</p>
+        <p>{SLA_META.intro}</p>
 
-        {SUPPORT_SECTIONS.map((section) => (
+        {SLA_SECTIONS.map((section) => (
           <div key={section.heading}>
             <h2>{section.heading}</h2>
 
@@ -61,7 +53,7 @@ export function SupportPage() {
             {section.paragraphs?.map((para) =>
               section.contactEmail ? (
                 <p key={para}>
-                  For support questions, email{' '}
+                  For questions about these commitments, email{' '}
                   <a href={`mailto:${section.contactEmail}`}>{section.contactEmail}</a>.
                 </p>
               ) : (
