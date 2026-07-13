@@ -50,7 +50,9 @@ export interface CoveredFile {
 
 export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'home.ts' },
-  { file: 'primitives.ts', exportPrefix: 'HOME_' },
+  { file: 'primitives.ts' },
+  { file: 'products.ts' },
+  { file: 'capabilities.ts' },
   { file: 'proof.ts' },
   { file: 'pricing-teaser.ts' },
   { file: 'site.ts' },
@@ -192,6 +194,148 @@ const DEPLOY_TARGETS: EvidenceRef = {
   note: 'Vercel, Cloudflare, Fly, Hetzner, self-host deploy paths',
 };
 const DOCS: EvidenceRef = { kind: 'url', ref: 'https://docs.revealui.com' };
+
+// ── claims-ratchet 2026-07-12 evidence (products/capabilities/primitives) ────
+const HARNESS_WORKBOARD: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/harnesses/src/workboard/workboard-manager.ts',
+  note: 'shared workboard manager for cross-session agent coordination',
+};
+const HARNESS_ADAPTER: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/harnesses/src/adapters/revealui-agent-adapter.ts',
+  note: 'the one working agent adapter; roadmap profiles at packages/harnesses/src/protocol/roadmap-profiles.ts state no working adapter ships for claude-code/cursor yet',
+};
+const HYPERVISOR: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/mcp/src/hypervisor.ts',
+  note: 'supervises the MCP servers and surfaces their tool registries',
+};
+const RESILIENCE: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/resilience/src/circuit-breaker.ts',
+  note: 'circuit breaker + retry + bulkhead; consumed by the packages/ai llm client, the db saga, and core error-handling',
+};
+const ENCRYPTION: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/encryption.ts',
+  note: 'per-record DEK wrapped by a KEK, with a rotation manager that re-encrypts records under a new key',
+};
+const CRDT_REPLAY: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/ai/src/memory/persistence/crdt-persistence.ts',
+  note: 'replayOperations rebuilds state from the op log (used by sync-manager); schema at packages/db/src/schema/crdt-operations.ts',
+};
+const PROVENANCE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/collab/provenance-logger.ts',
+  note: 'writes collab_edits clientType/agentModel per edit; commit-level schema packages/db/src/schema/code-provenance.ts has a manual API only, automatic commit ingest is roadmap',
+};
+const WEBHOOK_EVENTS: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/db/src/schema/webhook-events.ts',
+  note: 'every Stripe event recorded for idempotency',
+};
+const DRAIN: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/cron/drain-unreconciled.ts',
+  note: 'cron replays failed webhook handlers from Stripe',
+};
+const SECURITY_AUTHZ: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/authorization.ts',
+  note: 'role inheritance + attribute condition operators; roughly 95 tests at packages/security/src/__tests__/authorization.test.ts',
+};
+const ENFORCEMENT_TESTS: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts',
+  note: '42 enforcement cases here + 18 in packages/core/src/__tests__/auth/access.test.ts = the 60',
+};
+const TASK_QUOTA: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/middleware/task-quota.ts',
+  note: '429 over per-tier maxAgentTasks; mounted on agent-tasks + agent-stream in apps/server/src/index.ts',
+};
+const MEDIA_R2: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/storage.ts',
+  note: 'Cloudflare R2 is the sole media backend; R2_PUBLIC_BASE_URL is the CDN delivery URL',
+};
+const DRAFTS: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/collections/operations/drafts.ts',
+  note: 'draft/live publishing workflow',
+};
+const TENANT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/middleware/tenant.ts',
+  note: 'membership-validated multi-tenant isolation, mounted on /api/*',
+};
+const RICHTEXT: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/client/richtext',
+  note: 'Lexical rich text editor with custom block nodes',
+};
+const ORCHESTRATOR: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/ai/src/orchestration/orchestrator.ts',
+  note: 'multi-agent coordination + orchestration',
+};
+const A2A_ROUTES: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/a2a.ts',
+  note: 'JSON-RPC agent-to-agent protocol mounted at /a2a behind entitlement middleware',
+};
+const ELECTRIC_SYNC: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/sync/src',
+  note: 'ElectricSQL shapes cover the agent/coordination/kg collections',
+};
+const GDPR: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/gdpr.ts',
+  note: 'GDPR consent, deletion, and anonymization framework',
+};
+const PERPETUAL: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/billing.ts',
+  note: 'perpetualCheckoutRoute POST /checkout-perpetual; catalog products in scripts/setup/stripe-catalog.ts; licenses.perpetual column',
+};
+const MCP_SERVERS: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/mcp/src/servers',
+  note: 'first-party MCP servers; the count is METRICS.mcpServers, pinned by scripts/validate/claim-drift.ts',
+};
+const REVVAULT_REPO: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://github.com/RevealUIStudio/revvault',
+  note: 'Rust CLI (crates/) + Tauri desktop app; age-encrypted passage-compatible store; workspace version 0.3.0',
+};
+const REVFORGE_REF: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://revealui.com/products',
+  note: 'operator-only tool in a private repo; stamping/domain-lock/multi-tenant capabilities verified internally 2026-07-12; the repo is not public, which is why the card carries no GitHub link',
+};
+const REVDEV_REPO: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://github.com/RevealUIStudio/revdev',
+  note: 'apps/studio + apps/console + packages/daemon at 0.1.1; the daemon registers and coordinates agents over JSON-RPC',
+};
+const REVCON_REPO: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://github.com/RevealUIStudio/revcon',
+  note: 'MIT editor config sync (Zed + Cursor), symlinked per project',
+};
+const REVSKILLS_REPO: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://github.com/RevealUIStudio/revskills',
+  note: 'MIT Claude Code skills library (Drizzle schemas, Vitest patterns, security hardening)',
+};
+const ROADMAP: EvidenceRef = {
+  kind: 'url',
+  ref: 'https://revealui.com/roadmap',
+  note: 'RevMarket is Planned; third-party publishing is roadmap-only, not yet shipped',
+};
 
 export const CLAIMS: readonly ClaimEntry[] = [
   // ── site.ts ───────────────────────────────────────────────────────────────
@@ -693,6 +837,606 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PRICING_TEASER_FOOTER.caption.suffix',
     text: 'produces a standard Node bundle.',
     evidence: [{ kind: 'command', ref: 'pnpm build', note: 'turbo build to a plain Node bundle' }],
+  },
+
+  // ── capabilities.ts ──────────────────────────────────────────────────────
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES_SECTION.eyebrow',
+    text: 'Capabilities, file by file',
+    evidence: [REPO],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES_SECTION.body',
+    text: 'Eight load-bearing primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
+    evidence: [REPO],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES_SECTION.footnote',
+    text: 'Trust through specificity. These are primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
+    evidence: [REPO],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[0].body',
+    text: 'Role checks with inheritance and attribute policies with condition operators, proven by roughly 95 authorization tests in the security package alone.',
+    evidence: [SECURITY_AUTHZ],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[1].title',
+    text: 'Stripe webhook reconciliation',
+    evidence: [WEBHOOK_EVENTS, RECONCILE],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[1].body',
+    text: 'Every event is recorded for idempotency, failed handlers are replayed from Stripe by a drain cron, and reconcile crons surface drift between Stripe and the local DB.',
+    evidence: [WEBHOOK_EVENTS, DRAIN, RECONCILE],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[2].body',
+    text: 'Most platforms snapshot-merge. RevealUI replays operations, so collaborative editing across humans and agents stays correct after concurrent edits.',
+    evidence: [CRDT_REPLAY],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[3].title',
+    text: 'Circuit breakers + retry + bulkhead',
+    evidence: [RESILIENCE],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[3].body',
+    text: 'Production resilience patterns wired into the runtime: circuit breakers with adaptive failure thresholds, configurable retry with backoff, and bulkhead isolation that early-stage SaaS usually skips.',
+    evidence: [RESILIENCE],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[4].title',
+    text: 'Agent harness + shared workboard',
+    evidence: [HARNESS_ADAPTER, HARNESS_WORKBOARD],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[4].body',
+    text: 'A working agent adapter, a shared workboard manager for cross-session coordination, and a translation layer. Adapter profiles for Claude Code and Cursor are specced on the roadmap, not shipped.',
+    evidence: [HARNESS_ADAPTER, HARNESS_WORKBOARD],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[5].title',
+    text: 'MCP hypervisor + introspection',
+    evidence: [HYPERVISOR],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[5].body',
+    text: 'One process supervises all MCP servers and surfaces their tool registries, so every adapter is discoverable from a single place.',
+    evidence: [HYPERVISOR],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[6].title',
+    text: 'Envelope encryption + key rotation',
+    evidence: [ENCRYPTION],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[6].body',
+    text: 'Sensitive fields wrapped in per-record DEKs encrypted by a KEK, with a rotation manager that re-encrypts records under a new key.',
+    evidence: [ENCRYPTION],
+  },
+  {
+    file: 'capabilities.ts',
+    exportPath: 'CAPABILITIES[7].body',
+    text: 'Every collaborative edit records whether a human or an agent made it, and which model. A commit-level provenance schema and API ship alongside; the automatic commit ingest is on the roadmap.',
+    evidence: [PROVENANCE],
+  },
+
+  // ── products.ts ──────────────────────────────────────────────────────────
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_PAGE_HERO.h1',
+    text: 'The RevFleet product family',
+    evidence: [REVVAULT_REPO, REVDEV_REPO, REVCON_REPO, REVSKILLS_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
+    text: 'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio. Five are yours to use today, RevForge runs in private preview, and the agent marketplace is on the way.',
+    evidence: [
+      REPO,
+      REVVAULT_REPO,
+      REVDEV_REPO,
+      REVCON_REPO,
+      REVSKILLS_REPO,
+      REVFORGE_REF,
+      ROADMAP,
+    ],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_FLAGSHIP.priceLabel',
+    text: 'Free to self-host · Pro tier optional',
+    evidence: [LICENSE_MIT, SELF_HOST, TIER_GATES],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_FLAGSHIP.tagline',
+    text: 'The agentic business runtime',
+    evidence: [AGENT_ROUTES, SELF_HOST],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_FLAGSHIP.body',
+    text: 'People, content, offers, payments, and agents: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
+    evidence: [AUTH_SESSIONS, COLLECTIONS, BILLING, AGENT_ROUTES, MCP_CONTENT],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[0].tagline',
+    text: 'Age-encrypted secret vault',
+    evidence: [REVVAULT_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[0].highlights[0]',
+    text: 'Rust CLI + Tauri desktop app',
+    evidence: [REVVAULT_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[0].highlights[1]',
+    text: 'Age-encrypted, passage-compatible store format',
+    evidence: [REVVAULT_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[0].highlights[2]',
+    text: 'Canonical secret store, no .env plaintext',
+    evidence: [REVVAULT_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[1].highlights[0]',
+    text: 'Generates branded RevealUI trial kits',
+    evidence: [REVFORGE_REF],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[1].highlights[1]',
+    text: 'Domain-locked, multi-tenant',
+    evidence: [REVFORGE_REF],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[1].highlights[2]',
+    text: 'Self-hosted runtime instances',
+    evidence: [REVFORGE_REF],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[1].priceLabel',
+    text: 'Operator tool · private preview',
+    evidence: [REVFORGE_REF],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[2].highlights[0]',
+    text: 'Desktop Studio + Console + Node daemon',
+    evidence: [REVDEV_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[2].highlights[1]',
+    text: 'Coordinates agents across a multi-repo workspace',
+    evidence: [REVDEV_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[2].highlights[2]',
+    text: 'Registers and coordinates agents over JSON-RPC',
+    evidence: [REVDEV_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[3].highlights[1]',
+    text: 'Symlinked into every project',
+    evidence: [REVCON_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[3].highlights[2]',
+    text: 'Edit once, propagate fleet-wide',
+    evidence: [REVCON_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[4].tagline',
+    text: 'Claude Code skills library',
+    evidence: [REVSKILLS_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[4].highlights[0]',
+    text: 'Drizzle schemas, Vitest patterns, security hardening',
+    evidence: [REVSKILLS_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[4].highlights[1]',
+    text: 'Drop into any Claude Code agent',
+    evidence: [REVSKILLS_REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[5].highlights[0]',
+    text: 'N first-party integrations, out of the box. (interpolated: N from METRICS.mcpServers)',
+    match: 'path',
+    evidence: [MCP_SERVERS],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[5].highlights[1]',
+    text: 'Stripe, Neon, Vercel, Next.js, and more',
+    evidence: [MCP_SERVERS],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_SISTERS[5].highlights[2]',
+    text: 'Third-party publishing planned',
+    evidence: [ROADMAP],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_STATS_SECTION.heading',
+    text: 'Built to production standards',
+    evidence: [CI_GATE],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_STATS_SECTION.body',
+    text: 'Not a starter template. A complete runtime with tested, documented, and audited code.',
+    evidence: [CI_GATE, REPO],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_CTA_SECTION.body',
+    text: 'Every other RevFleet product builds on RevealUI. One command, full source, everything pre-wired and ready for your first deploy.',
+    evidence: [REPO, CLI_CREATE],
+  },
+  {
+    file: 'products.ts',
+    exportPath: 'PRODUCTS_CTA_SECTION.cliSnippet',
+    text: 'npx create-revealui my-app',
+    evidence: [CLI_CREATE],
+  },
+
+  // ── primitives.ts — PRODUCTS_PRIMITIVES[0] People ────────────────────────
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].forYou.headline',
+    text: 'Auth, roles, and compliance, handled',
+    evidence: [AUTH_SESSIONS, SECURITY_AUTHZ, GDPR],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].forYou.description',
+    text: 'Session-based auth, RBAC with 60 enforcement tests, rate limiting, brute-force protection, and GDPR compliance. No auth library decisions. No JWT debates.',
+    evidence: [AUTH_SESSIONS, ENFORCEMENT_TESTS, GDPR],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].forAgents.headline',
+    text: 'Agents call the same identity-aware API',
+    evidence: [AGENT_ROUTES, MCP_CONTENT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].forAgents.description',
+    text: 'Agents reach the runtime through the identical REST and MCP surface your app uses. Scoping what an individual agent can do through the RBAC + ABAC engine is not shipped yet.',
+    evidence: [AGENT_ROUTES, MCP_CONTENT, SECURITY_AUTHZ],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].together.headline',
+    text: 'One access control engine for your team, today.',
+    evidence: [SECURITY_AUTHZ],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].together.description',
+    text: 'RBAC + ABAC governs your human users, proven by 60 enforcement tests. Extending that same engine to scope agents individually is on our list, not yet shipped.',
+    evidence: [SECURITY_AUTHZ, ENFORCEMENT_TESTS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].features[0]',
+    text: 'Session-based auth (httpOnly, secure, sameSite)',
+    evidence: [AUTH_SESSIONS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].features[2]',
+    text: 'Rate limiting and brute-force protection',
+    evidence: [AUTH_SESSIONS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[0].features[4]',
+    text: 'Multi-tenant user isolation',
+    evidence: [TENANT],
+  },
+
+  // ── primitives.ts — PRODUCTS_PRIMITIVES[1] Content ───────────────────────
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].forYou.headline',
+    text: 'Define collections in TypeScript, get an API and admin UI',
+    evidence: [COLLECTIONS, OPEN_STANDARDS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].forYou.description',
+    text: 'Rich text editing with Lexical, media management, draft/live publishing, and a full REST API with OpenAPI spec. Define your data model once and the admin dashboard and API generate automatically.',
+    evidence: [COLLECTIONS, RICHTEXT, MEDIA_R2, DRAFTS, OPEN_STANDARDS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].forAgents.headline',
+    text: 'Collections become discoverable resources over MCP',
+    evidence: [MCP_CONTENT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].forAgents.description',
+    text: 'The content MCP server ships discovery and read tools, and any collection you flag with mcpResource: true becomes a discoverable MCP resource. Agents write through the same REST API your app uses.',
+    evidence: [MCP_CONTENT, OPEN_STANDARDS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].together.headline',
+    text: 'Define your data model once. Choose what agents can discover.',
+    evidence: [COLLECTIONS, MCP_CONTENT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].together.description',
+    text: 'Add a collection and the admin UI and REST API appear with it. Flag it as an MCP resource and agents can discover and read it too.',
+    evidence: [COLLECTIONS, MCP_CONTENT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].features[0]',
+    text: 'Schema-first collection definitions',
+    evidence: [COLLECTIONS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].features[1]',
+    text: 'Rich text editor with custom blocks',
+    evidence: [RICHTEXT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].features[2]',
+    text: 'REST API with OpenAPI spec',
+    evidence: [OPEN_STANDARDS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].features[3]',
+    text: 'Draft/live publishing workflow',
+    evidence: [DRAFTS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].features[4]',
+    text: 'Media management and CDN delivery',
+    evidence: [MEDIA_R2],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[1].features[5]',
+    text: 'R2-backed media with CDN delivery',
+    evidence: [MEDIA_R2],
+  },
+
+  // ── primitives.ts — PRODUCTS_PRIMITIVES[2] Offers ────────────────────────
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].forYou.headline',
+    text: 'Product catalog, pricing tiers, and usage tracking',
+    evidence: [BILLING, TIER_GATES, TIER_LIMITS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].forYou.description',
+    text: 'Define products, pricing tiers, and feature gates in one place. License enforcement and upgrade prompts are built in. Subscription billing via Stripe, and perpetual licenses you can buy today.',
+    evidence: [BILLING, TIER_GATES, PERPETUAL],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].forAgents.headline',
+    text: 'Feature gates control which agent capabilities are enabled per tier',
+    evidence: [TIER_GATES, TASK_QUOTA],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].forAgents.description',
+    text: 'Agent capabilities are gated by the same tier system that governs human features. When a customer upgrades, their agents automatically gain access to more tools and higher task limits.',
+    evidence: [TIER_GATES, TIER_LIMITS, TASK_QUOTA],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].together.headline',
+    text: 'Revenue model governs both humans and agents.',
+    evidence: [BILLING, TIER_GATES],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].together.description',
+    text: 'Upgrade a customer and their agents get smarter. One product catalog, one billing system, one set of feature gates, applied consistently to every user and every agent.',
+    evidence: [BILLING, TIER_GATES],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].features[0]',
+    text: 'Subscription and perpetual pricing tracks, live today.',
+    evidence: [BILLING, PERPETUAL],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].features[1]',
+    text: 'Feature gating with tier enforcement',
+    evidence: [TIER_GATES],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].features[2]',
+    text: 'Usage tracking and limit enforcement',
+    evidence: [TIER_LIMITS, TASK_QUOTA],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].features[4]',
+    text: 'Upgrade prompts and billing portal',
+    evidence: [BILLING],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[2].features[5]',
+    text: 'Agent task quotas metered and enforced per tier',
+    evidence: [TASK_QUOTA, TIER_LIMITS],
+  },
+
+  // ── primitives.ts — PRODUCTS_PRIMITIVES[3] Payments ──────────────────────
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].forYou.headline',
+    text: 'Stripe checkout, subscriptions, and billing, pre-configured',
+    evidence: [BILLING],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].forYou.description',
+    text: 'Stripe checkout, subscription management, webhooks, and a customer billing portal. Products, prices, and webhooks are wired up. You configure your Stripe keys and start charging.',
+    evidence: [BILLING, WEBHOOKS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].forAgents.headline',
+    text: 'x402 protocol design: agent-native HTTP payments',
+    evidence: [X402],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].forAgents.description',
+    text: 'The x402 design routes agent payments over HTTP 402, aligned with the Coinbase / Cloudflare x402 Foundation. This is in development. See the roadmap for current status.',
+    evidence: [X402, ROADMAP],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].together.headline',
+    text: 'Humans monetize. Agents transact. One billing infrastructure.',
+    evidence: [BILLING, X402],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].together.description',
+    text: 'Your customers pay through Stripe. Agent payments via x402 are in development. Both flows are designed to settle into the same revenue system.',
+    evidence: [BILLING, X402],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].features[0]',
+    text: 'Stripe checkout and subscriptions',
+    evidence: [BILLING],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].features[1]',
+    text: 'Webhook handling and event processing',
+    evidence: [WEBHOOKS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[3].features[3]',
+    text: 'x402 agent payments (in development)',
+    evidence: [X402],
+  },
+
+  // ── primitives.ts — PRODUCTS_PRIMITIVES[4] Agents ────────────────────────
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].forYou.headline',
+    text: 'Agents on open-weight models you run yourself',
+    evidence: [OPEN_WEIGHT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].forYou.description',
+    text: 'Agents manage content, process tasks, and coordinate workflows on open-weight models running on infrastructure you own, via Ubuntu Inference Snaps or Ollama. Add a frontier provider in one config line: opt-in, never assumed. Your own inference cost, not a per-token API tax.',
+    evidence: [OPEN_WEIGHT, PROVIDERS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].forAgents.headline',
+    text: 'A2A protocol, CRDT memory, and MCP servers',
+    evidence: [A2A_ROUTES, MEMORY, MCP_SERVERS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].forAgents.description',
+    text: 'Agent-to-agent communication, persistent memory, and N production MCP servers. (interpolated: N from METRICS.mcpServers)',
+    match: 'path',
+    evidence: [A2A_ROUTES, MEMORY, MCP_SERVERS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].together.headline',
+    text: 'Build one business. Agents extend it. Neither locked to any vendor.',
+    evidence: [OPEN_WEIGHT, PROVIDERS, OPEN_STANDARDS],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].together.description',
+    text: 'You build on open standards. Your agents operate through the same open standards. Switch models, swap providers, self-host everything. The intelligence layer belongs to you.',
+    evidence: [OPEN_STANDARDS, PROVIDERS, SELF_HOST],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].features[0]',
+    text: 'Open-model inference (Snaps, Ollama)',
+    evidence: [OPEN_WEIGHT],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].features[1]',
+    text: 'CRDT-based agent memory (working + episodic + vector)',
+    evidence: [MEMORY],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].features[3]',
+    text: 'A2A agent-to-agent protocol',
+    evidence: [A2A_ROUTES],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].features[4]',
+    text: 'Multi-agent coordination and orchestration',
+    evidence: [ORCHESTRATOR],
+  },
+  {
+    file: 'primitives.ts',
+    exportPath: 'PRODUCTS_PRIMITIVES[4].features[5]',
+    text: 'Real-time coordination sync (ElectricSQL)',
+    evidence: [ELECTRIC_SYNC],
   },
 ] as const;
 
