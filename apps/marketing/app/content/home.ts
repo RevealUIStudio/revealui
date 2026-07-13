@@ -12,6 +12,10 @@
 // removed (thin vocabulary/pull-quote content, no longer rendered anywhere);
 // HOME_HERO's agency CTAs moved to the footer, its CLI block moved into
 // HOME_GET_STARTED.cli.
+// 2026-07-12: messaging rewrite (frontend-excellence Phase 1b spec in .jv).
+// Every prose sentence in this file is indexed in ./claims-evidence.ts with
+// the code that proves it (owner directive); the collections-over-MCP claims
+// are corrected to the shipped opt-in resource mechanism.
 
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
@@ -66,7 +70,7 @@ export interface ProblemRow {
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
   heading: 'Vendor sprawl, or framework-only. Pick neither.',
-  body: 'Most AI teams glue together a half-dozen SaaS backends. Some pick a thin agent framework and rebuild auth, billing, and content from scratch. RevealUI is the third option: everything wired in, governed by one policy, owned by you.',
+  body: 'You either glue together an auth vendor, a headless CMS, Stripe code, and a job runner, or you pick an agent framework and rebuild all four underneath it. RevealUI is the third option: the whole set arrives wired into one runtime that you own.',
   tableAriaLabel: 'Vendor sprawl vs agent-framework vs RevealUI comparison',
   columns: {
     capability: 'Capability',
@@ -79,25 +83,25 @@ export const HOME_PROBLEM = {
       capability: 'Auth + RBAC + sessions',
       sprawl: 'A separate auth vendor, per seat',
       agentOnly: 'Bring your own',
-      revealui: 'Built in',
+      revealui: 'Sessions with RBAC and ABAC, built in',
     },
     {
       capability: 'CMS + admin UI',
       sprawl: 'A headless CMS, plus a team to wire it',
       agentOnly: 'Bring your own',
-      revealui: 'Built in',
+      revealui: 'Collections with an admin UI and REST API',
     },
     {
       capability: 'Stripe billing + webhooks',
       sprawl: 'Stripe + your code',
       agentOnly: 'Bring your own',
-      revealui: 'Built in (with reconciliation)',
+      revealui: 'Checkout, webhooks, and reconciliation crons',
     },
     {
-      capability: 'MCP tools for every API',
-      sprawl: 'Per-collection plugin',
+      capability: 'Agent access to your data',
+      sprawl: 'One-off integrations',
       agentOnly: 'Tool registry only',
-      revealui: 'Auto-exposed',
+      revealui: 'Content tools over MCP, plus collections you opt in',
     },
   ] as readonly ProblemRow[],
   footnote: `Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.`,
@@ -115,8 +119,8 @@ export interface DemoBeat {
 
 export const HOME_DEMO = {
   eyebrow: 'Watch it work',
-  heading: 'From CLI to a working stack in 90 seconds.',
-  body: 'Three beats. Local in 60 seconds. Test-mode Stripe by default. Agents wired in via MCP.',
+  heading: 'From one command to a working stack in 60 seconds.',
+  body: 'The stack runs locally in 60 seconds, Stripe starts in test mode, and agents connect over MCP.',
   mockupCaption: {
     prefix: 'Local screenshot from a fresh',
     code: 'npx create-revealui',
@@ -136,7 +140,7 @@ export const HOME_DEMO = {
     {
       n: '03',
       title: 'Agent-native, by default.',
-      body: 'Every primitive ships with a matching MCP server. Wire an LLM provider and your agents read customers, refund subscriptions, and write content through the same APIs your app uses.',
+      body: 'Wire an LLM provider and your agents read your sites, users, and content over MCP, with every call passing the same auth and tier gates your human users pass.',
     },
   ] as readonly DemoBeat[],
 } as const;
@@ -178,7 +182,7 @@ export const HOME_FAQ = {
     {
       question: 'What does "agent-native" actually mean in code?',
       answer:
-        'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call. The runtime is the contract, not a glue layer.',
+        'Agents authenticate like users and pass the same tier gates your customers pass. The content MCP server ships discovery and read tools, any collection becomes a discoverable MCP resource with one flag, and writes go through the same REST API your app uses.',
     },
     {
       question: 'How does AI inference work?',
@@ -198,8 +202,8 @@ export const HOME_FAQ = {
 // ---------------------------------------------------------------------------
 
 export const HOME_GET_STARTED = {
-  heading: 'Build your business today.',
-  body: 'The business logic, pre-wired. Spin up on your machine in minutes, then flip to live mode when you’re ready to charge real customers.',
+  heading: 'Your stack is one command away.',
+  body: 'Spin it up on your machine in minutes. Flip to live mode when you are ready to charge real customers.',
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
