@@ -36,29 +36,11 @@ const KNOWN_FEATURE_KEYS = new Set<string>([
   'analytics',
 ] satisfies (keyof FeatureFlags)[]);
 
-/**
- * Tier ordering, low to high. Used by the reconciler's monotonic-upward heal
- * guard: a heal may raise a tier but must never lower one, because a downgrade
- * is a real business decision that belongs to the (signature-verified) webhook
- * path, not to a cron inferring state from local rows.
- */
-const TIER_RANK: Record<HostedTier, number> = {
-  free: 0,
-  pro: 1,
-  max: 2,
-  enterprise: 3,
-};
-
 export function coerceHostedTier(value: string | null | undefined): HostedTier | undefined {
   if (value === 'free' || value === 'pro' || value === 'max' || value === 'enterprise') {
     return value;
   }
   return undefined;
-}
-
-/** True when `next` is strictly higher than `current`. Equal tiers are NOT an upgrade. */
-export function isTierUpgrade(current: HostedTier, next: HostedTier): boolean {
-  return TIER_RANK[next] > TIER_RANK[current];
 }
 
 export function toFeatureRecord(features: object | null | undefined): Record<string, boolean> {
@@ -82,10 +64,16 @@ export function toFeatureRecord(features: object | null | undefined): Record<str
 /**
  * The `account_entitlements` column values for a tier + status.
  *
- * `lastEventAt` is the event-to-event staleness cursor (F2). The reconciler
- * passes `null` deliberately: a healed row carries no event provenance, so the
- * very next webhook — whatever its `event.created` — must win over it. A healed
- * row must never be able to make a real event look stale.
+ * `lastEventAt` is the event-to-event staleness cursor (F2).
+ *
+ * The webhook path passes `event.created`. The reconciler passes `null` **only
+ * when INSERTing** a brand-new row, so the next webhook wins over a synthesized
+ * one. It must NOT null the cursor on an UPDATE: the guard is
+ * `last_event_at IS NULL OR last_event_at < event.created`, so NULL lets *any*
+ * event win — including a stale one. `drain-unreconciled` replays old events
+ * with their original `created`, so nulling an existing cursor would re-open the
+ * out-of-order window PR-1 closed. On an update the caller preserves the
+ * existing cursor.
  */
 export function buildHostedEntitlementValues(params: {
   tier: HostedTier;
