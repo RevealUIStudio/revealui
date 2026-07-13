@@ -24,6 +24,14 @@ const verify = require('../../scripts/verify-deployed-tokens.cjs') as {
     csp: Map<string, string[]> | null,
     externalFontRefs: Array<{ host: string; kind: string }>,
   ) => Array<{ token: string; stacks: unknown[] }>;
+  extractFontFaceSrcUrls: (css: string) => Map<string, string[]>;
+  checkFontAssetReachability: (
+    fontDecls: Map<string, string[]>,
+    fontFaceFamilies: Set<string>,
+    fontFaceSrcUrls: Map<string, string[]>,
+    pageOrigin: string,
+    fetchAsset?: (absUrl: string) => Promise<boolean>,
+  ) => Promise<Array<{ token: string; family: string; urls: string[] }>>;
 };
 
 describe('normalizeValue', () => {
@@ -205,5 +213,144 @@ describe('checkFontResolvability', () => {
     ];
     const failures = verify.checkFontResolvability(fontDecls, new Set(), csp, externalRefs);
     expect(failures).toHaveLength(0);
+  });
+});
+
+describe('extractFontFaceSrcUrls', () => {
+  it('collects url(...) tokens per family, lowercased key, source order preserved', () => {
+    const css =
+      "@font-face{font-family:'Inter Variable';src:url(/a.woff2) format('woff2-variations')}" +
+      "@font-face{font-family:'Inter Variable';src:url(/b.woff2) format('woff2-variations')}";
+    const map = verify.extractFontFaceSrcUrls(css);
+    expect(map.get('inter variable')).toEqual(['/a.woff2', '/b.woff2']);
+  });
+
+  it('omits a family whose @font-face rule has no url() (nothing to verify)', () => {
+    const css = "@font-face{font-family:'Local Only';src:local('Local Only')}";
+    const map = verify.extractFontFaceSrcUrls(css);
+    expect(map.has('local only')).toBe(false);
+  });
+});
+
+describe('checkFontAssetReachability', () => {
+  // Reproduces the marketing false pass: the deployed CSS is the exact
+  // shape apps/marketing ships after its app-level override (fix/marketing
+  // PR #1801) — the stack leads with 'Inter Variable', and an @font-face
+  // rule registers that exact family name. checkFontResolvability (the
+  // name-match check) would call this resolved. But the font FILE the rule
+  // points to 404s in production (stale build hash, purged CDN, broken
+  // asset pipeline) — the browser falls through the stack and system fonts
+  // render, the identical visual defect docs.revealui.com failed on. A
+  // text-only name match can never see this; only a live fetch can.
+  it('reproduces the marketing false pass: name-matched @font-face whose file 404s still fails', async () => {
+    const fontDecls = verify.extractFontDecls(
+      ":root{--rvui-font-sans:'Inter Variable', 'Inter', system-ui, sans-serif}",
+    );
+    const fontFaceCss =
+      "@font-face{font-family:'Inter Variable';src:url(/assets/inter-latin-BROKEN.woff2) format('woff2-variations')}";
+    const fontFaceFamilies = verify.extractFontFaceFamilies(fontFaceCss);
+    const fontFaceSrcUrls = verify.extractFontFaceSrcUrls(fontFaceCss);
+
+    // Sanity check: the name-match check alone sees no problem here — this
+    // is precisely why marketing passed while docs correctly failed.
+    const nameMatchFailures = verify.checkFontResolvability(fontDecls, fontFaceFamilies, null, []);
+    expect(nameMatchFailures).toHaveLength(0);
+
+    const fetchAsset = async () => false; // every asset 404s
+    const failures = await verify.checkFontAssetReachability(
+      fontDecls,
+      fontFaceFamilies,
+      fontFaceSrcUrls,
+      'https://www.revealui.com',
+      fetchAsset,
+    );
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toMatchObject({
+      token: '--rvui-font-sans',
+      family: 'Inter Variable',
+      urls: ['/assets/inter-latin-BROKEN.woff2'],
+    });
+  });
+
+  it('passes when the registered font file is actually reachable', async () => {
+    const fontDecls = verify.extractFontDecls(
+      ":root{--rvui-font-sans:'Inter Variable', 'Inter', system-ui, sans-serif}",
+    );
+    const fontFaceCss =
+      "@font-face{font-family:'Inter Variable';src:url(/assets/inter-latin-OK.woff2) format('woff2-variations')}";
+    const fontFaceFamilies = verify.extractFontFaceFamilies(fontFaceCss);
+    const fontFaceSrcUrls = verify.extractFontFaceSrcUrls(fontFaceCss);
+
+    const fetchAsset = async (absUrl: string) => absUrl.endsWith('inter-latin-OK.woff2');
+    const failures = await verify.checkFontAssetReachability(
+      fontDecls,
+      fontFaceFamilies,
+      fontFaceSrcUrls,
+      'https://www.revealui.com',
+      fetchAsset,
+    );
+    expect(failures).toHaveLength(0);
+  });
+
+  it('resolves the url against pageOrigin (root-relative deployed font paths)', async () => {
+    const fontDecls = verify.extractFontDecls(":root{--rvui-font-sans:'Inter Variable'}");
+    const fontFaceCss = "@font-face{font-family:'Inter Variable';src:url(/f.woff2)}";
+    const fontFaceFamilies = verify.extractFontFaceFamilies(fontFaceCss);
+    const fontFaceSrcUrls = verify.extractFontFaceSrcUrls(fontFaceCss);
+
+    const seen: string[] = [];
+    const fetchAsset = async (absUrl: string) => {
+      seen.push(absUrl);
+      return true;
+    };
+    await verify.checkFontAssetReachability(
+      fontDecls,
+      fontFaceFamilies,
+      fontFaceSrcUrls,
+      'https://docs.revealui.com',
+      fetchAsset,
+    );
+    expect(seen).toEqual(['https://docs.revealui.com/f.woff2']);
+  });
+
+  it('treats a family with no parseable src url as nothing-to-verify, not a failure', async () => {
+    const fontDecls = verify.extractFontDecls(":root{--rvui-font-sans:'Local Only'}");
+    const fontFaceFamilies = verify.extractFontFaceFamilies(
+      "@font-face{font-family:'Local Only';src:local('Local Only')}",
+    );
+    const fontFaceSrcUrls = new Map<string, string[]>(); // no urls captured for it
+    const fetchAsset = async () => false;
+    const failures = await verify.checkFontAssetReachability(
+      fontDecls,
+      fontFaceFamilies,
+      fontFaceSrcUrls,
+      'https://docs.revealui.com',
+      fetchAsset,
+    );
+    expect(failures).toHaveLength(0);
+  });
+
+  it('checks each distinct family at most once per token (dedup across repeated urls)', async () => {
+    const fontDecls = verify.extractFontDecls(
+      ":root{--rvui-font-sans:'Inter Variable', 'Inter', system-ui, sans-serif}" +
+        ":root{--rvui-font-sans:'Inter Variable', system-ui, sans-serif}",
+    );
+    const fontFaceCss = "@font-face{font-family:'Inter Variable';src:url(/f.woff2)}";
+    const fontFaceFamilies = verify.extractFontFaceFamilies(fontFaceCss);
+    const fontFaceSrcUrls = verify.extractFontFaceSrcUrls(fontFaceCss);
+
+    let calls = 0;
+    const fetchAsset = async () => {
+      calls += 1;
+      return true;
+    };
+    await verify.checkFontAssetReachability(
+      fontDecls,
+      fontFaceFamilies,
+      fontFaceSrcUrls,
+      'https://www.revealui.com',
+      fetchAsset,
+    );
+    expect(calls).toBe(1);
   });
 });
