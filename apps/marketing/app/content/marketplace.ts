@@ -5,11 +5,12 @@
 // 308-redirects to /roadmap, where RevMarket is listed as planned.
 //
 // Sourced from: app/routes/MarketplacePage.tsx (Phase 1 extraction).
-// Phase 3 (2026-05-18) updates: bumped MCP server count to canonical 13 per
-// docs/MARKETING_METRICS.md §1 (was 12 — pre-merge audit miscount; validator
-// + packages/mcp/README.md + CHANGELOG 12→13 bump confirm 13). Added the
-// 13th catalog entry (MCP Adapter base class + Vercel/Stripe/Neon concrete
-// adapter subclasses). All numeric references now import from SITE.METRICS.
+// The catalog lists the first-party MCP servers; the count is METRICS.mcpServers
+// (14), pinned by scripts/validate/claim-drift.ts against the non-underscore
+// server files in packages/mcp/src/servers. All numeric references import from
+// SITE.METRICS.
+// claims-ratchet 2026-07-12: added the RevealUI Docs card so the catalog matches
+// the 14 shipped servers (docs.ts was the uncarded 14th).
 
 import { METRICS, SITE } from './site';
 import type { Cta, SectionHeading } from './types';
@@ -129,6 +130,12 @@ export const MARKETPLACE_MCP_SERVERS: readonly McpServer[] = [
     name: 'Contracts',
     description: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
     category: 'Development',
+  },
+  {
+    name: 'RevealUI Docs',
+    description:
+      'Search and read first-party @revealui/* package docs: list libraries, resolve names, and fetch curated README and export metadata over MCP.',
+    category: 'Documentation',
   },
   {
     name: 'MCP Adapter',
