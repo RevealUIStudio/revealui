@@ -1,47 +1,67 @@
 /**
  * Cron: Reconcile Account Entitlements (GAP-356 F4 — the missing detector + healer)
  *
- * The invariant, checked per account with at least one active membership:
+ * The invariant, per account with an active membership:
  *
- *   IF `account_subscriptions` has a healthy row (`active`/`trialing`)
+ *   IF the local `account_subscriptions` row is HEALTHY AND FRESH
  *   OR a member holds a non-deleted `active` license
- *   THEN `account_entitlements` MUST exist with the matching tier.
+ *   THEN `account_entitlements` MUST exist with at least the matching tier.
  *
- * When it does not, a paying customer is silently gated as free. That is the
- * GAP-356 production incident: a real Pro trial resolved to `free` forever
- * because the entitlement write never landed, and nothing in the fleet noticed.
- * Every existing reconcile cron walks subscriptions; none checked entitlements,
- * so the defect was invisible to all of them.
+ * When it does not, a paying customer is silently gated as free — the GAP-356
+ * production incident. Every other reconcile cron walks subscriptions; none
+ * checked entitlements, so the defect was invisible to all of them.
  *
- * On violation:
- *   (a) ALERT — an idempotent `unreconciledWebhooks` row (`event_type:
- *       'entitlement.drift'`, synthetic `event_id` so re-runs collide).
- *   (b) HEAL — synthesize the entitlement FROM THE LOCAL SUBSCRIPTION ROW ONLY.
+ * ─── Authority model (read this before changing the heal) ───────────────────
  *
- * Why local-only: the local subscription row was written by a signature-verified
- * Stripe webhook. Healing from it adds no new trust. Healing from a raw Stripe
- * read would widen the attack surface to anyone who can create Stripe objects —
- * which is exactly why `reconcile-stripe-subscriptions` stayed alert-only.
+ * The **local subscription row is the only heal source**, and it is authoritative
+ * *only while it is fresh*. It was written by a signature-verified Stripe
+ * webhook, so healing from it adds no new trust — but provenance is not
+ * currency. A row frozen at `trialing` because the trial-expiry webhook failed
+ * (exactly the failure class this cron backstops) would otherwise re-grant Pro
+ * forever, for free. So:
  *
- * Heal safety rails:
- *   - **Tier-monotonic UPWARD only.** A heal may raise a tier, never lower one.
- *     Downgrades are a business decision and stay webhook-driven.
- *   - **Never resurrects a terminal entitlement.** If the existing row is
- *     `revoked`/`expired`/`canceled`, we alert but do NOT heal. Healing it would
- *     re-grant access to an account someone deliberately cut off, which is the
- *     resurrection vector the WH-3 staleness guard exists to prevent. A stale
- *     local subscription row must never be able to undo a revocation.
- *   - **`last_event_at` is written NULL on healed rows**, so the very next
- *     webhook — whatever its `event.created` — wins over the heal. A healed row
- *     can never make a real event look stale.
- *   - Heal is gated by `RECONCILE_ENTITLEMENTS_HEAL` (default ON). Set it to
- *     'false' to run detector-only.
+ *   healthy = status IN ('active','trialing')
+ *             AND (current_period_end IS NULL OR current_period_end > now)
  *
- * Protected by X-Cron-Secret (timing-safe compare), same gate as the sibling
- * reconciliation crons.
+ * An expired period means the row is STALE, not that the customer is entitled.
+ * A stale row alerts and is never healed from.
+ *
+ * **Stripe is the cut-off mechanism, not the database.** To revoke access, cancel
+ * the subscription in Stripe: the webhook flips the local row to a non-healthy
+ * status and this cron stops healing. Hand-editing `account_entitlements`
+ * (setting tier to free, or deleting the row) is NOT a supported revocation — it
+ * will be healed back within a day, correctly, because a fresh healthy
+ * subscription says the customer is paying.
+ *
+ * There is deliberately NO entitlement-status rail here. An earlier draft refused
+ * to heal `revoked`/`expired`/`canceled` entitlements. That was backwards: those
+ * statuses are unreachable while a subscription is healthy, and the one case the
+ * rail did catch was a customer who RESUBSCRIBED after expiry and whose
+ * entitlement write failed — it denied exactly the person it should have healed.
+ *
+ * ─── Heal rails ─────────────────────────────────────────────────────────────
+ *   - Tier-monotonic UPWARD only (`isUpgrade`, sharing the single TIER_RANK in
+ *     lib/downgrade-cap.ts). Downgrades stay webhook-driven.
+ *   - Never heals from an unresolvable tier (F3, applied to the healer).
+ *   - `last_event_at` is NULL only on INSERT, never nulled on UPDATE — NULL lets
+ *     *any* event win, including a stale replay from `drain-unreconciled`.
+ *   - Mode-scoped throughout: a test-mode row must never touch live entitlements.
+ *   - Gated by `RECONCILE_ENTITLEMENTS_HEAL` (default ON).
+ *
+ * ─── Cost ───────────────────────────────────────────────────────────────────
+ * Vercel Hobby allows ONE cron/day, and `dispatch.ts` runs all ~13 jobs
+ * sequentially inside a single 30s function. So this job is **set-based**: one
+ * scan query covering every account, then writes only for the (small) drift set.
+ * An earlier draft did 4 queries per account under a 500-row cap, which both ate
+ * the shared budget and silently never reconciled account 501+. It is registered
+ * AFTER `sweep-grace-periods` so that even if it exhausts its budget it cannot
+ * starve the cron that REVOKES access for non-payers.
+ *
+ * Protected by X-Cron-Secret (timing-safe compare).
  */
 
 import { timingSafeEqual } from 'node:crypto';
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import {
@@ -51,42 +71,36 @@ import {
   licenses,
   unreconciledWebhooks,
 } from '@revealui/db/schema';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { isUpgrade } from '../../lib/downgrade-cap.js';
 import {
   buildHostedEntitlementValues,
   coerceHostedTier,
   type HostedTier,
-  isTierUpgrade,
 } from '../../lib/hosted-entitlement.js';
 
 const app = new Hono();
 
-const DEFAULT_BATCH_SIZE = 500;
-const MAX_BATCH_SIZE = 2000;
 const DRIFT_EVENT_TYPE = 'entitlement.drift';
+const DRIFT_EVENT_ID_PREFIX = 'cron-entitlement-drift:';
+/** Headroom inside dispatch's shared 30s budget. */
+const DEFAULT_DURATION_BUDGET_MS = 8000;
 
-/** Subscription statuses that entitle the account to access. */
 const HEALTHY_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing']);
-
-/**
- * Entitlement statuses that must NOT be healed back to life. A row in one of
- * these states was deliberately cut off; a cron inferring from a possibly-stale
- * local subscription row has no business re-granting it.
- */
-const TERMINAL_ENTITLEMENT_STATUSES = new Set(['revoked', 'expired', 'canceled']);
 
 type Outcome =
   | 'ok'
   | 'no-entitlement-source'
   | 'drift-healed'
+  | 'drift-alert-only-stale-subscription'
   | 'drift-alert-only-no-subscription'
   | 'drift-alert-only-unresolvable-tier'
-  | 'drift-alert-only-terminal'
-  | 'drift-alert-only-heal-disabled';
+  | 'drift-alert-only-heal-disabled'
+  | 'drift-alert-only-budget-exhausted';
 
-interface AccountScanResult {
+interface ScanResult {
   accountId: string;
   outcome: Outcome;
   expectedTier?: HostedTier;
@@ -94,7 +108,6 @@ interface AccountScanResult {
 }
 
 app.post('/reconcile-entitlements', async (c) => {
-  // ── auth gate (mirrors the sibling reconcile crons) ───────────────────
   const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
 
@@ -111,104 +124,84 @@ app.post('/reconcile-entitlements', async (c) => {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const batchSize = Math.min(
-    Number.parseInt(process.env.RECONCILE_ENTITLEMENTS_BATCH_SIZE ?? '', 10) || DEFAULT_BATCH_SIZE,
-    MAX_BATCH_SIZE,
-  );
-  // Default ON. Only an explicit 'false' disables healing.
   const healEnabled = (process.env.RECONCILE_ENTITLEMENTS_HEAL ?? 'true').toLowerCase() !== 'false';
+  const durationBudgetMs =
+    Number.parseInt(process.env.RECONCILE_ENTITLEMENTS_BUDGET_MS ?? '', 10) ||
+    DEFAULT_DURATION_BUDGET_MS;
 
   const db = getClient();
+  const mode = getConfiguredStripeMode();
   const startedAt = Date.now();
+  const now = new Date();
 
-  // ── accounts with at least one active membership ──────────────────────
-  const activeAccounts = await db
-    .selectDistinct({ accountId: accountMemberships.accountId })
+  // ── ONE scan query for every account with an active membership ────────────
+  // Subscription and entitlement are at most one row per account (mode-scoped),
+  // so the join fans out only on membership count; the license probe is folded
+  // in as a correlated EXISTS rather than an N+1.
+  const scanned = await db
+    .selectDistinct({
+      accountId: accountMemberships.accountId,
+      subPlanId: accountSubscriptions.planId,
+      subStatus: accountSubscriptions.status,
+      subPeriodEnd: accountSubscriptions.currentPeriodEnd,
+      subCustomerId: accountSubscriptions.stripeCustomerId,
+      subSubscriptionId: accountSubscriptions.stripeSubscriptionId,
+      entAccountId: accountEntitlements.accountId,
+      entTier: accountEntitlements.tier,
+      entLastEventAt: accountEntitlements.lastEventAt,
+      hasActiveLicense: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${licenses} l
+        JOIN ${accountMemberships} m2 ON m2.user_id = l.user_id
+        WHERE m2.account_id = ${accountMemberships.accountId}
+          AND m2.status = 'active'
+          AND l.status = 'active'
+          AND l.deleted_at IS NULL
+          AND l.mode = ${mode}
+      )`.as('has_active_license'),
+    })
     .from(accountMemberships)
-    .where(eq(accountMemberships.status, 'active'))
-    .limit(batchSize);
+    .leftJoin(
+      accountSubscriptions,
+      and(
+        eq(accountSubscriptions.accountId, accountMemberships.accountId),
+        eq(accountSubscriptions.mode, mode),
+      ),
+    )
+    .leftJoin(
+      accountEntitlements,
+      and(
+        eq(accountEntitlements.accountId, accountMemberships.accountId),
+        eq(accountEntitlements.mode, mode),
+      ),
+    )
+    .where(eq(accountMemberships.status, 'active'));
 
-  const results: AccountScanResult[] = [];
+  const results: ScanResult[] = [];
   let driftCount = 0;
   let healedCount = 0;
   let alertedCount = 0;
 
-  for (const { accountId } of activeAccounts) {
-    // ── the entitlement SOURCES: a healthy local subscription, or an active
-    //    license held by an active member ───────────────────────────────
-    const [subscription] = await db
-      .select({
-        planId: accountSubscriptions.planId,
-        status: accountSubscriptions.status,
-        mode: accountSubscriptions.mode,
-        stripeCustomerId: accountSubscriptions.stripeCustomerId,
-        stripeSubscriptionId: accountSubscriptions.stripeSubscriptionId,
-      })
-      .from(accountSubscriptions)
-      .where(eq(accountSubscriptions.accountId, accountId))
-      .limit(1);
+  for (const row of scanned) {
+    const accountId = row.accountId;
 
-    const healthySubscription =
-      subscription && HEALTHY_SUBSCRIPTION_STATUSES.has(subscription.status)
-        ? subscription
-        : undefined;
+    // A subscription is an entitlement source only while HEALTHY *and* FRESH.
+    const statusHealthy = row.subStatus ? HEALTHY_SUBSCRIPTION_STATUSES.has(row.subStatus) : false;
+    const periodFresh = !row.subPeriodEnd || row.subPeriodEnd.getTime() > now.getTime();
+    const subscriptionUsable = statusHealthy && periodFresh;
+    const subscriptionStale = statusHealthy && !periodFresh;
+    const hasActiveLicense = row.hasActiveLicense === true;
 
-    const memberIds = await db
-      .select({ userId: accountMemberships.userId })
-      .from(accountMemberships)
-      .where(
-        and(eq(accountMemberships.accountId, accountId), eq(accountMemberships.status, 'active')),
-      );
-
-    let hasActiveLicense = false;
-    if (memberIds.length > 0) {
-      const held = await db
-        .select({ id: licenses.id })
-        .from(licenses)
-        .where(
-          and(
-            inArray(
-              licenses.userId,
-              memberIds.map((m) => m.userId),
-            ),
-            eq(licenses.status, 'active'),
-            isNull(licenses.deletedAt),
-          ),
-        )
-        .limit(1);
-      hasActiveLicense = held.length > 0;
-    }
-
-    // No entitlement source at all → the account is legitimately free.
-    // This is the "entitlements=free + no healthy subscription/license" case:
-    // NOT drift, and explicitly NOT healed.
-    if (!(healthySubscription || hasActiveLicense)) {
+    if (!(subscriptionUsable || subscriptionStale || hasActiveLicense)) {
       results.push({ accountId, outcome: 'no-entitlement-source' });
       continue;
     }
 
-    // ── the expected tier comes ONLY from the local subscription row ─────
-    const expectedTier = coerceHostedTier(healthySubscription?.planId);
-
-    const [entitlement] = await db
-      .select({
-        accountId: accountEntitlements.accountId,
-        tier: accountEntitlements.tier,
-        status: accountEntitlements.status,
-      })
-      .from(accountEntitlements)
-      .where(eq(accountEntitlements.accountId, accountId))
-      .limit(1);
-
-    const actualTier = coerceHostedTier(entitlement?.tier) ?? null;
-
-    // ── is the invariant satisfied? ───────────────────────────────────────
-    // Satisfied when an entitlement row exists AND (we have no expected tier to
-    // compare against, OR the row is already at least the expected tier).
-    const missing = !entitlement;
+    const expectedTier = subscriptionUsable ? coerceHostedTier(row.subPlanId) : undefined;
+    const actualTier = coerceHostedTier(row.entTier) ?? null;
+    const missing = !row.entAccountId;
     const belowExpected =
       !missing && expectedTier !== undefined && actualTier !== null
-        ? isTierUpgrade(actualTier, expectedTier)
+        ? isUpgrade(actualTier, expectedTier)
         : false;
 
     if (!(missing || belowExpected)) {
@@ -216,128 +209,136 @@ app.post('/reconcile-entitlements', async (c) => {
       continue;
     }
 
-    // ── DRIFT ─────────────────────────────────────────────────────────────
     driftCount += 1;
 
     const alerted = await recordDrift(db, {
       accountId,
       expectedTier,
       actualTier,
-      customerId: healthySubscription?.stripeCustomerId ?? null,
-      subscriptionId: healthySubscription?.stripeSubscriptionId ?? null,
+      customerId: row.subCustomerId ?? null,
+      subscriptionId: row.subSubscriptionId ?? null,
       hasActiveLicense,
+      subscriptionStale,
     });
     if (alerted) {
       alertedCount += 1;
     }
 
-    // ── can we heal? ──────────────────────────────────────────────────────
+    const alertOnly = (outcome: Outcome): void => {
+      results.push({ accountId, outcome, expectedTier, actualTier });
+    };
+
     if (!healEnabled) {
-      results.push({
-        accountId,
-        outcome: 'drift-alert-only-heal-disabled',
-        expectedTier,
-        actualTier,
-      });
+      alertOnly('drift-alert-only-heal-disabled');
       continue;
     }
-
-    // Heal source is the LOCAL SUBSCRIPTION ROW ONLY. A license-only account
-    // (no healthy subscription row) has nothing safe to synthesize from.
-    if (!healthySubscription) {
-      results.push({
-        accountId,
-        outcome: 'drift-alert-only-no-subscription',
-        expectedTier,
-        actualTier,
-      });
+    // A stale row is NOT a licence to grant. Alert; never heal from it.
+    if (subscriptionStale) {
+      alertOnly('drift-alert-only-stale-subscription');
       continue;
     }
-
-    // Refuse to write a tier we cannot resolve — the F3 "never write from
-    // ignorance" rule applies to the healer exactly as it does to the webhook.
+    // License-only: nothing safe to synthesize from. An operator resends the event.
+    if (!subscriptionUsable) {
+      alertOnly('drift-alert-only-no-subscription');
+      continue;
+    }
+    // F3: never write a tier we cannot resolve.
     if (expectedTier === undefined) {
-      results.push({
-        accountId,
-        outcome: 'drift-alert-only-unresolvable-tier',
-        expectedTier,
-        actualTier,
-      });
+      alertOnly('drift-alert-only-unresolvable-tier');
+      continue;
+    }
+    if (Date.now() - startedAt >= durationBudgetMs) {
+      alertOnly('drift-alert-only-budget-exhausted');
       continue;
     }
 
-    // Never resurrect a deliberately terminated entitlement.
-    if (entitlement && TERMINAL_ENTITLEMENT_STATUSES.has(entitlement.status)) {
-      logger.warn(
-        '[reconcile-entitlements] drift on a terminal entitlement — alerting without healing (refusing to resurrect a revoked/expired/canceled row)',
-        { accountId, entitlementStatus: entitlement.status, expectedTier },
-      );
-      results.push({ accountId, outcome: 'drift-alert-only-terminal', expectedTier, actualTier });
-      continue;
-    }
-
-    const now = new Date();
     const values = buildHostedEntitlementValues({
       tier: expectedTier,
-      status: healthySubscription.status,
-      mode: healthySubscription.mode === 'test' ? 'test' : 'live',
+      status: row.subStatus ?? 'active',
+      mode,
       graceUntil: null,
-      // NULL by design: the next webhook must always win over a healed row.
-      lastEventAt: null,
+      // INSERT: NULL, so the next webhook wins over a synthesized row.
+      // UPDATE: preserve the cursor — nulling it would let a STALE replayed
+      // event win and re-open the WH-3 window PR-1 closed.
+      lastEventAt: missing ? null : (row.entLastEventAt ?? null),
       now,
     });
 
-    if (entitlement) {
-      await db
-        .update(accountEntitlements)
-        .set(values)
-        .where(eq(accountEntitlements.accountId, accountId));
-    } else {
+    if (missing) {
       await db
         .insert(accountEntitlements)
         .values({ accountId, ...values })
         .onConflictDoNothing();
+    } else {
+      await db
+        .update(accountEntitlements)
+        .set(values)
+        .where(
+          and(eq(accountEntitlements.accountId, accountId), eq(accountEntitlements.mode, mode)),
+        );
     }
+
+    // The drift is gone — close our own alert row, so a FUTURE drift on this
+    // account can raise a fresh one (recordDrift only suppresses on an UNRESOLVED row).
+    await db
+      .update(unreconciledWebhooks)
+      .set({ resolvedAt: new Date(), resolvedBy: 'cron:reconcile-entitlements' })
+      .where(
+        and(
+          eq(unreconciledWebhooks.eventId, `${DRIFT_EVENT_ID_PREFIX}${accountId}`),
+          isNull(unreconciledWebhooks.resolvedAt),
+        ),
+      );
 
     healedCount += 1;
     logger.error(
       `[reconcile-entitlements] HEALED entitlement drift for account ${accountId}`,
       undefined,
-      { accountId, expectedTier, actualTier, status: healthySubscription.status },
+      { accountId, expectedTier, actualTier, status: row.subStatus },
     );
     results.push({ accountId, outcome: 'drift-healed', expectedTier, actualTier });
   }
 
-  if (driftCount > 0) {
+  // Page ops only for drift we could NOT fix. A fully-healed run is a success,
+  // not an incident.
+  const unhealed = driftCount - healedCount;
+  if (unhealed > 0) {
     void sendCronFailureAlert({
       jobName: 'reconcile-entitlements',
       error: new Error(
-        `CRITICAL: ${driftCount} account(s) with entitlement drift — paying customers may be gated as free`,
+        `${unhealed} account(s) with UNHEALED entitlement drift — paying customers may be gated as free`,
       ),
       severity: 'error',
-      metadata: { drift: driftCount, healed: healedCount, alerted: alertedCount },
+      metadata: { drift: driftCount, healed: healedCount, unhealed, alerted: alertedCount },
     });
   }
 
   return c.json(
     {
-      scanned: activeAccounts.length,
+      scanned: scanned.length,
       drift: driftCount,
       healed: healedCount,
+      unhealed,
       alerted: alertedCount,
       healEnabled,
+      mode,
       durationMs: Date.now() - startedAt,
-      results,
+      // Exceptions only — echoing every account id would be a payload and
+      // log-noise problem at scale.
+      results: results.filter((r) => r.outcome !== 'ok' && r.outcome !== 'no-entitlement-source'),
     },
     200,
   );
 });
 
 /**
- * Idempotent drift alert. The synthetic event_id collides on re-runs, so a
- * standing drift does not spam a new row every tick.
+ * Idempotent drift alert.
  *
- * Returns true when a NEW alert row was written.
+ * The existence check is scoped to UNRESOLVED rows. A previously-resolved row
+ * must not suppress a fresh alert — that is the bug that let the alert channel
+ * close itself permanently after a single firing (see lib/synthetic-events.ts).
+ *
+ * Returns true when a new alert was raised.
  */
 async function recordDrift(
   db: ReturnType<typeof getClient>,
@@ -348,17 +349,18 @@ async function recordDrift(
     customerId: string | null;
     subscriptionId: string | null;
     hasActiveLicense: boolean;
+    subscriptionStale: boolean;
   },
 ): Promise<boolean> {
-  const syntheticEventId = `cron-entitlement-drift:${params.accountId}`;
+  const eventId = `${DRIFT_EVENT_ID_PREFIX}${params.accountId}`;
 
-  const existing = await db
+  const open = await db
     .select({ eventId: unreconciledWebhooks.eventId })
     .from(unreconciledWebhooks)
-    .where(eq(unreconciledWebhooks.eventId, syntheticEventId))
+    .where(and(eq(unreconciledWebhooks.eventId, eventId), isNull(unreconciledWebhooks.resolvedAt)))
     .limit(1);
 
-  if (existing.length > 0) {
+  if (open.length > 0) {
     return false;
   }
 
@@ -366,39 +368,44 @@ async function recordDrift(
     `Entitlement drift for account ${params.accountId}:`,
     `expected tier ${params.expectedTier ?? 'unresolvable'},`,
     `actual ${params.actualTier ?? 'NO ENTITLEMENT ROW'}.`,
+    params.subscriptionStale
+      ? 'The local subscription row is STALE (current_period_end has passed) and was NOT healed from — the period likely expired and the expiry webhook never landed.'
+      : '',
     params.hasActiveLicense ? 'An active license is held by a member.' : '',
-    'A paying customer is being gated below what they bought.',
-    'Remedy: the reconciler heals from the local subscription row when it can;',
-    'if it could not, resend the checkout.session.completed event from Stripe.',
+    'Remedy: resend the relevant Stripe event, or cancel the subscription in Stripe if the customer is no longer entitled.',
   ]
     .filter(Boolean)
     .join(' ');
 
   try {
+    // A RESOLVED row with this id may already exist (an earlier, since-healed
+    // drift). Re-open it rather than letting the PK conflict swallow the alert.
     await db
       .insert(unreconciledWebhooks)
       .values({
-        eventId: syntheticEventId,
+        eventId,
         eventType: DRIFT_EVENT_TYPE,
         customerId: params.customerId,
         stripeObjectId: params.subscriptionId,
         objectType: 'subscription',
         errorTrace,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: unreconciledWebhooks.eventId,
+        set: { resolvedAt: null, resolvedBy: null, errorTrace, createdAt: new Date() },
+      });
     logger.error(
-      `[reconcile-entitlements] CRITICAL: entitlement drift for account ${params.accountId}`,
+      `[reconcile-entitlements] entitlement drift for account ${params.accountId}`,
       undefined,
       {
         accountId: params.accountId,
         expectedTier: params.expectedTier,
         actualTier: params.actualTier,
+        subscriptionStale: params.subscriptionStale,
       },
     );
     return true;
   } catch (err) {
-    // Two ticks can race on the same synthetic id; the loser is fine — the row
-    // is the goal, not who wrote it.
     logger.warn(
       `[reconcile-entitlements] drift alert insert raced for ${params.accountId} — treating as already-tracked`,
       { detail: err instanceof Error ? err.message : String(err) },

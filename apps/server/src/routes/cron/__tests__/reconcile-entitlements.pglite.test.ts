@@ -1,16 +1,17 @@
 /**
- * GAP-356 F5 test 4 — the entitlement-consistency reconciler (PR-2).
+ * GAP-356 F5 test 4 — the entitlement-consistency reconciler.
  *
- * PGlite (in-memory Postgres) + real Drizzle + the REAL migrations, driving the
- * actual cron route. The defect this cron exists to catch lives in cross-table
- * state, so a DB-mocked unit test cannot see it — the same reason the original
- * GAP-356 defect escaped every existing test.
+ * PGlite + REAL migrations + the real Hono route. The defects this cron guards
+ * live in cross-table state, so a DB-mocked unit test cannot see them.
  *
- * Proves:
- *   1. license=pro + subscription=trialing + entitlement MISSING  → healed to pro.
- *   2. entitlement=free + no healthy subscription and no license   → NO heal.
- *   3. heal is tier-monotonic UPWARD — an existing higher tier is never lowered.
- *   4. the drift alert row is idempotent across repeated cron runs.
+ * Covers the hardening from the PR-2 adversarial review:
+ *   B1  a STALE subscription (period ended) is never healed from
+ *   B3  a resolved drift alert does NOT suppress the next genuine drift
+ *   B4  a RESUBSCRIBED customer over a terminal entitlement IS healed
+ *   S1  mode scoping — a test-mode row never touches a live entitlement
+ *   S2  `last_event_at` is preserved on UPDATE, nulled only on INSERT
+ *   S4  the previously-untested rails: unresolvable tier, heal disabled, and
+ *       the healed row's features/limits
  */
 
 import { eq } from 'drizzle-orm';
@@ -29,8 +30,14 @@ vi.mock('@revealui/db', () => ({
   getClient: () => testDb.drizzle,
 }));
 
+vi.mock('@revealui/config/stripe-mode', () => ({
+  getConfiguredStripeMode: () => 'live',
+}));
+
 vi.mock('@revealui/core/features', () => ({
-  getFeaturesForTier: vi.fn(() => ({ ai: true, payments: true })),
+  getFeaturesForTier: vi.fn((tier: string) =>
+    tier === 'pro' ? { ai: true, payments: true } : { ai: false, payments: false },
+  ),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -51,51 +58,47 @@ import {
   licenses,
   unreconciledWebhooks,
 } from '@revealui/db/schema';
+import { getHostedLimitsForTier } from '../../../lib/tier-limits.js';
 import reconcileEntitlementsRoute from '../reconcile-entitlements.js';
 
 const CRON_SECRET = 'test-cron-secret';
+const HOUR = 60 * 60 * 1000;
 
-async function runCron(): Promise<{ status: number; body: Record<string, unknown> }> {
+async function runCron(): Promise<Record<string, unknown>> {
   const res = await reconcileEntitlementsRoute.request('/reconcile-entitlements', {
     method: 'POST',
     headers: { 'X-Cron-Secret': CRON_SECRET },
   });
-  return { status: res.status, body: (await res.json()) as Record<string, unknown> };
+  return (await res.json()) as Record<string, unknown>;
 }
 
-/** Seed an account with one active member. Returns ids. */
 async function seedAccount(): Promise<{ accountId: string; userId: string }> {
   const { randomUUID } = await import('node:crypto');
   const user = await seedTestUser(testDb.drizzle);
   const accountId = randomUUID();
-
-  await testDb.drizzle.insert(accounts).values({
-    id: accountId,
-    name: 'Acme',
-    slug: `acme-${accountId.slice(0, 8)}`,
-    status: 'active',
-  });
-  await testDb.drizzle.insert(accountMemberships).values({
-    id: randomUUID(),
-    accountId,
-    userId: user.id,
-    role: 'owner',
-    status: 'active',
-  });
-
+  await testDb.drizzle
+    .insert(accounts)
+    .values({ id: accountId, name: 'Acme', slug: `acme-${accountId.slice(0, 8)}` });
+  await testDb.drizzle
+    .insert(accountMemberships)
+    .values({ id: randomUUID(), accountId, userId: user.id, role: 'owner', status: 'active' });
   return { accountId, userId: user.id };
 }
 
-async function seedSubscription(accountId: string, planId: string, status: string): Promise<void> {
+async function seedSubscription(
+  accountId: string,
+  opts: { planId: string; status: string; periodEnd?: Date | null; mode?: 'live' | 'test' },
+): Promise<void> {
   const { randomUUID } = await import('node:crypto');
   await testDb.drizzle.insert(accountSubscriptions).values({
     id: randomUUID(),
     accountId,
     stripeCustomerId: `cus_${accountId.slice(0, 8)}`,
     stripeSubscriptionId: `sub_${accountId.slice(0, 8)}`,
-    planId,
-    status,
-    mode: 'test',
+    planId: opts.planId,
+    status: opts.status,
+    currentPeriodEnd: opts.periodEnd ?? new Date(Date.now() + 24 * HOUR),
+    mode: opts.mode ?? 'live',
   });
 }
 
@@ -108,6 +111,7 @@ async function seedLicense(userId: string, tier: string): Promise<void> {
     tier,
     customerId: `cus_${userId.slice(0, 8)}`,
     status: 'active',
+    mode: 'live',
   });
 }
 
@@ -120,7 +124,16 @@ async function getEntitlement(accountId: string) {
   return row;
 }
 
-describe('cron: reconcile-entitlements (GAP-356 F4)', () => {
+async function getAlert(accountId: string) {
+  const [row] = await testDb.drizzle
+    .select()
+    .from(unreconciledWebhooks)
+    .where(eq(unreconciledWebhooks.eventId, `cron-entitlement-drift:${accountId}`))
+    .limit(1);
+  return row;
+}
+
+describe('cron: reconcile-entitlements (GAP-356 F4, hardened)', () => {
   beforeAll(async () => {
     testDb = await createTestDb();
     process.env.REVEALUI_CRON_SECRET = CRON_SECRET;
@@ -131,7 +144,6 @@ describe('cron: reconcile-entitlements (GAP-356 F4)', () => {
   });
 
   beforeEach(async () => {
-    // Order matters: children before parents (FKs).
     await testDb.drizzle.delete(unreconciledWebhooks);
     await testDb.drizzle.delete(accountEntitlements);
     await testDb.drizzle.delete(accountSubscriptions);
@@ -148,95 +160,196 @@ describe('cron: reconcile-entitlements (GAP-356 F4)', () => {
     expect(res.status).toBe(401);
   });
 
-  it('heals a missing entitlement from the local subscription row (license=pro, subscription=trialing)', async () => {
+  it('heals a missing entitlement from a fresh subscription, with the correct feature set', async () => {
     const { accountId, userId } = await seedAccount();
-    await seedSubscription(accountId, 'pro', 'trialing');
+    await seedSubscription(accountId, { planId: 'pro', status: 'trialing' });
     await seedLicense(userId, 'pro');
 
-    // Precondition: the exact production incident — paying/trialing, no entitlement.
-    expect(await getEntitlement(accountId)).toBeUndefined();
-
-    const { status, body } = await runCron();
-    expect(status).toBe(200);
+    const body = await runCron();
     expect(body.healed).toBe(1);
 
     const ent = await getEntitlement(accountId);
-    expect(ent).toBeDefined();
     expect(ent?.tier).toBe('pro');
-    expect(ent?.planId).toBe('pro');
-    // Status is carried from the local subscription row — the trial signal survives.
     expect(ent?.status).toBe('trialing');
     expect(ent?.meteringStatus).toBe('active');
-    // NULL by design: the next webhook must always win over a healed row.
+    expect(ent?.mode).toBe('live');
+    // INSERT: cursor NULL so the next webhook wins.
     expect(ent?.lastEventAt).toBeNull();
+    // S4 — a heal must grant the SAME features/limits the webhook path would.
+    expect(ent?.features).toEqual({ ai: true, payments: true });
+    expect(ent?.limits).toEqual(getHostedLimitsForTier('pro'));
   });
 
-  it('does NOT heal when there is no entitlement source (entitlement=free, no healthy subscription, no license)', async () => {
+  // ── B1: the over-grant the review found ──────────────────────────────────
+  it('does NOT heal from a STALE subscription — an expired trial is not a licence to grant', async () => {
     const { accountId } = await seedAccount();
-    // Canceled subscription is not a healthy source.
-    await seedSubscription(accountId, 'pro', 'canceled');
-    await testDb.drizzle.insert(accountEntitlements).values({
-      accountId,
-      planId: 'free',
-      tier: 'free',
-      status: 'active',
+    // Still says `trialing` because the expiry webhook never landed — the exact
+    // failure class this cron exists to backstop. The period ended a day ago.
+    await seedSubscription(accountId, {
+      planId: 'pro',
+      status: 'trialing',
+      periodEnd: new Date(Date.now() - 24 * HOUR),
     });
 
-    const { body } = await runCron();
+    const body = await runCron();
+    expect(body.healed).toBe(0);
+    expect(body.drift).toBe(1);
+
+    // No free Pro, forever.
+    expect(await getEntitlement(accountId)).toBeUndefined();
+    expect((await getAlert(accountId))?.errorTrace).toContain('STALE');
+  });
+
+  it('does NOT heal when there is no entitlement source at all', async () => {
+    const { accountId } = await seedAccount();
+    await seedSubscription(accountId, { planId: 'pro', status: 'canceled' });
+    await testDb.drizzle
+      .insert(accountEntitlements)
+      .values({ accountId, planId: 'free', tier: 'free', status: 'active', mode: 'live' });
+
+    const body = await runCron();
     expect(body.healed).toBe(0);
     expect(body.drift).toBe(0);
-
-    const ent = await getEntitlement(accountId);
-    expect(ent?.tier).toBe('free');
-
-    // And it must not have invented a drift alert.
-    const alerts = await testDb.drizzle.select().from(unreconciledWebhooks);
-    expect(alerts).toHaveLength(0);
+    expect((await getEntitlement(accountId))?.tier).toBe('free');
+    expect(await getAlert(accountId)).toBeUndefined();
   });
 
   it('never downgrades: an existing higher tier survives a lower-tier subscription', async () => {
     const { accountId } = await seedAccount();
-    await seedSubscription(accountId, 'pro', 'trialing');
-    await testDb.drizzle.insert(accountEntitlements).values({
-      accountId,
-      planId: 'max',
-      tier: 'max',
-      status: 'active',
-    });
+    await seedSubscription(accountId, { planId: 'pro', status: 'trialing' });
+    await testDb.drizzle
+      .insert(accountEntitlements)
+      .values({ accountId, planId: 'max', tier: 'max', status: 'active', mode: 'live' });
 
-    const { body } = await runCron();
+    const body = await runCron();
     expect(body.healed).toBe(0);
+    expect((await getEntitlement(accountId))?.tier).toBe('max');
+  });
+
+  // ── B4: the rail the review found backwards ──────────────────────────────
+  it('HEALS a resubscribed customer whose entitlement is terminal (the old rail denied this)', async () => {
+    const { accountId } = await seedAccount();
+    // They resubscribed — fresh, healthy Pro subscription…
+    await seedSubscription(accountId, { planId: 'pro', status: 'active' });
+    // …but the entitlement still sits expired from the previous cycle because its
+    // write failed. The earlier terminal-status rail refused to heal exactly this
+    // person, while letting a deleted row be resurrected.
+    await testDb.drizzle
+      .insert(accountEntitlements)
+      .values({ accountId, planId: 'free', tier: 'free', status: 'expired', mode: 'live' });
+
+    const body = await runCron();
+    expect(body.healed).toBe(1);
 
     const ent = await getEntitlement(accountId);
-    expect(ent?.tier).toBe('max');
+    expect(ent?.tier).toBe('pro');
     expect(ent?.status).toBe('active');
   });
 
-  it('writes an idempotent drift alert — a standing drift does not re-alert every tick', async () => {
-    // License-only drift: a real entitlement source, but no local subscription
-    // row to safely synthesize from. Alerts, cannot heal — so the drift stands
-    // across runs and the idempotency of the alert row is what is under test.
+  // ── S2: the WH-3 window must stay closed ─────────────────────────────────
+  it('preserves last_event_at on an UPDATE heal (nulling it would let a stale replay win)', async () => {
+    const { accountId } = await seedAccount();
+    const cursor = new Date(Date.now() - 10 * HOUR);
+    await seedSubscription(accountId, { planId: 'max', status: 'active' });
+    await testDb.drizzle.insert(accountEntitlements).values({
+      accountId,
+      planId: 'pro',
+      tier: 'pro',
+      status: 'active',
+      mode: 'live',
+      lastEventAt: cursor,
+    });
+
+    const body = await runCron();
+    expect(body.healed).toBe(1);
+
+    const ent = await getEntitlement(accountId);
+    expect(ent?.tier).toBe('max');
+    // Cursor survives the heal — a stale replayed event must still lose.
+    expect(ent?.lastEventAt?.toISOString()).toBe(cursor.toISOString());
+  });
+
+  // ── S1: mode scoping ─────────────────────────────────────────────────────
+  it('ignores a test-mode subscription when running in live mode', async () => {
+    const { accountId } = await seedAccount();
+    await seedSubscription(accountId, { planId: 'pro', status: 'active', mode: 'test' });
+
+    const body = await runCron();
+    expect(body.healed).toBe(0);
+    expect(body.drift).toBe(0);
+    // A test-mode row must never mint a live entitlement.
+    expect(await getEntitlement(accountId)).toBeUndefined();
+  });
+
+  // ── rails the review found untested ──────────────────────────────────────
+  it('alerts without writing when the tier is unresolvable (never writes from ignorance)', async () => {
+    const { accountId } = await seedAccount();
+    await seedSubscription(accountId, { planId: 'mystery-plan', status: 'active' });
+
+    const body = await runCron();
+    expect(body.drift).toBe(1);
+    expect(body.healed).toBe(0);
+    expect(await getEntitlement(accountId)).toBeUndefined();
+    expect((await getAlert(accountId))?.eventType).toBe('entitlement.drift');
+  });
+
+  it('alerts without healing when RECONCILE_ENTITLEMENTS_HEAL=false', async () => {
+    process.env.RECONCILE_ENTITLEMENTS_HEAL = 'false';
+    const { accountId } = await seedAccount();
+    await seedSubscription(accountId, { planId: 'pro', status: 'active' });
+
+    const body = await runCron();
+    expect(body.healEnabled).toBe(false);
+    expect(body.drift).toBe(1);
+    expect(body.healed).toBe(0);
+    expect(await getEntitlement(accountId)).toBeUndefined();
+    expect(await getAlert(accountId)).toBeDefined();
+  });
+
+  // ── B3: the alert channel must not close itself ──────────────────────────
+  it('re-alerts after a previous drift row was resolved (the drainer must not silence us)', async () => {
     const { accountId, userId } = await seedAccount();
+    await seedLicense(userId, 'pro'); // license-only → alert, unhealable
+
+    const first = await runCron();
+    expect(first.alerted).toBe(1);
+
+    // Simulate what `drain-unreconciled` did to our synthetic row: Stripe 404s,
+    // so it stamped resolvedAt. (It now skips synthetic ids — but the reconciler
+    // must be robust to a resolved row regardless, since an operator can resolve
+    // one by hand.)
+    await testDb.drizzle
+      .update(unreconciledWebhooks)
+      .set({ resolvedAt: new Date(), resolvedBy: 'cron:event-missing' })
+      .where(eq(unreconciledWebhooks.eventId, `cron-entitlement-drift:${accountId}`));
+
+    const second = await runCron();
+    // The drift is still real, so it MUST be raised again.
+    expect(second.drift).toBe(1);
+    expect(second.alerted).toBe(1);
+    expect((await getAlert(accountId))?.resolvedAt).toBeNull();
+  });
+
+  it('does not re-alert while the drift row is still open', async () => {
+    const { userId } = await seedAccount();
     await seedLicense(userId, 'pro');
 
     const first = await runCron();
-    expect(first.body.drift).toBe(1);
-    expect(first.body.alerted).toBe(1);
-    expect(first.body.healed).toBe(0);
-
+    expect(first.alerted).toBe(1);
     const second = await runCron();
-    expect(second.body.drift).toBe(1);
-    // Still drifting, but NOT re-alerted — the synthetic event_id collides.
-    expect(second.body.alerted).toBe(0);
+    expect(second.drift).toBe(1);
+    expect(second.alerted).toBe(0); // still open — no duplicate
+  });
 
-    const alerts = await testDb.drizzle
-      .select()
-      .from(unreconciledWebhooks)
-      .where(eq(unreconciledWebhooks.eventId, `cron-entitlement-drift:${accountId}`));
-    expect(alerts).toHaveLength(1);
-    expect(alerts[0]?.eventType).toBe('entitlement.drift');
+  it('closes its own alert once the drift is healed', async () => {
+    const { accountId } = await seedAccount();
+    await seedSubscription(accountId, { planId: 'pro', status: 'active' });
 
-    // No entitlement was synthesized from a license alone.
-    expect(await getEntitlement(accountId)).toBeUndefined();
+    const body = await runCron();
+    expect(body.healed).toBe(1);
+
+    const alert = await getAlert(accountId);
+    expect(alert?.resolvedAt).not.toBeNull();
+    expect(alert?.resolvedBy).toBe('cron:reconcile-entitlements');
   });
 });

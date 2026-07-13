@@ -34,6 +34,19 @@ export function isDowngrade(oldTier: LicenseTierId, newTier: LicenseTierId): boo
   return TIER_RANK[newTier] < TIER_RANK[oldTier];
 }
 
+/**
+ * Returns true if newTier has strictly higher rank than oldTier. Equal tiers are
+ * NOT an upgrade.
+ *
+ * The entitlement reconciler's monotonic-upward heal guard uses this. It lives
+ * here, beside `isDowngrade` and sharing the one `TIER_RANK`, rather than in a
+ * second copy of the map — a duplicated tier ordering is exactly the drift class
+ * GAP-356 already is.
+ */
+export function isUpgrade(oldTier: LicenseTierId, newTier: LicenseTierId): boolean {
+  return TIER_RANK[newTier] > TIER_RANK[oldTier];
+}
+
 // =============================================================================
 // Capping Result
 // =============================================================================
