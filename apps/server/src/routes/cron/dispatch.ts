@@ -25,6 +25,7 @@ import lifecycleEmailsApp from './lifecycle-emails.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import reconcileCustomersApp from './reconcile-customers.js';
+import reconcileEntitlementsApp from './reconcile-entitlements.js';
 import reconcileStripeSubscriptionsApp from './reconcile-stripe-subscriptions.js';
 import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
@@ -71,6 +72,17 @@ const JOBS = [
     name: 'reconcile-stripe-subscriptions',
     app: reconcileStripeSubscriptionsApp,
     path: '/reconcile-stripe-subscriptions',
+  },
+  // reconcile-entitlements (GAP-356 F4) runs AFTER the subscription reconcilers
+  // so it evaluates the freshest local subscription rows, and BEFORE
+  // sweep-grace-periods, which acts on entitlement state. It checks the one
+  // invariant none of the crons above covered: a healthy subscription or an
+  // active license MUST have a matching `account_entitlements` row. Alerts on
+  // drift and heals upward from the local subscription row.
+  {
+    name: 'reconcile-entitlements',
+    app: reconcileEntitlementsApp,
+    path: '/reconcile-entitlements',
   },
   { name: 'billing-readiness', app: billingReadinessApp, path: '/billing-readiness' },
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
