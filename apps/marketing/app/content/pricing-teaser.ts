@@ -29,7 +29,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     id: 'free',
     name: 'Free',
     description:
-      '22 of 28 packages MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
+      '22 of 28 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. There is no telemetry.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
@@ -43,7 +43,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    description: 'Pro AI primitives, agent task allowance, and priority support.',
+    description: 'Pro adds the AI primitives, an agent task allowance, and priority support.',
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',
@@ -67,13 +67,13 @@ export const PRICING_TEASER_LINKS: readonly TeaserLink[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'AI memory, advanced inference, and compliance tooling.',
+    description: 'Max adds AI memory, advanced inference, and compliance tooling.',
     href: '/pricing',
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Scale, compliance, and agent payments.',
+    description: 'Enterprise adds scale and compliance controls.',
     href: '/pricing',
   },
 ] as const;

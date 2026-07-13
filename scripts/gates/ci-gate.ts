@@ -315,6 +315,15 @@ async function gate(): Promise<void> {
         args: ['validate:claims'],
       },
       {
+        // Every prose sentence in covered marketing content files must carry
+        // a claims-evidence entry citing the code that proves it; cited paths
+        // must exist. Sibling of claim-drift: that gate pins the numbers,
+        // this one pins the sentences.
+        name: 'Claims evidence (hard fail)',
+        command: 'pnpm',
+        args: ['validate:claims-evidence'],
+      },
+      {
         name: 'Marketing voice (hard fail)',
         command: 'pnpm',
         args: ['validate:marketing-voice'],
