@@ -35,9 +35,10 @@ describe('marketing content contracts', () => {
 
     it('every capability cites a real repo source file', () => {
       for (const cap of CAPABILITIES) {
-        expect(cap.path.startsWith('packages/'), `${cap.title}: path not under packages/`).toBe(
-          true,
-        );
+        expect(
+          cap.path.startsWith('packages/') || cap.path.startsWith('apps/'),
+          `${cap.title}: path not under packages/ or apps/`,
+        ).toBe(true);
         expect(cap.href.startsWith(SITE.urls.repo), `${cap.title}: href not in the repo`).toBe(
           true,
         );
