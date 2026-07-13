@@ -51,7 +51,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   },
   {
     question: 'Do you offer custom pricing for large teams?',
-    answer: `Yes. If you need more than what the Enterprise tier offers, contact us at ${SITE.emails.support} to discuss custom pricing and SLAs.`,
+    answer: `Yes. If you need more than what the Enterprise tier offers, contact us at ${SITE.emails.support} to discuss custom pricing. See /sla for our standard support and uptime commitments.`,
   },
   {
     question: 'What is RevFleet?',

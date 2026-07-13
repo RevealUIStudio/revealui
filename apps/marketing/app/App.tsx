@@ -15,9 +15,11 @@ import { PhilosophyPage } from './routes/PhilosophyPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
+import { RefundPolicyPage } from './routes/RefundPolicyPage';
 import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
 import { ServicesPage } from './routes/ServicesPage';
+import { SlaPage } from './routes/SlaPage';
 import { StatusPage } from './routes/StatusPage';
 import { SubprocessorsPage } from './routes/SubprocessorsPage';
 import { SupportPage } from './routes/SupportPage';
@@ -73,6 +75,12 @@ export function App() {
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
       { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },
       { path: '/support', component: SupportPage, meta: { title: 'Support | RevealUI' } },
+      { path: '/sla', component: SlaPage, meta: { title: 'Service Level Commitments | RevealUI' } },
+      {
+        path: '/refund-policy',
+        component: RefundPolicyPage,
+        meta: { title: 'Refund Policy | RevealUI' },
+      },
       { path: '/status', component: StatusPage, meta: { title: 'Status | RevealUI' } },
       {
         path: '/legal/subprocessors',
