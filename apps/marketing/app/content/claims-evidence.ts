@@ -947,7 +947,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'products.ts',
     exportPath: 'PRODUCTS_PAGE_HERO.subtitle',
-    text: 'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio. Six ship today; the agent marketplace is on the way.',
+    text: 'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio. Five are yours to use today, RevForge runs in private preview, and the agent marketplace is on the way.',
     evidence: [
       REPO,
       REVVAULT_REPO,
