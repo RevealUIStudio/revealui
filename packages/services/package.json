@@ -1,7 +1,7 @@
 {
   "name": "@revealui/services",
   "version": "0.7.4",
-  "description": "External service integrations — Stripe (billing + circuit breaker), Vercel (deploy + DNS). Ships with RevealUI.",
+  "description": "External service integrations, Stripe (payment processing + circuit breaker) and email (Gmail API delivery). Ships with RevealUI.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",

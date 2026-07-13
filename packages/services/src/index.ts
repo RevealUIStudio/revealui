@@ -3,6 +3,7 @@
  *
  * Provides service integrations:
  * - Stripe payment processing
+ * - Email delivery (Gmail API)
  *
  * ## Usage
  *
