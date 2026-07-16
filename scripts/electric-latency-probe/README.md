@@ -17,8 +17,8 @@ in a meeting, with a header that identifies which backend was measured.
 ## Why local, not prod
 
 - The first Forge customer's deployment is local-box, not cloud. The honest
-  number is the local number; the cloud path adds Vercel→Railway
-  and Railway→Supabase hops that the customer won't experience.
+  number is the local number; the cloud path adds Vercel→Electric
+  and Electric→Neon hops that the customer won't experience.
 - Avoids writing 50 POSTs into a prod shape other subscribers read.
 - Secrets posture: the script pulls from revvault rather than
   env-vars you have to paste anywhere.
@@ -155,5 +155,5 @@ Output has both, labeled unambiguously.
   number as an upper bound on propagation under concurrent writes —
   the real number at 50 concurrent agents is unknown and not addressed
   by this script. If someone asks, say exactly that.
-- The Vercel → Railway → Supabase cloud path. Prod would have that
+- The Vercel → Electric → Neon cloud path. Prod would have that
   plus CDN caching behavior we don't simulate here.
