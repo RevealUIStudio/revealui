@@ -7,7 +7,7 @@ audience: user
 author: Joshua Vaughn
 ---
 
-Marketing numbers rot. A landing page says "61 components," the team ships three more, and now the page is wrong and nobody notices, because the page and the code live in different worlds and no one is paid to keep them in sync.
+Marketing numbers rot. A landing page says "65 components," the team ships four more, and now the page is wrong and nobody notices, because the page and the code live in different worlds and no one is paid to keep them in sync.
 
 On revealui.com, that cannot happen. Every count we publish is checked against the actual code on every push, and if a number drifts from the truth, the build fails before the change can merge. The marketing site is not allowed to lie.
 
@@ -31,7 +31,7 @@ export const METRICS = {
 } as const;
 ```
 
-A page that wants to say "61 UI components" imports `METRICS.uiComponents`. It never types `60`. Change the underlying number in one place and the copy follows automatically, on the marketing site, in the docs, and in the product roadmap, with no copy edit at all.
+A page that wants to say "65 UI components" imports `METRICS.uiComponents`. It never types `64`. Change the underlying number in one place and the copy follows automatically, on the marketing site, in the docs, and in the product roadmap, with no copy edit at all.
 
 ## The validator that does the counting
 
@@ -45,7 +45,7 @@ claim-drift: docs/blog/09-component-library.md
   -> fix the copy or fix the count, but they must agree
 ```
 
-That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 28 packages, 61 UI components, 14 first-party MCP servers, 92 database tables, 59 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.
+That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 28 packages, 65 UI components, 14 first-party MCP servers, 92 database tables, 59 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.
 
 ## The validator practices what we preach
 
