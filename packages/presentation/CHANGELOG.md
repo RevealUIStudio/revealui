@@ -1,5 +1,20 @@
 # @revealui/presentation
 
+## 0.10.0
+
+### Minor Changes
+
+- eb6389c: Make the Field-context form family canonical and fully consumable, brand-tokenize the field + headless-control internals.
+
+  - Exports (additive, non-breaking): the full field-context family (`Field`/`Description`/`ErrorMessage`/`Fieldset`/`Legend`/`FieldGroup` + the context `Label`) is now reachable from the main entry and `/client`; the context-aware `Label` is the canonical bare `Label` on `/client` (mirrors the `Text`/`Heading` Catalyst precedent). The simple label is also exported everywhere as `ControlLabel`, and as `FieldLabel` (context label) from the main entry. Bare `Label` on `.`/`/server` remains the simple, server-safe label, so existing standalone `Label`/`FormLabel`/`FormField` consumers are unchanged. `FieldsetLabel` retained as a `/client` back-compat alias.
+  - Tokens: `fieldset` (Legend/Label/Description/ErrorMessage) and `form-field` (description/error) + the headless control internals (`input`/`select`/`textarea`-headless) move off raw `zinc`/`blue`/`red` onto brand bridge tokens (`text-foreground`/`text-muted-foreground`/`text-destructive`/`ring`/`border`), matching the Card/Text migration.
+  - Canonical form pattern is now `<Field><Label/><headless Input|Select|Textarea/><Description/><ErrorMessage/></Field>` (context-driven id/aria). The standalone `FormLabel`/`FormField` + CVA controls are kept for the styled-control path.
+
+- eb38811: Brand-tokenize `Tab` and `Callout`, and make `Callout` usable as an inline status banner.
+
+  - `Tab`/`TabList`: replace the hardcoded `blue-*`/`zinc-*` palette with semantic tokens (`border-primary`/`text-primary` active, `text-muted-foreground`/`border-border` rest, `outline-ring` focus), and move the consumer `className` to last in the merge so the active color can be overridden.
+  - `Callout`: replace the per-variant raw palette (`blue/amber/red/green/violet`) with brand tokens (`primary`/`warning`/`error`/`success`/`accent`); title→`text-foreground`, body→`text-muted-foreground`. Add a `role` prop (`'note' | 'status' | 'alert'`, default `'note'`) so it can serve as an inline status/alert banner — the modal `Alert` remains modal-only.
+
 ## 0.9.1
 
 ### Patch Changes

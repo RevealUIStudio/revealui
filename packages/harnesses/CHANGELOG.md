@@ -1,5 +1,18 @@
 # @revealui/harnesses
 
+## 0.7.0
+
+### Minor Changes
+
+- 487b55f: Add the goal harness: goal-driven agent coordination with acceptance-criteria gating. New `GoalHarness` engine (exported at the root and at `@revealui/harnesses/goals`), `goals` + `goal_criteria` daemon tables, and DaemonStore goal methods. Completion is fail-closed (every criterion needs recorded evidence, every linked task must be completed) and the surface is propose-only: goals emit claimable tasks into the existing daemon task queue and never spawn agents.
+
+### Patch Changes
+
+- Updated dependencies [dc3e318]
+- Updated dependencies [4778037]
+- Updated dependencies [639dfa5]
+  - @revealui/core@0.11.0
+
 ## 0.6.4
 
 ### Patch Changes

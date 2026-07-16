@@ -1,5 +1,27 @@
 # @revealui/core
 
+## 0.11.0
+
+### Minor Changes
+
+- 639dfa5: Remove the legacy Vercel Blob object-storage fallback (#1644). Cloudflare R2 is now the sole non-mock storage backend in every production environment.
+
+  Breaking changes:
+
+  - `@revealui/core`: the `createVercelBlobProvider` export and the `'vercel-blob'` provider tag are removed from `@revealui/core/storage`. `createStorage` now accepts only `{ provider: 'r2' }` or `{ provider: 'mock' }`; `VercelBlobConfig` is gone. `@vercel/blob` is no longer a dependency.
+  - `@revealui/config`: `config.storage.blobToken` and the `BLOB_READ_WRITE_TOKEN` env var are removed from the schema and the storage module. Consumers must configure Cloudflare R2 (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL`); the media-storage resolvers now select R2 or throw.
+  - `@revealui/setup`: `BLOB_READ_WRITE_TOKEN` is dropped from the environment validators.
+  - `@revealui/cli`: `create-revealui` no longer offers Vercel Blob as a storage provider; generated `.env` files and templates are R2-only.
+
+### Patch Changes
+
+- dc3e318: Brand-token the error-handling fallback UI. The inline-hex colors in `error-handling/fallback-components.tsx` (Toast/Skeleton/error/offline/success banners) and `error-handling/error-boundary.tsx` now reference RevealUI brand tokens with the original hex retained as a literal fallback — e.g. `color: 'var(--rvui-error, #f44336)'`. Brand-aligned when the app's tokens are loaded, and still resilient (the hex fallback renders even if CSS is unavailable — the whole point of fallback UI). No API/behavior change; no new dependency (token-only: core references the CSS vars the consuming app provides, not @revealui/presentation).
+- 4778037: Brand-token the rich-text editor UI. 21 inline-hex/CSS colors across `client/richtext/RichTextEditor.tsx`, `client/richtext/components/ImageNodeComponent.tsx`, and the `richtext/exports/{server/rsc,client/rcc}.tsx` figcaptions now reference RevealUI brand tokens with the original hex as a literal fallback (e.g. `var(--rvui-brand, #3b82f6)`). No API/behavior change, no new dependency (token-only). The Lexical node-render plumbing structure is unchanged. `observability/alerts.ts` left as-is (its `#FFA500` is a Slack notification-channel color, not UI).
+- Updated dependencies [9801744]
+  - @revealui/contracts@0.6.2
+  - @revealui/security@0.4.2
+  - @revealui/cache@0.2.3
+
 ## 0.10.2
 
 ### Patch Changes
