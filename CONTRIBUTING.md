@@ -209,7 +209,7 @@ Not acceptable:
 - RevealUI Fleet self-hosted kit (planned)         ← no tracking reference
 ```
 
-Why: every unlinked "coming soon" either ages into a broken promise or becomes load-bearing for a reader making a purchase / adoption decision. The pattern already hit us once — see MASTER_PLAN §CR-8 and §CR-9 for the audit that surfaced it. If the feature is real, it has a tracked issue; if it doesn't, it shouldn't be surfaced as "coming soon" in the first place.
+Why: every unlinked "coming soon" either ages into a broken promise or becomes load-bearing for a reader making a purchase / adoption decision. The pattern already hit us once — the CR-8 and CR-9 audits (tracked internally) surfaced it. If the feature is real, it has a tracked issue; if it doesn't, it shouldn't be surfaced as "coming soon" in the first place.
 
 File a GitHub issue before writing the claim. Link it in the prose. If the feature is abandoned later, close the issue and remove the claim in the same PR.
 

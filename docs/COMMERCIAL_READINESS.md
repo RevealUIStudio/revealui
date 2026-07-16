@@ -10,7 +10,7 @@ owner: RevealUI Studio
 
 # Commercial Readiness Handoff
 
-This doc sits above `LAUNCH-CHECKLIST.md` (ops) and `MASTER_PLAN.md` (phases). It covers the
+This doc sits above `LAUNCH-CHECKLIST.md` (ops) and the internal hub master plan (phases). It covers the
 **trust layer** that makes the first paid customer a morally defensible, technically safe, and
 retainable transaction.
 
@@ -40,7 +40,7 @@ UX, plaintext secrets). All three must hold.
 
 - [ ] **"What works today" page** on the marketing site, distinct from the roadmap. Every paid
       feature listed must be something a customer can invoke on day 1, not "coming soon" or
-      "beta". The MASTER_PLAN distinguishes "built" from "production-verified"; the public page
+      "beta". The internal hub master plan distinguishes "built" from "production-verified"; the public page
       should only claim the latter.
 - [ ] **Solo-operator disclosure** somewhere in the footer / About / support flow. Do not imply
       "our team" in marketing copy if it's one person. Buyers who would reject a solo-founder SaaS
@@ -93,7 +93,7 @@ for a lawyer review when you begin collecting payment.
 ## Track 2 — Secure: before real customer data enters the system
 
 The code-side security posture is strong (0 CodeQL alerts, RBAC/ABAC, AES-256-GCM, etc., per
-MASTER_PLAN § Current Reality). The remaining work is operational.
+the internal hub master plan § Current Reality). The remaining work is operational.
 
 ### External validation
 
@@ -243,7 +243,7 @@ Everything else in this doc makes the business more durable but isn't blocking t
 
 ## Deliberately *not* blocking (do later)
 
-- SOC2 Type II — required for Enterprise tier deals, not for SMB Pro. Phase 6 of MASTER_PLAN
+- SOC2 Type II — required for Enterprise tier deals, not for SMB Pro. Phase 6 of the internal hub master plan
   already tracks this.
 - ISO 27001 — same as above.
 - 24×7 support — not credible or necessary for a solo-operator Pro tier.
@@ -272,8 +272,8 @@ These need explicit answers from the founder before the tracks above can resolve
 ## What already exists (don't redo)
 
 - `docs/LAUNCH-CHECKLIST.md` — 15-section operational pre-launch checklist.
-- `docs/MASTER_PLAN.md` § Phase 5 — feature-level commercialization (Tracks A–D, owner actions).
-- `docs/MASTER_PLAN.md` § Phase 6 — SOC2 Type II track for enterprise.
+- Internal hub master plan § Phase 5 — feature-level commercialization (Tracks A–D, owner actions).
+- Internal hub master plan § Phase 6 — SOC2 Type II track for enterprise.
 - `docs/security/INCIDENT_RESPONSE.md` — runbook exists; needs drill + dated review.
 - `docs/PRO.md` — FSL-1.1-MIT licence terms (already public).
 - `business/BUSINESS_PLAN.md` — full business plan (not read in this handoff — confirm it

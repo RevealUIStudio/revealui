@@ -140,7 +140,7 @@ If any of these assumptions is violated, controls in this stack may fail in ways
 
 ## 7. Roadmap items that will narrow these limits
 
-Tracked in `docs/MASTER_PLAN.md`. Cited here so the limitations above are not perceived as final.
+Tracked in the internal coordination hub's master plan. Cited here so the limitations above are not perceived as final.
 
 - **Pre-execution policy gate at the MCP dispatch boundary** — moves `AuditPolicyEngine`-style checks from post-execution to pre-execution at the tool layer. Closes §4.1.
 - **DID + Ed25519 RPC signing for the RevDev daemon** — per-call cryptographic identity verification. Closes §4.3.
