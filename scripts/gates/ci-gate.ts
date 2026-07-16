@@ -315,6 +315,15 @@ async function gate(): Promise<void> {
         args: ['validate:claims'],
       },
       {
+        // The .claude config surface (rules/agents/skills) is materialized
+        // from revcon profiles with a sha256 manifest; tracked copies must
+        // match it exactly (no local edits, no hand-added strays). Mirrored
+        // in CI by the Quality job step in .github/workflows/ci.yml.
+        name: 'Rules lockstep (hard fail)',
+        command: 'pnpm',
+        args: ['validate:rules-lockstep'],
+      },
+      {
         // Every prose sentence in covered marketing content files must carry
         // a claims-evidence entry citing the code that proves it; cited paths
         // must exist. Sibling of claim-drift: that gate pins the numbers,

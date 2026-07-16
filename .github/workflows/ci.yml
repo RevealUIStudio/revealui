@@ -90,6 +90,12 @@ jobs:
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
+      - name: Rules lockstep validation (hard fail)
+        # The .claude config surface (rules/agents/skills) is materialized
+        # from revcon profiles with a sha256 manifest; tracked copies must
+        # match it exactly. Mirrors the local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:rules-lockstep
+
       - name: Marketing voice validation (hard fail)
         run: pnpm validate:marketing-voice
 
