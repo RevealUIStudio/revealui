@@ -89,6 +89,11 @@ describe('assertSafePath / assertSafePrefix', () => {
     expect(() => assertSafePrefix('mcp/acme/')).not.toThrow();
     expect(() => assertSafePrefix('/mcp/acme')).toThrow(RevvaultError);
   });
+
+  it('rejects empty strings (the pre-extraction anchored pattern required 1+ chars; an empty prefix would list the whole vault)', () => {
+    expect(() => assertSafePath('')).toThrow(RevvaultError);
+    expect(() => assertSafePrefix('')).toThrow(RevvaultError);
+  });
 });
 
 describe('readRevvaultSecret', () => {

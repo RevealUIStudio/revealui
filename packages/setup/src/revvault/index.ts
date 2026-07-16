@@ -54,6 +54,9 @@ function hasOnlySafePathChars(value: string): boolean {
 
 /** Reject shell-metacharacter and traversal patterns in vault paths. */
 export function assertSafePath(path: string): void {
+  if (path.length === 0) {
+    throw new RevvaultError('Vault path must not be empty');
+  }
   if (!hasOnlySafePathChars(path)) {
     throw new RevvaultError(`Vault path contains disallowed characters: ${path}`);
   }
@@ -64,6 +67,9 @@ export function assertSafePath(path: string): void {
 
 /** Same rules as {@link assertSafePath} but allows the trailing slash of a prefix. */
 export function assertSafePrefix(prefix: string): void {
+  if (prefix.length === 0) {
+    throw new RevvaultError('Vault prefix must not be empty');
+  }
   if (!hasOnlySafePathChars(prefix)) {
     throw new RevvaultError(`Vault prefix contains disallowed characters: ${prefix}`);
   }
