@@ -73,7 +73,11 @@ const story: ShowcaseStory = {
                 <CardTitle className="text-base">{title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold" style={{ color: 'var(--rvui-text-0, inherit)' }}>
+                <p
+                  className="text-2xl font-bold"
+                  style={{ color: 'var(--rvui-text-0, inherit)' }}
+                  data-visual-mask="true"
+                >
                   {Math.floor(Math.random() * 10000).toLocaleString()}
                 </p>
               </CardContent>
