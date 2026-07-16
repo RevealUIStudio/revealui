@@ -169,6 +169,13 @@
       "when": 1784000000000,
       "tag": "0023_entitlement_trialing_last_event",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784100000000,
+      "tag": "0024_widen_provider_check_anthropic_openai",
+      "breakpoints": true
     }
   ]
 }

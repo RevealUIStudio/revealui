@@ -55,13 +55,12 @@ export const workspaceInferenceConfigs = pgTable(
     // One config per site
     uniqueIndex('workspace_inference_configs_workspace_id_uidx').on(table.workspaceId),
 
-    // Provider must be one of the 4 LLMProviderType values. Vultr was
-    // removed in this same PR (bespoke provider with no differentiation
-    // vs. Groq/HF). Inference Snaps + Ollama are local; Groq + HF are
-    // cloud BYOK.
+    // Provider must be one of the LLMProviderType values. Inference Snaps +
+    // Ollama are local (keyless); Groq, HuggingFace, Anthropic, and OpenAI are
+    // cloud BYOK (keyed). Anthropic + OpenAI added in GAP-360 PR-1.
     check(
       'workspace_inference_configs_provider_check',
-      sql`provider IN ('groq', 'huggingface', 'inference-snaps', 'ollama')`,
+      sql`provider IN ('anthropic', 'openai', 'groq', 'huggingface', 'inference-snaps', 'ollama')`,
     ),
 
     // Pairing: keyless providers MUST have NULL encrypted_api_key;
@@ -71,7 +70,7 @@ export const workspaceInferenceConfigs = pgTable(
       sql`(
         (provider IN ('inference-snaps', 'ollama') AND encrypted_api_key IS NULL)
         OR
-        (provider IN ('groq', 'huggingface') AND encrypted_api_key IS NOT NULL)
+        (provider IN ('anthropic', 'openai', 'groq', 'huggingface') AND encrypted_api_key IS NOT NULL)
       )`,
     ),
   ],
