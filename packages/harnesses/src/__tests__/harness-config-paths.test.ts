@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   getConfigurableHarnesses,
@@ -11,6 +12,7 @@ describe('harness-config-paths', () => {
     expect(ids).toContain('claude-code');
     expect(ids).toContain('cursor');
     expect(ids).toContain('copilot');
+    expect(ids).toContain('opencode');
   });
 
   it('returns local config path for claude-code', () => {
@@ -25,6 +27,12 @@ describe('harness-config-paths', () => {
     expect(p).toMatch(/\.cursor\/settings\.json$/);
   });
 
+  it('returns local config path for opencode', () => {
+    const p = getLocalConfigPath('opencode');
+    expect(p).toBeDefined();
+    expect(p?.endsWith(join('.config', 'opencode', 'opencode.json'))).toBe(true);
+  });
+
   it('returns undefined for unknown harness', () => {
     expect(getLocalConfigPath('unknown-tool')).toBeUndefined();
   });
@@ -34,6 +42,13 @@ describe('harness-config-paths', () => {
     expect(p).toBeDefined();
     expect(p).toContain('harness-configs/claude-code');
     expect(p).toContain('settings.json');
+  });
+
+  it('returns root config path for opencode', () => {
+    const p = getRootConfigPath('opencode', '/mnt/e/.revealui');
+    expect(p).toBeDefined();
+    expect(p).toContain('harness-configs/opencode');
+    expect(p).toContain('opencode.json');
   });
 
   it('returns undefined root path for unknown harness', () => {

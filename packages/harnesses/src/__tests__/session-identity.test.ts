@@ -31,4 +31,9 @@ describe('deriveSessionId', () => {
     expect(deriveSessionId('codex', [])).toBe('codex-1');
     expect(deriveSessionId('codex', ['codex-1', 'codex-2'])).toBe('codex-3');
   });
+
+  it('supports opencode session type', () => {
+    expect(deriveSessionId('opencode', [])).toBe('opencode-1');
+    expect(deriveSessionId('opencode', ['opencode-1'])).toBe('opencode-2');
+  });
 });

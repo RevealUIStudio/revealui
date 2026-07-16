@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
  * Supports tool-prefixed identifiers ('claude', 'codex') alongside
  * IDE-based types ('zed', 'cursor') and a generic 'terminal' fallback.
  */
-export type SessionType = 'claude' | 'codex' | 'zed' | 'cursor' | 'terminal';
+export type SessionType = 'claude' | 'codex' | 'zed' | 'cursor' | 'opencode' | 'terminal';
 
 /**
  * Detects the session type using a 7-tier identity cascade.
@@ -30,6 +30,7 @@ export function detectSessionType(): SessionType {
     if (tool === 'codex') return 'codex';
     if (tool === 'cursor') return 'cursor';
     if (tool === 'zed') return 'zed';
+    if (tool === 'opencode') return 'opencode';
     return 'terminal';
   }
 
@@ -40,7 +41,13 @@ export function detectSessionType(): SessionType {
   try {
     const cachePath = `/tmp/protocol-session-${process.ppid}.id`;
     const cached = readFileSync(cachePath, 'utf8').trim();
-    if (cached === 'claude' || cached === 'codex' || cached === 'zed' || cached === 'cursor') {
+    if (
+      cached === 'claude' ||
+      cached === 'codex' ||
+      cached === 'zed' ||
+      cached === 'cursor' ||
+      cached === 'opencode'
+    ) {
       return cached;
     }
   } catch {
@@ -59,6 +66,7 @@ export function detectSessionType(): SessionType {
       if (cmdline.includes('codex')) return 'codex';
       if (cmdline.includes('zed')) return 'zed';
       if (cmdline.includes('cursor')) return 'cursor';
+      if (cmdline.includes('opencode')) return 'opencode';
       const status = readFileSync(`/proc/${pid}/status`, 'utf8');
       const m = status.match(/PPid:\s+(\d+)/);
       if (!m) break;

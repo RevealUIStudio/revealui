@@ -61,8 +61,13 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
 });
 
 describe('ROADMAP_PROFILES (declared, no adapter)', () => {
-  it('contains the three spec-declared tools', () => {
-    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'cursor']);
+  it('contains the four spec-declared tools', () => {
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual([
+      'claude-code',
+      'codex',
+      'cursor',
+      'opencode',
+    ]);
   });
 
   it('claude-code has no dispatch capabilities (interactive tool)', () => {
@@ -85,6 +90,19 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
     expect(caps.lifecycleEvents).toEqual([]);
   });
 
+  it('opencode is headless/resumable/forkable/backgroundable but has no hooks', () => {
+    const caps = ROADMAP_PROFILES.opencode;
+    expect(caps.headless).toBe(true);
+    expect(caps.resumable).toBe(true);
+    expect(caps.forkable).toBe(true);
+    expect(caps.backgroundable).toBe(true);
+    expect(caps.hooks.supported).toBe(false);
+    expect(caps.hooks.canBlock).toBe(false);
+    expect(caps.supportsSkills).toBe(true);
+    expect(caps.supportsMcp).toBe(true);
+    expect(caps.supportsWorktrees).toBe(false);
+  });
+
   it('does not overlap with TOOL_PROFILES', () => {
     for (const id of Object.keys(ROADMAP_PROFILES)) {
       expect(TOOL_PROFILES[id]).toBeUndefined();
@@ -93,11 +111,12 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
 });
 
 describe('ALL_KNOWN_PROFILES (merged view)', () => {
-  it('contains all four declared tools', () => {
+  it('contains all five declared tools', () => {
     expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
       'claude-code',
       'codex',
       'cursor',
+      'opencode',
       'revealui-agent',
     ]);
   });
@@ -215,6 +234,14 @@ describe('degradation strategies', () => {
 
   it('returns absent for unknown tools', () => {
     expect(getDegradationStrategy('unknown-tool', 'session.start')).toBe('absent');
+  });
+
+  it('returns absent for opencode per-tool events (no hooks) and polyfill for lifecycle events', () => {
+    expect(getDegradationStrategy('opencode', 'tool.before')).toBe('absent');
+    expect(getDegradationStrategy('opencode', 'tool.after')).toBe('absent');
+    expect(getDegradationStrategy('opencode', 'tool.blocked')).toBe('absent');
+    expect(getDegradationStrategy('opencode', 'session.start')).toBe('polyfill');
+    expect(getDegradationStrategy('opencode', 'agent.heartbeat')).toBe('polyfill');
   });
 
   it('revealui-agent has no degradation for any event', () => {

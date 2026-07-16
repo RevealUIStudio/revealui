@@ -111,6 +111,33 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
     maxContextTokens: 128_000,
     lifecycleEvents: [],
   },
+
+  // No working adapter yet (GAP-371 Phase 0: data only). Plugins exist in
+  // OpenCode but no adapter wiring ships, so hooks stay honestly unsupported.
+  opencode: {
+    dispatch: {
+      generateCode: true,
+      analyzeCode: true,
+      applyEdit: false,
+      executeCommand: true,
+    },
+    readWorkboard: false,
+    writeWorkboard: false,
+    claimTasks: false,
+    reportConflicts: false,
+    headless: true,
+    resumable: true,
+    forkable: true,
+    backgroundable: true,
+    hooks: { supported: false, granularity: 'none', canBlock: false },
+    sandbox: { supported: false, modes: [] },
+    supportsWorktrees: false,
+    supportsSkills: true,
+    supportsMcp: true,
+    memory: { supported: false, backend: 'none' },
+    maxContextTokens: 0,
+    lifecycleEvents: [],
+  },
 } as const;
 
 /**

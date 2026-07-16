@@ -51,6 +51,22 @@ const DEGRADATION_TABLE: Record<string, Partial<Record<ProtocolEvent, Degradatio
   'revealui-agent': {
     // RevealUI Agent natively supports all 10 events; no degradation needed.
   },
+  // No working adapter yet (GAP-371 Phase 0: data only). No hook system
+  // (canBlock: false), so per-tool events have no source to polyfill from;
+  // session/task/heartbeat events are synthesizable from process lifecycle
+  // (headless + backgroundable via `opencode serve`).
+  opencode: {
+    'session.start': 'polyfill',
+    'session.stop': 'polyfill',
+    'session.crash': 'polyfill',
+    'prompt.submit': 'polyfill',
+    'tool.before': 'absent',
+    'tool.after': 'absent',
+    'tool.blocked': 'absent',
+    'task.claimed': 'polyfill',
+    'task.completed': 'polyfill',
+    'agent.heartbeat': 'polyfill',
+  },
 };
 
 /**
