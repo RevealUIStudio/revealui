@@ -16,12 +16,14 @@ const LOCAL_CONFIG_PATHS: Record<string, string> = {
   'claude-code': join(HOME, '.claude', 'settings.json'),
   cursor: join(HOME, '.cursor', 'settings.json'),
   copilot: join(HOME, '.config', 'github-copilot', 'hosts.json'),
+  opencode: join(HOME, '.config', 'opencode', 'opencode.json'),
 };
 
 const ROOT_CONFIG_FILES: Record<string, string> = {
   'claude-code': 'settings.json',
   cursor: 'settings.json',
   copilot: 'hosts.json',
+  opencode: 'opencode.json',
 };
 
 /** Returns the local config file path for a given harness id, or undefined if unknown. */
