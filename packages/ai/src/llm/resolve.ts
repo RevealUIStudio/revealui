@@ -17,7 +17,11 @@
  *     from request params/body, and never from a client-writable DB column
  *     (e.g. a ticket's `reporterId`, which has no ownership check on the
  *     general tickets API). The resolver takes userId as an argument and
- *     never reads it from a request.
+ *     never reads it from a request. The same rule binds the step-2 site
+ *     inference key: the workspaceId is client-writable, so its stored key is
+ *     decrypted only after userCanAccessSite confirms the caller owns or
+ *     collaborates on that site. Otherwise a request could name another
+ *     tenant's site id and run on that site's key.
  *   - §6.2 plaintext lifetime = request scope. The client is constructed per
  *     request; no key cache. Nothing here logs, serializes, or returns a key.
  *   - §6.3 decryption is server-side only via the existing decryptApiKey.
@@ -36,8 +40,8 @@
 import { createLogger } from '@revealui/core/observability/logger';
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';
-import { workspaceInferenceConfigs } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { siteCollaborators, sites, workspaceInferenceConfigs } from '@revealui/db/schema';
+import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
 import {
   createLLMClientForUser,
@@ -175,8 +179,11 @@ export async function resolveLLMClientForRequest(
     }
   }
 
-  // 2. Site-level inference config.
-  const siteClient = await resolveSiteInferenceClient(db, ctx.workspaceId, hosted);
+  // 2. Site-level inference config. userId is passed so the site's stored key
+  //    is decrypted only for a caller authorized on that site (§6.1) — the
+  //    workspaceId reaching here is a client-writable value (e.g. a request
+  //    body field), so it carries no ownership guarantee on its own.
+  const siteClient = await resolveSiteInferenceClient(db, userId, ctx.workspaceId, hosted);
   if (siteClient) return siteClient;
 
   // 3. Deployment env — SELF-HOSTED ONLY. Forbidden on hosted (§5.2 step 3).
@@ -189,17 +196,46 @@ export async function resolveLLMClientForRequest(
 }
 
 /**
+ * Whether `userId` is authorized to act on `siteId` — the site's owner, or a
+ * row in `site_collaborators`. Gate for the site inference key (§6.1): the
+ * site's stored provider key must never be decrypted for a caller who does not
+ * belong to the site, even though the workspaceId is client-supplied.
+ */
+async function userCanAccessSite(db: Database, userId: string, siteId: string): Promise<boolean> {
+  const [owned] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.id, siteId), eq(sites.ownerId, userId)))
+    .limit(1);
+  if (owned) return true;
+
+  const [collaborator] = await db
+    .select({ id: siteCollaborators.id })
+    .from(siteCollaborators)
+    .where(and(eq(siteCollaborators.siteId, siteId), eq(siteCollaborators.userId, userId)))
+    .limit(1);
+  return Boolean(collaborator);
+}
+
+/**
  * Build a client from the site's workspace_inference_configs row (spec §5.2
- * step 2). Returns null when the site has no config, or (on hosted) when its
- * provider is not hostedViable. Fail-closed: a malformed row throws on hosted
- * and is skipped on self-hosted.
+ * step 2). Returns null when the site has no config, when the caller is not
+ * authorized on the site, or (on hosted) when its provider is not hostedViable.
+ * Fail-closed: a malformed row throws on hosted and is skipped on self-hosted.
  */
 async function resolveSiteInferenceClient(
   db: Database,
+  userId: string | null,
   workspaceId: string | undefined,
   hosted: boolean,
 ): Promise<LLMClient | null> {
   if (!workspaceId) return null;
+
+  // §6.1 authorization: only decrypt a site's key for a caller who belongs to
+  // that site. An unauthorized (or anonymous) request skips the site config
+  // entirely; on hosted it then falls through to the step-4 409, never a
+  // decrypt of another tenant's key.
+  if (!(userId && (await userCanAccessSite(db, userId, workspaceId)))) return null;
 
   const [config] = await db
     .select()
