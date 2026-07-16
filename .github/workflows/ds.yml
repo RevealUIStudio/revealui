@@ -3,9 +3,17 @@
 # Drop this into the monorepo at .github/workflows/ds.yml. It runs the
 # dependency-free DS-folder gate plus the existing token contract checks.
 #
-#   1. adherence-lint    — app/artifact CODE stays on-system (no hardcoded
-#                          greys, off-token colors, non-brand fonts, …)
-#   2. tokens contract   — the repo's own gen:manifest:check + vitest contract
+#   1. adherence-lint       — app/artifact CODE stays on-system (no hardcoded
+#                             greys, off-token colors, non-brand fonts, …)
+#   2. tokens contract      — the repo's own gen:manifest:check + vitest contract
+#   3. visual-regression    — Phase 3 PR-0: golden-baseline screenshots of every
+#                             apps/docs `/showcase/*` page (light + dark, chromium
+#                             only). HARD-fails on any visual diff — this is the
+#                             non-negotiable prerequisite the ds-catalyst-reskin
+#                             lane Phase 0 and the Phase 3 component-sovereignty
+#                             spec both call for; it must gate PRs (not just
+#                             main pushes) because re-authorship PRs land against
+#                             `test`. See e2e/showcase-visual.e2e.ts.
 #
 # Conventions match the repo's existing ci.yml (pinned action SHAs, pnpm
 # action-setup @ PNPM_VERSION, node 24, persist-credentials:false).
@@ -80,3 +88,58 @@ jobs:
       # The tokens + presentation contract tests (values, brand-meta, contrast).
       - name: tokens contract tests
         run: pnpm --filter @revealui/tokens test
+
+  visual-regression:
+    name: Showcase visual regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      # Chromium only — goldens are pinned to one renderer (see
+      # e2e/showcase-visual.e2e.ts header comment for the rationale).
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+      # docs depends on @revealui/tokens + @revealui/presentation being built
+      # first (tokens.css / component dist output) — the `...` filter suffix
+      # builds docs and its workspace dependencies in the correct order.
+      - name: Build docs app
+        run: pnpm --filter docs... build
+      - name: Start docs preview server
+        run: pnpm --filter docs preview --port 3002 &
+      - name: Wait for docs
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3002 > /dev/null 2>&1 && echo "Docs ready" && break || \
+            echo "Waiting for docs... ($i/40)" && sleep 3
+          done
+          curl -sf http://localhost:3002 > /dev/null 2>&1 || \
+            (echo "::error::Docs app failed to start within 120s" && exit 1)
+      # No continue-on-error: a visual diff must fail this check. Warn-only
+      # was explicitly rejected by the lane owner-decision (see ds-catalyst-reskin
+      # plan.md Phase 0) — without a hard gate, re-authorship PRs can land
+      # silent regressions across every consumer app.
+      - name: Run showcase visual regression
+        run: npx playwright test --project=chromium e2e/showcase-visual.e2e.ts
+        env:
+          CI: "true"
+          DOCS_BASE_URL: "http://localhost:3002"
+      - name: Upload diff artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: showcase-visual-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

@@ -67,17 +67,30 @@ export default defineConfig({
         { name: 'tablet', use: { ...devices['iPad Pro'] } },
       ],
 
-  // Run your local dev server before starting the tests
+  // Run your local dev server(s) before starting the tests. CI starts apps
+  // manually as workflow steps instead (see .github/workflows/ci.yml
+  // e2e-visual and ds.yml visual-regression) so each job only boots the app
+  // its own suite needs.
   webServer: process.env.CI
     ? undefined
-    : {
-        command: 'pnpm dev:admin',
-        url: 'http://localhost:4000',
-        reuseExistingServer: !process.env.CI,
-        timeout: 300000, // 5 minutes for initial build
-        stdout: 'pipe',
-        stderr: 'pipe',
-      },
+    : [
+        {
+          command: 'pnpm dev:admin',
+          url: 'http://localhost:4000',
+          reuseExistingServer: !process.env.CI,
+          timeout: 300000, // 5 minutes for initial build
+          stdout: 'pipe',
+          stderr: 'pipe',
+        },
+        {
+          command: 'pnpm --filter docs dev',
+          url: 'http://localhost:3002',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120000,
+          stdout: 'pipe',
+          stderr: 'pipe',
+        },
+      ],
 
   // Global setup/teardown
   globalSetup: './e2e/global-setup.ts',
