@@ -20,12 +20,9 @@ audience: agent
 **`@supabase/supabase-js` must only be imported inside designated vector/auth modules:**
 
 ### Allowed paths for Supabase imports
-- `packages/db/src/vector/`  -  vector schema and queries
-- `packages/db/src/auth/`  -  Supabase auth helpers
-- `packages/auth/src/`  -  authentication implementation
-- `packages/ai/src/`  -  AI memory and embedding storage
-- `packages/services/src/supabase/`  -  Supabase service integrations
-- `apps/*/src/lib/supabase/`  -  app-level Supabase utilities
+- `packages/mcp/src/servers/supabase.ts`  -  the Supabase MCP adapter for installer customers who chose Supabase as their own backend; not invoked by RevealUI's internal runtime
+
+As of the current phase-out state, there are zero `@supabase/supabase-js` imports left in `packages/` or `apps/`  -  the path above is the only intentionally-retained integration point, and this boundary governs any future addition.
 
 ### Forbidden: Supabase imports in
 - `packages/core/`  -  Runtime engine must be DB-agnostic
@@ -36,14 +33,17 @@ audience: agent
 
 ## Schema Organization
 
+`packages/db/src/schema/` is a flat set of `.ts` files, one table (or closely related group of tables) per file  -  no subdirectories. Representative files:
+
 ```
 packages/db/src/schema/
-├── collections/    # NeonDB: content collections
-├── users/          # NeonDB: user management
-├── commerce/       # NeonDB: products, orders, pricing
-├── sessions/       # NeonDB: auth sessions
-├── vector/         # NeonDB pgvector: embeddings, similarity search
-└── auth/           # NeonDB: session-based auth state
+├── users.ts           # NeonDB: user management
+├── accounts.ts         # NeonDB: accounts, subscriptions, entitlements
+├── products.ts         # NeonDB: commerce products
+├── sites.ts             # NeonDB: content collections / sites
+├── vector.ts            # NeonDB pgvector: embeddings, similarity search
+├── webhook-events.ts    # NeonDB: processed Stripe webhook idempotency
+└── licenses.ts          # NeonDB: license records
 ```
 
 ## Query Patterns
@@ -75,13 +75,7 @@ const matches = await db
 
 ## Enforcement
 
-The `pnpm validate:structure` script checks for Supabase imports outside permitted paths.
-CI runs this as part of phase 1 (warn-only  -  violations are flagged but don't block builds).
-
-To check locally:
-```bash
-pnpm validate:structure
-```
+No automated check currently scans for Supabase imports outside the permitted path. `scripts/validate/structure.ts` and `scripts/validate/boundary.ts` (the scripts behind `pnpm validate:structure`) do not contain a Supabase-import rule. The boundary above is enforced by convention and code review, not by CI, until such a check is added.
 
 ## Migration Guidance
 

@@ -12,7 +12,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
 
 - Big picture: Next.js 16 + React 19 monorepo. Apps live in `apps/` (notably `apps/admin`, `apps/server`, `apps/marketing`) and shared code lives in `packages/` (core, `auth`, `services`, `mcp`).
 
-- Key integrations: NeonDB + Drizzle ORM (`docs/DATABASE.md`), Vercel (edge-ready), MCP adapters in `packages/mcp/src/servers/` (e.g. `neon.ts`). Third-party: Stripe, Supabase (`packages/services`).
+- Key integrations: NeonDB + Drizzle ORM (`docs/DATABASE.md`), Vercel (edge-ready), MCP adapters in `packages/mcp/src/servers/` (e.g. `neon.ts`, `supabase.ts`). Third-party: Stripe (`packages/services/src/stripe`), Supabase (`packages/mcp/src/servers/supabase.ts`).
 
 - Quick start commands (most-used):
   - `pnpm install`
@@ -35,7 +35,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
 
 - Where to run/verify changes:
   - Auth or integration changes: `packages/auth`, `packages/services/*`, `apps/admin` (preview flows).
-  - MCP servers: `packages/mcp/src/servers/*` — run with `pnpm run mcp:neon|vercel|stripe|supabase`.
+  - MCP servers: `packages/mcp/src/servers/*` — run with `tsx packages/mcp/src/servers/<name>.ts` (e.g. `tsx packages/mcp/src/servers/neon.ts`).
   - Visual/e2e: Playwright (`pnpm test:e2e` / `pnpm test:e2e:visual:update`).
 
 - Quick reference files:
@@ -52,12 +52,8 @@ Concrete examples (MCP & quick commands):
 
 - Run the local Neon MCP adapter (must set `NEON_API_KEY`):
 
-  - Command: `pnpm run mcp:neon`
+  - Command: `tsx packages/mcp/src/servers/neon.ts`
   - File: `packages/mcp/src/servers/neon.ts` — script validates `NEON_API_KEY` and connects to remote `mcp.neon.tech`.
-
-- Run all MCP adapters concurrently for development:
-
-  - Command: `pnpm run mcp:all`
 
 - Playwright visual snapshot update (when changing UI):
 

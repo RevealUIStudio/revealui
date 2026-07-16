@@ -155,13 +155,12 @@ Pre-built validators:
 Default required environment variables for RevealUI:
 - `REVEALUI_SECRET` - JWT secret (min 32 chars)
 - `POSTGRES_URL` - Database connection string
-- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` - Cloudflare R2 object storage
 - `STRIPE_SECRET_KEY` - Stripe secret key
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 
 #### `OPTIONAL_ENV_VARS`
 
-Optional environment variables (Supabase, Sentry, admin config, etc.)
+Optional environment variables: `STRIPE_WEBHOOK_SECRET`, `REVEALUI_ADMIN_EMAIL`, `REVEALUI_ADMIN_PASSWORD`.
 
 ### Utilities
 

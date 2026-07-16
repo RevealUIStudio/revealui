@@ -4,7 +4,7 @@ visibility: internal
 status: verified
 audience: agent
 name: revealui-typescript-quality
-description: TypeScript best practices to eliminate 267 any types and improve code quality
+description: TypeScript best practices to eliminate `any` types (run `pnpm audit:any` for the current count) and improve code quality
 version: "0.1.0"
 author: RevealUI Team
 tags:
@@ -24,11 +24,11 @@ allowedTools:
 
 # RevealUI TypeScript Quality Standards
 
-Guidelines to eliminate the 267 `any` types in RevealUI and maintain type safety throughout the codebase.
+Guidelines to eliminate `any` types in RevealUI and maintain type safety throughout the codebase. Run `pnpm audit:any` for the current count before starting a fix session.
 
 ## Critical Goal
 
-**Target**: Reduce `any` types from 267 to 0
+**Target**: Reduce `any` types to 0 (run `pnpm audit:any` for the current count)
 **Priority**: High - Type safety prevents runtime errors and improves developer experience
 
 ## Rule 1: Never Use `any` - Use These Instead
@@ -560,11 +560,11 @@ Add to `.vscode/settings.json`:
 
 ## Tracking Progress
 
-Current status: **267 `any` types** remaining
+Current status: run `pnpm audit:any` for the current `any`-type count.
 
 After each fix session, run:
 ```bash
-grep -r ": any" packages/ apps/ --include="*.ts" --include="*.tsx" | wc -l
+pnpm audit:any
 ```
 
 **Goal**: 0 `any` types in RevealUI codebase!

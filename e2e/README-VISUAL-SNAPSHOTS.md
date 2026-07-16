@@ -1,6 +1,6 @@
 ---
 title: "Visual Snapshot Testing - Quick Reference"
-description: "**Updated for CMS Application** - Tests now target actual routes like `/login` instead of fictional routes."
+description: "**Updated for the admin app** - Tests now target actual routes like `/login` instead of fictional routes."
 visibility: internal
 status: verified
 audience: maintainer
@@ -8,19 +8,19 @@ audience: maintainer
 
 # Visual Snapshot Testing - Quick Reference
 
-**Updated for CMS Application** - Tests now target actual routes like `/login` instead of fictional routes.
+**Updated for the admin app** - Tests now target actual routes like `/login` instead of fictional routes.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `pnpm test:e2e:visual` | Run all visual snapshot tests |
+| `pnpm playwright test e2e/visual-snapshots.e2e.ts` | Run all visual snapshot tests |
 | `pnpm test:e2e:visual:update` | Update all snapshots (after intentional UI changes) |
-| `pnpm test:e2e:visual:chromium` | Run visual tests in Chromium only |
-| `pnpm test:e2e:visual:update:chromium` | Update Chromium snapshots only |
+| `pnpm playwright test e2e/visual-snapshots.e2e.ts --project=chromium` | Run visual tests in Chromium only |
+| `pnpm playwright test e2e/visual-snapshots.e2e.ts --update-snapshots --project=chromium` | Update Chromium snapshots only |
 | `pnpm test:e2e:ui` | Run tests in interactive UI mode |
 | `pnpm test:e2e:report` | View HTML report with visual diffs |
-| `pnpm test:e2e:debug visual-snapshots.e2e.ts` | Debug visual tests |
+| `pnpm playwright test --debug e2e/visual-snapshots.e2e.ts` | Debug visual tests |
 
 ## Quick Examples
 
@@ -149,6 +149,5 @@ expect: {
 
 ## Resources
 
-- Full guide: `/docs/VISUAL-SNAPSHOTS-GUIDE.md`
 - Playwright docs: https://playwright.dev/docs/test-snapshots
 - Example tests: `e2e/visual-snapshots.e2e.ts`

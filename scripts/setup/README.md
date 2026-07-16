@@ -1,6 +1,6 @@
 ---
 title: "Setup Scripts"
-description: "Essential scripts for initializing and configuring RevealUI development and production environments."
+description: "Scripts for initializing and configuring RevealUI development and production environments."
 visibility: internal
 status: verified
 audience: contributor
@@ -8,248 +8,140 @@ audience: contributor
 
 # Setup Scripts
 
-Essential scripts for initializing and configuring RevealUI development and production environments.
+Scripts for initializing and configuring RevealUI databases, billing, secrets,
+and MCP servers. Most are surfaced as root `package.json` aliases; a few are
+libraries or helpers run directly via `tsx`.
 
 ## Quick Start
 
 ```bash
-# First-time setup (most common)
-pnpm tsx scripts/setup/environment.ts   # Configure environment variables
-pnpm tsx scripts/setup/setup-node-version.ts  # Ensure correct Node.js version
-pnpm revealui doctor                    # Check local workspace health
-pnpm dev:up                             # Bootstrap local dev environment
-
-# For MCP server development
-pnpm setup:mcp        # Validate MCP credentials and setup
-revealui dev up --include mcp
+pnpm db:init          # Verify the connection and initialize tables
+pnpm dev:up           # Bootstrap the local dev environment
+pnpm setup:mcp        # Check and configure MCP servers
 ```
+
+Secrets are managed through revvault, not interactive setup scripts. See
+[../../docs/SECRETS.md](../../docs/SECRETS.md) for the revvault-first posture.
 
 ## Database Setup
 
-### Core Database Scripts
+| Script                      | Command                            | Description                                                       |
+| --------------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| `database.ts`               | `pnpm db:init`                     | Verify the connection and initialize RevealUI tables             |
+| `reset-database.ts`         | `pnpm db:reset`                    | Drop all tables and reinitialize (destructive, backs up first)   |
+| `seed-billing.ts`           | `pnpm db:seed:billing`             | Seed the Stripe billing catalog (`pnpm db:seed` runs this plus the admin and fleet-marketing seeders) |
+| `assert-migration-count.ts` | `pnpm db:assert-migration-count`   | Assert the migration journal matches the applied-row count       |
+| `backfill-migrations.ts`    | `pnpm db:backfill-migrations`      | Detect and fix missing migration tracking rows before drizzle-kit runs |
+| `setup-dual-database.ts`    | run via `tsx`                      | Configure the two runtime DB components (NeonDB REST + ElectricSQL sync) |
 
-| Script                   | Command                 | Description                                    |
-| ------------------------ | ----------------------- | ---------------------------------------------- |
-| `database.ts`                | `pnpm db:init`                       | Initialize database schema and tables          |
-| `reset-database.ts`          | `pnpm db:reset`                      | Drop all tables and reinitialize (DESTRUCTIVE) |
-| `seed-billing.ts`            | `pnpm db:seed:billing`               | Seed the Stripe billing catalog (`pnpm db:seed` runs this plus admin + fleet-marketing seeders) |
-| `assert-migration-count.ts`  | `pnpm db:assert-migration-count`     | Assert migration journal matches applied-row count |
-| `backfill-migrations.ts`     | `pnpm db:backfill-migrations`        | Detect/fix missing migration tracking rows before drizzle-kit runs |
+**Note**: migrations run via `pnpm db:migrate` (forwarded to
+`pnpm --filter @revealui/db db:migrate`). Postgres-native vector setup runs
+through the same `pnpm db:migrate` path against Neon's `pgvector` extension. The
+earlier Supabase-vector-specific scripts were removed during the Supabase
+phase-out. Test-database utilities live in `scripts/dev-tools/`.
 
-### Advanced Database Scripts
+## Secrets & Credentials
 
-| Script                   | Purpose                                  |
-| ------------------------ | ---------------------------------------- |
-| `setup-dual-database.ts` | Configure both REST and Vector databases |
+| Script                | Command                                | Description                                                          |
+| --------------------- | -------------------------------------- | ------------------------------------------------------------------- |
+| `credentials.ts`      | `pnpm tsx scripts/setup/credentials.ts` | Bootstrap machine credentials: read from revvault and write `~/.npmrc` etc. |
+| `gen-staging-secrets.ts` | `pnpm setup:staging-secrets`        | Owner-run generator for the staging secret bucket (writes to revvault) |
 
-**Note**: Test database utilities have been moved to `scripts/dev-tools/`. `migrations.ts` has been removed — database migrations run via `pnpm db:migrate` (forwarded to `pnpm --filter @revealui/db db:migrate`). Earlier `setup-vector-database.ts` and `migrate-vector-data.ts` scripts were Supabase-vector-specific and were removed during the GAP-129 Supabase phase-out — Postgres-native vector setup runs through the standard `pnpm db:migrate` path against Neon's `pgvector` extension.
+The staging manifest at `scripts/sync/revvault-vercel-staging.toml` then syncs
+those vault values into Vercel via `pnpm vercel:sync:staging:apply`.
 
-## Environment Configuration
+## MCP Server Setup
 
-| Script                     | Command                                   | Description                            |
-| -------------------------- | ----------------------------------------- | -------------------------------------- |
-| `environment.ts`           | `pnpm tsx scripts/setup/environment.ts`   | Interactive environment variable setup |
-| `validate-env.ts`          | `pnpm tsx scripts/setup/validate-env.ts`  | Verify all required env vars are set   |
+| Script         | Command          | Description                          |
+| -------------- | ---------------- | ------------------------------------ |
+| `setup-mcp.ts` | `pnpm setup:mcp` | Check and configure MCP servers      |
 
-### Environment Variables Required
+## Stripe & Billing
 
-See `.env.template` for full list. Key variables:
+| Script                   | Command                    | Description                                             |
+| ------------------------ | -------------------------- | ------------------------------------------------------- |
+| `seed-stripe.ts`         | `pnpm stripe:seed`         | Seed Stripe products/prices and cache resolved price IDs |
+| `seed-stripe.ts --check` | `pnpm stripe:catalog:check`| Check the Stripe catalog without writing                 |
+| `sync-billing-catalog.ts`| `pnpm billing:catalog:sync`| Sync `billing_catalog` from env vars or the local Stripe cache |
 
-```bash
-# Database
-DATABASE_URL=postgresql://...
-POSTGRES_URL=postgresql://...
-
-# Authentication
-REVEALUI_SECRET=<32-char-secret>
-
-# Optional
-STRIPE_SECRET_KEY=sk_...      # For payment features
-VERCEL_TOKEN=...               # For deployment
-```
-
-## Development Tools
-
-| Script                  | Command              | Description                                   |
-| ----------------------- | -------------------- | --------------------------------------------- |
-| `setup-node-version.ts` | `pnpm tsx scripts/setup/setup-node-version.ts` | Ensure correct Node.js version |
-| `setup-mcp.ts`          | `pnpm setup:mcp`     | Validate MCP credentials for AI development   |
-
-## Development & Testing Tools
-
-Development and testing utilities live in `scripts/dev-tools/`:
-
-- `test-database.ts` - Test database management
-- `test-neon-connection.ts` - Verify Neon connectivity
-- `test-electric-sync.ts` - Test Electric-SQL synchronization
-- `run-integration-tests.ts` - Execute integration tests
-- `run-memory-tests.ts` - Run tests with memory profiling
-- `verify-test-setup.ts` - Verify test environment setup
-
-See `scripts/dev-tools/README.md` for details.
-
-## Advanced Setup
-
-### MCP Server Development
+Supporting Stripe helpers used by the scripts above (no direct alias):
+`stripe-catalog.ts`, `stripe-price-match.ts`, `stripe-env-cache-path.ts`,
+`stripe-revvault-sync.ts`.
 
 ```bash
-# Configure MCP credentials for AI-powered development
-pnpm setup:mcp
-
-# Include MCP checks in the standard RevealUI bootstrap
-revealui dev up --include mcp
-
-# This sets up integration with:
-# - Supabase MCP (database management)
-# - Vercel MCP (deployment)
-# - Stripe MCP (payments)
-# - Neon MCP (database)
-```
-
-### Stripe Catalog Seeding
-
-```bash
-# Preview Stripe catalog changes
-pnpm stripe:seed -- --dry-run
-
 # Seed Stripe products/prices and cache the resolved local price IDs
 pnpm stripe:seed -- --skip-webhook
 
-# Sync billing_catalog from env vars or the local node_modules/.cache/revealui-stripe-env.json cache
+# Sync billing_catalog from env vars or the local cache
 pnpm billing:catalog:sync
 ```
 
-`pnpm stripe:seed` now writes resolved price IDs to `node_modules/.cache/revealui-stripe-env.json` for local development.
-That lets `billing:catalog:sync` populate `billing_catalog` even before you manually copy new price IDs into `.env` files.
+`pnpm stripe:seed` writes resolved price IDs to
+`node_modules/.cache/revealui-stripe-env.json` for local development, so
+`billing:catalog:sync` can populate `billing_catalog` before new price IDs are
+copied into `.env` files.
 
-### Dual Database Configuration
+## Licensing
 
-```bash
-# Set up both REST API database and Vector database
-pnpm tsx scripts/setup/setup-dual-database.ts
-```
+| Script                    | Command                     | Description                          |
+| ------------------------- | --------------------------- | ------------------------------------ |
+| `issue-revforge-license.ts` | `pnpm revforge:issue-license` | Issue a RevForge license            |
 
-## Maintenance Scripts
+## Development & Testing Tools
 
-No dedicated maintenance scripts currently exist in `scripts/setup/`. Database cleanup operations (rate limits, sessions) are handled directly via SQL or through the database CLI.
-
-## Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Verify database connectivity
-pnpm tsx scripts/dev-tools/test-neon-connection.ts
-
-# Check database status
-pnpm revealui doctor
-```
-
-### Environment Variable Issues
-
-```bash
-# Validate all required variables are set
-pnpm tsx scripts/setup/validate-env.ts
-
-# Regenerate environment file
-pnpm tsx scripts/setup/environment.ts --force
-```
-
-### Test Database Issues
-
-```bash
-# Clean up test databases
-pnpm tsx scripts/dev-tools/teardown-test-database.ts
-
-# Verify test setup
-pnpm tsx scripts/dev-tools/verify-test-setup.ts
-```
+Development and integration-test utilities live in `scripts/dev-tools/`, not
+here. See [../dev-tools/README.md](../dev-tools/README.md).
 
 ## Common Workflows
 
 ### New Developer Onboarding
 
 ```bash
-# 1. Clone repository
+# 1. Clone and install
 git clone https://github.com/RevealUIStudio/revealui.git
 cd revealui
-
-# 2. Install dependencies
 pnpm install
 
-# 3. Configure environment
-pnpm tsx scripts/setup/environment.ts
-
-# 4. Verify Node version
-pnpm tsx scripts/setup/setup-node-version.ts
-
-# 5. Bootstrap local development
+# 2. Bootstrap local development
 pnpm dev:up
 
-# 6. Seed sample data (optional)
+# 3. Initialize and seed the database
+pnpm db:init
 pnpm db:seed
 
-# 7. Start development
+# 4. Start development
 pnpm dev
-```
-
-### Setting Up CI/CD Environment
-
-```bash
-# Set required environment variables in CI
-export DATABASE_URL="postgresql://..."
-export REVEALUI_SECRET="..."
-
-# Validate environment
-pnpm tsx scripts/setup/validate-env.ts --strict
-
-# Run integration tests
-pnpm test:integration
 ```
 
 ### Local Testing Setup
 
 ```bash
-# 1. Inspect local bootstrap plan
-pnpm revealui dev up --dry-run
-
-# 2. Run migrations
-pnpm db:migrate
-
-# 3. Seed test data
-pnpm db:seed
-
-# 4. Run tests
-pnpm test
+pnpm db:migrate       # Run migrations
+pnpm db:seed          # Seed test data
+pnpm test             # Run tests
 ```
 
 ## Script Execution
 
-All setup scripts can be executed directly via `tsx`:
+Aliased scripts run via their `package.json` name. Scripts without an alias run
+directly through `tsx`:
 
 ```bash
-# Using package.json scripts (recommended)
-pnpm setup:env
-
-# Direct execution (for scripts without npm aliases)
-pnpm tsx scripts/setup/test-neon-connection.ts
-
-# With arguments
-pnpm setup:env --force
+pnpm db:init                              # aliased
+pnpm tsx scripts/setup/credentials.ts     # direct
 ```
 
 ## Error Codes
 
-Setup scripts use standardized exit codes (defined in `scripts/lib/errors.ts`):
+Setup scripts use standardized exit codes (from `@revealui/scripts/errors`):
 
-- `0` - Success
-- `2` - Configuration error (missing env vars, bad config)
-- `3` - Execution error (command failed, service error)
-- `4` - Validation error (invalid input)
+- `0`, Success
+- `2`, Configuration error (missing env vars, bad config)
+- `3`, Execution error (command failed, service error)
+- `4`, Validation error (invalid input)
 
 ## See Also
 
-- [Main Scripts README](../README.md) - Overview of all script categories
-- [Database Commands CLI](../cli/db.ts) - Unified database management interface
-- [Setup CLI](../cli/setup.ts) - Unified setup command interface
-- [Script Development Guide](../README.md#script-development-guide) - Script development methodology and best practices
+- [Main Scripts README](../README.md), overview of all script categories
+- [Dev Tools](../dev-tools/README.md), development and integration-test utilities
+- [Secrets](../../docs/SECRETS.md), revvault-first secret management

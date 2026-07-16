@@ -78,14 +78,13 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Pull Requests
 
-1. Fork the repo and create your branch from `main`
+1. Fork the repo and create your branch from `test` (the default branch)
 2. If you've added code that should be tested, add tests
 3. If you've changed APIs, update the documentation
-4. If you've added/modified packages, validate scripts (`pnpm scripts:validate`)
-5. Ensure the test suite passes (`pnpm test`)
-6. Make sure your code lints (`pnpm lint`)
-7. Run type checking (`pnpm typecheck:all`)
-8. Issue that pull request!
+4. Ensure the test suite passes (`pnpm test`)
+5. Make sure your code lints (`pnpm lint`)
+6. Run type checking (`pnpm typecheck:all`)
+7. Open your pull request against `test`
 
 **For first-time contributors:** See the [Development Setup](#development-setup) section below to get started.
 
@@ -252,9 +251,10 @@ When creating or modifying packages:
   cp .revealui/templates/tool.json packages/mytool/package.json
   ```
 
-- **Validate scripts** before committing:
+- **Browse and inspect scripts** with the script explorer:
   ```bash
-  pnpm scripts:validate --package @revealui/mypackage
+  pnpm scripts list           # list scripts across the monorepo
+  pnpm scripts info <name>    # show a script's commands and metadata
   ```
 
 - **Required scripts** for all packages:
@@ -270,13 +270,10 @@ When creating or modifying packages:
   - Use kebab-case: `test:watch` not `testWatch`
   - Be descriptive: `test:coverage` not `test:cov`
 
-- **Auto-fix missing scripts**:
+- **Keep cross-package versions and scripts consistent** with syncpack:
   ```bash
-  # Preview changes
-  pnpm maintain:fix-scripts --package @revealui/mypackage --dry-run
-
-  # Apply fixes
-  pnpm maintain:fix-scripts --package @revealui/mypackage
+  pnpm deps:check   # report mismatches
+  pnpm deps:fix     # fix mismatches
   ```
 
 See [Script Standards](scripts/STANDARDS.md) for complete guidelines.
@@ -403,25 +400,18 @@ All TypeScript files in `scripts/` must include standardized JSDoc headers docum
 
 #### Validation
 
-Use the dependency validator to check your documentation:
+Use the script explorer to inspect the metadata you documented:
 
 ```bash
-# Validate all scripts
-pnpm check validate:dependencies
+# Inspect a script's dependencies and metadata
+pnpm scripts info <name>
 
-# Check specific file
-pnpm check validate:dependencies --file scripts/cli/ops.ts
-
-# Generate dependency graph
-pnpm info deps:graph --output docs/DEPENDENCY_GRAPH.md
+# Show a script's dependency tree
+pnpm scripts tree <name>
 ```
 
-The validator will check:
-- ✅ All `@dependencies` files exist
-- ✅ No circular dependencies
-- ✅ Required environment variables are documented
-- ✅ Execution order is valid
-- ⚠️ Warnings for missing documentation
+The explorer reads the `@dependencies` and `@requires` headers to build its
+registry, so keeping the headers accurate keeps `info` and `tree` accurate.
 
 #### Adding to New Scripts
 
@@ -430,27 +420,27 @@ When creating a new script:
 1. **Start with the template** from above
 2. **List your imports** in @dependencies
 3. **Document requirements** in @requires
-4. **Run validation**: `pnpm check validate:dependencies --file your-script.ts`
-5. **Update if needed** based on validation results
+4. **Inspect the result**: `pnpm scripts info <name>`
 
 #### Tooling
 
-The dependency system provides:
-- **Validator**: Detects circular dependencies, missing files, undocumented dependencies
-- **Graph Generator**: Creates visual diagrams (Mermaid, DOT, JSON)
-- **CI Integration**: Automatically validates on PRs
-- **Pre-commit Hook**: Checks modified scripts before commit
+The `pnpm scripts` explorer reads the `@dependencies` / `@requires` headers and
+provides `list`, `search`, `info`, `tree`, `run`, and `history` subcommands over
+the registered scripts.
 
 See [Script Standards](scripts/STANDARDS.md) for complete details.
 
 ## Branch Strategy
 
-- `main` - Production branch (protected)
+The flow is `feature/* → test → main`:
+
+- `test` - Default branch (protected). Base your work here and target your PRs here.
+- `main` - Production branch (protected). It only ever receives promotion PRs whose head is `test`.
 - `feat/*` - Feature branches
 - `fix/*` - Bug fix branches
 - `chore/*` - Maintenance branches
 
-**Important**: Do NOT push directly to `main`. Always create a PR from your feature branch.
+**Important**: Do NOT push directly to `test` or `main`, and do NOT open a feature PR against `main`. Base your branch on `test`, open the PR against `test`, and let a maintainer promote `test` to `main`. The promotion gate rejects any PR to `main` whose head is not `test`.
 
 ## Pull Request Process
 
@@ -464,11 +454,11 @@ See [Script Standards](scripts/STANDARDS.md) for complete details.
 ```bash
 # Development
 pnpm dev                    # Start all apps
-pnpm dev:packages           # Start package development
+pnpm --filter <pkg> dev     # Watch-build a single package
 
 # Building
-pnpm build                  # Build all packages
-pnpm build:packages         # Build publishable packages
+pnpm build                  # Build all (turbo, dependency order)
+pnpm --filter './packages/*' build   # Build only the packages
 
 # Testing
 pnpm test                   # Run all tests
@@ -477,36 +467,30 @@ pnpm test:integration       # Run integration tests
 
 # Quality
 pnpm lint                   # Lint all packages
-pnpm lint:fix               # Fix linting issues
+pnpm lint:fix               # Auto-fix and format
 pnpm format                 # Format code
 pnpm typecheck:all          # Type check everything
+pnpm gate                   # Full CI gate (quality, typecheck, test, build)
+pnpm gate:quick             # Quick gate (phase 1 only)
 
-# Script Management (New!)
-pnpm scripts:validate       # Validate package scripts
-pnpm scripts:audit          # Audit for duplicates
-pnpm scripts:fix            # Preview auto-fix (dry-run)
-pnpm scripts:fix:apply      # Apply auto-fix
-pnpm scripts:health         # Full health check
+# Auditing
+pnpm audit:any              # Find avoidable `any` types
+pnpm audit:console          # Find production console statements
+pnpm audit:emdash           # Find em dashes in copy
 
-# Maintenance (New!)
-pnpm maintain:fix-imports   # Fix import extensions
-pnpm maintain:fix-lint      # Auto-fix linting errors
-pnpm maintain:validate-scripts  # Validate scripts
-pnpm maintain:clean         # Clean generated files
+# Dependencies
+pnpm deps:check             # Report cross-package version mismatches
+pnpm deps:fix               # Fix mismatches
 
-# Analysis
-pnpm analyze:quality        # Code quality metrics
-pnpm analyze:types          # TypeScript type analysis
-pnpm analyze:console        # Find console statements
+# Script explorer
+pnpm scripts list           # Browse scripts across the monorepo
+pnpm scripts search <query> # Full-text search across scripts
+pnpm scripts tree <name>    # Show a script's dependency tree
 
 # Database
 pnpm db:init                # Initialize database
 pnpm db:migrate             # Run migrations
 pnpm db:seed                # Seed sample data
-
-# Interactive Tools
-pnpm explore                # Interactive script browser
-pnpm dashboard              # Performance dashboard
 ```
 
 **See also:**

@@ -1,6 +1,6 @@
 ---
 title: "@revealui/presentation"
-description: "57 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
+description: "61 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
 visibility: public
 status: verified
 audience: user
@@ -8,13 +8,13 @@ audience: user
 
 # @revealui/presentation
 
-57 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
+61 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
 
 ## Features
 
-- **57 Components**  -  Forms, data display, feedback, navigation, media, and layout
+- **61 Components**  -  Forms, data display, feedback, navigation, media, and layout
 - **6 Primitives**  -  Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
-- **14 Hooks**  -  Focus trap, click outside, popover, roving tabindex, scroll lock, and more
+- **16 Hooks**  -  Focus trap, click outside, popover, roving tabindex, scroll lock, and more
 - **Headless + Styled**  -  Many components ship both unstyled (headless) and styled (CVA) variants
 - **Accessible**  -  WCAG 2.1 patterns with proper ARIA attributes
 - **React 19**  -  Server components, hooks, and modern patterns
@@ -34,7 +34,7 @@ import { Box, Flex } from '@revealui/presentation/primitives'
 import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ```
 
-## Components (57)
+## Components (61)
 
 ### Layout
 | Component | Description |
@@ -113,8 +113,8 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | Box | Generic container |
 | Flex | Flexbox layout |
 | Grid | CSS Grid layout |
-| Heading | Semantic heading |
-| Text | Text content |
+| HeadingPrimitive | Semantic heading (canonical `Heading` is exported from the main components entry) |
+| TextPrimitive | Text content (canonical `Text` is exported from the main components entry) |
 | Slot | Component composition utility |
 
 ## Hooks (16)

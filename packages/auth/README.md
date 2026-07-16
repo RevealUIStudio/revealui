@@ -32,7 +32,7 @@ pnpm add @revealui/auth
 ### Server-Side
 
 ```typescript
-import { getSession, signIn, signOut, createSession } from '@revealui/auth/server'
+import { getSession, signIn, deleteSession, createSession } from '@revealui/auth/server'
 
 // Validate session from request headers
 const session = await getSession(request.headers)
@@ -41,7 +41,7 @@ const session = await getSession(request.headers)
 const result = await signIn({ email, password })
 
 // Sign out (invalidate session)
-await signOut(sessionToken)
+await deleteSession(request.headers)
 ```
 
 ### Client-Side (React)
@@ -72,7 +72,6 @@ function AuthComponent() {
 | Subpath | Contents |
 |---------|----------|
 | `@revealui/auth/server` | Server-side auth (session CRUD, sign in/out, rate limiting, brute force) |
-| `@revealui/auth/client` | Client-side utilities |
 | `@revealui/auth/react` | React hooks (`useSession`, `useSignIn`, `useSignOut`) |
 
 ## Security

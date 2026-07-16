@@ -75,7 +75,7 @@ const manager = new WorkboardManager('/path/to/repo/.claude/workboard.md')
 const state = await manager.read()
 
 // Register session
-const sessionId = await deriveSessionId()
+const sessionId = deriveSessionId('zed', state.agents.map((a) => a.id))
 await manager.registerSession({
   id: sessionId,
   env: 'Zed/WSL',

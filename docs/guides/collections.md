@@ -281,6 +281,24 @@ const Posts: RevealCollectionConfig = {
 Field-level hooks run for individual fields during save operations:
 
 ```ts
+// Lowercases, keeps a-z/0-9, and collapses everything else to single hyphens
+// (no leading/trailing hyphen). Zero-regex per the repo's no-regex posture.
+function slugify(input: string): string {
+  let slug = '';
+  let lastWasHyphen = true; // suppresses a leading hyphen
+  for (const char of input.toLowerCase()) {
+    const isAlphaNumeric = (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9');
+    if (isAlphaNumeric) {
+      slug += char;
+      lastWasHyphen = false;
+    } else if (!lastWasHyphen) {
+      slug += '-';
+      lastWasHyphen = true;
+    }
+  }
+  return lastWasHyphen ? slug.slice(0, -1) : slug;
+}
+
 {
   name: 'slug',
   type: 'text',
@@ -289,10 +307,7 @@ Field-level hooks run for individual fields during save operations:
       async ({ value, data }) => {
         // Auto-generate slug from title if not provided
         if (!value && data?.title) {
-          return data.title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '');
+          return slugify(data.title);
         }
         return value;
       },

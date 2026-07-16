@@ -74,9 +74,10 @@ const Posts: RevealUICollection = {
 ### Server-Side API
 
 ```typescript
-import { revealui } from '@revealui/core/server'
+import { getRevealUI } from '@revealui/core'
 
 // Create, read, update, delete
+const revealui = await getRevealUI({ config })
 const post = await revealui.create({ collection: 'posts', data: { title: 'Hello' } })
 const posts = await revealui.find({ collection: 'posts', where: { status: { equals: 'published' } } })
 ```
@@ -106,7 +107,8 @@ defineField({ name: 'body', type: 'richText' })
 ### Feature Gating
 
 ```typescript
-import { isLicensed, isFeatureEnabled } from '@revealui/core/features'
+import { isLicensed } from '@revealui/core/license'
+import { isFeatureEnabled } from '@revealui/core/features'
 
 if (isLicensed('pro')) {
   // Pro-tier feature

@@ -1,365 +1,118 @@
 ---
-title: "Documentation Validation System"
-description: "Automated validation to prevent documentation drift and ensure accuracy."
+title: "Validation Scripts"
+description: "Index of the pass/fail validation gates that keep code, docs, and config honest."
 visibility: internal
 status: verified
 audience: contributor
 ---
 
-# Documentation Validation System
+# Validation Scripts
 
-Automated validation to prevent documentation drift and ensure accuracy.
-
-## Overview
-
-The documentation validation system automatically checks all documentation files against actual source code, package.json, node_modules, and the file system to catch:
-
-- Broken internal links
-- References to non-existent scripts
-- References to non-existent directories
-- Deprecated package names
-- Outdated version numbers
-- Incorrect file paths
-- False technical claims
+`scripts/validate/` holds the pass/fail gates that catch drift between the code,
+the docs, and the configuration. Each validator exits non-zero on failure and
+most are surfaced as a root `package.json` alias. Many are wired into
+`pnpm gate` (see [../gates](../gates)); all can be run standalone.
 
 ## Usage
 
-### Local Development
+```bash
+pnpm validate:boundary       # Package boundary enforcement
+pnpm validate:claims         # Claim-drift validation
+pnpm validate:doc-currency   # Documentation currency check
+pnpm preflight               # Full pre-launch checklist (scripts/validate/pre-launch.ts)
+```
+
+To run one directly:
 
 ```bash
-# Run the comprehensive docs validator directly
-tsx scripts/validate/validate-docs-comprehensive.ts
-
-# JSON output
-tsx scripts/validate/validate-docs-comprehensive.ts --json
+tsx scripts/validate/boundary.ts
 ```
 
-### CI/CD Integration
+## Validator Index
 
-Documentation validation is integrated into the CI `quality` job via `pnpm --filter docs check:links`. A standalone `validate-docs.yml` workflow does not currently exist.
+### Code Structure & Boundaries
 
-**Critical issues will fail the build.**
+| Validator            | Command                | Purpose                                          |
+| -------------------- | ---------------------- | ------------------------------------------------ |
+| `boundary.ts`        | `pnpm validate:boundary` | Enforce package import boundaries              |
+| `structure.ts`       | `pnpm validate:structure`| Enforce project structure                      |
+| `build-artifacts.ts` | `pnpm validate:artifacts`| Validate build artifacts                       |
+| `react-rsc-floor.ts` | `pnpm validate:react-floor` | Enforce the React Server Component floor    |
+| `validate-code.ts`   | run via `tsx`          | Validate code files against RevealUI standards   |
+| `validate-root-markdown.ts` | run via `tsx`   | Enforce which `.md` files may live in the repo root |
 
-## What Gets Validated
+### Documentation & Claims
 
-### 1. Package.json Script References
+| Validator            | Command                     | Purpose                                       |
+| -------------------- | --------------------------- | --------------------------------------------- |
+| `claim-drift.ts`     | `pnpm validate:claims`      | Detect drift between doc claims and code      |
+| `claims-evidence.ts` | `pnpm validate:claims-evidence` | Verify claims are backed by evidence      |
+| `doc-currency.ts`    | `pnpm validate:doc-currency`| Flag stale, dated facts in docs               |
+| `docs-import-drift.ts` | `pnpm validate:docs-imports` | Detect drifted import examples in docs      |
+| `citation-check.ts`  | `pnpm validate:citations`   | Verify `file:line` source citations resolve   |
 
-Detects references to non-existent pnpm scripts in documentation:
+Documentation link checking runs separately via `pnpm --filter docs check:links`
+(`apps/docs/scripts/check-links.ts`) and is part of the CI `quality` job.
 
-```markdown
-# ❌ Will fail validation
-Run `pnpm start:cms` to start the app
+### Code Quality
 
-# ✅ Correct
-Run `pnpm dev` to start the app
-```
+| Validator            | Command                    | Purpose                                        |
+| -------------------- | -------------------------- | ---------------------------------------------- |
+| `empty-catch.ts`     | `pnpm validate:empty-catch`| Flag silent empty catch blocks                 |
+| `raw-sql.ts`         | `pnpm validate:raw-sql`    | Flag raw SQL outside allowlisted paths         |
+| `as-never-values.ts` | `pnpm validate:as-never-values` | Flag `as never` value assertions          |
+| `stripe-client.ts`   | `pnpm validate:stripe-client` | Enforce Stripe client-safety boundaries     |
+| `client-safety.ts`   | `pnpm validate:client-safety` | Flag server-only code leaking to the client |
 
-**Severity:** Critical
+### Brand & Marketing
 
-### 2. Internal Links
+| Validator               | Command                       | Purpose                                |
+| ----------------------- | ----------------------------- | -------------------------------------- |
+| `marketing-voice.ts`    | `pnpm validate:marketing-voice` | Enforce marketing voice rules        |
+| `brand-bridge.ts`       | `pnpm validate:brand-bridge`  | Validate the brand-token bridge        |
+| `design-context-drift.ts` | `pnpm validate:design-context` | Detect design-context drift          |
 
-Validates all markdown links to local files:
+### Versioning, Migrations & Env
 
-```markdown
-# ❌ Will fail validation
-See [Setup Guide](./guides/QUICK_START.md)
+| Validator                | Command                        | Purpose                                    |
+| ------------------------ | ------------------------------ | ------------------------------------------ |
+| `version-policy.ts`      | `pnpm validate:versions`       | Enforce the versioning policy              |
+| `migration-journal.ts`   | `pnpm validate:migrations`     | Verify migration journal integrity         |
+| `catalog-changeset.ts`   | `pnpm validate:catalog`        | Check the changeset catalog (warn)         |
+| `mixed-changesets.ts`    | `pnpm validate:changesets`     | Flag mixed OSS/Pro changesets              |
+| `changelog-format.ts`    | `pnpm validate:changelogs`     | Enforce changelog format                   |
+| `pricing-lockstep.ts`    | `pnpm validate:pricing-lockstep` | Keep pricing sources in lockstep         |
+| `prod-env.ts`            | `pnpm validate:prod-env`       | Validate production env configuration      |
+| `gitignore-pro.ts`       | `pnpm validate:gitignore`      | Enforce Pro-package gitignore policy       |
+| `seed-script-wiring.ts`  | `pnpm validate:seed-wiring`    | Verify seed scripts are wired correctly    |
 
-# ✅ Correct (if file exists)
-See [Setup Guide](./onboarding/QUICK_START.md)
-```
+### Pre-launch
 
-**Severity:** High
+| Validator       | Command         | Purpose                                    |
+| --------------- | --------------- | ------------------------------------------ |
+| `pre-launch.ts` | `pnpm preflight`| Run the full pre-launch checklist          |
 
-### 3. Directory References
+### Security-review gate
 
-Detects references to non-existent directories:
+`security-review-gate.cjs` is invoked by the `.github/workflows/security-review-gate.yml`
+workflow (not a `pnpm` alias). It reads sensitive-path changes and PR labels to
+decide whether a security review is required before merge.
 
-```markdown
-# ❌ Will fail validation
-Files are in `docs/development/`
+## Related validators outside this directory
 
-# ✅ Correct
-Files are in `docs/infrastructure/`
-```
+Some `validate:*` aliases point at tests elsewhere in `scripts/`:
 
-**Severity:** High
+- `pnpm validate:secret-paths`, `scripts/sync/__tests__/secret-paths-lockstep.test.ts`
+- `pnpm validate:kek-rotation`, `scripts/security/__tests__/rotate-kek.test.ts`
 
-### 4. Deprecated Package Names
+## Adding a Validator
 
-Catches outdated package references:
+1. Add `scripts/validate/<name>.ts` that exits non-zero on failure.
+2. Add a `validate:<name>` alias to the root `package.json`.
+3. Wire it into `scripts/gates/ci-gate.ts` if it should block `pnpm gate`.
+4. Add it to the index above.
 
-```markdown
-# ❌ Will fail validation
-import { schema } from '@revealui/schema'
+## Related
 
-# ✅ Correct
-import { schema } from '@revealui/contracts'
-```
-
-**Severity:** High
-
-### 5. Version Mismatches
-
-Validates package versions against node_modules:
-
-```markdown
-# ❌ Will fail validation (if actual version is 0.2.5)
-Using @stripe/mcp@0.1.4
-
-# ✅ Correct
-Using @stripe/mcp@0.2.5
-```
-
-**Severity:** Medium
-
-### 6. False Technical Claims
-
-Detects known false claims:
-
-```markdown
-# ❌ Will fail validation
-ElectricSQL uses SQLite via IndexedDB
-
-# ✅ Correct
-ElectricSQL uses browser cache via HTTP sync
-```
-
-**Severity:** Medium
-
-### 7. File Naming Consistency
-
-Checks for inconsistent file naming (hyphens vs underscores):
-
-```markdown
-# ⚠️  Warning
-QUICK-START.md (uses hyphens)
-
-# ✅ Standard
-QUICK_START.md (uses underscores)
-```
-
-**Severity:** Low
-
-## Validation Results
-
-### Severity Levels
-
-- **🔴 Critical:** Must fix before release (fails CI build)
-- **🟠 High:** Should fix soon (doesn't fail build)
-- **🟡 Medium:** Consider fixing (improvement)
-- **⚪ Low:** Nice to fix (cosmetic)
-- **ℹ️ Info:** For awareness only
-
-### Accuracy Score
-
-Calculated based on weighted issues:
-- Critical issues: 10 points each
-- High issues: 5 points each
-- Medium issues: 2 points each
-- Low issues: 1 point each
-
-**Score = 100 - (total weight / max penalty) × 100**
-
-### Categories
-
-- `broken-link` - Internal markdown links to non-existent files
-- `nonexistent-script` - References to pnpm scripts that don't exist
-- `nonexistent-directory` - References to directories that don't exist
-- `outdated-package` - References to renamed/removed packages
-- `incorrect-path` - Wrong file system paths
-- `deprecated-reference` - Deprecated API/package references
-- `version-mismatch` - Package versions don't match node_modules
-- `naming-inconsistency` - File naming doesn't follow standards
-- `false-claim` - Technically incorrect statements
-
-## Output Examples
-
-### Human-Readable Output
-
-```
-📊 Validation Summary
-
-Files validated: 105
-Issues found: 487
-Accuracy score: 12.5%
-
-Issues by severity:
-  🔴 Critical: 85
-  🟠 High: 396
-  🟡 Medium: 6
-  ⚪ Low: 0
-
-Issues by category:
-  broken-link: 376
-  nonexistent-script: 85
-  version-mismatch: 6
-  ...
-
-🔍 Top 20 Issues:
-
-🔴 docs/onboarding/QUICK_START.md:94
-   Script 'start:cms' does not exist in package.json
-   Current: pnpm start:cms
-   Suggested: Check package.json for correct script name
-
-🟠 docs/INDEX.md:35
-   Broken link: ./AGENT_QUICK_START.md
-
-...
-```
-
-### JSON Output
-
-```json
-{
-  "success": true,
-  "data": {
-    "total_files": 105,
-    "total_issues": 487,
-    "by_severity": {
-      "critical": 85,
-      "high": 396,
-      "medium": 6,
-      "low": 0,
-      "info": 0
-    },
-    "by_category": {
-      "broken-link": 376,
-      "nonexistent-script": 85,
-      "version-mismatch": 6
-    },
-    "issues": [
-      {
-        "file": "docs/onboarding/QUICK_START.md",
-        "line": 94,
-        "severity": "critical",
-        "category": "nonexistent-script",
-        "message": "Script 'start:cms' does not exist in package.json",
-        "actual": "pnpm start:cms",
-        "expected": "Check package.json for correct script name"
-      }
-    ],
-    "accuracy_score": 12.5
-  }
-}
-```
-
-## Configuration
-
-### Patterns Checked
-
-Defined in `scripts/validate/validate-docs-comprehensive.ts`:
-
-```typescript
-const DEPRECATED_PATTERNS = [
-  {
-    pattern: /@revealui\/schema\b/g,
-    category: 'deprecated-reference',
-    message: 'Package @revealui/schema was renamed to @revealui/contracts',
-    suggested_fix: '@revealui/contracts',
-  },
-  // ... more patterns
-]
-```
-
-### Known Non-Existent Directories
-
-```typescript
-const NONEXISTENT_DIRECTORIES = [
-  'docs/assessments/',
-  'docs/implementation/',
-  'docs/development/',
-  // ... more directories
-]
-```
-
-## Extending Validation
-
-### Adding New Patterns
-
-Edit `DEPRECATED_PATTERNS` in `validate-docs-comprehensive.ts`:
-
-```typescript
-{
-  pattern: /your-pattern/g,  // Must have global flag for matchAll
-  category: 'category-name',
-  message: 'Description of the issue',
-  suggested_fix: 'Suggested replacement',
-}
-```
-
-### Adding New Validation Types
-
-Implement a new validation function following this pattern:
-
-```typescript
-async function validateYourCheck(
-  content: string,
-  filePath: string
-): Promise<ValidationIssue[]> {
-  const issues: ValidationIssue[] = []
-
-  // Your validation logic here
-
-  return issues
-}
-```
-
-Then call it in `validateFile()`:
-
-```typescript
-issues.push(...(await validateYourCheck(content, filePath)))
-```
-
-## CI Integration
-
-Documentation link checking runs via `pnpm --filter docs check:links` in the CI `quality` job. The comprehensive `validate-docs-comprehensive.ts` validator is available to run locally but is not currently a required CI step.
-
-## Best Practices
-
-1. **Run validation before committing documentation changes:**
-   ```bash
-   pnpm validate:docs
-   ```
-
-2. **Fix critical issues immediately** - they will fail CI
-
-3. **Fix high-priority issues soon** - broken links confuse users
-
-4. **Update validation patterns** when making structural changes
-
-5. **Review validation results in PRs** before merging
-
-## Troubleshooting
-
-### False Positives
-
-If the validator incorrectly flags something:
-
-1. Check if the file/script actually exists
-2. Verify the path is correct
-3. If it's a legitimate false positive, update the validation patterns
-
-### High Issue Count
-
-If you see hundreds of issues:
-
-1. Focus on critical issues first (nonexistent scripts)
-2. Then fix high-priority issues (broken links)
-3. Medium/low issues can be addressed gradually
-
-### Validation Fails Locally But Passes in CI
-
-- Ensure you've pulled latest changes
-- Run `pnpm install --frozen-lockfile`
-- Check for uncommitted file renames
-
-## Related Documentation
-
-- [Contributing to Documentation](../../docs/standards/CONTRIBUTING_DOCS.md) - Documentation guidelines
-- [Root Documentation Policy](../../docs/standards/ROOT_DOCS_POLICY.md) - Where to put docs
-
----
-
-**Last Updated:** 2026-01-29
-**Maintainer:** RevealUI Team
+- [Gates](../gates), the CI gate orchestration that runs many of these
+- [Main Scripts README](../README.md)

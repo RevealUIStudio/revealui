@@ -52,13 +52,12 @@ pnpm test
 | Route                      | Purpose                                     |
 | -------------------------- | ------------------------------------------- |
 | `/login`                   | Authentication                              |
-| `/admin`                   | Dashboard home                              |
-| `/admin/monitoring`        | System monitoring (Pro)                     |
-| `/admin/errors`            | Error tracking (Pro)                        |
-| `/admin/logs`              | Structured log viewer (Pro)                 |
-| `/admin/agents`            | AI agent cards + MCP tools (Pro)            |
-| `/admin/agents/new`        | Agent scaffolding wizard (Pro)              |
-| `/admin/settings/api-keys` | Inference key management (Pro)              |
+| `/monitoring`              | System monitoring (Pro)                     |
+| `/errors`                  | Error tracking (Pro)                        |
+| `/logs`                    | Structured log viewer (Pro)                 |
+| `/agents`                  | AI agent cards + MCP tools (Pro)            |
+| `/agents/new`              | Agent scaffolding wizard (Pro)              |
+| `/settings/api-keys`       | Inference key management (Pro)              |
 | `/account/billing`         | Account subscription and billing management |
 | `/account/license`         | Perpetual or deployment license details     |
 
@@ -94,7 +93,7 @@ Target commercial layers:
 
 ## Deployment
 
-Deployed to Vercel as `revealui-admin`. GitHub auto-deploy is enabled.
+Deployed to Vercel as `revealui-admin`. Vercel Git Integration is disabled; deploys run via the `deploy.yml` GitHub Action on push to `main` (or manual dispatch).
 
 ```bash
 # Vercel build uses a custom chain to build workspace dependencies first

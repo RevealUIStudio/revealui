@@ -295,7 +295,8 @@ export default function NewPost() {
 
 ```tsx
 "use client"
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -307,7 +308,7 @@ function SubmitButton() {
 }
 
 export function PostForm() {
-  const [state, formAction] = useFormState(createPost, null)
+  const [state, formAction] = useActionState(createPost, null)
 
   return (
     <form action={formAction}>

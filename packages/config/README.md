@@ -41,7 +41,7 @@ console.log(config.stripe.secretKey)
 console.log(config.storage.r2) // Cloudflare R2 config (undefined when the R2_* vars are unset)
 ```
 
-The package also exports a lazy-proxy default export (`packages/config/src/index.ts:217`) that validates on first property access:
+The package also exports a lazy-proxy default export (`packages/config/src/index.ts:317`) that validates on first property access:
 
 ```typescript
 import config from '@revealui/config'
@@ -125,15 +125,18 @@ Environment variables are loaded in this order (later overrides earlier):
 The package uses Zod schemas to validate configuration:
 
 ```typescript
-import { loadConfig } from '@revealui/config'
+import { getConfig, resetConfig } from '@revealui/config'
 
 try {
-  const config = loadConfig()
+  const config = getConfig()
   // Config is valid and type-safe
 } catch (error) {
   // Validation failed - missing or invalid variables
   console.error('Configuration error:', error)
 }
+
+// Reset the cached config (useful for testing)
+resetConfig()
 ```
 
 ## Development
@@ -162,7 +165,7 @@ pnpm --filter @revealui/config lint
 
 ## Design Principles
 
-- **Unified**: One config loader (`getConfig`, `packages/config/src/index.ts:184`) validates and types all environment variables across every app and package
+- **Unified**: One config loader (`getConfig`, `packages/config/src/index.ts:183`) validates and types all environment variables across every app and package
 - **Hermetic**: Validation runs at load time  -  invalid or missing variables fail fast, never leak into runtime
 
 ## Related Documentation

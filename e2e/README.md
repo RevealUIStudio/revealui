@@ -78,15 +78,15 @@ pnpm test:e2e:ui
 pnpm test:e2e:headed
 
 # Run in debug mode
-pnpm test:e2e:debug
+pnpm playwright test --debug
 
 # Run specific test file
 pnpm playwright test e2e/full-stack-flows.e2e.ts
 
 # Run with specific browser
-pnpm test:e2e:chromium
-pnpm test:e2e:firefox
-pnpm test:e2e:webkit
+pnpm playwright test --project=chromium
+pnpm playwright test --project=firefox
+pnpm playwright test --project=webkit
 ```
 
 ## 🎭 Test Categories
@@ -155,7 +155,7 @@ Visual regression testing across:
 
 ```bash
 # Run visual tests
-pnpm test:e2e:visual
+pnpm playwright test e2e/visual-snapshots.e2e.ts
 
 # Update snapshots when intentional changes made
 pnpm test:e2e:visual:update
@@ -319,12 +319,9 @@ MCP (Model Context Protocol) servers enable AI-powered testing and verification.
 
 ```bash
 # Start individual servers
-pnpm mcp:neon
-pnpm mcp:stripe
-pnpm mcp:playwright
-
-# Start all MCP servers
-pnpm mcp:all
+tsx packages/mcp/src/servers/neon.ts
+tsx packages/mcp/src/servers/stripe.ts
+tsx packages/mcp/src/servers/playwright.ts
 ```
 
 ### Using MCP Servers in Tests
@@ -414,10 +411,10 @@ npx playwright show-trace test-results/traces/trace.zip
 
 ```bash
 # Run with Playwright Inspector
-pnpm test:e2e:debug
+pnpm playwright test --debug
 
 # Debug specific test
-npx playwright test --debug full-stack-flows.e2e.ts
+pnpm playwright test --debug full-stack-flows.e2e.ts
 
 # Set breakpoints in test code
 await page.pause() // Pauses test execution

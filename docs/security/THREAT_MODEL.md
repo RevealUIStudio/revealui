@@ -70,7 +70,7 @@ Mitigations cite file paths. Where a mitigation is planned but not shipped, it i
 | **Tampering** | XSS injects JS to read admin state | CSP headers (`@revealui/security`); `isSafeUrl()` blocks `javascript:` / `vbscript:` / `data:` in Lexical link + image rendering; React 19 default escaping; CSRF tokens on state-changing admin routes (revealui#840, #853) |
 | **Repudiation** | Admin denies making a destructive change | `audit_log` table with HMAC + previousSignature chain (`packages/db/src/schema/audit-log.ts`); admin actions logged with actor + timestamp |
 | **Information Disclosure** | API leaks PII to an unauthenticated caller | RBAC + ABAC engine; `access.read` enforced in find / findByID; admin gate via `revealui-role` cookie in `proxy.ts`; `overrideAccess` stripped from external requests |
-| **Denial of Service** | Brute-force auth or webhook flood | Brute-force progressive lockout on auth endpoints; 100 req/min rate limit on `/api/webhooks`; Vercel-side DDoS protection |
+| **Denial of Service** | Brute-force auth or webhook flood | Brute-force progressive lockout on auth endpoints; 500 req/min rate limit on `/api/webhooks`; Vercel-side DDoS protection |
 | **Elevation of Privilege** | Authenticated user accesses admin routes | Admin proxy gate (defense-in-depth on top of role checks); license + feature gates (`isLicensed('pro')`, `isFeatureEnabled()`); access-enforcement tests verify role isolation (`packages/core/src/__tests__/auth/`) |
 
 ### 5.2 B2 — App ↔ External services
