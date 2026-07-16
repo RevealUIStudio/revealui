@@ -33,13 +33,22 @@ function featureRecord(features: object | null | undefined): Record<string, bool
  * Whether the account owning `userId` currently has the `ai` feature.
  *
  * Fail-closed: a null user, no active membership, no entitlement row, or a
- * grace-expired subscription all resolve to `false`. `userId` MUST come from an
- * authenticated identity (the task's owning account for the worker), never a
- * request payload (§6.1).
+ * grace-expired subscription all resolve to `false`. `userId` MUST come from
+ * an authenticated identity — the session user for request-scoped callers, or
+ * the authenticated dispatcher captured server-side at enqueue time for the
+ * durable worker (`AgentDispatchPayload.userId`) — never a client-writable
+ * value such as a ticket row's `reporterId` (§6.1).
  */
 export async function accountHasAiFeature(db: Database, userId: string | null): Promise<boolean> {
   if (!userId) return false;
 
+  // TODO(GAP-360 follow-up): `.limit(1)` picks an arbitrary active membership
+  // for a user who belongs to multiple accounts. `entitlementMiddleware` has
+  // the same shape (entitlements.ts `entitlementMiddleware`), so this mirrors
+  // existing behavior rather than introducing new ambiguity, but multi-account
+  // BYOK resolution deserves its own design pass (which membership "wins" for
+  // both entitlement and key lookup should be the same account, and today
+  // that's just "whichever active row postgres returns first").
   const [membership] = await db
     .select({ accountId: accountMemberships.accountId })
     .from(accountMemberships)

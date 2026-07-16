@@ -203,8 +203,11 @@ app.openapi(
       status: 'in_progress',
       priority,
       type: 'task',
-      // Record the authenticated creator as the owner so the durable worker can
-      // derive the dispatch identity from the row, not the job payload (§6.1).
+      // Record the authenticated creator for audit/correctness. NOT the
+      // dispatch-identity source — that is `data.userId` on the job payload,
+      // captured server-side at enqueue time (see jobs/agent-dispatch.ts). The
+      // general tickets API lets `reporterId` be set to an arbitrary user id
+      // with no ownership check, so it must never drive key resolution.
       reporterId: user.id,
     });
 

@@ -12,8 +12,11 @@
  *
  * Security invariants (spec §6, guardrail-2):
  *   - §6.1 userId is authenticated-identity-scoped; the caller derives it from
- *     session/entitlement context (or the task's owning account for the worker),
- *     never from request params/body. The resolver takes it as an argument and
+ *     session/entitlement context — or, for the durable worker, the
+ *     authenticated dispatcher captured server-side at enqueue time — never
+ *     from request params/body, and never from a client-writable DB column
+ *     (e.g. a ticket's `reporterId`, which has no ownership check on the
+ *     general tickets API). The resolver takes userId as an argument and
  *     never reads it from a request.
  *   - §6.2 plaintext lifetime = request scope. The client is constructed per
  *     request; no key cache. Nothing here logs, serializes, or returns a key.
@@ -30,6 +33,7 @@
  * The flag is the one-release rollback lever.
  */
 
+import { createLogger } from '@revealui/core/observability/logger';
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';
 import { workspaceInferenceConfigs } from '@revealui/db/schema';
@@ -42,6 +46,10 @@ import {
   LLMClient,
   type LLMProviderType,
 } from './client.js';
+
+const resolverLogger = createLogger({ component: 'resolveLLMClientForRequest' });
+/** Emitted once per process when the hosted BYOK rollback lever is pulled. */
+let warnedBreakGlass = false;
 
 /**
  * Thrown when a hosted deployment has no usable LLM configuration for the
@@ -115,9 +123,11 @@ export function hostedByokDispatchEnabled(isHosted: boolean): boolean {
 /**
  * Resolve the LLM client for a single request.
  *
- * @param userId - Authenticated user id (from session/entitlement context, or
- *   the task's owning account for the worker). Never a request param/body value.
- *   Null when the request has no authenticated user.
+ * @param userId - Authenticated user id, from session/entitlement context for
+ *   request-scoped callers, or the authenticated dispatcher captured
+ *   server-side at enqueue time for the durable worker. Never a request
+ *   param/body value, and never a client-writable DB column. Null when there
+ *   is no authenticated user.
  * @param db - Drizzle client.
  * @param ctx - Deployment mode, optional site id, optional audit sink.
  */
@@ -131,6 +141,17 @@ export async function resolveLLMClientForRequest(
   // Feature-flag gate. When disabled (self-hosted default), behavior is
   // byte-unchanged: env-first, exactly as before this PR.
   if (!hostedByokDispatchEnabled(hosted)) {
+    if (hosted && !warnedBreakGlass) {
+      warnedBreakGlass = true;
+      // Break-glass: HOSTED_BYOK_DISPATCH is explicitly off on a hosted
+      // deployment. Every account now shares the deployment env client while
+      // this lever is pulled — a deliberate one-release rollback, but an
+      // operator must know it is active.
+      resolverLogger.warn(
+        'HOSTED_BYOK_DISPATCH is disabled on a hosted deployment — all accounts are ' +
+          'sharing the deployment env LLM client instead of per-account BYOK keys.',
+      );
+    }
     return createLLMClientFromEnv();
   }
 

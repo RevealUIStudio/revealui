@@ -52,7 +52,18 @@ export interface AgentDispatchPayload extends Record<string, unknown> {
   ticketId: string;
   /** Caller's tenant id at enqueue time. Worker carries it through. */
   tenantId?: string;
-  /** Caller's user id at enqueue time. For audit logging / future RBAC. */
+  /**
+   * The authenticated dispatcher's user id, captured server-side from the
+   * session at enqueue time (the only enqueue site is the role-gated
+   * `runDurableDispatch` in `routes/agent-tasks.ts`, which always passes
+   * `requireAgentTaskRole(c)`'s `user.id`). This is the sole trusted source of
+   * dispatch identity for BYOK key resolution (§6.1/§5.6) — it must NEVER be
+   * read from `ticket.reporterId`, which is client-writable via the general
+   * tickets API (`routes/tickets/tickets.ts` create/PATCH schemas accept an
+   * arbitrary `reporterId` with no ownership check) and would let an attacker
+   * who owns a board dispatch a ticket against a victim's stored key by
+   * setting `reporterId` to the victim's user id.
+   */
   userId: string;
   /**
    * Correlation id from the originating POST request. All logs from the
@@ -99,10 +110,13 @@ export async function agentDispatchHandler(
 
   const isHosted = detectDeploymentMode(process.env as EnvMap) === 'hosted';
 
-  // Authenticated owner of the task, read from the row — never `data.userId`
-  // (§6.1: identity is not carried in the payload). Null when the reporter was
-  // deleted, which fails the entitlement gate closed on hosted.
-  const ownerUserId = ticket.reporterId ?? null;
+  // Dispatch identity: the authenticated dispatcher's session user id,
+  // captured server-side at enqueue time (see AgentDispatchPayload.userId).
+  // Deliberately NOT `ticket.reporterId` — that column is client-writable via
+  // the general tickets API (no ownership check on the field), so reading it
+  // here would let an attacker key-decrypt a victim's BYOK key by setting
+  // reporterId to the victim's id before dispatching (§6.1 fail-closed).
+  const dispatcherUserId = data.userId;
 
   // Dispatch-time entitlement re-check. The POST handler already gated the
   // caller; this catches a lapse between enqueue and claim.
@@ -111,7 +125,7 @@ export async function agentDispatchHandler(
   //  - Self-hosted (or a HOSTED_BYOK_DISPATCH rollback): the singleton license
   //    state, byte-unchanged from before this PR.
   if (isHosted && byokDispatchEnabled()) {
-    const hasAi = await accountHasAiFeature(db, ownerUserId);
+    const hasAi = await accountHasAiFeature(db, dispatcherUserId);
     if (!hasAi) {
       throw new Error('AI feature not entitled for the owning account at dispatch time');
     }
@@ -120,7 +134,7 @@ export async function agentDispatchHandler(
   }
 
   const dispatcher = await buildDispatcher(db, data.tenantId, {
-    userId: ownerUserId,
+    userId: dispatcherUserId,
     isHosted,
     workspaceId: data.tenantId,
   });
