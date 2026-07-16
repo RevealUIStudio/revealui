@@ -941,7 +941,7 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 
 | Path | Runtime | Current state | Tracking |
 |------|---------|---------------|----------|
-| **Ubuntu Inference Snaps** | Canonical snap runtime | CLI install works today for Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano (`sudo snap install <model>`). Setting `INFERENCE_SNAPS_BASE_URL` wires an already-running snap service to the LLM client. Studio lifecycle management (start / stop / health / model discovery) is **not shipped**. | Integration issue to be filed; see MASTER_PLAN §CR-9 P1-04 |
+| **Ubuntu Inference Snaps** | Canonical snap runtime | CLI install works today for Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano (`sudo snap install <model>`). Setting `INFERENCE_SNAPS_BASE_URL` wires an already-running snap service to the LLM client. Studio lifecycle management (start / stop / health / model discovery) is **not shipped**. | Integration issue to be filed; tracked internally as CR-9 P1-04 |
 
 ## Server-side usage
 

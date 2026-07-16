@@ -78,7 +78,7 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 ## Charge-readiness state (M11)
 
 - Production runs Stripe in TEST mode; the `STRIPE_LIVE_MODE` flip is owner-gated on the billing-readiness audit closing.
-- Pro-package gates are being removed via Path A: drop fake `checkXLicense` calls; normalize to FSL-1.1-MIT. Customers pay for hosted infra + support, not enforcement. Tracked in `docs/MASTER_PLAN.md`.
+- Pro-package gates are being removed via Path A: drop fake `checkXLicense` calls; normalize to FSL-1.1-MIT. Customers pay for hosted infra + support, not enforcement. Tracked in the internal hub master plan.
 
 ---
 
@@ -107,4 +107,4 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 | Secrets (M4) | `~/.claude/rules/secrets.md` + `docs/SECRETS.md` |
 | Hooks architecture (M8/M9/M10) | `~/.claude/rules/hooks-architecture.md` (private) |
 | 7-tier rename glossary (M1) | internal glossary (private coordination hub) |
-| Charge-readiness detail (M11) | `docs/MASTER_PLAN.md` §Billing |
+| Charge-readiness detail (M11) | Internal hub master plan §Billing |
