@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 
 import { getSession } from '@revealui/auth/server';
+import { LLM_PROVIDERS } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
 import { deleteApiKeys, getApiKeyMetadata, upsertApiKey } from '@revealui/db/queries/user-api-keys';
@@ -9,7 +10,7 @@ import { z } from 'zod';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const ApiKeySchema = z.object({
-  provider: z.enum(['groq', 'huggingface', 'inference-snaps', 'ollama']),
+  provider: z.enum(LLM_PROVIDERS),
   key: z.string().min(1).max(4096),
 });
 
