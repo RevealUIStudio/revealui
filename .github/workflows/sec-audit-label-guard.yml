@@ -72,11 +72,32 @@ jobs:
               echo "PR #$pr is not open ($state) — skip."; echo "::endgroup::"; continue
             fi
 
-            sha=$(gh pr view "$pr" --repo "$REPO" --json headRefOid --jq '.headRefOid')
-            labels=$(gh pr view "$pr" --repo "$REPO" --json labels --jq '[.labels[].name]')
-            checks=$(gh api "repos/$REPO/commits/$sha/check-runs" --paginate \
-              --jq '[.check_runs[] | {name: .name, conclusion: .conclusion, status: .status}]' \
-              | jq -s 'add // []')
+            sha=$(gh pr view "$pr" --repo "$REPO" --json headRefOid --jq '.headRefOid' 2>/dev/null || true)
+            labels=$(gh pr view "$pr" --repo "$REPO" --json labels --jq '[.labels[].name]' 2>/dev/null || true)
+            if [ -z "$sha" ] || [ -z "$labels" ]; then
+              echo "::warning::PR #$pr — could not read PR metadata (transient API error?); skipping."
+              echo "::endgroup::"; continue
+            fi
+
+            # Fetch check-runs resiliently. A transient gh-API 5xx can return an
+            # HTML body, which crashes jq ("invalid character '<'"). Fetch RAW
+            # (no gh --jq so gh's own jq pass can't crash), retry a few times,
+            # then SKIP — never error the workflow. Fail-safe: a skip performs
+            # no revoke, and the next check_suite event re-evaluates the PR.
+            checks=""
+            for attempt in 1 2 3; do
+              raw=$(gh api "repos/$REPO/commits/$sha/check-runs" --paginate 2>/dev/null || true)
+              if [ -n "$raw" ]; then
+                parsed=$(printf '%s' "$raw" \
+                  | jq -s '[.[].check_runs[]? | {name: .name, conclusion: .conclusion, status: .status}]' 2>/dev/null || true)
+                if [ -n "$parsed" ]; then checks="$parsed"; break; fi
+              fi
+              sleep 2
+            done
+            if [ -z "$checks" ]; then
+              echo "::warning::PR #$pr — check-runs API unavailable or non-JSON after retries; skipping (fail-safe, no revoke). The next check_suite event re-evaluates."
+              echo "::endgroup::"; continue
+            fi
 
             payload=$(jq -n \
               --argjson checkRuns "$checks" \
