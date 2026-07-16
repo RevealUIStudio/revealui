@@ -21,6 +21,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/animations.showcase.js'),
   },
   {
+    slug: 'audit-line',
+    name: 'Audit Line',
+    category: 'component',
+    loader: () => import('../../showcase/audit-line.showcase.js'),
+  },
+  {
     slug: 'avatar',
     name: 'Avatar',
     category: 'component',
@@ -195,6 +201,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/rating.showcase.js'),
   },
   {
+    slug: 'receipt-card',
+    name: 'Receipt Card',
+    category: 'component',
+    loader: () => import('../../showcase/receipt-card.showcase.js'),
+  },
+  {
     slug: 'select',
     name: 'Select',
     category: 'component',
@@ -223,6 +235,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Stat',
     category: 'component',
     loader: () => import('../../showcase/stat.showcase.js'),
+  },
+  {
+    slug: 'status-dot',
+    name: 'Status Dot',
+    category: 'component',
+    loader: () => import('../../showcase/status-dot.showcase.js'),
   },
   {
     slug: 'stepper',
@@ -271,6 +289,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Timeline',
     category: 'component',
     loader: () => import('../../showcase/timeline.showcase.js'),
+  },
+  {
+    slug: 'verdict-chip',
+    name: 'Verdict Chip',
+    category: 'component',
+    loader: () => import('../../showcase/verdict-chip.showcase.js'),
   },
   {
     slug: 'toast',

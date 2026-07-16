@@ -58,6 +58,9 @@ export {
   type SplitAuthLayoutProps,
 } from './components/split-auth-layout.js';
 export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js';
+// VerdictChip is presentational (no hooks) and safe in Server Components.
+// StatusDot/AuditLine/ReceiptCard use hooks or state and live in client.ts.
+export { type Verdict, VerdictChip, type VerdictChipProps } from './components/verdict-chip.js';
 export { RevealUIWordmark, type RevealUIWordmarkProps } from './components/wordmark.js';
 
 // Note: Checkbox and Select CVA versions use state and are in client.ts
