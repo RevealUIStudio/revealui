@@ -14,51 +14,34 @@
  *     pnpm exec tsx scripts/electric-latency-probe/probe.ts
  */
 
-import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readRevvaultSecret, requireRevvaultSecret } from '@revealui/setup/revvault';
 
 // ---------------------------------------------------------------------------
 // Config — revvault is the single source of truth. No env fallback.
 // See ~/.claude/rules/secrets.md for the hard rule.
 // ---------------------------------------------------------------------------
 
-const REVVAULT_BIN =
-  process.env.REVVAULT ?? `${process.env.HOME}/suite/revvault/target/release/revvault`;
-
-interface SecretOptions {
-  optional?: boolean;
-}
-
-function revvault(path: string): string;
-function revvault(path: string, options: { optional: true }): string | null;
-function revvault(path: string, options: SecretOptions = {}): string | null {
-  const result = spawnSync(REVVAULT_BIN, ['get', '--full', path], { encoding: 'utf8' });
-  if (result.status === 0) {
-    const value = result.stdout.trimEnd();
-    if (value.length > 0) return value;
-  }
-
-  if (options.optional) return null;
-
-  console.error(`
-FAIL: revvault path not found or empty.
-  path:   '${path}'
-  binary: ${REVVAULT_BIN}
-
-Set it:
-  echo "<value>" | revvault set ${path}
+/** Required lookup with this probe's own formatted failure message + exit(1). */
+function revvault(path: string): string {
+  try {
+    return requireRevvaultSecret(path);
+  } catch (err) {
+    console.error(`
+FAIL: ${err instanceof Error ? err.message : String(err)}
 
 See scripts/electric-latency-probe/README.md for the full path list.
 `);
-  process.exit(1);
+    process.exit(1);
+  }
 }
 
 const ADMIN_BASE_URL = revvault('revealui/dev/admin-base-url');
 const ELECTRIC_SERVICE_URL = revvault('revealui/dev/electric/service-url');
 // Cookie is either pre-stored in revvault or obtained via auto-sign-in below.
-let sessionCookie = revvault('revealui/dev/admin-session-cookie', { optional: true }) ?? '';
+let sessionCookie = readRevvaultSecret('revealui/dev/admin-session-cookie') ?? '';
 
 const sessionCookieName = 'revealui-session';
 
@@ -92,9 +75,9 @@ async function autoSignIn(): Promise<string> {
   // Sign in with revvault credentials
   const adminEmail =
     process.env.PROBE_ADMIN_EMAIL ??
-    revvault('revealui/dev/admin-email', { optional: true }) ??
+    readRevvaultSecret('revealui/dev/admin-email') ??
     'founder@revealui.com';
-  const adminPassword = revvault('revealui/dev/admin-password', { optional: true });
+  const adminPassword = readRevvaultSecret('revealui/dev/admin-password');
   if (!adminPassword) {
     console.error(`
 FAIL: No valid session cookie and no admin password in revvault.

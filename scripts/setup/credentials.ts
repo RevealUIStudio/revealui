@@ -20,16 +20,16 @@
  *   3. Environment variables already in process.env
  *
  * @dependencies
- *   node:child_process   -  spawnSync (runs revvault CLI)
- *   node:fs/promises     -  read .env fallback
- *   node:os              -  home dir for ~/.npmrc
- *   node:path            -  path joins
+ *   @revealui/setup/revvault  -  shared revvault CLI client
+ *   node:fs/promises         -  read .env fallback
+ *   node:os                  -  home dir for ~/.npmrc
+ *   node:path                -  path joins
  */
 
-import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { readRevvaultSecret } from '@revealui/setup/revvault';
 
 // ---------------------------------------------------------------------------
 // Logger (inline  -  avoids pulling in @revealui/core/monitoring via scripts/lib)
@@ -48,8 +48,6 @@ const log = {
 // Revvault reader
 // ---------------------------------------------------------------------------
 
-const REVVAULT_BIN = join(homedir(), '.local/bin/revvault');
-const REVVAULT_IDENTITY = process.env.REVVAULT_IDENTITY ?? join(homedir(), '.config/age/keys.txt');
 const REVVAULT_SECRET_PATH = 'revealui/env/reveal-saas-dev-secrets';
 
 /**
@@ -71,16 +69,9 @@ function parseRevvaultOutput(raw: string): Record<string, string> {
 }
 
 function readFromRevvault(): Record<string, string> | null {
-  const result = spawnSync(REVVAULT_BIN, ['get', '--full', REVVAULT_SECRET_PATH], {
-    env: { ...process.env, REVVAULT_IDENTITY },
-    encoding: 'utf-8',
-    timeout: 10_000,
-  });
-
-  if (result.error || result.status !== 0) return null;
-  if (!result.stdout?.trim()) return null;
-
-  return parseRevvaultOutput(result.stdout);
+  const raw = readRevvaultSecret(REVVAULT_SECRET_PATH);
+  if (raw === undefined) return null;
+  return parseRevvaultOutput(raw);
 }
 
 // ---------------------------------------------------------------------------

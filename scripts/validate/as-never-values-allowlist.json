@@ -9,8 +9,8 @@
     },
     {
       "path": "scripts/admin/bootstrap.ts",
-      "line": 205,
-      "reason": "Stage 1 fixes the event/actor/meta -> event_type/agent_id/payload column mapping; Stage 0 only makes the write's failure loud (classified console.warn) instead of silently swallowing it."
+      "line": 166,
+      "reason": "Stage 1 fixes the event/actor/meta -> event_type/agent_id/payload column mapping; Stage 0 only makes the write's failure loud (classified console.warn) instead of silently swallowing it. Line shifted down from 205 after the revvault client extraction removed the inline revvaultGet() helper."
     }
   ]
 }

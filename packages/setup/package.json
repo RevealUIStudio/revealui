@@ -58,6 +58,10 @@
     "./system-tune": {
       "types": "./dist/system-tune/index.d.ts",
       "import": "./dist/system-tune/index.js"
+    },
+    "./revvault": {
+      "types": "./dist/revvault/index.d.ts",
+      "import": "./dist/revvault/index.js"
     }
   },
   "files": [

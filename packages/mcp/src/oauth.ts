@@ -38,9 +38,6 @@
  *      `saveTokens` verbatim.
  */
 
-import { spawn } from 'node:child_process';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
 import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js';
 import type {
   OAuthClientInformation,
@@ -49,198 +46,21 @@ import type {
   OAuthClientMetadata,
   OAuthTokens,
 } from '@modelcontextprotocol/sdk/shared/auth.js';
+import {
+  createMemoryVault,
+  createRevvaultVault,
+  RevvaultError,
+  type RevvaultVaultOptions,
+  type Vault,
+} from '@revealui/setup/revvault';
 
-// ---------------------------------------------------------------------------
-// Vault interface (pluggable KV for provider state)
-// ---------------------------------------------------------------------------
-
-/**
- * Minimal key/value interface the provider needs from its backing store.
- *
- * Keys are revvault-style slash-delimited paths (e.g. `mcp/acme/linear/tokens`).
- * Values are opaque strings; the provider JSON-encodes structured values
- * before calling `set`.
- */
-export interface Vault {
-  /** Returns the value at `path`, or `undefined` if not present. */
-  get(path: string): Promise<string | undefined>;
-  /** Stores `value` at `path`, overwriting any prior value. */
-  set(path: string, value: string): Promise<void>;
-  /** Deletes the value at `path`. No-op if not present. */
-  delete(path: string): Promise<void>;
-  /**
-   * Lists every path that starts with `prefix`. Returns an empty array when
-   * no matches exist. The return order is implementation-defined.
-   *
-   * Used by admin catalog tooling to enumerate configured servers without
-   * requiring an out-of-band registry.
-   */
-  list(prefix: string): Promise<string[]>;
-}
-
-// ---------------------------------------------------------------------------
-// Revvault-backed vault (default)
-// ---------------------------------------------------------------------------
-
-export interface RevvaultVaultOptions {
-  /** Path to the `revvault` binary. Defaults to `~/.local/bin/revvault`. */
-  binPath?: string;
-  /**
-   * Age identity path. Passed via `REVVAULT_IDENTITY` env var. Defaults to
-   * `~/.config/age/keys.txt`, matching revvault's own default.
-   */
-  identityPath?: string;
-  /** Spawn timeout in ms. Defaults to 10_000. */
-  timeoutMs?: number;
-}
-
-/**
- * Creates a {@link Vault} backed by the `revvault` CLI. Requires `revvault` to
- * be installed on the host and the age identity to be readable.
- *
- * Production default for RevealUI deployments. In CI or test environments
- * without revvault, prefer {@link createMemoryVault}.
- */
-export function createRevvaultVault(options: RevvaultVaultOptions = {}): Vault {
-  const binPath = options.binPath ?? join(homedir(), '.local/bin/revvault');
-  const identityPath =
-    options.identityPath ??
-    process.env.REVVAULT_IDENTITY ??
-    join(homedir(), '.config/age/keys.txt');
-  const timeoutMs = options.timeoutMs ?? 10_000;
-
-  const env = { ...process.env, REVVAULT_IDENTITY: identityPath };
-
-  const run = (
-    args: string[],
-    stdin?: string,
-  ): Promise<{ code: number | null; stdout: string; stderr: string }> =>
-    new Promise((resolve, reject) => {
-      const child = spawn(binPath, args, { env, timeout: timeoutMs });
-      let stdout = '';
-      let stderr = '';
-      child.stdout.setEncoding('utf8');
-      child.stderr.setEncoding('utf8');
-      child.stdout.on('data', (chunk: string) => {
-        stdout += chunk;
-      });
-      child.stderr.on('data', (chunk: string) => {
-        stderr += chunk;
-      });
-      child.on('error', reject);
-      child.on('close', (code) => {
-        resolve({ code, stdout, stderr });
-      });
-      if (stdin !== undefined) {
-        child.stdin.end(stdin);
-      } else {
-        child.stdin.end();
-      }
-    });
-
-  return {
-    async get(path) {
-      assertSafePath(path);
-      const { code, stdout, stderr } = await run(['get', '--full', path]);
-      if (code !== 0) {
-        throw new RevvaultError(`revvault get exited ${code}: ${stderr.trim()}`);
-      }
-      if (stdout.length === 0 && /not found/i.test(stderr)) {
-        return undefined;
-      }
-      if (stdout.length === 0) {
-        throw new RevvaultError(`revvault get returned empty output: ${stderr.trim()}`);
-      }
-      return stdout.endsWith('\n') ? stdout.slice(0, -1) : stdout;
-    },
-    async set(path, value) {
-      assertSafePath(path);
-      const { code, stderr } = await run(['set', '--force', path], value);
-      if (code !== 0) {
-        throw new RevvaultError(`revvault set exited ${code}: ${stderr.trim()}`);
-      }
-    },
-    async delete(path) {
-      assertSafePath(path);
-      const { code, stderr } = await run(['delete', '--force', path]);
-      if (code !== 0 && !/not found/i.test(stderr)) {
-        throw new RevvaultError(`revvault delete exited ${code}: ${stderr.trim()}`);
-      }
-    },
-    async list(prefix) {
-      assertSafePrefix(prefix);
-      const { code, stdout, stderr } = await run(['list', prefix]);
-      if (code !== 0) {
-        throw new RevvaultError(`revvault list exited ${code}: ${stderr.trim()}`);
-      }
-      // `revvault list` emits one path per line. Empty / informational output
-      // (e.g. `No secrets found.`) returns an empty array.
-      return stdout
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0 && line.startsWith(prefix));
-    },
-  };
-}
-
-/** Reject shell-metacharacter and traversal patterns in vault paths. */
-function assertSafePath(path: string): void {
-  if (!/^[A-Za-z0-9/_\-.]+$/.test(path)) {
-    throw new RevvaultError(`Vault path contains disallowed characters: ${path}`);
-  }
-  if (path.includes('..') || path.startsWith('/') || path.endsWith('/')) {
-    throw new RevvaultError(`Vault path is not well-formed: ${path}`);
-  }
-}
-
-/** Same rules as {@link assertSafePath} but allows the trailing slash of a prefix. */
-function assertSafePrefix(prefix: string): void {
-  if (!/^[A-Za-z0-9/_\-.]+$/.test(prefix)) {
-    throw new RevvaultError(`Vault prefix contains disallowed characters: ${prefix}`);
-  }
-  if (prefix.includes('..') || prefix.startsWith('/')) {
-    throw new RevvaultError(`Vault prefix is not well-formed: ${prefix}`);
-  }
-}
-
-export class RevvaultError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'RevvaultError';
-  }
-}
-
-// ---------------------------------------------------------------------------
-// In-memory vault (tests / ephemeral flows)
-// ---------------------------------------------------------------------------
-
-/**
- * Creates an in-memory {@link Vault} backed by a `Map`. Intended for tests and
- * for short-lived processes where persistence is not required.
- *
- * An optional `seed` object prepopulates the map.
- */
-export function createMemoryVault(seed?: Record<string, string>): Vault {
-  const store = new Map<string, string>(seed ? Object.entries(seed) : undefined);
-  return {
-    async get(path) {
-      return store.get(path);
-    },
-    async set(path, value) {
-      store.set(path, value);
-    },
-    async delete(path) {
-      store.delete(path);
-    },
-    async list(prefix) {
-      const out: string[] = [];
-      for (const key of store.keys()) {
-        if (key.startsWith(prefix)) out.push(key);
-      }
-      return out;
-    },
-  };
-}
+export {
+  createMemoryVault,
+  createRevvaultVault,
+  RevvaultError,
+  type RevvaultVaultOptions,
+  type Vault,
+};
 
 // ---------------------------------------------------------------------------
 // Path layout
