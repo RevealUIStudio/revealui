@@ -108,7 +108,7 @@ describe('createLLMClientFromEnv — explicit LLM_PROVIDER', () => {
 
   it('throws a keyless error for anthropic without ANTHROPIC_API_KEY', () => {
     process.env.LLM_PROVIDER = 'anthropic';
-    expect(() => createLLMClientFromEnv()).toThrow(/ANTHROPIC_API_KEY/);
+    expect(() => createLLMClientFromEnv()).toThrow('ANTHROPIC_API_KEY');
   });
 });
 
