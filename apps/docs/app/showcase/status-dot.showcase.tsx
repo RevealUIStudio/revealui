@@ -63,7 +63,7 @@ const story: ShowcaseStory = {
     conformance: ['WCAG 1.4.1 Use of Color', 'WCAG 2.3.3 Animation from Interactions'],
     aria: {
       'role="img"': 'The dot exposes its status as an image with an aria-label.',
-      'aria-label': 'Required — color alone is not an accessible status cue.',
+      'aria-label': 'Required. Color alone is not an accessible status cue.',
     },
     notes:
       'The pulse ring is suppressed when the user requests reduced motion. Always pass a descriptive label such as "Database: healthy".',
