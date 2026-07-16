@@ -8,6 +8,10 @@
     "directory": "packages/mcp"
   },
   "license": "FSL-1.1-MIT",
+  "bin": {
+    "revealui-mcp": "./dist/cli.js"
+  },
+  "mcpName": "io.github.revealuistudio/revealui",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@revealui/config": "workspace:*",
