@@ -55,7 +55,7 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
       },
       {
         heading: 'Refunds',
-        paragraph: `We offer a full refund if requested within 14 days of your first paid charge (not including the trial period). After 14 days, no refunds are issued for partial billing periods. Contact ${SITE.emails.support} for refund requests.`,
+        paragraph: `We offer a full refund if requested within 14 days of your first paid charge (not including the trial period). After 14 days, no refunds are issued for partial billing periods. Contact ${SITE.emails.support} for refund requests. Perpetual licenses follow a separate window; see our full Refund Policy at /refund-policy.`,
       },
       {
         heading: 'License continuity and grace periods',
