@@ -186,6 +186,9 @@ importers:
       '@revealui/services':
         specifier: workspace:*
         version: link:packages/services
+      '@revealui/setup':
+        specifier: workspace:*
+        version: link:packages/setup
       '@size-limit/file':
         specifier: ^12.1.0
         version: 12.1.0(size-limit@12.1.0(jiti@2.7.0))
@@ -1251,6 +1254,9 @@ importers:
       '@revealui/security':
         specifier: workspace:*
         version: link:../security
+      '@revealui/setup':
+        specifier: workspace:*
+        version: link:../setup
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2

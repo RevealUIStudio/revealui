@@ -12,6 +12,7 @@
     "@playwright/test": "catalog:",
     "@revealui/core": "workspace:*",
     "@revealui/services": "workspace:*",
+    "@revealui/setup": "workspace:*",
     "@size-limit/file": "^12.1.0",
     "@size-limit/webpack": "^12.1.0",
     "@stripe/mcp": "^0.3.3",

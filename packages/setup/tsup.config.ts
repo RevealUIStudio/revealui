@@ -8,6 +8,7 @@ export default defineConfig({
     'validators/index': 'src/validators/index.ts',
     'bootstrap/index': 'src/bootstrap/index.ts',
     'system-tune/index': 'src/system-tune/index.ts',
+    'revvault/index': 'src/revvault/index.ts',
   },
   format: ['esm'],
   dts: true,
