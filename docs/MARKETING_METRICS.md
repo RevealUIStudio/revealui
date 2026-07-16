@@ -29,7 +29,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-06-22 (
 | Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (one app removed per PR #936 + #946 + #947). |
 | Workspaces (monorepo total) | **32** | `countWorkspaces()` (= 28 packages + 4 apps) | |
 | Test files | **984** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
-| UI components in `packages/presentation/` | **61** | `countUIComponents()` | Marketing copy says "61 native React components" or similar. |
+| UI components in `packages/presentation/` | **65** | `countUIComponents()` | Marketing copy says "65 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
 | DB tables (Drizzle pgTable) | **86** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
 | Access-control enforcement tests | **59** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
