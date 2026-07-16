@@ -173,10 +173,12 @@ describe('I-4 no ambient service credential on the governed path', () => {
   it('refuses the call when no per-request credential exists, even with REVEALUI_API_KEY set', async () => {
     const prev = process.env.REVEALUI_API_KEY;
     const prevUrl = process.env.REVEALUI_API_URL;
-    process.env.REVEALUI_API_KEY = 'ambient-admin-key';
-    process.env.REVEALUI_API_URL = 'http://should-never-be-called.invalid';
     try {
       const backend = await startFakeBackend(okBackend);
+      // Point the ambient env credentials at the REAL backend, so an env
+      // fallback would be observable as a backend call with the ambient key.
+      process.env.REVEALUI_API_KEY = 'ambient-admin-key';
+      process.env.REVEALUI_API_URL = backend.url;
       const governed = await startGoverned({
         backendUrl: backend.url,
         // No AuthInfo threaded — governed provider has no credential.
@@ -188,7 +190,7 @@ describe('I-4 no ambient service credential on the governed path', () => {
       await client.close();
 
       expect(result.isError).toBe(true);
-      // The ambient env key was never used to reach any backend.
+      // No env fallback: the ambient key never reached the backend.
       expect(backend.calls).toHaveLength(0);
     } finally {
       if (prev === undefined) delete process.env.REVEALUI_API_KEY;
