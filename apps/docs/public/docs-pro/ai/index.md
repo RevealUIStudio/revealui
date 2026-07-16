@@ -8,7 +8,7 @@ AI agents, open-model inference, CRDT memory, and the A2A protocol — distribut
 
 - **Agents**  -  long-running task agents with persistent state
 - **Memory**  -  four-store cognitive memory (working, episodic, semantic, procedural)
-- **Open-model inference (default)**  -  Ollama, Canonical's Ubuntu Inference Snaps; Groq is a pluggable, opt-in cloud provider. HuggingFace and a generic OpenAI-compatible provider are declared but not yet wired up.
+- **Open-model inference (default)**  -  Ollama, Canonical's Ubuntu Inference Snaps. Groq, Anthropic, OpenAI, and HuggingFace are pluggable, opt-in cloud adapters. Each one is a thin wrapper that calls the vendor's OpenAI-compatible HTTP endpoint using your own API key. RevealUI never hosts a model and ships no proprietary vendor SDK.
 - **Orchestration**  -  multi-agent coordination with the A2A protocol
 - **MCP integration**  -  tool use via Model Context Protocol (`@revealui/mcp`, MIT)
 
@@ -38,7 +38,10 @@ import { createLLMClientFromEnv } from '@revealui/ai/llm/client'
 
 // Auto-detects from environment: explicit LLM_PROVIDER first, then
 // INFERENCE_SNAPS_BASE_URL, then GROQ_API_KEY, then OLLAMA_BASE_URL,
-// falling back to Inference Snaps if none are set
+// then ANTHROPIC_API_KEY, then OPENAI_API_KEY, falling back to
+// Inference Snaps if none are set. HuggingFace works too, but it is
+// not part of this auto-detect list. Set LLM_PROVIDER=huggingface
+// explicitly to use it.
 const llm = createLLMClientFromEnv()
 
 // Use the client directly
@@ -70,9 +73,10 @@ See `@revealui/ai/memory` for the store classes (`WorkingMemory`, `EpisodicMemor
 |------|------|-----------|-------|
 | **Ollama** (default local) | Yes | Yes | Any open source GGUF model (Gemma 4, Qwen, Mistral). `nomic-embed-text` is the default 768-dim embedding model. |
 | Ubuntu Inference Snaps (planned recommended) | Yes | Depends on snap | Canonical snap runtime — hardware-aware, single command install. Studio lifecycle pending. |
-| Groq | Yes | No | Cloud-compatible — opt-in via `GROQ_API_KEY`. |
-| HuggingFace | Not yet | Not yet | Declared provider type (`HF_TOKEN`), not yet wired to a working client. |
-| OpenAI-compatible | Not yet | Not yet | Config type exists, but no provider case is wired up yet. |
+| Groq | Yes | No | Cloud, bring your own key. Opt-in via `GROQ_API_KEY`. |
+| Anthropic | Yes | No | Cloud, bring your own key. Opt-in via `ANTHROPIC_API_KEY`. Calls Anthropic's OpenAI-compatible endpoint directly. No proprietary Anthropic SDK. |
+| OpenAI | Yes | Yes | Cloud, bring your own key. Opt-in via `OPENAI_API_KEY`. |
+| HuggingFace | Yes | Depends on model | Cloud, bring your own key. Set `HF_TOKEN` and `HF_MODEL_URL`, then select it explicitly with `LLM_PROVIDER=huggingface` (not part of auto-detect). Calls the HuggingFace OpenAI-compatible inference endpoint. |
 
 ## A2A protocol
 

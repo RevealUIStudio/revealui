@@ -1,6 +1,6 @@
 # Open-Model Inference
 
-RevealUI AI defaults to open-model inference (Snaps, Ollama). Groq is a pluggable, opt-in cloud provider via `GROQ_API_KEY`. HuggingFace and generic OpenAI-compatible endpoints are declared provider types but are not yet wired to a working client.
+RevealUI AI defaults to open-model inference (Snaps, Ollama). Groq, Anthropic, OpenAI, and HuggingFace are pluggable, opt-in cloud adapters. Each one is a thin wrapper that calls the vendor's OpenAI-compatible HTTP endpoint using your own API key. RevealUI never hosts a model and ships no proprietary vendor SDK.
 
 ## Planned: Ubuntu Inference Snaps
 
@@ -53,7 +53,10 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 |------|---------|------|----------|
 | **Ollama** (default) | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
 | **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  Gemma 3, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
-| **HuggingFace** | Not yet wired | N/A | Declared provider type; no working client yet |
+| **Groq** | Cloud, your own key | Pay Groq directly | Fast cloud inference, opt-in via `GROQ_API_KEY` |
+| **Anthropic** | Cloud, your own key | Pay Anthropic directly | Bring your own key, opt-in via `ANTHROPIC_API_KEY` |
+| **OpenAI** | Cloud, your own key | Pay OpenAI directly | Bring your own key, opt-in via `OPENAI_API_KEY` |
+| **HuggingFace** | Cloud, your own key | Pay HuggingFace directly | Bring your own key, select explicitly via `LLM_PROVIDER=huggingface` |
 
 ## Ollama (Open Source Models)
 
@@ -70,12 +73,28 @@ Configure:
 OLLAMA_BASE_URL=http://localhost:11434/v1
 ```
 
-## HuggingFace (not yet wired)
+## HuggingFace
 
-`huggingface` is a declared provider type that reads `HF_TOKEN`, but the client factory does not yet instantiate a working provider for it. Setting `HF_TOKEN` and `LLM_PROVIDER=huggingface` will throw today.
+`huggingface` calls the HuggingFace OpenAI-compatible inference endpoint using your own token. It is not part of the auto-detect cascade, so select it explicitly with `LLM_PROVIDER=huggingface`.
 
 ```bash
+LLM_PROVIDER=huggingface
 HF_TOKEN=hf_xxxxx
+HF_MODEL_URL=https://your-model-endpoint.huggingface.cloud
+```
+
+## Anthropic and OpenAI
+
+`anthropic` and `openai` are bring-your-own-key cloud adapters. Each one is a thin wrapper that calls the vendor's own OpenAI-compatible HTTP endpoint with your key. RevealUI ships no proprietary Anthropic or OpenAI SDK.
+
+```bash
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+# ANTHROPIC_BASE_URL defaults to https://api.anthropic.com/v1
+
+# OpenAI
+OPENAI_API_KEY=sk-xxxxx
+# OPENAI_BASE_URL defaults to https://api.openai.com/v1
 ```
 
 ## Auto-Detection
@@ -86,9 +105,11 @@ The LLM client factory auto-detects your inference path in this order:
 2. `INFERENCE_SNAPS_BASE_URL`
 3. `GROQ_API_KEY`
 4. `OLLAMA_BASE_URL`
-5. Falls back to Inference Snaps if none of the above are set
+5. `ANTHROPIC_API_KEY`
+6. `OPENAI_API_KEY`
+7. Falls back to Inference Snaps if none of the above are set
 
-`huggingface` and `openai-compat` are not part of this auto-detect cascade and are not currently wired up as `LLM_PROVIDER` values; setting either throws.
+`huggingface` works as an `LLM_PROVIDER` value, but it is not part of this auto-detect cascade. Set `LLM_PROVIDER=huggingface` explicitly to use it.
 
 ## Server-side Usage
 
@@ -106,6 +127,6 @@ const response = await llm.chat([
 ## Security
 
 - Local providers (snaps, Ollama): no API keys leave your infrastructure
-- Cloud providers (Groq, HuggingFace, OpenAI-compatible): data is sent to your chosen endpoint when API keys are configured. Picking only open-weights models is your choice; the package supports both.
-- Air-gap capability with Ollama (zero network required after model download). The default RevealUI deployment also depends on cloud services (Postgres / Stripe / Blob storage) — the local AI path is optional, not a guarantee that the whole stack runs offline.
+- Cloud providers (Groq, Anthropic, OpenAI, HuggingFace): data is sent to your chosen vendor endpoint using your own API key. Picking only open-weights models is your choice. The package supports both.
+- Air-gap capability with Ollama (zero network required after model download). The default RevealUI deployment also depends on cloud services (Postgres, Stripe, Blob storage). The local AI path is optional, not a guarantee that the whole stack runs offline.
 - Inference snaps are signed and verified by Canonical

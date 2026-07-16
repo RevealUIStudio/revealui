@@ -206,14 +206,23 @@ Set up your AI provider credentials. `createLLMClientFromEnv` auto-detects the p
 # Inference Snaps (default; local, zero-config on Ubuntu)
 INFERENCE_SNAPS_BASE_URL=http://localhost:9090/v1
 
-# Groq
+# Groq (cloud, your own key)
 GROQ_API_KEY=gsk_your-key-here
 
 # Ollama (local)
 OLLAMA_BASE_URL=http://localhost:11434
 
-# Hugging Face
+# Anthropic (cloud, your own key)
+ANTHROPIC_API_KEY=your-key-here
+
+# OpenAI (cloud, your own key)
+OPENAI_API_KEY=your-key-here
+```
+
+Hugging Face also works as a cloud, bring-your-own-key provider, but it is not part of this auto-detect list. Set `LLM_PROVIDER=huggingface` explicitly, along with:
+```bash
 HF_TOKEN=your-token-here
+HF_MODEL_URL=https://your-model-endpoint.huggingface.cloud
 ```
 
 ### Agent seems confused
