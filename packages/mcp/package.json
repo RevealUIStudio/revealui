@@ -69,6 +69,10 @@
       "types": "./dist/servers/factories/contracts.d.ts",
       "import": "./dist/servers/factories/contracts.js"
     },
+    "./revealui-content-factory": {
+      "types": "./dist/servers/factories/revealui-content.d.ts",
+      "import": "./dist/servers/factories/revealui-content.js"
+    },
     "./docs-server": {
       "types": "./dist/servers/factories/docs.d.ts",
       "import": "./dist/servers/factories/docs.js"
