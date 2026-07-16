@@ -259,7 +259,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     consumers: ['vercel:api', 'fly:worker'],
     requiredInProdHosted: true,
     envVars: ['REVEALUI_ALERT_EMAIL'],
-    note: 'required at prod boot - apps/api refuses to start without it',
+    note: 'required at prod boot - apps/server refuses to start without it',
   },
   // ── Admin subsystem ───────────────────────────────────────────────────────
   {
