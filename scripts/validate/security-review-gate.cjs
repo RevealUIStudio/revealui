@@ -75,6 +75,17 @@ const SECURITY_PATHS = [
   // unflagged. Keep in lockstep with .jv scripts/security-pr-review-check.js.
   'api/shapes/',
   'api/sync/',
+  // Self-protection: changes to the security-enforcement machinery must
+  // themselves carry a guardrail-2 verdict. Surfaced 2026-07-16 when the
+  // sec-audit-label-guard work bypassed this gate — a PR editing the gate/guard
+  // scripts or their workflows classified as NOT security-sensitive, so the
+  // machinery that decides what is security-sensitive was itself unguarded.
+  // Keep in lockstep with the fleet checker (separate .jv PR).
+  'scripts/validate/security-review-gate',
+  'scripts/validate/sec-audit-label-decision',
+  '.github/workflows/security-review-gate',
+  '.github/workflows/sec-audit-label-guard',
+  '.github/workflows/security.yml',
 ];
 
 // A recorded reviewer verdict = an approving GH review OR one of these labels.
@@ -187,4 +198,11 @@ function main() {
   runDiffMode(base);
 }
 
-main();
+// Export the surface list + classifier so the unit test can assert the
+// classification without spawning the CLI. Guarding main() behind
+// require.main === module keeps the CLI behavior identical when run directly.
+module.exports = { SECURITY_PATHS, SEC_REVIEW_LABELS, classifyFiles };
+
+if (require.main === module) {
+  main();
+}
