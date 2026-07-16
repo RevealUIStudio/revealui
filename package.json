@@ -244,6 +244,7 @@
     "validate:pricing-lockstep": "tsx scripts/validate/pricing-lockstep.ts",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
     "validate:doc-currency": "tsx scripts/validate/doc-currency.ts",
+    "validate:rules-lockstep": "tsx scripts/validate/rules-lockstep.ts",
     "kek:rotate": "tsx scripts/security/rotate-kek.ts",
     "vercel:sync": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml",
     "vercel:sync:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
