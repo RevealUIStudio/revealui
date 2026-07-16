@@ -21,7 +21,15 @@ import type {
   ToolCall,
 } from './base.js';
 
-export interface OpenAICompatConfig extends LLMProviderConfig {}
+export interface OpenAICompatConfig extends LLMProviderConfig {
+  /** Per-request timeout in ms applied to connection setup. Default 60_000. */
+  timeout?: number;
+  /** Retries on connection/timeout errors (not on HTTP error responses). Default 1. */
+  maxRetries?: number;
+}
+
+const DEFAULT_TIMEOUT_MS = 60_000 as const;
+const DEFAULT_MAX_RETRIES = 1 as const;
 
 type OpenAIChatToolCall = {
   id: string;
@@ -77,6 +85,8 @@ const isFunctionToolCall = (call: unknown): call is OpenAIChatToolCall => {
 export class OpenAICompatProvider implements LLMProvider {
   private config: OpenAICompatConfig;
   private baseURL: string;
+  private timeoutMs: number;
+  private maxRetries: number;
 
   constructor(config: OpenAICompatConfig) {
     this.config = config;
@@ -86,6 +96,33 @@ export class OpenAICompatProvider implements LLMProvider {
       );
     }
     this.baseURL = config.baseURL;
+    this.timeoutMs = config.timeout ?? DEFAULT_TIMEOUT_MS;
+    this.maxRetries = config.maxRetries ?? DEFAULT_MAX_RETRIES;
+  }
+
+  /**
+   * fetch() with a connection-setup timeout and bounded retries. The timeout
+   * aborts a hung connection (the localhost-default failure mode that otherwise
+   * burns the whole serverless duration) and is cleared once headers arrive, so
+   * a legitimately long streaming body is not truncated. Retries fire only on a
+   * thrown fetch error (connection refused, DNS, timeout) — never on an HTTP
+   * error response, which the caller inspects — so a POST is re-sent only when
+   * no response was received.
+   */
+  private async fetchWithResilience(url: string, init: RequestInit): Promise<Response> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+      try {
+        return await fetch(url, { ...init, signal: controller.signal });
+      } catch (error) {
+        lastError = error;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error(String(lastError));
   }
 
   capabilities(): ReasonerCapabilities {
@@ -105,7 +142,7 @@ export class OpenAICompatProvider implements LLMProvider {
   }
 
   async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
-    const response = await fetch(`${this.baseURL}/chat/completions`, {
+    const response = await this.fetchWithResilience(`${this.baseURL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -188,7 +225,7 @@ export class OpenAICompatProvider implements LLMProvider {
     const texts = Array.isArray(text) ? text : [text];
     const model = options?.model || 'text-embedding-3-small';
 
-    const response = await fetch(`${this.baseURL}/embeddings`, {
+    const response = await this.fetchWithResilience(`${this.baseURL}/embeddings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -226,7 +263,7 @@ export class OpenAICompatProvider implements LLMProvider {
   }
 
   async *stream(messages: Message[], options?: LLMStreamOptions): AsyncIterable<LLMChunk> {
-    const response = await fetch(`${this.baseURL}/chat/completions`, {
+    const response = await this.fetchWithResilience(`${this.baseURL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

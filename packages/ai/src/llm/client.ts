@@ -7,6 +7,7 @@
 // Log redaction lives in @revealui/security — import `redactLogContext`
 // (recursive walker) or `redactLogField` (single key/value).
 
+import { createLogger } from '@revealui/core/observability/logger';
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
@@ -18,6 +19,7 @@ import {
 import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
+import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js';
 import type {
   Embedding,
   LLMChatOptions,
@@ -34,7 +36,8 @@ import {
   type InferenceSnapsProviderConfig,
 } from './providers/inference-snaps.js';
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
-import type { OpenAICompatConfig } from './providers/openai-compat.js';
+import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
+import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
   SemanticCache,
@@ -43,7 +46,36 @@ import {
 } from './semantic-cache.js';
 import { estimateRequest as _estimateRequestTokens } from './token-counter.js';
 
-export type LLMProviderType = 'groq' | 'ollama' | 'huggingface' | 'inference-snaps';
+export type LLMProviderType =
+  | 'anthropic'
+  | 'openai'
+  | 'groq'
+  | 'huggingface'
+  | 'ollama'
+  | 'inference-snaps';
+
+/**
+ * Providers reachable from a hosted (serverless) deployment. Localhost-only
+ * providers are false. Consumed by PR-2/PR-3 (resolver + settings UI) to pick
+ * which providers a hosted account may configure; no runtime consumer yet.
+ */
+export const hostedViable: Record<LLMProviderType, boolean> = {
+  anthropic: true,
+  openai: true,
+  groq: true,
+  huggingface: true,
+  ollama: false,
+  'inference-snaps': false,
+};
+
+/** True when the provider can serve a hosted (serverless) deployment. */
+export function isHostedViable(provider: LLMProviderType): boolean {
+  return hostedViable[provider];
+}
+
+/** Emitted once per process when the zero-config localhost default is selected. */
+let warnedLocalhostDefault = false;
+const envFactoryLogger = createLogger({ component: 'createLLMClientFromEnv' });
 
 export interface LLMClientConfig {
   provider: LLMProviderType;
@@ -169,17 +201,29 @@ export class LLMClient {
     type: LLMProviderType,
     config:
       | OpenAICompatConfig
+      | AnthropicProviderConfig
+      | OpenAIProviderConfig
       | GroqProviderConfig
       | OllamaProviderConfig
       | InferenceSnapsProviderConfig,
   ): LLMProvider {
     switch (type) {
+      case 'anthropic':
+        return new AnthropicProvider(config as AnthropicProviderConfig);
+      case 'openai':
+        return new OpenAIProvider(config as OpenAIProviderConfig);
       case 'groq':
         return new GroqProvider(config as GroqProviderConfig);
       case 'ollama':
         return new OllamaProvider(config as OllamaProviderConfig);
       case 'inference-snaps':
         return new InferenceSnapsProvider(config as InferenceSnapsProviderConfig);
+      case 'huggingface':
+        // HuggingFace exposes an OpenAI-compatible inference endpoint; baseURL is
+        // per-model (HF_MODEL_URL), so it has no dedicated wrapper — the compat
+        // base serves it directly. Fixes the latent defect where the env factory
+        // accepted 'huggingface' but createProvider threw 'Unknown provider type'.
+        return new OpenAICompatProvider(config as OpenAICompatConfig);
       default:
         throw new Error(`Unknown provider type: ${String(type)}`);
     }
@@ -579,23 +623,29 @@ export class LLMClient {
  * Create an LLM client from environment variables.
  *
  * When LLM_PROVIDER is not set, auto-detects the provider by checking env vars
- * in priority order: INFERENCE_SNAPS → GROQ → OLLAMA. If none are set, defaults
- * to Inference Snaps at http://localhost:9090/v1 (Ubuntu local) and emits a
- * one-line stderr warning so the implicit default is discoverable in logs.
+ * in priority order: INFERENCE_SNAPS → GROQ → OLLAMA → ANTHROPIC_API_KEY →
+ * OPENAI_API_KEY. If none are set, defaults to Inference Snaps at
+ * http://localhost:9090/v1 (Ubuntu local) and emits a one-line stderr warning so
+ * the implicit localhost default is discoverable in logs.
  *
- * All providers use OpenAI-compatible APIs. No proprietary provider SDKs.
+ * All providers use OpenAI-compatible APIs. No proprietary provider SDKs
+ * (Anthropic + OpenAI ride their OpenAI-compatible endpoints).
  *
  * Canonical Inference Snaps is the reference local provider on Ubuntu — offline,
  * silicon-optimized, no API key required. See `providers/inference-snaps.ts` for
  * install docs (`sudo snap install gemma3`, etc.).
  *
  * Provider defaults:
- *   inference-snaps → gemma3       (base URL defaults to http://localhost:9090/v1)
+ *   inference-snaps → gemma3            (base URL defaults to http://localhost:9090/v1)
  *   groq            → qwen/qwen3-32b
- *   ollama          → gemma4:e2b   (base URL defaults to http://localhost:11434)
+ *   ollama          → gemma4:e2b        (base URL defaults to http://localhost:11434)
+ *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
+ *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
  */
 export function createLLMClientFromEnv(): LLMClient {
-  // Auto-detect provider when LLM_PROVIDER is not explicitly set
+  // Auto-detect provider when LLM_PROVIDER is not explicitly set. The existing
+  // priority order (INFERENCE_SNAPS → GROQ → OLLAMA) is preserved so existing
+  // deployments resolve identically; the frontier providers are appended after.
   let provider: LLMProviderType;
   if (process.env.LLM_PROVIDER) {
     provider = process.env.LLM_PROVIDER as LLMProviderType;
@@ -605,17 +655,38 @@ export function createLLMClientFromEnv(): LLMClient {
     provider = 'groq';
   } else if (process.env.OLLAMA_BASE_URL) {
     provider = 'ollama';
+  } else if (process.env.ANTHROPIC_API_KEY) {
+    provider = 'anthropic';
+  } else if (process.env.OPENAI_API_KEY) {
+    provider = 'openai';
   } else {
-    // Zero-config Ubuntu default: assume Inference Snaps on the standard
-    // local port. Operator sees the warning once at boot.
+    // Zero-config Ubuntu default: assume Inference Snaps on the standard local
+    // port. This localhost default is unreachable inside a hosted serverless
+    // function, so warn once per process to make the implicit choice visible.
     provider = 'inference-snaps';
+    if (!warnedLocalhostDefault) {
+      warnedLocalhostDefault = true;
+      envFactoryLogger.warn(
+        'No LLM provider env var set — defaulting to inference-snaps at ' +
+          'http://localhost:9090/v1. This localhost endpoint is unreachable on a ' +
+          'hosted deployment; set LLM_PROVIDER or a provider key.',
+      );
+    }
   }
 
   let apiKey: string | undefined;
   let baseURL: string | undefined;
   let defaultModel: string | undefined;
 
-  if (provider === 'huggingface') {
+  if (provider === 'anthropic') {
+    apiKey = process.env.ANTHROPIC_API_KEY;
+    baseURL = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com/v1';
+    defaultModel = 'claude-sonnet-4-6';
+  } else if (provider === 'openai') {
+    apiKey = process.env.OPENAI_API_KEY;
+    baseURL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
+    defaultModel = 'gpt-4o';
+  } else if (provider === 'huggingface') {
     apiKey = process.env.HF_TOKEN;
     baseURL = process.env.HF_MODEL_URL;
   } else if (provider === 'groq') {
@@ -639,7 +710,8 @@ export function createLLMClientFromEnv(): LLMClient {
   if (!apiKey) {
     throw new Error(
       `API key not found for provider "${provider}". Set the corresponding env var ` +
-        `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, or HF_TOKEN).`,
+        `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, HF_TOKEN, ` +
+        `ANTHROPIC_API_KEY, or OPENAI_API_KEY).`,
     );
   }
 
