@@ -30,8 +30,17 @@ vi.mock('../client.js', () => ({
 }));
 
 vi.mock('@revealui/db/crypto', () => ({ decryptApiKey: (s: string) => mockDecrypt(s) }));
-vi.mock('@revealui/db/schema', () => ({ workspaceInferenceConfigs: { workspaceId: {} } }));
-vi.mock('drizzle-orm', () => ({ eq: (a: unknown, b: unknown) => ({ a, b }) }));
+vi.mock('@revealui/db/schema', () => ({
+  // __t tags let the routing fake db (makeAuthzDb) distinguish the three tables
+  // the resolver queries; makeDb (which ignores the table) is unaffected.
+  workspaceInferenceConfigs: { __t: 'wic', workspaceId: {} },
+  sites: { __t: 'sites', id: {}, ownerId: {} },
+  siteCollaborators: { __t: 'collab', id: {}, siteId: {}, userId: {} },
+}));
+vi.mock('drizzle-orm', () => ({
+  eq: (a: unknown, b: unknown) => ({ a, b }),
+  and: (...conds: unknown[]) => ({ and: conds }),
+}));
 
 import type { Database } from '@revealui/db/client';
 import {
@@ -46,6 +55,28 @@ function makeDb(siteRows: unknown[]): Database {
   return {
     select: () => ({
       from: () => ({ where: () => ({ limit: async () => siteRows }) }),
+    }),
+  } as unknown as Database;
+}
+
+/**
+ * Routing fake db for the site-config authorization tests: distinguishes the
+ * sites / site_collaborators / workspace_inference_configs queries by the
+ * table's __t tag, so `authorized` controls whether userCanAccessSite passes
+ * independently of the returned config row.
+ */
+function makeAuthzDb(opts: { authorized: boolean; config: unknown }): Database {
+  return {
+    select: () => ({
+      from: (table: { __t?: string }) => ({
+        where: () => ({
+          limit: async () => {
+            if (table?.__t === 'sites') return opts.authorized ? [{ id: 'site-1' }] : [];
+            if (table?.__t === 'collab') return [];
+            return [opts.config];
+          },
+        }),
+      }),
     }),
   } as unknown as Database;
 }
@@ -204,6 +235,49 @@ describe('resolveLLMClientForRequest — security invariants (§6)', () => {
     expect(mockCreateForUser).toHaveBeenLastCalledWith('u', expect.anything(), undefined, {
       hostedViableOnly: false,
     });
+  });
+});
+
+describe('resolveLLMClientForRequest — site-config authorization (§6.1)', () => {
+  // workspaceId reaches the resolver from a client-writable field (e.g. the
+  // agent-stream request body). The site's stored key must be decrypted only
+  // for a caller who owns or collaborates on that site — otherwise a request
+  // could name another tenant's site id and run on that site's key.
+  const siteConfig = { provider: 'openai', encryptedApiKey: 'enc', model: 'gpt-4o' };
+
+  it('does not decrypt a site key for a workspaceId the caller cannot access', async () => {
+    const db = makeAuthzDb({ authorized: false, config: siteConfig });
+
+    await expect(
+      resolveLLMClientForRequest('attacker', db, {
+        isHosted: true,
+        workspaceId: 'victim-site',
+      }),
+    ).rejects.toBeInstanceOf(LLMNotConfiguredError);
+    expect(mockDecrypt).not.toHaveBeenCalled();
+    expect(mockCreateFromEnv).not.toHaveBeenCalled();
+  });
+
+  it('decrypts the site key when the caller is authorized on the site', async () => {
+    const db = makeAuthzDb({ authorized: true, config: siteConfig });
+
+    const result = await resolveLLMClientForRequest('owner', db, {
+      isHosted: true,
+      workspaceId: 'my-site',
+    });
+
+    expect(result).toBeInstanceOf(FakeLLMClient);
+    expect((result as FakeLLMClient).cfg.apiKey).toBe('plaintext:enc');
+    expect(mockDecrypt).toHaveBeenCalledWith('enc');
+  });
+
+  it('skips the site config for an anonymous (null userId) request', async () => {
+    const db = makeAuthzDb({ authorized: true, config: siteConfig });
+
+    await expect(
+      resolveLLMClientForRequest(null, db, { isHosted: true, workspaceId: 'site-1' }),
+    ).rejects.toBeInstanceOf(LLMNotConfiguredError);
+    expect(mockDecrypt).not.toHaveBeenCalled();
   });
 });
 
