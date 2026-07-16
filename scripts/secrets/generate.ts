@@ -6,9 +6,9 @@
  * Generates a strong random password or secret and prints it to stdout.
  *
  * Usage:
- *   pnpm secrets:generate             # 24-char password (default)
- *   pnpm secrets:generate --hex       # 32-byte hex secret
- *   pnpm secrets:generate --length=32 # custom length
+ *   pnpm secrets:generate                   # 24-char password (default)
+ *   pnpm secrets:generate --hex             # 24-byte hex secret (48 hex chars)
+ *   pnpm secrets:generate --hex --length=32 # 32-byte hex secret (64 hex chars)
  */
 
 import { randomBytes, randomInt } from 'node:crypto';
