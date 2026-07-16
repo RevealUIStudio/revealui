@@ -8,7 +8,7 @@
  */
 
 import z from 'zod/v4';
-import { createLLMClientFromEnv } from '../llm/client.js';
+import { createLLMClientFromEnv, type LLMClient } from '../llm/client.js';
 
 const EmbeddingSchema = z
   .object({
@@ -38,6 +38,13 @@ export interface GenerateEmbeddingOptions {
    */
   model?: string;
   cache?: boolean; // Whether to cache embeddings (future feature)
+  /**
+   * Pre-resolved LLM client (GAP-360). When supplied — by an authenticated
+   * caller that ran `resolveLLMClientForRequest` — embeddings use it (per-user
+   * BYOK / hosted resolution). When omitted, embeddings fall back to the
+   * env-configured client, preserving self-hosted and internal-caller behavior.
+   */
+  client?: Pick<LLMClient, 'embed'>;
 }
 
 /**
@@ -64,8 +71,9 @@ export async function generateEmbedding(
     throw new Error('Text must be a non-empty string');
   }
 
-  // Use unified LLM client  -  auto-detects provider from env vars
-  const client = createLLMClientFromEnv();
+  // Prefer the caller-resolved client (BYOK / hosted). Fall back to the
+  // env-configured client for self-hosted and internal (no-user) callers.
+  const client = options.client ?? createLLMClientFromEnv();
 
   // Ask client to embed  -  each provider uses its own default model when model is undefined
   const result = await client.embed(text, model ? { model } : undefined);

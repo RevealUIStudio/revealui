@@ -62,6 +62,7 @@ export * from './llm/provider-health.js';
 export * from './llm/providers/base.js';
 export * from './llm/providers/inference-snaps.js';
 export * from './llm/providers/openai-compat.js';
+export * from './llm/resolve.js';
 export * from './llm/token-counter.js';
 export * from './llm/workspace-provider-config.js';
 // Re-export memory system

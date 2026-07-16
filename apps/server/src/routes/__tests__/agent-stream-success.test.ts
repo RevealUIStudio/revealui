@@ -57,14 +57,28 @@ vi.mock('hono/streaming', () => ({
   ),
 }));
 
-vi.mock('@revealui/ai', () => ({
-  createLLMClientFromEnv: vi.fn().mockReturnValue({ type: 'env-client' }),
-  // A.1: agent-stream composes Stage 6.1/6.2 sinks + builds MCP tools from
-  // tenant-connected servers. Stub each factory with a harmless
-  // no-op; tests that care about sink behavior set their own spies.
-  createCoreLoggerSink: vi.fn().mockReturnValue(() => {}),
-  createUsageMeterSink: vi.fn().mockReturnValue(() => {}),
-  createToolsFromMcpClient: vi.fn().mockResolvedValue([]),
+vi.mock('@revealui/ai', () => {
+  const createLLMClientFromEnv = vi.fn().mockReturnValue({ type: 'env-client' });
+  return {
+    createLLMClientFromEnv,
+    // GAP-360: the paid path resolves via resolveLLMClientForRequest. Delegate to
+    // createLLMClientFromEnv so the existing env-path assertions still hold.
+    resolveLLMClientForRequest: vi.fn(async () => createLLMClientFromEnv()),
+    // A.1: agent-stream composes Stage 6.1/6.2 sinks + builds MCP tools from
+    // tenant-connected servers. Stub each factory with a harmless
+    // no-op; tests that care about sink behavior set their own spies.
+    createCoreLoggerSink: vi.fn().mockReturnValue(() => {}),
+    createUsageMeterSink: vi.fn().mockReturnValue(() => {}),
+    createToolsFromMcpClient: vi.fn().mockResolvedValue([]),
+  };
+});
+
+// GAP-360: agent-stream now resolves a db client + audit store for the resolver.
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn().mockReturnValue({}),
+  DrizzleAuditStore: class {
+    append = vi.fn();
+  },
 }));
 
 vi.mock('@revealui/ai/llm/client', () => ({

@@ -29,9 +29,24 @@ import { idempotentWrite } from '@revealui/db/saga';
 import type { Job } from '@revealui/db/schema';
 import { agentMemories } from '@revealui/db/schema/agents';
 import { safeVectorInsert } from '@revealui/db/validation/cross-db';
+import { accountHasAiFeature } from '../lib/account-entitlement.js';
 import { buildDispatcher } from '../lib/agent-dispatcher.js';
+import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 
 const LLM_MEMOIZE_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether the BYOK dispatch behavior is active (GAP-360 §7). Canonical
+ * semantics live in `@revealui/ai` `hostedByokDispatchEnabled`; mirrored here
+ * because apps/server must not statically import the Pro package (boundary.ts).
+ * Only consulted on hosted, so the default is ON.
+ */
+function byokDispatchEnabled(): boolean {
+  const raw = process.env.HOSTED_BYOK_DISPATCH;
+  if (raw === undefined || raw.trim() === '') return true;
+  const value = raw.trim().toLowerCase();
+  return !(value === 'false' || value === '0' || value === 'off' || value === 'no');
+}
 
 export interface AgentDispatchPayload extends Record<string, unknown> {
   ticketId: string;
@@ -77,22 +92,38 @@ export async function agentDispatchHandler(
     });
   };
 
-  // License re-check. The POST handler already gated on requireAIAccess;
-  // this catches the edge case where the license lapsed between enqueue
-  // and claim. Pre-existing gap: isFeatureEnabled reads the singleton
-  // license state (not per-tenant), so the tenant-scoped variant
-  // depends on a future fix. Naming it here so when that lands the
-  // worker gets stricter enforcement automatically.
-  if (!isFeatureEnabled('ai')) {
-    throw new Error('AI feature unavailable at dispatch time (license lapsed or revoked)');
-  }
-
   const ticket = await ticketQueries.getTicketById(db, data.ticketId);
   if (!ticket) {
     throw new Error(`Ticket not found: ${data.ticketId}`);
   }
 
-  const dispatcher = await buildDispatcher(db, data.tenantId);
+  const isHosted = detectDeploymentMode(process.env as EnvMap) === 'hosted';
+
+  // Authenticated owner of the task, read from the row — never `data.userId`
+  // (§6.1: identity is not carried in the payload). Null when the reporter was
+  // deleted, which fails the entitlement gate closed on hosted.
+  const ownerUserId = ticket.reporterId ?? null;
+
+  // Dispatch-time entitlement re-check. The POST handler already gated the
+  // caller; this catches a lapse between enqueue and claim.
+  //  - Hosted (BYOK dispatch on): per-account entitlement (§5.6) via the
+  //    GAP-356 canonical path, replacing the old singleton check.
+  //  - Self-hosted (or a HOSTED_BYOK_DISPATCH rollback): the singleton license
+  //    state, byte-unchanged from before this PR.
+  if (isHosted && byokDispatchEnabled()) {
+    const hasAi = await accountHasAiFeature(db, ownerUserId);
+    if (!hasAi) {
+      throw new Error('AI feature not entitled for the owning account at dispatch time');
+    }
+  } else if (!isFeatureEnabled('ai')) {
+    throw new Error('AI feature unavailable at dispatch time (license lapsed or revoked)');
+  }
+
+  const dispatcher = await buildDispatcher(db, data.tenantId, {
+    userId: ownerUserId,
+    isHosted,
+    workspaceId: data.tenantId,
+  });
   if (!dispatcher) {
     throw new Error(
       "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",

@@ -38,6 +38,8 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import type { AgentDispatchOutput, AgentDispatchPayload } from '../jobs/agent-dispatch.js';
 import { buildDispatcher, type Dispatcher } from '../lib/agent-dispatcher.js';
+import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
+import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 
 type Variables = {
   db: DatabaseClient;
@@ -66,6 +68,44 @@ function isDurableDispatchEnabled(): boolean {
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
+
+/** GAP-360: hosted account with no usable LLM key. Configuration is the remedy → 409. */
+const LLMNotConfiguredSchema = z.object({
+  success: z.literal(false),
+  error: z.string(),
+  code: z.literal('LLM_NOT_CONFIGURED'),
+  settingsPath: z.string(),
+});
+
+/**
+ * Resolve the LLM client for a sync dispatch and return the built dispatcher,
+ * mapping the resolver's not-configured error to a caller-visible 409 body.
+ * `userId` is the authenticated session user (§6.1).
+ */
+async function buildDispatcherOr409(
+  db: DatabaseClient,
+  tenantId: string | undefined,
+  userId: string,
+): Promise<
+  | { ok: true; dispatcher: Dispatcher | null }
+  | {
+      ok: false;
+      body: { success: false; error: string; code: 'LLM_NOT_CONFIGURED'; settingsPath: string };
+    }
+> {
+  try {
+    const dispatcher = await buildDispatcher(db, tenantId, {
+      userId,
+      isHosted: detectDeploymentMode(process.env as EnvMap) === 'hosted',
+      workspaceId: tenantId,
+    });
+    return { ok: true, dispatcher };
+  } catch (err) {
+    const notConfigured = asLLMNotConfigured(err);
+    if (notConfigured) return { ok: false, body: notConfigured };
+    throw err;
+  }
+}
 
 const DispatchSuccessShape = {
   success: z.literal(true),
@@ -135,6 +175,11 @@ app.openapi(
         content: { 'application/json': { schema: ErrorSchema } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      409: {
+        content: { 'application/json': { schema: LLMNotConfiguredSchema } },
+        description:
+          'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+      },
     },
   }),
   async (c) => {
@@ -158,6 +203,9 @@ app.openapi(
       status: 'in_progress',
       priority,
       type: 'task',
+      // Record the authenticated creator as the owner so the durable worker can
+      // derive the dispatch identity from the row, not the job payload (§6.1).
+      reporterId: user.id,
     });
 
     if (!ticket) {
@@ -197,7 +245,12 @@ app.openapi(
     }
 
     // --- Legacy sync path (flag off) ---
-    const dispatcher = await buildDispatcher(db, tenant?.id);
+    const built = await buildDispatcherOr409(db, tenant?.id, user.id);
+    if (!built.ok) {
+      await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
+      return c.json(built.body, 409);
+    }
+    const dispatcher = built.dispatcher;
     if (!dispatcher) {
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
       return c.json(
@@ -261,6 +314,11 @@ app.openapi(
         content: { 'application/json': { schema: ErrorSchema } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      409: {
+        content: { 'application/json': { schema: LLMNotConfiguredSchema } },
+        description:
+          'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+      },
     },
   }),
   async (c) => {
@@ -310,7 +368,11 @@ app.openapi(
     }
 
     // --- Legacy sync path ---
-    const dispatcher = await buildDispatcher(db, tenant?.id);
+    const built = await buildDispatcherOr409(db, tenant?.id, user.id);
+    if (!built.ok) {
+      return c.json(built.body, 409);
+    }
+    const dispatcher = built.dispatcher;
     if (!dispatcher) {
       return c.json(
         {

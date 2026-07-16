@@ -22,11 +22,13 @@ import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contra
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { classifyAuditWriteFailure } from '@revealui/core/security';
-import { getClient } from '@revealui/db';
+import { DrizzleAuditStore, getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { desc, eq } from 'drizzle-orm';
+import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { buildMcpManifest } from '../lib/mcp-manifest.js';
+import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/license.js';
 import { requireTaskQuota } from '../middleware/task-quota.js';
@@ -79,9 +81,6 @@ function isValidAgentId(id: string): boolean {
   }
   return true;
 }
-
-// LLM client is resolved from environment configuration (open models only).
-// No per-request API key injection  -  all inference uses server-configured providers.
 
 // =============================================================================
 // Well-known discovery endpoints (public, no auth)
@@ -1059,6 +1058,11 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      409: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description:
+          'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+      },
     },
   }),
   // @ts-expect-error  -  JSON-RPC dispatcher returns heterogeneous shapes + raw Response from quota middleware
@@ -1161,15 +1165,38 @@ a2a.openapi(
       }
     }
 
-    // Resolve LLM client from environment-configured open models
+    // Resolve the LLM client via the GAP-360 resolver: per-account BYOK on
+    // hosted, env on self-hosted. userId comes from the authenticated session
+    // context only (§6.1), never from the JSON-RPC request params/body. A
+    // hosted account with no usable key surfaces as HTTP 409 with an actionable
+    // settings path, not a silent localhost hang.
     let llmClient: unknown;
-    try {
-      const aiMod2 = await import('@revealui/ai').catch(() => null);
-      if (aiMod2) {
-        llmClient = aiMod2.createLLMClientFromEnv();
+    if (aiMod) {
+      const sessionUserId = c.get('user')?.id ?? null;
+      try {
+        const db = getClient();
+        llmClient = await aiMod.resolveLLMClientForRequest(sessionUserId, db, {
+          isHosted: detectDeploymentMode(process.env as EnvMap) === 'hosted',
+          auditStore: new DrizzleAuditStore(db),
+        });
+      } catch (err) {
+        const notConfigured = asLLMNotConfigured(err);
+        if (notConfigured) {
+          return c.json(
+            {
+              jsonrpc: '2.0',
+              id: req.id,
+              error: {
+                code: -32010,
+                message: notConfigured.error,
+                data: { code: notConfigured.code, settingsPath: notConfigured.settingsPath },
+              },
+            },
+            409,
+          );
+        }
+        // Any other failure  -  llmClient stays undefined, handler returns stub.
       }
-    } catch {
-      // No AI module available  -  llmClient stays undefined, handler returns stub
     }
 
     const startedAt = Date.now();

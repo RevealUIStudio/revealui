@@ -1,6 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { ChatRequestContract } from '@revealui/contracts';
 import { apiClient } from '@revealui/core/admin/utils/apiClient';
+import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import type { NextRequest } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
@@ -56,6 +57,9 @@ async function loadChatAIDeps() {
   ]);
   const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = results;
 
+  // GAP-360: the per-request resolver lives on llm/server.
+  const resolveLLMClientForRequest = llmServerMod?.resolveLLMClientForRequest;
+
   // Log which specific modules failed so operators can diagnose missing Pro deps
   const failed = moduleNames.filter((_, i) => results[i] === null);
   if (failed.length > 0) {
@@ -69,6 +73,7 @@ async function loadChatAIDeps() {
   return {
     generateEmbedding: embeddingsMod.generateEmbedding,
     createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
+    resolveLLMClientForRequest,
     VectorMemoryService: vectorMod.VectorMemoryService,
     createAdminTools: cmsMod.createAdminTools,
     ToolRegistry: registryMod.ToolRegistry,
@@ -300,21 +305,49 @@ export async function POST(request: NextRequest) {
         | undefined;
     }
 
-    // Create LLM client from environment-configured open models
-    let llmClient: ChatLLMClient;
+    // Resolve the LLM client via the GAP-360 resolver: per-account BYOK on
+    // hosted, env on self-hosted. userId is the authenticated session user
+    // (§6.1). Hosted detection mirrors the deployment signal used elsewhere
+    // (REVEALUI_LICENSE_PRIVATE_KEY presence, matching instrumentation.ts).
+    // NOTE (§6.4 / GAP-338): the admin process has no durable audit sink yet,
+    // so no auditStore is wired — byok:key:accessed does not persist here until
+    // GAP-338 closes. Recorded limitation, not a Phase-1 blocker.
+    const isHosted = !!process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    let resolvedClient: ChatLLMClient;
     try {
-      logger.info('Creating LLM client from env', {
-        provider: process.env.LLM_PROVIDER,
-        model: process.env.LLM_MODEL,
-      });
-      llmClient = aiDeps.createLLMClientFromEnv();
-    } catch (_err) {
+      if (aiDeps.resolveLLMClientForRequest) {
+        resolvedClient = (await aiDeps.resolveLLMClientForRequest(
+          authSession.user.id,
+          getClient(),
+          {
+            isHosted,
+          },
+        )) as unknown as ChatLLMClient;
+      } else {
+        resolvedClient = aiDeps.createLLMClientFromEnv();
+      }
+    } catch (err) {
+      const code = (err as { code?: unknown } | null)?.code;
+      if (code === 'LLM_NOT_CONFIGURED') {
+        const e = err as { message?: unknown; settingsPath?: unknown };
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: typeof e.message === 'string' ? e.message : 'No LLM provider is configured.',
+            code: 'LLM_NOT_CONFIGURED',
+            settingsPath:
+              typeof e.settingsPath === 'string' ? e.settingsPath : '/settings/api-keys',
+          }),
+          { status: 409, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
       return createApplicationErrorResponse(
         'LLM provider not configured',
         'LLM_NOT_CONFIGURED',
         503,
       );
     }
+    const llmClient: ChatLLMClient = resolvedClient;
 
     logger.info('LLM client ready', { userId: authSession.user.id });
 
@@ -322,7 +355,12 @@ export async function POST(request: NextRequest) {
     let memoryContext = '';
     if (process.env.ENABLE_VECTOR_MEMORY !== 'false') {
       try {
-        const queryEmbedding = await aiDeps.generateEmbedding(userMessage);
+        // Reuse the resolved per-account client for embeddings (GAP-360). The
+        // cast crosses the dynamic-import boundary; at runtime the resolved
+        // LLMClient exposes embed().
+        const queryEmbedding = await aiDeps.generateEmbedding(userMessage, {
+          client: resolvedClient as never,
+        });
         const vectorService = new aiDeps.VectorMemoryService();
 
         const searchResults = await vectorService.searchSimilar(queryEmbedding.vector, {
