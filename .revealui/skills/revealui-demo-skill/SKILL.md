@@ -24,6 +24,8 @@ allowedTools:
 
 This is a demonstration skill that showcases RevealUI's advanced skills system with Vercel Skills integration.
 
+> **Note:** the `pnpm skills ...` commands below are illustrative of a hypothetical skills CLI, not scripts that exist in this repo today. Treat them as a conceptual sketch of the intended UX, not a runnable reference.
+
 ## Overview
 
 This skill demonstrates:

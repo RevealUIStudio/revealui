@@ -30,8 +30,8 @@ The authentication system uses **storage abstraction** with automatic backend se
 
 **Implementation:**
 - Automatically selected when `POSTGRES_URL` or `DATABASE_URL` is set
-- Uses `rate_limits` and `failed_attempts` tables
-- Cleanup jobs available: `pnpm cleanup:rate-limits` and `pnpm cleanup:failed-attempts`
+- Uses the `rate_limits` table (`DatabaseStorage`, `packages/auth/src/server/storage/database.ts`)
+- No cleanup job deletes expired rows; `get()` filters them out at query time (`gte(rateLimits.resetAt, now)`), so stale rows accumulate until a future retention job is added
 
 ### In-Memory Storage (Development)
 
@@ -48,6 +48,7 @@ The authentication system uses **storage abstraction** with automatic backend se
 **Implementation:**
 - Automatically selected when database URL not available
 - Used as fallback in development
+- `InMemoryStorage.cleanup()` (`packages/auth/src/server/storage/in-memory.ts`) removes expired entries from the in-process `Map`, but nothing calls it on a schedule today; it exists for a caller to invoke periodically
 
 ## Architecture
 
@@ -67,7 +68,7 @@ Storage Abstraction
 - ✅ Rate limiting uses storage abstraction
 - ✅ Brute force protection uses storage abstraction
 - ✅ Database tables created (see `packages/db/migrations/` for current migration files)
-- ✅ Cleanup jobs created
+- ⚠️ No scheduled cleanup job yet; see Cleanup section below
 - ✅ Automatic backend selection
 
 ## Environment Variables
@@ -81,25 +82,18 @@ DATABASE_URL=postgresql://...
 # If not set, falls back to in-memory (development only)
 ```
 
-## Cleanup Jobs
+## Cleanup
 
-Run periodically to remove expired entries:
-
-```bash
-# Cleanup expired rate limits
-pnpm cleanup:rate-limits
-
-# Cleanup expired failed attempts
-pnpm cleanup:failed-attempts
-```
+There are no `pnpm cleanup:*` scripts. Expired entries are handled differently per backend:
+- **Database storage**: expired rows are filtered out at read time (`get()` only returns rows where `resetAt` is in the future); nothing deletes them yet.
+- **In-memory storage**: `InMemoryStorage.cleanup()` removes expired entries from the `Map`, but no caller schedules it automatically today.
 
 ## Production Deployment
 
 For production with multiple servers:
 1. Ensure `POSTGRES_URL` is set
 2. Database storage will be automatically used
-3. Set up cron jobs for cleanup scripts
-4. Rate limiting and brute force protection will work across all servers
+3. Rate limiting and brute force protection will work across all servers
 
 ## Note on ElectricSQL
 

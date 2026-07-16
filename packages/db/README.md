@@ -47,9 +47,9 @@ import * as schema from '@revealui/db/schema'
 
 // Import specific schemas
 import { users } from '@revealui/db/schema/users'
-import { posts } from '@revealui/db/schema/cms'
+import { posts } from '@revealui/db/schema/admin'
 import { agentContexts } from '@revealui/db/schema/agents'
-import { vectorMemory } from '@revealui/db/schema/vector'
+import { agentMemories } from '@revealui/db/schema/vector'
 ```
 
 ### Query Database
@@ -80,7 +80,7 @@ await db.insert(users).values({
 - `@revealui/db/client` - Database client factory
 - `@revealui/db/schema` - All database schemas
 - `@revealui/db/schema/agents` - Agent-related tables
-- `@revealui/db/schema/cms` - CMS tables (posts, pages, media)
+- `@revealui/db/schema/admin` - CMS tables (posts, pages, media)
 - `@revealui/db/schema/users` - User and authentication tables
 - `@revealui/db/schema/vector` - Vector-capable table re-exports (agent memories + RAG; all live in NeonDB)
 - `@revealui/db/schema/crdt-operations` - CRDT operation log

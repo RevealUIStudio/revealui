@@ -188,18 +188,20 @@ describe('POST /api/posts', () => {
 
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest'
-import { getPayload } from '@revealui/core'
+import { getRevealUI } from '@revealui/core'
+import { buildConfig } from '@revealui/core'
 
 describe('Posts Collection', () => {
-  let payload: Awaited<ReturnType<typeof getPayload>>
+  let revealui: Awaited<ReturnType<typeof getRevealUI>>
 
   beforeEach(async () => {
-    payload = await getPayload()
-    await payload.delete({ collection: 'posts', where: {} })
+    const config = await buildConfig({ /* ...test config... */ })
+    revealui = await getRevealUI({ config })
+    await revealui.delete({ collection: 'posts', where: {} })
   })
 
   it('creates a post', async () => {
-    const post = await payload.create({
+    const post = await revealui.create({
       collection: 'posts',
       data: {
         title: 'Test Post',
@@ -215,16 +217,16 @@ describe('Posts Collection', () => {
   })
 
   it('finds posts by status', async () => {
-    await payload.create({
+    await revealui.create({
       collection: 'posts',
       data: { title: 'Published', _status: 'published' },
     })
-    await payload.create({
+    await revealui.create({
       collection: 'posts',
       data: { title: 'Draft', _status: 'draft' },
     })
 
-    const { docs } = await payload.find({
+    const { docs } = await revealui.find({
       collection: 'posts',
       where: { _status: { equals: 'published' } },
     })

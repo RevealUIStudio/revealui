@@ -198,19 +198,22 @@ Upload screenshots or designs:
 The admin tools may not be initialized. Check server logs for tool registration errors.
 
 ### "Authentication required" error
-Your session may have expired. Log in again at `/admin/login`.
+Your session may have expired. Log in again at `/login`.
 
 ### "LLM provider not configured" error
-Set up your AI provider credentials:
+Set up your AI provider credentials. `createLLMClientFromEnv` auto-detects the provider from whichever of these is set (in this order):
 ```bash
-# For Anthropic (recommended)
-ANTHROPIC_API_KEY=your-key-here
+# Inference Snaps (default; local, zero-config on Ubuntu)
+INFERENCE_SNAPS_BASE_URL=http://localhost:9090/v1
 
-# For OpenAI
-OPENAI_API_KEY=your-key-here
-
-# For Groq
+# Groq
 GROQ_API_KEY=gsk_your-key-here
+
+# Ollama (local)
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Hugging Face
+HF_TOKEN=your-token-here
 ```
 
 ### Agent seems confused

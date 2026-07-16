@@ -103,7 +103,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
 | `revealui/prod/admin/password` | credential | yes | vercel:admin |  |
-| `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/api refuses to start without it |
+| `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/server refuses to start without it |
 | `revealui/prod/audit-hmac-secret` | credential | yes | vercel:api, fly:worker | audit-log HMAC - rotating breaks prior-log verification (Phase 1 makes it required) |
 | `revealui/prod/billing/portal-config-id` | public-config | no | fly:worker | → migrating to `revealui/prod/stripe/billing-portal-config-id` (since 2026-07-01); R18 - Fly-side duplicate of the stripe/ canonical; converge in P3-3 |
 | `revealui/prod/cors-origin` | public-config | no | vercel:api, fly:worker |  |
@@ -278,7 +278,7 @@ revdev/license-signing-public-key        # Ed25519 license verification key (can
 revdev/github-token                      # perpetual license GitHub provisioning
 revdev/tauri-signing-private-key          # Tauri updater signing key (Studio auto-update; generated 2026-06-11)
 revdev/tauri-signing-private-key-password # password for the Tauri updater key
-revdev/tauri-signing-public-key           # updater public key (also embedded in apps/studio tauri.conf.json)
+revdev/tauri-signing-public-key           # updater public key (also embedded in revdev's apps/studio tauri.conf.json)
 # The retired legacy pair (revdev/license-signing-key + revdev/license-public-key) is
 # superseded by the canonical Ed25519 keypair above.
 # CI mirror: TAURI_SIGNING_PRIVATE_KEY + TAURI_SIGNING_PRIVATE_KEY_PASSWORD repo secrets

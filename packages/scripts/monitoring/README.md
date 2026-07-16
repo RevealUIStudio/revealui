@@ -40,17 +40,16 @@ This will:
 
 ### Manual Monitoring Status
 
-Check current system health:
+No standalone CLI ships for this yet; check current system health programmatically:
 
-```bash
-# One-time status check
-pnpm monitor
+```typescript
+import { logMonitoringStatus, getMonitoringStatus } from '../../packages/scripts/monitoring/index.js'
 
-# Watch mode (updates every 5s)
-pnpm monitor:watch
+// One-time status check (logs to console)
+logMonitoringStatus()
 
-# Custom interval
-pnpm monitor:watch --interval 10  # Updates every 10s
+// Or get the raw status object
+const status = getMonitoringStatus()
 ```
 
 ### Web Dashboard
@@ -133,7 +132,9 @@ All handlers execute in priority order with a 30-second timeout.
 ### Start Monitoring
 
 ```typescript
-import { startDevMonitoring } from '@revealui/scripts/monitoring'
+// This subpath isn't in @revealui/scripts's package.json `exports` map, so
+// import via a relative path rather than `@revealui/scripts/monitoring`:
+import { startDevMonitoring } from '../../packages/scripts/monitoring/index.js'
 
 startDevMonitoring()
 ```
@@ -141,7 +142,7 @@ startDevMonitoring()
 ### Get Status
 
 ```typescript
-import { getMonitoringStatus } from '@revealui/scripts/monitoring'
+import { getMonitoringStatus } from '../../packages/scripts/monitoring/index.js'
 
 const status = getMonitoringStatus()
 console.log(`Running processes: ${status.processes.running}`)
@@ -152,7 +153,7 @@ console.log(`Active alerts: ${status.alerts}`)
 ### Display Summary
 
 ```typescript
-import { displayMonitoringSummary } from '@revealui/scripts/monitoring'
+import { displayMonitoringSummary } from '../../packages/scripts/monitoring/index.js'
 
 // On exit
 process.on('exit', () => {

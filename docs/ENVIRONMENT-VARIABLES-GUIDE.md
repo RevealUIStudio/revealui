@@ -62,7 +62,7 @@ Open `.env.development.local` and fill in:
 
 ```env
 # Generate a 32+ character random secret
-REVEALUI_SECRET=$(bash scripts/generate-secret.sh)
+REVEALUI_SECRET=$(pnpm secrets:generate --hex --length=32)
 
 # Server URLs (defaults work for local dev)
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
@@ -96,7 +96,7 @@ The `@revealui/config` package validates all env vars at runtime using Zod schem
 
 ```bash
 # Run manual validation
-pnpm validate:env
+pnpm validate:prod-env
 ```
 
 During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to runtime. This flag is only accepted during build phases (`NEXT_PHASE` set) or in test environments (`NODE_ENV=test`). Using it in any other context throws a security error.
@@ -124,7 +124,7 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `REVEALUI_SECRET` | Yes | None | Application secret for session signing, CSRF tokens, and HMAC operations. Must be 32+ characters. Generate with `bash scripts/generate-secret.sh`. | HIGH (server-only) | admin, api |
+| `REVEALUI_SECRET` | Yes | None | Application secret for session signing, CSRF tokens, and HMAC operations. Must be 32+ characters. Generate with `pnpm secrets:generate --hex --length=32`. | HIGH (server-only) | admin, api |
 | `REVEALUI_PUBLIC_SERVER_URL` | Yes | None | Public URL of the admin server. `http://localhost:4000` for local dev, `https://admin.yourdomain.com` for production. | LOW (client-safe) | admin, marketing |
 | `NEXT_PUBLIC_SERVER_URL` | Yes | None | Same as `REVEALUI_PUBLIC_SERVER_URL`. Must match exactly; validation warns if they differ. | LOW (client-safe) | admin |
 | `NEXT_PUBLIC_API_URL` | No | `http://localhost:3004` | Public URL of the Hono API server. | LOW (client-safe) | marketing, docs |
@@ -280,7 +280,7 @@ Enterprise tier feature. Controls the look and feel of admin UI and transactiona
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
 | `REVEALUI_LICENSE_KEY` | No | None | RevealUI Pro/Enterprise license key. Unlocks commercial features. Format: an EdDSA-signed JWT (`eyJhbGciOiJFZERTQSIs...`). | MEDIUM | admin, api |
-| `REVEALUI_LICENSE_ENCRYPTION_KEY` | No | None | AES-256-GCM encryption key for license keys at rest. 32-byte hex (64 chars). Generate with `bash scripts/generate-secret.sh`. | HIGH (server-only) | api |
+| `REVEALUI_LICENSE_ENCRYPTION_KEY` | No | None | AES-256-GCM encryption key for license keys at rest. 32-byte hex (64 chars). Generate with `pnpm secrets:generate --hex --length=32`. | HIGH (server-only) | api |
 | `LICENSE_CACHE_TTL_MS` | No | `15000` | License cache TTL in milliseconds. Lower values detect revocations faster; higher values reduce DB pressure. | LOW | api |
 
 ---
@@ -680,7 +680,7 @@ cp .env.template .env.development.local
 Your `REVEALUI_SECRET` is too short. Generate a proper secret:
 
 ```bash
-bash scripts/generate-secret.sh
+pnpm secrets:generate --hex --length=32
 ```
 
 ### "Must be a PostgreSQL connection string"

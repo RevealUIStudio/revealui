@@ -1,14 +1,9 @@
----
-title: "RevealUI"
-description: "**Agentic business runtime.**"
-visibility: public
-status: verified
-audience: user
----
-
 <div align="center">
 
-# RevealUI
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="packages/presentation/src/assets/brand/wordmark-dark.svg">
+  <img src="packages/presentation/src/assets/brand/wordmark-light.svg" alt="RevealUI" width="340">
+</picture>
 
 **Agentic business runtime.**
 
@@ -160,7 +155,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 ## Packages
 
-### OSS Packages (MIT) — 21
+### OSS Packages (MIT) — 22
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
@@ -183,6 +178,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`@revealui/paywall`](packages/paywall)                 | Runtime license enforcement, feature gating, upgrade UI |
 | [`@revealui/tokens`](packages/tokens)                   | Design tokens (CSS variables, typed TS export, brand canon) |
+| [`@revealui/knowledge-graph`](packages/knowledge-graph) | Fleet knowledge graph: bi-temporal, content-addressed graph over Neon + pgvector, `revkg` CLI |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
 | [`revealui`](packages/revealui)                         | Meta-installer (proxies to `create-revealui`; unpublished) |
 

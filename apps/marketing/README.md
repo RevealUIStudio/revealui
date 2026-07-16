@@ -31,7 +31,7 @@ pnpm --filter marketing build
 pnpm --filter marketing preview
 ```
 
-`apps/server` should run on port 3004 for `/api/og`, `/api/contact`, `/api/newsletter` to work cross-origin in dev.
+`apps/server` should run on port 3004 for `/api/og`, `/api/contact`, `/api/waitlist` to work cross-origin in dev.
 
 ## Deploy
 

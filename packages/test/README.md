@@ -59,7 +59,7 @@ packages/test/
 
 ```bash
 # From project root
-pnpm --filter test test:all
+pnpm --filter @revealui/test test:all
 
 # Or from packages/test directory
 pnpm test:all
@@ -69,35 +69,37 @@ pnpm test:all
 
 ```bash
 # Run all unit tests
-pnpm --filter test test:unit
+pnpm --filter @revealui/test test:unit
 
 # Run in watch mode
-pnpm --filter test test:unit:watch
+pnpm --filter @revealui/test test:unit:watch
 
 # Run with coverage
-pnpm --filter test test:coverage:unit
+pnpm --filter @revealui/test test:coverage:unit
 ```
 
 ### Run E2E Tests
 
 ```bash
 # Run all E2E tests
-pnpm --filter test test:e2e
+pnpm --filter @revealui/test test:e2e
 
 # Run in UI mode
-pnpm --filter test test:e2e --ui
+pnpm --filter @revealui/test test:e2e --ui
 ```
 
-### Run Load Tests
+### Run Performance Tests
 
 ```bash
-# Run specific load test
-pnpm --filter test test:load:auth
-pnpm --filter test test:load:api
-pnpm --filter test test:load:payment
+# Run specific k6 performance test
+pnpm --filter @revealui/test test:perf:auth:signin
+pnpm --filter @revealui/test test:perf:auth:signup
+pnpm --filter @revealui/test test:perf:auth:ratelimit
+pnpm --filter @revealui/test test:perf:auth:session
+pnpm --filter @revealui/test test:perf:auth:stress
 
-# Run all load tests
-pnpm --filter test test:load:all
+# Run the full auth performance suite
+pnpm --filter @revealui/test test:perf:auth
 ```
 
 ## Test Utilities
@@ -105,7 +107,7 @@ pnpm --filter test test:load:all
 ### Using Test Helpers
 
 ```typescript
-import { waitFor, retry, createTestId } from '@revealui/test/utils'
+import { waitFor, retry, createTestId } from '@revealui/test'
 
 // Wait for condition
 await waitFor(() => condition === true, 5000)
@@ -122,7 +124,7 @@ const id = createTestId('user')
 ### Using Test Fixtures
 
 ```typescript
-import { createTestUser, defaultTestUsers } from '@revealui/test/fixtures'
+import { createTestUser, defaultTestUsers } from '@revealui/test'
 
 // Create test user
 const user = createTestUser({ role: 'admin' })
@@ -134,15 +136,10 @@ const admin = defaultTestUsers.admin
 ### Using Mocks
 
 ```typescript
-import { mockStripe, mockSupabase } from '@revealui/test/utils/mocks'
-import { createMockDatabase, createMockFileStorage } from '@revealui/test/mocks'
+import { mockStripe, mockSupabase } from '@revealui/test'
 
 // Use existing mocks
 mockStripe.customers.create.mockResolvedValue({ id: 'cus_123' })
-
-// Use new mock utilities
-const mockDb = createMockDatabase()
-const mockStorage = createMockFileStorage()
 ```
 
 ## Writing Tests
@@ -212,7 +209,7 @@ Coverage thresholds:
 
 Run coverage report:
 ```bash
-pnpm --filter test test:coverage
+pnpm --filter @revealui/test test:coverage
 ```
 
 ## Documentation
@@ -231,7 +228,7 @@ pnpm --filter test test:coverage
 | `test:coverage` | Run tests with coverage report |
 | `test:coverage:unit` | Run unit tests with coverage |
 | `test:e2e` | Run E2E tests |
-| `test:load:*` | Run load tests |
+| `test:perf:*` | Run k6 performance tests (auth sign-in/sign-up/rate-limit/session/stress) |
 | `test:all` | Run unit + E2E tests |
 
 ## Dependencies

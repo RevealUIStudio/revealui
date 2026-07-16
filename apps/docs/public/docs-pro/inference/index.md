@@ -1,6 +1,6 @@
 # Open-Model Inference
 
-RevealUI AI defaults to open-model inference (Snaps, Ollama). Cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible endpoints) are pluggable but opt-in via environment variables.
+RevealUI AI defaults to open-model inference (Snaps, Ollama). Groq is a pluggable, opt-in cloud provider via `GROQ_API_KEY`. HuggingFace and generic OpenAI-compatible endpoints are declared provider types but are not yet wired to a working client.
 
 ## Planned: Ubuntu Inference Snaps
 
@@ -53,7 +53,7 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 |------|---------|------|----------|
 | **Ollama** (default) | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
 | **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  Gemma 3, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
-| **HuggingFace** | HuggingFace Inference API | API usage costs | Open models hosted on HuggingFace infrastructure |
+| **HuggingFace** | Not yet wired | N/A | Declared provider type; no working client yet |
 
 ## Ollama (Open Source Models)
 
@@ -70,14 +70,12 @@ Configure:
 OLLAMA_BASE_URL=http://localhost:11434/v1
 ```
 
-## HuggingFace
+## HuggingFace (not yet wired)
 
-Open models via the HuggingFace Inference API.
-
-Configure:
+`huggingface` is a declared provider type that reads `HF_TOKEN`, but the client factory does not yet instantiate a working provider for it. Setting `HF_TOKEN` and `LLM_PROVIDER=huggingface` will throw today.
 
 ```bash
-HUGGINGFACE_API_KEY=hf_xxxxx
+HF_TOKEN=hf_xxxxx
 ```
 
 ## Auto-Detection
@@ -88,7 +86,9 @@ The LLM client factory auto-detects your inference path in this order:
 2. `INFERENCE_SNAPS_BASE_URL`
 3. `GROQ_API_KEY`
 4. `OLLAMA_BASE_URL`
-5. `HUGGINGFACE_API_KEY`
+5. Falls back to Inference Snaps if none of the above are set
+
+`huggingface` and `openai-compat` are not part of this auto-detect cascade and are not currently wired up as `LLM_PROVIDER` values; setting either throws.
 
 ## Server-side Usage
 

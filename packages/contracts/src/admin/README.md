@@ -38,7 +38,7 @@ interface Contract<T> {
 
 ```typescript
 import { createContract } from '@revealui/contracts/foundation'
-import { z } from 'zod/v4'
+import { z } from 'zod'
 
 const UserContract = createContract({
   name: 'User',

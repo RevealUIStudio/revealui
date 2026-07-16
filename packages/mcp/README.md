@@ -237,7 +237,7 @@ pnpm setup:mcp
 
 ```typescript
 // Config utilities
-import { getMCPConfig } from '@revealui/mcp/config'
+import { getMcpConfig } from '@revealui/mcp/config'
 ```
 
 ## Migration from Old Structure
@@ -272,5 +272,5 @@ FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../..
 ---
 
 **Status:** ✅ Consolidated and Active
-**Servers:** 13 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
+**Servers:** 14 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
 **Last Updated:** 2026-05-03
