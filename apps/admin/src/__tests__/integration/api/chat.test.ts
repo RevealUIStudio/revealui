@@ -60,17 +60,29 @@ vi.mock('@revealui/ai/embeddings', () => ({
   }),
 }));
 
-vi.mock('@revealui/ai/llm/server', () => ({
-  createLLMClientFromEnv: vi.fn(() => ({
-    chat: vi.fn().mockResolvedValue({
-      content: 'I can help you with that!',
-      toolCalls: [],
-    }),
-    getResponseCacheStats: vi.fn().mockReturnValue(undefined),
-    getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
-  })),
-  createLLMClientForUser: vi.fn().mockResolvedValue(null),
-}));
+const makeChatClient = () => ({
+  chat: vi.fn().mockResolvedValue({
+    content: 'I can help you with that!',
+    toolCalls: [],
+  }),
+  embed: vi
+    .fn()
+    .mockResolvedValue({ vector: new Array(1536).fill(0), model: 'test', dimension: 1536 }),
+  getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+  getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
+});
+
+vi.mock('@revealui/ai/llm/server', () => {
+  const createLLMClientFromEnv = vi.fn(() => makeChatClient());
+  return {
+    createLLMClientFromEnv,
+    createLLMClientForUser: vi.fn().mockResolvedValue(null),
+    // GAP-360: the admin chat route resolves the per-account client via the
+    // resolver. It delegates to createLLMClientFromEnv so a test that overrides
+    // createLLMClientFromEnv drives both the chat and embedding paths.
+    resolveLLMClientForRequest: vi.fn(async () => createLLMClientFromEnv()),
+  };
+});
 
 vi.mock('@revealui/ai/memory/vector', () => ({
   VectorMemoryService: vi.fn().mockImplementation(() => ({

@@ -38,6 +38,9 @@ vi.mock('@revealui/ai', () => ({
   // createLLMClientFromEnv must be mocked  -  without it buildDispatcher() catches
   // the "not a function" TypeError and returns null, causing 503 on all success paths.
   createLLMClientFromEnv: mockCreateLLMClient,
+  // GAP-360: buildDispatcher now resolves via resolveLLMClientForRequest. Delegate
+  // to the same mock so the existing "missing key → throws → 403" cases still hold.
+  resolveLLMClientForRequest: vi.fn(async () => mockCreateLLMClient()),
   TicketAgentDispatcher: vi.fn().mockImplementation(
     class {
       dispatch = mockDispatch;

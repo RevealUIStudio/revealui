@@ -11,6 +11,7 @@
  * — callers must treat that as a license / configuration failure.
  */
 
+import { DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
@@ -33,17 +34,37 @@ export interface Dispatcher {
   dispatch(ticket: DispatcherTicket, options?: { dispatchId?: string }): Promise<DispatcherResult>;
 }
 
+/**
+ * Per-request LLM resolution inputs (GAP-360 §5.2/§5.4). `userId` MUST come
+ * from an authenticated identity — the session user on the sync path, the
+ * ticket's owning account on the worker path — never a request payload (§6.1).
+ */
+export interface DispatcherResolution {
+  userId: string | null;
+  isHosted: boolean;
+  workspaceId?: string;
+}
+
 export async function buildDispatcher(
   db: Database,
   _tenantId: string | undefined,
+  resolution: DispatcherResolution,
 ): Promise<Dispatcher | null> {
   const aiMod = await import('@revealui/ai').catch(() => null);
   if (!aiMod) return null;
 
   let llmClient: unknown;
   try {
-    llmClient = aiMod.createLLMClientFromEnv();
-  } catch {
+    // Resolve the client through the single GAP-360 resolver. A durable audit
+    // sink captures the byok:key:accessed event (§6.4). An LLMNotConfiguredError
+    // (hosted account with no usable key) propagates so the caller maps it to 409.
+    llmClient = await aiMod.resolveLLMClientForRequest(resolution.userId, db, {
+      isHosted: resolution.isHosted,
+      workspaceId: resolution.workspaceId,
+      auditStore: new DrizzleAuditStore(db),
+    });
+  } catch (err) {
+    if ((err as { code?: unknown } | null)?.code === 'LLM_NOT_CONFIGURED') throw err;
     return null;
   }
 

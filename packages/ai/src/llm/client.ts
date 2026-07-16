@@ -743,13 +743,22 @@ export function createLLMClientFromEnv(): LLMClient {
  * Returns `null` if the user has no stored keys (callers should fall back
  * to `createLLMClientFromEnv()` or return a 402/feature-unavailable error).
  *
+ * When `opts.hostedViableOnly` is set, a stored key whose provider is not
+ * hosted-viable (ollama / inference-snaps are localhost-only) resolves to
+ * `null` instead of a client. The resolver passes this on hosted deployments so
+ * a localhost-only BYOK key can never yield a localhost client — the exact
+ * silent-localhost defect GAP-360 closes (spec §6.5, fail-closed).
+ *
  * @param userId - The user's ID from the `users` table
  * @param db - A Drizzle NeonDB client instance
  */
 export async function createLLMClientForUser(
   userId: string,
   db: Database,
-  auditStore?: AuditStore,
+  // Only `append` is used; the narrow type lets a persistent store whose entry
+  // type widens eventType/severity to `string` (e.g. DrizzleAuditStore) fit.
+  auditStore?: Pick<AuditStore, 'append'>,
+  opts?: { hostedViableOnly?: boolean },
 ): Promise<LLMClient | null> {
   // Find the user's preferred provider config
   const [preferredConfig] = await db
@@ -773,8 +782,13 @@ export async function createLLMClientForUser(
 
   if (!keyRow) return null;
 
-  const plaintext = decryptApiKey(keyRow.encryptedKey);
   const provider = keyRow.provider as LLMProviderType;
+
+  // Fail-closed hosted filter (§6.5): reject a localhost-only provider before
+  // decrypting, so no plaintext is touched for a key we will not use.
+  if (opts?.hostedViableOnly && !isHostedViable(provider)) return null;
+
+  const plaintext = decryptApiKey(keyRow.encryptedKey);
   const model = preferredConfig?.model ?? undefined;
 
   // Fire-and-forget: record when this key was last used (best-effort, never blocks)
