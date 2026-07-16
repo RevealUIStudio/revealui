@@ -155,6 +155,28 @@ const nextConfig = {
       },
     ]
   },
+  async rewrites() {
+    // GAP-360 §5.5: the admin Run / Watch-live UI POSTs same-origin to
+    // /api/agent-stream and /api/agent-stream/elicit, but those handlers live
+    // on the API host, not the admin app, so the calls 404 without a proxy.
+    // Rewrite them to the API host so the request stays same-origin (the
+    // CSRF/cookie/CORS posture is untouched) and the SSE stream is proxied
+    // through. When NEXT_PUBLIC_SERVER_URL is unset (single-origin dev), no
+    // rewrite is added so nothing loops back on itself.
+    let serverUrl = process.env.NEXT_PUBLIC_SERVER_URL
+    if (!serverUrl) return []
+    while (serverUrl.endsWith('/')) serverUrl = serverUrl.slice(0, -1)
+    return [
+      {
+        source: '/api/agent-stream',
+        destination: `${serverUrl}/api/agent-stream`,
+      },
+      {
+        source: '/api/agent-stream/:path*',
+        destination: `${serverUrl}/api/agent-stream/:path*`,
+      },
+    ]
+  },
   async headers() {
     return [
       {
