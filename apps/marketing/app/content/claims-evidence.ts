@@ -66,6 +66,7 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'philosophy.ts' },
   { file: 'marketplace.ts' },
   { file: 'roadmap.ts' },
+  { file: 'claims.ts' },
 ] as const;
 
 const AUTH_SESSIONS: EvidenceRef = {
@@ -466,6 +467,30 @@ const MARKET_CITATIONS: EvidenceRef = {
   kind: 'url',
   ref: 'https://revealui.com/local-ai',
   note: 'external market citations, explicitly labeled as not RevealUI customers with an on-page disclaimer',
+};
+
+// ── /claims self-reference (frontend-excellence Phase 5, Fable ruling
+// 2026-07-16): the ledger page proves itself with the same artifacts it
+// renders for every other page. ──────────────────────────────────────────
+const CLAIMS_INDEX: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/claims-evidence.ts',
+  note: 'the claims index this page renders',
+};
+const CLAIMS_VALIDATOR: EvidenceRef = {
+  kind: 'code',
+  ref: 'scripts/validate/claims-evidence.ts',
+  note: 'the gate that enforces coverage, text staleness, and evidence-path existence on every PR',
+};
+const CLAIMS_ROUTE_MAP: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/content/claims-routes.ts',
+  note: 'file-to-route map; the validator fails when a covered file has no entry here',
+};
+const CLAIMS_PAGE_ROUTE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/marketing/app/routes/ClaimsPage.tsx',
+  note: 'renders this index publicly at /claims',
 };
 
 export const CLAIMS: readonly ClaimEntry[] = [
@@ -3578,6 +3603,106 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'ROADMAP_CTA.subtitle',
     text: 'We prioritize based on customer impact, product readiness, and community demand.',
     evidence: [ROADMAP],
+  },
+
+  // ── claims.ts — /claims self-reference ───────────────────────────────────
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HERO.subtitle',
+    text: 'Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.',
+    evidence: [
+      { ...CLAIMS_INDEX, note: `${CLAIMS_INDEX.note}; sentence 1, "carries an entry below"` },
+      {
+        ...CLAIMS_PAGE_ROUTE,
+        note: `${CLAIMS_PAGE_ROUTE.note}; sentence 2, renders the code/command/page link per entry`,
+      },
+    ],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_LEDGER_INTRO',
+    text: 'The ledger below is grouped by page, starting with the homepage and moving outward through the site.',
+    evidence: [CLAIMS_ROUTE_MAP],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_KIND_LEGEND[0].description',
+    text: 'A file or directory in the public repository that implements the claim.',
+    evidence: [CLAIMS_PAGE_ROUTE],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_KIND_LEGEND[1].description',
+    text: 'A command you can run yourself to reproduce the claim.',
+    evidence: [CLAIMS_PAGE_ROUTE],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_KIND_LEGEND[2].description',
+    text: 'A live page or endpoint that demonstrates the claim in production.',
+    evidence: [CLAIMS_PAGE_ROUTE],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_KIND_LEGEND[3].description',
+    text: 'A number pinned to the codebase and checked by the claim-drift gate.',
+    evidence: [CLAIMS_PAGE_ROUTE, LICENSE_SPLIT],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.intro',
+    text: 'The validator that generates this page runs on every pull request and checks the following.',
+    evidence: [CLAIMS_VALIDATOR, CI_GATE],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.checks[0]',
+    text: 'Every covered sentence on the site carries a matching entry in this index.',
+    evidence: [CLAIMS_VALIDATOR, CLAIMS_INDEX],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.checks[1]',
+    text: "Each entry's text still matches the live copy, word for word.",
+    evidence: [CLAIMS_VALIDATOR],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.checks[2]',
+    text: 'Every code path an entry cites still exists in the tracked repository.',
+    evidence: [
+      { ...CLAIMS_VALIDATOR, note: `${CLAIMS_VALIDATOR.note}; the redaction-rail assertion` },
+    ],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.notCheckedHeading',
+    text: 'What this page does not check',
+    evidence: [CLAIMS_VALIDATOR],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.doesNotCheck[0]',
+    text: 'The gate does not check that the cited code actually does what the sentence claims.',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://github.com/RevealUIStudio/revealui',
+        note: 'negative claim: the gate cannot verify code behavior, only that cited paths exist and cited text matches; verify by reading the validator source',
+      },
+    ],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_HONESTY_RAILS_SECTION.doesNotCheck[1]',
+    text: 'That judgment is a human review layer, not an automated one.',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://revealui.com/claims',
+        note: 'positive claim about process, not code; the honesty-rails copy itself is the disclosure',
+      },
+    ],
   },
 ] as const;
 

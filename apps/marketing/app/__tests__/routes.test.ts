@@ -4,6 +4,7 @@ import { Router } from '@revealui/router';
 import { describe, expect, it } from 'vitest';
 import { BlogIndexPage } from '../routes/BlogIndexPage';
 import { BlogPostPage } from '../routes/BlogPostPage';
+import { ClaimsPage } from '../routes/ClaimsPage';
 import { ContactPage } from '../routes/ContactPage';
 import { FairSourcePage } from '../routes/FairSourcePage';
 import { HomePage } from '../routes/HomePage';
@@ -26,6 +27,7 @@ describe('marketing route registry', () => {
       { path: '/contact', component: ContactPage },
       { path: '/fair-source', component: FairSourcePage },
       { path: '/roadmap', component: RoadmapPage },
+      { path: '/claims', component: ClaimsPage },
       { path: '/privacy', component: PrivacyPage },
       { path: '/terms', component: TermsPage },
       { path: '/*notfound', component: NotFoundPage },
@@ -44,6 +46,7 @@ describe('marketing route registry', () => {
       '/contact',
       '/fair-source',
       '/roadmap',
+      '/claims',
       '/privacy',
       '/terms',
     ];
