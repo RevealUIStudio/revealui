@@ -1,12 +1,15 @@
 {
   "note": "Grandfathered capability-shaped marketing claims that lack a kind:\"test\" proof as of GAP-354 seed. Each key is a (file::claim) pair; CI fails only on NEW capability claims outside this list. Denylisted claim families (tamper-evident audit log, one-policy-governs, stop-an-agent) are NEVER grandfathered — a baselined denylist term still fails. Shrinking this list = progress: register a real kind:\"test\" proof (reviewed by Fable for production-path quality) and remove the key. Regenerate the seed via `pnpm validate:claims --update-capability-baseline`.",
-  "count": 74,
+  "count": 77,
   "keys": [
     "capabilities.ts::Eight load-bearing primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.",
     "capabilities.ts::Every collaborative edit records whether a human or an agent made it, and which model. A commit-level provenance schema and API ship alongside; the automatic commit ingest is on the roadmap.",
     "capabilities.ts::One process supervises all MCP servers and surfaces their tool registries, so every adapter is discoverable from a single place.",
     "capabilities.ts::Stripe webhook reconciliation",
     "capabilities.ts::Trust through specificity. These are primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.",
+    "claims.ts::Every covered sentence on the site carries a matching entry in this index.",
+    "claims.ts::Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.",
+    "claims.ts::The validator that generates this page runs on every pull request and checks the following.",
     "fair-source.ts::: npm always tells the truth.",
     "fair-source.ts::Every line is on GitHub. Fork it, patch it, audit it for security. The source is the source of truth. There is no closed binary hiding behind it.",
     "fair-source.ts::Every other RevealUI package is plain MIT, no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.",
