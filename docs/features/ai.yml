@@ -21,7 +21,7 @@ api-surface:
     endpoint: "@revealui/ai — 18 import subpaths"
     openapi: false
     tested: true
-    notes: "CRDT memory, open-model LLM providers (inference snaps, Ollama), agent orchestration"
+    notes: "CRDT memory, LLM providers (local open models + BYOK adapters), agent orchestration"
 
 package-notes:
   subpaths: 18
@@ -35,7 +35,7 @@ limitations:
     summary: "@revealui/ai is dist-only in public repo — source in the private coordination hub"
   - id: llm-providers
     surface: api
-    summary: "Open models only — inference snaps (local, recommended), Ollama (local, fallback), cloud via self-hosted harness (Pro+). No proprietary providers."
+    summary: "No vendor SDKs and no RevealUI-hosted keys: local open models (inference snaps recommended, Ollama fallback) plus BYOK OpenAI-compatible adapters (anthropic, openai, groq, huggingface, xai/Grok) with user-brought keys (Pro+)."
   - id: license-required
     surface: api
     summary: "Requires Pro tier — currently gated by legacy feature checks that should converge on account-level entitlements"
