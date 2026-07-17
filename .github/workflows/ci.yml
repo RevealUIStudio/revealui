@@ -498,7 +498,10 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        # pgvector/pgvector bundles pgvector into postgres:16. The migrations
+        # applied below (0000_init CREATE EXTENSION, vector(768) columns) cannot
+        # run on vanilla postgres:16, same as the Drizzle Migrations job.
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
