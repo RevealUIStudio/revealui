@@ -18,7 +18,7 @@
 import { createServer as createHttpServer, type Server as NodeHttpServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
-import { McpClient } from '../src/client.js';
+import { McpCapabilityError, McpClient } from '../src/client.js';
 import {
   type CollectionMcpSummary,
   createRevealuiContentServer,
@@ -401,5 +401,67 @@ describe('content tools reject collections outside the exposed allowlist', () =>
     // `posts` is in the curated fallback but NOT in the resolved provider set → denied.
     expect(curatedButNotExposed.isError).toBe(true);
     expect(backend.calls.some((c) => c.url.startsWith('/api/posts'))).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP-373 — the governed path exposes no resources surface (#1910 Blocker 2)
+// ---------------------------------------------------------------------------
+//
+// The resource handlers read through the process-global resolveCredentials()
+// (ambient REVEALUI_API_KEY), never the per-request credentialsProvider, and
+// write no receipt. On the governed mount that is a cross-tenant read channel:
+// any authenticated client could resources/read with the ambient admin key,
+// unaudited. Per the countersigned design §4-D, Phase 1's governed endpoint
+// exposes ONLY the five read tools — the resources capability must be
+// structurally absent when a credentialsProvider is present, not merely
+// credential-gated. (Stdio/local mode keeps resources; see the stdio launcher.)
+
+describe('GAP-373 governed path exposes no resources surface', () => {
+  it('does not advertise the resources capability on the governed mount', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'A', accountId: 'acct-A' } }),
+    });
+    const client = await connectClient(governed.url);
+    const caps = client.getServerCapabilities();
+    await client.close();
+
+    // Tools stay; resources is structurally absent on the governed path.
+    expect(caps?.tools).toBeDefined();
+    expect(caps?.resources).toBeUndefined();
+  });
+
+  it('refuses resources/list and resources/read, never reaching the ambient-key backend', async () => {
+    const prev = process.env.REVEALUI_API_KEY;
+    const prevUrl = process.env.REVEALUI_API_URL;
+    try {
+      const backend = await startFakeBackend(okBackend);
+      // Ambient admin-equivalent credentials point at the real backend, so a
+      // resource handler that consulted resolveCredentials() (the bug) would be
+      // observable here as a backend call carrying the ambient key.
+      process.env.REVEALUI_API_KEY = 'ambient-admin-key';
+      process.env.REVEALUI_API_URL = backend.url;
+      const governed = await startGoverned({
+        backendUrl: backend.url,
+        authInfo: () => ({ token: 'tokenA', extra: { userId: 'A', accountId: 'acct-A' } }),
+      });
+      const client = await connectClient(governed.url);
+
+      await expect(client.listResources()).rejects.toThrow(McpCapabilityError);
+      await expect(client.readResource('revealui-content://posts/row-1')).rejects.toThrow(
+        McpCapabilityError,
+      );
+      await client.close();
+
+      // The ambient key never reached the backend: no cross-tenant read channel.
+      expect(backend.calls).toHaveLength(0);
+    } finally {
+      if (prev === undefined) delete process.env.REVEALUI_API_KEY;
+      else process.env.REVEALUI_API_KEY = prev;
+      if (prevUrl === undefined) delete process.env.REVEALUI_API_URL;
+      else process.env.REVEALUI_API_URL = prevUrl;
+    }
   });
 });

@@ -2,7 +2,10 @@
  * @revealui/harnesses/content  -  Canonical Content Layer
  *
  * Tool-agnostic definitions for AI guidance content (rules, commands, agents, skills).
- * Generators produce tool-specific output (Claude Code, Cursor, etc.) from canonical definitions.
+ * Generators produce tool-specific output from canonical definitions. `opencode`
+ * is the only registered generator today (`./generators/opencode.ts`) -- Claude
+ * Code / Cursor generators are not implemented, matching the adapter layer
+ * (`../adapters/`), which likewise ships only `revealui-agent` and `opencode`.
  *
  * @example
  * ```ts
@@ -10,7 +13,7 @@
  *
  * const manifest = buildManifest();
  * const validation = validateManifest(manifest);
- * const files = generateContent('claude-code', manifest, { projectRoot: '/path/to/project' });
+ * const files = generateContent('opencode', manifest, { projectRoot: '/path/to/project' });
  * ```
  */
 
@@ -23,7 +26,12 @@ import type { ResolverContext } from './resolvers/types.js';
 import { type Manifest, ManifestSchema } from './schemas/manifest.js';
 
 export { buildManifest } from './definitions/index.js';
-export { getGenerator, listGenerators, registerGenerator } from './generators/index.js';
+export {
+  getGenerator,
+  listGenerators,
+  OpenCodeGenerator,
+  registerGenerator,
+} from './generators/index.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './generators/types.js';
 export { listResolvers, registerResolver, resolveTemplate } from './resolvers/index.js';
 export type { ResolverContext, ResolverFn } from './resolvers/types.js';

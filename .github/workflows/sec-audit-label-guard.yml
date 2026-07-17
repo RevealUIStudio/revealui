@@ -2,10 +2,13 @@
 # sec-review audit gate.
 #
 # The clearance label `sec-review:approved` may only stand while the PR's
-# security audit is green. The harness hook withholds the label at APPLY time
-# for commands run through a session; this catches the out-of-band case — the
-# label applied from a terminal, or an audit that goes RED after the label was
-# added — by REVOKING a premature label and commenting why.
+# security audit is green AND no guardrail-2 REQUEST-CHANGES verdict is
+# outstanding. The harness hook withholds the label at APPLY time for commands
+# run through a session; this catches the out-of-band case — the label applied
+# from a terminal, an audit that goes RED after the label was added, or a
+# REQUEST-CHANGES verdict posted after the label (the revealui#1910 miss) — by
+# REVOKING a premature label and commenting why. Fires on label / review /
+# comment / check_suite events so a fresh REQUEST-CHANGES un-sticks the label.
 #
 # CONSERVATIVE: revokes only on a definitive audit FAILURE (never pending /
 # missing / cancelled), so it cannot false-revoke during the audit's in-flight
@@ -21,11 +24,15 @@ on:
   pull_request:
     branches: [test, main]
     types: [labeled]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  issue_comment:
+    types: [created, edited]
   check_suite:
     types: [completed]
 
 concurrency:
-  group: sec-audit-label-guard-${{ github.event.pull_request.number || github.event.check_suite.id }}
+  group: sec-audit-label-guard-${{ github.event.pull_request.number || github.event.issue.number || github.event.check_suite.id }}
   cancel-in-progress: false
 
 permissions:
@@ -43,6 +50,7 @@ jobs:
         with:
           sparse-checkout: |
             scripts/validate/sec-audit-label-decision.cjs
+            scripts/validate/guardrail2-verdict.cjs
           sparse-checkout-cone-mode: false
 
       - name: Guard the clearance label
@@ -55,10 +63,11 @@ jobs:
           KILL=false
           if [ "${KILL_SWITCH:-}" = "true" ]; then KILL=true; fi
 
-          # PR numbers from whichever event fired, read from the event payload
-          # (a labeled event carries .pull_request; a check_suite carries
-          # .check_suite.pull_requests[]). De-duplicated, blanks dropped.
-          prs=$(jq -r '(.pull_request.number // empty), (.check_suite.pull_requests[]?.number // empty)' \
+          # PR numbers from whichever event fired, read from the event payload:
+          # a labeled/review event carries .pull_request; a check_suite carries
+          # .check_suite.pull_requests[]; an issue_comment carries .issue.number
+          # (only for PRs — guarded on .issue.pull_request). De-duplicated, blanks dropped.
+          prs=$(jq -r '(.pull_request.number // empty), (.check_suite.pull_requests[]?.number // empty), (if .issue.pull_request then .issue.number else empty end)' \
             "$GITHUB_EVENT_PATH" | grep -E '^[0-9]+$' | sort -u || true)
           if [ -z "$prs" ]; then
             echo "No associated PR — nothing to guard."
@@ -78,6 +87,17 @@ jobs:
               echo "::warning::PR #$pr — could not read PR metadata (transient API error?); skipping."
               echo "::endgroup::"; continue
             fi
+
+            # Guardrail-2 verdict inputs: PR author + review + comment bodies. The
+            # decision script parses the `<!-- guardrail2-verdict: ... -->` markers.
+            # Default to empty on a transient error — an empty set yields no hold,
+            # and the label-guard revoke is defense-in-depth behind the required
+            # security-review-gate status check, which independently holds the merge.
+            prAuthor=$(gh pr view "$pr" --repo "$REPO" --json author --jq '.author.login' 2>/dev/null || echo "")
+            reviews=$(gh pr view "$pr" --repo "$REPO" --json reviews --jq '.reviews' 2>/dev/null || echo "[]")
+            comments=$(gh pr view "$pr" --repo "$REPO" --json comments --jq '.comments' 2>/dev/null || echo "[]")
+            [ -n "$reviews" ] || reviews="[]"
+            [ -n "$comments" ] || comments="[]"
 
             # Fetch check-runs resiliently. A transient gh-API 5xx can return an
             # HTML body, which crashes jq ("invalid character '<'"). Fetch RAW
@@ -103,7 +123,10 @@ jobs:
               --argjson checkRuns "$checks" \
               --argjson labels "$labels" \
               --argjson killSwitch "$KILL" \
-              '{checkRuns: $checkRuns, labels: $labels, killSwitch: $killSwitch}')
+              --argjson reviews "$reviews" \
+              --argjson comments "$comments" \
+              --arg prAuthor "$prAuthor" \
+              '{checkRuns: $checkRuns, labels: $labels, killSwitch: $killSwitch, reviews: $reviews, comments: $comments, prAuthor: $prAuthor}')
 
             decision=$(printf '%s' "$payload" | node scripts/validate/sec-audit-label-decision.cjs)
             action=$(printf '%s' "$decision" | awk '{print $1}')
@@ -117,7 +140,7 @@ jobs:
                 "" \
                 "Reason: $reason" \
                 "" \
-                "The clearance label may only stand while the security audit is green on the current head. Re-apply it once the failing check(s) pass. It is deterministic (check conclusions only) and additive — never merges around a required check, only withholds a premature approval." \
+                "The clearance label may only stand while the security audit is green on the current head AND no guardrail-2 REQUEST-CHANGES verdict is outstanding. Resolve the reason above (a passing audit, or a later non-author guardrail-2 APPROVE marker) and re-apply the label. The guard is deterministic and additive — it never merges around a required check, only withholds a premature approval." \
                 "" \
                 "Overrides: apply the \`sec-audit-override\` label to exempt this PR, or set the repo variable \`SEC_AUDIT_GATE_DISABLED=true\` as a kill switch.")
               gh pr comment "$pr" --repo "$REPO" --body "$body"

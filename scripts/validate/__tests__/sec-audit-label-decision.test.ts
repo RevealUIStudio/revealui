@@ -75,3 +75,73 @@ describe('decide', () => {
     expect(r.action).toBe('revoke');
   });
 });
+
+const RC_MARKER = '<!-- guardrail2-verdict: REQUEST-CHANGES -->';
+const AP_MARKER = '<!-- guardrail2-verdict: APPROVE -->';
+const rcComment = (login: string, ts: string) => ({
+  author: { login },
+  createdAt: ts,
+  body: `## Guardrail-2 verdict: REQUEST-CHANGES\n\n${RC_MARKER}`,
+});
+const apComment = (login: string, ts: string) => ({
+  author: { login },
+  createdAt: ts,
+  body: `## Guardrail-2 verdict: APPROVE\n\n${AP_MARKER}`,
+});
+
+describe('decide — guardrail-2 REQUEST-CHANGES revoke (revealui#1910)', () => {
+  it('REVOKES a clearance label with a live REQUEST-CHANGES, even with a green audit', () => {
+    const r = decide({
+      checkRuns: allGreen(),
+      labels: [CLEAR_LABEL],
+      prAuthor: 'RevealUIStudio',
+      comments: [
+        apComment('RevealUIStudio', '2026-07-17T00:04:57Z'),
+        rcComment('RevealUIStudio', '2026-07-17T00:13:55Z'),
+      ],
+    });
+    expect(r.action).toBe('revoke');
+    expect(r.reason).toContain('REQUEST-CHANGES');
+  });
+  it('SKIPS once a later APPROVE resolves the REQUEST-CHANGES', () => {
+    const r = decide({
+      checkRuns: allGreen(),
+      labels: [CLEAR_LABEL],
+      prAuthor: 'RevealUIStudio',
+      comments: [
+        rcComment('RevealUIStudio', '2026-07-17T00:13:55Z'),
+        apComment('RevealUIStudio', '2026-07-17T00:20:00Z'),
+      ],
+    });
+    expect(r.action).toBe('skip');
+  });
+  it('the per-PR override label wins over a live REQUEST-CHANGES', () => {
+    const r = decide({
+      checkRuns: allGreen(),
+      labels: [CLEAR_LABEL, OVERRIDE_LABEL],
+      prAuthor: 'RevealUIStudio',
+      comments: [rcComment('RevealUIStudio', '2026-07-17T00:13:55Z')],
+    });
+    expect(r.action).toBe('skip');
+    expect(r.reason).toContain('override');
+  });
+  it('the kill switch wins over a live REQUEST-CHANGES', () => {
+    const r = decide({
+      killSwitch: true,
+      checkRuns: allGreen(),
+      labels: [CLEAR_LABEL],
+      prAuthor: 'RevealUIStudio',
+      comments: [rcComment('RevealUIStudio', '2026-07-17T00:13:55Z')],
+    });
+    expect(r.action).toBe('skip');
+  });
+  it('SKIPS when there is no clearance label, regardless of a REQUEST-CHANGES', () => {
+    const r = decide({
+      checkRuns: allGreen(),
+      labels: ['bug'],
+      prAuthor: 'RevealUIStudio',
+      comments: [rcComment('RevealUIStudio', '2026-07-17T00:13:55Z')],
+    });
+    expect(r.action).toBe('skip');
+  });
+});

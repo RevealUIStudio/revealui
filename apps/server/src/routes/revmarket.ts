@@ -1,12 +1,16 @@
 /**
- * RevMarket  -  Autonomous Agent Marketplace Routes (Phase 5.16)  -  PREVIEW
+ * RevMarket  -  Autonomous Agent Marketplace Routes (Phase 5.16)
  *
- * ⚠️  PREVIEW: Agent task execution runs in-process without sandbox isolation.
+ * Agent task execution is sandboxed: the executor runs one
+ * `child_process.fork()` per task with a memory cap and SIGTERM/SIGKILL
+ * timeout escalation (the `forkProvider` in `../services/revmarket-sandbox/`;
+ * see `../services/revmarket-executor.ts` for lifecycle + remaining caveats).
+ * Trusted self-hosted deployments may opt into `noSandboxProvider` via
+ * `configureExecutor`; hosted deployments must keep `forkProvider`.
  * x402 emission on POST /tasks is gated on `X402_ENABLED=true` (default off).
  * When enabled, paid agents (basePriceUsdc > 0) require a verified payment
  * proof before the task is queued; free agents are unaffected. Stripe
  * Connect 80/20 split to the agent publisher is deferred to Phase B.
- * Use only with trusted agents. Full sandboxing remains planned for Phase B.
  *
  * Extends the MCP Marketplace (Phase 5.5) with autonomous agent task execution.
  * Agents register with skills and pricing, users submit tasks, the system
