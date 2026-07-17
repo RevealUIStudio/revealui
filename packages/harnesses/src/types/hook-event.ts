@@ -75,6 +75,14 @@ export const HARNESS_HOOK_SOURCES: readonly HarnessHookSource[] = [
  * unless pinned by a Cursor Team/Enterprise tier or a VS Code org policy, and
  * the receipt's `enforcementTier` is the honest record of which was true for
  * this specific decision, not an aspiration.
+ *
+ * Implementation status: `run-hook.ts` emits `'advisory'` for every decision
+ * today, because policy-snapshot signature verification is not yet implemented
+ * (`policy.ts` does structure validation only). The `'enforced'` value stays in
+ * the type for the moment real verification (or org/team config-pinning
+ * detection) lands; until then no code path may produce it. A structurally
+ * valid snapshot's deny/ask rules are still applied -- only the tier label is
+ * held back, so the receipt never overstates the guarantee.
  */
 export type HarnessEnforcementTier = 'enforced' | 'advisory';
 

@@ -42,7 +42,7 @@ describe('runHookCommand', () => {
     expect(result.decision.permission).toBe('allow');
   });
 
-  it('I-5: a structurally valid snapshot with a matching deny rule denies and records enforced', async () => {
+  it('I-5: a structurally valid snapshot applies its deny rule but records advisory until the signature is verified', async () => {
     await writeFile(
       snapshotPath,
       JSON.stringify({
@@ -61,9 +61,13 @@ describe('runHookCommand', () => {
       { spoolPath, snapshotPath },
     );
 
-    expect(result.event.enforcementTier).toBe('enforced');
+    // The deny rule STILL applies (defense in depth -- policy can only tighten),
+    // but the receipt must NOT claim `enforced`: the signature is a placeholder
+    // and nothing cryptographically verified it (design invariant I-5). Reporting
+    // `enforced` here would be the exact overclaim the invariant forbids.
     expect(result.decision.permission).toBe('deny');
     expect(result.exitCode).toBe(2);
+    expect(result.event.enforcementTier).toBe('advisory');
     expect(result.responseJson).toEqual({
       permission: 'deny',
       user_message: 'shells are denied by policy',
