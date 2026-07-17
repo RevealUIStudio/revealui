@@ -66,12 +66,12 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 | | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
-| **Price** | Free forever | Waitlist | Waitlist | Contact sales |
+| **Price** | Free forever | $49/month | $299/month | $1,499/month, sales-led |
 | **Sites** | 1 | 5 | 15 | Unlimited |
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
-| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + SSO/SAML (planned) |
+| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + SSO/SAML (planned, [#449](https://github.com/RevealUIStudio/revealui/issues/449)) |
 | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
 | **Local AI inference (Snaps / Ollama)** | Yes | Yes | Yes | Yes |
@@ -82,8 +82,8 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Monitoring dashboard** | -- | Yes | Yes | Yes |
 | **Custom domains** | -- | Yes | Yes | Yes |
 | **Multi-tenant** | -- | -- | -- | Yes |
-| **White-label** | -- | -- | -- | Yes (planned) |
-| **Support** | Community | Email (48h) | Email (24h) | Slack (planned) |
+| **White-label** | -- | -- | -- | Yes (planned, [#515](https://github.com/RevealUIStudio/revealui/issues/515)) |
+| **Support** | Community | Email (48h) | Email (24h) | Slack (not yet available) |
 | **Source code** | Full | Full | Full | Full |
 
 A few things worth noting about this table.
@@ -92,7 +92,7 @@ A few things worth noting about this table.
 
 **All four business primitives work on free.** Users, Content, Products, Payments -- the MIT core -- are fully functional at every tier. Free doesn't cripple the business stack to pressure upgrades. The tier boundaries are about scale (more sites, more users, higher rate limits) and AI capabilities.
 
-**Pro will have a 7-day trial with no credit card required (coming soon).** The signup flow won't ask for payment information. You try it, you decide, you pay if it's worth it. If the product can't convince you in seven days, a payment wall on day one wasn't going to help.
+**Pro and Max include a 7-day trial.** You try it, you decide, you pay if it's worth it. If the product can't convince you in seven days, a payment wall on day one wasn't going to help.
 
 ### Three Pricing Tracks
 
@@ -178,7 +178,7 @@ What I do know is that the alternative -- restrictive licensing, crippled free t
 
 RevealUI is the business stack I wanted when I started building software companies. Users, content, products, payments, and intelligence -- pre-wired, open source, and ready to deploy. If it's useful to you at $0, that's a win. If it's useful enough to pay for, even better.
 
-The code is on [GitHub](https://github.com/RevealUIStudio/revealui). The license is MIT. The Pro features will have a free trial (coming soon). Everything I've described in this post is verifiable.
+The code is on [GitHub](https://github.com/RevealUIStudio/revealui). The license is MIT. The Pro features include a 7-day free trial. Everything I've described in this post is verifiable.
 
 Build something.
 
