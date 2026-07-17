@@ -1,16 +1,5 @@
 {
-  "$comment": "RevealUI audit-remediation Stage 0 as-never-values validator allowlist. Both entries are the two pre-existing broken audit_log writers (event/actor/meta columns that do not exist on the table; real columns are event_type/agent_id/payload) that Stage 0 deliberately does NOT fix — only makes their failure loud (see apps/admin/src/app/api/setup/route.ts and scripts/admin/bootstrap.ts catch blocks). Stage 1 fixes the column mapping and removes both entries.",
+  "$comment": "RevealUI audit-remediation as-never-values validator allowlist. The two pre-existing broken audit_log writers (apps/admin/src/app/api/setup/route.ts and scripts/admin/bootstrap.ts) that used event/actor/meta columns cast `as never` were FIXED in Stage 1 (GAP-355): both now write the real audit_log columns (id/event_type/severity/agent_id/payload) with no `as never`, so their allowlist entries are removed. New `as never` on a drizzle .values() call fails CI unless a new entry with a reason is added here.",
   "version": 1,
-  "entries": [
-    {
-      "path": "apps/admin/src/app/api/setup/route.ts",
-      "line": 104,
-      "reason": "Stage 1 fixes the event/actor/meta -> event_type/agent_id/payload column mapping; Stage 0 only makes the write's failure loud (structured log + classified reason) instead of silently swallowing it."
-    },
-    {
-      "path": "scripts/admin/bootstrap.ts",
-      "line": 166,
-      "reason": "Stage 1 fixes the event/actor/meta -> event_type/agent_id/payload column mapping; Stage 0 only makes the write's failure loud (classified console.warn) instead of silently swallowing it. Line shifted down from 205 after the revvault client extraction removed the inline revvaultGet() helper."
-    }
-  ]
+  "entries": []
 }

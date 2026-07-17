@@ -4,7 +4,11 @@
  * Adapts the AuditSystem from @revealui/core/security for use with Hono.
  * Logs request/response data after the response is sent (non-blocking).
  *
- * Enterprise-only: should only be active when isFeatureEnabled('auditLog') is true.
+ * The RECORD ships on every tier: this middleware is mounted unconditionally on
+ * `/api/*` (apps/server/src/index.ts), so the append-only audit row is written
+ * regardless of plan. The `auditLog` feature flag gates the RECEIPT surface
+ * (audit export / verification), NOT the record — see
+ * docs/decisions/2026-07-12-audit-receipt-architecture.md §2.
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -81,9 +85,10 @@ export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
       .catch((err: unknown) => {
         auditWriteFailures++;
         // The write itself is already counted (success and failure) inside
-        // PostgresAuditStorage.write() — the single point every AuditSystem
-        // consumer's write funnels through. This catch classifies + logs the
-        // failure for THIS request's context; it does not double-count it.
+        // DrizzleBackedAuditStorage.write() (apps/server/src/lib/audit-storage.ts)
+        // — the single point every AuditSystem consumer's write funnels through.
+        // This catch classifies + logs the failure for THIS request's context;
+        // it does not double-count it.
         const cause = err instanceof AuditWriteError ? err.cause : err;
         if (auditWriteFailures % FAILURE_LOG_INTERVAL === 1) {
           logger.warn('Audit log write failed', {

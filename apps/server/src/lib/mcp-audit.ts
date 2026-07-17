@@ -13,13 +13,13 @@
  * Hash chain. Each receipt is signed HMAC-SHA256 over its immutable fields plus
  * the previous receipt's signature, so tampering with any row invalidates every
  * later signature. The MCP receipt stream keeps its OWN per-process chain head
- * (`lastMcpSignature`), independent of the security-event chain in
- * `postgres-audit-storage.ts`. This is INTENTIONAL duplication, not drift: the
- * two are distinct append streams interleaved in one table (exactly as the
- * unsigned credential-event rows already coexist there), each independently
- * verifiable by walking its own eventType stream. Consolidating both onto a
- * single shared chain head is a deliberate future refactor, not a Phase-1
- * concern (audit-first §Mindfulness: classified INTENTIONAL).
+ * (`lastMcpSignature`). The main security-event path now writes UNSIGNED rows
+ * (`signature` NULL; GAP-355 Stage 1 lands rows honestly, and signing is
+ * Stage 3), so this signed MCP stream and the unsigned request/credential/
+ * bootstrap rows are distinct append streams interleaved in one table, each
+ * independently identifiable by its eventType. Consolidating every writer onto
+ * one signing model is GAP-355 Stage 3, not a Phase-1 concern (audit-first
+ * §Mindfulness: classified INTENTIONAL).
  *
  * Concurrency (GAP-371 Phase 2, Finding-1 fix). The chain head is a read-modify-
  * write: read `lastMcpSignature`, sign against it, INSERT, then advance the head

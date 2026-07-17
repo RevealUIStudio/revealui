@@ -164,10 +164,11 @@ async function main(): Promise<void> {
     const eventId = randomUUID();
     try {
       await db.insert(auditLog).values({
-        event: 'admin.bootstrap.completed',
-        actor: 'cli',
+        id: eventId,
+        eventType: 'admin.bootstrap.completed',
         severity: 'info',
-        meta: {
+        agentId: 'cli',
+        payload: {
           email,
           env,
           source: 'revvault',
@@ -175,7 +176,8 @@ async function main(): Promise<void> {
           forceRotate,
           seeded: result.seeded ?? false,
         },
-      } as never);
+        policyViolations: [],
+      });
       recordAuditWriteResult({ ok: true, eventId, eventType: 'admin.bootstrap.completed' });
       console.log('[bootstrap] recorded audit log entry');
     } catch (err) {
@@ -186,13 +188,11 @@ async function main(): Promise<void> {
         eventId,
         eventType: 'admin.bootstrap.completed',
       });
-      // Non-fatal — the admin account was already created above. This writer
-      // targets columns (`event`/`actor`/`meta`) that do not exist on
-      // audit_log (real columns are `event_type`/`agent_id`/`payload`) and
-      // has never successfully persisted a row in any environment. Stage 1
-      // fixes the column mapping; Stage 0 only makes the failure visible —
-      // previously this printed a misleading "table may not exist" guess
-      // without the real error.
+      // Non-fatal — the admin account was already created above. Best-effort by
+      // design: a failed bootstrap audit row does not block admin creation, but
+      // the failure is logged loudly with a classified reason (never swallowed).
+      // Writes real `audit_log` columns (id/event_type/severity/agent_id/
+      // payload); rows land unsigned.
       console.warn(
         `[bootstrap] audit log entry failed (reason: ${reason}): ${err instanceof Error ? err.message : String(err)}`,
       );

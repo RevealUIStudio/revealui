@@ -1,39 +1,35 @@
 /**
- * Integration coverage for the REAL `audit_log` CHECK constraint.
+ * Integration coverage for the REAL `audit_log` CHECK constraint and the
+ * DrizzleAuditStore round trip.
  *
  * `audit-store.test.ts` (the sibling in this directory) builds its db from
- * `vi.fn()` — a mock can never enforce a CHECK constraint, so it cannot see
- * this bug. This file runs against `createTestDb()` (PGlite with every real
- * migration from packages/db/migrations applied), so the constraint really
- * fires.
+ * `vi.fn()` — a mock can never enforce a CHECK constraint or round-trip a
+ * jsonb payload, so it cannot see this behavior. This file runs against
+ * `createTestDb()` (PGlite with every real migration from packages/db/migrations
+ * applied), so the constraint really fires and rows really persist.
  *
- * RevealUI audit-remediation Stage 0. `it.fails()` was tried first here and
- * rejected: it passes whenever the test body throws, for ANY reason — a
- * demonstrated false-green exists where `createTestDb()` itself fails
- * (e.g. `@revealui/db/schema` unresolved in an unbuilt workspace) and
- * `it.fails()` still reports "expected fail", without the insert — let alone
- * the CHECK constraint — ever being reached. Plain `it()` with a specific
- * `expect(...).rejects.toMatchObject({ cause: { code: '23514', ... } })`
- * cannot be satisfied by a missing import, an unbuilt package, or a typo; it
- * can only pass if the insert is actually attempted and Postgres actually
- * rejects it with exactly this SQLSTATE and constraint name.
+ * GAP-355 STAGE 1 (was Stage 0 characterization). Stage 0 pinned TODAY's defect
+ * here: a value from @revealui/security's severity vocabulary ('low') was
+ * rejected by the DB CHECK, and the write path had no boundary to map it, so
+ * request-level events were 100% rejected. Stage 1 fixed that AT THE BOUNDARY
+ * (apps/server/src/lib/audit-storage.ts maps low->info, medium->warn,
+ * high->critical), NOT by widening the schema — the DB CHECK
+ * (`info | warn | critical`, matching @revealui/ai's model) is CORRECT and
+ * stays. The boundary mapping is exercised in
+ * apps/server/src/lib/__tests__/audit-storage.pglite.test.ts.
  *
- * The harness-sanity test below must pass before the CHECK-constraint test
- * is trusted — if it doesn't, the harness itself is broken and every other
- * result here is meaningless.
+ * So at the packages/db level this file no longer asserts a defect. It pins the
+ * schema's real contract post-Stage-1:
+ *   1. the canonical DB vocabulary the boundary produces (info/warn/critical)
+ *      persists and round-trips, with `signature` NULL (Stage 1 rows are
+ *      honestly unsigned — signing is Stage 3);
+ *   2. the CHECK constraint remains the backstop that rejects any severity
+ *      outside the canonical vocabulary.
  *
- * The CHECK-constraint test documents TODAY's real, current behavior and
- * currently PASSES: a value from @revealui/security's severity vocabulary is
- * rejected by the DB. That is the defect (Stage 1 must change how the
- * severity vocabulary reaches this table). Once Stage 1 lands, this exact
- * assertion becomes false and the test FAILS — forcing Stage 1's author to
- * consciously rewrite it to the new correct behavior. That failure-on-fix is
- * the acceptance-criteria mechanism, not a bug in this test. Both tests in
- * this file pass today with no wrapper and no inversion — `pnpm vitest run
- * packages/db` is part of the shared CI `test` job every other PR in this
- * repo depends on, so a red test here is never acceptable, on this branch or
- * any other, until someone consciously decides the pinned behavior should
- * change.
+ * The harness-sanity test must pass before the others are trusted — if it
+ * doesn't, the harness itself is broken (e.g. `@revealui/db/schema` unresolved
+ * in an unbuilt workspace) and every other result here is meaningless. A dead
+ * harness must never report green.
  */
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -53,7 +49,7 @@ function makeRow(overrides: Partial<{ severity: string }> = {}) {
   };
 }
 
-describe('audit_log CHECK constraint — real schema (PGlite), not the vi.fn() mock', () => {
+describe('audit_log — real schema (PGlite), not the vi.fn() mock', () => {
   let db: TestDb;
 
   // createTestDb() applies every real migration and has observed 9-19s
@@ -75,12 +71,37 @@ describe('audit_log CHECK constraint — real schema (PGlite), not the vi.fn() m
     expect(rows).toHaveLength(1);
   });
 
-  it('rejects the severity vocabulary @revealui/security/audit.ts emits with Postgres check_violation 23514 (Stage 1 must change this)', async () => {
-    // AuditSeverity ('low' | 'medium' | 'high' | 'critical') is what every
-    // request-level event carries — apps/server/src/middleware/audit.ts:59.
-    // The audit_log CHECK constraint (packages/db/src/schema/audit-log.ts:57,
-    // migration 0001_special_logan.sql) only allows
-    // 'info' | 'warn' | 'critical'.
+  it('persists every canonical DB severity the boundary produces, unsigned (signature NULL)', async () => {
+    // These three values are exactly what the app boundary
+    // (apps/server/src/lib/audit-storage.ts mapSeverityToDb) emits for the
+    // security vocabulary: low->info, medium->warn, high->critical/critical.
+    // Post-Stage-1 every one of them lands.
+    for (const severity of ['info', 'warn', 'critical'] as const) {
+      const row = makeRow({ severity });
+      await db.drizzle.insert(auditLog).values(row);
+      const [stored] = await db.drizzle.select().from(auditLog);
+      expect(stored?.severity).toBe(severity);
+      // Stage 1 rows are honestly unsigned — signing is Stage 3.
+      expect(stored?.signature).toBeNull();
+      expect(stored?.previousSignature).toBeNull();
+      await db.drizzle.delete(auditLog);
+    }
+  });
+
+  it('round-trips a stored payload through jsonb intact', async () => {
+    const row = makeRow({});
+    const payload = { source: 'web', nested: { a: 1, b: [2, 3] } };
+    await db.drizzle.insert(auditLog).values({ ...row, payload, severity: 'info' });
+    const [stored] = await db.drizzle.select().from(auditLog);
+    expect(stored?.payload).toEqual(payload);
+  });
+
+  it('the CHECK constraint is the backstop: an out-of-vocabulary severity is rejected with Postgres 23514', async () => {
+    // The audit_log CHECK constraint (packages/db/src/schema/audit-log.ts,
+    // migration 0001_special_logan.sql) only allows 'info' | 'warn' |
+    // 'critical'. Anything else — including the raw security vocabulary that is
+    // now mapped at the boundary before it ever reaches here — is rejected.
+    // This is the correct last line of defense, not a defect.
     await expect(
       db.drizzle.insert(auditLog).values(makeRow({ severity: 'low' })),
     ).rejects.toMatchObject({

@@ -102,16 +102,18 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
         const eventId = crypto.randomUUID();
         try {
           await db.insert(auditLog).values({
-            event: 'admin.bootstrap.completed',
-            actor: 'web',
+            id: eventId,
+            eventType: 'admin.bootstrap.completed',
             severity: 'info',
-            meta: {
+            agentId: 'web',
+            payload: {
               email: parsed.data.email,
               source: 'web',
               hostname: hostname(),
               seeded: parsed.data.seed ?? true,
             },
-          } as never);
+            policyViolations: [],
+          });
           recordAuditWriteResult({ ok: true, eventId, eventType: 'admin.bootstrap.completed' });
         } catch (auditError) {
           const reason = classifyAuditWriteFailure(auditError);
@@ -121,12 +123,11 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
             eventId,
             eventType: 'admin.bootstrap.completed',
           });
-          // Non-fatal — the admin account was already created above. Loud,
-          // classified log instead of a silent catch: this writer targets
-          // columns (`event`/`actor`/`meta`) that do not exist on audit_log
-          // (real columns are `event_type`/`agent_id`/`payload`) and has
-          // never successfully persisted a row in any environment. Stage 1
-          // fixes the column mapping; Stage 0 only makes the failure visible.
+          // Non-fatal — the admin account was already created above. Best-effort
+          // by design: a failed bootstrap audit row does not block admin
+          // creation, but the failure is logged loudly with a classified reason
+          // (never swallowed). Writes real `audit_log` columns
+          // (id/event_type/severity/agent_id/payload); rows land unsigned.
           logger.error('Bootstrap audit log write failed', {
             email: parsed.data.email,
             eventId,
