@@ -43,8 +43,13 @@ export type StreamableHttpHandlerOptions = {
   /** Generate session IDs. Default: `crypto.randomUUID()`. */
   sessionIdGenerator?: () => string;
 
-  /** Called when a new session is initialized. */
-  onSessionInitialized?: (sessionId: string) => void | Promise<void>;
+  /**
+   * Called when a new session is initialized, with the initializing request so
+   * a caller can bind the session to that request's authenticated identity
+   * (GAP-371 I-3). Fires synchronously within the initialize request's own
+   * handling — the `req` is exactly the request that created the session.
+   */
+  onSessionInitialized?: (sessionId: string, req: IncomingMessage) => void | Promise<void>;
 
   /** Called when a session is terminated (DELETE or transport close). */
   onSessionClosed?: (sessionId: string) => void | Promise<void>;
@@ -67,9 +72,29 @@ export type StreamableHttpHandlerOptions = {
    * serverless request/response platforms). Default: false.
    */
   enableJsonResponse?: boolean;
+
+  /**
+   * Called once, synchronously, during handler construction with a control
+   * surface for the handler's session map. A governed mount uses it to
+   * terminate a session whose bound identity no longer matches the presented
+   * credential (GAP-371 I-3). Optional — stdio / unauthenticated callers omit it.
+   */
+  onControl?: (control: StreamableHttpControl) => void;
 };
 
 export type StreamableHttpHandler = (req: IncomingMessage, res: ServerResponse) => Promise<void>;
+
+/** Control surface over a handler's live session map. */
+export interface StreamableHttpControl {
+  /** Whether a session id currently has a live transport. */
+  hasSession(sessionId: string): boolean;
+  /**
+   * Close and forget a session. The transport's own `onsessionclosed` fires,
+   * so any external binding keyed on the id is cleaned up through the normal
+   * path. Idempotent — a no-op for an unknown id.
+   */
+  terminateSession(sessionId: string): Promise<void>;
+}
 
 type SessionEntry = {
   server: Server;
@@ -102,6 +127,21 @@ export function createNodeStreamableHttpHandler(
 ): StreamableHttpHandler {
   const sessions = new Map<string, SessionEntry>();
   const generateSessionId = options.sessionIdGenerator ?? (() => randomUUID());
+
+  options.onControl?.({
+    hasSession(sessionId) {
+      return sessions.has(sessionId);
+    },
+    async terminateSession(sessionId) {
+      const entry = sessions.get(sessionId);
+      if (!entry) return;
+      // Removing the entry first makes termination idempotent even if close()
+      // re-enters via onsessionclosed.
+      sessions.delete(sessionId);
+      await entry.transport.close();
+      await options.onSessionClosed?.(sessionId);
+    },
+  });
 
   return async function mcpStreamableHttpHandler(req, res) {
     const body = req.method === 'POST' ? await readJsonBody(req) : undefined;
@@ -139,7 +179,7 @@ export function createNodeStreamableHttpHandler(
         allowedOrigins: options.allowedOrigins,
         onsessioninitialized: async (id: string) => {
           sessions.set(id, { server, transport });
-          await options.onSessionInitialized?.(id);
+          await options.onSessionInitialized?.(id, req);
         },
         onsessionclosed: async (id: string) => {
           sessions.delete(id);

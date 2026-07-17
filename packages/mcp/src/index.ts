@@ -186,7 +186,14 @@ export {
 } from './servers/factories/knowledge-graph.js';
 // First-party server factories (Stage 1 PR-1.2 — dual-mode template)
 export {
+  type CreateRevealuiContentServerOptions,
+  type CredentialsProvider,
   createRevealuiContentServer,
+  type McpToolAuditOutcome,
+  type McpToolAuditRecord,
+  type McpToolAuditSink,
+  type McpToolCallContext,
+  type ResolvedApiCredentials,
   setCredentials as setRevealuiContentCredentials,
 } from './servers/factories/revealui-content.js';
 // Server launchers
@@ -199,6 +206,7 @@ export { launchVercelMcp } from './servers/vercel.js';
 // Streamable HTTP server-side helper (Stage 1 PR-1.1)
 export {
   createNodeStreamableHttpHandler,
+  type StreamableHttpControl,
   type StreamableHttpHandler,
   type StreamableHttpHandlerOptions,
 } from './streamable-http.js';
