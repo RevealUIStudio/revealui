@@ -44,7 +44,11 @@ import { logger as honoLogger } from 'hono/logger';
 // (POST /api/jobs/run) invocations see the same registry. See
 // CR8-P2-01 phase C.
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
-import { auditStorageSelfTest, installAuditStorage } from './lib/audit-storage.js';
+import {
+  assertAuditStorageEnv,
+  auditStorageSelfTest,
+  installAuditStorage,
+} from './lib/audit-storage.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
 import {
@@ -1327,6 +1331,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // runner regardless of any NODE_ENV stub, so it's the reliable signal.
   if (!process.env.VITEST) {
     // Swap in persistent audit storage (replaces default InMemoryAuditStorage).
+    assertAuditStorageEnv();
     installAuditStorage();
     validateStartup();
     // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
@@ -1429,6 +1434,10 @@ configureClientIp({ trustedProxyCount: 1 });
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.VITEST) {
     validateStartup();
+    // Fail the deploy if audit-critical env has diverged, rather than installing
+    // a store that can never write (GAP-355 Stage 1 closure). Synchronous, no
+    // round trip — the serverless-safe substitute for the worker's self-test.
+    assertAuditStorageEnv();
     installAuditStorage();
   }
 }

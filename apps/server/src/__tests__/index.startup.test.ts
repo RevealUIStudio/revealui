@@ -167,6 +167,25 @@ describe('apps/server/src/index.ts — post-Phase-2 invariants', () => {
       'the audit round-trip self-test must NOT run on the Vercel cold-start path',
     ).not.toContain('auditStorageSelfTest');
   });
+
+  it('asserts audit env parity in the production guard so a diverged-env deploy fails (GAP-355 Stage 1 closure)', () => {
+    // The serverless serving process installs storage but cannot run the async
+    // round-trip self-test. assertAuditStorageEnv() is the synchronous
+    // substitute: it fails the deploy when audit-critical env has diverged
+    // (a required connection var missing/empty), rather than serving with a
+    // sink that can never write. Owner-ruled 2026-07-17 as the Stage-1 closure.
+    const body = extractBranchBody(indexSource, PROD_GUARD, 'validateStartup()');
+    expect(
+      body,
+      'index.ts production guard must call assertAuditStorageEnv() before installAuditStorage()',
+    ).toContain('assertAuditStorageEnv()');
+    const assertIdx = body.indexOf('assertAuditStorageEnv()');
+    const installIdx = body.indexOf('installAuditStorage()');
+    expect(
+      assertIdx >= 0 && installIdx >= 0 && assertIdx < installIdx,
+      'the env-parity assertion must run BEFORE installAuditStorage()',
+    ).toBe(true);
+  });
 });
 
 describe('apps/server/src/worker.ts — Fly entry invariants', () => {

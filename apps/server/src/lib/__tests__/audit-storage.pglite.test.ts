@@ -27,6 +27,7 @@ import {
   type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import {
+  assertAuditStorageEnv,
   auditStorageSelfTest,
   DrizzleBackedAuditStorage,
   mapSeverityToDb,
@@ -152,5 +153,23 @@ describe('auditStorageSelfTest — boot-time round-trip gate', () => {
     };
     const system = new AuditSystem(writeOnly);
     await expect(auditStorageSelfTest(system)).rejects.toThrow('AUDIT STORAGE SELF-TEST FAILED');
+  });
+});
+
+describe('assertAuditStorageEnv — synchronous env-parity guard (GAP-355 Stage 1 closure)', () => {
+  it('throws when no database connection env is set (refuse-to-deploy)', () => {
+    expect(() => assertAuditStorageEnv({})).toThrow('AUDIT STORAGE ENV PARITY FAILED');
+  });
+
+  it('treats an empty connection var as absent', () => {
+    expect(() => assertAuditStorageEnv({ DATABASE_URL: '' })).toThrow(
+      'AUDIT STORAGE ENV PARITY FAILED',
+    );
+  });
+
+  it('passes when any of DATABASE_URL / POSTGRES_URL / DATABASE_HOST is present', () => {
+    expect(() => assertAuditStorageEnv({ DATABASE_URL: 'postgres://x' })).not.toThrow();
+    expect(() => assertAuditStorageEnv({ POSTGRES_URL: 'postgres://x' })).not.toThrow();
+    expect(() => assertAuditStorageEnv({ DATABASE_HOST: 'db.internal' })).not.toThrow();
   });
 });

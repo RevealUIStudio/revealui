@@ -165,12 +165,53 @@ function reconstructEvent(entry: {
 }
 
 /**
+ * Synchronous env-parity assertion for the audit write path — GAP-355 Stage 1
+ * closure, owner-ruled 2026-07-17.
+ *
+ * The Vercel serving process installs audit storage but, unlike the worker,
+ * does not run the async round-trip self-test (serverless has no clean "refuse
+ * to serve" for a boot-time DB round trip). This asserts the audit path's ENV
+ * preconditions SYNCHRONOUSLY at the install point, so a deploy whose
+ * audit-critical env has diverged (a required var missing or empty) FAILS THE
+ * DEPLOY rather than serving with an audit sink that silently drops every row.
+ * It is the audit-owned home for that contract: a future audit env dependency
+ * (e.g. the Stage 3 Ed25519 signing key) is asserted here on every serving
+ * process, not only wherever the general required-env list happens to cover it.
+ *
+ * Scope, honestly: this catches env-var ABSENCE/emptiness synchronously — which
+ * `installAuditStorage()` itself does not, because `getClient()` is a lazy pool
+ * factory, so a missing connection URL would otherwise surface only on the
+ * first write, at request time. It does NOT, and on serverless cannot, catch
+ * migration-state divergence (the `audit_log` table missing or misshapen on the
+ * target DB); that needs the write-read round trip the worker runs. See
+ * `auditStorageSelfTest`. The DB connection group is also validated by
+ * `validateStartup()` (REQUIRED_ALWAYS_GROUPS); this is the audit-owned,
+ * install-co-located restatement so the contract cannot silently drift.
+ */
+export function assertAuditStorageEnv(env: NodeJS.ProcessEnv = process.env): void {
+  const hasDbConnection = Boolean(env.DATABASE_URL || env.POSTGRES_URL || env.DATABASE_HOST);
+  if (!hasDbConnection) {
+    throw new Error(
+      'AUDIT STORAGE ENV PARITY FAILED: no database connection env is set (one of ' +
+        'DATABASE_URL, POSTGRES_URL, DATABASE_HOST is required), so the audit write path ' +
+        'cannot persist rows. Refusing to serve — an agent action that cannot be recorded ' +
+        'must not execute (fail-closed integrity, ' +
+        'docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
+    );
+  }
+}
+
+/**
  * Swap the process-wide `audit` system onto persistent Postgres storage.
  * Synchronous and side-effect-free at call time: `getClient()` is a lazy pool
  * factory (no connection opened here), so this is safe to run on the Vercel
  * cold-start path alongside `validateStartup()`. WITHOUT this call in
  * production, request-level audit events fell into the default
  * `InMemoryAuditStorage` and evaporated on every serverless invocation.
+ *
+ * Call `assertAuditStorageEnv()` before this at each install site so a
+ * diverged-env deploy fails loudly instead of installing a store that can
+ * never write.
  */
 export function installAuditStorage(): void {
   audit.setStorage(new DrizzleBackedAuditStorage(getClient()));

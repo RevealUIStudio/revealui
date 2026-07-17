@@ -43,7 +43,11 @@ import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import app, { initAlerting, terminalWs } from './index.js';
-import { auditStorageSelfTest, installAuditStorage } from './lib/audit-storage.js';
+import {
+  assertAuditStorageEnv,
+  auditStorageSelfTest,
+  installAuditStorage,
+} from './lib/audit-storage.js';
 import { hydrateInferenceConfigs } from './lib/hydrate-inference-configs.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
 import {
@@ -53,7 +57,10 @@ import {
 } from './lib/validate-startup.js';
 import { startExecutor } from './services/revmarket-executor.js';
 
-// Persistent audit storage (replaces default InMemoryAuditStorage).
+// Persistent audit storage (replaces default InMemoryAuditStorage). The env
+// parity assertion fails the deploy on diverged audit-critical env; the async
+// round-trip self-test below is the worker's superset check (GAP-355 Stage 1).
+assertAuditStorageEnv();
 installAuditStorage();
 
 // Environment + license + billing catalog validation.
