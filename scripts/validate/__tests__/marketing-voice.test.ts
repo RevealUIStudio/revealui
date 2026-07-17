@@ -12,6 +12,7 @@ import {
   scanAll,
   scanLine,
   tokenize,
+  validateBlockExports,
 } from '../marketing-voice.js';
 
 const CONTENT: LineScanOptions = { scanHype: true, scanPunctuation: true, scanVoice: true };
@@ -179,5 +180,46 @@ describe('helpers', () => {
     expect(baselineKey({ file: 'a.ts', ruleId: 'hype-word', token: 'powerful' })).toBe(
       'a.ts::hype-word::powerful',
     );
+  });
+});
+
+describe('validateBlockExports — block-content Tier-1 pass', () => {
+  const heroBlock = (text: string) => ({
+    blockType: 'hero',
+    richText: {
+      root: { children: [{ type: 'heading', tag: 'h1', children: [{ type: 'text', text }] }] },
+    },
+  });
+
+  it('returns no findings for a clean block module', () => {
+    const findings = validateBlockExports('x.blocks.ts', {
+      blocks: [heroBlock('The self-hosted agentic runtime')],
+    });
+    expect(findings).toHaveLength(0);
+  });
+
+  it('flags an RVUI codename leak', () => {
+    const findings = validateBlockExports('x.blocks.ts', {
+      blocks: [heroBlock('Powered by RVUI internals')],
+    });
+    expect(findings.some((f) => f.rule === 'tier1.codename-leak.rvui')).toBe(true);
+  });
+
+  it('flags an RVC pricing claim without an ADR', () => {
+    const findings = validateBlockExports('x.blocks.ts', {
+      blocks: [heroBlock('Buy RVC at $0.10 per token')],
+    });
+    expect(findings.some((f) => f.rule === 'tier1.rvc-pricing-without-adr')).toBe(true);
+  });
+
+  it('fails closed on an unmapped block type', () => {
+    const findings = validateBlockExports('x.blocks.ts', {
+      blocks: [{ blockType: 'mystery', richText: 'x' }],
+    });
+    expect(findings.some((f) => f.rule === 'block-validation-error')).toBe(true);
+  });
+
+  it('ignores non-array and non-block exports', () => {
+    expect(validateBlockExports('x.blocks.ts', { meta: 'string', n: 42 })).toHaveLength(0);
   });
 });
