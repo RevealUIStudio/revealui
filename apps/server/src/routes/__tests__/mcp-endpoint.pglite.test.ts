@@ -434,3 +434,59 @@ describe('entitlement gate', () => {
     expect(res.status).not.toBe(200);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Regression: the bridge must survive the production middleware stack
+// ---------------------------------------------------------------------------
+
+describe('bridge tolerates upstream middleware touching the request body (GAP-371 Phase 4)', () => {
+  // Found live (2026-07-17): through the REAL server every Initialize
+  // arrived body-less at the bridge and session bootstrap failed with
+  // "Session ID required", while this suite stayed green — its app mounts
+  // no global middleware. The exact stream-claimer in the production stack
+  // was not isolated (this gate-mounted repro alone did NOT reproduce it),
+  // so the fix removes the dependency class instead: the bridge parses the
+  // body web-side and passes it through, verified by a live A/B against
+  // the built server (base build fails, fixed build completes the loop).
+  // This case pins the pass-through path under a body-touching middleware.
+  let gatedServed: ReturnType<typeof serve> | undefined;
+  let gatedUrl = '';
+
+  beforeAll(async () => {
+    const { Hono } = await import('hono');
+    const { bodyLimitGate } = await import('../../middleware/body-limits.js');
+    const app = new Hono();
+    app.use('*', bodyLimitGate());
+    app.route('/', createMcpEndpointApp({ selfApiBaseUrl: stubUrl }));
+    await new Promise<void>((resolve) => {
+      gatedServed = serve({ fetch: app.fetch, port: 0, hostname: '127.0.0.1' }, (info) => {
+        gatedUrl = `http://127.0.0.1:${info.port}/`;
+        resolve();
+      });
+    });
+  });
+
+  afterAll(() => {
+    gatedServed?.close();
+  });
+
+  it('initialize → tools/list → tools/call complete through the gate', async () => {
+    const c = new McpClient({
+      clientInfo: { name: 'e2e-gated', version: '0.0.1' },
+      transport: {
+        kind: 'streamable-http',
+        url: gatedUrl,
+        requestInit: { headers: { Authorization: `Bearer ${TOKEN_A}` } },
+      },
+    });
+    await c.connect();
+    const tools = await c.listTools();
+    expect(tools.map((t) => t.name)).toContain('revealui_list_sites');
+
+    const result = (await c.callTool('revealui_list_sites', {})) as {
+      isError?: boolean;
+    };
+    expect(result.isError).toBeFalsy();
+    await c.close();
+  });
+});

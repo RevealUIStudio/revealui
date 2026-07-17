@@ -394,8 +394,15 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
     };
     (incoming as IncomingMessage & { auth?: McpAuthInfo }).auth = authInfo;
 
+    // Parse the body web-side and pass it through the bridge. Middleware on
+    // the real server ahead of this route can claim the raw Node stream, in
+    // which case the handler's raw read sees an empty body and rejects every
+    // Initialize with "Session ID required" (GAP-371 Phase 4 live catch).
+    const parsedBody =
+      c.req.method === 'POST' ? await c.req.json().catch(() => undefined) : undefined;
+
     try {
-      await handler(incoming, outgoing);
+      await handler(incoming, outgoing, parsedBody);
     } catch (err) {
       logger.error('[/api/mcp] handler error', {
         error: err instanceof Error ? err.message : String(err),
