@@ -1,6 +1,6 @@
 {
   "name": "@revealui/setup",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Setup utilities for new projects — environment config, database init, secrets validation. Used by @revealui/cli.",
   "keywords": [
     "cli",

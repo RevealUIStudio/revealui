@@ -1,5 +1,35 @@
 # @revealui/mcp
 
+## 0.8.0
+
+### Minor Changes
+
+- 90f53ed: Add a `revealui-mcp` bin launcher, the `mcpName` field, and `server.json` so the package is listable on the MCP Registry (registry.modelcontextprotocol.io) and runnable straight from npm: `npx @revealui/mcp <server>`. The launcher is a static allowlist over the servers already shipped in `dist/servers/`; no behavior change to any server.
+
+### Patch Changes
+
+- 2855f39: Add a shared `revvault` CLI client at `@revealui/setup/revvault`, consolidating
+  the six hand-rolled `revvault` spawn implementations across the MCP OAuth
+  provider and the setup/admin/probe scripts into one module. Adds a fail-fast
+  `requireRevvaultSecret` helper that throws naming the exact vault path when a
+  secret is missing, alongside tolerant (`readRevvaultSecret`) and write
+  (`writeRevvaultSecret`, `revvaultSecretExists`) variants for scripts that
+  previously reimplemented their own spawn + error handling. `@revealui/mcp`'s
+  OAuth provider now consumes the shared client with no change to its public
+  API or behavior.
+- Updated dependencies [eac1a1b]
+- Updated dependencies
+- Updated dependencies [0cc7f62]
+- Updated dependencies [76efd75]
+- Updated dependencies [2855f39]
+  - @revealui/db@0.8.0
+  - @revealui/config@0.5.1
+  - @revealui/core@0.11.1
+  - @revealui/security@0.4.3
+  - @revealui/contracts@0.7.0
+  - @revealui/setup@0.6.0
+  - @revealui/knowledge-graph@0.1.2
+
 ## 0.7.1
 
 ### Patch Changes
