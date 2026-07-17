@@ -48,6 +48,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          # Evaluate with the BASE branch's copy of the decision scripts (same
+          # provenance rule as security-review-gate.yml). On issue_comment and
+          # check_suite events there is no pull_request payload, so this
+          # expression is empty and checkout falls back to the default-branch
+          # ref those events already run from.
+          ref: ${{ github.event.pull_request.base.sha }}
           sparse-checkout: |
             scripts/validate/sec-audit-label-decision.cjs
             scripts/validate/guardrail2-verdict.cjs
