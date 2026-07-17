@@ -775,6 +775,25 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
       return response;
     }
 
+    // Deny-by-default collection allowlist. The content tools interpolate the
+    // `collection` arg into `/api/<collection>`, so a free-string collection
+    // would let one tool reach another tool's endpoint (e.g. `/api/users`,
+    // bypassing the admin gate on `revealui_list_users`). A collection outside
+    // the RESOLVED exposed set is denied before any REST call — the backend is
+    // never reached for an unexposed collection.
+    async function denyIfCollectionNotExposed(collection: string): Promise<McpToolError | null> {
+      const exposed = await resolveCollections();
+      const slugs = new Set(exposed.map((c) => c.slug));
+      if (slugs.has(collection)) return null;
+      return denied(
+        {
+          content: [{ type: 'text', text: `Error: collection is not exposed: ${collection}` }],
+          isError: true,
+        },
+        'collection-not-exposed',
+      );
+    }
+
     // Emit one usage-meter event for a call that actually executed. Swallows
     // sink errors so metering can never break the tool call.
     async function fireMeter(errored: boolean): Promise<void> {
@@ -884,6 +903,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           const parsed = validateToolArgs(ListContentArgsSchema, rawArgs, toolName);
           if (!parsed.ok) return denied(parsed.error);
           const { site_id, collection, limit = 20, page = 1, status } = parsed.value;
+          const notExposed = await denyIfCollectionNotExposed(collection);
+          if (notExposed) return notExposed;
           const params: Record<string, string> = {
             limit: String(limit),
             page: String(page),
@@ -899,6 +920,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           const parsed = validateToolArgs(GetContentArgsSchema, rawArgs, toolName);
           if (!parsed.ok) return denied(parsed.error);
           const { collection, id } = parsed.value;
+          const notExposed = await denyIfCollectionNotExposed(collection);
+          if (notExposed) return notExposed;
           data = await apiGet(apiUrl, apiKey, `/api/${collection}/${id}`);
           break;
         }

@@ -20,6 +20,7 @@ import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { McpClient } from '../src/client.js';
 import {
+  type CollectionMcpSummary,
   createRevealuiContentServer,
   type McpToolAuditRecord,
 } from '../src/servers/factories/revealui-content.js';
@@ -77,6 +78,7 @@ async function startGoverned(opts: {
   authInfo: () => unknown;
   mutatingTools?: Set<string>;
   auditFails?: boolean;
+  collectionsProvider?: () => Promise<CollectionMcpSummary[] | null>;
 }): Promise<GovernedServer> {
   const audits: McpToolAuditRecord[] = [];
   const handler = createNodeStreamableHttpHandler({
@@ -84,6 +86,7 @@ async function startGoverned(opts: {
     createServer: () =>
       createRevealuiContentServer({
         mutatingTools: opts.mutatingTools ?? new Set<string>(),
+        collectionsProvider: opts.collectionsProvider,
         credentialsProvider: (ctx) => {
           const info = ctx.authInfo as { token?: string } | undefined;
           if (!info?.token) throw new Error('no per-request credential');
@@ -301,5 +304,102 @@ describe('I-5 a receipt per call', () => {
     expect(result.isError).toBeFalsy();
     // The read executed despite the audit failure (degrade, not fail-closed).
     expect(backend.calls.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Collection allowlist — a content tool may only reach an EXPOSED collection
+// ---------------------------------------------------------------------------
+//
+// Per-tool authz (I-7) is only sound if one tool cannot reach another tool's
+// endpoint. `revealui_list_content` / `revealui_get_content` interpolate the
+// `collection` arg into `/api/<collection>`, so a free-string collection would
+// let a content tool reach e.g. `/api/users` — bypassing the admin gate on the
+// separate `revealui_list_users` tool. The factory now validates `collection`
+// against the RESOLVED exposed-collections allowlist, deny-by-default.
+
+describe('content tools reject collections outside the exposed allowlist', () => {
+  it('revealui_list_content denies collection=users — denied receipt, /api/users never reached', async () => {
+    const backend = await startFakeBackend(okBackend);
+    // No collectionsProvider → curated fallback (posts/pages/products/media)
+    // is the exposed set; `users` is not in it.
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'A', accountId: 'acct-A' } }),
+    });
+    const client = await connectClient(governed.url);
+
+    const result = await client.callTool('revealui_list_content', { collection: 'users' });
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    // The ambient/user backend is never reached for an unexposed collection.
+    expect(backend.calls).toHaveLength(0);
+    expect(backend.calls.some((c) => c.url.startsWith('/api/users'))).toBe(false);
+    expect(governed.audits).toHaveLength(1);
+    expect(governed.audits[0]?.outcome).toBe('denied');
+    expect(governed.audits[0]?.reason).toBe('collection-not-exposed');
+  });
+
+  it('revealui_get_content denies an unexposed collection — denied receipt, backend never reached', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'A', accountId: 'acct-A' } }),
+    });
+    const client = await connectClient(governed.url);
+
+    const result = await client.callTool('revealui_get_content', {
+      collection: 'users',
+      id: 'u-1',
+    });
+    await client.close();
+
+    expect(result.isError).toBe(true);
+    expect(backend.calls).toHaveLength(0);
+    expect(governed.audits).toHaveLength(1);
+    expect(governed.audits[0]?.outcome).toBe('denied');
+    expect(governed.audits[0]?.reason).toBe('collection-not-exposed');
+  });
+
+  it('an exposed collection (posts) still lists normally, reaching the backend', async () => {
+    const backend = await startFakeBackend(okBackend);
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'A', accountId: 'acct-A' } }),
+    });
+    const client = await connectClient(governed.url);
+
+    const result = await client.callTool('revealui_list_content', { collection: 'posts' });
+    await client.close();
+
+    expect(result.isError).toBeFalsy();
+    expect(backend.calls.some((c) => c.url.startsWith('/api/posts'))).toBe(true);
+    expect(governed.audits[0]?.outcome).toBe('invoked');
+  });
+
+  it('the allowlist is the RESOLVED exposed set, not a hardcoded curated list', async () => {
+    const backend = await startFakeBackend(okBackend);
+    // Provider exposes ONLY `articles`; curated `posts` is NOT exposed here.
+    const governed = await startGoverned({
+      backendUrl: backend.url,
+      authInfo: () => ({ token: 'tokenA', extra: { userId: 'A', accountId: 'acct-A' } }),
+      collectionsProvider: async () => [
+        { slug: 'articles', label: 'Article', labelPlural: 'Articles', mcpResource: true },
+      ],
+    });
+    const client = await connectClient(governed.url);
+
+    const exposed = await client.callTool('revealui_list_content', { collection: 'articles' });
+    const curatedButNotExposed = await client.callTool('revealui_list_content', {
+      collection: 'posts',
+    });
+    await client.close();
+
+    expect(exposed.isError).toBeFalsy();
+    expect(backend.calls.some((c) => c.url.startsWith('/api/articles'))).toBe(true);
+    // `posts` is in the curated fallback but NOT in the resolved provider set → denied.
+    expect(curatedButNotExposed.isError).toBe(true);
+    expect(backend.calls.some((c) => c.url.startsWith('/api/posts'))).toBe(false);
   });
 });
