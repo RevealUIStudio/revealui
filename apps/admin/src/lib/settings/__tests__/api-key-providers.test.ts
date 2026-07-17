@@ -16,7 +16,7 @@ async function loadHostedViable(): Promise<Record<Provider, boolean>> {
 }
 
 describe('visibleProviders', () => {
-  it('offers all six providers on self-hosted, regardless of the hosted map', async () => {
+  it('offers all seven providers on self-hosted, regardless of the hosted map', async () => {
     const hostedViable = await loadHostedViable();
     expect(visibleProviders(false, hostedViable).map((p) => p.id)).toEqual(
       ALL_PROVIDERS.map((p) => p.id),
@@ -27,7 +27,7 @@ describe('visibleProviders', () => {
   it('hides localhost-only providers on hosted (GAP-360 defect 5)', async () => {
     const hostedViable = await loadHostedViable();
     const ids = visibleProviders(true, hostedViable).map((p) => p.id);
-    expect(ids).toEqual(['anthropic', 'openai', 'groq', 'huggingface']);
+    expect(ids).toEqual(['anthropic', 'openai', 'xai', 'groq', 'huggingface']);
     expect(ids).not.toContain('ollama');
     expect(ids).not.toContain('inference-snaps');
   });
