@@ -548,9 +548,17 @@ async function fetchCollectionsFromAdmin(
  * consume this factory; the factory itself is transport-agnostic.
  */
 export function createRevealuiContentServer(options?: CreateRevealuiContentServerOptions): Server {
+  // A `credentialsProvider` marks the governed/hosted mount (`/api/mcp`). On
+  // that path Phase 1 exposes ONLY the five read tools (design §4-D): the
+  // resource handlers below resolve the ambient service credential rather than
+  // the caller's token and write no receipt, so on a multi-tenant mount they
+  // would be a cross-tenant, unaudited read channel. The capability is therefore
+  // structurally absent when governed — not merely credential-gated. The stdio /
+  // local mount (no options) keeps resources unchanged (single-operator trust).
+  const governed = options?.credentialsProvider !== undefined;
   const server = new Server(
     { name: 'revealui-content', version: '1.0.0' },
-    { capabilities: { tools: {}, resources: {} } },
+    { capabilities: governed ? { tools: {} } : { tools: {}, resources: {} } },
   );
 
   // Per-server memoization: resolve the effective collection set once and
@@ -589,64 +597,73 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
 
   // -------------------------------------------------------------------------
   // Resources (Stage 4.1 + 4.2)
+  //
+  // Registered ONLY on the ungoverned (stdio / local) path. These handlers use
+  // the process-global `resolveCredentials()` and emit no receipt, so on the
+  // governed mount they are omitted entirely (see capability gate above,
+  // design §4-D). The guard and the capability advertisement must stay in
+  // lockstep: a registered handler with no advertised capability, or vice
+  // versa, reintroduces the bypass.
   // -------------------------------------------------------------------------
 
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    const { apiUrl, apiKey } = resolveCredentials();
-    if (!(apiUrl && apiKey)) {
-      // Without credentials the server can't enumerate rows; advertise an
-      // empty list rather than erroring — clients still see the resources
-      // capability and can retry once creds are set.
-      return { resources: [] };
-    }
-
-    const collections = await resolveCollections();
-    const resources: Resource[] = [];
-    for (const collection of collections) {
-      try {
-        const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
-          limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
-          page: '1',
-        });
-        for (const row of extractDocs(body)) {
-          resources.push(resourceForRow(collection, row));
-        }
-      } catch {
-        // empty-catch-ok: an unavailable collection shouldn't blank-out the entire resource list
+  if (!governed) {
+    server.setRequestHandler(ListResourcesRequestSchema, async () => {
+      const { apiUrl, apiKey } = resolveCredentials();
+      if (!(apiUrl && apiKey)) {
+        // Without credentials the server can't enumerate rows; advertise an
+        // empty list rather than erroring — clients still see the resources
+        // capability and can retry once creds are set.
+        return { resources: [] };
       }
-    }
-    return { resources };
-  });
 
-  server.setRequestHandler(ReadResourceRequestSchema, async (request: ReadResourceRequest) => {
-    const parsed = parseResourceUri(request.params.uri);
-    if (!parsed) {
-      throw new Error(
-        `Unknown resource URI (expected ${RESOURCE_URI_PREFIX}<collection>/<id>): ${request.params.uri}`,
-      );
-    }
-    const collections = await resolveCollections();
-    const collection = collections.find((c) => c.slug === parsed.collection);
-    if (!collection) {
-      throw new Error(`Collection is not exposed as a resource: ${parsed.collection}`);
-    }
+      const collections = await resolveCollections();
+      const resources: Resource[] = [];
+      for (const collection of collections) {
+        try {
+          const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
+            limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
+            page: '1',
+          });
+          for (const row of extractDocs(body)) {
+            resources.push(resourceForRow(collection, row));
+          }
+        } catch {
+          // empty-catch-ok: an unavailable collection shouldn't blank-out the entire resource list
+        }
+      }
+      return { resources };
+    });
 
-    const { apiUrl, apiKey } = resolveCredentials();
-    if (!(apiUrl && apiKey)) {
-      throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
-    }
+    server.setRequestHandler(ReadResourceRequestSchema, async (request: ReadResourceRequest) => {
+      const parsed = parseResourceUri(request.params.uri);
+      if (!parsed) {
+        throw new Error(
+          `Unknown resource URI (expected ${RESOURCE_URI_PREFIX}<collection>/<id>): ${request.params.uri}`,
+        );
+      }
+      const collections = await resolveCollections();
+      const collection = collections.find((c) => c.slug === parsed.collection);
+      if (!collection) {
+        throw new Error(`Collection is not exposed as a resource: ${parsed.collection}`);
+      }
 
-    const row = await apiGet(apiUrl, apiKey, `/api/${parsed.collection}/${parsed.id}`);
-    return {
-      contents: [
-        {
-          uri: request.params.uri,
-          mimeType: 'application/json',
-          text: JSON.stringify(row, null, 2),
-        },
-      ],
-    };
-  });
+      const { apiUrl, apiKey } = resolveCredentials();
+      if (!(apiUrl && apiKey)) {
+        throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
+      }
+
+      const row = await apiGet(apiUrl, apiKey, `/api/${parsed.collection}/${parsed.id}`);
+      return {
+        contents: [
+          {
+            uri: request.params.uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(row, null, 2),
+          },
+        ],
+      };
+    });
+  }
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest, extra) => {
     const startTime = Date.now();
