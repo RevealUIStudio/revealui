@@ -121,6 +121,41 @@ function classifyFiles(files) {
   return hits;
 }
 
+/**
+ * The gate decision for a security-sensitive PR (pure; unit-tested). Inputs are
+ * the guardrail-2 marker verdict plus the legacy label/review signal.
+ *
+ *  - A live guardrail-2 REQUEST-CHANGES marker HOLDS, overriding the label (the
+ *    revealui#1910 miss). Checked first.
+ *  - Otherwise the gate clears ONLY on the owner-applied sec-review:approved
+ *    label (or an approving review). A guardrail-2 APPROVE marker RESOLVES a
+ *    prior REQUEST-CHANGES hold but never substitutes for the owner's clearance
+ *    label: markers are reviewer proposals, the label is the owner disposition.
+ *    So both a `clear` verdict and a `no-marker` verdict fall through to the
+ *    same label/review requirement. (Fixes the #1914 B2 regression, where a
+ *    `clear` marker exited 0 on its own — so any APPROVE-marker comment, which
+ *    the PR author can post, cleared the gate with no owner label.)
+ *
+ * Returns `{ action: 'hold' | 'clear', kind, reviewer?, timestamp? }`.
+ */
+function decideReviewGate({ verdict, labels = [], reviewDecision = '' }) {
+  if (verdict && verdict.status === 'hold') {
+    return {
+      action: 'hold',
+      kind: 'request-changes',
+      reviewer: verdict.reviewer,
+      timestamp: verdict.timestamp,
+    };
+  }
+  const labelSet = new Set(labels);
+  const hasReviewLabel = [...labelSet].some((l) => SEC_REVIEW_LABELS.has(l));
+  const approved = reviewDecision === 'APPROVED';
+  if (approved || hasReviewLabel) {
+    return { action: 'clear', kind: approved ? 'review' : 'label' };
+  }
+  return { action: 'hold', kind: 'no-verdict' };
+}
+
 function runPrMode(prNumber, repo) {
   let raw;
   const ghArgs = [
@@ -151,46 +186,37 @@ function runPrMode(prNumber, repo) {
     process.exit(0);
   }
 
-  // A live guardrail-2 REQUEST-CHANGES marker holds the merge even when the
-  // sec-review:approved label is present (the revealui#1910 miss: the label was
-  // applied against an outstanding REQUEST-CHANGES). This is checked FIRST so the
-  // hold cannot be papered over by the label/review-decision fallback below.
+  // Compute the guardrail-2 marker verdict (comments/reviews) and hand it, with
+  // the legacy label/review signal, to the pure `decideReviewGate`. A live
+  // REQUEST-CHANGES holds even with the label; a clear/no-marker verdict still
+  // requires the owner label (or an approving review) — see the function header.
   const verdict = evaluateGuardrail2({
     reviews: data.reviews || [],
     comments: data.comments || [],
     authorLogin: (data.author && data.author.login) || '',
   });
+  const decision = decideReviewGate({
+    verdict,
+    labels: (data.labels || []).map((l) => l.name),
+    reviewDecision: data.reviewDecision,
+  });
 
-  if (verdict.status === 'hold') {
-    process.stderr.write(
-      `HOLD — PR #${prNumber} has a live guardrail-2 REQUEST-CHANGES verdict ` +
-        `(reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}).\n` +
-        `   The sec-review:approved label and any approving review are OVERRIDDEN while this stands.\n` +
-        `   Required to clear: a LATER non-author guardrail-2 APPROVE marker resolving it.\n`,
-    );
-    process.exit(1);
-  }
-
-  if (verdict.status === 'clear') {
-    process.stdout.write(
-      `PR #${prNumber} is security-sensitive AND carries a guardrail-2 APPROVE verdict ` +
-        `(reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}) — clear to merge.\n`,
-    );
-    process.exit(0);
-  }
-
-  // No verdict marker on the PR — fall back to the legacy label / approving-review
-  // signal (backward compatible for PRs that predate the marker convention).
-  const labels = new Set((data.labels || []).map((l) => l.name));
-  const hasReviewLabel = [...labels].some((l) => SEC_REVIEW_LABELS.has(l));
-  const approved = data.reviewDecision === 'APPROVED';
-
-  if (approved || hasReviewLabel) {
+  if (decision.action === 'clear') {
     process.stdout.write(
       `PR #${prNumber} is security-sensitive AND carries a recorded verdict ` +
-        `(${approved ? 'approving review' : 'review label'}) — clear to merge.\n`,
+        `(${decision.kind === 'review' ? 'approving review' : 'sec-review:approved label'}) — clear to merge.\n`,
     );
     process.exit(0);
+  }
+
+  if (decision.kind === 'request-changes') {
+    process.stderr.write(
+      `HOLD — PR #${prNumber} has a live guardrail-2 REQUEST-CHANGES verdict ` +
+        `(reviewer ${decision.reviewer || 'unknown'}, ${decision.timestamp || 'unknown time'}).\n` +
+        `   The sec-review:approved label and any approving review are OVERRIDDEN while this stands.\n` +
+        `   Required to clear: a LATER non-author guardrail-2 APPROVE marker AND the sec-review:approved label.\n`,
+    );
+    process.exit(1);
   }
 
   process.stderr.write(
@@ -246,7 +272,7 @@ function main() {
 // Export the surface list + classifier so the unit test can assert the
 // classification without spawning the CLI. Guarding main() behind
 // require.main === module keeps the CLI behavior identical when run directly.
-module.exports = { SECURITY_PATHS, SEC_REVIEW_LABELS, classifyFiles };
+module.exports = { SECURITY_PATHS, SEC_REVIEW_LABELS, classifyFiles, decideReviewGate };
 
 if (require.main === module) {
   main();
