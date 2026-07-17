@@ -66,6 +66,7 @@ import type {
   media,
   messages,
   nodeIdMappings,
+  nudgeDismissals,
   oauthAccounts,
   orders,
   pageRevisions,
@@ -392,6 +393,11 @@ export type NodeIdMappingsRow = typeof nodeIdMappings.$inferSelect
 export type NodeIdMappingsInsert = typeof nodeIdMappings.$inferInsert
 export type NodeIdMappingsUpdate = Partial<NodeIdMappingsInsert>
 
+// Nudge Dismissals
+export type NudgeDismissalsRow = typeof nudgeDismissals.$inferSelect
+export type NudgeDismissalsInsert = typeof nudgeDismissals.$inferInsert
+export type NudgeDismissalsUpdate = Partial<NudgeDismissalsInsert>
+
 // Oauth Accounts
 export type OauthAccountsRow = typeof oauthAccounts.$inferSelect
 export type OauthAccountsInsert = typeof oauthAccounts.$inferInsert
@@ -648,6 +654,7 @@ export type DatabaseRelationships = {
   media: Relationship[]
   messages: Relationship[]
   nodeIdMappings: Relationship[]
+  nudgeDismissals: Relationship[]
   oauthAccounts: Relationship[]
   orders: Relationship[]
   pageRevisions: Relationship[]
@@ -897,6 +904,9 @@ export const messagesRelationships: readonly Relationship[] = []
 
 // NodeIdMappings relationships
 export const nodeIdMappingsRelationships: readonly Relationship[] = []
+
+// NudgeDismissals relationships
+export const nudgeDismissalsRelationships: readonly Relationship[] = []
 
 // OauthAccounts relationships
 export const oauthAccountsRelationships = [
@@ -1431,6 +1441,12 @@ export type Database = {
         Insert: NodeIdMappingsInsert
         Update: NodeIdMappingsUpdate
         Relationships: typeof nodeIdMappingsRelationships
+      }
+      nudge_dismissals: {
+        Row: NudgeDismissalsRow
+        Insert: NudgeDismissalsInsert
+        Update: NudgeDismissalsUpdate
+        Relationships: typeof nudgeDismissalsRelationships
       }
       oauth_accounts: {
         Row: OauthAccountsRow

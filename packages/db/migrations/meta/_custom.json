@@ -62,6 +62,12 @@
       "rationale": "GAP-360 PR-1 provider-surface widening: adds 'anthropic' and 'openai' to the provider CHECK on user_api_keys and workspace_inference_configs (and to the workspace_inference_configs key-pairing CHECK, in the keyed/non-NULL branch alongside groq/huggingface). Hand-written because a CHECK-constraint widening needs an idempotent drop/re-add: DROP CONSTRAINT IF EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object, following the 0014/0015/0023 precedent. Constraint-widening only, no backfill. tenant_provider_configs is intentionally untouched — it has no provider CHECK in the schema, so there is nothing to widen. Companion Drizzle schema changes at packages/db/src/schema/api-keys.ts and inference-configs.ts widen the check() calls.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. The Drizzle schema at api-keys.ts + inference-configs.ts already reflects the widened constraints at the type level; consumers query via Drizzle."
+    },
+    {
+      "tag": "0025_add_nudge_dismissals",
+      "rationale": "GAP-300 §7 in-product nudge surface: CREATE TABLE for nudge_dismissals (server-tracked per-user-per-nudge snooze state). Hand-written because `pnpm --filter @revealui/db db:generate` against the current meta/ state bundles in unrelated pre-existing drift: snapshots are missing for 0021-0024 (already tracked in this file), so drizzle-kit diffs against the stale 0020 snapshot and re-emits CREATE TABLE for the kg_* tables 0021/0022 already created, plus the 0023/0024 CHECK/column changes. This migration is hand-scoped to only the new table to avoid re-shipping that unrelated drift. All statements use CREATE TABLE/INDEX IF NOT EXISTS and a DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object guard for the FK, following the 0010/0014/0021 precedent. Companion Drizzle schema at packages/db/src/schema/nudges.ts models the table for ORM typing.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Blocked on the same pre-existing 0021-0024 snapshot-debt backfill this entry documents — a correct 0025 snapshot can't be generated until that backfill runs, since `db:generate` would otherwise bundle in the unrelated drift described above. Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once that backfill happens."
     }
   ]
 }

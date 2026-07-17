@@ -1496,6 +1496,32 @@ export type NodeIdMappingsRow = z.infer<typeof NodeIdMappingsSelectSchema>
 export type NodeIdMappingsInsert = z.infer<typeof NodeIdMappingsInsertSchema>
 
 // =============================================================================
+// NudgeDismissals Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting nudgeDismissals rows from database
+ * Generated from Drizzle table definition: tables.nudgeDismissals
+ */
+export const NudgeDismissalsSelectSchema = createSelectSchema(tables.nudgeDismissals)
+
+/**
+ * Zod schema for inserting nudgeDismissals rows to database
+ * Generated from Drizzle table definition: tables.nudgeDismissals
+ */
+export const NudgeDismissalsInsertSchema = createInsertSchema(tables.nudgeDismissals)
+
+/**
+ * TypeScript type for nudgeDismissals row (Select)
+ */
+export type NudgeDismissalsRow = z.infer<typeof NudgeDismissalsSelectSchema>
+
+/**
+ * TypeScript type for nudgeDismissals insert
+ */
+export type NudgeDismissalsInsert = z.infer<typeof NudgeDismissalsInsertSchema>
+
+// =============================================================================
 // OauthAccounts Schemas
 // =============================================================================
 

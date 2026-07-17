@@ -1497,6 +1497,32 @@ export const NodeIdMappingsInsertContract = createContract({
 })
 
 // =============================================================================
+// NudgeDismissals Contracts
+// =============================================================================
+
+/**
+ * Contract for nudgeDismissals row (Select)
+ * Database table: nudge_dismissals
+ */
+export const NudgeDismissalsRowContract = createContract({
+  name: 'NudgeDismissalsRow',
+  version: '1',
+  description: 'Database row contract for nudge_dismissals table',
+  schema: Schemas.NudgeDismissalsSelectSchema,
+})
+
+/**
+ * Contract for nudgeDismissals insert
+ * Database table: nudge_dismissals
+ */
+export const NudgeDismissalsInsertContract = createContract({
+  name: 'NudgeDismissalsInsert',
+  version: '1',
+  description: 'Database insert contract for nudge_dismissals table',
+  schema: Schemas.NudgeDismissalsInsertSchema,
+})
+
+// =============================================================================
 // OauthAccounts Contracts
 // =============================================================================
 
