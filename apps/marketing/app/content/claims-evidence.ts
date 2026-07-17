@@ -3710,6 +3710,11 @@ export const CLAIMS: readonly ClaimEntry[] = [
     text: 'Every code path an entry cites still exists in the tracked repository.',
     evidence: [
       { ...CLAIMS_VALIDATOR, note: `${CLAIMS_VALIDATOR.note}; the redaction-rail assertion` },
+      {
+        kind: 'test',
+        ref: 'scripts/validate/__tests__/claims-evidence.test.ts#flags a code-kind ref to a path not tracked in the repo (proves red)',
+        note: 'the redaction-rail assertion fails on an untracked code ref (proven red and green)',
+      },
     ],
   },
   {
