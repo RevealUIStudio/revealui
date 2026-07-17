@@ -111,7 +111,7 @@ The entire AI-powered business stack  -  users, content, products, payments, int
 
 ## Who this is for
 
-The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers — Groq, HuggingFace, and OpenAI-compatible endpoints — are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
+The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 
