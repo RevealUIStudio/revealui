@@ -9,8 +9,23 @@ export function stripCommas(s: string): string {
 
 export function isDollarShape(t: Token): boolean {
   if (!t.text.startsWith('$')) return false;
-  const num = Number(stripCommas(t.text.slice(1)));
-  return Number.isFinite(num);
+  const rest = t.text.slice(1);
+  if (rest.length === 0) return false;
+  return Number.isFinite(Number(stripCommas(rest)));
+}
+
+/**
+ * Two-token dollar shape: a bare `$` symbol token immediately followed by a
+ * numeric token, e.g. `$` + `0.10` or `$` + `5,000`. `Intl.Segmenter` splits
+ * `$0.10` into a `$` symbol token and a `0.10` word token
+ * (tokenize.test.ts:42-46), so the single-token `isDollarShape` misses the
+ * split form. The proximity scanners evaluate this against the `(prev, cur)`
+ * pair so a `$`-split price is still recognized.
+ */
+export function isDollarShapeAdjacent(prev: Token | undefined, cur: Token): boolean {
+  if (prev?.text !== '$') return false;
+  if (cur.text.length === 0) return false;
+  return Number.isFinite(Number(stripCommas(cur.text)));
 }
 
 export function isPercentShape(t: Token, next: Token | undefined): boolean {
