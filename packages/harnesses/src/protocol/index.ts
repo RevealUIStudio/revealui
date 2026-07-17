@@ -30,13 +30,20 @@ export type {
 } from './capabilities.js';
 export { createDefaultCapabilities, TOOL_PROFILES } from './capabilities.js';
 // Config normalization
-export type { ClaudeCodeSettings, ConfigGenerationResult } from './config-normalizer.js';
+export type {
+  ClaudeCodeSettings,
+  ConfigGenerationResult,
+  OpenCodeConfig,
+  OpenCodeMcpOptions,
+  OpenCodeMcpServerConfig,
+} from './config-normalizer.js';
 export {
   claudeSettingsToProtocolConfig,
   generateAllConfigs,
   protocolConfigToAgentsMd,
   protocolConfigToClaudeSettings,
   protocolConfigToCursorrules,
+  protocolConfigToOpencodeConfig,
 } from './config-normalizer.js';
 // Degradation
 export type { DegradationStrategy } from './degradation-strategies.js';

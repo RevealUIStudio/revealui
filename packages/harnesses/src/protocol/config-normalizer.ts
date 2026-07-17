@@ -280,6 +280,85 @@ export function generateAllConfigs(config: ProtocolConfig): ConfigGenerationResu
   return { files };
 }
 
+// -- opencode.json (write-only) --------------------------------------------------
+
+/** OpenCode remote MCP server entry (opencode.json `mcp.<name>`, design doc §5.7). */
+export interface OpenCodeMcpServerConfig {
+  type: 'remote';
+  url: string;
+  headers: Record<string, string>;
+  oauth: boolean;
+  enabled: boolean;
+}
+
+/** Subset of opencode.json this module writes. */
+export interface OpenCodeConfig {
+  mcp?: Record<string, OpenCodeMcpServerConfig>;
+  tools?: Record<string, boolean>;
+  permission?: Record<string, 'allow' | 'ask' | 'deny'>;
+}
+
+/** Options for wiring the RevealUI governed MCP endpoint into an OpenCode config. */
+export interface OpenCodeMcpOptions {
+  /** RevealUI governed MCP endpoint, e.g. `https://your-host/api/mcp`. */
+  mcpUrl: string;
+  /**
+   * Name of the environment variable OpenCode resolves via its `{env:VAR}`
+   * substitution at runtime (default `REVEALUI_MCP_TOKEN`). Only the
+   * variable NAME is ever emitted -- see `protocolConfigToOpencodeConfig`.
+   */
+  tokenEnvVar?: string;
+}
+
+const DEFAULT_OPENCODE_TOKEN_ENV_VAR = 'REVEALUI_MCP_TOKEN';
+
+/**
+ * Convert a ProtocolConfig to an opencode.json fragment wiring the RevealUI
+ * governed MCP endpoint (design doc §5.7).
+ *
+ * SECURITY-CRITICAL: this function must never emit a literal bearer token,
+ * only the `{env:VAR}` substitution syntax OpenCode resolves at runtime. It
+ * deliberately does NOT read `config.environment.variables` for a token
+ * value -- the Authorization header is built exclusively from the
+ * `tokenEnvVar` NAME, so no caller can smuggle a literal secret into the
+ * emitted config by placing one in `environment.variables`.
+ */
+export function protocolConfigToOpencodeConfig(
+  config: ProtocolConfig,
+  opts: OpenCodeMcpOptions,
+): OpenCodeConfig {
+  const tokenEnvVar = opts.tokenEnvVar ?? DEFAULT_OPENCODE_TOKEN_ENV_VAR;
+
+  const opencodeConfig: OpenCodeConfig = {
+    mcp: {
+      revealui: {
+        type: 'remote',
+        url: opts.mcpUrl,
+        headers: { Authorization: `Bearer {env:${tokenEnvVar}}` },
+        oauth: false,
+        enabled: true,
+      },
+    },
+    tools: { 'revealui*': true },
+  };
+
+  // Reuses the same key-safety barrier as the Claude Code settings.json
+  // writer above -- permission keys become object keys in the emitted JSON,
+  // so the same prototype-pollution allowlist applies.
+  const permission: Record<string, 'allow' | 'ask' | 'deny'> = {};
+  for (const name of config.permissions.autoApprove) {
+    if (isSafeMcpServerName(name)) permission[name] = 'allow';
+  }
+  for (const name of config.permissions.deny) {
+    if (isSafeMcpServerName(name)) permission[name] = 'deny';
+  }
+  if (Object.keys(permission).length > 0) {
+    opencodeConfig.permission = permission;
+  }
+
+  return opencodeConfig;
+}
+
 // -- Helpers ---------------------------------------------------------------------
 
 /** Render rule content, substituting template variables. */
