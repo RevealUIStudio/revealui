@@ -93,12 +93,12 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Feature | Status | Notes |
 |---|---|---|
-| Stripe live payments | **In flight** | 3 of 5 pre-flip gates remain (Cat C heal + stripe:seed re-run + owner flip directive). Marketing copy may NOT claim "live payments today" / "accept payments immediately" — only "Stripe billing wired; live keys in flight." |
+| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Post-flip marketing PHRASING is still pending an owner ruling; until ruled, describe billing capability only. Do not use "accept payments today", and the retired "live keys in flight" line is now false. |
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
-| x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live." |
+| x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |
 | MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (14 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
-| Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; live charging gated on the Stripe live-mode flip (same gate as subscriptions). |
+| Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; the Stripe live-mode flip landed 2026-06-26, so charging rides the live catalog. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
 | Enterprise SSO / SAML | **Planned** | Designed, not built. |
