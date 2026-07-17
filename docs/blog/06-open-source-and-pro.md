@@ -66,7 +66,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 | | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
-| **Price** | Free forever | Waitlist | Waitlist | Contact sales |
+| **Price** | Free forever | $49/month | $299/month | $1,499/month, sales-led |
 | **Sites** | 1 | 5 | 15 | Unlimited |
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
