@@ -114,10 +114,11 @@ export function createDefaultCapabilities(): ProtocolCapabilities {
 /**
  * Capability profiles for tools that have working adapters in this package.
  *
- * `revealui-agent` and `opencode` ship adapters today (`OpenCodeAdapter`,
- * `src/adapters/opencode-adapter.ts`). Profile data for tools that are
- * spec'd but have no adapter implementation lives in `./roadmap-profiles.ts`
- * to make the spec-vs-shipped gap structurally visible.
+ * `revealui-agent`, `opencode`, and `cursor` ship adapters today
+ * (`OpenCodeAdapter` / `CursorAdapter`, `src/adapters/*.ts`). Profile data
+ * for tools that are spec'd but have no adapter implementation lives in
+ * `./roadmap-profiles.ts` to make the spec-vs-shipped gap structurally
+ * visible.
  *
  * If you're looking for the previous full set (claude-code, codex,
  * cursor, revealui-agent, opencode), import `ALL_KNOWN_PROFILES` from
@@ -152,6 +153,51 @@ export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
     memory: { supported: false, backend: 'none' },
     maxContextTokens: 0,
     lifecycleEvents: [],
+  },
+
+  // Cursor's `.cursor/hooks.json` (multi-editor harness design doc §2.3,
+  // verified 2026-07-17) is nearly isomorphic to Claude Code's own hook
+  // system -- command-based hooks over stdio JSON, allow/deny/ask
+  // decisions, exit code 2 blocks -- so `hooks.supported: true` here is
+  // backed by a real adapter + CLI subcommand
+  // (`../adapters/cursor-adapter.ts`, `../../hooks/`), not aspirational.
+  // `maxContextTokens: 128_000` carries the value the roadmap profile
+  // already declared (see `./roadmap-profiles.ts`'s prior `cursor` entry,
+  // now removed on promotion) -- a real number, not the `0` BYO sentinel
+  // documented on `maxContextTokens` above, so it is kept rather than
+  // invented. Cursor bundles multiple first-party models with differing
+  // real context windows (including Grok 4.5); 128k is the conservative
+  // floor across that pool, not a per-model ceiling.
+  cursor: {
+    dispatch: {
+      generateCode: true,
+      analyzeCode: true,
+      applyEdit: false,
+      executeCommand: true,
+    },
+    readWorkboard: false,
+    writeWorkboard: false,
+    claimTasks: false,
+    reportConflicts: false,
+    headless: true,
+    resumable: false,
+    forkable: false,
+    backgroundable: true,
+    hooks: { supported: true, granularity: 'all-tools', canBlock: true },
+    sandbox: { supported: false, modes: [] },
+    supportsWorktrees: false,
+    supportsSkills: false,
+    supportsMcp: true,
+    memory: { supported: false, backend: 'none' },
+    maxContextTokens: 128_000,
+    lifecycleEvents: [
+      'session.start',
+      'session.stop',
+      'prompt.submit',
+      'tool.before',
+      'tool.after',
+      'tool.blocked',
+    ],
   },
 
   'revealui-agent': {

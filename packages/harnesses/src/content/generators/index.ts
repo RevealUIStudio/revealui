@@ -1,6 +1,8 @@
+import { CursorGenerator } from './cursor.js';
 import { OpenCodeGenerator } from './opencode.js';
 import type { ContentGenerator } from './types.js';
 
+export { CursorGenerator } from './cursor.js';
 export { OpenCodeGenerator } from './opencode.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
 
@@ -25,3 +27,4 @@ export function listGenerators(): string[] {
 // `diffContent()` (content/index.ts) work out of the box for any importer
 // of this module -- no manual registration call required.
 registerGenerator(new OpenCodeGenerator());
+registerGenerator(new CursorGenerator());

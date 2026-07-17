@@ -37,6 +37,7 @@ export type {
 // Content layer (canonical content definitions and generators)
 export {
   buildManifest,
+  CursorGenerator,
   diffContent,
   generateContent,
   listContent,
@@ -79,10 +80,44 @@ export {
   GOAL_STATUSES,
   GoalHarness,
 } from './goals/index.js';
+// Hooks  -  normalizers, local policy evaluation, receipt spool (see also `./hooks` subpath export)
+export type {
+  FlushConfig,
+  FlushResult,
+  HookRunOptions,
+  HookRunResult,
+  ImplementedHookSource,
+  PolicyDecision,
+  PolicySnapshot,
+  PolicySnapshotInvalidReason,
+  PolicySnapshotLoadResult,
+  PolicySnapshotRule,
+  SpoolAppendResult,
+  SpoolRecord,
+} from './hooks/index.js';
+export {
+  appendToSpool,
+  DEFAULT_SPOOL_MAX_BYTES,
+  defaultHookRunOptions,
+  evaluatePolicy,
+  flushSpool,
+  getDefaultPolicySnapshotPath,
+  getDefaultSpoolPath,
+  getHarnessDataDir,
+  isImplementedHookSource,
+  loadPolicySnapshot,
+  normalizeClaudeCodeHookEvent,
+  normalizeCursorHookEvent,
+  normalizeHookEvent,
+  runHookCommand,
+} from './hooks/index.js';
 // Harness Protocol (was VAUGHN until 2026-05-18; see docs/HARNESS_PROTOCOL.md)
 export type {
   ClaudeCodeSettings,
   ConfigGenerationResult,
+  CursorMcpConfig,
+  CursorMcpOptions,
+  CursorMcpServerConfig,
   DegradationStrategy,
   GeneratedFiles,
   HookGranularity,
@@ -117,6 +152,7 @@ export {
   PROTOCOL_VERSION,
   protocolConfigToAgentsMd,
   protocolConfigToClaudeSettings,
+  protocolConfigToCursorMcpConfig,
   protocolConfigToCursorrules,
   protocolConfigToOpencodeConfig,
   protocolEventEnvelopeSchema,
@@ -162,6 +198,15 @@ export type {
   HarnessProcessInfo,
   HealthCheckResult,
 } from './types/core.js';
+// Types  -  normalized hook events
+export type {
+  HarnessEnforcementTier,
+  HarnessHookEvent,
+  HarnessHookEventKind,
+  HarnessHookIdentity,
+  HarnessHookSource,
+} from './types/hook-event.js';
+export { HARNESS_HOOK_EVENT_KINDS, HARNESS_HOOK_SOURCES } from './types/hook-event.js';
 // Workboard
 export {
   acquireLock,

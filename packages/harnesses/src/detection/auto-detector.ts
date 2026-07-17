@@ -1,3 +1,4 @@
+import { CursorAdapter } from '../adapters/cursor-adapter.js';
 import { OpenCodeAdapter } from '../adapters/opencode-adapter.js';
 import { RevealUIAgentAdapter } from '../adapters/revealui-agent-adapter.js';
 import type { HarnessRegistry } from '../registry/harness-registry.js';
@@ -9,7 +10,7 @@ import type { HarnessRegistry } from '../registry/harness-registry.js';
  * and registers those that respond. Unavailable adapters are disposed.
  */
 export async function autoDetectHarnesses(registry: HarnessRegistry): Promise<string[]> {
-  const candidates = [new RevealUIAgentAdapter(), new OpenCodeAdapter()];
+  const candidates = [new RevealUIAgentAdapter(), new OpenCodeAdapter(), new CursorAdapter()];
 
   const registered: string[] = [];
 

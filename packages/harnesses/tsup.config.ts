@@ -9,6 +9,7 @@ export default defineConfig({
     'src/content/index.ts',
     'src/storage/index.ts',
     'src/goals/index.ts',
+    'src/hooks/index.ts',
   ],
   format: ['esm'],
   dts: true,

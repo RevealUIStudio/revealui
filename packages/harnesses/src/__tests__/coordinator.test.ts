@@ -207,8 +207,8 @@ describe('HarnessCoordinator', () => {
     it('rejects adapter that does not meet requirements', () => {
       const coord = new HarnessCoordinator({ projectRoot, socketPath });
       coord.registerAdapter(createMockAdapter('cursor'));
-      // cursor is not headless
-      const result = coord.dispatchTask({ headless: true }, 'need headless');
+      // cursor is not resumable
+      const result = coord.dispatchTask({ resumable: true }, 'need resumable');
       expect(result).toBeNull();
     });
 

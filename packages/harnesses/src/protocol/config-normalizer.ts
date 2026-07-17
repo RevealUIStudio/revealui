@@ -359,6 +359,68 @@ export function protocolConfigToOpencodeConfig(
   return opencodeConfig;
 }
 
+// -- .cursor/mcp.json (write-only) ------------------------------------------------
+
+/** Cursor remote/HTTP MCP server entry (`.cursor/mcp.json`). */
+export interface CursorMcpServerConfig {
+  url: string;
+  headers: Record<string, string>;
+}
+
+/** Subset of `.cursor/mcp.json` this module writes. */
+export interface CursorMcpConfig {
+  mcpServers: Record<string, CursorMcpServerConfig>;
+}
+
+/** Options for wiring the RevealUI governed MCP endpoint into a Cursor config. */
+export interface CursorMcpOptions {
+  /** RevealUI governed MCP endpoint, e.g. `https://your-host/api/mcp`. */
+  mcpUrl: string;
+  /**
+   * Name of the environment variable Cursor resolves via its `${env:VAR}`
+   * substitution at runtime (default `REVEALUI_MCP_TOKEN`). Only the
+   * variable NAME is ever emitted -- see `protocolConfigToCursorMcpConfig`.
+   */
+  tokenEnvVar?: string;
+}
+
+const DEFAULT_CURSOR_TOKEN_ENV_VAR = 'REVEALUI_MCP_TOKEN';
+
+/**
+ * Convert a ProtocolConfig to a `.cursor/mcp.json` fragment wiring the
+ * RevealUI governed MCP endpoint (multi-editor harness design doc §3-A).
+ *
+ * SECURITY-CRITICAL: this function must never emit a literal bearer token,
+ * only the `${env:VAR}` substitution syntax Cursor resolves at runtime
+ * (verified 2026-07-17 against cursor.com/docs/context/mcp -- Cursor's
+ * interpolation syntax is `${env:NAME}`, distinct from OpenCode's
+ * `{env:NAME}` above). It deliberately does NOT read
+ * `config.environment.variables` for a token value -- the Authorization
+ * header is built exclusively from the `tokenEnvVar` NAME, mirroring
+ * `protocolConfigToOpencodeConfig`'s leak-proof pattern so no caller can
+ * smuggle a literal secret into the emitted config via `environment.variables`.
+ *
+ * `_config` is accepted (matching `protocolConfigToOpencodeConfig`'s
+ * signature, and preserving room for future permission/rule wiring once
+ * `.cursor/mcp.json` documents a permission field) but is not read at all --
+ * see the security note above.
+ */
+export function protocolConfigToCursorMcpConfig(
+  _config: ProtocolConfig,
+  opts: CursorMcpOptions,
+): CursorMcpConfig {
+  const tokenEnvVar = opts.tokenEnvVar ?? DEFAULT_CURSOR_TOKEN_ENV_VAR;
+
+  return {
+    mcpServers: {
+      revealui: {
+        url: opts.mcpUrl,
+        headers: { Authorization: `Bearer \${env:${tokenEnvVar}}` },
+      },
+    },
+  };
+}
+
 // -- Helpers ---------------------------------------------------------------------
 
 /** Render rule content, substituting template variables. */

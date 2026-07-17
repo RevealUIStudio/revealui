@@ -33,6 +33,9 @@ export { createDefaultCapabilities, TOOL_PROFILES } from './capabilities.js';
 export type {
   ClaudeCodeSettings,
   ConfigGenerationResult,
+  CursorMcpConfig,
+  CursorMcpOptions,
+  CursorMcpServerConfig,
   OpenCodeConfig,
   OpenCodeMcpOptions,
   OpenCodeMcpServerConfig,
@@ -42,6 +45,7 @@ export {
   generateAllConfigs,
   protocolConfigToAgentsMd,
   protocolConfigToClaudeSettings,
+  protocolConfigToCursorMcpConfig,
   protocolConfigToCursorrules,
   protocolConfigToOpencodeConfig,
 } from './config-normalizer.js';
