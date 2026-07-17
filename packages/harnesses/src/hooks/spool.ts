@@ -11,7 +11,7 @@
  * keeps appending to a fresh one, and it warns on every rotation.
  */
 
-import { appendFile, mkdir, rename, stat } from 'node:fs/promises';
+import { appendFile, mkdir, open, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { HarnessHookEvent } from '../types/hook-event.js';
 import type { PolicyDecision } from './policy.js';
@@ -32,19 +32,53 @@ export interface SpoolAppendResult {
   readonly rotated: boolean;
 }
 
-/** Rotate `spoolPath` aside (never deletes -- "never drop events silently"). */
+/**
+ * Rotate `spoolPath` aside (never deletes -- "never drop events silently").
+ * Tolerates a concurrent rotation: if a peer hook invocation already renamed
+ * the file away, the `ENOENT` is swallowed rather than thrown, since the
+ * outcome ("this spool is rotated aside") is already true.
+ */
 async function rotateSpool(spoolPath: string): Promise<void> {
   const rotatedPath = `${spoolPath}.${Date.now()}.rotated`;
-  await rename(spoolPath, rotatedPath);
+  try {
+    await rename(spoolPath, rotatedPath);
+  } catch (err) {
+    const code =
+      err && typeof err === 'object' && 'code' in err ? (err as { code?: string }).code : undefined;
+    if (code === 'ENOENT') return;
+    throw err;
+  }
   process.stderr.write(
     `revealui-harnesses hook: spool exceeded ${DEFAULT_SPOOL_MAX_BYTES} bytes, rotated to ${rotatedPath}\n`,
   );
 }
 
 /**
+ * Size of the spool at `spoolPath`, read through an open file descriptor
+ * (`fstat`) rather than a path `stat`. Reading the size from the handle -- not
+ * from a detached path lookup a concurrent hook invocation could invalidate
+ * before the append below -- removes the check-then-use race on the path
+ * (CodeQL js/file-system-race). Returns 0 when the spool does not exist yet.
+ */
+async function currentSpoolSize(spoolPath: string): Promise<number> {
+  let handle: Awaited<ReturnType<typeof open>>;
+  try {
+    handle = await open(spoolPath, 'r');
+  } catch {
+    return 0;
+  }
+  try {
+    return (await handle.stat()).size;
+  } finally {
+    await handle.close();
+  }
+}
+
+/**
  * Append one hook decision to the JSONL spool at `spoolPath`, creating the
  * parent directory and the file as needed. Rotates (never truncates or
- * drops) when the existing file would exceed `maxBytes`.
+ * drops) when appending this line to the existing file would exceed
+ * `maxBytes` -- the overflowing line then starts a fresh spool.
  */
 export async function appendToSpool(
   record: SpoolRecord,
@@ -54,16 +88,12 @@ export async function appendToSpool(
   await mkdir(dirname(spoolPath), { recursive: true });
 
   const line = `${JSON.stringify(record)}\n`;
-  let rotated = false;
+  const currentSize = await currentSpoolSize(spoolPath);
 
-  try {
-    const { size } = await stat(spoolPath);
-    if (size + Buffer.byteLength(line, 'utf8') > maxBytes) {
-      await rotateSpool(spoolPath);
-      rotated = true;
-    }
-  } catch {
-    // Spool doesn't exist yet -- nothing to rotate.
+  let rotated = false;
+  if (currentSize > 0 && currentSize + Buffer.byteLength(line, 'utf8') > maxBytes) {
+    await rotateSpool(spoolPath);
+    rotated = true;
   }
 
   await appendFile(spoolPath, line, 'utf8');
