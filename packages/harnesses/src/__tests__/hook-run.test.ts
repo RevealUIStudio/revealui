@@ -124,6 +124,45 @@ describe('runHookCommand', () => {
     expect(JSON.parse(lines[1] as string).event.kind).toBe('stop');
   });
 
+  it('fails CLOSED: a deny is still delivered when the spool write fails', async () => {
+    // A deny-matching snapshot...
+    await writeFile(
+      snapshotPath,
+      JSON.stringify({
+        version: 1,
+        keyId: 'k1',
+        signature: 'sig',
+        issuedAt: new Date().toISOString(),
+        rules: [{ kind: 'pre-shell', permission: 'deny', reason: 'shells are denied by policy' }],
+      }),
+      'utf8',
+    );
+    // ...and an unwritable spool path: a FILE stands where the spool's parent
+    // directory would be, so appendToSpool's mkdir throws (ENOTDIR). This is
+    // the disk-full / read-only-fs / unwritable-data-dir class of failure.
+    const blocker = join(dir, 'blocker');
+    await writeFile(blocker, 'not a directory', 'utf8');
+    const unwritableSpool = join(blocker, 'receipts.jsonl');
+
+    const result = await runHookCommand(
+      'cursor',
+      { hook_event_name: 'beforeShellExecution', command: 'rm -rf /' },
+      { spoolPath: unwritableSpool, snapshotPath },
+    );
+
+    // The spool write failed, but the computed deny must still reach the editor
+    // (otherwise the CLI exits with no response and the editor default -- allow
+    // -- silently wins, bypassing enforcement).
+    expect(result.spooled).toBe(false);
+    expect(result.decision.permission).toBe('deny');
+    expect(result.exitCode).toBe(2);
+    expect(result.responseJson).toEqual({
+      permission: 'deny',
+      user_message: 'shells are denied by policy',
+      agent_message: 'shells are denied by policy',
+    });
+  });
+
   it('I-5: a VS Code hook with no policy snapshot degrades to advisory and allows', async () => {
     const result = await runHookCommand(
       'vscode',

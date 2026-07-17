@@ -52,6 +52,12 @@ export interface HookRunResult {
   readonly responseJson: Record<string, unknown>;
   /** 2 when the decision is `deny` (Cursor + Claude Code both block on exit code 2), 0 otherwise. */
   readonly exitCode: number;
+  /**
+   * False when the receipt could not be written to the local spool (unwritable
+   * data dir, disk full, read-only fs, rotate error). The decision is still
+   * delivered regardless -- see the fail-closed note in `runHookCommand`.
+   */
+  readonly spooled: boolean;
 }
 
 /** Build the Cursor-native permission response (cursor.com/docs/agent/hooks, verified 2026-07-17). */
@@ -157,7 +163,26 @@ export async function runHookCommand(
   const event = normalizeHookEvent(source, rawInput, enforcementTier);
   const decision = evaluatePolicy(snapshotResult, event);
 
-  await appendToSpool({ event, decision, spooledAt: new Date().toISOString() }, options.spoolPath);
+  // Fail CLOSED on a spool-write failure. If appendToSpool throws (unwritable
+  // data dir on first run, disk full, read-only fs, or a non-ENOENT rotate
+  // error) the policy DECISION must still reach the editor: were the throw to
+  // propagate, the CLI would exit without writing a response and the editor's
+  // default (allow) would win -- turning a spool-write failure into a silent
+  // enforcement bypass of a computed `deny`. Warn so the dropped receipt is
+  // visible (availability/audit-completeness cost), but never drop the decision.
+  let spooled = true;
+  try {
+    await appendToSpool(
+      { event, decision, spooledAt: new Date().toISOString() },
+      options.spoolPath,
+    );
+  } catch (err) {
+    spooled = false;
+    const reason = err instanceof Error ? err.message : String(err);
+    process.stderr.write(
+      `revealui-harnesses hook: receipt spool write failed (${reason}); decision still enforced, receipt dropped\n`,
+    );
+  }
 
   return {
     event,
@@ -165,5 +190,6 @@ export async function runHookCommand(
     snapshotResult,
     responseJson: buildEditorResponse(source, decision, event.kind),
     exitCode: decision.permission === 'deny' ? 2 : 0,
+    spooled,
   };
 }
