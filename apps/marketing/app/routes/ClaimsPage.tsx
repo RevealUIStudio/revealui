@@ -20,9 +20,9 @@ import { SITE } from '../content/site';
  *  reads "brand" (the Cobalt primary token). Kinds are told apart by label. */
 const KIND_BADGE_COLOR = 'brand' as const;
 
-// Partial + fallback so a future EvidenceKind (e.g. the capability-proof
-// 'test' kind) renders its raw kind as the badge instead of breaking the
-// build or showing an empty badge before the legend copy catches up.
+// Partial + fallback so a future EvidenceKind renders its raw kind as the
+// badge instead of breaking the build or showing an empty badge before the
+// legend copy catches up.
 const KIND_LABEL: Partial<Record<EvidenceKind, string>> = Object.fromEntries(
   CLAIMS_KIND_LEGEND.map((entry) => [entry.kind, entry.label]),
 );
@@ -33,6 +33,30 @@ function codeHref(ref: string): string {
 
 function anchorId(file: string): string {
   return file.endsWith('.ts') ? file.slice(0, -3) : file;
+}
+
+/** A `kind: 'test'` ref is "<repo-relative test file>#<exact test title>". */
+function splitTestRef(ref: string): { readonly file: string; readonly title: string } {
+  const hashIndex = ref.indexOf('#');
+  if (hashIndex === -1) return { file: ref, title: '' };
+  return { file: ref.slice(0, hashIndex), title: ref.slice(hashIndex + 1) };
+}
+
+function TestRefLink({ testRef }: { testRef: string }) {
+  const { file, title } = splitTestRef(testRef);
+  return (
+    <span className="break-all">
+      <a
+        href={codeHref(file)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
+      >
+        {file}
+      </a>
+      {title && <span className="text-muted-foreground">#{title}</span>}
+    </span>
+  );
 }
 
 interface FileSection {
@@ -87,10 +111,11 @@ function EvidenceRow({ evidence }: { evidence: ClaimEntry['evidence'][number] })
         >
           {evidence.ref}
         </a>
+      ) : evidence.kind === 'test' ? (
+        <TestRefLink testRef={evidence.ref} />
       ) : (
-        // Future evidence kinds (e.g. the capability-proof 'test' kind, whose
-        // ref is "file#test title", not a URL) render as plain text until the
-        // page grows a dedicated treatment. Never emit an unknown ref as href.
+        // Future evidence kinds render as plain text until the page grows a
+        // dedicated treatment. Never emit an unknown ref as href.
         <span className="break-all">{evidence.ref}</span>
       )}
       {evidence.note && (

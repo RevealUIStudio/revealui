@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CAPABILITIES, CAPABILITIES_SECTION } from '../capabilities';
-import { HOME_PRIMITIVES, PRODUCTS_PRIMITIVES } from '../primitives';
+import { HOME_PRIMITIVES } from '../primitives';
 import { ROADMAP_SHIPPED, ROADMAP_UPCOMING } from '../roadmap';
-import { METRICS, SITE } from '../site';
+import { METRICS } from '../site';
 
 // Structural contracts for the marketing content modules. These guard the
 // invariants TypeScript can't: counts, internal consistency, and the honesty
@@ -15,34 +14,12 @@ const FIVE_PRIMITIVES = ['People', 'Content', 'Offers', 'Payments', 'Agents'];
 
 describe('marketing content contracts', () => {
   describe('primitives', () => {
-    it('home and products each expose exactly the five primitives', () => {
+    it('home exposes exactly the five primitives', () => {
       expect(HOME_PRIMITIVES).toHaveLength(5);
-      expect(PRODUCTS_PRIMITIVES).toHaveLength(5);
     });
 
-    it('both primitive sets name the same five, in the same order', () => {
+    it('names the five primitives, in order', () => {
       expect(HOME_PRIMITIVES.map((p) => p.label)).toEqual(FIVE_PRIMITIVES);
-      expect(PRODUCTS_PRIMITIVES.map((p) => p.name)).toEqual(FIVE_PRIMITIVES);
-    });
-  });
-
-  describe('capabilities', () => {
-    it('exposes eight capabilities, matching the section copy', () => {
-      expect(CAPABILITIES).toHaveLength(8);
-      // The heading copy spells the count ("Eight ..."); keep them in lockstep.
-      expect(CAPABILITIES_SECTION.body.toLowerCase()).toContain('eight');
-    });
-
-    it('every capability cites a real repo source file', () => {
-      for (const cap of CAPABILITIES) {
-        expect(
-          cap.path.startsWith('packages/') || cap.path.startsWith('apps/'),
-          `${cap.title}: path not under packages/ or apps/`,
-        ).toBe(true);
-        expect(cap.href.startsWith(SITE.urls.repo), `${cap.title}: href not in the repo`).toBe(
-          true,
-        );
-      }
     });
   });
 

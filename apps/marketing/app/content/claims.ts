@@ -21,7 +21,7 @@ export const CLAIMS_LEDGER_INTRO =
   'The ledger below is grouped by page, starting with the homepage and moving outward through the site.' as const;
 
 export interface KindLegendEntry {
-  readonly kind: 'code' | 'command' | 'url' | 'metric';
+  readonly kind: 'code' | 'command' | 'url' | 'metric' | 'test';
   readonly label: string;
   readonly description: string;
 }
@@ -46,6 +46,11 @@ export const CLAIMS_KIND_LEGEND: readonly KindLegendEntry[] = [
     kind: 'metric',
     label: 'Metric',
     description: 'A number pinned to the codebase and checked by the claim-drift gate.',
+  },
+  {
+    kind: 'test',
+    label: 'Test',
+    description: 'A named, non-skipped test in the repository that proves the claim in code.',
   },
 ] as const;
 

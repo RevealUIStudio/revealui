@@ -23,23 +23,16 @@ export interface RouteEntry {
 export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'home.ts': { route: '/', pageTitle: 'Home' },
   // HOME_PRIMITIVES_SECTION / HOME_PRIMITIVES render on "/" via
-  // components/landing/Primitives.tsx. This file also exports
-  // PRODUCTS_PRIMITIVES, which is not imported by any route or component
-  // (verified 2026-07-17) — built-but-unwired content, not live copy.
+  // components/landing/Primitives.tsx.
   'primitives.ts': { route: '/', pageTitle: 'Home' },
-  // Sourced from the retired WhatsShipped.tsx home section (see the file's
-  // own header comment). No current route imports CAPABILITIES_SECTION or
-  // CAPABILITIES — mapped to "/", its last known home, pending re-wiring.
-  'capabilities.ts': { route: '/', pageTitle: 'Home' },
   // Renders on both "/" (components/landing/Proof.tsx) and "/products"
   // (ProductsPage.tsx reuses the same component); "/" is the primary,
   // original placement.
   'proof.ts': { route: '/', pageTitle: 'Home' },
   'pricing-teaser.ts': { route: '/', pageTitle: 'Home' },
-  // SITE.brandTagline (the one claims-evidence entry sourced from this file)
-  // is not currently rendered by any route. SITE's other exports (urls,
-  // METRICS) are used throughout the site but carry no prose claims of
-  // their own.
+  // SITE.brandTagline renders on "/" in the Footer, under SITE.brand. SITE's
+  // other exports (urls, METRICS) are used throughout the site but carry no
+  // prose claims of their own.
   'site.ts': { route: '/', pageTitle: 'Home' },
   'products.ts': { route: '/products', pageTitle: 'Products' },
   'pricing.ts': { route: '/pricing', pageTitle: 'Pricing' },
