@@ -1,5 +1,7 @@
+import { OpenCodeGenerator } from './opencode.js';
 import type { ContentGenerator } from './types.js';
 
+export { OpenCodeGenerator } from './opencode.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
 
 const generators = new Map<string, ContentGenerator>();
@@ -18,3 +20,8 @@ export function registerGenerator(generator: ContentGenerator): void {
 export function listGenerators(): string[] {
   return [...generators.keys()];
 }
+
+// Built-in generators, registered eagerly so `generateContent()` /
+// `diffContent()` (content/index.ts) work out of the box for any importer
+// of this module -- no manual registration call required.
+registerGenerator(new OpenCodeGenerator());

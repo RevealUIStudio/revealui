@@ -66,6 +66,17 @@ export interface ProtocolCapabilities {
     supported: boolean;
     backend: MemoryBackend;
   };
+  /**
+   * Maximum context window the tool exposes, in tokens.
+   *
+   * `0` has two distinct meanings depending on context: `createDefaultCapabilities()`
+   * uses it as the "everything disabled" default, and BYO-model tools (e.g.
+   * `opencode`, which brings the user's own provider/model rather than a fixed
+   * one) also declare `0` because the effective window depends on whichever
+   * model the user configured, not a fixed capability of the tool. Do not treat
+   * `0` as "unsupported" when the tool's other dispatch capabilities are `true`
+   * -- check `dispatch`/`headless` instead.
+   */
   maxContextTokens: number;
 
   /** Which lifecycle events the tool emits natively */
@@ -103,16 +114,46 @@ export function createDefaultCapabilities(): ProtocolCapabilities {
 /**
  * Capability profiles for tools that have working adapters in this package.
  *
- * Only `revealui-agent` ships an adapter today. Profile data for tools
- * that are spec'd but have no adapter implementation lives in
- * `./roadmap-profiles.ts` to make the spec-vs-shipped gap structurally
- * visible.
+ * `revealui-agent` and `opencode` ship adapters today (`OpenCodeAdapter`,
+ * `src/adapters/opencode-adapter.ts`). Profile data for tools that are
+ * spec'd but have no adapter implementation lives in `./roadmap-profiles.ts`
+ * to make the spec-vs-shipped gap structurally visible.
  *
  * If you're looking for the previous full set (claude-code, codex,
- * cursor, revealui-agent), import `ALL_KNOWN_PROFILES` from
+ * cursor, revealui-agent, opencode), import `ALL_KNOWN_PROFILES` from
  * `./roadmap-profiles.ts` which merges both.
  */
 export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
+  // OpenCode brings its own model (BYO via models.dev/AI-SDK) and has no
+  // in-loop hook system today -- an OpenCode plugin could add one later
+  // (GAP-371 §8.3), but until a plugin ships, `hooks.supported` stays
+  // honestly false. `maxContextTokens: 0` is the BYO sentinel documented on
+  // the interface field above, not a capability defect.
+  opencode: {
+    dispatch: {
+      generateCode: true,
+      analyzeCode: true,
+      applyEdit: false,
+      executeCommand: true,
+    },
+    readWorkboard: false,
+    writeWorkboard: false,
+    claimTasks: false,
+    reportConflicts: false,
+    headless: true,
+    resumable: true,
+    forkable: true,
+    backgroundable: true,
+    hooks: { supported: false, granularity: 'none', canBlock: false },
+    sandbox: { supported: false, modes: [] },
+    supportsWorktrees: false,
+    supportsSkills: true,
+    supportsMcp: true,
+    memory: { supported: false, backend: 'none' },
+    maxContextTokens: 0,
+    lifecycleEvents: [],
+  },
+
   'revealui-agent': {
     dispatch: {
       generateCode: true,
