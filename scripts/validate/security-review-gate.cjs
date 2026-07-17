@@ -121,6 +121,24 @@ function classifyFiles(files) {
   return hits;
 }
 
+// Pure clearance decision, factored out of runPrMode so the exit-code policy is
+// unit-testable without spawning the CLI. Returns { clear, kind } where `kind`
+// selects the human message below. The B2 invariant lives here: a `clear`
+// verdict marker WITHOUT owner clearance holds — a marker alone never merges.
+function resolveGateDecision({ securitySensitive, verdictStatus, hasOwnerClearance }) {
+  if (!securitySensitive) return { clear: true, kind: 'not-sensitive' };
+  if (verdictStatus === 'hold') return { clear: false, kind: 'hold' };
+  if (verdictStatus === 'clear') {
+    return hasOwnerClearance
+      ? { clear: true, kind: 'verdict-and-owner' }
+      : { clear: false, kind: 'verdict-without-owner' };
+  }
+  // no-marker — legacy fallback, same owner-clearance requirement.
+  return hasOwnerClearance
+    ? { clear: true, kind: 'legacy-owner' }
+    : { clear: false, kind: 'no-verdict' };
+}
+
 function runPrMode(prNumber, repo) {
   let raw;
   const ghArgs = [
@@ -144,61 +162,53 @@ function runPrMode(prNumber, repo) {
   const files = (data.files || []).map((f) => f.path);
   const hits = classifyFiles(files);
 
-  if (hits.length === 0) {
-    process.stdout.write(
-      `PR #${prNumber}: no security-sensitive files touched — no review gate.\n`,
-    );
-    process.exit(0);
-  }
-
   // A live guardrail-2 REQUEST-CHANGES marker holds the merge even when the
   // sec-review:approved label is present (the revealui#1910 miss: the label was
-  // applied against an outstanding REQUEST-CHANGES). This is checked FIRST so the
-  // hold cannot be papered over by the label/review-decision fallback below.
+  // applied against an outstanding REQUEST-CHANGES). Clearance ALWAYS requires
+  // the owner-applied label / approving review — the marker records the
+  // reviewer's judgment, the label records the OWNER's disposition, and both are
+  // required so a self-posted APPROVE comment can never clear the gate on its own.
   const verdict = evaluateGuardrail2({
     reviews: data.reviews || [],
     comments: data.comments || [],
     authorLogin: (data.author && data.author.login) || '',
   });
-
-  if (verdict.status === 'hold') {
-    process.stderr.write(
-      `HOLD — PR #${prNumber} has a live guardrail-2 REQUEST-CHANGES verdict ` +
-        `(reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}).\n` +
-        `   The sec-review:approved label and any approving review are OVERRIDDEN while this stands.\n` +
-        `   Required to clear: a LATER non-author guardrail-2 APPROVE marker resolving it.\n`,
-    );
-    process.exit(1);
-  }
-
-  if (verdict.status === 'clear') {
-    process.stdout.write(
-      `PR #${prNumber} is security-sensitive AND carries a guardrail-2 APPROVE verdict ` +
-        `(reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}) — clear to merge.\n`,
-    );
-    process.exit(0);
-  }
-
-  // No verdict marker on the PR — fall back to the legacy label / approving-review
-  // signal (backward compatible for PRs that predate the marker convention).
   const labels = new Set((data.labels || []).map((l) => l.name));
   const hasReviewLabel = [...labels].some((l) => SEC_REVIEW_LABELS.has(l));
   const approved = data.reviewDecision === 'APPROVED';
+  const hasOwnerClearance = approved || hasReviewLabel;
 
-  if (approved || hasReviewLabel) {
-    process.stdout.write(
-      `PR #${prNumber} is security-sensitive AND carries a recorded verdict ` +
-        `(${approved ? 'approving review' : 'review label'}) — clear to merge.\n`,
-    );
-    process.exit(0);
-  }
+  const decision = resolveGateDecision({
+    securitySensitive: hits.length > 0,
+    verdictStatus: verdict.status,
+    hasOwnerClearance,
+  });
+  const who = `reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}`;
+  const clearanceKind = approved ? 'approving review' : 'review label';
+  const labelName = [...SEC_REVIEW_LABELS][0];
 
-  process.stderr.write(
-    `HOLD — PR #${prNumber} touches a security-sensitive surface with NO recorded reviewer verdict.\n` +
+  const MESSAGES = {
+    'not-sensitive': `PR #${prNumber}: no security-sensitive files touched — no review gate.\n`,
+    hold:
+      `HOLD — PR #${prNumber} has a live guardrail-2 REQUEST-CHANGES verdict (${who}).\n` +
+      `   The sec-review:approved label and any approving review are OVERRIDDEN while this stands.\n` +
+      `   Required to clear: a LATER non-author guardrail-2 APPROVE marker resolving it.\n`,
+    'verdict-and-owner':
+      `PR #${prNumber} is security-sensitive AND carries a guardrail-2 APPROVE verdict (${who}) ` +
+      `plus owner clearance (${clearanceKind}) — clear to merge.\n`,
+    'verdict-without-owner':
+      `HOLD — PR #${prNumber} carries a guardrail-2 APPROVE marker (${who}) but NO owner clearance.\n` +
+      `   The marker records the reviewer's judgment; clearing still requires the OWNER's ` +
+      `"${labelName}" label (or an approving review).\n`,
+    'legacy-owner': `PR #${prNumber} is security-sensitive AND carries a recorded verdict (${clearanceKind}) — clear to merge.\n`,
+    'no-verdict':
+      `HOLD — PR #${prNumber} touches a security-sensitive surface with NO recorded reviewer verdict.\n` +
       `   Touched: ${[...new Set(hits)].join(', ')}\n` +
-      `   Required before merge: an approving review OR a "${[...SEC_REVIEW_LABELS][0]}" label.\n`,
-  );
-  process.exit(1);
+      `   Required before merge: an approving review OR a "${labelName}" label.\n`,
+  };
+
+  (decision.clear ? process.stdout : process.stderr).write(MESSAGES[decision.kind]);
+  process.exit(decision.clear ? 0 : 1);
 }
 
 function runDiffMode(base) {
@@ -246,7 +256,7 @@ function main() {
 // Export the surface list + classifier so the unit test can assert the
 // classification without spawning the CLI. Guarding main() behind
 // require.main === module keeps the CLI behavior identical when run directly.
-module.exports = { SECURITY_PATHS, SEC_REVIEW_LABELS, classifyFiles };
+module.exports = { SECURITY_PATHS, SEC_REVIEW_LABELS, classifyFiles, resolveGateDecision };
 
 if (require.main === module) {
   main();

@@ -16,9 +16,16 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
   pull_request_review:
     types: [submitted, dismissed]
+  # Verdicts are posted as COMMENTS carrying a guardrail-2 marker, and a comment
+  # fires neither `pull_request` nor `pull_request_review`. Without this trigger a
+  # fresh REQUEST-CHANGES comment never re-runs the gate, leaving a stale green
+  # over a live hold (the #1910 class, narrowed). Guarded to PR comments below.
+  issue_comment:
+    types: [created, edited]
 
 concurrency:
-  group: security-review-gate-${{ github.event.pull_request.number }}
+  # issue_comment events carry the PR number under `issue`, not `pull_request`.
+  group: security-review-gate-${{ github.event.pull_request.number || github.event.issue.number }}
   cancel-in-progress: true
 
 permissions:
@@ -28,13 +35,18 @@ permissions:
 jobs:
   security-review-gate:
     name: Security review gate
+    # issue_comment fires on every issue; only run for comments on a PR.
+    if: ${{ github.event_name != 'issue_comment' || github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
         with:
+          # security-review-gate.cjs requires ./guardrail2-verdict.cjs — BOTH must
+          # be materialized or the gate crashes with MODULE_NOT_FOUND on checkout.
           sparse-checkout: |
             scripts/validate/security-review-gate.cjs
+            scripts/validate/guardrail2-verdict.cjs
           sparse-checkout-cone-mode: false
 
       - name: Evaluate review gate
@@ -42,5 +54,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node scripts/validate/security-review-gate.cjs \
-            --pr "${{ github.event.pull_request.number }}" \
+            --pr "${{ github.event.pull_request.number || github.event.issue.number }}" \
             --repo "${{ github.repository }}"
