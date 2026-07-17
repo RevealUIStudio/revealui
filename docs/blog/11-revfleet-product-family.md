@@ -48,7 +48,7 @@ Each of these came out of operating RevealUI ourselves. We needed them, so we bu
 
 **RevSkills** (Active, MIT) is a library of Claude Code skills: auth flows, schema patterns, test scaffolds, and more, ready to drop into any agent. Free, open, importable.
 
-**RevMarket** (Planned) is the agent tool marketplace. The runtime already ships a catalog of first-party integrations out of the box; RevMarket is the planned layer where third-party developers publish and discover MCP servers and agent capabilities. It is designed, not yet open to outside publishers, and we say so plainly on the roadmap.
+**RevMarket** (Planned, [#451](https://github.com/RevealUIStudio/revealui/issues/451)) is the agent tool marketplace. The runtime already ships a catalog of first-party integrations out of the box; RevMarket is the planned layer where third-party developers publish and discover MCP servers and agent capabilities. It is designed, not yet open to outside publishers, and we say so plainly on the roadmap.
 
 ## Why a fleet instead of one big product
 
