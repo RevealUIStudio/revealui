@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   isVercelEncryptedBlob,
+  isVercelSensitivePlaceholder,
   parseDotenv,
+  scrubSensitivePlaceholders,
   scrubVercelEncryptedBlobs,
+  VERCEL_SENSITIVE_PLACEHOLDER,
   validatePulledEnv,
 } from '../prod-env';
 
@@ -25,6 +28,11 @@ function validHostedEnv(overrides: Record<string, string | undefined> = {}) {
     REVEALUI_CRON_SECRET: VALID_CRON,
     CORS_ORIGIN: 'https://revealui.com,https://admin.revealui.com',
     REVEALUI_ALERT_EMAIL: 'founder@revealui.com',
+    // Added to REQUIRED_IN_PRODUCTION after this fixture was written; the
+    // suite failed presence checks on every case until these landed.
+    REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test123',
+    GOOGLE_SERVICE_ACCOUNT_EMAIL: 'sender@project.iam.gserviceaccount.com',
+    GOOGLE_PRIVATE_KEY: 'fixture-google-service-account-key',
     ...overrides,
   };
 }
@@ -294,6 +302,62 @@ describe('validatePulledEnv (Vercel v2 envelope integration)', () => {
 
   it('still fails on missing required vars even with blobs present (presence > format)', () => {
     const env = validHostedEnv({ CORS_ORIGIN: SAMPLE_V2_BLOB });
+    delete (env as Record<string, string | undefined>).REVEALUI_ALERT_EMAIL;
+    const result = validatePulledEnv(env);
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/REVEALUI_ALERT_EMAIL/);
+  });
+});
+
+describe('sensitive-placeholder scrub (Vercel CLI >= 56.3)', () => {
+  it('detects the exact [SENSITIVE] placeholder and nothing else', () => {
+    expect(isVercelSensitivePlaceholder(VERCEL_SENSITIVE_PLACEHOLDER)).toBe(true);
+    expect(isVercelSensitivePlaceholder('')).toBe(false);
+    expect(isVercelSensitivePlaceholder('[SENSITIVE] ')).toBe(false);
+    expect(isVercelSensitivePlaceholder('prefix [SENSITIVE]')).toBe(false);
+    expect(isVercelSensitivePlaceholder('sk_live_abc')).toBe(false);
+  });
+
+  it('scrubs placeholder values to empty strings and reports the keys', () => {
+    const { env, scrubbedKeys } = scrubSensitivePlaceholders({
+      REVEALUI_KEK: VERCEL_SENSITIVE_PLACEHOLDER,
+      CORS_ORIGIN: 'https://revealui.com',
+    });
+    expect(env.REVEALUI_KEK).toBe('');
+    expect(env.CORS_ORIGIN).toBe('https://revealui.com');
+    expect(scrubbedKeys).toEqual(['REVEALUI_KEK']);
+  });
+
+  it('passes the 2026-07-17 incident shape: every sensitive-type var pulled as [SENSITIVE]', () => {
+    // Mirrors deploy run 29559213155, where CLI 56.3.1 redacted all 10
+    // sensitive-type vars and each one failed a format check. With the
+    // scrub, these rejoin the lenient presence-only path (the pre-56.3
+    // empty-string behavior) and validation passes.
+    const result = validatePulledEnv(
+      validHostedEnv({
+        REVEALUI_KEK: VERCEL_SENSITIVE_PLACEHOLDER,
+        REVEALUI_SECRET: VERCEL_SENSITIVE_PLACEHOLDER,
+        NEXT_PUBLIC_SERVER_URL: VERCEL_SENSITIVE_PLACEHOLDER,
+        STRIPE_SECRET_KEY: VERCEL_SENSITIVE_PLACEHOLDER,
+        STRIPE_WEBHOOK_SECRET: VERCEL_SENSITIVE_PLACEHOLDER,
+        REVEALUI_CRON_SECRET: VERCEL_SENSITIVE_PLACEHOLDER,
+        REVEALUI_ALERT_EMAIL: VERCEL_SENSITIVE_PLACEHOLDER,
+      }),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.scrubbedSensitiveKeys).toEqual([
+      'REVEALUI_SECRET',
+      'REVEALUI_KEK',
+      'NEXT_PUBLIC_SERVER_URL',
+      'STRIPE_SECRET_KEY',
+      'STRIPE_WEBHOOK_SECRET',
+      'REVEALUI_CRON_SECRET',
+      'REVEALUI_ALERT_EMAIL',
+    ]);
+  });
+
+  it('still fails on missing required vars even with placeholders present (presence > format)', () => {
+    const env = validHostedEnv({ REVEALUI_KEK: VERCEL_SENSITIVE_PLACEHOLDER });
     delete (env as Record<string, string | undefined>).REVEALUI_ALERT_EMAIL;
     const result = validatePulledEnv(env);
     expect(result.ok).toBe(false);

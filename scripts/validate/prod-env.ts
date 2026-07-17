@@ -112,12 +112,61 @@ export function scrubVercelEncryptedBlobs(env: EnvMap): {
   return { env: result, scrubbedKeys };
 }
 
+/**
+ * Detect the redaction placeholder Vercel CLI >= 56.3 writes for
+ * `sensitive`-type env vars in `vercel pull` output.
+ *
+ * Sensitive vars are write-only by contract ("can never be read via any
+ * REST call" per Vercel's docs). CLI 56.2.1 and earlier pulled them as
+ * EMPTY strings, which the lenient validator already skips format checks
+ * on. CLI 56.3.1 (first seen in the 2026-07-17 main Deploy, run
+ * 29559213155) started writing the literal string `[SENSITIVE]` instead —
+ * non-empty, so every format check fired and the deploy failed with 10
+ * findings that were all sensitive-type vars. The stored project env had
+ * not changed since 2026-07-11.
+ *
+ * Exact match only: the placeholder is emitted verbatim by the CLI, and
+ * no real production value equals it.
+ */
+export const VERCEL_SENSITIVE_PLACEHOLDER = '[SENSITIVE]';
+
+export function isVercelSensitivePlaceholder(value: string): boolean {
+  return value === VERCEL_SENSITIVE_PLACEHOLDER;
+}
+
+/**
+ * Scrub `[SENSITIVE]` redaction placeholders from a pulled env map,
+ * replacing each with an empty string so the value rejoins the lenient
+ * path sensitive vars took before CLI 56.3 (presence-by-name passes,
+ * format checks skip). The apps/server runtime receives real decrypted
+ * values from Vercel and runs strict validateStartup() there, so the
+ * production gate is unaffected — same contract as the v2-envelope scrub
+ * above.
+ */
+export function scrubSensitivePlaceholders(env: EnvMap): {
+  env: EnvMap;
+  scrubbedKeys: string[];
+} {
+  const scrubbedKeys: string[] = [];
+  const result: EnvMap = {};
+  for (const [key, value] of Object.entries(env)) {
+    if (isVercelSensitivePlaceholder(value)) {
+      result[key] = '';
+      scrubbedKeys.push(key);
+    } else {
+      result[key] = value;
+    }
+  }
+  return { env: result, scrubbedKeys };
+}
+
 export interface ValidateResult {
   ok: boolean;
   message: string;
   mode: 'forge' | 'hosted';
   stripeLiveMode: boolean;
   scrubbedBlobKeys: string[];
+  scrubbedSensitiveKeys: string[];
 }
 
 /**
@@ -134,7 +183,13 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
   // The apps/server runtime still receives decrypted values from Vercel
   // and runs strict validateStartup() there. See isVercelEncryptedBlob
   // for the detection contract.
-  const { env: scrubbed, scrubbedKeys } = scrubVercelEncryptedBlobs(pulled);
+  const { env: blobScrubbed, scrubbedKeys } = scrubVercelEncryptedBlobs(pulled);
+  // CLI >= 56.3 writes `[SENSITIVE]` for sensitive-type vars where older
+  // CLIs wrote empty strings; scrub the placeholder back to empty so those
+  // vars rejoin the lenient presence-only path. See
+  // isVercelSensitivePlaceholder for the incident record.
+  const { env: scrubbed, scrubbedKeys: scrubbedSensitiveKeys } =
+    scrubSensitivePlaceholders(blobScrubbed);
   const env: EnvMap = { ...scrubbed, NODE_ENV: 'production' };
 
   // Vercel-Sensitive vars pull as empty strings even though they're
@@ -154,6 +209,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
       mode,
       stripeLiveMode,
       scrubbedBlobKeys: scrubbedKeys,
+      scrubbedSensitiveKeys,
       message:
         'pulled env contains SKIP_ENV_VALIDATION=true. This bypasses every check at runtime; remove it from Vercel before deploying.',
     };
@@ -166,6 +222,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
       mode,
       stripeLiveMode,
       scrubbedBlobKeys: scrubbedKeys,
+      scrubbedSensitiveKeys,
       message: 'all production env presence + format checks satisfied.',
     };
   } catch (err) {
@@ -174,6 +231,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
       mode,
       stripeLiveMode,
       scrubbedBlobKeys: scrubbedKeys,
+      scrubbedSensitiveKeys,
       message: err instanceof Error ? err.message : String(err),
     };
   }
@@ -200,6 +258,12 @@ function main(): void {
   if (result.scrubbedBlobKeys.length > 0) {
     process.stdout.write(
       `validate:prod-env note: ${result.scrubbedBlobKeys.length} Vercel v2 encryption envelope(s) treated as opaque (presence checked, format skipped — runtime gets decrypted values). Keys: ${result.scrubbedBlobKeys.join(', ')}\n`,
+    );
+  }
+
+  if (result.scrubbedSensitiveKeys.length > 0) {
+    process.stdout.write(
+      `validate:prod-env note: ${result.scrubbedSensitiveKeys.length} sensitive-type var(s) pulled as the [SENSITIVE] redaction placeholder (CLI >= 56.3); presence checked, format skipped — runtime gets decrypted values. Keys: ${result.scrubbedSensitiveKeys.join(', ')}\n`,
     );
   }
 
