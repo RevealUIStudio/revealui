@@ -22,9 +22,26 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { CLAIMS } from '../../apps/marketing/app/content/claims-evidence.js';
+import {
+  type CapabilityResult,
+  checkCapabilityClaims,
+  computeBaselineKeys,
+  loadCapabilityBaseline,
+  writeCapabilityBaseline,
+} from './capability-claims.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const showFix = process.argv.includes('--fix');
+const updateCapabilityBaseline = process.argv.includes('--update-capability-baseline');
+
+// GAP-354: capability-claim proof obligation. Capability-shaped marketing
+// claims must carry a kind:'test' proof; the three families removed 2026-07-12
+// can never re-ship unproven. See scripts/validate/capability-claims.ts.
+const CAPABILITY_BASELINE_PATH = path.join(
+  ROOT,
+  'scripts/validate/capability-claims-baseline.json',
+);
 
 // ---------------------------------------------------------------------------
 // Walker exclusions
@@ -1764,6 +1781,13 @@ function checkMarketingMetrics(checks: MarketingMetricCheck[]): MarketingMetricD
 // ---------------------------------------------------------------------------
 
 function run(): void {
+  if (updateCapabilityBaseline) {
+    const keys = computeBaselineKeys(CLAIMS, ROOT);
+    const n = writeCapabilityBaseline(CAPABILITY_BASELINE_PATH, keys);
+    console.log(`Capability-claims baseline regenerated: ${n} grandfathered (file::claim) keys.`);
+    return;
+  }
+
   console.log('Claim Drift Detector');
   console.log('====================\n');
 
@@ -1955,6 +1979,12 @@ function run(): void {
     { key: 'internal', actual: licenseSplit.internal },
   ]);
 
+  // Capability-claim proof obligation (GAP-354) — capability-shaped marketing
+  // claims must carry a kind:'test' proof; the three families removed 2026-07-12
+  // can never re-ship unproven, baseline or not.
+  const capabilityBaseline = loadCapabilityBaseline(CAPABILITY_BASELINE_PATH);
+  const capability: CapabilityResult = checkCapabilityClaims(CLAIMS, capabilityBaseline, ROOT);
+
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
   console.log(`Mismatches:     ${mismatches}`);
@@ -1969,6 +1999,9 @@ function run(): void {
   console.log(`Incomplete Pro-list claims: ${incompleteProMatches.length}`);
   console.log(`License-split anti-pattern phrasings: ${licenseSplitAntiMatches.length}`);
   console.log(`Marketing METRICS drift (site.ts): ${marketingMetricDrifts.length}`);
+  console.log(
+    `Capability claims: ${capability.scanned} scanned, ${capability.proven} proven, ${capability.baselined.length} baselined, ${capability.violations.length} violation(s), ${capability.advisories.length} advisory`,
+  );
 
   if (futureClaims.length > 0) {
     console.log('\nUnlinked future-tense claims (convention: CONTRIBUTING.md):');
@@ -2079,8 +2112,50 @@ function run(): void {
     );
   }
 
+  if (capability.advisories.length > 0) {
+    console.log('\nCapability-proof advisories (NOT failures — Fable review the production path):');
+    for (const a of capability.advisories) {
+      console.log(`  ${a.file} :: ${a.exportPath}`);
+      console.log(`    ${a.message}`);
+    }
+  }
+
+  if (capability.baselined.length > 0) {
+    console.log(
+      `\nGrandfathered capability claims without a kind:'test' proof (baseline, meant to shrink):`,
+    );
+    for (const key of capability.baselined) {
+      console.log(`  ${key}`);
+    }
+  }
+
+  if (capability.violations.length > 0) {
+    console.log("\nCapability claims missing a valid kind:'test' proof:");
+    for (const v of capability.violations) {
+      if (v.kind === 'denylist') {
+        console.log(`  DENYLIST  ${v.file} :: ${v.exportPath} [${v.denylistFamilies?.join(', ')}]`);
+        console.log(`    ${v.detail}`);
+      } else if (v.kind === 'bad-ref') {
+        console.log(`  BAD-REF   ${v.file} :: ${v.exportPath}`);
+        console.log(`    ${v.detail}`);
+      } else {
+        console.log(`  UNPROVEN  ${v.file} :: ${v.exportPath} (markers: ${v.markers?.join(', ')})`);
+        console.log(`    ${v.text.substring(0, 120)}`);
+      }
+    }
+    console.log(
+      "\nEvery capability-shaped claim must carry a kind:'test' evidence ref in " +
+        'apps/marketing/app/content/claims-evidence.ts pointing at a named, non-skipped test ' +
+        '("<repo-relative test file>#<exact test title substring>"). Register a real ' +
+        'production-path proof, or (marker-only claims only) grandfather it via ' +
+        '`pnpm validate:claims --update-capability-baseline`. Denylisted families can never be ' +
+        'grandfathered.',
+    );
+  }
+
   const anyFailures =
     mismatches > 0 ||
+    capability.violations.length > 0 ||
     futureClaims.length > 0 ||
     aspirationalClaims.length > 0 ||
     fleetLeaks.length > 0 ||
@@ -2124,6 +2199,9 @@ function run(): void {
     }
     if (marketingMetricDrifts.length > 0) {
       console.log('\nFailed: marketing METRICS out of sync with codebase counts.');
+    }
+    if (capability.violations.length > 0) {
+      console.log("\nFailed: capability claims without a valid kind:'test' proof.");
     }
     process.exit(1);
   } else {

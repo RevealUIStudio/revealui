@@ -15,7 +15,12 @@
 // Generalizes the existing pattern in capabilities.ts, where every capability
 // card already cites its source file (checked by content.test.ts).
 
-export type EvidenceKind = 'code' | 'command' | 'url' | 'metric';
+// 'test' (GAP-354): a machine-checkable proof obligation for capability-shaped
+// claims. ref format "<repo-relative test file>#<exact test title substring>";
+// the claim-drift capability tier asserts the file exists, the title appears,
+// and the test is not .skip/.todo. Required on every capability-shaped claim
+// (see scripts/validate/capability-claims.ts).
+export type EvidenceKind = 'code' | 'command' | 'url' | 'metric' | 'test';
 
 export interface EvidenceRef {
   /** What kind of artifact proves the claim. */
@@ -304,6 +309,39 @@ const TASK_QUOTA: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/middleware/task-quota.ts',
   note: '429 over per-tier maxAgentTasks; mounted on agent-tasks + agent-stream in apps/server/src/index.ts',
+};
+
+// ── GAP-354 capability-claim proof tests (kind:'test') ───────────────────────
+// Each ref is "<repo-relative test file>#<exact test title substring>". The
+// claim-drift capability tier asserts the file exists, the title appears, and
+// the test is not skipped. Proof QUALITY (production path, no mock of the proven
+// seam) is enforced by Fable review of every new kind:'test' ref, not by the
+// validator (machine-checking "no mock of the seam" is not feasible; see the
+// 2026-07-12 incident in scripts/validate/capability-claims.ts header).
+const ENCRYPTION_ROTATION_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/security/src/__tests__/encryption.test.ts#re-encrypts data from old key to new key',
+  note: 'KeyRotationManager re-encrypts records under a new key (envelope DEK/KEK)',
+};
+const WEBHOOK_IDEMPOTENCY_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/routes/__tests__/webhooks.test.ts#returns duplicate:true when the same event ID is sent twice',
+  note: 'Stripe webhook idempotency: a re-sent event ID is recorded once, not reprocessed',
+};
+const CIRCUIT_BREAKER_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/resilience/src/__tests__/circuit-breaker.test.ts#should open after reaching failure threshold with volume threshold met',
+  note: 'circuit breaker opens at an adaptive failure + volume threshold (isolation)',
+};
+const TASK_QUOTA_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/middleware/__tests__/task-quota.test.ts#returns 429 when count equals quota',
+  note: 'per-tier agent task quota enforced: 429 when the tier limit is reached',
+};
+const ACCESS_ENFORCEMENT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts#returns empty result set when access.read returns false',
+  note: 'read access enforced: a denying access.read returns no docs',
 };
 const MEDIA_R2: EvidenceRef = {
   kind: 'code',
@@ -1005,7 +1043,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'capabilities.ts',
     exportPath: 'CAPABILITIES[1].body',
     text: 'Every event is recorded for idempotency, failed handlers are replayed from Stripe by a drain cron, and reconcile crons surface drift between Stripe and the local DB.',
-    evidence: [WEBHOOK_EVENTS, DRAIN, RECONCILE],
+    evidence: [WEBHOOK_EVENTS, DRAIN, RECONCILE, WEBHOOK_IDEMPOTENCY_TEST],
   },
   {
     file: 'capabilities.ts',
@@ -1023,7 +1061,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'capabilities.ts',
     exportPath: 'CAPABILITIES[3].body',
     text: 'Production resilience patterns wired into the runtime: circuit breakers with adaptive failure thresholds, configurable retry with backoff, and bulkhead isolation that early-stage SaaS usually skips.',
-    evidence: [RESILIENCE],
+    evidence: [RESILIENCE, CIRCUIT_BREAKER_TEST],
   },
   {
     file: 'capabilities.ts',
@@ -1053,13 +1091,13 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'capabilities.ts',
     exportPath: 'CAPABILITIES[6].title',
     text: 'Envelope encryption + key rotation',
-    evidence: [ENCRYPTION],
+    evidence: [ENCRYPTION, ENCRYPTION_ROTATION_TEST],
   },
   {
     file: 'capabilities.ts',
     exportPath: 'CAPABILITIES[6].body',
     text: 'Sensitive fields wrapped in per-record DEKs encrypted by a KEK, with a rotation manager that re-encrypts records under a new key.',
-    evidence: [ENCRYPTION],
+    evidence: [ENCRYPTION, ENCRYPTION_ROTATION_TEST],
   },
   {
     file: 'capabilities.ts',
@@ -1282,7 +1320,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'primitives.ts',
     exportPath: 'PRODUCTS_PRIMITIVES[0].together.description',
     text: 'RBAC + ABAC governs your human users, proven by 60 enforcement tests. Extending that same engine to scope agents individually is on our list, not yet shipped.',
-    evidence: [SECURITY_AUTHZ, ENFORCEMENT_TESTS],
+    evidence: [SECURITY_AUTHZ, ENFORCEMENT_TESTS, ACCESS_ENFORCEMENT_TEST],
   },
   {
     file: 'primitives.ts',
@@ -1442,7 +1480,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'primitives.ts',
     exportPath: 'PRODUCTS_PRIMITIVES[2].features[5]',
     text: 'Agent task quotas metered and enforced per tier',
-    evidence: [TASK_QUOTA, TIER_LIMITS],
+    evidence: [TASK_QUOTA, TIER_LIMITS, TASK_QUOTA_TEST],
   },
 
   // ── primitives.ts — PRODUCTS_PRIMITIVES[3] Payments ──────────────────────
