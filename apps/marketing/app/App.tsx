@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { RootLayout } from './layouts/RootLayout';
 import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
+import { ClaimsPage } from './routes/ClaimsPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
@@ -71,6 +72,11 @@ export function App() {
         meta: { title: 'RevealUI Cloud (roadmap) | RevealUI Studio' },
       },
       { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap | RevealUI' } },
+      {
+        path: '/claims',
+        component: ClaimsPage,
+        meta: { title: 'The claims ledger | RevealUI' },
+      },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy | RevealUI' } },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service | RevealUI' } },
       { path: '/security', component: SecurityPage, meta: { title: 'Security | RevealUI' } },
