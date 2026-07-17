@@ -977,8 +977,15 @@ const SCAN_DIRS = [
  *   - docs/MASTER_PLAN.md: per `single-source-of-truth.md`, the canonical plan lives in
  *     the private coordination hub's master plan; this public-repo copy is an allowed-stale snapshot
  *     and is also hook-blocked from agent edits, so numeric counts here cannot be kept in sync.
+ *   - docs/archive/2026-03-28-DOCUMENTATION_ASSESSMENT.md: a dated historical assessment
+ *     recording a correction made AT THAT TIME ("92 ... corrected to 86"); its counts were
+ *     accurate to the codebase as it existed on 2026-03-28, same class as CRASH-POSTMORTEMS.md.
  */
-const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', 'docs/MASTER_PLAN.md'];
+const EXCLUDE_FILES = [
+  'docs/system-tune/CRASH-POSTMORTEMS.md',
+  'docs/MASTER_PLAN.md',
+  'docs/archive/2026-03-28-DOCUMENTATION_ASSESSMENT.md',
+];
 
 function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   const matches: ClaimMatch[] = [];
