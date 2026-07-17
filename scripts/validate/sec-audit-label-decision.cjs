@@ -14,9 +14,17 @@
 // required checks in those states anyway). Deterministic: check conclusions
 // only, no model (keeps ADR 2026-07-10 condition 4 — additive-to-CI — intact).
 //
+// It ALSO revokes when a live guardrail-2 REQUEST-CHANGES verdict stands against
+// the label with no later resolving APPROVE (the revealui#1910 miss: the label was
+// applied over an outstanding REQUEST-CHANGES). This makes the label un-stickable
+// while a REQUEST-CHANGES is live, mirroring the audit-fail revoke.
+//
 // Pure `decide()` / `checkState()` are unit-tested; the thin CLI reads a JSON
-// { checkRuns, labels, killSwitch } from stdin and prints "revoke <reason>" or
-// "skip <reason>" for the workflow to act on. Zero deps, zero authored regex.
+// { checkRuns, labels, killSwitch, reviews, comments, prAuthor } from stdin and
+// prints "revoke <reason>" or "skip <reason>" for the workflow to act on. Zero
+// deps, zero authored regex.
+
+const { evaluateGuardrail2 } = require("./guardrail2-verdict.cjs");
 
 const REQUIRED_AUDIT_CHECKS = [
   "Security Gate",
@@ -66,6 +74,21 @@ function decide(input) {
   if (labelSet.has(OVERRIDE_LABEL)) {
     return { action: "skip", reason: `per-PR override label '${OVERRIDE_LABEL}' present` };
   }
+
+  // A live guardrail-2 REQUEST-CHANGES verdict makes the clearance label invalid,
+  // just like a failing audit does. Revoke it (revealui#1910).
+  const verdict = evaluateGuardrail2({
+    reviews: (input && input.reviews) || [],
+    comments: (input && input.comments) || [],
+    authorLogin: (input && input.prAuthor) || "",
+  });
+  if (verdict.status === "hold") {
+    return {
+      action: "revoke",
+      reason: `live guardrail-2 REQUEST-CHANGES verdict (reviewer ${verdict.reviewer || "unknown"}, ${verdict.timestamp || "unknown time"})`,
+    };
+  }
+
   const failing = REQUIRED_AUDIT_CHECKS.filter(
     (n) => checkState(checkRuns, n) === "failing"
   );
@@ -83,7 +106,7 @@ module.exports = {
   OVERRIDE_LABEL,
 };
 
-// CLI: node sec-audit-label-decision.cjs  <  {"checkRuns":[...],"labels":[...],"killSwitch":false}
+// CLI: node sec-audit-label-decision.cjs  <  {"checkRuns":[...],"labels":[...],"killSwitch":false,"reviews":[...],"comments":[...],"prAuthor":"..."}
 if (require.main === module) {
   let raw = "";
   process.stdin.setEncoding("utf8");
