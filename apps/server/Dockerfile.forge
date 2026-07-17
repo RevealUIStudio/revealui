@@ -27,6 +27,7 @@ COPY packages/paywall/package.json    ./packages/paywall/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json   ./packages/security/
 COPY packages/services/package.json   ./packages/services/
+COPY packages/setup/package.json      ./packages/setup/
 COPY packages/utils/package.json      ./packages/utils/
 COPY apps/server/package.json            ./apps/server/
 

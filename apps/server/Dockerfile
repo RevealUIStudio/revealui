@@ -22,10 +22,14 @@ COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/dev/package.json ./packages/dev/
+COPY packages/knowledge-graph/package.json ./packages/knowledge-graph/
+COPY packages/mcp/package.json ./packages/mcp/
 COPY packages/openapi/package.json ./packages/openapi/
+COPY packages/paywall/package.json ./packages/paywall/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json ./packages/security/
 COPY packages/services/package.json ./packages/services/
+COPY packages/setup/package.json ./packages/setup/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/server/package.json ./apps/server/
 
