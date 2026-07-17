@@ -10,6 +10,7 @@
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--print]             Print current workboard state
  *   coordinate --init <path>         Register this session in the workboard and start daemon
+ *   hook <cursor|claude-code>        Normalize a hook payload from stdin, evaluate policy, spool the receipt
  *
  * License: FSL-1.1-MIT
  */
@@ -27,6 +28,7 @@ import {
   validateManifest,
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
+import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -367,7 +369,54 @@ async function handleContentCommand(subcommand: string | undefined, args: string
   }
 }
 
+/** Read all of stdin as a UTF-8 string. */
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+/**
+ * `hook <source>` subcommand: reads the editor's JSON hook payload from
+ * stdin, normalizes + evaluates policy + spools the receipt, then writes
+ * the editor-native response JSON to stdout. Malformed stdin (not valid
+ * JSON) defaults to allow rather than crashing the editor's hook pipeline.
+ */
+async function handleHookCommand(source: string | undefined): Promise<void> {
+  if (!(source && isImplementedHookSource(source))) {
+    process.stderr.write(
+      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code\n`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  const stdin = await readStdin();
+  let rawInput: unknown;
+  try {
+    rawInput = JSON.parse(stdin);
+  } catch {
+    process.stderr.write('revealui-harnesses hook: invalid JSON on stdin, defaulting to allow\n');
+    process.stdout.write(`${JSON.stringify({ permission: 'allow', decision: 'approve' })}\n`);
+    return;
+  }
+
+  const result = await runHookCommand(source, rawInput, defaultHookRunOptions());
+  process.stdout.write(`${JSON.stringify(result.responseJson)}\n`);
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+}
+
 async function main() {
+  if (command === 'hook') {
+    const [source] = args;
+    await handleHookCommand(source);
+    return;
+  }
+
   if (command === 'content') {
     const [subcommand] = args;
     const contentArgs = args.slice(1);
@@ -559,6 +608,7 @@ Commands:
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
   coordinate --init [<path>]        Register + start daemon
+  hook <cursor|claude-code>         Normalize a hook payload from stdin, evaluate policy, spool the receipt
   content <subcommand>              Manage canonical content definitions
 
 Content Subcommands:

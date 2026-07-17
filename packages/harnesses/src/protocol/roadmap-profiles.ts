@@ -4,7 +4,9 @@
  * Declared profiles for AI coding tools that the Harness Protocol spec
  * targets but which DO NOT have a working adapter in this package today.
  * (`opencode` graduated to `./capabilities.ts` `TOOL_PROFILES` when
- * `OpenCodeAdapter` shipped -- see `../adapters/opencode-adapter.ts`.)
+ * `OpenCodeAdapter` shipped -- see `../adapters/opencode-adapter.ts`.
+ * `cursor` graduated the same way when `CursorAdapter` shipped -- see
+ * `../adapters/cursor-adapter.ts`.)
  *
  * These entries describe what those tools support natively, useful for:
  *  - The degradation table in `./degradation-strategies.ts` (which knows
@@ -87,31 +89,6 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
       'tool.after',
       'tool.blocked',
     ],
-  },
-
-  cursor: {
-    dispatch: {
-      generateCode: false,
-      analyzeCode: false,
-      applyEdit: false,
-      executeCommand: false,
-    },
-    readWorkboard: false,
-    writeWorkboard: false,
-    claimTasks: false,
-    reportConflicts: false,
-    headless: false,
-    resumable: false,
-    forkable: false,
-    backgroundable: false,
-    hooks: { supported: false, granularity: 'none', canBlock: false },
-    sandbox: { supported: false, modes: [] },
-    supportsWorktrees: false,
-    supportsSkills: false,
-    supportsMcp: false,
-    memory: { supported: false, backend: 'none' },
-    maxContextTokens: 128_000,
-    lifecycleEvents: [],
   },
 } as const;
 
