@@ -147,6 +147,45 @@ describe('apps/server/src/index.ts — post-Phase-2 invariants', () => {
     expect(body).not.toContain('serve({ fetch: app.fetch, port }');
     expect(body).not.toContain('initAlerting()');
   });
+
+  it('installs persistent audit storage in the production guard (Vercel serves /api/*, so it must record)', () => {
+    // GAP-355 Stage 1: the Vercel serverless handler serves `/api/*` with
+    // auditMiddleware mounted, so THIS process must swap the audit system onto
+    // persistent storage. Without it, request-level audit events fall into the
+    // default InMemoryAuditStorage and evaporate. installAuditStorage() is
+    // synchronous + lazy (getClient() opens no connection), so it does not
+    // reintroduce the cold-start cost the Phase-2 extraction removed.
+    const body = extractBranchBody(indexSource, PROD_GUARD, 'validateStartup()');
+    expect(
+      body,
+      'index.ts production guard must call installAuditStorage() so Vercel records request-level audit events',
+    ).toContain('installAuditStorage()');
+    // The round-trip self-test is a per-invocation DB round-trip; it stays on
+    // the worker + dev boot chains, NOT on the Vercel cold-start path.
+    expect(
+      body,
+      'the audit round-trip self-test must NOT run on the Vercel cold-start path',
+    ).not.toContain('auditStorageSelfTest');
+  });
+
+  it('asserts audit env parity in the production guard so a diverged-env deploy fails (GAP-355 Stage 1 closure)', () => {
+    // The serverless serving process installs storage but cannot run the async
+    // round-trip self-test. assertAuditStorageEnv() is the synchronous
+    // substitute: it fails the deploy when audit-critical env has diverged
+    // (a required connection var missing/empty), rather than serving with a
+    // sink that can never write. Owner-ruled 2026-07-17 as the Stage-1 closure.
+    const body = extractBranchBody(indexSource, PROD_GUARD, 'validateStartup()');
+    expect(
+      body,
+      'index.ts production guard must call assertAuditStorageEnv() before installAuditStorage()',
+    ).toContain('assertAuditStorageEnv()');
+    const assertIdx = body.indexOf('assertAuditStorageEnv()');
+    const installIdx = body.indexOf('installAuditStorage()');
+    expect(
+      assertIdx >= 0 && installIdx >= 0 && assertIdx < installIdx,
+      'the env-parity assertion must run BEFORE installAuditStorage()',
+    ).toBe(true);
+  });
 });
 
 describe('apps/server/src/worker.ts — Fly entry invariants', () => {

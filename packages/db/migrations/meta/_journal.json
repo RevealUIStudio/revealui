@@ -176,6 +176,13 @@
       "when": 1784100000000,
       "tag": "0024_widen_provider_check_anthropic_openai",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1784301283991,
+      "tag": "0025_add_nudge_dismissals",
+      "breakpoints": true
     }
   ]
 }

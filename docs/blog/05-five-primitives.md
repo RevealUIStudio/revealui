@@ -7,7 +7,7 @@ audience: user
 author: Joshua Vaughn
 ---
 
-> **Status note (updated 2026-05-26):** One forward-looking system mentioned in this post is not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`). Everything else described — auth, content, Stripe billing, MCP wiring, agent primitives — runs today. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current per-feature shipping status.
+> **Status note (updated 2026-05-26):** One forward-looking system mentioned in this post is not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`). Everything else described (auth, content, Stripe billing, MCP wiring, agent primitives) runs today. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current per-feature shipping status.
 
 ---
 
@@ -268,7 +268,7 @@ This is used as middleware in the API. AI routes check `requireFeature('ai')`. M
 RevealUI supports three billing models simultaneously:
 
 1. **Subscriptions** -- Monthly recurring charges via Stripe. Standard for SaaS.
-2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Reporting overage to Stripe Billing Meters is in development — during early access, usage is tracked but not billed.
+2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Reporting overage to Stripe Billing Meters is in development. During early access, usage is tracked but not billed.
 3. **Perpetual licenses** -- One-time purchase, own forever, with an optional annual support renewal. The license JWT has no expiration, and the system tracks `supportExpiresAt` separately from the license validity.
 
 ### License verification API
@@ -378,7 +378,7 @@ The webhook handler covers the full subscription lifecycle:
 
 ### x402 for agent-to-agent commerce
 
-RevealUI implements the x402 payment protocol for machine-to-machine payments — designed and code-complete, behind the `X402_ENABLED=false` flag (see the status note above). Agents discover payment methods via `/.well-known/payment-methods.json` and pay per-task in USDC on Base. This enables an economy where AI agents can purchase compute, data, and services from other agents without human intervention.
+RevealUI implements the x402 payment protocol for machine-to-machine payments (designed and code-complete, behind the `X402_ENABLED=false` flag). See the status note above. Agents discover payment methods via `/.well-known/payment-methods.json` and pay per-task in USDC on Base. This enables an economy where AI agents can purchase compute, data, and services from other agents without human intervention.
 
 ### How Payments connects to everything else
 
@@ -431,7 +431,7 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 
 ### Open-Model Inference
 
-RevealUI defaults to open-weight models — no API key, no cloud bill, no vendor lock-in. Cloud providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are opt-in via environment variables. The inference path is auto-detected:
+RevealUI defaults to open-weight models (no API key, no cloud bill, no vendor lock-in). Cloud providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are opt-in via environment variables. The inference path is auto-detected:
 
 1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
 2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
@@ -449,7 +449,7 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT — source-visible, converts to MIT two years after release). The most commonly used:
+RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:
 
 | Server | Purpose |
 |--------|---------|
@@ -461,7 +461,7 @@ RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@reve
 | Playwright | Browser automation for testing and scraping |
 | Next.js DevTools | Next.js 16+ runtime diagnostics and automation |
 
-In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`) and the shared `adapter` base class — all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers).
+In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`) and the shared `adapter` base class, all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers).
 
 These servers are tools that agents can invoke during task execution. An agent can query your Stripe dashboard, check your deployment status, and run your test suite without you writing integration code.
 
@@ -487,7 +487,7 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 | Max | 50,000 tasks |
 | Enterprise | Unlimited |
 
-Usage beyond the quota is tracked in the `agent_task_usage` table. Reporting that overage to Stripe Billing Meters is in development — during early access, usage is recorded but not billed, so execution is never blocked on a meter.
+Usage beyond the quota is tracked in the `agent_task_usage` table. Reporting that overage to Stripe Billing Meters is in development. During early access, usage is recorded but not billed, so execution is never blocked on a meter.
 
 ### How Intelligence connects to everything else
 

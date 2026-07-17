@@ -1,5 +1,6 @@
 import { BuiltWithRevealUI } from '@revealui/presentation';
 import {
+  FOOTER_CLAIMS_LEDGER_NOTE,
   FOOTER_COLUMNS,
   FOOTER_LEGAL,
   FOOTER_LEGAL_LINKS,
@@ -21,9 +22,23 @@ export function Footer() {
               <img src="/icon-mark.svg" alt="" aria-hidden="true" className="h-7 w-7" />
               {SITE.brand}
             </div>
-            <p className="text-muted-foreground text-sm leading-6 max-w-sm">{FOOTER_TAGLINE}</p>
+            <p className="text-foreground text-sm font-medium leading-6 max-w-sm">
+              {SITE.brandTagline}
+            </p>
+            <p className="text-muted-foreground text-sm leading-6 max-w-sm mt-2">
+              {FOOTER_TAGLINE}
+            </p>
             <p className="text-muted-foreground text-xs leading-6 max-w-sm mt-3">
               {FOOTER_SOLO_OPERATOR_NOTE}
+            </p>
+            <p className="text-muted-foreground text-xs leading-6 max-w-sm mt-3">
+              {FOOTER_CLAIMS_LEDGER_NOTE.prefix}{' '}
+              <a
+                href={FOOTER_CLAIMS_LEDGER_NOTE.href}
+                className="font-medium text-primary hover:underline"
+              >
+                {FOOTER_CLAIMS_LEDGER_NOTE.linkLabel}
+              </a>
             </p>
             <div className="mt-3 space-y-1">
               {FOOTER_SERVICE_LINKS.map((item) => (

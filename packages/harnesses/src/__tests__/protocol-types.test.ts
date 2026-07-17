@@ -35,8 +35,8 @@ describe('protocol capabilities', () => {
 });
 
 describe('TOOL_PROFILES (shipped adapters)', () => {
-  it('contains opencode and revealui-agent', () => {
-    expect(Object.keys(TOOL_PROFILES).sort()).toEqual(['opencode', 'revealui-agent']);
+  it('contains cursor, opencode, and revealui-agent', () => {
+    expect(Object.keys(TOOL_PROFILES).sort()).toEqual(['cursor', 'opencode', 'revealui-agent']);
   });
 
   it('revealui-agent has full dispatch capabilities', () => {
@@ -74,16 +74,40 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
     expect(caps.maxContextTokens).toBe(0);
   });
 
+  it('cursor is headless/backgroundable, supports hooks + MCP, and carries the roadmap maxContextTokens', () => {
+    const caps = TOOL_PROFILES.cursor;
+    expect(caps).toBeDefined();
+    expect(caps.dispatch.generateCode).toBe(true);
+    expect(caps.dispatch.analyzeCode).toBe(true);
+    expect(caps.dispatch.applyEdit).toBe(false);
+    expect(caps.dispatch.executeCommand).toBe(true);
+    expect(caps.headless).toBe(true);
+    expect(caps.backgroundable).toBe(true);
+    expect(caps.hooks.supported).toBe(true);
+    expect(caps.hooks.canBlock).toBe(true);
+    expect(caps.supportsMcp).toBe(true);
+    // 128_000 is the real value the roadmap profile already declared, kept
+    // on promotion per the maxContextTokens doc comment ("do not invent a
+    // number") -- NOT the `0` BYO sentinel opencode uses.
+    expect(caps.maxContextTokens).toBe(128_000);
+  });
+
   it('does not contain entries for tools without adapters', () => {
     expect(TOOL_PROFILES['claude-code']).toBeUndefined();
     expect(TOOL_PROFILES.codex).toBeUndefined();
-    expect(TOOL_PROFILES.cursor).toBeUndefined();
   });
 });
 
 describe('ROADMAP_PROFILES (declared, no adapter)', () => {
-  it('contains the three remaining spec-declared tools (opencode graduated to TOOL_PROFILES)', () => {
-    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'cursor']);
+  it('contains the remaining spec-declared tools (opencode + cursor graduated to TOOL_PROFILES; vscode added Phase C)', () => {
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'vscode']);
+  });
+
+  it('vscode declares real hook support but no dispatch/adapter capabilities', () => {
+    const caps = ROADMAP_PROFILES.vscode;
+    expect(caps.hooks.supported).toBe(true);
+    expect(caps.dispatch.generateCode).toBe(false);
+    expect(caps.headless).toBe(false);
   });
 
   it('claude-code has no dispatch capabilities (interactive tool)', () => {
@@ -98,12 +122,8 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
     expect(caps.sandbox.modes).toContain('read-only');
   });
 
-  it('cursor has minimal capabilities', () => {
-    const caps = ROADMAP_PROFILES.cursor;
-    expect(caps.headless).toBe(false);
-    expect(caps.hooks.supported).toBe(false);
-    expect(caps.readWorkboard).toBe(false);
-    expect(caps.lifecycleEvents).toEqual([]);
+  it('no longer declares cursor (graduated to TOOL_PROFILES)', () => {
+    expect(ROADMAP_PROFILES.cursor).toBeUndefined();
   });
 
   it('does not overlap with TOOL_PROFILES', () => {
@@ -114,13 +134,14 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
 });
 
 describe('ALL_KNOWN_PROFILES (merged view)', () => {
-  it('contains all five declared tools', () => {
+  it('contains all six declared tools', () => {
     expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
       'claude-code',
       'codex',
       'cursor',
       'opencode',
       'revealui-agent',
+      'vscode',
     ]);
   });
 
@@ -131,6 +152,7 @@ describe('ALL_KNOWN_PROFILES (merged view)', () => {
     // same ID. Verify the shape of the shipped profiles matches TOOL_PROFILES.
     expect(ALL_KNOWN_PROFILES['revealui-agent']).toEqual(TOOL_PROFILES['revealui-agent']);
     expect(ALL_KNOWN_PROFILES.opencode).toEqual(TOOL_PROFILES.opencode);
+    expect(ALL_KNOWN_PROFILES.cursor).toEqual(TOOL_PROFILES.cursor);
   });
 });
 

@@ -1,7 +1,7 @@
 /**
  * Provider catalog for the Settings, API Keys page (GAP-360 §5.7).
  *
- * Mirrors the six providers @revealui/ai's `LLMProviderType` supports
+ * Mirrors the seven providers @revealui/ai's `LLMProviderType` supports
  * (`packages/ai/src/llm/client.ts:49`). Kept as a local string union rather
  * than importing that type: `@revealui/ai` is an optional Pro peer
  * dependency for `apps/admin` (`package.json:67`) and every existing
@@ -16,7 +16,8 @@ export type Provider =
   | 'groq'
   | 'huggingface'
   | 'ollama'
-  | 'inference-snaps';
+  | 'inference-snaps'
+  | 'xai';
 
 export interface ProviderInfo {
   id: Provider;
@@ -25,7 +26,7 @@ export interface ProviderInfo {
   docsUrl: string;
 }
 
-/** All six providers, hosted-viable and localhost-only alike. */
+/** All seven providers, hosted-viable and localhost-only alike. */
 export const ALL_PROVIDERS: ProviderInfo[] = [
   {
     id: 'anthropic',
@@ -38,6 +39,12 @@ export const ALL_PROVIDERS: ProviderInfo[] = [
     label: 'OpenAI',
     placeholder: 'sk-...',
     docsUrl: 'https://platform.openai.com/api-keys',
+  },
+  {
+    id: 'xai',
+    label: 'xAI (Grok)',
+    placeholder: 'xai-...',
+    docsUrl: 'https://console.x.ai',
   },
   {
     id: 'groq',
@@ -68,9 +75,9 @@ export const ALL_PROVIDERS: ProviderInfo[] = [
 /**
  * Resolve which providers the Settings, API Keys page should offer.
  *
- * Self-hosted: all six. Hosted: only the ones `@revealui/ai`'s
+ * Self-hosted: all seven. Hosted: only the ones `@revealui/ai`'s
  * `hostedViable` map marks reachable from a serverless deployment
- * (anthropic/openai/groq/huggingface) — `ollama`/`inference-snaps` are
+ * (anthropic/openai/groq/huggingface/xai) — `ollama`/`inference-snaps` are
  * localhost-only and useless on hosted (GAP-360 defect 5). When the hosted
  * map can't be resolved (Pro package absent), fail open to the full list —
  * this only affects what the page DISPLAYS; execution-time provider choice

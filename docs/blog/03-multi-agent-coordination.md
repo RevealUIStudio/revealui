@@ -110,7 +110,7 @@ File ownership stamps update automatically via a PostToolUse hook that fires aft
 
 ```javascript
 // ~/.claude/hooks/post-tool-use.js
-// Fires after Write/Edit tool calls — stamps the workboard with edited files
+// Fires after Write/Edit tool calls. Stamps the workboard with edited files
 
 const TOOL_EVENTS_THAT_WRITE = new Set(['Write', 'Edit', 'NotebookEdit'])
 
@@ -168,7 +168,7 @@ It doesn't solve everything:
 
 We extracted the workboard protocol into a proper package: [`@revealui/harnesses`](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses).
 
-> **How this evolved.** RevealUI's own coordination has matured past the exact hooks above: today the Claude Code hooks *read and warn* rather than write the workboard, agents maintain it directly, and a coordination daemon tracks live session state over RPC. The file-based workboard stays the durable, greppable, git-committed archive layer — which is the part that mattered most. `@revealui/harnesses` ships the productized version.
+> **How this evolved.** RevealUI's own coordination has matured past the exact hooks above: today the Claude Code hooks *read and warn* rather than write the workboard, agents maintain it directly, and a coordination daemon tracks live session state over RPC. The file-based workboard stays the durable, greppable, git-committed archive layer, which is the part that mattered most. `@revealui/harnesses` ships the productized version.
 
 ```typescript
 import { WorkboardManager, HarnessCoordinator } from '@revealui/harnesses'

@@ -33,6 +33,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'Documentation', href: SITE.urls.docs },
       { label: 'Blog', href: '/blog' },
       { label: 'Roadmap', href: '/roadmap' },
+      { label: 'Philosophy', href: '/philosophy' },
     ],
   },
   {
@@ -76,6 +77,16 @@ export const FOOTER_SERVICE_LINKS: readonly FooterServiceLink[] = [
   { prefix: 'Want it built for you?', label: 'See services.', href: '/services' },
   { prefix: 'Building for clients?', label: 'See agency licensing.', href: '/pricing#perpetual' },
 ] as const;
+
+// Every marketing page links to /claims, the public claims ledger (frontend-
+// excellence Phase 5, Fable ruling 2026-07-16). Uncovered by claims-evidence
+// on purpose: this line is global footer chrome on every page, not copy tied
+// to one page's claims. It still runs through the marketing-voice scan.
+export const FOOTER_CLAIMS_LEDGER_NOTE = {
+  prefix: 'Every sentence on this site is indexed against the code.',
+  linkLabel: 'See the claims ledger.',
+  href: '/claims',
+} as const;
 
 export const FOOTER_LEGAL = {
   operator: 'REVEALUI STUDIO L.L.C.',

@@ -42,11 +42,14 @@ if (process.env.SENTRY_DSN) {
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { audit } from '@revealui/core/security';
 import app, { initAlerting, terminalWs } from './index.js';
+import {
+  assertAuditStorageEnv,
+  auditStorageSelfTest,
+  installAuditStorage,
+} from './lib/audit-storage.js';
 import { hydrateInferenceConfigs } from './lib/hydrate-inference-configs.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
-import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
@@ -54,18 +57,26 @@ import {
 } from './lib/validate-startup.js';
 import { startExecutor } from './services/revmarket-executor.js';
 
-// Persistent audit storage (replaces default InMemoryAuditStorage).
-audit.setStorage(new PostgresAuditStorage());
+// Persistent audit storage (replaces default InMemoryAuditStorage). The env
+// parity assertion fails the deploy on diverged audit-critical env; the async
+// round-trip self-test below is the worker's superset check (GAP-355 Stage 1).
+assertAuditStorageEnv();
+installAuditStorage();
 
 // Environment + license + billing catalog validation.
 // validateLicenseAtStartup throws on invalid/expired/missing license in Forge
 // mode; process.exit(1) makes the container restart-loop instead of silently
 // degrading to free tier. validateBillingCatalogAtStartup runs only with
 // STRIPE_LIVE_MODE=true and fails boot on missing billing_catalog rows
-// (prevents mid-customer-transaction 500s).
+// (prevents mid-customer-transaction 500s). auditStorageSelfTest writes a
+// synthetic event through the just-installed storage and reads it back, exiting
+// the process if the round trip fails (fail-closed integrity, ADR §2a) — the
+// worker boots once per deploy, so this is the deploy-time proof that the audit
+// path works end to end.
 validateStartup();
 validateLicenseAtStartup()
   .then(() => validateBillingCatalogAtStartup())
+  .then(() => auditStorageSelfTest())
   .then(() => runHostedLicenseCanary())
   .then(() => initializeLicense())
   .then((tier) => {

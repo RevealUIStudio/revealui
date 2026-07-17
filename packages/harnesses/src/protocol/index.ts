@@ -33,17 +33,26 @@ export { createDefaultCapabilities, TOOL_PROFILES } from './capabilities.js';
 export type {
   ClaudeCodeSettings,
   ConfigGenerationResult,
+  CursorMcpConfig,
+  CursorMcpOptions,
+  CursorMcpServerConfig,
   OpenCodeConfig,
   OpenCodeMcpOptions,
   OpenCodeMcpServerConfig,
+  VSCodeMcpConfig,
+  VSCodeMcpInput,
+  VSCodeMcpOptions,
+  VSCodeMcpServerConfig,
 } from './config-normalizer.js';
 export {
   claudeSettingsToProtocolConfig,
   generateAllConfigs,
   protocolConfigToAgentsMd,
   protocolConfigToClaudeSettings,
+  protocolConfigToCursorMcpConfig,
   protocolConfigToCursorrules,
   protocolConfigToOpencodeConfig,
+  protocolConfigToVSCodeMcpConfig,
 } from './config-normalizer.js';
 // Degradation
 export type { DegradationStrategy } from './degradation-strategies.js';

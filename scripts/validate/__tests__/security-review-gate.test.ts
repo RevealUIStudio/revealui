@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-const { SECURITY_PATHS, classifyFiles, decideReviewGate } = require('../security-review-gate.cjs');
+const {
+  SECURITY_PATHS,
+  MAX_CLASSIFIABLE_FILES,
+  classifyFiles,
+  decideReviewGate,
+  fetchPrFiles,
+  hitsForFiles,
+} = require('../security-review-gate.cjs');
 
 const CLEAR_LABEL = 'sec-review:approved';
 const noMarker = { status: 'no-marker' };
@@ -68,6 +75,54 @@ describe('decideReviewGate — B2: an APPROVE marker never clears without the ow
   });
   it('HOLDS a no-marker PR with neither label nor approving review', () => {
     expect(decideReviewGate({ verdict: noMarker, labels: ['bug'] }).action).toBe('hold');
+  });
+});
+
+describe('fetchPrFiles — the full paginated list, not the 100-file window', () => {
+  // The regression this pins: `gh pr view --json files` caps at 100 entries, so a
+  // 641-file promotion whose 19 security paths all sat beyond the window was
+  // classified "not security-sensitive" by a REQUIRED check. The fetch must page
+  // the REST endpoint and classification must see every file.
+  const sensitive = '.github/workflows/security-review-gate.yml';
+  const bigList = Array.from({ length: 150 }, (_, i) =>
+    i === 120 ? sensitive : `apps/docs/content/page-${String(i).padStart(3, '0')}.md`,
+  );
+
+  it('returns every file and classification sees a sensitive path beyond index 100', () => {
+    const calls: string[][] = [];
+    const ghImpl = (args: string[]) => {
+      calls.push(args);
+      return `${bigList.join('\n')}\n`;
+    };
+    const files = fetchPrFiles(1925, 'RevealUIStudio/revealui', ghImpl);
+    expect(files).toHaveLength(150);
+    expect(calls[0]).toContain('api');
+    expect(calls[0]).toContain('--paginate');
+    expect(calls[0]).toContain('repos/RevealUIStudio/revealui/pulls/1925/files');
+    expect(classifyFiles(files)).toContain(sensitive);
+  });
+
+  it('resolves the repo from the current directory when --repo is absent', () => {
+    const calls: string[][] = [];
+    const ghImpl = (args: string[]) => {
+      calls.push(args);
+      return 'README.md\n';
+    };
+    fetchPrFiles(7, undefined, ghImpl);
+    expect(calls[0]).toContain('repos/{owner}/{repo}/pulls/7/files');
+  });
+});
+
+describe('hitsForFiles — the API ceiling fails closed', () => {
+  const benign = (n: number) => Array.from({ length: n }, (_, i) => `docs/page-${i}.md`);
+
+  it('classifies normally below the ceiling', () => {
+    expect(hitsForFiles(benign(MAX_CLASSIFIABLE_FILES - 1))).toHaveLength(0);
+  });
+  it('treats a list at the ceiling as security-sensitive unconditionally', () => {
+    const hits = hitsForFiles(benign(MAX_CLASSIFIABLE_FILES));
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0]).toContain('failing closed');
   });
 });
 

@@ -17,6 +17,12 @@ const LOCAL_CONFIG_PATHS: Record<string, string> = {
   cursor: join(HOME, '.cursor', 'settings.json'),
   copilot: join(HOME, '.config', 'github-copilot', 'hosts.json'),
   opencode: join(HOME, '.config', 'opencode', 'opencode.json'),
+  // VS Code's Linux user settings path (stable convention, unrelated to the
+  // agent-plugin Preview surface this build ships). Distinct from `copilot`
+  // above -- that id is the GitHub Copilot CLI/host config; this is the
+  // editor itself, which is what actually hosts the hook subprocess and the
+  // agent-plugin manifest (multi-editor harness design doc §2.3).
+  vscode: join(HOME, '.config', 'Code', 'User', 'settings.json'),
 };
 
 const ROOT_CONFIG_FILES: Record<string, string> = {
@@ -24,6 +30,7 @@ const ROOT_CONFIG_FILES: Record<string, string> = {
   cursor: 'settings.json',
   copilot: 'hosts.json',
   opencode: 'opencode.json',
+  vscode: 'settings.json',
 };
 
 /** Returns the local config file path for a given harness id, or undefined if unknown. */

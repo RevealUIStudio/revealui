@@ -5,9 +5,10 @@
 // directive 2026-05-18 redirected /products from "5 primitives deep-dive" to
 // "RevFleet product family lineup". RevealCoin permanently excluded per
 // the 2026-05-29 cancellation ADR (internal;
-// supersedes the prior shelved-state memory). The legacy primitives data
-// (PRODUCTS_PRIMITIVES in content/primitives.ts) stays exported for future
-// relocation to a /concepts or /platform page per lane owner's discretion.
+// supersedes the prior shelved-state memory). The legacy PRODUCTS_PRIMITIVES
+// deep-dive data was retired (GAP-383, 2026-07-17): it was never imported by
+// this page or any other route, and the five primitives already render on
+// "/" via HOME_PRIMITIVES in content/primitives.ts.
 //
 // Status re-verified 2026-06-23 (Phase D, against current per-product READMEs):
 // RevForge Beta → Alpha (README: stamped kits are reference/preview only, not

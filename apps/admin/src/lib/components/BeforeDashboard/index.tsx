@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/utils/siteBranding';
 import PoweredByRevealUI from '../PoweredByRevealUI/index';
 import OnboardingChecklist from './OnboardingChecklist';
+import OnboardingNudge from './OnboardingNudge';
 
 interface NavLink {
   href: string;
@@ -74,6 +75,7 @@ const BeforeDashboard = () => {
     <div className="relative mx-auto w-full rounded-lg bg-zinc-900 p-8 shadow-md">
       <h1 className="mb-6 text-3xl font-bold text-white">{SITE_NAME} admin</h1>
 
+      <OnboardingNudge />
       <OnboardingChecklist />
 
       <section className="mb-6">

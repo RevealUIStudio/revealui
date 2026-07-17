@@ -1,0 +1,5 @@
+---
+"@revealui/harnesses": minor
+---
+
+add a VS Code agent-plugin surface, following the multi-editor harness design: a `vscode` hook normalizer maps VS Code's agent-hook payloads (`SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `PreCompact`, `SubagentStart`, `SubagentStop`, `Stop`) onto the existing `HarnessHookEvent` schema, with editor-supplied fields staying session-scoped only, never promoted to identity; the `hook <source>` CLI subcommand now accepts `vscode` and returns VS Code's native response shape (nested `hookSpecificOutput.permissionDecision` for `PreToolUse`, flat `decision`/`reason` for every other event); `VSCodeGenerator` emits a `plugin.json` agent-plugin manifest bundling command-based hook contributions plus a path reference to a governed MCP server contribution, and `protocolConfigToVSCodeMcpConfig` produces that `.mcp.json` content separately using VS Code's `${input:id}` reference syntax so no token value is ever emitted; no `HarnessAdapter` ships for `vscode` in this phase (VS Code's agent mode has no documented headless CLI to exec).

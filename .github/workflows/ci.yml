@@ -498,7 +498,10 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        # pgvector/pgvector bundles pgvector into postgres:16. The migrations
+        # applied below (0000_init CREATE EXTENSION, vector(768) columns) cannot
+        # run on vanilla postgres:16, same as the Drizzle Migrations job.
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -535,6 +538,17 @@ jobs:
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
+
+      # The API server refuses to boot if it cannot write the audit_log table
+      # (GAP-355 audit-integrity: no serving without a working audit path).
+      # The smoke database starts empty, so migrate it before starting servers,
+      # exactly as the Drizzle Migrations job does for its own fresh Postgres.
+      # Without this the server exits at startup on a missing audit_log relation
+      # and "Wait for servers" times out.
+      - name: Apply migrations to the smoke database
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
       - name: Start API server
         run: pnpm --filter server start &

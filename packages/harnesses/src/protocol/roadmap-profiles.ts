@@ -4,7 +4,9 @@
  * Declared profiles for AI coding tools that the Harness Protocol spec
  * targets but which DO NOT have a working adapter in this package today.
  * (`opencode` graduated to `./capabilities.ts` `TOOL_PROFILES` when
- * `OpenCodeAdapter` shipped -- see `../adapters/opencode-adapter.ts`.)
+ * `OpenCodeAdapter` shipped -- see `../adapters/opencode-adapter.ts`.
+ * `cursor` graduated the same way when `CursorAdapter` shipped -- see
+ * `../adapters/cursor-adapter.ts`.)
  *
  * These entries describe what those tools support natively, useful for:
  *  - The degradation table in `./degradation-strategies.ts` (which knows
@@ -89,7 +91,21 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
     ],
   },
 
-  cursor: {
+  // VS Code's agent-plugin hook system IS real and shipped this phase
+  // (`../hooks/normalizers/vscode.ts`, `../content/generators/vscode.ts`) --
+  // unlike every other entry in this file, `hooks.supported: true` here is
+  // backed by working code, not an aspiration. It stays in ROADMAP_PROFILES
+  // rather than graduating to `TOOL_PROFILES` because that promotion (per
+  // this file's module doc) tracks a working `HarnessAdapter`
+  // (dispatch/execute), and VS Code has no documented headless CLI to exec
+  // an agent turn against (verified 2026-07-17; Copilot CLI is a separate
+  // product from the `code` editor binary). `dispatch`/`headless`/
+  // `resumable`/`forkable`/`backgroundable` are honestly `false` for the
+  // same reason. `maxContextTokens: 0` is the BYO sentinel documented on
+  // `ProtocolCapabilities.maxContextTokens` -- Copilot agent mode's context
+  // window depends on the user's configured model, not a fixed VS Code
+  // capability.
+  vscode: {
     dispatch: {
       generateCode: false,
       analyzeCode: false,
@@ -104,14 +120,20 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
     resumable: false,
     forkable: false,
     backgroundable: false,
-    hooks: { supported: false, granularity: 'none', canBlock: false },
+    hooks: { supported: true, granularity: 'all-tools', canBlock: true },
     sandbox: { supported: false, modes: [] },
     supportsWorktrees: false,
-    supportsSkills: false,
-    supportsMcp: false,
+    supportsSkills: true,
+    supportsMcp: true,
     memory: { supported: false, backend: 'none' },
-    maxContextTokens: 128_000,
-    lifecycleEvents: [],
+    maxContextTokens: 0,
+    lifecycleEvents: [
+      'session.start',
+      'prompt.submit',
+      'tool.before',
+      'tool.after',
+      'tool.blocked',
+    ],
   },
 } as const;
 

@@ -48,6 +48,7 @@ describe('ApiKeysPageClient', () => {
       huggingface: true,
       ollama: false,
       'inference-snaps': false,
+      xai: true,
     });
     render(<ApiKeysPageClient providers={hostedProviders} isHosted={true} />);
 

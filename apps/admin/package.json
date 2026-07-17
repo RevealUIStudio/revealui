@@ -48,6 +48,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "@revealui/dev": "workspace:*",
+    "@revealui/test": "workspace:*",
     "dotenv": "catalog:",
     "postcss": "^8.5.16",
     "rimraf": "^6.1.3",
