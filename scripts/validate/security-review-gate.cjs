@@ -95,6 +95,14 @@ const SECURITY_PATHS = [
   '.github/workflows/security-review-gate',
   '.github/workflows/sec-audit-label-guard',
   '.github/workflows/security.yml',
+  // Harness hook/policy enforcement plane. packages/harnesses/src/hooks/
+  // decides ALLOW/DENY for editor agent actions and emits the config that
+  // binds editors to it; the package's server surface forks caller-supplied
+  // agent commands. Added after an enforcement-plane PR merged over an
+  // outstanding request-changes because this list did not classify it as
+  // security-sensitive. Whole-package entry, matching packages/mcp//security//
+  // paywall/; adapters ride along fine. Keep in lockstep with the fleet checker.
+  'packages/harnesses/',
 ];
 
 // A recorded reviewer verdict = an approving GH review OR one of these labels.
