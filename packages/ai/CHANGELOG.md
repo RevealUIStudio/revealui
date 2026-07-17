@@ -1,5 +1,57 @@
 # @revealui/ai
 
+## 0.7.0
+
+### Minor Changes
+
+- fa96a24: Add the per-request LLM client resolver (GAP-360 PR-2). `resolveLLMClientForRequest`
+  is the single home for key resolution at every agent-dispatch site: per-user BYOK
+  first, then site-level inference config, then deployment env on self-hosted only.
+  On hosted, an unconfigured account fails closed with a typed `LLMNotConfiguredError`
+  (HTTP 409 naming `/settings/api-keys`) instead of silently falling through to the
+  localhost default. Gated behind `HOSTED_BYOK_DISPATCH` so self-hosted env-first
+  behavior is byte-unchanged. `createLLMClientForUser` gains a `hostedViableOnly`
+  option; `generateEmbedding` accepts an optional pre-resolved client. Emits a
+  one-time operator warning when the hosted BYOK dispatch flag is explicitly
+  disabled (every account shares the deployment env client while the lever is
+  pulled).
+
+  Security fix (guardrail-2): the durable worker now derives dispatch identity
+  from the authenticated dispatcher captured server-side at enqueue time, never
+  from `ticket.reporterId` — that column is client-writable via the general
+  tickets API with no ownership check, so reading it for key resolution would
+  let an attacker who owns a board decrypt a victim's BYOK key by planting the
+  victim's user id in `reporterId` before dispatching.
+
+- 76efd75: Widen the LLM provider surface with Anthropic and OpenAI (no behavior change).
+
+  `@revealui/ai`: `LLMProviderType` now includes `anthropic` and `openai`, added to
+  the `createProvider` factory as OpenAI-compatible wrappers (Anthropic at
+  `https://api.anthropic.com/v1`, OpenAI at `https://api.openai.com/v1`) with
+  conservative default models. Fixes a latent defect where `huggingface` was
+  accepted by the env factory but had no `createProvider` case and threw at first
+  use. `createLLMClientFromEnv` auto-detects the two new providers after the
+  existing checks so existing deployments resolve identically, and now emits the
+  one-line boot warning it always documented when the zero-config localhost default
+  is selected. The OpenAI-compatible client sets a 60s request timeout and one
+  retry so an unreachable endpoint fails fast instead of burning the serverless
+  duration. Exports a `hostedViable` classification for later resolver/UI wiring.
+
+  `@revealui/db`: migration widening the provider CHECK constraints on
+  `user_api_keys` and `workspace_inference_configs` (and the latter's key-pairing
+  CHECK) to allow `anthropic` and `openai`. Constraint-widening only, idempotent,
+  no backfill.
+
+### Patch Changes
+
+- Updated dependencies [eac1a1b]
+- Updated dependencies
+- Updated dependencies [0cc7f62]
+- Updated dependencies [76efd75]
+  - @revealui/db@0.8.0
+  - @revealui/core@0.11.1
+  - @revealui/contracts@0.7.0
+
 ## 0.6.4
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # @revealui/harnesses
 
+## 0.8.0
+
+### Minor Changes
+
+- 95cf428: add OpenCodeAdapter, the first external-CLI harness adapter: detects and drives the `opencode` CLI (headless run, config apply/sync/diff, running-instance discovery), promotes the `opencode` capability profile from roadmap to shipped, registers an OpenCode content generator (commands + agents), and adds `protocolConfigToOpencodeConfig` for wiring the governed RevealUI MCP endpoint into `opencode.json` via env-var token substitution (never a literal token).
+- c173e2e: Register OpenCode as a roadmap capability profile (data only): capability
+  declaration, process-detection pattern, config paths, degradation row, and
+  `SessionType`. No adapter class ships in this change — `TOOL_PROFILES` and
+  `auto-detector.ts` are unchanged, so there is no new runtime behavior.
+
+### Patch Changes
+
+- Updated dependencies
+  - @revealui/core@0.11.1
+
 ## 0.7.0
 
 ### Minor Changes
