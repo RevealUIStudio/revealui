@@ -50,37 +50,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+// Consolidated onto the shared @revealui/contracts/marketing-voice engine
+// (GAP-332). Imported from SOURCE, not the built package, so this phase-1 gate
+// stays dependency-light: tsx transpiles the .ts on the fly, no package build
+// required, and the engine's import chain here is zod-free.
+import type { MarketingBlock } from '../../packages/contracts/src/marketing-voice/blocks.js';
+import { runTier1 } from '../../packages/contracts/src/marketing-voice/check-rule.js';
+import type { Token } from '../../packages/contracts/src/marketing-voice/tokenize.js';
+import { tokenize } from '../../packages/contracts/src/marketing-voice/tokenize.js';
+import { FLEET_MARKETING_VOICE_RULES } from '../../packages/contracts/src/marketing-voice/voice-rules.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const BASELINE_PATH = path.join(ROOT, 'scripts/validate/marketing-voice-baseline.json');
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
 
 // ---------------------------------------------------------------------------
-// Tokenizer — Intl.Segmenter word granularity (mirrors the shared
-// @revealui/contracts/marketing-voice tokenizer, inlined to stay self-
-// contained). No authored regex.
+// Tokenizer — CONSOLIDATED onto the shared engine (imported above). The prior
+// inlined copy was an ACCIDENTAL duplicate the gate header flagged for
+// consolidation; it is gone (GAP-332). Re-exported so the gate's tests keep
+// importing `tokenize` / `Token` from here.
 // ---------------------------------------------------------------------------
 
-export interface Token {
-  text: string;
-  kind: 'word' | 'symbol' | 'whitespace';
-  offset: number;
-}
-
-const SEGMENTER = new Intl.Segmenter('en', { granularity: 'word' });
-
-export function tokenize(text: string): Token[] {
-  const out: Token[] = [];
-  for (const part of SEGMENTER.segment(text)) {
-    const isWord = (part as Intl.SegmentData & { isWordLike?: boolean }).isWordLike === true;
-    out.push({
-      text: part.segment,
-      kind: isWord ? 'word' : part.segment.trim() === '' ? 'whitespace' : 'symbol',
-      offset: part.index,
-    });
-  }
-  return out;
-}
+export type { Token };
+export { tokenize };
 
 // ---------------------------------------------------------------------------
 // Rule data — derived verbatim from the corpus §4.1 / §4.2.
@@ -434,6 +426,108 @@ export function scanAll(): Finding[] {
 }
 
 // ---------------------------------------------------------------------------
+// Block-content pass (GAP-332)
+//
+// Repo-committed CANONICAL block modules (`content/**/*.blocks.ts` exporting
+// `MarketingBlock[]`) are validated with the shared Tier-1 engine. HARD FAIL,
+// no baseline: Tier-1 rules are un-overridable structural anti-patterns.
+//
+// The runtime write path (admin save + the VES session.patch gate) is the real
+// enforcement — DB blocks are opaque jsonb and invisible to CI. This pass
+// covers the repo-committed complement. Phase B lands the block modules; today
+// there are none, so this pass is a wired no-op ready to catch the first one.
+// ---------------------------------------------------------------------------
+
+const BLOCK_MODULE_SUFFIX = '.blocks.ts';
+
+export interface BlockFinding {
+  file: string;
+  rule: string;
+  field: string;
+  message: string;
+}
+
+function isMarketingBlock(value: unknown): value is MarketingBlock {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { blockType?: unknown }).blockType === 'string'
+  );
+}
+
+/** Pure: validate one module's exported block arrays. Exported for tests. */
+export function validateBlockExports(
+  rel: string,
+  moduleExports: Record<string, unknown>,
+): BlockFinding[] {
+  const findings: BlockFinding[] = [];
+  const rules = FLEET_MARKETING_VOICE_RULES.tier1;
+  for (const value of Object.values(moduleExports)) {
+    if (!Array.isArray(value)) continue;
+    for (const block of value) {
+      if (!isMarketingBlock(block)) continue;
+      try {
+        for (const v of runTier1(block, rules).violations) {
+          findings.push({ file: rel, rule: v.rule, field: v.field, message: v.message });
+        }
+      } catch (err) {
+        // Fail closed: an unmapped block type (or any engine error) is a hard
+        // finding, never a silent skip.
+        findings.push({
+          file: rel,
+          rule: 'block-validation-error',
+          field: '',
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+  }
+  return findings;
+}
+
+function findBlockModules(): string[] {
+  const out: string[] = [];
+  const start = path.join(ROOT, MARKETING_APP, 'content');
+  const walk = (dir: string): void => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      if (e.name === '__tests__' || e.name === 'node_modules') continue;
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (e.name.endsWith(BLOCK_MODULE_SUFFIX)) out.push(full);
+    }
+  };
+  walk(start);
+  return out;
+}
+
+export async function scanBlockModules(): Promise<BlockFinding[]> {
+  const findings: BlockFinding[] = [];
+  for (const abs of findBlockModules().sort()) {
+    const rel = path.relative(ROOT, abs).split(path.sep).join('/');
+    let mod: Record<string, unknown>;
+    try {
+      mod = (await import(pathToFileURL(abs).href)) as Record<string, unknown>;
+    } catch (err) {
+      findings.push({
+        file: rel,
+        rule: 'block-module-import',
+        field: '',
+        message: err instanceof Error ? err.message : String(err),
+      });
+      continue;
+    }
+    findings.push(...validateBlockExports(rel, mod));
+  }
+  return findings;
+}
+
+// ---------------------------------------------------------------------------
 // Baseline
 // ---------------------------------------------------------------------------
 
@@ -467,7 +561,7 @@ function writeBaseline(findings: Finding[]): number {
 // Main
 // ---------------------------------------------------------------------------
 
-function run(): void {
+async function run(): Promise<void> {
   console.log('Marketing Voice Validator');
   console.log('=========================\n');
 
@@ -492,27 +586,43 @@ function run(): void {
 
   const distinct = new Set(findings.map(baselineKey)).size;
   console.log(
-    `Scanned ${MARKETING_APP}: ${findings.length} occurrences, ${distinct} distinct, ${baseline.size} grandfathered, ${fresh.length} new.\n`,
+    `Scanned ${MARKETING_APP}: ${findings.length} occurrences, ${distinct} distinct, ${baseline.size} grandfathered, ${fresh.length} new.`,
   );
 
-  if (fresh.length === 0) {
+  // Block-content pass — HARD FAIL, no baseline (Tier-1 is un-overridable).
+  const blockFindings = await scanBlockModules();
+  console.log(
+    `Block modules (content/**/*${BLOCK_MODULE_SUFFIX}): ${blockFindings.length} Tier-1 violation(s).\n`,
+  );
+
+  if (fresh.length === 0 && blockFindings.length === 0) {
     console.log('No new marketing-voice violations. ✓');
     return;
   }
 
-  console.error(
-    'New marketing-voice violations (fix the copy, or justify + run --update-baseline):\n',
-  );
-  for (const f of fresh) {
-    console.error(`  ${f.file}:${f.line}  [${f.ruleId}] ${f.token}`);
-    console.error(`    ${f.text}`);
+  if (fresh.length > 0) {
+    console.error(
+      'New marketing-voice violations (fix the copy, or justify + run --update-baseline):\n',
+    );
+    for (const f of fresh) {
+      console.error(`  ${f.file}:${f.line}  [${f.ruleId}] ${f.token}`);
+      console.error(`    ${f.text}`);
+    }
+    console.error(
+      `\n${fresh.length} new line-scan violation(s). See the voice-and-headline-rules corpus (§4.1 banned words, §4.2 codenames, §2/§4.3 fleet voice) and the no-em-dash style rule (use a comma, colon, or period).`,
+    );
   }
-  console.error(
-    `\n${fresh.length} new violation(s). See the voice-and-headline-rules corpus (§4.1 banned words, §4.2 codenames, §2/§4.3 fleet voice) and the no-em-dash style rule (use a comma, colon, or period).`,
-  );
+
+  if (blockFindings.length > 0) {
+    console.error('\nBlock-content Tier-1 violations (fix the block; Tier-1 has no override):\n');
+    for (const f of blockFindings) {
+      console.error(`  ${f.file}  [${f.rule}] ${f.field}: ${f.message}`);
+    }
+  }
+
   process.exitCode = 1;
 }
 
 const invokedDirectly =
   process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (invokedDirectly) run();
+if (invokedDirectly) void run();

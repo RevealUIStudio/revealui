@@ -16,7 +16,7 @@ AI system for RevealUI - memory, LLM, orchestration, and tools.
 ## Features
 
 - **Memory System**: CRDT-based persistent memory (Working, Episodic, Semantic)
-- **LLM Integration**: Provider abstractions for Anthropic, GROQ, Ollama, Canonical Inference Snaps, and more
+- **LLM Integration**: Provider abstractions for Ollama and Canonical Inference Snaps (open-model defaults), plus Groq, Anthropic, OpenAI, and HuggingFace as bring-your-own-key cloud adapters. Every adapter calls the vendor's OpenAI-compatible HTTP endpoint with your own key. No proprietary Anthropic or OpenAI SDK.
 - **Agent Orchestration**: Runtime and execution engine for AI agents
 - **Tool Calling**: Tool registry + standard-MCP-client integration (Stage 5.1a)
 - **Vector Search**: Semantic search with pgvector
@@ -64,8 +64,9 @@ const provider = new InferenceSnapsProvider({
 const client = new LLMClient({ provider })
 ```
 
-Cloud providers (Anthropic, OpenAI, GROQ) remain supported; the local
-inference path is the documented default for self-hosted deployments.
+Groq, Anthropic, OpenAI, and HuggingFace remain supported as pluggable,
+bring-your-own-key cloud providers. The local inference path is the
+documented default for self-hosted deployments.
 
 ## MCP tool integration
 
@@ -313,7 +314,7 @@ const state = await persistence.loadCRDTState(crdtId, 'lww_register')
 
 ### LLM Integration
 
-Provider abstractions and unified client for Anthropic, GROQ, and Ollama.
+Provider abstractions and unified client for Ollama, Canonical Inference Snaps, Groq, Anthropic, OpenAI, and HuggingFace.
 
 ```typescript
 import { LLMClient, createLLMClientFromEnv } from '@revealui/ai/llm/client'

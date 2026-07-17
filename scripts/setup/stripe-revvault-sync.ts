@@ -21,8 +21,8 @@
  * No regex (M2): the manifest is parsed with string operations only.
  */
 
-import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { writeRevvaultSecret } from '@revealui/setup/revvault';
 
 export interface SyncLog {
   info: (message: string) => void;
@@ -41,12 +41,7 @@ const defaultLog: SyncLog = {
 /** Pipe a single value into `revvault set --force <path>` via stdin. */
 export type RevvaultSetter = (vaultPath: string, value: string) => void;
 
-const defaultSetter: RevvaultSetter = (vaultPath, value) => {
-  execFileSync('revvault', ['set', '--force', vaultPath], {
-    input: value,
-    encoding: 'utf-8',
-  });
-};
+const defaultSetter: RevvaultSetter = (vaultPath, value) => writeRevvaultSecret(vaultPath, value);
 
 /**
  * Parse `KEY = "revealui/..."` lines from a revvault-vercel manifest into an

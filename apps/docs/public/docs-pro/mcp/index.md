@@ -11,14 +11,12 @@ MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Str
 | Server | Launcher | Tools provided |
 |--------|----------|---------------|
 | Stripe | `launchStripeMcp` | Customers, invoices, subscriptions, products, prices |
-| RevealUI Stripe | `launchRevealUIStripeMcp` | RevealUI-aware Stripe + license layer |
 | Supabase | `launchSupabaseMcp` | Database queries, auth, storage, realtime |
 | Neon | `launchNeonMcp` | SQL queries, migrations, branching (remote endpoint at `mcp.neon.tech`) |
 | Vercel | `launchVercelMcp` | Deployments, domains, env vars, logs |
 | Playwright | `launchPlaywrightMcp` | Browser automation, screenshots, testing |
 | Next.js DevTools | `launchNextDevtoolsMcp` | Next.js 16+ runtime diagnostics |
-| RevealUI Content | `launchRevealUIContentMcp` | admin content collections |
-| RevealUI Email / Memory / etc. | (see source) | First-party platform servers |
+| RevealUI Stripe / Content / Email / Memory | (see source, `packages/mcp/src/servers/revealui-*.ts`) | First-party platform servers. These run as standalone stdio servers with a `setCredentials()` export the Hypervisor calls to inject tenant credentials before tool invocations, not via a `launch*` factory. |
 
 ## Installation
 

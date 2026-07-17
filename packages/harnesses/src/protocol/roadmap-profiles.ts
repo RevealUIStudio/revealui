@@ -3,6 +3,8 @@
  *
  * Declared profiles for AI coding tools that the Harness Protocol spec
  * targets but which DO NOT have a working adapter in this package today.
+ * (`opencode` graduated to `./capabilities.ts` `TOOL_PROFILES` when
+ * `OpenCodeAdapter` shipped -- see `../adapters/opencode-adapter.ts`.)
  *
  * These entries describe what those tools support natively, useful for:
  *  - The degradation table in `./degradation-strategies.ts` (which knows

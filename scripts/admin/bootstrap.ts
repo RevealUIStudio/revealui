@@ -21,9 +21,9 @@
  *   revealui/{env}/admin/bootstrap/force-rotate   (optional, default: true)
  */
 
-import { execFileSync } from 'node:child_process';
 import { randomFillSync, randomUUID } from 'node:crypto';
 import { hostname } from 'node:os';
+import { readRevvaultSecret, requireRevvaultSecret } from '@revealui/setup/revvault';
 
 // ---------------------------------------------------------------------------
 // Environment resolution
@@ -45,28 +45,6 @@ function resolveEnv(args: string[]): string {
 }
 
 // ---------------------------------------------------------------------------
-// Revvault integration
-// ---------------------------------------------------------------------------
-
-function revvaultGet(path: string, opts: { optional?: boolean } = {}): string | null {
-  try {
-    const result = execFileSync('revvault', ['get', '--full', path], {
-      encoding: 'utf-8',
-      timeout: 10_000,
-      // Lookups are non-interactive (stdin ignored). For optional secrets,
-      // discard revvault's stderr so a legitimately-absent secret does not
-      // print a misleading "secret not found" line. Required secrets keep
-      // stderr visible so a genuine vault failure (locked store, missing age
-      // identity) surfaces alongside this script's own guidance below.
-      stdio: ['ignore', 'pipe', opts.optional ? 'ignore' : 'inherit'],
-    });
-    return result.trim() || null;
-  } catch {
-    return null;
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -84,30 +62,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Read credentials from revvault
-  const email = revvaultGet(`revealui/${env}/admin/bootstrap/email`);
-  if (!email) {
-    console.error(
-      `[bootstrap] revvault path not found: revealui/${env}/admin/bootstrap/email\n` +
-        `Set it with: revvault set revealui/${env}/admin/bootstrap/email`,
-    );
-    process.exit(1);
-  }
+  // Read credentials from revvault. Required lookups throw (naming the exact
+  // path + how to set it); the top-level main().catch below prints + exits 1.
+  const email = requireRevvaultSecret(`revealui/${env}/admin/bootstrap/email`);
+  const password = requireRevvaultSecret(`revealui/${env}/admin/bootstrap/password`);
 
-  const password = revvaultGet(`revealui/${env}/admin/bootstrap/password`);
-  if (!password) {
-    console.error(
-      `[bootstrap] revvault path not found: revealui/${env}/admin/bootstrap/password\n` +
-        `Set it with: revvault set revealui/${env}/admin/bootstrap/password`,
-    );
-    process.exit(1);
-  }
-
-  const name =
-    revvaultGet(`revealui/${env}/admin/bootstrap/name`, { optional: true }) ?? 'Super Admin';
-  const forceRotateRaw = revvaultGet(`revealui/${env}/admin/bootstrap/force-rotate`, {
-    optional: true,
-  });
+  const name = readRevvaultSecret(`revealui/${env}/admin/bootstrap/name`) ?? 'Super Admin';
+  const forceRotateRaw = readRevvaultSecret(`revealui/${env}/admin/bootstrap/force-rotate`);
   const forceRotate = forceRotateRaw !== 'false'; // default true
 
   // Import bootstrap (deferred to avoid top-level DB connection)

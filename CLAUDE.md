@@ -11,7 +11,7 @@ audience: agent
 Agentic business runtime. People, content, offers, payments, and agents  -  pre-wired, open source, and ready to deploy.
 
 ## Current Phase
-**Phase 5  -  Agent-First Infrastructure** (post-Phase 4). See `docs/MASTER_PLAN.md` for the active 5.x tracks.
+**Phase 5  -  Agent-First Infrastructure** (post-Phase 4). Active tracks live in the internal coordination hub's master plan; the in-repo `docs/MASTER_PLAN.md` is a retired pointer stub (public roadmap: `docs/ROADMAP.md`).
 
 ## Stack
 - React 19, Next.js 16 (admin), Vite (docs / marketing), Hono (server), Node 24, TypeScript 6
@@ -59,7 +59,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 > via npm rather than via workspace links — same brand surface, decoupled
 > repo + deploy cadence.
 
-### OSS Packages (MIT) — 21
+### OSS Packages (MIT) — 22
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
@@ -82,6 +82,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 | @revealui/openapi | Type-safe OpenAPI 3.x for Hono — route definitions, Zod validation, spec generation + Swagger UI |
 | @revealui/paywall | Runtime license enforcement, feature gating, and upgrade UI (Stripe + x402) |
+| @revealui/knowledge-graph | Fleet knowledge graph: bi-temporal, content-addressed graph over Neon + pgvector, `revkg` CLI |
 | @revealui/tokens | Design tokens — canonical CSS variables, typed TS export, brand canon (zero internal deps) |
 
 ### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years) — 5
@@ -238,4 +239,4 @@ Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audi
 - RBAC + ABAC policy engine in core (enforcement tests in `packages/core/src/__tests__/auth/` and `packages/core/src/collections/operations/__tests__/access-enforcement.test.ts` prove role isolation)
 - GDPR compliance framework (consent, deletion, anonymization)
 - AI memory validation: prototype pollution prevention, depth/size limits
-- CI: CodeQL, Gitleaks, dependency auditing, secret scanning (security-audit.yml, consolidated)
+- CI: CodeQL, Gitleaks, dependency auditing, secret scanning (security.yml, consolidated; gated by security-review-gate.yml)

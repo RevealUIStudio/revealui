@@ -27,9 +27,9 @@ export const METRICS = {
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
   workspaces: 32,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
-  testFiles: 984,
+  testFiles: 1061,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
-  uiComponents: 61,
+  uiComponents: 65,
   /**
    * MCP servers in `packages/mcp/src/servers/*.ts` (excluding underscore-prefixed
    * utilities). Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon concrete

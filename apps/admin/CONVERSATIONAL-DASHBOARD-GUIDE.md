@@ -198,19 +198,31 @@ Upload screenshots or designs:
 The admin tools may not be initialized. Check server logs for tool registration errors.
 
 ### "Authentication required" error
-Your session may have expired. Log in again at `/admin/login`.
+Your session may have expired. Log in again at `/login`.
 
 ### "LLM provider not configured" error
-Set up your AI provider credentials:
+Set up your AI provider credentials. `createLLMClientFromEnv` auto-detects the provider from whichever of these is set (in this order):
 ```bash
-# For Anthropic (recommended)
+# Inference Snaps (default; local, zero-config on Ubuntu)
+INFERENCE_SNAPS_BASE_URL=http://localhost:9090/v1
+
+# Groq (cloud, your own key)
+GROQ_API_KEY=gsk_your-key-here
+
+# Ollama (local)
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Anthropic (cloud, your own key)
 ANTHROPIC_API_KEY=your-key-here
 
-# For OpenAI
+# OpenAI (cloud, your own key)
 OPENAI_API_KEY=your-key-here
+```
 
-# For Groq
-GROQ_API_KEY=gsk_your-key-here
+Hugging Face also works as a cloud, bring-your-own-key provider, but it is not part of this auto-detect list. Set `LLM_PROVIDER=huggingface` explicitly, along with:
+```bash
+HF_TOKEN=your-token-here
+HF_MODEL_URL=https://your-model-endpoint.huggingface.cloud
 ```
 
 ### Agent seems confused

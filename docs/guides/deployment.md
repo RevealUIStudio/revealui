@@ -107,9 +107,9 @@ The API app uses Hono and builds with tsup. Set the Vercel project framework to 
 RevealUI includes GitHub Actions workflows:
 
 - **ci.yml** -- Runs on every push: Biome lint and typecheck (hard fail), tests (warn-only)
-- **release.yml** -- Runs on tags: OIDC authentication, npm publish with provenance
+- **release.yml** -- Manual dispatch only (Actions > Release OSS Packages > Run workflow): OIDC authentication, npm publish with provenance
 
-Vercel auto-deploys from the `main` branch. Preview deployments are created for pull requests.
+Vercel Git Integration is disabled. Production deploys run via `deploy.yml` on push to `main` (or manual dispatch). Test previews run via `deploy-test.yml`, triggered manually (`workflow_dispatch`) for QA spot-checks.
 
 ### Custom Domains
 
@@ -201,7 +201,7 @@ docker compose down
 
 ### Health Checks
 
-The API exposes a health endpoint at `GET /health/ready` (Vercel-friendly path; legacy alias at `GET /api/health`) that returns:
+The API exposes a health endpoint at `GET /health/ready` (root path, no `/api` prefix; the Hono API also serves `GET /health` and `GET /health/live` at root) that returns:
 
 ```json
 {
@@ -364,7 +364,7 @@ Vercel provides built-in analytics for Next.js apps. Enable it in the Vercel das
 
 ### Health Endpoint
 
-Poll `GET /api/health` from your uptime monitor. The endpoint returns HTTP 200 when the API is healthy and HTTP 503 when the database connection is down.
+Poll `GET /health` (or `/health/ready`) from your uptime monitor. `/api/health` is a separate surface served by the admin Next.js app, not the Hono API. The endpoint returns HTTP 200 when the API is healthy and HTTP 503 when the database connection is down.
 
 ### Logging
 

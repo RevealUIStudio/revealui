@@ -54,9 +54,9 @@
  * No regex (M2): every check here is string-method / Set-based.
  */
 
-import { execFileSync, spawnSync } from 'node:child_process';
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { selfVerifyLicenseKeypair } from '@revealui/core/license';
+import { revvaultSecretExists, writeRevvaultSecret } from '@revealui/setup/revvault';
 
 // ─── The staging.revealui.com subtree (lane plan §The URL decision) ──────────
 const STAGING_ROOT_DOMAIN = 'staging.revealui.com';
@@ -174,15 +174,10 @@ export async function buildEntries(): Promise<SecretEntry[]> {
 export type VaultExists = (path: string) => boolean;
 export type VaultWrite = (path: string, value: string) => void;
 
-const defaultVaultExists: VaultExists = (path) => {
-  const result = spawnSync('revvault', ['get', path], { encoding: 'utf-8', timeout: 10_000 });
-  return result.status === 0;
-};
+const defaultVaultExists: VaultExists = (path) => revvaultSecretExists(path);
 
-/** Pipes `value` into `revvault set --force <path>` via stdin (never argv). */
-const defaultVaultWrite: VaultWrite = (path, value) => {
-  execFileSync('revvault', ['set', '--force', path], { input: value, encoding: 'utf-8' });
-};
+/** Writes `value` to `path` via the shared revvault client (never argv). */
+const defaultVaultWrite: VaultWrite = (path, value) => writeRevvaultSecret(path, value);
 
 export interface RunOptions {
   dryRun: boolean;

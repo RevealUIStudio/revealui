@@ -55,6 +55,26 @@ export interface McpServerEntry {
   requiresCredentials: boolean;
 }
 
+/**
+ * A remotely-reachable (Streamable HTTP) MCP endpoint. Distinct from the stdio
+ * `servers` list: a remote endpoint is authenticated per request with a bearer
+ * token and enforces the same RBAC/ABAC + audit the REST API uses (GAP-371).
+ */
+export interface McpRemoteEndpoint {
+  /** Stable identifier of the server surfaced at this endpoint. */
+  id: string;
+  /** Human-readable name. */
+  name: string;
+  /** Relative path of the endpoint on this deployment. */
+  path: string;
+  /** Transport mechanism. */
+  transport: 'remote';
+  /** How a client authenticates. `bearer` = an `rvui_dev_` device token. */
+  auth: 'bearer';
+  /** Whether the endpoint gates on a Pro/Enterprise entitlement. */
+  proGated: boolean;
+}
+
 export interface McpDiscoveryManifest {
   /** Manifest schema version */
   version: '1.0';
@@ -62,8 +82,10 @@ export interface McpDiscoveryManifest {
   platform: 'revealui';
   /** Catalog documentation URL (the @revealui/mcp README) */
   documentationUrl: string;
-  /** List of MCP servers exposed by this deployment */
+  /** List of MCP servers exposed by this deployment (stdio) */
   servers: McpServerEntry[];
+  /** Remotely-reachable (Streamable HTTP) endpoints (GAP-371) */
+  remote: McpRemoteEndpoint[];
 }
 
 /**
@@ -243,6 +265,22 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
 const DOC_URL = 'https://github.com/RevealUIStudio/revealui/blob/main/packages/mcp/README.md';
 
 /**
+ * Governed Streamable HTTP endpoints. Phase 1 exposes the read-oriented
+ * `revealui-content` tools; a client authenticates with an `rvui_dev_` device
+ * token and every call is enforced + audited as that user.
+ */
+const MCP_REMOTE_ENDPOINTS: readonly McpRemoteEndpoint[] = [
+  {
+    id: 'revealui-content',
+    name: 'RevealUI Content (governed)',
+    path: '/api/mcp',
+    transport: 'remote',
+    auth: 'bearer',
+    proGated: true,
+  },
+];
+
+/**
  * Build the MCP discovery manifest for `/.well-known/mcp.json`.
  *
  * Pure function — no I/O, no side effects. Safe to call per-request;
@@ -254,5 +292,6 @@ export function buildMcpManifest(): McpDiscoveryManifest {
     platform: 'revealui',
     documentationUrl: DOC_URL,
     servers: [...MCP_SERVERS],
+    remote: [...MCP_REMOTE_ENDPOINTS],
   };
 }

@@ -21,19 +21,19 @@ If a number appears in marketing copy, it MUST match the value below. If a value
 
 ## 1. Codebase metrics (validated by claim-drift CI gate)
 
-Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-06-22 (commit `a5cf84240`).
+Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-07-16 (commit `6223dfa21`).
 
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
-| Packages in `packages/` | **27** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
+| Packages in `packages/` | **28** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
 | Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (one app removed per PR #936 + #946 + #947). |
 | Workspaces (monorepo total) | **32** | `countWorkspaces()` (= 28 packages + 4 apps) | |
-| Test files | **984** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
-| UI components in `packages/presentation/` | **61** | `countUIComponents()` | Marketing copy says "61 native React components" or similar. |
+| Test files | **1061** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
+| UI components in `packages/presentation/` | **65** | `countUIComponents()` | Marketing copy says "65 native React components" or similar. |
 | **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
-| DB tables (Drizzle pgTable) | **86** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86; corrected to the live count. `site.ts` METRICS is now gate-enforced by claim-drift. |
-| Access-control enforcement tests | **59** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
-| License: MIT packages | **21** | `licenseSplit.mit` | |
+| DB tables (Drizzle pgTable) | **92** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86 (2026-06-22); corrected to the live count 92 on 2026-07-16. `site.ts` METRICS is gate-enforced by claim-drift. |
+| Access-control enforcement tests | **60** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
+| License: MIT packages | **22** | `licenseSplit.mit` | |
 | License: FSL-1.1-MIT packages | **5** | `licenseSplit.fsl` | @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services |
 | License: internal/none | **1** | `licenseSplit.internal` | `test` workspace package (private) |
 
@@ -93,12 +93,12 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Feature | Status | Notes |
 |---|---|---|
-| Stripe live payments | **In flight** | 3 of 5 pre-flip gates remain (Cat C heal + stripe:seed re-run + owner flip directive). Marketing copy may NOT claim "live payments today" / "accept payments immediately" — only "Stripe billing wired; live keys in flight." |
+| Stripe live payments | **Live** | `STRIPE_LIVE_MODE` flipped ON 2026-06-26 (owner directive). Post-flip marketing PHRASING is still pending an owner ruling; until ruled, describe billing capability only. Do not use "accept payments today", and the retired "live keys in flight" line is now false. |
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
-| x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live." |
+| x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |
 | MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (14 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
-| Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; live charging gated on the Stripe live-mode flip (same gate as subscriptions). |
+| Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; the Stripe live-mode flip landed 2026-06-26, so charging rides the live catalog. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
 | Enterprise SSO / SAML | **Planned** | Designed, not built. |

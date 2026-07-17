@@ -32,6 +32,7 @@
  * `REVEALUI_API_KEY` env vars when no override is set.
  */
 
+import { createHash } from 'node:crypto';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   type CallToolRequest,
@@ -44,7 +45,155 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod/v4';
-import { validateToolArgs } from '../../validate-tool-args.js';
+import { type McpToolError, validateToolArgs } from '../../validate-tool-args.js';
+
+// ---------------------------------------------------------------------------
+// Governed-path seams (GAP-371 Phase 1)
+// ---------------------------------------------------------------------------
+//
+// The stdio launcher constructs this factory with NO options and keeps the
+// process-global `resolveCredentials()` (env / setCredentials) model — correct
+// for a single-operator laptop. The governed HTTP mount (`/api/mcp`) instead
+// injects a per-request `credentialsProvider` (returns the CALLER's own bearer
+// token) and an `auditSink` (a receipt per tool call). When a
+// `credentialsProvider` is present it is the SOLE credential source: the env
+// fallback is never consulted on the governed path (invariant I-4).
+
+/** Resolved REST credentials for one tool call. */
+export interface ResolvedApiCredentials {
+  apiUrl: string;
+  apiKey: string;
+}
+
+/**
+ * Per-request context handed to the governed seams. Derived from the MCP
+ * request handler's `extra` (the transport threads `authInfo` from the
+ * authenticated HTTP request; `sessionId` is the routing key). `undefined`
+ * on the stdio path.
+ */
+export interface McpToolCallContext {
+  authInfo?: unknown;
+  sessionId?: string;
+}
+
+/**
+ * Governed-path credential resolver. Returns the credentials to forward for a
+ * single tool call — on the governed path, the caller's own bearer token so
+ * the REST layer enforces `access.read` against the real user. May throw /
+ * reject when no per-request credential exists; the call then fails closed.
+ */
+export type CredentialsProvider = (
+  ctx: McpToolCallContext,
+) => Promise<ResolvedApiCredentials> | ResolvedApiCredentials;
+
+/** Terminal outcome of a governed tool call, as recorded in the receipt. */
+export type McpToolAuditOutcome = 'invoked' | 'denied' | 'failed';
+
+/**
+ * A governed tool-call receipt. Raw arguments are NEVER included — only a
+ * sha256 digest of the canonical JSON plus an allowlisted scalar subset
+ * (`collection`, `site_id`) that is safe to store in the clear.
+ */
+export interface McpToolAuditRecord {
+  outcome: McpToolAuditOutcome;
+  tool: string;
+  /** sha256 (hex) of the canonical JSON of the raw arguments. */
+  argsDigest: string;
+  /** Allowlisted non-secret identifiers pulled from the validated args. */
+  scalars: Record<string, string>;
+  durationMs: number;
+  httpStatus?: number;
+  /**
+   * Why a call was denied, when `outcome === 'denied'`. `'authz'` for a
+   * deny-by-default tool-permission miss (I-7); `'rate-limit'` when the
+   * per-user quota is exhausted (I-8). Absent for a validation/unknown-tool
+   * denial and for non-denied outcomes.
+   */
+  reason?: string;
+  /** The MCP client that connected (from the `initialize` handshake). */
+  clientInfo?: { name: string; version: string };
+  context: McpToolCallContext;
+}
+
+/**
+ * Governed-path audit sink. Resolves when the receipt is durably written;
+ * rejects when the write failed. For a mutating tool a rejection fails the
+ * call (fail-closed); for a read tool it degrades to log-and-continue.
+ */
+export type McpToolAuditSink = (record: McpToolAuditRecord) => Promise<void>;
+
+/**
+ * Deny-by-default per-tool authorization gate (GAP-371 Phase 2, I-7). Returns
+ * true iff the identity threaded through `ctx.authInfo` may execute `toolName`
+ * at its server-derived tier and role. Governs BOTH `tools/list` filtering and
+ * `tools/call` execution — a tool absent from the list is still independently
+ * denied on a direct call. Absent on the stdio path (every tool allowed).
+ */
+export type McpToolAuthorizer = (ctx: McpToolCallContext, toolName: string) => boolean;
+
+/**
+ * Per-call rate-limit gate (GAP-371 Phase 2, I-8). Consumed once per authorized
+ * `tools/call`, keyed by the caller's user + tool with limits from the
+ * server-derived tier. Returns false when the quota is exhausted. Absent on the
+ * stdio path (unlimited). Never consumed for `tools/list` or for a denied call.
+ */
+export type McpToolRateLimiter = (
+  ctx: McpToolCallContext,
+  toolName: string,
+) => Promise<boolean> | boolean;
+
+/** One usage-meter event, emitted once per EXECUTED tool call (I-8 tail). */
+export interface McpToolMeterEvent {
+  tool: string;
+  durationMs: number;
+  /** True when the tool surfaced an error (bad args reaching the backend, throw, non-2xx). */
+  errored: boolean;
+}
+
+/**
+ * Usage-meter sink (GAP-371 Phase 2). Fired once per tool call that actually
+ * executed (success or failure) — never for an authz/rate-limit denial, which
+ * are audit events, not billable usage. Sink errors are swallowed: metering
+ * must never break the underlying tool call. Billing and audit are separate
+ * sinks by design.
+ */
+export type McpToolMeterSink = (
+  ctx: McpToolCallContext,
+  event: McpToolMeterEvent,
+) => void | Promise<void>;
+
+/** sha256 (hex) of the canonical JSON of an arbitrary argument object. */
+function digestArgs(args: unknown): string {
+  return createHash('sha256').update(canonicalJson(args)).digest('hex');
+}
+
+/**
+ * Deterministic JSON with object keys sorted, so the digest of the same
+ * logical arguments is stable regardless of key order. No regex; a manual
+ * recursive serializer over the parsed value.
+ */
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  const entries = Object.entries(value as Record<string, unknown>).sort((a, b) =>
+    a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0,
+  );
+  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(',')}}`;
+}
+
+/** Allowlisted, non-secret scalars safe to store in a receipt in the clear. */
+const AUDIT_SCALAR_ALLOWLIST = ['collection', 'site_id'] as const;
+
+function pickAuditScalars(args: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!args || typeof args !== 'object') return out;
+  const record = args as Record<string, unknown>;
+  for (const key of AUDIT_SCALAR_ALLOWLIST) {
+    const raw = record[key];
+    if (typeof raw === 'string' && raw.length > 0) out[key] = raw;
+  }
+  return out;
+}
 
 // ---------------------------------------------------------------------------
 // Credential overrides (set by hypervisor / HTTP launcher)
@@ -101,10 +250,11 @@ async function apiGet(
   const res = await fetch(url.toString(), { headers: apiHeaders(apiKey) });
   const body = await res.json();
   if (!res.ok) {
-    throw new Error(
+    throw new ApiRequestError(
       (body as { error?: string; message?: string }).error ??
         (body as { message?: string }).message ??
         `API ${res.status}`,
+      res.status,
     );
   }
   return body;
@@ -269,6 +419,61 @@ export interface CreateRevealuiContentServerOptions {
    * directly; out-of-process subprocess consumers leave it unset.
    */
   collectionsProvider?: CollectionsProvider;
+
+  /**
+   * Governed-path (GAP-371) per-request credential resolver. When set, it is
+   * the SOLE source of tool-call credentials — the `REVEALUI_API_KEY` /
+   * `setCredentials()` fallback is never consulted (invariant I-4). Leave
+   * unset for the stdio launcher to keep the process-global env-key model.
+   */
+  credentialsProvider?: CredentialsProvider;
+
+  /**
+   * Governed-path audit sink. When set, every `tools/call` produces a receipt
+   * (invariant I-5). Mutating tools (see `mutatingTools`) fail closed if the
+   * receipt cannot be written; read tools degrade to log-and-continue.
+   */
+  auditSink?: McpToolAuditSink;
+
+  /**
+   * Names of tools that mutate state and therefore require a durable receipt
+   * BEFORE they run. Phase 1 exposes read tools only, so this is empty in
+   * production; it exists so Phase 2 write tools inherit the fail-closed path
+   * (and so the branch is testable now with a simulated mutating tool).
+   */
+  mutatingTools?: ReadonlySet<string>;
+
+  /**
+   * Governed-path deny-by-default per-tool authorization (I-7). When set, it
+   * gates BOTH `tools/list` (advertised set) and `tools/call` (execution). A
+   * tool the caller may not execute is neither listed nor callable. Leave unset
+   * for the stdio launcher (no per-tool authz — the OS account is the boundary).
+   */
+  toolAuthorizer?: McpToolAuthorizer;
+
+  /**
+   * Governed-path per-call rate limiter (I-8). When set, an authorized
+   * `tools/call` consumes one token; exhaustion yields a JSON-RPC error and a
+   * `mcp:tool:denied` receipt with `reason: 'rate-limit'`. Unset → unlimited.
+   */
+  rateLimiter?: McpToolRateLimiter;
+
+  /**
+   * Governed-path usage-meter sink. When set, one meter event fires per
+   * executed tool call (source `agent` downstream). Unset → no metering.
+   */
+  meterSink?: McpToolMeterSink;
+}
+
+/** Error carrying the upstream HTTP status, for audit `httpStatus`. */
+class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
 }
 
 /**
@@ -411,9 +616,17 @@ async function fetchCollectionsFromAdmin(
  * consume this factory; the factory itself is transport-agnostic.
  */
 export function createRevealuiContentServer(options?: CreateRevealuiContentServerOptions): Server {
+  // A `credentialsProvider` marks the governed/hosted mount (`/api/mcp`). On
+  // that path Phase 1 exposes ONLY the five read tools (design §4-D): the
+  // resource handlers below resolve the ambient service credential rather than
+  // the caller's token and write no receipt, so on a multi-tenant mount they
+  // would be a cross-tenant, unaudited read channel. The capability is therefore
+  // structurally absent when governed — not merely credential-gated. The stdio /
+  // local mount (no options) keeps resources unchanged (single-operator trust).
+  const governed = options?.credentialsProvider !== undefined;
   const server = new Server(
     { name: 'revealui-content', version: '1.0.0' },
-    { capabilities: { tools: {}, resources: {} } },
+    { capabilities: governed ? { tools: {} } : { tools: {}, resources: {} } },
   );
 
   // Per-server memoization: resolve the effective collection set once and
@@ -448,82 +661,244 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
     return cachedCollections;
   }
 
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+  server.setRequestHandler(ListToolsRequestSchema, async (_request, extra) => {
+    const authorizer = options?.toolAuthorizer;
+    if (!authorizer) return { tools: TOOLS };
+    // Filtered discovery (I-7): advertise only tools this caller may execute.
+    // This is UX; execution authz below is the security control — a tool hidden
+    // here is still independently denied on a direct `tools/call`.
+    const ctx: McpToolCallContext = {
+      authInfo: (extra as { authInfo?: unknown } | undefined)?.authInfo,
+      sessionId: (extra as { sessionId?: string } | undefined)?.sessionId,
+    };
+    return { tools: TOOLS.filter((tool) => authorizer(ctx, tool.name)) };
+  });
 
   // -------------------------------------------------------------------------
   // Resources (Stage 4.1 + 4.2)
+  //
+  // Registered ONLY on the ungoverned (stdio / local) path. These handlers use
+  // the process-global `resolveCredentials()` and emit no receipt, so on the
+  // governed mount they are omitted entirely (see capability gate above,
+  // design §4-D). The guard and the capability advertisement must stay in
+  // lockstep: a registered handler with no advertised capability, or vice
+  // versa, reintroduces the bypass.
   // -------------------------------------------------------------------------
 
-  server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    const { apiUrl, apiKey } = resolveCredentials();
-    if (!(apiUrl && apiKey)) {
-      // Without credentials the server can't enumerate rows; advertise an
-      // empty list rather than erroring — clients still see the resources
-      // capability and can retry once creds are set.
-      return { resources: [] };
-    }
-
-    const collections = await resolveCollections();
-    const resources: Resource[] = [];
-    for (const collection of collections) {
-      try {
-        const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
-          limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
-          page: '1',
-        });
-        for (const row of extractDocs(body)) {
-          resources.push(resourceForRow(collection, row));
-        }
-      } catch {
-        // empty-catch-ok: an unavailable collection shouldn't blank-out the entire resource list
+  if (!governed) {
+    server.setRequestHandler(ListResourcesRequestSchema, async () => {
+      const { apiUrl, apiKey } = resolveCredentials();
+      if (!(apiUrl && apiKey)) {
+        // Without credentials the server can't enumerate rows; advertise an
+        // empty list rather than erroring — clients still see the resources
+        // capability and can retry once creds are set.
+        return { resources: [] };
       }
-    }
-    return { resources };
-  });
 
-  server.setRequestHandler(ReadResourceRequestSchema, async (request: ReadResourceRequest) => {
-    const parsed = parseResourceUri(request.params.uri);
-    if (!parsed) {
-      throw new Error(
-        `Unknown resource URI (expected ${RESOURCE_URI_PREFIX}<collection>/<id>): ${request.params.uri}`,
-      );
-    }
-    const collections = await resolveCollections();
-    const collection = collections.find((c) => c.slug === parsed.collection);
-    if (!collection) {
-      throw new Error(`Collection is not exposed as a resource: ${parsed.collection}`);
-    }
+      const collections = await resolveCollections();
+      const resources: Resource[] = [];
+      for (const collection of collections) {
+        try {
+          const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
+            limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
+            page: '1',
+          });
+          for (const row of extractDocs(body)) {
+            resources.push(resourceForRow(collection, row));
+          }
+        } catch {
+          // empty-catch-ok: an unavailable collection shouldn't blank-out the entire resource list
+        }
+      }
+      return { resources };
+    });
 
-    const { apiUrl, apiKey } = resolveCredentials();
-    if (!(apiUrl && apiKey)) {
-      throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
-    }
+    server.setRequestHandler(ReadResourceRequestSchema, async (request: ReadResourceRequest) => {
+      const parsed = parseResourceUri(request.params.uri);
+      if (!parsed) {
+        throw new Error(
+          `Unknown resource URI (expected ${RESOURCE_URI_PREFIX}<collection>/<id>): ${request.params.uri}`,
+        );
+      }
+      const collections = await resolveCollections();
+      const collection = collections.find((c) => c.slug === parsed.collection);
+      if (!collection) {
+        throw new Error(`Collection is not exposed as a resource: ${parsed.collection}`);
+      }
 
-    const row = await apiGet(apiUrl, apiKey, `/api/${parsed.collection}/${parsed.id}`);
-    return {
-      contents: [
-        {
-          uri: request.params.uri,
-          mimeType: 'application/json',
-          text: JSON.stringify(row, null, 2),
-        },
-      ],
-    };
-  });
+      const { apiUrl, apiKey } = resolveCredentials();
+      if (!(apiUrl && apiKey)) {
+        throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
+      }
 
-  server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
+      const row = await apiGet(apiUrl, apiKey, `/api/${parsed.collection}/${parsed.id}`);
+      return {
+        contents: [
+          {
+            uri: request.params.uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(row, null, 2),
+          },
+        ],
+      };
+    });
+  }
+
+  server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest, extra) => {
     const startTime = Date.now();
     const toolName = request.params.name;
+    const rawArgs = request.params.arguments;
+    const ctx: McpToolCallContext = {
+      authInfo: (extra as { authInfo?: unknown } | undefined)?.authInfo,
+      sessionId: (extra as { sessionId?: string } | undefined)?.sessionId,
+    };
+    const auditSink = options?.auditSink;
+    const mutating = options?.mutatingTools?.has(toolName) ?? false;
 
-    const { apiUrl, apiKey } = resolveCredentials();
+    // Write a receipt for this call. Returns whether the write succeeded; the
+    // sink itself classifies + logs a failure, so callers only decide between
+    // fail-closed (mutations) and degrade (reads). No-op when no sink is wired
+    // (the stdio path).
+    async function writeReceipt(
+      outcome: McpToolAuditOutcome,
+      opts?: { httpStatus?: number; reason?: string },
+    ): Promise<boolean> {
+      if (!auditSink) return true;
+      const client = server.getClientVersion();
+      const record: McpToolAuditRecord = {
+        outcome,
+        tool: toolName,
+        argsDigest: digestArgs(rawArgs ?? null),
+        scalars: pickAuditScalars(rawArgs),
+        durationMs: Date.now() - startTime,
+        httpStatus: opts?.httpStatus,
+        reason: opts?.reason,
+        clientInfo: client ? { name: client.name, version: client.version } : undefined,
+        context: ctx,
+      };
+      try {
+        await auditSink(record);
+        return true;
+      } catch {
+        return false;
+      }
+    }
 
-    if (!(apiUrl && apiKey)) {
+    // A call rejected before it executes (unknown tool, invalid args, authz or
+    // rate-limit denial). Records a `denied` receipt (best-effort — a denial
+    // that mutates nothing degrades like a read) and returns the client error.
+    async function denied(response: McpToolError, reason?: string): Promise<McpToolError> {
+      await writeReceipt('denied', reason ? { reason } : undefined);
+      return response;
+    }
+
+    // Deny-by-default collection allowlist. The content tools interpolate the
+    // `collection` arg into `/api/<collection>`, so a free-string collection
+    // would let one tool reach another tool's endpoint (e.g. `/api/users`,
+    // bypassing the admin gate on `revealui_list_users`). A collection outside
+    // the RESOLVED exposed set is denied before any REST call — the backend is
+    // never reached for an unexposed collection.
+    async function denyIfCollectionNotExposed(collection: string): Promise<McpToolError | null> {
+      const exposed = await resolveCollections();
+      const slugs = new Set(exposed.map((c) => c.slug));
+      if (slugs.has(collection)) return null;
+      return denied(
+        {
+          content: [{ type: 'text', text: `Error: collection is not exposed: ${collection}` }],
+          isError: true,
+        },
+        'collection-not-exposed',
+      );
+    }
+
+    // Emit one usage-meter event for a call that actually executed. Swallows
+    // sink errors so metering can never break the tool call.
+    async function fireMeter(errored: boolean): Promise<void> {
+      if (!options?.meterSink) return;
+      try {
+        await options.meterSink(ctx, {
+          tool: toolName,
+          durationMs: Date.now() - startTime,
+          errored,
+        });
+      } catch {
+        // empty-catch-ok: metering is best-effort and must not affect the call
+      }
+    }
+
+    // Deny-by-default per-tool authorization (I-7). Runs before credentials are
+    // resolved, so an unauthorized caller never triggers a credential lookup or
+    // a REST call. A tool hidden from `tools/list` is still denied here.
+    if (options?.toolAuthorizer && !options.toolAuthorizer(ctx, toolName)) {
+      return denied(
+        {
+          content: [{ type: 'text', text: `Error: not authorized to call tool: ${toolName}` }],
+          isError: true,
+        },
+        'authz',
+      );
+    }
+
+    // Per-user + tier rate limit (I-8). Consumed only for an authorized call,
+    // before any credential resolution or execution. A denial is audited with
+    // `reason: 'rate-limit'` and never meters (a rejected call is not usage).
+    if (options?.rateLimiter) {
+      const allowed = await options.rateLimiter(ctx, toolName);
+      if (!allowed) {
+        return denied(
+          {
+            content: [{ type: 'text', text: `Error: rate limit exceeded for tool: ${toolName}` }],
+            isError: true,
+          },
+          'rate-limit',
+        );
+      }
+    }
+
+    // Resolve credentials. Governed path: the injected provider is the sole
+    // source and may throw when no per-request credential exists (I-4). Env
+    // path is unchanged for stdio.
+    let apiUrl: string;
+    let apiKey: string;
+    try {
+      if (options?.credentialsProvider) {
+        const resolved = await options.credentialsProvider(ctx);
+        apiUrl = resolved.apiUrl;
+        apiKey = resolved.apiKey;
+      } else {
+        const resolved = resolveCredentials();
+        if (!(resolved.apiUrl && resolved.apiKey)) {
+          return {
+            content: [
+              { type: 'text', text: 'Error: REVEALUI_API_URL and REVEALUI_API_KEY must be set' },
+            ],
+            isError: true,
+          };
+        }
+        apiUrl = resolved.apiUrl;
+        apiKey = resolved.apiKey;
+      }
+    } catch (err) {
+      await writeReceipt('failed');
       return {
         content: [
-          { type: 'text', text: 'Error: REVEALUI_API_URL and REVEALUI_API_KEY must be set' },
+          { type: 'text', text: `Error: ${err instanceof Error ? err.message : String(err)}` },
         ],
         isError: true,
       };
+    }
+
+    // Fail-closed for mutations: the receipt is written BEFORE the tool runs,
+    // so a state change can never happen without a durable record of it. If
+    // the write fails, refuse the call — nothing executes.
+    if (mutating) {
+      const recorded = await writeReceipt('invoked');
+      if (!recorded) {
+        return {
+          content: [{ type: 'text', text: 'Error: audit log unavailable; mutating tool refused' }],
+          isError: true,
+        };
+      }
     }
 
     try {
@@ -531,8 +906,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
 
       switch (toolName) {
         case 'revealui_list_sites': {
-          const parsed = validateToolArgs(ListSitesArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error;
+          const parsed = validateToolArgs(ListSitesArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
           const { limit = 20, page = 1 } = parsed.value;
           data = await apiGet(apiUrl, apiKey, '/api/sites', {
             limit: String(limit),
@@ -542,13 +917,11 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         case 'revealui_list_content': {
-          const parsed = validateToolArgs(
-            ListContentArgsSchema,
-            request.params.arguments,
-            toolName,
-          );
-          if (!parsed.ok) return parsed.error;
+          const parsed = validateToolArgs(ListContentArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
           const { site_id, collection, limit = 20, page = 1, status } = parsed.value;
+          const notExposed = await denyIfCollectionNotExposed(collection);
+          if (notExposed) return notExposed;
           const params: Record<string, string> = {
             limit: String(limit),
             page: String(page),
@@ -561,16 +934,18 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         case 'revealui_get_content': {
-          const parsed = validateToolArgs(GetContentArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error;
+          const parsed = validateToolArgs(GetContentArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
           const { collection, id } = parsed.value;
+          const notExposed = await denyIfCollectionNotExposed(collection);
+          if (notExposed) return notExposed;
           data = await apiGet(apiUrl, apiKey, `/api/${collection}/${id}`);
           break;
         }
 
         case 'revealui_list_users': {
-          const parsed = validateToolArgs(ListUsersArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error;
+          const parsed = validateToolArgs(ListUsersArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
           const { site_id, limit = 20, page = 1 } = parsed.value;
           const params: Record<string, string> = {
             limit: String(limit),
@@ -583,8 +958,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         case 'revealui_site_stats': {
-          const parsed = validateToolArgs(SiteStatsArgsSchema, request.params.arguments, toolName);
-          if (!parsed.ok) return parsed.error;
+          const parsed = validateToolArgs(SiteStatsArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
           const { site_id } = parsed.value;
           const params: Record<string, string> = {};
           if (site_id) params.siteId = site_id;
@@ -594,11 +969,17 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         default:
-          return {
+          return denied({
             content: [{ type: 'text', text: `Error: Unknown tool: ${toolName}` }],
             isError: true,
-          };
+          });
       }
+
+      // Read tools record the receipt AFTER a successful call and degrade on a
+      // write failure (the data is already fetched; the sink logs + marks the
+      // degraded write). Mutations already recorded their receipt above.
+      if (!mutating) await writeReceipt('invoked');
+      await fireMeter(false);
 
       return {
         content: [
@@ -621,6 +1002,9 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         ],
       };
     } catch (err) {
+      const httpStatus = err instanceof ApiRequestError ? err.status : undefined;
+      await writeReceipt('failed', { httpStatus });
+      await fireMeter(true);
       return {
         content: [
           { type: 'text', text: `Error: ${err instanceof Error ? err.message : String(err)}` },

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/services",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "External service integrations, Stripe (payment processing + circuit breaker) and email (Gmail API delivery). Ships with RevealUI.",
   "repository": {
     "type": "git",

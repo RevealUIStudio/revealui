@@ -1,5 +1,20 @@
 # @revealui/auth
 
+## 0.4.8
+
+### Patch Changes
+
+- eac1a1b: remove dangling export subpaths that pointed at nonexistent source modules: `./schema/cms` in @revealui/db (no `src/schema/cms.ts`; `posts` lives in `schema/admin.ts`) and `./client` in @revealui/auth (no `src/client/` implementation). No consumer imports either subpath.
+- Updated dependencies [eac1a1b]
+- Updated dependencies
+- Updated dependencies [0cc7f62]
+- Updated dependencies [76efd75]
+  - @revealui/db@0.8.0
+  - @revealui/config@0.5.1
+  - @revealui/core@0.11.1
+  - @revealui/security@0.4.3
+  - @revealui/contracts@0.7.0
+
 ## 0.4.7
 
 ### Patch Changes

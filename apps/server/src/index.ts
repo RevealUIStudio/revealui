@@ -112,6 +112,7 @@ import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
+import { mountMcpEndpoint } from './routes/mcp-endpoint.js';
 import mcpUsageRoute from './routes/mcp-usage.js';
 import ogRoute from './routes/og.js';
 import pricingRoute from './routes/pricing.js';
@@ -1175,6 +1176,10 @@ app.route('/api/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/agent-stream', agentStreamRoute);
 // A.3: Usage aggregation endpoint for the /admin/mcp Usage tab.
 app.route('/api/mcp/usage', mcpUsageRoute);
+// GAP-371 Phase 1: governed MCP endpoint. Bound to the EXACT path /api/mcp
+// (auth → entitlements → requireFeature('mcp') → Streamable HTTP), so it does
+// not shadow the /api/mcp/usage route mounted above.
+mountMcpEndpoint(app);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);

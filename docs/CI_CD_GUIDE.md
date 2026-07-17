@@ -176,7 +176,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 Generate `REVEALUI_SECRET`:
 
 ```bash
-bash scripts/generate-secret.sh
+pnpm secrets:generate --hex --length=32
 ```
 
 `POSTGRES_URL` MUST include `sslmode=require` for production (NeonDB requires SSL). The `validate:prod-env` gate fails the deploy if any required var is missing or malformed.

@@ -29,15 +29,41 @@ import { idempotentWrite } from '@revealui/db/saga';
 import type { Job } from '@revealui/db/schema';
 import { agentMemories } from '@revealui/db/schema/agents';
 import { safeVectorInsert } from '@revealui/db/validation/cross-db';
+import { accountHasAiFeature } from '../lib/account-entitlement.js';
 import { buildDispatcher } from '../lib/agent-dispatcher.js';
+import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 
 const LLM_MEMOIZE_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether the BYOK dispatch behavior is active (GAP-360 §7). Canonical
+ * semantics live in `@revealui/ai` `hostedByokDispatchEnabled`; mirrored here
+ * because apps/server must not statically import the Pro package (boundary.ts).
+ * Only consulted on hosted, so the default is ON.
+ */
+function byokDispatchEnabled(): boolean {
+  const raw = process.env.HOSTED_BYOK_DISPATCH;
+  if (raw === undefined || raw.trim() === '') return true;
+  const value = raw.trim().toLowerCase();
+  return !(value === 'false' || value === '0' || value === 'off' || value === 'no');
+}
 
 export interface AgentDispatchPayload extends Record<string, unknown> {
   ticketId: string;
   /** Caller's tenant id at enqueue time. Worker carries it through. */
   tenantId?: string;
-  /** Caller's user id at enqueue time. For audit logging / future RBAC. */
+  /**
+   * The authenticated dispatcher's user id, captured server-side from the
+   * session at enqueue time (the only enqueue site is the role-gated
+   * `runDurableDispatch` in `routes/agent-tasks.ts`, which always passes
+   * `requireAgentTaskRole(c)`'s `user.id`). This is the sole trusted source of
+   * dispatch identity for BYOK key resolution (§6.1/§5.6) — it must NEVER be
+   * read from `ticket.reporterId`, which is client-writable via the general
+   * tickets API (`routes/tickets/tickets.ts` create/PATCH schemas accept an
+   * arbitrary `reporterId` with no ownership check) and would let an attacker
+   * who owns a board dispatch a ticket against a victim's stored key by
+   * setting `reporterId` to the victim's user id.
+   */
   userId: string;
   /**
    * Correlation id from the originating POST request. All logs from the
@@ -77,22 +103,41 @@ export async function agentDispatchHandler(
     });
   };
 
-  // License re-check. The POST handler already gated on requireAIAccess;
-  // this catches the edge case where the license lapsed between enqueue
-  // and claim. Pre-existing gap: isFeatureEnabled reads the singleton
-  // license state (not per-tenant), so the tenant-scoped variant
-  // depends on a future fix. Naming it here so when that lands the
-  // worker gets stricter enforcement automatically.
-  if (!isFeatureEnabled('ai')) {
-    throw new Error('AI feature unavailable at dispatch time (license lapsed or revoked)');
-  }
-
   const ticket = await ticketQueries.getTicketById(db, data.ticketId);
   if (!ticket) {
     throw new Error(`Ticket not found: ${data.ticketId}`);
   }
 
-  const dispatcher = await buildDispatcher(db, data.tenantId);
+  const isHosted = detectDeploymentMode(process.env as EnvMap) === 'hosted';
+
+  // Dispatch identity: the authenticated dispatcher's session user id,
+  // captured server-side at enqueue time (see AgentDispatchPayload.userId).
+  // Deliberately NOT `ticket.reporterId` — that column is client-writable via
+  // the general tickets API (no ownership check on the field), so reading it
+  // here would let an attacker key-decrypt a victim's BYOK key by setting
+  // reporterId to the victim's id before dispatching (§6.1 fail-closed).
+  const dispatcherUserId = data.userId;
+
+  // Dispatch-time entitlement re-check. The POST handler already gated the
+  // caller; this catches a lapse between enqueue and claim.
+  //  - Hosted (BYOK dispatch on): per-account entitlement (§5.6) via the
+  //    GAP-356 canonical path, replacing the old singleton check.
+  //  - Self-hosted (or a HOSTED_BYOK_DISPATCH rollback): the singleton license
+  //    state, byte-unchanged from before this PR.
+  if (isHosted && byokDispatchEnabled()) {
+    const hasAi = await accountHasAiFeature(db, dispatcherUserId);
+    if (!hasAi) {
+      throw new Error('AI feature not entitled for the owning account at dispatch time');
+    }
+  } else if (!isFeatureEnabled('ai')) {
+    throw new Error('AI feature unavailable at dispatch time (license lapsed or revoked)');
+  }
+
+  const dispatcher = await buildDispatcher(db, data.tenantId, {
+    userId: dispatcherUserId,
+    isHosted,
+    workspaceId: data.tenantId,
+  });
   if (!dispatcher) {
     throw new Error(
       "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",

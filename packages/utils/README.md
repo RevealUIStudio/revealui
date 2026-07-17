@@ -67,7 +67,10 @@ const sslConfig = getSSLConfig(process.env.POSTGRES_URL)
 ### Validation
 
 ```typescript
-import { validate } from '@revealui/utils/validation'
+import { passwordSchema } from '@revealui/utils/validation'
+
+// Validate password strength
+const result = passwordSchema.safeParse(password)
 ```
 
 ## Exports

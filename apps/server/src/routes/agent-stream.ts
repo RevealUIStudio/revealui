@@ -11,6 +11,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { DrizzleAuditStore, getClient } from '@revealui/db';
 import type { ElicitationHandler, McpClient, SamplingHandler } from '@revealui/mcp/client';
 import { createRevvaultVault } from '@revealui/mcp/oauth';
 import {
@@ -26,7 +27,9 @@ import {
   createAgentRunSession,
   deleteAgentRunSession,
 } from '../lib/agent-run-sessions.js';
+import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { recordUsageMeter } from '../lib/metering.js';
+import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { getEntitlementsFromContext } from '../middleware/entitlements.js';
 
 type Variables = {
@@ -89,6 +92,19 @@ const agentStreamRoute = createRoute({
       },
       description: 'AI feature requires Pro or Enterprise license',
     },
+    409: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+            code: z.literal('LLM_NOT_CONFIGURED'),
+            settingsPath: z.string(),
+          }),
+        },
+      },
+      description: 'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+    },
   },
 });
 
@@ -124,9 +140,10 @@ app.openapi(agentStreamRoute, async (c) => {
   const isLocalOnly = aiAccessMode === 'local';
 
   let llmClient: unknown;
-  try {
-    if (isLocalOnly) {
-      // Free tier: force local provider regardless of other env vars
+  if (isLocalOnly) {
+    // Free tier: force local provider regardless of other env vars. Untouched
+    // by GAP-360 — the free/local path never resolves a per-account key.
+    try {
       type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
       const localBaseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? process.env.OLLAMA_BASE_URL;
       const localProvider = process.env.INFERENCE_SNAPS_BASE_URL ? 'inference-snaps' : 'ollama';
@@ -136,19 +153,42 @@ app.openapi(agentStreamRoute, async (c) => {
         baseURL: localBaseURL,
         model: process.env.LLM_MODEL ?? 'gemma4:e2b',
       });
-    } else {
-      llmClient = aiMod.createLLMClientFromEnv();
+    } catch {
+      return c.json(
+        {
+          success: false,
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+          code: 'HTTP_403',
+        },
+        403,
+      );
     }
-  } catch {
-    return c.json(
-      {
-        success: false,
-        error:
-          "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        code: 'HTTP_403',
-      },
-      403,
-    );
+  } else {
+    // Paid path: resolve per-account BYOK on hosted, env on self-hosted. userId
+    // comes from the authenticated session (§6.1), never the request body.
+    try {
+      const db = getClient();
+      llmClient = await aiMod.resolveLLMClientForRequest(user.id, db, {
+        isHosted: detectDeploymentMode(process.env as EnvMap) === 'hosted',
+        workspaceId: body.workspaceId ?? c.get('tenant')?.id,
+        auditStore: new DrizzleAuditStore(db),
+      });
+    } catch (err) {
+      const notConfigured = asLLMNotConfigured(err);
+      if (notConfigured) {
+        return c.json(notConfigured, 409);
+      }
+      return c.json(
+        {
+          success: false,
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+          code: 'HTTP_403',
+        },
+        403,
+      );
+    }
   }
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';

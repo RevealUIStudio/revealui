@@ -52,7 +52,7 @@ cp .env.template .env.development.local
 You need these variables set before the dev server will start:
 
 ```env
-# Generate with: bash scripts/generate-secret.sh
+# Generate with: pnpm secrets:generate --hex --length=32
 REVEALUI_SECRET=your_32_char_hex_secret
 
 # Leave as-is for local dev
@@ -86,7 +86,7 @@ STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 **REVEALUI_SECRET**  -  generate locally:
 
 ```bash
-bash scripts/generate-secret.sh
+pnpm secrets:generate --hex --length=32
 ```
 
 **POSTGRES_URL**  -  [console.neon.tech](https://console.neon.tech) → New project → Connection string (include `?sslmode=require`)
@@ -154,7 +154,7 @@ RevealUI is moving toward account-level subscriptions plus metered agent and com
 **`ConfigValidationError: REVEALUI_SECRET`**  -  your secret is missing or under 32 characters. Regenerate it:
 
 ```bash
-bash scripts/generate-secret.sh
+pnpm secrets:generate --hex --length=32
 ```
 
 **`Connection refused` on POSTGRES_URL**  -  check the connection string includes `?sslmode=require` and that your NeonDB project is active (free tier projects pause after inactivity).
@@ -175,7 +175,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 ## Next Steps
 
 - [Full documentation](./INDEX.md)
-- [Component catalog](./COMPONENT_CATALOG.md)  -  61 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
+- [Component catalog](./COMPONENT_CATALOG.md)  -  65 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
 - [Deployment guide](./guides/deployment.md)  -  Vercel + Fly, environment variables, production checklist
 - [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)

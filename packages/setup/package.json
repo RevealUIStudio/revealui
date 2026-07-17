@@ -1,6 +1,6 @@
 {
   "name": "@revealui/setup",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Setup utilities for new projects — environment config, database init, secrets validation. Used by @revealui/cli.",
   "keywords": [
     "cli",
@@ -58,6 +58,10 @@
     "./system-tune": {
       "types": "./dist/system-tune/index.d.ts",
       "import": "./dist/system-tune/index.js"
+    },
+    "./revvault": {
+      "types": "./dist/revvault/index.d.ts",
+      "import": "./dist/revvault/index.js"
     }
   },
   "files": [

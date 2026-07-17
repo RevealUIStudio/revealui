@@ -1529,7 +1529,7 @@ This creates a cycle of:
    - Safety net for anything MCP layer missed
    - Can be bypassed with `--no-verify` (emergencies only)
 
-5. **CLI Tool** (`scripts/validation/validate-code.ts`)
+5. **CLI Tool** (`scripts/validate/validate-code.ts`)
    - Manual validation
    - Testing and debugging
    - CI/CD integration
@@ -1541,10 +1541,10 @@ This creates a cycle of:
 ### 1. Install Git Hook (Required)
 
 ```bash
-pnpm hooks:install
+pnpm install
 ```
 
-This creates a symlink from `.git/hooks/pre-commit` to `scripts/git-hooks/pre-commit`.
+Git hooks are managed by Husky. The root `prepare: husky` script runs automatically on `pnpm install` and points Git at the tracked `.husky/` hooks. The pre-commit hook (`.husky/pre-commit`) runs `pnpm lint-staged`, the secret scan, and the code validator on staged files.
 
 ### 2. Configure Claude Code MCP (Optional but Recommended)
 
@@ -1586,13 +1586,13 @@ pnpm --filter dev build
 
 ```bash
 # Validate a single file
-pnpm validate:code src/foo.ts
+tsx scripts/validate/validate-code.ts src/foo.ts
 
 # Validate from stdin (useful for pipes)
-cat src/foo.ts | pnpm validate:code:stdin
+cat src/foo.ts | tsx scripts/validate/validate-code.ts --stdin
 
 # Auto-fix violations
-pnpm validate:code:fix src/foo.ts
+tsx scripts/validate/validate-code.ts --auto-fix src/foo.ts
 ```
 
 ### MCP Tool (for Claude)
@@ -1817,7 +1817,7 @@ const foo: any = {}
 EOF
 
 # Validate it
-pnpm validate:code /tmp/test.ts
+tsx scripts/validate/validate-code.ts /tmp/test.ts
 
 # Expected output:
 # ✗ Code violations found
@@ -1884,7 +1884,7 @@ jobs:
       - run: |
           find . -name "*.ts" -o -name "*.tsx" | \
           while read file; do
-            pnpm validate:code "$file" || exit 1
+            tsx scripts/validate/validate-code.ts "$file" || exit 1
           done
 ```
 
@@ -1938,7 +1938,7 @@ When Claude Code has MCP configured:
         "   43 |   return user",
         "   44 | }"
       ],
-      "suggestedFix": "import { logger } from '@revealui/core/logger'\nlogger.info('message', { data })"
+      "suggestedFix": "import { logger } from '@revealui/utils/logger'\nlogger.info('message', { data })"
     }
   ],
   "errors": 1,
@@ -1959,12 +1959,13 @@ When Claude Code has MCP configured:
 ### Hook Not Running
 
 ```bash
-# Check hook is installed
-ls -la .git/hooks/pre-commit
+# Check the Husky hook is present
+ls -la .husky/pre-commit
 
-# Should show symlink to scripts/git-hooks/pre-commit
-# If not, reinstall:
-pnpm hooks:install
+# Git must be pointed at the Husky hooks dir
+git config core.hooksPath   # expect .husky/_
+# If missing, reinstall (the prepare script re-runs husky):
+pnpm install
 ```
 
 ### Validator Not Found
@@ -2040,7 +2041,7 @@ Or add path exemption to `.revealui/code-standards.json`.
 To add new validation rules:
 
 1. Add rule to `.revealui/code-standards.json`
-2. Test with `pnpm validate:code`
+2. Test with `tsx scripts/validate/validate-code.ts`
 3. Add exemptions as needed
 4. Document in this file
 5. Submit PR
@@ -2591,40 +2592,37 @@ const context = createAgentContextInsert(sessionId, agentId, {
 const similarity = calculateCosineSimilarity(embedding1, embedding2)
 ```
 
-#### 3. AgentMemory (`packages/contracts/src/entities/agent-memory.ts`)
-- **Lines:** 708 lines, 50+ helper functions
-- **Purpose:** Long-term agent memory with verification workflow
+#### 3. Provenance (`packages/contracts/src/entities/code-provenance.ts`)
+- **Lines:** 466 lines, 36+ helper functions
+- **Purpose:** Code authorship tracking with a human/AI review workflow
 - **Features:**
-  - 8 memory types (fact, preference, decision, feedback, etc.)
-  - Verification workflow (verified, verifiedBy, verifiedAt)
-  - Multi-source tracking with provenance
-  - Access tracking and relevance scoring
-  - Expiration support for time-sensitive memories
+  - Author types (human, AI-generated, AI-assisted)
+  - Review workflow (unreviewed to human and/or AI reviewed)
+  - Confidence scoring and git/AI provenance metadata
+  - Review-coverage aggregation across entries
 
 ```typescript
 import {
-  createAgentMemoryInsert,
-  calculateRelevanceScore,
-  isVerified,
-  needsVerification,
-  type AgentMemory,
+  createProvenanceInsert,
+  needsHumanReview,
+  calculateReviewCoverage,
+  type Provenance,
 } from '@revealui/contracts/entities'
 
-// Create memory
-const memory = createAgentMemoryInsert(
-  'User prefers dark mode',
-  'preference',
-  { type: 'user_input', userId: 'u-123' },
-  { importance: 0.9 }
-)
+// Record authorship for a file
+const entry = createProvenanceInsert('src/foo.ts', 'ai_generated', {
+  aiModel: 'claude-opus-4',
+  confidence: 0.9,
+})
 
-// Check if needs verification
-if (needsVerification(memory)) {
-  // Prompt for verification
+// Flag AI-authored code that still needs a human pass
+if (needsHumanReview(entry)) {
+  // Route to a reviewer
 }
 
-// Calculate relevance score (importance + access + verification)
-const score = calculateRelevanceScore(memory)
+// Aggregate review coverage across a set of entries
+const entries: Provenance[] = await loadProvenance()
+const coverage = calculateReviewCoverage(entries)
 ```
 
 #### 4. PageRevision (`packages/contracts/src/entities/page-revision.ts`)
@@ -2778,14 +2776,13 @@ console.log(sessionAgent.metadata)
 ### Generate All Types
 
 ```bash
-pnpm generate:all
+pnpm --filter @revealui/db generate:all
 ```
 
-This runs the unified generation pipeline:
+This runs the unified generation pipeline (the `generate:all` script lives in `packages/db/package.json:271`):
 1. `pnpm --filter @revealui/db generate:types` - Generate TypeScript types from Drizzle
 2. `pnpm --filter @revealui/db generate:zod` - Generate Zod schemas
 3. `pnpm --filter @revealui/db generate:contracts` - Generate Contract wrappers
-4. `pnpm validate:types` - Validate consistency
 
 ### Individual Commands
 
@@ -2799,88 +2796,44 @@ pnpm --filter @revealui/db generate:zod
 # Generate only Contracts
 pnpm --filter @revealui/db generate:contracts
 
-# Validate type consistency
-pnpm validate:types
-
-# Enhanced validation with detailed analysis
-pnpm validate:types:enhanced
+# Validate that type-critical packages build and typecheck cleanly
+pnpm gate:types
 ```
 
 ## Validation System
 
-### Basic Validation
+### Types Gate
 
-The basic validation (`pnpm validate:types`) checks:
-- All discovered tables have corresponding generated files
-- Generated files exist and are readable
-- Type consistency across the system
-
-### Enhanced Validation
-
-The enhanced validation system (`pnpm validate:types:enhanced`) provides comprehensive analysis:
+The types gate validates that the type-critical packages build and typecheck cleanly (`scripts/gates/types-gate.ts:6`):
 
 ```bash
-pnpm validate:types:enhanced
+pnpm gate:types               # full type-system validation
+pnpm gate:types --check-only  # skip builds, just typecheck
 ```
 
-**Features:**
+It runs these steps in series (each depends on the previous), implemented in `scripts/gates/types-gate.ts:138`:
 
-1. **Breaking Change Detection**
-   - Detects removed exports in generated types
-   - Identifies type signature changes
-   - Warns before changes reach production
+1. Build `@revealui/db`
+2. Build `@revealui/contracts`
+3. Run the contract tests
+4. Typecheck `@revealui/db`
+5. Typecheck `@revealui/contracts`
+6. Full workspace typecheck (`pnpm typecheck:all`)
 
-2. **Schema Drift Analysis**
-   - Compares source file timestamps vs generated files
-   - Detects when schemas are modified but not regenerated
-   - Prevents stale type usage
+`pnpm gate --types` folds the same validation (with `--check-only`) into phase 2 of the CI gate.
 
-3. **Coverage Validation**
-   - Ensures all Drizzle tables have Zod schemas
-   - Checks for missing Contract wrappers
-   - Identifies gaps in type generation
+### Drift Detection
 
-4. **Type Safety Checks**
-   - Detects `any` types in generated code
-   - Validates proper imports from drizzle-zod
-   - Ensures type soundness
+Generated files stay in sync by regenerating and checking for a diff, not by a bespoke validator. To check locally:
 
-5. **Schema Version Tracking**
-   - Checks generation timestamps
-   - Warns if types are >30 days old
-   - Encourages regular regeneration
-
-**Example Output:**
-
-```
-🔍 Running enhanced type system validation...
-
-📊 Validation Results
-
-Tables checked: 23
-Fields checked: 48
-Errors: 0
-Warnings: 1
-Breaking changes: 0
-
-⚠️  Warnings:
-
-  generated.packages/contracts/src/generated/zod-schemas.ts
-    Generated file is older than source schemas
-    💡 Run: pnpm generate:all
-
-✅ Enhanced validation passed!
+```bash
+pnpm --filter @revealui/db generate:all
+git diff --name-only   # any output means the generated files are stale, so commit them
 ```
 
-**Issue Categories:**
+**When to run:**
 
-- **Error** (❌) - Blocks deployment, must be fixed
-- **Warning** (⚠️) - Should be addressed soon
-- **Info** (ℹ️) - Informational, no action needed
-
-**When to Use:**
-
-- Before merging PRs that touch schemas
+- Before merging PRs that touch schemas or generated files
 - During code review for database changes
 - When debugging type-related issues
 - As part of pre-deployment checks
@@ -2892,7 +2845,7 @@ You **must** regenerate types when:
 1. **Adding a new table**
    ```bash
    # After creating new table in packages/db/src/schema/
-   pnpm generate:all
+   pnpm --filter @revealui/db generate:all
    git add packages/contracts/src/generated/
    git commit -m "feat: add new table schema"
    ```
@@ -2900,7 +2853,7 @@ You **must** regenerate types when:
 2. **Modifying existing table**
    ```bash
    # After changing table definition
-   pnpm generate:all
+   pnpm --filter @revealui/db generate:all
    git add packages/contracts/src/generated/
    git commit -m "feat: update table schema"
    ```
@@ -2937,59 +2890,31 @@ packages/
 
 ## CI/CD Integration
 
-The type system is validated in CI (`.github/workflows/ci.yml:227`) to prevent drift. The workflow runs on:
-- Pull requests touching schema or generated files
-- Pushes to main branch
-- Manual workflow dispatch
+The type system is validated in CI (`.github/workflows/ci.yml:466`) to prevent drift. The relevant checks run on pushes and pull requests to `test` and `main`.
 
 ### Validation Steps
 
-```yaml
-# .github/workflows/validate-types.yml
-- name: Generate types
-  run: pnpm generate:all
+The "Validate generated types are in sync" step regenerates and fails on any diff:
 
-- name: Check for uncommitted changes
+```yaml
+# .github/workflows/ci.yml
+- name: Validate generated types are in sync (hard fail)
   run: |
-    if [ -n "$(git status --porcelain packages/contracts/src/generated/)" ]; then
-      echo "❌ Generated types are out of sync!"
+    pnpm --filter '@revealui/db...' build
+    pnpm --filter @revealui/db generate:all
+    if [ -n "$(git diff --name-only)" ]; then
+      echo "::error::Generated types are out of sync. Run 'pnpm --filter @revealui/db generate:all' and commit."
+      git diff --stat
       exit 1
     fi
-
-- name: Basic type validation
-  run: pnpm validate:types
-
-- name: Enhanced type validation
-  run: pnpm validate:types:enhanced
-
-- name: Check type coverage
-  run: pnpm types:coverage
-
-- name: Quick type consistency check
-  run: pnpm types:check
-
-- name: Run contract tests
-  run: pnpm --filter @revealui/contracts test src/generated/__tests__/contracts.test.ts
-
-- name: Type check packages
-  run: |
-    pnpm --filter @revealui/db typecheck
-    pnpm --filter @revealui/contracts typecheck
 ```
+
+Type-critical build and typecheck coverage runs through the gate: `pnpm gate --types` includes `pnpm gate:types --check-only` in phase 2, and `pnpm typecheck:all` runs across all workspaces.
 
 **CI will fail if:**
 - Generated files are out of sync with source
-- Type drift is detected
-- Basic or enhanced validation checks fail
-- Contract tests fail (32 tests)
-- TypeScript type checking fails
-- Breaking changes are detected (errors only)
-- Critical type safety issues found
-
-**GitHub Actions Summary:**
-- Provides detailed pass/fail summary
-- Shows type system statistics
-- Displays helpful troubleshooting tips on failure
+- Contract tests fail
+- TypeScript type checking fails in any workspace
 
 ## Usage Examples
 
@@ -3098,7 +3023,7 @@ export const newTable = pgTable('new_table', {
 export * from './new-table.js'
 
 // 3. Generate types
-// pnpm generate:all
+// pnpm --filter @revealui/db generate:all
 
 // 4. Use generated schemas (one per table, e.g. PostsSelectSchema, UsersSelectSchema)
 import { PostsSelectSchema } from '@revealui/contracts/generated/zod-schemas'
@@ -3129,10 +3054,10 @@ const UserSchema = UsersSelectSchema.extend({
 
 ```bash
 # Regenerate everything
-pnpm generate:all
+pnpm --filter @revealui/db generate:all
 
-# Run enhanced validation to see details
-pnpm validate:types:enhanced
+# Confirm there is no remaining diff
+git diff --name-only
 
 # Commit changes
 git add packages/contracts/src/generated/
@@ -3143,60 +3068,25 @@ git commit -m "chore: regenerate types"
 
 ```bash
 # 1. Regenerate
-pnpm generate:all
+pnpm --filter @revealui/db generate:all
 
-# 2. Run enhanced validation
-pnpm validate:types:enhanced
-
-# 3. Rebuild packages
+# 2. Rebuild the type-critical packages
 pnpm --filter @revealui/db build
 pnpm --filter @revealui/contracts build
 
-# 4. Check for breaking changes
-pnpm typecheck:all
+# 3. Run the types gate
+pnpm gate:types
 ```
 
 ### Missing table in generated schemas
 
 ```bash
-# Check table is exported from schema/index.ts
+# Check the table is exported from the schema barrel
 grep "export.*from.*your-table" packages/db/src/schema/rest.ts
 
-# Run enhanced validation to see coverage
-pnpm validate:types:enhanced
-
-# Regenerate
-pnpm generate:all
-```
-
-### Stale generated files warning
-
-If enhanced validation warns about stale files:
-
-```bash
-# Check which files are out of date
-pnpm validate:types:enhanced
-
-# Regenerate to sync timestamps
-pnpm generate:all
-
-# Verify fix
-pnpm validate:types:enhanced
-```
-
-### Breaking changes detected
-
-If CI detects breaking changes:
-
-```bash
-# Run enhanced validation locally
-pnpm validate:types:enhanced
-
-# Review the breaking changes in output
-# Common fixes:
-# - Add deprecation notice before removing types
-# - Provide migration path for changed types
-# - Update consuming code before changing schemas
+# Regenerate, then confirm the new table appears in the diff
+pnpm --filter @revealui/db generate:all
+git diff --name-only packages/contracts/src/generated/
 ```
 
 ## Performance
@@ -3220,14 +3110,12 @@ Fast enough to run before every commit!
 
 ### DO ✅
 
-- Always run `pnpm generate:all` after schema changes
-- Run `pnpm validate:types:enhanced` before committing schema changes
+- Always run `pnpm --filter @revealui/db generate:all` after schema changes
+- Run `pnpm gate:types` before committing schema changes
 - Commit generated files with schema changes
 - Extend generated schemas for business logic
 - Use Contracts for public APIs
 - Rely on CI to catch drift
-- Check enhanced validation output for warnings
-- Address breaking changes before they reach main
 
 ### DON'T ❌
 
@@ -3238,7 +3126,6 @@ Fast enough to run before every commit!
 - Import from `@revealui/db` in contracts (circular dependency)
 - Create parallel type definitions
 - Push with stale generated files
-- Ignore breaking change warnings
 
 ## Support
 

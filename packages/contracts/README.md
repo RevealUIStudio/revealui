@@ -32,7 +32,7 @@ import { Contract, createContract } from '@revealui/contracts/foundation'
 import { DualEntitySchema, createEmbedding } from '@revealui/contracts/representation'
 
 // Entities (User, Site, Page)
-import { UserContract, PageContract, SiteContract } from '@revealui/contracts/entities'
+import { UserSchema, PageSchema, SiteSchema, createUser, createPage, createSite } from '@revealui/contracts/entities'
 
 // Content (blocks)
 import { BlockSchema, createTextBlock } from '@revealui/contracts/content'
@@ -44,10 +44,10 @@ import { ConfigContract, CollectionContract } from '@revealui/contracts/admin'
 import { AgentMemorySchema, AgentContextSchema } from '@revealui/contracts/agents'
 
 // Database (DB ↔ Contract bridges)
-import { dbRowToContract, contractToDbInsert } from '@revealui/contracts/database'
+import { dbRowToContract, batchContractToDbInsert } from '@revealui/contracts/database'
 
 // Actions (action validation)
-import { validateAction, checkConstraints } from '@revealui/contracts/actions'
+import { validateAction } from '@revealui/contracts/actions'
 
 // Secrets (revvault path convention, rotation events, audit log entries)
 import { SecretPathSchema, RotationEventSchema, SecretAuditEventSchema } from '@revealui/contracts/secrets'

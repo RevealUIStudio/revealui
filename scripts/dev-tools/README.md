@@ -1,6 +1,6 @@
 ---
 title: "Development & Testing Tools"
-description: "Development utilities for testing, debugging, and validating the RevealUI codebase."
+description: "Development utilities for running apps locally, focusing watchers, and integration testing."
 visibility: internal
 status: verified
 audience: contributor
@@ -8,99 +8,102 @@ audience: contributor
 
 # Development & Testing Tools
 
-Development utilities for testing, debugging, and validating the RevealUI codebase.
+Development utilities for running the RevealUI apps locally, focusing dev
+watchers, provisioning a test database, and running integration tests. Each is
+surfaced as a root `package.json` alias.
 
-## Test Database Management
+## Local Development
+
+### revealui-shell.sh
+
+**Purpose**: bootstrap the local dev environment.
+**Command**: `pnpm dev:up`
+
+Shell entry point that brings up the local development stack.
+
+### admin-local.ts
+
+**Purpose**: run the admin app locally and programmatically (headless-friendly).
+**Command**: `pnpm dev:admin:local`
+
+Distinct from `pnpm dev:admin`, which starts the admin dev server without
+provisioning a database.
+
+### dev-focus.ts
+
+**Purpose**: start dev watchers only for specified packages/apps.
+**Command**: `pnpm dev:focus <targets...>`
+
+```bash
+pnpm dev:focus api core    # Watch API and core only
+```
+
+### dev-watchdog.ts
+
+**Purpose**: monitor file activity and kill idle dev watchers.
+**Command**: `pnpm dev:watched`
+
+Runs alongside `pnpm dev` or `pnpm dev:focus`. When no source files have been
+modified for the configured idle timeout, it sends SIGTERM to the dev process
+group.
+
+### Dismount-WSLDev.ps1
+
+PowerShell helper for dismounting the portable WSL dev drive.
+
+## Database & Types
 
 ### test-database.ts
-**Purpose**: Cross-platform test database setup
-**Usage**: `pnpm db:setup-test`
 
-Starts PostgreSQL test database and runs migrations. Uses Docker Compose with test configuration.
+**Purpose**: provision a test / local-dev Postgres database (idempotent,
+connection-string first).
+**Command**: `pnpm db:setup-test`
 
-Features:
-- Auto-detects `docker compose` vs `docker-compose`
-- Waits for database readiness
-- Applies migrations
-- Enables pgvector extension
-- Outputs connection string for tests
+Resolves the target database from an explicit connection string
+(`--url=…` > `TEST_DATABASE_URL` > `POSTGRES_URL` > `DATABASE_URL`), then applies
+migrations and enables required extensions.
 
-Environment:
-- Uses `infrastructure/docker-compose/services/test.yml`
-- Creates database at `postgresql://test:test@localhost:5433/test_revealui`
+### post-migration-types.ts
 
-### test-neon-connection.ts
-**Purpose**: Verify Neon database connectivity
+**Purpose**: regenerate TypeScript types after database migrations.
+**Command**: `pnpm db:generate-types`
 
-Tests connection to Neon database and validates configuration.
+Run after applying Drizzle migrations to keep types in sync.
+`pnpm db:migrate-and-generate` runs the migration and this step together.
 
 ## Integration Testing
 
 ### run-integration-tests.ts
-**Purpose**: Execute integration test suite with proper database config
-**Usage**: `pnpm test:integration`
 
-Runs integration tests for packages that require database access (e.g., `@revealui/ai`).
+**Purpose**: run integration tests with the correct database configuration.
+**Command**: `pnpm test:integration`
 
-Features:
-- Sets up test database automatically
-- Configures test environment variables
-- Runs tests with proper isolation
-
-### run-memory-tests.ts
-**Purpose**: Run tests with memory profiling
-
-Executes tests while monitoring memory usage to detect leaks and optimize performance.
-
-### verify-test-setup.ts
-**Purpose**: Verify test environment is correctly configured
-
-Checks:
-- Docker availability
-- Database connectivity
-- Required environment variables
-- Migration status
-- Test script locations
-
-## Sync & Data Testing
-
-### test-electric-sync.ts
-**Purpose**: Test Electric-SQL synchronization
-
-Tests Electric sync configuration and connectivity.
+Automatically provisions the test database when `POSTGRES_URL` is not set, then
+runs the integration suites for packages that require database access.
 
 ## Troubleshooting
 
 ### Test Database Issues
 
 ```bash
-# Verify test setup
-pnpm tsx scripts/dev-tools/verify-test-setup.ts
-
-# Setup fresh test database
+# Provision a fresh test database
 pnpm db:setup-test
 ```
 
-### Common Issues
-
 **Database won't start**
-- Ensure Docker is running
-- Check port 5433 is not in use
-- Review Docker Compose logs
+- Ensure Docker is running.
+- Check the target port is not already in use.
 
 **Migrations fail**
-- Verify migration files exist in `packages/db/migrations/`
-- Check database permissions
-- Ensure pgvector extension is available
+- Verify migration files exist in `packages/db/migrations/`.
+- Ensure the `pgvector` extension is available.
 
 **Tests can't connect**
-- Confirm `POSTGRES_URL` environment variable is set
-- Verify database is running: `docker ps`
-- Check network connectivity
+- Confirm `POSTGRES_URL` (or one of the fallbacks above) is set.
+- Verify the database is running: `docker ps`.
 
 ## Related
 
-- Test configuration: `scripts/__tests__/`
-- Setup scripts: `scripts/setup/`
-- Validation scripts: `scripts/validate/`
+- Setup scripts: [`../setup/README.md`](../setup/README.md)
+- Validation scripts: [`../validate/README.md`](../validate/README.md)
 - Database commands: `scripts/commands/database/`

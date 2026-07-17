@@ -125,7 +125,7 @@ async function main(): Promise<void> {
                 {
                   type: 'text',
                   version: 1,
-                  text: 'People, content, offers, payments, and agents — pre-wired.',
+                  text: 'People, content, offers, payments, and agents. Pre-wired.',
                 },
               ],
             },
@@ -146,7 +146,7 @@ async function main(): Promise<void> {
     blockCount: blocks.length,
     seo: {
       title: 'RevealUI',
-      description: 'Agentic business runtime — people, content, offers, payments, and agents.',
+      description: 'Agentic business runtime. People, content, offers, payments, and agents.',
     },
     publishedAt: now,
     createdAt: now,

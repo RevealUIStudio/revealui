@@ -88,7 +88,6 @@ TYPE-USAGE-REPORT.json
 
 # Claude Code
 skills-lock.json
-.claude/
 
 # TypeScript
 *.tsbuildinfo
@@ -164,10 +163,16 @@ supabase/.temp/
 .zedignore
 .cursorrules
 
-# AI tool configs — distributed via editor-configs repo
-# Setup: editor-configs/link.sh --target . --profile revealui
+# AI tool configs — distributed via revcon (github.com/RevealUIStudio/revcon).
+# .claude/ local state stays ignored, but the rules/agents/skills surface is
+# MATERIALIZED by revcon (link.sh --mode copy), git-tracked, and gated by
+# `pnpm validate:rules-lockstep` against .claude/.revcon-manifest.json.
 CLAUDE.md
-.claude/
+.claude/*
+!.claude/rules/
+!.claude/agents/
+!.claude/skills/
+!.claude/.revcon-manifest.json
 .agents/
 
 # RevealUI cache files (PGlite database)

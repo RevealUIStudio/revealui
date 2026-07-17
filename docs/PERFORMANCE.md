@@ -64,14 +64,18 @@ Performance testing is designed to:
 
 ### 1. Load Tests (k6)
 
-Located in `packages/test/load-tests/`:
-- `auth-load.js` - Authentication system load test
-- `admin-load.js` - admin operations load test
-- `ai-load.js` - AI/agent operations load test
+Located in `packages/test/load-tests/load/`:
+- `auth/auth-load.js` - Authentication system load test
+- `auth/auth-login.js` - Login flow load test
+- `ai/ai-load.js` - AI/agent operations load test
+- `api/api-pages.js` - Page-rendering API load test
+- `payments/payment-processing.js` - Payment processing load test
+
+There is no `admin-load.js` anywhere in the repo; admin has no dedicated load test yet.
 
 ### 2. Stress Tests (k6)
 
-Located in `packages/test/load-tests/auth/`:
+Located in `packages/test/load-tests/load/auth/`:
 - `auth-stress.js` - Find authentication system breaking point
 - `auth-sign-up.js` - Sign-up endpoint performance
 - `auth-sign-in.js` - Sign-in endpoint performance
@@ -80,14 +84,11 @@ Located in `packages/test/load-tests/auth/`:
 
 ### 3. Performance Analysis Scripts
 
-Located in `scripts/performance/`:
-- `analyze-auth-performance.ts` - Analyze auth performance metrics
+There is no `scripts/performance/` directory in this repo; `analyze-auth-performance.ts` was never built.
 
 ### 4. Baseline and Regression Scripts
 
-Located in `scripts/test/`:
-- `performance-baseline.ts` - Record baseline performance metrics
-- `performance-regression.ts` - Compare current vs baseline metrics
+There is no `scripts/test/` directory in this repo; `performance-baseline.ts` and `performance-regression.ts` were never built. The real performance entry points are the `test:perf:*` scripts in `packages/test/package.json` (see "Establish Baseline" below) and `pnpm --filter @revealui/cache test` for the one benchmark that does exist (PGlite vs in-memory cache).
 
 ## Prerequisites and Setup
 
@@ -144,68 +145,51 @@ Add these secrets to your GitHub repository:
 
 ```bash
 # Run auth load test
-k6 run packages/test/load-tests/auth-load.js
-
-# Run admin load test
-k6 run packages/test/load-tests/admin-load.js
+k6 run packages/test/load-tests/load/auth/auth-load.js
 
 # Run AI load test
-k6 run packages/test/load-tests/ai-load.js
+k6 run packages/test/load-tests/load/ai/ai-load.js
+
+# Run payments load test
+k6 run packages/test/load-tests/load/payments/payment-processing.js
 ```
+
+There is no admin load test yet, so no `k6 run` command exists for one.
 
 ### Stress Tests
 
 ```bash
 # Run auth stress test
-k6 run packages/test/load-tests/auth/auth-stress.js
+k6 run packages/test/load-tests/load/auth/auth-stress.js
 
 # Run specific auth operation tests
-k6 run packages/test/load-tests/auth/auth-sign-up.js
-k6 run packages/test/load-tests/auth/auth-sign-in.js
-k6 run packages/test/load-tests/auth/auth-session-validation.js
-k6 run packages/test/load-tests/auth/auth-rate-limiting.js
+k6 run packages/test/load-tests/load/auth/auth-sign-up.js
+k6 run packages/test/load-tests/load/auth/auth-sign-in.js
+k6 run packages/test/load-tests/load/auth/auth-session-validation.js
+k6 run packages/test/load-tests/load/auth/auth-rate-limiting.js
 ```
 
 ### Establish Baseline
 
-```bash
-# Run baseline performance tests
-pnpm test:performance:baseline
+There is no `pnpm test:performance:baseline` command and no `scripts/test/performance-baseline.ts` file in this repo; that automated baseline pipeline was never built. What exists are the `test:perf:*` scripts in `packages/test/package.json` (`test:perf:auth`, `test:perf:auth:signin`, `test:perf:auth:signup`, `test:perf:auth:session`, `test:perf:auth:ratelimit`, `test:perf:auth:stress`), each wrapping a k6 run, e.g. `pnpm --filter @revealui/test test:perf:auth`. Equivalent direct invocations:
 
-# Or directly
-tsx scripts/test/performance-baseline.ts
+```bash
+k6 run packages/test/load-tests/load/auth/auth-sign-in.js
+k6 run packages/test/load-tests/load/auth/auth-sign-up.js
+k6 run packages/test/load-tests/load/auth/auth-session-validation.js
+k6 run packages/test/load-tests/load/auth/auth-rate-limiting.js
+k6 run packages/test/load-tests/load/auth/auth-stress.js
 ```
 
-This will:
-1. Run all performance tests
-2. Collect metrics
-3. Save baseline to `packages/test/load-tests/baseline.json`
+Record results by hand until a baseline pipeline exists.
 
 ### Check for Regressions
 
-```bash
-# Compare current performance to baseline
-pnpm test:performance:regression
-
-# Or directly
-tsx scripts/test/performance-regression.ts
-```
-
-This will:
-1. Run all performance tests
-2. Compare metrics to baseline
-3. Report any regressions
-4. Exit with error code if regressions detected
+There is no `pnpm test:performance:regression` command and no `scripts/test/performance-regression.ts` file in this repo. Compare k6 output across runs manually until an automated regression checker is built.
 
 ### Analyze Performance
 
-```bash
-# Analyze auth performance metrics
-tsx scripts/performance/analyze-auth-performance.ts
-
-# Analyze baseline data
-pnpm --filter test test:perf:analyze
-```
+There is no analysis script in this repo (`scripts/performance/analyze-auth-performance.ts` was never built, and the former `test:perf:analyze` alias pointed at a nonexistent file and has been removed). Read the k6 summary output from each run directly.
 
 ## Performance Budgets
 
@@ -219,57 +203,31 @@ Performance budgets define acceptable thresholds for response times and error ra
 
 #### Step 1: Collect Baseline Data
 
-Run performance tests multiple times to collect baseline metrics:
+There is no `pnpm test:performance` command in this repo, and the automated budget-collection pipeline described in this section (`scripts/test/performance-baseline.ts`, `scripts/test/performance-regression.ts`) was never built. Run the underlying k6 scripts directly and record results by hand until that pipeline exists:
 
 ```bash
-# Run performance tests 5-10 times to build statistical confidence
+# Run a k6 load test 5-10 times to build statistical confidence
 for i in {1..5}; do
   echo "Run $i/5"
-  pnpm test:performance
+  k6 run packages/test/load-tests/load/auth/auth-sign-in.js
   sleep 30  # Wait between runs
 done
 ```
 
 #### Step 2: Analyze Baseline Data
 
-Use the analysis script to understand current performance characteristics:
-
-```bash
-# Analyze the collected baseline data
-pnpm --filter test test:perf:analyze
-```
-
-This produces output like:
-```
-📊 auth/auth-sign-in.js:
-   Sample Size: 5 runs
-   Current P95: avg=1200ms, median=1150ms, 95th%ile=1350ms
-   Error Rates: avg=0.20%, median=0.15%, max=0.50%
-   Data Range: P95 1100ms - 1350ms
-   Recommended Budgets: P95 ≤1688ms, Error Rate ≤0.55%
-```
+There is no analysis script in this repo yet. Read the k6 summary output from each run directly, since there is no tool that aggregates P95 and error-rate recommendations for you today.
 
 #### Step 3: Update Budgets
 
-Copy the recommended budgets from the analysis output into `scripts/test/performance-regression.ts`:
-
-```typescript
-const PRODUCTION_BUDGETS = {
-  'auth/auth-sign-in.js': { p95: 1688, errorRate: 0.005 }, // Based on analysis
-  // ... other endpoints
-}
-```
+There is no `scripts/test/performance-regression.ts` file in this repo to hold budgets. Track budget numbers wherever you record baseline results (a comment, a spreadsheet, a tracking issue) until a regression-checking script exists.
 
 #### Step 4: Test Budgets
 
-Run performance tests to verify budgets work correctly:
+There is no `pnpm test:performance` command or `scripts/test/performance-regression.ts` script in this repo yet. Verify budgets manually by re-running the relevant k6 scripts and comparing against whatever budget numbers you tracked in Step 3:
 
 ```bash
-# Run tests to ensure they pass with new budgets
-pnpm test:performance
-
-# Run regression check
-pnpm tsx scripts/test/performance-regression.ts
+k6 run packages/test/load-tests/load/auth/auth-sign-in.js
 ```
 
 ### Budget Calculation Logic
@@ -309,11 +267,7 @@ Update budgets quarterly or when:
 
 #### Automated Updates
 
-Consider setting up automated budget updates:
-```bash
-# Monthly cron job to update budgets
-0 2 1 * * /path/to/project/scripts/test/analyze-performance-baseline.ts > budgets-update.txt
-```
+Automated budget updates are aspirational, not implemented. `scripts/test/analyze-performance-baseline.ts` does not exist in this repo, so there is nothing to cron yet. Once an analysis script exists, a monthly cron job is a reasonable way to keep budgets current.
 
 ## Staging Environment Testing
 
@@ -342,7 +296,7 @@ Production Deployment
 
 ### Deployment Configuration
 
-Update the deployment step in `.github/workflows/staging-performance.yml`:
+There is no `.github/workflows/staging-performance.yml` file in this repo; the staging-gate pipeline described in this section is aspirational. The sketch below shows what a deployment step could look like once that workflow is built.
 
 ```yaml
 - name: Deploy to staging
@@ -366,12 +320,11 @@ Update the deployment step in `.github/workflows/staging-performance.yml`:
 
 ### Running Staging Tests Locally
 
-```bash
-# Run tests against staging
-BASE_URL=https://staging.your-domain.com pnpm test:performance
+There is no `pnpm test:performance` command or `scripts/test/performance-regression.ts` script in this repo yet. Point the k6 scripts at staging directly:
 
-# Check regression against production budgets
-PERFORMANCE_ENV=staging pnpm tsx scripts/test/performance-regression.ts
+```bash
+# Run a k6 script against staging
+BASE_URL=https://staging.your-domain.com k6 run packages/test/load-tests/load/auth/auth-sign-in.js
 ```
 
 ### Staging Benefits
@@ -437,11 +390,13 @@ Tests define performance thresholds:
 
 This section provides comprehensive details about the authentication performance testing suite.
 
+Each test below has an equivalent `pnpm --filter @revealui/test test:perf:auth:*` shortcut, but those shortcuts currently point at a stale path (`load-tests/auth/...` instead of `load-tests/load/auth/...`) and fail with a file-not-found error until `packages/test/package.json` is fixed. Use the direct `k6 run` command shown for each test.
+
 ### Test Suite
 
 #### 1. Sign-In Performance Test ✅
 
-**File:** `packages/test/load-tests/auth/auth-sign-in.js`
+**File:** `packages/test/load-tests/load/auth/auth-sign-in.js`
 
 **Purpose:** Test sign-in endpoint under normal load
 
@@ -457,13 +412,12 @@ This section provides comprehensive details about the authentication performance
 
 **Run:**
 ```bash
-k6 run packages/test/load-tests/auth/auth-sign-in.js
-# Or: pnpm test:perf:auth:signin
+k6 run packages/test/load-tests/load/auth/auth-sign-in.js
 ```
 
 #### 2. Sign-Up Performance Test ✅
 
-**File:** `packages/test/load-tests/auth/auth-sign-up.js`
+**File:** `packages/test/load-tests/load/auth/auth-sign-up.js`
 
 **Purpose:** Test sign-up endpoint under normal load
 
@@ -479,13 +433,12 @@ k6 run packages/test/load-tests/auth/auth-sign-in.js
 
 **Run:**
 ```bash
-k6 run packages/test/load-tests/auth/auth-sign-up.js
-# Or: pnpm test:perf:auth:signup
+k6 run packages/test/load-tests/load/auth/auth-sign-up.js
 ```
 
 #### 3. Session Validation Test ✅
 
-**File:** `packages/test/load-tests/auth/auth-session-validation.js`
+**File:** `packages/test/load-tests/load/auth/auth-session-validation.js`
 
 **Purpose:** Test session validation performance
 
@@ -501,13 +454,12 @@ k6 run packages/test/load-tests/auth/auth-sign-up.js
 
 **Run:**
 ```bash
-k6 run packages/test/load-tests/auth/auth-session-validation.js
-# Or: pnpm test:perf:auth:session
+k6 run packages/test/load-tests/load/auth/auth-session-validation.js
 ```
 
 #### 4. Rate Limiting Test ✅
 
-**File:** `packages/test/load-tests/auth/auth-rate-limiting.js`
+**File:** `packages/test/load-tests/load/auth/auth-rate-limiting.js`
 
 **Purpose:** Verify rate limiting works correctly
 
@@ -522,13 +474,12 @@ k6 run packages/test/load-tests/auth/auth-session-validation.js
 
 **Run:**
 ```bash
-k6 run packages/test/load-tests/auth/auth-rate-limiting.js
-# Or: pnpm test:perf:auth:ratelimit
+k6 run packages/test/load-tests/load/auth/auth-rate-limiting.js
 ```
 
 #### 5. Stress Test ✅
 
-**File:** `packages/test/load-tests/auth/auth-stress.js`
+**File:** `packages/test/load-tests/load/auth/auth-stress.js`
 
 **Purpose:** Find breaking point of the system
 
@@ -546,8 +497,7 @@ k6 run packages/test/load-tests/auth/auth-rate-limiting.js
 
 **Run:**
 ```bash
-k6 run packages/test/load-tests/auth/auth-stress.js
-# Or: pnpm test:perf:auth:stress
+k6 run packages/test/load-tests/load/auth/auth-stress.js
 ```
 
 ### Authentication Performance Targets
@@ -624,21 +574,10 @@ CREATE INDEX sessions_expires_at_idx ON sessions(expires_at);
 
 ### GitHub Actions
 
-Performance tests can be run in CI/CD:
+No performance workflow exists in `.github/workflows/` today, and the repo's `.github/workflows/` directory has no `performance.yml` or similar. The sketch below is aspirational: it shows how a workflow could be wired up once the underlying baseline/regression commands exist, using a real k6 file path.
 
 ```yaml
-# Example workflow
-- name: Run Performance Tests
-  run: |
-    pnpm test:performance:baseline
-    pnpm test:performance:regression
-```
-
-### Continuous Performance Testing
-
-Add to `.github/workflows/performance.yml`:
-
-```yaml
+# Aspirational example, not a shipped workflow
 name: Performance Tests
 
 on:
@@ -653,7 +592,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: grafana/k6-action@v0.3.1
         with:
-          filename: packages/test/load-tests/auth/auth-sign-in.js
+          filename: packages/test/load-tests/load/auth/auth-sign-in.js
 ```
 
 ### Baseline Metrics
@@ -765,7 +704,7 @@ export BASE_URL=http://localhost:3000
 **Symptoms:** Frequent build failures despite acceptable performance
 
 **Solution:**
-1. Run analysis: `pnpm --filter test test:perf:analyze`
+1. Re-run the relevant k6 scripts and read their summary output (no aggregation tool exists yet)
 2. Increase buffer in formula (try 1.4 instead of 1.25)
 3. Review if infrastructure changes affected baselines
 
@@ -1466,65 +1405,14 @@ Clearly document rate limits and optimization strategies in API documentation.
 
 ## Benchmarking
 
-Location: `scripts/performance/benchmark-api.ts`
-
-### Running Benchmarks
+No dedicated API benchmark runner ships in this repo today (`scripts/performance/benchmark-api.ts` and the `pnpm benchmark:api` command described in earlier drafts of this doc were never built). The one benchmark that exists is `packages/cache/src/__tests__/benchmark-pglite-vs-map.test.ts`, which compares PGlite-backed and in-memory cache performance:
 
 ```bash
-# Run all API benchmarks
-pnpm benchmark:api
-
-# Run specific benchmark
-pnpm benchmark:api compression
-pnpm benchmark:api caching
-pnpm benchmark:api rate-limit
+# Run the cache benchmark
+pnpm --filter @revealui/cache test
 ```
 
-### Benchmark Suites
-
-1. **Compression Benchmark**
-   - Compare gzip vs brotli
-   - Measure compression ratios at different levels
-   - Test with various payload sizes
-
-2. **Caching Benchmark**
-   - Measure cache hit/miss performance
-   - Test invalidation strategies
-   - Compare in-memory vs database-backed
-
-3. **Payload Optimization Benchmark**
-   - Measure field selection impact
-   - Test pagination performance
-   - Compare offset vs cursor pagination
-
-4. **Rate Limiting Benchmark**
-   - Compare fixed window vs sliding window
-   - Test token bucket performance
-   - Measure overhead of rate limiting
-
-### Example Results
-
-```
-Compression Benchmark:
-  Gzip Level 6:     65% reduction, 15ms
-  Brotli Level 6:   72% reduction, 18ms
-  Brotli Level 11:  78% reduction, 45ms (pre-compress only)
-
-Caching Benchmark:
-  Cache Hit:        2ms avg
-  Cache Miss:       150ms avg
-  Hit Rate:         85%
-
-Payload Optimization:
-  Full Payload:     125KB
-  Optimized:        32KB (74% reduction)
-  Field Selection:  5ms overhead
-
-Rate Limiting:
-  Fixed Window:     0.3ms overhead
-  Sliding Window:   0.8ms overhead
-  Token Bucket:     0.5ms overhead
-```
+Compression, caching, payload-optimization, and rate-limiting benchmarking (fixed window vs sliding window, token bucket overhead) are still worth doing manually, but there is no automated suite for any of it yet, and no measured numbers to report here.
 
 ## Production Recommendations
 
@@ -2122,13 +2010,14 @@ assertUnder('.next/static/chunks/main.js', 200 * 1024)
 
 ### CI Integration
 
+There is no `.github/workflows/bundle-check.yml` in this repo and no `pnpm benchmark:bundle:size` command. The sketch below is aspirational, built on the manual `assertUnder` check above rather than an invented benchmark command.
+
 ```yaml
-# .github/workflows/bundle-check.yml
+# Aspirational example, not a shipped workflow
 - name: Check Bundle Size
   run: |
     pnpm build
-    pnpm benchmark:bundle:size
-    # Fail if bundle exceeds budget
+    node ./scripts/check-bundle-size.mjs   # would need to be written; wraps assertUnder above
 ```
 
 ## Best Practices
@@ -2232,70 +2121,7 @@ Always enable Brotli for best compression:
 
 ## Benchmarking
 
-Location: `scripts/performance/benchmark-bundle.ts`
-
-### Running Benchmarks
-
-```bash
-# Run all bundle benchmarks
-pnpm benchmark:bundle
-
-# Run specific benchmark
-pnpm benchmark:bundle:build        # Build performance
-pnpm benchmark:bundle:size         # Bundle size
-pnpm benchmark:bundle:splitting    # Code splitting
-pnpm benchmark:bundle:assets       # Asset optimization
-pnpm benchmark:bundle:tree-shaking # Tree shaking
-pnpm benchmark:bundle:compression  # Compression
-```
-
-### Benchmark Results
-
-Example output:
-
-```
-=== Bundle Size Analysis ===
-
-admin Bundle:
-  Total Size: 387.45 KB
-  Files: 124
-  Large Files: 3
-  Health Score: 85/100
-
-  Top 5 Large Files:
-    vendors.js: 156.23 KB (40.3%)
-    main.js: 98.76 KB (25.5%)
-    react-vendors.js: 87.45 KB (22.6%)
-
-=== Code Splitting Effectiveness ===
-
-Chunk Analysis:
-  Total Chunks: 12
-  Initial Chunks: 3
-  Async Chunks: 9
-
-Size Distribution:
-  Initial Load: 312.44 KB (70.5%)
-  Async Chunks: 130.67 KB (29.5%)
-
-Code Splitting Impact:
-  Without splitting: 443.11 KB
-  With splitting (30% async loaded): 351.64 KB
-  Savings: 91.47 KB (20.6%)
-
-=== Tree Shaking Effectiveness ===
-
-lodash:
-  Without: 71.00 KB
-  With: 5.00 KB
-  Savings: 66.00 KB (93.0%)
-  Method: Per-method imports
-
-Total Impact:
-  Without tree shaking: 472.00 KB
-  With tree shaking: 61.00 KB
-  Total savings: 411.00 KB (87.1%)
-```
+No dedicated bundle benchmark runner ships in this repo today (`scripts/performance/benchmark-bundle.ts` and the `pnpm benchmark:bundle*` commands described in earlier drafts of this doc were never built). `apps/admin` does wire up `@next/bundle-analyzer` via `pnpm --filter admin analyze`, which produces a real bundle-composition report. Combine that with the manual `assertUnder` budget check shown above to catch regressions until an automated benchmark exists.
 
 ## Performance Targets
 
@@ -2313,7 +2139,7 @@ Total Impact:
 
 ### Large Bundle Size
 
-1. Run bundle analyzer: `pnpm benchmark:bundle:size`
+1. Run bundle analyzer: `pnpm --filter admin analyze`
 2. Check for duplicate dependencies
 3. Verify tree shaking is working
 4. Split large components
@@ -3253,62 +3079,14 @@ return freshData
 
 ## Benchmarking
 
-Location: `scripts/performance/benchmark-cache.ts`
-
-### Running Benchmarks
+No dedicated cache benchmark runner ships in this repo today (`scripts/performance/benchmark-cache.ts` and the `pnpm benchmark:cache*` commands described in earlier drafts of this doc were never built). The one benchmark that exists is `packages/cache/src/__tests__/benchmark-pglite-vs-map.test.ts`, which compares PGlite-backed and in-memory cache performance:
 
 ```bash
-# Run all cache benchmarks
-pnpm benchmark:cache
-
-# Run specific benchmark
-pnpm benchmark:cache:cdn          # CDN headers
-pnpm benchmark:cache:keys         # Cache key generation
-pnpm benchmark:cache:optimistic   # Optimistic updates
-pnpm benchmark:cache:hit-rate     # Cache hit rate simulation
-pnpm benchmark:cache:dedupe       # Query deduplication
-pnpm benchmark:cache:cdn-perf     # CDN vs origin performance
-pnpm benchmark:cache:isr          # ISR vs SSR
-pnpm benchmark:cache:storage      # Storage performance
+# Run the cache benchmark
+pnpm --filter @revealui/cache test
 ```
 
-### Example Results
-
-```
-=== Cache Hit Rate Simulation ===
-
-Cache Statistics:
-  Total Queries: 1000
-  Cache Hits: 847
-  Cache Misses: 153
-  Hit Rate: 84.7%
-
-Performance Impact:
-  With cache: 25,644ms
-  Without cache: 150,000ms
-  Time savings: 124,356ms (82.9%)
-
-=== ISR vs SSR Performance ===
-
-Rendering Strategy Comparison (10,000 page views):
-
-SSR (Server-Side Rendering):
-  Generations: 10,000
-  Time per generation: 150ms
-  Total time: 1500.0s
-
-ISR (Incremental Static Regeneration):
-  Generations: 17
-  Cached serves: 9,983
-  Time per generation: 150ms
-  Time per cached serve: 20ms
-  Total time: 202.2s
-
-Performance Impact:
-  Time savings: 1297.8s (86.5%)
-  Speedup: 7.4x
-  Server load reduction: 99.8%
-```
+CDN headers, cache-key generation, hit-rate simulation, query deduplication, and ISR-vs-SSR comparisons are still worth measuring manually, but there is no automated suite for any of it yet, and no measured numbers to report here.
 
 ## Troubleshooting
 

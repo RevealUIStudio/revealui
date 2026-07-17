@@ -25,7 +25,8 @@ export const userApiKeys = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
 
     // Which LLM provider this key belongs to
-    provider: text('provider').notNull(), // 'groq' | 'huggingface' | 'inference-snaps' | 'ollama'
+    // 'anthropic' | 'openai' | 'groq' | 'huggingface' | 'inference-snaps' | 'ollama'
+    provider: text('provider').notNull(),
 
     // AES-256-GCM envelope-encrypted API key
     // Format: <base64(iv)>.<base64(authTag)>.<base64(ciphertext)>
@@ -53,7 +54,7 @@ export const userApiKeys = pgTable(
     index('user_api_keys_deleted_at_idx').on(table.deletedAt),
     check(
       'user_api_keys_provider_check',
-      sql`provider IN ('groq', 'huggingface', 'inference-snaps', 'ollama')`,
+      sql`provider IN ('anthropic', 'openai', 'groq', 'huggingface', 'inference-snaps', 'ollama')`,
     ),
   ],
 );

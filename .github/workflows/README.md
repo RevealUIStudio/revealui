@@ -87,7 +87,7 @@ For day-to-day releases, use the local CLI scripts instead of triggering GHA:
 pnpm release:oss
 
 # OSS dry run
-pnpm release:oss:dry
+pnpm release oss --dry-run
 
 # Pro packages now publish via normal changeset flow (Fair Source, FSL-1.1-MIT)
 

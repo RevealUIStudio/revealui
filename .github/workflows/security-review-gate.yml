@@ -33,8 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          # Evaluate with the BASE branch's copy of the gate scripts: the
+          # trusted (base) logic judges the untrusted (head) change, so a PR's
+          # own edits to these files cannot influence its evaluation. Changed
+          # files, labels, comments, and reviews all come from the API, so the
+          # checkout exists only to supply this script code.
+          ref: ${{ github.event.pull_request.base.sha }}
           sparse-checkout: |
             scripts/validate/security-review-gate.cjs
+            scripts/validate/guardrail2-verdict.cjs
           sparse-checkout-cone-mode: false
 
       - name: Evaluate review gate

@@ -16,9 +16,7 @@ This directory contains real-world code examples you can run and learn from:
 
 - **Package Script Validation** - Programmatic script validation
 - **Custom CLI Integration** - Building custom CLIs with BaseCLI
-- **Performance Monitoring** - Integrating telemetry and metrics
 - **Workflow Automation** - Automated development workflows
-- **Testing Utilities** - Test helpers and patterns
 
 ## Running Examples
 
@@ -64,21 +62,7 @@ tsx custom-cli.ts analyze --json
 - Internal automation
 - Team workflows
 
-### 3. Performance Monitoring
-**File:** `performance-monitoring.ts`
-
-Demonstrates integrating performance monitoring:
-
-```bash
-tsx performance-monitoring.ts
-```
-
-**Use cases:**
-- Custom dashboards
-- CI performance tracking
-- Build analytics
-
-### 4. Automated Workflow
+### 3. Automated Workflow
 **File:** `automated-workflow.ts`
 
 Complete example of an automated development workflow:
@@ -91,20 +75,6 @@ tsx automated-workflow.ts
 - Pre-commit checks
 - Release automation
 - Daily maintenance
-
-### 5. Testing Utilities
-**File:** `testing-utilities.ts`
-
-Reusable test helpers and patterns:
-
-```bash
-tsx testing-utilities.ts
-```
-
-**Use cases:**
-- Test setup/teardown
-- Mock utilities
-- Assertion helpers
 
 ## Example Structure
 
@@ -179,9 +149,6 @@ Add to GitHub Actions:
 ## Resources
 
 - [Script Standards](../../scripts/STANDARDS.md)
-- [CLI Demos](../cli-demos/README.md)
-- [Tutorial](../../docs/TUTORIAL.md)
-- [Migration Guide](../../docs/MIGRATION_GUIDE.md)
 
 ---
 

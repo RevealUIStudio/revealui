@@ -1,5 +1,20 @@
 # @revealui/services
 
+## 0.7.6
+
+### Patch Changes
+
+- Correct the README code samples in these packages so they match the real exported API (for example core's `revealui` import becomes `getRevealUI`, and services' `stripeClient` becomes `getStripe`/`protectedStripe`). Documentation only, no source or runtime changes; security's edit is a test corpus README.
+- Updated dependencies [eac1a1b]
+- Updated dependencies
+- Updated dependencies [0cc7f62]
+- Updated dependencies [76efd75]
+  - @revealui/db@0.8.0
+  - @revealui/config@0.5.1
+  - @revealui/core@0.11.1
+  - @revealui/utils@0.3.6
+  - @revealui/contracts@0.7.0
+
 ## 0.7.5
 
 ### Patch Changes

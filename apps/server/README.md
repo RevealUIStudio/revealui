@@ -81,21 +81,21 @@ pnpm test:coverage
 
 ### Billing and Entitlements
 
-| Method | Path                    | Purpose                           |
-| ------ | ----------------------- | --------------------------------- |
-| POST   | `/billing/checkout`     | Create Stripe checkout            |
-| GET    | `/billing/subscription` | Get account subscription status   |
-| POST   | `/billing/portal`       | Create billing portal session     |
-| POST   | `/billing/upgrade`      | Upgrade account subscription tier |
+| Method | Path                         | Purpose                           |
+| ------ | ---------------------------- | --------------------------------- |
+| POST   | `/api/billing/checkout`      | Create Stripe checkout            |
+| GET    | `/api/billing/subscription`  | Get account subscription status   |
+| POST   | `/api/billing/portal`        | Create billing portal session     |
+| POST   | `/api/billing/upgrade`       | Upgrade account subscription tier |
 
 ### API Keys
 
-| Method | Path                   | Purpose                     |
-| ------ | ---------------------- | --------------------------- |
-| POST   | `/api-keys`            | Store encrypted API key     |
-| GET    | `/api-keys`            | List user's keys (redacted) |
-| DELETE | `/api-keys/:id`        | Delete key                  |
-| POST   | `/api-keys/:id/rotate` | Rotate key                  |
+| Method | Path                       | Purpose                     |
+| ------ | -------------------------- | --------------------------- |
+| POST   | `/api/api-keys`            | Store encrypted API key     |
+| GET    | `/api/api-keys`            | List user's keys (redacted) |
+| DELETE | `/api/api-keys/:id`        | Delete key                  |
+| POST   | `/api/api-keys/:id/rotate` | Rotate key                  |
 
 ### License
 
@@ -114,15 +114,17 @@ pnpm test:coverage
 
 ### Webhooks
 
-| Method | Path               | Purpose              |
-| ------ | ------------------ | -------------------- |
-| POST   | `/webhooks/stripe` | Stripe event handler |
+| Method | Path                   | Purpose              |
+| ------ | ---------------------- | -------------------- |
+| POST   | `/api/webhooks/stripe` | Stripe event handler |
 
 ### Collaboration
 
-| Method | Path      | Purpose       |
-| ------ | --------- | ------------- |
-| WS     | `/collab` | Yjs CRDT sync |
+| Method | Path                                        | Purpose                          |
+| ------ | ------------------------------------------- | -------------------------------- |
+| POST   | `/api/collab/update`                        | Apply a Yjs binary update        |
+| GET    | `/api/collab/snapshot/{documentId}`         | Get current Yjs document state   |
+| WS     | `/ws/collab/{documentId}`                   | Live Yjs CRDT sync channel       |
 
 ## Deployment
 

@@ -16,6 +16,8 @@ export {
   AlertDescription,
   AlertTitle,
 } from './components/alert.js';
+// Product-native quartet (Phase 3 PR-1 — receipt motif)
+export { type AuditEvent, AuditLine, type AuditLineProps } from './components/audit-line.js';
 export { Avatar } from './components/avatar.js';
 export { AvatarGroup } from './components/avatar-group.js';
 export { Badge } from './components/badge.js';
@@ -126,6 +128,11 @@ export { Progress } from './components/progress.js';
 export { Radio, RadioField, RadioGroup } from './components/radio.js';
 export { Rating } from './components/rating.js';
 export {
+  ReceiptCard,
+  type ReceiptCardProps,
+  type ReceiptIntegrity,
+} from './components/receipt-card.js';
+export {
   Select as SelectCVA,
   SelectContent,
   type SelectContentProps,
@@ -164,6 +171,7 @@ export { Skeleton, SkeletonCard, SkeletonText } from './components/skeleton.js';
 export { Slider } from './components/slider.js';
 export { StackedLayout } from './components/stacked-layout.js';
 export { Stat, StatGroup } from './components/stat.js';
+export { StatusDot, type StatusDotProps, type StatusDotStatus } from './components/status-dot.js';
 export { Stepper, type StepperStep } from './components/stepper.js';
 export { Switch, SwitchField, SwitchGroup } from './components/switch.js';
 export {
@@ -180,6 +188,7 @@ export { Textarea } from './components/textarea-headless.js';
 export { Timeline, TimelineItem } from './components/timeline.js';
 export { ToastProvider, useToast } from './components/toast.js';
 export { Tooltip } from './components/tooltip.js';
+export { type Verdict, VerdictChip, type VerdictChipProps } from './components/verdict-chip.js';
 export {
   type LinkBehavior,
   LinkBehaviorProvider,

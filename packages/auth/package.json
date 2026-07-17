@@ -1,6 +1,6 @@
 {
   "name": "@revealui/auth",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "Database-backed session auth for Hono and Next.js — bcrypt, OAuth, brute-force protection, rate limiting, password reset. Ships with RevealUI.",
   "keywords": [
     "auth",
@@ -43,10 +43,6 @@
     "./server": {
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
-    },
-    "./client": {
-      "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
     },
     "./react": {
       "types": "./dist/react/index.d.ts",

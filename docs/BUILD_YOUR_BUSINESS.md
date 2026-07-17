@@ -40,7 +40,7 @@ cp .env.template .env.development.local
 
 ```env
 POSTGRES_URL=postgresql://user:password@ep-xxx.neon.tech/mydb?sslmode=require
-REVEALUI_SECRET=<run: bash scripts/generate-secret.sh>
+REVEALUI_SECRET=<run: pnpm secrets:generate --hex --length=32>
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
@@ -158,7 +158,7 @@ tsx scripts/seed-products.ts
 
 ## 4. Add a pricing page
 
-RevealUI ships 61 UI components. Use them to build a pricing page in your frontend app.
+RevealUI ships 65 UI components. Use them to build a pricing page in your frontend app.
 
 In `apps/mainframe/src/pages/pricing.tsx`:
 
@@ -355,7 +355,7 @@ This is the foundation. The five primitives  -  People, Content, Offers, Payment
 ## Next steps
 
 - **Add more collections**  -  orders, reviews, blog posts, anything your business needs
-- **Customize the UI**  -  `packages/presentation` has 61 components to build with
+- **Customize the UI**  -  `packages/presentation` has 65 components to build with
 - **Add AI**  -  Pro tier adds AI agents; see the [AI guide](./AI.md)
 - **Invite your team**  -  role-based access control is already wired in
 

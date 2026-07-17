@@ -111,24 +111,29 @@ If you see `"Webhook handler error"` or `"resolveTier: missing or unknown tier m
 ```bash
 # 1. Webhook event was recorded as processed
 psql "$DATABASE_URL" -c \
-  "SELECT id, type, status, created_at FROM webhook_events
-   WHERE type = 'checkout.session.completed'
-   ORDER BY created_at DESC LIMIT 5;"
-# Expected: most recent row has status='processed' and created_at within
+  "SELECT id, event_type, status, processed_at FROM processed_webhook_events
+   WHERE event_type = 'checkout.session.completed'
+   ORDER BY processed_at DESC LIMIT 5;"
+# Expected: most recent row has status='completed' and processed_at within
 # the last 60 seconds.
 
 # 2. License was minted
 psql "$DATABASE_URL" -c \
-  "SELECT id, tier, revoked_at, created_at FROM licenses
+  "SELECT id, tier, status, created_at FROM licenses
    WHERE customer_id = '<your stripe customer id>'
    ORDER BY created_at DESC LIMIT 5;"
-# Expected: most recent row has tier='pro', revoked_at IS NULL.
+# Expected: most recent row has tier='pro', status='active'.
 
 # 3. Subscription row exists and is active
 psql "$DATABASE_URL" -c \
-  "SELECT id, stripe_subscription_id, tier, status FROM subscriptions
-   WHERE user_id = '<your user id>' ORDER BY created_at DESC LIMIT 5;"
-# Expected: most recent row has tier='pro' and status='active'.
+  "SELECT id, stripe_subscription_id, plan_id, status FROM account_subscriptions
+   WHERE account_id = '<your account id>' ORDER BY created_at DESC LIMIT 5;"
+# Expected: most recent row has status='active'. Tier lives on the entitlement,
+# not the subscription row:
+psql "$DATABASE_URL" -c \
+  "SELECT account_id, tier, status FROM account_entitlements
+   WHERE account_id = '<your account id>';"
+# Expected: tier='pro', status='active'.
 
 # 4. Unreconciled-webhooks queue stayed empty (= no fallback fired)
 psql "$DATABASE_URL" -c \
@@ -137,7 +142,7 @@ psql "$DATABASE_URL" -c \
 # Expected: zero rows. If a row appears, jump to Failure Mode #7.
 ```
 
-The schema for these tables lives in `packages/db/src/schema/` (`webhook_events`, `licenses`, `subscriptions`) and `packages/db/src/schema/webhook-reconciliation.ts` (`unreconciled_webhooks`).
+The schema for these tables lives in `packages/db/src/schema/` (`processed_webhook_events` in `webhook-events.ts`, `licenses` in `licenses.ts`, `account_subscriptions` and `account_entitlements` in `accounts.ts`) and `packages/db/src/schema/webhook-reconciliation.ts` (`unreconciled_webhooks`).
 
 ### Sentry breadcrumb expectations
 
@@ -204,9 +209,9 @@ If new errors appear, the failure mode below names the most likely root cause.
 
 - [ ] Customer journey steps 1-8 complete in under 30 seconds
 - [ ] `/app/` shows the Pro-gated feature rendering correctly post-checkout
-- [ ] `webhook_events` row exists with `status='processed'` for the `checkout.session.completed` event
-- [ ] `licenses` row exists with `tier='pro'`, `revoked_at IS NULL`, `customer_id = <stripe customer id>`
-- [ ] `subscriptions` row exists with `status='active'` and `tier='pro'`
+- [ ] `processed_webhook_events` row exists with `status='completed'` for the `checkout.session.completed` event
+- [ ] `licenses` row exists with `tier='pro'`, `status='active'`, `customer_id = <stripe customer id>`
+- [ ] `account_subscriptions` row exists with `status='active'`; `account_entitlements` row shows `tier='pro'`
 - [ ] `unreconciled_webhooks` table is empty for the last 5 minutes
 - [ ] Sentry shows the expected breadcrumb chain, zero new error issues
 - [ ] Vercel function logs show the three expected log lines (webhook received, license generated, subscription created)
@@ -222,7 +227,7 @@ If every box is ✅, the production checkout flow is **revenue-ready**.
 If the smoke fails after the Stripe charge has gone through (i.e., your card was charged but you didn't get a Pro license, or the license is wrong):
 
 1. **Refund the test charge** — Stripe Dashboard → Payments → find your charge → Refund full. This is the operator's own card; refund is safe.
-2. **Void the license (if one was minted with wrong tier or for the wrong user)** — admin UI: Licenses → find the row → Revoke. Or: `UPDATE licenses SET revoked_at = NOW() WHERE id = '<license id>';`
+2. **Void the license (if one was minted with wrong tier or for the wrong user)** — admin UI: Licenses → find the row → Revoke. Or: `UPDATE licenses SET status = 'revoked' WHERE id = '<license id>';`
 3. **Cancel the subscription (if one was created)** — Stripe Dashboard → Subscriptions → find → Cancel immediately, no proration.
 4. **Clean the unreconciled queue (if a row was created)** — `DELETE FROM unreconciled_webhooks WHERE event_id = '<evt_...>';` after confirming the underlying issue is fixed.
 5. **If the failure was severe (e.g., resolveTier missing on every checkout)** — set `STRIPE_LIVE_MODE=false` in Vercel and redeploy to stop accepting any new charges until the fix lands. This mirrors the post-flip runbook's escalation step.

@@ -353,7 +353,7 @@ The `MCP_API_KEY` is **NOT** a Supabase key - it's a key you generate yourself t
 
 - **Auto-generated**: If not set, the script will auto-generate a secure random key (shown in console)
 - **Recommended**: Copy the auto-generated key to your `.env` file to persist it across restarts
-- **Manual generation**: Run `bash scripts/generate-secret.sh` to generate a 64-character hex string
+- **Manual generation**: Run `pnpm secrets:generate --hex --length=32` to generate a 64-character hex string
 - **Purpose**: Authenticates requests to the MCP server HTTP endpoint (prevents unauthorized access)
 
 **Example:**
@@ -926,7 +926,7 @@ All MCP servers are **completely free**:
 
 # Open-Model Inference
 
-RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, no vendor lock-in, no API bills.
+RevealUI AI defaults to open source models running on your own hardware. It never hosts a model and ships no proprietary vendor SDK. Cloud providers are opt-in adapters that call the vendor's own OpenAI-compatible endpoint using your own API key.
 
 ## Inference Paths
 
@@ -935,13 +935,16 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 | Path | Runtime | Notes |
 |------|---------|-------|
 | **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
-| **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
+| **Groq** | Cloud, your own key | Bring your own key, opt-in via `GROQ_API_KEY` |
+| **Anthropic** | Cloud, your own key | Bring your own key, opt-in via `ANTHROPIC_API_KEY`. Calls Anthropic's OpenAI-compatible endpoint directly. No proprietary Anthropic SDK. |
+| **OpenAI** | Cloud, your own key | Bring your own key, opt-in via `OPENAI_API_KEY` |
+| **HuggingFace** | Cloud, your own key | Bring your own key. Calls the HuggingFace OpenAI-compatible inference endpoint. Select explicitly via `LLM_PROVIDER=huggingface` (not part of auto-detect). |
 
 ### Planned (roadmap)
 
 | Path | Runtime | Current state | Tracking |
 |------|---------|---------------|----------|
-| **Ubuntu Inference Snaps** | Canonical snap runtime | CLI install works today for Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano (`sudo snap install <model>`). Setting `INFERENCE_SNAPS_BASE_URL` wires an already-running snap service to the LLM client. Studio lifecycle management (start / stop / health / model discovery) is **not shipped**. | Integration issue to be filed; see MASTER_PLAN §CR-9 P1-04 |
+| **Ubuntu Inference Snaps** | Canonical snap runtime | CLI install works today for Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano (`sudo snap install <model>`). Setting `INFERENCE_SNAPS_BASE_URL` wires an already-running snap service to the LLM client. Studio lifecycle management (start / stop / health / model discovery) is **not shipped**. | Integration issue to be filed; tracked internally as CR-9 P1-04 |
 
 ## Server-side usage
 
@@ -949,9 +952,13 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
 
 // Auto-detects from environment in precedence order:
-//   INFERENCE_SNAPS_BASE_URL (if set — planned path, manual wiring)
+//   INFERENCE_SNAPS_BASE_URL (if set, planned path, manual wiring)
+//   GROQ_API_KEY
 //   OLLAMA_BASE_URL (default local runtime)
-//   HUGGINGFACE_API_KEY (hosted fallback)
+//   ANTHROPIC_API_KEY
+//   OPENAI_API_KEY
+// HuggingFace works too, but it is not part of this auto-detect list.
+// Set LLM_PROVIDER=huggingface explicitly to use it.
 const llm = createLLMClientFromEnv();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
@@ -960,18 +967,28 @@ const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ## Environment configuration
 
 ```bash
-# Ubuntu inference snap — planned path; requires manual snap install + service
+# Ubuntu inference snap, planned path; requires manual snap install + service
 # (see Planned roadmap table above). Studio UI lifecycle not shipped.
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 
 # Ollama (any open source model)
 OLLAMA_BASE_URL=http://localhost:11434/v1
 
-# HuggingFace Inference API (open models)
-HUGGINGFACE_API_KEY=hf_xxxxx
+# Groq (cloud, your own key)
+GROQ_API_KEY=gsk_xxxxx
+
+# Anthropic (cloud, your own key)
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+
+# OpenAI (cloud, your own key)
+OPENAI_API_KEY=sk-xxxxx
+
+# HuggingFace (cloud, your own key; not part of auto-detect, requires LLM_PROVIDER=huggingface below)
+HF_TOKEN=hf_xxxxx
+HF_MODEL_URL=https://your-model-endpoint.huggingface.cloud
 
 # Force specific inference path (overrides auto-detection)
-# Valid values: ollama, huggingface, inference-snaps (planned)
+# Valid values: ollama, groq, anthropic, openai, huggingface, inference-snaps (planned)
 LLM_PROVIDER=ollama
 ```
 

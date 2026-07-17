@@ -157,7 +157,7 @@ Example: `@revealui/presentation`
   "vercel-build": "next build"
 }
 ```
-Example: `admin`, `web`
+Example: `admin`
 
 #### Packages with Database Migrations
 ```json
@@ -170,33 +170,24 @@ Example: `@revealui/db`
 
 ## 🔍 Validation
 
-Use the maintain CLI to validate your package scripts:
+There is no automated package-scripts validator. Keep a package aligned with its
+template by comparing the two directly:
 
 ```bash
-# Audit all package scripts
-pnpm maintain:audit-scripts
+# View your current scripts
+cat packages/yourpackage/package.json | jq '.scripts'
 
-# Validate against templates
-pnpm maintain:validate-scripts
-
-# Auto-fix issues (with dry-run)
-pnpm maintain:fix-scripts --dry-run
+# Compare against the recommended template
+cat .revealui/templates/library.json | jq '.scripts'
 ```
 
-## 📊 Current Standardization
+Then confirm the standard scripts run:
 
-**Target:** <15% duplication
-**Baseline:** 42.3% duplication
-
-### Scripts Already Standardized ✅
-- `typecheck` - 100% consistent across 12 packages
-- `test:watch` - 100% consistent across 11 packages
-- `format` - 100% consistent across 5 packages
-
-### Scripts Needing Standardization ⚠️
-- `build` - 7 different implementations
-- `dev` - 9 different implementations
-- `lint:eslint` - 2 different implementations
+```bash
+pnpm --filter yourpackage build
+pnpm --filter yourpackage test
+pnpm --filter yourpackage lint
+```
 
 ## 🚀 Migration Guide
 
@@ -215,14 +206,9 @@ cat .revealui/templates/library.json | jq '.scripts'
 ### Step 3: Update Scripts
 Copy relevant scripts from the template, preserving any package-specific customizations.
 
-### Step 4: Validate
+### Step 4: Verify
 ```bash
-pnpm maintain:validate-scripts
-```
-
-### Step 5: Test
-```bash
-# Test that all standard scripts work
+# Confirm the standard scripts work
 pnpm --filter yourpackage build
 pnpm --filter yourpackage test
 pnpm --filter yourpackage lint

@@ -42,7 +42,7 @@ Mission: build the self-hosted runtime where a business and the AI agents that r
 14 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
 
 **External integrations:** Stripe, Supabase, Neon, Vercel, Playwright
-**Developer tools:** Code Validator, Next.js DevTools, Vultr Test
+**Developer tools:** Code Validator, Contracts Introspection, RevealUI Docs, Next.js DevTools
 **RevealUI-native:** Content, Email, Memory, Stripe-RevealUI
 **Adapter framework:** (shared across the above)
 
@@ -50,7 +50,7 @@ Full details in `docs/PRO.md`.
 
 ## License
 
-- **OSS (MIT):** @revealui/auth, @revealui/cache, @revealui/cli, @revealui/config, @revealui/contracts, @revealui/core, @revealui/db, @revealui/dev, @revealui/openapi, @revealui/paywall, @revealui/presentation, @revealui/resilience, @revealui/router, @revealui/security, @revealui/setup, @revealui/sync, @revealui/utils, plus create-revealui, revealui, and test
+- **OSS (MIT):** @revealui/auth, @revealui/cache, @revealui/cli, @revealui/config, @revealui/contracts, @revealui/core, @revealui/db, @revealui/dev, @revealui/knowledge-graph, @revealui/openapi, @revealui/paywall, @revealui/presentation, @revealui/resilience, @revealui/router, @revealui/security, @revealui/setup, @revealui/sync, @revealui/utils, plus create-revealui, revealui, and test
 - **Pro packages (FSL-1.1-MIT, source-available):** @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services
 - **Internal (no published license):** @revealui/scripts
 

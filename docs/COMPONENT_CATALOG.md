@@ -9,7 +9,7 @@ audience: developer
 
 **Last Updated:** 2026-07-11
 **Packages:** `@revealui/presentation`, `@revealui/core`
-**Total Components:** **61 native components in `@revealui/presentation`** (this catalog also documents admin and rich-text UI in `@revealui/core`, listed separately below).
+**Total Components:** **65 native components in `@revealui/presentation`** (this catalog also documents admin and rich-text UI in `@revealui/core`, listed separately below).
 
 > Counting rule (enforced in CI by `pnpm validate:claims`; canonical source `scripts/validate/claim-drift.ts` `countUIComponents()`, canonical value in `apps/marketing/app/content/site.ts` `METRICS`): the 61 figure counts `.tsx` files directly in `packages/presentation/src/components/`, excluding `_`-prefixed internal helpers. The package's `packages/presentation/src/primitives/` subpath (Box, Flex, Grid, Text, Heading, Slot; 6 files, listed under Primitives below) ships from the same package but is a separate directory the validator does not scan, so it is not part of the 61. `@revealui/core` admin/rich-text counts below are catalog-maintained, not CI-gated.
 
@@ -1768,7 +1768,7 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (61 components in `components/`, per the validated count; plus 6 in the separate `primitives/` subpath)
+### @revealui/presentation (65 components in `components/`, per the validated count; plus 6 in the separate `primitives/` subpath)
 - 6 Primitives (Box, Flex, Grid, Text, Heading, Slot), `primitives/` subpath, not counted in the 61
 - 17 Form Controls (Button, LinkButton, Input, Textarea, Select, Checkbox, Radio, Switch, Label, FormLabel, Fieldset, Combobox, Listbox, Dropdown, FormField, Rating, Slider)
 - 14 Data Display (Card, Table, Description List, Avatar, Badge, Divider, Heading, Text, Accordion, AvatarGroup, CodeBlock, PricingTable, Stat, Timeline)
@@ -1807,4 +1807,4 @@ Prop tables regenerate against source, not against this document. When in doubt,
 ---
 
 **Last Updated:** 2026-07-11
-**Packages:** `@revealui/presentation` (61 components, per the validated count; see the counting-rule note at the top of this document), `@revealui/core` (25 components, catalog-maintained)
+**Packages:** `@revealui/presentation` (65 components, per the validated count; see the counting-rule note at the top of this document), `@revealui/core` (25 components, catalog-maintained)

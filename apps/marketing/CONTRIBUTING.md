@@ -22,7 +22,7 @@ JSX.**
 | `content/pricing.ts`, `pricing-faq.ts`, `pricing-teaser.ts` | `/pricing` copy (tier data re-exported from `@revealui/contracts/pricing`) |
 | `content/marketplace.ts`, `capabilities.ts`, `proof.ts` | marketplace + proof sections |
 | `content/roadmap.ts` | `/roadmap` page (Recently shipped / Coming next) |
-| `content/fair-source.ts`, `sponsor.ts`, `nav.ts`, `contact.ts` | the remaining surfaces |
+| `content/fair-source.ts`, `nav.ts`, `contact.ts` | the remaining surfaces |
 
 ## Numbers are single-sourced
 

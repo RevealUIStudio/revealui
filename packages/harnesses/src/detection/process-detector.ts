@@ -29,6 +29,7 @@ const HARNESS_PROCESS_PATTERNS: Record<string, string[]> = {
   'claude-code': ['claude'],
   cursor: ['cursor', 'Cursor'],
   copilot: ['copilot'],
+  opencode: ['opencode'],
 };
 
 /** Finds running process instances for a specific harness. */

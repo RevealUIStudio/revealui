@@ -40,6 +40,7 @@ export {
   diffContent,
   generateContent,
   listContent,
+  OpenCodeGenerator,
   validateManifest,
 } from './content/index.js';
 export type { CoordinatorOptions } from './coordinator.js';
@@ -88,6 +89,9 @@ export type {
   McpServerConfig,
   MemoryBackend,
   NormalizedEvent,
+  OpenCodeConfig,
+  OpenCodeMcpOptions,
+  OpenCodeMcpServerConfig,
   ProtocolAdapter,
   ProtocolAdapterInfo,
   ProtocolCapabilities,
@@ -114,6 +118,7 @@ export {
   protocolConfigToAgentsMd,
   protocolConfigToClaudeSettings,
   protocolConfigToCursorrules,
+  protocolConfigToOpencodeConfig,
   protocolEventEnvelopeSchema,
   protocolEventSchema,
   TOOL_PROFILES,

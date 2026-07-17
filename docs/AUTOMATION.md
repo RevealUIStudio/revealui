@@ -95,5 +95,5 @@ The `scripts/` tree contains internal automation building blocks that are not re
 - [`docs/CI_CD_GUIDE.md`](./CI_CD_GUIDE.md) — CI gate phases, status checks, workflow definitions.
 - [`docs/guides/deployment.md`](./guides/deployment.md) — deployment targets and environment configuration.
 - [`docs/ENVIRONMENT-VARIABLES-GUIDE.md`](./ENVIRONMENT-VARIABLES-GUIDE.md) — environment variable conventions.
-- [`docs/MASTER_PLAN.md`](./MASTER_PLAN.md) — single source of truth for active planning.
+- [`docs/ROADMAP.md`](./ROADMAP.md): public roadmap. Active planning lives in the internal coordination hub; [`docs/MASTER_PLAN.md`](./MASTER_PLAN.md) is a retired pointer stub.
 - [`SECURITY.md`](../SECURITY.md) — full security posture.

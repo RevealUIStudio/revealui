@@ -32,7 +32,7 @@ This document is the honest disclosure of what the RevealUI security stack gover
 | Agent action policies | `AuditPolicyEngine` evaluates post-execution; can halt the offending agent (`halt_agent`) or all agents (`halt_all`); built-in policies for tool-rate limits, self-modification, denied tool access, fleet memory flood, consecutive failures | `packages/ai/src/audit/policy.ts` |
 | Tool dispatch | All agent tool calls funnel through `@revealui/mcp`; tier-based JWT authorization on tool invocation; per-tool permission lists | `packages/mcp/src/auth.ts` |
 | Input validation | Zod-typed schemas from `@revealui/contracts`; `isSafeUrl()` blocks `javascript:` / `vbscript:` / `data:` in Lexical rendering; Drizzle parameterized queries | `@revealui/contracts`, Lexical link/image rendering |
-| Webhook integrity | Stripe webhook signature verification; per-endpoint rate limiting (100 req/min) | `apps/server/src/routes/webhooks.ts` |
+| Webhook integrity | Stripe webhook signature verification; per-endpoint rate limiting (500 req/min) | `apps/server/src/routes/webhooks.ts` |
 | GDPR | Consent management, data deletion, PII anonymization, Neon `pgvector` cleanup | `@revealui/security` GDPR framework |
 | Supply chain | Pinned dependency overrides for known CVEs; Dependabot + CodeQL + Gitleaks in CI; `pnpm audit` in CI gate | Root `package.json` `pnpm.overrides`, `.github/workflows/security.yml` |
 
@@ -140,7 +140,7 @@ If any of these assumptions is violated, controls in this stack may fail in ways
 
 ## 7. Roadmap items that will narrow these limits
 
-Tracked in `docs/MASTER_PLAN.md`. Cited here so the limitations above are not perceived as final.
+Tracked in the internal coordination hub's master plan. Cited here so the limitations above are not perceived as final.
 
 - **Pre-execution policy gate at the MCP dispatch boundary** — moves `AuditPolicyEngine`-style checks from post-execution to pre-execution at the tool layer. Closes §4.1.
 - **DID + Ed25519 RPC signing for the RevDev daemon** — per-call cryptographic identity verification. Closes §4.3.

@@ -9,6 +9,8 @@
 export { Accordion, AccordionItem } from './accordion.js';
 // Components exported below were implemented but previously unexported
 export { Alert, AlertActions, AlertBody, AlertDescription, AlertTitle } from './alert.js';
+// Product-native quartet (Phase 3 PR-1 — receipt motif)
+export { type AuditEvent, AuditLine, type AuditLineProps } from './audit-line.js';
 // Layout components
 export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
@@ -115,6 +117,11 @@ export { Progress } from './progress.js';
 export { Radio, RadioField, RadioGroup } from './radio.js';
 export { Rating } from './rating.js';
 export {
+  ReceiptCard,
+  type ReceiptCardProps,
+  type ReceiptIntegrity,
+} from './receipt-card.js';
+export {
   Select as SelectCVA,
   SelectContent,
   type SelectContentProps,
@@ -157,6 +164,7 @@ export {
 } from './split-auth-layout.js';
 export { StackedLayout } from './stacked-layout.js';
 export { Stat, StatGroup } from './stat.js';
+export { StatusDot, type StatusDotProps, type StatusDotStatus } from './status-dot.js';
 export { Stepper, type StepperStep } from './stepper.js';
 export { Switch, SwitchField, SwitchGroup } from './switch.js';
 export { Textarea as TextareaCVA, type TextareaProps } from './Textarea.js';
@@ -174,4 +182,5 @@ export { Textarea } from './textarea-headless.js';
 export { Timeline, TimelineItem } from './timeline.js';
 export { ToastProvider, useToast } from './toast.js';
 export { Tooltip } from './tooltip.js';
+export { type Verdict, VerdictChip, type VerdictChipProps } from './verdict-chip.js';
 export { RevealUIWordmark, type RevealUIWordmarkProps } from './wordmark.js';

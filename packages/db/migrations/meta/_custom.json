@@ -56,6 +56,12 @@
       "rationale": "GAP-356 revenue blocker: widens account_entitlements_status_check to allow 'trialing' (the customer.subscription.created handler writes raw subscription.status into the entitlement upsert, so every trial checkout's entitlement INSERT threw a check violation and paying trial customers got no entitlement row) and adds nullable last_event_at to account_subscriptions + account_entitlements for the event-to-event staleness guard. Hand-written because a CHECK-constraint widening needs an idempotent drop/re-add: DROP CONSTRAINT IF EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object + ADD COLUMN IF NOT EXISTS, following the 0014/0015 precedent. Companion Drizzle schema change at packages/db/src/schema/accounts.ts widens the check() and adds the lastEventAt columns.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. The Drizzle schema at accounts.ts already reflects the widened constraint and lastEventAt columns at the type level; webhooks.ts queries via Drizzle."
+    },
+    {
+      "tag": "0024_widen_provider_check_anthropic_openai",
+      "rationale": "GAP-360 PR-1 provider-surface widening: adds 'anthropic' and 'openai' to the provider CHECK on user_api_keys and workspace_inference_configs (and to the workspace_inference_configs key-pairing CHECK, in the keyed/non-NULL branch alongside groq/huggingface). Hand-written because a CHECK-constraint widening needs an idempotent drop/re-add: DROP CONSTRAINT IF EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object, following the 0014/0015/0023 precedent. Constraint-widening only, no backfill. tenant_provider_configs is intentionally untouched — it has no provider CHECK in the schema, so there is nothing to widen. Companion Drizzle schema changes at packages/db/src/schema/api-keys.ts and inference-configs.ts widen the check() calls.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. The Drizzle schema at api-keys.ts + inference-configs.ts already reflects the widened constraints at the type level; consumers query via Drizzle."
     }
   ]
 }

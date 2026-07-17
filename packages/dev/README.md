@@ -62,8 +62,6 @@ Available configs (use relative paths):
 
 **Note**: TypeScript configs use relative paths because JSON `extends` doesn't support package imports.
 
-**See**: [TypeScript README](./src/ts/README.md)
-
 ## Usage Examples
 
 ### Biome Configuration
@@ -160,4 +158,4 @@ This package is named `@revealui/dev` in the monorepo workspace. Use `@revealui/
 - All configs use ESM (ES Modules) - no CommonJS
 - Configs are designed to be extended, not used directly
 - TypeScript configs use relative paths because JSON `extends` doesn't support package imports
-- Import paths use the package name directly: `dev/...` (workspace protocol)
+- Import paths use the full package name: `@revealui/dev/...`

@@ -31,7 +31,7 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 
 Revenue tiers control AI access via runtime feature gating:
 
-> **Pricing source.** Tier pricing is defined in [`packages/contracts/src/pricing.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) and exposed at runtime via `GET /api/pricing` (which falls back to Stripe Products API in production). Treat the linked file as the source of truth; the table below is a snapshot.
+> **Pricing source.** Tier pricing is defined in [`packages/contracts/src/pricing.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) and exposed at runtime via `GET /api/pricing`, which reads from the Stripe Products API when configured and falls back to private server-side defaults when Stripe is unavailable. Treat the linked file as the source of truth; the table below is a snapshot.
 
 | Tier | AI Access | Task Quota | Coding Tools | Inference |
 |------|-----------|-----------|--------------|-----------|

@@ -19,7 +19,7 @@ audience: agent
 
 ## Turborepo
 - `turbo run build --parallel` for parallel builds
-- `turbo run test --concurrency=15` for parallel tests
+- `turbo run test --concurrency=2` for parallel tests
 - Package-level `turbo.json` for task overrides (rare)
 - Cache stored in `.turbo/` (gitignored)
 

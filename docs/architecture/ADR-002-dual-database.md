@@ -9,7 +9,7 @@ audience: user
 **Date:** 2026-04-08
 **Status:** Superseded by [2026-05-01-supabase-removal](../decisions/2026-05-01-supabase-removal.md) on 2026-05-01
 
-> **⚠️ Superseded — preserved for history.** The dual-database model was reversed by ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md): the canonical stack is now **NeonDB primary + ElectricSQL sync**, with Supabase as an optional, being-retired RAG sidecar (Phase 7 consolidates it onto NeonDB `pgvector`). `agent_memories` live in NeonDB, not Supabase. The boundary enforcement described below still applies during the phase-out; do not build net-new features on Supabase-specific behavior.
+> **⚠️ Superseded, preserved for history.** The dual-database model was reversed by ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md): the canonical stack is now **NeonDB primary + ElectricSQL sync**, with Supabase as an optional, being-retired RAG sidecar (Phase 7 consolidates it onto NeonDB `pgvector`). `agent_memories` live in NeonDB, not Supabase. The `supabase-boundary.js` hook and `boundary.ts` CI validator described below never shipped as automated mechanisms; the boundary is enforced by convention and review (see `docs/agent-rules/database-boundaries.md`). Do not build net-new features on Supabase-specific behavior.
 
 ## Context
 
@@ -23,16 +23,16 @@ Two PostgreSQL databases, each with a distinct role:
 
 2. **Supabase** (vectors/auth)  -  Vector embeddings for AI memory, semantic search, and agent context. Accessed via the Supabase JS client. Also hosts Supabase Auth for social OAuth flows (GitHub, Google, Vercel) which redirect tokens back to RevealUI's session-based auth.
 
-### Boundary enforcement
+### Boundary enforcement (as originally proposed; not built as automation, see banner above)
 
-The `supabase-boundary.js` pre-tool-use hook and the `boundary.ts` CI validator enforce that `@supabase/supabase-js` imports only appear in permitted paths:
+The ADR proposed a `supabase-boundary.js` pre-tool-use hook and a `boundary.ts` CI validator to enforce that `@supabase/supabase-js` imports only appear in permitted paths:
 - `packages/db/src/vector/`
 - `packages/auth/`
 - `packages/ai/`
 - `packages/services/src/supabase/`
 - `apps/*/src/lib/supabase/`
 
-All other code must go through `@revealui/db` query helpers.
+Neither mechanism was ever implemented; `scripts/validate/structure.ts:1` and `scripts/validate/boundary.ts:1` contain no Supabase-import check. All other code must go through `@revealui/db` query helpers; the current boundary rule (convention plus review) lives in `docs/agent-rules/database-boundaries.md`.
 
 ## Alternatives Considered
 

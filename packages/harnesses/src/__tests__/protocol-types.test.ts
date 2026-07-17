@@ -35,8 +35,8 @@ describe('protocol capabilities', () => {
 });
 
 describe('TOOL_PROFILES (shipped adapters)', () => {
-  it('contains revealui-agent only', () => {
-    expect(Object.keys(TOOL_PROFILES)).toEqual(['revealui-agent']);
+  it('contains opencode and revealui-agent', () => {
+    expect(Object.keys(TOOL_PROFILES).sort()).toEqual(['opencode', 'revealui-agent']);
   });
 
   it('revealui-agent has full dispatch capabilities', () => {
@@ -53,6 +53,27 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
     expect(caps.lifecycleEvents).toHaveLength(10);
   });
 
+  it('opencode is headless/resumable/forkable/backgroundable but has no hooks', () => {
+    const caps = TOOL_PROFILES.opencode;
+    expect(caps).toBeDefined();
+    expect(caps.dispatch.generateCode).toBe(true);
+    expect(caps.dispatch.analyzeCode).toBe(true);
+    expect(caps.dispatch.applyEdit).toBe(false);
+    expect(caps.dispatch.executeCommand).toBe(true);
+    expect(caps.headless).toBe(true);
+    expect(caps.resumable).toBe(true);
+    expect(caps.forkable).toBe(true);
+    expect(caps.backgroundable).toBe(true);
+    expect(caps.hooks.supported).toBe(false);
+    expect(caps.hooks.canBlock).toBe(false);
+    expect(caps.supportsSkills).toBe(true);
+    expect(caps.supportsMcp).toBe(true);
+    expect(caps.supportsWorktrees).toBe(false);
+    // 0 is the documented BYO-model sentinel for opencode (see the
+    // maxContextTokens doc comment on ProtocolCapabilities), not a defect.
+    expect(caps.maxContextTokens).toBe(0);
+  });
+
   it('does not contain entries for tools without adapters', () => {
     expect(TOOL_PROFILES['claude-code']).toBeUndefined();
     expect(TOOL_PROFILES.codex).toBeUndefined();
@@ -61,7 +82,7 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
 });
 
 describe('ROADMAP_PROFILES (declared, no adapter)', () => {
-  it('contains the three spec-declared tools', () => {
+  it('contains the three remaining spec-declared tools (opencode graduated to TOOL_PROFILES)', () => {
     expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'cursor']);
   });
 
@@ -93,21 +114,23 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
 });
 
 describe('ALL_KNOWN_PROFILES (merged view)', () => {
-  it('contains all four declared tools', () => {
+  it('contains all five declared tools', () => {
     expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
       'claude-code',
       'codex',
       'cursor',
+      'opencode',
       'revealui-agent',
     ]);
   });
 
   it('shipped entries take precedence over roadmap entries on key collision', () => {
-    // No collision today (the four IDs are disjoint), but the spread order
+    // No collision today (the five IDs are disjoint), but the spread order
     // (...ROADMAP_PROFILES first, then ...TOOL_PROFILES) guarantees that
     // a future shipped adapter overrides any roadmap declaration with the
-    // same ID. Verify the shape of revealui-agent matches TOOL_PROFILES.
+    // same ID. Verify the shape of the shipped profiles matches TOOL_PROFILES.
     expect(ALL_KNOWN_PROFILES['revealui-agent']).toEqual(TOOL_PROFILES['revealui-agent']);
+    expect(ALL_KNOWN_PROFILES.opencode).toEqual(TOOL_PROFILES.opencode);
   });
 });
 
@@ -215,6 +238,14 @@ describe('degradation strategies', () => {
 
   it('returns absent for unknown tools', () => {
     expect(getDegradationStrategy('unknown-tool', 'session.start')).toBe('absent');
+  });
+
+  it('returns absent for opencode per-tool events (no hooks) and polyfill for lifecycle events', () => {
+    expect(getDegradationStrategy('opencode', 'tool.before')).toBe('absent');
+    expect(getDegradationStrategy('opencode', 'tool.after')).toBe('absent');
+    expect(getDegradationStrategy('opencode', 'tool.blocked')).toBe('absent');
+    expect(getDegradationStrategy('opencode', 'session.start')).toBe('polyfill');
+    expect(getDegradationStrategy('opencode', 'agent.heartbeat')).toBe('polyfill');
   });
 
   it('revealui-agent has no degradation for any event', () => {

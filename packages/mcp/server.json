@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.revealuistudio/revealui",
+  "description": "MCP servers for the RevealUI runtime. First-party: contracts, docs, revealui-content, revealui-email, revealui-memory, revealui-stripe. Adapters (require pnpm on PATH; they launch the upstream MCP package): stripe, supabase, vercel, neon, playwright, next-devtools. Launch one server per process: revealui-mcp <server>.",
+  "repository": {
+    "url": "https://github.com/RevealUIStudio/revealui",
+    "source": "github"
+  },
+  "version": "0.8.0",
+  "packages": [
+    {
+      "registry_type": "npm",
+      "registry_base_url": "https://registry.npmjs.org",
+      "identifier": "@revealui/mcp",
+      "version": "0.8.0",
+      "runtime_hint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "package_arguments": [
+        {
+          "type": "positional",
+          "value_hint": "server",
+          "description": "Which server to launch: contracts, docs, neon, next-devtools, playwright, revealui-content, revealui-email, revealui-memory, revealui-stripe, stripe, supabase, or vercel.",
+          "is_required": true
+        }
+      ]
+    }
+  ]
+}
