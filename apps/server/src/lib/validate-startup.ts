@@ -259,17 +259,17 @@ export function validateStartup(
   }
 
   // Audit HMAC signing secret — required in both modes. Mirrors the fallback
-  // getAuditSecret() uses at write time (postgres-audit-storage.ts):
-  // REVEALUI_AUDIT_HMAC_SECRET, falling back to REVEALUI_SECRET. That runtime
-  // check throws per-write into a swallowing `.catch()`, so a misconfigured
-  // deploy served traffic for however long it took someone to notice the
-  // audit trail was silent. Checking the same effective value here means a
-  // server that cannot sign the audit log refuses to boot instead — this
-  // duplicates (does not replace) getAuditSecret()'s own defense-in-depth
-  // throw. REVEALUI_SECRET is already REQUIRED_IN_PRODUCTION_{HOSTED,FORGE}
-  // above, so in a correctly configured deploy this branch is unreachable;
-  // it exists to catch the same impossible states getAuditSecret() guards
-  // against (env tampering mid-run) at boot instead of at the first write.
+  // getAuditSecret() uses at write time in the governed-MCP receipt signer
+  // (apps/server/src/lib/mcp-audit.ts): REVEALUI_AUDIT_HMAC_SECRET, falling
+  // back to REVEALUI_SECRET. (The main request/credential/bootstrap audit path
+  // writes UNSIGNED rows since GAP-355 Stage 1; only the MCP receipt stream
+  // signs today, pending Stage 3.) Checking the effective value here means a
+  // server whose MCP receipt signer has no key refuses to boot instead of
+  // throwing per-write — this duplicates (does not replace) getAuditSecret()'s
+  // own defense-in-depth throw. REVEALUI_SECRET is already
+  // REQUIRED_IN_PRODUCTION_{HOSTED,FORGE} above, so in a correctly configured
+  // deploy this branch is unreachable; it exists to catch the same impossible
+  // states getAuditSecret() guards against (env tampering mid-run) at boot.
   const auditHmacSecret = env.REVEALUI_AUDIT_HMAC_SECRET ?? env.REVEALUI_SECRET ?? '';
   if (!skipFormat(auditHmacSecret)) {
     if (!auditHmacSecret) {

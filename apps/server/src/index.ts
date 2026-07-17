@@ -44,9 +44,9 @@ import { logger as honoLogger } from 'hono/logger';
 // (POST /api/jobs/run) invocations see the same registry. See
 // CR8-P2-01 phase C.
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
+import { auditStorageSelfTest, installAuditStorage } from './lib/audit-storage.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
-import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
@@ -1326,8 +1326,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // serve() and binds a port → EADDRINUSE / hung worker. VITEST is set by the
   // runner regardless of any NODE_ENV stub, so it's the reliable signal.
   if (!process.env.VITEST) {
-    // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
-    audit.setStorage(new PostgresAuditStorage());
+    // Swap in persistent audit storage (replaces default InMemoryAuditStorage).
+    installAuditStorage();
     validateStartup();
     // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
     // present); in self-hosted Forge mode it throws on missing/invalid license,
@@ -1339,8 +1339,14 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // immediately); kept in the chain for symmetry with the production block
     // below, where it fails boot if `billing_catalog` isn't seeded for live
     // mode (prevents mid-customer-transaction 500s).
+    //
+    // auditStorageSelfTest writes a synthetic event through the just-installed
+    // storage and reads it back, exiting the process if the round trip fails —
+    // fail-closed integrity (ADR §2a). Sequenced AFTER installAuditStorage() so
+    // it exercises the real persistent path, not the in-memory default.
     validateLicenseAtStartup()
       .then(() => validateBillingCatalogAtStartup())
+      .then(() => auditStorageSelfTest())
       .then(() => runHostedLicenseCanary())
       .then(() => initializeLicense())
       .then((tier) => {
@@ -1408,8 +1414,21 @@ configureClientIp({ trustedProxyCount: 1 });
 // regardless of any NODE_ENV stub, and several suites re-import this module with
 // NODE_ENV='production' (vi.resetModules) — without the guard those imports
 // would throw on the test env's intentionally-incomplete config.
+//
+// installAuditStorage() also runs here: the Vercel serverless handler serves
+// `/api/*` (with auditMiddleware mounted), so THIS process must swap the audit
+// system onto persistent storage — otherwise request-level audit events fall
+// into the default InMemoryAuditStorage and evaporate on every invocation
+// (the core defect of GAP-355). It is synchronous and side-effect-free at call
+// time (getClient() is lazy), so it does NOT reintroduce the cold-start
+// port-binding / DB-round-trip cost the Phase-2 extraction removed. The
+// round-trip self-test (auditStorageSelfTest) deliberately does NOT run here —
+// it lives on the long-running worker + dev boot chains, where an async boot
+// path already exists and process.exit(1) gives "refuse to serve" clean
+// semantics that serverless cold-start cannot.
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.VITEST) {
     validateStartup();
+    installAuditStorage();
   }
 }
