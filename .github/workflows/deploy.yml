@@ -91,8 +91,14 @@ jobs:
       # validateStartup at module init but were invisible to a name-only
       # `vercel env ls | grep` check. Closes GAP-125.
 
+      # Pinned, not @latest (all 3 install sites in this file): the unpinned
+      # CLI auto-bumped 56.2.1 -> 56.3.1 mid-train on 2026-07-17 and changed
+      # what `vercel pull` emits for sensitive-type vars (decrypted values ->
+      # the [SENSITIVE] placeholder), failing prod-env validation with 10
+      # findings while neither the repo nor the project env had changed.
+      # Bump deliberately, in lockstep with scripts/validate/prod-env.ts.
       - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
+        run: pnpm add -g vercel@56.3.1
 
       - name: Resolve api project id from .github/vercel-projects.json
         run: echo "API_PROJECT_ID=$(jq -r '.api' .github/vercel-projects.json)" >> "$GITHUB_ENV"
@@ -357,7 +363,7 @@ jobs:
           cache: pnpm
 
       - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
+        run: pnpm add -g vercel@56.3.1
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -499,7 +505,7 @@ jobs:
           # Failures are tracked via counters and surfaced at the end.
           set +e
           echo "::warning::Smoke test failed — rolling back affected apps"
-          pnpm add -g vercel@latest
+          pnpm add -g vercel@56.3.1
           APP_LIST="${{ needs.detect.outputs.app-list }}"
           ROLLBACK_FAILED=0
           ROLLBACK_NO_HISTORY=0
