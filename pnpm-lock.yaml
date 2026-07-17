@@ -412,6 +412,9 @@ importers:
       '@revealui/dev':
         specifier: workspace:*
         version: link:../../packages/dev
+      '@revealui/test':
+        specifier: workspace:*
+        version: link:../../packages/test
       '@simplewebauthn/server':
         specifier: ^13.3.2
         version: 13.3.2
