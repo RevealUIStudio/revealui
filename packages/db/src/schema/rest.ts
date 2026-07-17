@@ -63,6 +63,7 @@ export * from './magic-links.js';
 export * from './marketplace.js';
 export * from './mcp-document-operations.js';
 export * from './node-ids.js';
+export * from './nudges.js';
 export * from './oauth-accounts.js';
 export * from './pages.js';
 export * from './passkeys.js';
