@@ -1,10 +1,12 @@
 import { CursorGenerator } from './cursor.js';
 import { OpenCodeGenerator } from './opencode.js';
 import type { ContentGenerator } from './types.js';
+import { VSCodeGenerator } from './vscode.js';
 
 export { CursorGenerator } from './cursor.js';
 export { OpenCodeGenerator } from './opencode.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
+export { VSCodeGenerator } from './vscode.js';
 
 const generators = new Map<string, ContentGenerator>();
 
@@ -28,3 +30,4 @@ export function listGenerators(): string[] {
 // of this module -- no manual registration call required.
 registerGenerator(new OpenCodeGenerator());
 registerGenerator(new CursorGenerator());
+registerGenerator(new VSCodeGenerator());

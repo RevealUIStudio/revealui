@@ -10,7 +10,7 @@
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--print]             Print current workboard state
  *   coordinate --init <path>         Register this session in the workboard and start daemon
- *   hook <cursor|claude-code>        Normalize a hook payload from stdin, evaluate policy, spool the receipt
+ *   hook <cursor|claude-code|vscode> Normalize a hook payload from stdin, evaluate policy, spool the receipt
  *
  * License: FSL-1.1-MIT
  */
@@ -387,7 +387,7 @@ async function readStdin(): Promise<string> {
 async function handleHookCommand(source: string | undefined): Promise<void> {
   if (!(source && isImplementedHookSource(source))) {
     process.stderr.write(
-      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code\n`,
+      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode\n`,
     );
     process.exitCode = 1;
     return;
@@ -608,7 +608,7 @@ Commands:
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
   coordinate --init [<path>]        Register + start daemon
-  hook <cursor|claude-code>         Normalize a hook payload from stdin, evaluate policy, spool the receipt
+  hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
   content <subcommand>              Manage canonical content definitions
 
 Content Subcommands:

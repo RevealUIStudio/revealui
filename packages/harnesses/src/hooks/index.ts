@@ -4,6 +4,7 @@ export {
   normalizeClaudeCodeHookEvent,
   normalizeCursorHookEvent,
   normalizeHookEvent,
+  normalizeVSCodeHookEvent,
 } from './normalizers/index.js';
 export type {
   PolicyDecision,

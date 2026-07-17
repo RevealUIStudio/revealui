@@ -42,6 +42,7 @@ export {
   generateContent,
   listContent,
   OpenCodeGenerator,
+  VSCodeGenerator,
   validateManifest,
 } from './content/index.js';
 export type { CoordinatorOptions } from './coordinator.js';
@@ -109,6 +110,7 @@ export {
   normalizeClaudeCodeHookEvent,
   normalizeCursorHookEvent,
   normalizeHookEvent,
+  normalizeVSCodeHookEvent,
   runHookCommand,
 } from './hooks/index.js';
 // Harness Protocol (was VAUGHN until 2026-05-18; see docs/HARNESS_PROTOCOL.md)
@@ -140,6 +142,10 @@ export type {
   ProtocolRule,
   ProtocolSkill,
   SandboxMode,
+  VSCodeMcpConfig,
+  VSCodeMcpInput,
+  VSCodeMcpOptions,
+  VSCodeMcpServerConfig,
 } from './protocol/index.js';
 export {
   claudeSettingsToProtocolConfig,
@@ -155,6 +161,7 @@ export {
   protocolConfigToCursorMcpConfig,
   protocolConfigToCursorrules,
   protocolConfigToOpencodeConfig,
+  protocolConfigToVSCodeMcpConfig,
   protocolEventEnvelopeSchema,
   protocolEventSchema,
   TOOL_PROFILES,
