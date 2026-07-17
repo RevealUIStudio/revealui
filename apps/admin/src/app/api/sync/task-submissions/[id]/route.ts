@@ -6,9 +6,13 @@
  *
  * Authenticated, owner-scoped. Mirrors the revmarket API's cancellation
  * policy (POST /api/revmarket/tasks/:id/cancel): non-admin users may only
- * cancel their own pending/queued tasks. Admins may set any valid status.
- * Deletion is owner-or-admin; non-admins may only delete unbilled tasks
- * that are not running or completed.
+ * cancel their own pending/queued tasks. Running transitions are
+ * executor-owned: a running task cannot be moved to any other status through
+ * this route by anyone, admins included, because that races the executor's
+ * status='running' completion CAS and destroys the run's audit row (GAP-352).
+ * Via this route only a pending/queued task may be cancelled, by its owner or
+ * an admin. Deletion is owner-or-admin; non-admins may only delete unbilled
+ * tasks that are not running or completed.
  */
 
 import { getSession } from '@revealui/auth/server';
@@ -93,13 +97,35 @@ export async function PATCH(
           403,
         );
       }
-      if (!CANCELLABLE_STATUSES.has(task.status)) {
-        return createApplicationErrorResponse(
-          `Cannot cancel task in '${task.status}' state`,
-          'VALIDATION_ERROR',
-          400,
-        );
-      }
+    }
+
+    // Running transitions are executor-owned, enforced for everyone including
+    // admins. The executor moves a task off 'running' via its status='running'
+    // completion CAS (revmarket-executor.ts completeTask); moving a running
+    // task to ANY other status through this route (cancelled, completed,
+    // failed) races that CAS, so the CAS then finds no row and skips the audit
+    // write, silently destroying the record of a run that actually happened
+    // (GAP-352). A cosmetic status flip here also lies about an outcome the
+    // sandbox is still producing. There is no legitimate human transition of a
+    // running task via this sync route.
+    if (task.status === 'running' && body.status !== 'running') {
+      return createApplicationErrorResponse(
+        `Cannot transition a running task to '${body.status}' here; running is executor-owned`,
+        'VALIDATION_ERROR',
+        400,
+      );
+    }
+
+    // Cancel-state-machine policy, enforced for everyone including admins: a
+    // task is only cancellable from a pending/queued state (this catches the
+    // remaining non-cancellable sources, e.g. cancelling a completed/failed
+    // task).
+    if (body.status === 'cancelled' && !CANCELLABLE_STATUSES.has(task.status)) {
+      return createApplicationErrorResponse(
+        `Cannot cancel task in '${task.status}' state`,
+        'VALIDATION_ERROR',
+        400,
+      );
     }
 
     const [updated] = await db

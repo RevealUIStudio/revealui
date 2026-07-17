@@ -351,7 +351,15 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
     .returning();
 
   if (!updated) {
-    logger.warn('RevMarket task completion failed  -  state race', { taskId });
+    // The row is no longer in 'running' (e.g. an admin PATCH moved it to
+    // 'cancelled' via the sync route). The CAS is a no-op AND the audit row
+    // below is never written, so a run that actually happened leaves no
+    // record. This is a data-integrity failure on the one agent surface that
+    // writes an audit row  -  it must alert, not be swallowed (GAP-352).
+    logger.error(
+      'RevMarket task completion CAS failed  -  task left running before completion; audit row NOT written',
+      { taskId, attemptedStatus: newStatus },
+    );
     return false;
   }
 
