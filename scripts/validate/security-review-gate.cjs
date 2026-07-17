@@ -108,6 +108,39 @@ function gh(args) {
   return execFileSync('gh', args, { encoding: 'utf8', timeout: 15000 });
 }
 
+/**
+ * The REST list-files endpoint stops at 3000 files. A diff at (or past) that
+ * ceiling cannot be classified honestly, so `hitsForFiles` fails closed there.
+ */
+const MAX_CLASSIFIABLE_FILES = 3000;
+
+/**
+ * Full changed-file list for a PR, paginated. `gh pr view --json files` caps at
+ * 100 entries with no pagination, which let a 600+-file promotion be classified
+ * from a truncated window that happened to contain none of its security paths.
+ * The `{owner}/{repo}` placeholders resolve from the current directory's repo
+ * when no --repo was passed. Injectable `ghImpl` exists for the unit test.
+ */
+function fetchPrFiles(prNumber, repo, ghImpl) {
+  const run =
+    ghImpl ||
+    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 }));
+  const path = `repos/${repo || '{owner}/{repo}'}/pulls/${prNumber}/files`;
+  const out = run(['api', path, '--paginate', '--jq', '.[].filename']);
+  return out.split('\n').filter((line) => line.length > 0);
+}
+
+/**
+ * Classification wrapper that fails closed at the API ceiling: a file list the
+ * endpoint may have truncated is treated as security-sensitive unconditionally.
+ */
+function hitsForFiles(files) {
+  if (files.length >= MAX_CLASSIFIABLE_FILES) {
+    return ['(file list at the API ceiling — unclassifiable, failing closed)'];
+  }
+  return classifyFiles(files);
+}
+
 function classifyFiles(files) {
   const hits = [];
   for (const f of files) {
@@ -163,7 +196,7 @@ function runPrMode(prNumber, repo) {
     'view',
     prNumber,
     '--json',
-    'files,labels,reviewDecision,title,author,reviews,comments',
+    'labels,reviewDecision,title,author,reviews,comments',
   ];
   if (repo) ghArgs.push('-R', repo);
   try {
@@ -176,8 +209,17 @@ function runPrMode(prNumber, repo) {
     process.exit(1);
   }
   const data = JSON.parse(raw);
-  const files = (data.files || []).map((f) => f.path);
-  const hits = classifyFiles(files);
+  let files;
+  try {
+    files = fetchPrFiles(prNumber, repo);
+  } catch (err) {
+    process.stderr.write(
+      `security-review-gate: file-list fetch failed for PR ${prNumber} (${err instanceof Error ? err.message : 'unknown'}). ` +
+        `Cannot classify — treating as HOLD.\n`,
+    );
+    process.exit(1);
+  }
+  const hits = hitsForFiles(files);
 
   if (hits.length === 0) {
     process.stdout.write(
@@ -272,7 +314,15 @@ function main() {
 // Export the surface list + classifier so the unit test can assert the
 // classification without spawning the CLI. Guarding main() behind
 // require.main === module keeps the CLI behavior identical when run directly.
-module.exports = { SECURITY_PATHS, SEC_REVIEW_LABELS, classifyFiles, decideReviewGate };
+module.exports = {
+  SECURITY_PATHS,
+  SEC_REVIEW_LABELS,
+  MAX_CLASSIFIABLE_FILES,
+  classifyFiles,
+  decideReviewGate,
+  fetchPrFiles,
+  hitsForFiles,
+};
 
 if (require.main === module) {
   main();
