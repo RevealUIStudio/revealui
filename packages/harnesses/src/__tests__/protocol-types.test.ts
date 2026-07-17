@@ -99,8 +99,15 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
 });
 
 describe('ROADMAP_PROFILES (declared, no adapter)', () => {
-  it('contains the two remaining spec-declared tools (opencode + cursor graduated to TOOL_PROFILES)', () => {
-    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex']);
+  it('contains the remaining spec-declared tools (opencode + cursor graduated to TOOL_PROFILES; vscode added Phase C)', () => {
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'vscode']);
+  });
+
+  it('vscode declares real hook support but no dispatch/adapter capabilities', () => {
+    const caps = ROADMAP_PROFILES.vscode;
+    expect(caps.hooks.supported).toBe(true);
+    expect(caps.dispatch.generateCode).toBe(false);
+    expect(caps.headless).toBe(false);
   });
 
   it('claude-code has no dispatch capabilities (interactive tool)', () => {
@@ -127,13 +134,14 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
 });
 
 describe('ALL_KNOWN_PROFILES (merged view)', () => {
-  it('contains all five declared tools', () => {
+  it('contains all six declared tools', () => {
     expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
       'claude-code',
       'codex',
       'cursor',
       'opencode',
       'revealui-agent',
+      'vscode',
     ]);
   });
 

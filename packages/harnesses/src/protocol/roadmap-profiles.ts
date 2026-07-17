@@ -90,6 +90,51 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
       'tool.blocked',
     ],
   },
+
+  // VS Code's agent-plugin hook system IS real and shipped this phase
+  // (`../hooks/normalizers/vscode.ts`, `../content/generators/vscode.ts`) --
+  // unlike every other entry in this file, `hooks.supported: true` here is
+  // backed by working code, not an aspiration. It stays in ROADMAP_PROFILES
+  // rather than graduating to `TOOL_PROFILES` because that promotion (per
+  // this file's module doc) tracks a working `HarnessAdapter`
+  // (dispatch/execute), and VS Code has no documented headless CLI to exec
+  // an agent turn against (verified 2026-07-17; Copilot CLI is a separate
+  // product from the `code` editor binary). `dispatch`/`headless`/
+  // `resumable`/`forkable`/`backgroundable` are honestly `false` for the
+  // same reason. `maxContextTokens: 0` is the BYO sentinel documented on
+  // `ProtocolCapabilities.maxContextTokens` -- Copilot agent mode's context
+  // window depends on the user's configured model, not a fixed VS Code
+  // capability.
+  vscode: {
+    dispatch: {
+      generateCode: false,
+      analyzeCode: false,
+      applyEdit: false,
+      executeCommand: false,
+    },
+    readWorkboard: false,
+    writeWorkboard: false,
+    claimTasks: false,
+    reportConflicts: false,
+    headless: false,
+    resumable: false,
+    forkable: false,
+    backgroundable: false,
+    hooks: { supported: true, granularity: 'all-tools', canBlock: true },
+    sandbox: { supported: false, modes: [] },
+    supportsWorktrees: false,
+    supportsSkills: true,
+    supportsMcp: true,
+    memory: { supported: false, backend: 'none' },
+    maxContextTokens: 0,
+    lifecycleEvents: [
+      'session.start',
+      'prompt.submit',
+      'tool.before',
+      'tool.after',
+      'tool.blocked',
+    ],
+  },
 } as const;
 
 /**

@@ -39,6 +39,10 @@ export type {
   OpenCodeConfig,
   OpenCodeMcpOptions,
   OpenCodeMcpServerConfig,
+  VSCodeMcpConfig,
+  VSCodeMcpInput,
+  VSCodeMcpOptions,
+  VSCodeMcpServerConfig,
 } from './config-normalizer.js';
 export {
   claudeSettingsToProtocolConfig,
@@ -48,6 +52,7 @@ export {
   protocolConfigToCursorMcpConfig,
   protocolConfigToCursorrules,
   protocolConfigToOpencodeConfig,
+  protocolConfigToVSCodeMcpConfig,
 } from './config-normalizer.js';
 // Degradation
 export type { DegradationStrategy } from './degradation-strategies.js';

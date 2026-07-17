@@ -421,6 +421,94 @@ export function protocolConfigToCursorMcpConfig(
   };
 }
 
+// -- .mcp.json for a VS Code agent plugin (write-only) -----------------------------
+
+/** VS Code remote/HTTP MCP server entry (`.mcp.json` `servers.<name>`, `type: 'http'`). */
+export interface VSCodeMcpServerConfig {
+  type: 'http';
+  url: string;
+  headers: Record<string, string>;
+}
+
+/** One `inputs[]` entry -- VS Code prompts for the value on first server start and stores it. */
+export interface VSCodeMcpInput {
+  type: 'promptString';
+  id: string;
+  description: string;
+  password: true;
+}
+
+/** Subset of a VS Code agent plugin's `.mcp.json` this module writes. */
+export interface VSCodeMcpConfig {
+  inputs: VSCodeMcpInput[];
+  servers: Record<string, VSCodeMcpServerConfig>;
+}
+
+/** Options for wiring the RevealUI governed MCP endpoint into a VS Code agent-plugin `.mcp.json`. */
+export interface VSCodeMcpOptions {
+  /** RevealUI governed MCP endpoint, e.g. `https://your-host/api/mcp`. */
+  mcpUrl: string;
+  /**
+   * `inputs[].id` VS Code prompts the user for and substitutes via
+   * `${input:id}` (default `revealui-mcp-token`). Only the input id is ever
+   * emitted -- see `protocolConfigToVSCodeMcpConfig`.
+   */
+  tokenInputId?: string;
+}
+
+const DEFAULT_VSCODE_TOKEN_INPUT_ID = 'revealui-mcp-token';
+
+/**
+ * Convert a ProtocolConfig to a VS Code agent-plugin `.mcp.json` fragment
+ * wiring the RevealUI governed MCP endpoint (multi-editor harness design doc
+ * §3-A). Mirrors `protocolConfigToCursorMcpConfig`'s leak-proof pattern and
+ * split: `VSCodeGenerator.generateAll` (`../content/generators/vscode.ts`)
+ * emits only the plugin's `plugin.json` (hook contributions); `.mcp.json`
+ * needs an MCP URL + token-input-id option the `ContentGenerator.generateAll`
+ * signature doesn't carry, so it lives here instead, matching the split
+ * Phase B established for Cursor.
+ *
+ * SECURITY-CRITICAL: this function must never emit a literal bearer token,
+ * only VS Code's `${input:id}` reference syntax (verified 2026-07-17 against
+ * code.visualstudio.com/docs/agents/reference/mcp-configuration -- an
+ * `inputs[]` entry of `type: 'promptString'` with `password: true` masks the
+ * value VS Code prompts for and stores it; the server config references it
+ * via `${input:<id>}`, never a literal). It deliberately does NOT read
+ * `config.environment.variables` for a token value -- the Authorization
+ * header is built exclusively from the `tokenInputId` NAME, so no caller can
+ * smuggle a literal secret into the emitted config via
+ * `environment.variables`.
+ *
+ * `_config` is accepted (matching `protocolConfigToCursorMcpConfig`'s and
+ * `protocolConfigToOpencodeConfig`'s signatures, preserving room for future
+ * permission/rule wiring) but is not read at all -- see the security note
+ * above.
+ */
+export function protocolConfigToVSCodeMcpConfig(
+  _config: ProtocolConfig,
+  opts: VSCodeMcpOptions,
+): VSCodeMcpConfig {
+  const tokenInputId = opts.tokenInputId ?? DEFAULT_VSCODE_TOKEN_INPUT_ID;
+
+  return {
+    inputs: [
+      {
+        type: 'promptString',
+        id: tokenInputId,
+        description: 'RevealUI governed MCP device token',
+        password: true,
+      },
+    ],
+    servers: {
+      revealui: {
+        type: 'http',
+        url: opts.mcpUrl,
+        headers: { Authorization: `Bearer \${input:${tokenInputId}}` },
+      },
+    },
+  };
+}
+
 // -- Helpers ---------------------------------------------------------------------
 
 /** Render rule content, substituting template variables. */

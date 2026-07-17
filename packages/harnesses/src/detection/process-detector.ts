@@ -25,6 +25,16 @@ export async function findProcesses(pattern: string): Promise<{ pid: number; com
   }
 }
 
+/**
+ * `vscode`/`code` is deliberately NOT a key here -- the same reasoning
+ * `cursor-adapter.ts` documents for excluding Cursor's `agent` binary. `code`
+ * is too generic a `pgrep` name-substring match: it would false-positive on
+ * `opencode` (whose comm name literally contains "code" as a substring), and
+ * on other unrelated local tooling. VS Code's process is not needed for
+ * Phase C's normalizer/CLI/generator surface anyway -- see
+ * `../content/generators/vscode.ts`'s doc comment on why no `HarnessAdapter`
+ * ships for `vscode` in this phase.
+ */
 const HARNESS_PROCESS_PATTERNS: Record<string, string[]> = {
   'claude-code': ['claude'],
   cursor: ['cursor', 'Cursor'],

@@ -124,6 +124,87 @@ describe('runHookCommand', () => {
     expect(JSON.parse(lines[1] as string).event.kind).toBe('stop');
   });
 
+  it('I-5: a VS Code hook with no policy snapshot degrades to advisory and allows', async () => {
+    const result = await runHookCommand(
+      'vscode',
+      { hook_event_name: 'PreToolUse', tool_name: 'runInTerminal', tool_input: { command: 'ls' } },
+      { spoolPath, snapshotPath },
+    );
+    expect(result.event.enforcementTier).toBe('advisory');
+    expect(result.decision.permission).toBe('allow');
+    expect(result.responseJson).toEqual({
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow' },
+    });
+    expect(result.exitCode).toBe(0);
+  });
+
+  it('builds the VS Code-native nested hookSpecificOutput response for pre-tool/pre-shell/pre-mcp on deny', async () => {
+    await writeFile(
+      snapshotPath,
+      JSON.stringify({
+        version: 1,
+        keyId: 'k1',
+        signature: 'sig',
+        issuedAt: new Date().toISOString(),
+        rules: [{ kind: 'pre-shell', permission: 'deny', reason: 'no shells for vscode' }],
+      }),
+      'utf8',
+    );
+
+    const result = await runHookCommand(
+      'vscode',
+      {
+        hook_event_name: 'PreToolUse',
+        tool_name: 'runInTerminal',
+        tool_input: { command: 'rm -rf /' },
+      },
+      { spoolPath, snapshotPath },
+    );
+
+    expect(result.decision.permission).toBe('deny');
+    expect(result.exitCode).toBe(2);
+    // The snapshot's signature is a placeholder -- I-5 forbids claiming
+    // `enforced` even though the deny rule still applies (defense in depth).
+    expect(result.event.enforcementTier).toBe('advisory');
+    expect(result.responseJson).toEqual({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'no shells for vscode',
+      },
+    });
+  });
+
+  it('builds the flat decision/reason response for non-pre-tool VS Code events (matching the docs’ PostToolUse contract)', async () => {
+    await writeFile(
+      snapshotPath,
+      JSON.stringify({
+        version: 1,
+        keyId: 'k1',
+        signature: 'sig',
+        issuedAt: new Date().toISOString(),
+        rules: [{ kind: 'post-tool', permission: 'deny', reason: 'no tool by policy' }],
+      }),
+      'utf8',
+    );
+
+    const denied = await runHookCommand(
+      'vscode',
+      { hook_event_name: 'PostToolUse', tool_name: 'codebase' },
+      { spoolPath, snapshotPath },
+    );
+    expect(denied.responseJson).toEqual({ decision: 'block', reason: 'no tool by policy' });
+    expect(denied.exitCode).toBe(2);
+
+    const allowed = await runHookCommand(
+      'vscode',
+      { hook_event_name: 'Stop' },
+      { spoolPath, snapshotPath },
+    );
+    expect(allowed.responseJson).toEqual({ decision: 'approve' });
+    expect(allowed.exitCode).toBe(0);
+  });
+
   // Design invariant I-1: a forged identity field in the hook payload never
   // appears in the normalized identity, and cannot widen or change the
   // policy outcome (a deny rule scoped by tool/kind still fires regardless

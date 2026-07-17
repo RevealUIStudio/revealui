@@ -9,7 +9,12 @@
 
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import type { HarnessHookEvent, HarnessHookSource } from '../types/hook-event.js';
+import type {
+  HarnessHookEvent,
+  HarnessHookEventKind,
+  HarnessHookSource,
+} from '../types/hook-event.js';
+import type { ImplementedHookSource } from './normalizers/index.js';
 import { isImplementedHookSource, normalizeHookEvent } from './normalizers/index.js';
 import type { PolicyDecision, PolicySnapshotLoadResult } from './policy.js';
 import { evaluatePolicy, loadPolicySnapshot } from './policy.js';
@@ -75,11 +80,50 @@ function buildClaudeCodeResponse(decision: PolicyDecision): Record<string, unkno
   return { decision: 'approve' };
 }
 
+/** Event kinds that correspond to VS Code's `PreToolUse` hook. */
+const VSCODE_PRE_TOOL_KINDS: ReadonlySet<HarnessHookEventKind> = new Set([
+  'pre-tool',
+  'pre-shell',
+  'pre-mcp',
+]);
+
+/**
+ * Build the VS Code-native hook response (code.visualstudio.com/docs/agents/reference/hooks-reference,
+ * verified 2026-07-17). `PreToolUse` is the only VS Code hook event with a
+ * documented nested `hookSpecificOutput.permissionDecision` contract
+ * (`allow`/`deny`/`ask`, plus `permissionDecisionReason`); every other event
+ * -- including `PostToolUse`, whose response the same reference documents as
+ * a flat `decision` field -- uses the flat `decision`/`reason` shape, which
+ * matches Claude Code's own convention. VS Code's hooks system reads as a
+ * deliberate wire-format convergence with Claude Code's (see the module doc
+ * in `./normalizers/vscode.ts`), so `buildClaudeCodeResponse`'s shape is
+ * reused for the non-`PreToolUse` case rather than re-deriving an equivalent
+ * shape from scratch.
+ */
+function buildVSCodeResponse(
+  kind: HarnessHookEventKind,
+  decision: PolicyDecision,
+): Record<string, unknown> {
+  if (VSCODE_PRE_TOOL_KINDS.has(kind)) {
+    return {
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: decision.permission,
+        ...(decision.reason ? { permissionDecisionReason: decision.reason } : {}),
+      },
+    };
+  }
+  return buildClaudeCodeResponse(decision);
+}
+
 function buildEditorResponse(
   source: HarnessHookSource,
   decision: PolicyDecision,
+  kind: HarnessHookEventKind,
 ): Record<string, unknown> {
-  return source === 'cursor' ? buildCursorResponse(decision) : buildClaudeCodeResponse(decision);
+  if (source === 'cursor') return buildCursorResponse(decision);
+  if (source === 'vscode') return buildVSCodeResponse(kind, decision);
+  return buildClaudeCodeResponse(decision);
 }
 
 /**
@@ -89,7 +133,7 @@ function buildEditorResponse(
  * and setting `process.exitCode`.
  */
 export async function runHookCommand(
-  source: Extract<HarnessHookSource, 'cursor' | 'claude-code'>,
+  source: ImplementedHookSource,
   rawInput: unknown,
   options: HookRunOptions = defaultHookRunOptions(),
 ): Promise<HookRunResult> {
@@ -119,7 +163,7 @@ export async function runHookCommand(
     event,
     decision,
     snapshotResult,
-    responseJson: buildEditorResponse(source, decision),
+    responseJson: buildEditorResponse(source, decision, event.kind),
     exitCode: decision.permission === 'deny' ? 2 : 0,
   };
 }

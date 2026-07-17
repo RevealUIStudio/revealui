@@ -115,12 +115,59 @@ describe('revealui-harnesses hook <source> (CLI end to end)', () => {
   }, 25_000);
 
   it('rejects an unsupported source with exit code 1', () => {
+    // opencode has no hook normalizer -- OpenCode has no hook system to
+    // normalize from (see hooks/normalizers/index.ts's dispatch doc comment).
     const result = runHookCli(
-      'vscode',
+      'opencode',
       { hook_event_name: 'x' },
       { REVEALUI_HOOK_SPOOL_PATH: spoolPath, REVEALUI_POLICY_SNAPSHOT_PATH: snapshotPath },
     );
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Unsupported hook source');
+  }, 25_000);
+
+  it('normalizes a VS Code PreToolUse deny and prints the nested hookSpecificOutput response', async () => {
+    await writeFile(
+      snapshotPath,
+      JSON.stringify({
+        version: 1,
+        keyId: 'k1',
+        signature: 'sig',
+        issuedAt: new Date().toISOString(),
+        rules: [
+          { kind: 'pre-shell', permission: 'deny', reason: 'no shells from vscode cli test' },
+        ],
+      }),
+      'utf8',
+    );
+
+    const result = runHookCli(
+      'vscode',
+      {
+        hook_event_name: 'PreToolUse',
+        tool_name: 'runInTerminal',
+        tool_input: { command: 'rm -rf /' },
+      },
+      { REVEALUI_HOOK_SPOOL_PATH: spoolPath, REVEALUI_POLICY_SNAPSHOT_PATH: snapshotPath },
+    );
+
+    expect(result.exitCode).toBe(2);
+    expect(JSON.parse(result.stdout.trim())).toEqual({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'no shells from vscode cli test',
+      },
+    });
+  }, 25_000);
+
+  it('allows a VS Code Stop event by default (advisory, no snapshot)', () => {
+    const result = runHookCli(
+      'vscode',
+      { hook_event_name: 'Stop' },
+      { REVEALUI_HOOK_SPOOL_PATH: spoolPath, REVEALUI_POLICY_SNAPSHOT_PATH: snapshotPath },
+    );
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout.trim())).toEqual({ decision: 'approve' });
   }, 25_000);
 });
