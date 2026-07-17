@@ -20,7 +20,7 @@ JSX.**
 | `content/site.ts` | URLs, brand strings, and the canonical `METRICS` object |
 | `content/home.ts`, `primitives.ts`, `products.ts` | landing + `/products` copy |
 | `content/pricing.ts`, `pricing-faq.ts`, `pricing-teaser.ts` | `/pricing` copy (tier data re-exported from `@revealui/contracts/pricing`) |
-| `content/marketplace.ts`, `capabilities.ts`, `proof.ts` | marketplace + proof sections |
+| `content/marketplace.ts`, `proof.ts` | marketplace + proof sections |
 | `content/roadmap.ts` | `/roadmap` page (Recently shipped / Coming next) |
 | `content/fair-source.ts`, `nav.ts`, `contact.ts` | the remaining surfaces |
 

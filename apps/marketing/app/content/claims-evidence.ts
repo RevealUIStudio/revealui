@@ -12,8 +12,8 @@
 // field, with the claim named in `note`. Line numbers never appear in `ref`
 // (they drift); put them in `note` when helpful.
 //
-// Generalizes the existing pattern in capabilities.ts, where every capability
-// card already cites its source file (checked by content.test.ts).
+// Generalizes the per-card source-file citation pattern from the retired
+// capabilities.ts module (GAP-383, 2026-07-17).
 
 // 'test' (GAP-354): a machine-checkable proof obligation for capability-shaped
 // claims. ref format "<repo-relative test file>#<exact test title substring>";
@@ -57,7 +57,6 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'home.ts' },
   { file: 'primitives.ts' },
   { file: 'products.ts' },
-  { file: 'capabilities.ts' },
   { file: 'proof.ts' },
   { file: 'pricing-teaser.ts' },
   { file: 'site.ts' },
@@ -266,103 +265,10 @@ const HYPERVISOR: EvidenceRef = {
   ref: 'packages/mcp/src/hypervisor.ts',
   note: 'supervises the MCP servers and surfaces their tool registries',
 };
-const RESILIENCE: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/resilience/src/circuit-breaker.ts',
-  note: 'circuit breaker + retry + bulkhead; consumed by the packages/ai llm client, the db saga, and core error-handling',
-};
-const ENCRYPTION: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/security/src/encryption.ts',
-  note: 'per-record DEK wrapped by a KEK, with a rotation manager that re-encrypts records under a new key',
-};
-const CRDT_REPLAY: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/ai/src/memory/persistence/crdt-persistence.ts',
-  note: 'replayOperations rebuilds state from the op log (used by sync-manager); schema at packages/db/src/schema/crdt-operations.ts',
-};
-const PROVENANCE: EvidenceRef = {
-  kind: 'code',
-  ref: 'apps/server/src/collab/provenance-logger.ts',
-  note: 'writes collab_edits clientType/agentModel per edit; commit-level schema packages/db/src/schema/code-provenance.ts has a manual API only, automatic commit ingest is roadmap',
-};
-const WEBHOOK_EVENTS: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/db/src/schema/webhook-events.ts',
-  note: 'every Stripe event recorded for idempotency',
-};
-const DRAIN: EvidenceRef = {
-  kind: 'code',
-  ref: 'apps/server/src/routes/cron/drain-unreconciled.ts',
-  note: 'cron replays failed webhook handlers from Stripe',
-};
-const SECURITY_AUTHZ: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/security/src/authorization.ts',
-  note: 'role inheritance + attribute condition operators; roughly 95 tests at packages/security/src/__tests__/authorization.test.ts',
-};
-const ENFORCEMENT_TESTS: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts',
-  note: '42 enforcement cases here + 18 in packages/core/src/__tests__/auth/access.test.ts = the 60',
-};
 const TASK_QUOTA: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/middleware/task-quota.ts',
   note: '429 over per-tier maxAgentTasks; mounted on agent-tasks + agent-stream in apps/server/src/index.ts',
-};
-
-// ── GAP-354 capability-claim proof tests (kind:'test') ───────────────────────
-// Each ref is "<repo-relative test file>#<exact test title substring>". The
-// claim-drift capability tier asserts the file exists, the title appears, and
-// the test is not skipped. Proof QUALITY (production path, no mock of the proven
-// seam) is enforced by Fable review of every new kind:'test' ref, not by the
-// validator (machine-checking "no mock of the seam" is not feasible; see the
-// 2026-07-12 incident in scripts/validate/capability-claims.ts header).
-const ENCRYPTION_ROTATION_TEST: EvidenceRef = {
-  kind: 'test',
-  ref: 'packages/security/src/__tests__/encryption.test.ts#re-encrypts data from old key to new key',
-  note: 'KeyRotationManager re-encrypts records under a new key (envelope DEK/KEK)',
-};
-const WEBHOOK_IDEMPOTENCY_TEST: EvidenceRef = {
-  kind: 'test',
-  ref: 'apps/server/src/routes/__tests__/webhooks.test.ts#returns duplicate:true when the same event ID is sent twice',
-  note: 'Stripe webhook idempotency: a re-sent event ID is recorded once, not reprocessed',
-};
-const CIRCUIT_BREAKER_TEST: EvidenceRef = {
-  kind: 'test',
-  ref: 'packages/resilience/src/__tests__/circuit-breaker.test.ts#should open after reaching failure threshold with volume threshold met',
-  note: 'circuit breaker opens at an adaptive failure + volume threshold (isolation)',
-};
-const TASK_QUOTA_TEST: EvidenceRef = {
-  kind: 'test',
-  ref: 'apps/server/src/middleware/__tests__/task-quota.test.ts#returns 429 when count equals quota',
-  note: 'per-tier agent task quota enforced: 429 when the tier limit is reached',
-};
-const ACCESS_ENFORCEMENT_TEST: EvidenceRef = {
-  kind: 'test',
-  ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts#returns empty result set when access.read returns false',
-  note: 'read access enforced: a denying access.read returns no docs',
-};
-const MEDIA_R2: EvidenceRef = {
-  kind: 'code',
-  ref: 'apps/server/src/lib/storage.ts',
-  note: 'Cloudflare R2 is the sole media backend; R2_PUBLIC_BASE_URL is the CDN delivery URL',
-};
-const DRAFTS: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/core/src/collections/operations/drafts.ts',
-  note: 'draft/live publishing workflow',
-};
-const TENANT: EvidenceRef = {
-  kind: 'code',
-  ref: 'apps/server/src/middleware/tenant.ts',
-  note: 'membership-validated multi-tenant isolation, mounted on /api/*',
-};
-const RICHTEXT: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/core/src/client/richtext',
-  note: 'Lexical rich text editor with custom block nodes',
 };
 const ORCHESTRATOR: EvidenceRef = {
   kind: 'code',
@@ -373,16 +279,6 @@ const A2A_ROUTES: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/routes/a2a.ts',
   note: 'JSON-RPC agent-to-agent protocol mounted at /a2a behind entitlement middleware',
-};
-const ELECTRIC_SYNC: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/sync/src',
-  note: 'ElectricSQL shapes cover the agent/coordination/kg collections',
-};
-const GDPR: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/security/src/gdpr.ts',
-  note: 'GDPR consent, deletion, and anonymization framework',
 };
 const PERPETUAL: EvidenceRef = {
   kind: 'code',
@@ -1033,104 +929,6 @@ export const CLAIMS: readonly ClaimEntry[] = [
     evidence: [{ kind: 'command', ref: 'pnpm build', note: 'turbo build to a plain Node bundle' }],
   },
 
-  // ── capabilities.ts ──────────────────────────────────────────────────────
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES_SECTION.eyebrow',
-    text: 'Capabilities, file by file',
-    evidence: [REPO],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES_SECTION.body',
-    text: 'Eight load-bearing primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
-    evidence: [REPO],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES_SECTION.footnote',
-    text: 'Trust through specificity. These are primitives most platforms ship as separate products, or never ship at all. Each card links to the actual file.',
-    evidence: [REPO],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[0].body',
-    text: 'Role checks with inheritance and attribute policies with condition operators, proven by roughly 95 authorization tests in the security package alone.',
-    evidence: [SECURITY_AUTHZ],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[1].title',
-    text: 'Stripe webhook reconciliation',
-    evidence: [WEBHOOK_EVENTS, RECONCILE],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[1].body',
-    text: 'Every event is recorded for idempotency, failed handlers are replayed from Stripe by a drain cron, and reconcile crons surface drift between Stripe and the local DB.',
-    evidence: [WEBHOOK_EVENTS, DRAIN, RECONCILE, WEBHOOK_IDEMPOTENCY_TEST],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[2].body',
-    text: 'Most platforms snapshot-merge. RevealUI replays operations, so collaborative editing across humans and agents stays correct after concurrent edits.',
-    evidence: [CRDT_REPLAY],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[3].title',
-    text: 'Circuit breakers + retry + bulkhead',
-    evidence: [RESILIENCE],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[3].body',
-    text: 'Production resilience patterns wired into the runtime: circuit breakers with adaptive failure thresholds, configurable retry with backoff, and bulkhead isolation that early-stage SaaS usually skips.',
-    evidence: [RESILIENCE, CIRCUIT_BREAKER_TEST],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[4].title',
-    text: 'Agent harness + shared workboard',
-    evidence: [HARNESS_ADAPTER, HARNESS_WORKBOARD],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[4].body',
-    text: 'A working agent adapter, a shared workboard manager for cross-session coordination, and a translation layer. Adapter profiles for Claude Code and Cursor are specced on the roadmap, not shipped.',
-    evidence: [HARNESS_ADAPTER, HARNESS_WORKBOARD],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[5].title',
-    text: 'MCP hypervisor + introspection',
-    evidence: [HYPERVISOR],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[5].body',
-    text: 'One process supervises all MCP servers and surfaces their tool registries, so every adapter is discoverable from a single place.',
-    evidence: [HYPERVISOR],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[6].title',
-    text: 'Envelope encryption + key rotation',
-    evidence: [ENCRYPTION, ENCRYPTION_ROTATION_TEST],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[6].body',
-    text: 'Sensitive fields wrapped in per-record DEKs encrypted by a KEK, with a rotation manager that re-encrypts records under a new key.',
-    evidence: [ENCRYPTION, ENCRYPTION_ROTATION_TEST],
-  },
-  {
-    file: 'capabilities.ts',
-    exportPath: 'CAPABILITIES[7].body',
-    text: 'Every collaborative edit records whether a human or an agent made it, and which model. A commit-level provenance schema and API ship alongside; the automatic commit ingest is on the roadmap.',
-    evidence: [PROVENANCE],
-  },
-
   // ── products.ts ──────────────────────────────────────────────────────────
   {
     file: 'products.ts',
@@ -1308,329 +1106,6 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PRODUCTS_CTA_SECTION.cliSnippet',
     text: 'npx create-revealui my-app',
     evidence: [CLI_CREATE],
-  },
-
-  // ── primitives.ts — PRODUCTS_PRIMITIVES[0] People ────────────────────────
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].forYou.headline',
-    text: 'Auth, roles, and compliance, handled',
-    evidence: [AUTH_SESSIONS, SECURITY_AUTHZ, GDPR],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].forYou.description',
-    text: 'Session-based auth, RBAC with 60 enforcement tests, rate limiting, brute-force protection, and GDPR compliance. No auth library decisions. No JWT debates.',
-    evidence: [AUTH_SESSIONS, ENFORCEMENT_TESTS, GDPR],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].forAgents.headline',
-    text: 'Agents call the same identity-aware API',
-    evidence: [AGENT_ROUTES, MCP_CONTENT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].forAgents.description',
-    text: 'Agents reach the runtime through the identical REST and MCP surface your app uses. Scoping what an individual agent can do through the RBAC + ABAC engine is not shipped yet.',
-    evidence: [AGENT_ROUTES, MCP_CONTENT, SECURITY_AUTHZ],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].together.headline',
-    text: 'One access control engine for your team, today.',
-    evidence: [SECURITY_AUTHZ],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].together.description',
-    text: 'RBAC + ABAC governs your human users, proven by 60 enforcement tests. Extending that same engine to scope agents individually is on our list, not yet shipped.',
-    evidence: [SECURITY_AUTHZ, ENFORCEMENT_TESTS, ACCESS_ENFORCEMENT_TEST],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].features[0]',
-    text: 'Session-based auth (httpOnly, secure, sameSite)',
-    evidence: [AUTH_SESSIONS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].features[2]',
-    text: 'Rate limiting and brute-force protection',
-    evidence: [AUTH_SESSIONS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[0].features[4]',
-    text: 'Multi-tenant user isolation',
-    evidence: [TENANT],
-  },
-
-  // ── primitives.ts — PRODUCTS_PRIMITIVES[1] Content ───────────────────────
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].forYou.headline',
-    text: 'Define collections in TypeScript, get an API and admin UI',
-    evidence: [COLLECTIONS, OPEN_STANDARDS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].forYou.description',
-    text: 'Rich text editing with Lexical, media management, draft/live publishing, and a full REST API with OpenAPI spec. Define your data model once and the admin dashboard and API generate automatically.',
-    evidence: [COLLECTIONS, RICHTEXT, MEDIA_R2, DRAFTS, OPEN_STANDARDS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].forAgents.headline',
-    text: 'Collections become discoverable resources over MCP',
-    evidence: [MCP_CONTENT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].forAgents.description',
-    text: 'The content MCP server ships discovery and read tools, and any collection you flag with mcpResource: true becomes a discoverable MCP resource. Agents write through the same REST API your app uses.',
-    evidence: [MCP_CONTENT, OPEN_STANDARDS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].together.headline',
-    text: 'Define your data model once. Choose what agents can discover.',
-    evidence: [COLLECTIONS, MCP_CONTENT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].together.description',
-    text: 'Add a collection and the admin UI and REST API appear with it. Flag it as an MCP resource and agents can discover and read it too.',
-    evidence: [COLLECTIONS, MCP_CONTENT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].features[0]',
-    text: 'Schema-first collection definitions',
-    evidence: [COLLECTIONS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].features[1]',
-    text: 'Rich text editor with custom blocks',
-    evidence: [RICHTEXT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].features[2]',
-    text: 'REST API with OpenAPI spec',
-    evidence: [OPEN_STANDARDS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].features[3]',
-    text: 'Draft/live publishing workflow',
-    evidence: [DRAFTS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].features[4]',
-    text: 'Media management and CDN delivery',
-    evidence: [MEDIA_R2],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[1].features[5]',
-    text: 'R2-backed media with CDN delivery',
-    evidence: [MEDIA_R2],
-  },
-
-  // ── primitives.ts — PRODUCTS_PRIMITIVES[2] Offers ────────────────────────
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].forYou.headline',
-    text: 'Product catalog, pricing tiers, and usage tracking',
-    evidence: [BILLING, TIER_GATES, TIER_LIMITS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].forYou.description',
-    text: 'Define products, pricing tiers, and feature gates in one place. License enforcement and upgrade prompts are built in. Subscription billing via Stripe, and perpetual licenses you can buy today.',
-    evidence: [BILLING, TIER_GATES, PERPETUAL],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].forAgents.headline',
-    text: 'Feature gates control which agent capabilities are enabled per tier',
-    evidence: [TIER_GATES, TASK_QUOTA],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].forAgents.description',
-    text: 'Agent capabilities are gated by the same tier system that governs human features. When a customer upgrades, their agents automatically gain access to more tools and higher task limits.',
-    evidence: [TIER_GATES, TIER_LIMITS, TASK_QUOTA],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].together.headline',
-    text: 'Revenue model governs both humans and agents.',
-    evidence: [BILLING, TIER_GATES],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].together.description',
-    text: 'Upgrade a customer and their agents get smarter. One product catalog, one billing system, one set of feature gates, applied consistently to every user and every agent.',
-    evidence: [BILLING, TIER_GATES],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].features[0]',
-    text: 'Subscription and perpetual pricing tracks, live today.',
-    evidence: [BILLING, PERPETUAL],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].features[1]',
-    text: 'Feature gating with tier enforcement',
-    evidence: [TIER_GATES],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].features[2]',
-    text: 'Usage tracking and limit enforcement',
-    evidence: [TIER_LIMITS, TASK_QUOTA],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].features[4]',
-    text: 'Upgrade prompts and billing portal',
-    evidence: [BILLING],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[2].features[5]',
-    text: 'Agent task quotas metered and enforced per tier',
-    evidence: [TASK_QUOTA, TIER_LIMITS, TASK_QUOTA_TEST],
-  },
-
-  // ── primitives.ts — PRODUCTS_PRIMITIVES[3] Payments ──────────────────────
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].forYou.headline',
-    text: 'Stripe checkout, subscriptions, and billing, pre-configured',
-    evidence: [BILLING],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].forYou.description',
-    text: 'Stripe checkout, subscription management, webhooks, and a customer billing portal. Products, prices, and webhooks are wired up. You configure your Stripe keys and start charging.',
-    evidence: [BILLING, WEBHOOKS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].forAgents.headline',
-    text: 'x402 protocol design: agent-native HTTP payments',
-    evidence: [X402],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].forAgents.description',
-    text: 'The x402 design routes agent payments over HTTP 402, aligned with the Coinbase / Cloudflare x402 Foundation. This is in development. See the roadmap for current status.',
-    evidence: [X402, ROADMAP],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].together.headline',
-    text: 'Humans monetize. Agents transact. One billing infrastructure.',
-    evidence: [BILLING, X402],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].together.description',
-    text: 'Your customers pay through Stripe. Agent payments via x402 are in development. Both flows are designed to settle into the same revenue system.',
-    evidence: [BILLING, X402],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].features[0]',
-    text: 'Stripe checkout and subscriptions',
-    evidence: [BILLING],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].features[1]',
-    text: 'Webhook handling and event processing',
-    evidence: [WEBHOOKS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[3].features[3]',
-    text: 'x402 agent payments (in development)',
-    evidence: [X402],
-  },
-
-  // ── primitives.ts — PRODUCTS_PRIMITIVES[4] Agents ────────────────────────
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].forYou.headline',
-    text: 'Agents on open-weight models you run yourself',
-    evidence: [OPEN_WEIGHT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].forYou.description',
-    text: 'Agents manage content, process tasks, and coordinate workflows on open-weight models running on infrastructure you own, via Ubuntu Inference Snaps or Ollama. Add a frontier provider in one config line: opt-in, never assumed. Your own inference cost, not a per-token API tax.',
-    evidence: [OPEN_WEIGHT, PROVIDERS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].forAgents.headline',
-    text: 'A2A protocol, CRDT memory, and MCP servers',
-    evidence: [A2A_ROUTES, MEMORY, MCP_SERVERS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].forAgents.description',
-    text: 'Agent-to-agent communication, persistent memory, and N production MCP servers. (interpolated: N from METRICS.mcpServers)',
-    match: 'path',
-    evidence: [A2A_ROUTES, MEMORY, MCP_SERVERS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].together.headline',
-    text: 'Build one business. Agents extend it. Neither locked to any vendor.',
-    evidence: [OPEN_WEIGHT, PROVIDERS, OPEN_STANDARDS],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].together.description',
-    text: 'You build on open standards. Your agents operate through the same open standards. Switch models, swap providers, self-host everything. The intelligence layer belongs to you.',
-    evidence: [OPEN_STANDARDS, PROVIDERS, SELF_HOST],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].features[0]',
-    text: 'Open-model inference (Snaps, Ollama)',
-    evidence: [OPEN_WEIGHT],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].features[1]',
-    text: 'CRDT-based agent memory (working + episodic + vector)',
-    evidence: [MEMORY],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].features[3]',
-    text: 'A2A agent-to-agent protocol',
-    evidence: [A2A_ROUTES],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].features[4]',
-    text: 'Multi-agent coordination and orchestration',
-    evidence: [ORCHESTRATOR],
-  },
-  {
-    file: 'primitives.ts',
-    exportPath: 'PRODUCTS_PRIMITIVES[4].features[5]',
-    text: 'Real-time coordination sync (ElectricSQL)',
-    evidence: [ELECTRIC_SYNC],
   },
 
   // ── pricing.ts (claims-ratchet 2, 2026-07-12) ───────────────────────────
@@ -3685,6 +3160,19 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'CLAIMS_KIND_LEGEND[3].description',
     text: 'A number pinned to the codebase and checked by the claim-drift gate.',
     evidence: [CLAIMS_PAGE_ROUTE, LICENSE_SPLIT],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_KIND_LEGEND[4].description',
+    text: 'A named, non-skipped test in the repository that proves the claim in code.',
+    evidence: [
+      CLAIMS_PAGE_ROUTE,
+      {
+        kind: 'code',
+        ref: 'scripts/validate/capability-claims.ts',
+        note: 'validateTestRef asserts the test file exists, the title appears, and the test is not skip/todo',
+      },
+    ],
   },
   {
     file: 'claims.ts',
