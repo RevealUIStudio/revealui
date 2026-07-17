@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { checkRule, runTier1, walkLexicalAst } from '../check-rule.js';
+import type { CheckContext } from '../check-rule.js';
+import { checkRule } from '../check-rule.js';
 import type { Rule } from '../rules.js';
 import { tokenize } from '../tokenize.js';
 
@@ -258,29 +259,142 @@ describe('checkRule — banned-token-near', () => {
   });
 });
 
-describe('checkRule — deferred variants throw', () => {
-  const deferredKinds: Rule['kind'][] = [
-    'h2-shape',
-    'fake-trust',
-    'pricing-proximity',
-    'rvc-pricing-proximity',
-    'unicode-range-tokens',
-  ];
+describe('checkRule — rvc-pricing-proximity + the $-split fix', () => {
+  const rule: Extract<Rule, { kind: 'rvc-pricing-proximity' }> = {
+    kind: 'rvc-pricing-proximity',
+    ruleId: 'tier1.rvc-pricing-without-adr',
+    anchorTokenLowercase: 'rvc',
+    proximityPredicates: ['isDollarShape', 'isPercentShape', 'isUsdShape'],
+    withinTokens: 30,
+    unless: 'adr-cite-in-block',
+  };
 
-  it.each(deferredKinds)('"%s" throws with Phase B message', (kind) => {
-    const rule = { kind, ruleId: 'test' } as unknown as Rule;
-    expect(() => checkRule(rule, [], {})).toThrow('deferred to CMS-spec Phase B');
+  it('the tokenizer splits "$0.10" into a separate "$" symbol token (the boundary this fix handles)', () => {
+    const tokens = tokenize('RVC at $0.10');
+    const dollar = tokens.find((t) => t.text === '$');
+    expect(dollar?.kind).toBe('symbol');
+    // The number arrives as its own word token, so a naive word-only window
+    // would drop the "$" and miss the price.
+    expect(tokens.some((t) => t.kind === 'word' && t.text === '0.10')).toBe(true);
+  });
+
+  it('STILL fires on the $-split form (RVC near "$" + "0.10")', () => {
+    expect(checkRule(rule, tokenize('RVC at $0.10'), {})).toHaveLength(1);
+  });
+
+  it('fires on the two-token percent form (RVC near "5" + "%")', () => {
+    expect(checkRule(rule, tokenize('RVC vesting unlocks 5% per quarter'), {})).toHaveLength(1);
+  });
+
+  it('is bidirectional — a price preceding the anchor fires', () => {
+    expect(checkRule(rule, tokenize('$0.10 for RVC'), {})).toHaveLength(1);
+  });
+
+  it('is exonerated when ctx.adrCitePresent is true', () => {
+    expect(checkRule(rule, tokenize('RVC at $0.10'), { adrCitePresent: true })).toHaveLength(0);
+  });
+
+  it('respects the window boundary — fires at the edge, not past it', () => {
+    const tight = { ...rule, withinTokens: 3 };
+    expect(checkRule(tight, tokenize('RVC a b $5'), {})).toHaveLength(1); // distance 3
+    expect(checkRule(tight, tokenize('RVC a b c $5'), {})).toHaveLength(0); // distance 4
   });
 });
 
-describe('runTier1 — deferred stub', () => {
-  it('throws with Phase B message', () => {
-    expect(() => runTier1({}, [])).toThrow('deferred to CMS-spec Phase B');
+describe('checkRule — pricing-proximity', () => {
+  const rule: Extract<Rule, { kind: 'pricing-proximity' }> = {
+    kind: 'pricing-proximity',
+    ruleId: 'tier1.pricing-proximity',
+    anchorPredicate: 'isDollarShape',
+    proximityPredicate: 'isEngagementUnit',
+    withinTokens: 6,
+    unless: ['adr-cite-in-block', 'pricing-tier-source'],
+  };
+
+  it('flags a $ figure next to an engagement unit', () => {
+    expect(checkRule(rule, tokenize('$5,000 per engagement'), {})).toHaveLength(1);
+  });
+
+  it('is exonerated on a pricing-tier source block', () => {
+    const ctx: CheckContext = { pricingTierSource: true };
+    expect(checkRule(rule, tokenize('$5,000 per engagement'), ctx)).toHaveLength(0);
+  });
+
+  it('does not flag a $ figure with no engagement unit nearby', () => {
+    expect(checkRule(rule, tokenize('a donation of $5,000 helps'), {})).toHaveLength(0);
   });
 });
 
-describe('walkLexicalAst — deferred stub', () => {
-  it('throws with Phase B message', () => {
-    expect(() => walkLexicalAst({})).toThrow('deferred to CMS-spec Phase B');
+describe('checkRule — fake-trust', () => {
+  const rule: Extract<Rule, { kind: 'fake-trust' }> = {
+    kind: 'fake-trust',
+    ruleId: 'tier1.fake-trust',
+    anchor: { tokenSequence: ['trusted', 'by'], caseInsensitive: true },
+    requiresProximity: 'positive-integer-token',
+    withinTokens: 4,
+    unless: 'adr-cite-in-block',
+  };
+
+  it('flags "Trusted by 400 teams"', () => {
+    expect(checkRule(rule, tokenize('Trusted by 400 teams'), {})).toHaveLength(1);
+  });
+
+  it('does not flag "Trusted by developers" (no integer)', () => {
+    expect(checkRule(rule, tokenize('Trusted by developers everywhere'), {})).toHaveLength(0);
+  });
+
+  it('is exonerated when ctx.adrCitePresent is true', () => {
+    expect(
+      checkRule(rule, tokenize('Trusted by 400 teams'), { adrCitePresent: true }),
+    ).toHaveLength(0);
+  });
+});
+
+describe('checkRule — h2-shape', () => {
+  const rule: Extract<Rule, { kind: 'h2-shape' }> = {
+    kind: 'h2-shape',
+    ruleId: 'tier1.rhetorical-question-heading',
+    predicates: [{ kind: 'startsWithToken', token: 'why' }],
+    requiresSuffixToken: '?',
+  };
+
+  it('flags an interrogative heading ending in ? (node-scoped to headings)', () => {
+    expect(checkRule(rule, tokenize('Why RevealUI?'), { nodeType: 'heading' })).toHaveLength(1);
+  });
+
+  it('does not flag the same text in a paragraph', () => {
+    expect(checkRule(rule, tokenize('Why RevealUI?'), { nodeType: 'paragraph' })).toHaveLength(0);
+  });
+
+  it('does not flag an interrogative opener without the ? suffix', () => {
+    expect(checkRule(rule, tokenize('Why RevealUI works'), { nodeType: 'heading' })).toHaveLength(
+      0,
+    );
+  });
+});
+
+describe('checkRule — unicode-range-tokens', () => {
+  const emDash: Extract<Rule, { kind: 'unicode-range-tokens' }> = {
+    kind: 'unicode-range-tokens',
+    ruleId: 'tier1.em-dash',
+    codepointRanges: [{ startInclusive: 0x2014, endInclusive: 0x2014 }],
+  };
+
+  it('flags an em dash', () => {
+    const text = `agents ${String.fromCodePoint(0x2014)} pre-wired`;
+    expect(checkRule(emDash, tokenize(text), {})).toHaveLength(1);
+  });
+
+  it('does not flag prose without the target codepoint', () => {
+    expect(checkRule(emDash, tokenize('agents, pre-wired'), {})).toHaveLength(0);
+  });
+
+  it('flags an emoji via its codepoint range', () => {
+    const emoji: Extract<Rule, { kind: 'unicode-range-tokens' }> = {
+      kind: 'unicode-range-tokens',
+      ruleId: 'tier2.emoji',
+      codepointRanges: [{ startInclusive: 0x1f300, endInclusive: 0x1faff }],
+    };
+    expect(checkRule(emoji, tokenize('ship it 🚀 today'), {}).length).toBeGreaterThan(0);
   });
 });
