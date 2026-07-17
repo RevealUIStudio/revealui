@@ -6,6 +6,13 @@
 // SEC_REVIEW_LABELS — before it merges. PRs that do not touch such a surface
 // pass immediately, so this check is safe to require on every PR.
 //
+// A live guardrail-2 REQUEST-CHANGES verdict OVERRIDES the label. Verdicts are
+// posted as comments/reviews carrying a machine-parseable marker
+// (`<!-- guardrail2-verdict: REQUEST-CHANGES -->` / `... APPROVE -->`); the shared
+// guardrail2-verdict.cjs parser decides hold/clear. This closes the revealui#1910
+// miss, where sec-review:approved was applied against an outstanding REQUEST-CHANGES
+// and the gate — which only checked the label — cleared it anyway.
+//
 //   --pr <N>        Inspect PR #N via `gh` (files + labels + reviewDecision).
 //   --repo <o/r>    Target repo for --pr; defaults to the repo inferred from
 //                   the current directory.
@@ -22,6 +29,7 @@
 'use strict';
 
 const { execFileSync } = require('child_process');
+const { evaluateGuardrail2 } = require('./guardrail2-verdict.cjs');
 
 // A changed file is security-sensitive if its path contains ANY of these
 // substrings. Deliberately broad — money, identity, credential, code-exec,
@@ -83,6 +91,7 @@ const SECURITY_PATHS = [
   // Keep in lockstep with the fleet checker (separate .jv PR).
   'scripts/validate/security-review-gate',
   'scripts/validate/sec-audit-label-decision',
+  'scripts/validate/guardrail2-verdict',
   '.github/workflows/security-review-gate',
   '.github/workflows/sec-audit-label-guard',
   '.github/workflows/security.yml',
@@ -114,7 +123,13 @@ function classifyFiles(files) {
 
 function runPrMode(prNumber, repo) {
   let raw;
-  const ghArgs = ['pr', 'view', prNumber, '--json', 'files,labels,reviewDecision,title'];
+  const ghArgs = [
+    'pr',
+    'view',
+    prNumber,
+    '--json',
+    'files,labels,reviewDecision,title,author,reviews,comments',
+  ];
   if (repo) ghArgs.push('-R', repo);
   try {
     raw = gh(ghArgs);
@@ -136,6 +151,36 @@ function runPrMode(prNumber, repo) {
     process.exit(0);
   }
 
+  // A live guardrail-2 REQUEST-CHANGES marker holds the merge even when the
+  // sec-review:approved label is present (the revealui#1910 miss: the label was
+  // applied against an outstanding REQUEST-CHANGES). This is checked FIRST so the
+  // hold cannot be papered over by the label/review-decision fallback below.
+  const verdict = evaluateGuardrail2({
+    reviews: data.reviews || [],
+    comments: data.comments || [],
+    authorLogin: (data.author && data.author.login) || '',
+  });
+
+  if (verdict.status === 'hold') {
+    process.stderr.write(
+      `HOLD — PR #${prNumber} has a live guardrail-2 REQUEST-CHANGES verdict ` +
+        `(reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}).\n` +
+        `   The sec-review:approved label and any approving review are OVERRIDDEN while this stands.\n` +
+        `   Required to clear: a LATER non-author guardrail-2 APPROVE marker resolving it.\n`,
+    );
+    process.exit(1);
+  }
+
+  if (verdict.status === 'clear') {
+    process.stdout.write(
+      `PR #${prNumber} is security-sensitive AND carries a guardrail-2 APPROVE verdict ` +
+        `(reviewer ${verdict.reviewer || 'unknown'}, ${verdict.timestamp || 'unknown time'}) — clear to merge.\n`,
+    );
+    process.exit(0);
+  }
+
+  // No verdict marker on the PR — fall back to the legacy label / approving-review
+  // signal (backward compatible for PRs that predate the marker convention).
   const labels = new Set((data.labels || []).map((l) => l.name));
   const hasReviewLabel = [...labels].some((l) => SEC_REVIEW_LABELS.has(l));
   const approved = data.reviewDecision === 'APPROVED';
