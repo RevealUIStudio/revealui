@@ -27,14 +27,23 @@
  * wired so Phase 2 writes inherit it.
  */
 
+import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { RESPONSE_ALREADY_SENT } from '@hono/node-server/utils/response';
 import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db';
+import { usageMeters } from '@revealui/db/schema';
+import {
+  DEFAULT_TIER_LIMITS,
+  McpRateLimiter,
+  type RateLimitConfig,
+} from '@revealui/mcp/rate-limiter';
 import {
   createRevealuiContentServer,
   type McpToolAuditRecord,
   type McpToolAuditSink,
   type McpToolCallContext,
+  type McpToolMeterSink,
   type ResolvedApiCredentials,
 } from '@revealui/mcp/revealui-content-factory';
 import {
@@ -44,6 +53,7 @@ import {
 import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
 import { recordMcpToolAudit } from '../lib/mcp-audit.js';
+import { authorizeMcpTool, type McpTier } from '../lib/mcp-tool-access.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { entitlementMiddleware, getEntitlementsFromContext } from '../middleware/entitlements.js';
 import { requireFeature } from '../middleware/license.js';
@@ -65,6 +75,10 @@ interface McpAuthInfo {
 interface McpAuthExtra extends Record<string, unknown> {
   userId: string;
   accountId: string | null;
+  /** The user's role (`users.role`), for deny-by-default per-tool authz (I-7). */
+  role: string;
+  /** The account's server-derived tier, re-resolved per request (I-9). */
+  tier: McpTier;
 }
 
 export interface McpEndpointConfig {
@@ -78,6 +92,28 @@ export interface McpEndpointConfig {
   allowedHosts?: string[];
   /** DNS-rebinding guard: allowed `Origin` headers. Defaults from env. */
   allowedOrigins?: string[];
+  /**
+   * Per-user + tier rate-limit config (I-8). Defaults to `DEFAULT_TIER_LIMITS`.
+   * Injectable so tests can use tiny windows without hammering the real limits.
+   */
+  rateLimits?: Record<string, RateLimitConfig>;
+  /** Max concurrent MCP sessions per user (I-10). Default: 8. Excess evicts LRU. */
+  maxSessionsPerUser?: number;
+  /** Idle session TTL in ms (I-10). Default: 24h. A session idle past this 401s. */
+  idleSessionTtlMs?: number;
+  /** Clock for session activity/TTL. Defaults to `Date.now`; injectable for tests. */
+  now?: () => number;
+}
+
+const DEFAULT_MAX_SESSIONS_PER_USER = 8;
+const DEFAULT_IDLE_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+/** Per-session state kept by the mount: the bound identity (I-3) + activity (I-10). */
+interface SessionState {
+  userId: string;
+  accountId: string | null;
+  createdAt: number;
+  lastActivityAt: number;
 }
 
 function splitEnvList(value: string | undefined): string[] | undefined {
@@ -100,7 +136,12 @@ function extraFromContext(ctx: McpToolCallContext): McpAuthExtra | undefined {
   const info = ctx.authInfo as McpAuthInfo | undefined;
   const extra = info?.extra as Partial<McpAuthExtra> | undefined;
   if (!extra || typeof extra.userId !== 'string') return undefined;
-  return { userId: extra.userId, accountId: extra.accountId ?? null };
+  return {
+    userId: extra.userId,
+    accountId: extra.accountId ?? null,
+    role: typeof extra.role === 'string' ? extra.role : 'viewer',
+    tier: (extra.tier as McpTier | undefined) ?? 'free',
+  };
 }
 
 export interface McpEndpointParts {
@@ -120,9 +161,38 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
   const allowedHosts = config.allowedHosts ?? splitEnvList(process.env.REVEALUI_MCP_ALLOWED_HOSTS);
   const allowedOrigins =
     config.allowedOrigins ?? splitEnvList(process.env.REVEALUI_MCP_ALLOWED_ORIGINS);
+  const maxSessionsPerUser = config.maxSessionsPerUser ?? DEFAULT_MAX_SESSIONS_PER_USER;
+  const idleSessionTtlMs = config.idleSessionTtlMs ?? DEFAULT_IDLE_SESSION_TTL_MS;
+  const clock = config.now ?? Date.now;
 
-  // sessionId → the identity that created the session (I-3).
-  const sessionBindings = new Map<string, McpAuthExtra>();
+  // sessionId → the identity + activity of the session (I-3 binding, I-10 caps).
+  const sessionBindings = new Map<string, SessionState>();
+
+  // Shared per-user + tier rate limiter (I-8). One fixed-window store for the
+  // life of the mount; keyed `${userId}:${tool}` with limits from the tier.
+  const rateLimiter = new McpRateLimiter({ limits: config.rateLimits ?? DEFAULT_TIER_LIMITS });
+
+  // Control surface over the handler's live session map (set in onControl,
+  // below, during handler construction — before any request runs).
+  let control: StreamableHttpControl | null = null;
+
+  // Evict the least-recently-active sessions of a user once over the cap (I-10),
+  // never the session just created. Deletes the binding first (idempotent) then
+  // tears down the transport.
+  function enforceSessionCap(userId: string, keepSessionId: string): void {
+    const owned = [...sessionBindings.entries()].filter(([, s]) => s.userId === userId);
+    if (owned.length <= maxSessionsPerUser) return;
+    const evictable = owned
+      .filter(([sid]) => sid !== keepSessionId)
+      .sort((a, b) => a[1].lastActivityAt - b[1].lastActivityAt);
+    let over = owned.length - maxSessionsPerUser;
+    for (const [sid] of evictable) {
+      if (over <= 0) break;
+      sessionBindings.delete(sid);
+      if (control?.hasSession(sid)) void control.terminateSession(sid).catch(() => undefined);
+      over -= 1;
+    }
+  }
 
   // The credentialsProvider is the SOLE credential source on this path (I-4).
   const credentialsProvider = (ctx: McpToolCallContext): ResolvedApiCredentials => {
@@ -155,15 +225,55 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       scalars: record.scalars,
       durationMs: record.durationMs,
       httpStatus: record.httpStatus,
+      reason: record.reason,
     });
   };
 
-  let control: StreamableHttpControl | null = null;
+  // Deny-by-default per-tool authz (I-7): resolve the caller's role + tier from
+  // the threaded identity, then apply the role+tier policy. No identity → deny.
+  const toolAuthorizer = (ctx: McpToolCallContext, toolName: string): boolean => {
+    const identity = extraFromContext(ctx);
+    if (!identity) return false;
+    return authorizeMcpTool({ role: identity.role, tier: identity.tier }, toolName);
+  };
+
+  // Per-user + tier rate limit (I-8): key by user + tool, limits from the tier.
+  const rateLimit = async (ctx: McpToolCallContext, toolName: string): Promise<boolean> => {
+    const identity = extraFromContext(ctx);
+    if (!identity) return false;
+    const result = await rateLimiter.check(`${identity.userId}:${toolName}`, identity.tier);
+    return result.allowed;
+  };
+
+  // One `usage_meters` row per executed tool call, `source: 'agent'` (§5.5 tail).
+  // Account-scoped (FK); a caller with no account has no billable usage row.
+  const meterSink: McpToolMeterSink = async (ctx, event): Promise<void> => {
+    const identity = extraFromContext(ctx);
+    if (!identity?.accountId) return;
+    const now = new Date();
+    await getClient()
+      .insert(usageMeters)
+      .values({
+        id: randomUUID(),
+        accountId: identity.accountId,
+        meterName: 'mcp.tool.call',
+        quantity: 1,
+        periodStart: now,
+        source: 'agent',
+        idempotencyKey: `mcp:${randomUUID()}`,
+        durationMs: event.durationMs,
+        errored: event.errored,
+      });
+  };
+
   const handler = createNodeStreamableHttpHandler({
     createServer: () =>
       createRevealuiContentServer({
         credentialsProvider,
         auditSink,
+        toolAuthorizer,
+        rateLimiter: rateLimit,
+        meterSink,
         // Phase 1 exposes read tools only. The set is empty in production; the
         // fail-closed branch it feeds is exercised by the invariant tests.
         mutatingTools: new Set<string>(),
@@ -181,7 +291,15 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       const auth = (req as { auth?: McpAuthInfo }).auth;
       const extra = auth?.extra as Partial<McpAuthExtra> | undefined;
       if (extra && typeof extra.userId === 'string') {
-        sessionBindings.set(id, { userId: extra.userId, accountId: extra.accountId ?? null });
+        const now = clock();
+        sessionBindings.set(id, {
+          userId: extra.userId,
+          accountId: extra.accountId ?? null,
+          createdAt: now,
+          lastActivityAt: now,
+        });
+        // Bound the per-user concurrent-session count (I-10).
+        enforceSessionCap(extra.userId, id);
       }
     },
     onSessionClosed: (id) => {
@@ -212,7 +330,7 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       );
     }
 
-    const user = c.get('user') as { id: string } | undefined;
+    const user = c.get('user') as { id: string; role?: string } | undefined;
     const token = bearerFromHeader(c.req.header('Authorization'));
     if (!(user && token)) {
       // authMiddleware(required) should have 401'd already; belt-and-braces.
@@ -221,27 +339,49 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
         401,
       );
     }
-    const accountId = getEntitlementsFromContext(c).accountId;
-    const identity: McpAuthExtra = { userId: user.id, accountId };
+    // Tier + account are re-derived server-side every request (I-9): a
+    // client-supplied tier/tenant field can never influence the decision.
+    const entitlements = getEntitlementsFromContext(c);
+    const identity: McpAuthExtra = {
+      userId: user.id,
+      accountId: entitlements.accountId,
+      role: user.role ?? 'viewer',
+      tier: entitlements.tier,
+    };
 
     const sessionId = c.req.header('Mcp-Session-Id');
     if (sessionId) {
       const bound = sessionBindings.get(sessionId);
-      if (bound && bound.userId !== user.id) {
-        // I-3: a valid token for a DIFFERENT user on an existing session. The
-        // session id is not authority — reject and terminate it.
-        sessionBindings.delete(sessionId);
-        if (control?.hasSession(sessionId)) {
-          await control.terminateSession(sessionId).catch(() => undefined);
+      if (bound) {
+        if (bound.userId !== user.id) {
+          // I-3: a valid token for a DIFFERENT user on an existing session. The
+          // session id is not authority — reject and terminate it.
+          sessionBindings.delete(sessionId);
+          if (control?.hasSession(sessionId)) {
+            await control.terminateSession(sessionId).catch(() => undefined);
+          }
+          return c.json(
+            {
+              jsonrpc: '2.0',
+              error: { code: -32001, message: 'Session identity mismatch' },
+              id: null,
+            },
+            401,
+          );
         }
-        return c.json(
-          {
-            jsonrpc: '2.0',
-            error: { code: -32001, message: 'Session identity mismatch' },
-            id: null,
-          },
-          401,
-        );
+        // I-10: a session idle past the TTL no longer accepts requests.
+        const now = clock();
+        if (now - bound.lastActivityAt > idleSessionTtlMs) {
+          sessionBindings.delete(sessionId);
+          if (control?.hasSession(sessionId)) {
+            await control.terminateSession(sessionId).catch(() => undefined);
+          }
+          return c.json(
+            { jsonrpc: '2.0', error: { code: -32001, message: 'Session expired' }, id: null },
+            401,
+          );
+        }
+        bound.lastActivityAt = now;
       }
     }
 
