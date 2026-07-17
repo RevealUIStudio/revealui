@@ -82,7 +82,20 @@ export type StreamableHttpHandlerOptions = {
   onControl?: (control: StreamableHttpControl) => void;
 };
 
-export type StreamableHttpHandler = (req: IncomingMessage, res: ServerResponse) => Promise<void>;
+/**
+ * The optional third argument carries a body the caller already parsed.
+ * A web-framework bridge (Hono on @hono/node-server) parses the body from
+ * the web Request and passes it through, because middleware ahead of the
+ * bridge can claim the raw Node stream and leave the raw read empty (found
+ * live in the GAP-371 Phase 4 e2e: every Initialize through the real server
+ * failed with "Session ID required"). Direct Node-server callers omit the
+ * argument and the raw read path is unchanged.
+ */
+export type StreamableHttpHandler = (
+  req: IncomingMessage,
+  res: ServerResponse,
+  parsedBody?: unknown,
+) => Promise<void>;
 
 /** Control surface over a handler's live session map. */
 export interface StreamableHttpControl {
@@ -143,8 +156,8 @@ export function createNodeStreamableHttpHandler(
     },
   });
 
-  return async function mcpStreamableHttpHandler(req, res) {
-    const body = req.method === 'POST' ? await readJsonBody(req) : undefined;
+  return async function mcpStreamableHttpHandler(req, res, parsedBody) {
+    const body = req.method === 'POST' ? (parsedBody ?? (await readJsonBody(req))) : undefined;
     const rawSession = req.headers['mcp-session-id'];
     const sessionId = typeof rawSession === 'string' ? rawSession : undefined;
 
