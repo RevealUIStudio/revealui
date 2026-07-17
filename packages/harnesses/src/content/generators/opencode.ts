@@ -3,7 +3,7 @@
  *
  * Renders the canonical content definitions (rules, commands, agents, skills)
  * into OpenCode-native output. OpenCode's documented writable surfaces
- * (GAP-371 design §2.4, audited 2026-07-16) are narrower than Claude Code's:
+ * (audited 2026-07-16) are narrower than Claude Code's:
  *   - agents: markdown + frontmatter under `.opencode/agents/<id>.md`
  *   - commands: markdown + frontmatter under `.opencode/commands/<id>.md`
  *   - AGENTS.md at the project root (natively read by OpenCode)

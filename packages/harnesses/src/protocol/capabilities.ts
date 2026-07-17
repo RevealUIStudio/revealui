@@ -125,10 +125,10 @@ export function createDefaultCapabilities(): ProtocolCapabilities {
  */
 export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
   // OpenCode brings its own model (BYO via models.dev/AI-SDK) and has no
-  // in-loop hook system today -- an OpenCode plugin could add one later
-  // (GAP-371 §8.3), but until a plugin ships, `hooks.supported` stays
-  // honestly false. `maxContextTokens: 0` is the BYO sentinel documented on
-  // the interface field above, not a capability defect.
+  // in-loop hook system today -- an OpenCode plugin could add one later,
+  // but until a plugin ships, `hooks.supported` stays honestly false.
+  // `maxContextTokens: 0` is the BYO sentinel documented on the interface
+  // field above, not a capability defect.
   opencode: {
     dispatch: {
       generateCode: true,
