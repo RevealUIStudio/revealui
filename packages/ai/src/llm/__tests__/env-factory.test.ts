@@ -37,6 +37,8 @@ const PROVIDER_ENV_KEYS = [
   'ANTHROPIC_BASE_URL',
   'OPENAI_API_KEY',
   'OPENAI_BASE_URL',
+  'XAI_API_KEY',
+  'XAI_BASE_URL',
   'HF_TOKEN',
   'HF_MODEL_URL',
   'LLM_MODEL',
@@ -91,6 +93,11 @@ describe('createProvider — new factory branches', () => {
         }),
     ).not.toThrow();
   });
+
+  it('constructs an xai provider without throwing', () => {
+    const client = new LLMClient({ provider: 'xai', apiKey: 'xai-test' });
+    expect(providerOf(client)).toBe('xai');
+  });
 });
 
 describe('createLLMClientFromEnv — explicit LLM_PROVIDER', () => {
@@ -109,6 +116,17 @@ describe('createLLMClientFromEnv — explicit LLM_PROVIDER', () => {
   it('throws a keyless error for anthropic without ANTHROPIC_API_KEY', () => {
     process.env.LLM_PROVIDER = 'anthropic';
     expect(() => createLLMClientFromEnv()).toThrow('ANTHROPIC_API_KEY');
+  });
+
+  it('resolves xai from LLM_PROVIDER + XAI_API_KEY', () => {
+    process.env.LLM_PROVIDER = 'xai';
+    process.env.XAI_API_KEY = 'xai-test';
+    expect(providerOf(createLLMClientFromEnv())).toBe('xai');
+  });
+
+  it('throws a keyless error for xai without XAI_API_KEY', () => {
+    process.env.LLM_PROVIDER = 'xai';
+    expect(() => createLLMClientFromEnv()).toThrow('XAI_API_KEY');
   });
 });
 
@@ -153,6 +171,17 @@ describe('createLLMClientFromEnv — auto-detect for new providers (appended aft
     expect(providerOf(createLLMClientFromEnv())).toBe('anthropic');
   });
 
+  it('XAI_API_KEY alone resolves to xai', () => {
+    process.env.XAI_API_KEY = 'xai-test';
+    expect(providerOf(createLLMClientFromEnv())).toBe('xai');
+  });
+
+  it('OPENAI still wins over a newly-added XAI_API_KEY (priority unchanged)', () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    process.env.XAI_API_KEY = 'xai-test';
+    expect(providerOf(createLLMClientFromEnv())).toBe('openai');
+  });
+
   it('falls back to the inference-snaps localhost default with no provider env', () => {
     expect(providerOf(createLLMClientFromEnv())).toBe('inference-snaps');
   });
@@ -167,6 +196,7 @@ describe('hostedViable classification', () => {
       huggingface: true,
       ollama: false,
       'inference-snaps': false,
+      xai: true,
     });
   });
 
@@ -178,6 +208,7 @@ describe('hostedViable classification', () => {
       'huggingface',
       'ollama',
       'inference-snaps',
+      'xai',
     ];
     for (const p of providers) {
       expect(isHostedViable(p)).toBe(hostedViable[p]);

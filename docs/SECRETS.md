@@ -310,6 +310,7 @@ revealui/env/license   # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVAT
 credentials/openai/api-key              # AI features + test setup
 credentials/groq/api-key                # Groq inference
 credentials/huggingface/token           # HF model access
+credentials/xai/api-key                 # xAI (Grok) inference - BYOK adapter dev/test only, never a hosted key
 credentials/tavily/api-key              # Tavily search
 credentials/exa/api-key                 # Exa search
 ```

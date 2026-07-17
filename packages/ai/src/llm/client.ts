@@ -38,6 +38,7 @@ import {
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
+import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
   SemanticCache,
@@ -52,7 +53,8 @@ export type LLMProviderType =
   | 'groq'
   | 'huggingface'
   | 'ollama'
-  | 'inference-snaps';
+  | 'inference-snaps'
+  | 'xai';
 
 /**
  * Providers reachable from a hosted (serverless) deployment. Localhost-only
@@ -66,6 +68,7 @@ export const hostedViable: Record<LLMProviderType, boolean> = {
   huggingface: true,
   ollama: false,
   'inference-snaps': false,
+  xai: true,
 };
 
 /** True when the provider can serve a hosted (serverless) deployment. */
@@ -205,7 +208,8 @@ export class LLMClient {
       | OpenAIProviderConfig
       | GroqProviderConfig
       | OllamaProviderConfig
-      | InferenceSnapsProviderConfig,
+      | InferenceSnapsProviderConfig
+      | XaiProviderConfig,
   ): LLMProvider {
     switch (type) {
       case 'anthropic':
@@ -218,6 +222,8 @@ export class LLMClient {
         return new OllamaProvider(config as OllamaProviderConfig);
       case 'inference-snaps':
         return new InferenceSnapsProvider(config as InferenceSnapsProviderConfig);
+      case 'xai':
+        return new XaiProvider(config as XaiProviderConfig);
       case 'huggingface':
         // HuggingFace exposes an OpenAI-compatible inference endpoint; baseURL is
         // per-model (HF_MODEL_URL), so it has no dedicated wrapper — the compat
@@ -641,6 +647,7 @@ export class LLMClient {
  *   ollama          → gemma4:e2b        (base URL defaults to http://localhost:11434)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
  *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
+ *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)
  */
 export function createLLMClientFromEnv(): LLMClient {
   // Auto-detect provider when LLM_PROVIDER is not explicitly set. The existing
@@ -659,6 +666,8 @@ export function createLLMClientFromEnv(): LLMClient {
     provider = 'anthropic';
   } else if (process.env.OPENAI_API_KEY) {
     provider = 'openai';
+  } else if (process.env.XAI_API_KEY) {
+    provider = 'xai';
   } else {
     // Zero-config Ubuntu default: assume Inference Snaps on the standard local
     // port. This localhost default is unreachable inside a hosted serverless
@@ -686,6 +695,10 @@ export function createLLMClientFromEnv(): LLMClient {
     apiKey = process.env.OPENAI_API_KEY;
     baseURL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
     defaultModel = 'gpt-4o';
+  } else if (provider === 'xai') {
+    apiKey = process.env.XAI_API_KEY;
+    baseURL = process.env.XAI_BASE_URL ?? 'https://api.x.ai/v1';
+    defaultModel = 'grok-4.5';
   } else if (provider === 'huggingface') {
     apiKey = process.env.HF_TOKEN;
     baseURL = process.env.HF_MODEL_URL;
@@ -711,7 +724,7 @@ export function createLLMClientFromEnv(): LLMClient {
     throw new Error(
       `API key not found for provider "${provider}". Set the corresponding env var ` +
         `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, HF_TOKEN, ` +
-        `ANTHROPIC_API_KEY, or OPENAI_API_KEY).`,
+        `ANTHROPIC_API_KEY, OPENAI_API_KEY, or XAI_API_KEY).`,
     );
   }
 
