@@ -5,7 +5,15 @@
  *
  * Unified CLI for version management and package publishing.
  * Handles versioning and npm publishing for the monorepo.
- * Replaces GitHub Actions release.yml and release-pro.yml workflows.
+ *
+ * CANONICAL PATH NOTE (GAP-380, 2026-07-17): the canonical publish path is
+ * the GitHub Actions release.yml workflow (OIDC trusted publishing with
+ * provenance, dispatched on main). This CLI is the documented owner-run
+ * FALLBACK for cases the workflow cannot handle (e.g. a first publish of a
+ * new package before its npm trusted publisher exists). It publishes with a
+ * local npm login instead of OIDC provenance. An earlier version of this
+ * header claimed the CLI "replaces" release.yml; that claim was wrong and
+ * is retired.
  *
  * Commands:
  *   status            Show changeset status (pending versions)

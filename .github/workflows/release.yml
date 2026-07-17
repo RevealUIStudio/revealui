@@ -46,6 +46,19 @@ jobs:
     environment: npm-publish
 
     steps:
+      # Publishing is main-only: changeset status resolves against the main
+      # base ref and the npm trusted publisher is registered for this workflow
+      # running on main. Dispatching on any other ref used to die mid-run with
+      # changesets' "Failed to find where HEAD diverged from main" (GAP-380,
+      # runs 29518547299 + 29559527527, both dispatched on test). Fail fast
+      # with an actionable message instead.
+      - name: Guard dispatch ref (main only)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::release.yml publishes from main only; it was dispatched on ${{ github.ref }}."
+          echo "::error::Re-run with: gh workflow run release.yml --ref main"
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
