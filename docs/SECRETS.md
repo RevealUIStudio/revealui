@@ -453,5 +453,24 @@ out of three isn't recoverable.
 
 ## Known deviations / escape hatches
 
-None currently. Any exception to this architecture must land here with
-a rationale, a review date, and a named owner.
+### Harness gateway bootstrap pairing secret
+
+**Path:** `~/.local/share/revealui/pairing-secret` (mode `0600`,
+machine-local; NOT in revvault)
+
+**Rationale:** the `@revealui/harnesses` HTTP gateway's bootstrap
+credential is intentionally filesystem-rooted rather than revvault-rooted.
+The party who can read a `0600` file in the daemon's own data dir is, by
+definition, the machine owner, and that is the trust anchor a never-paired
+daemon uses to admit its first pairing (the same bootstrap paradox SSH
+resolves the same way). Storing it in revvault would invert the design: it
+would require a working revvault unlock to reach a locally-running daemon,
+and it would move the credential off the single machine it authenticates.
+The daemon generates the secret on first start
+(`HttpGateway.initAuth()`, `packages/harnesses/src/server/http-gateway.ts`);
+only its SHA-256 hash is ever persisted (the `gateway_bootstrap` table),
+never the plaintext. See the harnesses README's "Remote Gateway (HTTP)"
+section for the pairing flow.
+
+**Review date:** 2027-07-18 (annual)
+**Owner:** RevealUI Studio (harness daemon maintainer)
