@@ -45,10 +45,22 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/badge.showcase.js'),
   },
   {
+    slug: 'brand-mark',
+    name: 'Brand Mark',
+    category: 'component',
+    loader: () => import('../../showcase/brand-mark.showcase.js'),
+  },
+  {
     slug: 'breadcrumb',
     name: 'Breadcrumb',
     category: 'component',
     loader: () => import('../../showcase/breadcrumb.showcase.js'),
+  },
+  {
+    slug: 'built-with',
+    name: 'Built With RevealUI',
+    category: 'component',
+    loader: () => import('../../showcase/built-with.showcase.js'),
   },
   {
     slug: 'button',
@@ -129,6 +141,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/fieldset.showcase.js'),
   },
   {
+    slug: 'form-field',
+    name: 'Form Field',
+    category: 'component',
+    loader: () => import('../../showcase/form-field.showcase.js'),
+  },
+  {
     slug: 'heading',
     name: 'Heading',
     category: 'component',
@@ -151,6 +169,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Kbd',
     category: 'component',
     loader: () => import('../../showcase/kbd.showcase.js'),
+  },
+  {
+    slug: 'label',
+    name: 'Label',
+    category: 'component',
+    loader: () => import('../../showcase/label.showcase.js'),
   },
   {
     slug: 'link',
@@ -181,6 +205,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Pagination',
     category: 'component',
     loader: () => import('../../showcase/pagination.showcase.js'),
+  },
+  {
+    slug: 'pricing-table',
+    name: 'Pricing Table',
+    category: 'component',
+    loader: () => import('../../showcase/pricing-table.showcase.js'),
   },
   {
     slug: 'progress',
@@ -307,6 +337,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Tooltip',
     category: 'component',
     loader: () => import('../../showcase/tooltip.showcase.js'),
+  },
+  {
+    slug: 'wordmark',
+    name: 'Wordmark',
+    category: 'component',
+    loader: () => import('../../showcase/wordmark.showcase.js'),
   },
 ];
 
