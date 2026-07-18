@@ -1,10 +1,13 @@
 import type { BlockAnnotation } from '@revealui/presentation';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { HOME_DEMO, HOME_GET_STARTED } from '../../content/home';
+import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../../content/home';
+import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
 import { PRODUCTS_CTA_SECTION, PRODUCTS_PAGE_HERO } from '../../content/products';
 import { GetStarted } from '../GetStarted';
 import { Demo } from '../landing/Demo';
+import { Faq } from '../landing/Faq';
+import { Primitives } from '../landing/Primitives';
 import { ProductsCta } from '../products/ProductsCta';
 import { ProductsHero } from '../products/ProductsHero';
 
@@ -12,7 +15,14 @@ const ACTIVE: BlockAnnotation = { docId: 'home', editable: true };
 
 describe('block-driven marketing sections: annotation suppression (inactive)', () => {
   it('emits zero data-rvui-* attributes with default (inactive) annotation', () => {
-    for (const ui of [<Demo />, <GetStarted />, <ProductsHero />, <ProductsCta />]) {
+    for (const ui of [
+      <Demo />,
+      <Primitives />,
+      <GetStarted />,
+      <Faq />,
+      <ProductsHero />,
+      <ProductsCta />,
+    ]) {
       const { container, unmount } = render(ui);
       expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
       expect(container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -49,18 +59,47 @@ describe('block-driven marketing sections: annotation emission (active)', () => 
     );
   });
 
-  it('GetStarted emits field paths on heading, body, and snippet', () => {
-    const { container } = render(<GetStarted path="blocks.1" annotation={ACTIVE} />);
+  it('Primitives emits field paths on heading, body, and repeater items', () => {
+    const { container } = render(<Primitives path="blocks.1" annotation={ACTIVE} />);
     expect(container.querySelector('[data-rvui-field="blocks.1.heading"]')?.textContent).toBe(
-      HOME_GET_STARTED.heading,
+      HOME_PRIMITIVES_SECTION.heading,
     );
     expect(container.querySelector('[data-rvui-field="blocks.1.body"]')?.textContent).toBe(
+      HOME_PRIMITIVES_SECTION.body,
+    );
+    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.label"]')?.textContent).toBe(
+      HOME_PRIMITIVES[0]?.label,
+    );
+    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.body"]')?.textContent).toBe(
+      HOME_PRIMITIVES[0]?.body,
+    );
+  });
+
+  it('GetStarted emits field paths on heading, body, and snippet', () => {
+    const { container } = render(<GetStarted path="blocks.2" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.2.heading"]')?.textContent).toBe(
+      HOME_GET_STARTED.heading,
+    );
+    expect(container.querySelector('[data-rvui-field="blocks.2.body"]')?.textContent).toBe(
       HOME_GET_STARTED.body,
     );
     expect(
-      container.querySelector('[data-rvui-field="blocks.1.snippet.caption"]')?.textContent,
+      container.querySelector('[data-rvui-field="blocks.2.snippet.caption"]')?.textContent,
     ).toBe(HOME_GET_STARTED.cli.caption);
-    expect(container.querySelector('[data-rvui-field="blocks.1.snippet.lines"]')).not.toBeNull();
+    expect(container.querySelector('[data-rvui-field="blocks.2.snippet.lines"]')).not.toBeNull();
+  });
+
+  it('Faq emits field paths on heading and per-item question + answer', () => {
+    const { container } = render(<Faq path="blocks.1" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.1.heading"]')?.textContent).toBe(
+      HOME_FAQ.heading,
+    );
+    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.label"]')?.textContent).toBe(
+      HOME_FAQ.items[0]?.question,
+    );
+    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.body"]')?.textContent).toBe(
+      HOME_FAQ.items[0]?.answer,
+    );
   });
 
   it('ProductsHero emits field paths on title and subtitle', () => {
@@ -74,13 +113,13 @@ describe('block-driven marketing sections: annotation emission (active)', () => 
   });
 
   it('ProductsCta emits field paths on heading, body, and snippet', () => {
-    const { container } = render(<ProductsCta path="blocks.1" annotation={ACTIVE} />);
-    expect(container.querySelector('[data-rvui-field="blocks.1.heading"]')?.textContent).toBe(
+    const { container } = render(<ProductsCta path="blocks.2" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.2.heading"]')?.textContent).toBe(
       PRODUCTS_CTA_SECTION.heading,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.1.body"]')?.textContent).toBe(
+    expect(container.querySelector('[data-rvui-field="blocks.2.body"]')?.textContent).toBe(
       PRODUCTS_CTA_SECTION.body,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.1.snippet.lines"]')).not.toBeNull();
+    expect(container.querySelector('[data-rvui-field="blocks.2.snippet.lines"]')).not.toBeNull();
   });
 });

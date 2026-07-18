@@ -1,16 +1,17 @@
 /**
  * Static-first block derivation for the marketing home + products pages.
  *
- * The marketing content modules (content/home.ts, content/products.ts) stay the
- * single source of truth for every prose string. This module derives the
- * canonical `pages.blocks` array from those modules with the `@revealui/contracts`
- * factories — a PURE transform, so the CMS block stream and the static fallback
- * can never carry a different sentence than the claim-covered modules do.
+ * The marketing content modules (content/home.ts, content/primitives.ts,
+ * content/products.ts) stay the single source of truth for every prose string.
+ * This module derives the canonical `pages.blocks` array from those modules with
+ * the `@revealui/contracts` factories — a PURE transform, so the CMS block stream
+ * and the static fallback can never carry a different sentence than the
+ * claim-covered modules do.
  *
  * The reverse mappers reconstruct each marketing component's own rich data shape
  * from a block, so the styled marketing components keep their look while their
  * prose can be overridden by the CMS. Only prose lives in blocks: metric-derived
- * numbers, prices, product versions, and interactive logic never leave the TSX.
+ * numbers, prices, product versions, colors, and icon paths never leave the TSX.
  *
  * No React or network imports live here so `scripts/seed-fleet-marketing-site.ts`
  * can import the same derivation the runtime falls back to.
@@ -26,7 +27,8 @@ import {
   type MarketingLink,
   type SectionBlock,
 } from '@revealui/contracts/content';
-import { HOME_DEMO, HOME_GET_STARTED } from '../content/home';
+import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
+import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../content/primitives';
 import { PRODUCTS_CTA_SECTION, PRODUCTS_PAGE_HERO } from '../content/products';
 import type { Cta } from '../content/types';
 
@@ -47,12 +49,35 @@ export interface DemoData {
   readonly beats: readonly DemoBeatData[];
 }
 
+export interface PrimitiveItemData {
+  readonly label: string;
+  readonly body: string;
+}
+
+export interface PrimitivesData {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly body: string;
+  readonly items: readonly PrimitiveItemData[];
+}
+
 export interface GetStartedData {
   readonly heading: string;
   readonly body: string;
   readonly cta: { readonly primary: Cta; readonly secondary: Cta };
   readonly cli: { readonly command: readonly string[]; readonly caption: string };
   readonly newsletter: { readonly label: string };
+}
+
+export interface FaqItemData {
+  readonly question: string;
+  readonly answer: string;
+}
+
+export interface FaqData {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly items: readonly FaqItemData[];
 }
 
 export interface ProductsHeroData {
@@ -68,14 +93,24 @@ export interface ProductsCtaData {
 }
 
 // ---------------------------------------------------------------------------
-// Stable block ids. Ids let the seed and fallback match, but the runtime never
-// routes by id (the CMS assigns its own) — it routes by array position + type.
+// Stable block ids + positions. Ids let the seed and fallback match, but the
+// runtime routes each slot by array POSITION + type (the CMS assigns its own
+// ids, and a page carries more than one `section` block).
 // ---------------------------------------------------------------------------
 
 export const HOME_DEMO_BLOCK_ID = 'home-demo';
+export const HOME_PRIMITIVES_BLOCK_ID = 'home-primitives';
 export const HOME_GET_STARTED_BLOCK_ID = 'home-get-started';
 export const PRODUCTS_HERO_BLOCK_ID = 'products-hero';
+export const PRODUCTS_FAQ_BLOCK_ID = 'products-faq';
 export const PRODUCTS_CTA_BLOCK_ID = 'products-cta';
+
+const HOME_DEMO_INDEX = 0;
+const HOME_PRIMITIVES_INDEX = 1;
+const HOME_GET_STARTED_INDEX = 2;
+const PRODUCTS_HERO_INDEX = 0;
+const PRODUCTS_FAQ_INDEX = 1;
+const PRODUCTS_CTA_INDEX = 2;
 
 function ctaToLink(cta: Cta, variant: 'primary' | 'secondary'): MarketingLink {
   return { label: cta.label, href: cta.href, variant };
@@ -101,6 +136,17 @@ function homeDemoBlock(): SectionBlock {
   });
 }
 
+function homePrimitivesBlock(): SectionBlock {
+  return createSectionBlock(HOME_PRIMITIVES_BLOCK_ID, HOME_PRIMITIVES_SECTION.heading, {
+    eyebrow: HOME_PRIMITIVES_SECTION.eyebrow,
+    body: HOME_PRIMITIVES_SECTION.body,
+    items: HOME_PRIMITIVES.map((primitive) => ({
+      label: primitive.label,
+      body: primitive.body,
+    })),
+  });
+}
+
 function homeGetStartedBlock(): CtaSectionBlock {
   return createCtaSectionBlock(HOME_GET_STARTED_BLOCK_ID, HOME_GET_STARTED.heading, {
     body: HOME_GET_STARTED.body,
@@ -121,6 +167,16 @@ function productsHeroBlock(): HeroBlock {
   });
 }
 
+function productsFaqBlock(): SectionBlock {
+  return createSectionBlock(PRODUCTS_FAQ_BLOCK_ID, HOME_FAQ.heading, {
+    eyebrow: HOME_FAQ.eyebrow,
+    items: HOME_FAQ.items.map((item) => ({
+      label: item.question,
+      body: item.answer,
+    })),
+  });
+}
+
 function productsCtaBlock(): CtaSectionBlock {
   return createCtaSectionBlock(PRODUCTS_CTA_BLOCK_ID, PRODUCTS_CTA_SECTION.heading, {
     body: PRODUCTS_CTA_SECTION.body,
@@ -132,14 +188,14 @@ function productsCtaBlock(): CtaSectionBlock {
   });
 }
 
-/** Derives the home page's block-driven sections (Demo, GetStarted). */
+/** Derives the home page's block-driven sections (Demo, Primitives, GetStarted). */
 export function homeBlocks(): Block[] {
-  return [homeDemoBlock(), homeGetStartedBlock()];
+  return [homeDemoBlock(), homePrimitivesBlock(), homeGetStartedBlock()];
 }
 
-/** Derives the products page's block-driven sections (Hero, CTA). */
+/** Derives the products page's block-driven sections (Hero, FAQ, CTA). */
 export function productsBlocks(): Block[] {
-  return [productsHeroBlock(), productsCtaBlock()];
+  return [productsHeroBlock(), productsFaqBlock(), productsCtaBlock()];
 }
 
 export const HOME_FALLBACK_BLOCKS: Block[] = homeBlocks();
@@ -157,6 +213,18 @@ function sectionToDemo(block: SectionBlock): DemoData {
     beats: (block.data.items ?? []).map((item) => ({
       n: item.label ?? '',
       title: item.title ?? '',
+      body: item.body,
+    })),
+  };
+}
+
+function sectionToPrimitives(block: SectionBlock): PrimitivesData {
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    heading: block.data.heading,
+    body: block.data.body ?? '',
+    items: (block.data.items ?? []).map((item) => ({
+      label: item.label ?? '',
       body: item.body,
     })),
   };
@@ -181,6 +249,17 @@ function ctaToGetStarted(block: CtaSectionBlock): GetStartedData {
   };
 }
 
+function sectionToFaq(block: SectionBlock): FaqData {
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    heading: block.data.heading,
+    items: (block.data.items ?? []).map((item) => ({
+      question: item.label ?? '',
+      answer: item.body,
+    })),
+  };
+}
+
 function heroToProductsHero(block: HeroBlock): ProductsHeroData {
   return {
     h1: block.data.title,
@@ -202,53 +281,64 @@ function ctaToProductsCta(block: CtaSectionBlock): ProductsCtaData {
   };
 }
 
+/**
+ * Default (fallback) data for the Primitives section. No single content const
+ * carries both the header and the item list, so it is composed here once.
+ */
+export const PRIMITIVES_FALLBACK_DATA: PrimitivesData = sectionToPrimitives(homePrimitivesBlock());
+
 // ---------------------------------------------------------------------------
-// Slot resolvers: pick a block by type + position, return data + annotation path
+// Slot resolvers: pick a block by POSITION + type, return data + annotation path.
+// blocksMatchFallback() guarantees the type at each index matches the fallback,
+// so a page can carry several `section` blocks without ambiguity.
 // ---------------------------------------------------------------------------
 
 export interface BlockSlot<T> {
   readonly data: T;
-  /** Dot-path base of the block within the array, e.g. `blocks.0`. */
+  /** Dot-path base of this block within the array, e.g. `blocks.0`. */
   readonly path: string;
 }
 
-function firstOfType(blocks: Block[], type: Block['type']): { block: Block; index: number } | null {
-  const index = blocks.findIndex((block) => block.type === type);
-  if (index < 0) return null;
-  const block = blocks[index];
-  return block ? { block, index } : null;
+export function demoSlot(blocks: Block[]): BlockSlot<DemoData> {
+  const block = blocks[HOME_DEMO_INDEX];
+  const path = `blocks.${HOME_DEMO_INDEX}`;
+  if (block && block.type === 'section') return { data: sectionToDemo(block), path };
+  return { data: sectionToDemo(homeDemoBlock()), path };
 }
 
-export function demoSlot(blocks: Block[]): BlockSlot<DemoData> {
-  const found = firstOfType(blocks, 'section');
-  if (found && found.block.type === 'section') {
-    return { data: sectionToDemo(found.block), path: `blocks.${found.index}` };
-  }
-  return { data: sectionToDemo(homeDemoBlock()), path: 'blocks.0' };
+export function primitivesSlot(blocks: Block[]): BlockSlot<PrimitivesData> {
+  const block = blocks[HOME_PRIMITIVES_INDEX];
+  const path = `blocks.${HOME_PRIMITIVES_INDEX}`;
+  if (block && block.type === 'section') return { data: sectionToPrimitives(block), path };
+  return { data: sectionToPrimitives(homePrimitivesBlock()), path };
 }
 
 export function getStartedSlot(blocks: Block[]): BlockSlot<GetStartedData> {
-  const found = firstOfType(blocks, 'ctaSection');
-  if (found && found.block.type === 'ctaSection') {
-    return { data: ctaToGetStarted(found.block), path: `blocks.${found.index}` };
-  }
-  return { data: ctaToGetStarted(homeGetStartedBlock()), path: 'blocks.1' };
+  const block = blocks[HOME_GET_STARTED_INDEX];
+  const path = `blocks.${HOME_GET_STARTED_INDEX}`;
+  if (block && block.type === 'ctaSection') return { data: ctaToGetStarted(block), path };
+  return { data: ctaToGetStarted(homeGetStartedBlock()), path };
 }
 
 export function productsHeroSlot(blocks: Block[]): BlockSlot<ProductsHeroData> {
-  const found = firstOfType(blocks, 'hero');
-  if (found && found.block.type === 'hero') {
-    return { data: heroToProductsHero(found.block), path: `blocks.${found.index}` };
-  }
-  return { data: heroToProductsHero(productsHeroBlock()), path: 'blocks.0' };
+  const block = blocks[PRODUCTS_HERO_INDEX];
+  const path = `blocks.${PRODUCTS_HERO_INDEX}`;
+  if (block && block.type === 'hero') return { data: heroToProductsHero(block), path };
+  return { data: heroToProductsHero(productsHeroBlock()), path };
+}
+
+export function productsFaqSlot(blocks: Block[]): BlockSlot<FaqData> {
+  const block = blocks[PRODUCTS_FAQ_INDEX];
+  const path = `blocks.${PRODUCTS_FAQ_INDEX}`;
+  if (block && block.type === 'section') return { data: sectionToFaq(block), path };
+  return { data: sectionToFaq(productsFaqBlock()), path };
 }
 
 export function productsCtaSlot(blocks: Block[]): BlockSlot<ProductsCtaData> {
-  const found = firstOfType(blocks, 'ctaSection');
-  if (found && found.block.type === 'ctaSection') {
-    return { data: ctaToProductsCta(found.block), path: `blocks.${found.index}` };
-  }
-  return { data: ctaToProductsCta(productsCtaBlock()), path: 'blocks.1' };
+  const block = blocks[PRODUCTS_CTA_INDEX];
+  const path = `blocks.${PRODUCTS_CTA_INDEX}`;
+  if (block && block.type === 'ctaSection') return { data: ctaToProductsCta(block), path };
+  return { data: ctaToProductsCta(productsCtaBlock()), path };
 }
 
 // ---------------------------------------------------------------------------
