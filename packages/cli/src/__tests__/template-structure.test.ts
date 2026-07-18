@@ -189,6 +189,24 @@ describe('package.json integrity after scaffolding', () => {
       expect(pkg.dependencies?.['@revealui/core']).toBeDefined();
       expect(pkg.dependencies?.['@revealui/core']).toMatch(/^(latest|\^?\d+\.\d+)/);
     });
+
+    // Regression test: next.config.mjs sets reactCompiler: true, but next lists
+    // babel-plugin-react-compiler only as an OPTIONAL peer dependency, so pnpm
+    // never installs it unless the template declares it directly. Without it,
+    // `pnpm build` fails with "Failed to resolve package babel-plugin-react-compiler".
+    // @types/react and @types/node must also be declared directly so an offline
+    // or --frozen-lockfile build doesn't depend on Next auto-installing them.
+    it(`${template}: package.json declares babel-plugin-react-compiler and @types/{react,node}`, async () => {
+      const projectPath = path.join(tmpDir, `${template}-compiler-deps`);
+      await createProject(baseConfig(template, projectPath));
+
+      const pkg = JSON.parse(
+        await fs.readFile(path.join(projectPath, 'package.json'), 'utf-8'),
+      ) as { devDependencies?: Record<string, string> };
+      expect(pkg.devDependencies?.['babel-plugin-react-compiler']).toBeDefined();
+      expect(pkg.devDependencies?.['@types/react']).toBeDefined();
+      expect(pkg.devDependencies?.['@types/node']).toBeDefined();
+    });
   }
 });
 
