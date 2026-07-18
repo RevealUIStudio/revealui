@@ -5,9 +5,14 @@
  * api.revealui.com in production builds and localhost:3004 in dev.
  */
 
+import type { Block } from '@revealui/contracts/content';
+
 const DEFAULT_API_URL = import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004';
 
 const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
+
+/** The fleet-marketing site row that owns revealui.com's published pages. */
+const FLEET_MARKETING_SITE_ID = 'fleet-marketing';
 
 export interface ContactPayload {
   name: string;
@@ -120,6 +125,32 @@ export async function fetchPosts(page = 1, limit = 12): Promise<BlogPost[]> {
     return json.data ?? [];
   } catch {
     return [];
+  }
+}
+
+/**
+ * Fetch the published `pages.blocks` array for a fleet-marketing page by slug.
+ *
+ * Returns null on any error, miss, or a page without a block array, so the
+ * caller renders its static fallback with zero API dependency. The returned
+ * array is unvalidated network data — callers validate it against the
+ * contracts BlockSchema before rendering.
+ */
+export async function fetchPageBlocks(slug: string): Promise<Block[] | null> {
+  try {
+    const res = await fetch(
+      `${API_URL}/api/content/sites/${FLEET_MARKETING_SITE_ID}/pages?status=published`,
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      success: boolean;
+      data?: Array<{ slug: string; blocks: unknown }>;
+    };
+    const page = json.data?.find((p) => p.slug === slug);
+    if (!(page && Array.isArray(page.blocks))) return null;
+    return page.blocks as Block[];
+  } catch {
+    return null;
   }
 }
 
