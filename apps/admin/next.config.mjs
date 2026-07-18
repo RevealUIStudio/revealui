@@ -107,6 +107,7 @@ const nextConfig = {
     '@revealui/contracts',
     '@revealui/auth',
     '@revealui/core',
+    '@revealui/editor',
     '@revealui/presentation',
     '@revealui/sync',
   ],

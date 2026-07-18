@@ -23,6 +23,12 @@ import { HTTPException } from 'hono/http-exception';
 import { authorizationSystem } from '../../middleware/authorization.js';
 import { IdParam } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
+import {
+  getPreviewTokenSecret,
+  mintPreviewToken,
+  PREVIEW_TOKEN_TTL_SECONDS,
+  verifyPreviewToken,
+} from './_helpers/preview-token.js';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
@@ -782,6 +788,218 @@ app.openapi(
     });
 
     return c.json({ success: true as const, data: serializeSession(discarded) }, 200);
+  },
+);
+
+// =============================================================================
+// Preview tokens  -  cross-origin, read-only draft access for the marketing
+// preview iframe. Tokens authorize the GET /preview read and NOTHING else; no
+// mutating route here reads or accepts them.
+// =============================================================================
+
+/**
+ * The public marketing origin the preview iframe loads from. Server config, not
+ * request input  -  the previewUrl we hand back is built against this trusted
+ * base, so the canvas can pin postMessage to its origin.
+ */
+function marketingBaseUrl(): string {
+  const raw = process.env.REVEALUI_PUBLIC_SERVER_URL ?? process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!raw || raw.length === 0) {
+    throw new HTTPException(500, {
+      message: 'REVEALUI_PUBLIC_SERVER_URL is not configured; cannot build a preview URL',
+    });
+  }
+  return raw;
+}
+
+/**
+ * The dashboard origin the preview runtime pins its postMessage channel to.
+ * Server config, never the URL  -  this is the origin allowlist the runtime
+ * trusts, so it must come from a source the browser cannot influence.
+ */
+function adminOrigin(): string {
+  const raw = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
+  if (!raw || raw.length === 0) {
+    throw new HTTPException(500, {
+      message: 'ADMIN_URL is not configured; cannot pin the preview origin',
+    });
+  }
+  return new URL(raw).origin;
+}
+
+const PreviewTokenSchema = z
+  .object({
+    token: z.string(),
+    expiresAt: DateTime,
+    previewUrl: z.string(),
+  })
+  .openapi('EditSessionPreviewToken');
+
+const PreviewDocSchema = z.object({
+  docType: z.string(),
+  docId: z.string(),
+  draft: z.unknown(),
+});
+
+const PreviewPayloadSchema = z
+  .object({
+    siteId: z.string(),
+    adminOrigin: z.string(),
+    docs: z.array(PreviewDocSchema),
+  })
+  .openapi('EditSessionPreviewPayload');
+
+// -----------------------------------------------------------------------------
+// POST /sessions/:id/preview-token  -  mint a short-lived preview token
+// -----------------------------------------------------------------------------
+
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/sessions/{id}/preview-token',
+    tags: ['content'],
+    summary: 'Mint a preview token for an edit session',
+    request: {
+      params: IdParam,
+      query: z.object({ pageId: z.string().min(1).optional() }),
+    },
+    responses: {
+      201: {
+        content: {
+          'application/json': {
+            schema: z.object({ success: z.literal(true), data: PreviewTokenSchema }),
+          },
+        },
+        description: 'Preview token minted',
+      },
+      404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Session not open',
+      },
+    },
+  }),
+  async (c) => {
+    const db = c.get('db');
+    requireContentEditor(c.get('user'));
+    const { id } = c.req.valid('param');
+    const { pageId } = c.req.valid('query');
+
+    const session = await sessionQueries.getEditSessionById(db, id);
+    if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    if (session.status !== 'open') {
+      throw new HTTPException(409, { message: 'Session is not open' });
+    }
+
+    // Resolve the page path to land the iframe on. A pageId must belong to this
+    // session's site; otherwise fall back to the site root.
+    let path = '/';
+    if (pageId) {
+      const page = await sessionQueries.getLivePage(db, pageId);
+      if (!page || page.siteId !== session.siteId) {
+        throw new HTTPException(404, { message: 'Page not found in this session site' });
+      }
+      path = page.path;
+    }
+
+    const { token, exp } = mintPreviewToken(getPreviewTokenSecret(), id, PREVIEW_TOKEN_TTL_SECONDS);
+
+    const url = new URL(path, marketingBaseUrl());
+    url.searchParams.set('rvui-edit', token);
+    url.searchParams.set('rvui-session', id);
+
+    return c.json(
+      {
+        success: true as const,
+        data: {
+          token,
+          expiresAt: new Date(exp * 1000).toISOString(),
+          previewUrl: url.toString(),
+        },
+      },
+      201,
+    );
+  },
+);
+
+// -----------------------------------------------------------------------------
+// GET /sessions/:id/preview?token=...  -  read-only draft overlays, token-auth'd
+// -----------------------------------------------------------------------------
+// NO cookie auth: the marketing iframe is a different origin and holds only the
+// signed token. The token grants this read and nothing else.
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/sessions/{id}/preview',
+    tags: ['content'],
+    summary: 'Read edit session draft overlays with a preview token',
+    request: {
+      params: IdParam,
+      query: z.object({ token: z.string().min(1) }),
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({ success: z.literal(true), data: PreviewPayloadSchema }),
+          },
+        },
+        description: 'Draft overlays for the session',
+      },
+      401: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Invalid or expired token',
+      },
+      403: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Token does not authorize this session',
+      },
+      404: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Not found' },
+      409: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Session not open',
+      },
+    },
+  }),
+  async (c) => {
+    const db = c.get('db');
+    const { id } = c.req.valid('param');
+    const { token } = c.req.valid('query');
+
+    // Verify the token BEFORE touching any draft data, so an invalid token never
+    // leaks a doc.
+    const verified = verifyPreviewToken(getPreviewTokenSecret(), token);
+    if (!verified.ok) {
+      throw new HTTPException(401, { message: `Invalid preview token: ${verified.reason}` });
+    }
+    if (verified.sid !== id) {
+      throw new HTTPException(403, { message: 'Token does not authorize this session' });
+    }
+
+    const session = await sessionQueries.getEditSessionById(db, id);
+    if (!session) throw new HTTPException(404, { message: 'Session not found' });
+    if (session.status !== 'open') {
+      throw new HTTPException(409, { message: 'Session is not open' });
+    }
+
+    const docs = await sessionQueries.getSessionDocs(db, id);
+
+    // Read-only, never cached (belt-and-braces on top of the mount-level noStore).
+    c.header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    c.header('Pragma', 'no-cache');
+
+    return c.json(
+      {
+        success: true as const,
+        data: {
+          siteId: session.siteId,
+          adminOrigin: adminOrigin(),
+          docs: docs.map((d) => ({ docType: d.docType, docId: d.docId, draft: d.draft })),
+        },
+      },
+      200,
+    );
   },
 );
 

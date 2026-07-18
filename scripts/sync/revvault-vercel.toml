@@ -100,6 +100,9 @@ REVEALUI_AUDIT_SIGNING_KEY   = { path = "revealui/prod/audit/signing-private-key
 REVEALUI_AUDIT_PUBLIC_KEY    = "revealui/prod/audit/signing-public-key"
 REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
 
+# Visual edit sessions — HMAC secret for read-only preview tokens
+REVEALUI_PREVIEW_TOKEN_SECRET = { path = "revealui/prod/preview-token-secret", sensitive = true }
+
 # Cron + alerting
 REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }
 REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"

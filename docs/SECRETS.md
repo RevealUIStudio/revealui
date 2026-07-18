@@ -122,6 +122,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/passkey/origin` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-name` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
+| `revealui/prod/preview-token-secret` | credential | yes | vercel:api | preview-token HMAC (visual edit sessions) |
 | `revealui/prod/public/api-url` | public-config | no | vercel:admin, vercel:marketing, vercel:docs |  |
 | `revealui/prod/public/is-live` | public-config | no | vercel:admin, vercel:marketing | NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag |
 | `revealui/prod/public/server-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, fly:worker |  |
