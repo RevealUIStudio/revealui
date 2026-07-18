@@ -114,13 +114,14 @@ export {
   IconUsers,
   IconXCircle,
 } from './components/icon.js';
-// OAuth provider + passkey icons - Server Safe
+// OAuth provider, social, + passkey icons - Server Safe
 export {
   GitHubIcon,
   GoogleIcon,
   LinkedInIcon,
   PasskeyIcon,
   VercelIcon,
+  XIcon,
 } from './icons/providers.js';
 
 // Primitives - Server Safe

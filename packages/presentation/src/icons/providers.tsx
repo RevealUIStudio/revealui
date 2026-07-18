@@ -1,5 +1,5 @@
 /**
- * OAuth provider + passkey icons.
+ * OAuth provider, social, + passkey icons.
  *
  * Mono icons in `currentColor` — they inherit the parent button's text color so
  * the OAuth row reads as a uniform visual family rather than a multi-color grid.
@@ -74,6 +74,15 @@ export function VercelIcon(props: IconProps) {
   return (
     <BaseIcon {...props}>
       <path d="M24 22.525H0l12-21.05 12 21.05z" />
+    </BaseIcon>
+  );
+}
+
+/** X (formerly Twitter) mark. */
+export function XIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25h6.826l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </BaseIcon>
   );
 }
