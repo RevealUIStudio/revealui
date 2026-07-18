@@ -1,5 +1,29 @@
 # @revealui/mcp
 
+## 0.8.1
+
+### Patch Changes
+
+- c3c1e8f: fix the Streamable HTTP bridge so a governed mount works behind body-consuming middleware. `createNodeStreamableHttpHandler` now accepts an optional pre-parsed body (third argument); a web-framework bridge that has already read `Request.body` passes it through instead of re-reading the raw Node stream, which arrives empty when upstream middleware has claimed it. Direct Node-server callers are unchanged (the raw-read path still runs when no body is passed).
+- Updated dependencies [16b235f]
+- Updated dependencies [11ab999]
+- Updated dependencies [83846a2]
+- Updated dependencies [b029d2d]
+- Updated dependencies [c3c1e8f]
+- Updated dependencies [1385cd6]
+- Updated dependencies [077d3c4]
+- Updated dependencies [578214d]
+- Updated dependencies [b550aa2]
+- Updated dependencies [1a49590]
+- Updated dependencies [6a58057]
+  - @revealui/security@0.5.0
+  - @revealui/setup@0.7.0
+  - @revealui/core@0.12.0
+  - @revealui/db@0.9.0
+  - @revealui/contracts@0.8.0
+  - @revealui/config@0.6.0
+  - @revealui/knowledge-graph@0.1.3
+
 ## 0.8.0
 
 ### Minor Changes

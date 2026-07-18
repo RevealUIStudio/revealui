@@ -1,5 +1,15 @@
 # @revealui/knowledge-graph
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [c3c1e8f]
+- Updated dependencies [1385cd6]
+- Updated dependencies [077d3c4]
+- Updated dependencies [578214d]
+  - @revealui/db@0.9.0
+
 ## 0.1.2
 
 ### Patch Changes
