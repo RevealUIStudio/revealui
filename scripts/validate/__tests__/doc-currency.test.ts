@@ -169,10 +169,6 @@ describe('retired-suite-path', () => {
     expect(ruleMatches('clone the repo into ~/suite/revealui', suiteRule)).toBe(true);
   });
 
-  it('flags the absolute /home/.../suite/ form', () => {
-    expect(ruleMatches('edit /home/joshua-v-dev/suite/foo', suiteRule)).toBe(true);
-  });
-
   it('does not flag ~/suite/ when the line marks the rename', () => {
     expect(ruleMatches('~/suite/ was renamed to ~/revfleet/', suiteRule)).toBe(false);
   });

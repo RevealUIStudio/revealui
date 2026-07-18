@@ -110,7 +110,10 @@ export function parseArgs(argv: readonly string[]): {
 // any repo's prose. Their DETECTION tuples (anyOf + unlessLineHas) are kept in
 // lockstep with the private sibling scanner at
 // .jv/scripts/doc-currency-check.ts §SHARED_FLEET_RULES. Messages may carry
-// repo-appropriate citations; only the detection must match. This public
+// repo-appropriate citations; only the detection must match — with one
+// carve-out: `retired-suite-path` carries only the username-free `~/suite/`
+// form here (see its comment), because gate:security forbids hardcoded local
+// paths in public code. This public
 // scanner has no repo-specific rules — the .jv scanner adds `boi-mandatory`,
 // which is internal legal posture with no public surface. See the .jv
 // doc-currency rule §lockstep.
@@ -309,9 +312,14 @@ const SHARED_FLEET_RULES: readonly Rule[] = [
   {
     // Retired developer path. `~/suite/` was renamed to `~/revfleet/` on
     // 2026-05-08; a doc presenting `~/suite/` as a live path is stale. Fleet
-    // fact — detection in lockstep with the .jv scanner's retired-suite-path.
+    // fact — kept in lockstep with the .jv scanner's retired-suite-path, EXCEPT
+    // this public scanner carries only the username-free `~/suite/` form. The
+    // absolute (`/home/<user>/suite/`) and WSL-UNC forms embed a developer
+    // username, which gate:security's local-path-leak check forbids in public
+    // code, so those two anyOf terms stay .jv-only. `~/suite/` is the form that
+    // actually appears in public docs anyway.
     id: 'retired-suite-path',
-    anyOf: ['~/suite/', '/home/joshua-v-dev/suite/', 'wsl$\\ubuntu\\home\\joshua-v-dev\\suite'],
+    anyOf: ['~/suite/'],
     unlessLineHas: [...COMMON_EXON, 'now ~/revfleet', 'renamed'],
     message: 'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
   },
