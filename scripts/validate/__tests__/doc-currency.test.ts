@@ -162,6 +162,22 @@ describe('max-price-stale', () => {
   });
 });
 
+describe('retired-suite-path', () => {
+  const suiteRule = rule('retired-suite-path');
+
+  it('flags the retired ~/suite/ path presented as live', () => {
+    expect(ruleMatches('clone the repo into ~/suite/revealui', suiteRule)).toBe(true);
+  });
+
+  it('does not flag ~/suite/ when the line marks the rename', () => {
+    expect(ruleMatches('~/suite/ was renamed to ~/revfleet/', suiteRule)).toBe(false);
+  });
+
+  it('does not flag ~/suite/ when the current path is named alongside', () => {
+    expect(ruleMatches('the path is now ~/revfleet/ (formerly ~/suite/)', suiteRule)).toBe(false);
+  });
+});
+
 describe('extractStringLiterals — AST scope', () => {
   it('does not scan import module specifiers', () => {
     const source = `import { Railway } from 'railway-sdk';\nexport const x = 'clean copy';`;
