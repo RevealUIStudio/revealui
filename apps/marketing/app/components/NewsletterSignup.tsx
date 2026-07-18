@@ -27,6 +27,7 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
   if (status === 'success') {
     return (
       <p
+        role="status"
         className={`animate-[fade-in_300ms_ease-out] text-sm font-medium text-primary ${
           variant === 'stacked' ? 'text-center' : ''
         }`}
@@ -58,7 +59,11 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
         >
           {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
         </Button>
-        {status === 'error' && <p className="text-xs text-destructive">{message}</p>}
+        {status === 'error' && (
+          <p role="alert" className="text-xs text-destructive">
+            {message}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           Product updates and engineering insights. No spam.
         </p>
@@ -92,7 +97,11 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
           Subscribe
         </Button>
       </div>
-      {status === 'error' && <p className="text-xs text-destructive">{message}</p>}
+      {status === 'error' && (
+        <p role="alert" className="text-xs text-destructive">
+          {message}
+        </p>
+      )}
     </form>
   );
 }

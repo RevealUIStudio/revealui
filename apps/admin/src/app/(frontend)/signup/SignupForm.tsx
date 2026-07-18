@@ -326,7 +326,15 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             required
             className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[var(--tenant-brand,#2563eb)] accent-[var(--tenant-brand,#2563eb)]"
           />
-          <label htmlFor="tos" className="text-sm text-zinc-600 dark:text-zinc-400">
+          {/* The checkbox's accessible name comes from this sr-only label rather than
+           * wrapping the visible text in a <label>, because the visible text contains
+           * <Link> anchors: a <label> nesting interactive links is an a11y anti-pattern
+           * (ambiguous click target between the label's implicit toggle and the link's
+           * own navigation, and inconsistent accessible-name computation). */}
+          <label htmlFor="tos" className="sr-only">
+            Accept the Terms of Service and Privacy Policy
+          </label>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
             I agree to the{' '}
             <Link
               href="/legal/terms"
@@ -343,7 +351,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             >
               Privacy Policy
             </Link>
-          </label>
+          </span>
         </div>
 
         <Button type="submit" disabled={anyLoading || !tosAccepted} className="w-full">
