@@ -14,7 +14,7 @@ function AlertDemo(props: { size: string }) {
 
   return (
     <>
-      <ButtonCVA variant="primary" onClick={() => setOpen(true)}>
+      <ButtonCVA variant="brand" onClick={() => setOpen(true)}>
         Open Alert
       </ButtonCVA>
       <Alert open={open} onClose={() => setOpen(false)} size={props.size as 'sm' | 'md' | 'lg'}>
@@ -28,10 +28,10 @@ function AlertDemo(props: { size: string }) {
           </p>
         </AlertBody>
         <AlertActions>
-          <ButtonCVA variant="ghost" onClick={() => setOpen(false)}>
+          <ButtonCVA appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>
             Cancel
           </ButtonCVA>
-          <ButtonCVA variant="destructive" onClick={() => setOpen(false)}>
+          <ButtonCVA variant="danger" onClick={() => setOpen(false)}>
             Delete
           </ButtonCVA>
         </AlertActions>
@@ -63,7 +63,7 @@ const story: ShowcaseStory = {
         const [open, setOpen] = useState(false);
         return (
           <>
-            <ButtonCVA variant="destructive" onClick={() => setOpen(true)}>
+            <ButtonCVA variant="danger" onClick={() => setOpen(true)}>
               Delete Account
             </ButtonCVA>
             <Alert open={open} onClose={() => setOpen(false)}>
@@ -72,10 +72,10 @@ const story: ShowcaseStory = {
                 This will permanently delete your account and all data.
               </AlertDescription>
               <AlertActions>
-                <ButtonCVA variant="ghost" onClick={() => setOpen(false)}>
+                <ButtonCVA appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>
                   Keep Account
                 </ButtonCVA>
-                <ButtonCVA variant="destructive" onClick={() => setOpen(false)}>
+                <ButtonCVA variant="danger" onClick={() => setOpen(false)}>
                   Yes, Delete
                 </ButtonCVA>
               </AlertActions>
@@ -91,8 +91,8 @@ const story: ShowcaseStory = {
   <AlertTitle>Confirm Action</AlertTitle>
   <AlertDescription>Are you sure?</AlertDescription>
   <AlertActions>
-    <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-    <Button variant="destructive" onClick={() => setOpen(false)}>Delete</Button>
+    <Button appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>Cancel</Button>
+    <Button variant="danger" onClick={() => setOpen(false)}>Delete</Button>
   </AlertActions>
 </Alert>`,
 };

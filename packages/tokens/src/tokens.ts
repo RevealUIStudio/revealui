@@ -46,6 +46,8 @@ export const tokens = {
     2: 'var(--rvui-text-2)',
     onBrand: 'var(--rvui-text-on-brand)',
     onAccent: 'var(--rvui-text-on-accent)',
+    onSuccess: 'var(--rvui-text-on-success)',
+    onWarning: 'var(--rvui-text-on-warning)',
     warningText: 'var(--rvui-warning-text)',
   },
   border: {
@@ -124,6 +126,7 @@ export const tokens = {
   status: {
     success: 'var(--rvui-success)',
     successSubtle: 'var(--rvui-success-subtle)',
+    successStrong: 'var(--rvui-success-strong)',
     warning: 'var(--rvui-warning)',
     warningSubtle: 'var(--rvui-warning-subtle)',
     error: 'var(--rvui-error)',

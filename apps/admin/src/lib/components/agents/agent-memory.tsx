@@ -176,7 +176,8 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                   type="button"
                   onClick={() => handleRemove(memory.id)}
                   disabled={removingId === memory.id}
-                  variant="ghost"
+                  appearance="ghost"
+                  variant="neutral"
                   size="icon"
                   className="shrink-0 opacity-0 group-hover:opacity-100 hover:text-error disabled:opacity-50"
                   title="Delete memory"

@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { cn } from '../utils/cn.js';
-import { TouchTarget } from './button-headless.js';
+import { TouchTarget } from './_button-shared.js';
 import { Link } from './link.js';
 
 const colors = {

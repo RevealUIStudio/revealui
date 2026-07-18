@@ -11,8 +11,13 @@ const story: ShowcaseStory = {
   controls: {
     variant: {
       type: 'select',
-      options: ['default', 'destructive', 'ghost', 'link', 'outline', 'primary', 'secondary'],
-      default: 'default',
+      options: ['brand', 'neutral', 'success', 'warning', 'danger'],
+      default: 'brand',
+    },
+    appearance: {
+      type: 'select',
+      options: ['solid', 'outline', 'ghost', 'link'],
+      default: 'solid',
     },
     size: {
       type: 'select',
@@ -30,7 +35,8 @@ const story: ShowcaseStory = {
     <LinkButton
       href={props.href as string}
       external={props.external as boolean}
-      variant={props.variant as 'default'}
+      variant={props.variant as 'brand'}
+      appearance={props.appearance as 'solid'}
       size={props.size as 'default'}
       isLoading={props.isLoading as boolean}
       disabled={props.disabled as boolean}
@@ -40,8 +46,8 @@ const story: ShowcaseStory = {
   ),
 
   variantGrid: {
-    variant: ['default', 'destructive', 'ghost', 'link', 'outline', 'primary', 'secondary'],
-    size: ['sm', 'default', 'lg'],
+    variant: ['brand', 'neutral', 'success', 'warning', 'danger'],
+    appearance: ['solid', 'outline', 'ghost', 'link'],
   },
 
   examples: [
@@ -56,7 +62,12 @@ const story: ShowcaseStory = {
       description:
         'The `external` prop adds `target="_blank" rel="noopener noreferrer"` and opts out of any LinkBehaviorProvider so external links never route through SPA Link components.',
       render: () => (
-        <LinkButton href="https://docs.revealui.com" external variant="outline">
+        <LinkButton
+          href="https://docs.revealui.com"
+          external
+          appearance="outline"
+          variant="neutral"
+        >
           Read the docs ↗
         </LinkButton>
       ),
@@ -84,7 +95,7 @@ const story: ShowcaseStory = {
       description:
         'Use `as` to render a single LinkButton via a specific component (e.g. for mixed-routing scenarios). The override drops the provider hrefProp and uses standard `href`.',
       render: () => (
-        <LinkButton as="a" href="#anchor" variant="ghost">
+        <LinkButton as="a" href="#anchor" appearance="ghost" variant="neutral">
           Jump to section
         </LinkButton>
       ),
@@ -94,7 +105,8 @@ const story: ShowcaseStory = {
   code: (props: Record<string, unknown>) => {
     const attrs: string[] = [`href="${props.href}"`];
     if (props.external) attrs.push('external');
-    if (props.variant !== 'default') attrs.push(`variant="${props.variant}"`);
+    if (props.variant !== 'brand') attrs.push(`variant="${props.variant}"`);
+    if (props.appearance !== 'solid') attrs.push(`appearance="${props.appearance}"`);
     if (props.size !== 'default') attrs.push(`size="${props.size}"`);
     if (props.isLoading) attrs.push('isLoading');
     if (props.disabled) attrs.push('disabled');

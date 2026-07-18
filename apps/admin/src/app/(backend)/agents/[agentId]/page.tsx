@@ -244,7 +244,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           type="button"
                           onClick={handleSave}
                           disabled={saving || !editName.trim()}
-                          variant="default"
+                          variant="brand"
                           size="sm"
                         >
                           {saving ? 'Saving...' : 'Save'}
@@ -253,7 +253,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                           type="button"
                           onClick={handleEditCancel}
                           disabled={saving}
-                          variant="outline"
+                          appearance="outline"
+                          variant="neutral"
                           size="sm"
                         >
                           Cancel
@@ -270,7 +271,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                             type="button"
                             onClick={handleEditStart}
                             disabled={loadingDef}
-                            variant="outline"
+                            appearance="outline"
+                            variant="neutral"
                             size="sm"
                           >
                             {loadingDef ? '...' : 'Edit'}
@@ -361,7 +363,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                 <LinkButton
                   href={`${apiUrl}/.well-known/agents/${agentId}/agent.json`}
                   external
-                  variant="outline"
+                  appearance="outline"
+                  variant="neutral"
                   size="sm"
                   className="w-full justify-center"
                 >
@@ -392,7 +395,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                             type="button"
                             onClick={handleRetire}
                             disabled={retiring}
-                            variant="destructive"
+                            variant="danger"
                             size="sm"
                           >
                             {retiring ? 'Retiring...' : 'Confirm Retire'}
@@ -404,7 +407,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                               setRetireError(null);
                             }}
                             disabled={retiring}
-                            variant="outline"
+                            appearance="outline"
+                            variant="neutral"
                             size="sm"
                           >
                             Cancel
@@ -419,7 +423,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                         <ButtonCVA
                           type="button"
                           onClick={() => setIsConfirmingRetire(true)}
-                          variant="outline"
+                          appearance="outline"
+                          variant="neutral"
                           size="sm"
                           className="shrink-0 border-error/30 text-error hover:border-error/50 hover:text-error"
                         >
@@ -440,7 +445,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                     </h2>
                     <LinkButton
                       href={`/agents/${encodeURIComponent(agentId)}/run`}
-                      variant="outline"
+                      appearance="outline"
+                      variant="neutral"
                       size="sm"
                       className="border-success/30 bg-success/10 text-success hover:bg-success/20"
                       title="Stream agent execution live (Stage 5 surface)"

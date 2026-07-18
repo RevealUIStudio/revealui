@@ -11,7 +11,7 @@ import { useRovingTabindex } from '../hooks/use-roving-tabindex.js';
 import { useTransition } from '../hooks/use-transition.js';
 import { useTypeAhead } from '../hooks/use-type-ahead.js';
 import { cn } from '../utils/cn.js';
-import { Button } from './button-headless.js';
+import { DropdownTriggerButton } from './dropdown-trigger.js';
 import { Link } from './link.js';
 
 // ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ export function Dropdown({
 // DropdownButton
 // ---------------------------------------------------------------------------
 
-export function DropdownButton<T extends React.ElementType = typeof Button>({
+export function DropdownButton<T extends React.ElementType = typeof DropdownTriggerButton>({
   as,
   className,
   ...props
@@ -95,7 +95,7 @@ export function DropdownButton<T extends React.ElementType = typeof Button>({
   const { open, setOpen, triggerRef } = useDropdownContext();
   const interactiveProps = useDataInteractive();
 
-  const Component = (as ?? Button) as React.ElementType;
+  const Component = (as ?? DropdownTriggerButton) as React.ElementType;
 
   const handleClick = useCallback(() => {
     setOpen(!open);

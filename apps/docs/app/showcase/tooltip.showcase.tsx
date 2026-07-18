@@ -48,7 +48,9 @@ const story: ShowcaseStory = {
         <div className="flex flex-wrap items-center justify-center gap-6 py-8">
           {(['top', 'bottom', 'left', 'right'] as const).map((side) => (
             <Tooltip key={side} content={`Tooltip on ${side}`} side={side}>
-              <Button variant="outline">{side}</Button>
+              <Button appearance="outline" variant="neutral">
+                {side}
+              </Button>
             </Tooltip>
           ))}
         </div>
@@ -59,10 +61,14 @@ const story: ShowcaseStory = {
       render: () => (
         <div className="flex items-center gap-6 py-8">
           <Tooltip content="No delay" delay={0}>
-            <Button variant="ghost">Instant</Button>
+            <Button appearance="ghost" variant="neutral">
+              Instant
+            </Button>
           </Tooltip>
           <Tooltip content="500ms delay" delay={500}>
-            <Button variant="ghost">Slow</Button>
+            <Button appearance="ghost" variant="neutral">
+              Slow
+            </Button>
           </Tooltip>
         </div>
       ),

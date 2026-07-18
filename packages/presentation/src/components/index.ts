@@ -5,6 +5,8 @@
  * These components are framework-agnostic and follow design system principles.
  */
 
+// Shared touch hit-area primitive (was previously re-exported via the button).
+export { TouchTarget } from './_button-shared.js';
 // New components (v0.2)
 export { Accordion, AccordionItem } from './accordion.js';
 // Components exported below were implemented but previously unexported
@@ -16,8 +18,11 @@ export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
 export { AvatarGroup } from './avatar-group.js';
 export { BuiltWithRevealUI } from './BuiltWithRevealUI.js';
-// CVA components (PascalCase files with types)
+// The owned action button. `Button` is the sovereign export; `ButtonCVA` is a
+// deprecated alias kept for one minor to ease 0.x consumers and stacked
+// branches — migrate imports to `Button` (see CHANGELOG).
 export {
+  Button,
   Button as ButtonCVA,
   type ButtonProps,
   buttonVariants,
@@ -25,8 +30,6 @@ export {
 export { Badge, BadgeButton } from './badge.js';
 export { RevealUIMark, type RevealUIMarkProps } from './brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './breadcrumb.js';
-// Native UI components
-export { Button, TouchTarget } from './button-headless.js';
 export {
   Card,
   CardContent,

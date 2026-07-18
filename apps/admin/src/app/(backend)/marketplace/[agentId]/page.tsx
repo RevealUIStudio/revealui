@@ -330,7 +330,12 @@ function ReviewsPanel({
               <ButtonCVA type="submit" disabled={submitting}>
                 {submitting ? 'Submitting...' : 'Submit Review'}
               </ButtonCVA>
-              <ButtonCVA type="button" variant="outline" onClick={() => setShowForm(false)}>
+              <ButtonCVA
+                type="button"
+                appearance="outline"
+                variant="neutral"
+                onClick={() => setShowForm(false)}
+              >
                 Cancel
               </ButtonCVA>
             </div>

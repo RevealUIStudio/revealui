@@ -155,7 +155,7 @@ export default function McpCatalogPage() {
               Built-in and OAuth-authorized servers, content exposure, and per-meter usage
             </p>
           </div>
-          <LinkButton href="/mcp/connect" variant="default">
+          <LinkButton href="/mcp/connect" variant="brand">
             Connect new server
           </LinkButton>
         </div>
@@ -214,7 +214,8 @@ export default function McpCatalogPage() {
                   />
                   <ButtonCVA
                     type="submit"
-                    variant="outline"
+                    appearance="outline"
+                    variant="neutral"
                     disabled={!tenant.trim() || state === 'loading'}
                   >
                     {state === 'loading' ? 'Loading…' : 'Load'}

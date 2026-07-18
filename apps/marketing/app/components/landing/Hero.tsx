@@ -61,7 +61,13 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
             <ArrowIcon />
           </a>
         </ButtonCVA>
-        <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto gap-2">
+        <ButtonCVA
+          asChild
+          appearance="outline"
+          variant="neutral"
+          size="lg"
+          className="w-full sm:w-auto gap-2"
+        >
           <a href={hero.cta.secondary.href} target="_blank" rel="noopener noreferrer">
             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <title>GitHub</title>

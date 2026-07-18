@@ -50,7 +50,7 @@ export default function ChatPage() {
             <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Conversations
             </span>
-            <ButtonCVA type="button" variant="default" size="sm" onClick={handleNewChat}>
+            <ButtonCVA type="button" variant="brand" size="sm" onClick={handleNewChat}>
               New
             </ButtonCVA>
           </div>

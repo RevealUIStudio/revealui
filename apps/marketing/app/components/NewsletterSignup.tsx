@@ -53,7 +53,7 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
         />
         <Button
           type="submit"
-          variant="primary"
+          variant="brand"
           isLoading={status === 'loading'}
           disabled={status === 'loading'}
         >
@@ -88,7 +88,7 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
         />
         <Button
           type="submit"
-          variant="primary"
+          variant="brand"
           size="sm"
           isLoading={status === 'loading'}
           disabled={status === 'loading'}

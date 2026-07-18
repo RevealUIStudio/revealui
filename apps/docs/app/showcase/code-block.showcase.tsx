@@ -18,7 +18,7 @@ const story: ShowcaseStory = {
       code={`import { Button } from '@revealui/presentation/server';
 
 export function App() {
-  return <Button variant="primary">Click me</Button>;
+  return <Button variant="brand">Click me</Button>;
 }`}
       language={props.language as string}
       filename={props.filename as string}

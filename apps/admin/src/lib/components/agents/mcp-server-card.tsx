@@ -69,7 +69,8 @@ export function McpServerCard({ server }: McpServerCardProps) {
           <ButtonCVA
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            variant="ghost"
+            appearance="ghost"
+            variant="neutral"
             size="sm"
             className="flex w-full items-center justify-between"
             aria-expanded={expanded}

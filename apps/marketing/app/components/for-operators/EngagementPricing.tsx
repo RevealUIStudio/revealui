@@ -27,7 +27,7 @@ export function EngagementPricing() {
               <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
               <p className="mt-4 flex-1 text-base leading-7 text-muted-foreground">{rung.body}</p>
               <div className="mt-8">
-                <ButtonCVA asChild variant="outline" className="w-full">
+                <ButtonCVA asChild appearance="outline" variant="neutral" className="w-full">
                   <a
                     href={rung.cta.href}
                     {...(rung.cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}

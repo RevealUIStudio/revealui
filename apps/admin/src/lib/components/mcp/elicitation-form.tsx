@@ -171,23 +171,19 @@ export function ElicitationForm({ message, requestedSchema, onSubmit }: Elicitat
         ))}
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <ButtonCVA type="submit" variant="default" size="sm">
+        <ButtonCVA type="submit" variant="brand" size="sm">
           Accept
         </ButtonCVA>
         <ButtonCVA
           type="button"
-          variant="outline"
+          appearance="outline"
+          variant="neutral"
           size="sm"
           onClick={() => void onSubmit('decline')}
         >
           Decline
         </ButtonCVA>
-        <ButtonCVA
-          type="button"
-          variant="destructive"
-          size="sm"
-          onClick={() => void onSubmit('cancel')}
-        >
+        <ButtonCVA type="button" variant="danger" size="sm" onClick={() => void onSubmit('cancel')}>
           Cancel
         </ButtonCVA>
       </div>

@@ -95,8 +95,8 @@ describe('Button', () => {
       // disabled:pointer-events-none is applied via Tailwind  -  verify the class exists
       // on the element (Tailwind generates it as a modifier, not a plain class)
       const btn = screen.getByRole('button');
-      // The button should have rounded and text-sm from the base CVA string
-      expect(btn).toHaveClass('rounded');
+      // The button should have the tokenised radius and text-sm from the base CVA string
+      expect(btn).toHaveClass('rounded-[var(--rvui-radius-md)]');
       expect(btn).toHaveClass('text-sm');
       expect(btn).toHaveClass('font-medium');
     });
@@ -107,51 +107,57 @@ describe('Button', () => {
   // -------------------------------------------------------------------------
 
   describe('Variants', () => {
-    it('applies default variant classes when no variant is specified', () => {
+    it('applies brand solid classes when no variant is specified', () => {
       render(<Button>Default</Button>);
-      // The 'default' variant maps to bg-primary text-primary-foreground
+      // Default variant='brand' appearance='solid' maps to bg-primary text-primary-foreground
       expect(screen.getByRole('button')).toHaveClass('bg-primary');
     });
 
-    it('applies "default" variant explicitly', () => {
-      render(<Button variant="default">Default</Button>);
+    it('applies "brand" variant explicitly', () => {
+      render(<Button variant="brand">Brand</Button>);
       expect(screen.getByRole('button')).toHaveClass('bg-primary');
     });
 
-    it('applies "primary" variant', () => {
-      render(<Button variant="primary">Primary</Button>);
-      // 'primary' maps to bg-primary text-primary-foreground
-      expect(screen.getByRole('button')).toHaveClass('bg-primary');
-    });
-
-    it('applies "secondary" variant', () => {
-      render(<Button variant="secondary">Secondary</Button>);
+    it('applies "neutral" variant (solid)', () => {
+      render(<Button variant="neutral">Neutral</Button>);
       expect(screen.getByRole('button')).toHaveClass('bg-secondary');
     });
 
-    it('applies "destructive" variant', () => {
-      render(<Button variant="destructive">Delete</Button>);
+    it('applies "danger" variant (solid)', () => {
+      render(<Button variant="danger">Delete</Button>);
       expect(screen.getByRole('button')).toHaveClass('bg-destructive');
     });
 
-    it('applies "outline" variant', () => {
-      render(<Button variant="outline">Outline</Button>);
-      expect(screen.getByRole('button')).toHaveClass('border');
-      expect(screen.getByRole('button')).toHaveClass('border-zinc-300', 'dark:border-zinc-700');
+    it('applies "success" variant (solid) via the tokenised fill', () => {
+      render(<Button variant="success">Save</Button>);
+      expect(screen.getByRole('button')).toHaveClass('bg-[var(--rvui-success-strong)]');
     });
 
-    it('applies "ghost" variant', () => {
-      render(<Button variant="ghost">Ghost</Button>);
-      // Ghost has hover:bg-card but no background by default
-      // The class string contains the hover variant
+    it('applies the outline appearance (border, no solid fill)', () => {
+      render(
+        <Button appearance="outline" variant="neutral">
+          Outline
+        </Button>,
+      );
       const btn = screen.getByRole('button');
-      // No explicit bg class  -  bg-primary should NOT be present
+      expect(btn).toHaveClass('border');
       expect(btn).not.toHaveClass('bg-primary');
       expect(btn).not.toHaveClass('bg-secondary');
     });
 
-    it('applies "link" variant', () => {
-      render(<Button variant="link">Link</Button>);
+    it('applies the ghost appearance (no solid fill)', () => {
+      render(
+        <Button appearance="ghost" variant="neutral">
+          Ghost
+        </Button>,
+      );
+      const btn = screen.getByRole('button');
+      expect(btn).not.toHaveClass('bg-primary');
+      expect(btn).not.toHaveClass('bg-secondary');
+    });
+
+    it('applies the link appearance', () => {
+      render(<Button appearance="link">Link</Button>);
       expect(screen.getByRole('button')).toHaveClass('underline-offset-4');
     });
   });
@@ -417,6 +423,7 @@ describe('Button', () => {
       expect(container.querySelector('svg.animate-spin')).toBeInTheDocument();
       expect(btn).toBeDisabled();
       expect(btn).toHaveAttribute('aria-busy', 'true');
+      expect(btn).toHaveAttribute('data-loading', '');
     });
 
     it('keeps the spinner aria-hidden (busy state is announced via aria-busy)', () => {

@@ -323,10 +323,10 @@ export function FairSourcePage() {
           </h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">{FAIR_SOURCE_CTA.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="primary">
+            <ButtonCVA asChild size="lg" variant="brand">
               <a href={FAIR_SOURCE_CTA.primaryHref}>{FAIR_SOURCE_CTA.primaryLabel}</a>
             </ButtonCVA>
-            <ButtonCVA asChild variant="outline" size="lg">
+            <ButtonCVA asChild appearance="outline" variant="neutral" size="lg">
               <a href={FAIR_SOURCE_CTA.secondaryHref}>{FAIR_SOURCE_CTA.secondaryLabel}</a>
             </ButtonCVA>
           </div>

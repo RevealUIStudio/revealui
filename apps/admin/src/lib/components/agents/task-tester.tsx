@@ -130,7 +130,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         type="button"
         onClick={submit}
         disabled={state === 'submitting' || state === 'polling' || !instruction.trim()}
-        variant="default"
+        variant="brand"
         size="sm"
         className="self-start"
       >

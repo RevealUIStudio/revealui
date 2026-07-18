@@ -97,7 +97,8 @@ const PaginationLink = ({
     className={cn(
       buttonVariants({
         size,
-        variant: isActive ? 'outline' : 'ghost',
+        appearance: isActive ? 'outline' : 'ghost',
+        variant: 'neutral',
       }),
       className,
     )}

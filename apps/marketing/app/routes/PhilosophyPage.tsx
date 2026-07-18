@@ -50,10 +50,10 @@ export function PhilosophyPage() {
 
       <section className="px-6 pb-24 sm:pb-32 lg:px-8">
         <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
-          <ButtonCVA asChild size="lg" variant="primary">
+          <ButtonCVA asChild size="lg" variant="brand">
             <a href={PHILOSOPHY.cta.primary.href}>{PHILOSOPHY.cta.primary.label}</a>
           </ButtonCVA>
-          <ButtonCVA asChild size="lg" variant="outline">
+          <ButtonCVA asChild size="lg" appearance="outline" variant="neutral">
             <a href={PHILOSOPHY.cta.secondary.href} target="_blank" rel="noopener noreferrer">
               {PHILOSOPHY.cta.secondary.label}
             </a>

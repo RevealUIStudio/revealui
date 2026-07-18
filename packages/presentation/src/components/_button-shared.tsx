@@ -3,18 +3,23 @@ import { cn } from '../utils/cn.js';
 
 /**
  * Shared button internals — a single source of truth for the visual bits used
- * by both the CVA `Button` (Button.tsx) and `LinkButton` (LinkButton.tsx), so
- * the two stay in lockstep instead of drifting via copy-paste.
+ * by both `Button` (Button.tsx) and `LinkButton` (LinkButton.tsx), so the two
+ * stay in lockstep instead of drifting via copy-paste.
  *
- * Pure presentation: an SVG, plain constants, and one decorative element. No
- * hooks and no `'use client'` — safe to render in React Server Components, so
- * the server-exported `ButtonCVA` keeps working.
+ * Pure presentation: an SVG, plain constants, a decorative element, and the
+ * touch hit-area expander. No hooks and no `'use client'` — safe to render in
+ * React Server Components, so the server-exported `Button` keeps working.
  */
 
 /**
  * Loading spinner. `aria-hidden` because the busy state is announced by the
  * host control's `aria-busy`; the spinner is purely decorative. Defaults to
  * `size-4 animate-spin`, both overridable via `className`.
+ *
+ * The spin is retained under reduced motion: it is the one motion that
+ * communicates in-progress state, and it is `aria-hidden` with `aria-busy`
+ * carrying the semantics. The interaction motions (press-scale, hover
+ * transition, shine sweep) are the ones the reduced-motion guard collapses.
  */
 export function Spinner({
   className,
@@ -40,19 +45,6 @@ export function Spinner({
 }
 
 /**
- * Token-driven inline style shared by Button and LinkButton: rounded corners
- * from `--rvui-radius-md`, and a transition scoped to exactly the properties
- * that change on interaction (color / background / border / shadow / transform)
- * — never `all`, which would also animate layout and cause jank.
- */
-export const buttonTransitionStyle: React.CSSProperties = {
-  transitionProperty: 'color, background-color, border-color, box-shadow, transform',
-  transitionDuration: 'var(--rvui-duration-normal, 200ms)',
-  transitionTimingFunction: 'var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
-  borderRadius: 'var(--rvui-radius-md, 10px)',
-};
-
-/**
  * Opt-in brand-glow halo for emphasis CTAs. Driven entirely by the
  * `--rvui-shadow-glow` design token (a soft halo in the active brand hue), so
  * it re-themes automatically with the brand. Held on hover so the CTA keeps
@@ -75,12 +67,35 @@ export const shineHostClasses = 'group relative isolate overflow-hidden';
  * host background, below the text. Pair with {@link shineHostClasses} on the
  * host element. Box-shadows (focus ring, {@link glowClasses}) are unaffected by
  * the host's `overflow-hidden` since they paint outside the border box.
+ *
+ * The sweep transition is collapsed under `prefers-reduced-motion: reduce` at
+ * the CSS level (`motion-reduce:transition-none`), so no JS motion hook is
+ * needed and this module stays RSC-safe.
  */
 export function ShineOverlay(): React.ReactElement {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-10 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+      className="pointer-events-none absolute inset-0 -z-10 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full motion-reduce:transition-none"
     />
+  );
+}
+
+/**
+ * Expand the interactive hit area to at least 44x44px on touch devices, per the
+ * WCAG 2.5.5 target-size guidance. Renders an `aria-hidden` overlay sized to the
+ * larger of the content box or 2.75rem, hidden on fine pointers where the visual
+ * control is already the target. Shared by `Button`, `LinkButton`, and the
+ * avatar / badge / nav / sidebar link surfaces.
+ */
+export function TouchTarget({ children }: { children: React.ReactNode }): React.ReactElement {
+  return (
+    <>
+      <span
+        className="absolute top-1/2 left-1/2 size-[max(100%,2.75rem)] -translate-x-1/2 -translate-y-1/2 pointer-fine:hidden"
+        aria-hidden="true"
+      />
+      {children}
+    </>
   );
 }

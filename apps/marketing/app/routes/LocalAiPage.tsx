@@ -125,10 +125,10 @@ export function LocalAiPage() {
 
       <section className="px-6 pb-24 sm:pb-32 lg:px-8">
         <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
-          <ButtonCVA asChild size="lg" variant="primary">
+          <ButtonCVA asChild size="lg" variant="brand">
             <a href={LOCAL_AI_PAGE.cta.primary.href}>{LOCAL_AI_PAGE.cta.primary.label}</a>
           </ButtonCVA>
-          <ButtonCVA asChild size="lg" variant="outline">
+          <ButtonCVA asChild size="lg" appearance="outline" variant="neutral">
             <a href={LOCAL_AI_PAGE.cta.secondary.href} target="_blank" rel="noopener noreferrer">
               {LOCAL_AI_PAGE.cta.secondary.label}
             </a>
