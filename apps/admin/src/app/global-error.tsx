@@ -4,9 +4,20 @@ import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 // global-error.tsx replaces the root layout on error, so it renders outside every
-// route group and gets none of their CSS. Reuse (backend)'s Tailwind entry (tailwindcss
-// + tokens.css + the cobalt @theme bridge) so the branded classes below actually resolve.
+// route group and gets none of their CSS. (backend)/custom.css supplies `@import
+// "tailwindcss"` and the @theme bridge from --color-* to var(--rvui-*), but it does NOT
+// define the --rvui-* values themselves. Those live in tokens.css, loaded separately by
+// (backend)/layout.tsx. Import both, in the same order (backend)/layout.tsx does, so the
+// var() references actually resolve instead of hitting an undefined custom property.
+import '@revealui/presentation/tokens.css';
 import './(backend)/custom.css';
+
+// No InitTheme/data-theme script runs here (global-error has no layout to host one), so
+// this page follows tokens.css's own prefers-color-scheme handling with no explicit
+// override: dark by default, light only when the OS signals a light preference. That's
+// an accepted trade-off for an error page rather than a bug. Wiring theme persistence
+// into a component that exists to survive a broken render tree is its own risk, and a
+// rare last-resort error screen doesn't need to track the user's saved preference.
 
 export default function GlobalError({
   error,

@@ -43,7 +43,9 @@ export default function BackendError({
       </div>
 
       <h2 className="text-lg font-semibold text-foreground">
-        {isDatabaseError ? 'Database connection failed' : 'Something went wrong'}
+        {isDatabaseError && process.env.NODE_ENV !== 'production'
+          ? 'Database connection failed'
+          : 'Something went wrong'}
       </h2>
 
       {isDatabaseError ? (
