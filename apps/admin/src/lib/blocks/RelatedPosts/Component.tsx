@@ -1,3 +1,8 @@
+// WIRE-UP-PENDING — this `RelatedPosts` block component has no config file, is
+// not offered by any collection's `blocks` field (the Pages editor block list),
+// is not referenced by `apps/admin/src/lib/blocks/RenderBlocks.tsx`, and is not
+// imported anywhere. Kept on disk pending a per-item register-vs-delete
+// decision in PR review.
 import type { Post } from '@revealui/core/types/admin';
 import { cn } from '@revealui/presentation/server';
 import { Card } from '@/lib/components/Card/index';
