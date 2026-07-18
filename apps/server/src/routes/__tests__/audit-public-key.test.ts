@@ -66,6 +66,19 @@ describe('GET /api/audit/public-key (GAP-355 Stage 3, D4)', () => {
     expect(res.headers.get('cache-control')).toContain('public');
   });
 
+  it('surfaces a mismatched keypair loudly as a 500, not a cached 200 (loud beats honest here)', async () => {
+    // A mis-provisioned pair: private key A + an unrelated public key B. Resolving
+    // it throws; the route has no catch, so Hono returns 500 — the correct loud
+    // failure for a key that would verify no row.
+    const a = generateKeypair();
+    const b = generateKeypair();
+    process.env.REVEALUI_AUDIT_SIGNING_KEY = a.privateKeyPem;
+    process.env.REVEALUI_AUDIT_PUBLIC_KEY = b.publicKeyPem;
+
+    const res = await auditRoute.request('/public-key');
+    expect(res.status).toBe(500);
+  });
+
   it('prefers REVEALUI_AUDIT_PUBLIC_KEY and honors the REVEALUI_AUDIT_SIGNING_KID override', async () => {
     const { publicKeyPem } = generateKeypair();
     process.env.REVEALUI_AUDIT_PUBLIC_KEY = publicKeyPem;

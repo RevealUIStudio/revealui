@@ -88,15 +88,37 @@ export interface ResolvedAuditPublicKey {
  * set, else derived from `REVEALUI_AUDIT_SIGNING_KEY`. Returns `null` in unsigned
  * mode (neither key present) so the endpoint answers an honest 404, never a 500.
  * kid precedence matches the signer (`REVEALUI_AUDIT_SIGNING_KID` honored).
- * Throws only on a present-but-malformed key — a misconfiguration must be loud.
+ *
+ * When BOTH env vars are present they MUST be the same keypair: the explicit
+ * public key is cross-checked (SPKI DER byte-equality) against the public half
+ * of the private key. A mismatched pair would publish a key that verifies NO
+ * row — and with a `REVEALUI_AUDIT_SIGNING_KID` override both would even carry
+ * the same kid, so every verification would fail silently. That misconfiguration
+ * throws loudly here (naming both env vars, never key material) — the one case
+ * where a loud 500 beats an honest key. Also throws on a present-but-malformed
+ * key. A misconfiguration must be loud.
  */
 export function resolveAuditPublicKey(env: AuditSignerEnv): ResolvedAuditPublicKey | null {
   const explicit = env.REVEALUI_AUDIT_PUBLIC_KEY?.trim();
+  const privateKeyPem = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
   let publicKey: KeyObject;
   if (explicit) {
     publicKey = createPublicKey(explicit);
+    if (privateKeyPem) {
+      const derivedDer = createPublicKey(createPrivateKey(privateKeyPem)).export({
+        type: 'spki',
+        format: 'der',
+      });
+      const explicitDer = publicKey.export({ type: 'spki', format: 'der' });
+      if (!derivedDer.equals(explicitDer)) {
+        throw new Error(
+          'REVEALUI_AUDIT_PUBLIC_KEY does not match the public half of ' +
+            'REVEALUI_AUDIT_SIGNING_KEY. The published key would verify no audit row. ' +
+            'Provision the matching keypair.',
+        );
+      }
+    }
   } else {
-    const privateKeyPem = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
     if (!privateKeyPem) return null;
     publicKey = createPublicKey(createPrivateKey(privateKeyPem));
   }
