@@ -32,6 +32,7 @@
  * harness must never report green.
  */
 import { randomUUID } from 'node:crypto';
+import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, type TestDb } from '../../../test/src/utils/drizzle-test-db.js';
 import { auditLog } from '../schema/audit-log.js';
@@ -79,12 +80,13 @@ describe('audit_log — real schema (PGlite), not the vi.fn() mock', () => {
     for (const severity of ['info', 'warn', 'critical'] as const) {
       const row = makeRow({ severity });
       await db.drizzle.insert(auditLog).values(row);
-      const [stored] = await db.drizzle.select().from(auditLog);
+      // Select the specific row by id — the table is append-only (GAP-355 Stage
+      // 2 trigger), so we cannot delete between iterations to reset it.
+      const [stored] = await db.drizzle.select().from(auditLog).where(eq(auditLog.id, row.id));
       expect(stored?.severity).toBe(severity);
       // Stage 1 rows are honestly unsigned — signing is Stage 3.
       expect(stored?.signature).toBeNull();
       expect(stored?.previousSignature).toBeNull();
-      await db.drizzle.delete(auditLog);
     }
   });
 
@@ -107,5 +109,54 @@ describe('audit_log — real schema (PGlite), not the vi.fn() mock', () => {
     ).rejects.toMatchObject({
       cause: { code: '23514', constraint: 'audit_log_severity_check' },
     });
+  });
+
+  // GAP-355 Stage 2 (ONE DOOR) — append-only is now enforced at the DB layer by
+  // the migration-0026 trigger, not merely documented.
+  it('append-only: UPDATE on a stored row is rejected by the trigger', async () => {
+    const row = makeRow({ severity: 'info' });
+    await db.drizzle.insert(auditLog).values(row);
+    // The trigger RAISEs with ERRCODE 'restrict_violation' (SQLSTATE 23001); the
+    // message + code land on the driver error's `cause`, same shape as the CHECK
+    // test above.
+    await expect(
+      db.drizzle.update(auditLog).set({ severity: 'warn' }).where(eq(auditLog.id, row.id)),
+    ).rejects.toMatchObject({ cause: { code: '23001' } });
+  });
+
+  it('append-only: DELETE of a stored row is rejected by the trigger', async () => {
+    const row = makeRow({ severity: 'info' });
+    await db.drizzle.insert(auditLog).values(row);
+    await expect(db.drizzle.delete(auditLog).where(eq(auditLog.id, row.id))).rejects.toMatchObject({
+      cause: { code: '23001' },
+    });
+    // The row is still there — the delete did not partially apply.
+    const rows = await db.drizzle.select().from(auditLog).where(eq(auditLog.id, row.id));
+    expect(rows).toHaveLength(1);
+  });
+
+  it('seq is DB-assigned, monotonic, and never written by the store', async () => {
+    const a = makeRow({ severity: 'info' });
+    const b = makeRow({ severity: 'info' });
+    await db.drizzle.insert(auditLog).values(a);
+    await db.drizzle.insert(auditLog).values(b);
+    const [rowA] = await db.drizzle.select().from(auditLog).where(eq(auditLog.id, a.id));
+    const [rowB] = await db.drizzle.select().from(auditLog).where(eq(auditLog.id, b.id));
+    expect(typeof rowA?.seq).toBe('number');
+    expect(rowB?.seq).toBeGreaterThan(rowA?.seq ?? 0);
+  });
+
+  it('tenant persists when supplied and is NULL by default', async () => {
+    const scoped = { ...makeRow({ severity: 'info' }), tenant: 'acct_123' };
+    const unscoped = makeRow({ severity: 'info' });
+    await db.drizzle.insert(auditLog).values(scoped);
+    await db.drizzle.insert(auditLog).values(unscoped);
+    const [rowScoped] = await db.drizzle.select().from(auditLog).where(eq(auditLog.id, scoped.id));
+    const [rowUnscoped] = await db.drizzle
+      .select()
+      .from(auditLog)
+      .where(eq(auditLog.id, unscoped.id));
+    expect(rowScoped?.tenant).toBe('acct_123');
+    expect(rowUnscoped?.tenant).toBeNull();
   });
 });

@@ -183,6 +183,13 @@
       "when": 1784301283991,
       "tag": "0025_add_nudge_dismissals",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1784400000000,
+      "tag": "0026_audit_log_append_only",
+      "breakpoints": true
     }
   ]
 }

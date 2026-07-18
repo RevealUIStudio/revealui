@@ -38,6 +38,12 @@ export interface AuditEntry {
    */
   signature?: string | null;
   previousSignature?: string | null;
+  /**
+   * Tenant/account scope (GAP-355 Stage 2), for per-tenant anchoring. Optional
+   * pass-through; absent → NULL, no backfill. `seq` is never accepted here — it
+   * is DB-assigned by the sequence.
+   */
+  tenant?: string | null;
 }
 
 /** Filters for querying audit entries */
@@ -78,6 +84,7 @@ export class DrizzleAuditStore {
       policyViolations: entry.policyViolations,
       signature: entry.signature ?? null,
       previousSignature: entry.previousSignature ?? null,
+      tenant: entry.tenant ?? null,
     });
   }
 
@@ -98,6 +105,7 @@ export class DrizzleAuditStore {
         policyViolations: entry.policyViolations,
         signature: entry.signature ?? null,
         previousSignature: entry.previousSignature ?? null,
+        tenant: entry.tenant ?? null,
       })),
     );
   }
