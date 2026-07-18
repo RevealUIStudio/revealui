@@ -1600,6 +1600,9 @@ importers:
       '@revealui/config':
         specifier: workspace:*
         version: link:../config
+      '@revealui/security':
+        specifier: workspace:*
+        version: link:../security
       execa:
         specifier: ^9.6.1
         version: 9.6.1

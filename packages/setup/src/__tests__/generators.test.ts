@@ -1,5 +1,8 @@
+import { createPrivateKey, createPublicKey } from 'node:crypto';
+import { deriveAuditKid } from '@revealui/security/server';
 import { describe, expect, it } from 'vitest';
 import {
+  generateAuditSigningKeypair,
   generatePassword,
   generateSecret,
   parseEnvContent,
@@ -7,6 +10,35 @@ import {
 } from '../environment/generators.js';
 
 describe('Generators', () => {
+  describe('generateAuditSigningKeypair', () => {
+    it('generates a valid Ed25519 keypair with real-newline PEMs', () => {
+      const { privateKeyPem, publicKeyPem } = generateAuditSigningKeypair();
+      // createPrivateKey/createPublicKey throw on a malformed PEM.
+      expect(createPrivateKey(privateKeyPem).asymmetricKeyType).toBe('ed25519');
+      expect(createPublicKey(publicKeyPem).asymmetricKeyType).toBe('ed25519');
+      expect(publicKeyPem).toContain('PUBLIC KEY');
+      // Real newlines, not literal backslash-n (GAP-396 does not apply here).
+      expect(privateKeyPem).toContain('\n');
+      expect(privateKeyPem).not.toContain('\\n');
+    });
+
+    it('prints a kid the runtime signer derives identically from the same key', () => {
+      const { privateKeyPem, publicKeyPem, kid } = generateAuditSigningKeypair();
+      expect(kid.startsWith('ed25519-')).toBe(true);
+      // Derived from the private half and the public half — must match, so the
+      // operator-printed kid equals what each signature carries.
+      expect(deriveAuditKid(createPublicKey(createPrivateKey(privateKeyPem)))).toBe(kid);
+      expect(deriveAuditKid(createPublicKey(publicKeyPem))).toBe(kid);
+    });
+
+    it('generates a distinct key each call (no shared key ever ships)', () => {
+      const a = generateAuditSigningKeypair();
+      const b = generateAuditSigningKeypair();
+      expect(a.privateKeyPem).not.toBe(b.privateKeyPem);
+      expect(a.kid).not.toBe(b.kid);
+    });
+  });
+
   describe('generateSecret', () => {
     it('returns a 64-character hex string by default (32 bytes)', () => {
       const secret = generateSecret();

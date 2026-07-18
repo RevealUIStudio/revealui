@@ -426,6 +426,19 @@ const CLAIMS_PAGE_ROUTE: EvidenceRef = {
   ref: 'apps/marketing/app/routes/ClaimsPage.tsx',
   note: 'renders this index publicly at /claims',
 };
+// ── audit-log signing (GAP-355 Stage 3): the log is signed with a key anyone
+// can check, verifiable offline without our secret. Scoped to the log, not
+// "every agent action" (Stage 5). ─────────────────────────────────────────────
+const AUDIT_ROW_SIGNER: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-signing.ts',
+  note: 'Ed25519AuditRowSigner signs each row over RFC 8785 canonical bytes; verify with the published SPKI public key (GET /api/audit/public-key), no secret needed',
+};
+const AUDIT_SIGN_ROUNDTRIP: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/lib/__tests__/audit-signing-roundtrip.pglite.test.ts#a canonically-signed row verifies OFFLINE after the jsonb + timestamptz round trip',
+  note: 'a row written through the one door verifies offline from the jsonb + timestamptz readback using only the public key',
+};
 
 export const CLAIMS: readonly ClaimEntry[] = [
   // ── site.ts ───────────────────────────────────────────────────────────────
@@ -3137,6 +3150,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
 
   // ── claims.ts — /claims self-reference ───────────────────────────────────
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_SIGNED_LEDGER_NOTE.body',
+    text: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+    evidence: [AUDIT_ROW_SIGNER, AUDIT_SIGN_ROUNDTRIP],
+  },
   {
     file: 'claims.ts',
     exportPath: 'CLAIMS_HERO.subtitle',

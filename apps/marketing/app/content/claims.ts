@@ -17,6 +17,16 @@ export const CLAIMS_COUNTS_LABELS = {
   filesLabel: 'covered files',
 } as const;
 
+// The flagship provable claim this page can now make (GAP-355 Stage 3): the
+// audit log is signed with a key anyone can check, and verifying a record needs
+// no secret of ours. Scoped to the log (not "every agent action") until agent-
+// surface emission lands in Stage 5. The heading is under the prose threshold,
+// so only the body is indexed in claims-evidence.ts.
+export const CLAIMS_SIGNED_LEDGER_NOTE = {
+  heading: 'Checkable by design',
+  body: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+} as const;
+
 export const CLAIMS_LEDGER_INTRO =
   'The ledger below is grouped by page, starting with the homepage and moving outward through the site.' as const;
 
