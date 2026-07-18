@@ -12,6 +12,8 @@
  *   - merge_requests: agent-branch merge lifecycle tracking
  *   - goals: durable verifiable objectives (goal harness)
  *   - goal_criteria: acceptance criteria gating goal completion
+ *   - gateway_bootstrap: singleton hash of the HTTP-gateway bootstrap secret
+ *   - gateway_tokens: hashed, durable HTTP-gateway bearer tokens
  *
  * Uses raw SQL (no Drizzle ORM) to keep the daemon dependency-free.
  * PGlite runs in-process  -  no external database needed.
@@ -164,6 +166,20 @@ export const SCHEMA_SQL = `
 
   CREATE INDEX IF NOT EXISTS idx_goal_criteria_goal
     ON goal_criteria (goal_id);
+
+  CREATE TABLE IF NOT EXISTS gateway_bootstrap (
+    id            INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    secret_hash   TEXT NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+
+  CREATE TABLE IF NOT EXISTS gateway_tokens (
+    token_hash    TEXT PRIMARY KEY,
+    issued_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at    TIMESTAMPTZ,
+    revoked_at    TIMESTAMPTZ,
+    label         TEXT
+  );
 `;
 
 /** Session row shape. */
@@ -292,4 +308,20 @@ export interface GoalCriterionRow {
   verified_at: string | null;
   task_id: string | null;
   created_at: string;
+}
+
+/** Gateway bootstrap secret row shape (singleton, id = 1). */
+export interface GatewayBootstrapRow {
+  id: number;
+  secret_hash: string;
+  created_at: string;
+}
+
+/** Gateway bearer-token row shape (token stored as a hash). */
+export interface GatewayTokenRow {
+  token_hash: string;
+  issued_at: string;
+  expires_at: string | null;
+  revoked_at: string | null;
+  label: string | null;
 }
