@@ -118,7 +118,12 @@ function setAtPath(draft: Record<string, unknown>, path: string, value: unknown)
   writeChild(cursor, segments[segments.length - 1], value);
 }
 
-/** Build the initial draft overlay from a live page (editable fields only). */
+/**
+ * Build the initial draft overlay from a live page. This is a FULL editable-doc
+ * snapshot (title + blocks + seo all captured), so at publish time the
+ * `draft.title/blocks/seo` fallbacks to the live page are belt-and-braces only  -
+ * a materialized draft always carries these fields.
+ */
 function materializePageDraft(page: Page): Record<string, unknown> {
   return {
     id: page.id,
@@ -133,6 +138,41 @@ function materializePageDraft(page: Page): Record<string, unknown> {
     seo: page.seo ?? null,
     version: page.version,
   };
+}
+
+/**
+ * Undo the page writes from a failed publish attempt (called on a mid-flight
+ * guard miss). For each already-written doc, restore its exact prior row, guarded
+ * on the version this attempt set. A successful restore leaves the page identical
+ * to before the attempt, so a retry's optimistic pre-flight passes and converges.
+ * If a restore itself misses (the page moved again), that doc stays live: it is
+ * returned so the caller can report it, and its overlay base_version is advanced
+ * to the current version so the retry does not phantom-conflict on this session's
+ * own write.
+ */
+async function compensatePublish(
+  db: Parameters<typeof sessionQueries.restorePageContent>[0],
+  written: Array<{ docId: string; overlayId: string; revisionId: string; original: Page }>,
+): Promise<string[]> {
+  const stillPublished: string[] = [];
+  for (let i = written.length - 1; i >= 0; i--) {
+    const w = written[i];
+    const restored = await sessionQueries.restorePageContent(db, {
+      pageId: w.docId,
+      expectedVersion: w.original.version + 1,
+      original: w.original,
+    });
+    if (restored) {
+      await sessionQueries.deletePageRevisionById(db, w.revisionId);
+    } else {
+      stillPublished.push(w.docId);
+      const current = await sessionQueries.getLivePage(db, w.docId);
+      if (current) {
+        await sessionQueries.setSessionDocBaseVersion(db, w.overlayId, current.version);
+      }
+    }
+  }
+  return stillPublished;
 }
 
 // =============================================================================
@@ -184,6 +224,9 @@ const ConflictSchema = z.object({
   success: z.literal(false),
   error: z.string(),
   conflicts: z.array(z.record(z.string(), z.unknown())),
+  // Present only when a mid-flight conflict left some docs live and compensation
+  // could not fully revert them. Empty/absent means nothing was published.
+  partiallyPublished: z.array(z.string()).optional(),
 });
 
 function serializeSession(row: EditSession): z.infer<typeof SessionSchema> {
@@ -607,6 +650,13 @@ app.openapi(
 
     // Phase 2  -  guarded writes. Each update is version-guarded (WHERE version =
     // baseVersion); a guard miss means a writer slipped in after the read phase.
+    // On a mid-flight miss we compensate the docs already written this attempt
+    // (restore their exact prior row + delete the revision we inserted) so the
+    // publish stays all-or-nothing. If a compensation write itself misses, that
+    // doc stays live and is reported via `partiallyPublished`, and its overlay
+    // base_version is advanced so a later retry does not phantom-conflict.
+    const written: Array<{ docId: string; overlayId: string; revisionId: string; original: Page }> =
+      [];
     for (const doc of docs) {
       const draft = doc.draft;
       const basePage = live.get(doc.docId) as Page;
@@ -623,19 +673,22 @@ app.openapi(
         publishedAt,
       });
       if (!updatedPage) {
+        const partiallyPublished = await compensatePublish(db, written);
         return c.json(
           {
             success: false as const,
             error: 'publish_conflict',
             conflicts: [{ docType: doc.docType, docId: doc.docId, reason: 'version_conflict' }],
+            ...(partiallyPublished.length > 0 ? { partiallyPublished } : {}),
           },
           409,
         );
       }
 
       const revisionNumber = await sessionQueries.nextPageRevisionNumber(db, doc.docId);
+      const revisionId = crypto.randomUUID();
       await sessionQueries.insertPageRevision(db, {
-        id: crypto.randomUUID(),
+        id: revisionId,
         pageId: doc.docId,
         createdBy: user.id,
         revisionNumber,
@@ -645,13 +698,14 @@ app.openapi(
         changeDescription: `Published via edit session ${id}`,
       });
       await sessionQueries.prunePageRevisions(db, doc.docId, MAX_REVISIONS_PER_DOC);
+      written.push({ docId: doc.docId, overlayId: doc.id, revisionId, original: basePage });
     }
 
-    const published = await sessionQueries.setEditSessionStatus(db, id, {
+    const publishedSession = await sessionQueries.setEditSessionStatus(db, id, {
       status: 'published',
       publishedAt,
     });
-    if (!published) throw new HTTPException(500, { message: 'Failed to publish session' });
+    if (!publishedSession) throw new HTTPException(500, { message: 'Failed to publish session' });
 
     await sessionQueries.insertSessionEvent(db, {
       sessionId: id,
@@ -662,20 +716,27 @@ app.openapi(
     });
 
     return c.json(
-      { success: true as const, data: serializeSession(published), publishedDocs: docs.length },
+      {
+        success: true as const,
+        data: serializeSession(publishedSession),
+        publishedDocs: docs.length,
+      },
       200,
     );
   },
 );
 
 // =============================================================================
-// DELETE /sessions/:id  -  discard (overlay rows retained for audit)
+// POST /sessions/:id/discard  -  discard (overlay rows retained for audit)
 // =============================================================================
+// A POST (not DELETE) so discard rides the content `update` permission like
+// open / patch / publish. The `/api/content/*` mount maps DELETE -> content
+// `delete` (admin only), which is wrong for abandoning your own draft.
 
 app.openapi(
   createRoute({
-    method: 'delete',
-    path: '/sessions/{id}',
+    method: 'post',
+    path: '/sessions/{id}/discard',
     tags: ['content'],
     summary: 'Discard an edit session',
     request: { params: IdParam },

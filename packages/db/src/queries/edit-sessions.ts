@@ -273,3 +273,55 @@ export async function prunePageRevisions(
   );
   return stale.length;
 }
+
+/**
+ * Compensating write for a mid-flight publish conflict: restore a page to its
+ * exact pre-publish row (content + status + publishedAt + the ORIGINAL version),
+ * guarded on the version this session set. Resetting the version to the original
+ * means a clean compensation leaves the page byte-identical to before the attempt
+ * (nothing published), so a later retry's optimistic pre-flight passes without a
+ * phantom conflict. Returns the row, or null if the guard missed (page moved
+ * again  -  that doc stays published and the caller reports it).
+ */
+export async function restorePageContent(
+  db: Database,
+  data: { pageId: string; expectedVersion: number; original: Page },
+): Promise<Page | null> {
+  const result = await db
+    .update(pages)
+    .set({
+      title: data.original.title,
+      blocks: data.original.blocks,
+      seo: data.original.seo,
+      status: data.original.status,
+      publishedAt: data.original.publishedAt,
+      version: data.original.version,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(pages.id, data.pageId), eq(pages.version, data.expectedVersion)))
+    .returning();
+  return result[0] ?? null;
+}
+
+export async function deletePageRevisionById(db: Database, revisionId: string): Promise<void> {
+  await db.delete(pageRevisions).where(eq(pageRevisions.id, revisionId));
+}
+
+/**
+ * Advance an overlay's `base_version` to a page's current version. Used when a
+ * mid-flight conflict leaves a doc published (compensation missed): the overlay
+ * must track the version this session already produced so a retry's pre-flight
+ * does not report a phantom conflict on the session's own write.
+ */
+export async function setSessionDocBaseVersion(
+  db: Database,
+  docId: string,
+  baseVersion: number,
+): Promise<EditSessionDoc | null> {
+  const result = await db
+    .update(editSessionDocs)
+    .set({ baseVersion, updatedAt: new Date() })
+    .where(eq(editSessionDocs.id, docId))
+    .returning();
+  return result[0] ?? null;
+}

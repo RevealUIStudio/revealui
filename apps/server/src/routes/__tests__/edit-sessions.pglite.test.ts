@@ -17,9 +17,53 @@
 import type { DatabaseClient } from '@revealui/db/client';
 import * as schema from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Race-injection control for the mid-flight publish tests. Default (both unset)
+// passes every query straight through to the real implementation, so all other
+// tests exercise the genuine engine. Only the mid-flight tests set these.
+const raceControl = vi.hoisted(() => ({
+  bumpBeforePublish: null as { pageId: string; toVersion: number } | null,
+  failRestore: false,
+}));
+
+vi.mock('@revealui/db/queries/edit-sessions', async () => {
+  const actual = await vi.importActual<typeof import('@revealui/db/queries/edit-sessions')>(
+    '@revealui/db/queries/edit-sessions',
+  );
+  const schemaMod =
+    await vi.importActual<typeof import('@revealui/db/schema')>('@revealui/db/schema');
+  const { eq: eqOp } = await vi.importActual<typeof import('drizzle-orm')>('drizzle-orm');
+  return {
+    ...actual,
+    async publishDraftToPage(
+      db: Parameters<typeof actual.publishDraftToPage>[0],
+      data: Parameters<typeof actual.publishDraftToPage>[1],
+    ) {
+      const bump = raceControl.bumpBeforePublish;
+      if (bump && bump.pageId === data.pageId) {
+        // A concurrent writer wins the race between the pre-flight read and this
+        // doc's guarded write, so the guard below misses.
+        raceControl.bumpBeforePublish = null;
+        await db
+          .update(schemaMod.pages)
+          .set({ version: bump.toVersion })
+          .where(eqOp(schemaMod.pages.id, data.pageId));
+      }
+      return actual.publishDraftToPage(db, data);
+    },
+    async restorePageContent(
+      db: Parameters<typeof actual.restorePageContent>[0],
+      data: Parameters<typeof actual.restorePageContent>[1],
+    ) {
+      if (raceControl.failRestore) return null;
+      return actual.restorePageContent(db, data);
+    },
+  };
+});
+
 import {
   createTestDb,
   type TestDb,
@@ -39,6 +83,7 @@ const VIEWER: UserCtx = { id: 'user-viewer', role: 'viewer' };
 
 const SITE_ID = 'site-1';
 const PAGE_ID = 'page-1';
+const PAGE_B = 'page-2';
 
 function createApp(user: UserCtx | null) {
   const app = new OpenAPIHono<{ Variables: ContentVariables }>();
@@ -68,17 +113,30 @@ async function seedBase(): Promise<void> {
     slug: 'site-one',
     status: 'published',
   });
-  await db.insert(schema.pages).values({
-    id: PAGE_ID,
-    siteId: SITE_ID,
-    title: 'Original Title',
-    slug: 'home',
-    path: '/',
-    status: 'published',
-    version: 1,
-    blocks: [{ type: 'text', text: 'hello' }],
-    seo: { description: 'orig' },
-  });
+  await db.insert(schema.pages).values([
+    {
+      id: PAGE_ID,
+      siteId: SITE_ID,
+      title: 'Original Title',
+      slug: 'home',
+      path: '/',
+      status: 'published',
+      version: 1,
+      blocks: [{ type: 'text', text: 'hello' }],
+      seo: { description: 'orig' },
+    },
+    {
+      id: PAGE_B,
+      siteId: SITE_ID,
+      title: 'Second Page',
+      slug: 'about',
+      path: '/about',
+      status: 'published',
+      version: 1,
+      blocks: [{ type: 'text', text: 'about' }],
+      seo: { description: 'about-orig' },
+    },
+  ]);
 }
 
 async function openSession(app: ReturnType<typeof createApp>): Promise<string> {
@@ -98,7 +156,17 @@ async function patch(
   path: string,
   value: unknown,
 ): Promise<Response> {
-  return app.request(`/sessions/${sessionId}/docs/page/${PAGE_ID}`, {
+  return patchDoc(app, sessionId, PAGE_ID, path, value);
+}
+
+async function patchDoc(
+  app: ReturnType<typeof createApp>,
+  sessionId: string,
+  docId: string,
+  path: string,
+  value: unknown,
+): Promise<Response> {
+  return app.request(`/sessions/${sessionId}/docs/page/${docId}`, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ path, value }),
@@ -106,6 +174,8 @@ async function patch(
 }
 
 beforeEach(async () => {
+  raceControl.bumpBeforePublish = null;
+  raceControl.failRestore = false;
   testDb = await createTestDb();
   await seedBase();
 });
@@ -223,7 +293,7 @@ describe('open -> patch -> patch -> publish', () => {
     const app = createApp(EDITOR);
     const openId = await openSession(app);
     const discardId = await openSession(app);
-    await app.request(`/sessions/${discardId}`, { method: 'DELETE' });
+    await app.request(`/sessions/${discardId}/discard`, { method: 'POST' });
 
     const openList = await app.request('/sessions?status=open');
     const openBody = (await openList.json()) as { data: Array<{ id: string }> };
@@ -285,6 +355,132 @@ describe('publish after external edit', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Mid-flight publish conflict (a writer wins the race after the pre-flight)
+// ---------------------------------------------------------------------------
+
+describe('mid-flight publish conflict', () => {
+  async function openTwoDocSession(app: ReturnType<typeof createApp>): Promise<string> {
+    const sessionId = await openSession(app);
+    // page-1 sorts before page-2, so page-1 publishes first in the loop.
+    await patchDoc(app, sessionId, PAGE_ID, 'title', 'A-new');
+    await patchDoc(app, sessionId, PAGE_B, 'title', 'B-new');
+    return sessionId;
+  }
+
+  it('compensates already-written docs and returns a clean 409 (nothing published)', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openTwoDocSession(app);
+
+    // page-1 publishes; then a concurrent writer wins on page-2, so its guarded
+    // write misses mid-flight.
+    raceControl.bumpBeforePublish = { pageId: PAGE_B, toVersion: 4 };
+
+    const pub = await app.request(`/sessions/${sessionId}/publish`, { method: 'POST' });
+    expect(pub.status).toBe(409);
+    const body = (await pub.json()) as {
+      error: string;
+      conflicts: Array<{ docId: string }>;
+      partiallyPublished?: string[];
+    };
+    expect(body.error).toBe('publish_conflict');
+    expect(body.conflicts.map((cft) => cft.docId)).toEqual([PAGE_B]);
+    expect(body.partiallyPublished ?? []).toEqual([]); // nothing left live
+
+    // page-1 was published then compensated back to its exact prior row.
+    const pageA = (
+      await testDb.drizzle.select().from(schema.pages).where(eq(schema.pages.id, PAGE_ID))
+    )[0];
+    expect(pageA.title).toBe('Original Title');
+    expect(pageA.version).toBe(1);
+    // The revision inserted during the failed attempt was deleted.
+    const revs = await testDb.drizzle
+      .select()
+      .from(schema.pageRevisions)
+      .where(eq(schema.pageRevisions.pageId, PAGE_ID));
+    expect(revs).toHaveLength(0);
+
+    // Session remains open (publish did not complete).
+    const session = (
+      await testDb.drizzle
+        .select()
+        .from(schema.editSessions)
+        .where(eq(schema.editSessions.id, sessionId))
+    )[0];
+    expect(session.status).toBe('open');
+  });
+
+  it('reports partiallyPublished when compensation fails, then a retry converges with no wedge', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openTwoDocSession(app);
+
+    // page-1 publishes; page-2 conflicts mid-flight; and compensation of page-1
+    // is forced to miss, so page-1 stays live.
+    raceControl.bumpBeforePublish = { pageId: PAGE_B, toVersion: 4 };
+    raceControl.failRestore = true;
+
+    const pub = await app.request(`/sessions/${sessionId}/publish`, { method: 'POST' });
+    expect(pub.status).toBe(409);
+    const body = (await pub.json()) as {
+      conflicts: Array<{ docId: string }>;
+      partiallyPublished?: string[];
+    };
+    expect(body.conflicts.map((cft) => cft.docId)).toEqual([PAGE_B]);
+    expect(body.partiallyPublished).toEqual([PAGE_ID]);
+
+    // page-1 is live with the draft; its overlay base_version was advanced to the
+    // page's current version so a retry does not phantom-conflict on it.
+    const pageA = (
+      await testDb.drizzle.select().from(schema.pages).where(eq(schema.pages.id, PAGE_ID))
+    )[0];
+    expect(pageA.title).toBe('A-new');
+    const overlayA = (
+      await testDb.drizzle
+        .select()
+        .from(schema.editSessionDocs)
+        .where(
+          and(
+            eq(schema.editSessionDocs.sessionId, sessionId),
+            eq(schema.editSessionDocs.docId, PAGE_ID),
+          ),
+        )
+    )[0];
+    expect(overlayA.baseVersion).toBe(pageA.version);
+
+    // Resolve the page-2 conflict: reconcile its overlay base_version to the live
+    // version (what a client does after reviewing the concurrent change), clear the
+    // injected failures, and retry. Publish must now converge with no wedge.
+    const pageBLive = (
+      await testDb.drizzle.select().from(schema.pages).where(eq(schema.pages.id, PAGE_B))
+    )[0];
+    await testDb.drizzle
+      .update(schema.editSessionDocs)
+      .set({ baseVersion: pageBLive.version })
+      .where(
+        and(
+          eq(schema.editSessionDocs.sessionId, sessionId),
+          eq(schema.editSessionDocs.docId, PAGE_B),
+        ),
+      );
+    raceControl.bumpBeforePublish = null;
+    raceControl.failRestore = false;
+
+    const retry = await app.request(`/sessions/${sessionId}/publish`, { method: 'POST' });
+    expect(retry.status).toBe(200);
+    const session = (
+      await testDb.drizzle
+        .select()
+        .from(schema.editSessions)
+        .where(eq(schema.editSessions.id, sessionId))
+    )[0];
+    expect(session.status).toBe('published');
+    const pageBFinal = (
+      await testDb.drizzle.select().from(schema.pages).where(eq(schema.pages.id, PAGE_B))
+    )[0];
+    expect(pageBFinal.title).toBe('B-new');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Discard
 // ---------------------------------------------------------------------------
 
@@ -294,7 +490,7 @@ describe('discard', () => {
     const sessionId = await openSession(app);
     await patch(app, sessionId, 'title', 'Draft Title');
 
-    const res = await app.request(`/sessions/${sessionId}`, { method: 'DELETE' });
+    const res = await app.request(`/sessions/${sessionId}/discard`, { method: 'POST' });
     expect(res.status).toBe(200);
     const body = (await res.json()) as { data: { status: string } };
     expect(body.data.status).toBe('discarded');
@@ -386,7 +582,9 @@ describe('mutations on a non-open session', () => {
     expect((await app.request(`/sessions/${sessionId}/publish`, { method: 'POST' })).status).toBe(
       409,
     );
-    expect((await app.request(`/sessions/${sessionId}`, { method: 'DELETE' })).status).toBe(409);
+    expect((await app.request(`/sessions/${sessionId}/discard`, { method: 'POST' })).status).toBe(
+      409,
+    );
   });
 });
 
@@ -413,7 +611,7 @@ describe('authorization on every session route', () => {
         body: { path: 'title', value: 'x' },
       },
       { method: 'POST', url: `/sessions/${sessionId}/publish` },
-      { method: 'DELETE', url: `/sessions/${sessionId}` },
+      { method: 'POST', url: `/sessions/${sessionId}/discard` },
     ];
   }
 
