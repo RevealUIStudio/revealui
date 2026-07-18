@@ -305,4 +305,72 @@ describe('DaemonStore', () => {
     const pruned = await store.pruneEvents(0);
     expect(pruned).toBeGreaterThanOrEqual(0);
   });
+
+  // ---------------------------------------------------------------------------
+  // Gateway authn substrate (GAP-353 D3)
+  // ---------------------------------------------------------------------------
+
+  it('round-trips the bootstrap secret hash', async () => {
+    expect(await store.getBootstrapSecretHash()).toBeNull();
+    const row = await store.putBootstrapSecretHash('hash-abc');
+    expect(row.id).toBe(1);
+    expect(row.secret_hash).toBe('hash-abc');
+    expect(await store.getBootstrapSecretHash()).toBe('hash-abc');
+  });
+
+  it('keeps the bootstrap secret a singleton (re-persist overwrites)', async () => {
+    await store.putBootstrapSecretHash('hash-old');
+    await store.putBootstrapSecretHash('hash-new');
+    expect(await store.getBootstrapSecretHash()).toBe('hash-new');
+  });
+
+  it('inserts and finds a valid token', async () => {
+    const inserted = await store.insertToken({ tokenHash: 'tok-1', label: 'studio-macbook' });
+    expect(inserted.token_hash).toBe('tok-1');
+    expect(inserted.label).toBe('studio-macbook');
+    expect(inserted.revoked_at).toBeNull();
+
+    const found = await store.findValidToken('tok-1');
+    expect(found?.token_hash).toBe('tok-1');
+  });
+
+  it('findValidToken returns null for an unknown hash', async () => {
+    expect(await store.findValidToken('nope')).toBeNull();
+  });
+
+  it('findValidToken excludes revoked tokens', async () => {
+    await store.insertToken({ tokenHash: 'tok-2' });
+    const revoked = await store.revokeToken('tok-2');
+    expect(revoked).toBe(true);
+    expect(await store.findValidToken('tok-2')).toBeNull();
+  });
+
+  it('revokeToken returns false when nothing was revoked', async () => {
+    expect(await store.revokeToken('absent')).toBe(false);
+  });
+
+  it('findValidToken excludes expired tokens', async () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    await store.insertToken({ tokenHash: 'tok-3', expiresAt: past });
+    expect(await store.findValidToken('tok-3')).toBeNull();
+  });
+
+  it('honors a future expiry as still valid', async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    await store.insertToken({ tokenHash: 'tok-4', expiresAt: future });
+    expect(await store.findValidToken('tok-4')).not.toBeNull();
+  });
+
+  it('prunes only expired tokens', async () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    const future = new Date(Date.now() + 60_000).toISOString();
+    await store.insertToken({ tokenHash: 'tok-expired', expiresAt: past });
+    await store.insertToken({ tokenHash: 'tok-future', expiresAt: future });
+    await store.insertToken({ tokenHash: 'tok-forever' });
+
+    const pruned = await store.pruneExpiredTokens();
+    expect(pruned).toBe(1);
+    expect(await store.findValidToken('tok-future')).not.toBeNull();
+    expect(await store.findValidToken('tok-forever')).not.toBeNull();
+  });
 });

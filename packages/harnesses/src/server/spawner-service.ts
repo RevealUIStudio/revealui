@@ -34,11 +34,17 @@ export interface SpawnerConfig {
   snapEndpoint: string;
   /** Max concurrent agent sessions (default: 8) */
   maxSessions: number;
+  /**
+   * Grace period, in milliseconds, between SIGTERM and the SIGKILL escalation
+   * for a child that does not exit on its own (default: 5000).
+   */
+  terminationGraceMs: number;
 }
 
 const DEFAULT_CONFIG: SpawnerConfig = {
   snapEndpoint: 'http://localhost:9090',
   maxSessions: 8,
+  terminationGraceMs: 5000,
 };
 
 // ── Service ─────────────────────────────────────────────────────────
@@ -50,6 +56,8 @@ interface AgentProcess {
   prompt: string;
   child: ChildProcess;
   status: 'running' | 'stopped' | 'errored';
+  /** Pending SIGKILL escalation timer, set while a SIGTERM grace window is open. */
+  graceTimer?: ReturnType<typeof setTimeout>;
 }
 
 /**
@@ -134,8 +142,14 @@ export class SpawnerService extends EventEmitter {
       }
     });
 
-    // Handle exit
+    // Handle exit. The close handler is the single source of truth for terminal
+    // status; if a SIGTERM grace window is still open, close-before-timeout wins
+    // and the pending SIGKILL escalation is cancelled.
     child.on('close', (code) => {
+      if (proc.graceTimer) {
+        clearTimeout(proc.graceTimer);
+        proc.graceTimer = undefined;
+      }
       proc.status = code === 0 ? 'stopped' : 'errored';
       this.emit('exit', { sessionId, code } satisfies AgentExitEvent);
     });
@@ -148,13 +162,18 @@ export class SpawnerService extends EventEmitter {
     return sessionId;
   }
 
-  /** Stop a running agent by killing its process. */
+  /**
+   * Request termination of a running agent: SIGTERM now, SIGKILL after the
+   * configured grace period if it has not exited. Returns once SIGTERM is sent;
+   * the status transition is event-driven (the child's `close` handler sets the
+   * terminal status), so `list()` keeps reporting `running` until the process
+   * actually exits.
+   */
   stop(sessionId: string): void {
     const proc = this.sessions.get(sessionId);
     if (!proc) throw new Error(`No agent session: ${sessionId}`);
     if (proc.status !== 'running') throw new Error(`Agent is not running (${proc.status})`);
-    proc.child.kill('SIGTERM');
-    proc.status = 'stopped';
+    this.terminate(proc);
   }
 
   /** List all agent sessions. */
@@ -183,13 +202,36 @@ export class SpawnerService extends EventEmitter {
     this.sessions.delete(sessionId);
   }
 
-  /** Kill all running agents (called on daemon shutdown). */
+  /**
+   * Request termination of all running agents (called on daemon shutdown).
+   * Same SIGTERM → grace → SIGKILL escalation as `stop`, with event-driven
+   * status, so shutdown neither wedges a child that ignores SIGTERM nor lies
+   * about its status.
+   */
   stopAll(): void {
     for (const [, proc] of this.sessions) {
       if (proc.status === 'running') {
-        proc.child.kill('SIGTERM');
-        proc.status = 'stopped';
+        this.terminate(proc);
       }
     }
+  }
+
+  /**
+   * Send SIGTERM and arm a bounded SIGKILL escalation. Status is left `running`;
+   * the child's `close` handler owns the terminal transition. Idempotent while a
+   * grace window is already open. The escalation timer is unref'd so it can never
+   * keep the process alive or fire after exit.
+   */
+  private terminate(proc: AgentProcess): void {
+    if (proc.graceTimer) return;
+    proc.child.kill('SIGTERM');
+    const timer = setTimeout(() => {
+      proc.graceTimer = undefined;
+      if (proc.status === 'running') {
+        proc.child.kill('SIGKILL');
+      }
+    }, this.config.terminationGraceMs);
+    timer.unref?.();
+    proc.graceTimer = timer;
   }
 }
