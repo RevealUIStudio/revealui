@@ -18,11 +18,12 @@ const accentBg: Record<string, string> = {
   violet: 'bg-violet-500/10 text-violet-500 ring-violet-500/20',
 };
 
-// Color + icon are structural, not editable prose: keyed by primitive label so
-// they stay in the TSX while the label + body flow through the block stream.
-const primitiveStyle = new Map(
-  HOME_PRIMITIVES.map((p) => [p.label, { color: p.color, iconPath: p.iconPath }]),
-);
+// Color + icon are structural, not editable prose: they stay in the TSX while
+// the label + body flow through the block stream. Keyed by ORDER, not label —
+// the label is a CMS-editable field, so an operator renaming a card must not
+// drop its icon/accent. Block item order mirrors HOME_PRIMITIVES by construction
+// of the shared transform.
+const primitiveStyles = HOME_PRIMITIVES.map((p) => ({ color: p.color, iconPath: p.iconPath }));
 
 export interface PrimitivesProps {
   /** Rich section data; defaults to the static content modules (byte-identical). */
@@ -68,7 +69,7 @@ export function Primitives({
         <div className="mx-auto mt-16 max-w-4xl space-y-10 sm:space-y-14">
           {data.items.map((item, index) => {
             const flipped = index % 2 === 1;
-            const style = primitiveStyle.get(item.label);
+            const style = primitiveStyles[index];
             return (
               <div
                 key={item.label}
