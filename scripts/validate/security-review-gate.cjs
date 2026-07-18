@@ -103,6 +103,23 @@ const SECURITY_PATHS = [
   // security-sensitive. Whole-package entry, matching packages/mcp//security//
   // paywall/; adapters ride along fine. Keep in lockstep with the fleet checker.
   'packages/harnesses/',
+  // GAP-400: the edit-session engine + preview-token flow (HMAC credential
+  // minting/verification, cross-origin postMessage, draft-read authorization)
+  // and the canvas/runtime package that consumes it. A prior PR shipped this
+  // surface and both gates classified it NOT security-sensitive; a manual
+  // review pass covered that PR, but the automated backstop had a hole for
+  // every future PR touching this surface. Keep in lockstep with the fleet
+  // checker (internal tooling, separate .jv PR).
+  'routes/content/sessions',
+  'preview-token',
+  'packages/editor/',
+  // GAP-400: audit-substrate widening. The append-only audit log is the
+  // tamper-evidence record for every other security-sensitive write in the
+  // fleet; its schema, store, and migrations are themselves a
+  // security-sensitive surface. Keep in lockstep with the fleet checker.
+  'packages/db/src/schema/audit-log',
+  'packages/db/src/audit-store',
+  'packages/db/migrations/',
 ];
 
 // A recorded reviewer verdict = an approving GH review OR one of these labels.
