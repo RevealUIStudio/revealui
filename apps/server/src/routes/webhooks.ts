@@ -11,6 +11,7 @@
 
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import {
+  coversRenewalBound,
   generateLicenseKey,
   readLicenseExp,
   resetLicenseState,
@@ -416,10 +417,11 @@ async function remintSubscriptionLicenseOnRenewal(
   if (!tier) return;
 
   // Idempotency pin (the WH-2 property, now covering renewals): skip when the
-  // stored key's exp already reaches the new bound.
+  // stored key's exp already reaches the new bound, within the 1s flooring
+  // tolerance documented on coversRenewalBound (fast-follow, #1978 verdict).
   const newBound = subscriptionExpBound(params.periodEnd);
   const storedExp = await readLicenseExp(row.licenseKey);
-  if (storedExp !== null && storedExp >= newBound) return;
+  if (coversRenewalBound(storedExp, newBound)) return;
 
   const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
   if (!privateKey) {
