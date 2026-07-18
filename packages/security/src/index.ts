@@ -87,6 +87,8 @@ export {
   SecurityPresets,
   setRateLimitHeaders,
 } from './headers.js';
+// RFC 8785 JSON canonicalization (pure — no node: built-ins)
+export { canonicalizeJcs } from './jcs.js';
 // Logger configuration
 export type { SecurityLogger } from './logger.js';
 export { configureSecurityLogger } from './logger.js';
