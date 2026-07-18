@@ -11,7 +11,7 @@
  * Pure. No DB, no Stripe, no I/O beyond a warn log on an unknown feature key.
  */
 
-import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
+import { getFeaturesForTier } from '@revealui/core/features';
 import type { LicenseTier } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getHostedLimitsForTier } from './tier-limits.js';
@@ -19,22 +19,15 @@ import { getHostedLimitsForTier } from './tier-limits.js';
 /** Hosted tiers. `free` is not a `LicenseTier` but is a valid entitlement tier. */
 export type HostedTier = 'free' | LicenseTier;
 
-/** Known feature keys from {@link FeatureFlags}. Used to warn on unexpected keys. */
-const KNOWN_FEATURE_KEYS = new Set<string>([
-  'aiLocal',
-  'ai',
-  'aiMemory',
-  'mcp',
-  'payments',
-  'multiTenant',
-  'whiteLabel',
-  'aiInference',
-  'auditLog',
-  'advancedSync',
-  'dashboard',
-  'customDomain',
-  'analytics',
-] satisfies (keyof FeatureFlags)[]);
+/**
+ * Known feature keys, derived from the canonical `FeatureFlags` record at
+ * module load. Used to warn on unexpected keys. Derived rather than listed:
+ * a hardcoded copy drifted when vaultDesktop/vaultRotation/devkitProfiles
+ * shipped, making every entitlement write log false unknown-key warnings.
+ * `getFeaturesForTier` returns the complete record (false entries included),
+ * so its keys are exactly `keyof FeatureFlags`.
+ */
+const KNOWN_FEATURE_KEYS = new Set<string>(Object.keys(getFeaturesForTier('enterprise')));
 
 export function coerceHostedTier(value: string | null | undefined): HostedTier | undefined {
   if (value === 'free' || value === 'pro' || value === 'max' || value === 'enterprise') {
