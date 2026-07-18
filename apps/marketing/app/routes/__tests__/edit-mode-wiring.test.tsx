@@ -9,7 +9,7 @@
  */
 import type { PreviewDoc } from '@revealui/editor/runtime';
 import { Router, RouterProvider } from '@revealui/router';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchPageBlocks } from '../../lib/api';
@@ -19,8 +19,11 @@ import { ProductsPage } from '../ProductsPage';
 
 vi.mock('../../lib/api', () => ({ fetchPageBlocks: vi.fn() }));
 
+// `editActive` stands in for the URL's `?rvui-edit=` token (`isEditModeActive()`),
+// independent of whether any draft overlay exists yet.
 const editDraftsStore = vi.hoisted(() => {
   let drafts: PreviewDoc[] = [];
+  let editActive = false;
   const listeners = new Set<() => void>();
   return {
     getEditDrafts: (): PreviewDoc[] => drafts,
@@ -28,9 +31,13 @@ const editDraftsStore = vi.hoisted(() => {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    isEditModeActive: (): boolean => editActive,
     set: (next: PreviewDoc[]): void => {
       drafts = next;
       for (const listener of listeners) listener();
+    },
+    setEditActive: (active: boolean): void => {
+      editActive = active;
     },
   };
 });
@@ -38,6 +45,7 @@ const editDraftsStore = vi.hoisted(() => {
 vi.mock('../../lib/edit-mode', () => ({
   getEditDrafts: editDraftsStore.getEditDrafts,
   subscribeEditDrafts: editDraftsStore.subscribeEditDrafts,
+  isEditModeActive: editDraftsStore.isEditModeActive,
 }));
 
 const mockFetch = vi.mocked(fetchPageBlocks);
@@ -52,6 +60,7 @@ describe('marketing pages: edit-mode wiring', () => {
   beforeEach(() => {
     mockFetch.mockResolvedValue(null);
     editDraftsStore.set([]);
+    editDraftsStore.setEditActive(false);
   });
 
   it('HomePage and ProductsPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
@@ -119,5 +128,23 @@ describe('marketing pages: edit-mode wiring', () => {
     const heading = container.querySelector('[data-rvui-field="blocks.0.heading"]');
     expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
     expect(heading?.textContent).toBe('Optimistically re-rendered heading');
+  });
+
+  it('HomePage bootstraps click-to-edit with the CMS page docId when edit mode is active and no draft exists yet', async () => {
+    // Fresh-session bootstrap: edit mode is active (the URL carries the edit
+    // token) and the CMS row for this page is known, but nothing has been
+    // patched yet, so `edit-mode`'s draft store is still empty. Without this
+    // path, `data-rvui-field` would never appear, so the FIRST click needed to
+    // create that first patch could never fire.
+    mockFetch.mockResolvedValue({ id: 'page-home-id', blocks: null });
+    editDraftsStore.setEditActive(true);
+
+    const { container } = renderRouted(<HomePage />);
+    expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+
+    await waitFor(() => {
+      const heading = container.querySelector('[data-rvui-field="blocks.0.heading"]');
+      expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
+    });
   });
 });
