@@ -84,6 +84,29 @@ await manager.registerSession({
 })
 ```
 
+### Remote Gateway (HTTP)
+
+The daemon can optionally expose the same JSON-RPC surface as the Unix socket over HTTP, for remote access (for example the Studio app connecting from another machine on the network):
+
+```bash
+revealui-harnesses start --http-port 7890
+```
+
+The gateway is fail-closed. Every `/rpc` and `/api/*` call, including `agent.spawn` and `agent.stop`, is refused with `401` until it carries a valid bearer token. There is no pre-pairing bypass, on a fresh daemon or after a restart.
+
+**Pairing (challenge-response  -  the secret never crosses the wire):**
+
+1. On first start, the daemon generates a 32-byte secret at a `0600` file in its data dir and prints the path:
+   ```
+   ✓ Bootstrap pairing secret: ~/.local/share/revealui/pairing-secret
+   ```
+   Only someone who can read that file (the machine owner) can pair.
+2. The client requests a single-use, short-lived nonce: `GET /api/pair` → `{ nonce, expiresIn }` (expires in 2 minutes by default).
+3. The client reads the secret file and computes `HMAC-SHA256(secret, nonce)`, then posts it back: `POST /api/pair` with `{ nonce, hmac, label? }`.
+4. On a valid response the gateway mints a bearer token (`{ token, expiresAt }`) and stores only its SHA-256 hash. Send the token as `Authorization: Bearer <token>` on every subsequent call.
+
+Tokens are durable (default 90-day TTL) and persisted as hashes, so a daemon restart with a previously-issued token stays authenticated  -  it never reopens the pre-pairing window. Repeated failed pairing attempts trigger a per-source exponential-backoff lockout plus a global cooldown.
+
 ## Exports
 
 | Subpath | Contents |
