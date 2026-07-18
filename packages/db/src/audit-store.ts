@@ -207,6 +207,7 @@ export class DrizzleAuditStore {
     // Drizzle's `db.execute` returns either a raw rows array (PGlite,
     // node-postgres) or `{ rows: [...] }` (neon-http). Normalize both; the driver
     // return shapes don't share a nominal type, so narrow through `unknown`.
+    // drizzle-raw: nextval + generate_series over a sequence have no Drizzle query-builder equivalent; reads N seq values without inserting a row
     const result: unknown = await this.db.execute(
       sql`SELECT nextval(pg_get_serial_sequence('audit_log', 'seq')) AS seq FROM generate_series(1, ${count})`,
     );
