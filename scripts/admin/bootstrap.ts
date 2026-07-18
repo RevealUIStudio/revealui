@@ -157,14 +157,15 @@ async function main(): Promise<void> {
 
   // Audit log entry
   {
-    const { auditLog } = await import('@revealui/db/schema');
+    const { DrizzleAuditStore } = await import('@revealui/db');
     const { classifyAuditWriteFailure, recordAuditWriteResult } = await import(
       '@revealui/core/security'
     );
     const eventId = randomUUID();
     try {
-      await db.insert(auditLog).values({
+      await new DrizzleAuditStore(db).append({
         id: eventId,
+        timestamp: new Date(),
         eventType: 'admin.bootstrap.completed',
         severity: 'info',
         agentId: 'cli',

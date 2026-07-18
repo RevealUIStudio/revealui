@@ -27,6 +27,17 @@ export interface AuditEntry {
   sessionId?: string;
   payload: Record<string, unknown>;
   policyViolations: string[];
+  /**
+   * Optional per-row signature and its predecessor (the governed-MCP receipt
+   * stream chains these). Pass-through only: this store does NOT compute a
+   * signature — GAP-355 Stage 2 makes `append` the single `insert(auditLog)`
+   * door, so a caller that signs (today only `mcp-audit.ts`) hands its value
+   * here instead of inserting directly. Absent → columns persist NULL, which
+   * is the honest Stage-1 state for unsigned rows. Stage 3 moves signing into
+   * an injected signer so callers stop computing it themselves.
+   */
+  signature?: string | null;
+  previousSignature?: string | null;
 }
 
 /** Filters for querying audit entries */
@@ -65,6 +76,8 @@ export class DrizzleAuditStore {
       sessionId: entry.sessionId ?? null,
       payload: entry.payload,
       policyViolations: entry.policyViolations,
+      signature: entry.signature ?? null,
+      previousSignature: entry.previousSignature ?? null,
     });
   }
 
@@ -83,6 +96,8 @@ export class DrizzleAuditStore {
         sessionId: entry.sessionId ?? null,
         payload: entry.payload,
         policyViolations: entry.policyViolations,
+        signature: entry.signature ?? null,
+        previousSignature: entry.previousSignature ?? null,
       })),
     );
   }

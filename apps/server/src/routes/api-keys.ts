@@ -13,10 +13,10 @@ import crypto from 'node:crypto';
 import { LLM_PROVIDERS } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 import { classifyAuditWriteFailure, recordAuditWriteResult } from '@revealui/core/security';
-import { getClient, withTransaction } from '@revealui/db';
+import { DrizzleAuditStore, getClient, withTransaction } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
-import { auditLog, tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
+import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq } from 'drizzle-orm';
 import type { Context } from 'hono';
@@ -41,8 +41,9 @@ async function recordCredentialEvent(
 ): Promise<void> {
   const eventId = crypto.randomUUID();
   try {
-    await db.insert(auditLog).values({
+    await new DrizzleAuditStore(db).append({
       id: eventId,
+      timestamp: new Date(),
       eventType,
       severity: 'info',
       agentId: userId,
