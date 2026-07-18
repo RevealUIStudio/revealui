@@ -47,6 +47,13 @@ export interface AdminCspOptions {
   /** `NEXT_PUBLIC_SERVER_URL` — optional deployment origin; `''` when unset. */
   serverUrl: string;
   /**
+   * `NEXT_PUBLIC_MARKETING_URL` — the marketing-site origin the edit-session
+   * canvas frames (trimmed, defaulted). `''` disables the frame-src entry.
+   * Named explicitly (not NEXT_PUBLIC_SERVER_URL) per the GAP-360 semantics
+   * precedent: SERVER_URL fleet-wide means the admin's own deployment origin.
+   */
+  marketingUrl: string;
+  /**
    * `REVEALUI_FLEET_MODE === 'true'` — running as a fleet kit.
    * When true, hosted third-party SDK domains (Stripe.js, Vercel Analytics,
    * Google Maps, Cloudinary) are omitted from every CSP directive. Fleet kits
@@ -75,7 +82,16 @@ export function generateNonce(): string {
  * the admin's same-origin live-preview iframe keeps working.
  */
 export function buildAdminCsp(options: AdminCspOptions): string {
-  const { nonce, isDev, isVercel, isVercelProd, apiUrl, serverUrl, isFleetMode = false } = options;
+  const {
+    nonce,
+    isDev,
+    isVercel,
+    isVercelProd,
+    apiUrl,
+    serverUrl,
+    marketingUrl,
+    isFleetMode = false,
+  } = options;
   const vercelPreview = isVercel && !isVercelProd;
 
   const scriptSrc = [
@@ -96,6 +112,10 @@ export function buildAdminCsp(options: AdminCspOptions): string {
 
   const frameSrc = [
     "'self'",
+    // The edit-session canvas frames the marketing site (preview iframe). The
+    // marketing side allows this via frame-ancestors; without the origin here
+    // the admin's own frame-src blocks the canvas.
+    ...(marketingUrl ? [marketingUrl] : []),
     ...(isFleetMode
       ? []
       : ['https://checkout.stripe.com', 'https://js.stripe.com', 'https://hooks.stripe.com']),

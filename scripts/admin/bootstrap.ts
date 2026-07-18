@@ -101,7 +101,7 @@ async function main(): Promise<void> {
   // Get the RevealUI instance for bootstrap
   // We need to dynamically import to avoid pulling in the full admin app
   const { getRevealUIInstance } = await import(
-    '../../apps/admin/src/lib/utilities/revealui-singleton.js'
+    '../../apps/admin/src/lib/utils/revealui-singleton.js'
   );
   const revealui = await getRevealUIInstance();
 

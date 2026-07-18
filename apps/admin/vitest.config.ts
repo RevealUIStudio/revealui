@@ -80,7 +80,6 @@ export default defineConfig({
       '@/access': path.resolve(__dirname, './src/lib/access'),
       '@/hooks': path.resolve(__dirname, './src/lib/hooks'),
       '@/fields': path.resolve(__dirname, './src/lib/fields'),
-      '@/utilities': path.resolve(__dirname, './src/lib/utilities'),
       '@/globals': path.resolve(__dirname, './src/lib/globals'),
       '@/heros': path.resolve(__dirname, './src/lib/heros'),
       '@/lib': path.resolve(__dirname, './src/lib'),

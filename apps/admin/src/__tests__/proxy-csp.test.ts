@@ -57,6 +57,22 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
     expect(directive(csp, 'img-src')).toContain('https://*.stripe.com');
   });
 
+  it('allows the marketing origin in frame-src so the edit-session canvas can frame the preview', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const frameSrc = directive(res.headers.get('content-security-policy') ?? '', 'frame-src');
+    // Hosted default when NEXT_PUBLIC_MARKETING_URL is unset.
+    expect(frameSrc).toContain('https://revealui.com');
+  });
+
+  it('frame-src honors NEXT_PUBLIC_MARKETING_URL when set', async () => {
+    vi.stubEnv('NEXT_PUBLIC_MARKETING_URL', 'https://sites.example.com');
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const frameSrc = directive(res.headers.get('content-security-policy') ?? '', 'frame-src');
+    expect(frameSrc).toContain('https://sites.example.com');
+    expect(frameSrc).not.toContain('https://revealui.com');
+    vi.unstubAllEnvs();
+  });
+
   it('keeps unsafe-inline on style-src (intentional — Tailwind/Next/tenant inline styles)', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
     const styleSrc = directive(res.headers.get('content-security-policy'), 'style-src');
