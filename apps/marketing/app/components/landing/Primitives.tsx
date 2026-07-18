@@ -1,5 +1,6 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { type BlockAnnotation, ButtonCVA, fieldAttrs } from '@revealui/presentation';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
+import { PRIMITIVES_FALLBACK_DATA, type PrimitivesData } from '../../lib/page-blocks';
 
 // Accent chips must be surface-relative so they adapt under the token-based
 // theme (dark-first; light via system pref OR a manual [data-theme] override).
@@ -17,19 +18,48 @@ const accentBg: Record<string, string> = {
   violet: 'bg-violet-500/10 text-violet-500 ring-violet-500/20',
 };
 
-export function Primitives() {
+// Color + icon are structural, not editable prose: they stay in the TSX while
+// the label + body flow through the block stream. Keyed by ORDER, not label —
+// the label is a CMS-editable field, so an operator renaming a card must not
+// drop its icon/accent. Block item order mirrors HOME_PRIMITIVES by construction
+// of the shared transform.
+const primitiveStyles = HOME_PRIMITIVES.map((p) => ({ color: p.color, iconPath: p.iconPath }));
+
+export interface PrimitivesProps {
+  /** Rich section data; defaults to the static content modules (byte-identical). */
+  data?: PrimitivesData;
+  /** Dot-path base of this block within the page array, e.g. `blocks.1`. */
+  path?: string;
+  /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
+  annotation?: BlockAnnotation;
+}
+
+export function Primitives({
+  data = PRIMITIVES_FALLBACK_DATA,
+  path = 'blocks.1',
+  annotation = {},
+}: PrimitivesProps) {
   return (
     <section className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            {HOME_PRIMITIVES_SECTION.eyebrow}
+          <p
+            className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
+            {...fieldAttrs(annotation, `${path}.eyebrow`)}
+          >
+            {data.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {HOME_PRIMITIVES_SECTION.heading}
+          <h2
+            className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            {...fieldAttrs(annotation, `${path}.heading`)}
+          >
+            {data.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            {HOME_PRIMITIVES_SECTION.body}
+          <p
+            className="mt-6 text-lg leading-8 text-muted-foreground"
+            {...fieldAttrs(annotation, `${path}.body`)}
+          >
+            {data.body}
           </p>
         </div>
 
@@ -37,17 +67,18 @@ export function Primitives() {
             rhythm. Each primitive is a generous row with a large accent icon that
             alternates sides; the copy hugs toward it. */}
         <div className="mx-auto mt-16 max-w-4xl space-y-10 sm:space-y-14">
-          {HOME_PRIMITIVES.map((p, index) => {
+          {data.items.map((item, index) => {
             const flipped = index % 2 === 1;
+            const style = primitiveStyles[index];
             return (
               <div
-                key={p.label}
+                key={item.label}
                 className={`flex flex-col gap-5 sm:items-center sm:gap-10 ${
                   flipped ? 'sm:flex-row-reverse' : 'sm:flex-row'
                 }`}
               >
                 <div
-                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl ring-1 ${accentBg[p.color]}`}
+                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl ring-1 ${style ? accentBg[style.color] : ''}`}
                 >
                   <svg
                     className="h-10 w-10"
@@ -56,13 +87,25 @@ export function Primitives() {
                     strokeWidth={1.5}
                     stroke="currentColor"
                   >
-                    <title>{p.label}</title>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={p.iconPath} />
+                    <title>{item.label}</title>
+                    {style ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" d={style.iconPath} />
+                    ) : null}
                   </svg>
                 </div>
                 <div className={`flex-1 ${flipped ? 'sm:text-right' : ''}`}>
-                  <h3 className="text-xl font-semibold text-foreground">{p.label}</h3>
-                  <p className="mt-2 text-base leading-7 text-muted-foreground">{p.body}</p>
+                  <h3
+                    className="text-xl font-semibold text-foreground"
+                    {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
+                  >
+                    {item.label}
+                  </h3>
+                  <p
+                    className="mt-2 text-base leading-7 text-muted-foreground"
+                    {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
+                  >
+                    {item.body}
+                  </p>
                 </div>
               </div>
             );

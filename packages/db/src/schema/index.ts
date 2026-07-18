@@ -71,6 +71,7 @@ import { appLogs } from './app-logs.js';
 import { auditLog } from './audit-log.js';
 import { codeProvenance, codeReviews } from './code-provenance.js';
 import { collabEdits } from './collab-edits.js';
+import { editSessionDocs, editSessionEvents, editSessions } from './edit-sessions.js';
 import { errorEvents } from './error-events.js';
 import { workspaceInferenceConfigs } from './inference-configs.js';
 import { licenses } from './licenses.js';
@@ -272,6 +273,38 @@ export const pageRevisionsRelations = relations(pageRevisions, ({ one }) => ({
   createdByUser: one(users, {
     fields: [pageRevisions.createdBy],
     references: [users.id],
+  }),
+}));
+
+// Edit session relations
+export const editSessionsRelations = relations(editSessions, ({ one, many }) => ({
+  site: one(sites, {
+    fields: [editSessions.siteId],
+    references: [sites.id],
+  }),
+  createdByUser: one(users, {
+    fields: [editSessions.createdBy],
+    references: [users.id],
+  }),
+  docs: many(editSessionDocs),
+  events: many(editSessionEvents),
+}));
+
+export const editSessionDocsRelations = relations(editSessionDocs, ({ one }) => ({
+  session: one(editSessions, {
+    fields: [editSessionDocs.sessionId],
+    references: [editSessions.id],
+  }),
+  updatedByUser: one(users, {
+    fields: [editSessionDocs.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const editSessionEventsRelations = relations(editSessionEvents, ({ one }) => ({
+  session: one(editSessions, {
+    fields: [editSessionEvents.sessionId],
+    references: [editSessions.id],
   }),
 }));
 

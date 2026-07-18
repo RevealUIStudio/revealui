@@ -19,6 +19,7 @@
   "author": "RevealUI Team",
   "dependencies": {
     "@revealui/config": "workspace:*",
+    "@revealui/security": "workspace:*",
     "execa": "^9.6.1",
     "inquirer": "^13.4.3",
     "ora": "^9.4.0",

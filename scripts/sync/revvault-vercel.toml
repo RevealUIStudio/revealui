@@ -96,8 +96,12 @@ REVEALUI_KEK                = { path = "revealui/prod/kek", sensitive = true }
 # revealui/prod/license/* path held the stale pre-cutover RSA pair.
 REVEALUI_LICENSE_PRIVATE_KEY = { path = "revdev/license-signing-private-key", sensitive = true }
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
-REVEALUI_AUDIT_HMAC_SECRET   = { path = "revealui/prod/audit-hmac-secret", sensitive = true }
+REVEALUI_AUDIT_SIGNING_KEY   = { path = "revealui/prod/audit/signing-private-key", sensitive = true }
+REVEALUI_AUDIT_PUBLIC_KEY    = "revealui/prod/audit/signing-public-key"
 REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
+
+# Visual edit sessions — HMAC secret for read-only preview tokens
+REVEALUI_PREVIEW_TOKEN_SECRET = { path = "revealui/prod/preview-token-secret", sensitive = true }
 
 # Cron + alerting
 REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }
@@ -192,6 +196,8 @@ NEON_API_KEY  = { path = "revealui/prod/db/neon-api-key", sensitive = true }
 REVEALUI_KEK                 = { path = "revealui/prod/kek", sensitive = true }
 REVEALUI_LICENSE_PRIVATE_KEY = { path = "revdev/license-signing-private-key", sensitive = true }
 REVEALUI_LICENSE_PUBLIC_KEY  = "revdev/license-signing-public-key"
+REVEALUI_AUDIT_SIGNING_KEY   = { path = "revealui/prod/audit/signing-private-key", sensitive = true }
+REVEALUI_AUDIT_PUBLIC_KEY    = "revealui/prod/audit/signing-public-key"
 REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true }
 
 # Auth — passkey / WebAuthn (admin serves the passkey ceremony at admin.revealui.com)

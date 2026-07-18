@@ -11,6 +11,7 @@
 
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import {
+  coversRenewalBound,
   generateLicenseKey,
   readLicenseExp,
   resetLicenseState,
@@ -18,7 +19,7 @@ import {
   subscriptionLicenseExpiresInSeconds,
 } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { DrizzleAuditStore, executeSaga, getClient } from '@revealui/db';
+import { executeSaga, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import type { SagaStep } from '@revealui/db/saga';
 import {
@@ -36,6 +37,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
+import { createAuditStore } from '../lib/audit-signer.js';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import {
   buildHostedEntitlementValues,
@@ -416,10 +418,11 @@ async function remintSubscriptionLicenseOnRenewal(
   if (!tier) return;
 
   // Idempotency pin (the WH-2 property, now covering renewals): skip when the
-  // stored key's exp already reaches the new bound.
+  // stored key's exp already reaches the new bound, within the 1s flooring
+  // tolerance documented on coversRenewalBound (fast-follow, #1978 verdict).
   const newBound = subscriptionExpBound(params.periodEnd);
   const storedExp = await readLicenseExp(row.licenseKey);
-  if (storedExp !== null && storedExp >= newBound) return;
+  if (coversRenewalBound(storedExp, newBound)) return;
 
   const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
   if (!privateKey) {
@@ -844,7 +847,7 @@ function auditLicenseEvent(
   severity: 'info' | 'warn' | 'critical',
   payload: Record<string, unknown>,
 ): void {
-  new DrizzleAuditStore(db as Database)
+  createAuditStore(db as Database)
     .append({
       id: crypto.randomUUID(),
       timestamp: new Date(),

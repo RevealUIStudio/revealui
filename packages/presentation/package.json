@@ -12,6 +12,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@revealui/contracts": "workspace:*",
     "@revealui/tokens": "workspace:*",
     "tailwind-merge": "^3.3.1"
   },

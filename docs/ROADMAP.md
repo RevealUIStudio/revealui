@@ -21,7 +21,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-06-11.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed, 28 npm packages, extensive test suite. No paying users yet. |
+| **RevealUI** (monorepo) | Beta | Deployed, 29 npm packages, extensive test suite. No paying users yet. |
 | **RevealUI Fleet** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
 | **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
@@ -45,7 +45,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/enterprise)
 - **UI components**  -  59 native React 19 components in `@revealui/presentation` (80 with `@revealui/core` admin/richtext); Tailwind v4, zero external UI deps
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  93 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
+- **Database**  -  96 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers**  -  12 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, plus the adapter base class)
@@ -57,7 +57,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 ### Launch (v0.3.3  -  current)
 
 - **Public repo** on GitHub with MIT license (OSS packages)
-- **28 packages** published to npm
+- **29 packages** published to npm
 - **5 CLI templates** (basic-blog, e-commerce, portfolio, starter, starter-native)  -  4 published as standalone template repos
 - **Production deploys**  -  admin, API, Marketing, Docs on Vercel
 - **Stripe test mode** verified end-to-end (checkout, webhooks, license generation)

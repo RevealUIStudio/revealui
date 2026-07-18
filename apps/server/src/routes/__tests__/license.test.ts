@@ -13,6 +13,7 @@ vi.mock('@revealui/core/features', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => ({
+  DEFAULT_MANUAL_MINT_DAYS: 90,
   validateLicenseKey: vi.fn(),
   generateLicenseKey: vi.fn(),
 }));

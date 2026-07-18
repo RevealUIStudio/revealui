@@ -1,3 +1,10 @@
+// WIRE-UP-PENDING — no runtime component imports this file's exports; the
+// standalone marketing /marketplace page was removed and /marketplace now
+// 308-redirects to /roadmap. The only references are string `exportPath`
+// values in `content/claims-evidence.ts` (the claims-drift validator registry,
+// not a code import). Kept on disk pending a per-item keep-vs-delete decision
+// in PR review (default recommendation: keep as revmarket seed data).
+//
 // PRESERVED SEED DATA — revmarket extraction
 // This MCP-server catalog is preserved as the seed for the future `revmarket`
 // repo's public discovery UI (per the marketplace-extraction ADR). The

@@ -79,14 +79,14 @@ const optionalSchema = z.object({
   // Cron endpoint authentication
   REVEALUI_CRON_SECRET: secretSchema.optional(),
 
-  // Audit log HMAC signing key. Consumed by the governed-MCP receipt signer
-  // (apps/server/src/lib/mcp-audit.ts) and checked at boot by validate-startup.
-  // When set, MCP receipts chain-sign with HMAC-SHA256 using this key. When
-  // unset, the signer falls back to REVEALUI_SECRET (schema-required at 32+
-  // chars), so a key is always available in any environment that boots. (The
-  // main audit path writes unsigned rows since GAP-355 Stage 1; asymmetric
-  // per-row signing across all writers is Stage 3.)
-  REVEALUI_AUDIT_HMAC_SECRET: secretSchema.optional(),
+  // Audit-log signing key (GAP-355 Stage 3): the Ed25519 private key (PKCS#8
+  // PEM) that signs every audit row at the write door. Validated as a real
+  // Ed25519 key at boot by validate-startup, which refuses to serve a signing
+  // deployment without it (no REVEALUI_SECRET fallback — the legacy HMAC secret
+  // was retired). `REVEALUI_AUDIT_SIGNING_KID` is the self-asserted key id
+  // embedded in each signature; when unset, a stable key-bound id is derived.
+  REVEALUI_AUDIT_SIGNING_KEY: z.string().optional(),
+  REVEALUI_AUDIT_SIGNING_KID: z.string().optional(),
 
   // Log retention window for app_logs + error_events (days). Default 90.
   // Privacy policy commits to a concrete window; see docs/security/.

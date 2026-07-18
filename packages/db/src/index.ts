@@ -24,6 +24,7 @@
  */
 
 // Re-export audit stores
+export type { AuditEntry, AuditRowSignable, AuditRowSignerFn } from './audit-store.js';
 export { DrizzleAuditStore } from './audit-store.js';
 // Re-export client utilities
 export {

@@ -30,9 +30,10 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
-import { DrizzleAuditStore, getClient } from '@revealui/db';
+import { getClient } from '@revealui/db';
 import { agentSkills, marketplaceAgents, taskSubmissions } from '@revealui/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
+import { createAuditStore } from '../lib/audit-signer.js';
 
 import { forkProvider, type SandboxProvider } from './revmarket-sandbox/index.js';
 
@@ -404,7 +405,7 @@ async function writeAuditEntry(
   const db = getClient();
 
   try {
-    await new DrizzleAuditStore(db).append({
+    await createAuditStore(db).append({
       id: crypto.randomUUID(),
       timestamp: new Date(),
       eventType: `revmarket:task:${status}`,

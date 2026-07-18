@@ -178,6 +178,10 @@
       "types": "./dist/queries/pages.d.ts",
       "import": "./dist/queries/pages.js"
     },
+    "./queries/edit-sessions": {
+      "types": "./dist/queries/edit-sessions.d.ts",
+      "import": "./dist/queries/edit-sessions.js"
+    },
     "./queries/users": {
       "types": "./dist/queries/users.d.ts",
       "import": "./dist/queries/users.js"

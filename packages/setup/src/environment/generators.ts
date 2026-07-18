@@ -2,7 +2,41 @@
  * Environment secret and password generators
  */
 
-import { randomBytes } from 'node:crypto';
+import { createPublicKey, generateKeyPairSync, randomBytes } from 'node:crypto';
+import { deriveAuditKid } from '@revealui/security/server';
+
+/** An Ed25519 audit-log signing keypair (GAP-355 Stage 3). */
+export interface AuditSigningKeypair {
+  /** PKCS#8 PEM private key, real newlines — what a signing deployment sets as REVEALUI_AUDIT_SIGNING_KEY. */
+  privateKeyPem: string;
+  /** SPKI PEM public key, real newlines — publish it for offline receipt verification. */
+  publicKeyPem: string;
+  /** Stable key id the runtime signer + verifier derive from this key. */
+  kid: string;
+}
+
+/**
+ * Generate a fresh Ed25519 audit-log signing keypair for a self-hosted
+ * deployment (GAP-355 Stage 3, spec D4/C-C). The private key signs every audit
+ * row; the public key is published so anyone can verify a receipt OFFLINE. The
+ * kid is derived by `@revealui/security`'s `deriveAuditKid`, so the printed kid
+ * matches exactly what the runtime signer stamps into each signature.
+ *
+ * The product never ships a shared key: each deployment generates its own here.
+ * PEM values carry REAL newlines — the signer consumes them directly (it does
+ * not unescape literal `\n`).
+ */
+export function generateAuditSigningKeypair(): AuditSigningKeypair {
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519', {
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+  });
+  return {
+    privateKeyPem: privateKey,
+    publicKeyPem: publicKey,
+    kid: deriveAuditKid(createPublicKey(publicKey)),
+  };
+}
 
 /**
  * Generates a secure random secret.

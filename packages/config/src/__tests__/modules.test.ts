@@ -204,23 +204,6 @@ describe('config modules', () => {
       );
       expect(config.whitelistOrigins).toEqual(['https://old.com', 'https://legacy.com']);
     });
-
-    it('falls back to REVEALUI_SECRET for auditHmacSecret when override not set', () => {
-      const config = getRevealConfig(
-        makeEnv({ REVEALUI_SECRET: 'fallback-secret-that-is-at-least-32chars!' }),
-      );
-      expect(config.auditHmacSecret).toBe('fallback-secret-that-is-at-least-32chars!');
-    });
-
-    it('uses REVEALUI_AUDIT_HMAC_SECRET when set, ignoring REVEALUI_SECRET', () => {
-      const config = getRevealConfig(
-        makeEnv({
-          REVEALUI_SECRET: 'main-secret-that-is-at-least-32-chars',
-          REVEALUI_AUDIT_HMAC_SECRET: 'dedicated-audit-key-min-32-chars-here',
-        }),
-      );
-      expect(config.auditHmacSecret).toBe('dedicated-audit-key-min-32-chars-here');
-    });
   });
 
   describe('getStorageConfig', () => {

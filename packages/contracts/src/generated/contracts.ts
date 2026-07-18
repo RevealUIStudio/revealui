@@ -821,6 +821,84 @@ export const CrdtOperationsInsertContract = createContract({
 })
 
 // =============================================================================
+// EditSessionDocs Contracts
+// =============================================================================
+
+/**
+ * Contract for editSessionDocs row (Select)
+ * Database table: edit_session_docs
+ */
+export const EditSessionDocsRowContract = createContract({
+  name: 'EditSessionDocsRow',
+  version: '1',
+  description: 'Database row contract for edit_session_docs table',
+  schema: Schemas.EditSessionDocsSelectSchema,
+})
+
+/**
+ * Contract for editSessionDocs insert
+ * Database table: edit_session_docs
+ */
+export const EditSessionDocsInsertContract = createContract({
+  name: 'EditSessionDocsInsert',
+  version: '1',
+  description: 'Database insert contract for edit_session_docs table',
+  schema: Schemas.EditSessionDocsInsertSchema,
+})
+
+// =============================================================================
+// EditSessionEvents Contracts
+// =============================================================================
+
+/**
+ * Contract for editSessionEvents row (Select)
+ * Database table: edit_session_events
+ */
+export const EditSessionEventsRowContract = createContract({
+  name: 'EditSessionEventsRow',
+  version: '1',
+  description: 'Database row contract for edit_session_events table',
+  schema: Schemas.EditSessionEventsSelectSchema,
+})
+
+/**
+ * Contract for editSessionEvents insert
+ * Database table: edit_session_events
+ */
+export const EditSessionEventsInsertContract = createContract({
+  name: 'EditSessionEventsInsert',
+  version: '1',
+  description: 'Database insert contract for edit_session_events table',
+  schema: Schemas.EditSessionEventsInsertSchema,
+})
+
+// =============================================================================
+// EditSessions Contracts
+// =============================================================================
+
+/**
+ * Contract for editSessions row (Select)
+ * Database table: edit_sessions
+ */
+export const EditSessionsRowContract = createContract({
+  name: 'EditSessionsRow',
+  version: '1',
+  description: 'Database row contract for edit_sessions table',
+  schema: Schemas.EditSessionsSelectSchema,
+})
+
+/**
+ * Contract for editSessions insert
+ * Database table: edit_sessions
+ */
+export const EditSessionsInsertContract = createContract({
+  name: 'EditSessionsInsert',
+  version: '1',
+  description: 'Database insert contract for edit_sessions table',
+  schema: Schemas.EditSessionsInsertSchema,
+})
+
+// =============================================================================
 // ErrorEvents Contracts
 // =============================================================================
 

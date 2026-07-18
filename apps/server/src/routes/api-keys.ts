@@ -13,7 +13,7 @@ import crypto from 'node:crypto';
 import { LLM_PROVIDERS } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 import { classifyAuditWriteFailure, recordAuditWriteResult } from '@revealui/core/security';
-import { DrizzleAuditStore, getClient, withTransaction } from '@revealui/db';
+import { getClient, withTransaction } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
@@ -21,6 +21,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { createAuditStore } from '../lib/audit-signer.js';
 
 /**
  * Record a credential lifecycle event in audit_log. Best-effort: an
@@ -41,7 +42,7 @@ async function recordCredentialEvent(
 ): Promise<void> {
   const eventId = crypto.randomUUID();
   try {
-    await new DrizzleAuditStore(db).append({
+    await createAuditStore(db).append({
       id: eventId,
       timestamp: new Date(),
       eventType,

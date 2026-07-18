@@ -212,13 +212,41 @@ export const SECRET_PATHS: SecretPathDef[] = [
     consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
     note: 'REVEALUI_SECRET - session/CSRF/internal-token signer',
   },
+  // Audit-log signing keypair (GAP-355 Stage 3). Per-row Ed25519 signing
+  // replaced the retired audit HMAC. The private key signs every row at the one
+  // door; a hosted signing deployment refuses to boot without it (validate-
+  // startup REQUIRED_IN_PRODUCTION_HOSTED). The public key is published at
+  // GET /api/audit/public-key so a customer can verify a receipt offline.
   {
-    path: 'revealui/prod/audit-hmac-secret',
+    path: 'revealui/prod/audit/signing-private-key',
+    kind: 'signing-private',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
+    requiredInProdHosted: true,
+    envVars: ['REVEALUI_AUDIT_SIGNING_KEY'],
+    note: 'Ed25519 PKCS#8 PEM - signs every audit row; only signing surfaces read it, no fallback',
+  },
+  {
+    path: 'revealui/prod/audit/signing-public-key',
+    kind: 'signing-public',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
+    envVars: ['REVEALUI_AUDIT_PUBLIC_KEY'],
+    note: 'Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key',
+  },
+  // Visual edit sessions (P1). HMAC-SHA256 key behind the read-only preview
+  // tokens; the API both mints and verifies (routes/content/sessions), no
+  // other consumer reads it and there is no fallback value.
+  {
+    path: 'revealui/prod/preview-token-secret',
     kind: 'credential',
     sensitive: true,
     tier: 'prod',
-    consumers: ['vercel:api', 'fly:worker'],
-    note: 'audit-log HMAC - rotating breaks prior-log verification (Phase 1 makes it required)',
+    consumers: ['vercel:api'],
+    envVars: ['REVEALUI_PREVIEW_TOKEN_SECRET'],
+    note: 'HMAC-SHA256 key for edit-session preview tokens - short-lived read-only credential',
   },
   // License signing keypair - CANONICAL stays at the live revdev/* path so the
   // gate is GREEN against today's manifest; the project-aligned target is
@@ -609,13 +637,6 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'staging',
     consumers: ['vercel:api-staging', 'vercel:admin-staging'],
     note: 'must match across api + admin - CSRF tokens are cross-verified',
-  },
-  {
-    path: 'revealui/staging/audit-hmac-secret',
-    kind: 'credential',
-    sensitive: true,
-    tier: 'staging',
-    consumers: ['vercel:api-staging'],
   },
   {
     path: 'revealui/staging/license/private-key',

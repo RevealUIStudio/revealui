@@ -71,6 +71,7 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'marketplace.ts' },
   { file: 'roadmap.ts' },
   { file: 'claims.ts' },
+  { file: 'receipt.ts' },
 ] as const;
 
 const AUTH_SESSIONS: EvidenceRef = {
@@ -177,6 +178,16 @@ const AGENT_ROUTES: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/routes/agent-tasks.ts',
   note: 'agent surfaces mounted behind the same auth + entitlement middleware as user routes',
+};
+const REFUND_ROUTE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/billing.ts',
+  note: 'POST /api/billing/refund; admin-authenticated, full or partial refunds via Stripe',
+};
+const AUDIT_LOG_SCHEMA: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/db/src/schema/audit-log.ts',
+  note: 'audit_log table; single-door write path enforced by validate:audit-one-door',
 };
 const OPEN_STANDARDS: EvidenceRef = {
   kind: 'code',
@@ -426,6 +437,19 @@ const CLAIMS_PAGE_ROUTE: EvidenceRef = {
   ref: 'apps/marketing/app/routes/ClaimsPage.tsx',
   note: 'renders this index publicly at /claims',
 };
+// ── audit-log signing (GAP-355 Stage 3): the log is signed with a key anyone
+// can check, verifiable offline without our secret. Scoped to the log, not
+// "every agent action" (Stage 5). ─────────────────────────────────────────────
+const AUDIT_ROW_SIGNER: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-signing.ts',
+  note: 'Ed25519AuditRowSigner signs each row over RFC 8785 canonical bytes; verify with the published SPKI public key (GET /api/audit/public-key), no secret needed',
+};
+const AUDIT_SIGN_ROUNDTRIP: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/lib/__tests__/audit-signing-roundtrip.pglite.test.ts#a canonically-signed row verifies OFFLINE after the jsonb + timestamptz round trip',
+  note: 'a row written through the one door verifies offline from the jsonb + timestamptz readback using only the public key',
+};
 
 export const CLAIMS: readonly ClaimEntry[] = [
   // ── site.ts ───────────────────────────────────────────────────────────────
@@ -645,7 +669,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[3].answer',
-    text: 'Yes. 22 of 28 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infrastructure at any tier, with no vendor-specific edge runtimes and no proprietary database.',
+    text: 'Yes. 23 of 29 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infrastructure at any tier, with no vendor-specific edge runtimes and no proprietary database.',
     evidence: [LICENSE_SPLIT, LICENSE_MIT, SELF_HOST, POSTGRES],
   },
   {
@@ -869,7 +893,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_TIERS[0].description',
-    text: '22 of 28 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. There is no telemetry.',
+    text: '23 of 29 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. There is no telemetry.',
     evidence: [LICENSE_SPLIT, NO_TELEMETRY],
   },
   {
@@ -3139,6 +3163,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
   // ── claims.ts — /claims self-reference ───────────────────────────────────
   {
     file: 'claims.ts',
+    exportPath: 'CLAIMS_SIGNED_LEDGER_NOTE.body',
+    text: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+    evidence: [AUDIT_ROW_SIGNER, AUDIT_SIGN_ROUNDTRIP],
+  },
+  {
+    file: 'claims.ts',
     exportPath: 'CLAIMS_HERO.subtitle',
     text: 'Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.',
     evidence: [
@@ -3252,6 +3282,20 @@ export const CLAIMS: readonly ClaimEntry[] = [
         note: 'positive claim about process, not code; the honesty-rails copy itself is the disclosure',
       },
     ],
+  },
+
+  // ── receipt.ts — hero receipt-motif moment (Phase 5) ────────────────────
+  {
+    file: 'receipt.ts',
+    exportPath: 'RECEIPT_HERO_TITLE',
+    text: 'Refund, handled by an agent',
+    evidence: [REFUND_ROUTE, AGENT_ROUTES],
+  },
+  {
+    file: 'receipt.ts',
+    exportPath: 'RECEIPT_HERO_CAPTION.text',
+    text: "If an agent did it, there's a receipt.",
+    evidence: [AUDIT_LOG_SCHEMA, REFUND_ROUTE],
   },
 ] as const;
 

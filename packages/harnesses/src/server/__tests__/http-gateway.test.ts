@@ -25,7 +25,17 @@ import type { RpcServer } from '../rpc-server.js';
 // call (which runs immediately before the exclusive 'wx' write) to deterministically
 // exercise the create-path EEXIST fallback. Every other test leaves it null, so
 // mkdirSync passes straight through to the real implementation.
-const fsHooks = vi.hoisted(() => ({ beforeMkdir: null as (() => void) | null }));
+//
+// `forceCreateEexist` + `onCreateAttempt` simulate a PERSISTENT create-path race
+// (GAP-353 initAuth retry-cap test): every exclusive ('wx') write attempt fails
+// with EEXIST and the winner's file is never actually written, so the read-back
+// that follows also ENOENTs. That is the shape a bounded-retry regression test
+// needs to prove the loop gives up on its own rather than spinning forever.
+const fsHooks = vi.hoisted(() => ({
+  beforeMkdir: null as (() => void) | null,
+  forceCreateEexist: false,
+  onCreateAttempt: null as (() => void) | null,
+}));
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();
   return {
@@ -34,6 +44,22 @@ vi.mock('node:fs', async (importOriginal) => {
       fsHooks.beforeMkdir?.();
       return actual.mkdirSync(path, options);
     }) as typeof actual.mkdirSync,
+    writeFileSync: ((
+      path: Parameters<typeof actual.writeFileSync>[0],
+      data: Parameters<typeof actual.writeFileSync>[1],
+      options?: Parameters<typeof actual.writeFileSync>[2],
+    ) => {
+      const flag = (options as { flag?: string } | undefined)?.flag;
+      if (flag === 'wx') {
+        fsHooks.onCreateAttempt?.();
+        if (fsHooks.forceCreateEexist) {
+          const err = new Error('EEXIST: file already exists') as NodeJS.ErrnoException;
+          err.code = 'EEXIST';
+          throw err;
+        }
+      }
+      return actual.writeFileSync(path, data, options);
+    }) as typeof actual.writeFileSync,
   };
 });
 
@@ -478,6 +504,60 @@ describe('HttpGateway fail-closed auth (GAP-353 PR-2)', () => {
         expect(res.status).toBe(200);
       } finally {
         fsHooks.beforeMkdir = null;
+      }
+    });
+
+    it('bounds the create-path retry loop so a persistent EEXIST race cannot livelock startup (#1975 verdict fast-follow)', async () => {
+      // A persistent adversary (or a crash-looping peer) makes every exclusive
+      // create attempt fail with EEXIST while never actually writing a winner
+      // file, so the read-back that follows also ENOENTs every time. Without a
+      // bound the for(;;) loop spins forever. SAFETY_VALVE releases the forced
+      // EEXIST after an unreasonably high attempt count purely so this test
+      // itself terminates against pre-fix code -- it plays no role in the fix.
+      const SAFETY_VALVE = 200;
+      const dir = mkdtempSync(join(tmpdir(), 'gw-authn-'));
+      dirs.push(dir);
+      const secretPath = join(dir, 'pairing-secret');
+      let attempts = 0;
+      fsHooks.forceCreateEexist = true;
+      fsHooks.onCreateAttempt = () => {
+        attempts++;
+        if (attempts >= SAFETY_VALVE) fsHooks.forceCreateEexist = false;
+      };
+
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      try {
+        const store = new DaemonStore({ dataDir: '' });
+        await store.init();
+        stores.push(store);
+        const gateway = new HttpGateway({
+          port: 0,
+          host: '127.0.0.1',
+          rpcDispatch: makeDispatchStub(),
+          store,
+          secretPath,
+        });
+        gateways.push(gateway);
+        await gateway.initAuth();
+
+        // The loop must give up on its own, well under the safety valve.
+        expect(attempts).toBeGreaterThan(0);
+        expect(attempts).toBeLessThan(SAFETY_VALVE);
+
+        await gateway.start();
+        const base = `http://127.0.0.1:${gateway.getPort()}`;
+        // Fail-closed: initAuth gave up without adopting a secret, so pairing 503s.
+        const { nonce } = (await (await fetch(`${base}/api/pair`)).json()) as { nonce: string };
+        const res = await fetch(`${base}/api/pair`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nonce, hmac: '00'.repeat(32) }),
+        });
+        expect(res.status).toBe(503);
+      } finally {
+        stderrSpy.mockRestore();
+        fsHooks.forceCreateEexist = false;
+        fsHooks.onCreateAttempt = null;
       }
     });
   });

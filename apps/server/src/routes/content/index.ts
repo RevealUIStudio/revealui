@@ -45,6 +45,7 @@ import pagesRoutes from './pages.js';
 import postsRoutes from './posts.js';
 import productsRoutes from './products.js';
 import searchRoutes from './search.js';
+import sessionsRoutes from './sessions.js';
 import sitesRoutes from './sites.js';
 import usersRoutes from './users.js';
 
@@ -60,6 +61,7 @@ app.route('/', mediaRoutes);
 app.route('/', sitesRoutes);
 app.route('/', pagesRoutes);
 app.route('/', globalsRoutes);
+app.route('/', sessionsRoutes);
 app.route('/', searchRoutes);
 app.route('/', usersRoutes);
 app.route('/', productsRoutes);

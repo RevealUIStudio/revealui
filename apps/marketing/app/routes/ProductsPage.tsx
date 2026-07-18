@@ -1,21 +1,27 @@
+import type { BlockAnnotation } from '@revealui/presentation';
 import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
 import { Proof } from '../components/landing/Proof';
+import { ProductsCta } from '../components/products/ProductsCta';
+import { ProductsHero } from '../components/products/ProductsHero';
 import {
   PRODUCT_STATUS_STYLES,
-  PRODUCTS_CTA_SECTION,
   PRODUCTS_FLAGSHIP,
-  PRODUCTS_PAGE_HERO,
   PRODUCTS_SISTERS,
   PRODUCTS_STATS_SECTION,
   type ProductStatus,
 } from '../content/products';
+import {
+  PRODUCTS_FALLBACK_BLOCKS,
+  productsCtaSlot,
+  productsFaqSlot,
+  productsHeroSlot,
+} from '../lib/page-blocks';
+import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
-const ALL_PRODUCT_ANCHORS = [
-  { slug: PRODUCTS_FLAGSHIP.slug, name: PRODUCTS_FLAGSHIP.name },
-  ...PRODUCTS_SISTERS.map((p) => ({ slug: p.slug, name: p.name })),
-] as const;
+// Annotation is inactive in this slice; the editor-canvas slice activates it.
+const INACTIVE_ANNOTATION: BlockAnnotation = { editable: false };
 
 // Filter chips for the fleet-products table. "All" plus each status, ordered
 // stability-descending to match the grid.
@@ -33,30 +39,14 @@ export function ProductsPage() {
     filter === 'All' ? PRODUCTS_SISTERS : PRODUCTS_SISTERS.filter((p) => p.status === filter);
   const countFor = (f: ProductStatus | 'All') =>
     f === 'All' ? PRODUCTS_SISTERS.length : PRODUCTS_SISTERS.filter((p) => p.status === f).length;
+  const blocks = useMarketingPageBlocks('products', PRODUCTS_FALLBACK_BLOCKS);
+  const hero = productsHeroSlot(blocks);
+  const faq = productsFaqSlot(blocks);
+  const cta = productsCtaSlot(blocks);
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-blue-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            {PRODUCTS_PAGE_HERO.h1}
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-            {PRODUCTS_PAGE_HERO.subtitle}
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium">
-            {ALL_PRODUCT_ANCHORS.map((anchor) => (
-              <a
-                key={anchor.slug}
-                href={`#${anchor.slug}`}
-                className="rounded-full bg-card px-4 py-1.5 text-muted-foreground ring-1 ring-border transition-colors hover:bg-primary/10 hover:text-primary hover:ring-primary/30"
-              >
-                {anchor.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ProductsHero data={hero.data} path={hero.path} annotation={INACTIVE_ANNOTATION} />
 
       {/* Flagship — RevealUI featured card */}
       <section id={PRODUCTS_FLAGSHIP.slug} className="py-20 sm:py-24">
@@ -328,36 +318,10 @@ export function ProductsPage() {
       <Proof />
 
       {/* FAQ — handle licensing / self-host / production-ready objections */}
-      <Faq />
+      <Faq data={faq.data} path={faq.path} annotation={INACTIVE_ANNOTATION} />
 
       {/* CTA */}
-      <section className="py-24 sm:py-32">
-        <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {PRODUCTS_CTA_SECTION.heading}
-          </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            {PRODUCTS_CTA_SECTION.body}
-          </p>
-          <div className="mt-8 rounded-lg bg-foreground px-6 py-4 text-left font-mono text-sm text-background">
-            <span className="text-background/50">$</span> {PRODUCTS_CTA_SECTION.cliSnippet}
-          </div>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href={PRODUCTS_CTA_SECTION.cta.docs.href}
-              className="rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-            >
-              {PRODUCTS_CTA_SECTION.cta.docs.label}
-            </a>
-            <a
-              href={PRODUCTS_CTA_SECTION.cta.pricing.href}
-              className="rounded-md bg-secondary px-8 py-4 text-base font-semibold text-foreground hover:bg-muted transition-colors"
-            >
-              {PRODUCTS_CTA_SECTION.cta.pricing.label}
-            </a>
-          </div>
-        </div>
-      </section>
+      <ProductsCta data={cta.data} path={cta.path} annotation={INACTIVE_ANNOTATION} />
 
       <Footer />
     </div>

@@ -5,6 +5,29 @@
  * These components don't use React hooks and can be rendered on the server.
  */
 
+// Shared block renderer — marketing section blocks + annotatable primitives.
+// Render-only and server-safe (no hooks/state), so they belong on /server.
+export {
+  type AnnotationAttrs,
+  type BlockAnnotation,
+  CtaSectionBlock,
+  type CtaSectionBlockProps,
+  DividerBlockView,
+  fieldAttrs,
+  HeadingBlockView,
+  HeroBlock,
+  type HeroBlockProps,
+  ListBlockView,
+  MarketingLinks,
+  type MarketingLinksProps,
+  QuoteBlockView,
+  RenderBlocks,
+  type RenderBlocksProps,
+  SectionBlock,
+  type SectionBlockProps,
+  SpacerBlockView,
+  TextBlockView,
+} from './blocks/index.js';
 export { TouchTarget } from './components/_button-shared.js';
 // Layout Components - Server Safe
 export { AuthLayout, type AuthLayoutProps } from './components/auth-layout.js';
@@ -114,13 +137,14 @@ export {
   IconUsers,
   IconXCircle,
 } from './components/icon.js';
-// OAuth provider + passkey icons - Server Safe
+// OAuth provider, social, + passkey icons - Server Safe
 export {
   GitHubIcon,
   GoogleIcon,
   LinkedInIcon,
   PasskeyIcon,
   VercelIcon,
+  XIcon,
 } from './icons/providers.js';
 
 // Primitives - Server Safe

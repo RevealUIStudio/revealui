@@ -1,6 +1,12 @@
-import { ButtonCVA } from '@revealui/presentation';
-import { useLocation } from '@revealui/router';
+import { ButtonCVA, ReceiptCard } from '@revealui/presentation';
+import { Link, useLocation } from '@revealui/router';
 import { FOR_OPERATORS_HERO } from '../../content/for-operators';
+import {
+  RECEIPT_HERO_CAPTION,
+  RECEIPT_HERO_INTEGRITY,
+  RECEIPT_HERO_LINES,
+  RECEIPT_HERO_TITLE,
+} from '../../content/receipt';
 import { selectAudience } from '../../lib/audience';
 import { selectHomeHero } from '../../lib/hero-variant';
 import { AudienceToggle } from './AudienceToggle';
@@ -151,6 +157,26 @@ export function Hero() {
           </div>
 
           {audience === 'technical' ? <TechnicalHero hero={hero} /> : <NonTechnicalHero />}
+        </div>
+
+        {/* Receipt-motif moment (frontend-excellence Phase 5): one orchestrated
+            print entrance, shared verbatim by both audience variants. */}
+        <div className="mt-12 w-full max-w-md min-w-0 mx-auto text-left">
+          <ReceiptCard
+            title={RECEIPT_HERO_TITLE}
+            lines={[...RECEIPT_HERO_LINES]}
+            integrity={RECEIPT_HERO_INTEGRITY}
+            animate="print"
+          />
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            {RECEIPT_HERO_CAPTION.text}{' '}
+            <Link
+              to={RECEIPT_HERO_CAPTION.link.href}
+              className="text-foreground underline underline-offset-4 hover:text-primary"
+            >
+              {RECEIPT_HERO_CAPTION.link.label}
+            </Link>
+          </p>
         </div>
       </div>
     </section>

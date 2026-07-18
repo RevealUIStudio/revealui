@@ -817,6 +817,16 @@ export const RENEWAL_SLACK_DAYS = 7;
 export const RENEWAL_SLACK_SECONDS = RENEWAL_SLACK_DAYS * 24 * 60 * 60;
 
 /**
+ * Default lifetime, in days, for a license JWT minted by the admin
+ * `POST /generate` manual-mint endpoint when the caller does not supply an
+ * explicit `expiresInDays` (GAP-287 PR-3). Ratified by the owner 2026-07-18 at
+ * 90, down from the prior flat 365-day default: this is an operator tool, and
+ * a short default nudges the right renewal habit for manually-issued keys. An
+ * explicit `expiresInDays` on the request is always honored unchanged.
+ */
+export const DEFAULT_MANUAL_MINT_DAYS = 90;
+
+/**
  * Derives the relative `expiresInSeconds` argument for {@link generateLicenseKey}
  * at the hosted subscription mint sites (GAP-287 PR-2): the token should expire
  * at `periodEnd + RENEWAL_SLACK_SECONDS`. Because generateLicenseKey interprets a
@@ -847,6 +857,28 @@ export function subscriptionLicenseExpiresInSeconds(
  */
 export function subscriptionExpBound(periodEnd: Date): number {
   return Math.floor(periodEnd.getTime() / 1000) + RENEWAL_SLACK_SECONDS;
+}
+
+/**
+ * Idempotency tolerance for the renewal re-mint decision (fast-follow from the
+ * non-blocking finding on the #1978 guardrail-2 verdict). `subscriptionLicenseExpiresInSeconds`
+ * floors its relative TTL to whole seconds and the JWT signer floors `exp` to
+ * `iat + expiresInSeconds` at its own second granularity, so the `exp` actually
+ * persisted for a subscription key can land exactly 1s below
+ * {@link subscriptionExpBound}'s value even though the mint targeted that bound.
+ * Without this tolerance a duplicate/retried `invoice.payment_succeeded` lands on
+ * that 1s gap and re-enters the re-mint path instead of no-opping.
+ */
+export const RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS = 1;
+
+/**
+ * True when a stored license `exp` already covers the renewal bound, within the
+ * {@link RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS} idempotency tolerance  -  i.e. the
+ * renewal re-mint should be SKIPPED. `null` (perpetual token, or an undecodable
+ * key) never covers, so the caller falls through to re-mint.
+ */
+export function coversRenewalBound(storedExp: number | null, newBound: number): boolean {
+  return storedExp !== null && storedExp >= newBound - RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS;
 }
 
 /**

@@ -7,7 +7,12 @@ import { join } from 'node:path';
 import inquirer from 'inquirer';
 import { createLogger } from '../utils/logger.js';
 import { type EnvVariable, REQUIRED_ENV_VARS, validateEnv } from '../validators/env.js';
-import { generateSecret, parseEnvContent, updateEnvValue } from './generators.js';
+import {
+  generateAuditSigningKeypair,
+  generateSecret,
+  parseEnvContent,
+  updateEnvValue,
+} from './generators.js';
 
 export interface SetupEnvironmentOptions {
   projectRoot: string;
@@ -118,6 +123,13 @@ export async function setupEnvironment(
   logger.info('Copying .env.template to .env.development.local...');
   await copyFile(templatePath, outputPath);
   logger.success('Template copied');
+
+  // Generate the per-deployment Ed25519 audit-log signing key (GAP-355 Stage 3):
+  // the private key is written to the env output; the public key + kid are
+  // printed so the operator can publish them for offline receipt verification.
+  // Runs on every (re)generation, after the fresh template copy, so a signing
+  // deployment always has a key. The product never ships a shared one.
+  await ensureAuditSigningKey(outputPath, logger);
 
   if (generateOnly) {
     // Just generate secrets and update the file
@@ -240,4 +252,36 @@ async function generateSecrets(
 
   await writeFile(envPath, content);
   logger.success('Generated REVEALUI_SECRET');
+}
+
+/**
+ * Generate the Ed25519 audit-log signing keypair (GAP-355 Stage 3), write the
+ * private key into the env output, and print the public key + kid for the
+ * operator to publish. Skips when a key is already present so a re-run over an
+ * operator-supplied key never clobbers it. The private key is written as a
+ * double-quoted, multi-line value so its REAL PEM newlines survive: dotenv reads
+ * the quoted span, and the signer consumes those newlines directly (no literal
+ * `\n` unescaping — that is GAP-396's separate cleanup).
+ */
+async function ensureAuditSigningKey(
+  envPath: string,
+  logger: ReturnType<typeof createLogger>,
+): Promise<void> {
+  let content = await readFile(envPath, 'utf-8');
+  if (parseEnvContent(content).REVEALUI_AUDIT_SIGNING_KEY) {
+    logger.info('REVEALUI_AUDIT_SIGNING_KEY already present — leaving it in place');
+    return;
+  }
+
+  const { privateKeyPem, publicKeyPem, kid } = generateAuditSigningKeypair();
+  content = updateEnvValue(content, 'REVEALUI_AUDIT_SIGNING_KEY', `"${privateKeyPem.trimEnd()}\n"`);
+  await writeFile(envPath, content);
+
+  logger.success('Generated REVEALUI_AUDIT_SIGNING_KEY (Ed25519 audit-log signing key)');
+  logger.info(`Audit signing key id (kid): ${kid}`);
+  logger.info(
+    'Publish this public key so anyone can verify an audit receipt offline ' +
+      '(served at GET /api/audit/public-key):',
+  );
+  logger.info(`\n${publicKeyPem.trimEnd()}`);
 }

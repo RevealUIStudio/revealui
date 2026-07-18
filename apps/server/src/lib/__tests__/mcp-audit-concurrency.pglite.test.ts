@@ -1,29 +1,21 @@
 /**
- * Finding-1 (GAP-371 Phase-1 review MUST-FIX) — the governed-MCP audit chain
- * head is a read-modify-write across the insert `await`. Concurrent
- * `recordMcpToolAudit` calls that both read the same head before either advances
- * it FORK the hash chain (two rows chained to one parent). Phase 2 turns on the
- * fail-closed mutating-audit path, so every append is on the hot path.
+ * Governed-MCP audit concurrency (GAP-355 Stage 3).
  *
- * This test interleaves many `recordMcpToolAudit` calls against a real migrated
- * `audit_log` (PGlite) and asserts the resulting rows form ONE unbroken,
- * unforked, tamper-evident chain via `verifyMcpAuditChain`. Without the
- * serialization fix it fails: multiple rows carry `previousSignature === null`
- * (multiple roots) and the verifier reports a fork.
+ * The GAP-371 Phase-1 hash chain (a per-process `lastMcpSignature` head advanced
+ * under a read-modify-write) is gone: Stage 3 signs each row independently at the
+ * `DrizzleAuditStore` door, so there is no shared head to fork. This test keeps
+ * the concurrency regression guard in its Stage-3 form — many `recordMcpToolAudit`
+ * calls fired at once against a real migrated `audit_log` (PGlite) all land as
+ * distinct rows, none dropped, each `seq` unique.
  */
 
 import * as schema from '@revealui/db/schema';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   createTestDb,
   type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
-import {
-  __resetMcpAuditChainForTest,
-  type McpAuditChainRow,
-  recordMcpToolAudit,
-  verifyMcpAuditChain,
-} from '../mcp-audit.js';
+import { recordMcpToolAudit } from '../mcp-audit.js';
 
 let testDb: TestDb;
 
@@ -32,15 +24,8 @@ vi.mock('@revealui/db', async () => {
   return { ...actual, getClient: () => testDb.drizzle };
 });
 
-const SECRET = 'test-secret-value-at-least-32-chars-long!!';
-
 beforeAll(async () => {
-  process.env.REVEALUI_AUDIT_HMAC_SECRET = SECRET;
   testDb = await createTestDb();
-});
-
-afterEach(() => {
-  __resetMcpAuditChainForTest();
 });
 
 function receiptInput(i: number) {
@@ -57,41 +42,18 @@ function receiptInput(i: number) {
   };
 }
 
-describe('Finding-1: concurrent MCP audit writes keep one unforked chain', () => {
-  it('interleaved recordMcpToolAudit calls form a single verifiable chain', async () => {
-    __resetMcpAuditChainForTest();
+describe('concurrent MCP audit writes all land as distinct rows', () => {
+  it('interleaved recordMcpToolAudit calls produce N rows with unique seq', async () => {
     const N = 30;
-
-    // Fire all N concurrently. Each reads the chain head BEFORE its insert await;
-    // without serialization they all read the same head and fork.
     await Promise.all(Array.from({ length: N }, (_, i) => recordMcpToolAudit(receiptInput(i))));
 
     const rows = await testDb.drizzle.select().from(schema.auditLog);
-    // No dropped writes.
     expect(rows).toHaveLength(N);
 
-    const chainRows: McpAuditChainRow[] = rows.map((r) => ({
-      timestamp: r.timestamp,
-      eventType: r.eventType,
-      severity: r.severity,
-      agentId: r.agentId,
-      payload: r.payload,
-      signature: r.signature,
-      previousSignature: r.previousSignature,
-    }));
-
-    // Exactly one root and no two rows chained to the same parent (fork check),
-    // independent of the verifier — this is the property a race destroys.
-    const roots = chainRows.filter((r) => r.previousSignature === null);
-    expect(roots).toHaveLength(1);
-    const parents = chainRows
-      .map((r) => r.previousSignature)
-      .filter((p): p is string => p !== null);
-    expect(new Set(parents).size).toBe(parents.length);
-
-    // Full tamper-evident verification: one unbroken, unforked, signed chain.
-    const result = verifyMcpAuditChain(chainRows, SECRET);
-    expect(result.reason).toBeUndefined();
-    expect(result.valid).toBe(true);
+    // No dropped writes and no duplicated append order.
+    const ids = new Set(rows.map((r) => r.id));
+    expect(ids.size).toBe(N);
+    const seqs = new Set(rows.map((r) => r.seq));
+    expect(seqs.size).toBe(N);
   });
 });

@@ -32,9 +32,19 @@ export {
   audit,
   createAuditMiddleware,
   InMemoryAuditStorage,
-  signAuditEntry,
-  verifyAuditEntry,
 } from './audit.js';
+// Env-composed audit signer + public-key resolution (GAP-355 Stage 3, D4/D5)
+export type {
+  AuditRowSignerFn,
+  AuditSignerEnv,
+  AuditSignerResolution,
+  ResolvedAuditPublicKey,
+} from './audit-signer-env.js';
+export {
+  createAuditRowSignerFromEnv,
+  deriveAuditKid,
+  resolveAuditPublicKey,
+} from './audit-signer-env.js';
 // Per-row Ed25519 audit signing (GAP-355 Stage 3 — node:crypto)
 export type {
   AuditRowSigner,

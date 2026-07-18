@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type EnvMap, validateStartup } from '../validate-startup.js';
 
@@ -5,6 +6,14 @@ const HEX_64 = 'a'.repeat(64);
 const SECRET_32 = 'x'.repeat(32);
 const CRON_32 = 'c'.repeat(32);
 const HTTPS_URL = 'https://app.revealui.com';
+
+// A REAL Ed25519 PKCS#8 PEM — the GAP-355 Stage 3 boot guard parses
+// REVEALUI_AUDIT_SIGNING_KEY as an actual Ed25519 key, so every production
+// fixture must ship one that parses.
+const AUDIT_SIGNING_KEY_PEM = generateKeyPairSync('ed25519', {
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+}).privateKey;
 
 /**
  * Live-mode production fixture. Used by all the long-standing format-check
@@ -27,6 +36,7 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_ALERT_EMAIL: 'ops@revealui.com',
     SENTRY_DSN: 'https://abc123@o123456.ingest.sentry.io/456789',
     REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test_fixture',
+    REVEALUI_AUDIT_SIGNING_KEY: AUDIT_SIGNING_KEY_PEM,
     GOOGLE_SERVICE_ACCOUNT_EMAIL: 'svc@project.iam.gserviceaccount.com',
     GOOGLE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----',
     ...overrides,
@@ -138,22 +148,31 @@ describe('validateStartup — production presence', () => {
   });
 });
 
-describe('validateStartup — audit HMAC secret (both modes)', () => {
-  it('rejects a too-short REVEALUI_AUDIT_HMAC_SECRET override even when REVEALUI_SECRET is valid', () => {
-    expect(() =>
-      validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'short' })),
-    ).toThrow(/REVEALUI_AUDIT_HMAC_SECRET/);
+describe('validateStartup — audit signing key (GAP-355 Stage 3, both modes)', () => {
+  it('rejects a missing REVEALUI_AUDIT_SIGNING_KEY (no REVEALUI_SECRET fallback)', () => {
+    const env = validLiveProdEnv();
+    delete env.REVEALUI_AUDIT_SIGNING_KEY;
+    expect(() => validateStartup(env)).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
   });
 
-  it('accepts a valid REVEALUI_AUDIT_HMAC_SECRET override', () => {
+  it('rejects a REVEALUI_AUDIT_SIGNING_KEY that is not a valid Ed25519 key', () => {
     expect(() =>
-      validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'z'.repeat(32) })),
-    ).not.toThrow();
+      validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_SIGNING_KEY: 'not-a-pem' })),
+    ).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
   });
 
-  it('falls back to REVEALUI_SECRET when REVEALUI_AUDIT_HMAC_SECRET is unset', () => {
-    // validLiveProdEnv() ships REVEALUI_SECRET (32 chars) and no override —
-    // the fallback alone must satisfy the check.
+  it('rejects a valid PEM that is the wrong key type (RSA, not Ed25519)', () => {
+    const rsaPem = generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+    }).privateKey;
+    expect(() => validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_SIGNING_KEY: rsaPem }))).toThrow(
+      'ed25519',
+    );
+  });
+
+  it('accepts a valid Ed25519 signing key', () => {
     expect(() => validateStartup(validLiveProdEnv())).not.toThrow();
   });
 });
@@ -370,7 +389,6 @@ describe('validateStartup — STRIPE_LIVE_MODE toggle (test-mode pre-launch)', (
 });
 
 // ─── validateLicenseAtStartup (Forge boot-time enforcement) ─────────────
-import { generateKeyPairSync } from 'node:crypto';
 import { generateLicenseKey } from '@revealui/core/license';
 import { beforeAll } from 'vitest';
 import { validateLicenseAtStartup } from '../validate-startup.js';
@@ -599,6 +617,8 @@ function validForgeProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_LICENSE_KEY: 'eyJhbGc.eyJ.fake-jwt-presence-check-only',
     REVEALUI_LICENSE_PUBLIC_KEY: '-----BEGIN PUBLIC KEY-----\\nFAKE\\n-----END PUBLIC KEY-----',
     CORS_ORIGIN: 'http://localhost:4000',
+    // Self-hosted deployments sign audit rows too (GAP-355 Stage 3, ADR §2b).
+    REVEALUI_AUDIT_SIGNING_KEY: AUDIT_SIGNING_KEY_PEM,
     ...overrides,
   };
 }
@@ -695,19 +715,20 @@ describe('validateStartup — forge mode', () => {
     );
   });
 
-  it('rejects a too-short REVEALUI_AUDIT_HMAC_SECRET override in forge mode even when REVEALUI_SECRET is valid', () => {
-    // REVEALUI_AUDIT_HMAC_SECRET takes priority over the REVEALUI_SECRET
-    // fallback (mirrors getAuditSecret()'s `??` chain) — a short override was
-    // never validated anywhere before this check existed.
-    expect(() =>
-      validateStartup(validForgeProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'short' })),
-    ).toThrow(/REVEALUI_AUDIT_HMAC_SECRET/);
+  it('requires REVEALUI_AUDIT_SIGNING_KEY in forge mode (self-hosted signs too)', () => {
+    const env = validForgeProdEnv();
+    delete env.REVEALUI_AUDIT_SIGNING_KEY;
+    expect(() => validateStartup(env)).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
   });
 
-  it('accepts a valid REVEALUI_AUDIT_HMAC_SECRET override in forge mode', () => {
+  it('rejects an invalid REVEALUI_AUDIT_SIGNING_KEY in forge mode', () => {
     expect(() =>
-      validateStartup(validForgeProdEnv({ REVEALUI_AUDIT_HMAC_SECRET: 'y'.repeat(32) })),
-    ).not.toThrow();
+      validateStartup(validForgeProdEnv({ REVEALUI_AUDIT_SIGNING_KEY: 'not-a-pem' })),
+    ).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
+  });
+
+  it('accepts a valid Ed25519 signing key in forge mode', () => {
+    expect(() => validateStartup(validForgeProdEnv())).not.toThrow();
   });
 
   it('still enforces URL parity when both URLs are set in forge mode', () => {
@@ -843,6 +864,9 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
       REVEALUI_BILLING_PORTAL_CONFIG_ID: '',
       GOOGLE_SERVICE_ACCOUNT_EMAIL: '',
       GOOGLE_PRIVATE_KEY: '',
+      // Sensitive in real Vercel pulls (empty string) — present-by-name in
+      // lenient mode, so the Ed25519 parse is deferred to runtime.
+      REVEALUI_AUDIT_SIGNING_KEY: '',
       ...overrides,
     };
   }

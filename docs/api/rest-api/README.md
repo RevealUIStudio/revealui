@@ -738,7 +738,7 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 | `domains` | `array` |  -  | Licensed domains (optional) |
 | `maxSites` | `integer` |  -  | Maximum sites (defaults: Pro=5, Forge=unlimited) |
 | `maxUsers` | `integer` |  -  | Maximum users (defaults: Pro=25, Forge=unlimited) |
-| `expiresInDays` | `integer` |  -  | License duration in days (default: 365, max: 10 years) |
+| `expiresInDays` | `integer` |  -  | License duration in days (default: 90, max: 10 years) |
 
 **Responses**
 
@@ -794,7 +794,7 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 | `domains` | `array` |  -  | Licensed domains (optional) |
 | `maxSites` | `integer` |  -  | Maximum sites (defaults: Pro=5, Forge=unlimited) |
 | `maxUsers` | `integer` |  -  | Maximum users (defaults: Pro=25, Forge=unlimited) |
-| `expiresInDays` | `integer` |  -  | License duration in days (default: 365, max: 10 years) |
+| `expiresInDays` | `integer` |  -  | License duration in days (default: 90, max: 10 years) |
 
 **Responses**
 

@@ -22,6 +22,7 @@ COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/dev/package.json ./packages/dev/
+COPY packages/editor/package.json ./packages/editor/
 COPY packages/paywall/package.json ./packages/paywall/
 COPY packages/presentation/package.json ./packages/presentation/
 COPY packages/resilience/package.json ./packages/resilience/

@@ -186,6 +186,21 @@ function decodeJwtClaims(jwt: string): Record<string, unknown> {
   return JSON.parse(Buffer.from(segment, 'base64url').toString('utf8'));
 }
 
+/**
+ * Builds an unverified JWT-shaped string carrying an exact `exp` claim, for
+ * pinning the renewal idempotency-boundary test to a precise second without
+ * racing the real signer's own `iat` capture. `readLicenseExp` (the only
+ * consumer of the stored key on the re-mint path) decodes without verifying
+ * the signature, so a well-formed but unsigned token is a faithful stand-in.
+ */
+function fakeLicenseKeyWithExp(exp: number, customerId: string): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'EdDSA', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ tier: 'pro', customerId, exp })).toString(
+    'base64url',
+  );
+  return `${header}.${payload}.unverified-test-signature`;
+}
+
 /** The `licenses` row the checkout saga inserted (the one carrying a licenseKey). */
 function capturedInsertedLicenseKey(): string | undefined {
   for (const call of mockDbInsertChain.values.mock.calls) {
@@ -372,6 +387,27 @@ describe('invoice.payment_succeeded — renewal re-mint cadence', () => {
     expect(res.status).toBe(200);
 
     // No license-key update occurred (markCompleted's update carries no licenseKey).
+    expect(capturedUpdatedLicenseKey()).toBeUndefined();
+  });
+
+  it('SKIPS re-mint when the stored key exp is exactly 1s below the new bound (idempotency tolerance, #1978 verdict fast-follow)', async () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const newPeriodEndSec = nowSec + 30 * DAY;
+    const newBound = newPeriodEndSec + SLACK_SEC;
+
+    // The flooring gap between subscriptionLicenseExpiresInSeconds's relative TTL
+    // and the signer's own second-granularity exp can leave a previously-minted
+    // key's exp exactly 1s short of the bound it targeted. A duplicate/retried
+    // invoice.payment_succeeded landing on that 1s gap must still no-op.
+    const staleByOneSecond = fakeLicenseKeyWithExp(newBound - 1, customerId);
+
+    const event = makeRenewalEvent('evt_renew_tolerance', newPeriodEndSec);
+    mockConstructEvent.mockReturnValueOnce(event);
+    sequenceRenewalReads(staleByOneSecond);
+
+    const res = await createApp().request(postStripe(event));
+    expect(res.status).toBe(200);
+
     expect(capturedUpdatedLicenseKey()).toBeUndefined();
   });
 });

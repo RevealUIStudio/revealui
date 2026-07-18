@@ -60,7 +60,11 @@ import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { bodyLimitGate } from './middleware/body-limits.js';
-import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
+import {
+  noCacheCacheMiddleware,
+  noStoreCacheMiddleware,
+  publicCacheMiddleware,
+} from './middleware/cache-control.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
@@ -88,6 +92,7 @@ import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
 import agentTasksRoute from './routes/agent-tasks.js';
 import analyticsRoute from './routes/analytics.js';
 import apiKeysRoute from './routes/api-keys.js';
+import auditRoute from './routes/audit.js';
 import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
@@ -336,7 +341,13 @@ function isTestSubdomainOrigin(origin: string): boolean {
 // variant is safe for every origin. Exact-match set — no regex, no prefix
 // surprises. Add a path here only if it is genuinely public, credential-free,
 // and cacheable.
-const PUBLIC_CACHEABLE_CORS_PATHS = new Set(['/api/pricing']);
+const PUBLIC_CACHEABLE_CORS_PATHS = new Set([
+  '/api/pricing',
+  // GAP-355 Stage 3: the audit-log public key is published for offline receipt
+  // verification — genuinely public, credential-free, cacheable.
+  '/api/audit/public-key',
+  '/api/v1/audit/public-key',
+]);
 export function isPublicCacheableCorsPath(path: string): boolean {
   return PUBLIC_CACHEABLE_CORS_PATHS.has(path);
 }
@@ -413,6 +424,27 @@ app.use('*', dbMiddleware());
 // Audit logging  -  fire-and-forget, never crashes the request
 app.use('/api/*', auditMiddleware(audit));
 app.use('/api/v1/*', auditMiddleware(audit));
+
+// ---------------------------------------------------------------------------
+// Content cache strategy A (1s freshness)  -  published-content GET reads carry
+// a 1-second shared-CDN cache with a small stale-while-revalidate window. With
+// s-maxage=1 an edit-session publish is visible within ~1s without an active
+// cache purge. Edit-session routes are NOT cached here (they expose auth'd
+// drafts)  -  they get no-store below.
+// ---------------------------------------------------------------------------
+const publishedContentCache = publicCacheMiddleware({ sMaxAge: 1, staleWhileRevalidate: 5 });
+app.use('/api/content/pages/*', publishedContentCache);
+app.use('/api/v1/content/pages/*', publishedContentCache);
+app.use('/api/content/globals/*', publishedContentCache);
+app.use('/api/v1/content/globals/*', publishedContentCache);
+app.use('/api/content/posts/*', publishedContentCache);
+app.use('/api/v1/content/posts/*', publishedContentCache);
+
+// Edit-session routes expose draft content  -  never cache them.
+app.use('/api/content/sessions', noStoreCacheMiddleware());
+app.use('/api/v1/content/sessions', noStoreCacheMiddleware());
+app.use('/api/content/sessions/*', noStoreCacheMiddleware());
+app.use('/api/v1/content/sessions/*', noStoreCacheMiddleware());
 
 // ---------------------------------------------------------------------------
 // Rate limit configuration  -  all tunables in one place
@@ -1213,6 +1245,7 @@ app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/og', ogRoute);
 app.route('/api/pricing', pricingRoute);
+app.route('/api/audit', auditRoute);
 app.route('/api/revmarket', revmarketRoute);
 app.use('/api/studio-auth/*', routeLimit('studio-auth'));
 app.use('/api/v1/studio-auth/*', routeLimit('studio-auth'));
@@ -1280,6 +1313,7 @@ app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/og', ogRoute);
 app.route('/api/v1/pricing', pricingRoute);
+app.route('/api/v1/audit', auditRoute);
 app.route('/api/v1/revmarket', revmarketRoute);
 app.route('/api/v1/studio-auth', studioAuthRoute);
 

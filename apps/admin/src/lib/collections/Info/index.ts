@@ -1,3 +1,7 @@
+// WIRE-UP-PENDING — this `info` collection config is NOT registered in
+// `apps/admin/src/lib/collections/registry.ts` (`allCollections`) and is not
+// consumed anywhere. It has no backing Postgres table. Kept on disk pending a
+// per-item register-vs-delete decision in PR review.
 import type { CollectionConfig } from '@revealui/core';
 import { anyone, authenticated, isAdmin } from '@/lib/access';
 
