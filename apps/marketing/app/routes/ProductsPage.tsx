@@ -67,9 +67,9 @@ export function ProductsPage() {
             <div className="relative">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/30 backdrop-blur">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-foreground/15 ring-1 ring-primary-foreground/30 backdrop-blur">
                     <svg
-                      className="h-7 w-7 text-white"
+                      className="h-7 w-7 text-primary-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={1.75}
@@ -87,16 +87,16 @@ export function ProductsPage() {
                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/90">
                       {PRODUCTS_FLAGSHIP.eyebrow}
                     </p>
-                    <h2 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    <h2 className="mt-1 text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
                       {PRODUCTS_FLAGSHIP.name}
                     </h2>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-semibold">
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-white ring-1 ring-white/30 backdrop-blur">
+                  <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-primary-foreground ring-1 ring-primary-foreground/30 backdrop-blur">
                     {PRODUCTS_FLAGSHIP.status}
                   </span>
-                  <span className="rounded-full bg-white/10 px-3 py-1 font-mono text-white/90 ring-1 ring-white/20">
+                  <span className="rounded-full bg-primary-foreground/10 px-3 py-1 font-mono text-primary-foreground/90 ring-1 ring-primary-foreground/20">
                     {PRODUCTS_FLAGSHIP.version}
                   </span>
                 </div>
@@ -113,19 +113,19 @@ export function ProductsPage() {
                 {PRODUCTS_FLAGSHIP.facts.map((fact) => (
                   <div
                     key={fact.label}
-                    className="rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/20 backdrop-blur"
+                    className="rounded-xl bg-primary-foreground/10 px-4 py-3 ring-1 ring-primary-foreground/20 backdrop-blur"
                   >
                     <dt className="text-xs uppercase tracking-wide text-primary-foreground/80">
                       {fact.label}
                     </dt>
-                    <dd className="mt-1 text-2xl font-bold tracking-tight text-white">
+                    <dd className="mt-1 text-2xl font-bold tracking-tight text-primary-foreground">
                       {fact.stat}
                     </dd>
                   </div>
                 ))}
               </dl>
 
-              <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-semibold text-white ring-1 ring-white/30 backdrop-blur">
+              <p className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-4 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/30 backdrop-blur">
                 <svg
                   className="h-4 w-4"
                   fill="none"
@@ -158,7 +158,7 @@ export function ProductsPage() {
                 </a>
                 <a
                   href={PRODUCTS_FLAGSHIP.ctas.repo.href}
-                  className="rounded-md px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                  className="rounded-md px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10"
                   {...(PRODUCTS_FLAGSHIP.ctas.repo.external
                     ? { target: '_blank', rel: 'noreferrer' }
                     : {})}
