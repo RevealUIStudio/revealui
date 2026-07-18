@@ -168,6 +168,7 @@ export default function LicensePage() {
     }
   };
 
+  const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
   const tier = subscription?.tier ?? 'free';
   const limits = TIER_LIMITS[tier];
   const tierFeatures = features?.[tier];
@@ -303,6 +304,28 @@ export default function LicensePage() {
                 <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-2 text-xs font-mono dark:bg-zinc-900">
                   REVEALUI_LICENSE_KEY=your-key-here
                 </pre>
+              </div>
+            </div>
+            <div className="rounded-lg border p-3 dark:border-zinc-800">
+              <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2">
+                Automatic key renewal
+              </p>
+              <div className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+                <p>
+                  Your subscription key is re-issued on your billing cycle. A running instance can
+                  pull its current key at any time from the refresh endpoint, so a renewed key
+                  reaches your deployment without a manual copy. Run this from the instance that
+                  holds the key:
+                </p>
+                <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-2 text-xs font-mono dark:bg-zinc-900">
+                  {`curl -X POST ${apiBase}/api/license/refresh \\
+  -H 'content-type: application/json' \\
+  -d "{\\"licenseKey\\":\\"$REVEALUI_LICENSE_KEY\\"}"`}
+                </pre>
+                <p className="text-xs text-zinc-400 mt-2">
+                  The endpoint returns your current key and never issues a new one. If your key is
+                  older than the renewal window, copy the key above from this page instead.
+                </p>
               </div>
             </div>
             {publicKey && (
