@@ -1,4 +1,3 @@
-import type { BlockAnnotation } from '@revealui/presentation';
 import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
@@ -20,9 +19,6 @@ import {
 } from '../lib/page-blocks';
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
-// Annotation is inactive in this slice; the editor-canvas slice activates it.
-const INACTIVE_ANNOTATION: BlockAnnotation = { editable: false };
-
 // Filter chips for the fleet-products table. "All" plus each status, ordered
 // stability-descending to match the grid.
 const STATUS_FILTERS: readonly (ProductStatus | 'All')[] = [
@@ -39,14 +35,14 @@ export function ProductsPage() {
     filter === 'All' ? PRODUCTS_SISTERS : PRODUCTS_SISTERS.filter((p) => p.status === filter);
   const countFor = (f: ProductStatus | 'All') =>
     f === 'All' ? PRODUCTS_SISTERS.length : PRODUCTS_SISTERS.filter((p) => p.status === f).length;
-  const blocks = useMarketingPageBlocks('products', PRODUCTS_FALLBACK_BLOCKS);
+  const { blocks, annotation } = useMarketingPageBlocks('products', PRODUCTS_FALLBACK_BLOCKS);
   const hero = productsHeroSlot(blocks);
   const faq = productsFaqSlot(blocks);
   const cta = productsCtaSlot(blocks);
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <ProductsHero data={hero.data} path={hero.path} annotation={INACTIVE_ANNOTATION} />
+      <ProductsHero data={hero.data} path={hero.path} annotation={annotation} />
 
       {/* Flagship — RevealUI featured card */}
       <section id={PRODUCTS_FLAGSHIP.slug} className="py-20 sm:py-24">
@@ -318,10 +314,10 @@ export function ProductsPage() {
       <Proof />
 
       {/* FAQ — handle licensing / self-host / production-ready objections */}
-      <Faq data={faq.data} path={faq.path} annotation={INACTIVE_ANNOTATION} />
+      <Faq data={faq.data} path={faq.path} annotation={annotation} />
 
       {/* CTA */}
-      <ProductsCta data={cta.data} path={cta.path} annotation={INACTIVE_ANNOTATION} />
+      <ProductsCta data={cta.data} path={cta.path} annotation={annotation} />
 
       <Footer />
     </div>
