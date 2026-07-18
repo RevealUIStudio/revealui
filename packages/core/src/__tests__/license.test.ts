@@ -11,6 +11,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
   configureGracePeriods,
+  DEFAULT_MANUAL_MINT_DAYS,
   generateLicenseKey,
   getCurrentTier,
   getLicensePayload,
@@ -133,6 +134,14 @@ describe('generateLicenseKey', () => {
     const now = Math.floor(Date.now() / 1000);
     expect(payload!.iat!).toBeGreaterThan(now - 10);
     expect(payload!.iat!).toBeLessThanOrEqual(now + 1);
+  });
+
+  // GAP-287 PR-3: the admin manual-mint default (routes/license.ts POST
+  // /generate) is a distinct value from generateLicenseKey's own internal
+  // default above — the route always computes and passes expiresInSeconds
+  // explicitly, so this constant is never read by generateLicenseKey itself.
+  it('DEFAULT_MANUAL_MINT_DAYS is the owner-ratified 90 days', () => {
+    expect(DEFAULT_MANUAL_MINT_DAYS).toBe(90);
   });
 });
 

@@ -7,7 +7,7 @@
  * - Generate schema: domains array with 101 items fails max(100)
  * - Generate schema: customerId:'' fails min(1)
  * - Generate: REVEALUI_ADMIN_API_KEY not set → 401
- * - Generate: expiresInDays defaults to 365 when not provided
+ * - Generate: expiresInDays defaults to DEFAULT_MANUAL_MINT_DAYS (90) when not provided (GAP-287 PR-3)
  * - Generate: domains passed through to generateLicenseKey
  * - Verify: custom maxSites/maxUsers from JWT payload used over defaults
  * - Verify: DB throws during invalid-JWT status check → reason:invalid (fails open with logger.warn)
@@ -39,6 +39,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => ({
+  DEFAULT_MANUAL_MINT_DAYS: 90,
   validateLicenseKey: vi.fn(),
   generateLicenseKey: vi.fn(),
 }));
@@ -145,15 +146,29 @@ describe('POST /generate  -  expiresInDays schema boundaries', () => {
     );
   });
 
-  it('defaults expiresInDays to 365 when not provided', async () => {
+  it('defaults expiresInDays to DEFAULT_MANUAL_MINT_DAYS (90) when not provided', async () => {
     const app = createApp();
     await app.request('/generate', post({ tier: 'pro', customerId: 'cus_abc' }, ADMIN_HEADER));
 
-    // Route: const expiresInSeconds = (expiresInDays ?? 365) * 24 * 60 * 60
+    // Route (GAP-287 PR-3): expiresInSeconds = (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 86400
     expect(mockedGenerate).toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
-      365 * 24 * 60 * 60,
+      90 * 24 * 60 * 60,
+    );
+  });
+
+  it('honors an explicit expiresInDays over the DEFAULT_MANUAL_MINT_DAYS default', async () => {
+    const app = createApp();
+    await app.request(
+      '/generate',
+      post({ tier: 'pro', customerId: 'cus_abc', expiresInDays: 30 }, ADMIN_HEADER),
+    );
+
+    expect(mockedGenerate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      30 * 24 * 60 * 60,
     );
   });
 });

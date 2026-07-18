@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import {
+  DEFAULT_MANUAL_MINT_DAYS,
   generateLicenseKey,
   getPublicKeys,
   type LicensePayload,
@@ -103,8 +104,8 @@ const LicenseGenerateRequestSchema = z.object({
     example: 25,
   }),
   expiresInDays: z.number().int().positive().max(3650).optional().openapi({
-    description: 'License duration in days (default: 365, max: 10 years)',
-    example: 365,
+    description: 'License duration in days (default: 90, max: 10 years)',
+    example: 90,
   }),
 });
 
@@ -441,7 +442,10 @@ app.openapi(generateRoute, async (c) => {
     ...(maxUsers && { maxUsers }),
   };
 
-  const expiresInSeconds = (expiresInDays ?? 365) * 24 * 60 * 60;
+  // GAP-287 PR-3: default drops to DEFAULT_MANUAL_MINT_DAYS (90d, down from
+  // 365d) for manually-minted keys; an explicit expiresInDays is always
+  // honored unchanged.
+  const expiresInSeconds = (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 24 * 60 * 60;
   const licenseKey = await generateLicenseKey(payload, normalizedKey, expiresInSeconds);
 
   logger.info('License key generated', { tier, customerId });

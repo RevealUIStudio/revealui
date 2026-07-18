@@ -1858,8 +1858,8 @@
                     "minimum": 0,
                     "exclusiveMinimum": true,
                     "maximum": 3650,
-                    "description": "License duration in days (default: 365, max: 10 years)",
-                    "example": 365
+                    "description": "License duration in days (default: 90, max: 10 years)",
+                    "example": 90
                   }
                 },
                 "required": ["tier", "customerId"]
@@ -8587,8 +8587,8 @@
                     "minimum": 0,
                     "exclusiveMinimum": true,
                     "maximum": 3650,
-                    "description": "License duration in days (default: 365, max: 10 years)",
-                    "example": 365
+                    "description": "License duration in days (default: 90, max: 10 years)",
+                    "example": 90
                   }
                 },
                 "required": ["tier", "customerId"]
