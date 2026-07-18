@@ -105,7 +105,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           if (plan) {
             navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
           } else {
-            navigateAfterAuthChange('/');
+            navigateAfterAuthChange('/welcome');
           }
         } else {
           setAwaitingVerification(true);
@@ -143,7 +143,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/');
+        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome');
       }
     }
   };
@@ -220,7 +220,9 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           Each code can only be used once. Keep them somewhere safe.
         </p>
         <Button
-          onClick={() => navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/')}
+          onClick={() =>
+            navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome')
+          }
           className="w-full"
         >
           I&apos;ve saved my codes
