@@ -99,9 +99,21 @@ ${supportFooter('If you have questions')}`,
 // =============================================================================
 
 export function buildDay7Outcome(
-  _tier: LifecycleTier,
+  tier: LifecycleTier,
   weeklyAgentActions: number,
 ): LifecycleEmailContent {
+  // Paid tiers get a note about the renewal path so a shortened-TTL key never
+  // strands a running instance: the key renews on the billing cycle and the
+  // instance can pull the current key from the refresh endpoint. The one-line
+  // command lives on the license page (GAP-287 PR-1, GAP-300 surface).
+  const renewalHtml = isPaidTier(tier)
+    ? `<p>One more thing worth knowing. Your license key renews on your billing cycle, and a running instance can pull the current key from the refresh endpoint, so a renewal reaches your deployment on its own. The one-line command is on your license page.</p>
+${ctaButton(licenseUrl(), 'See the renewal command')}`
+    : '';
+  const renewalText = isPaidTier(tier)
+    ? `\n\nOne more thing worth knowing. Your license key renews on your billing cycle, and a running instance can pull the current key from the refresh endpoint, so a renewal reaches your deployment on its own. The one-line command is on your license page: ${licenseUrl()}`
+    : '';
+
   if (weeklyAgentActions > 0) {
     const noun = weeklyAgentActions === 1 ? 'action' : 'actions';
     return {
@@ -112,9 +124,10 @@ export function buildDay7Outcome(
 <p>Here is your first week with RevealUI. Your agents took ${weeklyAgentActions} ${noun} this week, and every one of them left a receipt you can check.</p>
 <p>Open your dashboard to see exactly what your agents did and when.</p>
 ${ctaButton(dashboardUrl(), 'Open your dashboard')}
+${renewalHtml}
 ${supportFooter('If you have questions')}`,
       ),
-      text: `Here is your first week with RevealUI. Your agents took ${weeklyAgentActions} ${noun} this week, and every one of them left a receipt you can check.\n\nOpen your dashboard to see exactly what your agents did and when: ${dashboardUrl()}`,
+      text: `Here is your first week with RevealUI. Your agents took ${weeklyAgentActions} ${noun} this week, and every one of them left a receipt you can check.\n\nOpen your dashboard to see exactly what your agents did and when: ${dashboardUrl()}${renewalText}`,
     };
   }
 
@@ -126,9 +139,10 @@ ${supportFooter('If you have questions')}`,
 <p>You are a week into RevealUI and your agents have not acted yet. We would rather show you an honest zero than dress it up.</p>
 <p>The value shows up the moment an agent does something on your data, because it leaves a receipt you can check. One task is enough to see it.</p>
 ${ctaButton(dashboardUrl(), 'Run your first agent')}
+${renewalHtml}
 ${supportFooter('If you have questions')}`,
     ),
-    text: `You are a week into RevealUI and your agents have not acted yet. We would rather show you an honest zero than dress it up.\n\nThe value shows up the moment an agent does something on your data, because it leaves a receipt you can check. One task is enough to see it: ${dashboardUrl()}`,
+    text: `You are a week into RevealUI and your agents have not acted yet. We would rather show you an honest zero than dress it up.\n\nThe value shows up the moment an agent does something on your data, because it leaves a receipt you can check. One task is enough to see it: ${dashboardUrl()}${renewalText}`,
   };
 }
 

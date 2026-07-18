@@ -283,6 +283,64 @@ export async function validateLicenseKey(
   publicKey: string | readonly string[],
   expectedCustomerId?: string,
 ): Promise<LicensePayload | null> {
+  // Accept tokens expired within the subscription grace window so the payload
+  // is available for grace-period calculations in isLicensed().
+  return verifyAndParseLicenseJwt(
+    licenseKey,
+    publicKey,
+    graceConfig.subscriptionDays * 86_400,
+    expectedCustomerId,
+  );
+}
+
+/**
+ * How far past `exp` a license JWT is still accepted by the refresh endpoint
+ * (GAP-287 PR-1). Ratified by the owner 2026-07-18 at 30 days.
+ *
+ * Deliberately wider than the subscription validation grace
+ * (`LICENSE_GRACE_SUBSCRIPTION_DAYS`, default 3): the validation grace answers
+ * "may you still run", the refresh-accept window answers "may you still fetch
+ * your renewal". A customer returning from a month away should still be able to
+ * pull their current key rather than being bricked. Beyond this window the
+ * refresh path refuses and re-delivery goes through the authenticated admin
+ * account page.
+ */
+export const REFRESH_ACCEPT_DAYS = 30;
+
+/**
+ * Refresh-path validator (GAP-287 PR-1). Verifies a presented license JWT for
+ * `POST /api/license/refresh`, accepting a token whose `exp` is past by at most
+ * `refreshAcceptDays` (default {@link REFRESH_ACCEPT_DAYS}).
+ *
+ * It reuses the SAME ordered multi-key verification (GAP-259 rotation
+ * composition) and payload schema as {@link validateLicenseKey}, so a token
+ * minted under the outgoing private key during a dual-key rotation window still
+ * verifies. It performs NO `customerId` binding: the refresh endpoint trusts
+ * the token's `customerId` claim and then independently requires an ACTIVE
+ * license row for it. This function only proves possession of a recently-valid
+ * signed key. It never mints and never grants entitlement on its own.
+ */
+export async function validateLicenseKeyForRefresh(
+  licenseKey: string,
+  publicKey: string | readonly string[],
+  refreshAcceptDays: number = REFRESH_ACCEPT_DAYS,
+): Promise<LicensePayload | null> {
+  return verifyAndParseLicenseJwt(licenseKey, publicKey, refreshAcceptDays * 86_400);
+}
+
+/**
+ * Shared verify + parse path for {@link validateLicenseKey} and
+ * {@link validateLicenseKeyForRefresh}. The ONLY behavioral difference between
+ * the two callers is `clockToleranceSeconds` — how far past `exp` a token is
+ * still accepted — so the rotation-aware multi-key loop and the payload schema
+ * live in exactly one place.
+ */
+async function verifyAndParseLicenseJwt(
+  licenseKey: string,
+  publicKey: string | readonly string[],
+  clockToleranceSeconds: number,
+  expectedCustomerId?: string,
+): Promise<LicensePayload | null> {
   const candidates = typeof publicKey === 'string' ? [publicKey] : [...publicKey];
   if (candidates.length === 0) return null;
   try {
@@ -297,11 +355,9 @@ export async function validateLicenseKey(
     for (const candidate of ordered) {
       try {
         const key = await jose.importSPKI(candidate, 'EdDSA');
-        // Accept tokens expired within the subscription grace window so the
-        // payload is available for grace-period calculations in isLicensed().
         const { payload } = await jose.jwtVerify(licenseKey, key, {
           algorithms: ['EdDSA'],
-          clockTolerance: graceConfig.subscriptionDays * 86_400,
+          clockTolerance: clockToleranceSeconds,
           issuer: LICENSE_ISSUER,
           audience: LICENSE_AUDIENCE,
         });
@@ -310,7 +366,7 @@ export async function validateLicenseKey(
         break;
       } catch {
         // This candidate did not verify (wrong key, malformed PEM, bad
-        // iss/aud, or expired beyond grace) — try the next before giving up.
+        // iss/aud, or expired beyond tolerance) — try the next before giving up.
       }
     }
 

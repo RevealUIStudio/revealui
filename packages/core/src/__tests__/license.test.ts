@@ -23,8 +23,10 @@ import {
   type LicenseTier,
   MAX_LICENSE_CACHE_TTL_MS,
   parseLicenseCacheTtlEnv,
+  REFRESH_ACCEPT_DAYS,
   resetLicenseState,
   validateLicenseKey,
+  validateLicenseKeyForRefresh,
 } from '../license.js';
 
 // ---------------------------------------------------------------------------
@@ -910,5 +912,117 @@ describe('validateLicenseKey — multi-key rotation (GAP-259 P0-3)', () => {
     // Collapse real newlines to the literal two-character escape sequence.
     process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT = nextPublicKeyPem.split('\n').join('\\n');
     expect(await initializeLicense()).toBe('pro');
+  });
+});
+
+// =============================================================================
+// validateLicenseKeyForRefresh (GAP-287 PR-1)
+// =============================================================================
+
+describe('validateLicenseKeyForRefresh', () => {
+  const ISSUER = 'https://revealui.com';
+  const AUDIENCE = 'revealui-license';
+
+  /** Mint a token with an explicit absolute exp (epoch seconds). */
+  async function mintToken(opts: {
+    privateKey: string;
+    publicKey?: string;
+    expSec: number;
+    customerId?: string;
+  }): Promise<string> {
+    const key = await importPKCS8(opts.privateKey, 'EdDSA');
+    const header: { alg: string; kid?: string } = { alg: 'EdDSA' };
+    if (opts.publicKey) {
+      header.kid = await computeKeyId(opts.publicKey);
+    }
+    return new SignJWT({
+      tier: 'pro',
+      customerId: opts.customerId ?? 'cus_123',
+      jti: 'jti-refresh-test',
+    })
+      .setProtectedHeader(header)
+      .setIssuedAt()
+      .setNotBefore('0s')
+      .setIssuer(ISSUER)
+      .setAudience(AUDIENCE)
+      .setExpirationTime(opts.expSec)
+      .sign(key);
+  }
+
+  const nowSec = () => Math.floor(Date.now() / 1000);
+
+  it('ratifies the refresh-accept window at 30 days', () => {
+    expect(REFRESH_ACCEPT_DAYS).toBe(30);
+  });
+
+  it('accepts a live (unexpired) key and returns its payload', async () => {
+    const token = await mintToken({ privateKey: privateKeyPem, expSec: nowSec() + 86_400 });
+    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem);
+    expect(payload?.customerId).toBe('cus_123');
+    expect(payload?.tier).toBe('pro');
+  });
+
+  it('accepts a key expired WITHIN the refresh-accept window', async () => {
+    // Expired 20 days ago — inside the 30-day window.
+    const token = await mintToken({
+      privateKey: privateKeyPem,
+      expSec: nowSec() - 20 * 86_400,
+    });
+    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem);
+    expect(payload?.customerId).toBe('cus_123');
+  });
+
+  it('rejects a key expired BEYOND the refresh-accept window', async () => {
+    // Expired 40 days ago — outside the 30-day window.
+    const token = await mintToken({
+      privateKey: privateKeyPem,
+      expSec: nowSec() - 40 * 86_400,
+    });
+    const payload = await validateLicenseKeyForRefresh(token, publicKeyPem);
+    expect(payload).toBeNull();
+  });
+
+  it('honors an explicit refreshAcceptDays override', async () => {
+    const token = await mintToken({
+      privateKey: privateKeyPem,
+      expSec: nowSec() - 10 * 86_400,
+    });
+    // A 5-day window rejects a token expired 10 days ago.
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem, 5)).toBeNull();
+    // A 15-day window accepts the same token.
+    expect((await validateLicenseKeyForRefresh(token, publicKeyPem, 15))?.customerId).toBe(
+      'cus_123',
+    );
+  });
+
+  it('refreshes a token signed by the OUTGOING key during a dual-key rotation window', async () => {
+    // GAP-259 composition: mint under an old keypair, verify against the ordered
+    // [current, next] set (the outgoing key is one of the candidates).
+    const { publicKey: oldPub, privateKey: oldPriv } = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const token = await mintToken({
+      privateKey: oldPriv,
+      publicKey: oldPub,
+      expSec: nowSec() - 5 * 86_400, // recently expired, within window
+    });
+    // Ordered set: current (the module keypair) first, outgoing (old) second.
+    const payload = await validateLicenseKeyForRefresh(token, [publicKeyPem, oldPub]);
+    expect(payload?.customerId).toBe('cus_123');
+  });
+
+  it('rejects a token signed by an unrelated key', async () => {
+    const { privateKey: strayPriv } = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const token = await mintToken({ privateKey: strayPriv, expSec: nowSec() + 86_400 });
+    expect(await validateLicenseKeyForRefresh(token, publicKeyPem)).toBeNull();
+  });
+
+  it('returns null when no candidate keys are supplied', async () => {
+    const token = await mintToken({ privateKey: privateKeyPem, expSec: nowSec() + 86_400 });
+    expect(await validateLicenseKeyForRefresh(token, [])).toBeNull();
   });
 });
