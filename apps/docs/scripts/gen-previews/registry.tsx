@@ -245,8 +245,12 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
                 DialogActions,
                 {},
                 <>
-                  {React.createElement(ButtonCVA, { variant: 'outline' }, 'Cancel')}
-                  {React.createElement(ButtonCVA, { variant: 'destructive' }, 'Delete')}
+                  {React.createElement(
+                    ButtonCVA,
+                    { appearance: 'outline', variant: 'neutral' },
+                    'Cancel',
+                  )}
+                  {React.createElement(ButtonCVA, { variant: 'danger' }, 'Delete')}
                 </>,
               )}
             </div>
@@ -273,8 +277,12 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
                 DrawerFooter,
                 {},
                 <>
-                  {React.createElement(ButtonCVA, { variant: 'outline' }, 'Reset')}
-                  {React.createElement(ButtonCVA, { variant: 'primary' }, 'Apply')}
+                  {React.createElement(
+                    ButtonCVA,
+                    { appearance: 'outline', variant: 'neutral' },
+                    'Reset',
+                  )}
+                  {React.createElement(ButtonCVA, { variant: 'brand' }, 'Apply')}
                 </>,
               )}
             </div>
@@ -289,7 +297,11 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
           label: 'Visible state',
           node: (
             <div className="dsc-tooltip-demo">
-              {React.createElement(ButtonCVA, { variant: 'outline' }, 'Hover me')}
+              {React.createElement(
+                ButtonCVA,
+                { appearance: 'outline', variant: 'neutral' },
+                'Hover me',
+              )}
               <span className="dsc-tooltip-bubble" role="tooltip">
                 Saves your changes
               </span>
