@@ -32,6 +32,13 @@
 // rendered were byte-identical dev-scaffold captures from 2026-04-27, not the
 // current product; no honest replacement imagery exists yet.
 //
+// 2026-07-17 (version re-pin): flagship v0.3.0 → v0.4.0 (root package.json is
+// the version anchor; the 0.3.0 pinned on 2026-07-12 was RevVault's number and
+// the flagship was never bumped) and RevDev v0.1.1 → v0.2.0 (v0.2.0 tagged in
+// the revdev repo 2026-07-17). Beta semantics reworded below: the fleet is
+// pre-revenue (docs/ROADMAP.md maturity table: "No paying users yet"), so the
+// old "limited paying users" gloss overstated reality.
+//
 // 2026-07-12 (claims-ratchet): product versions re-pinned (RevVault 0.3.0,
 // RevDev 0.1.1), RevForge switched to a Contact-us CTA with a private-preview
 // price label (the repo is private, the old GitHub link 404s for the public),
@@ -40,7 +47,7 @@
 // is indexed in content/claims-evidence.ts.
 //
 // Status semantics:
-//   Beta         — production-ready code, limited paying users / dogfooded
+//   Beta         — production-ready code, deployed and dogfooded in production, pre-revenue
 //   Alpha        — development-preview quality; works, ships, may break
 //   Active (MIT) — released, free-and-open library, no SLA
 //   Planned      — code-complete or scaffolded, not yet shipped to users
@@ -115,7 +122,7 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   name: 'RevealUI',
   eyebrow: 'FLAGSHIP',
   status: 'Beta',
-  version: 'v0.3.0',
+  version: 'v0.4.0',
   priceLabel: 'Free to self-host · Pro tier optional',
   tagline: 'The agentic business runtime',
   body: 'People, content, offers, payments, and agents: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
@@ -199,7 +206,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
       'Registers and coordinates agents over JSON-RPC',
     ],
     status: 'Alpha',
-    version: 'v0.1.1',
+    version: 'v0.2.0',
     priceLabel: 'Free · MIT core',
     iconPath: 'M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5',
     primaryCta: {
