@@ -11,10 +11,10 @@
  * — callers must treat that as a license / configuration failure.
  */
 
-import { DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
+import { createAuditStore } from './audit-signer.js';
 
 export interface DispatcherResult {
   success: boolean;
@@ -61,7 +61,7 @@ export async function buildDispatcher(
     llmClient = await aiMod.resolveLLMClientForRequest(resolution.userId, db, {
       isHosted: resolution.isHosted,
       workspaceId: resolution.workspaceId,
-      auditStore: new DrizzleAuditStore(db),
+      auditStore: createAuditStore(db),
     });
   } catch (err) {
     if ((err as { code?: unknown } | null)?.code === 'LLM_NOT_CONFIGURED') throw err;

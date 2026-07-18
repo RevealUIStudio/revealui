@@ -218,7 +218,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     sensitive: true,
     tier: 'prod',
     consumers: ['vercel:api', 'fly:worker'],
-    note: 'audit-log HMAC - rotating breaks prior-log verification (Phase 1 makes it required)',
+    note: 'RETIRED (GAP-355 Stage 3) - audit signing moved to per-row Ed25519 (REVEALUI_AUDIT_SIGNING_KEY); this HMAC secret has no code consumer. Physical path removal + the signing-key add land together in Stage 3 PR-3.',
   },
   // License signing keypair - CANONICAL stays at the live revdev/* path so the
   // gate is GREEN against today's manifest; the project-aligned target is
@@ -616,6 +616,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     sensitive: true,
     tier: 'staging',
     consumers: ['vercel:api-staging'],
+    note: 'RETIRED (GAP-355 Stage 3) - superseded by per-row Ed25519 signing (REVEALUI_AUDIT_SIGNING_KEY); no code consumer. Removed with the signing-key add in Stage 3 PR-3.',
   },
   {
     path: 'revealui/staging/license/private-key',

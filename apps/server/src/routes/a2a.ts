@@ -22,10 +22,11 @@ import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contra
 import { logger } from '@revealui/core/observability/logger';
 import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { classifyAuditWriteFailure } from '@revealui/core/security';
-import { DrizzleAuditStore, getClient } from '@revealui/db';
+import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { desc, eq } from 'drizzle-orm';
+import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { buildMcpManifest } from '../lib/mcp-manifest.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
@@ -1177,7 +1178,7 @@ a2a.openapi(
         const db = getClient();
         llmClient = await aiMod.resolveLLMClientForRequest(sessionUserId, db, {
           isHosted: detectDeploymentMode(process.env as EnvMap) === 'hosted',
-          auditStore: new DrizzleAuditStore(db),
+          auditStore: createAuditStore(db),
         });
       } catch (err) {
         const notConfigured = asLLMNotConfigured(err);

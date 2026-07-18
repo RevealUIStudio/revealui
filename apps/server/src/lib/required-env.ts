@@ -62,4 +62,9 @@ export const REQUIRED_IN_PRODUCTION_HOSTED = [
   // not required — it has a safe default (noreply@revealui.com).
   'GOOGLE_SERVICE_ACCOUNT_EMAIL',
   'GOOGLE_PRIVATE_KEY',
+  // Audit-log signing key (GAP-355 Stage 3). Every audit row is signed with this
+  // Ed25519 private key; a hosted deploy that cannot sign the audit log must not
+  // serve. validate-startup additionally parses it as a valid Ed25519 PKCS#8 key.
+  // No REVEALUI_SECRET fallback — the legacy HMAC fallback was retired.
+  'REVEALUI_AUDIT_SIGNING_KEY',
 ] as const;
