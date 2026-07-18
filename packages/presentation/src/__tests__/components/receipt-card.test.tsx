@@ -55,4 +55,51 @@ describe('ReceiptCard', () => {
     render(<ReceiptCard title="No seal" lines={lines} />);
     expect(screen.queryByText('sha256')).toBeNull();
   });
+
+  it('renders no animation classes, vars, or style tag when animate is unset', () => {
+    const { container } = render(
+      <ReceiptCard
+        title="Static"
+        lines={lines}
+        integrity={{ kind: 'sha256', value: 'a1b2c3d4' }}
+      />,
+    );
+    const items = screen.getAllByRole('listitem');
+    for (const item of items) {
+      expect(item.className).toBe('');
+      expect(item.getAttribute('style')).toBeNull();
+    }
+    const footer = container.querySelector('footer');
+    expect(footer?.className).not.toMatch(/rvui-receipt-print/);
+    expect(container.querySelector('style')).toBeNull();
+  });
+
+  it('stamps the per-row print delay custom property and renders all lines at first render when animate="print"', () => {
+    const { container } = render(
+      <ReceiptCard
+        title="Printing"
+        lines={lines}
+        integrity={{ kind: 'sha256', value: 'a1b2c3d4' }}
+        animate="print"
+      />,
+    );
+
+    const items = screen.getAllByRole('listitem');
+    expect(items).toHaveLength(lines.length);
+    items.forEach((item, i) => {
+      expect(item.className).toContain('rvui-receipt-print-line');
+      expect(item.style.getPropertyValue('--rvui-print-i')).toBe(String(i));
+    });
+
+    // All ledger content is present immediately  -  no waiting on the animation.
+    expect(screen.getByText('alice')).toBeInTheDocument();
+    expect(screen.getByText('agent-system')).toBeInTheDocument();
+    expect(screen.getByText('sha256')).toBeInTheDocument();
+
+    const footer = container.querySelector('footer');
+    expect(footer?.className).toContain('rvui-receipt-print-seal');
+    expect(footer?.style.getPropertyValue('--rvui-print-i')).toBe(String(lines.length));
+
+    expect(container.querySelector('style')?.textContent).toContain('rvui-receipt-print');
+  });
 });
