@@ -11,8 +11,8 @@
  *
  * Covers:
  *   full acceptance  initialize → tools/list → tools/call with a minted token,
- *                    landing a hash-chained `mcp:tool:invoked` receipt (I-5,
- *                    plus the positive I-3 "A's token on A's session → 200")
+ *                    landing an `mcp:tool:invoked` receipt through the one door
+ *                    (I-5, plus the positive I-3 "A's token on A's session → 200")
  *   I-2  a foreign / nonexistent site_id yields the same empty shape (no oracle)
  *   I-3  the session id is never authority (no-token replay → 401; B's token →
  *        401 + session terminated)
@@ -229,7 +229,7 @@ function parseToolData(result: { content: Array<{ type: string; text?: string }>
 // ---------------------------------------------------------------------------
 
 describe('acceptance: full governed session', () => {
-  it('initialize → tools/list → tools/call with a minted token, landing a hash-chained receipt', async () => {
+  it('initialize → tools/list → tools/call with a minted token, landing a receipt', async () => {
     const c = client(TOKEN_A);
     await c.connect();
 
@@ -251,7 +251,13 @@ describe('acceptance: full governed session', () => {
       .where(eq(schema.auditLog.eventType, 'mcp:tool:invoked'));
     const row = rows.find((r) => (r.payload as { tool?: string }).tool === 'revealui_list_sites');
     expect(row).toBeDefined();
-    expect(row?.signature).toBeTruthy();
+    // GAP-355 Stage 3: the MCP receipt no longer self-signs. It writes through
+    // the one door, which signs only when a signer is injected (a production
+    // signing deployment). This test env injects none, so the row lands honestly
+    // UNSIGNED (signature NULL) — the signed round trip is covered end-to-end in
+    // audit-signing-roundtrip.pglite.test.ts.
+    expect(row?.signature).toBeNull();
+    expect(row?.previousSignature).toBeNull();
     expect((row?.payload as { userId?: string }).userId).toBe('user-A');
     expect(row?.agentId).toBe('mcp:e2e');
   });

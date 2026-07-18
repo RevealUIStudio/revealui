@@ -1,3 +1,4 @@
+import { createPrivateKey } from 'node:crypto';
 // Shared live/test classification — same rule the runtime money-boundary guard
 // (getStripe) uses, so the boot validator and the request path can't drift.
 import {
@@ -149,7 +150,35 @@ const REQUIRED_IN_PRODUCTION_FORGE = [
   'REVEALUI_LICENSE_KEY',
   'REVEALUI_LICENSE_PUBLIC_KEY',
   'CORS_ORIGIN',
+  // Audit-log signing key (GAP-355 Stage 3). Self-hosted deployments sign every
+  // audit row too (ADR §2b: self-hosted gets signing, operator holds the key).
+  'REVEALUI_AUDIT_SIGNING_KEY',
 ] as const;
+
+/**
+ * Return an error message if `pem` is not a valid Ed25519 private key in PKCS#8
+ * PEM form, else `null`. Used for the GAP-355 Stage 3 audit-signing-key boot
+ * guard: a signing deployment refuses to serve unless the key actually parses as
+ * the Ed25519 key the row signer will use.
+ */
+function classifyEd25519PrivateKey(pem: string): string | null {
+  if (!pem) {
+    return (
+      'REVEALUI_AUDIT_SIGNING_KEY is required — a server that cannot sign the audit log ' +
+      'must not serve traffic. It must be an Ed25519 private key in PKCS#8 PEM form. ' +
+      'See docs/SECRETS.md.'
+    );
+  }
+  try {
+    const key = createPrivateKey(pem);
+    if (key.asymmetricKeyType !== 'ed25519') {
+      return `REVEALUI_AUDIT_SIGNING_KEY must be an ed25519 key (got ${key.asymmetricKeyType ?? 'unknown'}).`;
+    }
+  } catch {
+    return 'REVEALUI_AUDIT_SIGNING_KEY could not be parsed as a PKCS#8 PEM Ed25519 private key.';
+  }
+  return null;
+}
 
 /**
  * Validate required environment variables at startup so any missing or
@@ -258,30 +287,20 @@ export function validateStartup(
     errors.push('REVEALUI_SECRET must be at least 32 characters.');
   }
 
-  // Audit HMAC signing secret — required in both modes. Mirrors the fallback
-  // getAuditSecret() uses at write time in the governed-MCP receipt signer
-  // (apps/server/src/lib/mcp-audit.ts): REVEALUI_AUDIT_HMAC_SECRET, falling
-  // back to REVEALUI_SECRET. (The main request/credential/bootstrap audit path
-  // writes UNSIGNED rows since GAP-355 Stage 1; only the MCP receipt stream
-  // signs today, pending Stage 3.) Checking the effective value here means a
-  // server whose MCP receipt signer has no key refuses to boot instead of
-  // throwing per-write — this duplicates (does not replace) getAuditSecret()'s
-  // own defense-in-depth throw. REVEALUI_SECRET is already
-  // REQUIRED_IN_PRODUCTION_{HOSTED,FORGE} above, so in a correctly configured
-  // deploy this branch is unreachable; it exists to catch the same impossible
-  // states getAuditSecret() guards against (env tampering mid-run) at boot.
-  const auditHmacSecret = env.REVEALUI_AUDIT_HMAC_SECRET ?? env.REVEALUI_SECRET ?? '';
-  if (!skipFormat(auditHmacSecret)) {
-    if (!auditHmacSecret) {
-      errors.push(
-        'REVEALUI_AUDIT_HMAC_SECRET (or REVEALUI_SECRET fallback) is required — ' +
-          'a server that cannot sign the audit log must not serve traffic. ' +
-          'See docs/SECRETS.md.',
-      );
-    } else if (auditHmacSecret.length < 32) {
-      errors.push(
-        'REVEALUI_AUDIT_HMAC_SECRET (or REVEALUI_SECRET fallback) must be at least 32 characters.',
-      );
+  // Audit-log signing key (GAP-355 Stage 3) — required in BOTH modes. A signing
+  // deployment (hosted server, Fly worker, self-hosted server) signs every audit
+  // row with this Ed25519 private key, so it must PARSE as a valid Ed25519 PKCS#8
+  // key at boot — a server that cannot sign the audit log must not serve traffic.
+  // Presence is enforced by REQUIRED_IN_PRODUCTION_{HOSTED,FORGE} above; this is
+  // the format check. There is NO fallback: the legacy REVEALUI_AUDIT_HMAC_SECRET
+  // / REVEALUI_SECRET fallback died with the HMAC path (a signing key with a
+  // fallback is not a signing key). Self-hosted operators generate their own key
+  // at `pnpm setup` (GAP-355 PR-3); until then a missing/invalid key fails boot.
+  const auditSigningKey = env.REVEALUI_AUDIT_SIGNING_KEY ?? '';
+  if (!skipFormat(auditSigningKey)) {
+    const signingKeyProblem = classifyEd25519PrivateKey(auditSigningKey);
+    if (signingKeyProblem) {
+      errors.push(signingKeyProblem);
     }
   }
 

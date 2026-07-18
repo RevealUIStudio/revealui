@@ -19,7 +19,7 @@ import {
   subscriptionLicenseExpiresInSeconds,
 } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { DrizzleAuditStore, executeSaga, getClient } from '@revealui/db';
+import { executeSaga, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import type { SagaStep } from '@revealui/db/saga';
 import {
@@ -37,6 +37,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
+import { createAuditStore } from '../lib/audit-signer.js';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import {
   buildHostedEntitlementValues,
@@ -846,7 +847,7 @@ function auditLicenseEvent(
   severity: 'info' | 'warn' | 'critical',
   payload: Record<string, unknown>,
 ): void {
-  new DrizzleAuditStore(db as Database)
+  createAuditStore(db as Database)
     .append({
       id: crypto.randomUUID(),
       timestamp: new Date(),

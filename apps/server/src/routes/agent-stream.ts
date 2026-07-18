@@ -11,7 +11,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
-import { DrizzleAuditStore, getClient } from '@revealui/db';
+import { getClient } from '@revealui/db';
 import type { ElicitationHandler, McpClient, SamplingHandler } from '@revealui/mcp/client';
 import { createRevvaultVault } from '@revealui/mcp/oauth';
 import {
@@ -27,6 +27,7 @@ import {
   createAgentRunSession,
   deleteAgentRunSession,
 } from '../lib/agent-run-sessions.js';
+import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { recordUsageMeter } from '../lib/metering.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
@@ -172,7 +173,7 @@ app.openapi(agentStreamRoute, async (c) => {
       llmClient = await aiMod.resolveLLMClientForRequest(user.id, db, {
         isHosted: detectDeploymentMode(process.env as EnvMap) === 'hosted',
         workspaceId: body.workspaceId ?? c.get('tenant')?.id,
-        auditStore: new DrizzleAuditStore(db),
+        auditStore: createAuditStore(db),
       });
     } catch (err) {
       const notConfigured = asLLMNotConfigured(err);

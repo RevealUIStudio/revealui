@@ -172,4 +172,31 @@ describe('assertAuditStorageEnv — synchronous env-parity guard (GAP-355 Stage 
     expect(() => assertAuditStorageEnv({ POSTGRES_URL: 'postgres://x' })).not.toThrow();
     expect(() => assertAuditStorageEnv({ DATABASE_HOST: 'db.internal' })).not.toThrow();
   });
+
+  it('on a production deployment, throws when the signing key is absent (GAP-355 Stage 3)', () => {
+    expect(() =>
+      assertAuditStorageEnv({ NODE_ENV: 'production', DATABASE_URL: 'postgres://x' }),
+    ).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
+  });
+
+  it('on a production deployment, passes when the signing key is present', () => {
+    expect(() =>
+      assertAuditStorageEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgres://x',
+        REVEALUI_AUDIT_SIGNING_KEY: 'pem-here',
+      }),
+    ).not.toThrow();
+  });
+
+  it('does not require the signing key outside production (dev/test run unsigned)', () => {
+    expect(() => assertAuditStorageEnv({ DATABASE_URL: 'postgres://x' })).not.toThrow();
+    expect(() =>
+      assertAuditStorageEnv({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgres://x',
+        SKIP_ENV_VALIDATION: 'true',
+      }),
+    ).not.toThrow();
+  });
 });

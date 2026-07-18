@@ -13,10 +13,11 @@
  *     vocabulary is mapped here, at the boundary, so every emitted event lands
  *     instead of being silently rejected by the constraint.
  *
- * Rows are written UNSIGNED: `signature` / `previous_signature` are left NULL.
- * Stage 1 lands honest, queryable, append-only records. Signing (Ed25519 +
- * canonicalization) is Stage 3 — writing an unverifiable value here is the
- * original defect this whole effort exists to undo.
+ * Signing (GAP-355 Stage 3): the `DrizzleAuditStore` is built via
+ * `createAuditStore`, which injects the process-wide Ed25519 row signer. On a
+ * signing deployment every row lands with a `v1.ed25519` signature verifiable
+ * offline from the published public key; in dev/test (no key) rows stay honestly
+ * unsigned. `previous_signature` is never written (the hash chain is abandoned).
  */
 
 import { randomUUID } from 'node:crypto';
@@ -28,8 +29,10 @@ import type {
   AuditSystem,
 } from '@revealui/core/security';
 import { audit, classifyAuditWriteFailure, recordAuditWriteResult } from '@revealui/core/security';
-import { DrizzleAuditStore, getClient } from '@revealui/db';
+import type { DrizzleAuditStore } from '@revealui/db';
+import { getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
+import { createAuditStore } from './audit-signer.js';
 
 /** DB-side severity vocabulary — matches the `audit_log_severity_check` constraint. */
 type DbSeverity = 'info' | 'warn' | 'critical';
@@ -69,14 +72,17 @@ export class DrizzleBackedAuditStorage implements AuditStorage {
   private readonly store: DrizzleAuditStore;
 
   constructor(db: Database) {
-    this.store = new DrizzleAuditStore(db);
+    // createAuditStore injects the process-wide Ed25519 signer (GAP-355 Stage 3),
+    // so rows land signed on a signing deployment and NULL-signature in unsigned
+    // (dev/test) mode. The severity/column boundary mapping stays here.
+    this.store = createAuditStore(db);
   }
 
   async write(event: AuditEvent): Promise<void> {
     try {
-      // No `signature` / `previous_signature` — DrizzleAuditStore.append does
-      // not set them, so they persist as NULL. Rows are unsigned by design in
-      // Stage 1.
+      // The injected signer (createAuditStore) signs the row at the door on a
+      // signing deployment; a signer failure makes append THROW (fail-closed),
+      // caught below and routed through the write-result rails.
       await this.store.append({
         id: event.id,
         timestamp: new Date(event.timestamp),
@@ -198,6 +204,24 @@ export function assertAuditStorageEnv(env: NodeJS.ProcessEnv = process.env): voi
         'must not execute (fail-closed integrity, ' +
         'docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
     );
+  }
+
+  // Signing key (GAP-355 Stage 3): a production signing deployment must have the
+  // Ed25519 key so rows land signed. Absence is a diverged-env deploy — fail it
+  // synchronously here (the serverless serving process's refuse-to-serve), the
+  // same rail the DB-connection check above uses. Full Ed25519 PKCS#8 parsing is
+  // done by validate-startup; this is the audit-owned presence parity check, so
+  // the contract cannot silently drift on one serving process. Dev/test
+  // (NODE_ENV !== 'production') runs unsigned by design and is exempt.
+  if (env.NODE_ENV === 'production' && env.SKIP_ENV_VALIDATION !== 'true') {
+    if (!env.REVEALUI_AUDIT_SIGNING_KEY) {
+      throw new Error(
+        'AUDIT STORAGE ENV PARITY FAILED: REVEALUI_AUDIT_SIGNING_KEY is not set on a ' +
+          'production deployment, so the audit write path cannot sign rows. Refusing to ' +
+          'serve — an unsigned row in the post-Stage-3 era is indistinguishable from ' +
+          'tampering (docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
+      );
+    }
   }
 }
 
