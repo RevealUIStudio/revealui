@@ -13,10 +13,15 @@ name: Build & Push Forge Docker Images
 #
 # PR runs (GAP-328 work item 2): pull_request builds are verification-only —
 # no GHCR login, no push, no provenance/SBOM. The pull_request trigger carries
-# no path filter on purpose: the Build server/admin/migrate contexts are
-# REQUIRED checks, and a workflow-level path filter would leave unrelated PRs
-# stuck on "Expected". Path scoping happens in the `changes` job instead; a
-# skipped build job satisfies the required check.
+# no path filter on purpose: the `Docker images` summary context is a REQUIRED
+# check, and a workflow-level path filter would leave unrelated PRs stuck on
+# "Expected". Path scoping happens in the `changes` job instead.
+#
+# The required context is the non-matrix `docker-images` summary job, NOT the
+# per-app Build jobs: a matrix job skipped at the job level never expands its
+# matrix, so GitHub reports one check literally named "Build ${{ matrix.app }}"
+# and the expanded contexts sit on "Expected" forever. The summary job always
+# runs, passes on build success or skip, and fails on any build failure.
 
 on:
   push:
@@ -182,3 +187,28 @@ jobs:
           # skip both (nothing is published).
           provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
           sbom: ${{ github.event_name != 'pull_request' }}
+
+  # The REQUIRED status context. Always runs (if: always()), so it reports on
+  # every PR regardless of path scoping: success when the build matrix
+  # succeeded or was skipped as image-irrelevant, failure on any build
+  # failure or cancellation. Required-checks live on this single context
+  # because skipped matrix jobs never expand into their per-app contexts.
+  docker-images:
+    name: Docker images
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, build-and-push]
+    if: always()
+    steps:
+      - name: Evaluate build matrix result
+        env:
+          RESULT: ${{ needs.build-and-push.result }}
+        run: |
+          case "$RESULT" in
+            success) echo "image builds green" ;;
+            skipped) echo "image-irrelevant diff, builds skipped" ;;
+            *)
+              echo "build-and-push result: $RESULT"
+              exit 1
+              ;;
+          esac
