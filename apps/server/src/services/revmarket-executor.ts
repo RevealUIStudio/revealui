@@ -30,8 +30,8 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
-import { agentSkills, auditLog, marketplaceAgents, taskSubmissions } from '@revealui/db/schema';
+import { DrizzleAuditStore, getClient } from '@revealui/db';
+import { agentSkills, marketplaceAgents, taskSubmissions } from '@revealui/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 
 import { forkProvider, type SandboxProvider } from './revmarket-sandbox/index.js';
@@ -404,8 +404,9 @@ async function writeAuditEntry(
   const db = getClient();
 
   try {
-    await db.insert(auditLog).values({
+    await new DrizzleAuditStore(db).append({
       id: crypto.randomUUID(),
+      timestamp: new Date(),
       eventType: `revmarket:task:${status}`,
       severity: status === 'failed' ? 'warn' : 'info',
       agentId,
@@ -417,7 +418,7 @@ async function writeAuditEntry(
         artifactCount: result.artifacts.length,
         error: result.error ?? null,
       },
-      timestamp: new Date(),
+      policyViolations: [],
     });
   } catch (err) {
     // Audit trail failures must not break task completion

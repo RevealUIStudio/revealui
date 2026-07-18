@@ -117,6 +117,9 @@ jobs:
       - name: Empty-catch validation (hard fail)
         run: pnpm validate:empty-catch
 
+      - name: audit_log ONE DOOR validation (hard fail)
+        run: pnpm validate:audit-one-door
+
       - name: Seed script wiring validation (hard fail)
         run: pnpm validate:seed-wiring
 

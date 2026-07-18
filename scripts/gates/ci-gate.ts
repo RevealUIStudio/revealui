@@ -379,6 +379,11 @@ async function gate(): Promise<void> {
         args: ['validate:as-never-values'],
       },
       {
+        name: 'audit_log ONE DOOR (hard fail)',
+        command: 'pnpm',
+        args: ['validate:audit-one-door'],
+      },
+      {
         name: 'Stripe-client consolidation (hard fail)',
         command: 'pnpm',
         args: ['validate:stripe-client'],
