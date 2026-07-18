@@ -144,6 +144,7 @@
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo packages/*/tsconfig.tsbuildinfo apps/*/tsconfig.tsbuildinfo .next .turbo",
     "clean:install": "pnpm clean && pnpm install:clean",
     "admin:bootstrap": "tsx scripts/admin/bootstrap.ts",
+    "admin:grant-entitlement": "tsx scripts/admin/grant-entitlement.ts",
     "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
     "db:assert-migration-count": "tsx scripts/setup/assert-migration-count.ts",
     "db:backfill-migrations": "tsx scripts/setup/backfill-migrations.ts",
