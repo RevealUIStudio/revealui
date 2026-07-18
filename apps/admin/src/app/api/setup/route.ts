@@ -95,14 +95,15 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
       // Audit log — non-fatal.
       try {
         const { hostname } = await import('node:os');
-        const { auditLog } = await import('@revealui/db/schema');
+        const { DrizzleAuditStore } = await import('@revealui/db');
         const { classifyAuditWriteFailure, recordAuditWriteResult } = await import(
           '@revealui/core/security'
         );
         const eventId = crypto.randomUUID();
         try {
-          await db.insert(auditLog).values({
+          await new DrizzleAuditStore(db).append({
             id: eventId,
+            timestamp: new Date(),
             eventType: 'admin.bootstrap.completed',
             severity: 'info',
             agentId: 'web',

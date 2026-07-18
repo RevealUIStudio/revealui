@@ -30,6 +30,9 @@ vi.mock('@revealui/db/client', () => ({
 
 vi.mock('@revealui/core/license', () => ({
   resetLicenseState: vi.fn(),
+  subscriptionLicenseExpiresInSeconds: vi.fn(() => 3600),
+  subscriptionExpBound: vi.fn(() => 9_999_999_999),
+  readLicenseExp: vi.fn(async () => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({

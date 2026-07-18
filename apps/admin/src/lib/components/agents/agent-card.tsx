@@ -66,7 +66,7 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
         <LinkButton
           as={Link}
           href={`/agents/${agentId}`}
-          variant="secondary"
+          variant="neutral"
           size="sm"
           className="flex-1 justify-center"
         >
@@ -75,7 +75,7 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
         <LinkButton
           href={card.url.replace('/a2a', `/.well-known/agents/${agentId}/agent.json`)}
           external
-          variant="secondary"
+          variant="neutral"
           size="sm"
           title="View Agent Card JSON"
         >

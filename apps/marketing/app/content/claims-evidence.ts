@@ -303,7 +303,7 @@ const REVFORGE_REF: EvidenceRef = {
 const REVDEV_REPO: EvidenceRef = {
   kind: 'url',
   ref: 'https://github.com/RevealUIStudio/revdev',
-  note: 'apps/studio + apps/console + packages/daemon at 0.1.1; the daemon registers and coordinates agents over JSON-RPC',
+  note: 'apps/studio + apps/console + packages/daemon at 0.2.0 (v0.2.0 tagged 2026-07-17); the daemon registers and coordinates agents over JSON-RPC',
 };
 const REVCON_REPO: EvidenceRef = {
   kind: 'url',
@@ -1496,6 +1496,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[0].renewal',
+    text: '$149/yr for continued support',
+    evidence: [PERPETUAL, PRICING_FALLBACKS],
+  },
+  {
+    file: 'pricing.ts',
     exportPath: 'PERPETUAL_TIERS[0].features[2]',
     text: '1 year priority support included',
     evidence: [COMMERCIAL_POLICY],
@@ -1517,6 +1523,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PERPETUAL_TIERS[1].description',
     text: 'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
     evidence: [PERPETUAL, REVFORGE_REF],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].renewal',
+    text: '$799/yr for continued support',
+    evidence: [PERPETUAL, PRICING_FALLBACKS],
   },
   {
     file: 'pricing.ts',
@@ -1547,6 +1559,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PERPETUAL_TIERS[2].description',
     text: 'Full self-hosted Enterprise tier with unlimited deployments.',
     evidence: [PERPETUAL, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].renewal',
+    text: '$3,999/yr for continued support',
+    evidence: [PERPETUAL, PRICING_FALLBACKS],
   },
   {
     file: 'pricing.ts',

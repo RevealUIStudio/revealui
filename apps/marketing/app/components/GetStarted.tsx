@@ -12,10 +12,10 @@ export function GetStarted() {
           </h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">{HOME_GET_STARTED.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="primary">
+            <ButtonCVA asChild size="lg" variant="brand">
               <a href={HOME_GET_STARTED.cta.primary.href}>{HOME_GET_STARTED.cta.primary.label}</a>
             </ButtonCVA>
-            <ButtonCVA asChild variant="outline" size="lg">
+            <ButtonCVA asChild appearance="outline" variant="neutral" size="lg">
               <a href={HOME_GET_STARTED.cta.secondary.href}>
                 {HOME_GET_STARTED.cta.secondary.label}
                 <svg

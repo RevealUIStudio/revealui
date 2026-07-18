@@ -272,7 +272,8 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {passkeySupported ? (
               <Button
-                variant="outline"
+                appearance="outline"
+                variant="neutral"
                 onClick={handlePasskeySignIn}
                 disabled={anyLoading}
                 className="justify-start gap-2"
@@ -285,7 +286,13 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
             {oauthProviders.map((provider) => {
               const { label, href, Icon } = OAUTH_META[provider];
               return (
-                <Button key={provider} variant="outline" className="justify-start gap-2" asChild>
+                <Button
+                  key={provider}
+                  appearance="outline"
+                  variant="neutral"
+                  className="justify-start gap-2"
+                  asChild
+                >
                   <a href={href}>
                     <Icon className="size-4 shrink-0" />
                     <span>{label}</span>

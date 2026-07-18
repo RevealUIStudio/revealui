@@ -260,7 +260,13 @@ export function PricingPage() {
                     </a>
                   </ButtonCVA>
                 ) : (
-                  <ButtonCVA asChild variant="outline" size="default" className="w-full">
+                  <ButtonCVA
+                    asChild
+                    appearance="outline"
+                    variant="neutral"
+                    size="default"
+                    className="w-full"
+                  >
                     <a
                       href={tier.ctaHref}
                       target={tier.id === 'free' ? '_blank' : undefined}
@@ -356,7 +362,13 @@ export function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <ButtonCVA asChild variant="outline" size="default" className="w-full">
+                <ButtonCVA
+                  asChild
+                  appearance="outline"
+                  variant="neutral"
+                  size="default"
+                  className="w-full"
+                >
                   <a href={tier.ctaHref}>{tier.cta}</a>
                 </ButtonCVA>
               </div>
@@ -545,7 +557,13 @@ export function PricingPage() {
                 {PRICING_DONE_FOR_YOU.primaryCta.label}
               </a>
             </ButtonCVA>
-            <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
+            <ButtonCVA
+              asChild
+              appearance="outline"
+              variant="neutral"
+              size="lg"
+              className="w-full sm:w-auto"
+            >
               <a
                 href={PRICING_DONE_FOR_YOU.secondaryCta.href}
                 target="_blank"
@@ -598,7 +616,13 @@ export function PricingPage() {
                 {PRICING_FINAL_CTA_LINKS.getStarted.label}
               </a>
             </ButtonCVA>
-            <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
+            <ButtonCVA
+              asChild
+              appearance="outline"
+              variant="neutral"
+              size="lg"
+              className="w-full sm:w-auto"
+            >
               <a href={PRICING_FINAL_CTA_LINKS.contactSales.href}>
                 {PRICING_FINAL_CTA_LINKS.contactSales.label}
               </a>

@@ -525,7 +525,7 @@ function StepConfiguration({
       </Field>
 
       <div className="flex gap-3 pt-4">
-        <ButtonCVA type="button" variant="outline" onClick={onBack}>
+        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={onBack}>
           Back
         </ButtonCVA>
         <ButtonCVA type="button" onClick={onNext}>
@@ -561,7 +561,7 @@ function StepSkills({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium text-foreground">Skills</h2>
-        <ButtonCVA type="button" variant="outline" onClick={addSkill}>
+        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={addSkill}>
           + Add Skill
         </ButtonCVA>
       </div>
@@ -576,7 +576,7 @@ function StepSkills({
             {skills.length > 1 && (
               <ButtonCVA
                 type="button"
-                variant="ghost"
+                appearance="ghost"
                 onClick={() => removeSkill(i)}
                 className="text-xs text-error hover:text-error"
               >
@@ -642,7 +642,7 @@ function StepSkills({
       ))}
 
       <div className="flex gap-3 pt-4">
-        <ButtonCVA type="button" variant="outline" onClick={onBack}>
+        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={onBack}>
           Back
         </ButtonCVA>
         <ButtonCVA type="button" onClick={onNext}>
@@ -755,7 +755,7 @@ function StepReview({
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <ButtonCVA type="button" variant="outline" onClick={onBack}>
+        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={onBack}>
           Back
         </ButtonCVA>
         <ButtonCVA type="button" onClick={onPublish} disabled={submitting}>

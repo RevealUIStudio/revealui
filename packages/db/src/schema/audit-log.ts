@@ -2,12 +2,21 @@
  * Audit Log Table - Persistent storage for the AI audit trail.
  *
  * Append-only table for all agent activity. Matches the AuditEntry
- * type from @revealui/ai/audit. No UPDATE or DELETE operations should
- * ever be performed on this table.
+ * type from @revealui/ai/audit.
+ *
+ * GAP-355 Stage 2 (ONE DOOR): append-only is now ENFORCED at the DB layer, not
+ * just documented. Migration 0026 adds a `BEFORE UPDATE OR DELETE` trigger that
+ * RAISEs, so no UPDATE/DELETE succeeds — even for the table owner (a plain
+ * REVOKE is toothless against the owner role the app connects as, so the trigger
+ * is the real enforcement; the REVOKE in 0026 is defense-in-depth for any
+ * non-owner role). `seq` is a monotonic bigserial: a deleted row would leave a
+ * detectable gap (it can't be deleted, but the sequence is the primitive the
+ * anchoring in Stage 4 checks). `tenant` scopes rows for per-tenant Merkle
+ * anchoring. Writes still go through the single door, DrizzleAuditStore.append.
  */
 
 import { sql } from 'drizzle-orm';
-import { check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { bigserial, check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Audit Log Table
@@ -48,12 +57,25 @@ export const auditLog = pgTable(
 
     /** Signature of the previous entry in the hash chain (for tamper-evident sequencing) */
     previousSignature: text('previous_signature'),
+
+    /**
+     * Monotonic append order (GAP-355 Stage 2). DB-assigned via a sequence — the
+     * store never writes it. A deletion would leave a gap, which is what the
+     * Stage 4 anchoring checks; combined with the append-only trigger, order is
+     * both fixed and gap-evident.
+     */
+    seq: bigserial('seq', { mode: 'number' }).notNull(),
+
+    /** Tenant/account scope for per-tenant anchoring (GAP-355 Stage 2). Nullable; no backfill. */
+    tenant: text('tenant'),
   },
   (table) => [
     index('audit_log_event_type_idx').on(table.eventType),
     index('audit_log_agent_id_idx').on(table.agentId),
     index('audit_log_timestamp_idx').on(table.timestamp),
     index('audit_log_severity_idx').on(table.severity),
+    index('audit_log_seq_idx').on(table.seq),
+    index('audit_log_tenant_idx').on(table.tenant),
     check('audit_log_severity_check', sql`severity IN ('info', 'warn', 'critical')`),
   ],
 );

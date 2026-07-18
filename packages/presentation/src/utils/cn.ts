@@ -52,6 +52,14 @@ type VariantConfig = Record<string, VariantValues>;
 interface CvaConfig<V extends VariantConfig> {
   variants: V;
   defaultVariants?: { [K in keyof V]?: keyof V[K] };
+  /**
+   * Classes applied only when every listed variant matches — the cross-product
+   * escape hatch (mirrors class-variance-authority's `compoundVariants`). Use
+   * `class` or `className` for the classes to append.
+   */
+  compoundVariants?: Array<
+    { [K in keyof V]?: keyof V[K] } & { class?: string; className?: string }
+  >;
 }
 
 type VariantProps<T> = T extends (props?: infer P) => string ? P : never;
@@ -59,16 +67,29 @@ type VariantProps<T> = T extends (props?: infer P) => string ? P : never;
 function cva<V extends VariantConfig>(base: string, config: CvaConfig<V>) {
   type Props = { [K in keyof V]?: keyof V[K] | null } & { className?: string };
 
+  const resolve = (props: Props | undefined, key: string) => {
+    const propValue = props?.[key as keyof Props];
+    return propValue === null ? null : (propValue ?? config.defaultVariants?.[key]);
+  };
+
   const fn = (props?: Props): string => {
     const parts: string[] = [base];
 
     for (const key of Object.keys(config.variants)) {
-      const propValue = props?.[key as keyof Props];
-      const selected = propValue === null ? null : (propValue ?? config.defaultVariants?.[key]);
+      const selected = resolve(props, key);
       if (selected != null) {
         const value = config.variants[key]?.[selected as string];
         if (value) parts.push(value);
       }
+    }
+
+    for (const compound of config.compoundVariants ?? []) {
+      const { class: compoundClass, className: compoundClassName, ...conditions } = compound;
+      const matched = Object.keys(conditions).every(
+        (key) => resolve(props, key) === (conditions as Record<string, unknown>)[key],
+      );
+      const value = compoundClass ?? compoundClassName;
+      if (matched && value) parts.push(value);
     }
 
     if (props?.className) parts.push(props.className);

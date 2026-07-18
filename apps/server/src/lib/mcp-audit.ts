@@ -41,8 +41,7 @@
 
 import { createHmac, randomUUID } from 'node:crypto';
 import { classifyAuditWriteFailure, recordAuditWriteResult } from '@revealui/core/security';
-import { getClient } from '@revealui/db';
-import { auditLog } from '@revealui/db/schema';
+import { DrizzleAuditStore, getClient } from '@revealui/db';
 
 export type McpAuditOutcome = 'invoked' | 'denied' | 'failed';
 
@@ -195,21 +194,21 @@ async function appendReceipt(input: McpAuditInput): Promise<void> {
   );
 
   try {
-    await getClient()
-      .insert(auditLog)
-      .values({
-        id,
-        timestamp,
-        eventType,
-        severity,
-        agentId,
-        taskId: null,
-        sessionId: input.sessionId ?? null,
-        payload,
-        policyViolations: [],
-        signature,
-        previousSignature,
-      });
+    // ONE DOOR (GAP-355 Stage 2): route through the single `insert(auditLog)`
+    // site in DrizzleAuditStore. The signature is still computed here (Stage 3
+    // moves signing into an injected signer) and passed as a value.
+    await new DrizzleAuditStore(getClient()).append({
+      id,
+      timestamp,
+      eventType,
+      severity,
+      agentId,
+      sessionId: input.sessionId ?? undefined,
+      payload,
+      policyViolations: [],
+      signature,
+      previousSignature,
+    });
     lastMcpSignature = signature;
     recordAuditWriteResult({ ok: true, eventId: id, eventType });
   } catch (err) {

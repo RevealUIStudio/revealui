@@ -393,6 +393,10 @@ export interface PricingResponse {
   services: ServiceOffering[];
 }
 
+// Renewal display strings are literal cents-of-record from
+// scripts/setup/stripe-catalog.ts CATALOG (revealui_renewal_{pro,max,enterprise}
+// prices: 14900/79900/399900 cents), not the marketing fallback file. Kept in
+// lockstep by scripts/validate/pricing-lockstep.ts (GAP-306).
 export const PERPETUAL_TIERS: PerpetualTier[] = [
   {
     name: 'Pro Perpetual',
@@ -404,6 +408,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
       'All Pro updates released during support period',
       'Private GitHub repo access',
     ],
+    renewal: '$149/yr for continued support',
     cta: 'Buy Pro Perpetual',
     ctaHref: '/account/license',
     comingSoon: false,
@@ -420,8 +425,9 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
       'All Max updates released during support period',
       'Private GitHub repo access',
     ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Agency%20Perpetual%20License',
+    renewal: '$799/yr for continued support',
+    cta: 'Buy Agency Perpetual',
+    ctaHref: '/account/license',
     comingSoon: false,
   },
   {
@@ -435,8 +441,9 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
       'All Enterprise tier updates released during support period',
       'Private GitHub repo + Docker image access',
     ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Enterprise%20Perpetual%20License%20Inquiry',
+    renewal: '$3,999/yr for continued support',
+    cta: 'Buy Enterprise Perpetual',
+    ctaHref: '/account/license',
     comingSoon: false,
   },
 ];

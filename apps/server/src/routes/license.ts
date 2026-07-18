@@ -1,15 +1,18 @@
 import { timingSafeEqual } from 'node:crypto';
+import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import { getFeaturesForTier } from '@revealui/core/features';
 import {
   generateLicenseKey,
+  getPublicKeys,
   type LicensePayload,
   validateLicenseKey,
+  validateLicenseKeyForRefresh,
 } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { licenses } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
 const app = new OpenAPIHono();
@@ -119,6 +122,26 @@ const LicenseGenerateResponseSchema = z.object({
 
 const ErrorSchema = z.object({
   error: z.string().openapi({ example: 'Invalid license key' }),
+});
+
+const LicenseRefreshRequestSchema = z.object({
+  licenseKey: z.string().min(1).openapi({
+    description: 'The current (possibly recently-expired) license key held by the instance',
+    example: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...',
+  }),
+});
+
+const LicenseRefreshResponseSchema = z.object({
+  licenseKey: z.string().openapi({
+    description: 'The current stored license key for this customer',
+  }),
+});
+
+const RefreshDeniedSchema = z.object({
+  error: z.literal('refresh_denied').openapi({
+    description: 'Uniform denial. Never distinguishes revoked, missing, or lapsed.',
+    example: 'refresh_denied',
+  }),
 });
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
@@ -431,6 +454,115 @@ app.openapi(generateRoute, async (c) => {
     },
     201,
   );
+});
+
+// POST /api/license/refresh  -  Machine path to fetch the current stored key
+//
+// GAP-287 PR-1. A running self-hosted instance presents its current (possibly
+// recently-expired) key and receives the CURRENT stored key for its license.
+// It NEVER mints: it only returns what the webhook lifecycle already wrote, so
+// it cannot extend entitlement beyond what billing granted. Auth is possession
+// of a recently-valid signed key (within REFRESH_ACCEPT_DAYS of exp) plus an
+// ACTIVE license row for the token's customerId. Every failure returns the same
+// 403 with no reason, so nothing distinguishes revoked / missing / lapsed.
+const refreshRoute = createRoute({
+  method: 'post',
+  path: '/refresh',
+  tags: ['license'],
+  summary: 'Refresh a license key',
+  description:
+    'Returns the current stored license key for the customer identified by the presented key. Accepts a key expired within the refresh window. Never mints a new key. Any failure returns 403 with no distinguishing reason.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: LicenseRefreshRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: LicenseRefreshResponseSchema,
+        },
+      },
+      description: 'The current stored license key',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: RefreshDeniedSchema,
+        },
+      },
+      description: 'Refresh denied',
+    },
+  },
+});
+
+app.openapi(refreshRoute, async (c) => {
+  const { licenseKey } = c.req.valid('json');
+
+  // Every denial returns the identical body + status. The presented key's
+  // signature validity, expiry position, revocation, and row state must not be
+  // distinguishable to the caller (no refresh oracle).
+  const deny = () => c.json({ error: 'refresh_denied' as const }, 403);
+
+  // Verify against the ordered public-key set (current + rotation NEXT), so a
+  // key minted under the outgoing private key still refreshes during a rotation
+  // window (GAP-259). An unconfigured key is an operator fault, not a customer
+  // fault: fail closed but log loudly server-side.
+  const publicKeys = getPublicKeys();
+  if (publicKeys.length === 0) {
+    logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured; license refresh cannot verify');
+    return deny();
+  }
+
+  // Signature valid AND exp past by at most REFRESH_ACCEPT_DAYS. Beyond that
+  // window the verifier returns null and re-delivery goes through the admin page.
+  const payload = await validateLicenseKeyForRefresh(licenseKey, publicKeys);
+  if (!payload) {
+    return deny();
+  }
+
+  // NOTE (GAP-260): per-`jti` denylist revocation — refusing a specifically
+  // revoked token lineage even when its customer's row is still active — lands
+  // with the GAP-260 jti-denylist (owner-gated, not yet built). Until then,
+  // row-level revocation is enforced by the active-row check below: a revoked
+  // or lapsed license has status != 'active', so no key is returned.
+
+  // Return the current stored key for an ACTIVE, non-deleted license row of the
+  // token's customerId, scoped to this deployment's Stripe mode (mirrors
+  // getUserLicenseKey in billing.ts). Any DB failure fails closed to the same
+  // 403 rather than leaking a distinguishable error.
+  try {
+    const [row] = await getClient()
+      .select({ licenseKey: licenses.licenseKey })
+      .from(licenses)
+      .where(
+        and(
+          eq(licenses.customerId, payload.customerId),
+          eq(licenses.status, 'active'),
+          isNull(licenses.deletedAt),
+          eq(licenses.mode, getConfiguredStripeMode()),
+        ),
+      )
+      .orderBy(desc(licenses.createdAt))
+      .limit(1);
+
+    if (!row?.licenseKey) {
+      return deny();
+    }
+
+    logger.info('License key refreshed', { customerId: payload.customerId, tier: payload.tier });
+    return c.json({ licenseKey: row.licenseKey }, 200);
+  } catch (err) {
+    logger.warn('License refresh failed during DB lookup  -  failing closed', {
+      error: err instanceof Error ? err.message : 'unknown',
+    });
+    return deny();
+  }
 });
 
 // GET /api/license/features  -  Public: list features per tier

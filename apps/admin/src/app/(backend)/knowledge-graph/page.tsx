@@ -177,7 +177,7 @@ function KnowledgeGraphExplorer() {
             className="rounded-lg border border-input bg-transparent px-2 py-1 text-sm text-foreground"
           />
           {pointInTime && (
-            <Button plain onClick={() => setPointInTime('')}>
+            <Button appearance="ghost" variant="neutral" onClick={() => setPointInTime('')}>
               Clear
             </Button>
           )}
@@ -436,11 +436,12 @@ function NodeDetailPane({
             <Button onClick={handleAnnotate} disabled={!annotationDraft.trim()}>
               Save annotation
             </Button>
-            <Button plain onClick={handleTogglePin}>
+            <Button appearance="ghost" variant="neutral" onClick={handleTogglePin}>
               {isPinned ? 'Unpin' : 'Pin'}
             </Button>
             <Button
-              outline
+              appearance="outline"
+              variant="neutral"
               onClick={handleFlush}
               disabled={!annotationDraft.trim() || flushStatus === 'flushing'}
             >

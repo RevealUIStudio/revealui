@@ -5,15 +5,15 @@
  * These components don't use React hooks and can be rendered on the server.
  */
 
+export { TouchTarget } from './components/_button-shared.js';
 // Layout Components - Server Safe
 export { AuthLayout, type AuthLayoutProps } from './components/auth-layout.js';
 export { BuiltWithRevealUI } from './components/BuiltWithRevealUI.js';
-// CVA Components - Server Safe.
-// `Button` is exported as `ButtonCVA` by package convention: the bare `Button`
-// name belongs to the headless/Catalyst button (see ./client), and the `*CVA`
-// suffix marks the styled, brand-token-driven button. `ButtonCVA` is the
-// canonical app button (marketing/admin/docs).
+// The owned action button (RSC-safe). `Button` is the sovereign export;
+// `ButtonCVA` is a deprecated alias kept for one minor. `TouchTarget` is the
+// shared 44px touch hit-area primitive.
 export {
+  Button,
   Button as ButtonCVA,
   type ButtonProps,
   buttonVariants,

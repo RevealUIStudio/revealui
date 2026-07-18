@@ -105,7 +105,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           if (plan) {
             navigateAfterAuthChange(`/account/billing?upgrade=${plan}`);
           } else {
-            navigateAfterAuthChange('/');
+            navigateAfterAuthChange('/welcome');
           }
         } else {
           setAwaitingVerification(true);
@@ -143,7 +143,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/');
+        navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome');
       }
     }
   };
@@ -181,7 +181,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           Didn&apos;t get it? Check your spam folder — the link can take a minute to arrive.
         </p>
         <Button
-          variant="outline"
+          appearance="outline"
+          variant="neutral"
           onClick={handleResendVerification}
           disabled={resendState === 'sending'}
           className="w-full"
@@ -220,7 +221,9 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           Each code can only be used once. Keep them somewhere safe.
         </p>
         <Button
-          onClick={() => navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/')}
+          onClick={() =>
+            navigateAfterAuthChange(plan ? `/account/billing?upgrade=${plan}` : '/welcome')
+          }
           className="w-full"
         >
           I&apos;ve saved my codes
@@ -326,7 +329,15 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             required
             className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[var(--tenant-brand,#2563eb)] accent-[var(--tenant-brand,#2563eb)]"
           />
-          <label htmlFor="tos" className="text-sm text-zinc-600 dark:text-zinc-400">
+          {/* The checkbox's accessible name comes from this sr-only label rather than
+           * wrapping the visible text in a <label>, because the visible text contains
+           * <Link> anchors: a <label> nesting interactive links is an a11y anti-pattern
+           * (ambiguous click target between the label's implicit toggle and the link's
+           * own navigation, and inconsistent accessible-name computation). */}
+          <label htmlFor="tos" className="sr-only">
+            Accept the Terms of Service and Privacy Policy
+          </label>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
             I agree to the{' '}
             <Link
               href="/legal/terms"
@@ -343,7 +354,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             >
               Privacy Policy
             </Link>
-          </label>
+          </span>
         </div>
 
         <Button type="submit" disabled={anyLoading || !tosAccepted} className="w-full">
@@ -357,7 +368,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             or
           </p>
           <Button
-            variant="outline"
+            appearance="outline"
+            variant="neutral"
             className="w-full justify-start gap-2"
             onClick={handlePasskeySignUp}
             disabled={anyLoading}

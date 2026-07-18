@@ -39,10 +39,10 @@ const story: ShowcaseStory = {
       </CardContent>
       {(props.showFooter as boolean) && (
         <CardFooter className="gap-2">
-          <Button variant="primary" size="sm">
+          <Button variant="brand" size="sm">
             Save
           </Button>
-          <Button variant="outline" size="sm">
+          <Button appearance="outline" variant="neutral" size="sm">
             Cancel
           </Button>
         </CardFooter>
@@ -102,8 +102,8 @@ const story: ShowcaseStory = {
     if (props.showFooter) {
       lines.push(
         '  <CardFooter>',
-        '    <Button variant="primary" size="sm">Save</Button>',
-        '    <Button variant="outline" size="sm">Cancel</Button>',
+        '    <Button variant="brand" size="sm">Save</Button>',
+        '    <Button appearance="outline" variant="neutral" size="sm">Cancel</Button>',
         '  </CardFooter>',
       );
     }

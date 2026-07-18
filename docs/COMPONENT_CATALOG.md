@@ -24,7 +24,7 @@ audience: developer
 4. [Navigation](#navigation) (7 components)
 5. [Feedback](#feedback) (8 components)
 6. [Layout](#layout) (5 components)
-7. [Headless Components](#headless-components) (5 components)
+7. [Headless Components](#headless-components) (4 components)
 8. [Utility & Brand](#utility--brand) (5 components)
 
 ### Core Components (@revealui/core)
@@ -174,16 +174,17 @@ import { Slot } from '@revealui/presentation/primitives'
 
 Interactive form input components.
 
-### Button (exported as `ButtonCVA`)
+### Button
 
-Brand-token-driven button with `variant`/`size` props; re-themes automatically with the active brand token (`--rvui-brand`). This is the canonical button used across the marketing, admin, and docs apps. Source: `Button.tsx`.
+The owned action button. Two orthogonal axes styled entirely from `--rvui-*` design tokens: `variant` is the semantic colour intent, `appearance` is the visual weight. Re-themes with the active brand token. This is the canonical button used across the marketing, admin, and docs apps. Source: `Button.tsx`.
 
-> Naming note (verified against `packages/presentation/src/components/index.ts`): this component is exported as **`ButtonCVA`**, not bare `Button`. The bare `Button` export resolves to a different, Catalyst-style `color`-prop button from `button-headless.tsx`. See [button-headless](#button-headless) below. This is an intentional package-wide `*CVA` naming convention, not a typo; importing `Button` when you want variant/size props is the most common integration mistake this catalog can prevent.
+> Naming note: `Button` is the sovereign export. `ButtonCVA` is a **deprecated alias** kept for one minor to ease 0.x consumers; migrate imports to `Button`. The former Catalyst-style `color`-prop button (`button-headless.tsx`) has been retired; its internal trigger role is now `DropdownTriggerButton`, composed by `Dropdown` and not part of the public surface.
 
 **Props:**
 ```typescript
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'destructive' | 'ghost' | 'link' | 'outline' | 'primary' | 'secondary'
+  variant?: 'brand' | 'neutral' | 'success' | 'warning' | 'danger'   // colour intent (default 'brand')
+  appearance?: 'solid' | 'outline' | 'ghost' | 'link'                 // visual weight (default 'solid')
   size?: 'default' | 'sm' | 'lg' | 'icon' | 'clear'
   asChild?: boolean
   isLoading?: boolean
@@ -192,14 +193,18 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 ```
 
-**Variants:**
-- `default` - Primary token-driven button
-- `destructive` - Destructive-token button for dangerous actions
-- `ghost` - Transparent button
-- `link` - Text link style
-- `outline` - Outlined button
-- `primary` - Primary accent (alias of `default`)
-- `secondary` - Secondary accent
+**Variants (colour intent):**
+- `brand` - Primary brand-token action (default)
+- `neutral` - Secondary / low-emphasis action
+- `success` - Positive / confirming action
+- `warning` - Cautionary action
+- `danger` - Destructive action
+
+**Appearances (visual weight):**
+- `solid` - Filled surface (default)
+- `outline` - Tokenised border, transparent surface
+- `ghost` - No surface, coloured ink, subtle hover fill
+- `link` - Text-link style, underline on hover
 
 **Sizes:**
 - `default` - h-11 px-4 py-2.5
@@ -208,26 +213,32 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 - `icon` - size-11 (square)
 - `clear` - No size styling
 
+**States:** native CSS pseudo-classes (`:hover` / `:active` / `:focus-visible` / `:disabled`); the focus ring is the `--ring` token. `isLoading` sets `disabled`, `aria-busy`, and `data-loading`. Interaction motion (press-scale, hover transition, shine sweep) collapses under `prefers-reduced-motion`.
+
 **Usage:**
 ```tsx
-import { Button as ButtonCVA } from '@revealui/presentation'
+import { Button } from '@revealui/presentation'
 
-<ButtonCVA variant="primary" size="lg">
+<Button variant="brand" size="lg">
   Click Me
-</ButtonCVA>
+</Button>
 
-<ButtonCVA variant="destructive" size="sm">
+<Button variant="danger" size="sm">
   Delete
-</ButtonCVA>
+</Button>
 
-<ButtonCVA variant="ghost" size="icon">
+<Button appearance="outline" variant="neutral">
+  Cancel
+</Button>
+
+<Button appearance="ghost" size="icon" aria-label="Search">
   <IconSearch />
-</ButtonCVA>
+</Button>
 
 // Render as child element
-<ButtonCVA asChild>
+<Button asChild>
   <a href="/link">Link Button</a>
-</ButtonCVA>
+</Button>
 ```
 
 ---
@@ -291,7 +302,7 @@ import { Link } from '@revealui/router'
 | `<LinkButton href="/x" external>…</LinkButton>` | `<a href="/x" target="_blank" rel="noopener noreferrer">…</a>` | same — `external` always opts out of provider |
 | `<LinkButton as={X} href="/x">…</LinkButton>` | `<X href="/x">…</X>` (per-instance override drops provider) | `<X href="/x">…</X>` |
 
-**Why use it instead of `<ButtonCVA asChild><Link/></ButtonCVA>`:** the asChild pattern is fragile (forgetting `asChild` produces `<button><a>` interactive-nesting violations), and per-instance Link wiring is repetitive across a CTA-heavy marketing surface. `LinkButton` collapses the two-component composition into a single primitive and lets one `LinkBehaviorProvider` at the app root wire every CTA in the tree.
+**Why use it instead of `<Button asChild><Link/></Button>`:** the asChild pattern is fragile (forgetting `asChild` produces `<button><a>` interactive-nesting violations), and per-instance Link wiring is repetitive across a CTA-heavy marketing surface. `LinkButton` collapses the two-component composition into a single primitive and lets one `LinkBehaviorProvider` at the app root wire every CTA in the tree.
 
 **Accessibility:**
 - Disabled anchors get `aria-disabled="true"` + `tabIndex={-1}` + `pointer-events: none` (anchor `href` preserved — semantics unchanged).
@@ -353,7 +364,7 @@ import { Textarea } from '@revealui/presentation'
 
 Native `<select>` wrapper (headless-styled). Renders a real `<select>` element, so native props (`defaultValue`, `<option>` children, etc.) work as expected.
 
-> Naming note (verified against `packages/presentation/src/components/index.ts`): the bare `Select` export resolves to `select-headless.tsx` (this entry). A separate Radix-style compound select (`Select`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectValue`, `SelectGroup`, `SelectLabel`, `SelectSeparator`) lives in `Select.tsx` and is exported as **`SelectCVA`**, following the same bare-name-vs-`*CVA` convention as `Button`/`ButtonCVA`.
+> Naming note (verified against `packages/presentation/src/components/index.ts`): the bare `Select` export resolves to `select-headless.tsx` (this entry). A separate Radix-style compound select (`Select`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectValue`, `SelectGroup`, `SelectLabel`, `SelectSeparator`) lives in `Select.tsx` and is exported as **`SelectCVA`**, following a bare-name-vs-`*CVA` convention. (Note: `Button` has reclaimed its bare name as the owned button, with `ButtonCVA` now a deprecated alias.)
 
 **Props:**
 ```typescript
@@ -570,29 +581,9 @@ Present in `packages/presentation/src/components/` but not yet given a full prop
 
 Unstyled, accessible components for custom styling.
 
-### button-headless
+### DropdownTriggerButton (internal)
 
-Catalyst-style button with its own `color` / `outline` / `plain` palette system (20 fixed color palettes). Used internally to compose `Dropdown`. **This is what the bare `Button` export resolves to.** See the naming note under [Button (exported as `ButtonCVA`)](#button) above.
-
-**Props:**
-```typescript
-type ButtonProps =
-  | { color?: <one of 20 fixed palette keys>; outline?: never; plain?: never }
-  | { color?: never; outline: true; plain?: never }
-  | { color?: never; outline?: never; plain: true }
-```
-`color`, `outline`, and `plain` are mutually exclusive (enforced at the type level).
-
-**Usage:**
-```tsx
-import { Button } from '@revealui/presentation'
-
-<Button color="dark/zinc">Save</Button>
-<Button outline>Cancel</Button>
-<Button plain>Dismiss</Button>
-```
-
-**Location:** `@revealui/presentation/components/button-headless`
+The internal trigger primitive that `Dropdown` composes. It renders a button (or an anchor when `href` is set), keeps the package's `data-*` interaction contract, and is styled entirely from design tokens (neutral surface, `--border` outline, `--ring` focus ring). It replaced the retired Catalyst-style `color`/`outline`/`plain` palette button. **Not part of the public surface** — use `Button` for actions and `DropdownButton` for a menu trigger. Source: `dropdown-trigger.tsx`.
 
 ---
 

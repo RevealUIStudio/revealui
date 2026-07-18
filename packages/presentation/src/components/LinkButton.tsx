@@ -4,14 +4,13 @@ import type React from 'react';
 import { type LinkBehavior, useLinkBehavior } from '../hooks/use-link-behavior.js';
 import { cn } from '../utils/cn.js';
 import {
-  buttonTransitionStyle,
   glowClasses,
   ShineOverlay,
   Spinner,
   shineHostClasses,
+  TouchTarget,
 } from './_button-shared.js';
 import { type ButtonProps, buttonVariants } from './Button.js';
-import { TouchTarget } from './button-headless.js';
 
 /**
  * LinkButton — a button-styled element that renders as an anchor by default,
@@ -28,16 +27,18 @@ import { TouchTarget } from './button-headless.js';
  * Per-instance override (escape hatch):
  *   <LinkButton as={MyLink} to="/x">…</LinkButton>
  *
- * Shares its visual contract (variants, sizes, spinner, glow, shine, transition)
- * with `Button` / `ButtonCVA` via `_button-shared.tsx`.
+ * Shares its visual contract (variant, appearance, size, spinner, glow, shine,
+ * transition) with `Button` via `_button-shared.tsx` and `buttonVariants`.
  */
 export interface LinkButtonOwnProps {
   /** URL the button navigates to. Required for normal usage; omit only when `as` provides its own URL prop. */
   href?: string;
   /** External link — adds `target="_blank" rel="noopener noreferrer"` and renders a native `<a>` regardless of provider. */
   external?: boolean;
-  /** Button variant (matches `Button` / `buttonVariants`). */
+  /** Semantic colour intent (matches `Button` / `buttonVariants`). */
   variant?: ButtonProps['variant'];
+  /** Visual weight (matches `Button` / `buttonVariants`). */
+  appearance?: ButtonProps['appearance'];
   /** Button size (matches `Button` / `buttonVariants`). */
   size?: ButtonProps['size'];
   /** Show a loading spinner and disable interaction. Sets `aria-busy="true"`. */
@@ -64,6 +65,7 @@ function LinkButton<T extends React.ElementType = 'a'>({
   href,
   external = false,
   variant,
+  appearance,
   size,
   isLoading = false,
   glow = false,
@@ -104,14 +106,13 @@ function LinkButton<T extends React.ElementType = 'a'>({
     ...externalAttrs,
     'aria-busy': isLoading || undefined,
     className: cn(
-      buttonVariants({ variant, size }),
+      buttonVariants({ variant, appearance, size }),
       glow && glowClasses,
       shine && shineHostClasses,
       interactionLockClass,
       opacityClass,
       className,
     ),
-    style: buttonTransitionStyle,
     ref,
     ...rest,
     ...disabledAttrs,

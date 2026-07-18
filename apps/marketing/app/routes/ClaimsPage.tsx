@@ -214,7 +214,9 @@ export function ClaimsPage() {
         </div>
       </nav>
 
-      <main className="px-6 py-4 lg:px-8">
+      {/* RootLayout already supplies the page's <main> landmark; use a div here
+       * to avoid nesting <main> elements (invalid HTML, duplicate a11y landmark). */}
+      <div className="px-6 py-4 lg:px-8">
         <div className="mx-auto max-w-3xl">
           {FILE_SECTIONS.map((section, i) => (
             <section
@@ -258,7 +260,7 @@ export function ClaimsPage() {
             </section>
           ))}
         </div>
-      </main>
+      </div>
 
       <section className="border-t border-border bg-muted/40 px-6 py-16 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-4">

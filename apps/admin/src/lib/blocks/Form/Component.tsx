@@ -279,7 +279,7 @@ export const FormBlock = memo(({ enableIntro, form, introContent }: Props) => {
                   return null;
                 })}
               </fieldset>
-              <Button form={formID} type="submit" variant="default">
+              <Button form={formID} type="submit" variant="brand">
                 {submitButtonLabel}
               </Button>
             </form>

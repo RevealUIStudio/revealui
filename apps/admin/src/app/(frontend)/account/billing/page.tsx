@@ -453,14 +453,15 @@ function BillingContent() {
           )}
 
           <div className="flex flex-col gap-2 border-t pt-4">
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild appearance="outline" variant="neutral" className="w-full">
               <Link href="/upgrade">Change plan →</Link>
             </Button>
             {tier !== 'free' && (
               <Button
                 onClick={handleManageBilling}
                 disabled={actionLoading}
-                variant="outline"
+                appearance="outline"
+                variant="neutral"
                 className="w-full"
               >
                 {actionLoading ? 'Opening portal...' : 'Manage billing & cancel'}

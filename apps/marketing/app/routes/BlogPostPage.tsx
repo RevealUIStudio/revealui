@@ -99,7 +99,7 @@ export function BlogPostPage() {
           <p className="mt-4 max-w-md text-base text-muted-foreground">
             That blog post does not exist or has been removed.
           </p>
-          <ButtonCVA asChild variant="primary" className="mt-8">
+          <ButtonCVA asChild variant="brand" className="mt-8">
             <a href="/blog">Back to Blog</a>
           </ButtonCVA>
         </section>
@@ -156,10 +156,10 @@ export function BlogPostPage() {
             minutes.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="primary">
+            <ButtonCVA asChild size="lg" variant="brand">
               <a href="https://admin.revealui.com/signup">Start free</a>
             </ButtonCVA>
-            <ButtonCVA asChild size="lg" variant="outline">
+            <ButtonCVA asChild size="lg" appearance="outline" variant="neutral">
               <a href="https://docs.revealui.com">Read the docs</a>
             </ButtonCVA>
           </div>

@@ -78,6 +78,9 @@ vi.mock('@revealui/core/features', () => ({
 vi.mock('@revealui/core/license', () => ({
   generateLicenseKey: vi.fn(),
   resetLicenseState: vi.fn(),
+  subscriptionLicenseExpiresInSeconds: vi.fn(() => 3600),
+  subscriptionExpBound: vi.fn(() => 9_999_999_999),
+  readLicenseExp: vi.fn(async () => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -424,6 +427,7 @@ describe('Webhook Lifecycle Complete', () => {
       expect(licenseModule.generateLicenseKey).toHaveBeenCalledWith(
         expect.objectContaining({ tier: 'max' }),
         expect.anything(),
+        expect.any(Number), // GAP-287 PR-2: period-bound expiresInSeconds
       );
     });
 

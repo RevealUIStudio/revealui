@@ -329,6 +329,7 @@ describe('enforceReadOnlyWrites (GAP-310)', () => {
       '/api/billing/checkout-support-renewal',
       '/api/auth/signin',
       '/api/license/verify',
+      '/api/license/refresh',
       '/api/webhooks/stripe',
     ]) {
       const res = await app.request(path, { method: 'POST' });

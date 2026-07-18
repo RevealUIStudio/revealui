@@ -3,6 +3,10 @@
 import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
+// global-error.tsx replaces the root layout on error, so it renders outside every
+// route group and gets none of their CSS. Reuse (backend)'s Tailwind entry (tailwindcss
+// + tokens.css + the cobalt @theme bridge) so the branded classes below actually resolve.
+import './(backend)/custom.css';
 
 export default function GlobalError({
   error,
@@ -41,21 +45,35 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body>
-        <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-          <h2>Something went wrong!</h2>
-          <p>We apologize for the inconvenience. Please try again.</p>
+      <body className="bg-background text-foreground">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-5 p-8 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
+            <svg
+              className="size-7 text-destructive"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Something went wrong</h2>
+          <p className="max-w-md text-sm text-muted-foreground">
+            We apologize for the inconvenience. Our team has been notified. Please try again.
+          </p>
           {error?.digest && (
-            <p style={{ fontSize: '12px', color: '#666' }}>Error ID: {error.digest}</p>
+            <p className="font-mono text-xs text-muted-foreground">Error ID: {error.digest}</p>
           )}
           <button
-            onClick={() => reset()}
-            style={{
-              marginTop: '10px',
-              padding: '10px 20px',
-              cursor: 'pointer',
-            }}
             type="button"
+            onClick={() => reset()}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Try again
           </button>

@@ -13,7 +13,7 @@ function DialogDemo(props: Record<string, unknown>) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="primary" onClick={() => setOpen(true)}>
+      <Button variant="brand" onClick={() => setOpen(true)}>
         Open Dialog
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} size={props.size as 'lg'}>
@@ -25,10 +25,10 @@ function DialogDemo(props: Record<string, unknown>) {
           </p>
         </DialogBody>
         <DialogActions>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button appearance="outline" variant="neutral" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => setOpen(false)}>
+          <Button variant="brand" onClick={() => setOpen(false)}>
             Confirm
           </Button>
         </DialogActions>
@@ -68,7 +68,7 @@ const story: ShowcaseStory = {
           const [open, setOpen] = useState(false);
           return (
             <>
-              <Button variant="destructive" onClick={() => setOpen(true)}>
+              <Button variant="danger" onClick={() => setOpen(true)}>
                 Delete Item
               </Button>
               <Dialog open={open} onClose={() => setOpen(false)} size="sm">
@@ -77,10 +77,10 @@ const story: ShowcaseStory = {
                   This will permanently remove the item from your account.
                 </DialogDescription>
                 <DialogActions>
-                  <Button variant="outline" onClick={() => setOpen(false)}>
+                  <Button appearance="outline" variant="neutral" onClick={() => setOpen(false)}>
                     Keep it
                   </Button>
-                  <Button variant="destructive" onClick={() => setOpen(false)}>
+                  <Button variant="danger" onClick={() => setOpen(false)}>
                     Delete
                   </Button>
                 </DialogActions>
@@ -103,8 +103,8 @@ const story: ShowcaseStory = {
       `    <p>${props.body}</p>`,
       '  </DialogBody>',
       '  <DialogActions>',
-      '    <Button variant="outline" onClick={onClose}>Cancel</Button>',
-      '    <Button variant="primary" onClick={onConfirm}>Confirm</Button>',
+      '    <Button appearance="outline" variant="neutral" onClick={onClose}>Cancel</Button>',
+      '    <Button variant="brand" onClick={onConfirm}>Confirm</Button>',
       '  </DialogActions>',
       '</Dialog>',
     ].join('\n');

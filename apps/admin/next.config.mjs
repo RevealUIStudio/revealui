@@ -156,24 +156,40 @@ const nextConfig = {
     ]
   },
   async rewrites() {
-    // GAP-360 §5.5: the admin Run / Watch-live UI POSTs same-origin to
-    // /api/agent-stream and /api/agent-stream/elicit, but those handlers live
-    // on the API host, not the admin app, so the calls 404 without a proxy.
-    // Rewrite them to the API host so the request stays same-origin (the
-    // CSRF/cookie/CORS posture is untouched) and the SSE stream is proxied
-    // through. When NEXT_PUBLIC_SERVER_URL is unset (single-origin dev), no
-    // rewrite is added so nothing loops back on itself.
-    let serverUrl = process.env.NEXT_PUBLIC_SERVER_URL
-    if (!serverUrl) return []
-    while (serverUrl.endsWith('/')) serverUrl = serverUrl.slice(0, -1)
+    // The admin Run / Watch-live UI POSTs same-origin to /api/agent-stream and
+    // /api/agent-stream/elicit, but those handlers live on the API host, not
+    // the admin app, so the calls 404 without a proxy. Rewrite them to the API
+    // host so the request stays same-origin (the CSRF/cookie/CORS posture is
+    // untouched) and the SSE stream is proxied through.
+    //
+    // The destination is NEXT_PUBLIC_API_URL (the API host, e.g.
+    // https://api.revealui.com), NOT NEXT_PUBLIC_SERVER_URL: fleet-wide,
+    // SERVER_URL means the admin app's OWN origin (proxy.ts, the license
+    // domain binding, and the revvault sync manifests all bind it that way),
+    // so pointing the rewrite at it made the proxy rewrite to itself and
+    // every hosted call died with a 508 rewrite loop. When NEXT_PUBLIC_API_URL
+    // is unset (single-origin dev), no rewrite is added.
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL
+    if (!apiUrl) return []
+    while (apiUrl.endsWith('/')) apiUrl = apiUrl.slice(0, -1)
+    // Self-origin guard: if the configured API host IS this admin origin, a
+    // rewrite would loop (the 508 failure mode above). Fail loud and skip.
+    let selfUrl = process.env.NEXT_PUBLIC_SERVER_URL?.trim() ?? ''
+    while (selfUrl.endsWith('/')) selfUrl = selfUrl.slice(0, -1)
+    if (selfUrl && apiUrl === selfUrl) {
+      console.error(
+        `agent-stream rewrite disabled: NEXT_PUBLIC_API_URL (${apiUrl}) equals the admin origin; a rewrite would loop (508). Point NEXT_PUBLIC_API_URL at the API host.`,
+      )
+      return []
+    }
     return [
       {
         source: '/api/agent-stream',
-        destination: `${serverUrl}/api/agent-stream`,
+        destination: `${apiUrl}/api/agent-stream`,
       },
       {
         source: '/api/agent-stream/:path*',
-        destination: `${serverUrl}/api/agent-stream/:path*`,
+        destination: `${apiUrl}/api/agent-stream/:path*`,
       },
     ]
   },

@@ -71,6 +71,9 @@ vi.mock('@revealui/core/features', () => ({
 vi.mock('@revealui/core/license', () => ({
   generateLicenseKey: vi.fn(),
   resetLicenseState: vi.fn(),
+  subscriptionLicenseExpiresInSeconds: vi.fn(() => 3600),
+  subscriptionExpBound: vi.fn(() => 9_999_999_999),
+  readLicenseExp: vi.fn(async () => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -999,6 +1002,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
       expect(vi.mocked(licenseModule.generateLicenseKey)).toHaveBeenCalledWith(
         expect.any(Object),
         'BEGIN\nMIDDLE\nEND',
+        expect.any(Number), // GAP-287 PR-2: period-bound expiresInSeconds
       );
     });
   });

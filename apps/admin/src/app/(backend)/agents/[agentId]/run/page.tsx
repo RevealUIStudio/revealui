@@ -96,7 +96,7 @@ export default function AgentRunPage({ params }: PageProps) {
               </Field>
               <div className="flex-1" />
               {!stream.isStreaming && (
-                <ButtonCVA type="submit" disabled={!instruction.trim()} variant="default" size="sm">
+                <ButtonCVA type="submit" disabled={!instruction.trim()} variant="brand" size="sm">
                   Start agent
                 </ButtonCVA>
               )}
@@ -104,7 +104,8 @@ export default function AgentRunPage({ params }: PageProps) {
                 <ButtonCVA
                   type="button"
                   onClick={stream.abort}
-                  variant="outline"
+                  appearance="outline"
+                  variant="neutral"
                   size="sm"
                   className="border-error/30 bg-error/10 text-error hover:bg-error/15"
                 >
@@ -112,7 +113,7 @@ export default function AgentRunPage({ params }: PageProps) {
                 </ButtonCVA>
               )}
               {!stream.isStreaming && stream.chunks.length > 0 && (
-                <ButtonCVA type="button" onClick={stream.reset} variant="ghost" size="sm">
+                <ButtonCVA type="button" onClick={stream.reset} appearance="ghost" size="sm">
                   Clear
                 </ButtonCVA>
               )}

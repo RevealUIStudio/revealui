@@ -105,6 +105,18 @@ export function parseArgs(argv: readonly string[]): {
 // Generous exoneration: better to miss a stale reference than flag a
 // correct historical one — a noisy gate gets disabled, and the value here
 // comes from the gate existing and catching new drift, not zero misses.
+//
+// These are the SHARED FLEET FACTS: retired/renamed facts that can surface in
+// any repo's prose. Their DETECTION tuples (anyOf + unlessLineHas) are kept in
+// lockstep with the private sibling scanner at
+// .jv/scripts/doc-currency-check.ts §SHARED_FLEET_RULES. Messages may carry
+// repo-appropriate citations; only the detection must match — with one
+// carve-out: `retired-suite-path` carries only the username-free `~/suite/`
+// form here (see its comment), because gate:security forbids hardcoded local
+// paths in public code. This public
+// scanner has no repo-specific rules — the .jv scanner adds `boi-mandatory`,
+// which is internal legal posture with no public surface. See the .jv
+// doc-currency rule §lockstep.
 // ---------------------------------------------------------------------------
 
 /** Shared past-tense / correction markers — if any appears alongside the
@@ -186,7 +198,7 @@ export const STRIPE_LIVE_EXON: readonly string[] = [
   'were ',
 ];
 
-export const RULES: readonly Rule[] = [
+const SHARED_FLEET_RULES: readonly Rule[] = [
   {
     id: 'revealcoin-as-current',
     anyOf: ['revealcoin', 'rvc ', '$rvc', '$rvui', 'rvui-payment', 'rvui payment'],
@@ -297,7 +309,27 @@ export const RULES: readonly Rule[] = [
     message:
       'RevealUI Max is $299/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 as the current Max price.',
   },
+  {
+    // Retired developer path. `~/suite/` was renamed to `~/revfleet/` on
+    // 2026-05-08; a doc presenting `~/suite/` as a live path is stale. Fleet
+    // fact — kept in lockstep with the .jv scanner's retired-suite-path, EXCEPT
+    // this public scanner carries only the username-free `~/suite/` form. The
+    // absolute (`/home/<user>/suite/`) and WSL-UNC forms embed a developer
+    // username, which gate:security's local-path-leak check forbids in public
+    // code, so those two anyOf terms stay .jv-only. `~/suite/` is the form that
+    // actually appears in public docs anyway.
+    id: 'retired-suite-path',
+    anyOf: ['~/suite/'],
+    unlessLineHas: [...COMMON_EXON, 'now ~/revfleet', 'renamed'],
+    message: 'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
+  },
 ];
+
+/** The public revealui scanner enforces the SHARED fleet-fact set only; it has
+ *  no repo-specific rules (the private .jv scanner adds `boi-mandatory`, which
+ *  has no public surface). Kept in lockstep with
+ *  .jv/scripts/doc-currency-check.ts §SHARED_FLEET_RULES. */
+export const RULES: readonly Rule[] = SHARED_FLEET_RULES;
 
 // ---------------------------------------------------------------------------
 // Shared matching helpers

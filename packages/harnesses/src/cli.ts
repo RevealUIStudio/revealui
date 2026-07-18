@@ -461,7 +461,7 @@ async function main() {
         const gateway = coordinator.getHttpGateway();
         process.stdout.write(`✓ HTTP gateway listening on ${httpHost ?? '0.0.0.0'}:${httpPort}\n`);
         if (gateway) {
-          process.stdout.write(`✓ Pairing code: ${gateway.getPairingCode()}\n`);
+          process.stdout.write(`✓ Bootstrap pairing secret: ${gateway.getSecretPath()}\n`);
         }
       }
 

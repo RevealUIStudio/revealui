@@ -19,10 +19,10 @@ function DrawerDemo(props: Record<string, unknown>) {
           </p>
         </DrawerBody>
         <DrawerFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button appearance="outline" variant="neutral" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => setOpen(false)}>
+          <Button variant="brand" onClick={() => setOpen(false)}>
             Save
           </Button>
         </DrawerFooter>
@@ -55,7 +55,7 @@ const story: ShowcaseStory = {
         const [open, setOpen] = useState(false);
         return (
           <>
-            <Button variant="outline" onClick={() => setOpen(true)}>
+            <Button appearance="outline" variant="neutral" onClick={() => setOpen(true)}>
               Menu
             </Button>
             <Drawer open={open} onClose={() => setOpen(false)} side="left">

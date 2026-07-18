@@ -35,6 +35,22 @@ export {
   signAuditEntry,
   verifyAuditEntry,
 } from './audit.js';
+// Per-row Ed25519 audit signing (GAP-355 Stage 3 — node:crypto)
+export type {
+  AuditRowSigner,
+  AuditSignable,
+  AuditSignatureKind,
+  Ed25519VerifyResult,
+  PublicKeyResolver,
+} from './audit-signing.js';
+export {
+  auditSignableBytes,
+  auditTimestampString,
+  classifyAuditSignature,
+  Ed25519AuditRowSigner,
+  verifyAuditRow,
+  verifyEd25519AuditSignature,
+} from './audit-signing.js';
 export type { AuditWriteFailureReason } from './audit-write-failures.js';
 export {
   classifyAuditWriteFailure,

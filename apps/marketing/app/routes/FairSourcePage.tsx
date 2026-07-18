@@ -39,7 +39,7 @@ export function FairSourcePage() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl"
+          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--rvui-brand-glow),transparent_70%)] blur-2xl"
         />
 
         <div className="relative mx-auto max-w-3xl text-center">
@@ -87,7 +87,7 @@ export function FairSourcePage() {
                 className={`rounded-2xl p-6 ring-1 transition ${
                   c.kind === 'yes'
                     ? 'bg-primary/10 ring-primary/20'
-                    : 'bg-amber-50/40 ring-amber-200'
+                    : 'bg-amber-500/15 ring-amber-500/30'
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -107,7 +107,7 @@ export function FairSourcePage() {
                     </svg>
                   ) : (
                     <svg
-                      className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-700"
+                      className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-800 dark:text-amber-200"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       aria-hidden="true"
@@ -323,10 +323,10 @@ export function FairSourcePage() {
           </h2>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">{FAIR_SOURCE_CTA.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="primary">
+            <ButtonCVA asChild size="lg" variant="brand">
               <a href={FAIR_SOURCE_CTA.primaryHref}>{FAIR_SOURCE_CTA.primaryLabel}</a>
             </ButtonCVA>
-            <ButtonCVA asChild variant="outline" size="lg">
+            <ButtonCVA asChild appearance="outline" variant="neutral" size="lg">
               <a href={FAIR_SOURCE_CTA.secondaryHref}>{FAIR_SOURCE_CTA.secondaryLabel}</a>
             </ButtonCVA>
           </div>

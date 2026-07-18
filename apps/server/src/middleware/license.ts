@@ -150,6 +150,10 @@ const READ_ONLY_EXEMPT: readonly string[] = [
   '/api/v1/license/verify',
   '/api/license/features',
   '/api/v1/license/features',
+  // License refresh — a read-only-mode customer fetching their current stored
+  // key is exactly the escape-hatch class this set exists for (GAP-287 PR-1).
+  '/api/license/refresh',
+  '/api/v1/license/refresh',
   // Machine webhooks (Stripe etc.). Renewal settles here — never block a machine write.
   '/api/webhooks/',
   '/api/v1/webhooks/',

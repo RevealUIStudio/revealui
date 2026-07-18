@@ -77,8 +77,8 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 
 ## Charge-readiness state (M11)
 
-- Production runs Stripe in TEST mode; the `STRIPE_LIVE_MODE` flip is owner-gated on the billing-readiness audit closing.
-- Pro-package gates are being removed via Path A: drop fake `checkXLicense` calls; normalize to FSL-1.1-MIT. Customers pay for hosted infra + support, not enforcement. Tracked in the internal hub master plan.
+- `STRIPE_LIVE_MODE` was flipped on 2026-06-26 (owner action); production runs Stripe in live mode. First sale remains gated on the live acceptance walk, tracked in the internal hub.
+- Pro-package gates were removed via Path A: fake `checkXLicense` calls dropped; packages normalized to FSL-1.1-MIT. Customers pay for hosted infra + support, not enforcement.
 
 ---
 

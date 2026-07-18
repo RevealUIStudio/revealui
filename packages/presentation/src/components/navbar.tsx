@@ -5,7 +5,7 @@ import { useId } from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { LayoutGroup, LayoutIndicator } from '../hooks/use-layout-animation.js';
 import { cn } from '../utils/cn.js';
-import { TouchTarget } from './button-headless.js';
+import { TouchTarget } from './_button-shared.js';
 import { Link } from './link.js';
 
 export function Navbar({ className, ...props }: React.ComponentPropsWithoutRef<'nav'>) {
