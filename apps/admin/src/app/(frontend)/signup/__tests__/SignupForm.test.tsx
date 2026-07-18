@@ -96,7 +96,7 @@ describe('SignupForm post-signup routing', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('sends an auto-verified (first) user straight in', async () => {
+  it('sends an auto-verified (first) free-tier user to /welcome, not the cold dashboard', async () => {
     vi.stubGlobal(
       'fetch',
       vi
@@ -109,7 +109,7 @@ describe('SignupForm post-signup routing', () => {
     fillAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/welcome');
     });
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.queryByText('Check your inbox')).not.toBeInTheDocument();
@@ -137,7 +137,7 @@ describe('SignupForm post-signup routing', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('ignores an unknown ?plan= value and routes home', async () => {
+  it('ignores an unknown ?plan= value and routes to /welcome as a free-tier signup', async () => {
     mockPlanParam = 'enterprise-deluxe';
     vi.stubGlobal(
       'fetch',
@@ -151,7 +151,7 @@ describe('SignupForm post-signup routing', () => {
     fillAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/welcome');
     });
     expect(mockPush).not.toHaveBeenCalled();
   });
