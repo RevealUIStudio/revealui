@@ -12,7 +12,12 @@ import {
   PRODUCTS_STATS_SECTION,
   type ProductStatus,
 } from '../content/products';
-import { PRODUCTS_FALLBACK_BLOCKS, productsCtaSlot, productsHeroSlot } from '../lib/page-blocks';
+import {
+  PRODUCTS_FALLBACK_BLOCKS,
+  productsCtaSlot,
+  productsFaqSlot,
+  productsHeroSlot,
+} from '../lib/page-blocks';
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
 // Annotation is inactive in this slice; the editor-canvas slice activates it.
@@ -36,6 +41,7 @@ export function ProductsPage() {
     f === 'All' ? PRODUCTS_SISTERS.length : PRODUCTS_SISTERS.filter((p) => p.status === f).length;
   const blocks = useMarketingPageBlocks('products', PRODUCTS_FALLBACK_BLOCKS);
   const hero = productsHeroSlot(blocks);
+  const faq = productsFaqSlot(blocks);
   const cta = productsCtaSlot(blocks);
   return (
     <div className="min-h-screen bg-background">
@@ -312,7 +318,7 @@ export function ProductsPage() {
       <Proof />
 
       {/* FAQ — handle licensing / self-host / production-ready objections */}
-      <Faq />
+      <Faq data={faq.data} path={faq.path} annotation={INACTIVE_ANNOTATION} />
 
       {/* CTA */}
       <ProductsCta data={cta.data} path={cta.path} annotation={INACTIVE_ANNOTATION} />

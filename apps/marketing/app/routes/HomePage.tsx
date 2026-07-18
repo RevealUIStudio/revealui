@@ -23,6 +23,8 @@ import {
   type GetStartedData,
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
+  type PrimitivesData,
+  primitivesSlot,
 } from '../lib/page-blocks';
 import { useAudienceHead } from '../lib/use-audience-head';
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
@@ -47,17 +49,18 @@ const INACTIVE_ANNOTATION: BlockAnnotation = { editable: false };
  */
 interface TechnicalLandingProps {
   demo: BlockSlot<DemoData>;
+  primitives: BlockSlot<PrimitivesData>;
   getStarted: BlockSlot<GetStartedData>;
   annotation: BlockAnnotation;
 }
 
-function TechnicalLanding({ demo, getStarted, annotation }: TechnicalLandingProps) {
+function TechnicalLanding({ demo, primitives, getStarted, annotation }: TechnicalLandingProps) {
   return (
     <>
       <Hero />
       <Problem />
       <Demo data={demo.data} path={demo.path} annotation={annotation} />
-      <Primitives />
+      <Primitives data={primitives.data} path={primitives.path} annotation={annotation} />
       <Proof />
       <PricingTeaser />
       <GetStarted data={getStarted.data} path={getStarted.path} annotation={annotation} />
@@ -96,13 +99,19 @@ export function HomePage() {
   useAudienceHead(audience);
   const blocks = useMarketingPageBlocks('home', HOME_FALLBACK_BLOCKS);
   const demo = demoSlot(blocks);
+  const primitives = primitivesSlot(blocks);
   const getStarted = getStartedSlot(blocks);
   return (
     <div className="min-h-screen bg-background">
       {audience === 'non-technical' ? (
         <NonTechnicalLanding />
       ) : (
-        <TechnicalLanding demo={demo} getStarted={getStarted} annotation={INACTIVE_ANNOTATION} />
+        <TechnicalLanding
+          demo={demo}
+          primitives={primitives}
+          getStarted={getStarted}
+          annotation={INACTIVE_ANNOTATION}
+        />
       )}
     </div>
   );
