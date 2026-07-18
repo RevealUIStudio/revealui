@@ -5,7 +5,7 @@ import type { ProductsCtaData } from '../../lib/page-blocks';
 export interface ProductsCtaProps {
   /** Rich CTA data; defaults to the static content module (byte-identical). */
   data?: ProductsCtaData;
-  /** Dot-path base of this block within the page array, e.g. `blocks.1`. */
+  /** Dot-path of this block's data object within the page array, e.g. `blocks.1.data`. */
   path?: string;
   /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
   annotation?: BlockAnnotation;
@@ -13,7 +13,7 @@ export interface ProductsCtaProps {
 
 export function ProductsCta({
   data = PRODUCTS_CTA_SECTION,
-  path = 'blocks.1',
+  path = 'blocks.1.data',
   annotation = {},
 }: ProductsCtaProps) {
   return (

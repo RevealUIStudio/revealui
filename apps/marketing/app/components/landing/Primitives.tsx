@@ -28,7 +28,7 @@ const primitiveStyles = HOME_PRIMITIVES.map((p) => ({ color: p.color, iconPath: 
 export interface PrimitivesProps {
   /** Rich section data; defaults to the static content modules (byte-identical). */
   data?: PrimitivesData;
-  /** Dot-path base of this block within the page array, e.g. `blocks.1`. */
+  /** Dot-path of this block's data object within the page array, e.g. `blocks.1.data`. */
   path?: string;
   /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
   annotation?: BlockAnnotation;
@@ -36,7 +36,7 @@ export interface PrimitivesProps {
 
 export function Primitives({
   data = PRIMITIVES_FALLBACK_DATA,
-  path = 'blocks.1',
+  path = 'blocks.1.data',
   annotation = {},
 }: PrimitivesProps) {
   return (

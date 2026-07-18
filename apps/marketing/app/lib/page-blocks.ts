@@ -295,48 +295,54 @@ export const PRIMITIVES_FALLBACK_DATA: PrimitivesData = sectionToPrimitives(home
 
 export interface BlockSlot<T> {
   readonly data: T;
-  /** Dot-path base of this block within the array, e.g. `blocks.0`. */
+  /**
+   * Dot-path of this block's DATA object within the array, e.g. `blocks.0.data`
+   * (not `blocks.0`  -  every field a block component addresses via
+   * `fieldAttrs` lives under `block.data.*`, per the canonical `Block` shape;
+   * a path stopping at the block index would land a patch as a sibling of
+   * `data` instead of inside it).
+   */
   readonly path: string;
 }
 
 export function demoSlot(blocks: Block[]): BlockSlot<DemoData> {
   const block = blocks[HOME_DEMO_INDEX];
-  const path = `blocks.${HOME_DEMO_INDEX}`;
+  const path = `blocks.${HOME_DEMO_INDEX}.data`;
   if (block && block.type === 'section') return { data: sectionToDemo(block), path };
   return { data: sectionToDemo(homeDemoBlock()), path };
 }
 
 export function primitivesSlot(blocks: Block[]): BlockSlot<PrimitivesData> {
   const block = blocks[HOME_PRIMITIVES_INDEX];
-  const path = `blocks.${HOME_PRIMITIVES_INDEX}`;
+  const path = `blocks.${HOME_PRIMITIVES_INDEX}.data`;
   if (block && block.type === 'section') return { data: sectionToPrimitives(block), path };
   return { data: sectionToPrimitives(homePrimitivesBlock()), path };
 }
 
 export function getStartedSlot(blocks: Block[]): BlockSlot<GetStartedData> {
   const block = blocks[HOME_GET_STARTED_INDEX];
-  const path = `blocks.${HOME_GET_STARTED_INDEX}`;
+  const path = `blocks.${HOME_GET_STARTED_INDEX}.data`;
   if (block && block.type === 'ctaSection') return { data: ctaToGetStarted(block), path };
   return { data: ctaToGetStarted(homeGetStartedBlock()), path };
 }
 
 export function productsHeroSlot(blocks: Block[]): BlockSlot<ProductsHeroData> {
   const block = blocks[PRODUCTS_HERO_INDEX];
-  const path = `blocks.${PRODUCTS_HERO_INDEX}`;
+  const path = `blocks.${PRODUCTS_HERO_INDEX}.data`;
   if (block && block.type === 'hero') return { data: heroToProductsHero(block), path };
   return { data: heroToProductsHero(productsHeroBlock()), path };
 }
 
 export function productsFaqSlot(blocks: Block[]): BlockSlot<FaqData> {
   const block = blocks[PRODUCTS_FAQ_INDEX];
-  const path = `blocks.${PRODUCTS_FAQ_INDEX}`;
+  const path = `blocks.${PRODUCTS_FAQ_INDEX}.data`;
   if (block && block.type === 'section') return { data: sectionToFaq(block), path };
   return { data: sectionToFaq(productsFaqBlock()), path };
 }
 
 export function productsCtaSlot(blocks: Block[]): BlockSlot<ProductsCtaData> {
   const block = blocks[PRODUCTS_CTA_INDEX];
-  const path = `blocks.${PRODUCTS_CTA_INDEX}`;
+  const path = `blocks.${PRODUCTS_CTA_INDEX}.data`;
   if (block && block.type === 'ctaSection') return { data: ctaToProductsCta(block), path };
   return { data: ctaToProductsCta(productsCtaBlock()), path };
 }

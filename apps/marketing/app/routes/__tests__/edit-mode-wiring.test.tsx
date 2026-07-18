@@ -85,7 +85,7 @@ describe('marketing pages: edit-mode wiring', () => {
     ]);
 
     const { container } = renderRouted(<HomePage />);
-    const heading = container.querySelector('[data-rvui-field="blocks.0.heading"]');
+    const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
     expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
     expect(heading?.textContent).toBe('Canvas-edited demo heading');
   });
@@ -105,7 +105,7 @@ describe('marketing pages: edit-mode wiring', () => {
     ]);
 
     const { container } = renderRouted(<ProductsPage />);
-    const title = container.querySelector('[data-rvui-field="blocks.0.title"]');
+    const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
     expect(title?.getAttribute('data-rvui-doc')).toBe('page-products-id');
     expect(title?.textContent).toBe('Canvas-edited hero title');
   });
@@ -125,7 +125,7 @@ describe('marketing pages: edit-mode wiring', () => {
       ]);
     });
 
-    const heading = container.querySelector('[data-rvui-field="blocks.0.heading"]');
+    const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
     expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
     expect(heading?.textContent).toBe('Optimistically re-rendered heading');
   });
@@ -143,7 +143,7 @@ describe('marketing pages: edit-mode wiring', () => {
     expect(container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
 
     await waitFor(() => {
-      const heading = container.querySelector('[data-rvui-field="blocks.0.heading"]');
+      const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
       expect(heading?.getAttribute('data-rvui-doc')).toBe('page-home-id');
     });
   });

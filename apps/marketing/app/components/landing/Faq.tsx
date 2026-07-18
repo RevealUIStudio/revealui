@@ -5,13 +5,13 @@ import type { FaqData } from '../../lib/page-blocks';
 export interface FaqProps {
   /** Rich FAQ data; defaults to the static content module (byte-identical). */
   data?: FaqData;
-  /** Dot-path base of this block within the page array, e.g. `blocks.1`. */
+  /** Dot-path of this block's data object within the page array, e.g. `blocks.1.data`. */
   path?: string;
   /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
   annotation?: BlockAnnotation;
 }
 
-export function Faq({ data = HOME_FAQ, path = 'blocks.1', annotation = {} }: FaqProps) {
+export function Faq({ data = HOME_FAQ, path = 'blocks.1.data', annotation = {} }: FaqProps) {
   return (
     <section id="faq" className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
