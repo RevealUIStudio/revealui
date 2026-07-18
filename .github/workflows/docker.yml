@@ -10,6 +10,13 @@ name: Build & Push Forge Docker Images
 #   - :v<version> (if a version input is provided)
 # Each image also gets SLSA provenance + SBOM attestations pushed to GHCR
 # (supply-chain parity with the npm --provenance release flow).
+#
+# PR runs (GAP-328 work item 2): pull_request builds are verification-only —
+# no GHCR login, no push, no provenance/SBOM. The pull_request trigger carries
+# no path filter on purpose: the Build server/admin/migrate contexts are
+# REQUIRED checks, and a workflow-level path filter would leave unrelated PRs
+# stuck on "Expected". Path scoping happens in the `changes` job instead; a
+# skipped build job satisfies the required check.
 
 on:
   push:
@@ -42,6 +49,8 @@ on:
       - turbo.json
       - .github/workflows/docker.yml
       - .github/actions/setup-pnpm-node/**
+  pull_request:
+    branches: [test, main]
   workflow_dispatch:
     inputs:
       version:
@@ -54,16 +63,61 @@ permissions:
   packages: write
 
 concurrency:
-  group: docker-forge
-  cancel-in-progress: false
+  # Per-ref groups so PR verification builds don't queue behind branch pushes.
+  # Pushes keep cancel-in-progress off (never kill a half-published matrix);
+  # superseded PR builds are safe to cancel.
+  group: docker-forge-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/revealuistudio
 
 jobs:
+  # PR-only path scoping. Push events keep the workflow-level `paths:` filter;
+  # PR events always run this cheap job, and the build matrix is skipped when
+  # the diff touches nothing in the image build graph (a skipped job still
+  # satisfies the required Build server/admin/migrate checks).
+  changes:
+    name: Detect image-relevant changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docker: ${{ steps.diff.outputs.docker }}
+    steps:
+      - name: Checkout
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Diff against the PR base
+        id: diff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "docker=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          docker=false
+          while IFS= read -r f; do
+            # Keep this prefix list in lockstep with the on.push.paths filter.
+            case "$f" in
+              apps/admin/*|apps/server/*|packages/ai/*|packages/auth/*|packages/cache/*|packages/config/*|packages/contracts/*|packages/core/*|packages/db/*|packages/dev/*|packages/mcp/*|packages/openapi/*|packages/paywall/*|packages/presentation/*|packages/resilience/*|packages/router/*|packages/security/*|packages/services/*|packages/setup/*|packages/sync/*|packages/tokens/*|packages/utils/*|package.json|pnpm-lock.yaml|turbo.json|.github/workflows/docker.yml|.github/actions/setup-pnpm-node/*)
+                docker=true
+                break
+                ;;
+            esac
+          done < <(git diff --name-only "$BASE_SHA"...HEAD)
+          echo "docker=$docker" >> "$GITHUB_OUTPUT"
+
   build-and-push:
     name: Build ${{ matrix.app }}
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.docker == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -93,6 +147,7 @@ jobs:
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           registry: ${{ env.REGISTRY }}
@@ -117,12 +172,13 @@ jobs:
           # Empty for server/admin (builds the final `runner` stage); `migrate`
           # for the one-shot migrate image. Empty target = final stage.
           target: ${{ matrix.target }}
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # Supply-chain parity with npm provenance: push SLSA provenance + SBOM
-          # attestations to GHCR alongside each image.
-          provenance: mode=max
-          sbom: true
+          # attestations to GHCR alongside each image. PR verification builds
+          # skip both (nothing is published).
+          provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
+          sbom: ${{ github.event_name != 'pull_request' }}
