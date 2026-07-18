@@ -13,6 +13,14 @@
  *
  * Click delegation reports edit intents (`rvui:click`); inbound `rvui:apply-patch`
  * updates the draft and re-invokes the host callback for optimistic re-render.
+ *
+ * A doc can be targeted by `rvui:apply-patch` before it exists in the local
+ * `docs` array: a fresh session's initial preview fetch returns `docs: []`
+ * (the session server only materializes a doc on its first field PATCH), so
+ * the FIRST patch to a page always targets a docId the runtime hasn't seen
+ * yet. On that miss, the runtime re-fetches the preview payload once (shared
+ * across any concurrent misses, see `ensureDocsRefetched`) to pick up the
+ * newly materialized doc, then retries the patch instead of dropping it.
  */
 
 import {
@@ -104,6 +112,35 @@ function isValidPayload(body: unknown): body is Required<PreviewResponse> {
 }
 
 /**
+ * Fetch + validate the session's read-only preview payload. Returns `null` on
+ * any transport error, non-OK response, or shape mismatch (never throws).
+ */
+async function fetchPreviewPayload(
+  apiBaseUrl: string,
+  sessionId: string,
+  token: string,
+): Promise<Required<PreviewResponse>['data'] | null> {
+  try {
+    const url = new URL(`/api/content/sessions/${sessionId}/preview`, apiBaseUrl);
+    url.searchParams.set('token', token);
+    const res = await fetch(url.toString(), { credentials: 'omit' });
+    if (!res.ok) {
+      devWarn(`preview fetch failed: ${res.status}`);
+      return null;
+    }
+    const body: unknown = await res.json();
+    if (!isValidPayload(body)) {
+      devWarn('preview payload malformed');
+      return null;
+    }
+    return body.data;
+  } catch (err) {
+    devWarn(`preview fetch threw: ${String(err)}`);
+    return null;
+  }
+}
+
+/**
  * Initialize the edit-mode runtime. Returns a handle, or `null` when the URL
  * carries no edit token (not edit mode) or the preview fetch fails.
  */
@@ -117,25 +154,8 @@ export async function initEditRuntime(
     return null;
   }
 
-  let payload: Required<PreviewResponse>['data'];
-  try {
-    const url = new URL(`/api/content/sessions/${sessionId}/preview`, config.apiBaseUrl);
-    url.searchParams.set('token', token);
-    const res = await fetch(url.toString(), { credentials: 'omit' });
-    if (!res.ok) {
-      devWarn(`preview fetch failed: ${res.status}`);
-      return null;
-    }
-    const body: unknown = await res.json();
-    if (!isValidPayload(body)) {
-      devWarn('preview payload malformed');
-      return null;
-    }
-    payload = body.data;
-  } catch (err) {
-    devWarn(`preview fetch threw: ${String(err)}`);
-    return null;
-  }
+  const payload = await fetchPreviewPayload(config.apiBaseUrl, sessionId, token);
+  if (!payload) return null;
 
   // The one trusted origin. Comes from the server config in the payload, NEVER
   // from the URL or from any received message.
@@ -150,6 +170,47 @@ export async function initEditRuntime(
     config.onDraft(docs.map((d) => ({ ...d, draft: d.draft })));
   };
 
+  // Shared in-flight refetch: concurrent apply-patch misses for the same (or
+  // different) unknown docIds await the SAME promise rather than each firing
+  // their own request, and each resumes independently once it resolves, so no
+  // patch is lost and no doc miss triggers more than one network round trip.
+  let refetchInFlight: Promise<void> | null = null;
+
+  const ensureDocsRefetched = (): Promise<void> => {
+    if (!refetchInFlight) {
+      refetchInFlight = fetchPreviewPayload(config.apiBaseUrl, sessionId, token)
+        .then((refetched) => {
+          if (!refetched) return;
+          for (const doc of refetched.docs) {
+            if (!docs.some((d) => d.docId === doc.docId)) {
+              docs.push(doc);
+            }
+          }
+        })
+        .finally(() => {
+          refetchInFlight = null;
+        });
+    }
+    return refetchInFlight;
+  };
+
+  const applyPatch = async (msg: ApplyPatchMessage): Promise<void> => {
+    let target = docs.find((d) => d.docId === msg.doc);
+    if (!target) {
+      // Not yet known locally: the session server may have just materialized
+      // this doc off its first patch. Refetch once, then retry the lookup.
+      await ensureDocsRefetched();
+      target = docs.find((d) => d.docId === msg.doc);
+    }
+    if (!target) {
+      devWarn(`apply-patch for unknown doc: ${msg.doc}`);
+      return;
+    }
+    setAtPath(target.draft, msg.field, msg.value);
+    emitDraft();
+    post({ type: RVUI_PATCH_APPLIED, doc: msg.doc, field: msg.field });
+  };
+
   const onMessage = (event: MessageEvent): void => {
     if (event.origin !== adminOrigin) {
       devWarn(`dropped message from foreign origin: ${event.origin}`);
@@ -159,15 +220,7 @@ export async function initEditRuntime(
       devWarn('dropped malformed message');
       return;
     }
-    const msg: ApplyPatchMessage = event.data;
-    const target = docs.find((d) => d.docId === msg.doc);
-    if (!target) {
-      devWarn(`apply-patch for unknown doc: ${msg.doc}`);
-      return;
-    }
-    setAtPath(target.draft, msg.field, msg.value);
-    emitDraft();
-    post({ type: RVUI_PATCH_APPLIED, doc: msg.doc, field: msg.field });
+    void applyPatch(event.data);
   };
 
   const onClick = (event: MouseEvent): void => {

@@ -129,14 +129,25 @@ export async function fetchPosts(page = 1, limit = 12): Promise<BlogPost[]> {
 }
 
 /**
- * Fetch the published `pages.blocks` array for a fleet-marketing page by slug.
- *
- * Returns null on any error, miss, or a page without a block array, so the
- * caller renders its static fallback with zero API dependency. The returned
- * array is unvalidated network data — callers validate it against the
- * contracts BlockSchema before rendering.
+ * A fleet-marketing page's CMS identity plus its published `blocks` array.
+ * `id` is present whenever the page row exists, independent of whether
+ * `blocks` validates — edit-mode annotation only needs the id, not a valid
+ * block array, to know a page can be targeted for editing.
  */
-export async function fetchPageBlocks(slug: string): Promise<Block[] | null> {
+export interface CmsPage {
+  readonly id: string;
+  readonly blocks: Block[] | null;
+}
+
+/**
+ * Fetch the published `pages` row for a fleet-marketing page by slug.
+ *
+ * Returns null on any error or a site/slug miss, so the caller renders its
+ * static fallback with zero API dependency. `blocks` is unvalidated network
+ * data when present — callers validate it against the contracts BlockSchema
+ * before rendering.
+ */
+export async function fetchPageBlocks(slug: string): Promise<CmsPage | null> {
   try {
     const res = await fetch(
       `${API_URL}/api/content/sites/${FLEET_MARKETING_SITE_ID}/pages?status=published`,
@@ -144,11 +155,11 @@ export async function fetchPageBlocks(slug: string): Promise<Block[] | null> {
     if (!res.ok) return null;
     const json = (await res.json()) as {
       success: boolean;
-      data?: Array<{ slug: string; blocks: unknown }>;
+      data?: Array<{ id: string; slug: string; blocks: unknown }>;
     };
     const page = json.data?.find((p) => p.slug === slug);
-    if (!(page && Array.isArray(page.blocks))) return null;
-    return page.blocks as Block[];
+    if (!page) return null;
+    return { id: page.id, blocks: Array.isArray(page.blocks) ? (page.blocks as Block[]) : null };
   } catch {
     return null;
   }

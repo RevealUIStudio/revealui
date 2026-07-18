@@ -5,8 +5,8 @@
  * chunk is dynamically imported ONLY in edit mode, so a normal visitor never
  * pays for it. In edit mode it initializes the runtime with a callback that
  * stashes the draft overlays into a module-level store. Page components
- * subscribe to that store to render drafts; wiring that consumption into the
- * block renderer is a follow-up slice.
+ * (`../use-page-blocks.ts`) subscribe to that store to render drafts and
+ * derive the click-to-edit annotation.
  *
  * The store follows the in-repo `useSyncExternalStore` shape (subscribe +
  * getSnapshot), matching @revealui/router.
@@ -43,13 +43,25 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
 
+const EDIT_PARAM = 'rvui-edit';
+
+/**
+ * True when the URL carries an edit-mode token. Synchronous and independent of
+ * the runtime/draft-fetch lifecycle, so callers can activate edit-mode UI (e.g.
+ * click-to-edit annotations) on first render, before `initEditRuntime` resolves
+ * and before any draft overlay exists.
+ */
+export function isEditModeActive(): boolean {
+  return new URLSearchParams(window.location.search).has(EDIT_PARAM);
+}
+
 /**
  * Initialize edit mode if the URL carries an edit token. No-op (and no import)
  * otherwise, so a normal page load stays untouched.
  */
 export function initEditMode(): void {
   const params = new URLSearchParams(window.location.search);
-  if (!params.get('rvui-edit')) return;
+  if (!params.get(EDIT_PARAM)) return;
   void import('@revealui/editor/runtime').then(({ initEditRuntime }) => {
     void initEditRuntime({ apiBaseUrl: API_URL, onDraft: setDrafts });
   });

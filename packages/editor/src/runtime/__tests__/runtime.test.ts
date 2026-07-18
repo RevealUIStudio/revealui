@@ -177,4 +177,173 @@ describe('initEditRuntime', () => {
     expect(onDraft).not.toHaveBeenCalled();
     expect(postSpy).not.toHaveBeenCalled();
   });
+
+  // A fresh session's initial preview payload carries `docs: []` (the session
+  // server only materializes a doc on its first field PATCH). The FIRST
+  // apply-patch for a page always targets a docId the runtime hasn't seen yet.
+  describe('apply-patch for a doc absent from the initial payload', () => {
+    function emptyPreviewResponse() {
+      return {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { siteId: 'site-1', adminOrigin: ADMIN_ORIGIN, docs: [] },
+        }),
+      };
+    }
+
+    function previewResponseWith(docs: PreviewDoc[]) {
+      return {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { siteId: 'site-1', adminOrigin: ADMIN_ORIGIN, docs },
+        }),
+      };
+    }
+
+    it('re-fetches the preview payload, applies the patch, and acks', async () => {
+      editUrl();
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(emptyPreviewResponse())
+        .mockResolvedValueOnce(
+          previewResponseWith([
+            { docType: 'page', docId: 'page-1', draft: { blocks: [{ title: 'Old' }] } },
+          ]),
+        );
+      vi.stubGlobal('fetch', fetchMock);
+
+      const onDraft = vi.fn();
+      handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft });
+      onDraft.mockClear();
+      postSpy.mockClear();
+
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: ADMIN_ORIGIN,
+          data: { type: RVUI_APPLY_PATCH, doc: 'page-1', field: 'blocks.0.title', value: 'New' },
+        }),
+      );
+
+      await vi.waitFor(() => {
+        expect(onDraft).toHaveBeenCalledWith([
+          { docType: 'page', docId: 'page-1', draft: { blocks: [{ title: 'New' }] } },
+        ]);
+      });
+      expect(postSpy).toHaveBeenCalledWith(
+        { type: RVUI_PATCH_APPLIED, doc: 'page-1', field: 'blocks.0.title' },
+        ADMIN_ORIGIN,
+      );
+      // One refetch beyond the initial preview fetch  -  not zero (dropped) and
+      // not per-message.
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('shares a single refetch across concurrent misses and applies both patches', async () => {
+      editUrl();
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(emptyPreviewResponse())
+        .mockResolvedValueOnce(
+          previewResponseWith([
+            {
+              docType: 'page',
+              docId: 'page-1',
+              draft: { blocks: [{ title: 'Old', body: 'Old body' }] },
+            },
+          ]),
+        );
+      vi.stubGlobal('fetch', fetchMock);
+
+      const onDraft = vi.fn();
+      handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft });
+      onDraft.mockClear();
+
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: ADMIN_ORIGIN,
+          data: {
+            type: RVUI_APPLY_PATCH,
+            doc: 'page-1',
+            field: 'blocks.0.title',
+            value: 'New title',
+          },
+        }),
+      );
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: ADMIN_ORIGIN,
+          data: {
+            type: RVUI_APPLY_PATCH,
+            doc: 'page-1',
+            field: 'blocks.0.body',
+            value: 'New body',
+          },
+        }),
+      );
+
+      await vi.waitFor(() => {
+        expect(onDraft).toHaveBeenCalledWith([
+          {
+            docType: 'page',
+            docId: 'page-1',
+            draft: { blocks: [{ title: 'New title', body: 'New body' }] },
+          },
+        ]);
+      });
+      // Initial preview fetch + exactly ONE shared refetch, not one per miss.
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops the patch (fail-quiet) when the doc is still unknown after the refetch', async () => {
+      editUrl();
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(emptyPreviewResponse())
+        .mockResolvedValueOnce(emptyPreviewResponse());
+      vi.stubGlobal('fetch', fetchMock);
+
+      const onDraft = vi.fn();
+      handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft });
+      onDraft.mockClear();
+      postSpy.mockClear();
+
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: ADMIN_ORIGIN,
+          data: { type: RVUI_APPLY_PATCH, doc: 'page-1', field: 'blocks.0.title', value: 'New' },
+        }),
+      );
+
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      expect(onDraft).not.toHaveBeenCalled();
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
+    it('drops the patch (fail-quiet) when the refetch itself fails', async () => {
+      editUrl();
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(emptyPreviewResponse())
+        .mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const onDraft = vi.fn();
+      handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft });
+      onDraft.mockClear();
+      postSpy.mockClear();
+
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: ADMIN_ORIGIN,
+          data: { type: RVUI_APPLY_PATCH, doc: 'page-1', field: 'blocks.0.title', value: 'New' },
+        }),
+      );
+
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      expect(onDraft).not.toHaveBeenCalled();
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+  });
 });
