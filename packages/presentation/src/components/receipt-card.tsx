@@ -1,6 +1,11 @@
 'use client';
 
 import type React from 'react';
+import {
+  RECEIPT_PRINT_KEYFRAMES,
+  RECEIPT_PRINT_LINE_CLASS,
+  RECEIPT_PRINT_SEAL_CLASS,
+} from '../animations/core/print-entrance.js';
 import { cn } from '../utils/cn.js';
 import { CopyRef } from './_receipt-shared.js';
 import { type AuditEvent, AuditLine } from './audit-line.js';
@@ -19,6 +24,13 @@ export interface ReceiptCardProps {
   lines: AuditEvent[];
   /** Optional integrity footer sealing the receipt. */
   integrity?: ReceiptIntegrity;
+  /**
+   * When `'print'`, each line and the integrity footer play a one-shot CSS
+   * entrance stagger (the receipt "prints" itself), then the seal pulses
+   * once. Undefined (default) is the current, unanimated rendering with zero
+   * visual change. Disabled entirely under `prefers-reduced-motion: reduce`.
+   */
+  animate?: 'print';
   className?: string;
 }
 
@@ -55,9 +67,11 @@ export function ReceiptCard({
   title,
   lines,
   integrity,
+  animate,
   className,
 }: ReceiptCardProps): React.JSX.Element {
   const latest = lines.length > 0 ? lines[lines.length - 1]?.ts : undefined;
+  const printing = animate === 'print';
 
   return (
     <section
@@ -69,6 +83,8 @@ export function ReceiptCard({
         borderRadius: 'var(--rvui-radius-lg, 16px)',
       }}
     >
+      {printing && <style>{RECEIPT_PRINT_KEYFRAMES}</style>}
+
       <header className="flex items-baseline justify-between gap-3 px-4 py-3">
         <h3 className="text-sm font-semibold text-[var(--rvui-text-0)]">{title}</h3>
         {latest && (
@@ -88,7 +104,11 @@ export function ReceiptCard({
           style={{ borderColor: DASHED_BORDER }}
         >
           {lines.map((line, i) => (
-            <li key={line.refId ?? `${line.ts}-${line.actor}-${line.action}-${i}`}>
+            <li
+              key={line.refId ?? `${line.ts}-${line.actor}-${line.action}-${i}`}
+              className={printing ? RECEIPT_PRINT_LINE_CLASS : undefined}
+              style={printing ? ({ '--rvui-print-i': i } as React.CSSProperties) : undefined}
+            >
               <AuditLine event={line} dense />
             </li>
           ))}
@@ -97,8 +117,14 @@ export function ReceiptCard({
 
       {integrity && (
         <footer
-          className="flex items-center gap-2 border-t border-dashed px-4 py-2.5 text-xs"
-          style={{ borderColor: DASHED_BORDER }}
+          className={cn(
+            'flex items-center gap-2 border-t border-dashed px-4 py-2.5 text-xs',
+            printing && RECEIPT_PRINT_SEAL_CLASS,
+          )}
+          style={{
+            borderColor: DASHED_BORDER,
+            ...(printing ? ({ '--rvui-print-i': lines.length } as React.CSSProperties) : {}),
+          }}
         >
           <span aria-hidden="true" className="inline-flex shrink-0 text-[var(--rvui-text-2)]">
             <SealIcon />

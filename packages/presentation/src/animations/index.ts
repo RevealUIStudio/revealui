@@ -3,6 +3,13 @@
 export type { EasingFunction } from './core/easing.js';
 export { cubicBezier, resolveEasing } from './core/easing.js';
 export { onFrame } from './core/frame-loop.js';
+export {
+  RECEIPT_PRINT_KEYFRAMES,
+  RECEIPT_PRINT_LINE_CLASS,
+  RECEIPT_PRINT_SEAL_CLASS,
+  RECEIPT_PRINT_START_DELAY_MS,
+  RECEIPT_PRINT_STEP_MS,
+} from './core/print-entrance.js';
 export type { SpringConfig, SpringPreset } from './core/spring.js';
 export {
   resolveSpringConfig,
