@@ -817,6 +817,16 @@ export const RENEWAL_SLACK_DAYS = 7;
 export const RENEWAL_SLACK_SECONDS = RENEWAL_SLACK_DAYS * 24 * 60 * 60;
 
 /**
+ * Default lifetime, in days, for a license JWT minted by the admin
+ * `POST /generate` manual-mint endpoint when the caller does not supply an
+ * explicit `expiresInDays` (GAP-287 PR-3). Ratified by the owner 2026-07-18 at
+ * 90, down from the prior flat 365-day default: this is an operator tool, and
+ * a short default nudges the right renewal habit for manually-issued keys. An
+ * explicit `expiresInDays` on the request is always honored unchanged.
+ */
+export const DEFAULT_MANUAL_MINT_DAYS = 90;
+
+/**
  * Derives the relative `expiresInSeconds` argument for {@link generateLicenseKey}
  * at the hosted subscription mint sites (GAP-287 PR-2): the token should expire
  * at `periodEnd + RENEWAL_SLACK_SECONDS`. Because generateLicenseKey interprets a

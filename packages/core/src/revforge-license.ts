@@ -18,6 +18,16 @@ export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 export const VALID_REVFORGE_TIERS = ['pro', 'max', 'enterprise'] as const;
 export type RevForgeTier = (typeof VALID_REVFORGE_TIERS)[number];
 
+/**
+ * Default lifetime, in days, for a RevForge kit license JWT when neither
+ * `expiresInDays` nor `perpetual` is supplied (GAP-287 PR-3). Ratified by the
+ * owner 2026-07-18: stays at 365 (no behavior change), matching the annual
+ * kit contract — the renewal path already exists via the GAP-316
+ * `stamp.sh --license-only` re-mint. This constant only names the value that
+ * was previously an inline literal.
+ */
+export const DEFAULT_KIT_MINT_DAYS = 365;
+
 export interface IssueRevForgeLicenseOptions {
   /** Customer slug; becomes the JWT customerId. Must match SLUG_PATTERN. */
   slug: string;
@@ -105,12 +115,13 @@ export async function issueRevForgeLicense(
   };
 
   // Perpetual: pass null to omit exp claim. Otherwise translate days → seconds.
-  // Default (neither flag): 365-day subscription, matching generateLicenseKey's default.
+  // Default (neither flag): DEFAULT_KIT_MINT_DAYS (GAP-287 PR-3 named constant;
+  // value unchanged at 365).
   const expiresInSeconds = opts.perpetual
     ? null
     : opts.expiresInDays !== undefined
       ? opts.expiresInDays * 24 * 60 * 60
-      : 365 * 24 * 60 * 60;
+      : DEFAULT_KIT_MINT_DAYS * 24 * 60 * 60;
 
   const issuedAtMs = Date.now();
   const licenseKey = await generateLicenseKey(

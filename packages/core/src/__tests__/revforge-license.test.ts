@@ -1,7 +1,7 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { validateLicenseKey } from '../license.js';
-import { issueRevForgeLicense } from '../revforge-license.js';
+import { DEFAULT_KIT_MINT_DAYS, issueRevForgeLicense } from '../revforge-license.js';
 
 let privateKey: string;
 let publicKey: string;
@@ -84,6 +84,26 @@ describe('issueRevForgeLicense', () => {
     expect(verified).not.toBeNull();
     expect(verified?.exp).toBeUndefined();
     expect(verified?.perpetual).toBe(true);
+  });
+
+  // GAP-287 PR-3: the kit default is unchanged (365d) but is now the named
+  // DEFAULT_KIT_MINT_DAYS constant instead of an inline literal.
+  it('DEFAULT_KIT_MINT_DAYS is 365, unchanged', () => {
+    expect(DEFAULT_KIT_MINT_DAYS).toBe(365);
+  });
+
+  it('defaults to DEFAULT_KIT_MINT_DAYS when neither expiresInDays nor perpetual is given', async () => {
+    const before = Date.now();
+    const result = await issueRevForgeLicense(
+      { slug: 'default-ttl', tier: 'enterprise' },
+      { privateKey, publicKey },
+    );
+    const after = Date.now();
+
+    const expMs = new Date(result.expiresAt ?? '').getTime();
+    const defaultMs = DEFAULT_KIT_MINT_DAYS * 24 * 60 * 60 * 1000;
+    expect(expMs).toBeGreaterThanOrEqual(before + defaultMs - 1000);
+    expect(expMs).toBeLessThanOrEqual(after + defaultMs + 1000);
   });
 
   it('honors expiresInDays', async () => {
