@@ -120,3 +120,22 @@ describe('LicensePage activation instructions', () => {
     expect(document.body.textContent ?? '').not.toContain('REVDEV_LICENSE_KEY');
   });
 });
+
+// GAP-306: the perpetual-purchase buttons must match PERPETUAL_TIERS[*].name
+// in @revealui/contracts/pricing exactly (the price lookup keys off it), and
+// Enterprise must have a buy button just like Pro and Agency (no tier is
+// mailto-only in-app).
+describe('LicensePage perpetual purchase plans', () => {
+  it('renders Pro, Agency, and Enterprise Perpetual buy options (no "Max Perpetual")', async () => {
+    render(<LicensePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-license-jwt')).toBeDefined();
+    });
+
+    expect(screen.getByText('Pro Perpetual')).toBeDefined();
+    expect(screen.getByText('Agency Perpetual')).toBeDefined();
+    expect(screen.getByText('Enterprise Perpetual')).toBeDefined();
+    expect(screen.queryByText('Max Perpetual')).toBeNull();
+  });
+});

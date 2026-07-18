@@ -31,4 +31,19 @@ describe('PricingPage final CTA', () => {
     // subscription tier map so it resolves off-site correctly.
     expect(cta).toHaveAttribute('href', 'https://admin.revealui.com/account/license');
   });
+
+  // GAP-306: Agency and Enterprise Perpetual previously routed to
+  // mailto:support@revealui.com — a perpetual licensee must be able to
+  // purchase without email, matching the Pro Perpetual in-app pattern.
+  it('points the Agency Perpetual CTA at the self-serve checkout, not a mailto link', async () => {
+    render(<PricingPage />);
+    const cta = await screen.findByRole('link', { name: 'Buy Agency Perpetual' });
+    expect(cta).toHaveAttribute('href', 'https://admin.revealui.com/account/license');
+  });
+
+  it('points the Enterprise Perpetual CTA at the self-serve checkout, not a mailto link', async () => {
+    render(<PricingPage />);
+    const cta = await screen.findByRole('link', { name: 'Buy Enterprise Perpetual' });
+    expect(cta).toHaveAttribute('href', 'https://admin.revealui.com/account/license');
+  });
 });

@@ -32,18 +32,27 @@ interface SubscriptionData {
   supportExpiresAt: string | null;
 }
 
+// Labels must match PERPETUAL_TIERS[*].name in @revealui/contracts/pricing —
+// the price lookup below (`pricing?.perpetual.find((t) => t.name === plan.label)`)
+// keys off that exact name.
 const PERPETUAL_PLANS = [
   {
     label: 'Pro Perpetual',
     tier: 'pro' as const,
-    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_PRO_PRICE_ID,
+    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PRO_PERPETUAL_PRICE_ID,
     description: 'Pro features forever. Includes 1 year of support.',
   },
   {
-    label: 'Max Perpetual',
+    label: 'Agency Perpetual',
     tier: 'max' as const,
-    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_PERPETUAL_MAX_PRICE_ID,
+    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID,
     description: 'Max features forever. Includes 1 year of support.',
+  },
+  {
+    label: 'Enterprise Perpetual',
+    tier: 'enterprise' as const,
+    priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID,
+    description: 'Enterprise features forever. Includes 1 year of support.',
   },
 ] as const;
 
