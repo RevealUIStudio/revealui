@@ -1,9 +1,12 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
-  chmodSync,
+  closeSync,
+  constants,
   createReadStream,
   existsSync,
+  fstatSync,
   mkdirSync,
+  openSync,
   readFileSync,
   statSync,
   writeFileSync,
@@ -230,56 +233,107 @@ export class HttpGateway {
    */
   async initAuth(): Promise<void> {
     const secretPath = this.config.secretPath;
-    const dbHash = await this.config.store.getBootstrapSecretHash();
 
-    if (existsSync(secretPath)) {
-      const mode = statSync(secretPath).mode & 0o777;
-      if ((mode & 0o077) !== 0) {
-        this.bootstrapSecret = null;
-        this.logAuth(
-          `bootstrap secret at ${secretPath} is group/other-accessible (mode ${mode.toString(8)}); refusing to use it  -  run: chmod 600 ${secretPath}`,
-        );
+    // Looped so a create-path race that loses to another process (EEXIST) falls
+    // back to reading the winner's file rather than failing the daemon.
+    for (;;) {
+      const dbHash = await this.config.store.getBootstrapSecretHash();
+
+      // Read path: open ONE fd with O_NOFOLLOW, then fstat + read that same fd.
+      // No path is resolved twice, so a symlink or file swap after the open
+      // cannot substitute an attacker-controlled key past the permission gate.
+      let fd: number;
+      try {
+        fd = openSync(secretPath, constants.O_RDONLY | constants.O_NOFOLLOW);
+      } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'ENOENT') {
+          // File genuinely absent: fall through to the missing/create paths.
+        } else {
+          this.bootstrapSecret = null;
+          if (code === 'ELOOP') {
+            this.logAuth(
+              `bootstrap secret at ${secretPath} is a symlink; refusing to follow it (possible substitution)`,
+            );
+          } else {
+            this.logAuth(
+              `cannot open bootstrap secret at ${secretPath} (${code ?? 'unknown error'}); refusing new pairings`,
+            );
+          }
+          return;
+        }
+
+        // ENOENT: file missing.
+        if (dbHash !== null) {
+          this.bootstrapSecret = null;
+          this.logAuth(
+            `bootstrap secret file ${secretPath} is missing but a hash is on record; refusing new pairings (existing tokens still work). Regenerate the file to re-enable pairing.`,
+          );
+          return;
+        }
+
+        // Truly fresh: exclusively create the fail-closed bootstrap secret. The
+        // 'wx' flag (O_EXCL) refuses a pre-planted file or symlink, and mode
+        // 0600 is applied atomically on creation.
+        mkdirSync(dirname(secretPath), { recursive: true });
+        const secret = randomBytes(SECRET_BYTES).toString('hex');
+        try {
+          writeFileSync(secretPath, secret, { flag: 'wx', mode: 0o600 });
+        } catch (createErr) {
+          if ((createErr as NodeJS.ErrnoException).code === 'EEXIST') {
+            // Another process created the file between our open and write; loop
+            // back to read it rather than failing.
+            continue;
+          }
+          throw createErr;
+        }
+        await this.config.store.putBootstrapSecretHash(sha256Hex(secret));
+        this.bootstrapSecret = secret;
+        this.logAuth(`generated a new bootstrap pairing secret at ${secretPath} (mode 0600)`);
         return;
       }
-      const contents = readFileSync(secretPath, 'utf8').trim();
-      if (contents.length === 0) {
-        this.bootstrapSecret = null;
-        this.logAuth(`bootstrap secret file at ${secretPath} is empty; refusing new pairings`);
+
+      try {
+        const stat = fstatSync(fd);
+        if (!stat.isFile()) {
+          this.bootstrapSecret = null;
+          this.logAuth(
+            `bootstrap secret at ${secretPath} is not a regular file; refusing to use it`,
+          );
+          return;
+        }
+        const mode = stat.mode & 0o777;
+        if ((mode & 0o077) !== 0) {
+          this.bootstrapSecret = null;
+          this.logAuth(
+            `bootstrap secret at ${secretPath} is group/other-accessible (mode ${mode.toString(8)}); refusing to use it  -  run: chmod 600 ${secretPath}`,
+          );
+          return;
+        }
+        const contents = readFileSync(fd, 'utf8').trim();
+        if (contents.length === 0) {
+          this.bootstrapSecret = null;
+          this.logAuth(`bootstrap secret file at ${secretPath} is empty; refusing new pairings`);
+          return;
+        }
+        const fileHash = sha256Hex(contents);
+        if (dbHash === null) {
+          await this.config.store.putBootstrapSecretHash(fileHash);
+          this.bootstrapSecret = contents;
+          this.logAuth('adopted an existing bootstrap secret file into a fresh store');
+        } else if (dbHash === fileHash) {
+          this.bootstrapSecret = contents;
+        } else {
+          this.bootstrapSecret = null;
+          this.logAuth(
+            `bootstrap secret at ${secretPath} does not match the recorded hash (possible substitution); refusing new pairings until it is regenerated`,
+          );
+        }
         return;
+      } finally {
+        closeSync(fd);
       }
-      const fileHash = sha256Hex(contents);
-      if (dbHash === null) {
-        await this.config.store.putBootstrapSecretHash(fileHash);
-        this.bootstrapSecret = contents;
-        this.logAuth('adopted an existing bootstrap secret file into a fresh store');
-      } else if (dbHash === fileHash) {
-        this.bootstrapSecret = contents;
-      } else {
-        this.bootstrapSecret = null;
-        this.logAuth(
-          `bootstrap secret at ${secretPath} does not match the recorded hash (possible substitution); refusing new pairings until it is regenerated`,
-        );
-      }
-      return;
     }
-
-    // File missing.
-    if (dbHash !== null) {
-      this.bootstrapSecret = null;
-      this.logAuth(
-        `bootstrap secret file ${secretPath} is missing but a hash is on record; refusing new pairings (existing tokens still work). Regenerate the file to re-enable pairing.`,
-      );
-      return;
-    }
-
-    // Truly fresh: create the fail-closed bootstrap secret (only if absent).
-    mkdirSync(dirname(secretPath), { recursive: true });
-    const secret = randomBytes(SECRET_BYTES).toString('hex');
-    writeFileSync(secretPath, secret, { mode: 0o600 });
-    chmodSync(secretPath, 0o600);
-    await this.config.store.putBootstrapSecretHash(sha256Hex(secret));
-    this.bootstrapSecret = secret;
-    this.logAuth(`generated a new bootstrap pairing secret at ${secretPath} (mode 0600)`);
   }
 
   async start(): Promise<void> {

@@ -1,5 +1,13 @@
 import { createHash, createHmac } from 'node:crypto';
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -12,6 +20,22 @@ import {
   PRE_AUTH_ROUTES,
 } from '../http-gateway.js';
 import type { RpcServer } from '../rpc-server.js';
+
+// A default-noop hook that lets one test plant a file inside the SUT's mkdirSync
+// call (which runs immediately before the exclusive 'wx' write) to deterministically
+// exercise the create-path EEXIST fallback. Every other test leaves it null, so
+// mkdirSync passes straight through to the real implementation.
+const fsHooks = vi.hoisted(() => ({ beforeMkdir: null as (() => void) | null }));
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>();
+  return {
+    ...actual,
+    mkdirSync: ((path: Parameters<typeof actual.mkdirSync>[0], options) => {
+      fsHooks.beforeMkdir?.();
+      return actual.mkdirSync(path, options);
+    }) as typeof actual.mkdirSync,
+  };
+});
 
 /** A stub RpcServer.dispatchHttp that records calls and replies with a success envelope. */
 function makeDispatchStub(): RpcServer & { dispatchHttp: ReturnType<typeof vi.fn> } {
@@ -352,6 +376,109 @@ describe('HttpGateway fail-closed auth (GAP-353 PR-2)', () => {
         body: JSON.stringify({ nonce, hmac }),
       });
       expect(res.status).toBe(503);
+    });
+
+    it('refuses a group-readable secret file via the fstat mode check (read-path TOCTOU)', async () => {
+      // The mode gate now runs on an fstat of the opened fd, not a path-based
+      // stat. A 0o640 file (group-readable, world-closed) must still be refused.
+      const h = await boot({ preSecret: { contents: 'g'.repeat(64), mode: 0o640 } });
+      const { nonce } = (await (await fetch(`${h.base}/api/pair`)).json()) as { nonce: string };
+      const secret = readFileSync(h.secretPath, 'utf8').trim();
+      const hmac = createHmac('sha256', secret).update(nonce).digest('hex');
+      const res = await fetch(`${h.base}/api/pair`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nonce, hmac }),
+      });
+      expect(res.status).toBe(503);
+    });
+
+    it('refuses a secret file that is a symlink (read-path O_NOFOLLOW)', async () => {
+      // A symlink planted at secretPath must not be followed: opening with
+      // O_NOFOLLOW fails (ELOOP), so the attacker-controlled target is never
+      // adopted as the HMAC key and pairing stays refused.
+      const dir = mkdtempSync(join(tmpdir(), 'gw-authn-'));
+      dirs.push(dir);
+      const target = join(dir, 'attacker-secret');
+      const attackerSecret = 'c'.repeat(64);
+      writeFileSync(target, attackerSecret, { mode: 0o600 });
+      const secretPath = join(dir, 'pairing-secret');
+      symlinkSync(target, secretPath);
+
+      const store = new DaemonStore({ dataDir: '' });
+      await store.init();
+      stores.push(store);
+      const gateway = new HttpGateway({
+        port: 0,
+        host: '127.0.0.1',
+        rpcDispatch: makeDispatchStub(),
+        store,
+        secretPath,
+      });
+      gateways.push(gateway);
+      await gateway.initAuth();
+      await gateway.start();
+      const base = `http://127.0.0.1:${gateway.getPort()}`;
+
+      // The symlink is untouched (not clobbered) and no secret was adopted.
+      expect(readFileSync(target, 'utf8')).toBe(attackerSecret);
+      expect(await store.getBootstrapSecretHash()).toBeNull();
+      const { nonce } = (await (await fetch(`${base}/api/pair`)).json()) as { nonce: string };
+      const hmac = createHmac('sha256', attackerSecret).update(nonce).digest('hex');
+      const res = await fetch(`${base}/api/pair`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nonce, hmac }),
+      });
+      expect(res.status).toBe(503);
+    });
+
+    it('falls back to reading when another process wins the create race (EEXIST)', async () => {
+      // Force the create-path race: a competing process plants its own secret
+      // during mkdirSync, immediately before our exclusive ('wx') write. The
+      // O_EXCL write must fail with EEXIST and the daemon must loop back and
+      // adopt the winner's file rather than overwriting it or failing.
+      const dir = mkdtempSync(join(tmpdir(), 'gw-authn-'));
+      dirs.push(dir);
+      const secretPath = join(dir, 'pairing-secret');
+      const winner = 'e'.repeat(64);
+      fsHooks.beforeMkdir = () => {
+        if (!existsSync(secretPath)) writeFileSync(secretPath, winner, { mode: 0o600 });
+      };
+
+      try {
+        const store = new DaemonStore({ dataDir: '' });
+        await store.init();
+        stores.push(store);
+        const gateway = new HttpGateway({
+          port: 0,
+          host: '127.0.0.1',
+          rpcDispatch: makeDispatchStub(),
+          store,
+          secretPath,
+        });
+        gateways.push(gateway);
+        await gateway.initAuth();
+        await gateway.start();
+        const base = `http://127.0.0.1:${gateway.getPort()}`;
+
+        // The winner's secret was adopted (not overwritten with a fresh one).
+        expect(readFileSync(secretPath, 'utf8')).toBe(winner);
+        expect(await store.getBootstrapSecretHash()).toBe(
+          createHash('sha256').update(winner).digest('hex'),
+        );
+        // Pairing works against the adopted secret.
+        const { nonce } = (await (await fetch(`${base}/api/pair`)).json()) as { nonce: string };
+        const hmac = createHmac('sha256', winner).update(nonce).digest('hex');
+        const res = await fetch(`${base}/api/pair`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nonce, hmac }),
+        });
+        expect(res.status).toBe(200);
+      } finally {
+        fsHooks.beforeMkdir = null;
+      }
     });
   });
 
