@@ -47,21 +47,28 @@ export default function BackendError({
       </h2>
 
       {isDatabaseError ? (
-        <div className="flex max-w-lg flex-col gap-3 text-center text-sm text-muted-foreground">
-          <p>The admin dashboard cannot reach the database. To fix this:</p>
-          <ol className="list-inside list-decimal text-left text-xs text-muted-foreground">
-            <li>
-              Set <code className="text-foreground">POSTGRES_URL</code> or{' '}
-              <code className="text-foreground">DATABASE_URL</code> in your environment
-            </li>
-            <li>
-              Run <code className="text-foreground">pnpm db:migrate</code> to create tables
-            </li>
-            <li>
-              Run <code className="text-foreground">pnpm db:seed</code> for sample content
-            </li>
-          </ol>
-        </div>
+        process.env.NODE_ENV !== 'production' ? (
+          <div className="flex max-w-lg flex-col gap-3 text-center text-sm text-muted-foreground">
+            <p>The admin dashboard cannot reach the database. To fix this:</p>
+            <ol className="list-inside list-decimal text-left text-xs text-muted-foreground">
+              <li>
+                Set <code className="text-foreground">POSTGRES_URL</code> or{' '}
+                <code className="text-foreground">DATABASE_URL</code> in your environment
+              </li>
+              <li>
+                Run <code className="text-foreground">pnpm db:migrate</code> to create tables
+              </li>
+              <li>
+                Run <code className="text-foreground">pnpm db:seed</code> for sample content
+              </li>
+            </ol>
+          </div>
+        ) : (
+          <p className="max-w-md text-center text-sm text-muted-foreground">
+            We're having trouble reaching our systems. Our team has been notified. Please try again
+            shortly.
+          </p>
+        )
       ) : (
         <p className="max-w-md text-center text-sm text-muted-foreground">
           {isNetworkError

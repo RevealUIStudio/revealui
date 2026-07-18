@@ -9,14 +9,13 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
+  state: State = { hasError: false };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
@@ -27,13 +26,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.hasError) {
-      return this.props.fallback ?? <DefaultErrorFallback error={this.state.error} />;
+      return this.props.fallback ?? <DefaultErrorFallback />;
     }
     return this.props.children;
   }
 }
 
-function DefaultErrorFallback({ error }: { error: Error | null }) {
+function DefaultErrorFallback() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-center">
       <p className="text-sm font-semibold uppercase tracking-widest text-primary">Error</p>
@@ -41,7 +40,7 @@ function DefaultErrorFallback({ error }: { error: Error | null }) {
         Something went wrong
       </h1>
       <p className="mt-4 max-w-md text-sm text-muted-foreground">
-        {error?.message ?? 'An unexpected error occurred while rendering this page.'}
+        An unexpected error occurred while rendering this page. Our team has been notified.
       </p>
       <ButtonCVA asChild variant="primary" className="mt-6">
         <a href="/">Return home</a>
