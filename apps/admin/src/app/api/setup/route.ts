@@ -96,12 +96,25 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
       try {
         const { hostname } = await import('node:os');
         const { DrizzleAuditStore } = await import('@revealui/db');
-        const { classifyAuditWriteFailure, recordAuditWriteResult } = await import(
-          '@revealui/core/security'
-        );
+        const { classifyAuditWriteFailure, createAuditRowSignerFromEnv, recordAuditWriteResult } =
+          await import('@revealui/core/security');
+        // Sign at the door on a signing deployment (GAP-355 Stage 3, Advisory A):
+        // this writer used to construct the store with no signer, so its rows
+        // landed NULL and the verifier flagged legitimate bootstrap rows as
+        // integrity failures. It now composes the same env-derived Ed25519 signer
+        // apps/server uses. Absent a key (dev/test) it stays unsigned, logged.
+        const { signer, mode, kid } = createAuditRowSignerFromEnv(process.env);
+        if (mode === 'signed') {
+          logger.info('Bootstrap audit signing enabled', { alg: 'ed25519', kid });
+        } else {
+          logger.warn(
+            'Bootstrap audit row will be written UNSIGNED (no REVEALUI_AUDIT_SIGNING_KEY); ' +
+              'legal only in dev/test',
+          );
+        }
         const eventId = crypto.randomUUID();
         try {
-          await new DrizzleAuditStore(db).append({
+          await new DrizzleAuditStore(db, signer).append({
             id: eventId,
             timestamp: new Date(),
             eventType: 'admin.bootstrap.completed',
@@ -128,7 +141,8 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
           // by design: a failed bootstrap audit row does not block admin
           // creation, but the failure is logged loudly with a classified reason
           // (never swallowed). Writes real `audit_log` columns
-          // (id/event_type/severity/agent_id/payload); rows land unsigned.
+          // (id/event_type/severity/agent_id/payload); rows carry a
+          // `v1.ed25519` signature on a signing deployment, NULL in dev/test.
           logger.error('Bootstrap audit log write failed', {
             email: parsed.data.email,
             eventId,

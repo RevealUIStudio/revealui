@@ -13,9 +13,11 @@
  *     (apps/server/src/lib/license-canary.ts, wired from worker.ts) never
  *     runs here - this script is the only check this keypair ever gets.
  *   - REVEALUI_KEK, REVEALUI_SECRET, REVEALUI_CRON_SECRET,
- *     REVEALUI_AUDIT_HMAC_SECRET, REVEALUI_ADMIN_API_KEY - fresh random values,
- *     format-compatible with apps/server/src/lib/validate-startup.ts's checks
- *     (REVEALUI_KEK: 64 hex chars; the rest: >=32 chars).
+ *     REVEALUI_ADMIN_API_KEY - fresh random values, format-compatible with
+ *     apps/server/src/lib/validate-startup.ts's checks (REVEALUI_KEK: 64 hex
+ *     chars; the rest: >=32 chars). The retired audit HMAC secret is gone
+ *     (GAP-355 Stage 3, per-row Ed25519 signing); staging's audit signing key
+ *     is provisioned separately with the rest of the staging bring-up.
  *   - The deterministic staging URL config derived from the amended-B
  *     staging.revealui.com subtree (SESSION_COOKIE_DOMAIN, PASSKEY_RP_ID,
  *     PASSKEY_ORIGIN, PASSKEY_RP_NAME, CORS_ORIGIN, and the two "server url"
@@ -130,7 +132,6 @@ export async function buildEntries(): Promise<SecretEntry[]> {
     { path: 'revealui/staging/kek', shape: 'hex-64', value: randomHex(32) },
     { path: 'revealui/staging/secret', shape: 'hex-random', value: randomHex(32) },
     { path: 'revealui/staging/cron-secret', shape: 'hex-random', value: randomHex(32) },
-    { path: 'revealui/staging/audit-hmac-secret', shape: 'hex-random', value: randomHex(32) },
     { path: 'revealui/staging/admin/api-key', shape: 'hex-random', value: randomHex(32) },
   ];
 

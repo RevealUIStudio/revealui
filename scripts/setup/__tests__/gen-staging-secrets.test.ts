@@ -79,7 +79,6 @@ describe('buildEntries', () => {
     expect(paths).toContain('revealui/staging/kek');
     expect(paths).toContain('revealui/staging/secret');
     expect(paths).toContain('revealui/staging/cron-secret');
-    expect(paths).toContain('revealui/staging/audit-hmac-secret');
     expect(paths).toContain('revealui/staging/admin/api-key');
     expect(paths).toContain('revealui/staging/license/private-key');
     expect(paths).toContain('revealui/staging/license/public-key');
@@ -97,6 +96,11 @@ describe('buildEntries', () => {
     expect(paths).not.toContain('revealui/staging/alert-email');
     expect(paths).not.toContain('revealui/staging/admin/email');
     expect(paths).not.toContain('revealui/staging/admin/password');
+  });
+
+  it('no longer generates the retired audit HMAC secret (GAP-355 Stage 3)', async () => {
+    const paths = (await buildEntries()).map((e) => e.path);
+    expect(paths).not.toContain('revealui/staging/audit-hmac-secret');
   });
 
   it('REVEALUI_KEK-shaped value is exactly 64 hex chars (validate-startup.ts format)', async () => {

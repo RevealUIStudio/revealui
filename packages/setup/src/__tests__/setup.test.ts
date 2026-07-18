@@ -193,7 +193,11 @@ describe('setupEnvironment', () => {
 
     expect(result.success).toBe(true);
     const content = await readFile(outputPath, 'utf-8');
-    expect(content).toBe('KEY=value\n');
+    // The prior file is gone and the template content is present.
+    expect(content).toContain('KEY=value');
+    expect(content).not.toContain('EXISTING=yes');
+    // Setup always provisions a per-deployment audit signing key (GAP-355 Stage 3).
+    expect(content).toContain('REVEALUI_AUDIT_SIGNING_KEY=');
   });
 
   it('prompts for missing values and generates REVEALUI_SECRET in interactive mode', async () => {

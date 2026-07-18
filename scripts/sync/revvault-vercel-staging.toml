@@ -107,7 +107,6 @@ REVEALUI_KEK                = { path = "revealui/staging/kek", sensitive = true 
 # pair (isolation: a staging-minted license JWT must never verify against prod).
 REVEALUI_LICENSE_PRIVATE_KEY = { path = "revealui/staging/license/private-key", sensitive = true }
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/staging/license/public-key"
-REVEALUI_AUDIT_HMAC_SECRET   = { path = "revealui/staging/audit-hmac-secret", sensitive = true }
 # Must resolve to the SAME path as admin's REVEALUI_SECRET below — CSRF tokens
 # are cross-verified between the two apps.
 REVEALUI_SECRET              = { path = "revealui/staging/secret", sensitive = true }
