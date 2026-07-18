@@ -1,8 +1,9 @@
 /**
  * Audit System Tests
  *
- * Covers: AuditSystem, InMemoryAuditStorage, HMAC signing/verification,
- * audit middleware, AuditReportGenerator, and AuditTrail decorator.
+ * Covers: AuditSystem, InMemoryAuditStorage, audit middleware,
+ * AuditReportGenerator, and AuditTrail decorator. Per-row Ed25519 signing is
+ * covered in `audit-signing.test.ts` (GAP-355 Stage 3 replaced the HMAC helpers).
  */
 
 import { describe, expect, it } from 'vitest';
@@ -11,8 +12,6 @@ import {
   AuditSystem,
   createAuditMiddleware,
   InMemoryAuditStorage,
-  signAuditEntry,
-  verifyAuditEntry,
 } from '../audit.js';
 
 // =============================================================================
@@ -309,55 +308,6 @@ describe('AuditSystem', () => {
 
     expect(storage1.getAll()).toHaveLength(1);
     expect(storage2.getAll()).toHaveLength(1);
-  });
-});
-
-// =============================================================================
-// HMAC Signing / Verification
-// =============================================================================
-
-describe('signAuditEntry / verifyAuditEntry', () => {
-  const entry = {
-    timestamp: '2026-04-10T00:00:00Z',
-    eventType: 'data.read',
-    severity: 'low',
-    agentId: 'agent-1',
-    payload: { key: 'value' },
-  };
-
-  it('produces a hex signature', async () => {
-    const sig = await signAuditEntry(entry, 'test-secret');
-    expect(sig).toHaveLength(64); // SHA-256 hex = 64 chars
-  });
-
-  it('verifies a valid signature', async () => {
-    const sig = await signAuditEntry(entry, 'test-secret');
-    const valid = await verifyAuditEntry(entry, sig, 'test-secret');
-    expect(valid).toBe(true);
-  });
-
-  it('rejects a tampered entry', async () => {
-    const sig = await signAuditEntry(entry, 'test-secret');
-    const tampered = { ...entry, severity: 'critical' };
-    const valid = await verifyAuditEntry(tampered, sig, 'test-secret');
-    expect(valid).toBe(false);
-  });
-
-  it('rejects a wrong secret', async () => {
-    const sig = await signAuditEntry(entry, 'correct-secret');
-    const valid = await verifyAuditEntry(entry, sig, 'wrong-secret');
-    expect(valid).toBe(false);
-  });
-
-  it('rejects a signature with wrong length', async () => {
-    const valid = await verifyAuditEntry(entry, 'tooshort', 'test-secret');
-    expect(valid).toBe(false);
-  });
-
-  it('is deterministic  -  same inputs produce same signature', async () => {
-    const sig1 = await signAuditEntry(entry, 'secret');
-    const sig2 = await signAuditEntry(entry, 'secret');
-    expect(sig1).toBe(sig2);
   });
 });
 

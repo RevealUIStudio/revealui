@@ -32,8 +32,6 @@ export {
   audit,
   createAuditMiddleware,
   InMemoryAuditStorage,
-  signAuditEntry,
-  verifyAuditEntry,
 } from './audit.js';
 // Per-row Ed25519 audit signing (GAP-355 Stage 3 — node:crypto)
 export type {
