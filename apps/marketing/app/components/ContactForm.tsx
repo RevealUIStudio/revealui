@@ -80,7 +80,7 @@ export function ContactForm() {
 
   if (status === 'success') {
     return (
-      <Callout variant="success" title="Message sent">
+      <Callout variant="success" title="Message sent" role="status">
         <p className="text-sm">
           We&apos;ll get back to you within 1-2 business days.{' '}
           <a
@@ -152,7 +152,11 @@ export function ContactForm() {
           placeholder="Tell us about your project or question..."
         />
       </FormField>
-      {status === 'error' && <Callout variant="error">{errorMessage}</Callout>}
+      {status === 'error' && (
+        <Callout variant="error" role="alert">
+          {errorMessage}
+        </Callout>
+      )}
       <Button
         type="submit"
         variant="primary"
