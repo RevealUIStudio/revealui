@@ -71,6 +71,7 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'marketplace.ts' },
   { file: 'roadmap.ts' },
   { file: 'claims.ts' },
+  { file: 'receipt.ts' },
 ] as const;
 
 const AUTH_SESSIONS: EvidenceRef = {
@@ -177,6 +178,16 @@ const AGENT_ROUTES: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/routes/agent-tasks.ts',
   note: 'agent surfaces mounted behind the same auth + entitlement middleware as user routes',
+};
+const REFUND_ROUTE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/billing.ts',
+  note: 'POST /api/billing/refund; admin-authenticated, full or partial refunds via Stripe',
+};
+const AUDIT_LOG_SCHEMA: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/db/src/schema/audit-log.ts',
+  note: 'audit_log table; single-door write path enforced by validate:audit-one-door',
 };
 const OPEN_STANDARDS: EvidenceRef = {
   kind: 'code',
@@ -3252,6 +3263,20 @@ export const CLAIMS: readonly ClaimEntry[] = [
         note: 'positive claim about process, not code; the honesty-rails copy itself is the disclosure',
       },
     ],
+  },
+
+  // ── receipt.ts — hero receipt-motif moment (Phase 5) ────────────────────
+  {
+    file: 'receipt.ts',
+    exportPath: 'RECEIPT_HERO_TITLE',
+    text: 'Refund, handled by an agent',
+    evidence: [REFUND_ROUTE, AGENT_ROUTES],
+  },
+  {
+    file: 'receipt.ts',
+    exportPath: 'RECEIPT_HERO_CAPTION.text',
+    text: "If an agent did it, there's a receipt.",
+    evidence: [AUDIT_LOG_SCHEMA, REFUND_ROUTE],
   },
 ] as const;
 

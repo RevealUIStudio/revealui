@@ -30,6 +30,8 @@ export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   // original placement.
   'proof.ts': { route: '/', pageTitle: 'Home' },
   'pricing-teaser.ts': { route: '/', pageTitle: 'Home' },
+  // The receipt-motif hero moment renders on "/" via components/landing/Hero.tsx.
+  'receipt.ts': { route: '/', pageTitle: 'Home' },
   // SITE.brandTagline renders on "/" in the Footer, under SITE.brand. SITE's
   // other exports (urls, METRICS) are used throughout the site but carry no
   // prose claims of their own.
