@@ -860,6 +860,28 @@ export function subscriptionExpBound(periodEnd: Date): number {
 }
 
 /**
+ * Idempotency tolerance for the renewal re-mint decision (fast-follow from the
+ * non-blocking finding on the #1978 guardrail-2 verdict). `subscriptionLicenseExpiresInSeconds`
+ * floors its relative TTL to whole seconds and the JWT signer floors `exp` to
+ * `iat + expiresInSeconds` at its own second granularity, so the `exp` actually
+ * persisted for a subscription key can land exactly 1s below
+ * {@link subscriptionExpBound}'s value even though the mint targeted that bound.
+ * Without this tolerance a duplicate/retried `invoice.payment_succeeded` lands on
+ * that 1s gap and re-enters the re-mint path instead of no-opping.
+ */
+export const RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS = 1;
+
+/**
+ * True when a stored license `exp` already covers the renewal bound, within the
+ * {@link RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS} idempotency tolerance  -  i.e. the
+ * renewal re-mint should be SKIPPED. `null` (perpetual token, or an undecodable
+ * key) never covers, so the caller falls through to re-mint.
+ */
+export function coversRenewalBound(storedExp: number | null, newBound: number): boolean {
+  return storedExp !== null && storedExp >= newBound - RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS;
+}
+
+/**
  * Reads the `exp` (epoch seconds) claim from a license JWT WITHOUT verifying its
  * signature. Internal use only, for the GAP-287 PR-2 renewal cadence: the token
  * comes from our OWN store and the caller needs only its expiry to decide whether

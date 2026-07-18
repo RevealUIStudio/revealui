@@ -19,8 +19,10 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
+  coversRenewalBound,
   DEFAULT_SUBSCRIPTION_TTL_SECONDS,
   generateLicenseKey,
+  RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS,
   RENEWAL_SLACK_DAYS,
   RENEWAL_SLACK_SECONDS,
   readLicenseExp,
@@ -79,6 +81,31 @@ describe('subscriptionExpBound', () => {
   it('is the absolute epoch bound period_end + slack', () => {
     const periodEnd = new Date(1_700_000_000_000);
     expect(subscriptionExpBound(periodEnd)).toBe(1_700_000_000 + RENEWAL_SLACK_SECONDS);
+  });
+});
+
+// #1978 guardrail-2 verdict, non-blocking finding: the minted exp can floor 1s
+// below subscriptionExpBound's value, so a duplicate invoice.payment_succeeded
+// must still treat that 1s-short exp as covering the bound (SKIP re-mint).
+describe('coversRenewalBound (idempotency tolerance)', () => {
+  it('is 1 second', () => {
+    expect(RENEWAL_IDEMPOTENCY_TOLERANCE_SECONDS).toBe(1);
+  });
+
+  it('covers when the stored exp meets the bound exactly', () => {
+    expect(coversRenewalBound(1_700_000_000, 1_700_000_000)).toBe(true);
+  });
+
+  it('covers when the stored exp is exactly 1s below the bound (the flooring gap)', () => {
+    expect(coversRenewalBound(1_700_000_000 - 1, 1_700_000_000)).toBe(true);
+  });
+
+  it('does NOT cover when the stored exp is 2s or more below the bound', () => {
+    expect(coversRenewalBound(1_700_000_000 - 2, 1_700_000_000)).toBe(false);
+  });
+
+  it('does NOT cover a perpetual/undecodable token (null exp)', () => {
+    expect(coversRenewalBound(null, 1_700_000_000)).toBe(false);
   });
 });
 
