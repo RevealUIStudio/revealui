@@ -93,7 +93,7 @@ _Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-
 spec, the Vercel/Fly sync manifests, or their sensitivity markers. Change `secret-paths.ts`
 and re-run the renderer._
 
-Production runtime paths synced to Vercel + Fly (108 paths). `sensitive` = the
+Production runtime paths synced to Vercel + Fly (109 paths). `sensitive` = the
 value is never UI/API-revealable after write (credentials + private signing keys).
 
 | Path | Kind | Sensitive | Consumers | Notes |
@@ -122,7 +122,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/passkey/origin` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-name` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
-| `revealui/prod/preview-token-secret` | credential | yes | vercel:api | preview-token HMAC (visual edit sessions) |
+| `revealui/prod/preview-token-secret` | credential | yes | vercel:api | HMAC-SHA256 key for edit-session preview tokens - short-lived read-only credential |
 | `revealui/prod/public/api-url` | public-config | no | vercel:admin, vercel:marketing, vercel:docs |  |
 | `revealui/prod/public/is-live` | public-config | no | vercel:admin, vercel:marketing | NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag |
 | `revealui/prod/public/server-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, fly:worker |  |

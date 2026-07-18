@@ -24,6 +24,7 @@ COPY packages/core/package.json          ./packages/core/
 COPY packages/create-revealui/package.json ./packages/create-revealui/
 COPY packages/db/package.json            ./packages/db/
 COPY packages/dev/package.json           ./packages/dev/
+COPY packages/editor/package.json        ./packages/editor/
 COPY packages/knowledge-graph/package.json ./packages/knowledge-graph/
 COPY packages/mcp/package.json           ./packages/mcp/
 COPY packages/paywall/package.json       ./packages/paywall/

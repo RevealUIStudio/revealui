@@ -236,6 +236,18 @@ export const SECRET_PATHS: SecretPathDef[] = [
     envVars: ['REVEALUI_AUDIT_PUBLIC_KEY'],
     note: 'Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key',
   },
+  // Visual edit sessions (P1). HMAC-SHA256 key behind the read-only preview
+  // tokens; the API both mints and verifies (routes/content/sessions), no
+  // other consumer reads it and there is no fallback value.
+  {
+    path: 'revealui/prod/preview-token-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['vercel:api'],
+    envVars: ['REVEALUI_PREVIEW_TOKEN_SECRET'],
+    note: 'HMAC-SHA256 key for edit-session preview tokens - short-lived read-only credential',
+  },
   // License signing keypair - CANONICAL stays at the live revdev/* path so the
   // gate is GREEN against today's manifest; the project-aligned target is
   // DECLARED via migratingTo (the value-move is P3-4, owner-gated - NOT here).
