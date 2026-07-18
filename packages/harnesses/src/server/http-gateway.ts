@@ -105,6 +105,12 @@ const DEFAULT_BASE_LOCKOUT_MS = 60 * 1000;
 const DEFAULT_MAX_LOCKOUT_MS = 60 * 60 * 1000;
 const DEFAULT_GLOBAL_FAILURE_CEILING = 100;
 const MAX_PENDING_NONCES = 256;
+// #1975 guardrail-2 verdict, non-blocking follow-up: the initAuth create-path
+// retry loop only ever advances on EEXIST (another process winning the create
+// race), so it is bounded here to stop a persistent create/delete race from
+// livelocking startup. DoS-only concern (O_EXCL + O_NOFOLLOW still hold, so no
+// secret can be substituted); defense-in-depth, not a new attack surface.
+const MAX_INIT_AUTH_ATTEMPTS = 5;
 const SECRET_BYTES = 32;
 const NONCE_BYTES = 32;
 const TOKEN_BYTES = 32;
@@ -235,8 +241,10 @@ export class HttpGateway {
     const secretPath = this.config.secretPath;
 
     // Looped so a create-path race that loses to another process (EEXIST) falls
-    // back to reading the winner's file rather than failing the daemon.
-    for (;;) {
+    // back to reading the winner's file rather than failing the daemon. Bounded
+    // at MAX_INIT_AUTH_ATTEMPTS so a persistent create/delete race cannot
+    // livelock startup.
+    for (let attempt = 1; attempt <= MAX_INIT_AUTH_ATTEMPTS; attempt++) {
       const dbHash = await this.config.store.getBootstrapSecretHash();
 
       // Read path: open ONE fd with O_NOFOLLOW, then fstat + read that same fd.
@@ -334,6 +342,11 @@ export class HttpGateway {
         closeSync(fd);
       }
     }
+
+    this.bootstrapSecret = null;
+    this.logAuth(
+      `bootstrap secret initialization at ${secretPath} did not converge after ${MAX_INIT_AUTH_ATTEMPTS} attempts (persistent create/delete race); refusing new pairings`,
+    );
   }
 
   async start(): Promise<void> {
