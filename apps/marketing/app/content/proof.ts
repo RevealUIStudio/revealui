@@ -1,5 +1,5 @@
 // Sourced from: app/components/landing/Proof.tsx (Phase 1c extraction).
-// Phase 3 (2026-05-18) update: "22 of 28 packages MIT" trust card heading now
+// Phase 3 (2026-05-18) update: "23 of 29 packages MIT" trust card heading now
 // uses METRICS license split (21 MIT). Pre-Phase-3 audit had off-by-one count.
 // Per the internal marketing-overhaul plan §4.4 + docs/MARKETING_METRICS.md §1.
 //
