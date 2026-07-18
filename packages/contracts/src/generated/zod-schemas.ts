@@ -820,6 +820,84 @@ export type CrdtOperationsRow = z.infer<typeof CrdtOperationsSelectSchema>
 export type CrdtOperationsInsert = z.infer<typeof CrdtOperationsInsertSchema>
 
 // =============================================================================
+// EditSessionDocs Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting editSessionDocs rows from database
+ * Generated from Drizzle table definition: tables.editSessionDocs
+ */
+export const EditSessionDocsSelectSchema = createSelectSchema(tables.editSessionDocs)
+
+/**
+ * Zod schema for inserting editSessionDocs rows to database
+ * Generated from Drizzle table definition: tables.editSessionDocs
+ */
+export const EditSessionDocsInsertSchema = createInsertSchema(tables.editSessionDocs)
+
+/**
+ * TypeScript type for editSessionDocs row (Select)
+ */
+export type EditSessionDocsRow = z.infer<typeof EditSessionDocsSelectSchema>
+
+/**
+ * TypeScript type for editSessionDocs insert
+ */
+export type EditSessionDocsInsert = z.infer<typeof EditSessionDocsInsertSchema>
+
+// =============================================================================
+// EditSessionEvents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting editSessionEvents rows from database
+ * Generated from Drizzle table definition: tables.editSessionEvents
+ */
+export const EditSessionEventsSelectSchema = createSelectSchema(tables.editSessionEvents)
+
+/**
+ * Zod schema for inserting editSessionEvents rows to database
+ * Generated from Drizzle table definition: tables.editSessionEvents
+ */
+export const EditSessionEventsInsertSchema = createInsertSchema(tables.editSessionEvents)
+
+/**
+ * TypeScript type for editSessionEvents row (Select)
+ */
+export type EditSessionEventsRow = z.infer<typeof EditSessionEventsSelectSchema>
+
+/**
+ * TypeScript type for editSessionEvents insert
+ */
+export type EditSessionEventsInsert = z.infer<typeof EditSessionEventsInsertSchema>
+
+// =============================================================================
+// EditSessions Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting editSessions rows from database
+ * Generated from Drizzle table definition: tables.editSessions
+ */
+export const EditSessionsSelectSchema = createSelectSchema(tables.editSessions)
+
+/**
+ * Zod schema for inserting editSessions rows to database
+ * Generated from Drizzle table definition: tables.editSessions
+ */
+export const EditSessionsInsertSchema = createInsertSchema(tables.editSessions)
+
+/**
+ * TypeScript type for editSessions row (Select)
+ */
+export type EditSessionsRow = z.infer<typeof EditSessionsSelectSchema>
+
+/**
+ * TypeScript type for editSessions insert
+ */
+export type EditSessionsInsert = z.infer<typeof EditSessionsInsertSchema>
+
+// =============================================================================
 // ErrorEvents Schemas
 // =============================================================================
 
