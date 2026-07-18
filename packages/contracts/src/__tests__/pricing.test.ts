@@ -163,6 +163,30 @@ describe('PERPETUAL_TIERS', () => {
       expect(tier.features.length).toBeGreaterThan(0);
     }
   });
+
+  // GAP-306: renewal must be populated from the Stripe catalog cents-of-record
+  // (scripts/setup/stripe-catalog.ts CATALOG), not left to the marketing
+  // fallback file. Cents cross-checked by scripts/validate/pricing-lockstep.ts.
+  it('every tier has a populated renewal price derived from the catalog', () => {
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual')?.renewal).toBe(
+      '$149/yr for continued support',
+    );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual')?.renewal).toBe(
+      '$799/yr for continued support',
+    );
+    expect(PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual')?.renewal).toBe(
+      '$3,999/yr for continued support',
+    );
+  });
+
+  // GAP-306: a perpetual licensee must be able to purchase without email —
+  // no perpetual-tier CTA may route to a mailto: link.
+  it('no perpetual tier CTA is a mailto: link', () => {
+    for (const tier of PERPETUAL_TIERS) {
+      expect(tier.ctaHref.startsWith('mailto:')).toBe(false);
+      expect(tier.ctaHref).toBe('/account/license');
+    }
+  });
 });
 
 // =============================================================================

@@ -14,6 +14,7 @@ import {
   PERPETUAL_PRICE_FALLBACKS,
   SUBSCRIPTION_PRICE_FALLBACKS,
 } from '../../apps/marketing/app/lib/pricing-fallbacks.js';
+import { PERPETUAL_TIERS } from '../../packages/contracts/src/pricing.js';
 import { CATALOG } from '../setup/stripe-catalog.js';
 
 const warnOnly = process.argv.includes('--warn');
@@ -110,6 +111,46 @@ for (const [name, key] of Object.entries(PERP_KEY)) {
     });
   }
 }
+
+// Renewal cents-of-record: PERPETUAL_TIERS (contracts, the source display
+// consumers merge from) and PERPETUAL_PRICE_FALLBACKS (marketing fallback)
+// must both match the CATALOG's revealui_renewal_{pro,max,enterprise} prices
+// (GAP-306: renewal display must derive from the catalog, not drift alone).
+const RENEWAL_KEY: Record<string, string> = {
+  'Pro Perpetual': 'revealui_renewal_pro',
+  'Agency Perpetual': 'revealui_renewal_max',
+  'Enterprise Perpetual': 'revealui_renewal_enterprise',
+};
+
+function checkRenewalSurface(surface: string, renewals: Record<string, string | undefined>): void {
+  for (const [name, key] of Object.entries(RENEWAL_KEY)) {
+    const renewal = renewals[name];
+    if (!renewal) continue;
+    const fallbackCents = dollarsToCents(renewal);
+    const declared = catalogCents(key);
+    if (declared !== fallbackCents) {
+      mismatches.push({
+        surface,
+        tier: name,
+        fallback: renewal,
+        fallbackCents,
+        catalogKey: key,
+        catalogCents: declared,
+      });
+    }
+  }
+}
+
+checkRenewalSurface(
+  'perpetual-renewal',
+  Object.fromEntries(PERPETUAL_TIERS.map((tier) => [tier.name, tier.renewal])),
+);
+checkRenewalSurface(
+  'perpetual-renewal-fallback',
+  Object.fromEntries(
+    Object.entries(PERPETUAL_PRICE_FALLBACKS).map(([name, fb]) => [name, fb.renewal]),
+  ),
+);
 
 if (mismatches.length === 0) {
   console.log('  OK: seed CATALOG cents match the marketing display fallbacks');

@@ -1496,6 +1496,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[0].renewal',
+    text: '$149/yr for continued support',
+    evidence: [PERPETUAL, PRICING_FALLBACKS],
+  },
+  {
+    file: 'pricing.ts',
     exportPath: 'PERPETUAL_TIERS[0].features[2]',
     text: '1 year priority support included',
     evidence: [COMMERCIAL_POLICY],
@@ -1517,6 +1523,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PERPETUAL_TIERS[1].description',
     text: 'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
     evidence: [PERPETUAL, REVFORGE_REF],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[1].renewal',
+    text: '$799/yr for continued support',
+    evidence: [PERPETUAL, PRICING_FALLBACKS],
   },
   {
     file: 'pricing.ts',
@@ -1547,6 +1559,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PERPETUAL_TIERS[2].description',
     text: 'Full self-hosted Enterprise tier with unlimited deployments.',
     evidence: [PERPETUAL, SELF_HOST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PERPETUAL_TIERS[2].renewal',
+    text: '$3,999/yr for continued support',
+    evidence: [PERPETUAL, PRICING_FALLBACKS],
   },
   {
     file: 'pricing.ts',
