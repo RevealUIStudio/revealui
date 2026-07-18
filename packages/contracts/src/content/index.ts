@@ -465,6 +465,97 @@ export const ComponentBlockSchema = BaseBlockSchema.extend({
 export type ComponentBlock = z.infer<typeof ComponentBlockSchema>;
 
 // =============================================================================
+// Marketing Link (shared by hero + cta section blocks)
+// =============================================================================
+
+/**
+ * A call-to-action link inside a marketing section block. `variant` maps to a
+ * visual emphasis in the renderer (primary = filled, secondary = outline);
+ * absent means the renderer picks a default.
+ */
+export const MarketingLinkSchema = z.object({
+  label: z.string(),
+  href: z.string(),
+  variant: z.enum(['primary', 'secondary']).optional(),
+});
+
+export type MarketingLink = z.infer<typeof MarketingLinkSchema>;
+
+// =============================================================================
+// Hero Block (section-level marketing)
+// =============================================================================
+
+/**
+ * Full-width lead section: eyebrow, headline, subtitle, a support line, and
+ * optional CTA links. Text fields are plain strings in P1 (no Lexical state).
+ */
+export const HeroBlockSchema = BaseBlockSchema.extend({
+  type: z.literal('hero'),
+  data: z.object({
+    eyebrow: z.string().optional(),
+    title: z.string(),
+    subtitle: z.string().optional(),
+    support: z.string().optional(),
+    links: z.array(MarketingLinkSchema).optional(),
+  }),
+});
+
+export type HeroBlock = z.infer<typeof HeroBlockSchema>;
+
+// =============================================================================
+// CTA Section Block (section-level marketing closer)
+// =============================================================================
+
+/**
+ * Closing call-to-action section: heading, optional body copy, CTA links, and
+ * an optional display-only CLI snippet (rendered as static text, never run).
+ */
+export const CtaSectionBlockSchema = BaseBlockSchema.extend({
+  type: z.literal('ctaSection'),
+  data: z.object({
+    heading: z.string(),
+    body: z.string().optional(),
+    links: z.array(MarketingLinkSchema).optional(),
+    snippet: z
+      .object({
+        lines: z.array(z.string()),
+        caption: z.string().optional(),
+      })
+      .optional(),
+  }),
+});
+
+export type CtaSectionBlock = z.infer<typeof CtaSectionBlockSchema>;
+
+// =============================================================================
+// Section Block (generic marketing repeater: FAQ / beats / cards)
+// =============================================================================
+
+/**
+ * Generic titled section with an optional list of repeater items. Covers the
+ * demo-beats, primitive-cards, and FAQ shapes, all of `{ label?, title?, body }`.
+ */
+export const SectionBlockSchema = BaseBlockSchema.extend({
+  type: z.literal('section'),
+  data: z.object({
+    eyebrow: z.string().optional(),
+    heading: z.string(),
+    body: z.string().optional(),
+    items: z
+      .array(
+        z.object({
+          label: z.string().optional(),
+          title: z.string().optional(),
+          body: z.string(),
+        }),
+      )
+      .optional(),
+  }),
+});
+
+export type SectionBlock = z.infer<typeof SectionBlockSchema>;
+
+// =============================================================================
 // Block Union (Discriminated by `type`)
 // =============================================================================
 
@@ -496,6 +587,9 @@ export const BlockSchema = z.union([
   FormBlockSchema,
   HtmlBlockSchema,
   ComponentBlockSchema,
+  HeroBlockSchema,
+  CtaSectionBlockSchema,
+  SectionBlockSchema,
 ]);
 
 export type Block = z.infer<typeof BlockSchema>;
@@ -524,6 +618,9 @@ export const BlockTypes = [
   'form',
   'html',
   'component',
+  'hero',
+  'ctaSection',
+  'section',
 ] as const;
 
 export type BlockType = (typeof BlockTypes)[number];
@@ -598,6 +695,67 @@ export function createCodeBlock(
     id,
     type: 'code',
     data: { code, language, showLineNumbers: false, ...options },
+    meta: { version: BLOCK_SCHEMA_VERSION },
+  };
+}
+
+/**
+ * Creates a hero section block
+ */
+export function createHeroBlock(
+  id: string,
+  title: string,
+  options?: {
+    eyebrow?: string;
+    subtitle?: string;
+    support?: string;
+    links?: MarketingLink[];
+  },
+): HeroBlock {
+  return {
+    id,
+    type: 'hero',
+    data: { title, ...options },
+    meta: { version: BLOCK_SCHEMA_VERSION },
+  };
+}
+
+/**
+ * Creates a CTA section block
+ */
+export function createCtaSectionBlock(
+  id: string,
+  heading: string,
+  options?: {
+    body?: string;
+    links?: MarketingLink[];
+    snippet?: { lines: string[]; caption?: string };
+  },
+): CtaSectionBlock {
+  return {
+    id,
+    type: 'ctaSection',
+    data: { heading, ...options },
+    meta: { version: BLOCK_SCHEMA_VERSION },
+  };
+}
+
+/**
+ * Creates a generic section block (repeater for FAQ / beats / cards)
+ */
+export function createSectionBlock(
+  id: string,
+  heading: string,
+  options?: {
+    eyebrow?: string;
+    body?: string;
+    items?: Array<{ label?: string; title?: string; body: string }>;
+  },
+): SectionBlock {
+  return {
+    id,
+    type: 'section',
+    data: { heading, ...options },
     meta: { version: BLOCK_SCHEMA_VERSION },
   };
 }
