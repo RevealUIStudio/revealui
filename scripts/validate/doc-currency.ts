@@ -105,6 +105,15 @@ export function parseArgs(argv: readonly string[]): {
 // Generous exoneration: better to miss a stale reference than flag a
 // correct historical one — a noisy gate gets disabled, and the value here
 // comes from the gate existing and catching new drift, not zero misses.
+//
+// These are the SHARED FLEET FACTS: retired/renamed facts that can surface in
+// any repo's prose. Their DETECTION tuples (anyOf + unlessLineHas) are kept in
+// lockstep with the private sibling scanner at
+// .jv/scripts/doc-currency-check.ts §SHARED_FLEET_RULES. Messages may carry
+// repo-appropriate citations; only the detection must match. This public
+// scanner has no repo-specific rules — the .jv scanner adds `boi-mandatory`,
+// which is internal legal posture with no public surface. See the .jv
+// doc-currency rule §lockstep.
 // ---------------------------------------------------------------------------
 
 /** Shared past-tense / correction markers — if any appears alongside the
@@ -186,7 +195,7 @@ export const STRIPE_LIVE_EXON: readonly string[] = [
   'were ',
 ];
 
-export const RULES: readonly Rule[] = [
+const SHARED_FLEET_RULES: readonly Rule[] = [
   {
     id: 'revealcoin-as-current',
     anyOf: ['revealcoin', 'rvc ', '$rvc', '$rvui', 'rvui-payment', 'rvui payment'],
@@ -297,7 +306,22 @@ export const RULES: readonly Rule[] = [
     message:
       'RevealUI Max is $299/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 as the current Max price.',
   },
+  {
+    // Retired developer path. `~/suite/` was renamed to `~/revfleet/` on
+    // 2026-05-08; a doc presenting `~/suite/` as a live path is stale. Fleet
+    // fact — detection in lockstep with the .jv scanner's retired-suite-path.
+    id: 'retired-suite-path',
+    anyOf: ['~/suite/', '/home/joshua-v-dev/suite/', 'wsl$\\ubuntu\\home\\joshua-v-dev\\suite'],
+    unlessLineHas: [...COMMON_EXON, 'now ~/revfleet', 'renamed'],
+    message: 'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
+  },
 ];
+
+/** The public revealui scanner enforces the SHARED fleet-fact set only; it has
+ *  no repo-specific rules (the private .jv scanner adds `boi-mandatory`, which
+ *  has no public surface). Kept in lockstep with
+ *  .jv/scripts/doc-currency-check.ts §SHARED_FLEET_RULES. */
+export const RULES: readonly Rule[] = SHARED_FLEET_RULES;
 
 // ---------------------------------------------------------------------------
 // Shared matching helpers
