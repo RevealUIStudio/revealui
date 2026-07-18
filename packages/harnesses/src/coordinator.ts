@@ -89,15 +89,14 @@ export class HarnessCoordinator {
     });
 
     // 3. Initialize PGlite daemon store
-    const dataDir = join(process.env.HOME ?? '/tmp', '.local', 'share', 'revealui', 'harness.db');
+    const revealuiDir = join(process.env.HOME ?? '/tmp', '.local', 'share', 'revealui');
+    const dataDir = join(revealuiDir, 'harness.db');
     mkdirSync(dataDir, { recursive: true });
     this.store = new DaemonStore({ dataDir });
     await this.store.init();
 
     // 4. Start RPC server
-    const socketPath =
-      this.options.socketPath ??
-      join(process.env.HOME ?? '/tmp', '.local', 'share', 'revealui', 'harness.sock');
+    const socketPath = this.options.socketPath ?? join(revealuiDir, 'harness.sock');
 
     this.rpcServer = new RpcServer(this.registry, socketPath, this.store);
     this.rpcServer.setHealthCheck(() => this.healthCheck());
@@ -127,7 +126,10 @@ export class HarnessCoordinator {
         staticDir: this.options.httpStaticDir,
         rpcDispatch: this.rpcServer,
         spawner: this.spawner,
+        store: this.store,
+        secretPath: join(revealuiDir, 'pairing-secret'),
       });
+      await this.httpGateway.initAuth();
       await this.httpGateway.start();
     }
   }
