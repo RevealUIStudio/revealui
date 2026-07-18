@@ -61,6 +61,9 @@ vi.mock('@revealui/core/features', () => ({
 vi.mock('@revealui/core/license', () => ({
   generateLicenseKey: vi.fn().mockResolvedValue('rv-test-key'),
   resetLicenseState: vi.fn(),
+  subscriptionLicenseExpiresInSeconds: vi.fn(() => 3600),
+  subscriptionExpBound: vi.fn(() => 9_999_999_999),
+  readLicenseExp: vi.fn(async () => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({

@@ -10,7 +10,13 @@
  */
 
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
-import { generateLicenseKey, resetLicenseState } from '@revealui/core/license';
+import {
+  generateLicenseKey,
+  readLicenseExp,
+  resetLicenseState,
+  subscriptionExpBound,
+  subscriptionLicenseExpiresInSeconds,
+} from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { DrizzleAuditStore, executeSaga, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
@@ -361,6 +367,91 @@ function getSubscriptionPeriodDate(
   if (!item) return null;
   const value = item[field];
   return typeof value === 'number' ? new Date(value * 1000) : null;
+}
+
+/** Narrows a stored `licenses.tier` string to the mintable license tiers. */
+function asMintableTier(value: string): 'pro' | 'max' | 'enterprise' | null {
+  return value === 'pro' || value === 'max' || value === 'enterprise' ? value : null;
+}
+
+/**
+ * GAP-287 PR-2 renewal cadence. On `invoice.payment_succeeded` for a healthy,
+ * already-active hosted subscription license, advances the key's `exp` to the
+ * new billing period (`period_end + RENEWAL_SLACK`). A period-bound token would
+ * otherwise lapse mid-subscription: the renewal invoice is the billing-cycle
+ * signal that must extend it.
+ *
+ * Idempotent, extending the WH-2 anti-churn discipline into the exp dimension:
+ * re-mint IFF the stored key's exp is below the new bound, SKIP otherwise — so a
+ * duplicate/retried delivery re-derives the same decision and does nothing. Only
+ * touches an ACTIVE row scoped to this (customer, subscription); perpetual rows
+ * carry a null `subscriptionId` and never match, so they are untouched. The
+ * row's stored tier is authoritative here — a renewal never changes tier. No-op
+ * when the private key is unset (the checkout/recovery paths already surface
+ * that as a loud CRITICAL) or no matching active row exists.
+ */
+async function remintSubscriptionLicenseOnRenewal(
+  db: Database,
+  params: {
+    customerId: string;
+    subscriptionId: string;
+    periodEnd: Date;
+    eventCreatedSeconds: number;
+  },
+): Promise<void> {
+  const filter = and(
+    eq(licenses.customerId, params.customerId),
+    eq(licenses.subscriptionId, params.subscriptionId),
+    isNull(licenses.deletedAt),
+  );
+
+  const [row] = await db
+    .select({ status: licenses.status, tier: licenses.tier, licenseKey: licenses.licenseKey })
+    .from(licenses)
+    .where(filter)
+    .limit(1);
+  if (row?.status !== 'active') return;
+
+  const tier = asMintableTier(row.tier);
+  if (!tier) return;
+
+  // Idempotency pin (the WH-2 property, now covering renewals): skip when the
+  // stored key's exp already reaches the new bound.
+  const newBound = subscriptionExpBound(params.periodEnd);
+  const storedExp = await readLicenseExp(row.licenseKey);
+  if (storedExp !== null && storedExp >= newBound) return;
+
+  const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+  if (!privateKey) {
+    logger.error(
+      'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  renewal re-mint skipped',
+      undefined,
+      { customerId: params.customerId, subscriptionId: params.subscriptionId },
+    );
+    return;
+  }
+  const normalizedKey = privateKey.replaceAll('\\n', '\n');
+
+  const licenseKey = await generateLicenseKey(
+    { tier, customerId: params.customerId },
+    normalizedKey,
+    subscriptionLicenseExpiresInSeconds(params.periodEnd),
+  );
+
+  // WH-3-shaped monotonic guard: a stale (out-of-order) invoice must not clobber
+  // newer state. When the row's updatedAt is already at/after this event, the
+  // write affects 0 rows and the newer key stands.
+  await db
+    .update(licenses)
+    .set({ licenseKey, updatedAt: new Date() })
+    .where(and(filter, lt(licenses.updatedAt, new Date((params.eventCreatedSeconds + 1) * 1000))));
+
+  resetLicenseState();
+  resetDbStatusCache();
+  logger.info('License re-minted on renewal — exp advanced to new billing period', {
+    customerId: params.customerId,
+    subscriptionId: params.subscriptionId,
+  });
 }
 
 function resolveCustomerId(
@@ -1578,7 +1669,18 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 )
                 .limit(1);
 
-              const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey);
+              // GAP-287 PR-2: bind exp to the billing period (period_end + slack)
+              // instead of a flat 365d. A trialing checkout's current period ends
+              // at trial_end, so the token covers the trial and is re-minted on
+              // the first renewal invoice. Falls back to the 365d default only
+              // when the subscription has no billing period.
+              const licenseKey = await generateLicenseKey(
+                { tier, customerId },
+                normalizedKey,
+                subscriptionLicenseExpiresInSeconds(
+                  getSubscriptionPeriodDate(checkoutSubscription, 'current_period_end'),
+                ),
+              );
 
               if (existing) {
                 await ctx.db
@@ -2195,9 +2297,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   };
                 }
 
+                // GAP-287 PR-2: same period-bound exp derivation as the checkout
+                // mint — a tier change re-issues the key for the current period.
                 const licenseKey = await generateLicenseKey(
                   { tier: newTier, customerId },
                   normalizedKey,
+                  subscriptionLicenseExpiresInSeconds(
+                    getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                  ),
                 );
 
                 // WH-3: monotonic-timestamp guard against out-of-order delivery.
@@ -2741,17 +2848,41 @@ app.openapi(stripeWebhookRoute, async (c) => {
             }
 
             const normalizedKey = privateKey.replaceAll('\\n', '\n');
+            // GAP-287 PR-2: period-bound exp on the recovery re-mint too.
             const licenseKey = await generateLicenseKey(
               { tier: recoveredTier, customerId },
               normalizedKey,
+              subscriptionLicenseExpiresInSeconds(
+                getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
+              ),
             );
             await db
               .update(licenses)
               .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
               .where(recoveryFilter);
           }
-        } else if (existingLicense && !shouldReactivateHosted && !shouldHealHostedState) {
-          break;
+        } else {
+          // GAP-287 PR-2 renewal cadence: the license is already active (not
+          // being reactivated), but a period-bound key must have its exp
+          // advanced to the new billing period on the renewal invoice. This is
+          // idempotent — it no-ops when the stored exp already covers the new
+          // bound (a duplicate/retried delivery re-derives the same decision).
+          const renewalPeriodEnd = getSubscriptionPeriodDate(
+            recoveredSubscription,
+            'current_period_end',
+          );
+          if (renewalPeriodEnd) {
+            await remintSubscriptionLicenseOnRenewal(db, {
+              customerId,
+              subscriptionId: recoveredSubscription.id,
+              periodEnd: renewalPeriodEnd,
+              eventCreatedSeconds: event.created,
+            });
+          }
+
+          if (existingLicense && !shouldReactivateHosted && !shouldHealHostedState) {
+            break;
+          }
         }
 
         if (
