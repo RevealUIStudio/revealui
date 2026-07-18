@@ -796,6 +796,77 @@ export function getMaxAgentTasks(): number {
 }
 
 /**
+ * Default subscription license JWT lifetime (seconds) — one year. Used as the
+ * fallback when a subscription's billing period is unavailable at mint time (an
+ * abnormal Stripe shape) so a period-bound token is never SHORTER than the
+ * pre-GAP-287 behavior, and as the default lifetime for {@link generateLicenseKey}
+ * when no explicit value is passed.
+ */
+export const DEFAULT_SUBSCRIPTION_TTL_SECONDS = 365 * 24 * 60 * 60;
+
+/**
+ * Slack added to a hosted subscription's `current_period_end` when deriving the
+ * license JWT `exp` (GAP-287 PR-2). Ratified by the owner 2026-07-18 at 7 days.
+ *
+ * The token's lifetime equals what billing has actually granted plus this slack.
+ * The slack must cover the Stripe dunning/retry window so a card that recovers
+ * on retry never presents a lapsed key. Renewals advance the exp each billing
+ * cycle by re-minting on `invoice.payment_succeeded`.
+ */
+export const RENEWAL_SLACK_DAYS = 7;
+export const RENEWAL_SLACK_SECONDS = RENEWAL_SLACK_DAYS * 24 * 60 * 60;
+
+/**
+ * Derives the relative `expiresInSeconds` argument for {@link generateLicenseKey}
+ * at the hosted subscription mint sites (GAP-287 PR-2): the token should expire
+ * at `periodEnd + RENEWAL_SLACK_SECONDS`. Because generateLicenseKey interprets a
+ * numeric lifetime relative to issue time, this returns that absolute bound minus
+ * now.
+ *
+ * Falls back to {@link DEFAULT_SUBSCRIPTION_TTL_SECONDS} when `periodEnd` is
+ * absent (a subscription with no billing period) so an unexpected Stripe shape
+ * never mints a shorter-than-before token. Never returns a non-positive lifetime:
+ * a period end already in the past floors at one second, leaving expiry to the
+ * validation grace + refresh window rather than minting an already-invalid token.
+ */
+export function subscriptionLicenseExpiresInSeconds(
+  periodEnd: Date | null | undefined,
+  nowMs: number = Date.now(),
+): number {
+  if (!periodEnd) return DEFAULT_SUBSCRIPTION_TTL_SECONDS;
+  const boundMs = periodEnd.getTime() + RENEWAL_SLACK_SECONDS * 1000;
+  return Math.max(1, Math.floor((boundMs - nowMs) / 1000));
+}
+
+/**
+ * Absolute epoch-second bound `periodEnd + RENEWAL_SLACK_SECONDS` a hosted
+ * subscription key should reach (GAP-287 PR-2). The renewal cadence re-mints IFF
+ * the stored key's `exp` is below this bound, so the comparison uses this
+ * absolute form while the mint uses the relative
+ * {@link subscriptionLicenseExpiresInSeconds}.
+ */
+export function subscriptionExpBound(periodEnd: Date): number {
+  return Math.floor(periodEnd.getTime() / 1000) + RENEWAL_SLACK_SECONDS;
+}
+
+/**
+ * Reads the `exp` (epoch seconds) claim from a license JWT WITHOUT verifying its
+ * signature. Internal use only, for the GAP-287 PR-2 renewal cadence: the token
+ * comes from our OWN store and the caller needs only its expiry to decide whether
+ * to re-mint — never as an authentication or entitlement decision. Returns null
+ * for a perpetual token (no exp claim) or one that cannot be decoded.
+ */
+export async function readLicenseExp(licenseKey: string): Promise<number | null> {
+  try {
+    const jose = await getJose();
+    const payload = jose.decodeJwt(licenseKey);
+    return typeof payload.exp === 'number' ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Generates a signed license key JWT.
  * Server-only in practice (requires the private key) but edge-compatible —
  * `jose.importPKCS8` and `SignJWT` both run on Web Crypto.
@@ -811,7 +882,7 @@ export function getMaxAgentTasks(): number {
 export async function generateLicenseKey(
   payload: Omit<LicensePayload, 'iat' | 'exp' | 'jti'> & { jti?: string },
   privateKey: string,
-  expiresInSeconds: number | null = 365 * 24 * 60 * 60,
+  expiresInSeconds: number | null = DEFAULT_SUBSCRIPTION_TTL_SECONDS,
   publicKey?: string,
 ): Promise<string> {
   const jose = await getJose();
