@@ -92,15 +92,20 @@ export const Posts: RevealCollectionConfig<Post> = {
               hasMany: true,
               relationTo: 'posts',
             },
-            {
-              name: 'categories',
-              type: 'relationship',
-              admin: {
-                position: 'sidebar',
-              },
-              hasMany: true,
-              relationTo: 'categories',
-            },
+            // WIRE-UP-PENDING — the `categories` relationship is disabled: its
+            // target `categories` collection has no backing table and is
+            // unregistered (see collections/registry.ts). A registered
+            // collection must not reference an unregistered slug. Re-enable
+            // this field once a `categories` migration + registration land.
+            // {
+            //   name: 'categories',
+            //   type: 'relationship',
+            //   admin: {
+            //     position: 'sidebar',
+            //   },
+            //   hasMany: true,
+            //   relationTo: 'categories',
+            // },
           ],
         },
         {
