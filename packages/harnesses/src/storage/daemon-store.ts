@@ -16,6 +16,8 @@ import type {
   AgentWorktree,
   DaemonEvent,
   FileReservation,
+  GatewayBootstrapRow,
+  GatewayTokenRow,
   GoalCriterionRow,
   GoalRow,
   MergeRequest,
@@ -874,5 +876,86 @@ export class DaemonStore {
       [criterionId, taskId],
     );
     return result.rows[0] ?? null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Gateway authn substrate (HTTP gateway bootstrap secret + bearer tokens)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Persist the SHA-256 hash of the bootstrap pairing secret (singleton row).
+   * Upserts so a fresh data dir can re-adopt an existing on-disk secret file.
+   */
+  async putBootstrapSecretHash(secretHash: string): Promise<GatewayBootstrapRow> {
+    const db = this.getDb();
+    const result = await db.query<GatewayBootstrapRow>(
+      `INSERT INTO gateway_bootstrap (id, secret_hash)
+       VALUES (1, $1)
+       ON CONFLICT (id) DO UPDATE SET secret_hash = EXCLUDED.secret_hash
+       RETURNING *`,
+      [secretHash],
+    );
+    // RETURNING * always produces a row for INSERT ... ON CONFLICT DO UPDATE
+    return result.rows[0] as GatewayBootstrapRow;
+  }
+
+  /** Get the persisted bootstrap secret hash, or null if never set. */
+  async getBootstrapSecretHash(): Promise<string | null> {
+    const db = this.getDb();
+    const result = await db.query<GatewayBootstrapRow>(
+      'SELECT * FROM gateway_bootstrap WHERE id = 1',
+    );
+    return result.rows[0]?.secret_hash ?? null;
+  }
+
+  /** Insert a hashed bearer token with optional expiry and label. */
+  async insertToken(token: {
+    tokenHash: string;
+    expiresAt?: string | null;
+    label?: string | null;
+  }): Promise<GatewayTokenRow> {
+    const db = this.getDb();
+    const result = await db.query<GatewayTokenRow>(
+      `INSERT INTO gateway_tokens (token_hash, expires_at, label)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [token.tokenHash, token.expiresAt ?? null, token.label ?? null],
+    );
+    // RETURNING * always produces a row for a plain INSERT
+    return result.rows[0] as GatewayTokenRow;
+  }
+
+  /** Find a token by hash that is neither revoked nor expired. */
+  async findValidToken(tokenHash: string): Promise<GatewayTokenRow | null> {
+    const db = this.getDb();
+    const result = await db.query<GatewayTokenRow>(
+      `SELECT * FROM gateway_tokens
+       WHERE token_hash = $1
+         AND revoked_at IS NULL
+         AND (expires_at IS NULL OR expires_at > NOW())`,
+      [tokenHash],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Revoke a token by hash. Returns true if a non-revoked token was revoked. */
+  async revokeToken(tokenHash: string): Promise<boolean> {
+    const db = this.getDb();
+    const result = await db.query(
+      `UPDATE gateway_tokens SET revoked_at = NOW()
+       WHERE token_hash = $1 AND revoked_at IS NULL
+       RETURNING token_hash`,
+      [tokenHash],
+    );
+    return (result.rows?.length ?? 0) > 0;
+  }
+
+  /** Delete tokens whose expiry has passed. Returns the number removed. */
+  async pruneExpiredTokens(): Promise<number> {
+    const db = this.getDb();
+    const result = await db.query(
+      'DELETE FROM gateway_tokens WHERE expires_at IS NOT NULL AND expires_at < NOW()',
+    );
+    return result.affectedRows ?? 0;
   }
 }
