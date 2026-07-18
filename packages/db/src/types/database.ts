@@ -40,6 +40,9 @@ import type {
   coordinationSessions,
   coordinationWorkItems,
   crdtOperations,
+  editSessionDocs,
+  editSessionEvents,
+  editSessions,
   errorEvents,
   failedAttempts,
   gdprBreaches,
@@ -262,6 +265,21 @@ export type CoordinationWorkItemsUpdate = Partial<CoordinationWorkItemsInsert>
 export type CrdtOperationsRow = typeof crdtOperations.$inferSelect
 export type CrdtOperationsInsert = typeof crdtOperations.$inferInsert
 export type CrdtOperationsUpdate = Partial<CrdtOperationsInsert>
+
+// Edit Session Docs
+export type EditSessionDocsRow = typeof editSessionDocs.$inferSelect
+export type EditSessionDocsInsert = typeof editSessionDocs.$inferInsert
+export type EditSessionDocsUpdate = Partial<EditSessionDocsInsert>
+
+// Edit Session Events
+export type EditSessionEventsRow = typeof editSessionEvents.$inferSelect
+export type EditSessionEventsInsert = typeof editSessionEvents.$inferInsert
+export type EditSessionEventsUpdate = Partial<EditSessionEventsInsert>
+
+// Edit Sessions
+export type EditSessionsRow = typeof editSessions.$inferSelect
+export type EditSessionsInsert = typeof editSessions.$inferInsert
+export type EditSessionsUpdate = Partial<EditSessionsInsert>
 
 // Error Events
 export type ErrorEventsRow = typeof errorEvents.$inferSelect
@@ -628,6 +646,9 @@ export type DatabaseRelationships = {
   coordinationSessions: Relationship[]
   coordinationWorkItems: Relationship[]
   crdtOperations: Relationship[]
+  editSessionDocs: Relationship[]
+  editSessionEvents: Relationship[]
+  editSessions: Relationship[]
   errorEvents: Relationship[]
   failedAttempts: Relationship[]
   gdprBreaches: Relationship[]
@@ -814,6 +835,23 @@ export const coordinationWorkItemsRelationships: readonly Relationship[] = []
 
 // CrdtOperations relationships
 export const crdtOperationsRelationships: readonly Relationship[] = []
+
+// EditSessionDocs relationships
+export const editSessionDocsRelationships = [
+  { foreignKeyName: 'edit_session_docs_session_id_edit_sessions_id_fk', columns: ['session_id'], isOneToOne: true, referencedRelation: 'edit_sessions', referencedColumns: ['id'] },
+  { foreignKeyName: 'edit_session_docs_updated_by_users_id_fk', columns: ['updated_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// EditSessionEvents relationships
+export const editSessionEventsRelationships = [
+  { foreignKeyName: 'edit_session_events_session_id_edit_sessions_id_fk', columns: ['session_id'], isOneToOne: true, referencedRelation: 'edit_sessions', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// EditSessions relationships
+export const editSessionsRelationships = [
+  { foreignKeyName: 'edit_sessions_site_id_sites_id_fk', columns: ['site_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
+  { foreignKeyName: 'edit_sessions_created_by_users_id_fk', columns: ['created_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
 
 // ErrorEvents relationships
 export const errorEventsRelationships: readonly Relationship[] = []
@@ -1285,6 +1323,24 @@ export type Database = {
         Insert: CrdtOperationsInsert
         Update: CrdtOperationsUpdate
         Relationships: typeof crdtOperationsRelationships
+      }
+      edit_session_docs: {
+        Row: EditSessionDocsRow
+        Insert: EditSessionDocsInsert
+        Update: EditSessionDocsUpdate
+        Relationships: typeof editSessionDocsRelationships
+      }
+      edit_session_events: {
+        Row: EditSessionEventsRow
+        Insert: EditSessionEventsInsert
+        Update: EditSessionEventsUpdate
+        Relationships: typeof editSessionEventsRelationships
+      }
+      edit_sessions: {
+        Row: EditSessionsRow
+        Insert: EditSessionsInsert
+        Update: EditSessionsUpdate
+        Relationships: typeof editSessionsRelationships
       }
       error_events: {
         Row: ErrorEventsRow

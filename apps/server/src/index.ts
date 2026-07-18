@@ -60,7 +60,11 @@ import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
 import { bodyLimitGate } from './middleware/body-limits.js';
-import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
+import {
+  noCacheCacheMiddleware,
+  noStoreCacheMiddleware,
+  publicCacheMiddleware,
+} from './middleware/cache-control.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
@@ -413,6 +417,27 @@ app.use('*', dbMiddleware());
 // Audit logging  -  fire-and-forget, never crashes the request
 app.use('/api/*', auditMiddleware(audit));
 app.use('/api/v1/*', auditMiddleware(audit));
+
+// ---------------------------------------------------------------------------
+// Content cache strategy A (1s freshness)  -  published-content GET reads carry
+// a 1-second shared-CDN cache with a small stale-while-revalidate window. With
+// s-maxage=1 an edit-session publish is visible within ~1s without an active
+// cache purge. Edit-session routes are NOT cached here (they expose auth'd
+// drafts)  -  they get no-store below.
+// ---------------------------------------------------------------------------
+const publishedContentCache = publicCacheMiddleware({ sMaxAge: 1, staleWhileRevalidate: 5 });
+app.use('/api/content/pages/*', publishedContentCache);
+app.use('/api/v1/content/pages/*', publishedContentCache);
+app.use('/api/content/globals/*', publishedContentCache);
+app.use('/api/v1/content/globals/*', publishedContentCache);
+app.use('/api/content/posts/*', publishedContentCache);
+app.use('/api/v1/content/posts/*', publishedContentCache);
+
+// Edit-session routes expose draft content  -  never cache them.
+app.use('/api/content/sessions', noStoreCacheMiddleware());
+app.use('/api/v1/content/sessions', noStoreCacheMiddleware());
+app.use('/api/content/sessions/*', noStoreCacheMiddleware());
+app.use('/api/v1/content/sessions/*', noStoreCacheMiddleware());
 
 // ---------------------------------------------------------------------------
 // Rate limit configuration  -  all tunables in one place
