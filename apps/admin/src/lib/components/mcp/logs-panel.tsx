@@ -155,7 +155,7 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           </Select>
         </Field>
         {state === 'streaming' || state === 'connecting' ? (
-          <ButtonCVA type="button" variant="outline" size="sm" onClick={stop}>
+          <ButtonCVA type="button" appearance="outline" variant="neutral" size="sm" onClick={stop}>
             Stop
           </ButtonCVA>
         ) : (
@@ -165,7 +165,8 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
         )}
         <ButtonCVA
           type="button"
-          variant="outline"
+          appearance="outline"
+          variant="neutral"
           size="sm"
           onClick={() => setEntries([])}
           disabled={entries.length === 0}

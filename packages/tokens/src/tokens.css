@@ -154,10 +154,19 @@
    * and the prefers-color-scheme: light media block). */
   --rvui-text-on-brand:  oklch(0.16 0.030 260);
   --rvui-text-on-accent: oklch(0.18 0.040 75);  /* ink on amber, AAA */
+  /* On-fill ink for solid success / warning surfaces (e.g. Button
+   * variant="success"/"warning" appearance="solid"). Theme-invariant: warning
+   * fills are light amber in both modes so dark ink reads AA+ (6.95 dark / 5.75
+   * light); success solid uses --rvui-success-strong so paper-white ink reads
+   * AA (5.60) rather than the mid-lightness chip fill (which drops to 4.27).
+   * Ratios computed against the fills below; see the PR body. */
+  --rvui-text-on-success: oklch(0.985 0.005 250);
+  --rvui-text-on-warning: var(--rvui-text-on-accent);
 
   /* ── Status ── */
   --rvui-success:         oklch(0.55 0.130 165);
   --rvui-success-subtle:  oklch(0.55 0.130 165 / 0.12);
+  --rvui-success-strong:  oklch(0.48 0.135 165);   /* solid-CTA fill: darker so paper-white ink clears AA */
   --rvui-warning:         oklch(0.70 0.165 80);
   --rvui-warning-subtle:  oklch(0.70 0.165 80 / 0.12);
   --rvui-warning-text:    oklch(0.70 0.165 80);   /* AAA on midnight (7.45:1) — same as --rvui-warning in dark mode */

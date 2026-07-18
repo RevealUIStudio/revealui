@@ -181,7 +181,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
           Didn&apos;t get it? Check your spam folder — the link can take a minute to arrive.
         </p>
         <Button
-          variant="outline"
+          appearance="outline"
+          variant="neutral"
           onClick={handleResendVerification}
           disabled={resendState === 'sending'}
           className="w-full"
@@ -367,7 +368,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             or
           </p>
           <Button
-            variant="outline"
+            appearance="outline"
+            variant="neutral"
             className="w-full justify-start gap-2"
             onClick={handlePasskeySignUp}
             disabled={anyLoading}

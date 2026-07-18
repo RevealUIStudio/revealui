@@ -57,7 +57,8 @@ function AllVariantsDemo() {
       ).map((item) => (
         <Button
           key={item.variant}
-          variant="outline"
+          appearance="outline"
+          variant="neutral"
           onClick={() =>
             addToast({
               title: item.title,

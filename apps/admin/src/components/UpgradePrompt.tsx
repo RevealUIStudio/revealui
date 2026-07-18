@@ -43,7 +43,7 @@ export function UpgradePrompt({ feature, description, variant = 'default' }: Upg
             'Free AI sampling quota reached. Upgrade to Pro for 10,000 tasks/month with full coding tools.'}
         </div>
         <Link href={upgradeHref}>
-          <Button variant="outline" size="sm" className="shrink-0">
+          <Button appearance="outline" variant="neutral" size="sm" className="shrink-0">
             Upgrade to Pro
           </Button>
         </Link>
@@ -61,7 +61,7 @@ export function UpgradePrompt({ feature, description, variant = 'default' }: Upg
       </CardHeader>
       <CardContent className="space-y-4">
         <Link href={upgradeHref}>
-          <Button variant="outline" size="sm">
+          <Button appearance="outline" variant="neutral" size="sm">
             Upgrade to {tierLabel}
           </Button>
         </Link>

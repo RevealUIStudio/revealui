@@ -1,18 +1,23 @@
-import { ButtonCVA as Button, IconArrowRight } from '@revealui/presentation/server';
+import { Button, IconArrowRight } from '@revealui/presentation/server';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
 const story: ShowcaseStory = {
   slug: 'button',
   name: 'Button',
   description:
-    'Primary interactive element for actions and form submissions. CVA-powered variants with design token transitions.',
+    'Primary interactive element for actions and form submissions. Two axes: `variant` sets the semantic colour intent, `appearance` sets the visual weight. Both style from design tokens.',
   category: 'component',
 
   controls: {
     variant: {
       type: 'select',
-      options: ['default', 'destructive', 'ghost', 'link', 'outline', 'primary', 'secondary'],
-      default: 'default',
+      options: ['brand', 'neutral', 'success', 'warning', 'danger'],
+      default: 'brand',
+    },
+    appearance: {
+      type: 'select',
+      options: ['solid', 'outline', 'ghost', 'link'],
+      default: 'solid',
     },
     size: {
       type: 'select',
@@ -28,7 +33,8 @@ const story: ShowcaseStory = {
 
   render: (props: Record<string, unknown>) => (
     <Button
-      variant={props.variant as 'default'}
+      variant={props.variant as 'brand'}
+      appearance={props.appearance as 'solid'}
       size={props.size as 'default'}
       isLoading={props.isLoading as boolean}
       disabled={props.disabled as boolean}
@@ -40,8 +46,8 @@ const story: ShowcaseStory = {
   ),
 
   variantGrid: {
-    variant: ['default', 'destructive', 'ghost', 'link', 'outline', 'primary', 'secondary'],
-    size: ['sm', 'default', 'lg'],
+    variant: ['brand', 'neutral', 'success', 'warning', 'danger'],
+    appearance: ['solid', 'outline', 'ghost', 'link'],
   },
 
   examples: [
@@ -50,7 +56,7 @@ const story: ShowcaseStory = {
       // gap-2 + svg sizing are built into the base, so an icon and a label
       // space correctly with no per-call-site margins.
       render: () => (
-        <Button variant="primary">
+        <Button variant="brand">
           Continue
           <IconArrowRight />
         </Button>
@@ -60,16 +66,16 @@ const story: ShowcaseStory = {
       name: 'Glow (emphasis CTA)',
       // Brand-glow halo driven by the --rvui-shadow-glow token.
       render: () => (
-        <Button variant="primary" glow>
+        <Button variant="brand" glow>
           Get started
         </Button>
       ),
     },
     {
       name: 'Shine (hover sweep)',
-      // Subtle light sweep on hover; no extra DOM or classes when off.
+      // Subtle light sweep on hover; collapses under prefers-reduced-motion.
       render: () => (
-        <Button variant="primary" size="lg" shine>
+        <Button variant="brand" size="lg" shine>
           Upgrade to Pro
         </Button>
       ),
@@ -82,9 +88,13 @@ const story: ShowcaseStory = {
       name: 'Button Group',
       render: () => (
         <div className="flex gap-2">
-          <Button variant="primary">Save</Button>
-          <Button variant="outline">Cancel</Button>
-          <Button variant="ghost">Reset</Button>
+          <Button variant="brand">Save</Button>
+          <Button appearance="outline" variant="neutral">
+            Cancel
+          </Button>
+          <Button appearance="ghost" variant="neutral">
+            Reset
+          </Button>
         </div>
       ),
     },
@@ -92,11 +102,11 @@ const story: ShowcaseStory = {
       name: 'Disabled',
       render: () => (
         <div className="flex gap-2">
-          <Button disabled>Default</Button>
-          <Button variant="destructive" disabled>
-            Destructive
+          <Button disabled>Brand</Button>
+          <Button variant="danger" disabled>
+            Danger
           </Button>
-          <Button variant="outline" disabled>
+          <Button appearance="outline" variant="neutral" disabled>
             Outline
           </Button>
         </div>
@@ -106,7 +116,8 @@ const story: ShowcaseStory = {
 
   code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
-    if (props.variant !== 'default') attrs.push(`variant="${props.variant}"`);
+    if (props.variant !== 'brand') attrs.push(`variant="${props.variant}"`);
+    if (props.appearance !== 'solid') attrs.push(`appearance="${props.appearance}"`);
     if (props.size !== 'default') attrs.push(`size="${props.size}"`);
     if (props.isLoading) attrs.push('isLoading');
     if (props.disabled) attrs.push('disabled');

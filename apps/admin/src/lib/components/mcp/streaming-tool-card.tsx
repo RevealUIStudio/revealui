@@ -299,7 +299,13 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
             {invoking ? 'Invoking…' : 'Invoke'}
           </ButtonCVA>
           {invoking && (
-            <ButtonCVA type="button" variant="outline" size="sm" onClick={handleCancel}>
+            <ButtonCVA
+              type="button"
+              appearance="outline"
+              variant="neutral"
+              size="sm"
+              onClick={handleCancel}
+            >
               Cancel
             </ButtonCVA>
           )}

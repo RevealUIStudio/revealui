@@ -434,12 +434,18 @@ export default function NewAgentPage() {
                   <ButtonCVA
                     type="submit"
                     disabled={submitting || !name.trim() || providerConfigured === false}
-                    variant="default"
+                    variant="brand"
                     size="sm"
                   >
                     {submitting ? 'Creating...' : 'Create Agent'}
                   </ButtonCVA>
-                  <LinkButton as={Link} href="/agents" variant="outline" size="sm">
+                  <LinkButton
+                    as={Link}
+                    href="/agents"
+                    appearance="outline"
+                    variant="neutral"
+                    size="sm"
+                  >
                     Cancel
                   </LinkButton>
                 </div>

@@ -84,7 +84,7 @@ function RequestResetForm() {
         <p className="text-sm text-muted-foreground">
           If an account exists for {email}, we sent a password reset link.
         </p>
-        <Button variant="outline" className="w-full" asChild>
+        <Button appearance="outline" variant="neutral" className="w-full" asChild>
           <Link href="/login">Back to sign in</Link>
         </Button>
       </div>

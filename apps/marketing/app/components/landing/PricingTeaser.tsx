@@ -129,7 +129,13 @@ export function PricingTeaser() {
                       <a href={t.href}>{t.cta}</a>
                     </ButtonCVA>
                   ) : (
-                    <ButtonCVA asChild size="default" variant="outline" className="w-full">
+                    <ButtonCVA
+                      asChild
+                      size="default"
+                      appearance="outline"
+                      variant="neutral"
+                      className="w-full"
+                    >
                       <a href={t.href}>{t.cta}</a>
                     </ButtonCVA>
                   )}
@@ -155,7 +161,7 @@ export function PricingTeaser() {
         <div className="mt-12 text-center">
           <ButtonCVA
             asChild
-            variant="link"
+            appearance="link"
             size="default"
             className="items-center justify-center text-sm font-medium"
           >

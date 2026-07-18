@@ -28,7 +28,7 @@ const story: ShowcaseStory = {
       description={props.description as string}
       action={
         props.showAction ? (
-          <Button variant="primary" size="sm">
+          <Button variant="brand" size="sm">
             Clear filters
           </Button>
         ) : undefined
@@ -45,7 +45,7 @@ const story: ShowcaseStory = {
           title="No projects yet"
           description="Create your first project to get started."
           action={
-            <Button variant="primary" size="sm">
+            <Button variant="brand" size="sm">
               <IconPlus size="xs" /> New Project
             </Button>
           }

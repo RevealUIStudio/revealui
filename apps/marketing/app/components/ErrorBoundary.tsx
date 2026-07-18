@@ -42,7 +42,7 @@ function DefaultErrorFallback() {
       <p className="mt-4 max-w-md text-sm text-muted-foreground">
         An unexpected error occurred while rendering this page. Our team has been notified.
       </p>
-      <ButtonCVA asChild variant="primary" className="mt-6">
+      <ButtonCVA asChild variant="brand" className="mt-6">
         <a href="/">Return home</a>
       </ButtonCVA>
     </div>

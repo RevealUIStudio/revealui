@@ -53,7 +53,7 @@ export function Proof() {
         <div className="mt-12 text-center">
           <ButtonCVA
             asChild
-            variant="link"
+            appearance="link"
             size="default"
             className="items-center justify-center text-sm font-medium"
           >

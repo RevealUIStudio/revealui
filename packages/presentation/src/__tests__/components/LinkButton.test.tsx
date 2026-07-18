@@ -49,17 +49,14 @@ describe('LinkButton', () => {
       expect(screen.getByRole('link')).toHaveClass('h-12');
     });
 
-    it('applies variant class', () => {
+    it('applies appearance class', () => {
       render(
-        <LinkButton href="/x" variant="outline">
+        <LinkButton href="/x" appearance="outline" variant="neutral">
           Outlined
         </LinkButton>,
       );
-      expect(screen.getByRole('link')).toHaveClass(
-        'border',
-        'border-zinc-300',
-        'dark:border-zinc-700',
-      );
+      expect(screen.getByRole('link')).toHaveClass('border');
+      expect(screen.getByRole('link')).not.toHaveClass('bg-primary');
     });
 
     it('merges consumer className with button classes', () => {
@@ -116,7 +113,7 @@ describe('LinkButton', () => {
     it('still applies button styling on the provider component', () => {
       render(
         <LinkBehaviorProvider component={CustomLink} hrefProp="to">
-          <LinkButton href="/contact" variant="primary">
+          <LinkButton href="/contact" variant="brand">
             Book
           </LinkButton>
         </LinkBehaviorProvider>,

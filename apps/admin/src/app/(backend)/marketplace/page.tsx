@@ -88,10 +88,20 @@ export default function MarketplacePage() {
               </p>
             </div>
             <div className="flex gap-2">
-              <LinkButton href="/marketplace/tasks" variant="outline" size="sm">
+              <LinkButton
+                href="/marketplace/tasks"
+                appearance="outline"
+                variant="neutral"
+                size="sm"
+              >
                 My Tasks
               </LinkButton>
-              <LinkButton href="/marketplace/analytics" variant="outline" size="sm">
+              <LinkButton
+                href="/marketplace/analytics"
+                appearance="outline"
+                variant="neutral"
+                size="sm"
+              >
                 Analytics
               </LinkButton>
               <LinkButton href="/marketplace/publish">Publish Agent</LinkButton>

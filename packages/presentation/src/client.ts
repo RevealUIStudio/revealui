@@ -6,6 +6,7 @@
  * Client-only components that use React hooks and must be used in Client Components.
  */
 
+export { TouchTarget } from './components/_button-shared.js';
 // New components (v0.2)
 export { Accordion, AccordionItem } from './components/accordion.js';
 // Native UI Components - All Client Only
@@ -21,15 +22,20 @@ export { type AuditEvent, AuditLine, type AuditLineProps } from './components/au
 export { Avatar } from './components/avatar.js';
 export { AvatarGroup } from './components/avatar-group.js';
 export { BuiltWithRevealUI } from './components/BuiltWithRevealUI.js';
+// The owned action button, re-exported on the client entry for convenience.
+// `Button` is the sovereign export; `ButtonCVA` is a deprecated alias kept for
+// one minor. `TouchTarget` expands the hit area to 44px on touch devices.
+export {
+  Button,
+  Button as ButtonCVA,
+  type ButtonProps,
+  buttonVariants,
+} from './components/Button.js';
 export { Badge } from './components/badge.js';
 // Brand marks + form-field composition — client-safe presentation components that
 // were absent from this barrel though their peers (Label, StatusDot) are here.
 export { RevealUIMark, type RevealUIMarkProps } from './components/brand-mark.js';
 export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
-// `Button` here is the headless/Catalyst button (its own color/outline/plain
-// palette; powers Dropdown). The styled, brand-token button is `ButtonCVA`
-// (see ./server). `TouchTarget` expands the hit area to 44px on touch devices.
-export { Button, TouchTarget } from './components/button-headless.js';
 // CVA Components that use hooks
 export {
   Checkbox as CheckboxCVA,
