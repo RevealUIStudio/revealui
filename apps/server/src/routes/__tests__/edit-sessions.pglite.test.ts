@@ -122,7 +122,7 @@ async function seedBase(): Promise<void> {
       path: '/',
       status: 'published',
       version: 1,
-      blocks: [{ type: 'text', text: 'hello' }],
+      blocks: [{ id: 'blk-1', type: 'text', data: { text: 'hello' } }],
       seo: { description: 'orig' },
     },
     {
@@ -133,7 +133,7 @@ async function seedBase(): Promise<void> {
       path: '/about',
       status: 'published',
       version: 1,
-      blocks: [{ type: 'text', text: 'about' }],
+      blocks: [{ id: 'blk-b1', type: 'text', data: { text: 'about' } }],
       seo: { description: 'about-orig' },
     },
   ]);
@@ -201,13 +201,13 @@ describe('open -> patch -> patch -> publish', () => {
     expect(doc1.data.draft.title).toBe('New Title');
 
     // Second patch applies to the stored draft (nested array path).
-    const p2 = await patch(app, sessionId, 'blocks.0.text', 'updated body');
+    const p2 = await patch(app, sessionId, 'blocks.0.data.text', 'updated body');
     expect(p2.status).toBe(200);
     const doc2 = (await p2.json()) as {
-      data: { draft: { title: string; blocks: Array<{ text: string }> } };
+      data: { draft: { title: string; blocks: Array<{ data: { text: string } }> } };
     };
     expect(doc2.data.draft.title).toBe('New Title');
-    expect(doc2.data.draft.blocks[0].text).toBe('updated body');
+    expect(doc2.data.draft.blocks[0].data.text).toBe('updated body');
 
     // Publish.
     const pub = await app.request(`/sessions/${sessionId}/publish`, { method: 'POST' });
@@ -223,7 +223,7 @@ describe('open -> patch -> patch -> publish', () => {
     expect(page.title).toBe('New Title');
     expect(page.version).toBe(2);
     expect(page.status).toBe('published');
-    expect((page.blocks as Array<{ text: string }>)[0].text).toBe('updated body');
+    expect((page.blocks as Array<{ data: { text: string } }>)[0].data.text).toBe('updated body');
 
     // Revision snapshot exists.
     const revisions = await testDb.drizzle
@@ -563,6 +563,127 @@ describe('prototype-pollution guard', () => {
 
     // The base object prototype was not polluted.
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Structural path validation — the patch path must resolve through EXISTING
+// draft structure inside an allowlisted writable root (title / seo.* /
+// blocks.<i>.data.*). A stray path is a 400 naming the offending segment and
+// writes NOTHING (publish-shape invariants are unpatchable by construction).
+// ---------------------------------------------------------------------------
+
+describe('structural path validation', () => {
+  async function expect400Naming(
+    app: ReturnType<typeof createApp>,
+    sessionId: string,
+    path: string,
+    offendingSegment: string,
+  ): Promise<void> {
+    const res = await patch(app, sessionId, path, 'x');
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error?: { message?: string }; message?: string };
+    const message = body.error?.message ?? body.message ?? JSON.stringify(body);
+    expect(message).toContain(offendingSegment);
+  }
+
+  it('rejects a stray sibling-of-data path and writes nothing', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    // Materialize with a valid patch first.
+    expect((await patch(app, sessionId, 'title', 'T')).status).toBe(200);
+
+    // The exact corruption shape from the P1 walk: a path missing the `.data`
+    // segment lands as a sibling of `data` inside the block.
+    await expect400Naming(app, sessionId, 'blocks.0.items', 'items');
+    await expect400Naming(app, sessionId, 'blocks.0.items.0.title', 'items');
+
+    // The draft carries no stray key.
+    const get = await app.request(`/sessions/${sessionId}`);
+    const body = (await get.json()) as {
+      data: { docs: Array<{ draft: { blocks: Array<Record<string, unknown>> } }> };
+    };
+    expect(body.data.docs[0].draft.blocks[0].items).toBeUndefined();
+  });
+
+  it('rejects unpatchable publish-shape roots', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    for (const root of ['id', 'slug', 'path', 'version', 'status', 'siteId', 'templateId']) {
+      await expect400Naming(app, sessionId, root, root);
+    }
+  });
+
+  it('rejects structural block segments (whole array, whole block, type, id)', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    await expect400Naming(app, sessionId, 'blocks', 'blocks');
+    await expect400Naming(app, sessionId, 'blocks.0', 'blocks.0');
+    await expect400Naming(app, sessionId, 'blocks.0.type', 'type');
+    await expect400Naming(app, sessionId, 'blocks.0.id', 'id');
+  });
+
+  it('rejects an out-of-range block index and a non-numeric index', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    await expect400Naming(app, sessionId, 'blocks.5.data.text', '5');
+    await expect400Naming(app, sessionId, 'blocks.x.data.text', 'x');
+  });
+
+  it('rejects a missing intermediate inside data', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    // data exists but has no `items` container to descend through.
+    await expect400Naming(app, sessionId, 'blocks.0.data.items.0.title', 'items');
+  });
+
+  it('a 400 on the FIRST patch does not materialize an overlay row', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    await expect400Naming(app, sessionId, 'blocks.0.items', 'items');
+
+    const get = await app.request(`/sessions/${sessionId}`);
+    const body = (await get.json()) as { data: { docs: unknown[] } };
+    expect(body.data.docs).toHaveLength(0);
+  });
+
+  it('allows the valid surface: title, seo leafs, data leafs, and NEW keys under data', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    expect((await patch(app, sessionId, 'title', 'T2')).status).toBe(200);
+    expect((await patch(app, sessionId, 'blocks.0.data.text', 'body')).status).toBe(200);
+    // New leaf whose parent object exists INSIDE data is allowed.
+    expect((await patch(app, sessionId, 'blocks.0.data.subtitle', 'sub')).status).toBe(200);
+    // Existing seo leaf is patchable; whole-seo replacement is patchable.
+    expect((await patch(app, sessionId, 'seo.description', 'd2')).status).toBe(200);
+    expect((await patch(app, sessionId, 'seo', { description: 'd3' })).status).toBe(200);
+    // A NEW key under seo is not (finals outside blocks data must already exist).
+    await expect400Naming(app, sessionId, 'seo.brandNew', 'brandNew');
+
+    const get = await app.request(`/sessions/${sessionId}`);
+    const body = (await get.json()) as {
+      data: {
+        docs: Array<{
+          draft: {
+            title: string;
+            seo: { description: string };
+            blocks: Array<{ data: { text: string; subtitle: string } }>;
+          };
+        }>;
+      };
+    };
+    const draft = body.data.docs[0].draft;
+    expect(draft.title).toBe('T2');
+    expect(draft.blocks[0].data.text).toBe('body');
+    expect(draft.blocks[0].data.subtitle).toBe('sub');
+    expect(draft.seo.description).toBe('d3');
   });
 });
 

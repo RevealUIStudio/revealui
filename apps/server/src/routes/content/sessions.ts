@@ -62,10 +62,24 @@ function actorKindFor(user: SessionUser): 'human' | 'agent' {
 }
 
 // =============================================================================
-// Typed draft patch setter (no regex, prototype-pollution guarded)
+// Typed draft patch setter (no regex, prototype-pollution guarded, structural)
+//
+// The patch path must resolve through EXISTING draft structure inside an
+// allowlisted writable root: `title` (leaf), `seo` (whole object or an
+// existing leaf), or `blocks.<i>.data` and deeper. Everything else — page
+// identity and publish-shape invariants (id/slug/path/version/status),
+// whole-blocks or whole-block writes, block `type`/`id` — is rejected with a
+// 400 naming the offending segment, and nothing is written. Intermediate
+// containers are never created: silent structure creation is exactly how a
+// path typo (or a misbehaving agent caller) corrupts published page JSON.
+// A NEW final key is allowed only where its parent object already exists
+// inside a block's `data` subtree; array writes never extend the array.
 // =============================================================================
 
 const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+const UNPATCHABLE_ROOT_HINT =
+  "not a writable root (writable: 'title', 'seo', 'blocks.<i>.data...')";
 
 function isArrayIndex(segment: string): boolean {
   if (segment.length === 0) return false;
@@ -76,30 +90,61 @@ function isArrayIndex(segment: string): boolean {
   return true;
 }
 
-function readChild(container: Record<string, unknown> | unknown[], segment: string): unknown {
-  if (Array.isArray(container)) {
-    return isArrayIndex(segment) ? container[Number(segment)] : undefined;
-  }
-  return container[segment];
+function pathError(offender: string, reason: string): HTTPException {
+  return new HTTPException(400, {
+    message: `Invalid patch path at '${offender}': ${reason}`,
+  });
 }
 
-function writeChild(
-  container: Record<string, unknown> | unknown[],
-  segment: string,
+/**
+ * Descend `segments` (from index `start`) through existing containers only,
+ * then set `value` on the final segment. `allowNewFinal` permits a new key
+ * when the final segment's parent is an existing plain object (the
+ * blocks.<i>.data carve-out); array indices must be in range everywhere —
+ * appends are a P2 block-operations concern, not a patch.
+ */
+function setThroughExisting(
+  root: Record<string, unknown> | unknown[],
+  segments: string[],
+  start: number,
   value: unknown,
+  allowNewFinal: boolean,
 ): void {
-  if (Array.isArray(container)) {
-    if (!isArrayIndex(segment)) {
-      throw new HTTPException(400, { message: `Expected an array index, got '${segment}'` });
+  let cursor: Record<string, unknown> | unknown[] = root;
+  for (let i = start; i < segments.length - 1; i++) {
+    const segment = segments[i];
+    let child: unknown;
+    if (Array.isArray(cursor)) {
+      if (!isArrayIndex(segment)) throw pathError(segment, 'expected an array index');
+      if (Number(segment) >= cursor.length) throw pathError(segment, 'array index out of range');
+      child = cursor[Number(segment)];
+    } else {
+      if (!Object.hasOwn(cursor, segment)) {
+        throw pathError(segment, 'does not resolve through existing draft structure');
+      }
+      child = cursor[segment];
     }
-    container[Number(segment)] = value;
+    if (child === null || typeof child !== 'object') {
+      throw pathError(segment, 'is not a container in the draft');
+    }
+    cursor = child as Record<string, unknown> | unknown[];
+  }
+
+  const final = segments[segments.length - 1];
+  if (Array.isArray(cursor)) {
+    if (!isArrayIndex(final)) throw pathError(final, 'expected an array index');
+    if (Number(final) >= cursor.length) throw pathError(final, 'array index out of range');
+    cursor[Number(final)] = value;
     return;
   }
-  container[segment] = value;
+  if (!(Object.hasOwn(cursor, final) || allowNewFinal)) {
+    throw pathError(final, 'does not exist (new keys are only allowed inside block data)');
+  }
+  cursor[final] = value;
 }
 
-/** Set `value` at a dot/array path inside a draft, creating intermediate containers. */
-function setAtPath(draft: Record<string, unknown>, path: string, value: unknown): void {
+/** Apply a validated patch to a draft, or throw a 400 naming the offending segment. */
+function applyDraftPatch(draft: Record<string, unknown>, path: string, value: unknown): void {
   const segments = path.split('.');
   for (const segment of segments) {
     if (segment.length === 0) {
@@ -110,18 +155,38 @@ function setAtPath(draft: Record<string, unknown>, path: string, value: unknown)
     }
   }
 
-  let cursor: Record<string, unknown> | unknown[] = draft;
-  for (let i = 0; i < segments.length - 1; i++) {
-    const segment = segments[i];
-    const nextIsIndex = isArrayIndex(segments[i + 1]);
-    let child = readChild(cursor, segment);
-    if (child === null || typeof child !== 'object') {
-      child = nextIsIndex ? [] : {};
-      writeChild(cursor, segment, child);
-    }
-    cursor = child as Record<string, unknown> | unknown[];
+  const root = segments[0];
+
+  if (root === 'title') {
+    if (segments.length !== 1) throw pathError(segments[1], "'title' is a leaf value");
+    draft.title = value;
+    return;
   }
-  writeChild(cursor, segments[segments.length - 1], value);
+
+  if (root === 'seo') {
+    if (segments.length === 1) {
+      draft.seo = value;
+      return;
+    }
+    setThroughExisting(draft, segments, 0, value, false);
+    return;
+  }
+
+  if (root === 'blocks') {
+    if (segments.length === 1) {
+      throw pathError('blocks', 'the blocks array is not writable as a whole');
+    }
+    if (segments.length === 2) {
+      throw pathError(`blocks.${segments[1]}`, 'a whole block is not writable');
+    }
+    if (segments[2] !== 'data') {
+      throw pathError(segments[2], "only a block's 'data' subtree is writable");
+    }
+    setThroughExisting(draft, segments, 0, value, true);
+    return;
+  }
+
+  throw pathError(root, UNPATCHABLE_ROOT_HINT);
 }
 
 /**
@@ -533,30 +598,34 @@ app.openapi(
       });
     }
 
-    let doc = await sessionQueries.getSessionDoc(db, id, docType, docId);
-    if (!doc) {
-      // First patch on this doc: materialize the overlay from the live page.
+    // Validate + apply against the in-memory draft BEFORE any write: a 400 on
+    // the first patch must not materialize an overlay row.
+    const doc = await sessionQueries.getSessionDoc(db, id, docType, docId);
+    let updated: typeof doc;
+    if (doc) {
+      const nextDraft = structuredClone(doc.draft);
+      applyDraftPatch(nextDraft, path, value);
+      updated = await sessionQueries.updateSessionDocDraft(db, doc.id, {
+        draft: nextDraft,
+        updatedBy: user.id,
+      });
+    } else {
+      // First patch on this doc: materialize the overlay from the live page
+      // with the patch already applied (single write).
       const page = await sessionQueries.getLivePage(db, docId);
       if (!page) throw new HTTPException(404, { message: 'Page not found' });
-      doc = await sessionQueries.insertSessionDoc(db, {
+      const nextDraft = materializePageDraft(page);
+      applyDraftPatch(nextDraft, path, value);
+      updated = await sessionQueries.insertSessionDoc(db, {
         id: crypto.randomUUID(),
         sessionId: id,
         docType,
         docId,
-        draft: materializePageDraft(page),
+        draft: nextDraft,
         baseVersion: page.version,
         updatedBy: user.id,
       });
-      if (!doc) throw new HTTPException(500, { message: 'Failed to materialize draft' });
     }
-
-    const nextDraft = structuredClone(doc.draft);
-    setAtPath(nextDraft, path, value);
-
-    const updated = await sessionQueries.updateSessionDocDraft(db, doc.id, {
-      draft: nextDraft,
-      updatedBy: user.id,
-    });
     if (!updated) throw new HTTPException(500, { message: 'Failed to save draft' });
 
     await sessionQueries.insertSessionEvent(db, {
