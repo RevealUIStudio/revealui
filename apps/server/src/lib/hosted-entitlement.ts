@@ -20,14 +20,24 @@ import { getHostedLimitsForTier } from './tier-limits.js';
 export type HostedTier = 'free' | LicenseTier;
 
 /**
- * Known feature keys, derived from the canonical `FeatureFlags` record at
- * module load. Used to warn on unexpected keys. Derived rather than listed:
- * a hardcoded copy drifted when vaultDesktop/vaultRotation/devkitProfiles
- * shipped, making every entitlement write log false unknown-key warnings.
+ * Known feature keys, derived from the canonical `FeatureFlags` record. Used
+ * to warn on unexpected keys. Derived rather than listed: a hardcoded copy
+ * drifted when vaultDesktop/vaultRotation/devkitProfiles shipped, making
+ * every entitlement write log false unknown-key warnings.
  * `getFeaturesForTier` returns the complete record (false entries included),
  * so its keys are exactly `keyof FeatureFlags`.
+ *
+ * Derived LAZILY (memoized on first use), not at module load: an import-time
+ * call breaks any test that partially mocks `@revealui/core/features` — the
+ * mock factory runs before the test can extend it, and the whole importing
+ * suite dies with "No getFeaturesForTier export is defined on the mock".
  */
-const KNOWN_FEATURE_KEYS = new Set<string>(Object.keys(getFeaturesForTier('enterprise')));
+let knownFeatureKeys: Set<string> | null = null;
+
+function getKnownFeatureKeys(): Set<string> {
+  knownFeatureKeys ??= new Set<string>(Object.keys(getFeaturesForTier('enterprise')));
+  return knownFeatureKeys;
+}
 
 export function coerceHostedTier(value: string | null | undefined): HostedTier | undefined {
   if (value === 'free' || value === 'pro' || value === 'max' || value === 'enterprise') {
@@ -46,7 +56,7 @@ export function toFeatureRecord(features: object | null | undefined): Record<str
   );
 
   for (const [key] of entries) {
-    if (!KNOWN_FEATURE_KEYS.has(key)) {
+    if (!getKnownFeatureKeys().has(key)) {
       logger.warn('Unknown feature key encountered in toFeatureRecord', { key });
     }
   }
