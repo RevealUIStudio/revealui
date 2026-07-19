@@ -395,6 +395,13 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
           SKIP_ENV_VALIDATION: "true"
+          # api: @vercel/node's TypeScript pass compiles far beyond the traced
+          # entry (sibling apps included) and its diagnostics are non-fatal
+          # noise on every run — but the pass sits at Node's default ~4GB heap
+          # ceiling and died OOM (exit 134, "Ineffective mark-compacts near
+          # heap limit") on run 29668080341 (2026-07-19) once the program grew
+          # past it. Raise the ceiling; ubuntu-latest runners have 16GB.
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Deploy
         id: deploy
