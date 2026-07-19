@@ -1,5 +1,27 @@
 # @revealui/ai
 
+## 0.8.0
+
+### Minor Changes
+
+- 33fa1a7: add xai (Grok) as a BYOK LLM provider: a thin OpenAI-compatible wrapper over `https://api.x.ai/v1` (default model `grok-4.5`), following the existing anthropic/groq adapter pattern (no vendor SDK). Wires `xai` into `LLMProviderType`, `hostedViable`, `createProvider`, `createLLMClientFromEnv` (`XAI_API_KEY`/`XAI_BASE_URL`), and the admin Settings, API Keys provider list.
+
+### Patch Changes
+
+- Updated dependencies [16b235f]
+- Updated dependencies [11ab999]
+- Updated dependencies [83846a2]
+- Updated dependencies [b029d2d]
+- Updated dependencies [c3c1e8f]
+- Updated dependencies [1385cd6]
+- Updated dependencies [077d3c4]
+- Updated dependencies [578214d]
+- Updated dependencies [1a49590]
+- Updated dependencies [6a58057]
+  - @revealui/core@0.12.0
+  - @revealui/db@0.9.0
+  - @revealui/contracts@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes
