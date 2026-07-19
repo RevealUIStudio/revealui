@@ -1,5 +1,14 @@
 # @revealui/cache
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [16b235f]
+- Updated dependencies [578214d]
+- Updated dependencies [b550aa2]
+  - @revealui/security@0.5.0
+
 ## 0.2.4
 
 ### Patch Changes

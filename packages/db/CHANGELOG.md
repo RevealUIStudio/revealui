@@ -1,5 +1,25 @@
 # @revealui/db
 
+## 0.9.0
+
+### Minor Changes
+
+- c3c1e8f: add the `nudge_dismissals` table and its generated contract: server-tracked per-user, per-nudge dismissal state (snooze count + last-dismissed timestamp) backing the per-tier onboarding nudge surface. New schema surface in `@revealui/db` (`packages/db/src/schema/nudges.ts`, registered in `rest.ts` and the database types) and the matching additive entries in `@revealui/contracts` generated schemas.
+- 1385cd6: audit_log append-only enforcement + monotonic seq + tenant scope (GAP-355 Stage 2 PR-2). Migration 0026 adds a `BEFORE UPDATE OR DELETE` trigger that enforces append-only at the DB layer (a plain REVOKE is toothless against the owner role the app connects as, so the trigger is the real enforcement; REVOKE UPDATE/DELETE FROM PUBLIC is defense-in-depth). Adds a `seq` monotonic bigserial (DB-assigned; deletion-gap detectable) and a nullable `tenant` column for per-tenant anchoring. `DrizzleAuditStore.append` accepts an optional `tenant` pass-through; `seq` is never written by the store.
+- 077d3c4: audit_log ONE DOOR (GAP-355 Stage 2): `DrizzleAuditStore.append`/`appendBatch` now accept optional `signature`/`previousSignature` pass-through, so every `audit_log` writer routes through the single store (a new CI enforcer fails the build on any `insert(auditLog)` outside it). Absent values persist NULL, unchanged from Stage 1. Signing itself moves into the store in Stage 3.
+- 578214d: Sign every audit-log row at the write door with per-row Ed25519, and retire the legacy HMAC path (GAP-355 Stage 3 PR-2).
+
+  **@revealui/db (signer slot):** `DrizzleAuditStore` now takes an optional injected `AuditRowSignerFn`. When supplied, each `append`/`appendBatch` fetches the row's `seq` from the sequence up front (`pg_get_serial_sequence`), signs over the full row including that `seq`, and inserts an explicit `seq` + `signature`; when absent, the DB assigns `seq` and `signature` stays NULL (dev/test). The package stays crypto-free and security-package-free — the real signer is composed and injected by the consumer. New exports: `AuditRowSignable`, `AuditRowSignerFn`. The `signature`/`previousSignature` pass-through fields are removed from `AuditEntry` (the store owns signing now; `previous_signature` is never written).
+
+  **@revealui/security (breaking, 0.x minor):** the exported-but-unwired HMAC helpers `signAuditEntry` / `verifyAuditEntry` (and the internal `SignableFields`) are removed. They signed a non-canonical 5-field subset and cannot back an offline-verifiable receipt. Use `Ed25519AuditRowSigner` + `verifyAuditRow` (RFC 8785 canonicalization over the full row) instead.
+
+  **@revealui/config:** `REVEALUI_AUDIT_HMAC_SECRET` is removed from the env schema and `RevealConfig.auditHmacSecret` is dropped. Replaced by `REVEALUI_AUDIT_SIGNING_KEY` (Ed25519 PKCS#8 PEM) + optional `REVEALUI_AUDIT_SIGNING_KID`. A signing deployment refuses to boot without a valid signing key; there is no `REVEALUI_SECRET` fallback.
+
+### Patch Changes
+
+- Updated dependencies [578214d]
+  - @revealui/config@0.6.0
+
 ## 0.8.0
 
 ### Minor Changes

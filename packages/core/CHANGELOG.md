@@ -1,5 +1,31 @@
 # @revealui/core
 
+## 0.12.0
+
+### Minor Changes
+
+- 16b235f: Promote the audit-row signer composition into `@revealui/security` and add key provisioning + a public-key endpoint (GAP-355 Stage 3).
+
+  - `@revealui/security` gains `createAuditRowSignerFromEnv`, `resolveAuditPublicKey`, and `deriveAuditKid` (server entry) — the single env→signer→kid derivation shared by every audit writer, re-exported through `@revealui/core/security`.
+  - `@revealui/setup` generates a per-deployment Ed25519 audit-signing keypair (`generateAuditSigningKeypair`), writes the private key to the env output, and prints the kid + public key for offline receipt verification. Adds a `@revealui/security` dependency.
+  - A new unauthenticated `GET /api/audit/public-key` publishes the SPKI public key + kid so a customer can verify an audit-log record offline, without our secret. Unsigned deployments answer an honest 404.
+
+- 11ab999: Add `validateLicenseKeyForRefresh` and the `REFRESH_ACCEPT_DAYS` constant to the license module. The refresh validator verifies a presented license JWT within a wider bounded-expiry window than the run-time validation grace, reusing the same rotation-aware multi-key verification path, so a running instance can obtain its current stored key without a new key being minted.
+- 83846a2: Drop the admin `POST /generate` manual-mint default license JWT lifetime from 365 to 90 days via a new named `DEFAULT_MANUAL_MINT_DAYS` constant (an explicit `expiresInDays` on the request is still honored unchanged). Name the RevForge kit mint's existing 365-day default as `DEFAULT_KIT_MINT_DAYS` in `revforge-license.ts` (no behavior change). Perpetual mint paths remain exempt and unchanged. Completes the GAP-287 shorter-lived license JWT program (PR-3 of 3).
+- 6a58057: Derive hosted subscription license JWT expiry from the Stripe billing period instead of a flat one year. New license issuer exports back the period-bound mint and renewal cadence: `RENEWAL_SLACK_DAYS` / `RENEWAL_SLACK_SECONDS`, `DEFAULT_SUBSCRIPTION_TTL_SECONDS`, `subscriptionLicenseExpiresInSeconds` (derives `period_end + 7d` slack, falling back to the one-year default when a subscription has no billing period), `subscriptionExpBound`, and `readLicenseExp` (unverified exp read for the re-mint decision). Perpetual and manual mints are unchanged.
+
+### Patch Changes
+
+- b029d2d: Add a 1s idempotency tolerance (`coversRenewalBound`) to the GAP-287 PR-2 subscription renewal re-mint decision, so a stored license `exp` landing exactly 1s below the new period bound (a flooring artifact of the relative-TTL derivation and the JWT signer's own second granularity) is treated as already covering it. Fast-follow on a non-blocking finding from the #1978 guardrail-2 verdict: without this, a duplicate/retried `invoice.payment_succeeded` on that 1s boundary re-entered the re-mint path instead of no-opping (bounded churn, never an entitlement or money error).
+- Updated dependencies [16b235f]
+- Updated dependencies [c3c1e8f]
+- Updated dependencies [578214d]
+- Updated dependencies [b550aa2]
+- Updated dependencies [1a49590]
+  - @revealui/security@0.5.0
+  - @revealui/contracts@0.8.0
+  - @revealui/cache@0.2.5
+
 ## 0.11.1
 
 ### Patch Changes

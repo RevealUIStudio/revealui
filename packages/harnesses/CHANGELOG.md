@@ -1,5 +1,24 @@
 # @revealui/harnesses
 
+## 0.9.0
+
+### Minor Changes
+
+- bfd860b: add a normalized hook-event schema, a `hook <source>` CLI subcommand (spool-only mode), and a Cursor adapter, following the multi-editor harness design: `HarnessHookEvent` normalizes Cursor and Claude Code hook payloads into one internal shape (identity fields stay session-scoped only, never editor-supplied human identity); the CLI subcommand normalizes stdin, evaluates a local policy snapshot, emits the editor-native allow/deny/ask response, and spools an append-only receipt (server-side flush lands in a later change, so this ships spool-only behind explicit config); `CursorAdapter` promotes the existing data-only `cursor` profile into `TOOL_PROFILES` (mirroring the OpenCode adapter promotion) with `.cursor/hooks.json` and `.cursor/mcp.json` generators, the latter using Cursor's `${env:VAR}` reference syntax so no token value is ever emitted.
+- c08c9d6: make the harness HTTP gateway fail-closed. The pre-pairing bypass that granted every unauthenticated `/rpc` and `/api/*` call (including `agent.spawn` and `agent.stop`) on a never-paired daemon is deleted; a never-paired daemon now refuses those calls with 401. Pairing uses challenge-response so the bootstrap secret never crosses the wire: `GET /api/pair` issues a single-use short-lived nonce, the client returns `HMAC-SHA256(secret, nonce)` keyed on the 32-byte 0600 secret file in the daemon data dir, and the server verifies with a timing-safe comparison. On success the gateway mints a 32-byte bearer token, persists only its SHA-256 hash (default 90-day TTL, revocable) in `gateway_tokens`, and authenticates by hashing the presented token and matching the durable store, so a daemon restart with valid tokens stays authenticated and never reopens the window. The pairing endpoints carry per-source exponential-backoff lockout plus a global cooldown, the pre-auth allowlist is an explicit tested constant (exactly `GET`/`POST /api/pair`), and boot reconciles the file against the persisted hash (fresh-DB re-hash, tamper/removal refusal, permissive-mode refusal). The retired 6-digit pairing code is removed.
+- a3f1811: add the gateway authn persistence substrate and real process termination to the harness daemon: two additive PGlite tables (`gateway_bootstrap`, a singleton hash of the HTTP-gateway bootstrap secret; `gateway_tokens`, hashed durable bearer tokens with expiry/revocation) plus `DaemonStore` methods (`putBootstrapSecretHash`, `getBootstrapSecretHash`, `insertToken`, `findValidToken`, `revokeToken`, `pruneExpiredTokens`) as substrate for a later fail-closed gateway; and `SpawnerService.stop`/`stopAll` now escalate SIGTERM to SIGKILL after a bounded, configurable grace period (`terminationGraceMs`, default 5000ms) with event-driven status, so a child that ignores SIGTERM is actually killed and `agent.list` never reports a live process as stopped. Substrate only, no callers wired yet.
+- 0b8864c: add a VS Code agent-plugin surface, following the multi-editor harness design: a `vscode` hook normalizer maps VS Code's agent-hook payloads (`SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `PreCompact`, `SubagentStart`, `SubagentStop`, `Stop`) onto the existing `HarnessHookEvent` schema, with editor-supplied fields staying session-scoped only, never promoted to identity; the `hook <source>` CLI subcommand now accepts `vscode` and returns VS Code's native response shape (nested `hookSpecificOutput.permissionDecision` for `PreToolUse`, flat `decision`/`reason` for every other event); `VSCodeGenerator` emits a `plugin.json` agent-plugin manifest bundling command-based hook contributions plus a path reference to a governed MCP server contribution, and `protocolConfigToVSCodeMcpConfig` produces that `.mcp.json` content separately using VS Code's `${input:id}` reference syntax so no token value is ever emitted; no `HarnessAdapter` ships for `vscode` in this phase (VS Code's agent mode has no documented headless CLI to exec).
+
+### Patch Changes
+
+- dff098c: Bound the `HttpGateway.initAuth` bootstrap-secret retry loop to 5 attempts before failing closed, so a persistent create/delete race on the secret file cannot livelock daemon startup. Fast-follow on a non-blocking finding from the #1975 guardrail-2 security verdict (DoS-only defense-in-depth; O_EXCL + O_NOFOLLOW already prevent secret substitution).
+- Updated dependencies [16b235f]
+- Updated dependencies [11ab999]
+- Updated dependencies [83846a2]
+- Updated dependencies [b029d2d]
+- Updated dependencies [6a58057]
+  - @revealui/core@0.12.0
+
 ## 0.8.0
 
 ### Minor Changes

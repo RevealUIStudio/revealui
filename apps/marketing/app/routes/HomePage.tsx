@@ -29,9 +29,6 @@ import {
 import { useAudienceHead } from '../lib/use-audience-head';
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
-// Annotation is inactive in this slice; the editor-canvas slice activates it.
-const INACTIVE_ANNOTATION: BlockAnnotation = { editable: false };
-
 /**
  * Developer-facing landing: `/?for=technical`, and the default `/` since the
  * 2026-07-09 funnel declutter. 17 sections trimmed to 11, then 11 to 7 in
@@ -97,7 +94,7 @@ export function HomePage() {
   const { search } = useLocation();
   const audience = selectAudience(search);
   useAudienceHead(audience);
-  const blocks = useMarketingPageBlocks('home', HOME_FALLBACK_BLOCKS);
+  const { blocks, annotation } = useMarketingPageBlocks('home', HOME_FALLBACK_BLOCKS);
   const demo = demoSlot(blocks);
   const primitives = primitivesSlot(blocks);
   const getStarted = getStartedSlot(blocks);
@@ -110,7 +107,7 @@ export function HomePage() {
           demo={demo}
           primitives={primitives}
           getStarted={getStarted}
-          annotation={INACTIVE_ANNOTATION}
+          annotation={annotation}
         />
       )}
     </div>

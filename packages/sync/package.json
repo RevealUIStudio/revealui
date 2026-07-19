@@ -1,6 +1,6 @@
 {
   "name": "@revealui/sync",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "Real-time sync layer wrapping ElectricSQL and Yjs CRDT — offline queue, shape cache, conflict resolution, collaborative documents. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
