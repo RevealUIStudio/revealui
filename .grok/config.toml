@@ -1,0 +1,12 @@
+# Project-scoped Grok MCP attach (RevealUI monorepo).
+# Durable: committed. Secrets never live here — only env references.
+# Launch with: rfg revealui  (loads REVEALUI_MCP_TOKEN from revvault)
+
+[mcp_servers.revealui]
+url = "${REVEALUI_MCP_URL:-https://api.revealui.com/api/mcp}"
+enabled = true
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+
+[mcp_servers.revealui.headers]
+Authorization = "Bearer ${REVEALUI_MCP_TOKEN}"
