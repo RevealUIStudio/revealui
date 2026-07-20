@@ -150,6 +150,9 @@ REVEALUI_BILLING_PORTAL_CONFIG_ID = "revealui/staging/stripe/billing-portal-conf
 # binding, both of which treat NEXT_PUBLIC_SERVER_URL as the admin origin.
 NEXT_PUBLIC_SERVER_URL     = "revealui/staging/public/server-url"
 REVEALUI_PUBLIC_SERVER_URL = "revealui/staging/public/server-url"
+# Self origin for governed MCP tool loopback (parity with prod api).
+REVEALUI_API_URL           = "revealui/staging/public/api-url"
+NEXT_PUBLIC_API_URL        = "revealui/staging/public/api-url"
 
 
 # ── revealui-admin-staging ──────────────────────────────────────────────────
