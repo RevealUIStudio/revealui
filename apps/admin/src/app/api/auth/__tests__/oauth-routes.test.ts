@@ -54,6 +54,9 @@ vi.mock('@revealui/db/queries/users', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   initializeLicense: (...args: unknown[]) => mockInitializeLicense(...args),
   getMaxUsers: () => mockGetMaxUsers(),
 }));

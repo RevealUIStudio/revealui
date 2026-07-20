@@ -72,6 +72,9 @@ vi.mock('@revealui/db', async () => {
 });
 
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   generateLicenseKey: vi.fn().mockResolvedValue('test-jwt-license-key'),
   resetLicenseState: vi.fn(),
   subscriptionLicenseExpiresInSeconds: vi.fn(() => 3600),

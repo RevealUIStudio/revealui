@@ -12,6 +12,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   isLicensed: vi.fn(),
   getCurrentTier: vi.fn(() => 'free'),
   getLicensePayload: vi.fn(() => null),

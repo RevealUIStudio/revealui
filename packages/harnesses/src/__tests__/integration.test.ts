@@ -28,6 +28,9 @@ vi.mock('@revealui/core/features', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   initializeLicense: async () => {},
 }));
 
