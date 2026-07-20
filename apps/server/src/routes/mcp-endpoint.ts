@@ -54,9 +54,13 @@ import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
 import { recordMcpToolAudit } from '../lib/mcp-audit.js';
 import { authorizeMcpTool, type McpTier } from '../lib/mcp-tool-access.js';
+import { MISSING_SELF_API_URL_MESSAGE, resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { entitlementMiddleware, getEntitlementsFromContext } from '../middleware/entitlements.js';
 import { requireFeature } from '../middleware/license.js';
+
+// Re-export for callers/tests that already imported from this module path.
+export { resolveSelfApiBaseUrl } from '../lib/self-api-url.js';
 
 /**
  * Minimal structural mirror of the MCP SDK's `AuthInfo`. Defined locally so
@@ -85,7 +89,7 @@ export interface McpEndpointConfig {
   /**
    * Base URL the governed tools call back into (this same API). The forwarded
    * REST request carries the caller's token, so identity reaches enforcement.
-   * Defaults to `REVEALUI_API_URL`.
+   * Defaults via {@link resolveSelfApiBaseUrl} (`REVEALUI_API_URL` first).
    */
   selfApiBaseUrl?: string;
   /** DNS-rebinding guard: allowed `Host` headers. Defaults from env. */
@@ -157,7 +161,7 @@ export interface McpEndpointParts {
  * without shadowing the sibling `/api/mcp/usage` route.
  */
 export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointParts {
-  const selfApiBaseUrl = config.selfApiBaseUrl ?? process.env.REVEALUI_API_URL ?? '';
+  const selfApiBaseUrl = resolveSelfApiBaseUrl(config.selfApiBaseUrl);
   const allowedHosts = config.allowedHosts ?? splitEnvList(process.env.REVEALUI_MCP_ALLOWED_HOSTS);
   const allowedOrigins =
     config.allowedOrigins ?? splitEnvList(process.env.REVEALUI_MCP_ALLOWED_ORIGINS);
@@ -202,7 +206,7 @@ export function buildMcpEndpoint(config: McpEndpointConfig = {}): McpEndpointPar
       throw new Error('governed MCP endpoint: no per-request credential — refusing tool call');
     }
     if (!selfApiBaseUrl) {
-      throw new Error('governed MCP endpoint: REVEALUI_API_URL is not configured');
+      throw new Error(MISSING_SELF_API_URL_MESSAGE);
     }
     return { apiUrl: selfApiBaseUrl, apiKey: token };
   };

@@ -123,7 +123,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/passkey/rp-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-name` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/preview-token-secret` | credential | yes | vercel:api | HMAC-SHA256 key for edit-session preview tokens - short-lived read-only credential |
-| `revealui/prod/public/api-url` | public-config | no | vercel:admin, vercel:marketing, vercel:docs |  |
+| `revealui/prod/public/api-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, vercel:docs | required@boot; api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin). Governed MCP tools fail without it. |
 | `revealui/prod/public/is-live` | public-config | no | vercel:admin, vercel:marketing | NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag |
 | `revealui/prod/public/server-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, fly:worker |  |
 | `revealui/prod/r2/access-key-id` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
@@ -173,7 +173,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/staging/passkey/origin` | public-config | no | vercel:api-staging, vercel:admin-staging | the admin app origin, https://admin.staging.revealui.com |
 | `revealui/staging/passkey/rp-id` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
 | `revealui/staging/passkey/rp-name` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
-| `revealui/staging/public/api-url` | public-config | no | vercel:admin-staging, vercel:marketing-staging | the api own origin; also VITE_API_URL on marketing (the anti-cross-wire fix, GAP-343) |
+| `revealui/staging/public/api-url` | public-config | no | vercel:api-staging, vercel:admin-staging, vercel:marketing-staging | the api own origin (MCP loopback + OpenAPI); also VITE_API_URL on marketing (anti-cross-wire, GAP-343) |
 | `revealui/staging/public/server-url` | public-config | no | vercel:api-staging, vercel:admin-staging, vercel:marketing-staging | the admin app own origin (parity with the prod server-url leaf) |
 | `revealui/staging/r2/access-key-id` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
 | `revealui/staging/r2/account-id` | public-config | no | vercel:api-staging, vercel:admin-staging |  |
