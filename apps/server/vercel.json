@@ -7,37 +7,50 @@
       "memory": 512,
       "maxDuration": 30,
       "includeFiles": "dist/index_bg.wasm",
-      "excludeFiles": [
-        "**/*.ts",
-        "**/*.tsx",
-        "apps/admin/**",
-        "apps/marketing/**",
-        "apps/docs/**",
-        "packages/**/src/**",
-        "packages/**/templates/**",
-        "**/coverage/**",
-        "**/.next/**",
-        "**/.turbo/**",
-        "**/__tests__/**"
-      ]
+      "excludeFiles": "{**/*.ts,**/*.tsx,apps/admin/**,apps/marketing/**,apps/docs/**,packages/**/src/**,packages/**/templates/**,**/coverage/**,**/.next/**,**/.turbo/**,**/__tests__/**}"
     }
   },
-  "crons": [{ "path": "/api/cron/dispatch", "schedule": "0 6 * * *" }],
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "crons": [
+    {
+      "path": "/api/cron/dispatch",
+      "schedule": "0 6 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     },
     {
       "source": "/(.*).map",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex" },
-        { "key": "Cache-Control", "value": "no-store" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
       ]
     }
   ]

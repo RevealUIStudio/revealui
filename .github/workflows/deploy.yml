@@ -407,13 +407,10 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
           SKIP_ENV_VALIDATION: "true"
-          # Belt-and-suspenders after #2010: api once OOM'd at the default ~4GB
-          # heap (run 29668080341) when @vercel/node typechecked the monorepo.
-          # GAP-403 excludeFiles on apps/server/vercel.json is the durable fix
-          # (NFT no longer pulls sibling-app / package src into the TS pass).
-          # Keep the raised ceiling until one post-merge api deploy log shows
-          # zero ../marketing|../admin|../docs TS diagnostics; then drop it.
-          NODE_OPTIONS: --max-old-space-size=6144
+          # GAP-403: monorepo TS wall removed via apps/server/vercel.json
+          # excludeFiles (brace string). Preview api build 29783369901 completed
+          # in ~1m with 0 "Using TypeScript" / 0 sibling-app TS diagnostics.
+          # The #2010 NODE_OPTIONS=6144 ceiling is no longer required.
 
       - name: Deploy
         id: deploy
