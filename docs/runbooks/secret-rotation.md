@@ -97,8 +97,10 @@ done
 ```
 Rotate **individually, with awareness** (each has a side effect):
 ```bash
-revvault generate revealui/prod/audit-hmac-secret --force --length 48 --no-symbols --no-ambiguous
-#   ↑ pre-rotation audit-log HMACs stop verifying
+# Audit signing is Ed25519 PEM (not a random string). Rotate via revvault key
+# tooling / re-set of revealui/prod/audit-signing-key (and matching public key);
+# pre-rotation signatures stay verifiable against the old public key until
+# Stage 4 anchoring retires it.
 revvault generate revealui/prod/admin/password     --force --length 32 --no-ambiguous
 #   ↑ admin login changes — retrieve the new value from revvault to log in
 revvault generate revealui/prod/electric/secret    --force --length 48 --no-symbols --no-ambiguous

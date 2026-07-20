@@ -19,6 +19,7 @@
  */
 
 import { parseArgs } from 'node:util';
+import { readPemEnv } from '@revealui/core/license';
 import {
   type IssueRevForgeLicenseOptions,
   issueRevForgeLicense,
@@ -135,15 +136,14 @@ Examples:
 `);
 }
 
-function readPemEnv(name: string): string {
-  const raw = process.env[name];
-  if (!raw) {
+function requirePemEnv(name: string): string {
+  const pem = readPemEnv(name);
+  if (!pem) {
     throw new Error(
       `Missing ${name}. Source it via revvault export-env or set it explicitly before invoking.`,
     );
   }
-  // .env files store PEM as single-line with literal \n — restore real newlines.
-  return raw.replace(/\\n/g, '\n');
+  return pem;
 }
 
 async function main(): Promise<void> {
@@ -159,8 +159,8 @@ async function main(): Promise<void> {
   let privateKey: string;
   let publicKey: string;
   try {
-    privateKey = readPemEnv('REVEALUI_LICENSE_PRIVATE_KEY');
-    publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY');
+    privateKey = requirePemEnv('REVEALUI_LICENSE_PRIVATE_KEY');
+    publicKey = requirePemEnv('REVEALUI_LICENSE_PUBLIC_KEY');
   } catch (err) {
     process.stderr.write(`error: ${err instanceof Error ? err.message : String(err)}\n`);
     process.exit(3);

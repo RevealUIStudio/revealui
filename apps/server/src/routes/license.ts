@@ -6,6 +6,7 @@ import {
   generateLicenseKey,
   getPublicKeys,
   type LicensePayload,
+  readPemEnv,
   validateLicenseKey,
   validateLicenseKeyForRefresh,
 } from '@revealui/core/license';
@@ -185,9 +186,8 @@ const verifyRoute = createRoute({
 
 app.openapi(verifyRoute, async (c) => {
   const { licenseKey } = c.req.valid('json');
-  // Restore real newlines in a single-line PEM (split/join, no authored regex
-  // — mirrors @revealui/core/license normalizePem). GAP-259 P0-4.
-  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.split('\\n').join('\n') ?? undefined;
+  // Restore real newlines in a single-line PEM via the core helper (GAP-396).
+  const publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY');
 
   if (!publicKey) {
     logger.error('REVEALUI_LICENSE_PUBLIC_KEY not configured');
@@ -418,18 +418,12 @@ app.openapi(generateRoute, async (c) => {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
-  const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+  const normalizedKey = readPemEnv('REVEALUI_LICENSE_PRIVATE_KEY');
 
-  if (!privateKey) {
+  if (!normalizedKey) {
     logger.error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
     throw new HTTPException(500, { message: 'License signing not configured' });
   }
-
-  // Unescape literal \n sequences  -  Vercel stores multi-line PEM keys
-  // with \n escaped in the .env format; the runtime preserves the literal
-  // \n chars, so we must convert them to real newlines for jose/importPKCS8.
-  // Matches the unescape pattern at routes/webhooks.ts:1009, 1229, 1847, 2391.
-  const normalizedKey = privateKey.replaceAll('\\n', '\n');
 
   const { tier, customerId, domains, maxSites, maxUsers, expiresInDays } = c.req.valid('json');
 
@@ -633,7 +627,7 @@ app.openapi(publicKeyRoute, async (c) => {
   // Non-secret verification material. Unescape literal \n (Vercel stores
   // multi-line PEMs escaped) with replaceAll, NOT the :156 regex (no-regex rule
   // for new code); mirrors the generate route's normalize at :372.
-  const publicKey = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replaceAll('\\n', '\n') ?? null;
+  const publicKey = readPemEnv('REVEALUI_LICENSE_PUBLIC_KEY') ?? null;
   return c.json({ publicKey }, 200);
 });
 

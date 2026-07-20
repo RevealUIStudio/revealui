@@ -31,7 +31,10 @@ async function checkProLicense(): Promise<boolean> {
 
   if (!key) return false;
 
-  const publicKeyPem = process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replace(/\\n/g, '\n');
+  // Same algorithm as @revealui/core/license normalizePem (split/join, no regex).
+  // CLI stays free of a core dependency for the free-tier create path.
+  const publicKeyRaw = process.env.REVEALUI_LICENSE_PUBLIC_KEY;
+  const publicKeyPem = publicKeyRaw ? publicKeyRaw.split('\\n').join('\n') : undefined;
   if (publicKeyPem) {
     try {
       const publicKey = await importSPKI(publicKeyPem, 'RS256');
