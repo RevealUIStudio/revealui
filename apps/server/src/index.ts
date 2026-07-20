@@ -51,6 +51,7 @@ import {
 } from './lib/audit-storage.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
+import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
@@ -983,7 +984,7 @@ app.doc('/openapi.json', {
   },
   servers: [
     {
-      url: process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'http://localhost:3004',
+      url: resolveSelfApiBaseUrl() || 'http://localhost:3004',
       description: process.env.NODE_ENV === 'production' ? 'Production' : 'Development server',
     },
   ],

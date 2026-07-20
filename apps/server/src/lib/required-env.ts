@@ -67,4 +67,8 @@ export const REQUIRED_IN_PRODUCTION_HOSTED = [
   // serve. validate-startup additionally parses it as a valid Ed25519 PKCS#8 key.
   // No REVEALUI_SECRET fallback — the legacy HMAC fallback was retired.
   'REVEALUI_AUDIT_SIGNING_KEY',
+  // Governed MCP tool loopback base URL (mcp-endpoint credentialsProvider).
+  // Without it, /api/mcp auth can still succeed while every tool fails with
+  // "REVEALUI_API_URL is not configured". Vault: revealui/prod/public/api-url.
+  'REVEALUI_API_URL',
 ] as const;
