@@ -96,6 +96,8 @@ export const WALK_EXCLUDED_DIRS: ReadonlySet<string> = new Set([
   'opensrc',
   // parallel-agent worktrees: full repo copies under the repo root
   '.worktrees',
+  // fleet convention: worktrees also live as .wt/ (GAP-399)
+  '.wt',
 ]);
 
 /** Skip-predicate the walkers consult for every entry. Exported for tests. */

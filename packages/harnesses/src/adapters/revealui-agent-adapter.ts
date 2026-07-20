@@ -7,6 +7,8 @@
  * directly. This is RevealUI's own coding agent.
  */
 
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { GeneratedFiles, ProtocolConfig } from '../protocol/adapter.js';
 import type { ProtocolCapabilities } from '../protocol/capabilities.js';
 import { TOOL_PROFILES } from '../protocol/capabilities.js';
@@ -377,10 +379,8 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
       '',
     ];
 
-    // Load project rules if available
+    // Load project rules if available (static ESM imports — require() is undefined under "type":"module")
     try {
-      const { readdirSync, readFileSync } = require('node:fs');
-      const { join } = require('node:path');
       const projectRoot = this.config.projectRoot ?? process.cwd();
       const rulesDir = join(projectRoot, '.claude', 'rules');
 
