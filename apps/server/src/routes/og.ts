@@ -25,8 +25,6 @@ import { fileURLToPath } from 'node:url';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import { Hono } from 'hono';
 import satori from 'satori';
-import InterTightBold from '../assets/fonts/InterTight-Bold.ttf';
-import InterTightRegular from '../assets/fonts/InterTight-Regular.ttf';
 
 // One-time WASM init for resvg. The same serverless instance reuses the
 // initialised module across requests; the shared promise makes concurrent
@@ -63,6 +61,40 @@ function readResvgWasm() {
     return readFileSync(fromModules);
   }
 }
+
+/**
+ * Read a static Inter Tight face for satori.
+ *
+ * Fonts are NOT imported as ES modules: `tsx watch` throws
+ * ERR_UNKNOWN_FILE_EXTENSION on bare `.ttf` imports (GAP-401). Runtime
+ * readFileSync matches the WASM pattern.
+ *
+ * Resolution order:
+ * 1. dist colocated copy from `copy-og-fonts` (prod / tsup bundle)
+ * 2. source tree `src/assets/fonts` when running via tsx from `src/routes`
+ */
+function readOgFont(filename: string): Buffer {
+  const here = dirname(fileURLToPath(import.meta.url));
+  // dist/index.js (or chunk next to dist/) → dist/assets/fonts
+  // src/routes/og.ts under tsx → src/assets/fonts
+  const candidates = [
+    join(here, 'assets', 'fonts', filename),
+    join(here, '..', 'assets', 'fonts', filename),
+  ];
+  for (const path of candidates) {
+    try {
+      return readFileSync(path);
+    } catch {
+      // try next
+    }
+  }
+  throw new Error(
+    `OG font not found: ${filename} (ran copy-og-fonts? expected under src/assets/fonts or dist/assets/fonts)`,
+  );
+}
+
+const InterTightRegular = readOgFont('InterTight-Regular.ttf');
+const InterTightBold = readOgFont('InterTight-Bold.ttf');
 
 let wasmInitPromise: Promise<void> | null = null;
 function ensureWasm(): Promise<void> {
@@ -200,12 +232,9 @@ app.get('/', async (c) => {
   const svg = await satori(node as unknown as Parameters<typeof satori>[0], {
     width: WIDTH,
     height: HEIGHT,
-    // tsup's binary loader emits Uint8Array<ArrayBufferLike>; wrapping in
-    // Buffer.from gives satori the Buffer<ArrayBufferLike> shape it expects
-    // without copying the underlying memory.
     fonts: [
-      { name: 'Inter Tight', data: Buffer.from(InterTightRegular), weight: 400, style: 'normal' },
-      { name: 'Inter Tight', data: Buffer.from(InterTightBold), weight: 700, style: 'normal' },
+      { name: 'Inter Tight', data: InterTightRegular, weight: 400, style: 'normal' },
+      { name: 'Inter Tight', data: InterTightBold, weight: 700, style: 'normal' },
     ],
   });
 
