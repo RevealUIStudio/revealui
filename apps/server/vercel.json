@@ -6,7 +6,20 @@
     "api/**": {
       "memory": 512,
       "maxDuration": 30,
-      "includeFiles": "dist/index_bg.wasm"
+      "includeFiles": "dist/index_bg.wasm",
+      "excludeFiles": [
+        "**/*.ts",
+        "**/*.tsx",
+        "apps/admin/**",
+        "apps/marketing/**",
+        "apps/docs/**",
+        "packages/**/src/**",
+        "packages/**/templates/**",
+        "**/coverage/**",
+        "**/.next/**",
+        "**/.turbo/**",
+        "**/__tests__/**"
+      ]
     }
   },
   "crons": [{ "path": "/api/cron/dispatch", "schedule": "0 6 * * *" }],
