@@ -160,6 +160,7 @@ overrides:
   '@revealui/config': workspace:*
   '@revealui/contracts': workspace:*
   '@revealui/db': workspace:*
+  js-yaml@5: '>=5.2.1'
 
 importers:
 
