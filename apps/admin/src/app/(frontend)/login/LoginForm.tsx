@@ -2,7 +2,7 @@
 
 import { usePasskeySignIn, useSignIn } from '@revealui/auth/react';
 import {
-  ButtonCVA as Button,
+  Button,
   FormLabel,
   GitHubIcon,
   GoogleIcon,

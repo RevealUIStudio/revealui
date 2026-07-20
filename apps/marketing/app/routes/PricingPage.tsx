@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
@@ -250,7 +250,7 @@ export function PricingPage() {
                   ))}
                 </ul>
                 {tier.highlighted ? (
-                  <ButtonCVA asChild size="default" className="w-full">
+                  <Button asChild size="default" className="w-full">
                     <a
                       href={tier.ctaHref}
                       target={tier.id === 'free' ? '_blank' : undefined}
@@ -258,9 +258,9 @@ export function PricingPage() {
                     >
                       {tier.cta}
                     </a>
-                  </ButtonCVA>
+                  </Button>
                 ) : (
-                  <ButtonCVA
+                  <Button
                     asChild
                     appearance="outline"
                     variant="neutral"
@@ -274,7 +274,7 @@ export function PricingPage() {
                     >
                       {tier.cta}
                     </a>
-                  </ButtonCVA>
+                  </Button>
                 )}
               </div>
             ))}
@@ -362,7 +362,7 @@ export function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <ButtonCVA
+                <Button
                   asChild
                   appearance="outline"
                   variant="neutral"
@@ -370,7 +370,7 @@ export function PricingPage() {
                   className="w-full"
                 >
                   <a href={tier.ctaHref}>{tier.cta}</a>
-                </ButtonCVA>
+                </Button>
               </div>
             ))}
           </div>
@@ -548,7 +548,7 @@ export function PricingPage() {
           </div>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
+            <Button asChild size="lg" className="w-full sm:w-auto">
               <a
                 href={PRICING_DONE_FOR_YOU.primaryCta.href}
                 target="_blank"
@@ -556,8 +556,8 @@ export function PricingPage() {
               >
                 {PRICING_DONE_FOR_YOU.primaryCta.label}
               </a>
-            </ButtonCVA>
-            <ButtonCVA
+            </Button>
+            <Button
               asChild
               appearance="outline"
               variant="neutral"
@@ -571,7 +571,7 @@ export function PricingPage() {
               >
                 {PRICING_DONE_FOR_YOU.secondaryCta.label}
               </a>
-            </ButtonCVA>
+            </Button>
           </div>
         </div>
       </section>
@@ -605,7 +605,7 @@ export function PricingPage() {
             {PRICING_FINAL_CTA.subtitle}
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
+            <Button asChild size="lg" className="w-full sm:w-auto">
               <a
                 href={
                   PRICING_FINAL_CTA_LINKS.getStarted.href.startsWith('/')
@@ -615,8 +615,8 @@ export function PricingPage() {
               >
                 {PRICING_FINAL_CTA_LINKS.getStarted.label}
               </a>
-            </ButtonCVA>
-            <ButtonCVA
+            </Button>
+            <Button
               asChild
               appearance="outline"
               variant="neutral"
@@ -626,7 +626,7 @@ export function PricingPage() {
               <a href={PRICING_FINAL_CTA_LINKS.contactSales.href}>
                 {PRICING_FINAL_CTA_LINKS.contactSales.label}
               </a>
-            </ButtonCVA>
+            </Button>
           </div>
           <div className="mt-16 border-t border-border pt-10">
             <p className="mb-4 text-sm font-medium text-muted-foreground">

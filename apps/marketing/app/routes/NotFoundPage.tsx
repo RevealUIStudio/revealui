@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 
 export function NotFoundPage() {
@@ -13,12 +13,12 @@ export function NotFoundPage() {
           The page you're looking for doesn't exist or has moved.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <ButtonCVA asChild variant="brand">
+          <Button asChild variant="brand">
             <a href="/">Return home</a>
-          </ButtonCVA>
-          <ButtonCVA asChild appearance="outline" variant="neutral">
+          </Button>
+          <Button asChild appearance="outline" variant="neutral">
             <a href="/products">View products</a>
-          </ButtonCVA>
+          </Button>
         </div>
       </section>
       <Footer />

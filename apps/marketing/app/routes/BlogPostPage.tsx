@@ -1,5 +1,5 @@
 import { RichTextContent, type SerializedEditorState } from '@revealui/core/richtext/rsc';
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { useParams } from '@revealui/router';
 import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
@@ -99,9 +99,9 @@ export function BlogPostPage() {
           <p className="mt-4 max-w-md text-base text-muted-foreground">
             That blog post does not exist or has been removed.
           </p>
-          <ButtonCVA asChild variant="brand" className="mt-8">
+          <Button asChild variant="brand" className="mt-8">
             <a href="/blog">Back to Blog</a>
-          </ButtonCVA>
+          </Button>
         </section>
         <Footer />
       </div>
@@ -156,12 +156,12 @@ export function BlogPostPage() {
             minutes.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="brand">
+            <Button asChild size="lg" variant="brand">
               <a href="https://admin.revealui.com/signup">Start free</a>
-            </ButtonCVA>
-            <ButtonCVA asChild size="lg" appearance="outline" variant="neutral">
+            </Button>
+            <Button asChild size="lg" appearance="outline" variant="neutral">
               <a href="https://docs.revealui.com">Read the docs</a>
-            </ButtonCVA>
+            </Button>
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { FO_HIW_CLOSING } from '../../content/for-operators-how-it-works';
 
 export function ClosingCta() {
@@ -13,7 +13,7 @@ export function ClosingCta() {
         </p>
 
         <div className="mt-10 flex justify-center">
-          <ButtonCVA asChild size="lg">
+          <Button asChild size="lg">
             <a
               href={FO_HIW_CLOSING.primaryCta.href}
               {...(FO_HIW_CLOSING.primaryCta.external
@@ -22,7 +22,7 @@ export function ClosingCta() {
             >
               {FO_HIW_CLOSING.primaryCta.label}
             </a>
-          </ButtonCVA>
+          </Button>
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">

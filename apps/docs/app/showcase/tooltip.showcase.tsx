@@ -1,5 +1,5 @@
 import { Tooltip } from '@revealui/presentation/client';
-import { ButtonCVA as Button } from '@revealui/presentation/server';
+import { Button } from '@revealui/presentation/server';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
 const story: ShowcaseStory = {

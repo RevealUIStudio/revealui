@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { PROOF_SECTION, PROOF_TRUST } from '../../content/proof';
 import { SITE } from '../../content/site';
 import { LiveMetricsBadge } from './LiveMetricsBadge';
@@ -51,14 +51,14 @@ export function Proof() {
         </div>
 
         <div className="mt-12 text-center">
-          <ButtonCVA
+          <Button
             asChild
             appearance="link"
             size="default"
             className="items-center justify-center text-sm font-medium"
           >
             <a href={PROOF_TRUST.changelogCta.href}>{PROOF_TRUST.changelogCta.label}</a>
-          </ButtonCVA>
+          </Button>
         </div>
       </div>
     </section>

@@ -9,7 +9,7 @@ import {
 import type { FeatureFlags } from '@revealui/core/features';
 import { getRequiredTier } from '@revealui/core/features';
 import {
-  ButtonCVA as Button,
+  Button,
   Card,
   CardContent,
   CardDescription,
