@@ -122,8 +122,11 @@ overrides:
   prismjs: '>=1.30.0'
   jsondiffpatch: '>=0.7.2'
   markdown-it: '>=14.2.0'
+  js-yaml@5: 5.2.1
   js-yaml@4: '>=4.2.0'
   js-yaml@3: ^3.15.0
+  '@changesets/parse>js-yaml': 5.2.1
+  '@vercel/python-analysis>js-yaml': 5.2.1
   minimatch: '>=10.2.4'
   brace-expansion@5: '>=5.0.7'
   rollup: '>=4.59.0'
@@ -6642,12 +6645,8 @@ packages:
     resolution: {integrity: sha512-ttBQIIQPDeLjpPOohtUdXuXUVoA2uIB6fEH9HyJ7234s5mBJ5wTx20njxplLZQgLaOfpmPQA7X2t5AX6tIPbog==}
     hasBin: true
 
-  js-yaml@5.0.0:
-    resolution: {integrity: sha512-GSvaPUbk1U+FMZ7rJzF+F8e5YVtu7KnD40et/5rBXXRBv2jCO9L3qCewvIDDdudC0QycTFlf6EAA+h3kxBsuUw==}
-    hasBin: true
-
-  js-yaml@5.2.0:
-    resolution: {integrity: sha512-YeLUMlvR4Ou1B119LIaM0r65JvbOBooJDc9yEu0dClb/uSC5P4FrLU8OCCz/HXWvtPoIrR0dRzABTjo1sTN9Bw==}
+  js-yaml@5.2.1:
+    resolution: {integrity: sha512-zfLtNfQqxVqq3uaTqSkh4x4hZw3KHobGUA0fJUj4wawW8bsQLTVqpHdXSIzidh7o+4lEW36tANuAGdaFx6Zgnw==}
     hasBin: true
 
   js2xmlparser@4.0.2:
@@ -9252,7 +9251,7 @@ snapshots:
   '@changesets/parse@0.4.3':
     dependencies:
       '@changesets/types': 6.1.0
-      js-yaml: 5.0.0
+      js-yaml: 5.2.1
 
   '@changesets/pre@2.0.2':
     dependencies:
@@ -12079,7 +12078,7 @@ snapshots:
       '@bytecodealliance/preview2-shim': 0.17.6
       '@renovatebot/pep440': 4.2.1
       fs-extra: 11.1.1
-      js-yaml: 5.0.0
+      js-yaml: 5.2.1
       minimatch: 10.2.5
       smol-toml: 1.7.0
       zod: 3.22.4
@@ -12089,7 +12088,7 @@ snapshots:
       '@bytecodealliance/preview2-shim': 0.17.6
       '@renovatebot/pep440': 4.2.1
       fs-extra: 11.1.1
-      js-yaml: 5.2.0
+      js-yaml: 5.2.1
       minimatch: 10.2.5
       smol-toml: 1.7.0
       zod: 3.22.4
@@ -13817,11 +13816,7 @@ snapshots:
       argparse: 1.0.10
       esprima: 4.0.1
 
-  js-yaml@5.0.0:
-    dependencies:
-      argparse: 2.0.1
-
-  js-yaml@5.2.0:
+  js-yaml@5.2.1:
     dependencies:
       argparse: 2.0.1
 
