@@ -6,10 +6,14 @@
  * one of them. Copy is VERBATIM from §7 — do not paraphrase headline,
  * body, or CTA text when editing this file.
  *
- * Live trigger evaluators: free-first-*, free-pro-gate, pro-first-action,
- * pro-read-receipts, max-local-inference, max-export-audit, ent-second-tenant.
- * Still deferred: pro-license-wire (self-hosted env), pro-connect-data (MCP),
- * max-enable-memory (no toggle).
+ * All 11 §7 nudges have live trigger evaluators (server-owned signals only).
+ * Durable write points:
+ * - free-pro-gate: requireFeature free denial → upgrade_intent meter
+ * - pro-license-wire: licenses row + license_key_fetched (billing) or
+ *   license_activated (POST /license/verify). Not client-reported.
+ * - pro-connect-data: day3+ without content, API key, or MCP tool usage
+ * - max-enable-memory: no ai_memory_sessions yet (product has no toggle;
+ *   first use is the durable "enabled" signal)
  */
 
 export type NudgeId =
@@ -134,7 +138,10 @@ export const IMPLEMENTED_NUDGE_IDS: readonly NudgeId[] = [
   'free-first-content',
   'free-pro-gate',
   'pro-first-action',
+  'pro-license-wire',
   'pro-read-receipts',
+  'pro-connect-data',
+  'max-enable-memory',
   'max-local-inference',
   'max-export-audit',
   'ent-second-tenant',

@@ -248,6 +248,7 @@ app.openapi(verifyRoute, async (c) => {
   let dbStatus: string | null = null;
   let supportExpiresAt: Date | null = null;
   let dbCheckFailed = false;
+  let licenseOwnerUserId: string | null = null;
   try {
     const db = getClient();
     const [row] = await db
@@ -255,11 +256,13 @@ app.openapi(verifyRoute, async (c) => {
         status: licenses.status,
         supportExpiresAt: licenses.supportExpiresAt,
         perpetual: licenses.perpetual,
+        userId: licenses.userId,
       })
       .from(licenses)
       .where(eq(licenses.licenseKey, licenseKey))
       .limit(1);
     dbStatus = row?.status ?? null;
+    licenseOwnerUserId = row?.userId ?? null;
     if (row?.perpetual) {
       supportExpiresAt = row.supportExpiresAt;
     }
@@ -314,6 +317,35 @@ app.openapi(verifyRoute, async (c) => {
   const features = getFeaturesForTier(payload.tier);
   const defaultMaxSites = payload.tier === 'enterprise' ? null : (payload.maxSites ?? 5);
   const defaultMaxUsers = payload.tier === 'enterprise' ? null : (payload.maxUsers ?? 25);
+
+  // GAP-300 durable activation: daemon/runtime successfully verified the JWT.
+  // Server-owned write on routes/license (security surface by design).
+  if (licenseOwnerUserId) {
+    try {
+      const { recordMilestoneMeterFirstSafe, LICENSE_ACTIVATED_METER_NAME } = await import(
+        '../lib/nudges/milestone-meters.js'
+      );
+      const { accountMemberships } = await import('@revealui/db/schema');
+      const [membership] = await getClient()
+        .select({ accountId: accountMemberships.accountId })
+        .from(accountMemberships)
+        .where(
+          and(
+            eq(accountMemberships.userId, licenseOwnerUserId),
+            eq(accountMemberships.status, 'active'),
+          ),
+        )
+        .limit(1);
+      recordMilestoneMeterFirstSafe(membership?.accountId, LICENSE_ACTIVATED_METER_NAME, {
+        userId: licenseOwnerUserId,
+        path: 'license/verify',
+      });
+    } catch (err) {
+      logger.warn('license verify: failed to record activation meter', {
+        error: err instanceof Error ? err.message : 'unknown',
+      });
+    }
+  }
 
   // A lapsed support contract freezes the purchased tier, it does not revoke it.
   // Perpetual licenses are sold as permanent ownership, so entitlements stay at

@@ -41,6 +41,20 @@ export interface NudgeSignals {
    * (usage_meters.meter_name = upgrade_intent, source = user).
    */
   hasUpgradeIntent: boolean;
+  /** True when the user has a non-deleted license JWT row in licenses. */
+  hasLicenseKey: boolean;
+  /**
+   * True once they retrieved the key (billing subscription) or verified it
+   * (POST /license/verify) — the observable "got/wired" steps we can prove.
+   */
+  hasLicenseKeyFetched: boolean;
+  /**
+   * True when content (page/product), a provider API key, or an MCP tool call
+   * exists — business data path for agents.
+   */
+  hasDataConnection: boolean;
+  /** True once the user has an ai_memory_sessions row (memory in use). */
+  hasAiMemorySession: boolean;
   /** Milliseconds since the user's account was created. */
   accountAgeMs: number;
   /** Count of non-deleted sites owned by the user. */
@@ -53,8 +67,13 @@ export const AUDIT_EXPORT_METER_NAME = 'audit_export';
 export const AUDIT_VIEW_METER_NAME = 'audit_view';
 /** Meter name written when requireFeature blocks a free-tier caller. */
 export const UPGRADE_INTENT_METER_NAME = 'upgrade_intent';
+/** Meter name when billing returns a non-null license JWT to the user. */
+export const LICENSE_KEY_FETCHED_METER_NAME = 'license_key_fetched';
+/** Meter name on successful POST /license/verify (daemon/runtime activation). */
+export const LICENSE_ACTIVATED_METER_NAME = 'license_activated';
 
 export const HOUR_24_MS = 24 * 60 * 60 * 1000;
+export const DAY_3_MS = 3 * 24 * 60 * 60 * 1000;
 export const DAY_7_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -83,12 +102,22 @@ export function buildCandidates(tier: LicenseTier, signals: NudgeSignals): Nudge
     if (!signals.hasAgentAction) {
       candidates.push({ id: 'pro-first-action', milestone: 'hour1' });
     }
+    // Key exists but user has never retrieved/verified it (self-host wire path).
+    if (signals.hasLicenseKey && !signals.hasLicenseKeyFetched) {
+      candidates.push({ id: 'pro-license-wire', milestone: 'hour24' });
+    }
     if (signals.agentTaskCount >= 3 && !signals.hasAuditView) {
       candidates.push({ id: 'pro-read-receipts', milestone: 'hour24' });
+    }
+    if (signals.accountAgeMs >= DAY_3_MS && !signals.hasDataConnection) {
+      candidates.push({ id: 'pro-connect-data', milestone: 'day7' });
     }
   }
 
   if (tier === 'max' || tier === 'enterprise') {
+    if (!signals.hasAiMemorySession) {
+      candidates.push({ id: 'max-enable-memory', milestone: 'hour1' });
+    }
     if (!signals.hasInferenceConfig && signals.accountAgeMs >= HOUR_24_MS) {
       candidates.push({ id: 'max-local-inference', milestone: 'hour24' });
     }
