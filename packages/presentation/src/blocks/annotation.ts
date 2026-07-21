@@ -4,8 +4,9 @@
  * When a page is rendered `editable` with a `docId`, every text-bearing element
  * carries two data attributes the edit-mode runtime (a later slice) reads:
  *   - `data-rvui-doc`   — the document id the block array belongs to
- *   - `data-rvui-field` — a dot-path addressing the field inside `blocks`,
- *                          e.g. `blocks.3.title` or `blocks.3.items.2.body`.
+ *   - `data-rvui-field` — a dot-path addressing the field inside the block's
+ *                          `data` object, e.g. `blocks.3.data.title` or
+ *                          `blocks.3.data.items.2.body`.
  *
  * When not editable (or no docId), no data attributes are emitted at all.
  */

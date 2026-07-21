@@ -93,7 +93,7 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
 describe('reverse mappers round-trip the derivation losslessly', () => {
   it('reconstructs the demo data byte-identical to HOME_DEMO', () => {
     const slot = demoSlot(homeBlocks());
-    expect(slot.path).toBe('blocks.0');
+    expect(slot.path).toBe('blocks.0.data');
     expect(slot.data.eyebrow).toBe(HOME_DEMO.eyebrow);
     expect(slot.data.heading).toBe(HOME_DEMO.heading);
     expect(slot.data.body).toBe(HOME_DEMO.body);
@@ -104,7 +104,7 @@ describe('reverse mappers round-trip the derivation losslessly', () => {
 
   it('reconstructs the primitives data byte-identical to its content modules', () => {
     const slot = primitivesSlot(homeBlocks());
-    expect(slot.path).toBe('blocks.1');
+    expect(slot.path).toBe('blocks.1.data');
     expect(slot.data.eyebrow).toBe(HOME_PRIMITIVES_SECTION.eyebrow);
     expect(slot.data.heading).toBe(HOME_PRIMITIVES_SECTION.heading);
     expect(slot.data.body).toBe(HOME_PRIMITIVES_SECTION.body);
@@ -113,7 +113,7 @@ describe('reverse mappers round-trip the derivation losslessly', () => {
 
   it('reconstructs the get-started data byte-identical to HOME_GET_STARTED', () => {
     const slot = getStartedSlot(homeBlocks());
-    expect(slot.path).toBe('blocks.2');
+    expect(slot.path).toBe('blocks.2.data');
     expect(slot.data.heading).toBe(HOME_GET_STARTED.heading);
     expect(slot.data.body).toBe(HOME_GET_STARTED.body);
     expect(slot.data.cta.primary).toEqual({
@@ -131,12 +131,12 @@ describe('reverse mappers round-trip the derivation losslessly', () => {
 
   it('reconstructs the products hero, faq, and cta byte-identical to their modules', () => {
     const hero = productsHeroSlot(productsBlocks());
-    expect(hero.path).toBe('blocks.0');
+    expect(hero.path).toBe('blocks.0.data');
     expect(hero.data.h1).toBe(PRODUCTS_PAGE_HERO.h1);
     expect(hero.data.subtitle).toBe(PRODUCTS_PAGE_HERO.subtitle);
 
     const faq = productsFaqSlot(productsBlocks());
-    expect(faq.path).toBe('blocks.1');
+    expect(faq.path).toBe('blocks.1.data');
     expect(faq.data.eyebrow).toBe(HOME_FAQ.eyebrow);
     expect(faq.data.heading).toBe(HOME_FAQ.heading);
     expect(faq.data.items).toEqual(
@@ -144,7 +144,7 @@ describe('reverse mappers round-trip the derivation losslessly', () => {
     );
 
     const cta = productsCtaSlot(productsBlocks());
-    expect(cta.path).toBe('blocks.2');
+    expect(cta.path).toBe('blocks.2.data');
     expect(cta.data.heading).toBe(PRODUCTS_CTA_SECTION.heading);
     expect(cta.data.body).toBe(PRODUCTS_CTA_SECTION.body);
     expect(cta.data.cliSnippet).toBe(PRODUCTS_CTA_SECTION.cliSnippet);

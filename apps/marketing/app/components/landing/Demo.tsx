@@ -5,13 +5,13 @@ import type { DemoData } from '../../lib/page-blocks';
 export interface DemoProps {
   /** Rich section data; defaults to the static content module (byte-identical). */
   data?: DemoData;
-  /** Dot-path base of this block within the page array, e.g. `blocks.0`. */
+  /** Dot-path of this block's data object within the page array, e.g. `blocks.0.data`. */
   path?: string;
   /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
   annotation?: BlockAnnotation;
 }
 
-export function Demo({ data = HOME_DEMO, path = 'blocks.0', annotation = {} }: DemoProps) {
+export function Demo({ data = HOME_DEMO, path = 'blocks.0.data', annotation = {} }: DemoProps) {
   return (
     <section id="demo" className="bg-secondary py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">

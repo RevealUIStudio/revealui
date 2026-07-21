@@ -15,6 +15,13 @@
  * GET is public-read there, so these routes enforce authz explicitly.
  */
 
+import {
+  FLEET_MARKETING_VOICE_RULES,
+  type MarketingBlock,
+  UnmappedBlockTypeError,
+  type Violation,
+  validateMarketingBlock,
+} from '@revealui/contracts/marketing-voice';
 import * as sessionQueries from '@revealui/db/queries/edit-sessions';
 import * as siteQueries from '@revealui/db/queries/sites';
 import type { EditSession, EditSessionDoc, EditSessionEvent, Page } from '@revealui/db/schema';
@@ -30,6 +37,9 @@ import {
   verifyPreviewToken,
 } from './_helpers/preview-token.js';
 import type { ContentVariables } from './index.js';
+
+/** Site slug whose session patches are gated by the fleet marketing-voice engine. */
+const FLEET_MARKETING_SITE_SLUG = 'fleet-marketing';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -187,6 +197,132 @@ function applyDraftPatch(draft: Record<string, unknown>, path: string, value: un
   }
 
   throw pathError(root, UNPATCHABLE_ROOT_HINT);
+}
+
+// =============================================================================
+// Block array ops (P2) — insert / remove / move on the blocks array only
+// =============================================================================
+
+type BlockOp =
+  | { op: 'blocks.insert'; index: number; block: Record<string, unknown> }
+  | { op: 'blocks.remove'; index: number }
+  | { op: 'blocks.move'; from: number; to: number };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function getBlocksArray(draft: Record<string, unknown>): unknown[] {
+  if (!Array.isArray(draft.blocks)) {
+    throw new HTTPException(400, { message: 'Draft has no blocks array' });
+  }
+  return draft.blocks;
+}
+
+/** Apply a structural block-array operation. Mutates `draft.blocks` in place. */
+function applyBlockOp(draft: Record<string, unknown>, op: BlockOp): void {
+  const blocks = getBlocksArray(draft);
+  if (op.op === 'blocks.insert') {
+    if (op.index < 0 || op.index > blocks.length) {
+      throw pathError(String(op.index), 'insert index out of range');
+    }
+    if (!isRecord(op.block)) {
+      throw new HTTPException(400, { message: 'blocks.insert requires a block object' });
+    }
+    // Identity + type are required; reject prototype-dangerous keys on the block.
+    for (const key of Object.keys(op.block)) {
+      if (DANGEROUS_KEYS.has(key)) {
+        throw new HTTPException(400, { message: `Illegal block key: ${key}` });
+      }
+    }
+    if (typeof op.block.type !== 'string' || op.block.type.length === 0) {
+      throw new HTTPException(400, { message: 'blocks.insert requires block.type' });
+    }
+    if (typeof op.block.id !== 'string' || op.block.id.length === 0) {
+      throw new HTTPException(400, { message: 'blocks.insert requires block.id' });
+    }
+    if (!isRecord(op.block.data)) {
+      throw new HTTPException(400, { message: 'blocks.insert requires block.data object' });
+    }
+    blocks.splice(op.index, 0, structuredClone(op.block));
+    return;
+  }
+  if (op.op === 'blocks.remove') {
+    if (op.index < 0 || op.index >= blocks.length) {
+      throw pathError(String(op.index), 'remove index out of range');
+    }
+    if (blocks.length <= 1) {
+      throw new HTTPException(400, {
+        message: 'Cannot remove the last block (page must keep at least one)',
+      });
+    }
+    blocks.splice(op.index, 1);
+    return;
+  }
+  // blocks.move
+  if (op.from < 0 || op.from >= blocks.length) {
+    throw pathError(String(op.from), 'move from-index out of range');
+  }
+  if (op.to < 0 || op.to >= blocks.length) {
+    throw pathError(String(op.to), 'move to-index out of range');
+  }
+  if (op.from === op.to) return;
+  const [item] = blocks.splice(op.from, 1);
+  blocks.splice(op.to, 0, item);
+}
+
+// =============================================================================
+// Fleet-marketing voice gate (P2) — Tier-1 hard reject on session.patch
+// =============================================================================
+
+/**
+ * Adapt a page block (VES contracts shape OR admin Lexical shape) into the
+ * marketing-voice engine's MarketingBlock view.
+ */
+function toMarketingBlock(raw: unknown): MarketingBlock | null {
+  if (!isRecord(raw)) return null;
+  if (typeof raw.blockType === 'string') {
+    return raw as MarketingBlock;
+  }
+  if (typeof raw.type === 'string') {
+    return { blockType: raw.type, ...raw };
+  }
+  return null;
+}
+
+interface VoiceViolation extends Violation {
+  blockIndex: number;
+}
+
+/**
+ * Run Tier-1 marketing-voice validation over every block in the draft when the
+ * session targets the fleet-marketing site. Returns violations (empty = pass).
+ * Throws HTTPException 422 only via the caller's response construction for
+ * unmapped block types (fail-closed).
+ */
+function collectVoiceViolations(draft: Record<string, unknown>): VoiceViolation[] {
+  const blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
+  const violations: VoiceViolation[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const mb = toMarketingBlock(blocks[i]);
+    if (!mb) continue;
+    try {
+      const report = validateMarketingBlock(mb, FLEET_MARKETING_VOICE_RULES);
+      if (!report.tier1.passed) {
+        for (const v of report.tier1.violations) {
+          violations.push({ ...v, blockIndex: i });
+        }
+      }
+    } catch (err) {
+      if (err instanceof UnmappedBlockTypeError) {
+        throw new HTTPException(422, {
+          message: `Voice gate: unmapped blockType at blocks[${i}]: ${err.blockType}`,
+        });
+      }
+      throw err;
+    }
+  }
+  return violations;
 }
 
 /**
@@ -541,15 +677,56 @@ app.openapi(
 );
 
 // =============================================================================
-// PATCH /sessions/:id/docs/:docType/:docId  -  field patch (autosave)
+// PATCH /sessions/:id/docs/:docType/:docId  -  field patch or block op (autosave)
 // =============================================================================
+
+const FieldPatchBody = z
+  .object({ path: z.string().min(1), value: z.unknown() })
+  .openapi('EditSessionFieldPatch');
+
+const BlockInsertBody = z
+  .object({
+    op: z.literal('blocks.insert'),
+    index: z.number().int().nonnegative(),
+    block: z.record(z.string(), z.unknown()),
+  })
+  .openapi('EditSessionBlockInsert');
+
+const BlockRemoveBody = z
+  .object({
+    op: z.literal('blocks.remove'),
+    index: z.number().int().nonnegative(),
+  })
+  .openapi('EditSessionBlockRemove');
+
+const BlockMoveBody = z
+  .object({
+    op: z.literal('blocks.move'),
+    from: z.number().int().nonnegative(),
+    to: z.number().int().nonnegative(),
+  })
+  .openapi('EditSessionBlockMove');
+
+const PatchBody = z.union([FieldPatchBody, BlockInsertBody, BlockRemoveBody, BlockMoveBody]);
+
+const VoiceRejectSchema = z.object({
+  success: z.literal(false),
+  rejected: z.literal(true),
+  violations: z.array(z.record(z.string(), z.unknown())),
+});
+
+function isBlockOpBody(
+  body: z.infer<typeof PatchBody>,
+): body is z.infer<typeof BlockInsertBody | typeof BlockRemoveBody | typeof BlockMoveBody> {
+  return 'op' in body;
+}
 
 app.openapi(
   createRoute({
     method: 'patch',
     path: '/sessions/{id}/docs/{docType}/{docId}',
     tags: ['content'],
-    summary: 'Patch a draft field in an edit session',
+    summary: 'Patch a draft field or apply a block-array op in an edit session',
     request: {
       params: z.object({
         id: z.string().openapi({ param: { name: 'id', in: 'path' } }),
@@ -559,7 +736,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({ path: z.string().min(1), value: z.unknown() }),
+            schema: PatchBody,
           },
         },
       },
@@ -579,13 +756,17 @@ app.openapi(
         content: { 'application/json': { schema: ErrorSchema } },
         description: 'Session not open',
       },
+      422: {
+        content: { 'application/json': { schema: VoiceRejectSchema } },
+        description: 'Voice validation rejected the patch (fleet-marketing only)',
+      },
     },
   }),
   async (c) => {
     const db = c.get('db');
     const user = requireContentEditor(c.get('user'));
     const { id, docType, docId } = c.req.valid('param');
-    const { path, value } = c.req.valid('json');
+    const body = c.req.valid('json');
 
     const session = await sessionQueries.getEditSessionById(db, id);
     if (!session) throw new HTTPException(404, { message: 'Session not found' });
@@ -601,39 +782,71 @@ app.openapi(
     // Validate + apply against the in-memory draft BEFORE any write: a 400 on
     // the first patch must not materialize an overlay row.
     const doc = await sessionQueries.getSessionDoc(db, id, docType, docId);
-    let updated: typeof doc;
+    let nextDraft: Record<string, unknown>;
+    let materializeBaseVersion: number | null = null;
     if (doc) {
-      const nextDraft = structuredClone(doc.draft);
-      applyDraftPatch(nextDraft, path, value);
+      nextDraft = structuredClone(doc.draft);
+    } else {
+      const page = await sessionQueries.getLivePage(db, docId);
+      if (!page) throw new HTTPException(404, { message: 'Page not found' });
+      nextDraft = materializePageDraft(page);
+      materializeBaseVersion = page.version;
+    }
+
+    if (isBlockOpBody(body)) {
+      applyBlockOp(nextDraft, body);
+    } else {
+      applyDraftPatch(nextDraft, body.path, body.value);
+    }
+
+    // Fleet-marketing only: Tier-1 marketing-voice hard-reject before any write.
+    const site = await siteQueries.getSiteById(db, session.siteId);
+    if (site?.slug === FLEET_MARKETING_SITE_SLUG) {
+      const violations = collectVoiceViolations(nextDraft);
+      if (violations.length > 0) {
+        return c.json(
+          {
+            success: false as const,
+            rejected: true as const,
+            violations: violations as unknown as Array<Record<string, unknown>>,
+          },
+          422,
+        );
+      }
+    }
+
+    let updated: EditSessionDoc | null;
+    if (doc) {
       updated = await sessionQueries.updateSessionDocDraft(db, doc.id, {
         draft: nextDraft,
         updatedBy: user.id,
       });
     } else {
-      // First patch on this doc: materialize the overlay from the live page
-      // with the patch already applied (single write).
-      const page = await sessionQueries.getLivePage(db, docId);
-      if (!page) throw new HTTPException(404, { message: 'Page not found' });
-      const nextDraft = materializePageDraft(page);
-      applyDraftPatch(nextDraft, path, value);
       updated = await sessionQueries.insertSessionDoc(db, {
         id: crypto.randomUUID(),
         sessionId: id,
         docType,
         docId,
         draft: nextDraft,
-        baseVersion: page.version,
+        baseVersion: materializeBaseVersion ?? 1,
         updatedBy: user.id,
       });
     }
     if (!updated) throw new HTTPException(500, { message: 'Failed to save draft' });
+
+    const eventPayload: Record<string, unknown> = { docType, docId };
+    if (isBlockOpBody(body)) {
+      eventPayload.op = body.op;
+    } else {
+      eventPayload.path = body.path;
+    }
 
     await sessionQueries.insertSessionEvent(db, {
       sessionId: id,
       actorId: user.id,
       actorKind: actorKindFor(user),
       type: 'patched',
-      payload: { docType, docId, path },
+      payload: eventPayload,
     });
 
     return c.json({ success: true as const, data: serializeDoc(updated) }, 200);

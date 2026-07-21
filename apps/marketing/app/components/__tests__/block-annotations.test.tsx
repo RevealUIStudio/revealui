@@ -36,90 +36,97 @@ describe('block-driven marketing sections: annotation suppression (inactive)', (
     expect(inactive.getByText(HOME_DEMO.body)).toBeTruthy();
     inactive.unmount();
 
-    const active = render(<Demo path="blocks.0" annotation={ACTIVE} />);
+    const active = render(<Demo path="blocks.0.data" annotation={ACTIVE} />);
     expect(active.getByText(HOME_DEMO.heading)).toBeTruthy();
     expect(active.getByText(HOME_DEMO.body)).toBeTruthy();
   });
 });
 
+// Every field path lives under `blocks.<index>.data.*`  -  the same structure
+// a session server's materialized draft carries (see the RenderBlocks +
+// page-blocks contract test for the cross-seam version of this assertion).
 describe('block-driven marketing sections: annotation emission (active)', () => {
   it('Demo emits field paths on heading, body, and repeater items', () => {
-    const { container } = render(<Demo path="blocks.0" annotation={ACTIVE} />);
-    const heading = container.querySelector('[data-rvui-field="blocks.0.heading"]');
+    const { container } = render(<Demo path="blocks.0.data" annotation={ACTIVE} />);
+    const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
     expect(heading?.getAttribute('data-rvui-doc')).toBe('home');
     expect(heading?.textContent).toBe(HOME_DEMO.heading);
-    expect(container.querySelector('[data-rvui-field="blocks.0.body"]')?.textContent).toBe(
+    expect(container.querySelector('[data-rvui-field="blocks.0.data.body"]')?.textContent).toBe(
       HOME_DEMO.body,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.0.items.0.title"]')?.textContent).toBe(
-      HOME_DEMO.beats[0]?.title,
-    );
-    expect(container.querySelector('[data-rvui-field="blocks.0.items.0.label"]')?.textContent).toBe(
-      HOME_DEMO.beats[0]?.n,
-    );
+    expect(
+      container.querySelector('[data-rvui-field="blocks.0.data.items.0.title"]')?.textContent,
+    ).toBe(HOME_DEMO.beats[0]?.title);
+    expect(
+      container.querySelector('[data-rvui-field="blocks.0.data.items.0.label"]')?.textContent,
+    ).toBe(HOME_DEMO.beats[0]?.n);
   });
 
   it('Primitives emits field paths on heading, body, and repeater items', () => {
-    const { container } = render(<Primitives path="blocks.1" annotation={ACTIVE} />);
-    expect(container.querySelector('[data-rvui-field="blocks.1.heading"]')?.textContent).toBe(
+    const { container } = render(<Primitives path="blocks.1.data" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.1.data.heading"]')?.textContent).toBe(
       HOME_PRIMITIVES_SECTION.heading,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.1.body"]')?.textContent).toBe(
+    expect(container.querySelector('[data-rvui-field="blocks.1.data.body"]')?.textContent).toBe(
       HOME_PRIMITIVES_SECTION.body,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.label"]')?.textContent).toBe(
-      HOME_PRIMITIVES[0]?.label,
-    );
-    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.body"]')?.textContent).toBe(
-      HOME_PRIMITIVES[0]?.body,
-    );
+    expect(
+      container.querySelector('[data-rvui-field="blocks.1.data.items.0.label"]')?.textContent,
+    ).toBe(HOME_PRIMITIVES[0]?.label);
+    expect(
+      container.querySelector('[data-rvui-field="blocks.1.data.items.0.body"]')?.textContent,
+    ).toBe(HOME_PRIMITIVES[0]?.body);
   });
 
   it('GetStarted emits field paths on heading, body, and snippet', () => {
-    const { container } = render(<GetStarted path="blocks.2" annotation={ACTIVE} />);
-    expect(container.querySelector('[data-rvui-field="blocks.2.heading"]')?.textContent).toBe(
+    const { container } = render(<GetStarted path="blocks.2.data" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.2.data.heading"]')?.textContent).toBe(
       HOME_GET_STARTED.heading,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.2.body"]')?.textContent).toBe(
+    expect(container.querySelector('[data-rvui-field="blocks.2.data.body"]')?.textContent).toBe(
       HOME_GET_STARTED.body,
     );
     expect(
-      container.querySelector('[data-rvui-field="blocks.2.snippet.caption"]')?.textContent,
+      container.querySelector('[data-rvui-field="blocks.2.data.snippet.caption"]')?.textContent,
     ).toBe(HOME_GET_STARTED.cli.caption);
-    expect(container.querySelector('[data-rvui-field="blocks.2.snippet.lines"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-rvui-field="blocks.2.data.snippet.lines"]'),
+    ).not.toBeNull();
   });
 
   it('Faq emits field paths on heading and per-item question + answer', () => {
-    const { container } = render(<Faq path="blocks.1" annotation={ACTIVE} />);
-    expect(container.querySelector('[data-rvui-field="blocks.1.heading"]')?.textContent).toBe(
+    const { container } = render(<Faq path="blocks.1.data" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.1.data.heading"]')?.textContent).toBe(
       HOME_FAQ.heading,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.label"]')?.textContent).toBe(
-      HOME_FAQ.items[0]?.question,
-    );
-    expect(container.querySelector('[data-rvui-field="blocks.1.items.0.body"]')?.textContent).toBe(
-      HOME_FAQ.items[0]?.answer,
-    );
+    expect(
+      container.querySelector('[data-rvui-field="blocks.1.data.items.0.label"]')?.textContent,
+    ).toBe(HOME_FAQ.items[0]?.question);
+    expect(
+      container.querySelector('[data-rvui-field="blocks.1.data.items.0.body"]')?.textContent,
+    ).toBe(HOME_FAQ.items[0]?.answer);
   });
 
   it('ProductsHero emits field paths on title and subtitle', () => {
-    const { container } = render(<ProductsHero path="blocks.0" annotation={ACTIVE} />);
-    expect(container.querySelector('[data-rvui-field="blocks.0.title"]')?.textContent).toBe(
+    const { container } = render(<ProductsHero path="blocks.0.data" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.0.data.title"]')?.textContent).toBe(
       PRODUCTS_PAGE_HERO.h1,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.0.subtitle"]')?.textContent).toBe(
+    expect(container.querySelector('[data-rvui-field="blocks.0.data.subtitle"]')?.textContent).toBe(
       PRODUCTS_PAGE_HERO.subtitle,
     );
   });
 
   it('ProductsCta emits field paths on heading, body, and snippet', () => {
-    const { container } = render(<ProductsCta path="blocks.2" annotation={ACTIVE} />);
-    expect(container.querySelector('[data-rvui-field="blocks.2.heading"]')?.textContent).toBe(
+    const { container } = render(<ProductsCta path="blocks.2.data" annotation={ACTIVE} />);
+    expect(container.querySelector('[data-rvui-field="blocks.2.data.heading"]')?.textContent).toBe(
       PRODUCTS_CTA_SECTION.heading,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.2.body"]')?.textContent).toBe(
+    expect(container.querySelector('[data-rvui-field="blocks.2.data.body"]')?.textContent).toBe(
       PRODUCTS_CTA_SECTION.body,
     );
-    expect(container.querySelector('[data-rvui-field="blocks.2.snippet.lines"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-rvui-field="blocks.2.data.snippet.lines"]'),
+    ).not.toBeNull();
   });
 });

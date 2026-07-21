@@ -8,4 +8,5 @@ export {
   EditSessionCanvas,
   type EditSessionCanvasProps,
   type Fetcher,
+  pickDefaultPreviewPageId,
 } from './EditSessionCanvas.js';

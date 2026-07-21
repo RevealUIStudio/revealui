@@ -48,6 +48,48 @@ interface SessionDoc {
   id: string;
   docId: string;
   docType: string;
+  draft?: { blocks?: unknown[] };
+}
+
+interface BlockMeta {
+  index: number;
+  type: string;
+  id: string;
+}
+
+function blockMetaFromDocs(docs: SessionDoc[], pageId: string | null): BlockMeta[] {
+  if (!pageId) return [];
+  const doc = docs.find((d) => d.docType === 'page' && d.docId === pageId);
+  const blocks = doc?.draft?.blocks;
+  if (!Array.isArray(blocks)) return [];
+  const out: BlockMeta[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const raw = blocks[i];
+    if (typeof raw !== 'object' || raw === null) continue;
+    const rec = raw as Record<string, unknown>;
+    const type = typeof rec.type === 'string' ? rec.type : 'unknown';
+    const id = typeof rec.id === 'string' ? rec.id : `idx-${i}`;
+    out.push({ index: i, type, id });
+  }
+  return out;
+}
+
+interface PreviewPageCandidate {
+  id: string;
+  slug: string;
+}
+
+/**
+ * Choose which published page a fresh (empty) session should land the iframe on.
+ * Prefers the VES Phase-1 marketing slice (`home`, then `products`), else the
+ * first published page. Pure helper so canvas tests can lock the order.
+ */
+export function pickDefaultPreviewPageId(
+  pages: readonly PreviewPageCandidate[],
+): string | undefined {
+  if (pages.length === 0) return undefined;
+  const bySlug = (slug: string): string | undefined => pages.find((p) => p.slug === slug)?.id;
+  return bySlug('home') ?? bySlug('products') ?? pages[0]?.id;
 }
 
 interface ActiveField {
@@ -137,6 +179,7 @@ export function EditSessionCanvas({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [marketingOrigin, setMarketingOrigin] = useState<string | null>(null);
   const [docs, setDocs] = useState<SessionDoc[]>([]);
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null);
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
   const [activeField, setActiveField] = useState<ActiveField | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -152,15 +195,37 @@ export function EditSessionCanvas({
   );
 
   // Mount: read session detail (dirty-doc list) then mint a preview token.
+  // When the session has no overlays yet (brand-new open), resolve a default
+  // published page on the session's site (home → products → first) so the
+  // iframe does not land on bare `/` with nothing annotated.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const detailRes = await doFetch(`/api/content/sessions/${sessionId}`);
         if (!detailRes.ok) throw new Error(`session load failed: ${detailRes.status}`);
-        const detail = (await detailRes.json()) as { data: { docs: SessionDoc[] } };
-        const firstPage = detail.data.docs.find((d) => d.docType === 'page');
-        const query = firstPage ? `?pageId=${encodeURIComponent(firstPage.docId)}` : '';
+        const detail = (await detailRes.json()) as {
+          data: {
+            session: { siteId: string };
+            docs: SessionDoc[];
+          };
+        };
+        const dirtyPage = detail.data.docs.find((d) => d.docType === 'page');
+        let pageId = dirtyPage?.docId;
+
+        if (!pageId && detail.data.session.siteId) {
+          const pagesRes = await doFetch(
+            `/api/content/sites/${detail.data.session.siteId}/pages?status=published`,
+          );
+          if (pagesRes.ok) {
+            const pagesBody = (await pagesRes.json()) as {
+              data: PreviewPageCandidate[];
+            };
+            pageId = pickDefaultPreviewPageId(pagesBody.data ?? []);
+          }
+        }
+
+        const query = pageId ? `?pageId=${encodeURIComponent(pageId)}` : '';
         const mintRes = await doFetch(`/api/content/sessions/${sessionId}/preview-token${query}`, {
           method: 'POST',
         });
@@ -168,6 +233,7 @@ export function EditSessionCanvas({
         const mint = (await mintRes.json()) as { data: { previewUrl: string } };
         if (cancelled) return;
         setDocs(detail.data.docs);
+        if (pageId) setPreviewPageId(pageId);
         setPreviewUrl(mint.data.previewUrl);
         setMarketingOrigin(new URL(mint.data.previewUrl).origin);
       } catch (err) {
@@ -185,6 +251,7 @@ export function EditSessionCanvas({
     const onMessage = (event: MessageEvent): void => {
       if (event.origin !== marketingOrigin) return;
       if (!isClickMessage(event.data)) return;
+      setPreviewPageId(event.data.doc);
       setActiveField({
         doc: event.data.doc,
         field: event.data.field,
@@ -203,6 +270,9 @@ export function EditSessionCanvas({
     setDocs(detail.data.docs);
   }, [doFetch, sessionId]);
 
+  const targetDocId = previewPageId ?? docs.find((d) => d.docType === 'page')?.docId ?? null;
+  const blockList = blockMetaFromDocs(docs, targetDocId);
+
   const commitPatch = useCallback(
     async (doc: string, field: string, value: string) => {
       setNotice(null);
@@ -211,6 +281,10 @@ export function EditSessionCanvas({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ path: field, value }),
       });
+      if (res.status === 422) {
+        setNotice('Voice rules rejected this edit. Adjust the copy and try again.');
+        return;
+      }
       if (!res.ok) {
         setNotice(`Could not save this field (${res.status}).`);
         return;
@@ -225,6 +299,32 @@ export function EditSessionCanvas({
       await refreshDocs();
     },
     [doFetch, marketingOrigin, refreshDocs, sessionId],
+  );
+
+  const commitBlockOp = useCallback(
+    async (payload: Record<string, unknown>) => {
+      if (!targetDocId) {
+        setNotice('No page selected for block operations.');
+        return;
+      }
+      setNotice(null);
+      const res = await doFetch(`/api/content/sessions/${sessionId}/docs/page/${targetDocId}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 422) {
+        setNotice('Voice rules rejected this block change.');
+        return;
+      }
+      if (!res.ok) {
+        setNotice(`Block operation failed (${res.status}).`);
+        return;
+      }
+      setNotice('Blocks updated. Reload the preview to see structure changes.');
+      await refreshDocs();
+    },
+    [doFetch, refreshDocs, sessionId, targetDocId],
   );
 
   const publish = useCallback(async () => {
@@ -296,12 +396,12 @@ export function EditSessionCanvas({
       ) : null}
 
       <div className="flex min-h-0 flex-1 gap-3">
-        <aside className="w-56 shrink-0 overflow-auto rounded-md border border-neutral-800 p-2">
+        <aside className="w-64 shrink-0 overflow-auto rounded-md border border-neutral-800 p-2">
           <h2 className="mb-2 text-xs font-semibold uppercase text-neutral-400">Changed docs</h2>
           {docs.length === 0 ? (
-            <p className="text-sm text-neutral-500">No edits yet.</p>
+            <p className="mb-3 text-sm text-neutral-500">No edits yet.</p>
           ) : (
-            <ul className="space-y-1">
+            <ul className="mb-3 space-y-1">
               {docs.map((d) => (
                 <li key={d.id} className="truncate text-sm text-neutral-200">
                   {d.docType}: {d.docId}
@@ -309,6 +409,75 @@ export function EditSessionCanvas({
               ))}
             </ul>
           )}
+
+          <h2 className="mb-2 text-xs font-semibold uppercase text-neutral-400">Blocks</h2>
+          {blockList.length === 0 ? (
+            <p className="mb-2 text-sm text-neutral-500">
+              Edit a field first, or add a text block, to materialize the draft.
+            </p>
+          ) : (
+            <ul className="mb-2 space-y-2">
+              {blockList.map((b) => (
+                <li
+                  key={`${b.id}-${b.index}`}
+                  className="rounded border border-neutral-800 p-1.5 text-xs text-neutral-200"
+                >
+                  <div className="mb-1 truncate font-medium">
+                    {b.index}. {b.type}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      size="sm"
+                      appearance="outline"
+                      disabled={b.index === 0}
+                      onClick={() =>
+                        void commitBlockOp({ op: 'blocks.move', from: b.index, to: b.index - 1 })
+                      }
+                    >
+                      Up
+                    </Button>
+                    <Button
+                      size="sm"
+                      appearance="outline"
+                      disabled={b.index >= blockList.length - 1}
+                      onClick={() =>
+                        void commitBlockOp({ op: 'blocks.move', from: b.index, to: b.index + 1 })
+                      }
+                    >
+                      Down
+                    </Button>
+                    <Button
+                      size="sm"
+                      appearance="outline"
+                      variant="danger"
+                      disabled={blockList.length <= 1}
+                      onClick={() => void commitBlockOp({ op: 'blocks.remove', index: b.index })}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button
+            size="sm"
+            appearance="outline"
+            disabled={!targetDocId}
+            onClick={() =>
+              void commitBlockOp({
+                op: 'blocks.insert',
+                index: blockList.length,
+                block: {
+                  id: `text-${crypto.randomUUID()}`,
+                  type: 'text',
+                  data: { content: 'New text block' },
+                },
+              })
+            }
+          >
+            Add text block
+          </Button>
         </aside>
 
         <div className="min-h-0 flex-1 overflow-auto rounded-md border border-neutral-800 bg-neutral-950">
