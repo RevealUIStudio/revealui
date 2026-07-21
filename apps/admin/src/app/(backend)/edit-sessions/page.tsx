@@ -8,6 +8,8 @@
  * `proxy.ts` for the `(backend)` group.
  */
 
+import { Button, Input, Select } from '@revealui/presentation';
+import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, type ReactElement, useCallback, useEffect, useState } from 'react';
@@ -122,13 +124,13 @@ export default function EditSessionsListPage(): ReactElement {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-400">
           Open session
         </h2>
-        <label className="block text-sm text-neutral-300">
-          Site
-          <select
-            className="mt-1 block w-full rounded border border-neutral-700 bg-neutral-900 p-2 text-neutral-100"
+        <Field>
+          <Label className="block text-sm text-neutral-300">Site</Label>
+          <Select
             value={siteId}
             onChange={(e) => setSiteId(e.target.value)}
             required
+            className="mt-1"
           >
             {sites.length === 0 ? <option value="">No sites available</option> : null}
             {sites.map((s) => (
@@ -136,32 +138,28 @@ export default function EditSessionsListPage(): ReactElement {
                 {s.name} ({s.slug})
               </option>
             ))}
-          </select>
-        </label>
-        <label className="block text-sm text-neutral-300">
-          Title
-          <input
+          </Select>
+        </Field>
+        <Field>
+          <Label className="block text-sm text-neutral-300">Title</Label>
+          <Input
             type="text"
-            className="mt-1 block w-full rounded border border-neutral-700 bg-neutral-900 p-2 text-neutral-100"
+            className="mt-1"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Homepage copy pass"
             maxLength={500}
             required
           />
-        </label>
+        </Field>
         {createError ? (
           <p role="alert" className="text-sm text-red-400">
             {createError}
           </p>
         ) : null}
-        <button
-          type="submit"
-          disabled={creating || sites.length === 0}
-          className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={creating || sites.length === 0} size="sm">
           {creating ? 'Opening…' : 'Open session'}
-        </button>
+        </Button>
       </form>
 
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-400">

@@ -6,7 +6,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RVUI_CLICK } from '../../protocol.js';
-import { EditSessionCanvas, pickDefaultPreviewPageId, type Fetcher } from '../EditSessionCanvas.js';
+import { EditSessionCanvas, type Fetcher, pickDefaultPreviewPageId } from '../EditSessionCanvas.js';
 
 const API_BASE = 'https://api.test';
 const PREVIEW_URL = 'https://www.market.test/about?rvui-edit=tok&rvui-session=sid';

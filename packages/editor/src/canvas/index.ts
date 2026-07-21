@@ -6,7 +6,7 @@
  */
 export {
   EditSessionCanvas,
-  pickDefaultPreviewPageId,
   type EditSessionCanvasProps,
   type Fetcher,
+  pickDefaultPreviewPageId,
 } from './EditSessionCanvas.js';
