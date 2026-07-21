@@ -64,7 +64,18 @@ function makeFetcher(opts: MakeFetcherOptions = {}): { fetcher: Fetcher; calls: 
     return jsonResponse(200, {
       data: {
         session: { id: SESSION, status: 'open', siteId: 'site-1' },
-        docs: opts.emptyDocs ? [] : [{ id: 'ov-1', docId: 'page-1', docType: 'page' }],
+        docs: opts.emptyDocs
+          ? []
+          : [
+              {
+                id: 'ov-1',
+                docId: 'page-1',
+                docType: 'page',
+                draft: {
+                  blocks: [{ id: 'blk-1', type: 'text', data: { content: 'hello' } }],
+                },
+              },
+            ],
       },
     });
   };
@@ -175,6 +186,23 @@ describe('EditSessionCanvas', () => {
     expect(pickDefaultPreviewPageId([{ id: 'p', slug: 'products' }])).toBe('p');
     expect(pickDefaultPreviewPageId([{ id: 'x', slug: 'about' }])).toBe('x');
     expect(pickDefaultPreviewPageId([])).toBeUndefined();
+  });
+
+  it('renders block chrome and PATCHes a blocks.insert op', async () => {
+    const { fetcher, calls } = makeFetcher();
+    render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
+    await screen.findByTitle('Content preview');
+    const add = await screen.findByRole('button', { name: 'Add text block' });
+    fireEvent.click(add);
+    await waitFor(() => {
+      const patch = calls.find(
+        (c) =>
+          (c.init?.method ?? 'GET').toUpperCase() === 'PATCH' &&
+          String(c.init?.body ?? '').includes('blocks.insert'),
+      );
+      expect(patch).toBeTruthy();
+      expect(JSON.parse(String(patch?.init?.body)).op).toBe('blocks.insert');
+    });
   });
 
   it('debounces autosave into a single PATCH while typing', async () => {
