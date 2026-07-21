@@ -6,9 +6,8 @@
  * tier gating and milestone-retirement are unit-testable without mocking
  * a database.
  *
- * Only the five nudges with an observable signal in the schema today are
- * evaluated here — see ../../../../../.jv PR description (or the GAP-300
- * PR body) for which ids are deferred and why.
+ * Implemented triggers live here; remaining deferred ids still need real
+ * signals (see definitions.ts IMPLEMENTED_NUDGE_IDS + #1929 rationale).
  */
 
 import type { LicenseTier } from '@revealui/core/license';
@@ -25,11 +24,19 @@ export interface NudgeSignals {
   hasAgentAction: boolean;
   /** True once any site owned by the user has a workspace inference config. */
   hasInferenceConfig: boolean;
+  /**
+   * True once the account has exported the audit log
+   * (usage_meters.meter_name = audit_export, source = user).
+   */
+  hasAuditExport: boolean;
   /** Milliseconds since the user's account was created. */
   accountAgeMs: number;
   /** Count of non-deleted sites owned by the user. */
   siteCount: number;
 }
+
+/** Meter name written by GET /admin/audit/export for the max-export-audit nudge. */
+export const AUDIT_EXPORT_METER_NAME = 'audit_export';
 
 export const HOUR_24_MS = 24 * 60 * 60 * 1000;
 export const DAY_7_MS = 7 * 24 * 60 * 60 * 1000;
@@ -62,6 +69,9 @@ export function buildCandidates(tier: LicenseTier, signals: NudgeSignals): Nudge
   if (tier === 'max' || tier === 'enterprise') {
     if (!signals.hasInferenceConfig && signals.accountAgeMs >= HOUR_24_MS) {
       candidates.push({ id: 'max-local-inference', milestone: 'hour24' });
+    }
+    if (!signals.hasAuditExport && signals.accountAgeMs >= DAY_7_MS) {
+      candidates.push({ id: 'max-export-audit', milestone: 'day7' });
     }
   }
 

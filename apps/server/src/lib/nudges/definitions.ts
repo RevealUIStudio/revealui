@@ -7,11 +7,11 @@
  * body, or CTA text when editing this file.
  *
  * Not every nudge has a live trigger evaluator (see ./triggers.ts):
- * five of the eleven have no observable signal in the schema today
+ * five of the eleven still lack an observable signal
  * (upgrade-intent, self-hosted license activation, audit-trail-viewed,
- * MCP connection state, an AI-memory enable toggle) and are excluded
- * from selection rather than approximated. See the PR description for
- * the id-by-id rationale.
+ * MCP connection state, an AI-memory enable toggle) and stay excluded
+ * from selection rather than approximated. max-export-audit is live via
+ * usage_meters meter_name=audit_export (source=user) written on export.
  */
 
 export type NudgeId =
@@ -136,5 +136,6 @@ export const IMPLEMENTED_NUDGE_IDS: readonly NudgeId[] = [
   'free-first-content',
   'pro-first-action',
   'max-local-inference',
+  'max-export-audit',
   'ent-second-tenant',
 ];
