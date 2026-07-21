@@ -2,139 +2,34 @@
   "description": "Allowlisted Tier-1 JSX intrinsics in apps/* until burned to presentation components (GAP-398). Each entry needs a non-empty reason.",
   "entries": [
     {
-      "path": "apps/admin/src/app/(backend)/[[...segments]]/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; CMS catch-all shell decorative svg without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agent-tasks/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; task filter/action chips not yet on presentation Button (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agent-tasks/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; task status/row icons without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; multi-step agent wizard controls (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; wizard step illustrations without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; marketplace agent actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; marketplace detail icons without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; media library bulk/actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "input",
-      "reason": "admin residual; media search and file inputs (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "select",
-      "reason": "admin residual; media type filter select (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; media type/file icons without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/components/revealui/elements/button.tsx",
-      "tag": "button",
-      "reason": "legacy kit pending retirement (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/components/revealui/elements/email-signup-form.tsx",
-      "tag": "input",
-      "reason": "legacy kit pending retirement (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/components/revealui/sections/footer-with-newsletter-form-categories-and-social-icons.tsx",
-      "tag": "button",
-      "reason": "legacy kit pending retirement (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/components/revealui/sections/footer-with-newsletter-form-categories-and-social-icons.tsx",
-      "tag": "input",
-      "reason": "legacy kit pending retirement (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/components/revealui/sections/navbar-with-links-actions-and-centered-logo.tsx",
-      "tag": "button",
-      "reason": "legacy kit pending retirement (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/components/revealui/sections/navbar-with-links-actions-and-centered-logo.tsx",
-      "tag": "svg",
-      "reason": "legacy kit pending retirement (GAP-398)"
-    },
-    {
       "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",
       "tag": "svg",
-      "reason": "legacy kit pending retirement; chart path geometry is content-driven (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/components/AdminSidebarLayout.tsx",
-      "tag": "svg",
-      "reason": "admin residual; NavIcon uses dynamic path data per nav item (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/components/Agent/index.tsx",
-      "tag": "button",
-      "reason": "admin residual; chat composer/tool controls dense surface (GAP-398)"
+      "reason": "data-driven chart path geometry (stacked area); no Icon* match (GAP-398 residual)"
     },
     {
       "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
       "tag": "svg",
-      "reason": "admin residual; stacked outcome bar is data-driven SVG chart (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/features/embed/components/EmbedNodeComponent.tsx",
-      "tag": "button",
-      "reason": "admin residual; Lexical embed node edit chrome (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/features/embed/icons/EmbedIcon.tsx",
-      "tag": "svg",
-      "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
+      "reason": "data-driven stacked bar SVG (dynamic rect widths); no Icon* match (GAP-398 residual)"
     },
     {
       "path": "apps/admin/src/lib/features/label/icons/LabelIcon.tsx",
       "tag": "svg",
-      "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
+      "reason": "Lexical toolbar letterform icon (custom AA glyph); no Icon* match (GAP-398 residual)"
     },
     {
       "path": "apps/admin/src/lib/features/largeBody/icons/LargeBodyIcon.tsx",
       "tag": "svg",
-      "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
+      "reason": "Lexical toolbar letterform icon (custom Aa glyph); no Icon* match (GAP-398 residual)"
     },
     {
       "path": "apps/marketing/app/components/landing/Primitives.tsx",
       "tag": "svg",
-      "reason": "content-driven primitive icon paths from CMS/static content; no Icon* match per card (GAP-398)"
+      "reason": "CMS/static content-driven icon path data per primitive; no Icon* match (GAP-398 residual)"
     },
     {
       "path": "apps/marketing/app/routes/ProductsPage.tsx",
       "tag": "svg",
-      "reason": "content-driven product icon paths; no Icon* match per product (GAP-398)"
+      "reason": "content-driven product icon path data; no Icon* match (GAP-398 residual)"
     }
   ]
 }

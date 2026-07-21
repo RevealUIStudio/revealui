@@ -1,6 +1,6 @@
 'use client';
 
-import { Select, Textarea } from '@revealui/presentation';
+import { Button, Select, Textarea } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -244,10 +244,12 @@ function ToolCallBadge({ entry }: { entry: ToolCallEntry }) {
 
   return (
     <div className="my-1.5 rounded-md border border-border bg-muted text-sm">
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center gap-2 px-3 py-1.5 text-left"
+        className="h-auto w-full justify-start gap-2 rounded-none px-3 py-1.5 text-left"
       >
         {entry.status === 'running' && (
           <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-foreground/10 border-t-primary" />
@@ -256,7 +258,7 @@ function ToolCallBadge({ entry }: { entry: ToolCallEntry }) {
         {entry.status === 'error' && <span className="text-error">&#10007;</span>}
         <span className="font-medium text-foreground">{label}</span>
         <span className="ml-auto text-xs text-muted-foreground">{expanded ? '▲' : '▼'}</span>
-      </button>
+      </Button>
       {expanded && (
         <div className="border-t border-border px-3 py-2">
           {entry.arguments && (
@@ -342,14 +344,17 @@ function CopyButton({ text }: { text: string }) {
   }, [text]);
 
   return (
-    <button
+    <Button
       type="button"
+      appearance="ghost"
+      variant="neutral"
+      size="sm"
       onClick={handleCopy}
-      className="mt-1 self-start rounded px-1.5 py-0.5 text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
+      className="mt-1 h-auto self-start rounded px-1.5 py-0.5 text-xs text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
       aria-label="Copy message"
     >
       {copied ? 'Copied' : 'Copy'}
-    </button>
+    </Button>
   );
 }
 
@@ -427,22 +432,25 @@ function ConfirmationCard({
         </pre>
       </details>
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
+          variant="danger"
           onClick={onApprove}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-error px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:opacity-50"
+          className="flex-1 rounded-lg"
         >
           {isLoading ? 'Executing...' : 'Approve'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          appearance="outline"
+          variant="neutral"
           onClick={onReject}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
+          className="flex-1 rounded-lg"
         >
           Reject
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -794,14 +802,17 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <div className="flex flex-wrap justify-center gap-2">
               {(agentMode === 'coding' ? SUGGESTED_PROMPTS_CODING : SUGGESTED_PROMPTS).map(
                 (prompt) => (
-                  <button
+                  <Button
                     key={prompt}
                     type="button"
+                    appearance="outline"
+                    variant="neutral"
+                    size="sm"
                     onClick={() => handleSuggestedPrompt(prompt)}
-                    className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground transition-colors hover:border-primary hover:bg-muted"
+                    className="h-auto rounded-full px-4 py-2 text-sm"
                   >
                     {prompt}
-                  </button>
+                  </Button>
                 ),
               )}
             </div>
@@ -852,13 +863,16 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <p className="mt-1 text-xs">{stream.error}</p>
             <div className="mt-3 flex items-center gap-3">
               {lastFailedInput.current && (
-                <button
+                <Button
                   type="button"
+                  appearance="ghost"
+                  variant="danger"
+                  size="sm"
                   onClick={handleRetry}
-                  className="rounded-md bg-error/15 px-3 py-1.5 text-xs font-medium text-error transition-colors hover:bg-error/25"
+                  className="h-auto rounded-md bg-error/15 px-3 py-1.5 text-xs font-medium text-error hover:bg-error/25"
                 >
                   Retry
-                </button>
+                </Button>
               )}
               <p className="text-xs text-error">Contact support@revealui.com if this persists.</p>
             </div>
@@ -872,30 +886,28 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       <div className="border-t border-border bg-card px-3 py-3 sm:px-4">
         <div className="mx-auto mb-2 flex max-w-3xl items-center gap-2">
           <div className="flex items-center rounded-md border border-border">
-            <button
+            <Button
               type="button"
+              appearance={agentMode === 'admin' ? 'solid' : 'ghost'}
+              variant={agentMode === 'admin' ? 'brand' : 'neutral'}
+              size="sm"
               onClick={() => setAgentMode('admin')}
               disabled={stream.isStreaming}
-              className={`rounded-l-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                agentMode === 'admin'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
+              className="h-auto rounded-l-md rounded-r-none px-2.5 py-1 text-xs font-medium"
             >
               admin
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              appearance={agentMode === 'coding' ? 'solid' : 'ghost'}
+              variant={agentMode === 'coding' ? 'brand' : 'neutral'}
+              size="sm"
               onClick={() => setAgentMode('coding')}
               disabled={stream.isStreaming}
-              className={`rounded-r-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                agentMode === 'coding'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:text-foreground'
-              }`}
+              className="h-auto rounded-l-none rounded-r-md px-2.5 py-1 text-xs font-medium"
             >
               Coding
-            </button>
+            </Button>
           </div>
           <Field className="flex items-center gap-2">
             <Label className="text-xs text-muted-foreground">Model</Label>
@@ -934,21 +946,23 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             disabled={stream.isStreaming || !!pendingConfirmation}
           />
           {stream.isStreaming ? (
-            <button
+            <Button
               type="button"
+              variant="danger"
               onClick={stream.abort}
-              className="shrink-0 rounded-xl bg-error px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 sm:px-5 sm:py-3"
+              className="h-auto shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium sm:px-5 sm:py-3"
             >
               Stop
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="submit"
+              variant="brand"
               disabled={!input.trim()}
-              className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40 sm:px-5 sm:py-3"
+              className="h-auto shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium sm:px-5 sm:py-3"
             >
               Send
-            </button>
+            </Button>
           )}
         </form>
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">

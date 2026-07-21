@@ -1,6 +1,15 @@
 'use client';
 
-import { cn, useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
+import {
+  Button,
+  cn,
+  IconChevronRight,
+  IconClose,
+  IconMenu,
+  useEscapeKey,
+  useFocusTrap,
+  useScrollLock,
+} from '@revealui/presentation';
 import Link from 'next/link';
 import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
 
@@ -24,16 +33,7 @@ export function NavbarLink({
         className="inline-flex p-1.5 opacity-0 group-hover:opacity-100 lg:hidden"
         aria-hidden="true"
       >
-        <svg
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="size-6"
-        >
-          <title>Navigate</title>
-          <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
+        <IconChevronRight className="size-6" aria-hidden="true" />
       </span>
     </Link>
   );
@@ -77,21 +77,17 @@ export function NavbarWithLinksActionsAndCenteredLogo({
           <div className="flex flex-1 items-center justify-end gap-4">
             <div className="flex shrink-0 items-center gap-5 max-lg:hidden">{actions}</div>
 
-            <button
+            <Button
               type="button"
+              appearance="ghost"
+              variant="neutral"
+              size="icon"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="inline-flex rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
+              className="size-auto rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 lg:hidden dark:text-white dark:hover:bg-white/10"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="size-6">
-                <title>Open menu</title>
-                <path
-                  fillRule="evenodd"
-                  d="M3.748 8.248a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75ZM3.748 15.75a.75.75 0 0 1 .75-.751h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+              <IconMenu className="size-6" aria-hidden="true" />
+            </Button>
           </div>
         </div>
 
@@ -104,24 +100,17 @@ export function NavbarWithLinksActionsAndCenteredLogo({
             className="fixed inset-0 z-50 bg-mist-100 px-6 py-6 lg:px-10 dark:bg-mist-950"
           >
             <div className="flex justify-end">
-              <button
+              <Button
                 type="button"
+                appearance="ghost"
+                variant="neutral"
+                size="icon"
                 onClick={closeMenu}
                 aria-label="Close menu"
-                className="inline-flex rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+                className="size-auto rounded-full p-1.5 text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="size-6"
-                >
-                  <title>Close menu</title>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <IconClose className="size-6" aria-hidden="true" />
+              </Button>
             </div>
             <div className="mt-6 flex flex-col gap-6">{links}</div>
             <div className="mt-8 flex flex-col gap-4">{actions}</div>

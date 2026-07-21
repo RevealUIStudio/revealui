@@ -1,8 +1,7 @@
-import { cn } from '@revealui/presentation/server';
+import { Button, cn, IconArrowRight, InputCVA } from '@revealui/presentation';
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { Container } from '@/components/revealui/elements/container';
-import { ArrowNarrowRightIcon } from '@/components/revealui/icons/arrow-narrow-right-icon';
 
 export function FooterCategory({
   title,
@@ -65,19 +64,22 @@ export function NewsletterForm({
       <p>{headline}</p>
       <div className="flex flex-col gap-4 text-mist-700 dark:text-mist-400">{subheadline}</div>
       <div className="flex items-center border-b border-mist-950/20 py-2 has-[input:focus]:border-mist-950 dark:border-white/20 dark:has-[input:focus]:border-white">
-        <input
+        <InputCVA
           type="email"
           placeholder="Email"
           aria-label="Email"
-          className="flex-1 text-mist-950 focus:outline-hidden dark:text-white"
+          className="h-auto flex-1 border-0 bg-transparent px-0 text-mist-950 shadow-none ring-0 focus-visible:border-0 focus-visible:ring-0 dark:text-white"
         />
-        <button
+        <Button
           type="submit"
+          appearance="ghost"
+          variant="neutral"
+          size="icon"
           aria-label="Subscribe"
-          className="relative inline-flex size-7 items-center justify-center rounded-full after:absolute after:-inset-2 hover:bg-mist-950/10 dark:hover:bg-white/10 after:pointer-fine:hidden"
+          className="relative size-7 rounded-full after:absolute after:-inset-2 hover:bg-mist-950/10 dark:hover:bg-white/10 after:pointer-fine:hidden"
         >
-          <ArrowNarrowRightIcon />
-        </button>
+          <IconArrowRight className="size-4" aria-hidden="true" />
+        </Button>
       </div>
     </form>
   );
