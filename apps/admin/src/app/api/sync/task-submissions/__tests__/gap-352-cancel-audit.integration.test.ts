@@ -114,40 +114,43 @@ describe('GAP-352: admin cancel of a running task must not erase its audit row',
     expect(audits[0]?.eventType).toBe('revmarket:task:completed');
   });
 
-  it.each([
-    'completed',
-    'failed',
-  ])('rejects an admin moving a running task to %s and preserves its audit row', async (targetStatus) => {
-    const taskId = `gap352-running-to-${targetStatus}`;
-    await seedTask(taskId, 'running');
+  it.each(['completed', 'failed'])(
+    'rejects an admin moving a running task to %s and preserves its audit row',
+    async (targetStatus) => {
+      const taskId = `gap352-running-to-${targetStatus}`;
+      await seedTask(taskId, 'running');
 
-    // Same audit-destroying race as cancel, different verb: an admin PATCH
-    // straight to completed/failed would move the row off 'running' and make
-    // the executor's completion CAS no-op, skipping the audit write.
-    const response = await PATCH(patchRequest(taskId, targetStatus), {
-      params: Promise.resolve({ id: taskId }),
-    });
-    expect(response.status).toBe(400);
+      // Same audit-destroying race as cancel, different verb: an admin PATCH
+      // straight to completed/failed would move the row off 'running' and make
+      // the executor's completion CAS no-op, skipping the audit write.
+      const response = await PATCH(patchRequest(taskId, targetStatus), {
+        params: Promise.resolve({ id: taskId }),
+      });
+      expect(response.status).toBe(400);
 
-    const [afterPatch] = await testDb.drizzle
-      .select({ status: taskSubmissions.status })
-      .from(taskSubmissions)
-      .where(eq(taskSubmissions.id, taskId));
-    expect(afterPatch?.status).toBe('running');
+      const [afterPatch] = await testDb.drizzle
+        .select({ status: taskSubmissions.status })
+        .from(taskSubmissions)
+        .where(eq(taskSubmissions.id, taskId));
+      expect(afterPatch?.status).toBe('running');
 
-    const completed = await completeTask(taskId, {
-      success: true,
-      output: { summary: 'done' },
-      artifacts: [],
-      tokensUsed: 42,
-      durationMs: 100,
-    });
-    expect(completed).toBe(true);
+      const completed = await completeTask(taskId, {
+        success: true,
+        output: { summary: 'done' },
+        artifacts: [],
+        tokensUsed: 42,
+        durationMs: 100,
+      });
+      expect(completed).toBe(true);
 
-    const audits = await testDb.drizzle.select().from(auditLog).where(eq(auditLog.taskId, taskId));
-    expect(audits).toHaveLength(1);
-    expect(audits[0]?.eventType).toBe('revmarket:task:completed');
-  });
+      const audits = await testDb.drizzle
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.taskId, taskId));
+      expect(audits).toHaveLength(1);
+      expect(audits[0]?.eventType).toBe('revmarket:task:completed');
+    },
+  );
 
   it('logs an ERROR (not a warn) when completeTask finds the row already off running', async () => {
     const taskId = 'gap352-race-task';

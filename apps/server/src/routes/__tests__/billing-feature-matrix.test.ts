@@ -236,21 +236,22 @@ describe('Feature Gate Error Response Format', () => {
     ['multiTenant', 'max', 'enterprise'],
   ];
 
-  it.each(
-    blockedCases,
-  )('feature=%s at tier=%s includes required tier "%s" and upgrade URL', async (feature, currentTier, expectedRequiredTier) => {
-    const { app } = createFeatureGatedApp(feature);
-    const res = await makeFeatureRequest(app, feature, currentTier);
+  it.each(blockedCases)(
+    'feature=%s at tier=%s includes required tier "%s" and upgrade URL',
+    async (feature, currentTier, expectedRequiredTier) => {
+      const { app } = createFeatureGatedApp(feature);
+      const res = await makeFeatureRequest(app, feature, currentTier);
 
-    expect(res.status).toBe(403);
-    const body = (await res.json()) as Record<string, unknown>;
+      expect(res.status).toBe(403);
+      const body = (await res.json()) as Record<string, unknown>;
 
-    // Must include the required tier in the error message
-    expect(body.error).toContain(expectedRequiredTier);
+      // Must include the required tier in the error message
+      expect(body.error).toContain(expectedRequiredTier);
 
-    // Must include upgrade URL
-    expect(body.error).toContain('revealui.com/pricing');
-  });
+      // Must include upgrade URL
+      expect(body.error).toContain('revealui.com/pricing');
+    },
+  );
 
   it('error response includes feature name', async () => {
     const { app } = createFeatureGatedApp('dashboard');

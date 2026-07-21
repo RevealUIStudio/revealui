@@ -43,12 +43,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // must be loaded by the tenant. Unset → the default self-hosted stack via
   // --font-sans. No third-party font host is used in any case.
   const rawTenantFont = process.env.REVEALUI_TENANT_FONT?.trim();
-  const BUILTIN_FONT_TO_VARIABLE: Record<string, string> = {
+  const BuiltinFontToVariable: Record<string, string> = {
     Inter: 'Inter Variable',
     'Inter Tight': 'Inter Tight Variable',
   };
   const tenantFont = rawTenantFont
-    ? (BUILTIN_FONT_TO_VARIABLE[rawTenantFont] ?? rawTenantFont)
+    ? (BuiltinFontToVariable[rawTenantFont] ?? rawTenantFont)
     : undefined;
   // Fleet kits hide the RevealUI-branded Header/Footer by default. Customer-side
   // navigation/footer is out of scope for v1; future work can expose a tenant

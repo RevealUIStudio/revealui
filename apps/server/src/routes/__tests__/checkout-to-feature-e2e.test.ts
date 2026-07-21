@@ -247,15 +247,13 @@ describe('Checkout-to-Feature E2E Flow', () => {
   });
 
   describe('aiLocal is always accessible (free feature)', () => {
-    it.each([
-      'free',
-      'pro',
-      'max',
-      'enterprise',
-    ] as Tier[])('aiLocal accessible at tier=%s', async (tier) => {
-      const status = await testFeatureAccess(tier, 'aiLocal');
-      expect(status).toBe(200);
-    });
+    it.each(['free', 'pro', 'max', 'enterprise'] as Tier[])(
+      'aiLocal accessible at tier=%s',
+      async (tier) => {
+        const status = await testFeatureAccess(tier, 'aiLocal');
+        expect(status).toBe(200);
+      },
+    );
   });
 
   describe('Tier upgrade path: features unlock progressively', () => {

@@ -116,8 +116,7 @@
       "ws@8": ">=8.20.1",
       "@revealui/config": "workspace:*",
       "@revealui/contracts": "workspace:*",
-      "@revealui/db": "workspace:*",
-      "js-yaml@5": ">=5.2.1"
+      "@revealui/db": "workspace:*"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",

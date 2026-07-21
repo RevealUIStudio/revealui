@@ -130,7 +130,7 @@ function splitEnvList(value: string | undefined): string[] | undefined {
 }
 
 function bearerFromHeader(header: string | undefined): string | undefined {
-  if (!(header && header.startsWith('Bearer '))) return undefined;
+  if (!header?.startsWith('Bearer ')) return undefined;
   const token = header.slice(7);
   return token.startsWith('rvui_dev_') ? token : undefined;
 }

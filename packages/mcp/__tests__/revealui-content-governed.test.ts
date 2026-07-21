@@ -145,7 +145,9 @@ describe('I-1 identity comes only from the verified credential', () => {
     }
     // The receipt's identity is A, taken from AuthInfo — never from a request arg.
     expect(governed.audits).toHaveLength(1);
-    const extra = (governed.audits[0]?.context.authInfo as { extra?: { userId?: string } }).extra;
+    const extra = (
+      governed.audits[0]?.context.authInfo as { extra?: { userId?: string } } | undefined
+    )?.extra;
     expect(extra?.userId).toBe('A');
   });
 

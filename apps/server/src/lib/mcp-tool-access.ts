@@ -106,5 +106,5 @@ export function authorizeMcpTool(identity: McpAuthzIdentity, toolName: string): 
   );
   if (!roleAllowed) return false;
   const tierGate = TOOL_TIER_GATE[toolName as McpToolName];
-  return tierGate !== undefined && tierGate.has(identity.tier);
+  return tierGate?.has(identity.tier);
 }
