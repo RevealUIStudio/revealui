@@ -1,11 +1,3 @@
-export type { ImplementedHookSource } from './normalizers/index.js';
-export {
-  isImplementedHookSource,
-  normalizeClaudeCodeHookEvent,
-  normalizeCursorHookEvent,
-  normalizeHookEvent,
-  normalizeVSCodeHookEvent,
-} from './normalizers/index.js';
 export type {
   MasterSpecCouplingOptions,
   MasterSpecCouplingWarning,
@@ -18,6 +10,14 @@ export {
   isMasterSpecTriggerPath,
   resolveProductContext,
 } from './master-spec-coupling.js';
+export type { ImplementedHookSource } from './normalizers/index.js';
+export {
+  isImplementedHookSource,
+  normalizeClaudeCodeHookEvent,
+  normalizeCursorHookEvent,
+  normalizeHookEvent,
+  normalizeVSCodeHookEvent,
+} from './normalizers/index.js';
 export type {
   PolicyDecision,
   PolicySnapshot,

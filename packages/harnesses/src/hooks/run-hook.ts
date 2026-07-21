@@ -14,9 +14,9 @@ import type {
   HarnessHookEventKind,
   HarnessHookSource,
 } from '../types/hook-event.js';
+import { emitMasterSpecCouplingWarnings } from './master-spec-coupling.js';
 import type { ImplementedHookSource } from './normalizers/index.js';
 import { isImplementedHookSource, normalizeHookEvent } from './normalizers/index.js';
-import { emitMasterSpecCouplingWarnings } from './master-spec-coupling.js';
 import type { PolicyDecision, PolicySnapshotLoadResult } from './policy.js';
 import { evaluatePolicy, loadPolicySnapshot } from './policy.js';
 import { appendToSpool } from './spool.js';

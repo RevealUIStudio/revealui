@@ -11,9 +11,9 @@
  * and leave the policy decision as allow.
  */
 
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
-import { execFileSync } from 'node:child_process';
 
 /** One advisory warning for a single edited path (or aggregate). */
 export interface MasterSpecCouplingWarning {
