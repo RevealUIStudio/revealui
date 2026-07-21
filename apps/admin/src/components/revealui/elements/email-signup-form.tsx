@@ -1,4 +1,4 @@
-import { cn } from '@revealui/presentation/server';
+import { cn, InputCVA } from '@revealui/presentation';
 import type { ComponentProps, ReactNode } from 'react';
 import { Button } from './button';
 
@@ -25,9 +25,9 @@ export function EmailSignupForm({
       )}
       {...props}
     >
-      <input
+      <InputCVA
         className={cn(
-          'min-w-0 flex-1 px-3 text-sm/7 focus:outline-hidden dark:text-white',
+          'h-auto min-w-0 flex-1 border-0 bg-transparent px-3 text-sm/7 shadow-none ring-0 focus-visible:border-0 focus-visible:ring-0 dark:text-white',
           variant === 'normal' && 'text-mist-950',
           variant === 'overlay' && 'text-white placeholder:text-white/60',
         )}
