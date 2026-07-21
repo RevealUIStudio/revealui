@@ -5,6 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // Mock dependencies
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   getCurrentTier: vi.fn(() => 'pro'),
   getGraceConfig: vi.fn(() => ({ subscriptionDays: 3, perpetualDays: 30, infraDays: 7 })),
   getLicensePayload: vi.fn(),

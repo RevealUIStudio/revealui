@@ -11,6 +11,7 @@
  *   EMAIL_REPLY_TO                -  default reply-to (e.g. support@revealui.com)
  */
 
+import { normalizePem } from '@revealui/core/license';
 import { importPKCS8, SignJWT } from 'jose';
 
 export interface EmailPayload {
@@ -50,7 +51,7 @@ function getGmailConfig(overrides: Record<string, string>): GmailConfig | null {
 }
 
 async function getGmailAccessToken(config: GmailConfig): Promise<string> {
-  const key = await importPKCS8(config.privateKey.replace(/\\n/g, '\n'), 'RS256');
+  const key = await importPKCS8(normalizePem(config.privateKey), 'RS256');
 
   const now = Math.floor(Date.now() / 1000);
   const jwt = await new SignJWT({

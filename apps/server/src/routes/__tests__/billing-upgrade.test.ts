@@ -132,6 +132,9 @@ vi.mock('drizzle-orm', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   getMaxAgentTasks: vi.fn(() => 10_000),
 }));
 

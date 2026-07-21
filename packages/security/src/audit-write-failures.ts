@@ -83,7 +83,13 @@ function extractPgErrorCode(error: unknown): string | undefined {
  * (connection failures, timeouts, driver errors).
  */
 export function classifyAuditWriteFailure(error: unknown): AuditWriteFailureReason {
-  if (error instanceof Error && error.message.startsWith('Audit HMAC signing requires')) {
+  if (
+    error instanceof Error &&
+    (error.message.startsWith('Audit HMAC signing requires') ||
+      error.message.includes('REVEALUI_AUDIT_SIGNING_KEY') ||
+      error.message.includes('AUDIT_SIGNING_KEY'))
+  ) {
+    // HMAC message kept for historical log rows; Ed25519 is the live path.
     return 'missing_secret';
   }
   const code = extractPgErrorCode(error);

@@ -21,6 +21,7 @@
  * Closes GAP-138.
  */
 
+import { normalizePem } from '@revealui/core/license';
 import { logger as defaultLogger } from '@revealui/utils/logger';
 import { importPKCS8, SignJWT } from 'jose';
 
@@ -118,7 +119,7 @@ export class GmailProvider implements EmailProvider {
   }
 
   private async getAccessToken(): Promise<string> {
-    const key = await importPKCS8(this.privateKey.replace(/\\n/g, '\n'), 'RS256');
+    const key = await importPKCS8(normalizePem(this.privateKey), 'RS256');
 
     const now = Math.floor(Date.now() / 1000);
     const jwt = await new SignJWT({

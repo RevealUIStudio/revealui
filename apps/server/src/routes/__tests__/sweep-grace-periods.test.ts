@@ -29,6 +29,9 @@ vi.mock('@revealui/db/client', () => ({
 }));
 
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   resetLicenseState: vi.fn(),
   subscriptionLicenseExpiresInSeconds: vi.fn(() => 3600),
   subscriptionExpBound: vi.fn(() => 9_999_999_999),

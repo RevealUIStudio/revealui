@@ -55,6 +55,9 @@ vi.mock('@revealui/db/client', async () => {
 });
 
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   resetLicenseState: vi.fn(),
   getCurrentTier: vi.fn(() => 'free'),
   getGraceConfig: vi.fn(() => ({ infraDays: 3 })),

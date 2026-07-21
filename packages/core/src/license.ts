@@ -203,6 +203,22 @@ export function normalizePem(raw: string): string {
 }
 
 /**
+ * Read a PEM from `env[name]` (defaults to `process.env`), trim, and normalize
+ * escaped newlines. Returns `undefined` when missing or blank after trim.
+ * Canonical helper for the former 8+ copy-pasted license/webhook PEM unescapes (GAP-396).
+ */
+export function readPemEnv(
+  name: string,
+  env: Record<string, string | undefined> = process.env,
+): string | undefined {
+  const raw = env[name];
+  if (raw === undefined) return undefined;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return undefined;
+  return normalizePem(trimmed);
+}
+
+/**
  * The ordered public-key candidates used to verify license JWTs.
  *
  * Index 0 is the current key (`REVEALUI_LICENSE_PUBLIC_KEY`); index 1, when
