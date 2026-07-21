@@ -57,11 +57,6 @@
       "reason": "admin residual; media type/file icons without Icon* match (GAP-398)"
     },
     {
-      "path": "apps/admin/src/app/(frontend)/signup/SignupForm.tsx",
-      "tag": "input",
-      "reason": "admin residual; ToS checkbox; presentation Checkbox a11y layout differs from label+links pattern (GAP-398)"
-    },
-    {
       "path": "apps/admin/src/components/revealui/elements/button.tsx",
       "tag": "button",
       "reason": "legacy kit pending retirement (GAP-398)"
@@ -107,19 +102,9 @@
       "reason": "admin residual; chat composer/tool controls dense surface (GAP-398)"
     },
     {
-      "path": "apps/admin/src/lib/components/DataPanel/index.tsx",
-      "tag": "svg",
-      "reason": "admin residual; trend arrows without Icon* match (GAP-398)"
-    },
-    {
       "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
       "tag": "svg",
       "reason": "admin residual; stacked outcome bar is data-driven SVG chart (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/components/SystemHealthMonitor/index.tsx",
-      "tag": "select",
-      "reason": "admin residual; health monitor filter selects (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/embed/components/EmbedNodeComponent.tsx",

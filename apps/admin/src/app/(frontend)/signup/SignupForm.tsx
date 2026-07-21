@@ -1,6 +1,7 @@
 'use client';
 
 import { usePasskeyRegister } from '@revealui/auth/react';
+import { CheckboxCVA } from '@revealui/presentation/client';
 import {
   Button,
   FormLabel,
@@ -320,23 +321,17 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         </div>
 
         <div className="flex items-start gap-2">
-          <input
+          <CheckboxCVA
             id="tos"
-            type="checkbox"
             checked={tosAccepted}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setTosAccepted(e.target.checked)}
+            onCheckedChange={(checked: boolean) => setTosAccepted(checked === true)}
             disabled={anyLoading}
             required
-            className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[var(--tenant-brand,#2563eb)] accent-[var(--tenant-brand,#2563eb)]"
+            className="mt-0.5"
+            aria-label="Accept the Terms of Service and Privacy Policy"
           />
-          {/* The checkbox's accessible name comes from this sr-only label rather than
-           * wrapping the visible text in a <label>, because the visible text contains
-           * <Link> anchors: a <label> nesting interactive links is an a11y anti-pattern
-           * (ambiguous click target between the label's implicit toggle and the link's
-           * own navigation, and inconsistent accessible-name computation). */}
-          <label htmlFor="tos" className="sr-only">
-            Accept the Terms of Service and Privacy Policy
-          </label>
+          {/* Accessible name is on CheckboxCVA (aria-label). Visible text stays outside
+           * a wrapping <label> because it contains <Link> anchors (label+link a11y anti-pattern). */}
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
             I agree to the{' '}
             <Link

@@ -1,6 +1,13 @@
 'use client';
 
 import type { HealthMetrics, TrackedProcess } from '@revealui/core/monitoring';
+import {
+  SelectCVA as Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 
 interface HealthPanelProps {
@@ -354,29 +361,37 @@ export function SystemHealthMonitor({
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-foreground font-medium">Recent Processes</h3>
                 <div className="flex gap-2">
-                  <select
-                    value={selectedSource}
-                    onChange={(e) => setSelectedSource(e.target.value)}
-                    className="bg-muted text-foreground text-xs rounded px-2 py-1 border border-border focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="all">All Sources</option>
-                    <option value="exec">Exec</option>
-                    <option value="mcp">MCP</option>
-                    <option value="orchestration">Orchestration</option>
-                    <option value="ai-runtime">AI Runtime</option>
-                    <option value="dev-server">Dev Server</option>
-                  </select>
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="bg-muted text-foreground text-xs rounded px-2 py-1 border border-border focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="running">Running</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                    <option value="zombie">Zombie</option>
-                  </select>
+                  <Select value={selectedSource} onValueChange={setSelectedSource}>
+                    <SelectTrigger
+                      className="h-7 w-auto min-w-28 bg-muted px-2 text-xs"
+                      aria-label="Filter by source"
+                    >
+                      <SelectValue placeholder="Source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sources</SelectItem>
+                      <SelectItem value="exec">Exec</SelectItem>
+                      <SelectItem value="mcp">MCP</SelectItem>
+                      <SelectItem value="orchestration">Orchestration</SelectItem>
+                      <SelectItem value="ai-runtime">AI Runtime</SelectItem>
+                      <SelectItem value="dev-server">Dev Server</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger
+                      className="h-7 w-auto min-w-28 bg-muted px-2 text-xs"
+                      aria-label="Filter by status"
+                    >
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="running">Running</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                      <SelectItem value="zombie">Zombie</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="overflow-x-auto">
