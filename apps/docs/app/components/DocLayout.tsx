@@ -134,7 +134,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
           href="https://github.com/RevealUIStudio/revealui"
           className="flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
         >
-          <GitHubIcon size="sm" />
+          <GitHubIcon className="size-4" />
           GitHub
         </a>
         <a
