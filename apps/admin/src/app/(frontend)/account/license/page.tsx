@@ -11,12 +11,16 @@ import {
 } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@revealui/presentation/server';
+  IconCheck,
+  IconClose,
+  Input,
+} from '@revealui/presentation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
@@ -268,17 +272,20 @@ export default function LicensePage() {
               <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs font-mono text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
                 {subscription.licenseKey}
               </pre>
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="neutral"
+                appearance="outline"
                 onClick={() => {
                   void navigator.clipboard.writeText(subscription.licenseKey ?? '');
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-                className="absolute right-2 top-2 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                className="absolute right-2 top-2 h-auto px-2 py-1 text-xs shadow-sm"
               >
                 {copied ? 'Copied!' : 'Copy'}
-              </button>
+              </Button>
             </div>
             <div className="rounded-lg border p-3 dark:border-zinc-800">
               <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2">
@@ -355,17 +362,20 @@ export default function LicensePage() {
                     <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-xs font-mono text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
                       {publicKey}
                     </pre>
-                    <button
+                    <Button
                       type="button"
+                      size="sm"
+                      variant="neutral"
+                      appearance="outline"
                       onClick={() => {
                         void navigator.clipboard.writeText(publicKey);
                         setPubCopied(true);
                         setTimeout(() => setPubCopied(false), 2000);
                       }}
-                      className="absolute right-2 top-2 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-600 shadow-sm hover:bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                      className="absolute right-2 top-2 h-auto px-2 py-1 text-xs shadow-sm"
                     >
                       {pubCopied ? 'Copied!' : 'Copy'}
-                    </button>
+                    </Button>
                   </div>
                   <p className="text-xs text-zinc-400 mt-2">
                     Newer daemon builds bake this key in, so this step is only needed for older
@@ -418,14 +428,13 @@ export default function LicensePage() {
               <div className="space-y-2">
                 <label className="flex flex-col gap-1">
                   <span className="text-sm font-medium">GitHub username</span>
-                  <input
+                  <Input
                     type="text"
                     placeholder="your-github-handle"
                     value={githubUsername}
                     onChange={(
                       e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
                     ) => setGithubUsername(e.target.value)}
-                    className="rounded-md border px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                   />
                   <span className="text-xs text-zinc-600">
                     Added to the revealui-pro GitHub team for private package access.
@@ -442,16 +451,18 @@ export default function LicensePage() {
                   <p className="text-sm font-medium">{plan.label}</p>
                   <p className="text-xs text-zinc-600">{plan.description}</p>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="neutral"
+                  size="sm"
                   disabled={perpetualLoading === plan.tier}
                   onClick={() => void handlePerpetualCheckout(plan)}
-                  className="shrink-0 ml-4 rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  className="ml-4 shrink-0 bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                 >
                   {perpetualLoading === plan.tier
                     ? 'Redirecting…'
                     : `Buy ${pricing?.perpetual.find((t) => t.name === plan.label)?.price ?? '—'}`}
-                </button>
+                </Button>
               </div>
             ))}
           </CardContent>
@@ -483,14 +494,15 @@ export default function LicensePage() {
                 </span>
               </div>
             )}
-            <button
+            <Button
               type="button"
+              variant="neutral"
               disabled={renewalLoading}
               onClick={() => void handleSupportRenewal()}
-              className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="w-full bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               {renewalLoading ? 'Redirecting…' : 'Renew Support  -  1 Year'}
-            </button>
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -509,9 +521,9 @@ export default function LicensePage() {
                 return (
                   <li key={key} className="flex items-center gap-3 text-sm">
                     {enabled ? (
-                      <CheckIcon className="text-green-500" />
+                      <IconCheck size="sm" className="text-green-500" />
                     ) : (
-                      <XIcon className="text-zinc-300 dark:text-zinc-600" />
+                      <IconClose size="sm" className="text-zinc-300 dark:text-zinc-600" />
                     )}
                     <span className={enabled ? '' : 'text-zinc-400'}>{label}</span>
                   </li>
@@ -522,46 +534,5 @@ export default function LicensePage() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`shrink-0 ${className ?? ''}`}
-      aria-hidden="true"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`shrink-0 ${className ?? ''}`}
-      aria-hidden="true"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
   );
 }

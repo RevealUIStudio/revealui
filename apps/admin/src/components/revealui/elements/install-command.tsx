@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@revealui/presentation';
+import { Button, cn } from '@revealui/presentation';
 import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
 import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon';
 import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon';
@@ -40,13 +40,16 @@ export function InstallCommand({
         <div className="text-current/60 select-none">$</div>
         <span ref={contentRef}>{snippet}</span>
       </div>
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
+        size="icon"
         onClick={handleCopy}
-        className="group relative flex size-9 items-center justify-center rounded-full after:absolute after:-inset-1 hover:bg-mist-950/10 dark:hover:bg-white/10 after:pointer-fine:hidden"
+        className="group relative size-9 rounded-full after:absolute after:-inset-1 hover:bg-mist-950/10 after:pointer-fine:hidden dark:hover:bg-white/10"
       >
         {copied ? <CheckmarkIcon /> : <Squares2StackedIcon />}
-      </button>
+      </Button>
     </div>
   );
 }

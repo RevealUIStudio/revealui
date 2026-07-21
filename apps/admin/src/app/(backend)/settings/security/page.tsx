@@ -4,7 +4,7 @@ const SUCCESS_DISMISS_MS = 5_000;
 const ERROR_DISMISS_MS = 8_000;
 
 import { useMFASetup, usePasskeyRegister } from '@revealui/auth/react';
-import { Input } from '@revealui/presentation';
+import { Button, Input, PasskeyIcon } from '@revealui/presentation';
 import {
   Dialog,
   DialogActions,
@@ -538,21 +538,23 @@ function SecuritySettingsContent() {
                         placeholder="000000"
                         className="w-32"
                       />
-                      <button
+                      <Button
                         type="button"
+                        variant="success"
                         onClick={() => void handleVerifySetup()}
                         disabled={verifyCode.length !== 6 || mfaLoading}
-                        className="rounded-md bg-success px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {mfaLoading ? 'Verifying...' : 'Verify'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        appearance="ghost"
+                        variant="neutral"
                         onClick={cancelSetup}
-                        className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </Field>
                 </div>
@@ -562,14 +564,16 @@ function SecuritySettingsContent() {
               {!setupData && (
                 <div className="mt-5">
                   {mfaStatus && !mfaStatus.enabled && (
-                    <button
+                    <Button
                       type="button"
+                      variant="neutral"
+                      size="sm"
                       onClick={() => void handleEnableMFA()}
                       disabled={mfaLoading}
-                      className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="text-xs"
                     >
                       {mfaLoading ? 'Setting up...' : 'Enable 2FA'}
-                    </button>
+                    </Button>
                   )}
 
                   {mfaStatus?.enabled && (
@@ -589,47 +593,54 @@ function SecuritySettingsContent() {
                                 placeholder="Password"
                                 className="w-full sm:w-48"
                               />
-                              <button
+                              <Button
                                 type="button"
+                                variant="danger"
                                 onClick={() => void handleDisableMFA()}
                                 disabled={disabling || !disablePassword.trim()}
-                                className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {disabling ? 'Disabling...' : 'Confirm'}
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 type="button"
+                                appearance="ghost"
+                                variant="neutral"
                                 onClick={() => {
                                   setShowDisableForm(false);
                                   setDisablePassword('');
                                 }}
-                                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                                className="text-muted-foreground hover:text-foreground"
                               >
                                 Cancel
-                              </button>
+                              </Button>
                             </div>
                           </Field>
                         </div>
                       ) : (
-                        <button
+                        <Button
                           type="button"
+                          appearance="outline"
+                          variant="neutral"
+                          size="sm"
                           onClick={() => setShowDisableForm(true)}
-                          className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-error/50 hover:text-error"
+                          className="text-xs hover:border-error/50 hover:text-error"
                         >
                           Disable 2FA
-                        </button>
+                        </Button>
                       )}
 
                       {/* Regenerate backup codes */}
                       <div>
-                        <button
+                        <Button
                           type="button"
+                          variant="neutral"
+                          size="sm"
                           onClick={() => void handleRegenerateCodes()}
                           disabled={regenerating}
-                          className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="text-xs"
                         >
                           {regenerating ? 'Regenerating...' : 'Regenerate backup codes'}
-                        </button>
+                        </Button>
                       </div>
 
                       {/* Show regenerated codes */}
@@ -645,13 +656,16 @@ function SecuritySettingsContent() {
                               </code>
                             ))}
                           </div>
-                          <button
+                          <Button
                             type="button"
+                            appearance="ghost"
+                            variant="neutral"
+                            size="sm"
                             onClick={() => setRegeneratedCodes(null)}
-                            className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+                            className="mt-2 h-auto p-0 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground"
                           >
                             Dismiss
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -684,20 +698,7 @@ function SecuritySettingsContent() {
                       className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <svg
-                          className="h-5 w-5 text-muted-foreground"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"
-                          />
-                        </svg>
+                        <PasskeyIcon className="size-5 text-muted-foreground" />
                         <div>
                           {renamingId === passkey.id ? (
                             <div className="flex gap-1.5">
@@ -711,20 +712,26 @@ function SecuritySettingsContent() {
                                 }}
                                 className="w-36"
                               />
-                              <button
+                              <Button
                                 type="button"
+                                appearance="ghost"
+                                variant="success"
+                                size="sm"
                                 onClick={() => void submitRename(passkey.id)}
-                                className="text-xs text-success hover:text-success/80"
+                                className="h-auto p-0 text-xs"
                               >
                                 Save
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 type="button"
+                                appearance="ghost"
+                                variant="neutral"
+                                size="sm"
                                 onClick={cancelRename}
-                                className="text-xs text-muted-foreground hover:text-foreground"
+                                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
                               >
                                 Cancel
-                              </button>
+                              </Button>
                             </div>
                           ) : (
                             <div className="text-sm font-medium text-muted-foreground">
@@ -740,21 +747,27 @@ function SecuritySettingsContent() {
 
                       {renamingId !== passkey.id && (
                         <div className="flex items-center gap-2">
-                          <button
+                          <Button
                             type="button"
+                            appearance="ghost"
+                            variant="neutral"
+                            size="sm"
                             onClick={() => startRename(passkey)}
-                            className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                            className="h-auto px-2 py-1 text-xs text-muted-foreground"
                           >
                             Rename
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            appearance="ghost"
+                            variant="neutral"
+                            size="sm"
                             onClick={() => requestDelete(passkey.id)}
                             disabled={deletingId === passkey.id}
-                            className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
+                            className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-error"
                           >
                             {deletingId === passkey.id ? 'Removing...' : 'Remove'}
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -769,14 +782,16 @@ function SecuritySettingsContent() {
                     Passkeys are not supported in this browser.
                   </p>
                 ) : (
-                  <button
+                  <Button
                     type="button"
+                    variant="neutral"
+                    size="sm"
                     onClick={() => void handleAddPasskey()}
                     disabled={passkeyLoading || passkeys.length >= MAX_PASSKEYS}
-                    className="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="text-xs"
                   >
                     {passkeyLoading ? 'Adding...' : 'Add passkey'}
-                  </button>
+                  </Button>
                 )}
                 {passkeys.length >= MAX_PASSKEYS && (
                   <p className="mt-2 text-xs text-warning-foreground/80">
@@ -859,15 +874,18 @@ function SecuritySettingsContent() {
                         </div>
                       </div>
                       {!session.isCurrent && (
-                        <button
+                        <Button
                           type="button"
+                          appearance="outline"
+                          variant="neutral"
+                          size="sm"
                           onClick={() => void revokeSession(session.id)}
                           disabled={revokingId === session.id}
                           aria-label="Revoke this session"
-                          className="ml-4 shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-error/50 hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
+                          className="ml-4 shrink-0 text-xs hover:border-error/50 hover:text-error"
                         >
                           {revokingId === session.id ? 'Revoking...' : 'Revoke'}
-                        </button>
+                        </Button>
                       )}
                     </div>
                   ))}
@@ -875,8 +893,11 @@ function SecuritySettingsContent() {
               )}
 
               {activeSessions.filter((s) => !s.isCurrent).length > 1 && (
-                <button
+                <Button
                   type="button"
+                  appearance="link"
+                  variant="danger"
+                  size="sm"
                   onClick={async () => {
                     const others = activeSessions.filter((s) => !s.isCurrent);
                     for (const s of others) {
@@ -884,10 +905,10 @@ function SecuritySettingsContent() {
                     }
                   }}
                   disabled={!!revokingId}
-                  className="mt-4 text-xs text-error hover:text-error/80 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-4 h-auto p-0 text-xs"
                 >
                   Revoke all other sessions
-                </button>
+                </Button>
               )}
             </div>
           </>
@@ -901,20 +922,18 @@ function SecuritySettingsContent() {
           This passkey will be permanently removed. You will no longer be able to sign in with it.
         </DialogDescription>
         <DialogActions>
-          <button
+          <Button
             type="button"
+            appearance="ghost"
+            variant="neutral"
             onClick={cancelDelete}
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground"
           >
             Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => void confirmDelete()}
-            className="rounded-md bg-error px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-error/90"
-          >
+          </Button>
+          <Button type="button" variant="danger" onClick={() => void confirmDelete()}>
             Remove
-          </button>
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

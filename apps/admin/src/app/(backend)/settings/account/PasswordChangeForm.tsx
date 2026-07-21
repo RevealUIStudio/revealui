@@ -1,6 +1,6 @@
 'use client';
 
-import { Input } from '@revealui/presentation';
+import { Button, Input } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import { useActionState, useEffect, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
@@ -93,20 +93,18 @@ export function PasswordChangeForm({ onSuccess, onCancel }: Props) {
       </Field>
 
       <div className="flex gap-2 pt-1">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" variant="neutral" disabled={isPending}>
           {isPending ? 'Updating...' : 'Update password'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          appearance="ghost"
+          variant="neutral"
           onClick={onCancel}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-200"
+          className="text-zinc-400 hover:text-zinc-200"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

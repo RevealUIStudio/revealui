@@ -201,14 +201,17 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
           ) : (
             <div className="flex flex-col gap-2">
               <p>Your email address is not verified yet.</p>
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="neutral"
+                appearance="outline"
                 onClick={() => void handleResendVerification()}
                 disabled={resendState === 'sending'}
-                className="self-start rounded-md bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 ring-1 ring-amber-300 transition-colors hover:bg-amber-200 disabled:opacity-60 dark:bg-amber-900/40 dark:text-amber-200 dark:ring-amber-800"
+                className="self-start border-amber-300 bg-amber-100 text-xs text-amber-900 hover:bg-amber-200 dark:border-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
               >
                 {resendState === 'sending' ? 'Sending…' : 'Resend verification email'}
-              </button>
+              </Button>
             </div>
           )}
         </div>

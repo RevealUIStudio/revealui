@@ -9,6 +9,7 @@
 'use client';
 
 import {
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -144,19 +145,18 @@ export function UsageDashboard({ defaultRange = '24h' }: UsageDashboardProps) {
           aria-label="Time range"
         >
           {RANGES.map((r) => (
-            <button
+            <Button
               key={r}
               type="button"
+              size="sm"
+              appearance={range === r ? 'solid' : 'ghost'}
+              variant={range === r ? 'brand' : 'neutral'}
               onClick={() => setRange(r)}
               aria-pressed={range === r}
-              className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-                range === r
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className="h-auto rounded px-3 py-1 text-xs"
             >
               {r}
-            </button>
+            </Button>
           ))}
         </div>
       </header>

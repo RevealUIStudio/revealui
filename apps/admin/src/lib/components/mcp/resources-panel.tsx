@@ -9,6 +9,7 @@
 
 'use client';
 
+import { Button } from '@revealui/presentation';
 import { useCallback, useEffect, useState } from 'react';
 
 interface Resource {
@@ -119,18 +120,24 @@ export function ResourcesPanel({ tenant, server }: ResourcesPanelProps) {
               const selected = r.uri === selectedUri;
               return (
                 <li key={r.uri}>
-                  <button
+                  <Button
                     type="button"
+                    appearance="ghost"
+                    variant="neutral"
                     onClick={() => void handleSelect(r.uri)}
-                    className={`block w-full px-3 py-2 text-left transition-colors ${
+                    className={`h-auto w-full block justify-start rounded-none px-3 py-2 text-left ${
                       selected
-                        ? 'bg-success/10 text-success'
+                        ? 'bg-success/10 text-success hover:bg-success/10'
                         : 'text-muted-foreground hover:bg-muted'
                     }`}
                   >
-                    <div className="truncate font-mono text-xs">{r.name || r.uri}</div>
-                    <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{r.uri}</div>
-                  </button>
+                    <span className="block w-full">
+                      <span className="block truncate font-mono text-xs">{r.name || r.uri}</span>
+                      <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
+                        {r.uri}
+                      </span>
+                    </span>
+                  </Button>
                 </li>
               );
             })}

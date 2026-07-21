@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, IconAlertTriangle } from '@revealui/presentation/server';
 import Link from 'next/link';
 
 export default function BackendError({
@@ -24,22 +25,8 @@ export default function BackendError({
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 p-8">
-      {/* Icon */}
       <div className="flex size-14 items-center justify-center rounded-full bg-destructive/10">
-        <svg
-          className="size-7 text-destructive"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
-          />
-        </svg>
+        <IconAlertTriangle className="size-7 text-destructive" aria-hidden="true" />
       </div>
 
       <h2 className="text-lg font-semibold text-foreground">
@@ -82,19 +69,12 @@ export default function BackendError({
       )}
 
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => reset()}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
+        <Button type="button" variant="brand" onClick={() => reset()}>
           Try again
-        </button>
-        <Link
-          href="/"
-          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-        >
-          Go to dashboard
-        </Link>
+        </Button>
+        <Button asChild appearance="outline" variant="neutral">
+          <Link href="/">Go to dashboard</Link>
+        </Button>
       </div>
     </div>
   );
