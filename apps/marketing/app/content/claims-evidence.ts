@@ -876,6 +876,49 @@ export const CLAIMS: readonly ClaimEntry[] = [
     text: 'These counts are validated on every PR by the claim-drift gate. If the code changes and a number drifts, the build fails before it can ship.',
     evidence: [LICENSE_SPLIT, CI_GATE],
   },
+  {
+    file: 'proof.ts',
+    exportPath: 'PROOF_DEPLOYERS.heading',
+    text: 'Built for people who deploy, not only demo.',
+    evidence: [
+      {
+        kind: 'url',
+        ref: 'https://revealuistudio.com',
+        note: 'Studio/agency is the reference forward-deploy practice (ADR 2026-07-21)',
+      },
+    ],
+  },
+  {
+    file: 'proof.ts',
+    exportPath: 'PROOF_DEPLOYERS.body',
+    text: 'Some buyers install RevealUI themselves. Some hire us, or their own forward-deployed engineer, to stamp and hand over a fleet. Either way the outcome is the same: a self-hosted runtime where the business and its agents live under one roof, on infrastructure the customer owns.',
+    evidence: [
+      REPO,
+      {
+        kind: 'url',
+        ref: 'https://revealuistudio.com',
+        note: 'hire-us path; Fleet Stamp / Custom Build on agency services',
+      },
+      {
+        kind: 'url',
+        ref: 'https://revealui.com',
+        note: 'self-install product path; canonical ownership sentence',
+      },
+    ],
+  },
+  {
+    file: 'proof.ts',
+    exportPath: 'PROOF_DEPLOYERS.foil',
+    text: 'Cloud agent platforms rent you an outcome. A forward-deployed engagement leaves a runtime the customer runs.',
+    evidence: [
+      REPO,
+      {
+        kind: 'url',
+        ref: 'https://revealuistudio.com',
+        note: 'positioning foil: customer-owned runtime after handoff, not a rented outcome',
+      },
+    ],
+  },
 
   // ── pricing-teaser.ts ────────────────────────────────────────────────────
   {
