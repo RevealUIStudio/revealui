@@ -16,6 +16,7 @@ import type {
 } from '../types/hook-event.js';
 import type { ImplementedHookSource } from './normalizers/index.js';
 import { isImplementedHookSource, normalizeHookEvent } from './normalizers/index.js';
+import { emitMasterSpecCouplingWarnings } from './master-spec-coupling.js';
 import type { PolicyDecision, PolicySnapshotLoadResult } from './policy.js';
 import { evaluatePolicy, loadPolicySnapshot } from './policy.js';
 import { appendToSpool } from './spool.js';
@@ -162,6 +163,18 @@ export async function runHookCommand(
 
   const event = normalizeHookEvent(source, rawInput, enforcementTier);
   const decision = evaluatePolicy(snapshotResult, event);
+
+  // GAP-199 native twin: warn-only when file-edit (or post-tool with paths)
+  // touches contract/schema/app code without the product canon doc dirty.
+  // Never changes the permission decision — advisory only (Claude-side pair:
+  // ~/.claude/hooks/master-spec-pr-coupling.js).
+  if (
+    (event.kind === 'file-edit' || event.kind === 'post-tool') &&
+    event.filePaths &&
+    event.filePaths.length > 0
+  ) {
+    emitMasterSpecCouplingWarnings(event.filePaths);
+  }
 
   // Fail CLOSED on a spool-write failure. If appendToSpool throws (unwritable
   // data dir on first run, disk full, read-only fs, or a non-ENOENT rotate

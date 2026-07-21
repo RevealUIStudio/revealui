@@ -7,6 +7,18 @@ export {
   normalizeVSCodeHookEvent,
 } from './normalizers/index.js';
 export type {
+  MasterSpecCouplingOptions,
+  MasterSpecCouplingWarning,
+  ProductContext,
+} from './master-spec-coupling.js';
+export {
+  emitMasterSpecCouplingWarnings,
+  evaluateMasterSpecCoupling,
+  isCanonDirty,
+  isMasterSpecTriggerPath,
+  resolveProductContext,
+} from './master-spec-coupling.js';
+export type {
   PolicyDecision,
   PolicySnapshot,
   PolicySnapshotInvalidReason,
