@@ -432,13 +432,16 @@ jobs:
     needs: [detect, deploy]
 
     steps:
-      # pnpm is required by the "Rollback on failure" step below. Without
-      # this setup, the rollback fails with `pnpm: command not found`
-      # before it can install vercel CLI, which leaves a broken deploy
-      # live (precedent: 2026-04-25 #540 incident, GAP-122).
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+      # Checkout required for durable REST rollback script on failure
+      # (scripts/deploy/vercel-rollback-previous-prod.mjs). Shallow is enough.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v5.0.0
         with:
-          version: ${{ env.PNPM_VERSION }}
+          fetch-depth: 1
+
+      # Node for the rollback script (no pnpm/vercel CLI parse path).
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Health check — API (readiness probe)
         run: |
@@ -499,93 +502,39 @@ jobs:
 
       - name: Rollback on failure
         if: failure()
-        # Per GAP-128: `vercel rollback` with no URL argument is a STATUS
-        # QUERY ("checking rollback status..."), not an action. To actually
-        # roll back, we must pass the previous-good deployment URL. This
-        # step pre-fetches it via `vercel ls --prod` and rolls the alias
-        # explicitly, then verifies the alias moved.
+        # Durable rollback (2026-07-21 #2027 postmortem): do NOT parse
+        # `vercel ls | grep | sed`. That path returned empty when
+        # VERCEL_TEAM_SLUG was set from TURBO_TEAM (wrong team vs the
+        # project-owning team id), left broken aliases live, and required
+        # manual REST alias reassignment.
         #
-        # Team scope: VERCEL_ORG_ID (team ID secret) is intentionally
-        # cleared here. `vercel rollback <url>` validates the deployment
-        # against the team from VERCEL_ORG_ID, but if the secret holds a
-        # value that doesn't match the team that owns the deployments it
-        # produces "Deployment belongs to a different team" (2026-05-15
-        # incident). The deploy step works because it uses VERCEL_PROJECT_ID
-        # directly and doesn't go through the same team-scope validation.
-        # Fix: route via --scope (team slug) instead of VERCEL_ORG_ID (team ID).
+        # Use scripts/deploy/vercel-rollback-previous-prod.mjs:
+        # Vercel REST + VERCEL_ORG_ID (team id secret) + project id from
+        # detect matrix. Reassigns every alias on the newest READY prod
+        # deploy to the previous READY prod deploy and verifies.
+        #
+        # Needs checkout for the script; smoke job previously had none.
         run: |
-          # GAP-252: use set +e so any individual grep/jq failure inside the
-          # loop does not abort the script early (GitHub Actions runs with
-          # set -eo pipefail by default; a grep that matches nothing exits 1
-          # and was aborting the loop on the first app, rolling back nothing).
-          # Failures are tracked via counters and surfaced at the end.
           set +e
-          echo "::warning::Smoke test failed — rolling back affected apps"
-          pnpm add -g vercel@56.3.1
+          echo "::warning::Smoke test failed — rolling back affected apps via Vercel REST"
           APP_LIST="${{ needs.detect.outputs.app-list }}"
           ROLLBACK_FAILED=0
-          ROLLBACK_NO_HISTORY=0
           for app in $APP_LIST; do
-            # Look the project id up from the detect job's matrix (built from the
-            # single-source .github/vercel-projects.json). This job has no checkout,
-            # so it reuses the matrix via env rather than reading the file. Unknown -> skip.
             PID=$(printf '%s' "$DETECT_MATRIX" | jq -r --arg a "$app" '.[] | select(.app == $a) | .["project-id"]' 2>/dev/null) || PID=""
-            if [ -z "$PID" ]; then continue; fi
-
+            if [ -z "$PID" ] || [ "$PID" = "null" ]; then continue; fi
             echo ""
             echo "=== Rolling back $app ($PID) ==="
-
-            # 1. List recent production deployments. Take the second-most-
-            #    recent READY one — the most recent IS the broken deploy.
-            DEPLOY_LIST=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod \
-              --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 || true)
-            PREV_URL=$(printf '%s\n' "$DEPLOY_LIST" \
-              | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
-              | sed -n '2p') || PREV_URL=""
-
-            if [ -z "$PREV_URL" ]; then
-              echo "::warning::No previous deployment found for $app — broken deploy is live, manual intervention required"
-              ROLLBACK_NO_HISTORY=$((ROLLBACK_NO_HISTORY+1))
-              continue
-            fi
-
-            echo "Previous good deploy: $PREV_URL"
-
-            # 2. Roll the alias explicitly to that URL.
-            if ! VERCEL_PROJECT_ID="$PID" vercel rollback "$PREV_URL" \
-              --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" --yes 2>&1; then
-              echo "::warning::vercel rollback command failed for $app"
-              ROLLBACK_FAILED=$((ROLLBACK_FAILED+1))
-              continue
-            fi
-
-            # 3. Verify the alias actually moved by inspecting the
-            #    project's current production deploy. Wait briefly for
-            #    propagation.
-            sleep 5
-            CURRENT_URL=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod \
-              --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 \
-              | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
-              | head -n 1) || CURRENT_URL=""
-
-            if [ "$CURRENT_URL" = "$PREV_URL" ]; then
-              echo "✅ Rollback verified: $app production now serving $CURRENT_URL"
-            else
-              echo "::warning::Rollback issued but verification failed — current=$CURRENT_URL, expected=$PREV_URL"
+            if ! node scripts/deploy/vercel-rollback-previous-prod.mjs \
+              --project-id "$PID" \
+              --app-label "$app"; then
+              echo "::warning::REST rollback failed for $app"
               ROLLBACK_FAILED=$((ROLLBACK_FAILED+1))
             fi
           done
-
           echo ""
           echo "=== Rollback summary ==="
-          echo "Failed:     $ROLLBACK_FAILED"
-          echo "No history: $ROLLBACK_NO_HISTORY"
-
-          # Exit non-zero so the workflow status reflects the failed
-          # smoke test AND the rollback outcome. If any rollback failed
-          # or had no history, that's a clear "broken deploy still live"
-          # signal that needs human attention.
-          if [ "$ROLLBACK_FAILED" -gt 0 ] || [ "$ROLLBACK_NO_HISTORY" -gt 0 ]; then
+          echo "Failed: $ROLLBACK_FAILED"
+          if [ "$ROLLBACK_FAILED" -gt 0 ]; then
             echo "::error::One or more apps could not be auto-rolled-back — broken deploy may still be live; investigate immediately"
             exit 1
           fi
@@ -593,10 +542,8 @@ jobs:
           exit 1
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ""
-          VERCEL_TEAM_SLUG: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
-          # Reuse the matrix the detect job built from .github/vercel-projects.json
-          # (this job has no checkout, so it can't read the file directly).
+          # Team id (team_…), NOT TURBO_TEAM slug — see script header.
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           DETECT_MATRIX: ${{ needs.detect.outputs.matrix }}
 
   # ---------------------------------------------------------------------------
