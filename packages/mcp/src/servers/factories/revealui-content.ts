@@ -699,7 +699,7 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
       const resources: Resource[] = [];
       for (const collection of collections) {
         try {
-          const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
+          const body = await apiGet(apiUrl, apiKey, `/api/content/${collection.slug}`, {
             limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
             page: '1',
           });
@@ -731,7 +731,7 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
       }
 
-      const row = await apiGet(apiUrl, apiKey, `/api/${parsed.collection}/${parsed.id}`);
+      const row = await apiGet(apiUrl, apiKey, `/api/content/${parsed.collection}/${parsed.id}`);
       return {
         contents: [
           {
@@ -793,8 +793,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
     }
 
     // Deny-by-default collection allowlist. The content tools interpolate the
-    // `collection` arg into `/api/<collection>`, so a free-string collection
-    // would let one tool reach another tool's endpoint (e.g. `/api/users`,
+    // `collection` arg into `/api/content/<collection>`, so a free-string
+    // collection would let one tool reach another endpoint (e.g. users,
     // bypassing the admin gate on `revealui_list_users`). A collection outside
     // the RESOLVED exposed set is denied before any REST call — the backend is
     // never reached for an unexposed collection.
@@ -909,7 +909,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           const parsed = validateToolArgs(ListSitesArgsSchema, rawArgs, toolName);
           if (!parsed.ok) return denied(parsed.error);
           const { limit = 20, page = 1 } = parsed.value;
-          data = await apiGet(apiUrl, apiKey, '/api/sites', {
+          // Content REST is mounted under /api/content/* (not bare /api/*).
+          data = await apiGet(apiUrl, apiKey, '/api/content/sites', {
             limit: String(limit),
             page: String(page),
           });
@@ -929,7 +930,7 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           if (site_id) params.siteId = site_id;
           if (status) params.status = status;
 
-          data = await apiGet(apiUrl, apiKey, `/api/${collection}`, params);
+          data = await apiGet(apiUrl, apiKey, `/api/content/${collection}`, params);
           break;
         }
 
@@ -939,7 +940,7 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           const { collection, id } = parsed.value;
           const notExposed = await denyIfCollectionNotExposed(collection);
           if (notExposed) return notExposed;
-          data = await apiGet(apiUrl, apiKey, `/api/${collection}/${id}`);
+          data = await apiGet(apiUrl, apiKey, `/api/content/${collection}/${id}`);
           break;
         }
 
@@ -953,18 +954,17 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           };
           if (site_id) params.siteId = site_id;
 
-          data = await apiGet(apiUrl, apiKey, '/api/users', params);
+          data = await apiGet(apiUrl, apiKey, '/api/content/users', params);
           break;
         }
 
         case 'revealui_site_stats': {
           const parsed = validateToolArgs(SiteStatsArgsSchema, rawArgs, toolName);
           if (!parsed.ok) return denied(parsed.error);
-          const { site_id } = parsed.value;
-          const params: Record<string, string> = {};
-          if (site_id) params.siteId = site_id;
-
-          data = await apiGet(apiUrl, apiKey, '/api/health', params);
+          // Aggregate health is not under /api/* — public readiness probe.
+          // site_id is accepted for forward-compat; readiness is process-global.
+          void parsed.value.site_id;
+          data = await apiGet(apiUrl, apiKey, '/health/ready', {});
           break;
         }
 
