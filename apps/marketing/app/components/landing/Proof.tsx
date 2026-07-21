@@ -1,5 +1,5 @@
 import { Button, GitHubIcon } from '@revealui/presentation';
-import { PROOF_SECTION, PROOF_TRUST } from '../../content/proof';
+import { PROOF_DEPLOYERS, PROOF_SECTION, PROOF_TRUST } from '../../content/proof';
 import { SITE } from '../../content/site';
 import { LiveMetricsBadge } from './LiveMetricsBadge';
 
@@ -56,6 +56,25 @@ export function Proof() {
           >
             <a href={PROOF_TRUST.changelogCta.href}>{PROOF_TRUST.changelogCta.label}</a>
           </Button>
+        </div>
+
+        {/* Secondary FDE layer — same homepage section (≤7 rule), not a new section */}
+        <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-border bg-card px-6 py-10 text-center sm:px-10">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            {PROOF_DEPLOYERS.eyebrow}
+          </p>
+          <h3 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            {PROOF_DEPLOYERS.heading}
+          </h3>
+          <p className="mt-4 text-base leading-7 text-muted-foreground">{PROOF_DEPLOYERS.body}</p>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">{PROOF_DEPLOYERS.foil}</p>
+          <div className="mt-8">
+            <Button asChild size="default" className="items-center justify-center">
+              <a href={PROOF_DEPLOYERS.cta.href} target="_blank" rel="noopener noreferrer">
+                {PROOF_DEPLOYERS.cta.label}
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     </section>
