@@ -6,7 +6,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RVUI_CLICK } from '../../protocol.js';
-import { EditSessionCanvas, type Fetcher } from '../EditSessionCanvas.js';
+import { EditSessionCanvas, pickDefaultPreviewPageId, type Fetcher } from '../EditSessionCanvas.js';
 
 const API_BASE = 'https://api.test';
 const PREVIEW_URL = 'https://www.market.test/about?rvui-edit=tok&rvui-session=sid';
@@ -32,7 +32,13 @@ interface FetcherOptions {
   publishBody?: unknown;
 }
 
-function makeFetcher(opts: FetcherOptions = {}): { fetcher: Fetcher; calls: Call[] } {
+interface MakeFetcherOptions extends FetcherOptions {
+  /** When true, session has zero dirty docs (fresh open). */
+  emptyDocs?: boolean;
+  pages?: Array<{ id: string; slug: string }>;
+}
+
+function makeFetcher(opts: MakeFetcherOptions = {}): { fetcher: Fetcher; calls: Call[] } {
   const calls: Call[] = [];
   const fetcher: Fetcher = async (url, init) => {
     calls.push({ url, init });
@@ -46,11 +52,19 @@ function makeFetcher(opts: FetcherOptions = {}): { fetcher: Fetcher; calls: Call
     if (url.includes('/docs/page/') && method === 'PATCH') {
       return jsonResponse(200, { data: {} });
     }
+    if (url.includes('/sites/') && url.includes('/pages')) {
+      return jsonResponse(200, {
+        data: opts.pages ?? [
+          { id: 'page-products', slug: 'products' },
+          { id: 'page-home', slug: 'home' },
+        ],
+      });
+    }
     // GET session detail
     return jsonResponse(200, {
       data: {
-        session: { id: SESSION, status: 'open' },
-        docs: [{ id: 'ov-1', docId: 'page-1', docType: 'page' }],
+        session: { id: SESSION, status: 'open', siteId: 'site-1' },
+        docs: opts.emptyDocs ? [] : [{ id: 'ov-1', docId: 'page-1', docType: 'page' }],
       },
     });
   };
@@ -63,7 +77,8 @@ function clickMessage(origin: string): MessageEvent {
     data: {
       type: RVUI_CLICK,
       doc: 'page-1',
-      field: 'blocks.0.title',
+      // Canonical annotation path includes `.data` (block fields live under block.data.*).
+      field: 'blocks.0.data.title',
       rect: { top: 10, left: 10, width: 100, height: 20 },
       currentValue: 'Old title',
     },
@@ -134,10 +149,32 @@ describe('EditSessionCanvas', () => {
       expect(patch).toBeTruthy();
       expect(patch?.url).toBe(`${API_BASE}/api/content/sessions/${SESSION}/docs/page/page-1`);
       expect(JSON.parse(String(patch?.init?.body))).toEqual({
-        path: 'blocks.0.title',
+        path: 'blocks.0.data.title',
         value: 'New title',
       });
     });
+  });
+
+  it('mints preview-token with the home pageId when the session has no dirty docs', async () => {
+    const { fetcher, calls } = makeFetcher({ emptyDocs: true });
+    render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
+    await screen.findByTitle('Content preview');
+    await waitFor(() => {
+      const mint = calls.find((c) => c.url.includes('/preview-token'));
+      expect(mint?.url).toContain('pageId=page-home');
+    });
+  });
+
+  it('pickDefaultPreviewPageId prefers home then products then first', () => {
+    expect(
+      pickDefaultPreviewPageId([
+        { id: 'p', slug: 'products' },
+        { id: 'h', slug: 'home' },
+      ]),
+    ).toBe('h');
+    expect(pickDefaultPreviewPageId([{ id: 'p', slug: 'products' }])).toBe('p');
+    expect(pickDefaultPreviewPageId([{ id: 'x', slug: 'about' }])).toBe('x');
+    expect(pickDefaultPreviewPageId([])).toBeUndefined();
   });
 
   it('debounces autosave into a single PATCH while typing', async () => {

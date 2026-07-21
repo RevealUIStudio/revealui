@@ -50,6 +50,24 @@ interface SessionDoc {
   docType: string;
 }
 
+interface PreviewPageCandidate {
+  id: string;
+  slug: string;
+}
+
+/**
+ * Choose which published page a fresh (empty) session should land the iframe on.
+ * Prefers the VES Phase-1 marketing slice (`home`, then `products`), else the
+ * first published page. Pure helper so canvas tests can lock the order.
+ */
+export function pickDefaultPreviewPageId(
+  pages: readonly PreviewPageCandidate[],
+): string | undefined {
+  if (pages.length === 0) return undefined;
+  const bySlug = (slug: string): string | undefined => pages.find((p) => p.slug === slug)?.id;
+  return bySlug('home') ?? bySlug('products') ?? pages[0]?.id;
+}
+
 interface ActiveField {
   doc: string;
   field: string;
@@ -152,15 +170,37 @@ export function EditSessionCanvas({
   );
 
   // Mount: read session detail (dirty-doc list) then mint a preview token.
+  // When the session has no overlays yet (brand-new open), resolve a default
+  // published page on the session's site (home → products → first) so the
+  // iframe does not land on bare `/` with nothing annotated.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const detailRes = await doFetch(`/api/content/sessions/${sessionId}`);
         if (!detailRes.ok) throw new Error(`session load failed: ${detailRes.status}`);
-        const detail = (await detailRes.json()) as { data: { docs: SessionDoc[] } };
-        const firstPage = detail.data.docs.find((d) => d.docType === 'page');
-        const query = firstPage ? `?pageId=${encodeURIComponent(firstPage.docId)}` : '';
+        const detail = (await detailRes.json()) as {
+          data: {
+            session: { siteId: string };
+            docs: SessionDoc[];
+          };
+        };
+        const dirtyPage = detail.data.docs.find((d) => d.docType === 'page');
+        let pageId = dirtyPage?.docId;
+
+        if (!pageId && detail.data.session.siteId) {
+          const pagesRes = await doFetch(
+            `/api/content/sites/${detail.data.session.siteId}/pages?status=published`,
+          );
+          if (pagesRes.ok) {
+            const pagesBody = (await pagesRes.json()) as {
+              data: PreviewPageCandidate[];
+            };
+            pageId = pickDefaultPreviewPageId(pagesBody.data ?? []);
+          }
+        }
+
+        const query = pageId ? `?pageId=${encodeURIComponent(pageId)}` : '';
         const mintRes = await doFetch(`/api/content/sessions/${sessionId}/preview-token${query}`, {
           method: 'POST',
         });
