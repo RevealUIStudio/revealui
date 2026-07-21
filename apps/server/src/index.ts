@@ -997,18 +997,39 @@ app.doc('/openapi.json', {
 // - the tsup banner injects `createRequire` + `const require`; a second
 //   `import { createRequire }` in this file becomes a SyntaxError in the
 //   bundled chunk (Identifier 'createRequire' has already been declared)
-const swaggerCss = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
-  'utf-8',
-);
-const swaggerBundleJs = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
-  'utf-8',
-);
-const swaggerPresetJs = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
-  'utf-8',
-);
+//
+// Lazy-load on first /docs* hit. Top-level readFileSync of swagger-ui-dist
+// (or missing NFT-traced node_modules files on Vercel) would crash module
+// evaluation and take down /health with FUNCTION_INVOCATION_FAILED — same
+// class as the 2026-07-21 post-#2027 API outage.
+interface SwaggerAssets {
+  css: string;
+  bundleJs: string;
+  presetJs: string;
+}
+
+let swaggerAssetsCache: SwaggerAssets | null = null;
+
+function loadSwaggerAssets(): SwaggerAssets {
+  if (!swaggerAssetsCache) {
+    swaggerAssetsCache = {
+      css: readFileSync(
+        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
+        'utf-8',
+      ),
+      bundleJs: readFileSync(
+        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
+        'utf-8',
+      ),
+      presetJs: readFileSync(
+        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
+        'utf-8',
+      ),
+    };
+  }
+  return swaggerAssetsCache;
+}
+
 const swaggerInitJs = `window.addEventListener('load', function () {
   window.ui = SwaggerUIBundle({
     url: '/openapi.json',
@@ -1022,19 +1043,19 @@ const swaggerInitJs = `window.addEventListener('load', function () {
 const IMMUTABLE_ASSET = 'public, max-age=31536000, immutable';
 
 app.get('/docs/swagger-ui.css', (c) =>
-  c.body(swaggerCss, 200, {
+  c.body(loadSwaggerAssets().css, 200, {
     'content-type': 'text/css; charset=utf-8',
     'cache-control': IMMUTABLE_ASSET,
   }),
 );
 app.get('/docs/swagger-ui-bundle.js', (c) =>
-  c.body(swaggerBundleJs, 200, {
+  c.body(loadSwaggerAssets().bundleJs, 200, {
     'content-type': 'application/javascript; charset=utf-8',
     'cache-control': IMMUTABLE_ASSET,
   }),
 );
 app.get('/docs/swagger-ui-standalone-preset.js', (c) =>
-  c.body(swaggerPresetJs, 200, {
+  c.body(loadSwaggerAssets().presetJs, 200, {
     'content-type': 'application/javascript; charset=utf-8',
     'cache-control': IMMUTABLE_ASSET,
   }),
