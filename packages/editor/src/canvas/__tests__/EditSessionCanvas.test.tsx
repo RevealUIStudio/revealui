@@ -74,6 +74,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/**
+ * Preview iframe and origin-pinned click listener mount in the same state
+ * commit, but the listener is registered in a useEffect that runs after paint.
+ * Under CI load, a single dispatch right after findByTitle can race that effect
+ * and drop the message. Retry until the field editor opens.
+ */
+async function openFieldEditorFromPreview(): Promise<HTMLTextAreaElement> {
+  await screen.findByTitle('Content preview');
+  let textarea: HTMLTextAreaElement | undefined;
+  await waitFor(() => {
+    window.dispatchEvent(clickMessage(MARKETING_ORIGIN));
+    textarea = screen.getByLabelText('Field value') as HTMLTextAreaElement;
+    expect(textarea).toBeTruthy();
+  });
+  if (!textarea) throw new Error('field editor did not open');
+  return textarea;
+}
+
 describe('EditSessionCanvas', () => {
   it('mints a preview token and renders the iframe with the previewUrl', async () => {
     const { fetcher, calls } = makeFetcher();
@@ -87,7 +105,10 @@ describe('EditSessionCanvas', () => {
     const { fetcher } = makeFetcher();
     render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
     await screen.findByTitle('Content preview');
-
+    // Flush the marketingOrigin effect so the origin-pinned listener is attached.
+    await act(async () => {
+      await Promise.resolve();
+    });
     act(() => {
       window.dispatchEvent(clickMessage(FOREIGN_ORIGIN));
     });
@@ -97,23 +118,14 @@ describe('EditSessionCanvas', () => {
   it('opens the field editor for a click from the preview origin', async () => {
     const { fetcher } = makeFetcher();
     render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
-    await screen.findByTitle('Content preview');
-
-    act(() => {
-      window.dispatchEvent(clickMessage(MARKETING_ORIGIN));
-    });
-    const textarea = (await screen.findByLabelText('Field value')) as HTMLTextAreaElement;
+    const textarea = await openFieldEditorFromPreview();
     expect(textarea.value).toBe('Old title');
   });
 
   it('PATCHes the session doc when a field edit is saved', async () => {
     const { fetcher, calls } = makeFetcher();
     render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
-    await screen.findByTitle('Content preview');
-    act(() => {
-      window.dispatchEvent(clickMessage(MARKETING_ORIGIN));
-    });
-    const textarea = await screen.findByLabelText('Field value');
+    const textarea = await openFieldEditorFromPreview();
     fireEvent.change(textarea, { target: { value: 'New title' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -131,11 +143,7 @@ describe('EditSessionCanvas', () => {
   it('debounces autosave into a single PATCH while typing', async () => {
     const { fetcher, calls } = makeFetcher();
     render(<EditSessionCanvas sessionId={SESSION} apiBaseUrl={API_BASE} fetcher={fetcher} />);
-    await screen.findByTitle('Content preview');
-    act(() => {
-      window.dispatchEvent(clickMessage(MARKETING_ORIGIN));
-    });
-    const textarea = await screen.findByLabelText('Field value');
+    const textarea = await openFieldEditorFromPreview();
 
     // Two rapid changes, NO Save click: the debounce must coalesce them.
     fireEvent.change(textarea, { target: { value: 'A' } });
