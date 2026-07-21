@@ -6,8 +6,11 @@ const BASE_SIGNALS: NudgeSignals = {
   userChatMessageCount: 0,
   hasPageOrProduct: false,
   hasAgentAction: false,
+  agentTaskCount: 0,
   hasInferenceConfig: false,
   hasAuditExport: false,
+  hasAuditView: false,
+  hasUpgradeIntent: false,
   accountAgeMs: 0,
   siteCount: 0,
 };
@@ -51,6 +54,16 @@ describe('buildCandidates — tier gating', () => {
     expect(ids(buildCandidates('pro', signals))).not.toContain('max-export-audit');
     expect(ids(buildCandidates('max', signals))).toContain('max-export-audit');
     expect(ids(buildCandidates('enterprise', signals))).toContain('max-export-audit');
+  });
+
+  it('pro-read-receipts appears for paid tiers with 3+ agent tasks and no audit view', () => {
+    const ready: NudgeSignals = { ...BASE_SIGNALS, agentTaskCount: 3, hasAgentAction: true };
+    expect(ids(buildCandidates('pro', ready))).toContain('pro-read-receipts');
+    expect(ids(buildCandidates('max', ready))).toContain('pro-read-receipts');
+    expect(ids(buildCandidates('free', ready))).not.toContain('pro-read-receipts');
+    expect(ids(buildCandidates('pro', { ...ready, agentTaskCount: 2 }))).not.toContain(
+      'pro-read-receipts',
+    );
   });
 });
 
@@ -140,6 +153,17 @@ describe('buildCandidates — retirement on milestone event', () => {
     expect(ids(due)).toContain('max-export-audit');
     expect(ids(exported)).not.toContain('max-export-audit');
   });
+
+  it('pro-read-receipts retires once the audit trail has been viewed', () => {
+    const ready: NudgeSignals = {
+      ...BASE_SIGNALS,
+      agentTaskCount: 5,
+      hasAgentAction: true,
+    };
+    const viewed: NudgeSignals = { ...ready, hasAuditView: true };
+    expect(ids(buildCandidates('pro', ready))).toContain('pro-read-receipts');
+    expect(ids(buildCandidates('pro', viewed))).not.toContain('pro-read-receipts');
+  });
 });
 
 describe('buildCandidates — priority tags match the milestone order', () => {
@@ -149,13 +173,17 @@ describe('buildCandidates — priority tags match the milestone order', () => {
       userChatMessageCount: 3,
       hasPageOrProduct: false,
       hasAgentAction: false,
+      agentTaskCount: 3,
       hasInferenceConfig: false,
       hasAuditExport: false,
+      hasAuditView: false,
+      hasUpgradeIntent: false,
       accountAgeMs: DAY_7_MS,
       siteCount: 1,
     };
     const byId = new Map(buildCandidates('enterprise', signals).map((c) => [c.id, c.milestone]));
     expect(byId.get('pro-first-action')).toBe('hour1');
+    expect(byId.get('pro-read-receipts')).toBe('hour24');
     expect(byId.get('max-local-inference')).toBe('hour24');
     expect(byId.get('max-export-audit')).toBe('day7');
     expect(byId.get('ent-second-tenant')).toBe('day7');

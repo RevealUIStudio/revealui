@@ -6,12 +6,11 @@
  * one of them. Copy is VERBATIM from §7 — do not paraphrase headline,
  * body, or CTA text when editing this file.
  *
- * Not every nudge has a live trigger evaluator (see ./triggers.ts):
- * five of the eleven still lack an observable signal
- * (upgrade-intent, self-hosted license activation, audit-trail-viewed,
- * MCP connection state, an AI-memory enable toggle) and stay excluded
- * from selection rather than approximated. max-export-audit is live via
- * usage_meters meter_name=audit_export (source=user) written on export.
+ * Live trigger evaluators: free-first-*, pro-first-action, pro-read-receipts,
+ * max-local-inference, max-export-audit, ent-second-tenant.
+ * Still deferred: free-pro-gate (needs security-reviewed requireFeature write),
+ * pro-license-wire (self-hosted env), pro-connect-data (MCP map),
+ * max-enable-memory (no toggle).
  */
 
 export type NudgeId =
@@ -135,6 +134,7 @@ export const IMPLEMENTED_NUDGE_IDS: readonly NudgeId[] = [
   'free-first-reply',
   'free-first-content',
   'pro-first-action',
+  'pro-read-receipts',
   'max-local-inference',
   'max-export-audit',
   'ent-second-tenant',

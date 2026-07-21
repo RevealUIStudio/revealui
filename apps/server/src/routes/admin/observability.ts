@@ -31,7 +31,11 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, gte, lte, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { recordUsageMeter } from '../../lib/metering.js';
-import { AUDIT_EXPORT_METER_NAME } from '../../lib/nudges/triggers.js';
+import {
+  AUDIT_EXPORT_METER_NAME,
+  AUDIT_VIEW_METER_NAME,
+  recordMilestoneMeterFirstSafe,
+} from '../../lib/nudges/milestone-meters.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
 
@@ -340,7 +344,8 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAdmin(c.get('user'));
+    const user = c.get('user');
+    requireAdmin(user);
 
     const { limit, offset, severity, agentId, eventType, dateFrom, dateTo, policyViolationId } =
       c.req.valid('query');
@@ -367,6 +372,25 @@ app.openapi(
     ]);
 
     const total = countResult?.total ?? 0;
+
+    // GAP-300 pro-read-receipts: first successful list is "viewed the trail once".
+    if (user?.id) {
+      try {
+        const [membership] = await db
+          .select({ accountId: accountMemberships.accountId })
+          .from(accountMemberships)
+          .where(
+            and(eq(accountMemberships.userId, user.id), eq(accountMemberships.status, 'active')),
+          )
+          .limit(1);
+        recordMilestoneMeterFirstSafe(membership?.accountId, AUDIT_VIEW_METER_NAME, {
+          path: '/admin/audit',
+          userId: user.id,
+        });
+      } catch {
+        // membership lookup failure must not fail the list response
+      }
+    }
 
     return c.json(
       {
