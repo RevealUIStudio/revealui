@@ -103,7 +103,7 @@ export function DataPanel({
         data-status={status}
       >
         <div className="text-error">
-          <IconAlertCircle className="mb-2 size-6" aria-label="Error icon" />
+          <IconAlertCircle className="mb-2 size-6" label="Error icon" />
           <p className="font-medium">{error}</p>
         </div>
       </div>
@@ -155,9 +155,9 @@ export function DataPanel({
           aria-live="polite"
         >
           {trend > 0 ? (
-            <IconChevronUp className="mr-1 size-4" aria-label="Trending up" />
+            <IconChevronUp className="mr-1 size-4" label="Trending up" />
           ) : trend < 0 ? (
-            <IconChevronDown className="mr-1 size-4" aria-label="Trending down" />
+            <IconChevronDown className="mr-1 size-4" label="Trending down" />
           ) : null}
           <span>
             <span className="sr-only">{getTrendAriaLabel()}</span>
