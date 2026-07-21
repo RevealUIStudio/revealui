@@ -1,5 +1,5 @@
 {
-  "description": "Allowlisted Tier-1 JSX intrinsics in apps/* until burned to presentation components (GAP-398). Each entry needs a non-empty reason.",
+  "description": "Allowlisted Tier-1 JSX intrinsics in apps/* (GAP-398 residual floor). Hard-fail gate: pnpm validate:tier1-presentation -- --hard-fail. Each entry needs a non-empty reason. Intentional floor classes: data charts, Lexical letterform toolbar icons, CMS/content-driven path icons. ADR 2026-05-16 amendment 2026-07-21. Do not empty without new presentation primitives.",
   "entries": [
     {
       "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",

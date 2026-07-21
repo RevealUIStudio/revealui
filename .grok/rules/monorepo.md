@@ -41,3 +41,11 @@ Shared branch policy is **not** authored here (Plane A). Canon:
 `~/.claude/rules/git.md` + revcon `profiles/revfleet/claude/rules/git.md`.
 Launch: `rfg` (Plane C). Architecture ADR:
 `2026-07-21-harness-policy-runtime-launch-planes`.
+
+## Worktree isolation (HARDLINE)
+
+Multi-step edits: `git worktree add ~/revfleet/.wt/<name> -b <branch> origin/test`.  
+Do not use the shared `~/revfleet/revealui` checkout for concurrent claims.  
+Dirty branch switches are blocked by `dirty-checkout-guard.js`.  
+Full rule: `~/.grok/rules/06-worktree-isolation.md`.  
+Preferred launch: `rfg revealui --worktree=<label>` (injects `--ref test` when omitted).
