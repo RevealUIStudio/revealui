@@ -142,7 +142,7 @@ describe('revealui-content factory over Streamable HTTP', () => {
 
   it('proxies a tool call through the MCP HTTP transport to a mocked RevealUI API', async () => {
     const mockApi = await startMockApi({
-      '/api/sites': {
+      '/api/content/sites': {
         sites: [
           { id: 'site_1', name: 'Demo Site', createdAt: '2026-04-22T00:00:00Z' },
           { id: 'site_2', name: 'Another Site', createdAt: '2026-04-22T01:00:00Z' },
@@ -190,7 +190,7 @@ describe('revealui-content factory over Streamable HTTP', () => {
     expect(parsed._meta.tool).toBe('revealui_list_sites');
 
     // Mock API must have been called with the correct headers.
-    const apiReq = mockApi.requests.find((r) => r.path === '/api/sites');
+    const apiReq = mockApi.requests.find((r) => r.path === '/api/content/sites');
     expect(apiReq).toBeDefined();
     expect(apiReq?.headers.authorization).toBe('Bearer test-api-key');
     expect(apiReq?.headers['user-agent']).toBe('RevealUI-MCP/1.0');
@@ -214,15 +214,15 @@ describe('revealui-content factory over Streamable HTTP', () => {
 
   it('lists content collections as MCP resources', async () => {
     const mockApi = await startMockApi({
-      '/api/posts': {
+      '/api/content/posts': {
         docs: [
           { id: 'p1', title: 'First post' },
           { id: 'p2', title: 'Second post' },
         ],
       },
-      '/api/pages': { docs: [{ id: 'pg1', title: 'Home' }] },
-      '/api/products': { docs: [{ id: 'pr1', name: 'Widget' }] },
-      '/api/media': { docs: [{ id: 'm1', filename: 'hero.jpg' }] },
+      '/api/content/pages': { docs: [{ id: 'pg1', title: 'Home' }] },
+      '/api/content/products': { docs: [{ id: 'pr1', name: 'Widget' }] },
+      '/api/content/media': { docs: [{ id: 'm1', filename: 'hero.jpg' }] },
     });
     teardowns.push(mockApi.close);
     process.env.REVEALUI_API_URL = mockApi.url;
@@ -256,11 +256,11 @@ describe('revealui-content factory over Streamable HTTP', () => {
   });
 
   it('survives partial failure — an unavailable collection does not blank the list', async () => {
-    // /api/pages returns 404 (intentionally omitted); /api/posts returns docs.
+    // /api/content/pages returns 404 (intentionally omitted); /api/content/posts returns docs.
     const mockApi = await startMockApi({
-      '/api/posts': { docs: [{ id: 'p1', title: 'Only post' }] },
-      '/api/products': { docs: [] },
-      '/api/media': { docs: [] },
+      '/api/content/posts': { docs: [{ id: 'p1', title: 'Only post' }] },
+      '/api/content/products': { docs: [] },
+      '/api/content/media': { docs: [] },
     });
     teardowns.push(mockApi.close);
     process.env.REVEALUI_API_URL = mockApi.url;
@@ -284,7 +284,7 @@ describe('revealui-content factory over Streamable HTTP', () => {
 
   it('reads a resource by URI', async () => {
     const mockApi = await startMockApi({
-      '/api/posts/p1': { id: 'p1', title: 'First post', body: 'hello world' },
+      '/api/content/posts/p1': { id: 'p1', title: 'First post', body: 'hello world' },
     });
     teardowns.push(mockApi.close);
     process.env.REVEALUI_API_URL = mockApi.url;
@@ -348,10 +348,10 @@ describe('revealui-content factory over Streamable HTTP', () => {
           { slug: 'users', label: 'User', labelPlural: 'Users', mcpResource: false },
         ],
       },
-      '/api/posts': { docs: [{ id: 'p1', title: 'First post' }] },
-      // Even though /api/users would return docs, mcpResource: false should
+      '/api/content/posts': { docs: [{ id: 'p1', title: 'First post' }] },
+      // Even though /api/content/users would return docs, mcpResource: false should
       // prevent the factory from even asking for them.
-      '/api/users': { docs: [{ id: 'u1', email: 'user@example.com' }] },
+      '/api/content/users': { docs: [{ id: 'u1', email: 'user@example.com' }] },
     });
     teardowns.push(mockApi.close);
     process.env.REVEALUI_API_URL = mockApi.url;
@@ -375,8 +375,8 @@ describe('revealui-content factory over Streamable HTTP', () => {
     // Factory should have asked for collections once and posts once, but
     // never users (opted out at the summary layer).
     expect(mockApi.requests.some((r) => r.path === '/api/mcp/collections')).toBe(true);
-    expect(mockApi.requests.some((r) => r.path === '/api/posts')).toBe(true);
-    expect(mockApi.requests.some((r) => r.path === '/api/users')).toBe(false);
+    expect(mockApi.requests.some((r) => r.path === '/api/content/posts')).toBe(true);
+    expect(mockApi.requests.some((r) => r.path === '/api/content/users')).toBe(false);
   });
 
   it('injected collectionsProvider takes precedence over HTTP introspection', async () => {
@@ -388,7 +388,7 @@ describe('revealui-content factory over Streamable HTTP', () => {
       '/api/mcp/collections': {
         collections: [{ slug: 'posts', label: 'Post', labelPlural: 'Posts', mcpResource: true }],
       },
-      '/api/pages': { docs: [{ id: 'pg1', title: 'Home' }] },
+      '/api/content/pages': { docs: [{ id: 'pg1', title: 'Home' }] },
     });
     teardowns.push(mockApi.close);
     process.env.REVEALUI_API_URL = mockApi.url;
@@ -422,10 +422,10 @@ describe('revealui-content factory over Streamable HTTP', () => {
     // HTTP introspection fails. The curated set (posts/pages/products/
     // media) must still drive resource enumeration.
     const mockApi = await startMockApi({
-      '/api/posts': { docs: [{ id: 'p1', title: 'Only post' }] },
-      '/api/pages': { docs: [] },
-      '/api/products': { docs: [] },
-      '/api/media': { docs: [] },
+      '/api/content/posts': { docs: [{ id: 'p1', title: 'Only post' }] },
+      '/api/content/pages': { docs: [] },
+      '/api/content/products': { docs: [] },
+      '/api/content/media': { docs: [] },
     });
     teardowns.push(mockApi.close);
     process.env.REVEALUI_API_URL = mockApi.url;

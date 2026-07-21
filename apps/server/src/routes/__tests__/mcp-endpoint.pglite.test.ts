@@ -156,7 +156,7 @@ function startStubBackend(): Promise<void> {
       res.end(JSON.stringify({ error: 'unauthorized' }));
       return;
     }
-    if (url.pathname === '/api/sites') {
+    if (url.pathname === '/api/content/sites') {
       const owned = Object.entries(SITE_OWNERS)
         .filter(([, owner]) => owner === user)
         .map(([id]) => ({ id }));
