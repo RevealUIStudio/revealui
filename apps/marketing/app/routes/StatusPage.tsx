@@ -1,4 +1,4 @@
-import { Callout } from '@revealui/presentation';
+import { Button, Callout } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
 import { SITE } from '../content/site';
@@ -184,9 +184,12 @@ export function StatusPage() {
           This page probes the API health endpoint in your browser when you load it. It reflects
           what your network sees right now, not a separate uptime service. Solo-operator company: we
           do not run 24×7 manned monitoring you can subscribe to.{' '}
-          <button
+          <Button
             type="button"
-            className="underline"
+            appearance="link"
+            variant="brand"
+            size="sm"
+            className="inline h-auto p-0"
             onClick={() => {
               setProbes((prev) => {
                 const next: Record<string, ProbeResult> = { ...prev };
@@ -197,7 +200,7 @@ export function StatusPage() {
             }}
           >
             Re-check now
-          </button>
+          </Button>
           .
         </Callout>
       </div>

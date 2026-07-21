@@ -1,3 +1,4 @@
+import { IconPlus } from '@revealui/presentation';
 import { FOR_OPERATORS_FAQ } from '../../content/for-operators';
 
 export function Faq() {
@@ -19,16 +20,7 @@ export function Faq() {
               <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
                 <h3 className="text-lg font-semibold leading-7 text-foreground">{item.question}</h3>
                 <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition group-open:rotate-45 group-open:bg-primary/10 group-open:text-primary">
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                  >
-                    <title>Toggle</title>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
+                  <IconPlus size="sm" label="Toggle" />
                 </span>
               </summary>
               <div className="mt-4 pr-9 text-base leading-7 text-muted-foreground">
