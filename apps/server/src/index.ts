@@ -51,6 +51,7 @@ import {
   installAuditStorage,
 } from './lib/audit-storage.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { createLazyHonoRoute } from './lib/lazy-hono-route.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 import {
@@ -126,7 +127,6 @@ import marketplaceRoute from './routes/marketplace.js';
 import { mountMcpEndpoint } from './routes/mcp-endpoint.js';
 import mcpUsageRoute from './routes/mcp-usage.js';
 import nudgesRoute from './routes/nudges.js';
-import ogRoute from './routes/og.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
@@ -1272,7 +1272,11 @@ app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
-app.route('/api/og', ogRoute);
+// OG image generation: lazy-load satori/resvg/fonts — never on cold-start path.
+app.route(
+  '/api/og',
+  createLazyHonoRoute(() => import('./routes/og.js')),
+);
 app.route('/api/pricing', pricingRoute);
 app.route('/api/audit', auditRoute);
 app.route('/api/revmarket', revmarketRoute);
@@ -1340,7 +1344,10 @@ app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
-app.route('/api/v1/og', ogRoute);
+app.route(
+  '/api/v1/og',
+  createLazyHonoRoute(() => import('./routes/og.js')),
+);
 app.route('/api/v1/pricing', pricingRoute);
 app.route('/api/v1/audit', auditRoute);
 app.route('/api/v1/revmarket', revmarketRoute);
