@@ -2,9 +2,9 @@
 
 import {
   Button,
-  EmptyState as PresentationEmptyState,
   IconChevronDown,
   IconTerminal,
+  EmptyState as PresentationEmptyState,
 } from '@revealui/presentation';
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -443,13 +443,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function TasksEmptyState({
-  filter,
-  dateFilter,
-}: {
-  filter: StatusFilter;
-  dateFilter: DateFilter;
-}) {
+function TasksEmptyState({ filter, dateFilter }: { filter: StatusFilter; dateFilter: DateFilter }) {
   const dateLabel: Record<DateFilter, string> = {
     all: '',
     '24h': ' in the last 24 hours',
