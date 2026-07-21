@@ -1,4 +1,4 @@
-import { Button } from '@revealui/presentation';
+import { Button, IconCheckCircle, IconPlus, IconXCircle } from '@revealui/presentation';
 import { useEffect } from 'react';
 import { Footer } from '../components/Footer';
 import {
@@ -92,33 +92,12 @@ export function FairSourcePage() {
               >
                 <div className="flex items-start gap-3">
                   {c.kind === 'yes' ? (
-                    <svg
-                      className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      aria-hidden="true"
-                    >
-                      <title>Yes</title>
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <IconCheckCircle size="md" className="mt-0.5 flex-shrink-0 text-primary" />
                   ) : (
-                    <svg
-                      className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-800 dark:text-amber-200"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      aria-hidden="true"
-                    >
-                      <title>One restriction</title>
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <IconXCircle
+                      size="md"
+                      className="mt-0.5 flex-shrink-0 text-amber-800 dark:text-amber-200"
+                    />
                   )}
                   <div>
                     <h3 className="text-lg font-semibold text-foreground">{c.title}</h3>
@@ -289,21 +268,7 @@ export function FairSourcePage() {
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
                   <h3 className="text-lg font-semibold leading-7 text-foreground">{f.question}</h3>
                   <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition group-open:rotate-45 group-open:bg-primary/10 group-open:text-primary">
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <title>Toggle</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 4.5v15m7.5-7.5h-15"
-                      />
-                    </svg>
+                    <IconPlus size="sm" label="Toggle" />
                   </span>
                 </summary>
                 <div className="mt-4 pr-9 text-base leading-7 text-muted-foreground">

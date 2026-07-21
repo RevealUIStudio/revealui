@@ -1,3 +1,4 @@
+import { Button, IconCheckCircle } from '@revealui/presentation';
 import { useState } from 'react';
 import { Footer } from '../components/Footer';
 import { Faq } from '../components/landing/Faq';
@@ -179,21 +180,20 @@ export function ProductsPage() {
             {STATUS_FILTERS.map((f) => {
               const selected = filter === f;
               return (
-                <button
+                <Button
                   key={f}
                   type="button"
                   role="tab"
                   aria-selected={selected}
+                  size="sm"
+                  appearance={selected ? 'solid' : 'outline'}
+                  variant={selected ? 'brand' : 'neutral'}
                   onClick={() => setFilter(f)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium ring-1 transition ${
-                    selected
-                      ? 'bg-primary/10 text-primary ring-primary/30'
-                      : 'bg-card text-muted-foreground ring-border hover:text-foreground hover:ring-border/80'
-                  }`}
+                  className="rounded-full"
                 >
                   {f}
                   <span className="text-xs text-muted-foreground">{countFor(f)}</span>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -250,18 +250,7 @@ export function ProductsPage() {
                         key={highlight}
                         className="flex items-start gap-2.5 text-sm leading-6 text-muted-foreground"
                       >
-                        <svg
-                          className="mt-1 h-4 w-4 flex-shrink-0 text-primary"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          aria-hidden="true"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        <IconCheckCircle size="sm" className="mt-1 flex-shrink-0 text-primary" />
                         {highlight}
                       </li>
                     ))}

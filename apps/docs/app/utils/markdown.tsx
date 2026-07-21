@@ -3,6 +3,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { Button } from '@revealui/presentation';
 import type React from 'react';
 import { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -517,14 +518,17 @@ function CopyablePreBlock({ children, ...props }: React.ComponentProps<'pre'>): 
       <pre ref={preRef} {...props}>
         {children}
       </pre>
-      <button
+      <Button
         type="button"
+        size="sm"
+        appearance="ghost"
+        variant="neutral"
         onClick={handleCopy}
-        className="absolute top-2 right-2 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-400 opacity-0 transition-opacity hover:bg-white/10 hover:text-white group-hover/code:opacity-100"
+        className="absolute top-2 right-2 h-auto border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-400 opacity-0 transition-opacity hover:bg-white/10 hover:text-white group-hover/code:opacity-100"
         aria-label="Copy code"
       >
         {copied ? 'Copied!' : 'Copy'}
-      </button>
+      </Button>
     </div>
   );
 }

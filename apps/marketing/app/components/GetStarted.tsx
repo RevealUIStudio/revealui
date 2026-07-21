@@ -1,4 +1,4 @@
-import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs, IconArrowRight } from '@revealui/presentation';
 import { HOME_GET_STARTED } from '../content/home';
 import type { GetStartedData } from '../lib/page-blocks';
 import { NewsletterSignup } from './NewsletterSignup';
@@ -40,20 +40,7 @@ export function GetStarted({
             <Button asChild appearance="outline" variant="neutral" size="lg">
               <a href={data.cta.secondary.href}>
                 {data.cta.secondary.label}
-                <svg
-                  className="h-4 w-4 ml-1.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <title>Arrow</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                  />
-                </svg>
+                <IconArrowRight size="sm" className="ml-1.5" />
               </a>
             </Button>
           </div>

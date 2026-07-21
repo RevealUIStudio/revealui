@@ -1,3 +1,12 @@
+import {
+  Button,
+  GitHubIcon,
+  IconChevronRight,
+  IconClose,
+  IconCode,
+  IconGlobe,
+  IconMenu,
+} from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { buildDocNavSections, type NavItem, type NavSection } from '../lib/nav';
@@ -69,19 +78,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
       {/* Logo */}
       <h2 className="mb-4 text-lg font-bold tracking-tight text-ink">
         <Link to="/" onClick={onNavigate} className="flex items-center gap-2 no-underline">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <title>RevealUI</title>
-            <path d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
-          </svg>
+          <IconCode size="md" label="RevealUI" />
           RevealUI
         </Link>
       </h2>
@@ -137,31 +134,14 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
           href="https://github.com/RevealUIStudio/revealui"
           className="flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
         >
-          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <title>GitHub</title>
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-          </svg>
+          <GitHubIcon className="size-4" />
           GitHub
         </a>
         <a
           href="https://revealui.com"
           className="mt-1 flex items-center gap-2 rounded-md px-3 py-2 text-[0.8125rem] text-text-muted no-underline transition-colors hover:text-text-secondary md:py-1.5"
         >
-          <svg
-            height="16"
-            width="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <title>Website</title>
-            <circle cx="12" cy="12" r="10" />
-            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          </svg>
+          <IconGlobe size="sm" />
           revealui.com
         </a>
         <div className="mt-3 border-t border-border pt-3 px-3">
@@ -270,20 +250,7 @@ function Breadcrumbs({ sections: navSections }: { sections: NavSection[] }) {
                   ) : (
                     <span className="text-text-muted">{crumb.label}</span>
                   )}
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    className="size-3 text-text-muted"
-                  >
-                    <path
-                      d="M6 4l4 4-4 4"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <IconChevronRight size="xs" className="text-text-muted" />
                 </>
               )}
             </li>
@@ -324,58 +291,21 @@ export function DocLayout({ children }: DocLayoutProps) {
           to="/"
           className="flex items-center gap-2 text-base font-bold tracking-tight text-ink no-underline"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
-          </svg>
+          <IconCode size="sm" />
           RevealUI
         </Link>
-        <button
+        <Button
           type="button"
+          appearance="ghost"
+          variant="neutral"
+          size="icon"
           onClick={() => setSidebarOpen((v) => !v)}
-          className="rounded-md p-2 text-text-secondary transition-colors hover:bg-accent-bg hover:text-accent"
+          className="text-text-secondary"
           aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={sidebarOpen}
         >
-          {sidebarOpen ? (
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
+          {sidebarOpen ? <IconClose size="md" /> : <IconMenu size="md" />}
+        </Button>
       </div>
 
       {/* Mobile overlay backdrop */}

@@ -4,637 +4,537 @@
     {
       "path": "apps/admin/src/app/(backend)/[[...segments]]/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/agent-tasks/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/agent-tasks/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/agents/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/agents/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/chat/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/chat/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/coordination/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/coordination/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/dashboard/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/error.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/error.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/jobs/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/jobs/page.tsx",
       "tag": "select",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/jobs/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/knowledge-graph/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/knowledge-graph/page.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/publish/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/publish/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/tasks/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/mcp/inspect/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/mcp/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/media/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/media/page.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/media/page.tsx",
       "tag": "select",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/media/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/refunds/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/refunds/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/account/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/account/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/account/PasswordChangeForm.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/api-keys/api-keys-client.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/api-keys/api-keys-client.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/layout.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/security/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/settings/security/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/account/billing/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/account/license/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/account/license/page.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/account/license/page.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/error.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/error.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/login/LoginForm.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/mfa/MFAForm.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/not-found.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/signup/SignupForm.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(frontend)/welcome/page.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/global-error.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/global-error.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/ErrorBoundary.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/FreeTierBanner.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/FreeTierBanner.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/elements/button.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/elements/email-signup-form.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/elements/install-command.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/icons/arrow-narrow-right-icon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/icons/checkmark-icon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/icons/chevron-icon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/icons/squares-2-stacked-icon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/footer-with-newsletter-form-categories-and-social-icons.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/footer-with-newsletter-form-categories-and-social-icons.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/navbar-with-links-actions-and-centered-logo.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/navbar-with-links-actions-and-centered-logo.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/AdminBar/index.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/AdminSidebarLayout.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/Agent/index.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/agents/agent-memory.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/agents/agent-memory.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/agents/mcp-server-card.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/BeforeDashboard/OnboardingChecklist.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/BeforeDashboard/OnboardingNudge.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/DataPanel/index.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/ErrorBoundary/index.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/mcp/resources-panel.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/PasswordInput.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/PasswordInput.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/SystemHealthMonitor/index.tsx",
       "tag": "select",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/SystemHealthPanel/index.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/SystemHealthPanel/index.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/UpgradeDialog.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/embed/components/EmbedNodeComponent.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/embed/icons/EmbedIcon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/label/icons/LabelIcon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/largeBody/icons/LargeBodyIcon.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/providers/Theme/ThemeSelector/index.tsx",
       "tag": "select",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/providers/Theme/ThemeSelector/index.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/DocLayout.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/DocLayout.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/ErrorBoundary.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/SearchBar.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/SearchBar.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "admin surface residual; migrate to presentation in follow-up (GAP-398)"
     },
     {
       "path": "apps/docs/app/components/showcase/CodeView.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/components/showcase/Preview.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/components/showcase/PropPanel.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/components/showcase/PropPanel.tsx",
       "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/components/showcase/ShowcaseShell.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/components/showcase/ShowcaseShell.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/components/showcase/TokensPage.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/routes/ApiPage.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/routes/GuidesPage.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/routes/SectionPage.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/showcase/animations.showcase.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/showcase/drawer.showcase.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/showcase/icons.showcase.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/docs/app/showcase/theme.showcase.tsx",
       "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/utils/markdown.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/for-operators/Faq.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/GetStarted.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/landing/Faq.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/landing/Hero.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/landing/PricingTeaser.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "docs design-system showcase exercises host elements on purpose (GAP-398 residual)"
     },
     {
       "path": "apps/marketing/app/components/landing/Primitives.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/landing/Proof.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/components/NavBar.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/routes/FairSourcePage.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/routes/PricingPage.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/routes/ProductsPage.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "content-driven SVG path from content modules; no static Icon* mapping (GAP-398 residual)"
     },
     {
       "path": "apps/marketing/app/routes/ProductsPage.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/marketing/app/routes/StatusPage.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "content-driven SVG path from content modules; no static Icon* mapping (GAP-398 residual)"
     }
   ]
 }
