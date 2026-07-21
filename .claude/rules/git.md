@@ -20,17 +20,17 @@
 
 ### HARDLINE: never branch off a feature branch (owner 2026-07-21)
 
-Always cut new branches from **`origin/test`**, never from an existing
-`feat/*` / `fix/*` / `chore/*` tip (even if that tip already equals test).
+Always cut new branches from **`origin/test`** (or `origin/main` when the
+repo has no `test`). Never from an existing `feat/*` / `fix/*` / `chore/*` tip.
 
 ```bash
 git fetch origin test
 git switch -c fix/<name> origin/test
 ```
 
-Grok worktrees: always pass `--ref test` (or use `rfg`, which injects it).
-Without `--ref`, Grok bases the worktree on the source checkout's current
-HEAD, which is wrong when the main tree is mid-feature.
+Grok worktrees: use `rfg … --worktree=…` (injects `--ref test`) or pass
+`--ref test` explicitly. Architecture: ADR
+`2026-07-21-harness-policy-runtime-launch-planes` (policy / runtime / launch).
 
 ## Issue → PR → Close Workflow
 - PRs that fix a GitHub issue MUST include `Closes #N` in the PR description
