@@ -6,10 +6,14 @@
  * one of them. Copy is VERBATIM from §7 — do not paraphrase headline,
  * body, or CTA text when editing this file.
  *
- * All 11 §7 nudges have live trigger evaluators. Honesty notes:
- * - pro-license-wire: key exists in DB + not yet fetched/verified (not remote env)
+ * All 11 §7 nudges have live trigger evaluators (server-owned signals only).
+ * Durable write points:
+ * - free-pro-gate: requireFeature free denial → upgrade_intent meter
+ * - pro-license-wire: licenses row + license_key_fetched (billing) or
+ *   license_activated (POST /license/verify). Not client-reported.
  * - pro-connect-data: day3+ without content, API key, or MCP tool usage
- * - max-enable-memory: no Max memory session yet (no separate on/off toggle)
+ * - max-enable-memory: no ai_memory_sessions yet (product has no toggle;
+ *   first use is the durable "enabled" signal)
  */
 
 export type NudgeId =

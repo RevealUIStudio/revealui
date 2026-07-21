@@ -12,9 +12,9 @@
 
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
-import { accountMemberships, nudgeDismissals } from '@revealui/db/schema';
+import { nudgeDismissals } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import {
@@ -22,10 +22,6 @@ import {
   NUDGE_DEFINITIONS,
   type NudgeId,
 } from '../lib/nudges/definitions.js';
-import {
-  LICENSE_KEY_FETCHED_METER_NAME,
-  recordMilestoneMeterFirstSafe,
-} from '../lib/nudges/milestone-meters.js';
 import {
   type DismissalRecord,
   MAX_DISMISS_COUNT,
@@ -174,59 +170,6 @@ app.openapi(
       .returning({ dismissCount: nudgeDismissals.dismissCount });
 
     return c.json({ success: true as const, dismissCount: row?.dismissCount ?? 1 });
-  },
-);
-
-// ─── POST /api/nudges/events ────────────────────────────────────────────
-// Client-reported milestone events that must not live on SECURITY_PATHS
-// surfaces (billing/license). Only allowlisted event names are accepted.
-
-const NudgeEventBody = z.object({
-  event: z.enum(['license_key_fetched']),
-});
-
-app.openapi(
-  createRoute({
-    method: 'post',
-    path: '/events',
-    tags: ['Nudges'],
-    summary: 'Record an allowlisted onboarding milestone event',
-    request: {
-      body: {
-        content: { 'application/json': { schema: NudgeEventBody } },
-        required: true,
-      },
-    },
-    responses: {
-      200: {
-        content: {
-          'application/json': {
-            schema: z.object({ success: z.literal(true) }),
-          },
-        },
-        description: 'Event accepted (idempotent)',
-      },
-    },
-  }),
-  async (c) => {
-    const user = requireUser(c);
-    const { event } = c.req.valid('json');
-    const db = c.get('db') ?? getClient();
-
-    const [membership] = await db
-      .select({ accountId: accountMemberships.accountId })
-      .from(accountMemberships)
-      .where(and(eq(accountMemberships.userId, user.id), eq(accountMemberships.status, 'active')))
-      .limit(1);
-
-    if (event === 'license_key_fetched') {
-      recordMilestoneMeterFirstSafe(membership?.accountId, LICENSE_KEY_FETCHED_METER_NAME, {
-        userId: user.id,
-        path: 'nudges/events',
-      });
-    }
-
-    return c.json({ success: true as const });
   },
 );
 

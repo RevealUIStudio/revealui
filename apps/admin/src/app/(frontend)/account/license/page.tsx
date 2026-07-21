@@ -91,15 +91,6 @@ export default function LicensePage() {
       if (subRes.ok) {
         const data = (await subRes.json()) as SubscriptionData;
         setSubscription(data);
-        // GAP-300 pro-license-wire: user retrieved a non-null key (CTA surface).
-        if (data.licenseKey) {
-          void fetch(`${apiUrl}/api/nudges/events`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'license_key_fetched' }),
-          }).catch(() => undefined);
-        }
       }
 
       if (pubKeyRes.ok) {

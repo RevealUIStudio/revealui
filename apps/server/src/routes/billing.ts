@@ -1019,8 +1019,15 @@ const subscriptionRoute = createRoute({
  * the checkout webhook had issued and stored a license (the webhook's
  * syncHostedSubscriptionState creates the hosted rows that trigger the
  * short-circuit), so a hosted subscriber could never see their key.
+ *
+ * GAP-300 pro-license-wire (durable): when a non-null JWT is returned to the
+ * authenticated user, record first-ever `license_key_fetched` on the account.
+ * Server-side only — client-reported events are not trusted for this milestone.
  */
-async function getUserLicenseKey(userId: string): Promise<string | null> {
+async function getUserLicenseKey(
+  userId: string,
+  accountId?: string | null,
+): Promise<string | null> {
   const [row] = await getClient()
     .select({ licenseKey: licenses.licenseKey })
     .from(licenses)
@@ -1033,7 +1040,26 @@ async function getUserLicenseKey(userId: string): Promise<string | null> {
     )
     .orderBy(desc(licenses.createdAt))
     .limit(1);
-  return row?.licenseKey ?? null;
+  const licenseKey = row?.licenseKey ?? null;
+  if (!licenseKey) return null;
+
+  const { recordMilestoneMeterFirstSafe, LICENSE_KEY_FETCHED_METER_NAME } = await import(
+    '../lib/nudges/milestone-meters.js'
+  );
+  let resolvedAccountId = accountId ?? null;
+  if (!resolvedAccountId) {
+    const [membership] = await getClient()
+      .select({ accountId: accountMemberships.accountId })
+      .from(accountMemberships)
+      .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
+      .limit(1);
+    resolvedAccountId = membership?.accountId ?? null;
+  }
+  recordMilestoneMeterFirstSafe(resolvedAccountId, LICENSE_KEY_FETCHED_METER_NAME, {
+    userId,
+    path: 'billing/subscription',
+  });
+  return licenseKey;
 }
 
 app.openapi(subscriptionRoute, async (c) => {
@@ -1049,7 +1075,7 @@ app.openapi(subscriptionRoute, async (c) => {
         tier: requestEntitlements.tier,
         status: requestEntitlements.subscriptionStatus ?? 'active',
         expiresAt: null,
-        licenseKey: await getUserLicenseKey(user.id),
+        licenseKey: await getUserLicenseKey(user.id, requestEntitlements.accountId),
       },
       200,
     );
@@ -1062,7 +1088,7 @@ app.openapi(subscriptionRoute, async (c) => {
         tier: hostedSubscription.tier,
         status: hostedSubscription.status,
         expiresAt: null,
-        licenseKey: await getUserLicenseKey(user.id),
+        licenseKey: await getUserLicenseKey(user.id, requestEntitlements?.accountId),
         graceUntil: hostedSubscription.graceUntil,
       },
       200,
@@ -1113,12 +1139,17 @@ app.openapi(subscriptionRoute, async (c) => {
     );
   }
 
+  // Durable fetch meter via the same helper path as entitlement short-circuits.
+  const licenseKey = license.licenseKey
+    ? await getUserLicenseKey(user.id, requestEntitlements?.accountId)
+    : null;
+
   return c.json(
     {
       tier: license.tier as 'free' | 'pro' | 'max' | 'enterprise',
       status: license.status,
       expiresAt: license.expiresAt?.toISOString() ?? null,
-      licenseKey: license.licenseKey,
+      licenseKey: licenseKey ?? license.licenseKey,
       perpetual: license.perpetual ?? false,
       supportExpiresAt: license.supportExpiresAt?.toISOString() ?? null,
     },
