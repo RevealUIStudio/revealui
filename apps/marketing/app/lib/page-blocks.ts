@@ -1,12 +1,12 @@
 /**
- * Static-first block derivation for the marketing home + products pages.
+ * Static-first block derivation for marketing pages served from the CMS
+ * (home, products, philosophy).
  *
- * The marketing content modules (content/home.ts, content/primitives.ts,
- * content/products.ts) stay the single source of truth for every prose string.
- * This module derives the canonical `pages.blocks` array from those modules with
- * the `@revealui/contracts` factories — a PURE transform, so the CMS block stream
- * and the static fallback can never carry a different sentence than the
- * claim-covered modules do.
+ * The marketing content modules stay the single source of truth for every prose
+ * string. This module derives the canonical `pages.blocks` array from those
+ * modules with the `@revealui/contracts` factories — a PURE transform, so the
+ * CMS block stream and the static fallback can never carry a different sentence
+ * than the claim-covered modules do.
  *
  * The reverse mappers reconstruct each marketing component's own rich data shape
  * from a block, so the styled marketing components keep their look while their
@@ -28,6 +28,7 @@ import {
   type SectionBlock,
 } from '@revealui/contracts/content';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
+import { PHILOSOPHY } from '../content/philosophy';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../content/primitives';
 import { PRODUCTS_CTA_SECTION, PRODUCTS_PAGE_HERO } from '../content/products';
 import type { Cta } from '../content/types';
@@ -92,6 +93,27 @@ export interface ProductsCtaData {
   readonly cta: { readonly docs: Cta; readonly pricing: Cta };
 }
 
+export type PhilosophyParagraphRole = 'lead' | 'body' | 'footer';
+
+export interface PhilosophyParagraphData {
+  readonly role: PhilosophyParagraphRole;
+  readonly body: string;
+}
+
+export interface PhilosophyHeroData {
+  readonly eyebrow: string;
+  readonly h1: string;
+}
+
+export interface PhilosophyBodyData {
+  readonly sections: readonly PhilosophyParagraphData[];
+}
+
+export interface PhilosophyCtaData {
+  readonly primary: Cta;
+  readonly secondary: Cta;
+}
+
 // ---------------------------------------------------------------------------
 // Stable block ids + positions. Ids let the seed and fallback match, but the
 // runtime routes each slot by array POSITION + type (the CMS assigns its own
@@ -104,6 +126,9 @@ export const HOME_GET_STARTED_BLOCK_ID = 'home-get-started';
 export const PRODUCTS_HERO_BLOCK_ID = 'products-hero';
 export const PRODUCTS_FAQ_BLOCK_ID = 'products-faq';
 export const PRODUCTS_CTA_BLOCK_ID = 'products-cta';
+export const PHILOSOPHY_HERO_BLOCK_ID = 'philosophy-hero';
+export const PHILOSOPHY_BODY_BLOCK_ID = 'philosophy-body';
+export const PHILOSOPHY_CTA_BLOCK_ID = 'philosophy-cta';
 
 const HOME_DEMO_INDEX = 0;
 const HOME_PRIMITIVES_INDEX = 1;
@@ -111,6 +136,9 @@ const HOME_GET_STARTED_INDEX = 2;
 const PRODUCTS_HERO_INDEX = 0;
 const PRODUCTS_FAQ_INDEX = 1;
 const PRODUCTS_CTA_INDEX = 2;
+const PHILOSOPHY_HERO_INDEX = 0;
+const PHILOSOPHY_BODY_INDEX = 1;
+const PHILOSOPHY_CTA_INDEX = 2;
 
 function ctaToLink(cta: Cta, variant: 'primary' | 'secondary'): MarketingLink {
   return { label: cta.label, href: cta.href, variant };
@@ -188,6 +216,41 @@ function productsCtaBlock(): CtaSectionBlock {
   });
 }
 
+function philosophyHeroBlock(): HeroBlock {
+  return createHeroBlock(PHILOSOPHY_HERO_BLOCK_ID, PHILOSOPHY.h1, {
+    eyebrow: PHILOSOPHY.eyebrow,
+  });
+}
+
+function philosophyParagraphRole(
+  section: (typeof PHILOSOPHY.sections)[number],
+): PhilosophyParagraphRole {
+  if ('lead' in section && section.lead) return 'lead';
+  if ('footer' in section && section.footer) return 'footer';
+  return 'body';
+}
+
+function philosophyBodyBlock(): SectionBlock {
+  // Heading is structural (not rendered as a second H1); paragraphs carry the
+  // manifesto copy. Role is stored in item.label so reverse-map can restore
+  // lead/footer styling without inventing new block types.
+  return createSectionBlock(PHILOSOPHY_BODY_BLOCK_ID, 'Manifesto', {
+    items: PHILOSOPHY.sections.map((section) => ({
+      label: philosophyParagraphRole(section),
+      body: section.body,
+    })),
+  });
+}
+
+function philosophyCtaBlock(): CtaSectionBlock {
+  return createCtaSectionBlock(PHILOSOPHY_CTA_BLOCK_ID, 'Next', {
+    links: [
+      ctaToLink(PHILOSOPHY.cta.primary, 'primary'),
+      ctaToLink(PHILOSOPHY.cta.secondary, 'secondary'),
+    ],
+  });
+}
+
 /** Derives the home page's block-driven sections (Demo, Primitives, GetStarted). */
 export function homeBlocks(): Block[] {
   return [homeDemoBlock(), homePrimitivesBlock(), homeGetStartedBlock()];
@@ -198,8 +261,14 @@ export function productsBlocks(): Block[] {
   return [productsHeroBlock(), productsFaqBlock(), productsCtaBlock()];
 }
 
+/** Derives the philosophy page's block-driven sections (Hero, body, CTA). */
+export function philosophyBlocks(): Block[] {
+  return [philosophyHeroBlock(), philosophyBodyBlock(), philosophyCtaBlock()];
+}
+
 export const HOME_FALLBACK_BLOCKS: Block[] = homeBlocks();
 export const PRODUCTS_FALLBACK_BLOCKS: Block[] = productsBlocks();
+export const PHILOSOPHY_FALLBACK_BLOCKS: Block[] = philosophyBlocks();
 
 // ---------------------------------------------------------------------------
 // Reverse mappers: canonical block -> rich component data shape
@@ -264,6 +333,31 @@ function heroToProductsHero(block: HeroBlock): ProductsHeroData {
   return {
     h1: block.data.title,
     subtitle: block.data.subtitle ?? '',
+  };
+}
+
+function heroToPhilosophyHero(block: HeroBlock): PhilosophyHeroData {
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    h1: block.data.title,
+  };
+}
+
+function sectionToPhilosophyBody(block: SectionBlock): PhilosophyBodyData {
+  return {
+    sections: (block.data.items ?? []).map((item) => {
+      const label = item.label ?? 'body';
+      const role: PhilosophyParagraphRole = label === 'lead' || label === 'footer' ? label : 'body';
+      return { role, body: item.body };
+    }),
+  };
+}
+
+function ctaToPhilosophyCta(block: CtaSectionBlock): PhilosophyCtaData {
+  const links = block.data.links ?? [];
+  return {
+    primary: links[0] ? linkToCta(links[0]) : PHILOSOPHY.cta.primary,
+    secondary: links[1] ? linkToCta(links[1]) : PHILOSOPHY.cta.secondary,
   };
 }
 
@@ -345,6 +439,27 @@ export function productsCtaSlot(blocks: Block[]): BlockSlot<ProductsCtaData> {
   const path = `blocks.${PRODUCTS_CTA_INDEX}.data`;
   if (block && block.type === 'ctaSection') return { data: ctaToProductsCta(block), path };
   return { data: ctaToProductsCta(productsCtaBlock()), path };
+}
+
+export function philosophyHeroSlot(blocks: Block[]): BlockSlot<PhilosophyHeroData> {
+  const block = blocks[PHILOSOPHY_HERO_INDEX];
+  const path = `blocks.${PHILOSOPHY_HERO_INDEX}.data`;
+  if (block && block.type === 'hero') return { data: heroToPhilosophyHero(block), path };
+  return { data: heroToPhilosophyHero(philosophyHeroBlock()), path };
+}
+
+export function philosophyBodySlot(blocks: Block[]): BlockSlot<PhilosophyBodyData> {
+  const block = blocks[PHILOSOPHY_BODY_INDEX];
+  const path = `blocks.${PHILOSOPHY_BODY_INDEX}.data`;
+  if (block && block.type === 'section') return { data: sectionToPhilosophyBody(block), path };
+  return { data: sectionToPhilosophyBody(philosophyBodyBlock()), path };
+}
+
+export function philosophyCtaSlot(blocks: Block[]): BlockSlot<PhilosophyCtaData> {
+  const block = blocks[PHILOSOPHY_CTA_INDEX];
+  const path = `blocks.${PHILOSOPHY_CTA_INDEX}.data`;
+  if (block && block.type === 'ctaSection') return { data: ctaToPhilosophyCta(block), path };
+  return { data: ctaToPhilosophyCta(philosophyCtaBlock()), path };
 }
 
 // ---------------------------------------------------------------------------

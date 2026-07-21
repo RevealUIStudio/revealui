@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
 /**
- * Seed the fleet-marketing `sites` row plus its `home` and `products` pages
- * (Phase A.2 + the visual-edit-sessions block wire).
+ * Seed the fleet-marketing `sites` row plus its published marketing pages
+ * (home, products, philosophy) for the visual-edit-sessions block wire.
  *
  * The page `blocks` come from the SAME pure derivation the marketing app falls
  * back to (`apps/marketing/app/lib/page-blocks.ts`), so the seeded CMS content
@@ -25,7 +25,11 @@
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
-import { homeBlocks, productsBlocks } from '../apps/marketing/app/lib/page-blocks';
+import {
+  homeBlocks,
+  philosophyBlocks,
+  productsBlocks,
+} from '../apps/marketing/app/lib/page-blocks';
 
 const rootDir = resolve(import.meta.dirname, '..');
 
@@ -76,6 +80,16 @@ const PAGE_SEEDS: readonly PageSeed[] = [
     seo: {
       title: 'The RevFleet product family',
       description: 'Seven products on one foundation, all built and operated by RevealUI Studio.',
+    },
+  },
+  {
+    slug: 'philosophy',
+    path: '/philosophy',
+    title: 'Philosophy',
+    blocks: philosophyBlocks(),
+    seo: {
+      title: 'Philosophy | RevealUI',
+      description: 'Software that compounds. Why RevealUI exists.',
     },
   },
 ];
@@ -169,7 +183,7 @@ async function main(): Promise<void> {
   }
 
   // ---------------------------------------------------------------------------
-  // Pages (home + products) — version-safe, idempotent
+  // Pages (home + products + philosophy) — version-safe, idempotent
   // ---------------------------------------------------------------------------
 
   for (const seed of PAGE_SEEDS) {
