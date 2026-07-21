@@ -5,11 +5,8 @@
  * Uses the LLM to summarize, preserving key facts.
  */
 
+import { estimateTokens } from '../internal/token-estimate.js';
 import type { LLMClient } from '../llm/client.js';
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
 
 /**
  * Compress context string if it exceeds maxTokens.

@@ -4,6 +4,7 @@
  * Integrates skills into agent system prompts.
  */
 
+import { estimateTokens } from '../../internal/token-estimate.js';
 import type { SkillActivator } from '../activation/index.js';
 import type { Skill, SkillActivationContext, SkillActivationResult } from '../types.js';
 
@@ -85,7 +86,7 @@ export class AgentSkillProvider {
 
     // Format skill instructions
     const skillInstructions = this.formatSkillInstructions(activatedSkills);
-    const estimatedTokens = this.estimateTokens(skillInstructions);
+    const estimatedTokens = estimateTokens(skillInstructions);
 
     // Find system message or create one
     const updatedMessages = [...messages];
@@ -128,14 +129,6 @@ ${skillBlocks.join('\n\n')}
   }
 
   /**
-   * Estimate token count for text (rough approximation).
-   * Uses ~4 characters per token as a rough estimate.
-   */
-  private estimateTokens(text: string): number {
-    return Math.ceil(text.length / 4);
-  }
-
-  /**
    * Build a system prompt augmentation from activated skills.
    *
    * @param skills - Skills to include
@@ -150,7 +143,7 @@ ${skillBlocks.join('\n\n')}
     // Add skills until we hit token budget
     for (const skill of skills) {
       const formatted = this.instructionTemplate(skill);
-      const tokens = this.estimateTokens(formatted);
+      const tokens = estimateTokens(formatted);
 
       if (totalTokens + tokens <= this.maxTokenBudget) {
         includedSkills.push(skill);

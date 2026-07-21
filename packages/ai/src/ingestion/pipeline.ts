@@ -9,6 +9,7 @@ import type { Database } from '@revealui/db/client';
 import { ragChunks, ragDocuments } from '@revealui/db/schema/rag';
 import { safeVectorInsert } from '@revealui/db/validation';
 import { and, eq } from 'drizzle-orm';
+import { estimateTokens } from '../internal/token-estimate.js';
 import { createParser } from './file-parsers.js';
 import { RecursiveCharacterSplitter } from './text-splitter.js';
 
@@ -37,10 +38,6 @@ function generateId(prefix: string): string {
 
 function estimateWordCount(text: string): number {
   return text.split(/\s+/).filter((w) => w.length > 0).length;
-}
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }
 
 export class IngestionPipeline {
