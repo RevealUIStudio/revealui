@@ -1,3 +1,15 @@
+export type {
+  MasterSpecCouplingOptions,
+  MasterSpecCouplingWarning,
+  ProductContext,
+} from './master-spec-coupling.js';
+export {
+  emitMasterSpecCouplingWarnings,
+  evaluateMasterSpecCoupling,
+  isCanonDirty,
+  isMasterSpecTriggerPath,
+  resolveProductContext,
+} from './master-spec-coupling.js';
 export type { ImplementedHookSource } from './normalizers/index.js';
 export {
   isImplementedHookSource,
