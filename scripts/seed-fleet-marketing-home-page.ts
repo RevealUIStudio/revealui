@@ -17,23 +17,17 @@
  * Usage:
  *   pnpm tsx scripts/seed-fleet-marketing-home-page.ts
  *   pnpm tsx scripts/seed-fleet-marketing-home-page.ts -- --dry-run
+ *
+ * Database resolution: see scripts/lib/seed-env.ts (POSTGRES_URL preferred;
+ * electric-latency-probe DB refused unless REVEALUI_ALLOW_PROBE_DB=1).
  */
 
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
-import { config } from 'dotenv';
+import { assertSeedDatabaseReady, loadSeedEnv, SeedEnvError } from './lib/seed-env.js';
 
 const rootDir = resolve(import.meta.dirname, '..');
-
-for (const envFile of [
-  '.env',
-  '.env.development.local',
-  '.env.local',
-  'apps/server/.env.vercel',
-  'apps/admin/.env.local',
-]) {
-  config({ path: resolve(rootDir, envFile), override: false });
-}
+loadSeedEnv(rootDir);
 
 const SITE_ID = 'fleet-marketing';
 const HOME_SLUG = 'home';
@@ -52,6 +46,10 @@ async function main(): Promise<void> {
   if (dryRun) {
     log.warn('DRY RUN — no writes will be made');
   }
+
+  const { url, target } = await assertSeedDatabaseReady();
+  log.info(`Database ${target.host}:${target.port}/${target.database}`);
+  process.env.POSTGRES_URL = url;
 
   const { getClient } = await import('@revealui/db/client');
   const { pages, sites } = await import('@revealui/db/schema');
@@ -183,6 +181,10 @@ async function main(): Promise<void> {
 try {
   await main();
 } catch (error) {
+  if (error instanceof SeedEnvError) {
+    log.error(error.message);
+    process.exit(1);
+  }
   log.error(`Fatal: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 }

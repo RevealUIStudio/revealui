@@ -12,39 +12,42 @@
  * Idempotent: the site row is inserted once; each page is inserted if missing,
  * updated (with an optimistic version guard) only when its blocks changed, and
  * skipped when its blocks already match. Soft-deleted pages are surfaced, never
- * silently resurrected. Fails fast if the founder user or the site row is
- * missing (bootstrap + site seed must run first).
+ * silently resurrected.
+ *
+ * Database / owner resolution (durable — see scripts/lib/seed-env.ts):
+ *   - POSTGRES_URL preferred over DATABASE_URL; process env wins over dotenv files
+ *   - electric-latency-probe DB (5434 / revealui_probe) is refused unless
+ *     REVEALUI_ALLOW_PROBE_DB=1
+ *   - Site owner email: REVEALUI_SEED_OWNER_EMAIL → revvault bootstrap email →
+ *     founder@revealui.com → first active owner/admin user
  *
  * Usage:
- *   pnpm tsx scripts/seed-fleet-marketing-site.ts
+ *   pnpm db:seed:fleet-marketing
  *   pnpm tsx scripts/seed-fleet-marketing-site.ts -- --dry-run
+ *   POSTGRES_URL=postgresql://…@127.0.0.1:5432/revealui pnpm db:seed:fleet-marketing
  *
  * Spec: the internal visual-edit-sessions spec (2026-07-02); Phase A.2 row A2.
  */
 
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
-import { config } from 'dotenv';
 import {
   homeBlocks,
   philosophyBlocks,
   productsBlocks,
 } from '../apps/marketing/app/lib/page-blocks';
+import {
+  assertSeedDatabaseReady,
+  loadSeedEnv,
+  resolveSeedOwnerEmailCandidates,
+  SeedEnvError,
+  tryReadBootstrapEmailFromRevvault,
+} from './lib/seed-env.js';
 
 const rootDir = resolve(import.meta.dirname, '..');
-
-for (const envFile of [
-  '.env',
-  '.env.development.local',
-  '.env.local',
-  'apps/server/.env.vercel',
-  'apps/admin/.env.local',
-]) {
-  config({ path: resolve(rootDir, envFile), override: false });
-}
+loadSeedEnv(rootDir);
 
 const SITE_ID = 'fleet-marketing';
-const FOUNDER_EMAIL = 'founder@revealui.com';
 
 const log = {
   info: (msg: string) => console.log(`  i ${msg}`),
@@ -102,30 +105,85 @@ async function main(): Promise<void> {
     log.warn('DRY RUN — no writes will be made');
   }
 
+  const { url, target } = await assertSeedDatabaseReady();
+  log.info(`Database ${target.host}:${target.port}/${target.database} (POSTGRES_URL preferred)`);
+  // Ensure getClient sees the same URL we validated.
+  process.env.POSTGRES_URL = url;
+
   const { getClient } = await import('@revealui/db/client');
   const { users, sites, pages } = await import('@revealui/db/schema');
-  const { and, eq } = await import('drizzle-orm');
+  const { and, eq, inArray } = await import('drizzle-orm');
 
   const db = getClient('rest');
 
   // ---------------------------------------------------------------------------
-  // Site row
+  // Site row — owner resolution (env → revvault bootstrap email → founder → role)
   // ---------------------------------------------------------------------------
 
-  const founderRows = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.email, FOUNDER_EMAIL))
-    .limit(1);
+  const revvaultEmail = tryReadBootstrapEmailFromRevvault(
+    process.env.REVEALUI_ENV === 'production' || process.env.NODE_ENV === 'production'
+      ? 'prod'
+      : 'dev',
+  );
+  const emailCandidates = resolveSeedOwnerEmailCandidates({ revvaultEmail });
 
-  if (founderRows.length === 0) {
-    log.error(`Founder user not found: ${FOUNDER_EMAIL}`);
-    log.error('Run pnpm admin:bootstrap (or pnpm db:seed:admin) first, then re-run this script.');
-    process.exit(1);
+  let ownerId: string | undefined;
+  let ownerEmail: string | undefined;
+  let ownerSource: string | undefined;
+
+  for (const email of emailCandidates) {
+    const rows = await db
+      .select({ id: users.id, email: users.email })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    if (rows.length > 0 && rows[0].email) {
+      ownerId = rows[0].id;
+      ownerEmail = rows[0].email;
+      ownerSource =
+        email === process.env.REVEALUI_SEED_OWNER_EMAIL
+          ? 'REVEALUI_SEED_OWNER_EMAIL'
+          : email === revvaultEmail
+            ? 'revvault bootstrap email'
+            : 'seed default founder@revealui.com';
+      break;
+    }
   }
 
-  const ownerId = founderRows[0].id;
-  log.info(`Resolved ownerId for ${FOUNDER_EMAIL}: ${ownerId}`);
+  if (!(ownerId && ownerEmail)) {
+    const roleRows = await db
+      .select({ id: users.id, email: users.email, role: users.role })
+      .from(users)
+      .where(inArray(users.role, ['owner', 'admin']))
+      .limit(5);
+    const usable = roleRows.find((r) => typeof r.email === 'string' && r.email.length > 0);
+    if (usable?.email) {
+      log.warn(
+        `No seed owner matched ${emailCandidates.join(' | ')}. ` +
+          `Using first ${usable.role} user ${usable.email}. ` +
+          'Set REVEALUI_SEED_OWNER_EMAIL or run pnpm admin:bootstrap for a stable owner.',
+      );
+      ownerId = usable.id;
+      ownerEmail = usable.email;
+      ownerSource = `fallback role=${usable.role}`;
+    }
+  }
+
+  if (!(ownerId && ownerEmail)) {
+    throw new SeedEnvError(
+      [
+        'No site owner user found for fleet-marketing seed.',
+        `  looked for emails: ${emailCandidates.join(', ')}`,
+        '  also looked for any user with role owner|admin',
+        '',
+        'Fix:',
+        '  pnpm admin:bootstrap -- --env=dev --force --no-seed',
+        '  # or: REVEALUI_SEED_OWNER_EMAIL=<existing-user-email> pnpm db:seed:fleet-marketing',
+      ].join('\n'),
+    );
+  }
+
+  log.info(`Resolved ownerId for ${ownerEmail} (${ownerSource}): ${ownerId}`);
 
   const existingSite = await db
     .select({ id: sites.id, slug: sites.slug, status: sites.status })
@@ -284,6 +342,10 @@ async function main(): Promise<void> {
 try {
   await main();
 } catch (error) {
+  if (error instanceof SeedEnvError) {
+    log.error(error.message);
+    process.exit(1);
+  }
   log.error(`Fatal: ${error instanceof Error ? error.message : String(error)}`);
   if (error instanceof Error && error.stack) {
     log.error(error.stack);
