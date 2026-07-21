@@ -169,7 +169,7 @@ function KnowledgeGraphExplorer() {
           <label htmlFor="kg-point-in-time" className="text-xs text-muted-foreground">
             Point in time
           </label>
-          <input
+          <Input
             id="kg-point-in-time"
             type="date"
             value={pointInTime}
@@ -218,24 +218,28 @@ function KnowledgeGraphExplorer() {
             <ul className="flex flex-col gap-1">
               {filteredNodes.map((node) => (
                 <li key={node.id}>
-                  <button
+                  <Button
                     type="button"
+                    appearance="ghost"
+                    variant="neutral"
                     onClick={() => setSelectedNodeId(node.id)}
                     aria-current={selectedNodeId === node.id}
-                    className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+                    className={`h-auto w-full rounded-lg border px-3 py-2 text-left ${
                       selectedNodeId === node.id
                         ? 'border-ring bg-card'
                         : 'border-transparent hover:border-border hover:bg-card'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Badge color="muted">{node.kind}</Badge>
-                      <span className="truncate text-sm text-foreground">{node.name}</span>
+                    <div className="flex w-full flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <Badge color="muted">{node.kind}</Badge>
+                        <span className="truncate text-sm text-foreground">{node.name}</span>
+                      </div>
+                      <div className="truncate font-mono text-xs text-muted-foreground">
+                        {node.natural_key}
+                      </div>
                     </div>
-                    <div className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
-                      {node.natural_key}
-                    </div>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
