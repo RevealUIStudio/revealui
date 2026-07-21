@@ -2,7 +2,7 @@
   "name": "revealui",
   "version": "0.4.0",
   "private": true,
-  "description": "Agentic business runtime. Users, content, products, payments, and AI \u2014 pre-wired, open source, and ready to deploy.",
+  "description": "Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.",
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@biomejs/biome": "catalog:",
@@ -116,8 +116,7 @@
       "ws@8": ">=8.20.1",
       "@revealui/config": "workspace:*",
       "@revealui/contracts": "workspace:*",
-      "@revealui/db": "workspace:*",
-      "js-yaml@5": ">=5.2.1"
+      "@revealui/db": "workspace:*"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
