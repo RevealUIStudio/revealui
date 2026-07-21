@@ -7,56 +7,6 @@
       "reason": "admin residual; CMS catch-all shell decorative svg without Icon* match (GAP-398)"
     },
     {
-      "path": "apps/admin/src/app/(backend)/agent-tasks/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; task filter/action chips not yet on presentation Button (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agent-tasks/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; task status/row icons without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; multi-step agent wizard controls (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; wizard step illustrations without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; marketplace agent actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; marketplace detail icons without Icon* match (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; media library bulk/actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "input",
-      "reason": "admin residual; media search and file inputs (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "select",
-      "reason": "admin residual; media type filter select (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/media/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; media type/file icons without Icon* match (GAP-398)"
-    },
-    {
       "path": "apps/admin/src/components/revealui/elements/button.tsx",
       "tag": "button",
       "reason": "legacy kit pending retirement (GAP-398)"
