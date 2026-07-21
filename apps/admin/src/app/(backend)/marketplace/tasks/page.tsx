@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Card, EmptyState, LinkButton, Skeleton } from '@revealui/presentation';
+import { Badge, Button, Card, EmptyState, LinkButton, Skeleton } from '@revealui/presentation';
 import type { TaskSubmissionRecord } from '@revealui/sync';
 import { useTaskSubmissions } from '@revealui/sync';
 import Link from 'next/link';
@@ -88,18 +88,21 @@ export default function TaskDashboardPage() {
             ).map((s) => {
               const count = s === 'all' ? submissions.length : (statusCounts[s] ?? 0);
               return (
-                <button
+                <Button
                   key={s}
                   type="button"
+                  appearance="ghost"
+                  variant={filter === s ? 'brand' : 'neutral'}
+                  size="sm"
                   onClick={() => setFilter(s)}
-                  className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                  className={`h-auto whitespace-nowrap rounded-none border-b-2 px-4 py-3 text-sm font-medium ${
                     filter === s
                       ? 'border-primary text-foreground'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)} ({count})
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -183,13 +186,15 @@ function TaskRow({
   return (
     <Card>
       {/* Row header */}
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
         onClick={onToggle}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-muted transition-colors"
+        className="flex h-auto w-full items-center gap-4 rounded-none px-4 py-3 text-left hover:bg-muted"
       >
         <Badge color={STATUS_BADGE_COLORS[task.status] ?? 'muted'}>{task.status}</Badge>
-        <span className="flex-1 text-sm text-foreground truncate">{task.skill_name}</span>
+        <span className="flex-1 truncate text-sm text-foreground">{task.skill_name}</span>
         <span className="text-xs text-muted-foreground">P{task.priority}</span>
         {task.cost_usdc && <span className="text-xs text-muted-foreground">${task.cost_usdc}</span>}
         <span className="text-xs text-muted-foreground">
@@ -200,7 +205,7 @@ function TaskRow({
         >
           ▼
         </span>
-      </button>
+      </Button>
 
       {/* Progress bar for running tasks */}
       {task.status === 'running' && progress && progress.progress > 0 && (

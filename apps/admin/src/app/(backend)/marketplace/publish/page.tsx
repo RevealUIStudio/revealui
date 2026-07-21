@@ -3,6 +3,7 @@
 import {
   Button,
   Card,
+  IconCheck,
   Input,
   Radio,
   RadioField,
@@ -236,17 +237,14 @@ export default function PublishAgentPage() {
               { num: 3, label: 'Skills' },
               { num: 4, label: 'Review & Publish' },
             ].map((s) => (
-              <button
+              <Button
                 key={s.num}
                 type="button"
+                appearance={step === s.num ? 'solid' : 'ghost'}
+                variant={step === s.num ? 'brand' : step > s.num ? 'success' : 'neutral'}
+                size="sm"
                 onClick={() => setStep(s.num)}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${
-                  step === s.num
-                    ? 'bg-primary text-primary-foreground'
-                    : step > s.num
-                      ? 'text-success'
-                      : 'text-muted-foreground'
-                }`}
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
               >
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
@@ -257,27 +255,10 @@ export default function PublishAgentPage() {
                         : 'bg-muted text-muted-foreground'
                   }`}
                 >
-                  {step > s.num ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    s.num
-                  )}
+                  {step > s.num ? <IconCheck size="xs" /> : s.num}
                 </span>
                 {s.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

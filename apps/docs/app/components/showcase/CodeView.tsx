@@ -1,3 +1,4 @@
+import { Button } from '@revealui/presentation';
 import { useState } from 'react';
 import type { ShowcaseStory } from './types.js';
 
@@ -49,13 +50,16 @@ export function CodeView({ story, values }: CodeViewProps) {
     <div className="relative overflow-hidden rounded-xl border border-border">
       <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-2">
         <span className="text-xs font-medium text-text-muted">Code</span>
-        <button
+        <Button
           type="button"
+          appearance="ghost"
+          variant="neutral"
+          size="sm"
           onClick={handleCopy}
-          className="rounded-md px-2 py-1 text-xs text-text-muted transition-colors hover:text-accent"
+          className="h-auto px-2 py-1 text-xs text-text-muted hover:text-accent"
         >
           {copied ? 'Copied!' : 'Copy'}
-        </button>
+        </Button>
       </div>
       <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
         <code className="font-mono text-text-secondary">{code}</code>

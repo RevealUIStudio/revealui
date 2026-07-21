@@ -1,3 +1,4 @@
+import { Button } from '@revealui/presentation';
 import { useState } from 'react';
 
 interface TokenGroup {
@@ -124,24 +125,26 @@ export function TokensPage() {
 
       {/* Theme toggle */}
       <div className="flex gap-1 rounded-lg border border-border p-0.5 w-fit">
-        <button
+        <Button
           type="button"
+          appearance={theme === 'dark' ? 'solid' : 'ghost'}
+          variant={theme === 'dark' ? 'brand' : 'neutral'}
+          size="sm"
           onClick={() => setTheme('dark')}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-            theme === 'dark' ? 'bg-accent text-white' : 'text-text-muted hover:text-text-secondary'
-          }`}
+          className="h-auto px-3 py-1.5 text-xs"
         >
           Dark
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          appearance={theme === 'light' ? 'solid' : 'ghost'}
+          variant={theme === 'light' ? 'brand' : 'neutral'}
+          size="sm"
           onClick={() => setTheme('light')}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-            theme === 'light' ? 'bg-accent text-white' : 'text-text-muted hover:text-text-secondary'
-          }`}
+          className="h-auto px-3 py-1.5 text-xs"
         >
           Light
-        </button>
+        </Button>
       </div>
 
       {/* Color Tokens */}

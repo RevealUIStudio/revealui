@@ -24,47 +24,7 @@
     {
       "path": "apps/admin/src/app/(backend)/agents/new/page.tsx",
       "tag": "svg",
-      "reason": "admin residual; wizard step illustrations (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/coordination/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; coordination filters and row actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/coordination/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; coordination status icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/dashboard/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; dashboard metric/decorative icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/jobs/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; job table actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/jobs/page.tsx",
-      "tag": "select",
-      "reason": "admin residual; job filter select needs Select migration pass (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/jobs/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; job status icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/knowledge-graph/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; graph toolbar actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/knowledge-graph/page.tsx",
-      "tag": "input",
-      "reason": "admin residual; graph search/query field (GAP-398)"
+      "reason": "admin residual; wizard step illustrations without Icon* match (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
@@ -74,37 +34,7 @@
     {
       "path": "apps/admin/src/app/(backend)/marketplace/[agentId]/page.tsx",
       "tag": "svg",
-      "reason": "admin residual; marketplace detail icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; marketplace listing icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/publish/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; publish form actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/publish/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; publish flow icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/marketplace/tasks/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; marketplace task actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/mcp/inspect/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; MCP inspect toolbar (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/mcp/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; MCP hub tab/actions (GAP-398)"
+      "reason": "admin residual; marketplace detail icons without Icon* match (GAP-398)"
     },
     {
       "path": "apps/admin/src/app/(backend)/media/page.tsx",
@@ -124,57 +54,42 @@
     {
       "path": "apps/admin/src/app/(backend)/media/page.tsx",
       "tag": "svg",
-      "reason": "admin residual; media type/file icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/refunds/page.tsx",
-      "tag": "button",
-      "reason": "admin residual; refund table actions (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(backend)/refunds/page.tsx",
-      "tag": "svg",
-      "reason": "admin residual; refund status icons (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/app/(frontend)/signup/SignupForm.tsx",
-      "tag": "input",
-      "reason": "admin residual; ToS checkbox; presentation Checkbox a11y layout differs from label+links pattern (GAP-398)"
+      "reason": "admin residual; media type/file icons without Icon* match (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/elements/button.tsx",
       "tag": "button",
-      "reason": "admin residual; local marketing Button primitive scaffold wrapping host button (GAP-398)"
+      "reason": "legacy kit pending retirement (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/elements/email-signup-form.tsx",
       "tag": "input",
-      "reason": "admin residual; marketing email field in legacy element kit (GAP-398)"
+      "reason": "legacy kit pending retirement (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/footer-with-newsletter-form-categories-and-social-icons.tsx",
       "tag": "button",
-      "reason": "admin residual; legacy marketing footer CTA (GAP-398)"
+      "reason": "legacy kit pending retirement (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/footer-with-newsletter-form-categories-and-social-icons.tsx",
       "tag": "input",
-      "reason": "admin residual; legacy marketing footer newsletter input (GAP-398)"
+      "reason": "legacy kit pending retirement (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/navbar-with-links-actions-and-centered-logo.tsx",
       "tag": "button",
-      "reason": "admin residual; legacy marketing mobile nav toggles (GAP-398)"
+      "reason": "legacy kit pending retirement (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/navbar-with-links-actions-and-centered-logo.tsx",
       "tag": "svg",
-      "reason": "admin residual; legacy marketing logo/menu paths (GAP-398)"
+      "reason": "legacy kit pending retirement (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",
       "tag": "svg",
-      "reason": "admin residual; chart path geometry is content-driven (GAP-398)"
+      "reason": "legacy kit pending retirement; chart path geometry is content-driven (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/components/AdminSidebarLayout.tsx",
@@ -187,19 +102,9 @@
       "reason": "admin residual; chat composer/tool controls dense surface (GAP-398)"
     },
     {
-      "path": "apps/admin/src/lib/components/DataPanel/index.tsx",
-      "tag": "svg",
-      "reason": "admin residual; data panel chrome icons (GAP-398)"
-    },
-    {
       "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
       "tag": "svg",
       "reason": "admin residual; stacked outcome bar is data-driven SVG chart (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/components/SystemHealthMonitor/index.tsx",
-      "tag": "select",
-      "reason": "admin residual; health monitor filter selects (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/embed/components/EmbedNodeComponent.tsx",
@@ -222,69 +127,14 @@
       "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
     },
     {
-      "path": "apps/docs/app/components/showcase/CodeView.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/showcase/Preview.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/showcase/PropPanel.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/showcase/PropPanel.tsx",
-      "tag": "input",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/showcase/ShowcaseShell.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/showcase/ShowcaseShell.tsx",
-      "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/components/showcase/TokensPage.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/showcase/animations.showcase.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/showcase/drawer.showcase.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/showcase/icons.showcase.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
-      "path": "apps/docs/app/showcase/theme.showcase.tsx",
-      "tag": "button",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
-    },
-    {
       "path": "apps/marketing/app/components/landing/Primitives.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "content-driven primitive icon paths from CMS/static content; no Icon* match per card (GAP-398)"
     },
     {
       "path": "apps/marketing/app/routes/ProductsPage.tsx",
       "tag": "svg",
-      "reason": "GAP-398 residual burn-down (pre-existing Tier-1 handroll)"
+      "reason": "content-driven product icon paths; no Icon* match per product (GAP-398)"
     }
   ]
 }

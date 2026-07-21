@@ -63,14 +63,16 @@ const story: ShowcaseStory = {
               <DrawerBody>
                 <nav className="flex flex-col gap-2">
                   {['Dashboard', 'Settings', 'Users', 'Billing', 'Support'].map((item) => (
-                    <button
+                    <Button
                       key={item}
                       type="button"
+                      appearance="ghost"
+                      variant="neutral"
                       onClick={() => setOpen(false)}
-                      className="rounded-lg px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      className="justify-start rounded-lg px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                     >
                       {item}
-                    </button>
+                    </Button>
                   ))}
                 </nav>
               </DrawerBody>

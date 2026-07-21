@@ -1,3 +1,4 @@
+import { Button, GitHubIcon, IconChevronDown } from '@revealui/presentation';
 import { useState } from 'react';
 import { renderMarkdown } from '@/utils/markdown';
 import { CodeView } from './CodeView.js';
@@ -67,15 +68,7 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-secondary no-underline transition-colors hover:text-ink"
             >
-              <svg
-                className="h-3.5 w-3.5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <title>GitHub</title>
-                <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.36-3.87-1.36-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.27-5.24-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17.91-.25 1.89-.38 2.86-.38s1.95.13 2.86.38c2.19-1.48 3.15-1.17 3.15-1.17.62 1.58.23 2.75.11 3.04.74.8 1.18 1.82 1.18 3.07 0 4.4-2.69 5.36-5.25 5.65.41.36.78 1.06.78 2.14v3.18c0 .31.21.67.79.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z" />
-              </svg>
+              <GitHubIcon className="h-3.5 w-3.5" />
               View source
             </a>
           )}
@@ -114,18 +107,21 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-border">
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab.id}
             type="button"
+            appearance="ghost"
+            variant={activeTab === tab.id ? 'brand' : 'neutral'}
+            size="sm"
             onClick={() => setActiveTab(tab.id)}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+            className={`h-auto rounded-none border-b-2 px-4 py-2 text-sm font-medium ${
               activeTab === tab.id
                 ? 'border-accent text-accent'
                 : 'border-transparent text-text-muted hover:text-text-secondary'
             }`}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -173,17 +169,10 @@ export function ShowcaseShell({ story }: ShowcaseShellProps) {
         <details className="group rounded-xl border border-border bg-surface" open>
           <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-ink">
             <span>Accessibility</span>
-            <svg
-              className="h-4 w-4 text-text-muted transition-transform group-open:rotate-180"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <title>Toggle</title>
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
+            <IconChevronDown
+              size="sm"
+              className="text-text-muted transition-transform group-open:rotate-180"
+            />
           </summary>
           <div className="space-y-4 border-t border-border px-4 py-4">
             {a11y.conformance && a11y.conformance.length > 0 && (
