@@ -1,54 +1,37 @@
----
-title: "Electric Latency Probe"
-description: "Measures end-to-end propagation latency through the local admin app:"
-visibility: internal
-status: verified
-audience: contributor
----
+# Electric latency probe
 
-# Electric Latency Probe
+Isolated stack for measuring ElectricSQL shape-sync latency against a throwaway
+Postgres. **Ephemeral only** — never the long-lived admin / fleet-marketing
+database.
 
-Measures end-to-end propagation latency through the local admin app:
-write → DB → Electric → shape stream → subscriber callback.
+| Service | Host port | Identity |
+|---------|-----------|----------|
+| Postgres | **5434** | user/db `revealui` / `revealui_probe` |
+| Electric | **5133** | local only |
 
-Produces a small notes file with a median + p95 number you can quote
-in a meeting, with a header that identifies which backend was measured.
+Fleet seeds (`pnpm db:seed:fleet-marketing`, etc.) **refuse** this target unless
+`REVEALUI_ALLOW_PROBE_DB=1` (see `scripts/lib/seed-env.ts`).
 
-## Why local, not prod
+## Durable rule (do not re-break local dev)
 
-- The first Forge customer's deployment is local-box, not cloud. The honest
-  number is the local number; the cloud path adds Vercel→Electric
-  and Electric→Neon hops that the customer won't experience.
-- Avoids writing 50 POSTs into a prod shape other subscribers read.
-- Secrets posture: the script pulls from revvault rather than
-  env-vars you have to paste anywhere.
+**Never leave the probe URL in `apps/admin/.env.local`.**
 
-## One-time setup (~10 min)
+That file is the durable admin database pointer (and is loaded by seed scripts).
+Swapping it to port 5434 for a probe run, then forgetting to restore, makes every
+later seed/bootstrap fail with a cryptic connection error against a dead port.
 
-### 1. Store the config values in revvault
+Use **session-scoped env** or a **separate probe env file** (below). Do not
+`sed` the durable `.env.local` as the primary workflow.
 
-Revvault is the single source of truth for all secrets. See
-`~/.claude/rules/secrets.md` for the hard rule.
+## Runbook
 
-```bash
-# Electric service URL — LOCAL running Electric (see step 2). Do NOT use prod.
-echo "http://localhost:5133" | revvault set revealui/dev/electric/service-url
+### 1. Prerequisites
 
-# The admin app base URL (usually localhost:4000 in dev).
-echo "http://localhost:4000" | revvault set revealui/dev/admin-base-url
+- Docker
+- A cookie for an authenticated admin session (see step 5) stored in revvault:
+  `revealui/dev/admin-session-cookie`
 
-# Session cookie — deferred to step 5 (requires signed-in browser session).
-```
-
-(Electric's shared secret, if any, is handled server-side by the admin
-proxy — the probe doesn't need its own copy in revvault.)
-
-All command blocks below assume your shell is at the repo root.
-
-### 2. Bring up the probe stack (postgres + electric)
-
-Isolated compose in this directory. Uses ports 5434 (postgres) and 5133
-(electric) — doesn't collide with any other compose.
+### 2. Bring up the probe stack
 
 ```bash
 docker compose -f scripts/electric-latency-probe/docker-compose.yml up -d
@@ -56,104 +39,86 @@ docker compose -f scripts/electric-latency-probe/docker-compose.yml ps
 # Both services should report "healthy" within ~30s.
 ```
 
-### 3. Apply the schema to the probe postgres
-
-Drizzle migrations create the tables the probe writes to (`shared_facts`,
-etc.). Run once after bringing up the stack:
+### 3. Apply schema to the probe postgres (session env only)
 
 ```bash
-DATABASE_URL='postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable' \
+export PROBE_DATABASE_URL='postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable'
+
+DATABASE_URL="$PROBE_DATABASE_URL" POSTGRES_URL="$PROBE_DATABASE_URL" \
   pnpm --filter @revealui/db db:migrate
 ```
 
-### 4. Point admin at the probe DB for this session
+### 4. Point **this shell** (or a probe-only env file) at the probe DB
 
-The admin app's `.env.local` usually points at cloud. For the probe run,
-swap `DATABASE_URL` to the probe DB. Back up first so the swap is reversible:
+**Preferred — session env (no file mutation):**
 
 ```bash
-cp apps/admin/.env.local apps/admin/.env.local.backup
+export DATABASE_URL="$PROBE_DATABASE_URL"
+export POSTGRES_URL="$PROBE_DATABASE_URL"
+export ELECTRIC_SERVICE_URL='http://localhost:5133'
 
-# Replace the DATABASE_URL line:
-sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable|' \
-  apps/admin/.env.local
-
-# Add the probe Electric URL (or edit if present):
-grep -q '^ELECTRIC_SERVICE_URL=' apps/admin/.env.local \
-  && sed -i 's|^ELECTRIC_SERVICE_URL=.*|ELECTRIC_SERVICE_URL=http://localhost:5133|' apps/admin/.env.local \
-  || echo 'ELECTRIC_SERVICE_URL=http://localhost:5133' >> apps/admin/.env.local
+pnpm dev:admin
+# admin uses the process env for this terminal only
 ```
 
-Restore after the probe run:
-`cp apps/admin/.env.local.backup apps/admin/.env.local && rm apps/admin/.env.local.backup`.
+**Alternate — probe-only env file (never overwrite durable .env.local):**
 
-### 5. Start admin, sign in, store session cookie
+```bash
+# Create once; gitignored via .env*.local
+cat > apps/admin/.env.probe.local <<'EOF'
+DATABASE_URL=postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable
+POSTGRES_URL=postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable
+ELECTRIC_SERVICE_URL=http://localhost:5133
+EOF
+
+# Load only for the probe session (example):
+set -a && source apps/admin/.env.probe.local && set +a
+pnpm dev:admin
+```
+
+**Forbidden as the durable workflow:** permanently rewriting
+`apps/admin/.env.local` with a `sed` that points at 5434. If you must edit a
+file for an old tool, take a timestamped backup and restore in the same shell
+session before you leave:
+
+```bash
+# Discouraged; only if a tool cannot accept env overrides
+cp apps/admin/.env.local "apps/admin/.env.local.bak.$(date +%Y%m%d%H%M%S)"
+# …edit…
+# restore before any fleet seed / normal admin work:
+# cp apps/admin/.env.local.bak.<timestamp> apps/admin/.env.local
+```
+
+### 5. Sign in and store session cookie
 
 ```bash
 pnpm dev:admin
-# admin now serving on http://localhost:4000
+# http://localhost:4000
 ```
-
-In a browser:
 
 1. Open `http://localhost:4000/admin`
-2. Create an account (fresh probe DB has no users)
-3. Devtools → Application → Cookies → `localhost:4000` → copy the value
-   of `revealui-session`
-4. Store it in revvault:
-
-```bash
-echo '<cookie_value>' | revvault set revealui/dev/admin-session-cookie
-```
+2. Create an account on the **probe** DB (fresh each volume)
+3. Devtools → Cookies → copy `revealui-session`
+4. `echo '<cookie_value>' | revvault set revealui/dev/admin-session-cookie`
 
 ### 6. Run the probe
 
 ```bash
+# Still with PROBE_DATABASE_URL / ELECTRIC_SERVICE_URL in this shell
 pnpm exec tsx scripts/electric-latency-probe/probe.ts
-
-# Output file:
-#   scripts/electric-latency-probe/latency-notes-<timestamp>.md
+# → scripts/electric-latency-probe/latency-notes-<timestamp>.md
 ```
 
 ### 7. Teardown
 
 ```bash
-# Restore admin env
-cp apps/admin/.env.local.backup apps/admin/.env.local && rm apps/admin/.env.local.backup
-
-# Bring down the probe stack (-v removes the postgres volume → fresh DB next time)
 docker compose -f scripts/electric-latency-probe/docker-compose.yml down -v
+unset DATABASE_URL POSTGRES_URL ELECTRIC_SERVICE_URL PROBE_DATABASE_URL
+# Confirm durable admin env still points at docker-compose :5432 or Neon — not 5434
 ```
 
-## Known gotchas — verify before first run
+## Known gotchas
 
-- [ ] **AI feature gate.** The shared-facts mutation route may run through
-      `checkAIFeatureGate`. If it rejects without a license key, the first
-      write fails with 403 and the probe exits before warmup completes.
-      Resolve by issuing a dev license or bypassing the gate for
-      localhost in dev mode.
-- [ ] **session_id uniqueness.** Probe uses a UUID prefixed `probe-`,
-      visible in the notes file header. Low clash risk; flagged for
-      traceability only.
-
-## What it measures (two timings per write)
-
-- **mutation_accepted_to_subscriber_ms** — wall-clock from
-  `POST /api/sync/shared-facts` returning 201 (server has committed
-  the row) to the subscriber's callback firing with the new row.
-  **This is the number you quote in the room.**
-- **commit_confirmed_to_subscriber_ms** — wall-clock from the `fetch`
-  call starting to the subscriber's callback firing. Includes the
-  mutation route's own latency (auth, validation, DB insert, network).
-  **Diagnostic only.** Use to decompose if the room number regresses.
-
-Output has both, labeled unambiguously.
-
-## What it does NOT measure
-
-- Concurrent load. All writes are serial. Don't quote the measured
-  number as an upper bound on propagation under concurrent writes —
-  the real number at 50 concurrent agents is unknown and not addressed
-  by this script. If someone asks, say exactly that.
-- The Vercel → Electric → Neon cloud path. Prod would have that
-  plus CDN caching behavior we don't simulate here.
+- [ ] **AI feature gate.** Shared-facts mutation may require a dev license.
+- [ ] **session_id uniqueness.** Probe uses a UUID prefixed `probe-`.
+- [ ] **Fleet seed refusal.** If you see `Seed refused the electric-latency-probe database`, your durable env still points at 5434; fix `apps/admin/.env.local` or export a real `POSTGRES_URL` before re-running `pnpm db:seed:fleet-marketing`.
