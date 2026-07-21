@@ -316,12 +316,12 @@ describe('I-5 a receipt per call', () => {
 // Per-tool authz (I-7) is only sound if one tool cannot reach another tool's
 // endpoint. `revealui_list_content` / `revealui_get_content` interpolate the
 // `collection` arg into `/api/<collection>`, so a free-string collection would
-// let a content tool reach e.g. `/api/users` — bypassing the admin gate on the
+// let a content tool reach e.g. `/api/content/users` — bypassing the admin gate on the
 // separate `revealui_list_users` tool. The factory now validates `collection`
 // against the RESOLVED exposed-collections allowlist, deny-by-default.
 
 describe('content tools reject collections outside the exposed allowlist', () => {
-  it('revealui_list_content denies collection=users — denied receipt, /api/users never reached', async () => {
+  it('revealui_list_content denies collection=users — denied receipt, /api/content/users never reached', async () => {
     const backend = await startFakeBackend(okBackend);
     // No collectionsProvider → curated fallback (posts/pages/products/media)
     // is the exposed set; `users` is not in it.
@@ -337,7 +337,7 @@ describe('content tools reject collections outside the exposed allowlist', () =>
     expect(result.isError).toBe(true);
     // The ambient/user backend is never reached for an unexposed collection.
     expect(backend.calls).toHaveLength(0);
-    expect(backend.calls.some((c) => c.url.startsWith('/api/users'))).toBe(false);
+    expect(backend.calls.some((c) => c.url.startsWith('/api/content/users'))).toBe(false);
     expect(governed.audits).toHaveLength(1);
     expect(governed.audits[0]?.outcome).toBe('denied');
     expect(governed.audits[0]?.reason).toBe('collection-not-exposed');
@@ -376,7 +376,7 @@ describe('content tools reject collections outside the exposed allowlist', () =>
     await client.close();
 
     expect(result.isError).toBeFalsy();
-    expect(backend.calls.some((c) => c.url.startsWith('/api/posts'))).toBe(true);
+    expect(backend.calls.some((c) => c.url.startsWith('/api/content/posts'))).toBe(true);
     expect(governed.audits[0]?.outcome).toBe('invoked');
   });
 
@@ -399,10 +399,10 @@ describe('content tools reject collections outside the exposed allowlist', () =>
     await client.close();
 
     expect(exposed.isError).toBeFalsy();
-    expect(backend.calls.some((c) => c.url.startsWith('/api/articles'))).toBe(true);
+    expect(backend.calls.some((c) => c.url.startsWith('/api/content/articles'))).toBe(true);
     // `posts` is in the curated fallback but NOT in the resolved provider set → denied.
     expect(curatedButNotExposed.isError).toBe(true);
-    expect(backend.calls.some((c) => c.url.startsWith('/api/posts'))).toBe(false);
+    expect(backend.calls.some((c) => c.url.startsWith('/api/content/posts'))).toBe(false);
   });
 });
 
