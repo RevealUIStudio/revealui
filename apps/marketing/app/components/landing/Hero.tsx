@@ -61,7 +61,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
           className="w-full sm:w-auto gap-2"
         >
           <a href={hero.cta.secondary.href} target="_blank" rel="noopener noreferrer">
-            <GitHubIcon size="sm" />
+            <GitHubIcon className="size-4" />
             {hero.cta.secondary.label}
           </a>
         </Button>

@@ -23,7 +23,7 @@ export function Proof() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-border hover:ring-border/80 transition"
             >
-              <GitHubIcon size="sm" />
+              <GitHubIcon className="size-4" />
               {PROOF_SECTION.repoLinkLabel}
             </a>
           </div>
