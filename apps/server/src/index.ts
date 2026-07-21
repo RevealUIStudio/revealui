@@ -20,6 +20,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getHeapStatistics } from 'node:v8';
 import { serve } from '@hono/node-server';
@@ -992,23 +993,28 @@ app.doc('/openapi.json', {
 });
 
 // Self-hosted Swagger UI (no CDN, CSP-strict compatible).
-// Resolve assets via import.meta.resolve so BOTH runtimes work (GAP-401):
-// - `tsx watch` has no tsup banner `require`
-// - the tsup banner injects `createRequire` + `const require`; a second
-//   `import { createRequire }` in this file becomes a SyntaxError in the
-//   bundled chunk (Identifier 'createRequire' has already been declared)
-const swaggerCss = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
-  'utf-8',
-);
-const swaggerBundleJs = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
-  'utf-8',
-);
-const swaggerPresetJs = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
-  'utf-8',
-);
+// Prefer dist/assets/swagger-ui copies from copy-swagger-ui (prod / NFT-safe).
+// Fall back to import.meta.resolve for tsx watch (GAP-401). Do NOT rely on
+// package resolution alone on Vercel: after GAP-403 excludeFiles, NFT drops
+// swagger-ui-dist and cold start throws ERR_MODULE_NOT_FOUND (FUNCTION_INVOCATION_FAILED).
+function readSwaggerAsset(filename: string): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    join(here, 'assets', 'swagger-ui', filename),
+    join(here, '..', 'assets', 'swagger-ui', filename),
+  ];
+  for (const path of candidates) {
+    try {
+      return readFileSync(path, 'utf-8');
+    } catch {
+      // try next / package resolve
+    }
+  }
+  return readFileSync(fileURLToPath(import.meta.resolve(`swagger-ui-dist/${filename}`)), 'utf-8');
+}
+const swaggerCss = readSwaggerAsset('swagger-ui.css');
+const swaggerBundleJs = readSwaggerAsset('swagger-ui-bundle.js');
+const swaggerPresetJs = readSwaggerAsset('swagger-ui-standalone-preset.js');
 const swaggerInitJs = `window.addEventListener('load', function () {
   window.ui = SwaggerUIBundle({
     url: '/openapi.json',
