@@ -43,6 +43,7 @@ describe('marketing route registry', () => {
       '/blog',
       '/blog/getting-started',
       '/blog/ui-of-the-future',
+      '/blog/shareable-upside',
       '/contact',
       '/fair-source',
       '/roadmap',
