@@ -194,7 +194,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     // All other authenticated paths are open to any role.
     if (isAdminOnlyPath(pathname)) {
       const role = request.cookies.get('revealui-role')?.value;
-      if (!role || !ADMIN_ROLES.has(role)) {
+      if (!(role && ADMIN_ROLES.has(role))) {
         const welcomeUrl = request.nextUrl.clone();
         welcomeUrl.pathname = '/welcome';
         welcomeUrl.search = '';

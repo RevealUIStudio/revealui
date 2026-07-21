@@ -510,7 +510,7 @@ describe('MCPHypervisor', () => {
 
       const writes = mockProcess.stdin.write.mock.calls;
       expect(writes).toHaveLength(1);
-      const parsed = JSON.parse((writes[0]?.[0] as string).trim());
+      const parsed = JSON.parse(String(writes[0]?.[0] ?? '').trim());
 
       expect(parsed).toMatchObject({
         jsonrpc: '2.0',
@@ -601,7 +601,7 @@ describe('MCPHypervisor', () => {
 
       // Get the request ID from what was written to stdin
       const writes = mockProcess.stdin.write.mock.calls;
-      const lastReq = JSON.parse((writes[0]?.[0] as string).trim());
+      const lastReq = JSON.parse(String(writes[0]?.[0] ?? '').trim());
 
       // Send a JSON-RPC error response
       stdoutCb(
@@ -654,7 +654,7 @@ describe('MCPHypervisor', () => {
       mockProcess.stdin.write.mockClear();
       const toolPromise = hv.callTool('test-server', 'do_thing', { x: 1 });
 
-      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
         id: number;
       };
       stdoutCb(
@@ -688,7 +688,7 @@ describe('MCPHypervisor', () => {
       mockProcess.stdin.write.mockClear();
       const toolPromise = hv.callTool('test-server', 'failing_tool', {});
 
-      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
         id: number;
       };
       stdoutCb(
@@ -778,7 +778,7 @@ describe('MCPHypervisor', () => {
       mockProcess.stdin.write.mockClear();
       const toolPromise = hv.callTool('test-server', 'do_thing', {});
 
-      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
         id: number;
       };
       stdoutCb(
@@ -800,7 +800,7 @@ describe('MCPHypervisor', () => {
 
       mockProcess.stdin.write.mockClear();
       const toolPromise = hv.callTool('test-server', 'do_thing', {});
-      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
         id: number;
       };
       stdoutCb(
@@ -823,7 +823,7 @@ describe('MCPHypervisor', () => {
 
       mockProcess.stdin.write.mockClear();
       const toolPromise = hv.callTool('test-server', 'do_thing', {});
-      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
         id: number;
       };
       stdoutCb(
@@ -847,7 +847,7 @@ describe('MCPHypervisor', () => {
 
       mockProcess.stdin.write.mockClear();
       const toolPromise = hv.callTool('test-server', 'do_thing', {});
-      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
         id: number;
       };
       stdoutCb(

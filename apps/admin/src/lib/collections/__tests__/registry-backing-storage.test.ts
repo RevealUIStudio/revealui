@@ -40,9 +40,10 @@ describe('registry backing-storage invariant', () => {
     expect(tableNames.has('users')).toBe(true);
   });
 
-  it.each(
-    allCollections.map((collection) => collection.slug),
-  )('registered collection "%s" has a backing table named the same as its slug', (slug) => {
-    expect(tableNames.has(slug)).toBe(true);
-  });
+  it.each(allCollections.map((collection) => collection.slug))(
+    'registered collection "%s" has a backing table named the same as its slug',
+    (slug) => {
+      expect(tableNames.has(slug)).toBe(true);
+    },
+  );
 });

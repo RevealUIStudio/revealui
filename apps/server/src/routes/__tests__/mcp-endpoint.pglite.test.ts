@@ -258,7 +258,7 @@ describe('acceptance: full governed session', () => {
     // audit-signing-roundtrip.pglite.test.ts.
     expect(row?.signature).toBeNull();
     expect(row?.previousSignature).toBeNull();
-    expect((row?.payload as { userId?: string }).userId).toBe('user-A');
+    expect((row?.payload as { userId?: string } | undefined)?.userId).toBe('user-A');
     expect(row?.agentId).toBe('mcp:e2e');
   });
 });

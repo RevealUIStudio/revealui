@@ -54,14 +54,13 @@ describe('SlugField schema validation', () => {
   });
 
   describe('rejects path traversal payloads', () => {
-    it.each([
-      '../../../etc/passwd',
-      '..%2F..%2Fetc%2Fpasswd',
-      'slug/../../secret',
-    ])('rejects "%s"', (slug) => {
-      const result = SlugField.safeParse(slug);
-      expect(result.success).toBe(false);
-    });
+    it.each(['../../../etc/passwd', '..%2F..%2Fetc%2Fpasswd', 'slug/../../secret'])(
+      'rejects "%s"',
+      (slug) => {
+        const result = SlugField.safeParse(slug);
+        expect(result.success).toBe(false);
+      },
+    );
   });
 
   describe('rejects structurally invalid slugs', () => {
@@ -97,18 +96,13 @@ describe('SlugField schema validation', () => {
   });
 
   describe('accepts valid slugs', () => {
-    it.each([
-      'hello',
-      'my-post',
-      'my-valid-post-123',
-      'a',
-      '123',
-      'post-2024',
-      'a'.repeat(200),
-    ])('accepts "%s"', (slug) => {
-      const result = SlugField.safeParse(slug);
-      expect(result.success).toBe(true);
-    });
+    it.each(['hello', 'my-post', 'my-valid-post-123', 'a', '123', 'post-2024', 'a'.repeat(200)])(
+      'accepts "%s"',
+      (slug) => {
+        const result = SlugField.safeParse(slug);
+        expect(result.success).toBe(true);
+      },
+    );
   });
 });
 
@@ -292,22 +286,20 @@ describe('PATCH /posts/:id  -  slug XSS/injection rejection', () => {
 describe('POST /sites  -  slug XSS/injection rejection', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it.each([
-    '<script>alert(1)</script>',
-    "'; DROP TABLE sites; --",
-    'My Site',
-    'site with spaces',
-  ])('rejects invalid slug "%s"', async (slug) => {
-    const app = createApp(USER_A);
-    const res = await app.request('/sites', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Test Site', slug }),
-    });
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
-    expect(mockSiteQueries.createSite).not.toHaveBeenCalled();
-  });
+  it.each(['<script>alert(1)</script>', "'; DROP TABLE sites; --", 'My Site', 'site with spaces'])(
+    'rejects invalid slug "%s"',
+    async (slug) => {
+      const app = createApp(USER_A);
+      const res = await app.request('/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test Site', slug }),
+      });
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(res.status).toBeLessThan(500);
+      expect(mockSiteQueries.createSite).not.toHaveBeenCalled();
+    },
+  );
 
   it('accepts a valid slug', async () => {
     mockSiteQueries.createSite.mockResolvedValue(makeSite());
@@ -350,21 +342,20 @@ describe('POST /sites/:siteId/pages  -  slug XSS/injection rejection', () => {
     mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
   });
 
-  it.each([
-    '<script>alert(1)</script>',
-    "'; DROP TABLE pages; --",
-    'Page With Spaces',
-  ])('rejects invalid page slug "%s"', async (slug) => {
-    const app = createApp(USER_A);
-    const res = await app.request('/sites/site-1/pages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'Test Page', slug, path: '/test' }),
-    });
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
-    expect(mockPageQueries.createPage).not.toHaveBeenCalled();
-  });
+  it.each(['<script>alert(1)</script>', "'; DROP TABLE pages; --", 'Page With Spaces'])(
+    'rejects invalid page slug "%s"',
+    async (slug) => {
+      const app = createApp(USER_A);
+      const res = await app.request('/sites/site-1/pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Test Page', slug, path: '/test' }),
+      });
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(res.status).toBeLessThan(500);
+      expect(mockPageQueries.createPage).not.toHaveBeenCalled();
+    },
+  );
 
   it('accepts a valid page slug', async () => {
     mockPageQueries.createPage.mockResolvedValue({

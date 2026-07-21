@@ -19,7 +19,7 @@ export function resolveSelfApiBaseUrl(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
   const raw =
-    (override && override.trim()) ||
+    override?.trim() ||
     env.REVEALUI_API_URL?.trim() ||
     env.NEXT_PUBLIC_API_URL?.trim() ||
     env.API_URL?.trim() ||
