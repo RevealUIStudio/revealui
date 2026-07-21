@@ -8,6 +8,8 @@
  * parse variable-font fvar tables, so we ship single-weight static instances.
  * Regenerate via apps/server/scripts/regen-og-fonts.sh. Build copies fonts to
  * dist/assets/fonts (copy-og-fonts); vercel.json includeFiles ships them.
+ * Fonts load lazily on first /api/og hit so a missing file never takes down
+ * /health (2026-07-21 post-#2027 production outage class).
  *
  * Used by marketing + (future) blog post OG meta tags:
  *   <meta property="og:image"
@@ -68,17 +70,27 @@ function readResvgWasm() {
  * ERR_UNKNOWN_FILE_EXTENSION on bare `.ttf` imports (GAP-401). Runtime
  * readFileSync matches the WASM pattern.
  *
- * Resolution order:
- * 1. dist colocated copy from `copy-og-fonts` (prod / tsup bundle)
- * 2. source tree `src/assets/fonts` when running via tsx from `src/routes`
+ * CRITICAL: do not call this at module top level. A throw during import of
+ * og.ts (pulled in by `import ogRoute from './routes/og.js'` in index.ts)
+ * aborts the entire serverless handler, including `/health` — that is the
+ * 2026-07-21 production FUNCTION_INVOCATION_FAILED class after #2023.
+ * Load fonts lazily on the first `/api/og` request only.
+ *
+ * Resolution order (covers tsup chunk cwd, Vercel includeFiles layout, tsx):
+ * 1. next to this module (`dist/assets/fonts` when bundled into dist/*)
+ * 2. one level up (`src/assets/fonts` when this file is at `src/routes/og.ts`)
+ * 3. process.cwd()/dist/assets/fonts and process.cwd()/assets/fonts
+ * 4. process.cwd()/src/assets/fonts (tsx from monorepo apps/server)
  */
-function readOgFont(filename: string): Buffer {
+export function readOgFont(filename: string): Buffer {
   const here = dirname(fileURLToPath(import.meta.url));
-  // dist/index.js (or chunk next to dist/) → dist/assets/fonts
-  // src/routes/og.ts under tsx → src/assets/fonts
+  const cwd = process.cwd();
   const candidates = [
     join(here, 'assets', 'fonts', filename),
     join(here, '..', 'assets', 'fonts', filename),
+    join(cwd, 'dist', 'assets', 'fonts', filename),
+    join(cwd, 'assets', 'fonts', filename),
+    join(cwd, 'src', 'assets', 'fonts', filename),
   ];
   for (const path of candidates) {
     try {
@@ -92,8 +104,28 @@ function readOgFont(filename: string): Buffer {
   );
 }
 
-const InterTightRegular = readOgFont('InterTight-Regular.ttf');
-const InterTightBold = readOgFont('InterTight-Bold.ttf');
+interface OgFonts {
+  regular: Buffer;
+  bold: Buffer;
+}
+
+let ogFontsCache: OgFonts | null = null;
+
+/** Lazy singleton — safe for cold starts; never runs at import time. */
+export function loadOgFonts(): OgFonts {
+  if (!ogFontsCache) {
+    ogFontsCache = {
+      regular: readOgFont('InterTight-Regular.ttf'),
+      bold: readOgFont('InterTight-Bold.ttf'),
+    };
+  }
+  return ogFontsCache;
+}
+
+/** Test-only: drop the singleton so path-resolution tests can re-run. */
+export function resetOgFontsCacheForTests(): void {
+  ogFontsCache = null;
+}
 
 let wasmInitPromise: Promise<void> | null = null;
 function ensureWasm(): Promise<void> {
@@ -224,6 +256,7 @@ app.get('/', async (c) => {
   );
 
   const node = buildNode(title, description);
+  const fonts = loadOgFonts();
 
   // satori's signature is typed against React's ReactNode. We construct a
   // ReactNode-compatible object tree manually to avoid a runtime React dep
@@ -232,8 +265,8 @@ app.get('/', async (c) => {
     width: WIDTH,
     height: HEIGHT,
     fonts: [
-      { name: 'Inter Tight', data: InterTightRegular, weight: 400, style: 'normal' },
-      { name: 'Inter Tight', data: InterTightBold, weight: 700, style: 'normal' },
+      { name: 'Inter Tight', data: fonts.regular, weight: 400, style: 'normal' },
+      { name: 'Inter Tight', data: fonts.bold, weight: 700, style: 'normal' },
     ],
   });
 

@@ -51,6 +51,7 @@ import {
   installAuditStorage,
 } from './lib/audit-storage.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { createLazyHonoRoute } from './lib/lazy-hono-route.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
 import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 import {
@@ -126,7 +127,6 @@ import marketplaceRoute from './routes/marketplace.js';
 import { mountMcpEndpoint } from './routes/mcp-endpoint.js';
 import mcpUsageRoute from './routes/mcp-usage.js';
 import nudgesRoute from './routes/nudges.js';
-import ogRoute from './routes/og.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
@@ -997,18 +997,39 @@ app.doc('/openapi.json', {
 // - the tsup banner injects `createRequire` + `const require`; a second
 //   `import { createRequire }` in this file becomes a SyntaxError in the
 //   bundled chunk (Identifier 'createRequire' has already been declared)
-const swaggerCss = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
-  'utf-8',
-);
-const swaggerBundleJs = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
-  'utf-8',
-);
-const swaggerPresetJs = readFileSync(
-  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
-  'utf-8',
-);
+//
+// Lazy-load on first /docs* hit. Top-level readFileSync of swagger-ui-dist
+// (or missing NFT-traced node_modules files on Vercel) would crash module
+// evaluation and take down /health with FUNCTION_INVOCATION_FAILED — same
+// class as the 2026-07-21 post-#2027 API outage.
+interface SwaggerAssets {
+  css: string;
+  bundleJs: string;
+  presetJs: string;
+}
+
+let swaggerAssetsCache: SwaggerAssets | null = null;
+
+function loadSwaggerAssets(): SwaggerAssets {
+  if (!swaggerAssetsCache) {
+    swaggerAssetsCache = {
+      css: readFileSync(
+        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
+        'utf-8',
+      ),
+      bundleJs: readFileSync(
+        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
+        'utf-8',
+      ),
+      presetJs: readFileSync(
+        fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
+        'utf-8',
+      ),
+    };
+  }
+  return swaggerAssetsCache;
+}
+
 const swaggerInitJs = `window.addEventListener('load', function () {
   window.ui = SwaggerUIBundle({
     url: '/openapi.json',
@@ -1022,19 +1043,19 @@ const swaggerInitJs = `window.addEventListener('load', function () {
 const IMMUTABLE_ASSET = 'public, max-age=31536000, immutable';
 
 app.get('/docs/swagger-ui.css', (c) =>
-  c.body(swaggerCss, 200, {
+  c.body(loadSwaggerAssets().css, 200, {
     'content-type': 'text/css; charset=utf-8',
     'cache-control': IMMUTABLE_ASSET,
   }),
 );
 app.get('/docs/swagger-ui-bundle.js', (c) =>
-  c.body(swaggerBundleJs, 200, {
+  c.body(loadSwaggerAssets().bundleJs, 200, {
     'content-type': 'application/javascript; charset=utf-8',
     'cache-control': IMMUTABLE_ASSET,
   }),
 );
 app.get('/docs/swagger-ui-standalone-preset.js', (c) =>
-  c.body(swaggerPresetJs, 200, {
+  c.body(loadSwaggerAssets().presetJs, 200, {
     'content-type': 'application/javascript; charset=utf-8',
     'cache-control': IMMUTABLE_ASSET,
   }),
@@ -1251,7 +1272,11 @@ app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
-app.route('/api/og', ogRoute);
+// OG image generation: lazy-load satori/resvg/fonts — never on cold-start path.
+app.route(
+  '/api/og',
+  createLazyHonoRoute(() => import('./routes/og.js')),
+);
 app.route('/api/pricing', pricingRoute);
 app.route('/api/audit', auditRoute);
 app.route('/api/revmarket', revmarketRoute);
@@ -1319,7 +1344,10 @@ app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
-app.route('/api/v1/og', ogRoute);
+app.route(
+  '/api/v1/og',
+  createLazyHonoRoute(() => import('./routes/og.js')),
+);
 app.route('/api/v1/pricing', pricingRoute);
 app.route('/api/v1/audit', auditRoute);
 app.route('/api/v1/revmarket', revmarketRoute);
