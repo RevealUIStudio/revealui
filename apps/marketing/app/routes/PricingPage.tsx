@@ -1,4 +1,4 @@
-import { Button } from '@revealui/presentation';
+import { Button, IconCheckCircle } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
@@ -38,19 +38,6 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com'
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-      <title>Included</title>
-      <path
-        fillRule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
@@ -170,7 +157,7 @@ export function PricingPage() {
             <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {PRICING_VALUE_BAND.points.map((point) => (
                 <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -179,32 +166,30 @@ export function PricingPage() {
 
           {showAnnualToggle && (
             <div className="mb-8 flex justify-center">
-              <div className="inline-flex items-center rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
-                <button
+              <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
+                <Button
                   type="button"
+                  size="sm"
+                  appearance={billingInterval === 'month' ? 'solid' : 'ghost'}
+                  variant={billingInterval === 'month' ? 'neutral' : 'neutral'}
                   onClick={() => setBillingInterval('month')}
-                  className={`rounded-full px-4 py-1.5 transition-colors ${
-                    billingInterval === 'month'
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className="rounded-full"
                 >
                   Monthly
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  size="sm"
+                  appearance={billingInterval === 'year' ? 'solid' : 'ghost'}
+                  variant={billingInterval === 'year' ? 'neutral' : 'neutral'}
                   onClick={() => setBillingInterval('year')}
-                  className={`rounded-full px-4 py-1.5 transition-colors ${
-                    billingInterval === 'year'
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className="rounded-full"
                 >
                   Annually
                   <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-800 dark:text-green-400">
                     Save 20%
                   </span>
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -244,7 +229,7 @@ export function PricingPage() {
                 <ul className="mb-8 flex-1 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
-                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -317,7 +302,7 @@ export function PricingPage() {
             <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
                 <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -357,7 +342,7 @@ export function PricingPage() {
                 <ul className="mb-8 mt-6 flex-1 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
-                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
