@@ -400,13 +400,11 @@ async function gate(): Promise<void> {
       },
       {
         // GAP-398: Tier-1 handroll JSX (button/input/select/textarea/svg) must
-        // use @revealui/presentation. Warn-only while allowlist burns to zero;
-        // flip to hard fail when validate:tier1-presentation --hard-fail is clean
-        // with an empty allowlist (or zero entries).
-        name: 'Tier-1 presentation (warn)',
+        // use @revealui/presentation. Hard-fail on non-allowlisted hits (burn
+        // remaining allowlist entries separately; do not re-widen).
+        name: 'Tier-1 presentation (hard fail)',
         command: 'pnpm',
-        args: ['validate:tier1-presentation'],
-        warnOnly: true,
+        args: ['validate:tier1-presentation', '--', '--hard-fail'],
       },
       {
         name: 'Security audit',
