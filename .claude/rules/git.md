@@ -18,6 +18,20 @@
 - `main` only ever receives changes via a promotion PR whose head is `test` (enforced by `promotion-gate.yml`). Never push directly to `main` or `test`, and never open a feature PR directly against `main`.
 - Merge manually after review — no auto-merge.
 
+### HARDLINE: never branch off a feature branch (owner 2026-07-21)
+
+Always cut new branches from **`origin/test`**, never from an existing
+`feat/*` / `fix/*` / `chore/*` tip (even if that tip already equals test).
+
+```bash
+git fetch origin test
+git switch -c fix/<name> origin/test
+```
+
+Grok worktrees: always pass `--ref test` (or use `rfg`, which injects it).
+Without `--ref`, Grok bases the worktree on the source checkout's current
+HEAD, which is wrong when the main tree is mid-feature.
+
 ## Issue → PR → Close Workflow
 - PRs that fix a GitHub issue MUST include `Closes #N` in the PR description
 - Place `Closes #N` at the top of the PR body (the template prompts for it)

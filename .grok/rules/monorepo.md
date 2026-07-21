@@ -36,3 +36,8 @@ pnpm validate:claims
 ## Branch
 
 Feature PRs → `test`. Never PR direct to `main`.
+
+Shared branch policy is **not** authored here (Plane A). Canon:
+`~/.claude/rules/git.md` + revcon `profiles/revfleet/claude/rules/git.md`.
+Launch: `rfg` (Plane C). Architecture ADR:
+`2026-07-21-harness-policy-runtime-launch-planes`.
