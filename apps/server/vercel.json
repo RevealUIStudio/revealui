@@ -6,7 +6,7 @@
     "api/**": {
       "memory": 512,
       "maxDuration": 30,
-      "includeFiles": "dist/index_bg.wasm",
+      "includeFiles": "{dist/index_bg.wasm,dist/assets/fonts/**}",
       "excludeFiles": "{**/*.ts,**/*.tsx,apps/admin/**,apps/marketing/**,apps/docs/**,packages/**/src/**,packages/**/templates/**,**/coverage/**,**/.next/**,**/.turbo/**,**/__tests__/**}"
     }
   },

@@ -490,6 +490,71 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
+  # Phase 3c: Server tsx-dev boot smoke (all branches) — GAP-401
+  # ---------------------------------------------------------------------------
+  # E2E smoke only starts `pnpm --filter server start` (built bundle). That left
+  # `tsx watch src/index.ts` (pnpm dev:api) broken for months without CI signal.
+  # This job boots the SAME entry as package.json "dev" under tsx, hits
+  # /health/live, and fails the PR if the module graph cannot load.
+  server-tsx-boot:
+    name: Server tsx boot
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [quality]
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Build server workspace deps (tsx resolves package exports to dist/)
+        run: pnpm --filter 'server...' build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Apply migrations (audit_log required for boot)
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/smoke"
+
+      - name: Boot server under tsx and hit /health/live
+        run: pnpm smoke:server-tsx
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          NODE_ENV: "development"
+          PORT: "3104"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/smoke"
+
+  # ---------------------------------------------------------------------------
   # Phase 4: E2E smoke tests (main only)
   # ---------------------------------------------------------------------------
   e2e-smoke:
