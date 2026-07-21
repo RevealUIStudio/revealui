@@ -15,12 +15,23 @@
  *                               recent failures) (CR8-P2-01 phase D)
  */
 
+import { randomUUID } from 'node:crypto';
+import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
-import { appLogs, auditLog, errorEvents, jobs, processedWebhookEvents } from '@revealui/db/schema';
+import {
+  accountMemberships,
+  appLogs,
+  auditLog,
+  errorEvents,
+  jobs,
+  processedWebhookEvents,
+} from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, desc, eq, gte, lte, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { recordUsageMeter } from '../../lib/metering.js';
+import { AUDIT_EXPORT_METER_NAME } from '../../lib/nudges/triggers.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
 
@@ -414,7 +425,8 @@ function csvEscape(value: unknown): string {
 }
 
 app.get('/audit/export', async (c) => {
-  requireAdmin(c.get('user'));
+  const user = c.get('user');
+  requireAdmin(user);
 
   const parsed = AuditExportQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
   if (!parsed.success) {
@@ -441,6 +453,35 @@ app.get('/audit/export', async (c) => {
     .where(where)
     .orderBy(desc(auditLog.timestamp))
     .limit(AUDIT_EXPORT_MAX_ROWS);
+
+  // GAP-300: record a real export signal for max-export-audit (best-effort).
+  // Never block the download if metering fails.
+  if (user?.id) {
+    try {
+      const [membership] = await db
+        .select({ accountId: accountMemberships.accountId })
+        .from(accountMemberships)
+        .where(and(eq(accountMemberships.userId, user.id), eq(accountMemberships.status, 'active')))
+        .limit(1);
+      if (membership?.accountId) {
+        const now = new Date();
+        await recordUsageMeter({
+          id: randomUUID(),
+          accountId: membership.accountId,
+          meterName: AUDIT_EXPORT_METER_NAME,
+          quantity: 1,
+          periodStart: now,
+          source: 'user',
+          idempotencyKey: `audit_export:${membership.accountId}:${now.toISOString()}`,
+        });
+      }
+    } catch (err) {
+      logger.warn('audit export: failed to record usage meter (export still delivered)', {
+        userId: user.id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
 
   const filenameStamp = new Date().toISOString().replace(/[:.]/g, '-');
 

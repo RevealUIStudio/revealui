@@ -7,7 +7,8 @@
  *   - conversations/messages  -  free-tier local chat (aiLocal surface)
  *   - pages/products          -  content existence, scoped via site ownership
  *   - account_entitlements    -  tier resolution (mirrors account-entitlement.ts)
- *   - usage_meters            -  governed agent actions (source='agent')
+ *   - usage_meters            -  governed agent actions (source='agent');
+ *                                audit exports (meter_name=audit_export, source='user')
  *   - workspace_inference_configs  -  per-site inference config
  *   - sites                   -  tenant count for the Enterprise nudge
  */
@@ -28,7 +29,7 @@ import {
   workspaceInferenceConfigs,
 } from '@revealui/db/schema';
 import { and, count, eq, isNull } from 'drizzle-orm';
-import type { NudgeSignals } from './triggers.js';
+import { AUDIT_EXPORT_METER_NAME, type NudgeSignals } from './triggers.js';
 
 function isHealthyStatus(status: string | null): boolean {
   return status === 'active' || status === 'trialing';
@@ -130,6 +131,22 @@ async function hasAgentAction(db: DatabaseClient, accountId: string | null): Pro
   return !!row;
 }
 
+async function hasAuditExport(db: DatabaseClient, accountId: string | null): Promise<boolean> {
+  if (!accountId) return false;
+  const [row] = await db
+    .select({ id: usageMeters.id })
+    .from(usageMeters)
+    .where(
+      and(
+        eq(usageMeters.accountId, accountId),
+        eq(usageMeters.source, 'user'),
+        eq(usageMeters.meterName, AUDIT_EXPORT_METER_NAME),
+      ),
+    )
+    .limit(1);
+  return !!row;
+}
+
 async function hasInferenceConfig(db: DatabaseClient, userId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: workspaceInferenceConfigs.id })
@@ -167,6 +184,7 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
     userChatMessageCount,
     pageOrProduct,
     agentAction,
+    auditExport,
     inferenceConfig,
     ageMs,
     siteCount,
@@ -175,6 +193,7 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
     countUserChatMessages(db, userId),
     hasPageOrProduct(db, userId),
     hasAgentAction(db, accountId),
+    hasAuditExport(db, accountId),
     hasInferenceConfig(db, userId),
     accountAgeMs(db, userId),
     countSites(db, userId),
@@ -187,6 +206,7 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
       userChatMessageCount,
       hasPageOrProduct: pageOrProduct,
       hasAgentAction: agentAction,
+      hasAuditExport: auditExport,
       hasInferenceConfig: inferenceConfig,
       accountAgeMs: ageMs,
       siteCount,

@@ -7,6 +7,7 @@ const BASE_SIGNALS: NudgeSignals = {
   hasPageOrProduct: false,
   hasAgentAction: false,
   hasInferenceConfig: false,
+  hasAuditExport: false,
   accountAgeMs: 0,
   siteCount: 0,
 };
@@ -42,6 +43,14 @@ describe('buildCandidates — tier gating', () => {
     const signals: NudgeSignals = { ...BASE_SIGNALS, siteCount: 1, accountAgeMs: DAY_7_MS };
     expect(ids(buildCandidates('max', signals))).not.toContain('ent-second-tenant');
     expect(ids(buildCandidates('enterprise', signals))).toContain('ent-second-tenant');
+  });
+
+  it('max-export-audit appears for max and enterprise once day-7+ and never for free/pro', () => {
+    const signals: NudgeSignals = { ...BASE_SIGNALS, accountAgeMs: DAY_7_MS };
+    expect(ids(buildCandidates('free', signals))).not.toContain('max-export-audit');
+    expect(ids(buildCandidates('pro', signals))).not.toContain('max-export-audit');
+    expect(ids(buildCandidates('max', signals))).toContain('max-export-audit');
+    expect(ids(buildCandidates('enterprise', signals))).toContain('max-export-audit');
   });
 });
 
@@ -118,6 +127,19 @@ describe('buildCandidates — retirement on milestone event', () => {
     expect(ids(dueWithOneSite)).toContain('ent-second-tenant');
     expect(ids(secondSiteLanded)).not.toContain('ent-second-tenant');
   });
+
+  it('max-export-audit waits for day 7 and retires after an audit export meter row', () => {
+    const tooEarly = buildCandidates('max', { ...BASE_SIGNALS, accountAgeMs: DAY_7_MS - 1 });
+    const due = buildCandidates('max', { ...BASE_SIGNALS, accountAgeMs: DAY_7_MS });
+    const exported = buildCandidates('max', {
+      ...BASE_SIGNALS,
+      accountAgeMs: DAY_7_MS,
+      hasAuditExport: true,
+    });
+    expect(ids(tooEarly)).not.toContain('max-export-audit');
+    expect(ids(due)).toContain('max-export-audit');
+    expect(ids(exported)).not.toContain('max-export-audit');
+  });
 });
 
 describe('buildCandidates — priority tags match the milestone order', () => {
@@ -128,12 +150,14 @@ describe('buildCandidates — priority tags match the milestone order', () => {
       hasPageOrProduct: false,
       hasAgentAction: false,
       hasInferenceConfig: false,
+      hasAuditExport: false,
       accountAgeMs: DAY_7_MS,
       siteCount: 1,
     };
     const byId = new Map(buildCandidates('enterprise', signals).map((c) => [c.id, c.milestone]));
     expect(byId.get('pro-first-action')).toBe('hour1');
     expect(byId.get('max-local-inference')).toBe('hour24');
+    expect(byId.get('max-export-audit')).toBe('day7');
     expect(byId.get('ent-second-tenant')).toBe('day7');
   });
 });
