@@ -8,7 +8,10 @@
  *   - pages/products          -  content existence, scoped via site ownership
  *   - account_entitlements    -  tier resolution (mirrors account-entitlement.ts)
  *   - usage_meters            -  governed agent actions (source='agent');
- *                                audit export/view/upgrade-intent (source='user')
+ *                                user milestone meters (source='user')
+ *   - licenses                -  paid JWT exists for pro-license-wire
+ *   - user_api_keys           -  provider keys for pro-connect-data
+ *   - ai_memory_sessions      -  memory in use for max-enable-memory
  *   - workspace_inference_configs  -  per-site inference config
  *   - sites                   -  tenant count for the Enterprise nudge
  */
@@ -19,12 +22,15 @@ import type { DatabaseClient } from '@revealui/db/client';
 import {
   accountEntitlements,
   accountMemberships,
+  aiMemorySessions,
   conversations,
+  licenses,
   messages,
   pages,
   products,
   sites,
   usageMeters,
+  userApiKeys,
   users,
   workspaceInferenceConfigs,
 } from '@revealui/db/schema';
@@ -32,6 +38,8 @@ import { and, count, eq, isNull } from 'drizzle-orm';
 import {
   AUDIT_EXPORT_METER_NAME,
   AUDIT_VIEW_METER_NAME,
+  LICENSE_ACTIVATED_METER_NAME,
+  LICENSE_KEY_FETCHED_METER_NAME,
   type NudgeSignals,
   UPGRADE_INTENT_METER_NAME,
 } from './triggers.js';
@@ -193,6 +201,49 @@ async function countSites(db: DatabaseClient, userId: string): Promise<number> {
   return Number(row?.total ?? 0);
 }
 
+async function hasLicenseKey(db: DatabaseClient, userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: licenses.id })
+    .from(licenses)
+    .where(
+      and(
+        eq(licenses.userId, userId),
+        isNull(licenses.deletedAt),
+        eq(licenses.mode, getConfiguredStripeMode()),
+      ),
+    )
+    .limit(1);
+  return !!row;
+}
+
+async function hasUserApiKey(db: DatabaseClient, userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: userApiKeys.id })
+    .from(userApiKeys)
+    .where(and(eq(userApiKeys.userId, userId), isNull(userApiKeys.deletedAt)))
+    .limit(1);
+  return !!row;
+}
+
+async function hasMcpToolCall(db: DatabaseClient, accountId: string | null): Promise<boolean> {
+  if (!accountId) return false;
+  const [row] = await db
+    .select({ id: usageMeters.id })
+    .from(usageMeters)
+    .where(and(eq(usageMeters.accountId, accountId), eq(usageMeters.meterName, 'mcp.tool.call')))
+    .limit(1);
+  return !!row;
+}
+
+async function hasAiMemorySession(db: DatabaseClient, userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: aiMemorySessions.id })
+    .from(aiMemorySessions)
+    .where(eq(aiMemorySessions.userId, userId))
+    .limit(1);
+  return !!row;
+}
+
 /** Resolves the authenticated user's tier and the signals `buildCandidates` needs. */
 export async function fetchNudgeContext(db: DatabaseClient, userId: string): Promise<NudgeContext> {
   const { accountId, tier } = await resolveAccountAndTier(db, userId);
@@ -206,6 +257,12 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
     auditExport,
     auditView,
     upgradeIntent,
+    licenseKey,
+    licenseKeyFetched,
+    licenseActivated,
+    userApiKey,
+    mcpToolCall,
+    memorySession,
     inferenceConfig,
     ageMs,
     siteCount,
@@ -218,6 +275,12 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
     hasUserMeter(db, accountId, AUDIT_EXPORT_METER_NAME),
     hasUserMeter(db, accountId, AUDIT_VIEW_METER_NAME),
     hasUserMeter(db, accountId, UPGRADE_INTENT_METER_NAME),
+    hasLicenseKey(db, userId),
+    hasUserMeter(db, accountId, LICENSE_KEY_FETCHED_METER_NAME),
+    hasUserMeter(db, accountId, LICENSE_ACTIVATED_METER_NAME),
+    hasUserApiKey(db, userId),
+    hasMcpToolCall(db, accountId),
+    hasAiMemorySession(db, userId),
     hasInferenceConfig(db, userId),
     accountAgeMs(db, userId),
     countSites(db, userId),
@@ -234,6 +297,10 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
       hasAuditExport: auditExport,
       hasAuditView: auditView,
       hasUpgradeIntent: upgradeIntent,
+      hasLicenseKey: licenseKey,
+      hasLicenseKeyFetched: licenseKeyFetched || licenseActivated,
+      hasDataConnection: pageOrProduct || userApiKey || mcpToolCall,
+      hasAiMemorySession: memorySession,
       hasInferenceConfig: inferenceConfig,
       accountAgeMs: ageMs,
       siteCount,

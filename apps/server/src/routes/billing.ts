@@ -1036,6 +1036,35 @@ async function getUserLicenseKey(userId: string): Promise<string | null> {
   return row?.licenseKey ?? null;
 }
 
+/**
+ * GAP-300 pro-license-wire: when the subscription payload includes a non-null
+ * JWT, record first-ever license_key_fetched for the user's account.
+ */
+async function recordLicenseKeyFetchedIfPresent(
+  userId: string,
+  licenseKey: string | null,
+  accountId: string | null | undefined,
+): Promise<string | null> {
+  if (!licenseKey) return licenseKey;
+  const { recordMilestoneMeterFirstSafe, LICENSE_KEY_FETCHED_METER_NAME } = await import(
+    '../lib/nudges/milestone-meters.js'
+  );
+  let resolvedAccountId = accountId ?? null;
+  if (!resolvedAccountId) {
+    const [membership] = await getClient()
+      .select({ accountId: accountMemberships.accountId })
+      .from(accountMemberships)
+      .where(and(eq(accountMemberships.userId, userId), eq(accountMemberships.status, 'active')))
+      .limit(1);
+    resolvedAccountId = membership?.accountId ?? null;
+  }
+  recordMilestoneMeterFirstSafe(resolvedAccountId, LICENSE_KEY_FETCHED_METER_NAME, {
+    userId,
+    path: 'billing/subscription',
+  });
+  return licenseKey;
+}
+
 app.openapi(subscriptionRoute, async (c) => {
   const user = c.get('user');
   if (!user) {
@@ -1044,12 +1073,17 @@ app.openapi(subscriptionRoute, async (c) => {
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   if (requestEntitlements?.accountId && requestEntitlements.tier) {
+    const licenseKey = await recordLicenseKeyFetchedIfPresent(
+      user.id,
+      await getUserLicenseKey(user.id),
+      requestEntitlements.accountId,
+    );
     return c.json(
       {
         tier: requestEntitlements.tier,
         status: requestEntitlements.subscriptionStatus ?? 'active',
         expiresAt: null,
-        licenseKey: await getUserLicenseKey(user.id),
+        licenseKey,
       },
       200,
     );
@@ -1057,12 +1091,17 @@ app.openapi(subscriptionRoute, async (c) => {
 
   const hostedSubscription = await getHostedSubscriptionSnapshot(user.id);
   if (hostedSubscription) {
+    const licenseKey = await recordLicenseKeyFetchedIfPresent(
+      user.id,
+      await getUserLicenseKey(user.id),
+      requestEntitlements?.accountId,
+    );
     return c.json(
       {
         tier: hostedSubscription.tier,
         status: hostedSubscription.status,
         expiresAt: null,
-        licenseKey: await getUserLicenseKey(user.id),
+        licenseKey,
         graceUntil: hostedSubscription.graceUntil,
       },
       200,
@@ -1113,12 +1152,17 @@ app.openapi(subscriptionRoute, async (c) => {
     );
   }
 
+  const licenseKey = await recordLicenseKeyFetchedIfPresent(
+    user.id,
+    license.licenseKey,
+    requestEntitlements?.accountId,
+  );
   return c.json(
     {
       tier: license.tier as 'free' | 'pro' | 'max' | 'enterprise',
       status: license.status,
       expiresAt: license.expiresAt?.toISOString() ?? null,
-      licenseKey: license.licenseKey,
+      licenseKey,
       perpetual: license.perpetual ?? false,
       supportExpiresAt: license.supportExpiresAt?.toISOString() ?? null,
     },

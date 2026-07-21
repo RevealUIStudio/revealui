@@ -9,7 +9,11 @@
 import { randomUUID } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { recordUsageMeter } from '../metering.js';
-import { AUDIT_EXPORT_METER_NAME } from './triggers.js';
+import {
+  AUDIT_EXPORT_METER_NAME,
+  LICENSE_ACTIVATED_METER_NAME,
+  LICENSE_KEY_FETCHED_METER_NAME,
+} from './triggers.js';
 
 /** First successful GET /admin/audit list (viewed the trail once). */
 export const AUDIT_VIEW_METER_NAME = 'audit_view';
@@ -17,12 +21,14 @@ export const AUDIT_VIEW_METER_NAME = 'audit_view';
 /** Free-tier Pro gate denial (knowingly hit a paid feature via requireFeature). */
 export const UPGRADE_INTENT_METER_NAME = 'upgrade_intent';
 
-export { AUDIT_EXPORT_METER_NAME };
+export { AUDIT_EXPORT_METER_NAME, LICENSE_ACTIVATED_METER_NAME, LICENSE_KEY_FETCHED_METER_NAME };
 
 export type MilestoneMeterName =
   | typeof UPGRADE_INTENT_METER_NAME
   | typeof AUDIT_VIEW_METER_NAME
-  | typeof AUDIT_EXPORT_METER_NAME;
+  | typeof AUDIT_EXPORT_METER_NAME
+  | typeof LICENSE_KEY_FETCHED_METER_NAME
+  | typeof LICENSE_ACTIVATED_METER_NAME;
 
 /**
  * Record a first-ever milestone meter for an account. Safe to call on every
