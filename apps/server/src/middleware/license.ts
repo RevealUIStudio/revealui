@@ -24,6 +24,10 @@ import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import {
+  recordMilestoneMeterFirstSafe,
+  UPGRADE_INTENT_METER_NAME,
+} from '../lib/nudges/milestone-meters.js';
+import {
   buildPaymentRequired,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
@@ -230,6 +234,17 @@ export const requireFeature = (
     if (!enabled) {
       const requiredTier = getRequiredTier(feature);
       const x402 = getX402Config();
+
+      // GAP-300 free-pro-gate: free-tier callers who knowingly hit a paid gate.
+      if (currentTier === 'free') {
+        const accountId =
+          requestEntitlements?.accountId ??
+          (c.get('entitlements') as { accountId?: string | null } | undefined)?.accountId;
+        recordMilestoneMeterFirstSafe(accountId, UPGRADE_INTENT_METER_NAME, {
+          feature,
+          path: new URL(c.req.url).pathname,
+        });
+      }
 
       if (x402.enabled) {
         // Check if agent already paid via x402

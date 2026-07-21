@@ -8,7 +8,7 @@
  *   - pages/products          -  content existence, scoped via site ownership
  *   - account_entitlements    -  tier resolution (mirrors account-entitlement.ts)
  *   - usage_meters            -  governed agent actions (source='agent');
- *                                audit exports (meter_name=audit_export, source='user')
+ *                                audit export/view/upgrade-intent (source='user')
  *   - workspace_inference_configs  -  per-site inference config
  *   - sites                   -  tenant count for the Enterprise nudge
  */
@@ -29,7 +29,12 @@ import {
   workspaceInferenceConfigs,
 } from '@revealui/db/schema';
 import { and, count, eq, isNull } from 'drizzle-orm';
-import { AUDIT_EXPORT_METER_NAME, type NudgeSignals } from './triggers.js';
+import {
+  AUDIT_EXPORT_METER_NAME,
+  AUDIT_VIEW_METER_NAME,
+  type NudgeSignals,
+  UPGRADE_INTENT_METER_NAME,
+} from './triggers.js';
 
 function isHealthyStatus(status: string | null): boolean {
   return status === 'active' || status === 'trialing';
@@ -131,7 +136,20 @@ async function hasAgentAction(db: DatabaseClient, accountId: string | null): Pro
   return !!row;
 }
 
-async function hasAuditExport(db: DatabaseClient, accountId: string | null): Promise<boolean> {
+async function countAgentTasks(db: DatabaseClient, accountId: string | null): Promise<number> {
+  if (!accountId) return 0;
+  const [row] = await db
+    .select({ total: count() })
+    .from(usageMeters)
+    .where(and(eq(usageMeters.accountId, accountId), eq(usageMeters.source, 'agent')));
+  return Number(row?.total ?? 0);
+}
+
+async function hasUserMeter(
+  db: DatabaseClient,
+  accountId: string | null,
+  meterName: string,
+): Promise<boolean> {
   if (!accountId) return false;
   const [row] = await db
     .select({ id: usageMeters.id })
@@ -140,7 +158,7 @@ async function hasAuditExport(db: DatabaseClient, accountId: string | null): Pro
       and(
         eq(usageMeters.accountId, accountId),
         eq(usageMeters.source, 'user'),
-        eq(usageMeters.meterName, AUDIT_EXPORT_METER_NAME),
+        eq(usageMeters.meterName, meterName),
       ),
     )
     .limit(1);
@@ -184,7 +202,10 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
     userChatMessageCount,
     pageOrProduct,
     agentAction,
+    agentTaskCount,
     auditExport,
+    auditView,
+    upgradeIntent,
     inferenceConfig,
     ageMs,
     siteCount,
@@ -193,7 +214,10 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
     countUserChatMessages(db, userId),
     hasPageOrProduct(db, userId),
     hasAgentAction(db, accountId),
-    hasAuditExport(db, accountId),
+    countAgentTasks(db, accountId),
+    hasUserMeter(db, accountId, AUDIT_EXPORT_METER_NAME),
+    hasUserMeter(db, accountId, AUDIT_VIEW_METER_NAME),
+    hasUserMeter(db, accountId, UPGRADE_INTENT_METER_NAME),
     hasInferenceConfig(db, userId),
     accountAgeMs(db, userId),
     countSites(db, userId),
@@ -206,7 +230,10 @@ export async function fetchNudgeContext(db: DatabaseClient, userId: string): Pro
       userChatMessageCount,
       hasPageOrProduct: pageOrProduct,
       hasAgentAction: agentAction,
+      agentTaskCount,
       hasAuditExport: auditExport,
+      hasAuditView: auditView,
+      hasUpgradeIntent: upgradeIntent,
       hasInferenceConfig: inferenceConfig,
       accountAgeMs: ageMs,
       siteCount,
