@@ -1,6 +1,7 @@
 import { BlockSchema } from '@revealui/contracts/content';
 import { describe, expect, it } from 'vitest';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
+import { PHILOSOPHY } from '../content/philosophy';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../content/primitives';
 import { PRODUCTS_CTA_SECTION, PRODUCTS_FLAGSHIP, PRODUCTS_PAGE_HERO } from '../content/products';
 import { METRICS } from '../content/site';
@@ -10,7 +11,12 @@ import {
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
   homeBlocks,
+  PHILOSOPHY_FALLBACK_BLOCKS,
   PRODUCTS_FALLBACK_BLOCKS,
+  philosophyBlocks,
+  philosophyBodySlot,
+  philosophyCtaSlot,
+  philosophyHeroSlot,
   primitivesSlot,
   productsBlocks,
   productsCtaSlot,
@@ -32,8 +38,8 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for both pages', () => {
-    for (const block of [...homeBlocks(), ...productsBlocks()]) {
+  it('produces schema-valid blocks for home, products, and philosophy', () => {
+    for (const block of [...homeBlocks(), ...productsBlocks(), ...philosophyBlocks()]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
     }
   });
@@ -41,11 +47,24 @@ describe('page-blocks derivation', () => {
   it('derives the expected block types per page in order', () => {
     expect(homeBlocks().map((b) => b.type)).toEqual(['section', 'section', 'ctaSection']);
     expect(productsBlocks().map((b) => b.type)).toEqual(['hero', 'section', 'ctaSection']);
+    expect(philosophyBlocks().map((b) => b.type)).toEqual(['hero', 'section', 'ctaSection']);
+  });
+
+  it('round-trips philosophy slots against the static content module', () => {
+    const blocks = PHILOSOPHY_FALLBACK_BLOCKS;
+    expect(philosophyHeroSlot(blocks).data).toEqual({
+      eyebrow: PHILOSOPHY.eyebrow,
+      h1: PHILOSOPHY.h1,
+    });
+    expect(philosophyBodySlot(blocks).data.sections.map((s) => s.body)).toEqual(
+      PHILOSOPHY.sections.map((s) => s.body),
+    );
+    expect(philosophyCtaSlot(blocks).data).toEqual(PHILOSOPHY.cta);
   });
 });
 
 describe('claims safety: prose is single-sourced, pinned values never enter blocks', () => {
-  const strings = collectStrings([homeBlocks(), productsBlocks()]);
+  const strings = collectStrings([homeBlocks(), productsBlocks(), philosophyBlocks()]);
   const haystack = strings.join(' ');
 
   it('carries the copy sentences byte-identical to the content modules', () => {
@@ -72,6 +91,13 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     }
     expect(strings).toContain(PRODUCTS_CTA_SECTION.heading);
     expect(strings).toContain(PRODUCTS_CTA_SECTION.body);
+    expect(strings).toContain(PHILOSOPHY.eyebrow);
+    expect(strings).toContain(PHILOSOPHY.h1);
+    for (const section of PHILOSOPHY.sections) {
+      expect(strings).toContain(section.body);
+    }
+    expect(strings).toContain(PHILOSOPHY.cta.primary.label);
+    expect(strings).toContain(PHILOSOPHY.cta.secondary.label);
   });
 
   it('never carries metric-derived numbers, prices, or product versions', () => {
@@ -163,6 +189,7 @@ describe('blocksMatchFallback shape guard', () => {
   it('accepts an array with matching length + per-position types', () => {
     expect(blocksMatchFallback(homeBlocks(), HOME_FALLBACK_BLOCKS)).toBe(true);
     expect(blocksMatchFallback(productsBlocks(), PRODUCTS_FALLBACK_BLOCKS)).toBe(true);
+    expect(blocksMatchFallback(philosophyBlocks(), PHILOSOPHY_FALLBACK_BLOCKS)).toBe(true);
   });
 
   it('rejects empty, wrong-length, and wrong-type arrays', () => {
