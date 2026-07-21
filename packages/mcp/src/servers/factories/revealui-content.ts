@@ -793,8 +793,8 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
     }
 
     // Deny-by-default collection allowlist. The content tools interpolate the
-    // `collection` arg into `/api/<collection>`, so a free-string collection
-    // would let one tool reach another tool's endpoint (e.g. `/api/content/users`,
+    // `collection` arg into `/api/content/<collection>`, so a free-string
+    // collection would let one tool reach another endpoint (e.g. users,
     // bypassing the admin gate on `revealui_list_users`). A collection outside
     // the RESOLVED exposed set is denied before any REST call — the backend is
     // never reached for an unexposed collection.
