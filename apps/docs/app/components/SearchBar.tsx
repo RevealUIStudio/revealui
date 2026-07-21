@@ -5,7 +5,7 @@
  * Supports Cmd+K / Ctrl+K keyboard shortcut to focus.
  */
 
-import { Input } from '@revealui/presentation';
+import { Button, IconLoading, Input } from '@revealui/presentation';
 import { useNavigate } from '@revealui/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SearchResult } from '../lib/search-index';
@@ -155,24 +155,28 @@ export function SearchBar() {
           className="absolute top-full right-0 left-0 z-[1000] mt-1 max-h-[60vh] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg"
         >
           {results.map((result, i) => (
-            <button
+            <Button
               type="button"
               role="option"
               aria-selected={i === activeIndex}
               key={result.path}
+              appearance="ghost"
+              variant="neutral"
               onClick={() => handleSelect(result)}
               onMouseEnter={() => setActiveIndex(i)}
-              className={`w-full cursor-pointer border-none px-3 py-2.5 text-left font-sans transition-colors ${
-                i === activeIndex ? 'bg-accent-bg' : 'bg-transparent hover:bg-accent-bg'
+              className={`h-auto w-full justify-start rounded-none px-3 py-2.5 text-left font-sans ${
+                i === activeIndex ? 'bg-accent-bg' : ''
               } ${i < results.length - 1 ? 'border-b border-border-subtle' : ''}`}
             >
-              <div className="mb-0.5 font-medium text-text-primary">{result.title}</div>
-              {result.excerpt && (
-                <div className="truncate text-xs leading-snug text-text-muted">
-                  {result.excerpt}
-                </div>
-              )}
-            </button>
+              <span className="flex w-full flex-col items-start gap-0.5">
+                <span className="font-medium text-text-primary">{result.title}</span>
+                {result.excerpt ? (
+                  <span className="truncate text-xs leading-snug text-text-muted">
+                    {result.excerpt}
+                  </span>
+                ) : null}
+              </span>
+            </Button>
           ))}
         </div>
       )}
@@ -188,27 +192,7 @@ export function SearchBar() {
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2">
-              <svg
-                className="size-4 animate-spin text-accent"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  opacity="0.25"
-                />
-                <path
-                  d="M4 12a8 8 0 018-8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <IconLoading size="sm" className="animate-spin text-accent" />
               <span>Building search index...</span>
             </div>
           )}

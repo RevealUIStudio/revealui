@@ -1,4 +1,5 @@
 import { logger } from '@revealui/core/observability/logger';
+import { Button } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
@@ -105,13 +106,16 @@ Available guides are loaded from the \`docs/guides/\` directory.
         >
           Edit this page on GitHub
         </a>
-        <button
+        <Button
           type="button"
+          appearance="link"
+          variant="neutral"
+          size="sm"
+          className="h-auto p-0 text-text-muted"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="cursor-pointer border-none bg-transparent p-0 font-sans text-[inherit] text-text-muted transition-colors hover:text-text-secondary"
         >
           Back to top
-        </button>
+        </Button>
       </div>
     </ErrorBoundary>
   );
