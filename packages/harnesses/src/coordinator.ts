@@ -150,9 +150,10 @@ export class HarnessCoordinator {
       this.httpGateway = null;
     }
 
-    // Stop all spawned agent processes
+    // Stop all spawned agent processes (GAP-390: wait for SIGKILL grace so
+    // SIGTERM-ignoring children are not orphaned on event-loop drain).
     if (this.spawner) {
-      await this.spawner.stopAll();
+      await this.spawner.stopAllAndWait();
       this.spawner = null;
     }
     this.inference = null;
