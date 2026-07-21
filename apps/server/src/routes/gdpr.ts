@@ -384,7 +384,12 @@ app.openapi(
                 detail,
               },
             );
-            // TODO: swap to sendCronFailureAlert after PR #787 merges to test
+            await sendCronFailureAlert({
+              jobName: 'gdpr-stripe-customer-delete',
+              error: stripeErr instanceof Error ? stripeErr : new Error(detail),
+              severity: 'error',
+              metadata: { userId, stripeCustomerId, detail },
+            });
             await updateUserStripeDeletion(db, userId, 'failed');
           }
         } else {
@@ -396,6 +401,12 @@ app.openapi(
               stripeCustomerId,
             },
           );
+          await sendCronFailureAlert({
+            jobName: 'gdpr-stripe-customer-delete',
+            error: new Error('Stripe service unavailable during GDPR erasure'),
+            severity: 'error',
+            metadata: { userId, stripeCustomerId },
+          });
           await updateUserStripeDeletion(db, userId, 'failed');
         }
       }

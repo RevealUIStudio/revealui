@@ -1095,7 +1095,20 @@ app.openapi(stripeWebhookRoute, async (c) => {
       eventLivemode: event.livemode,
       serverExpectsLive: expectLive,
     });
-    // TODO: swap to sendCronFailureAlert after PR #787 merges to test
+    // Domain email stays specialized; centralized path adds Sentry + structured cron alert.
+    void sendCronFailureAlert({
+      jobName: 'stripe-webhook-livemode-guard',
+      error: new Error(
+        `Webhook livemode mismatch: event live=${String(event.livemode)}, server expects live=${String(expectLive)}`,
+      ),
+      severity: 'fatal',
+      metadata: {
+        eventId: event.id,
+        eventType: event.type,
+        eventLivemode: event.livemode,
+        serverExpectsLive: expectLive,
+      },
+    });
     sendLivemodeMismatchAlert(alertEmail, {
       eventId: event.id,
       eventType: event.type,
