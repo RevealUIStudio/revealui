@@ -1,4 +1,5 @@
 import { useLexicalComposerContext } from '@revealui/core/richtext/client';
+import { Button } from '@revealui/presentation';
 import { sanitizeUrl } from '@revealui/security/sanitize';
 import { $getNodeByKey } from 'lexical';
 import type React from 'react';
@@ -64,9 +65,12 @@ export const EmbedNodeComponent = (props: Props) => {
       <div className="embed-node__controls relative flex justify-between pb-1">
         <p className="embed-node__urlDisplay m-0 text-base truncate">{data.url}</p>
         <div className="embed-node__buttons flex flex-row gap-1">
-          <button
+          <Button
             type="button"
-            className="embed-node__swapButton px-2 py-1 text-sm rounded hover:bg-gray-200"
+            appearance="ghost"
+            variant="neutral"
+            size="sm"
+            className="embed-node__swapButton h-auto rounded px-2 py-1 text-sm hover:bg-gray-200"
             onClick={() => {
               editor.dispatchCommand(OPEN_EMBED_DRAWER_COMMAND, {
                 data,
@@ -76,10 +80,13 @@ export const EmbedNodeComponent = (props: Props) => {
             title="Swap Embed"
           >
             Swap
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="embed-node__removeButton px-2 py-1 text-sm rounded hover:bg-gray-200"
+            appearance="ghost"
+            variant="neutral"
+            size="sm"
+            className="embed-node__removeButton h-auto rounded px-2 py-1 text-sm hover:bg-gray-200"
             onClick={(e: React.MouseEvent) => {
               e.preventDefault();
               removeEmbed();
@@ -87,7 +94,7 @@ export const EmbedNodeComponent = (props: Props) => {
             title="Remove Embed"
           >
             Remove
-          </button>
+          </Button>
         </div>
       </div>
       {source.type === 'youtube' ? (

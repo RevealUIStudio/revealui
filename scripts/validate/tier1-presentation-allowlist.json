@@ -4,7 +4,7 @@
     {
       "path": "apps/admin/src/app/(backend)/[[...segments]]/page.tsx",
       "tag": "svg",
-      "reason": "admin residual; CMS catch-all shell decorative svg without Icon* match (GAP-398)"
+      "reason": "CMS catch-all shell decorative svg without Icon* match (GAP-398)"
     },
     {
       "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",
@@ -12,39 +12,19 @@
       "reason": "legacy kit chart path geometry is content-driven; no Icon* match (GAP-398)"
     },
     {
-      "path": "apps/admin/src/lib/components/AdminSidebarLayout.tsx",
-      "tag": "svg",
-      "reason": "admin residual; NavIcon uses dynamic path data per nav item (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/components/Agent/index.tsx",
-      "tag": "button",
-      "reason": "admin residual; chat composer/tool controls dense surface (GAP-398)"
-    },
-    {
       "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
       "tag": "svg",
-      "reason": "admin residual; stacked outcome bar is data-driven SVG chart (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/features/embed/components/EmbedNodeComponent.tsx",
-      "tag": "button",
-      "reason": "admin residual; Lexical embed node edit chrome (GAP-398)"
-    },
-    {
-      "path": "apps/admin/src/lib/features/embed/icons/EmbedIcon.tsx",
-      "tag": "svg",
-      "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
+      "reason": "stacked outcome bar is data-driven SVG chart geometry (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/label/icons/LabelIcon.tsx",
       "tag": "svg",
-      "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
+      "reason": "Lexical toolbar typography glyph (Aa); no Icon* semantic match (GAP-398)"
     },
     {
       "path": "apps/admin/src/lib/features/largeBody/icons/LargeBodyIcon.tsx",
       "tag": "svg",
-      "reason": "admin residual; Lexical toolbar feature icon (GAP-398)"
+      "reason": "Lexical toolbar large-body typography glyph; no Icon* semantic match (GAP-398)"
     },
     {
       "path": "apps/marketing/app/components/landing/Primitives.tsx",

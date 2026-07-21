@@ -1,4 +1,4 @@
-import { Button as PresentationButton, cn } from '@revealui/presentation';
+import { cn, Button as PresentationButton } from '@revealui/presentation';
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
 
