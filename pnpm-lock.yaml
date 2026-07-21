@@ -122,7 +122,7 @@ overrides:
   prismjs: '>=1.30.0'
   jsondiffpatch: '>=0.7.2'
   markdown-it: '>=14.2.0'
-  js-yaml@5: '>=5.2.1'
+  js-yaml@5: 5.2.1
   js-yaml@4: '>=4.2.0'
   js-yaml@3: ^3.15.0
   '@changesets/parse>js-yaml': 5.2.1
