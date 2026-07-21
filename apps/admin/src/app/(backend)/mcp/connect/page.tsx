@@ -12,7 +12,7 @@
  * via the revvault-backed `McpOAuthProvider`.
  */
 
-import { ButtonCVA, Card, FormLabel, InputCVA } from '@revealui/presentation/server';
+import { Button, Card, FormLabel, InputCVA } from '@revealui/presentation/server';
 
 type SearchParamValue = string | string[] | undefined;
 
@@ -127,7 +127,7 @@ export default async function ConnectMcpServerPage({
             </div>
 
             <div className="mt-6 flex items-center gap-3">
-              <ButtonCVA type="submit">Authorize</ButtonCVA>
+              <Button type="submit">Authorize</Button>
               <span className="text-xs text-muted-foreground">
                 You&rsquo;ll be redirected to the server&rsquo;s consent screen.
               </span>

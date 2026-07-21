@@ -1,4 +1,4 @@
-import { ButtonCVA, ReceiptCard } from '@revealui/presentation';
+import { Button, ReceiptCard } from '@revealui/presentation';
 import { Link, useLocation } from '@revealui/router';
 import { FOR_OPERATORS_HERO } from '../../content/for-operators';
 import {
@@ -61,13 +61,13 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
       </p>
 
       <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <ButtonCVA asChild size="lg" className="w-full sm:w-auto gap-2">
+        <Button asChild size="lg" className="w-full sm:w-auto gap-2">
           <a href={hero.cta.primary.href}>
             {hero.cta.primary.label}
             <ArrowIcon />
           </a>
-        </ButtonCVA>
-        <ButtonCVA
+        </Button>
+        <Button
           asChild
           appearance="outline"
           variant="neutral"
@@ -81,7 +81,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
             </svg>
             {hero.cta.secondary.label}
           </a>
-        </ButtonCVA>
+        </Button>
       </div>
 
       {/* Trust strip: the signals the retired eyebrow pill used to carry. */}
@@ -119,12 +119,12 @@ function NonTechnicalHero() {
       </p>
 
       <div className="mt-10 flex justify-center">
-        <ButtonCVA asChild size="lg" className="w-full sm:w-auto gap-2">
+        <Button asChild size="lg" className="w-full sm:w-auto gap-2">
           <a href={hero.primaryCta.href} target="_blank" rel="noopener noreferrer">
             {hero.primaryCta.label}
             <ArrowIcon />
           </a>
-        </ButtonCVA>
+        </Button>
       </div>
 
       {/* Trust strip: mirror of TechnicalHero; same signals for the operator view. */}

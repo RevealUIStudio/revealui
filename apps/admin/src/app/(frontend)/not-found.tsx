@@ -1,4 +1,4 @@
-import { ButtonCVA as Button } from '@revealui/presentation/server';
+import { Button } from '@revealui/presentation/server';
 import Link from 'next/link';
 
 export default function NotFound() {

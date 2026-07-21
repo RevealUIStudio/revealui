@@ -3,7 +3,7 @@
 import {
   Badge,
   Breadcrumb,
-  ButtonCVA,
+  Button,
   Card,
   Input,
   LinkButton,
@@ -431,14 +431,14 @@ export default function NewAgentPage() {
 
                 {/* Actions */}
                 <div className="flex gap-3 pt-2">
-                  <ButtonCVA
+                  <Button
                     type="submit"
                     disabled={submitting || !name.trim() || providerConfigured === false}
                     variant="brand"
                     size="sm"
                   >
                     {submitting ? 'Creating...' : 'Create Agent'}
-                  </ButtonCVA>
+                  </Button>
                   <LinkButton
                     as={Link}
                     href="/agents"

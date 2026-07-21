@@ -1,4 +1,4 @@
-import { ButtonCVA as Button, Input } from '@revealui/presentation';
+import { Button, Input } from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { submitNewsletter } from '../lib/api';

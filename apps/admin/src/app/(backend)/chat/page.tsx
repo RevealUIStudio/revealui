@@ -1,6 +1,6 @@
 'use client';
 
-import { ButtonCVA, EmptyState, Skeleton } from '@revealui/presentation';
+import { Button, EmptyState, Skeleton } from '@revealui/presentation';
 import { useConversations } from '@revealui/sync';
 import { useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
@@ -50,9 +50,9 @@ export default function ChatPage() {
             <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Conversations
             </span>
-            <ButtonCVA type="button" variant="brand" size="sm" onClick={handleNewChat}>
+            <Button type="button" variant="brand" size="sm" onClick={handleNewChat}>
               New
-            </ButtonCVA>
+            </Button>
           </div>
           <div className="flex-1 overflow-y-auto">
             {sidebarLoading ? (

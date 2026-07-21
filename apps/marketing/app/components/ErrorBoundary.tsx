@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { captureRenderError } from '../lib/sentry';
 
@@ -42,9 +42,9 @@ function DefaultErrorFallback() {
       <p className="mt-4 max-w-md text-sm text-muted-foreground">
         An unexpected error occurred while rendering this page. Our team has been notified.
       </p>
-      <ButtonCVA asChild variant="brand" className="mt-6">
+      <Button asChild variant="brand" className="mt-6">
         <a href="/">Return home</a>
-      </ButtonCVA>
+      </Button>
     </div>
   );
 }

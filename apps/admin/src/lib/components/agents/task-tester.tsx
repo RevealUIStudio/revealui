@@ -1,7 +1,7 @@
 'use client';
 
 import type { A2ATask } from '@revealui/contracts';
-import { Badge, ButtonCVA, Textarea } from '@revealui/presentation';
+import { Badge, Button, Textarea } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import { useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -126,7 +126,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         />
       </Field>
 
-      <ButtonCVA
+      <Button
         type="button"
         onClick={submit}
         disabled={state === 'submitting' || state === 'polling' || !instruction.trim()}
@@ -135,7 +135,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
         className="self-start"
       >
         {state === 'submitting' ? 'Sending...' : state === 'polling' ? 'Working...' : 'Send Task'}
-      </ButtonCVA>
+      </Button>
 
       {/* Status badge */}
       {task && (

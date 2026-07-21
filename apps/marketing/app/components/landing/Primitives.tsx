@@ -1,4 +1,4 @@
-import { type BlockAnnotation, ButtonCVA, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
 import { PRIMITIVES_FALLBACK_DATA, type PrimitivesData } from '../../lib/page-blocks';
 
@@ -113,7 +113,7 @@ export function Primitives({
         </div>
 
         <div className="mt-12 text-center">
-          <ButtonCVA
+          <Button
             asChild
             appearance="link"
             size="default"
@@ -122,7 +122,7 @@ export function Primitives({
             <a href={HOME_PRIMITIVES_SECTION.docsLink.href}>
               {HOME_PRIMITIVES_SECTION.docsLink.label}
             </a>
-          </ButtonCVA>
+          </Button>
         </div>
       </div>
     </section>

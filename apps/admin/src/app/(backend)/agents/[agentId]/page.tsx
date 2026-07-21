@@ -4,7 +4,7 @@ import type { A2AAgentCard } from '@revealui/contracts';
 import {
   Badge,
   Breadcrumb,
-  ButtonCVA,
+  Button,
   Card,
   Input,
   LinkButton,
@@ -240,7 +240,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                         </div>
                       )}
                       <div className="flex gap-2 pt-1">
-                        <ButtonCVA
+                        <Button
                           type="button"
                           onClick={handleSave}
                           disabled={saving || !editName.trim()}
@@ -248,8 +248,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                           size="sm"
                         >
                           {saving ? 'Saving...' : 'Save'}
-                        </ButtonCVA>
-                        <ButtonCVA
+                        </Button>
+                        <Button
                           type="button"
                           onClick={handleEditCancel}
                           disabled={saving}
@@ -258,7 +258,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           size="sm"
                         >
                           Cancel
-                        </ButtonCVA>
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -267,7 +267,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                         <h1 className="text-xl font-semibold text-foreground">{card.name}</h1>
                         <div className="flex shrink-0 items-center gap-2">
                           <Badge color="success">v{card.version}</Badge>
-                          <ButtonCVA
+                          <Button
                             type="button"
                             onClick={handleEditStart}
                             disabled={loadingDef}
@@ -276,7 +276,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                             size="sm"
                           >
                             {loadingDef ? '...' : 'Edit'}
-                          </ButtonCVA>
+                          </Button>
                         </div>
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
@@ -391,7 +391,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           </div>
                         )}
                         <div className="flex gap-2">
-                          <ButtonCVA
+                          <Button
                             type="button"
                             onClick={handleRetire}
                             disabled={retiring}
@@ -399,8 +399,8 @@ export default function AgentDetailPage({ params }: PageProps) {
                             size="sm"
                           >
                             {retiring ? 'Retiring...' : 'Confirm Retire'}
-                          </ButtonCVA>
-                          <ButtonCVA
+                          </Button>
+                          <Button
                             type="button"
                             onClick={() => {
                               setIsConfirmingRetire(false);
@@ -412,7 +412,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                             size="sm"
                           >
                             Cancel
-                          </ButtonCVA>
+                          </Button>
                         </div>
                       </div>
                     ) : (
@@ -420,7 +420,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                         <p className="text-sm text-muted-foreground">
                           Remove this agent from the registry permanently.
                         </p>
-                        <ButtonCVA
+                        <Button
                           type="button"
                           onClick={() => setIsConfirmingRetire(true)}
                           appearance="outline"
@@ -429,7 +429,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                           className="shrink-0 border-error/30 text-error hover:border-error/50 hover:text-error"
                         >
                           Retire Agent
-                        </ButtonCVA>
+                        </Button>
                       </div>
                     )}
                   </div>

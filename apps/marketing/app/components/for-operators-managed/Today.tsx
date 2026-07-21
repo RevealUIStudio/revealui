@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { FO_MANAGED_TODAY } from '../../content/for-operators-managed';
 
 export function Today() {
@@ -17,7 +17,7 @@ export function Today() {
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-4">
-          <ButtonCVA asChild size="lg">
+          <Button asChild size="lg">
             <a
               href={FO_MANAGED_TODAY.primaryCta.href}
               {...(FO_MANAGED_TODAY.primaryCta.external
@@ -26,7 +26,7 @@ export function Today() {
             >
               {FO_MANAGED_TODAY.primaryCta.label}
             </a>
-          </ButtonCVA>
+          </Button>
           <p className="text-sm">
             <a
               href={FO_MANAGED_TODAY.detailLink.href}

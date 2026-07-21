@@ -14,7 +14,7 @@
 
 'use client';
 
-import { Breadcrumb, ButtonCVA, Card, Select, Textarea } from '@revealui/presentation';
+import { Breadcrumb, Button, Card, Select, Textarea } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { type ChangeEvent, use, useState } from 'react';
@@ -96,12 +96,12 @@ export default function AgentRunPage({ params }: PageProps) {
               </Field>
               <div className="flex-1" />
               {!stream.isStreaming && (
-                <ButtonCVA type="submit" disabled={!instruction.trim()} variant="brand" size="sm">
+                <Button type="submit" disabled={!instruction.trim()} variant="brand" size="sm">
                   Start agent
-                </ButtonCVA>
+                </Button>
               )}
               {stream.isStreaming && (
-                <ButtonCVA
+                <Button
                   type="button"
                   onClick={stream.abort}
                   appearance="outline"
@@ -110,12 +110,12 @@ export default function AgentRunPage({ params }: PageProps) {
                   className="border-error/30 bg-error/10 text-error hover:bg-error/15"
                 >
                   Cancel
-                </ButtonCVA>
+                </Button>
               )}
               {!stream.isStreaming && stream.chunks.length > 0 && (
-                <ButtonCVA type="button" onClick={stream.reset} appearance="ghost" size="sm">
+                <Button type="button" onClick={stream.reset} appearance="ghost" size="sm">
                   Clear
-                </ButtonCVA>
+                </Button>
               )}
             </div>
           </form>

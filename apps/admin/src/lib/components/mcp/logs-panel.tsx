@@ -9,7 +9,7 @@
 
 'use client';
 
-import { ButtonCVA, Select } from '@revealui/presentation';
+import { Button, Select } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -155,15 +155,15 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           </Select>
         </Field>
         {state === 'streaming' || state === 'connecting' ? (
-          <ButtonCVA type="button" appearance="outline" variant="neutral" size="sm" onClick={stop}>
+          <Button type="button" appearance="outline" variant="neutral" size="sm" onClick={stop}>
             Stop
-          </ButtonCVA>
+          </Button>
         ) : (
-          <ButtonCVA type="button" size="sm" onClick={() => void start()}>
+          <Button type="button" size="sm" onClick={() => void start()}>
             Start
-          </ButtonCVA>
+          </Button>
         )}
-        <ButtonCVA
+        <Button
           type="button"
           appearance="outline"
           variant="neutral"
@@ -172,7 +172,7 @@ export function LogsPanel({ tenant, server }: LogsPanelProps) {
           disabled={entries.length === 0}
         >
           Clear
-        </ButtonCVA>
+        </Button>
         <div className="ml-auto text-xs text-muted-foreground">
           {state === 'streaming' && (
             <span className="inline-flex items-center gap-1.5">

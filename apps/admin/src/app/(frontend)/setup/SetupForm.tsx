@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  ButtonCVA as Button,
-  FormLabel,
-  Heading,
-  InputCVA as Input,
-} from '@revealui/presentation/server';
+import { Button, FormLabel, Heading, InputCVA as Input } from '@revealui/presentation/server';
 import { useRouter } from 'next/navigation';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState } from 'react';

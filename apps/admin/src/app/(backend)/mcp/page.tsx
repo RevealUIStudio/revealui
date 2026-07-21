@@ -15,7 +15,7 @@
 
 import {
   Badge,
-  ButtonCVA,
+  Button,
   Input,
   LinkButton,
   Table,
@@ -212,14 +212,14 @@ export default function McpCatalogPage() {
                     pattern="[A-Za-z0-9_-]{1,64}"
                     placeholder="acme"
                   />
-                  <ButtonCVA
+                  <Button
                     type="submit"
                     appearance="outline"
                     variant="neutral"
                     disabled={!tenant.trim() || state === 'loading'}
                   >
                     {state === 'loading' ? 'Loading…' : 'Load'}
-                  </ButtonCVA>
+                  </Button>
                   {activeTenant && state === 'ready' && (
                     <span className="text-xs text-muted-foreground">
                       Showing remote servers for{' '}

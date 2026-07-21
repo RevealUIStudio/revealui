@@ -289,7 +289,7 @@ describe('LinkButton', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Expressive variants — glow + shine (parity with Button / ButtonCVA)
+  // Expressive variants — glow + shine (parity with Button / Button)
   // -------------------------------------------------------------------------
 
   describe('Expressive variants', () => {
