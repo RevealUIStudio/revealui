@@ -102,4 +102,32 @@ describe('SpawnerService termination (D6)', () => {
     await exited;
     expect(service.list()[0]?.status).not.toBe('running');
   });
+
+  it('stopAllAndWait SIGKILLs a SIGTERM-ignoring child (GAP-390 drain)', async () => {
+    service = new SpawnerService({ terminationGraceMs: 100 });
+    service.spawn('wedged', 'Ollama', 'model', 'prompt');
+    await waitReady(service);
+    const pid = service.list()[0]?.pid;
+    expect(pid).toBeTypeOf('number');
+
+    const start = Date.now();
+    await service.stopAllAndWait();
+    // Grace elapsed then SIGKILL; must not resolve early as if unref-drained.
+    expect(Date.now() - start).toBeGreaterThanOrEqual(100);
+    expect(service.list()[0]?.status).toBe('stopped');
+
+    // Child is actually dead (ESRCH on signal 0).
+    expect(() => process.kill(pid as number, 0)).toThrow();
+  });
+
+  it('intentional stop of SIGTERM-ignorer maps to stopped not errored', async () => {
+    service = new SpawnerService({ terminationGraceMs: 80 });
+    const id = service.spawn('wedged', 'Ollama', 'model', 'prompt');
+    await waitReady(service);
+
+    const exited = onceExit(service);
+    service.stop(id);
+    await exited;
+    expect(service.list()[0]?.status).toBe('stopped');
+  });
 });
