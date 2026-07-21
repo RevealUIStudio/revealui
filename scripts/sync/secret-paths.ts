@@ -517,7 +517,11 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:admin', 'vercel:marketing', 'vercel:docs'],
+    // vercel:api is required for governed MCP tool loopback (self REST calls).
+    consumers: ['vercel:api', 'vercel:admin', 'vercel:marketing', 'vercel:docs'],
+    requiredInProdHosted: true,
+    envVars: ['REVEALUI_API_URL'],
+    note: 'api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin). Governed MCP tools fail without it.',
   },
   {
     path: 'revealui/prod/public/is-live',
@@ -811,8 +815,8 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'staging',
-    consumers: ['vercel:admin-staging', 'vercel:marketing-staging'],
-    note: 'the api own origin; also VITE_API_URL on marketing (the anti-cross-wire fix, GAP-343)',
+    consumers: ['vercel:api-staging', 'vercel:admin-staging', 'vercel:marketing-staging'],
+    note: 'the api own origin (MCP loopback + OpenAPI); also VITE_API_URL on marketing (anti-cross-wire, GAP-343)',
   },
 
   // ── Env bundle (derived, verify-only - NOT synced to any platform) ────────

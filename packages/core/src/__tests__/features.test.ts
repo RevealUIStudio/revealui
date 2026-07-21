@@ -221,13 +221,12 @@ describe('isFeatureEnabled', () => {
       expect(isFeatureEnabled(feature)).toBe(true);
     });
 
-    it.each([
-      ...PRO_FEATURES,
-      ...MAX_FEATURES,
-      ...ENTERPRISE_FEATURES,
-    ])('returns false for %s', (feature) => {
-      expect(isFeatureEnabled(feature)).toBe(false);
-    });
+    it.each([...PRO_FEATURES, ...MAX_FEATURES, ...ENTERPRISE_FEATURES])(
+      'returns false for %s',
+      (feature) => {
+        expect(isFeatureEnabled(feature)).toBe(false);
+      },
+    );
   });
 
   describe('pro tier  -  pro features enabled, max/enterprise blocked', () => {

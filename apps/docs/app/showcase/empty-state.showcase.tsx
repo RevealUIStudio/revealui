@@ -1,5 +1,5 @@
 import {
-  ButtonCVA as Button,
+  Button,
   EmptyState,
   IconPlus,
   IconSearch,

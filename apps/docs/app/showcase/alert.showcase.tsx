@@ -5,7 +5,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@revealui/presentation/client';
-import { ButtonCVA } from '@revealui/presentation/server';
+import { Button } from '@revealui/presentation/server';
 import { useState } from 'react';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
@@ -14,9 +14,9 @@ function AlertDemo(props: { size: string }) {
 
   return (
     <>
-      <ButtonCVA variant="brand" onClick={() => setOpen(true)}>
+      <Button variant="brand" onClick={() => setOpen(true)}>
         Open Alert
-      </ButtonCVA>
+      </Button>
       <Alert open={open} onClose={() => setOpen(false)} size={props.size as 'sm' | 'md' | 'lg'}>
         <AlertTitle>Confirm Action</AlertTitle>
         <AlertDescription>
@@ -28,12 +28,12 @@ function AlertDemo(props: { size: string }) {
           </p>
         </AlertBody>
         <AlertActions>
-          <ButtonCVA appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>
+          <Button appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>
             Cancel
-          </ButtonCVA>
-          <ButtonCVA variant="danger" onClick={() => setOpen(false)}>
+          </Button>
+          <Button variant="danger" onClick={() => setOpen(false)}>
             Delete
-          </ButtonCVA>
+          </Button>
         </AlertActions>
       </Alert>
     </>
@@ -63,21 +63,21 @@ const story: ShowcaseStory = {
         const [open, setOpen] = useState(false);
         return (
           <>
-            <ButtonCVA variant="danger" onClick={() => setOpen(true)}>
+            <Button variant="danger" onClick={() => setOpen(true)}>
               Delete Account
-            </ButtonCVA>
+            </Button>
             <Alert open={open} onClose={() => setOpen(false)}>
               <AlertTitle>Delete Account?</AlertTitle>
               <AlertDescription>
                 This will permanently delete your account and all data.
               </AlertDescription>
               <AlertActions>
-                <ButtonCVA appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>
+                <Button appearance="ghost" variant="neutral" onClick={() => setOpen(false)}>
                   Keep Account
-                </ButtonCVA>
-                <ButtonCVA variant="danger" onClick={() => setOpen(false)}>
+                </Button>
+                <Button variant="danger" onClick={() => setOpen(false)}>
                   Yes, Delete
-                </ButtonCVA>
+                </Button>
               </AlertActions>
             </Alert>
           </>

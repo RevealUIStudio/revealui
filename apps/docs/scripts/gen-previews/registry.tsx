@@ -5,7 +5,7 @@
  *
  * Two overrides on top of the showcase reuse:
  *  - alias map: showcases keyed by concept-slug fan out to the styled + headless
- *    export pairs (e.g. `button` → Button and ButtonCVA).
+ *    export pairs (e.g. `button` → Button; legacy ButtonCVA alias still exported).
  *  - overlay snapshots: Dialog/Drawer/Tooltip/Toast portal to document.body or
  *    render from client state, so `renderToStaticMarkup` can never capture their
  *    open state. Those four get a hand-composed representative snapshot built
@@ -35,7 +35,7 @@ const SKIP_SLUGS = new Set(['animations', 'theme', 'icons']);
 
 /** Concept-slug → the component export name(s) that story represents. */
 const SLUG_ALIASES: Record<string, string[]> = {
-  button: ['Button', 'ButtonCVA'],
+  button: ['Button'],
   checkbox: ['Checkbox', 'CheckboxCVA'],
   input: ['Input', 'InputCVA'],
   select: ['Select', 'SelectCVA'],
@@ -169,7 +169,7 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
     DialogDescription,
     DialogBody,
     DialogActions,
-    ButtonCVA,
+    Button,
     DrawerHeader,
     DrawerBody,
     DrawerFooter,
@@ -246,11 +246,11 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
                 {},
                 <>
                   {React.createElement(
-                    ButtonCVA,
+                    Button,
                     { appearance: 'outline', variant: 'neutral' },
                     'Cancel',
                   )}
-                  {React.createElement(ButtonCVA, { variant: 'danger' }, 'Delete')}
+                  {React.createElement(Button, { variant: 'danger' }, 'Delete')}
                 </>,
               )}
             </div>
@@ -278,11 +278,11 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
                 {},
                 <>
                   {React.createElement(
-                    ButtonCVA,
+                    Button,
                     { appearance: 'outline', variant: 'neutral' },
                     'Reset',
                   )}
-                  {React.createElement(ButtonCVA, { variant: 'brand' }, 'Apply')}
+                  {React.createElement(Button, { variant: 'brand' }, 'Apply')}
                 </>,
               )}
             </div>
@@ -298,7 +298,7 @@ function authoredSnapshots(): Record<string, CuratedEntry> {
           node: (
             <div className="dsc-tooltip-demo">
               {React.createElement(
-                ButtonCVA,
+                Button,
                 { appearance: 'outline', variant: 'neutral' },
                 'Hover me',
               )}

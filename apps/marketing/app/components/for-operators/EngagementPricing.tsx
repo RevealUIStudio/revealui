@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { FOR_OPERATORS_PRICING } from '../../content/for-operators';
 
 export function EngagementPricing() {
@@ -27,14 +27,14 @@ export function EngagementPricing() {
               <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{rung.price}</p>
               <p className="mt-4 flex-1 text-base leading-7 text-muted-foreground">{rung.body}</p>
               <div className="mt-8">
-                <ButtonCVA asChild appearance="outline" variant="neutral" className="w-full">
+                <Button asChild appearance="outline" variant="neutral" className="w-full">
                   <a
                     href={rung.cta.href}
                     {...(rung.cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   >
                     {rung.cta.label}
                   </a>
-                </ButtonCVA>
+                </Button>
               </div>
             </li>
           ))}

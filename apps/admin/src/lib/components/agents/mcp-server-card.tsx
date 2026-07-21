@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, ButtonCVA, Card } from '@revealui/presentation';
+import { Badge, Button, Card } from '@revealui/presentation';
 import { useState } from 'react';
 
 export interface McpServerInfo {
@@ -66,7 +66,7 @@ export function McpServerCard({ server }: McpServerCardProps) {
       {/* Tools toggle */}
       {server.tools.length > 0 && (
         <div className="mt-4">
-          <ButtonCVA
+          <Button
             type="button"
             onClick={() => setExpanded((v) => !v)}
             appearance="ghost"
@@ -86,7 +86,7 @@ export function McpServerCard({ server }: McpServerCardProps) {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
-          </ButtonCVA>
+          </Button>
 
           {expanded && (
             <ul className="mt-2 space-y-1">

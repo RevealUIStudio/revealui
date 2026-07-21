@@ -28,6 +28,8 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_KEK: HEX_64,
     REVEALUI_PUBLIC_SERVER_URL: HTTPS_URL,
     NEXT_PUBLIC_SERVER_URL: HTTPS_URL,
+    // Governed MCP tool loopback origin (required hosted boot as of GAP-MCP-self-url)
+    REVEALUI_API_URL: 'https://api.revealui.com',
     STRIPE_SECRET_KEY: 'sk_live_deadbeef',
     STRIPE_WEBHOOK_SECRET: 'whsec_deadbeef',
     REVEALUI_LICENSE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----',
@@ -301,6 +303,12 @@ describe('validateStartup — production format checks (live mode)', () => {
 
   it('accepts a fully valid live-mode production environment', () => {
     expect(() => validateStartup(validLiveProdEnv())).not.toThrow();
+  });
+
+  it('rejects hosted production without REVEALUI_API_URL (MCP loopback)', () => {
+    const env = validLiveProdEnv();
+    delete env.REVEALUI_API_URL;
+    expect(() => validateStartup(env)).toThrow(/REVEALUI_API_URL/);
   });
 
   it('does NOT emit the test-mode warning when STRIPE_LIVE_MODE=true', () => {
@@ -848,6 +856,7 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
       POSTGRES_URL: 'postgresql://user:pw@host/db',
       REVEALUI_PUBLIC_SERVER_URL: 'https://api.revealui.com',
       NEXT_PUBLIC_SERVER_URL: 'https://api.revealui.com',
+      REVEALUI_API_URL: 'https://api.revealui.com',
       CORS_ORIGIN: 'https://revealui.com',
       // Hosted-mode signals — non-empty (would be sensitive in real Vercel,
       // but their PRESENCE is what mode detection cares about; the value is

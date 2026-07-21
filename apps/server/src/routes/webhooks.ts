@@ -13,6 +13,7 @@ import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import {
   coversRenewalBound,
   generateLicenseKey,
+  normalizePem,
   readLicenseExp,
   resetLicenseState,
   subscriptionExpBound,
@@ -433,7 +434,7 @@ async function remintSubscriptionLicenseOnRenewal(
     );
     return;
   }
-  const normalizedKey = privateKey.replaceAll('\\n', '\n');
+  const normalizedKey = normalizePem(privateKey);
 
   const licenseKey = await generateLicenseKey(
     { tier, customerId: params.customerId },
@@ -1335,7 +1336,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
           }
 
-          const normalizedKey = privateKey.replaceAll('\\n', '\n');
+          const normalizedKey = normalizePem(privateKey);
 
           // Support contract expires 1 year from purchase
           const supportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
@@ -1605,7 +1606,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // Unescape literal \n sequences  -  Vercel stores multi-line PEM keys
         // with \n escaped in the .env format; the runtime preserves the literal
         // \n chars, so we must convert them to real newlines for jose/importPKCS8.
-        const normalizedKey = privateKey.replaceAll('\\n', '\n');
+        const normalizedKey = normalizePem(privateKey);
 
         const isTrialing = checkoutSubscription.status === 'trialing';
         // `licenses.status` is the license-lifecycle vocabulary
@@ -2272,7 +2273,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
           }
 
-          const normalizedKey = privateKey.replaceAll('\\n', '\n');
+          const normalizedKey = normalizePem(privateKey);
 
           updateSteps.push(
             {
@@ -2850,7 +2851,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
             }
 
-            const normalizedKey = privateKey.replaceAll('\\n', '\n');
+            const normalizedKey = normalizePem(privateKey);
             // GAP-287 PR-2: period-bound exp on the recovery re-mint too.
             const licenseKey = await generateLicenseKey(
               { tier: recoveredTier, customerId },

@@ -19,7 +19,7 @@
 
 'use client';
 
-import { ButtonCVA, Card } from '@revealui/presentation';
+import { Button, Card } from '@revealui/presentation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 import {
@@ -295,11 +295,11 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
         ))}
 
         <div className="flex items-center gap-3 pt-2">
-          <ButtonCVA type="submit" disabled={invoking}>
+          <Button type="submit" disabled={invoking}>
             {invoking ? 'Invoking…' : 'Invoke'}
-          </ButtonCVA>
+          </Button>
           {invoking && (
-            <ButtonCVA
+            <Button
               type="button"
               appearance="outline"
               variant="neutral"
@@ -307,7 +307,7 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
               onClick={handleCancel}
             >
               Cancel
-            </ButtonCVA>
+            </Button>
           )}
         </div>
       </form>

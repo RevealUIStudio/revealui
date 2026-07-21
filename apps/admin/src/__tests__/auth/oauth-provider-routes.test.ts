@@ -59,6 +59,9 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 // Mock license + DB modules used by callback route (user limit enforcement)
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   initializeLicense: vi.fn().mockResolvedValue(undefined),
   getMaxUsers: vi.fn().mockReturnValue(Infinity),
 }));

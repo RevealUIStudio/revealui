@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  ButtonCVA as Button,
-  FormLabel,
-  Heading,
-  InputCVA as Input,
-} from '@revealui/presentation/server';
+import { Button, FormLabel, Heading, InputCVA as Input } from '@revealui/presentation/server';
 import { useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';

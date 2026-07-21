@@ -2,7 +2,7 @@
 
 import { usePasskeyRegister } from '@revealui/auth/react';
 import {
-  ButtonCVA as Button,
+  Button,
   FormLabel,
   Heading,
   InputCVA as Input,

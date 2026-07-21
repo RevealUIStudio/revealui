@@ -385,7 +385,19 @@ jobs:
       - name: Override Vercel project settings for CI
         run: |
           if [ -f .vercel/project.json ]; then
-            jq '.settings.installCommand = "" | .settings.buildCommand = "pnpm turbo build --filter=${{ matrix.app }}"' .vercel/project.json > .vercel/project.json.tmp
+            # Deploy target "api" is package "server". Its vercel-build script also
+            # builds optional Pro packages (@revealui/ai, @revealui/services) when
+            # present — plain `turbo --filter=server` does not (optional peers are
+            # outside the graph). Other matrix apps match their package names.
+            APP="${{ matrix.app }}"
+            if [ "$APP" = "api" ]; then
+              BUILD_CMD='pnpm run vercel-build'
+            else
+              BUILD_CMD="pnpm turbo build --filter=${APP}"
+            fi
+            jq --arg cmd "$BUILD_CMD" \
+              '.settings.installCommand = "" | .settings.buildCommand = $cmd' \
+              .vercel/project.json > .vercel/project.json.tmp
             mv .vercel/project.json.tmp .vercel/project.json
           fi
 
@@ -395,13 +407,10 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
           SKIP_ENV_VALIDATION: "true"
-          # api: @vercel/node's TypeScript pass compiles far beyond the traced
-          # entry (sibling apps included) and its diagnostics are non-fatal
-          # noise on every run — but the pass sits at Node's default ~4GB heap
-          # ceiling and died OOM (exit 134, "Ineffective mark-compacts near
-          # heap limit") on run 29668080341 (2026-07-19) once the program grew
-          # past it. Raise the ceiling; ubuntu-latest runners have 16GB.
-          NODE_OPTIONS: --max-old-space-size=6144
+          # GAP-403: monorepo TS wall removed via apps/server/vercel.json
+          # excludeFiles (brace string). Preview api build 29783369901 completed
+          # in ~1m with 0 "Using TypeScript" / 0 sibling-app TS diagnostics.
+          # The #2010 NODE_OPTIONS=6144 ceiling is no longer required.
 
       - name: Deploy
         id: deploy

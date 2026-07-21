@@ -17,20 +17,13 @@ export default defineConfig({
   // @revealui/ai and @revealui/services are optional Pro packages  -  keep external
   // so builds succeed without them installed.
   external: ['pg', 'pg-native', 'stripe', '@revealui/ai', '@revealui/services'],
-  // Inline the Inter Tight variable font into the bundle for satori. The resvg WASM is NOT
-  // inlined — it's read at runtime from node_modules via createRequire
-  // (see apps/server/src/routes/og.ts). The earlier inline approach via
-  // tsup's binary loader worked in Vercel Edge / CF Workers but crashes
-  // Node's experimental WASM ESM loader (the .wasm's import section
-  // declares a `wbg` import that has no resolution path when the .wasm
-  // is loaded as an ES module).
-  loader: {
-    '.ttf': 'binary',
-  },
-  // CJS packages bundled via the @revealui/* chain (e.g. dotenv) call require()
-  // of Node.js built-ins like 'fs' and 'path'. In ESM bundles, require() is
-  // undefined and esbuild's CJS shim throws. This banner injects createRequire
-  // so those calls succeed at runtime on all Node.js serverless platforms.
+  // OG fonts + resvg WASM are read at runtime from dist (copy-og-fonts /
+  // copy-resvg-wasm). Do NOT binary-inline .ttf — that worked only in the
+  // built bundle and broke `tsx watch` with ERR_UNKNOWN_FILE_EXTENSION
+  // (GAP-401). CJS packages bundled via the @revealui/* chain still call
+  // require() of Node built-ins; this banner keeps those calls working on
+  // serverless platforms. index.ts also uses createRequire explicitly for
+  // swagger-ui-dist so tsx and tsup share one code path.
   banner: {
     js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
   },

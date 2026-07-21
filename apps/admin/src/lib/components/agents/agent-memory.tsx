@@ -1,6 +1,6 @@
 'use client';
 
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { useAgentMemory } from '@revealui/sync';
 import { useState } from 'react';
 
@@ -172,7 +172,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-3">{memory.content}</p>
                 </div>
-                <ButtonCVA
+                <Button
                   type="button"
                   onClick={() => handleRemove(memory.id)}
                   disabled={removingId === memory.id}
@@ -195,7 +195,7 @@ export function AgentMemory({ agentId }: AgentMemoryProps) {
                       clipRule="evenodd"
                     />
                   </svg>
-                </ButtonCVA>
+                </Button>
               </div>
             </li>
           ))}

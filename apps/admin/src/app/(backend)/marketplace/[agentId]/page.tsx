@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, ButtonCVA, Card, Select, Skeleton, Slider, Textarea } from '@revealui/presentation';
+import { Badge, Button, Card, Select, Skeleton, Slider, Textarea } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -291,7 +291,7 @@ function ReviewsPanel({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</h3>
-        <ButtonCVA onClick={() => setShowForm(!showForm)}>Write Review</ButtonCVA>
+        <Button onClick={() => setShowForm(!showForm)}>Write Review</Button>
       </div>
 
       {showForm && (
@@ -327,17 +327,17 @@ function ReviewsPanel({
               />
             </Field>
             <div className="flex gap-2">
-              <ButtonCVA type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting}>
                 {submitting ? 'Submitting...' : 'Submit Review'}
-              </ButtonCVA>
-              <ButtonCVA
+              </Button>
+              <Button
                 type="button"
                 appearance="outline"
                 variant="neutral"
                 onClick={() => setShowForm(false)}
               >
                 Cancel
-              </ButtonCVA>
+              </Button>
             </div>
           </Card>
         </form>
@@ -508,9 +508,9 @@ function SubmitTaskPanel({
         </div>
       )}
 
-      <ButtonCVA type="submit" disabled={submitting || skills.length === 0}>
+      <Button type="submit" disabled={submitting || skills.length === 0}>
         {submitting ? 'Submitting...' : 'Submit Task'}
-      </ButtonCVA>
+      </Button>
     </form>
   );
 }

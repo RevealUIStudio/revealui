@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod/v4';
+import { estimateTokens } from '../../internal/token-estimate.js';
 import type { Tool, ToolResult } from '../base.js';
 import type { WebSearchProvider, WebSearchResponse, WebSearchResult } from './types.js';
 
@@ -25,11 +26,6 @@ interface DdgResponse {
   AbstractSource?: string;
   AbstractURL?: string;
   RelatedTopics?: DdgRelatedTopic[];
-}
-
-/** Approximate token count for a string (4 chars ≈ 1 token). */
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }
 
 // =============================================================================

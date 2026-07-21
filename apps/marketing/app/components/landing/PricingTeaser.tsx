@@ -1,5 +1,5 @@
 import type { PricingResponse } from '@revealui/contracts/pricing';
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import {
   PRICING_TEASER_FOOTER,
@@ -121,15 +121,15 @@ export function PricingTeaser() {
 
                 <div className="mt-8">
                   {t.highlight ? (
-                    <ButtonCVA
+                    <Button
                       asChild
                       size="default"
                       className="w-full bg-background text-foreground hover:bg-secondary"
                     >
                       <a href={t.href}>{t.cta}</a>
-                    </ButtonCVA>
+                    </Button>
                   ) : (
-                    <ButtonCVA
+                    <Button
                       asChild
                       size="default"
                       appearance="outline"
@@ -137,7 +137,7 @@ export function PricingTeaser() {
                       className="w-full"
                     >
                       <a href={t.href}>{t.cta}</a>
-                    </ButtonCVA>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -159,14 +159,14 @@ export function PricingTeaser() {
         </div>
 
         <div className="mt-12 text-center">
-          <ButtonCVA
+          <Button
             asChild
             appearance="link"
             size="default"
             className="items-center justify-center text-sm font-medium"
           >
             <a href={PRICING_TEASER_FOOTER.moreHref}>{PRICING_TEASER_FOOTER.moreLabel}</a>
-          </ButtonCVA>
+          </Button>
           <p className="mt-6 text-xs leading-5 text-muted-foreground">
             {PRICING_TEASER_FOOTER.caption.prefix}{' '}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">

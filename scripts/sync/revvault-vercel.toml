@@ -144,6 +144,12 @@ ELECTRIC_SECRET      = { path = "revealui/prod/electric/secret", sensitive = tru
 # Public (bundled into client; not secret, kept canonical for reproducibility)
 NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
 REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
+# Self origin for governed MCP tool loopback (credentialsProvider → REST).
+# Missing on api caused live tool calls to fail while /api/mcp auth still
+# returned 400 Session ID required (auth green, tools dead). Same vault leaf
+# as admin/marketing NEXT_PUBLIC_API_URL / REVEALUI_API_URL.
+REVEALUI_API_URL           = "revealui/prod/public/api-url"
+NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
 
 
 # ── revealui-admin ──────────────────────────────────────────────────────────

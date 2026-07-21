@@ -24,7 +24,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // draft-mode cookie. The render path re-gates draft CONTENT on an admin
   // session, but the enabler must fail closed here too (defence-in-depth).
   const session = await getSession(req.headers, extractRequestContext(req));
-  if (!session || !isAdminRole(session.user.role)) {
+  if (!(session && isAdminRole(session.user.role))) {
     return new Response('You are not allowed to preview this page', {
       status: 403,
     });

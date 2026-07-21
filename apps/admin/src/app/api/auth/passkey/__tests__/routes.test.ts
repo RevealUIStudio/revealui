@@ -58,6 +58,9 @@ const mockGetMaxUsers = vi.fn(() => Infinity);
 
 // Mock license module  -  tests run without a license server, so report no limit
 vi.mock('@revealui/core/license', () => ({
+  normalizePem: (raw: string) => raw.split('\\n').join('\n'),
+  readPemEnv: (name: string) => process.env[name],
+  coversRenewalBound: vi.fn(() => false),
   initializeLicense: vi.fn(() => Promise.resolve()),
   getMaxUsers: () => mockGetMaxUsers(),
 }));

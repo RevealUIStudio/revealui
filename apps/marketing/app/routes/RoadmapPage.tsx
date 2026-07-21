@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import {
   ROADMAP_CTA,
@@ -114,7 +114,7 @@ export function RoadmapPage() {
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">{ROADMAP_CTA.subtitle}</p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="brand">
+            <Button asChild size="lg" variant="brand">
               <a
                 href={ROADMAP_CTA_LINKS.requestFeature.href}
                 target="_blank"
@@ -122,8 +122,8 @@ export function RoadmapPage() {
               >
                 {ROADMAP_CTA_LINKS.requestFeature.label}
               </a>
-            </ButtonCVA>
-            <ButtonCVA asChild size="lg" appearance="outline" variant="neutral">
+            </Button>
+            <Button asChild size="lg" appearance="outline" variant="neutral">
               <a
                 href={ROADMAP_CTA_LINKS.joinDiscussion.href}
                 target="_blank"
@@ -131,7 +131,7 @@ export function RoadmapPage() {
               >
                 {ROADMAP_CTA_LINKS.joinDiscussion.label}
               </a>
-            </ButtonCVA>
+            </Button>
           </div>
           <p className="mt-8 text-sm text-muted-foreground">
             See what's shipped today &rarr;{' '}

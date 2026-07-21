@@ -12,9 +12,16 @@ vi.mock('@revealui/utils/logger', () => ({
 }));
 
 describe('classifyAuditWriteFailure', () => {
-  it('classifies the getAuditSecret() message as missing_secret', () => {
+  it('classifies historical HMAC secret messages as missing_secret', () => {
     const err = new Error(
       'Audit HMAC signing requires REVEALUI_AUDIT_HMAC_SECRET (or REVEALUI_SECRET fallback) to be set.',
+    );
+    expect(classifyAuditWriteFailure(err)).toBe('missing_secret');
+  });
+
+  it('classifies Ed25519 signing-key messages as missing_secret', () => {
+    const err = new Error(
+      'REVEALUI_AUDIT_SIGNING_KEY is required for signed audit rows in this deployment.',
     );
     expect(classifyAuditWriteFailure(err)).toBe('missing_secret');
   });

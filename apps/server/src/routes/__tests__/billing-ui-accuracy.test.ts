@@ -124,25 +124,21 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
   });
 
   describe('UI tier labels match contracts', () => {
-    it.each([
-      'free',
-      'pro',
-      'max',
-      'enterprise',
-    ] as LicenseTierId[])('TIER_LABELS[%s] is defined and non-empty', (tier) => {
-      expect(TIER_LABELS[tier]).toBeDefined();
-      expect(TIER_LABELS[tier].length).toBeGreaterThan(0);
-    });
+    it.each(['free', 'pro', 'max', 'enterprise'] as LicenseTierId[])(
+      'TIER_LABELS[%s] is defined and non-empty',
+      (tier) => {
+        expect(TIER_LABELS[tier]).toBeDefined();
+        expect(TIER_LABELS[tier].length).toBeGreaterThan(0);
+      },
+    );
 
-    it.each([
-      'free',
-      'pro',
-      'max',
-      'enterprise',
-    ] as LicenseTierId[])('TIER_COLORS[%s] is defined and non-empty', (tier) => {
-      expect(TIER_COLORS[tier]).toBeDefined();
-      expect(TIER_COLORS[tier].length).toBeGreaterThan(0);
-    });
+    it.each(['free', 'pro', 'max', 'enterprise'] as LicenseTierId[])(
+      'TIER_COLORS[%s] is defined and non-empty',
+      (tier) => {
+        expect(TIER_COLORS[tier]).toBeDefined();
+        expect(TIER_COLORS[tier].length).toBeGreaterThan(0);
+      },
+    );
   });
 
   describe('Pro "What\'s Included" matches contracts', () => {

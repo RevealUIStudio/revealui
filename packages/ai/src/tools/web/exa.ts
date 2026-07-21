@@ -8,6 +8,7 @@
  * @see https://docs.exa.ai/reference/search
  */
 
+import { estimateTokens } from '../../internal/token-estimate.js';
 import type { WebSearchProvider, WebSearchResponse, WebSearchResult } from './types.js';
 
 const EXA_API_URL = 'https://api.exa.ai/search';
@@ -23,11 +24,6 @@ interface ExaResult {
 interface ExaResponse {
   results: ExaResult[];
   requestId?: string;
-}
-
-/** Approximate token count for a string (4 chars ≈ 1 token). */
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }
 
 /**

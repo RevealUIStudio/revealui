@@ -40,7 +40,7 @@ vi.mock('@/lib/utils/auth-navigation', () => ({
 
 vi.mock('@revealui/presentation/server', () => ({
   // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  ButtonCVA: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
   FormLabel: ({ children, htmlFor }: any) => <label htmlFor={htmlFor}>{children}</label>,
   // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
@@ -115,27 +115,30 @@ describe('SignupForm post-signup routing', () => {
     expect(screen.queryByText('Check your inbox')).not.toBeInTheDocument();
   });
 
-  it.each([
-    'pro',
-    'max',
-  ] as const)('routes an auto-verified user with ?plan=%s into the billing upgrade flow', async (plan) => {
-    mockPlanParam = plan;
-    vi.stubGlobal(
-      'fetch',
-      vi
-        .fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ user: { emailVerified: true } }) })
-        .mockResolvedValue({ ok: true, json: async () => ({}) }),
-    );
+  it.each(['pro', 'max'] as const)(
+    'routes an auto-verified user with ?plan=%s into the billing upgrade flow',
+    async (plan) => {
+      mockPlanParam = plan;
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ user: { emailVerified: true } }),
+          })
+          .mockResolvedValue({ ok: true, json: async () => ({}) }),
+      );
 
-    render(<SignupForm apiUrl="http://api.test" />);
-    fillAndSubmit();
+      render(<SignupForm apiUrl="http://api.test" />);
+      fillAndSubmit();
 
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(`/account/billing?upgrade=${plan}`);
-    });
-    expect(mockPush).not.toHaveBeenCalled();
-  });
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(`/account/billing?upgrade=${plan}`);
+      });
+      expect(mockPush).not.toHaveBeenCalled();
+    },
+  );
 
   it('ignores an unknown ?plan= value and routes to /welcome as a free-tier signup', async () => {
     mockPlanParam = 'enterprise-deluxe';

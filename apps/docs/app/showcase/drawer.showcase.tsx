@@ -1,5 +1,5 @@
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from '@revealui/presentation/client';
-import { ButtonCVA as Button } from '@revealui/presentation/server';
+import { Button } from '@revealui/presentation/server';
 import { useState } from 'react';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 

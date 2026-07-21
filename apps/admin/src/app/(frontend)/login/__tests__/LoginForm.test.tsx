@@ -46,7 +46,7 @@ vi.mock('@/lib/utils/auth-navigation', () => ({
 
 vi.mock('@revealui/presentation/server', () => ({
   // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
-  ButtonCVA: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles
   FormLabel: ({ children, htmlFor }: any) => <label htmlFor={htmlFor}>{children}</label>,
   // biome-ignore lint/suspicious/noExplicitAny: lightweight test doubles

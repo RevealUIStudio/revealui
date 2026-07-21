@@ -1,4 +1,4 @@
-import { type BlockAnnotation, ButtonCVA, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
 import { HOME_GET_STARTED } from '../content/home';
 import type { GetStartedData } from '../lib/page-blocks';
 import { NewsletterSignup } from './NewsletterSignup';
@@ -34,10 +34,10 @@ export function GetStarted({
             {data.body}
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" variant="brand">
+            <Button asChild size="lg" variant="brand">
               <a href={data.cta.primary.href}>{data.cta.primary.label}</a>
-            </ButtonCVA>
-            <ButtonCVA asChild appearance="outline" variant="neutral" size="lg">
+            </Button>
+            <Button asChild appearance="outline" variant="neutral" size="lg">
               <a href={data.cta.secondary.href}>
                 {data.cta.secondary.label}
                 <svg
@@ -55,7 +55,7 @@ export function GetStarted({
                   />
                 </svg>
               </a>
-            </ButtonCVA>
+            </Button>
           </div>
 
           {/* CLI quick-start, moved here from the hero (frontend-excellence

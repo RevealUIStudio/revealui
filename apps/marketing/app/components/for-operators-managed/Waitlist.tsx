@@ -1,4 +1,4 @@
-import { ButtonCVA as Button, Input } from '@revealui/presentation';
+import { Button, Input } from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { FO_MANAGED_WAITLIST } from '../../content/for-operators-managed';

@@ -6,6 +6,8 @@
  * Token count is estimated as Math.ceil(length / 4)  -  sufficient for chunking.
  */
 
+import { estimateTokens } from '../internal/token-estimate.js';
+
 export interface Chunk {
   content: string;
   tokenCount: number;
@@ -20,10 +22,6 @@ export interface SplitOptions {
 }
 
 const SEPARATORS = ['\n\n', '\n', '. ', ' '] as const;
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
 
 function splitOnSeparator(text: string, separator: string): string[] {
   if (!text.includes(separator)) return [text];

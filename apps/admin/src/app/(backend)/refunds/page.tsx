@@ -2,7 +2,7 @@
 
 import {
   Badge,
-  ButtonCVA,
+  Button,
   Card,
   Input,
   Select,
@@ -383,10 +383,7 @@ function RefundsDashboard() {
 
             {/* Submit */}
             <div className="mt-6 flex items-center gap-3">
-              <ButtonCVA
-                type="submit"
-                disabled={submitStatus === 'submitting' || !identifier.trim()}
-              >
+              <Button type="submit" disabled={submitStatus === 'submitting' || !identifier.trim()}>
                 {submitStatus === 'submitting' ? (
                   <span className="flex items-center gap-2">
                     <span
@@ -398,7 +395,7 @@ function RefundsDashboard() {
                 ) : (
                   'Issue Refund'
                 )}
-              </ButtonCVA>
+              </Button>
               {submitStatus === 'submitting' && (
                 <span className="text-xs text-muted-foreground">
                   This may take a few seconds...

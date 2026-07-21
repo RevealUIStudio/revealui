@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { Button } from '@revealui/presentation';
 import { FO_HIW_HERO } from '../../content/for-operators-how-it-works';
 
 export function Hero() {
@@ -24,7 +24,7 @@ export function Hero() {
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
+          <Button asChild size="lg" className="w-full sm:w-auto">
             <a
               href={FO_HIW_HERO.primaryCta.href}
               {...(FO_HIW_HERO.primaryCta.external
@@ -33,7 +33,7 @@ export function Hero() {
             >
               {FO_HIW_HERO.primaryCta.label}
             </a>
-          </ButtonCVA>
+          </Button>
         </div>
 
         <p className="mt-8 text-sm text-muted-foreground">

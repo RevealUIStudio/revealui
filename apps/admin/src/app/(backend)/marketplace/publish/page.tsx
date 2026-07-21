@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  ButtonCVA,
+  Button,
   Card,
   Input,
   Radio,
@@ -428,9 +428,9 @@ function StepBasicInfo({
       </Field>
 
       <div className="pt-4">
-        <ButtonCVA type="button" onClick={onNext}>
+        <Button type="button" onClick={onNext}>
           Next: Configuration
-        </ButtonCVA>
+        </Button>
       </div>
     </div>
   );
@@ -525,12 +525,12 @@ function StepConfiguration({
       </Field>
 
       <div className="flex gap-3 pt-4">
-        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={onBack}>
+        <Button type="button" appearance="outline" variant="neutral" onClick={onBack}>
           Back
-        </ButtonCVA>
-        <ButtonCVA type="button" onClick={onNext}>
+        </Button>
+        <Button type="button" onClick={onNext}>
           Next: Skills
-        </ButtonCVA>
+        </Button>
       </div>
     </div>
   );
@@ -561,9 +561,9 @@ function StepSkills({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium text-foreground">Skills</h2>
-        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={addSkill}>
+        <Button type="button" appearance="outline" variant="neutral" onClick={addSkill}>
           + Add Skill
-        </ButtonCVA>
+        </Button>
       </div>
       <p className="text-sm text-muted-foreground">
         Define the capabilities your agent offers. Each skill has an input and output schema.
@@ -574,14 +574,14 @@ function StepSkills({
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-foreground">Skill {i + 1}</h3>
             {skills.length > 1 && (
-              <ButtonCVA
+              <Button
                 type="button"
                 appearance="ghost"
                 onClick={() => removeSkill(i)}
                 className="text-xs text-error hover:text-error"
               >
                 Remove
-              </ButtonCVA>
+              </Button>
             )}
           </div>
 
@@ -642,12 +642,12 @@ function StepSkills({
       ))}
 
       <div className="flex gap-3 pt-4">
-        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={onBack}>
+        <Button type="button" appearance="outline" variant="neutral" onClick={onBack}>
           Back
-        </ButtonCVA>
-        <ButtonCVA type="button" onClick={onNext}>
+        </Button>
+        <Button type="button" onClick={onNext}>
           Next: Review
-        </ButtonCVA>
+        </Button>
       </div>
     </div>
   );
@@ -755,12 +755,12 @@ function StepReview({
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <ButtonCVA type="button" appearance="outline" variant="neutral" onClick={onBack}>
+        <Button type="button" appearance="outline" variant="neutral" onClick={onBack}>
           Back
-        </ButtonCVA>
-        <ButtonCVA type="button" onClick={onPublish} disabled={submitting}>
+        </Button>
+        <Button type="button" onClick={onPublish} disabled={submitting}>
           {submitting ? 'Publishing...' : 'Publish Agent'}
-        </ButtonCVA>
+        </Button>
       </div>
 
       <p className="text-xs text-muted-foreground">

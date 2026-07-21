@@ -10,6 +10,7 @@
  */
 
 import type { RagSearchResult } from '../ingestion/rag-vector-service.js';
+import { estimateTokens } from '../internal/token-estimate.js';
 
 export interface AssembleContextOptions {
   /** Maximum token budget for the assembled context */
@@ -18,10 +19,6 @@ export interface AssembleContextOptions {
   recencyWeight?: number;
   /** Weight for cosine similarity (default 0.7) */
   relevanceWeight?: number;
-}
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }
 
 /**

@@ -8,6 +8,7 @@
  * @see https://docs.tavily.com/docs/tavily-api/rest_api
  */
 
+import { estimateTokens } from '../../internal/token-estimate.js';
 import type { WebSearchProvider, WebSearchResponse, WebSearchResult } from './types.js';
 
 const TAVILY_API_URL = 'https://api.tavily.com/search';
@@ -23,11 +24,6 @@ interface TavilyResponse {
   results: TavilyResult[];
   query: string;
   answer?: string;
-}
-
-/** Approximate token count for a string (4 chars ≈ 1 token). */
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }
 
 /**

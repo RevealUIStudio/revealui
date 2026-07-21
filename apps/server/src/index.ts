@@ -20,6 +20,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { getHeapStatistics } from 'node:v8';
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
@@ -51,6 +52,7 @@ import {
 } from './lib/audit-storage.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
+import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
@@ -983,22 +985,28 @@ app.doc('/openapi.json', {
   },
   servers: [
     {
-      url: process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'http://localhost:3004',
+      url: resolveSelfApiBaseUrl() || 'http://localhost:3004',
       description: process.env.NODE_ENV === 'production' ? 'Production' : 'Development server',
     },
   ],
 });
 
 // Self-hosted Swagger UI (no CDN, CSP-strict compatible).
-// `require` here is the CJS-style require injected by tsup's banner
-// (see apps/server/tsup.config.ts) so we don't import createRequire a second time.
-const swaggerCss = readFileSync(require.resolve('swagger-ui-dist/swagger-ui.css'), 'utf-8');
+// Resolve assets via import.meta.resolve so BOTH runtimes work (GAP-401):
+// - `tsx watch` has no tsup banner `require`
+// - the tsup banner injects `createRequire` + `const require`; a second
+//   `import { createRequire }` in this file becomes a SyntaxError in the
+//   bundled chunk (Identifier 'createRequire' has already been declared)
+const swaggerCss = readFileSync(
+  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui.css')),
+  'utf-8',
+);
 const swaggerBundleJs = readFileSync(
-  require.resolve('swagger-ui-dist/swagger-ui-bundle.js'),
+  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-bundle.js')),
   'utf-8',
 );
 const swaggerPresetJs = readFileSync(
-  require.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js'),
+  fileURLToPath(import.meta.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js')),
   'utf-8',
 );
 const swaggerInitJs = `window.addEventListener('load', function () {

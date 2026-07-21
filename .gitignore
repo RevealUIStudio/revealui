@@ -205,6 +205,8 @@ result-*
 
 # Non-.claude/ worktrees (parallel agent isolation)
 .worktrees/
+# Fleet worktree root sometimes nested under a checkout (GAP-399)
+.wt/
 
 # Internal business documents (not published)
 business/

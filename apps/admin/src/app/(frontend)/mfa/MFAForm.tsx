@@ -1,12 +1,7 @@
 'use client';
 
 import { useMFAVerify } from '@revealui/auth/react';
-import {
-  ButtonCVA as Button,
-  FormLabel,
-  Heading,
-  InputCVA as Input,
-} from '@revealui/presentation/server';
+import { Button, FormLabel, Heading, InputCVA as Input } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';

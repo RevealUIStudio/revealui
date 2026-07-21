@@ -8,7 +8,7 @@ import {
   TIER_LABELS,
 } from '@revealui/contracts/pricing';
 import {
-  ButtonCVA as Button,
+  Button,
   Card,
   CardContent,
   CardDescription,
