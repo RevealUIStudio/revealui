@@ -12,6 +12,7 @@ import { users } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { sendCronFailureAlert } from '../lib/cron-alerts.js';
 import { DrizzleBreachStorage, DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 import { getServices } from '../lib/services-loader.js';
 

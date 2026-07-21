@@ -69,6 +69,7 @@ import {
   sendTrialExpiredEmail,
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
+import { sendCronFailureAlert } from '../lib/cron-alerts.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
 
 const app = new OpenAPIHono();
