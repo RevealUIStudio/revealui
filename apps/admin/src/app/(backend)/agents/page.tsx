@@ -1,7 +1,15 @@
 'use client';
 
 import type { A2AAgentCard } from '@revealui/contracts';
-import { EmptyState, LinkButton, Skeleton, SkeletonText } from '@revealui/presentation';
+import {
+  Button,
+  EmptyState,
+  IconStar,
+  IconTerminal,
+  LinkButton,
+  Skeleton,
+  SkeletonText,
+} from '@revealui/presentation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AgentCard } from '@/lib/components/agents/agent-card';
@@ -33,18 +41,20 @@ export default function AgentsPage() {
         <div className="border-b border-border bg-muted px-6">
           <nav className="flex gap-1 -mb-px">
             {(['agents', 'mcp'] as Tab[]).map((t) => (
-              <button
+              <Button
                 key={t}
                 type="button"
+                appearance="ghost"
+                variant="neutral"
                 onClick={() => setTab(t)}
-                className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`h-auto rounded-none border-b-2 px-4 py-3 text-sm font-medium ${
                   tab === t
                     ? 'border-primary text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t === 'agents' ? 'Agent Cards' : 'MCP Servers'}
-              </button>
+              </Button>
             ))}
           </nav>
         </div>
@@ -125,22 +135,7 @@ function AgentCardsPanel() {
 
       {agents.length === 0 ? (
         <EmptyState
-          icon={
-            <svg
-              className="size-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456Z"
-              />
-            </svg>
-          }
+          icon={<IconStar className="size-6" aria-hidden="true" />}
           title="No agents registered"
           description="Create your first AI agent to get started with automated tasks and workflows."
           action={
@@ -222,22 +217,7 @@ function McpServersPanel() {
 
       {servers.length === 0 ? (
         <EmptyState
-          icon={
-            <svg
-              className="size-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
-              />
-            </svg>
-          }
+          icon={<IconTerminal className="size-6" aria-hidden="true" />}
           title="No MCP servers connected"
           description="Start your development environment with MCP support to connect servers."
           action={

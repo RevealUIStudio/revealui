@@ -17,6 +17,20 @@ vi.mock('@revealui/contracts/pricing', () => ({
 
 // Mock presentation components
 vi.mock('@revealui/presentation/client', () => ({
+  Button: ({
+    children,
+    type = 'button',
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    appearance?: string;
+    variant?: string;
+    size?: string;
+    isLoading?: boolean;
+  }) => (
+    <button type={type} {...props}>
+      {children}
+    </button>
+  ),
   Dialog: ({
     open,
     onClose,

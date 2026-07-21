@@ -2,6 +2,7 @@
 
 import { getTiersFromCurrent } from '@revealui/contracts/pricing';
 import {
+  Button,
   Dialog,
   DialogActions,
   DialogBody,
@@ -97,13 +98,15 @@ export function UpgradeDialog() {
         >
           View full pricing
         </Link>
-        <button
+        <Button
           type="button"
+          appearance="ghost"
+          variant="neutral"
           onClick={handleClose}
-          className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
         >
           Maybe later
-        </button>
+        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { IconChevronLeft } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -52,16 +53,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             href="/"
             className="mb-4 flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+            <IconChevronLeft size="xs" aria-hidden="true" />
             Back to Admin
           </Link>
 

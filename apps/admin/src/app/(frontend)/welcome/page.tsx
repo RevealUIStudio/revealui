@@ -1,7 +1,7 @@
 'use client';
 
 import { TIER_LABELS } from '@revealui/contracts/pricing';
-import { Badge } from '@revealui/presentation/client';
+import { Badge, Button } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 
@@ -147,14 +147,17 @@ export default function WelcomePage() {
           </p>
           <div className="mt-4 flex items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-xs text-foreground">
             <code className="flex-1 truncate">{CLI_INSTALL_COMMAND}</code>
-            <button
+            <Button
               type="button"
+              appearance="outline"
+              variant="neutral"
+              size="sm"
               onClick={() => void handleCopyCli()}
-              className="rounded bg-card px-2 py-1 text-xs font-medium text-foreground ring-1 ring-border transition-colors hover:bg-muted"
+              className="h-auto px-2 py-1 text-xs"
               aria-label="Copy command to clipboard"
             >
               {cliCopied ? 'Copied' : 'Copy'}
-            </button>
+            </Button>
           </div>
         </div>
 

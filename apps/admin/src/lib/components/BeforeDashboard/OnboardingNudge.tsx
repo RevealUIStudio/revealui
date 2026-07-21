@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -76,13 +77,16 @@ export default function OnboardingNudge() {
             {nudge.ctaLabel}
           </Link>
         </div>
-        <button
+        <Button
           type="button"
+          appearance="ghost"
+          variant="neutral"
+          size="sm"
           onClick={handleDismiss}
-          className="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-700 hover:text-zinc-200"
+          className="shrink-0 text-xs text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
         >
           Dismiss
-        </button>
+        </Button>
       </div>
     </div>
   );

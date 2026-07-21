@@ -129,17 +129,20 @@ function MFAContent() {
         </Button>
 
         <div className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
-          <button
+          <Button
             type="button"
+            appearance="link"
+            variant="brand"
+            size="sm"
             onClick={() => {
               setUseBackupCode(!useBackupCode);
               setCode('');
               setFormError(null);
             }}
-            className="text-[var(--tenant-brand,#2563eb)] hover:underline"
+            className="h-auto p-0 text-xs text-[var(--tenant-brand,#2563eb)]"
           >
             {useBackupCode ? 'Use authenticator app instead' : 'Use a backup code instead'}
-          </button>
+          </Button>
 
           <Link href="/login" className="hover:underline">
             Back to sign in
