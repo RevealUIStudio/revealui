@@ -65,6 +65,13 @@ describe('buildCandidates — tier gating', () => {
       'pro-read-receipts',
     );
   });
+
+  it('free-pro-gate appears only for free tier once upgrade intent is recorded', () => {
+    const withIntent: NudgeSignals = { ...BASE_SIGNALS, hasUpgradeIntent: true };
+    expect(ids(buildCandidates('free', withIntent))).toContain('free-pro-gate');
+    expect(ids(buildCandidates('pro', withIntent))).not.toContain('free-pro-gate');
+    expect(ids(buildCandidates('free', BASE_SIGNALS))).not.toContain('free-pro-gate');
+  });
 });
 
 describe('buildCandidates — retirement on milestone event', () => {

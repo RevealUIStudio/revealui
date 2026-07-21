@@ -14,11 +14,7 @@ import { AUDIT_EXPORT_METER_NAME } from './triggers.js';
 /** First successful GET /admin/audit list (viewed the trail once). */
 export const AUDIT_VIEW_METER_NAME = 'audit_view';
 
-/**
- * Free-tier Pro gate denial (knowingly hit a paid feature).
- * Writer lives with requireFeature (security-reviewed surface); constant
- * reserved so a follow-up PR can record without redefining the name.
- */
+/** Free-tier Pro gate denial (knowingly hit a paid feature via requireFeature). */
 export const UPGRADE_INTENT_METER_NAME = 'upgrade_intent';
 
 export { AUDIT_EXPORT_METER_NAME };
