@@ -39,6 +39,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { createAuditStore } from '../lib/audit-signer.js';
+import { sendCronFailureAlert } from '../lib/cron-alerts.js';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import {
   buildHostedEntitlementValues,
@@ -69,7 +70,6 @@ import {
   sendTrialExpiredEmail,
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
-import { sendCronFailureAlert } from '../lib/cron-alerts.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
 
 const app = new OpenAPIHono();
