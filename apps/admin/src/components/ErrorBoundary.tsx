@@ -7,8 +7,8 @@
  * Integrates with Sentry for error reporting in production.
  */
 
-import * as Sentry from '@sentry/nextjs';
 import { Button } from '@revealui/presentation/server';
+import * as Sentry from '@sentry/nextjs';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {

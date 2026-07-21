@@ -426,9 +426,12 @@ export default function LicensePage() {
                 Optional - for package access
               </p>
               <div className="space-y-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">GitHub username</span>
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="github-username" className="text-sm font-medium">
+                    GitHub username
+                  </label>
                   <Input
+                    id="github-username"
                     type="text"
                     placeholder="your-github-handle"
                     value={githubUsername}
@@ -439,7 +442,7 @@ export default function LicensePage() {
                   <span className="text-xs text-zinc-600">
                     Added to the revealui-pro GitHub team for private package access.
                   </span>
-                </label>
+                </div>
               </div>
             </div>
             {PERPETUAL_PLANS.map((plan) => (

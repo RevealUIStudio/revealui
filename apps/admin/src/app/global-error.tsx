@@ -1,7 +1,7 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { Button, IconAlertTriangle } from '@revealui/presentation/server';
+import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 // global-error.tsx replaces the root layout on error, so it renders outside every
