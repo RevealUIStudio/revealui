@@ -74,9 +74,10 @@ export function buildCandidates(tier: LicenseTier, signals: NudgeSignals): Nudge
     if (signals.userChatMessageCount >= 3 && !signals.hasPageOrProduct) {
       candidates.push({ id: 'free-first-content', milestone: 'hour24' });
     }
-    if (signals.hasUpgradeIntent) {
-      candidates.push({ id: 'free-pro-gate', milestone: 'day7' });
-    }
+    // free-pro-gate deferred: recording upgrade_intent requires requireFeature
+    // instrumentation in middleware/license.ts (security-review path). Ship
+    // when a security-reviewed PR lands that write; signal field stays for
+    // that follow-up.
   }
 
   if (tier === 'pro' || tier === 'max' || tier === 'enterprise') {

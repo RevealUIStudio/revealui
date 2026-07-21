@@ -56,13 +56,6 @@ describe('buildCandidates — tier gating', () => {
     expect(ids(buildCandidates('enterprise', signals))).toContain('max-export-audit');
   });
 
-  it('free-pro-gate appears only for free tier once upgrade intent is recorded', () => {
-    const withIntent: NudgeSignals = { ...BASE_SIGNALS, hasUpgradeIntent: true };
-    expect(ids(buildCandidates('free', withIntent))).toContain('free-pro-gate');
-    expect(ids(buildCandidates('pro', withIntent))).not.toContain('free-pro-gate');
-    expect(ids(buildCandidates('free', BASE_SIGNALS))).not.toContain('free-pro-gate');
-  });
-
   it('pro-read-receipts appears for paid tiers with 3+ agent tasks and no audit view', () => {
     const ready: NudgeSignals = { ...BASE_SIGNALS, agentTaskCount: 3, hasAgentAction: true };
     expect(ids(buildCandidates('pro', ready))).toContain('pro-read-receipts');
@@ -184,12 +177,10 @@ describe('buildCandidates — priority tags match the milestone order', () => {
       hasInferenceConfig: false,
       hasAuditExport: false,
       hasAuditView: false,
-      hasUpgradeIntent: true,
+      hasUpgradeIntent: false,
       accountAgeMs: DAY_7_MS,
       siteCount: 1,
     };
-    const freeById = new Map(buildCandidates('free', signals).map((c) => [c.id, c.milestone]));
-    expect(freeById.get('free-pro-gate')).toBe('day7');
     const byId = new Map(buildCandidates('enterprise', signals).map((c) => [c.id, c.milestone]));
     expect(byId.get('pro-first-action')).toBe('hour1');
     expect(byId.get('pro-read-receipts')).toBe('hour24');

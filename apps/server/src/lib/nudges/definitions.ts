@@ -6,10 +6,11 @@
  * one of them. Copy is VERBATIM from §7 — do not paraphrase headline,
  * body, or CTA text when editing this file.
  *
- * Live trigger evaluators: free-first-*, free-pro-gate, pro-first-action,
- * pro-read-receipts, max-local-inference, max-export-audit, ent-second-tenant.
- * Still deferred (no honest signal yet): pro-license-wire (self-hosted env),
- * pro-connect-data (MCP/revvault tenant map), max-enable-memory (no toggle).
+ * Live trigger evaluators: free-first-*, pro-first-action, pro-read-receipts,
+ * max-local-inference, max-export-audit, ent-second-tenant.
+ * Still deferred: free-pro-gate (needs security-reviewed requireFeature write),
+ * pro-license-wire (self-hosted env), pro-connect-data (MCP map),
+ * max-enable-memory (no toggle).
  */
 
 export type NudgeId =
@@ -132,7 +133,6 @@ export const NUDGE_DEFINITIONS: Record<NudgeId, NudgeDefinition> = {
 export const IMPLEMENTED_NUDGE_IDS: readonly NudgeId[] = [
   'free-first-reply',
   'free-first-content',
-  'free-pro-gate',
   'pro-first-action',
   'pro-read-receipts',
   'max-local-inference',
