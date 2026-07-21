@@ -1,5 +1,20 @@
 'use client';
 
+import {
+  Button,
+  EmptyState,
+  IconClose,
+  IconTrash,
+  IconUpload,
+  InputCVA,
+} from '@revealui/presentation';
+import {
+  SelectCVA as Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@revealui/presentation/client';
 import { type ChangeEvent, useCallback, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -131,26 +146,12 @@ function DropZone({
       }}
       tabIndex={0}
     >
-      <svg
-        className="mb-2 h-8 w-8 text-muted-foreground"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <title>Upload</title>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-        />
-      </svg>
+      <IconUpload className="mb-2 size-8 text-muted-foreground" aria-hidden="true" />
       <p className="text-sm text-muted-foreground">
         {uploading ? 'Uploading...' : 'Drop files here or click to upload'}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, WebP, GIF</p>
-      <input
+      <InputCVA
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
@@ -180,7 +181,13 @@ function MediaCard({
 
   return (
     <div className="group relative overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-ring">
-      <button type="button" onClick={() => onPreview(item)} className="block w-full">
+      <Button
+        type="button"
+        appearance="ghost"
+        variant="neutral"
+        onClick={() => onPreview(item)}
+        className="block h-auto w-full rounded-none p-0"
+      >
         <div className="flex h-40 items-center justify-center bg-muted">
           {isImage(item.mimeType) ? (
             // biome-ignore lint/performance/noImgElement: external Blob URLs  -  next/image requires configured domains
@@ -191,24 +198,12 @@ function MediaCard({
               loading="lazy"
             />
           ) : (
-            <svg
-              className="h-12 w-12 text-muted-foreground"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1}
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <title>File</title>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-              />
-            </svg>
+            <span className="px-2 text-center text-xs text-muted-foreground">
+              {item.mimeType.split('/')[1]?.toUpperCase() ?? 'FILE'}
+            </span>
           )}
         </div>
-      </button>
+      </Button>
       <div className="p-3">
         <p className="truncate text-sm font-medium text-foreground" title={item.filename}>
           {item.filename}
@@ -217,8 +212,11 @@ function MediaCard({
           {item.mimeType.split('/')[1]?.toUpperCase()} · {formatBytes(item.filesize)}
         </p>
       </div>
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
+        size="icon"
         onClick={async () => {
           setDeleting(true);
           try {
@@ -228,21 +226,11 @@ function MediaCard({
           }
         }}
         disabled={deleting}
-        className="absolute top-2 right-2 rounded-full bg-card/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-error group-hover:opacity-100"
+        className="absolute top-2 right-2 size-8 rounded-full bg-card/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-error group-hover:opacity-100"
         aria-label={`Delete ${item.filename}`}
       >
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <title>Delete</title>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+        <IconTrash className="size-4" aria-hidden="true" />
+      </Button>
     </div>
   );
 }
@@ -263,24 +251,17 @@ function PreviewModal({ item, onClose }: { item: MediaItem; onClose: () => void 
         className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-lg bg-popover p-4 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
+        <Button
           type="button"
+          appearance="ghost"
+          variant="neutral"
+          size="icon"
           onClick={onClose}
-          className="absolute top-3 right-3 rounded-full bg-muted p-1.5 text-muted-foreground hover:text-foreground"
+          className="absolute top-3 right-3 size-8 rounded-full bg-muted p-1.5 text-muted-foreground hover:text-foreground"
           aria-label="Close preview"
         >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <title>Close</title>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+          <IconClose className="size-5" aria-hidden="true" />
+        </Button>
         {isImage(item.mimeType) ? (
           // biome-ignore lint/performance/noImgElement: external Blob URLs
           <img
@@ -403,19 +384,21 @@ export default function MediaLibraryPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select
-            value={filter}
-            onChange={(
-              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-            ) => handleFilterChange(e.target.value)}
-            className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground"
+          <Select
+            value={filter === '' ? 'all' : filter}
+            onValueChange={(value) => handleFilterChange(value === 'all' ? '' : value)}
           >
-            <option value="">All types</option>
-            <option value="image/jpeg">JPEG</option>
-            <option value="image/png">PNG</option>
-            <option value="image/webp">WebP</option>
-            <option value="image/gif">GIF</option>
-          </select>
+            <SelectTrigger className="h-9 w-auto min-w-32" aria-label="Filter by media type">
+              <SelectValue placeholder="All types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="image/jpeg">JPEG</SelectItem>
+              <SelectItem value="image/png">PNG</SelectItem>
+              <SelectItem value="image/webp">WebP</SelectItem>
+              <SelectItem value="image/gif">GIF</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -441,25 +424,12 @@ export default function MediaLibraryPage() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card py-16">
-          <svg
-            className="mb-3 h-12 w-12 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            strokeWidth={1}
-            stroke="currentColor"
-          >
-            <title>No media</title>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
-            />
-          </svg>
-          <p className="text-sm text-muted-foreground">No media files yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">Upload images to get started</p>
-        </div>
+        <EmptyState
+          icon={<IconUpload className="size-6" aria-hidden="true" />}
+          title="No media files yet"
+          description="Upload images to get started"
+          className="border-solid py-16"
+        />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {items.map((item) => (
@@ -474,22 +444,26 @@ export default function MediaLibraryPage() {
             Page {page + 1} of {totalPages}
           </p>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              appearance="outline"
+              variant="neutral"
+              size="sm"
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 0}
-              className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground disabled:opacity-50"
             >
               Previous
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              appearance="outline"
+              variant="neutral"
+              size="sm"
               onClick={() => handlePageChange(page + 1)}
               disabled={page >= totalPages - 1}
-              className="rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-foreground disabled:opacity-50"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}
