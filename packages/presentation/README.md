@@ -1,6 +1,6 @@
 ---
 title: "@revealui/presentation"
-description: "61 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
+description: "65 native UI components for RevealUI - built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime..."
 visibility: public
 status: verified
 audience: user
@@ -8,11 +8,11 @@ audience: user
 
 # @revealui/presentation
 
-61 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
+65 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
 
 ## Features
 
-- **61 Components**  -  Forms, data display, feedback, navigation, media, and layout
+- **65 Components**  -  Forms, data display, feedback, navigation, media, and layout
 - **6 Primitives**  -  Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
 - **16 Hooks**  -  Focus trap, click outside, popover, roving tabindex, scroll lock, and more
 - **Headless + Styled**  -  Many components ship both unstyled (headless) and styled (CVA) variants
@@ -34,12 +34,13 @@ import { Box, Flex } from '@revealui/presentation/primitives'
 import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ```
 
-## Components (61)
+## Components (65)
 
 ### Layout
 | Component | Description |
 |-----------|-------------|
 | AuthLayout | Authentication page layout |
+| SplitAuthLayout | Split authentication page layout |
 | SidebarLayout | Sidebar + content layout |
 | StackedLayout | Stacked page layout |
 | Navbar | Top navigation bar |
@@ -48,7 +49,7 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ### Form Controls
 | Component | Description |
 |-----------|-------------|
-| Button / ButtonCVA | Action trigger (headless + styled) |
+| Button (ButtonCVA alias) | Action trigger (owned CVA button; not dual-headless) |
 | Input / InputCVA | Text input (headless + styled) |
 | Textarea / TextareaCVA | Multi-line text (headless + styled) |
 | Checkbox / CheckboxCVA | Checkbox (headless + styled) |
@@ -59,6 +60,8 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | Switch | Toggle switch |
 | Label / FormLabel | Form labels |
 | Fieldset | Form field grouping |
+| FormField | Form field wrapper |
+| LinkButton | Link-styled button |
 
 ### Data Display
 | Component | Description |
@@ -105,6 +108,13 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | CodeBlock | Syntax-highlighted code |
 | Kbd / KbdShortcut | Keyboard shortcut display |
 | Link | Styled anchor |
+| PricingTable | Pricing tiers table |
+| ReceiptCard | Receipt / audit-style card |
+| AuditLine | Single audit receipt line |
+| StatusDot | Status indicator dot |
+| VerdictChip | Verdict / decision chip |
+| BrandMark / Wordmark | Brand mark and wordmark |
+| BuiltWithRevealUI | Built-with badge |
 
 ## Primitives (6)
 
@@ -153,47 +163,36 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 
 ## Styled vs headless components (the `*CVA` convention)
 
-Several form controls ship **two** implementations under a deliberate, package-wide naming
-convention. The bare name is the headless (Catalyst) component; the `*CVA` suffix is the
-styled, brand-token-driven one:
+**Most components are a single styled implementation.** A few form controls still ship dual
+exports: the bare name is the headless (Catalyst) primitive; the `*CVA` suffix is the
+token-driven styled variant.
 
 | Headless (bare name) | Styled (`*CVA`) | Source files |
 |----------------------|-----------------|--------------|
-| `Button`   | `ButtonCVA`   | `button-headless.tsx`, `Button.tsx` |
 | `Input`    | `InputCVA`    | `input-headless.tsx`, `Input.tsx` |
 | `Textarea` | `TextareaCVA` | `textarea-headless.tsx`, `Textarea.tsx` |
 | `Checkbox` | `CheckboxCVA` | `checkbox-headless.tsx`, `Checkbox.tsx` |
 | `Select`   | `SelectCVA`   | `select-headless.tsx`, `Select.tsx` |
 
-- **Headless (bare name):** a richly composable Catalyst-style primitive with its own
-  `color` / `outline` / `plain` palette system. These also power internal composites (for
-  example, `Dropdown` is built on the headless `Button`).
-- **Styled (`*CVA`):** references the semantic design tokens (`bg-primary`, `--ring`, and so
-  on), so it re-themes automatically with the active brand. `ButtonCVA` is the canonical app
-  button, imported by marketing, admin, and docs.
+**Button is not dual.** `Button` is the owned brand-token button (`Button.tsx`).
+`ButtonCVA` is a deprecated alias of `Button` for older call sites. There is no
+`button-headless.tsx`.
 
-**Which do I use?** Reach for the styled `*CVA` component for app CTAs and forms. It is
-brand-aware and needs no palette wiring. Drop to the headless component only when you need
-Catalyst-style composition or a deliberately fixed, non-brand palette. The two are not
-interchangeable: `Button` (headless) and `ButtonCVA` (styled) are different components with
-different prop APIs, and the convention holds across all five families above.
+### `Button` props
 
-### `ButtonCVA` props
+Two orthogonal axes (see `packages/presentation/src/components/Button.tsx`):
 
-`variant` (`primary`, `secondary`, `destructive`, `outline`, `ghost`, `link`), `size` (`sm`,
-`default`, `lg`, `icon`, `clear`), `asChild`, `isLoading`, plus:
-
-- automatic icon spacing (`gap-2`) and `svg` shrink / pointer-events protection, so an icon
-  and a label compose without manual margins;
-- `glow`: opt-in brand-glow halo for emphasis CTAs, driven by the `--rvui-shadow-glow` token;
-- `shine`: opt-in subtle light sweep on hover.
+- `variant`: semantic colour intent — `brand` | `neutral` | `success` | `warning` | `danger`
+- `appearance`: visual weight — `solid` | `outline` | `ghost` | `link`
+- `size`: `sm` | `default` | `lg` | `icon` | `clear`
+- plus `asChild`, `isLoading`, `glow`, `shine`
 
 ```tsx
-import { ButtonCVA } from '@revealui/presentation/server'
+import { Button } from '@revealui/presentation'
 
-<ButtonCVA variant="primary" glow>Get started</ButtonCVA>
-<ButtonCVA variant="primary" size="lg" shine>Upgrade</ButtonCVA>
-<ButtonCVA isLoading>Saving...</ButtonCVA>
+<Button variant="brand" appearance="solid" glow>Get started</Button>
+<Button variant="brand" appearance="solid" size="lg" shine>Upgrade</Button>
+<Button isLoading>Saving...</Button>
 ```
 
 ## Development
@@ -219,7 +218,7 @@ pnpm dev
 ## When to Use This
 
 - You need accessible, styled UI components (buttons, forms, cards, dialogs) for a RevealUI app
-- You want headless + styled variants so you can choose between full control and quick defaults
+- You want token-driven components, with headless + `*CVA` duals on selected form controls
 - You need React hooks for common UI patterns (focus trap, click outside, popover positioning)
 - **Not** for CMS admin UI  -  `@revealui/core/admin` provides the admin dashboard
 - **Not** for rich text editing  -  use `@revealui/core/richtext/client` (Lexical-based)
@@ -228,7 +227,7 @@ pnpm dev
 
 - **Sovereign**: No external UI library dependencies (no Radix, no shadcn). Ships its own `cn` + `cva` implementations; only `tailwind-merge` is a runtime dep for class conflict resolution
 - **Orthogonal**: Components, primitives, and hooks are independent subpath exports with no cross-cutting entanglement
-- **Justifiable**: Every component ships headless and styled variants because different contexts need different levels of control
+- **Justifiable**: Selected form controls ship headless + styled duals; most components are a single owned implementation
 
 ## Related
 

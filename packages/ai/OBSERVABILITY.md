@@ -1,6 +1,8 @@
 ---
 title: "RevealUI AI Observability"
-description: "Comprehensive observability system for tracking agent operations, decisions, tool usage, and LLM calls."
+description: "Comprehensive observability system for tracking agent operations, decisions, tool usage, and LLM calls.
+
+> **Published export note:** `package.json` does not currently export `./observability`. Use the monorepo source path (`packages/ai/src/observability`) until a public export is added."
 visibility: internal
 status: verified
 audience: maintainer
@@ -27,7 +29,7 @@ import {
   AgentEventLogger,
   AgentMetricsCollector,
   MemoryEventStorage,
-} from '@revealui/ai/observability'
+} from '../src/observability' // monorepo path; not yet in package.json exports
 
 // Create logger with in-memory storage
 const logger = new AgentEventLogger({
@@ -229,7 +231,7 @@ logger.logError({
 In-memory storage with no persistence:
 
 ```typescript
-import { MemoryEventStorage } from '@revealui/ai/observability'
+import { MemoryEventStorage } from '../src/observability' // monorepo path; not yet in package.json exports
 
 const storage = new MemoryEventStorage()
 const logger = new AgentEventLogger({ storage })
@@ -242,7 +244,7 @@ const logger = new AgentEventLogger({ storage })
 Persist events to browser localStorage:
 
 ```typescript
-import { LocalStorageEventStorage } from '@revealui/ai/observability'
+import { LocalStorageEventStorage } from '../src/observability' // monorepo path; not yet in package.json exports
 
 const storage = new LocalStorageEventStorage('my-app:agent:events')
 const logger = new AgentEventLogger({ storage })
@@ -255,7 +257,7 @@ const logger = new AgentEventLogger({ storage })
 Persist events to JSON files:
 
 ```typescript
-import { FileSystemEventStorage } from '@revealui/ai/observability'
+import { FileSystemEventStorage } from '../src/observability' // monorepo path; not yet in package.json exports
 
 const storage = new FileSystemEventStorage('./logs/agent-events.json')
 const logger = new AgentEventLogger({ storage })
@@ -442,7 +444,7 @@ logger.destroy()
 
 ```typescript
 import { AgentOrchestrator } from '@revealui/ai/orchestration'
-import { AgentEventLogger, AgentMetricsCollector } from '@revealui/ai/observability'
+import { AgentEventLogger, AgentMetricsCollector } from '../src/observability' // monorepo path; not yet in package.json exports
 
 const logger = new AgentEventLogger()
 const metrics = new AgentMetricsCollector(logger)
@@ -492,7 +494,7 @@ class ObservableOrchestrator extends AgentOrchestrator {
 
 ```typescript
 import { LLMClient } from '@revealui/ai/llm'
-import { AgentEventLogger } from '@revealui/ai/observability'
+import { AgentEventLogger } from '../src/observability' // monorepo path; not yet in package.json exports
 
 class ObservableLLMClient extends LLMClient {
   constructor(private logger: AgentEventLogger) {

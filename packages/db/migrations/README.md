@@ -12,7 +12,7 @@ This directory contains versioned SQL migrations managed by Drizzle Kit.
 
 ## Current Migrations
 
-18 migrations applied (0000–0017). See `meta/_journal.json` for the canonical list.
+28 migrations applied (0000–0027). See `meta/_journal.json` for the canonical list.
 
 | Migration tag | Description |
 |---------------|-------------|
@@ -34,8 +34,18 @@ This directory contains versioned SQL migrations managed by Drizzle Kit.
 | `0015_users_stripe_deletion_status` | Users Stripe deletion status |
 | `0016_drop_revealcoin_tables` | Drop RevealCoin tables |
 | `0017_webhook_idempotency_state` | Webhook idempotency state |
+| `0018_eager_killmonger` | Schema additions |
+| `0019_clean_thor_girl` | Schema additions |
+| `0020_productive_scarecrow` | Schema additions |
+| `0021_knowledge_graph` | Knowledge graph tables |
+| `0022_kg_search_text` | Knowledge graph search text |
+| `0023_entitlement_trialing_last_event` | Entitlement trial last event |
+| `0024_widen_provider_check_anthropic_openai` | Provider check widening |
+| `0025_add_nudge_dismissals` | Nudge dismissals |
+| `0026_audit_log_append_only` | Audit log append-only |
+| `0027_open_storm` | Schema additions |
 
-**Total Tables:** 85 (see `packages/db/package.json` description)
+**Total Tables:** 96 (recount `pgTable(` under `packages/db/src/schema`; keep in lockstep with `pnpm validate:claims`)
 
 ## Migration Strategy
 
@@ -76,7 +86,7 @@ Drizzle Kit does not generate automatic rollback migrations. For schema changes 
 ## Adding New Tables
 
 1. Define table in `packages/db/src/schema/*.ts`
-2. Export from appropriate schema file (rest.ts or vector.ts)
+2. Export from appropriate schema file
 3. Build package: `pnpm build`
 4. Generate migration: `pnpm db:generate`
 5. Review generated SQL in `migrations/`

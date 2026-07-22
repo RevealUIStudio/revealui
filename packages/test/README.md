@@ -202,10 +202,10 @@ describe('API Integration', () => {
 ## Test Coverage
 
 Coverage thresholds:
-- **Statements**: ≥ 70%
-- **Branches**: ≥ 60%
-- **Functions**: ≥ 70%
-- **Lines**: ≥ 70%
+- **Statements**: ≥ 35% (`packages/test/vitest.config.ts`)
+- **Branches**: ≥ 30%
+- **Functions**: ≥ 25%
+- **Lines**: ≥ 35%
 
 Run coverage report:
 ```bash

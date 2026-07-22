@@ -82,9 +82,10 @@ The config package validates these environment variables (schema: `packages/conf
 # Database
 POSTGRES_URL=postgresql://user:password@host/database
 
-# RevealUI
+# RevealUI (schema: packages/config/src/schema.ts requiredSchema)
 REVEALUI_SECRET=your_secret_key_here
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+NEXT_PUBLIC_SERVER_URL=http://localhost:3004
 ```
 
 ### Optional Variables
@@ -112,13 +113,13 @@ NEON_API_KEY=neon_...
 
 ## File Loading Priority
 
-Environment variables are loaded in this order (later overrides earlier):
+File loading is environment-specific (`packages/config/src/loader.ts`). **`process.env` always wins** when values are merged.
 
-1. System environment variables
-2. `.env` (shared defaults, if present)
-3. `.env.local` (local overrides)
-4. `.env.development.local` (development mode)
-5. `.env.production.local` (production mode)
+| Environment | Files loaded |
+|-------------|--------------|
+| **production** | None (process.env only) |
+| **test** | First existing of `.env.test.local`, then `.env.test` |
+| **development** | First existing of `.env.development.local`, then `.env.local`, then `.env` |
 
 ## Validation
 
@@ -170,9 +171,9 @@ pnpm --filter @revealui/config lint
 
 ## Related Documentation
 
-- [Environment Variables Guide](../../docs/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup
+- [Environment Variables Guide](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Complete environment setup
 - [Quick Start](../../docs/QUICK_START.md) - Initial setup instructions
-- [MCP Guide](../../docs/MCP.md) - MCP server configuration
+- [MCP Guide](../mcp/README.md) - MCP server configuration
 
 ## License
 
