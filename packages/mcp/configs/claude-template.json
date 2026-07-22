@@ -3,49 +3,63 @@
   "mcpServers": {
     "revealui-code-validator": {
       "command": "tsx",
-      "args": ["<REPO_PATH>/packages/mcp/src/servers/code-validator.ts"],
+      "args": [
+        "<REPO_PATH>/packages/mcp/src/servers/code-validator.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "Code validation - prevents AI-generated technical debt",
       "enabled": true
     },
     "revealui-vercel": {
-      "command": "pnpm",
-      "args": ["mcp:vercel"],
+      "command": "tsx",
+      "args": [
+        "packages/mcp/src/servers/vercel.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "Vercel deployment and storage management",
       "enabled": false
     },
     "revealui-stripe": {
-      "command": "pnpm",
-      "args": ["mcp:stripe"],
+      "command": "tsx",
+      "args": [
+        "packages/mcp/src/servers/stripe.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "Stripe payment processing",
       "enabled": false
     },
     "revealui-neon": {
-      "command": "pnpm",
-      "args": ["mcp:neon"],
+      "command": "tsx",
+      "args": [
+        "packages/mcp/src/servers/neon.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "NeonDB database operations",
       "enabled": false
     },
     "revealui-supabase": {
-      "command": "pnpm",
-      "args": ["mcp:supabase"],
+      "command": "tsx",
+      "args": [
+        "packages/mcp/src/servers/supabase.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "Supabase project management",
       "enabled": false
     },
     "revealui-playwright": {
-      "command": "pnpm",
-      "args": ["mcp:playwright"],
+      "command": "tsx",
+      "args": [
+        "packages/mcp/src/servers/playwright.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "Browser automation",
       "enabled": false
     },
     "revealui-next-devtools": {
-      "command": "pnpm",
-      "args": ["mcp:next-devtools"],
+      "command": "tsx",
+      "args": [
+        "packages/mcp/src/servers/next-devtools.ts"
+      ],
       "cwd": "<REPO_PATH>",
       "description": "Next.js debugging",
       "enabled": false

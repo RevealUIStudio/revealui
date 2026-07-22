@@ -18,11 +18,11 @@ External service integrations for RevealUI  -  Stripe (billing + circuit breaker
 - **Stripe Integration**: Payment processing and billing operations with circuit breaker
 - **Email**: Transactional email helpers
 - **Type-safe**: Full TypeScript support
-- **Server & Client**: Separate exports for server-side and client-side usage
+- **Server surface**: Root and `./server` export the same server Stripe/email helpers (no distinct client Stripe bundle)
 
 ## Installation
 
-This package is private and only used within the RevealUI monorepo via `workspace:*` references.
+This package is published (`publishConfig.access: public`) and consumed in the monorepo via `workspace:*` references.
 
 ## Usage
 
@@ -117,7 +117,7 @@ pnpm --filter @revealui/services test:coverage
 
 ## Related Documentation
 
-- [Environment Variables Guide](../../docs/ENVIRONMENT_VARIABLES_GUIDE.md) - Service API keys setup
+- [Environment Variables Guide](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Service API keys setup
 - [Architecture](../../docs/ARCHITECTURE.md) - Service integration patterns
 
 ## License
