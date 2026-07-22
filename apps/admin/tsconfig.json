@@ -1,11 +1,7 @@
 {
   "extends": "../../packages/dev/src/ts/nextjs.json",
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,18 +21,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/types": [
-        "./src/types/index.ts"
-      ],
-      "@reveal-config": [
-        "./revealui.config.ts"
-      ],
-      "cssVariables": [
-        "./cssVariables.js"
-      ]
+      "@/*": ["./src/*"],
+      "@/types": ["./src/types/index.ts"],
+      "@reveal-config": ["./revealui.config.ts"],
+      "cssVariables": ["./cssVariables.js"]
     },
     "target": "ES2022"
   },
@@ -51,9 +39,5 @@
   "typeAcquisition": {
     "enable": false
   },
-  "exclude": [
-    "node_modules",
-    ".next/types/validator.ts",
-    "src/seed.ts"
-  ]
+  "exclude": ["node_modules", ".next/types/validator.ts", "src/seed.ts"]
 }
