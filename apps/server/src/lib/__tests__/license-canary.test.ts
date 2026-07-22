@@ -46,6 +46,8 @@ beforeEach(() => {
   delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
   delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
   delete process.env.SKIP_ENV_VALIDATION;
+  // Production-like default so degraded still alerts unless a test opts into dev.
+  process.env.NODE_ENV = 'production';
 });
 
 afterEach(() => {
@@ -53,6 +55,7 @@ afterEach(() => {
   delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
   delete process.env.REVEALUI_LICENSE_PUBLIC_KEY_NEXT;
   delete process.env.SKIP_ENV_VALIDATION;
+  delete process.env.NODE_ENV;
   setLicenseCanaryDegraded(false);
 });
 
@@ -107,5 +110,23 @@ describe('runHostedLicenseCanary', () => {
         metadata: expect.objectContaining({ degraded: true }),
       }),
     );
+  });
+
+  it('soft-skips in development when private key is set but no public keys', async () => {
+    process.env.NODE_ENV = 'development';
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = privateKeyA;
+    await expect(runHostedLicenseCanary()).resolves.toBeUndefined();
+    expect(alertMock).not.toHaveBeenCalled();
+    expect(licenseCanaryDegraded).toBe(false);
+  });
+
+  it('degrades in development without cron alert when public key is malformed', async () => {
+    process.env.NODE_ENV = 'development';
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY = privateKeyA;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY =
+      '-----BEGIN PUBLIC KEY-----\nnotbase64!!!\n-----END PUBLIC KEY-----';
+    await expect(runHostedLicenseCanary()).resolves.toBeUndefined();
+    expect(licenseCanaryDegraded).toBe(true);
+    expect(alertMock).not.toHaveBeenCalled();
   });
 });

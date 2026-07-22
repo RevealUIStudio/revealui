@@ -260,7 +260,8 @@
     "vercel:drift-check": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json",
     "vercel:sync:staging": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml",
     "vercel:sync:staging:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml --apply",
-    "dogfood:api": "tsx scripts/dev-tools/dogfood-api.ts"
+    "dogfood:api": "tsx scripts/dev-tools/dogfood-api.ts",
+    "validate:marketing-voice-prose-slots": "tsx scripts/validate/marketing-voice-prose-slots.ts"
   },
   "type": "module"
 }
