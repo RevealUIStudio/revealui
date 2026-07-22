@@ -54,11 +54,41 @@ const dbAdapter =
           return getRestPool();
         },
       });
-const typedCollectionStorage = createTypedCollectionStorage();
+// Lazy typed-storage seam: resolve on each call, not at module load.
+// CLI seeds call loadSeedEnv() after importing this config module; if we
+// snapshot createTypedCollectionStorage() here, POSTGRES_URL is often still
+// unset and pages writes fall through to dynamic SQL (which expects a Payload-
+// style `_status` column the canonical `pages.status` table does not have).
+type TypedStorage = NonNullable<ReturnType<typeof createTypedCollectionStorage>>;
+const typedCollectionStorageProxy: TypedStorage = {
+  findByID(collection, options) {
+    return (
+      createTypedCollectionStorage()?.findByID?.(collection, options) ?? Promise.resolve(undefined)
+    );
+  },
+  find(collection, options) {
+    return (
+      createTypedCollectionStorage()?.find?.(collection, options) ?? Promise.resolve(undefined)
+    );
+  },
+  create(collection, options) {
+    return (
+      createTypedCollectionStorage()?.create?.(collection, options) ?? Promise.resolve(undefined)
+    );
+  },
+  update(collection, options) {
+    return (
+      createTypedCollectionStorage()?.update?.(collection, options) ?? Promise.resolve(undefined)
+    );
+  },
+  delete(collection, options) {
+    return (
+      createTypedCollectionStorage()?.delete?.(collection, options) ?? Promise.resolve(undefined)
+    );
+  },
+};
 
-if (typedCollectionStorage) {
-  dbAdapter.collectionStorage = typedCollectionStorage;
-}
+dbAdapter.collectionStorage = typedCollectionStorageProxy;
 
 export default buildConfig({
   serverURL: (process.env.REVEALUI_PUBLIC_SERVER_URL || sharedConfig.serverURL).trim(),
