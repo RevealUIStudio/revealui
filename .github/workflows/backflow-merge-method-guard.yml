@@ -1,0 +1,57 @@
+name: Backflow merge-commit policy
+
+# Soft dual-method policy (option 1): feature→test may still squash; backflow
+# main→test must use Create a merge commit. GitHub cannot set a per-PR-class
+# UI default, so this workflow:
+#   - On PRs into test: fail backflow-shaped PRs until label backflow:merge-commit
+#     is applied, and print merge-commit-only UI/CLI instructions.
+#   - On push to test: fail if origin/main is not an ancestor of HEAD (catches
+#     a squash-merged backflow after the fact).
+#
+# Safe to mark "Backflow merge-commit policy" required on test: non-backflow
+# PRs always exit 0 (the job always runs; it does not skip).
+
+on:
+  pull_request:
+    branches: [test]
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+  push:
+    branches: [test]
+
+permissions:
+  contents: read
+
+jobs:
+  backflow-merge-method:
+    name: Backflow merge-commit policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # Evaluate with the BASE branch's copy of the guard script so a PR
+          # cannot rewrite the policy. For push:test, checkout the pushed SHA.
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          sparse-checkout: |
+            scripts/validate/backflow-merge-method-guard.cjs
+          sparse-checkout-cone-mode: false
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: PR mode — backflow acknowledgment + instructions
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+          PR_BASE_REF: ${{ github.base_ref }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: node scripts/validate/backflow-merge-method-guard.cjs --mode=pr
+
+      - name: Ancestry mode — test must contain main
+        if: github.event_name == 'push'
+        run: |
+          git fetch origin main --depth=200
+          # Full tree for merge-base (push checkout may be sparse); re-fetch tip.
+          git fetch origin "${{ github.sha }}" --depth=200 || true
+          git checkout --force "${{ github.sha }}"
+          node scripts/validate/backflow-merge-method-guard.cjs --mode=ancestry
