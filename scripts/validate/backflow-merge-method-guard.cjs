@@ -42,12 +42,31 @@ function includesFold(haystack, needle) {
 /**
  * True when this PR is a main→test backflow (title/head convention used by the
  * org backflow app + manual backflow PRs).
+ *
+ * Do NOT treat every branch under chore/backflow-* as backflow (e.g.
+ * chore/backflow-merge-commit-guard is a feature PR that implements this guard).
  */
 function isBackflowPr(title, headRef, baseRef) {
   if (baseRef !== 'test') return false;
-  if (includesFold(title, 'backflow') && includesFold(title, 'main')) return true;
-  if (headRef.startsWith('chore/backflow')) return true;
+  // Head is literally main, or the automated backflow branch name.
   if (headRef === 'main') return true;
+  if (headRef === 'chore/backflow-main-into-test') return true;
+  if (headRef.startsWith('chore/backflow-main-into-test-')) return true;
+  // Title shape used by the reusable backflow app / manual promos.
+  // Example: "chore(test): backflow main into test (1 commit(s) behind)"
+  if (
+    includesFold(title, 'backflow') &&
+    includesFold(title, 'main into test')
+  ) {
+    return true;
+  }
+  if (
+    includesFold(title, 'backflow main into test') ||
+    includesFold(title, 'backflow main → test') ||
+    includesFold(title, 'backflow main -> test')
+  ) {
+    return true;
+  }
   return false;
 }
 
