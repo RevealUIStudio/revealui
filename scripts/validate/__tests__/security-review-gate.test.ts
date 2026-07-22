@@ -19,6 +19,7 @@ const clearVerdict = { status: 'clear', reviewer: 'reviewer', timestamp: '2026-0
 const ENFORCEMENT_MACHINERY_FILES = [
   'scripts/validate/security-review-gate.cjs',
   'scripts/validate/sec-audit-label-decision.cjs',
+  'scripts/validate/security-paths.shared.json',
   '.github/workflows/security-review-gate.yml',
   '.github/workflows/sec-audit-label-guard.yml',
   '.github/workflows/security.yml',
@@ -39,6 +40,29 @@ describe('classifyFiles — enforcement-machinery self-protection', () => {
     // were removed, ENFORCEMENT_MACHINERY_FILES above would stop being flagged;
     // this line guarantees the markers are not so broad they catch everything.
     expect(classifyFiles(['apps/marketing/app/components/Hero.tsx'])).toEqual([]);
+  });
+});
+
+// GAP-404: shared markers (security-paths.shared.json) must drive classifyFiles.
+// These three surfaces were the GAP-400 false-pass class — sessions, editor, audit store.
+describe('classifyFiles — shared SECURITY_PATHS source (GAP-404)', () => {
+  it('loads a non-empty shared marker list', () => {
+    expect(Array.isArray(SECURITY_PATHS)).toBe(true);
+    expect(SECURITY_PATHS.length).toBeGreaterThan(20);
+    expect(SECURITY_PATHS).toContain('packages/editor/');
+    expect(SECURITY_PATHS).toContain('packages/db/src/audit-store');
+    expect(SECURITY_PATHS).toContain('routes/content/sessions');
+  });
+
+  it.each([
+    'apps/server/src/routes/content/sessions.ts',
+    'packages/editor/src/canvas.tsx',
+    'packages/db/src/audit-store.ts',
+    'packages/db/src/schema/audit-log.ts',
+    'packages/db/migrations/0026_audit_append_only.sql',
+    'packages/harnesses/src/hooks/policy.ts',
+  ])('flags %s via shared markers', (file) => {
+    expect(classifyFiles([file])).toContain(file);
   });
 });
 
