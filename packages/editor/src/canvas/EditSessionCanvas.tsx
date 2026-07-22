@@ -19,7 +19,19 @@
 
 import { Button, cn } from '@revealui/presentation';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
-import { type ClickMessage, isClickMessage, RVUI_APPLY_PATCH } from '../protocol.js';
+import {
+  type ClickMessage,
+  isClickMessage,
+  RVUI_APPLY_PATCH,
+  RVUI_SET_THEME,
+} from '../protocol.js';
+import {
+  EDITABLE_THEME_TOKENS,
+  type EditableThemeToken,
+  type FieldKind,
+  fieldKindFromPath,
+  isEditableThemeToken,
+} from './field-kind.js';
 
 const BREAKPOINTS = {
   desktop: { label: 'Desktop', width: 1280 },
@@ -81,15 +93,22 @@ interface PreviewPageCandidate {
 
 /**
  * Choose which published page a fresh (empty) session should land the iframe on.
- * Prefers the VES Phase-1 marketing slice (`home`, then `products`), else the
- * first published page. Pure helper so canvas tests can lock the order.
+ * Prefers the VES marketing slice (`home`, then `products`, then `philosophy`,
+ * then `local-ai`), else the first published page. Pure helper so canvas tests
+ * can lock the order.
  */
 export function pickDefaultPreviewPageId(
   pages: readonly PreviewPageCandidate[],
 ): string | undefined {
   if (pages.length === 0) return undefined;
   const bySlug = (slug: string): string | undefined => pages.find((p) => p.slug === slug)?.id;
-  return bySlug('home') ?? bySlug('products') ?? pages[0]?.id;
+  return (
+    bySlug('home') ??
+    bySlug('products') ??
+    bySlug('philosophy') ??
+    bySlug('local-ai') ??
+    pages[0]?.id
+  );
 }
 
 interface ActiveField {
@@ -100,16 +119,35 @@ interface ActiveField {
 }
 
 // -----------------------------------------------------------------------------
-// Field editor popover
+// Field editor popover (text | url | media)
 // -----------------------------------------------------------------------------
+
+interface MediaItem {
+  id: string;
+  url: string;
+  filename: string;
+  alt: string | null;
+}
 
 interface FieldEditorPopoverProps {
   field: ActiveField;
+  kind: FieldKind;
+  media: readonly MediaItem[];
+  mediaLoading: boolean;
   onCommit: (value: string) => void;
   onClose: () => void;
+  onRefreshMedia: () => void;
 }
 
-function FieldEditorPopover({ field, onCommit, onClose }: FieldEditorPopoverProps): ReactElement {
+function FieldEditorPopover({
+  field,
+  kind,
+  media,
+  mediaLoading,
+  onCommit,
+  onClose,
+  onRefreshMedia,
+}: FieldEditorPopoverProps): ReactElement {
   const [value, setValue] = useState(field.value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -118,6 +156,10 @@ function FieldEditorPopover({ field, onCommit, onClose }: FieldEditorPopoverProp
       if (timer.current) clearTimeout(timer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (kind === 'media') onRefreshMedia();
+  }, [kind, onRefreshMedia]);
 
   const scheduleAutosave = useCallback(
     (next: string) => {
@@ -133,27 +175,95 @@ function FieldEditorPopover({ field, onCommit, onClose }: FieldEditorPopoverProp
     onClose();
   }, [onCommit, onClose, value]);
 
+  const pickMedia = useCallback(
+    (url: string) => {
+      setValue(url);
+      if (timer.current) clearTimeout(timer.current);
+      onCommit(url);
+      onClose();
+    },
+    [onClose, onCommit],
+  );
+
+  const kindLabel = kind === 'media' ? 'Edit image' : kind === 'url' ? 'Edit link' : 'Edit field';
+
   return (
     <div
       role="dialog"
-      aria-label="Edit field"
-      className="fixed z-50 rounded-md border border-neutral-700 bg-neutral-900 p-2 shadow-lg"
+      aria-label={kindLabel}
+      className="fixed z-50 max-h-[70vh] overflow-auto rounded-md border border-neutral-700 bg-neutral-900 p-2 shadow-lg"
       style={{
         top: Math.max(field.rect.top + field.rect.height + 4, 0),
         left: Math.max(field.rect.left, 0),
-        minWidth: 240,
+        minWidth: kind === 'media' ? 320 : 240,
+        maxWidth: 420,
       }}
     >
-      <textarea
-        aria-label="Field value"
-        className="block w-full resize-y rounded border border-neutral-600 bg-neutral-800 p-1 text-sm text-neutral-100"
-        rows={3}
-        value={value}
-        onChange={(e) => {
-          setValue(e.target.value);
-          scheduleAutosave(e.target.value);
-        }}
-      />
+      {kind === 'url' ? (
+        <input
+          type="url"
+          aria-label="Link URL"
+          className="block w-full rounded border border-neutral-600 bg-neutral-800 p-1.5 text-sm text-neutral-100"
+          value={value}
+          placeholder="https://…"
+          onChange={(e) => {
+            setValue(e.target.value);
+            scheduleAutosave(e.target.value);
+          }}
+        />
+      ) : kind === 'media' ? (
+        <div className="space-y-2">
+          <input
+            type="url"
+            aria-label="Image URL"
+            className="block w-full rounded border border-neutral-600 bg-neutral-800 p-1.5 text-sm text-neutral-100"
+            value={value}
+            placeholder="https://… or pick below"
+            onChange={(e) => {
+              setValue(e.target.value);
+              scheduleAutosave(e.target.value);
+            }}
+          />
+          <p className="text-xs text-neutral-400">Media library</p>
+          {mediaLoading ? (
+            <p className="text-xs text-neutral-500">Loading…</p>
+          ) : media.length === 0 ? (
+            <p className="text-xs text-neutral-500">
+              No media yet. Paste a URL or upload in admin.
+            </p>
+          ) : (
+            <ul className="grid max-h-48 grid-cols-3 gap-1">
+              {media.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="block w-full overflow-hidden rounded border border-neutral-700 hover:border-primary"
+                    onClick={() => pickMedia(item.url)}
+                    title={item.alt ?? item.filename}
+                  >
+                    <img
+                      src={item.url}
+                      alt={item.alt ?? item.filename}
+                      className="aspect-square h-16 w-full object-cover"
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        <textarea
+          aria-label="Field value"
+          className="block w-full resize-y rounded border border-neutral-600 bg-neutral-800 p-1 text-sm text-neutral-100"
+          rows={3}
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            scheduleAutosave(e.target.value);
+          }}
+        />
+      )}
       <div className="mt-2 flex justify-end gap-2">
         <Button size="sm" appearance="outline" onClick={onClose}>
           Cancel
@@ -162,6 +272,41 @@ function FieldEditorPopover({ field, onCommit, onClose }: FieldEditorPopoverProp
           Save
         </Button>
       </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Theme token panel (D8 — allowlisted --rvui-* only)
+// -----------------------------------------------------------------------------
+
+interface ThemePanelProps {
+  tokens: Record<EditableThemeToken, string>;
+  onChange: (token: EditableThemeToken, value: string) => void;
+  onApply: () => void;
+}
+
+function ThemePanel({ tokens, onChange, onApply }: ThemePanelProps): ReactElement {
+  return (
+    <div className="mb-3 space-y-2 border-t border-neutral-800 pt-2">
+      <h2 className="text-xs font-semibold uppercase text-neutral-400">Theme tokens</h2>
+      <p className="text-[10px] leading-snug text-neutral-500">
+        Brand tokens only. Arbitrary CSS is rejected.
+      </p>
+      {EDITABLE_THEME_TOKENS.map((token) => (
+        <label key={token} className="block text-[10px] text-neutral-400">
+          {token}
+          <input
+            type="text"
+            className="mt-0.5 block w-full rounded border border-neutral-700 bg-neutral-900 px-1 py-0.5 font-mono text-xs text-neutral-100"
+            value={tokens[token] ?? ''}
+            onChange={(e) => onChange(token, e.target.value)}
+          />
+        </label>
+      ))}
+      <Button size="sm" appearance="outline" onClick={onApply}>
+        Apply theme
+      </Button>
     </div>
   );
 }
@@ -184,6 +329,13 @@ export function EditSessionCanvas({
   const [activeField, setActiveField] = useState<ActiveField | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [themeTokens, setThemeTokens] = useState<Record<EditableThemeToken, string>>(() => {
+    const init = {} as Record<EditableThemeToken, string>;
+    for (const t of EDITABLE_THEME_TOKENS) init[t] = '';
+    return init;
+  });
 
   const doFetch = useCallback<Fetcher>(
     (path, init = {}) => {
@@ -270,8 +422,56 @@ export function EditSessionCanvas({
     setDocs(detail.data.docs);
   }, [doFetch, sessionId]);
 
+  const refreshMedia = useCallback(async () => {
+    setMediaLoading(true);
+    try {
+      const res = await doFetch('/api/content/media?limit=48');
+      if (!res.ok) {
+        setMedia([]);
+        return;
+      }
+      const body = (await res.json()) as { data?: MediaItem[] };
+      setMedia(Array.isArray(body.data) ? body.data : []);
+    } catch {
+      setMedia([]);
+    } finally {
+      setMediaLoading(false);
+    }
+  }, [doFetch]);
+
   const targetDocId = previewPageId ?? docs.find((d) => d.docType === 'page')?.docId ?? null;
   const blockList = blockMetaFromDocs(docs, targetDocId);
+  const activeFieldKind: FieldKind = activeField ? fieldKindFromPath(activeField.field) : 'text';
+
+  const applyThemeToPreview = useCallback(() => {
+    if (!marketingOrigin) return;
+    const tokens: Record<string, string> = {};
+    for (const key of EDITABLE_THEME_TOKENS) {
+      const value = themeTokens[key]?.trim();
+      if (value) tokens[key] = value;
+    }
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: RVUI_SET_THEME, tokens },
+      marketingOrigin,
+    );
+    // Persist allowlisted tokens on the draft under theme.* (session path).
+    if (targetDocId && Object.keys(tokens).length > 0) {
+      void (async () => {
+        for (const [key, value] of Object.entries(tokens)) {
+          if (!isEditableThemeToken(key)) continue;
+          await doFetch(`/api/content/sessions/${sessionId}/docs/page/${targetDocId}`, {
+            method: 'PATCH',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ path: `theme.${key}`, value }),
+          });
+        }
+        setNotice('Theme applied to preview and saved on the draft.');
+        await refreshDocs();
+      })();
+    } else {
+      setNotice('Theme applied to preview (no page draft to persist yet).');
+    }
+  }, [doFetch, marketingOrigin, refreshDocs, sessionId, targetDocId, themeTokens]);
 
   const commitPatch = useCallback(
     async (doc: string, field: string, value: string) => {
@@ -460,24 +660,54 @@ export function EditSessionCanvas({
               ))}
             </ul>
           )}
-          <Button
-            size="sm"
-            appearance="outline"
-            disabled={!targetDocId}
-            onClick={() =>
-              void commitBlockOp({
-                op: 'blocks.insert',
-                index: blockList.length,
-                block: {
-                  id: `text-${crypto.randomUUID()}`,
-                  type: 'text',
-                  data: { content: 'New text block' },
-                },
-              })
-            }
-          >
-            Add text block
-          </Button>
+          <div className="flex flex-col gap-1">
+            <Button
+              size="sm"
+              appearance="outline"
+              disabled={!targetDocId}
+              onClick={() =>
+                void commitBlockOp({
+                  op: 'blocks.insert',
+                  index: blockList.length,
+                  block: {
+                    id: `text-${crypto.randomUUID()}`,
+                    type: 'text',
+                    data: { content: 'New text block' },
+                  },
+                })
+              }
+            >
+              Add text block
+            </Button>
+            <Button
+              size="sm"
+              appearance="outline"
+              disabled={!targetDocId}
+              onClick={() =>
+                void commitBlockOp({
+                  op: 'blocks.insert',
+                  index: blockList.length,
+                  block: {
+                    id: `image-${crypto.randomUUID()}`,
+                    type: 'image',
+                    data: {
+                      src: 'https://placehold.co/800x450/png?text=Image',
+                      alt: 'Placeholder image',
+                      loading: 'lazy',
+                    },
+                  },
+                })
+              }
+            >
+              Add image block
+            </Button>
+          </div>
+
+          <ThemePanel
+            tokens={themeTokens}
+            onChange={(token, value) => setThemeTokens((prev) => ({ ...prev, [token]: value }))}
+            onApply={applyThemeToPreview}
+          />
         </aside>
 
         <div className="min-h-0 flex-1 overflow-auto rounded-md border border-neutral-800 bg-neutral-950">
@@ -498,8 +728,12 @@ export function EditSessionCanvas({
       {activeField ? (
         <FieldEditorPopover
           field={activeField}
+          kind={activeFieldKind}
+          media={media}
+          mediaLoading={mediaLoading}
           onCommit={(value) => commitPatch(activeField.doc, activeField.field, value)}
           onClose={() => setActiveField(null)}
+          onRefreshMedia={() => void refreshMedia()}
         />
       ) : null}
     </div>

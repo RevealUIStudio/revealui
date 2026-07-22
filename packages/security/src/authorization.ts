@@ -347,11 +347,14 @@ export const CommonRoles: Record<string, Role> = {
   agent: {
     id: 'agent',
     name: 'AI Agent',
-    description: 'Can execute tasks and read content',
+    description:
+      'Can execute tasks, read content, and propose draft patches into edit sessions (not publish)',
     permissions: [
       { resource: 'tasks', action: 'create' },
       { resource: 'tasks', action: 'read' },
       { resource: 'content', action: 'read' },
+      // VES P2 D5: agents propose into sessions; publish stays content:update-only.
+      { resource: 'content', action: 'propose' },
       { resource: 'rag', action: 'read' },
       { resource: 'rag', action: 'create' },
     ],

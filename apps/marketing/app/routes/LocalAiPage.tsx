@@ -1,141 +1,286 @@
-import { Button } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import { FrontierPathway } from '../components/landing/FrontierPathway';
 import { ProviderSwitch } from '../components/landing/ProviderSwitch';
-import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
+import { LOCAL_AI_SECTION } from '../content/local-ai';
+import {
+  LOCAL_AI_FALLBACK_BLOCKS,
+  type LocalAiCtaData,
+  type LocalAiHeroData,
+  type LocalAiMarketProofData,
+  type LocalAiNotesData,
+  type LocalAiPillarsData,
+  localAiCtaSlot,
+  localAiHeroSlot,
+  localAiMarketProofSlot,
+  localAiNotesSlot,
+  localAiPillarsSlot,
+} from '../lib/page-blocks';
+import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
 // index.css:80-92 remaps emerald-* to cobalt oklch values (Cobalt v5 palette
 // remap); this renders cobalt today, not emerald.
 const SNIPPET_CODE_CLASS_NAME = 'text-emerald-400'; // adherence-ignore: emerald-utility - zero visual change, see comment above
 
+interface LocalAiHeroProps {
+  data: LocalAiHeroData;
+  path: string;
+  annotation: BlockAnnotation;
+}
+
+function LocalAiHero({ data, path, annotation }: LocalAiHeroProps) {
+  return (
+    <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-violet-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <div className="mx-auto max-w-3xl">
+        <p
+          className="text-sm font-semibold uppercase tracking-wide text-primary"
+          {...fieldAttrs(annotation, `${path}.eyebrow`)}
+        >
+          {data.eyebrow}
+        </p>
+        <h1
+          className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+          {...fieldAttrs(annotation, `${path}.title`)}
+        >
+          {data.h1}
+        </h1>
+        <p
+          className="mt-6 text-lg leading-8 text-muted-foreground"
+          {...fieldAttrs(annotation, `${path}.subtitle`)}
+        >
+          {data.lead}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+interface LocalAiPillarsProps {
+  data: LocalAiPillarsData;
+  path: string;
+  annotation: BlockAnnotation;
+}
+
+function LocalAiPillars({ data, path, annotation }: LocalAiPillarsProps) {
+  return (
+    <section className="px-6 py-16 sm:py-20 lg:px-8">
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
+        {data.pillars.map((pillar, index) => (
+          <div key={`pillar-${index}`} className="rounded-2xl bg-card p-6 ring-1 ring-border">
+            <h2
+              className="text-lg font-semibold text-foreground"
+              {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
+            >
+              {pillar.title}
+            </h2>
+            <p
+              className="mt-3 text-sm leading-6 text-muted-foreground"
+              {...fieldAttrs(annotation, `${path}.items.${index}.body`)}
+            >
+              {pillar.body}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+interface LocalAiSnippetProps {
+  caption: string;
+  captionPath: string;
+  annotation: BlockAnnotation;
+}
+
+function LocalAiSnippet({ caption, captionPath, annotation }: LocalAiSnippetProps) {
+  return (
+    <section className="px-6 pb-8 lg:px-8">
+      <div className="mx-auto max-w-3xl">
+        <div className="rounded-2xl bg-foreground p-6 ring-1 ring-background/10">
+          <ul className="space-y-2 font-mono text-sm list-none p-0">
+            {LOCAL_AI_SECTION.snippet.lines.map((line) => (
+              <li
+                key={line.code}
+                className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3"
+              >
+                <code className={SNIPPET_CODE_CLASS_NAME}>{line.code}</code>
+                <span className="text-background/60"># {line.note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground" {...fieldAttrs(annotation, captionPath)}>
+          {caption}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+interface LocalAiMarketProofProps {
+  data: LocalAiMarketProofData;
+  path: string;
+  annotation: BlockAnnotation;
+}
+
+function LocalAiMarketProof({ data, path, annotation }: LocalAiMarketProofProps) {
+  return (
+    <section className="px-6 py-16 sm:py-20 lg:px-8">
+      <div className="mx-auto max-w-3xl">
+        <p
+          className="text-sm font-semibold uppercase tracking-widest text-primary"
+          {...fieldAttrs(annotation, `${path}.eyebrow`)}
+        >
+          {data.eyebrow}
+        </p>
+        <h2
+          className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
+          {...fieldAttrs(annotation, `${path}.heading`)}
+        >
+          {data.heading}
+        </h2>
+        <p
+          className="mt-4 text-base leading-7 text-muted-foreground"
+          {...fieldAttrs(annotation, `${path}.body`)}
+        >
+          {data.body}
+        </p>
+        <ul className="mt-8 space-y-4 list-none p-0">
+          {data.adopters.map((adopter, index) => (
+            <li key={`adopter-${index}`} className="rounded-xl bg-secondary p-5 ring-1 ring-border">
+              <p className="text-base text-foreground">
+                <span
+                  className="font-semibold"
+                  {...fieldAttrs(annotation, `${path}.items.${index}.label`)}
+                >
+                  {adopter.name}
+                </span>{' '}
+                <span {...fieldAttrs(annotation, `${path}.items.${index}.body`)}>
+                  {adopter.detail}
+                </span>
+              </p>
+              <p
+                className="mt-1 text-xs text-muted-foreground"
+                {...fieldAttrs(annotation, `${path}.items.${index}.title`)}
+              >
+                {adopter.source}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <p
+          className="mt-6 text-sm italic leading-6 text-muted-foreground"
+          {...fieldAttrs(annotation, `${path}.items.${data.adopters.length}.body`)}
+        >
+          {data.disclaimer}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+interface LocalAiNotesProps {
+  data: LocalAiNotesData;
+  path: string;
+  annotation: BlockAnnotation;
+}
+
+function LocalAiNotes({ data, path, annotation }: LocalAiNotesProps) {
+  // Item indices match localAiNotesBlock order: dogfood, honesty, roadmap, snippet-caption.
+  return (
+    <section className="px-6 pb-16 lg:px-8">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <p
+          className="text-base leading-7 text-muted-foreground"
+          {...fieldAttrs(annotation, `${path}.items.0.body`)}
+        >
+          {data.dogfood}
+        </p>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p
+            className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
+            {...fieldAttrs(annotation, `${path}.items.2.title`)}
+          >
+            {data.roadmapHeading}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <span {...fieldAttrs(annotation, `${path}.items.2.body`)}>{data.roadmapBody}</span>{' '}
+            <a href={data.roadmapHref} className="font-medium text-primary hover:underline">
+              See the roadmap
+            </a>
+            .
+          </p>
+        </div>
+        <p
+          className="border-t border-border pt-6 text-sm leading-6 text-muted-foreground"
+          {...fieldAttrs(annotation, `${path}.items.1.body`)}
+        >
+          {data.honesty}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+interface LocalAiCtaProps {
+  data: LocalAiCtaData;
+  path: string;
+  annotation: BlockAnnotation;
+}
+
+function LocalAiCta({ data, path, annotation }: LocalAiCtaProps) {
+  return (
+    <section className="px-6 pb-24 sm:pb-32 lg:px-8">
+      <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
+        <Button asChild size="lg" variant="brand">
+          <a href={data.primary.href} {...fieldAttrs(annotation, `${path}.links.0.label`)}>
+            {data.primary.label}
+          </a>
+        </Button>
+        <Button asChild size="lg" appearance="outline" variant="neutral">
+          <a
+            href={data.secondary.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...fieldAttrs(annotation, `${path}.links.1.label`)}
+          >
+            {data.secondary.label}
+          </a>
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 /**
  * Standalone /local-ai page (positioning decision c: standalone, not folded in).
- * Consolidates the economics, in-boundary sovereignty, and frontier-pathway
- * lines, the §4(c) named-adopter MARKET proof (industry adopters of open/local
- * models, not RevealUI customers), and the air-gap roadmap. The opencode pathway
- * is gated to Phase E (corpus §4.13) and ships there, not here. One primary CTA.
- * Guardrail: ownership stays the lead; local AI is its proof, not a reordering of
- * the locked positioning stack.
+ * Prose sections are CMS-wired via useMarketingPageBlocks (VES P2). Interactive
+ * ProviderSwitch / FrontierPathway and env-code snippet lines stay static.
  */
 export function LocalAiPage() {
+  const { blocks, annotation } = useMarketingPageBlocks('local-ai', LOCAL_AI_FALLBACK_BLOCKS);
+  const hero = localAiHeroSlot(blocks);
+  const pillars = localAiPillarsSlot(blocks);
+  const marketProof = localAiMarketProofSlot(blocks);
+  const notes = localAiNotesSlot(blocks);
+  const cta = localAiCtaSlot(blocks);
+
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-violet-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            {LOCAL_AI_PAGE.eyebrow}
-          </p>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            {LOCAL_AI_PAGE.h1}
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">{LOCAL_AI_PAGE.lead}</p>
-        </div>
-      </section>
-
-      {/* Three pillars: sovereignty, economics, pathway. */}
-      <section className="px-6 py-16 sm:py-20 lg:px-8">
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
-          {LOCAL_AI_PAGE.pillars.map((pillar) => (
-            <div key={pillar.title} className="rounded-2xl bg-card p-6 ring-1 ring-border">
-              <h2 className="text-lg font-semibold text-foreground">{pillar.title}</h2>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{pillar.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* One-config-line provider snippet, shared with the home section. */}
-      <section className="px-6 pb-8 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl bg-foreground p-6 ring-1 ring-background/10">
-            <ul className="space-y-2 font-mono text-sm list-none p-0">
-              {LOCAL_AI_SECTION.snippet.lines.map((line) => (
-                <li
-                  key={line.code}
-                  className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3"
-                >
-                  <code className={SNIPPET_CODE_CLASS_NAME}>{line.code}</code>
-                  <span className="text-background/60"># {line.note}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground">{LOCAL_AI_SECTION.snippet.caption}</p>
-        </div>
-      </section>
-
-      {/* Provider-switch interactive + frontier-pathway visual (Phase D). */}
+      <LocalAiHero data={hero.data} path={hero.path} annotation={annotation} />
+      <LocalAiPillars data={pillars.data} path={pillars.path} annotation={annotation} />
+      <LocalAiSnippet
+        caption={notes.data.snippetCaption}
+        captionPath={`${notes.path}.items.3.body`}
+        annotation={annotation}
+      />
       <section className="px-6 pb-8 lg:px-8">
         <ProviderSwitch />
         <FrontierPathway />
       </section>
-
-      {/* §4(c) market proof: industry adopters of open/local models, not customers. */}
-      <section className="px-6 py-16 sm:py-20 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-            {LOCAL_AI_PAGE.marketProof.eyebrow}
-          </p>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {LOCAL_AI_PAGE.marketProof.heading}
-          </h2>
-          <p className="mt-4 text-base leading-7 text-muted-foreground">
-            {LOCAL_AI_PAGE.marketProof.body}
-          </p>
-          <ul className="mt-8 space-y-4 list-none p-0">
-            {LOCAL_AI_PAGE.marketProof.adopters.map((adopter) => (
-              <li key={adopter.name} className="rounded-xl bg-secondary p-5 ring-1 ring-border">
-                <p className="text-base text-foreground">
-                  <span className="font-semibold">{adopter.name}</span> {adopter.detail}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">{adopter.source}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-6 text-sm italic leading-6 text-muted-foreground">
-            {LOCAL_AI_PAGE.marketProof.disclaimer}
-          </p>
-        </div>
-      </section>
-
-      {/* Dogfood proof + honesty qualification + air-gap roadmap. */}
-      <section className="px-6 pb-16 lg:px-8">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <p className="text-base leading-7 text-muted-foreground">{LOCAL_AI_SECTION.dogfood}</p>
-          <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              {LOCAL_AI_PAGE.roadmap.heading}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {LOCAL_AI_PAGE.roadmap.body}{' '}
-              <a
-                href={LOCAL_AI_PAGE.roadmap.href}
-                className="font-medium text-primary hover:underline"
-              >
-                See the roadmap
-              </a>
-              .
-            </p>
-          </div>
-          <p className="border-t border-border pt-6 text-sm leading-6 text-muted-foreground">
-            {LOCAL_AI_PAGE.honesty}
-          </p>
-        </div>
-      </section>
-
-      <section className="px-6 pb-24 sm:pb-32 lg:px-8">
-        <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
-          <Button asChild size="lg" variant="brand">
-            <a href={LOCAL_AI_PAGE.cta.primary.href}>{LOCAL_AI_PAGE.cta.primary.label}</a>
-          </Button>
-          <Button asChild size="lg" appearance="outline" variant="neutral">
-            <a href={LOCAL_AI_PAGE.cta.secondary.href} target="_blank" rel="noopener noreferrer">
-              {LOCAL_AI_PAGE.cta.secondary.label}
-            </a>
-          </Button>
-        </div>
-      </section>
-
+      <LocalAiMarketProof data={marketProof.data} path={marketProof.path} annotation={annotation} />
+      <LocalAiNotes data={notes.data} path={notes.path} annotation={annotation} />
+      <LocalAiCta data={cta.data} path={cta.path} annotation={annotation} />
       <Footer />
     </div>
   );

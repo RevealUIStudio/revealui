@@ -10,3 +10,11 @@ export {
   type Fetcher,
   pickDefaultPreviewPageId,
 } from './EditSessionCanvas.js';
+export {
+  EDITABLE_THEME_TOKENS,
+  type EditableThemeToken,
+  type FieldKind,
+  fieldKindFromPath,
+  fieldPathLeaf,
+  isEditableThemeToken,
+} from './field-kind.js';

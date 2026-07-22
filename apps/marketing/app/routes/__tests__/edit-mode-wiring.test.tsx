@@ -13,8 +13,9 @@ import { act, cleanup, render, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchPageBlocks } from '../../lib/api';
-import { homeBlocks, productsBlocks } from '../../lib/page-blocks';
+import { homeBlocks, localAiBlocks, productsBlocks } from '../../lib/page-blocks';
 import { HomePage } from '../HomePage';
+import { LocalAiPage } from '../LocalAiPage';
 import { ProductsPage } from '../ProductsPage';
 
 vi.mock('../../lib/api', () => ({ fetchPageBlocks: vi.fn() }));
@@ -63,7 +64,7 @@ describe('marketing pages: edit-mode wiring', () => {
     editDraftsStore.setEditActive(false);
   });
 
-  it('HomePage and ProductsPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
+  it('HomePage, ProductsPage, and LocalAiPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
     const home = renderRouted(<HomePage />);
     expect(home.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(home.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -72,6 +73,11 @@ describe('marketing pages: edit-mode wiring', () => {
     const products = renderRouted(<ProductsPage />);
     expect(products.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(products.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
+    products.unmount();
+
+    const localAi = renderRouted(<LocalAiPage />);
+    expect(localAi.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+    expect(localAi.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
   });
 
   it('HomePage renders the draft heading annotated with the session docId when a matching overlay exists', () => {
@@ -108,6 +114,26 @@ describe('marketing pages: edit-mode wiring', () => {
     const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
     expect(title?.getAttribute('data-rvui-doc')).toBe('page-products-id');
     expect(title?.textContent).toBe('Canvas-edited hero title');
+  });
+
+  it('LocalAiPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {
+    const draftBlocks = localAiBlocks();
+    const hero = draftBlocks[0];
+    if (hero?.type === 'hero') {
+      hero.data.title = 'Canvas-edited local-ai title';
+    }
+    editDraftsStore.set([
+      {
+        docType: 'page',
+        docId: 'page-local-ai-id',
+        draft: { slug: 'local-ai', blocks: draftBlocks },
+      },
+    ]);
+
+    const { container } = renderRouted(<LocalAiPage />);
+    const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
+    expect(title?.getAttribute('data-rvui-doc')).toBe('page-local-ai-id');
+    expect(title?.textContent).toBe('Canvas-edited local-ai title');
   });
 
   it('re-renders HomePage with the patched value after an optimistic draft-store update', () => {

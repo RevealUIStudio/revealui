@@ -1,6 +1,7 @@
 import { BlockSchema } from '@revealui/contracts/content';
 import { describe, expect, it } from 'vitest';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
+import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 import { PHILOSOPHY } from '../content/philosophy';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../content/primitives';
 import { PRODUCTS_CTA_SECTION, PRODUCTS_FLAGSHIP, PRODUCTS_PAGE_HERO } from '../content/products';
@@ -11,6 +12,13 @@ import {
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
   homeBlocks,
+  LOCAL_AI_FALLBACK_BLOCKS,
+  localAiBlocks,
+  localAiCtaSlot,
+  localAiHeroSlot,
+  localAiMarketProofSlot,
+  localAiNotesSlot,
+  localAiPillarsSlot,
   PHILOSOPHY_FALLBACK_BLOCKS,
   PRODUCTS_FALLBACK_BLOCKS,
   philosophyBlocks,
@@ -38,8 +46,13 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for home, products, and philosophy', () => {
-    for (const block of [...homeBlocks(), ...productsBlocks(), ...philosophyBlocks()]) {
+  it('produces schema-valid blocks for home, products, philosophy, and local-ai', () => {
+    for (const block of [
+      ...homeBlocks(),
+      ...productsBlocks(),
+      ...philosophyBlocks(),
+      ...localAiBlocks(),
+    ]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
     }
   });
@@ -48,6 +61,13 @@ describe('page-blocks derivation', () => {
     expect(homeBlocks().map((b) => b.type)).toEqual(['section', 'section', 'ctaSection']);
     expect(productsBlocks().map((b) => b.type)).toEqual(['hero', 'section', 'ctaSection']);
     expect(philosophyBlocks().map((b) => b.type)).toEqual(['hero', 'section', 'ctaSection']);
+    expect(localAiBlocks().map((b) => b.type)).toEqual([
+      'hero',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
   });
 
   it('round-trips philosophy slots against the static content module', () => {
@@ -61,10 +81,47 @@ describe('page-blocks derivation', () => {
     );
     expect(philosophyCtaSlot(blocks).data).toEqual(PHILOSOPHY.cta);
   });
+
+  it('round-trips local-ai slots against the static content module', () => {
+    const blocks = LOCAL_AI_FALLBACK_BLOCKS;
+    expect(localAiHeroSlot(blocks).data).toEqual({
+      eyebrow: LOCAL_AI_PAGE.eyebrow,
+      h1: LOCAL_AI_PAGE.h1,
+      lead: LOCAL_AI_PAGE.lead,
+    });
+    expect(localAiPillarsSlot(blocks).data.pillars).toEqual(
+      LOCAL_AI_PAGE.pillars.map((p) => ({ title: p.title, body: p.body })),
+    );
+    expect(localAiMarketProofSlot(blocks).data).toEqual({
+      eyebrow: LOCAL_AI_PAGE.marketProof.eyebrow,
+      heading: LOCAL_AI_PAGE.marketProof.heading,
+      body: LOCAL_AI_PAGE.marketProof.body,
+      adopters: LOCAL_AI_PAGE.marketProof.adopters.map((a) => ({
+        name: a.name,
+        detail: a.detail,
+        source: a.source,
+      })),
+      disclaimer: LOCAL_AI_PAGE.marketProof.disclaimer,
+    });
+    expect(localAiNotesSlot(blocks).data).toEqual({
+      dogfood: LOCAL_AI_SECTION.dogfood,
+      honesty: LOCAL_AI_PAGE.honesty,
+      roadmapHeading: LOCAL_AI_PAGE.roadmap.heading,
+      roadmapBody: LOCAL_AI_PAGE.roadmap.body,
+      roadmapHref: LOCAL_AI_PAGE.roadmap.href,
+      snippetCaption: LOCAL_AI_SECTION.snippet.caption,
+    });
+    expect(localAiCtaSlot(blocks).data).toEqual(LOCAL_AI_PAGE.cta);
+  });
 });
 
 describe('claims safety: prose is single-sourced, pinned values never enter blocks', () => {
-  const strings = collectStrings([homeBlocks(), productsBlocks(), philosophyBlocks()]);
+  const strings = collectStrings([
+    homeBlocks(),
+    productsBlocks(),
+    philosophyBlocks(),
+    localAiBlocks(),
+  ]);
   const haystack = strings.join(' ');
 
   it('carries the copy sentences byte-identical to the content modules', () => {
@@ -98,6 +155,17 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     }
     expect(strings).toContain(PHILOSOPHY.cta.primary.label);
     expect(strings).toContain(PHILOSOPHY.cta.secondary.label);
+    expect(strings).toContain(LOCAL_AI_PAGE.h1);
+    expect(strings).toContain(LOCAL_AI_PAGE.lead);
+    for (const pillar of LOCAL_AI_PAGE.pillars) {
+      expect(strings).toContain(pillar.title);
+      expect(strings).toContain(pillar.body);
+    }
+    expect(strings).toContain(LOCAL_AI_PAGE.marketProof.heading);
+    expect(strings).toContain(LOCAL_AI_SECTION.snippet.caption);
+    // Env-code lines stay out of blocks (grep-accurate, component-local).
+    expect(strings).not.toContain('LLM_PROVIDER=inference-snaps');
+    expect(strings).not.toContain('LLM_PROVIDER=ollama');
   });
 
   it('never carries metric-derived numbers, prices, or product versions', () => {

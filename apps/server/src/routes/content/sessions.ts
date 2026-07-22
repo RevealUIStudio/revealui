@@ -56,13 +56,34 @@ interface SessionUser {
   role: string;
 }
 
-/** Require an authenticated user holding content:update. Throws 401 / 403. */
+/**
+ * Open / list / patch / discard: human editors (`content:update`) or agents
+ * proposing into a session (`content:propose`). Publish stays human-only via
+ * `requireContentPublisher`.
+ */
 function requireContentEditor(user: SessionUser | undefined): SessionUser {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  const canUpdate = authorizationSystem.hasPermission([user.role], 'content', 'update');
+  const canPropose = authorizationSystem.hasPermission([user.role], 'content', 'propose');
+  if (!(canUpdate || canPropose)) {
+    throw new HTTPException(403, {
+      message: 'Permission denied: content:update or content:propose',
+    });
+  }
+  return user;
+}
+
+/** Publish remains a human (or editor) act — never content:propose alone. */
+function requireContentPublisher(user: SessionUser | undefined): SessionUser {
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
   if (!authorizationSystem.hasPermission([user.role], 'content', 'update')) {
-    throw new HTTPException(403, { message: 'Permission denied: content:update' });
+    throw new HTTPException(403, {
+      message: 'Permission denied: content:update required to publish',
+    });
   }
   return user;
 }
@@ -89,7 +110,15 @@ function actorKindFor(user: SessionUser): 'human' | 'agent' {
 const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 const UNPATCHABLE_ROOT_HINT =
-  "not a writable root (writable: 'title', 'seo', 'blocks.<i>.data...')";
+  "not a writable root (writable: 'title', 'seo', 'theme', 'blocks.<i>.data...')";
+
+/** Allowlisted design-token CSS variables (matches @revealui/editor field-kind). */
+const EDITABLE_THEME_TOKEN_NAMES = new Set([
+  '--rvui-brand',
+  '--rvui-brand-glow',
+  '--rvui-accent',
+  '--rvui-radius-md',
+]);
 
 function isArrayIndex(segment: string): boolean {
   if (segment.length === 0) return false;
@@ -179,6 +208,50 @@ function applyDraftPatch(draft: Record<string, unknown>, path: string, value: un
       return;
     }
     setThroughExisting(draft, segments, 0, value, false);
+    return;
+  }
+
+  if (root === 'theme') {
+    // P2 token theming: draft.theme is a map of allowlisted --rvui-* CSS vars.
+    if (segments.length === 1) {
+      if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        throw new HTTPException(400, { message: 'theme must be an object of token → value' });
+      }
+      const next: Record<string, string> = {};
+      for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+        if (!EDITABLE_THEME_TOKEN_NAMES.has(key)) {
+          throw pathError(key, 'not an allowlisted design token');
+        }
+        if (typeof val !== 'string') {
+          throw new HTTPException(400, { message: `theme.${key} must be a string` });
+        }
+        if (val.includes(';') || val.includes('{') || val.includes('}')) {
+          throw new HTTPException(400, { message: `theme.${key} contains illegal CSS` });
+        }
+        next[key] = val;
+      }
+      draft.theme = next;
+      return;
+    }
+    if (segments.length !== 2) {
+      throw pathError(segments.slice(1).join('.'), 'theme paths are theme.<token> only');
+    }
+    const token = segments[1];
+    if (!token || !EDITABLE_THEME_TOKEN_NAMES.has(token)) {
+      throw pathError(token ?? 'theme', 'not an allowlisted design token');
+    }
+    if (typeof value !== 'string') {
+      throw new HTTPException(400, { message: `theme.${token} must be a string` });
+    }
+    if (value.includes(';') || value.includes('{') || value.includes('}')) {
+      throw new HTTPException(400, { message: `theme.${token} contains illegal CSS` });
+    }
+    const existing =
+      typeof draft.theme === 'object' && draft.theme !== null && !Array.isArray(draft.theme)
+        ? { ...(draft.theme as Record<string, string>) }
+        : {};
+    existing[token] = value;
+    draft.theme = existing;
     return;
   }
 
@@ -890,7 +963,8 @@ app.openapi(
   }),
   async (c) => {
     const db = c.get('db');
-    const user = requireContentEditor(c.get('user'));
+    // Publish is human/editor only — agents with content:propose cannot publish.
+    const user = requireContentPublisher(c.get('user'));
     const { id } = c.req.valid('param');
 
     const session = await sessionQueries.getEditSessionById(db, id);

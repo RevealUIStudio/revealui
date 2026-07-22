@@ -27,6 +27,7 @@ import {
   type ApplyPatchMessage,
   devWarn,
   isApplyPatchMessage,
+  isSetThemeMessage,
   RVUI_CLICK,
   RVUI_PATCH_APPLIED,
   RVUI_READY,
@@ -279,9 +280,23 @@ export async function initEditRuntime(
     post({ type: RVUI_PATCH_APPLIED, doc: msg.doc, field: msg.field });
   };
 
+  const applyThemeTokens = (tokens: Record<string, string>): void => {
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(tokens)) {
+      // Only accept design-token names (D8); reject arbitrary CSS injection.
+      if (!key.startsWith('--rvui-')) continue;
+      if (value.includes(';') || value.includes('{') || value.includes('}')) continue;
+      root.style.setProperty(key, value);
+    }
+  };
+
   const onMessage = (event: MessageEvent): void => {
     if (event.origin !== adminOrigin) {
       devWarn(`dropped message from foreign origin: ${event.origin}`);
+      return;
+    }
+    if (isSetThemeMessage(event.data)) {
+      applyThemeTokens(event.data.tokens);
       return;
     }
     if (!isApplyPatchMessage(event.data)) {
@@ -299,12 +314,17 @@ export async function initEditRuntime(
     const doc = el.getAttribute('data-rvui-doc');
     const field = el.getAttribute('data-rvui-field');
     if (!(doc && field)) return;
+    // Prefer attribute values for link/image fields so the canvas gets href/src.
+    const attrValue =
+      el.getAttribute('href') ??
+      el.getAttribute('src') ??
+      (el instanceof HTMLElement ? el.dataset.rvuiValue : null);
     post({
       type: RVUI_CLICK,
       doc,
       field,
       rect: rectOf(el),
-      currentValue: el.textContent ?? '',
+      currentValue: attrValue ?? el.textContent ?? '',
     });
   };
 
