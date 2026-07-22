@@ -38,31 +38,38 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./environment": {
       "types": "./dist/environment/index.d.ts",
-      "import": "./dist/environment/index.js"
+      "import": "./dist/environment/index.js",
+      "default": "./dist/environment/index.js"
     },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils/index.js"
+      "import": "./dist/utils/index.js",
+      "default": "./dist/utils/index.js"
     },
     "./validators": {
       "types": "./dist/validators/index.d.ts",
-      "import": "./dist/validators/index.js"
+      "import": "./dist/validators/index.js",
+      "default": "./dist/validators/index.js"
     },
     "./bootstrap": {
       "types": "./dist/bootstrap/index.d.ts",
-      "import": "./dist/bootstrap/index.js"
+      "import": "./dist/bootstrap/index.js",
+      "default": "./dist/bootstrap/index.js"
     },
     "./system-tune": {
       "types": "./dist/system-tune/index.d.ts",
-      "import": "./dist/system-tune/index.js"
+      "import": "./dist/system-tune/index.js",
+      "default": "./dist/system-tune/index.js"
     },
     "./revvault": {
       "types": "./dist/revvault/index.d.ts",
-      "import": "./dist/revvault/index.js"
+      "import": "./dist/revvault/index.js",
+      "default": "./dist/revvault/index.js"
     }
   },
   "files": [

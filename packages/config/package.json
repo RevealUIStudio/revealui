@@ -19,19 +19,23 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./revealui": {
       "types": "./dist/revealui.config.d.ts",
-      "import": "./dist/revealui.config.js"
+      "import": "./dist/revealui.config.js",
+      "default": "./dist/revealui.config.js"
     },
     "./mcp": {
       "types": "./dist/mcp.d.ts",
-      "import": "./dist/mcp.js"
+      "import": "./dist/mcp.js",
+      "default": "./dist/mcp.js"
     },
     "./stripe-mode": {
       "types": "./dist/stripe-mode.d.ts",
-      "import": "./dist/stripe-mode.js"
+      "import": "./dist/stripe-mode.js",
+      "default": "./dist/stripe-mode.js"
     }
   },
   "files": [

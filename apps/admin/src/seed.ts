@@ -9,6 +9,9 @@
  *
  * All seed operations are idempotent (checks for existing entries before creating).
  *
+ * Env: uses scripts/lib/seed-env.ts (same as fleet-marketing) so direnv/Nix
+ * passwordless POSTGRES_URL defaults are demoted and apps/admin/.env.local wins.
+ *
  * Usage:
  *   pnpm db:seed                    # Seed everything
  *   pnpm db:seed -- --pages-only    # Seed pages only
@@ -20,6 +23,15 @@ import { getRevealUI } from '@revealui/core';
 import { getClient } from '@revealui/db';
 import { sites, users } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
+import {
+  assertSeedDatabaseReady,
+  loadSeedEnv,
+  SeedEnvError,
+} from '../../../scripts/lib/seed-env.js';
+
+// pnpm db:seed:admin runs from monorepo root; seed-env loads apps/admin/.env.local
+// and demotes passwordless direnv/Nix POSTGRES_URL placeholders.
+loadSeedEnv(process.cwd());
 
 const logger = {
   header: (msg: string) =>
@@ -287,6 +299,9 @@ async function main() {
     logger.header('RevealUI Seed');
     logger.info('Initializing admin...\n');
 
+    const { target } = await assertSeedDatabaseReady();
+    logger.info(`Database ${target.host}:${target.port}/${target.database}\n`);
+
     const revealuiConfig = await config;
     const revealui = await getRevealUI({ config: revealuiConfig });
 
@@ -312,6 +327,10 @@ async function main() {
     logger.info('   2. Visit / to see the home page');
     logger.info('   3. Add images via Media collection\n');
   } catch (error) {
+    if (error instanceof SeedEnvError) {
+      logger.error(error.message);
+      process.exit(1);
+    }
     logger.error(`Fatal error: ${error instanceof Error ? error.message : String(error)}`);
     if (error instanceof Error && error.stack) {
       logger.error(`Stack: ${error.stack}`);

@@ -38,15 +38,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./integration/setup": {
       "types": "./dist/integration/setup.d.ts",
-      "import": "./dist/integration/setup.js"
+      "import": "./dist/integration/setup.js",
+      "default": "./dist/integration/setup.js"
     },
     "./integration/test-database": {
       "types": "./dist/integration/test-database.d.ts",
-      "import": "./dist/integration/test-database.js"
+      "import": "./dist/integration/test-database.js",
+      "default": "./dist/integration/test-database.js"
     }
   },
   "main": "./dist/index.js",

@@ -17,27 +17,33 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./ontology": {
       "types": "./dist/ontology/index.d.ts",
-      "import": "./dist/ontology/index.js"
+      "import": "./dist/ontology/index.js",
+      "default": "./dist/ontology/index.js"
     },
     "./ingest": {
       "types": "./dist/ingest/index.d.ts",
-      "import": "./dist/ingest/index.js"
+      "import": "./dist/ingest/index.js",
+      "default": "./dist/ingest/index.js"
     },
     "./search": {
       "types": "./dist/search/index.d.ts",
-      "import": "./dist/search/index.js"
+      "import": "./dist/search/index.js",
+      "default": "./dist/search/index.js"
     },
     "./extractors": {
       "types": "./dist/extractors/index.d.ts",
-      "import": "./dist/extractors/index.js"
+      "import": "./dist/extractors/index.js",
+      "default": "./dist/extractors/index.js"
     },
     "./ddl": {
       "types": "./dist/db/ddl.d.ts",
-      "import": "./dist/db/ddl.js"
+      "import": "./dist/db/ddl.js",
+      "default": "./dist/db/ddl.js"
     }
   },
   "bin": {

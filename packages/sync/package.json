@@ -32,19 +32,23 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./provider": {
       "types": "./dist/provider/index.d.ts",
-      "import": "./dist/provider/index.js"
+      "import": "./dist/provider/index.js",
+      "default": "./dist/provider/index.js"
     },
     "./collab": {
       "types": "./dist/collab/index.d.ts",
-      "import": "./dist/collab/index.js"
+      "import": "./dist/collab/index.js",
+      "default": "./dist/collab/index.js"
     },
     "./collab/server": {
       "types": "./dist/collab/server-index.d.ts",
-      "import": "./dist/collab/server-index.js"
+      "import": "./dist/collab/server-index.js",
+      "default": "./dist/collab/server-index.js"
     }
   },
   "files": [

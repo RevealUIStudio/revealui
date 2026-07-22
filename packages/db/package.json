@@ -24,231 +24,288 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./core": {
       "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
+      "import": "./dist/client/index.js",
+      "default": "./dist/client/index.js"
     },
     "./orm": {
       "types": "./dist/orm.d.ts",
-      "import": "./dist/orm.js"
+      "import": "./dist/orm.js",
+      "default": "./dist/orm.js"
     },
     "./schema": {
       "types": "./dist/schema/index.d.ts",
-      "import": "./dist/schema/index.js"
+      "import": "./dist/schema/index.js",
+      "default": "./dist/schema/index.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
+      "import": "./dist/client/index.js",
+      "default": "./dist/client/index.js"
     },
     "./validation": {
       "types": "./dist/validation/cross-db.d.ts",
-      "import": "./dist/validation/cross-db.js"
+      "import": "./dist/validation/cross-db.js",
+      "default": "./dist/validation/cross-db.js"
     },
     "./cleanup": {
       "types": "./dist/cleanup/index.d.ts",
-      "import": "./dist/cleanup/index.js"
+      "import": "./dist/cleanup/index.js",
+      "default": "./dist/cleanup/index.js"
     },
     "./types": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js"
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
     },
     "./schema/agents": {
       "types": "./dist/schema/agents.d.ts",
-      "import": "./dist/schema/agents.js"
+      "import": "./dist/schema/agents.js",
+      "default": "./dist/schema/agents.js"
     },
     "./schema/crdt-operations": {
       "types": "./dist/schema/crdt-operations.d.ts",
-      "import": "./dist/schema/crdt-operations.js"
+      "import": "./dist/schema/crdt-operations.js",
+      "default": "./dist/schema/crdt-operations.js"
     },
     "./schema/node-ids": {
       "types": "./dist/schema/node-ids.d.ts",
-      "import": "./dist/schema/node-ids.js"
+      "import": "./dist/schema/node-ids.js",
+      "default": "./dist/schema/node-ids.js"
     },
     "./schema/pages": {
       "types": "./dist/schema/pages.d.ts",
-      "import": "./dist/schema/pages.js"
+      "import": "./dist/schema/pages.js",
+      "default": "./dist/schema/pages.js"
     },
     "./schema/rate-limits": {
       "types": "./dist/schema/rate-limits.d.ts",
-      "import": "./dist/schema/rate-limits.js"
+      "import": "./dist/schema/rate-limits.js",
+      "default": "./dist/schema/rate-limits.js"
     },
     "./schema/sites": {
       "types": "./dist/schema/sites.d.ts",
-      "import": "./dist/schema/sites.js"
+      "import": "./dist/schema/sites.js",
+      "default": "./dist/schema/sites.js"
     },
     "./schema/tenants": {
       "types": "./dist/schema/tenants.d.ts",
-      "import": "./dist/schema/tenants.js"
+      "import": "./dist/schema/tenants.js",
+      "default": "./dist/schema/tenants.js"
     },
     "./schema/users": {
       "types": "./dist/schema/users.d.ts",
-      "import": "./dist/schema/users.js"
+      "import": "./dist/schema/users.js",
+      "default": "./dist/schema/users.js"
     },
     "./schema/password-reset-tokens": {
       "types": "./dist/schema/password-reset-tokens.d.ts",
-      "import": "./dist/schema/password-reset-tokens.js"
+      "import": "./dist/schema/password-reset-tokens.js",
+      "default": "./dist/schema/password-reset-tokens.js"
     },
     "./schema/admin": {
       "types": "./dist/schema/admin.d.ts",
-      "import": "./dist/schema/admin.js"
+      "import": "./dist/schema/admin.js",
+      "default": "./dist/schema/admin.js"
     },
     "./schema/licenses": {
       "types": "./dist/schema/licenses.d.ts",
-      "import": "./dist/schema/licenses.js"
+      "import": "./dist/schema/licenses.js",
+      "default": "./dist/schema/licenses.js"
     },
     "./schema/api-keys": {
       "types": "./dist/schema/api-keys.d.ts",
-      "import": "./dist/schema/api-keys.js"
+      "import": "./dist/schema/api-keys.js",
+      "default": "./dist/schema/api-keys.js"
     },
     "./schema/audit-log": {
       "types": "./dist/schema/audit-log.d.ts",
-      "import": "./dist/schema/audit-log.js"
+      "import": "./dist/schema/audit-log.js",
+      "default": "./dist/schema/audit-log.js"
     },
     "./schema/app-logs": {
       "types": "./dist/schema/app-logs.d.ts",
-      "import": "./dist/schema/app-logs.js"
+      "import": "./dist/schema/app-logs.js",
+      "default": "./dist/schema/app-logs.js"
     },
     "./schema/error-events": {
       "types": "./dist/schema/error-events.d.ts",
-      "import": "./dist/schema/error-events.js"
+      "import": "./dist/schema/error-events.js",
+      "default": "./dist/schema/error-events.js"
     },
     "./schema/code-provenance": {
       "types": "./dist/schema/code-provenance.d.ts",
-      "import": "./dist/schema/code-provenance.js"
+      "import": "./dist/schema/code-provenance.js",
+      "default": "./dist/schema/code-provenance.js"
     },
     "./schema/tickets": {
       "types": "./dist/schema/tickets.d.ts",
-      "import": "./dist/schema/tickets.js"
+      "import": "./dist/schema/tickets.js",
+      "default": "./dist/schema/tickets.js"
     },
     "./schema/vector": {
       "types": "./dist/schema/vector.d.ts",
-      "import": "./dist/schema/vector.js"
+      "import": "./dist/schema/vector.js",
+      "default": "./dist/schema/vector.js"
     },
     "./schema/rag": {
       "types": "./dist/schema/rag.d.ts",
-      "import": "./dist/schema/rag.js"
+      "import": "./dist/schema/rag.js",
+      "default": "./dist/schema/rag.js"
     },
     "./schema/knowledge-graph": {
       "types": "./dist/schema/knowledge-graph.d.ts",
-      "import": "./dist/schema/knowledge-graph.js"
+      "import": "./dist/schema/knowledge-graph.js",
+      "default": "./dist/schema/knowledge-graph.js"
     },
     "./generated/zod-schemas": {
       "types": "./dist/generated/zod-schemas.d.ts",
-      "import": "./dist/generated/zod-schemas.js"
+      "import": "./dist/generated/zod-schemas.js",
+      "default": "./dist/generated/zod-schemas.js"
     },
     "./queries/tickets": {
       "types": "./dist/queries/tickets.d.ts",
-      "import": "./dist/queries/tickets.js"
+      "import": "./dist/queries/tickets.js",
+      "default": "./dist/queries/tickets.js"
     },
     "./queries/boards": {
       "types": "./dist/queries/boards.d.ts",
-      "import": "./dist/queries/boards.js"
+      "import": "./dist/queries/boards.js",
+      "default": "./dist/queries/boards.js"
     },
     "./queries/ticket-comments": {
       "types": "./dist/queries/ticket-comments.d.ts",
-      "import": "./dist/queries/ticket-comments.js"
+      "import": "./dist/queries/ticket-comments.js",
+      "default": "./dist/queries/ticket-comments.js"
     },
     "./queries/ticket-labels": {
       "types": "./dist/queries/ticket-labels.d.ts",
-      "import": "./dist/queries/ticket-labels.js"
+      "import": "./dist/queries/ticket-labels.js",
+      "default": "./dist/queries/ticket-labels.js"
     },
     "./queries/code-provenance": {
       "types": "./dist/queries/code-provenance.d.ts",
-      "import": "./dist/queries/code-provenance.js"
+      "import": "./dist/queries/code-provenance.js",
+      "default": "./dist/queries/code-provenance.js"
     },
     "./queries/posts": {
       "types": "./dist/queries/posts.d.ts",
-      "import": "./dist/queries/posts.js"
+      "import": "./dist/queries/posts.js",
+      "default": "./dist/queries/posts.js"
     },
     "./queries/globals": {
       "types": "./dist/queries/globals.d.ts",
-      "import": "./dist/queries/globals.js"
+      "import": "./dist/queries/globals.js",
+      "default": "./dist/queries/globals.js"
     },
     "./queries/media": {
       "types": "./dist/queries/media.d.ts",
-      "import": "./dist/queries/media.js"
+      "import": "./dist/queries/media.js",
+      "default": "./dist/queries/media.js"
     },
     "./queries/sites": {
       "types": "./dist/queries/sites.d.ts",
-      "import": "./dist/queries/sites.js"
+      "import": "./dist/queries/sites.js",
+      "default": "./dist/queries/sites.js"
     },
     "./queries/pages": {
       "types": "./dist/queries/pages.d.ts",
-      "import": "./dist/queries/pages.js"
+      "import": "./dist/queries/pages.js",
+      "default": "./dist/queries/pages.js"
     },
     "./queries/edit-sessions": {
       "types": "./dist/queries/edit-sessions.d.ts",
-      "import": "./dist/queries/edit-sessions.js"
+      "import": "./dist/queries/edit-sessions.js",
+      "default": "./dist/queries/edit-sessions.js"
     },
     "./queries/users": {
       "types": "./dist/queries/users.d.ts",
-      "import": "./dist/queries/users.js"
+      "import": "./dist/queries/users.js",
+      "default": "./dist/queries/users.js"
     },
     "./queries/sessions": {
       "types": "./dist/queries/sessions.d.ts",
-      "import": "./dist/queries/sessions.js"
+      "import": "./dist/queries/sessions.js",
+      "default": "./dist/queries/sessions.js"
     },
     "./queries/passkeys": {
       "types": "./dist/queries/passkeys.d.ts",
-      "import": "./dist/queries/passkeys.js"
+      "import": "./dist/queries/passkeys.js",
+      "default": "./dist/queries/passkeys.js"
     },
     "./queries/user-api-keys": {
       "types": "./dist/queries/user-api-keys.d.ts",
-      "import": "./dist/queries/user-api-keys.js"
+      "import": "./dist/queries/user-api-keys.js",
+      "default": "./dist/queries/user-api-keys.js"
     },
     "./queries/oauth-accounts": {
       "types": "./dist/queries/oauth-accounts.d.ts",
-      "import": "./dist/queries/oauth-accounts.js"
+      "import": "./dist/queries/oauth-accounts.js",
+      "default": "./dist/queries/oauth-accounts.js"
     },
     "./queries/conversations": {
       "types": "./dist/queries/conversations.d.ts",
-      "import": "./dist/queries/conversations.js"
+      "import": "./dist/queries/conversations.js",
+      "default": "./dist/queries/conversations.js"
     },
     "./queries/products": {
       "types": "./dist/queries/products.d.ts",
-      "import": "./dist/queries/products.js"
+      "import": "./dist/queries/products.js",
+      "default": "./dist/queries/products.js"
     },
     "./queries/orders": {
       "types": "./dist/queries/orders.d.ts",
-      "import": "./dist/queries/orders.js"
+      "import": "./dist/queries/orders.js",
+      "default": "./dist/queries/orders.js"
     },
     "./schema/products": {
       "types": "./dist/schema/products.d.ts",
-      "import": "./dist/schema/products.js"
+      "import": "./dist/schema/products.js",
+      "default": "./dist/schema/products.js"
     },
     "./schema/yjs-documents": {
       "types": "./dist/schema/yjs-documents.d.ts",
-      "import": "./dist/schema/yjs-documents.js"
+      "import": "./dist/schema/yjs-documents.js",
+      "default": "./dist/schema/yjs-documents.js"
     },
     "./schema/collab-edits": {
       "types": "./dist/schema/collab-edits.d.ts",
-      "import": "./dist/schema/collab-edits.js"
+      "import": "./dist/schema/collab-edits.js",
+      "default": "./dist/schema/collab-edits.js"
     },
     "./log-transport": {
       "types": "./dist/log-transport.d.ts",
-      "import": "./dist/log-transport.js"
+      "import": "./dist/log-transport.js",
+      "default": "./dist/log-transport.js"
     },
     "./crypto": {
       "types": "./dist/crypto.d.ts",
-      "import": "./dist/crypto.js"
+      "import": "./dist/crypto.js",
+      "default": "./dist/crypto.js"
     },
     "./validation/cross-db": {
       "types": "./dist/validation/cross-db.d.ts",
-      "import": "./dist/validation/cross-db.js"
+      "import": "./dist/validation/cross-db.js",
+      "default": "./dist/validation/cross-db.js"
     },
     "./saga": {
       "types": "./dist/saga/index.d.ts",
-      "import": "./dist/saga/index.js"
+      "import": "./dist/saga/index.js",
+      "default": "./dist/saga/index.js"
     },
     "./jobs": {
       "types": "./dist/jobs/index.d.ts",
-      "import": "./dist/jobs/index.js"
+      "import": "./dist/jobs/index.js",
+      "default": "./dist/jobs/index.js"
     },
     "./pool": {
       "types": "./dist/pool.d.ts",
-      "import": "./dist/pool.js"
+      "import": "./dist/pool.js",
+      "default": "./dist/pool.js"
     }
   },
   "files": [

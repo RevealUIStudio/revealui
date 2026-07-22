@@ -47,123 +47,153 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./a2a": {
       "types": "./dist/a2a/index.d.ts",
-      "import": "./dist/a2a/index.js"
+      "import": "./dist/a2a/index.js",
+      "default": "./dist/a2a/index.js"
     },
     "./memory": {
       "types": "./dist/memory/index.d.ts",
-      "import": "./dist/memory/index.js"
+      "import": "./dist/memory/index.js",
+      "default": "./dist/memory/index.js"
     },
     "./memory/stores": {
       "types": "./dist/memory/stores/index.d.ts",
-      "import": "./dist/memory/stores/index.js"
+      "import": "./dist/memory/stores/index.js",
+      "default": "./dist/memory/stores/index.js"
     },
     "./memory/vector": {
       "types": "./dist/memory/vector/index.d.ts",
-      "import": "./dist/memory/vector/index.js"
+      "import": "./dist/memory/vector/index.js",
+      "default": "./dist/memory/vector/index.js"
     },
     "./memory/persistence": {
       "types": "./dist/memory/persistence/index.d.ts",
-      "import": "./dist/memory/persistence/index.js"
+      "import": "./dist/memory/persistence/index.js",
+      "default": "./dist/memory/persistence/index.js"
     },
     "./memory/agent": {
       "types": "./dist/memory/agent/index.d.ts",
-      "import": "./dist/memory/agent/index.js"
+      "import": "./dist/memory/agent/index.js",
+      "default": "./dist/memory/agent/index.js"
     },
     "./memory/services": {
       "types": "./dist/memory/services/index.d.ts",
-      "import": "./dist/memory/services/index.js"
+      "import": "./dist/memory/services/index.js",
+      "default": "./dist/memory/services/index.js"
     },
     "./embeddings": {
       "types": "./dist/embeddings/index.d.ts",
-      "import": "./dist/embeddings/index.js"
+      "import": "./dist/embeddings/index.js",
+      "default": "./dist/embeddings/index.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
+      "import": "./dist/client/index.js",
+      "default": "./dist/client/index.js"
     },
     "./skills": {
       "types": "./dist/skills/index.d.ts",
-      "import": "./dist/skills/index.js"
+      "import": "./dist/skills/index.js",
+      "default": "./dist/skills/index.js"
     },
     "./skills/registry": {
       "types": "./dist/skills/registry/index.d.ts",
-      "import": "./dist/skills/registry/index.js"
+      "import": "./dist/skills/registry/index.js",
+      "default": "./dist/skills/registry/index.js"
     },
     "./llm/cache-utils": {
       "types": "./dist/llm/cache-utils.d.ts",
-      "import": "./dist/llm/cache-utils.js"
+      "import": "./dist/llm/cache-utils.js",
+      "default": "./dist/llm/cache-utils.js"
     },
     "./llm/client": {
       "types": "./dist/llm/client.d.ts",
-      "import": "./dist/llm/client.js"
+      "import": "./dist/llm/client.js",
+      "default": "./dist/llm/client.js"
     },
     "./llm/key-validator": {
       "types": "./dist/llm/key-validator.d.ts",
-      "import": "./dist/llm/key-validator.js"
+      "import": "./dist/llm/key-validator.js",
+      "default": "./dist/llm/key-validator.js"
     },
     "./llm/server": {
       "types": "./dist/llm/server.d.ts",
-      "import": "./dist/llm/server.js"
+      "import": "./dist/llm/server.js",
+      "default": "./dist/llm/server.js"
     },
     "./llm/providers/base": {
       "types": "./dist/llm/providers/base.d.ts",
-      "import": "./dist/llm/providers/base.js"
+      "import": "./dist/llm/providers/base.js",
+      "default": "./dist/llm/providers/base.js"
     },
     "./llm/response-cache": {
       "types": "./dist/llm/response-cache.d.ts",
-      "import": "./dist/llm/response-cache.js"
+      "import": "./dist/llm/response-cache.js",
+      "default": "./dist/llm/response-cache.js"
     },
     "./llm/semantic-cache": {
       "types": "./dist/llm/semantic-cache.d.ts",
-      "import": "./dist/llm/semantic-cache.js"
+      "import": "./dist/llm/semantic-cache.js",
+      "default": "./dist/llm/semantic-cache.js"
     },
     "./tools/admin": {
       "types": "./dist/tools/admin/index.d.ts",
-      "import": "./dist/tools/admin/index.js"
+      "import": "./dist/tools/admin/index.js",
+      "default": "./dist/tools/admin/index.js"
     },
     "./tools/registry": {
       "types": "./dist/tools/registry.d.ts",
-      "import": "./dist/tools/registry.js"
+      "import": "./dist/tools/registry.js",
+      "default": "./dist/tools/registry.js"
     },
     "./ingestion": {
       "types": "./dist/ingestion/index.d.ts",
-      "import": "./dist/ingestion/index.js"
+      "import": "./dist/ingestion/index.js",
+      "default": "./dist/ingestion/index.js"
     },
     "./orchestration/runtime": {
       "types": "./dist/orchestration/runtime.d.ts",
-      "import": "./dist/orchestration/runtime.js"
+      "import": "./dist/orchestration/runtime.js",
+      "default": "./dist/orchestration/runtime.js"
     },
     "./orchestration/streaming-runtime": {
       "types": "./dist/orchestration/streaming-runtime.d.ts",
-      "import": "./dist/orchestration/streaming-runtime.js"
+      "import": "./dist/orchestration/streaming-runtime.js",
+      "default": "./dist/orchestration/streaming-runtime.js"
     },
     "./orchestration/agent": {
       "types": "./dist/orchestration/agent.d.ts",
-      "import": "./dist/orchestration/agent.js"
+      "import": "./dist/orchestration/agent.js",
+      "default": "./dist/orchestration/agent.js"
     },
     "./tools/coding": {
       "types": "./dist/tools/coding/index.d.ts",
-      "import": "./dist/tools/coding/index.js"
+      "import": "./dist/tools/coding/index.js",
+      "default": "./dist/tools/coding/index.js"
     },
     "./inference": {
       "types": "./dist/inference/index.d.ts",
-      "import": "./dist/inference/index.js"
+      "import": "./dist/inference/index.js",
+      "default": "./dist/inference/index.js"
     },
     "./inference/context-budget": {
       "types": "./dist/inference/context-budget.d.ts",
-      "import": "./dist/inference/context-budget.js"
+      "import": "./dist/inference/context-budget.js",
+      "default": "./dist/inference/context-budget.js"
     },
     "./inference/tool-result-compressor": {
       "types": "./dist/inference/tool-result-compressor.d.ts",
-      "import": "./dist/inference/tool-result-compressor.js"
+      "import": "./dist/inference/tool-result-compressor.js",
+      "default": "./dist/inference/tool-result-compressor.js"
     },
     "./inference/task-decomposer": {
       "types": "./dist/inference/task-decomposer.d.ts",
-      "import": "./dist/inference/task-decomposer.js"
+      "import": "./dist/inference/task-decomposer.js",
+      "default": "./dist/inference/task-decomposer.js"
     }
   },
   "files": [
