@@ -34,14 +34,19 @@ function LabeledSlider({
   display: string;
   onChange: (v: number) => void;
 }) {
+  // Pass `label` + `valueLabel` into Slider so the range input is associated
+  // via htmlFor/id (axe "label" / WCAG 4.1.2). valueLabel keeps marketing
+  // units (products+, $k) without decoupling the accessible name.
   return (
-    <div className="block">
-      <span className="mb-2 flex items-baseline justify-between">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="font-mono text-sm text-primary">{display}</span>
-      </span>
-      <Slider value={value} min={min} max={max} step={step} onChange={onChange} />
-    </div>
+    <Slider
+      label={label}
+      valueLabel={display}
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      onChange={onChange}
+    />
   );
 }
 

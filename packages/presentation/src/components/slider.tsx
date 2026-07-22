@@ -14,6 +14,8 @@ export function Slider({
   disabled = false,
   label,
   showValue = false,
+  /** Formatted value shown opposite the label (e.g. "$10k"). Overrides raw showValue. */
+  valueLabel,
   className,
 }: {
   value?: number;
@@ -25,6 +27,7 @@ export function Slider({
   disabled?: boolean;
   label?: string;
   showValue?: boolean;
+  valueLabel?: string;
   className?: string;
 }) {
   const [internalValue, setInternalValue] = useState(defaultValue);
@@ -41,17 +44,22 @@ export function Slider({
   );
 
   const percentage = ((value - min) / (max - min)) * 100;
+  const rightDisplay = valueLabel ?? (showValue ? String(value) : null);
 
   return (
     <div className={cn('w-full', className)}>
-      {(label || showValue) && (
+      {(label || rightDisplay) && (
         <div className="mb-2 flex items-center justify-between">
           {label && (
             <label htmlFor={id} className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               {label}
             </label>
           )}
-          {showValue && <span className="text-sm text-zinc-500 dark:text-zinc-400">{value}</span>}
+          {rightDisplay && (
+            <span className="text-sm text-zinc-500 dark:text-zinc-400" aria-hidden={Boolean(label)}>
+              {rightDisplay}
+            </span>
+          )}
         </div>
       )}
       <input
@@ -63,6 +71,9 @@ export function Slider({
         value={value}
         disabled={disabled}
         onChange={handleChange}
+        // When no visible label is provided, still expose a name for AT / axe.
+        // With `label` set, the <label htmlFor> association is the primary name.
+        aria-label={label ? undefined : 'Slider'}
         style={{ '--slider-pct': `${percentage}%` } as React.CSSProperties}
         className={cn(
           'h-2 w-full cursor-pointer appearance-none rounded-full outline-none',
