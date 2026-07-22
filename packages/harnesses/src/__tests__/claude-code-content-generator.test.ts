@@ -1,20 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { ClaudeCodeGenerator } from '../content/generators/claude-code.js';
-import { buildManifest, generateContent, getGenerator, listGenerators } from '../content/index.js';
+import {
+  buildManifest,
+  DEFAULT_CONTENT_GENERATOR_ID,
+  generateContent,
+  getGenerator,
+  listGenerators,
+  MANAGER_CONTENT_OUTPUT,
+} from '../content/index.js';
 import type { Agent, Command, Rule, Skill } from '../content/schemas/index.js';
 
 const ctx = { projectRoot: '/test' };
 
 describe('ClaudeCodeGenerator', () => {
-  it('is auto-registered in the content generator registry', () => {
-    expect(listGenerators()).toContain('claude-code');
-    expect(getGenerator('claude-code')).toBeInstanceOf(ClaudeCodeGenerator);
+  it('is the default content sync generator and lands under the manager tree', () => {
+    expect(DEFAULT_CONTENT_GENERATOR_ID).toBe('claude-code');
+    expect(MANAGER_CONTENT_OUTPUT).toBe('.revealui/content');
+    expect(listGenerators()).toContain(DEFAULT_CONTENT_GENERATOR_ID);
+    expect(getGenerator(DEFAULT_CONTENT_GENERATOR_ID)).toBeInstanceOf(ClaudeCodeGenerator);
   });
 
   it('declares its output directory under the project manager', () => {
     const generator = new ClaudeCodeGenerator();
-    expect(generator.id).toBe('claude-code');
-    expect(generator.outputDir).toBe('.revealui/content');
+    expect(generator.id).toBe(DEFAULT_CONTENT_GENERATOR_ID);
+    expect(generator.outputDir).toBe(MANAGER_CONTENT_OUTPUT);
   });
 
   describe('generateRule', () => {
@@ -95,12 +104,14 @@ describe('ClaudeCodeGenerator', () => {
   describe('generateAll', () => {
     it('emits all content under .revealui/content (manager tree)', () => {
       const manifest = buildManifest();
-      const files = generateContent('claude-code', manifest, ctx);
+      const files = generateContent(DEFAULT_CONTENT_GENERATOR_ID, manifest, ctx);
       expect(files.length).toBeGreaterThan(0);
       expect(files.some((f) => f.relativePath === '.revealui/content/rules/tracker-first.md')).toBe(
         true,
       );
-      expect(files.every((f) => f.relativePath.startsWith('.revealui/content/'))).toBe(true);
+      expect(files.every((f) => f.relativePath.startsWith(`${MANAGER_CONTENT_OUTPUT}/`))).toBe(
+        true,
+      );
     });
   });
 });

@@ -173,6 +173,10 @@ CLAUDE.md
 !.claude/agents/
 !.claude/skills/
 !.claude/.revcon-manifest.json
+# Equal-rank adapter stubs from `revealui-harnesses manager materialize`
+# (must not enter the revcon rules-lockstep manifest).
+.claude/rules/00-revealui-manager.md
+.opencode/
 .agents/
 
 # RevealUI cache files (PGlite database)

@@ -263,6 +263,15 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        // GAP-406: hard-fail local gate when manager.json is missing/invalid.
+        // Same checkManager as `revealui-harnesses manager check` via
+        // validate:structure --manager-only (no parallel validator).
+        // CI mirrors this as a path-gated Quality step.
+        name: 'Project manager check (hard fail)',
+        command: 'pnpm',
+        args: ['validate:structure', '--', '--manager-only'],
+      },
+      {
         name: 'Boundary validation',
         command: 'pnpm',
         args: ['validate:boundary'],

@@ -8,6 +8,7 @@ export { ClaudeCodeGenerator } from './claude-code.js';
 export { CursorGenerator } from './cursor.js';
 export { OpenCodeGenerator } from './opencode.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
+export { DEFAULT_CONTENT_GENERATOR_ID, MANAGER_CONTENT_OUTPUT } from './types.js';
 export { VSCodeGenerator } from './vscode.js';
 
 const generators = new Map<string, ContentGenerator>();
