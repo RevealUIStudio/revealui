@@ -3,26 +3,29 @@
 /**
  * Seed Script  -  Seeds all initial admin content
  *
- * Creates pages, sample content, cards, heros, events, and banners.
+ * Creates pages (and only collections that are registered with a backing table).
  * Pages are seeded first because the frontend root URL (/) queries for
  * slug='home'  -  without it, new users see a 404 after signup.
  *
  * All seed operations are idempotent (checks for existing entries before creating).
  *
- * Env: uses scripts/lib/seed-env.ts (same as fleet-marketing) so direnv/Nix
- * passwordless POSTGRES_URL defaults are demoted and apps/admin/.env.local wins.
+ * Durable rules:
+ *   - Env via scripts/lib/seed-env.ts (direnv passwordless demotion + preflight)
+ *   - CLI creates use overrideAccess: true (no interactive admin session)
+ *   - Empty DB requires REVEALUI_ADMIN_EMAIL + REVEALUI_ADMIN_PASSWORD (≥12 chars)
+ *   - contents/events are NOT seeded: not in allCollections (no Postgres tables)
  *
  * Usage:
  *   pnpm db:seed                    # Seed everything
  *   pnpm db:seed -- --pages-only    # Seed pages only
- *   pnpm db:seed -- --content-only  # Seed sample content only
+ *   pnpm db:seed -- --content-only  # No-op notice (legacy collections unregistered)
  */
 
 import config from '@reveal-config';
 import { getRevealUI } from '@revealui/core';
 import { getClient } from '@revealui/db';
 import { sites, users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import {
   assertSeedDatabaseReady,
   loadSeedEnv,
@@ -39,6 +42,7 @@ const logger = {
   info: (msg: string) => process.stdout.write(`${msg}\n`),
   success: (msg: string) => process.stdout.write(`\x1b[32m${msg}\x1b[0m\n`),
   error: (msg: string) => process.stderr.write(`\x1b[31m${msg}\x1b[0m\n`),
+  warn: (msg: string) => process.stderr.write(`\x1b[33m${msg}\x1b[0m\n`),
 };
 
 // --- Lexical richText helpers ---
@@ -174,6 +178,11 @@ const pages = [
   },
 ];
 
+/**
+ * Legacy sample rows for collections that are intentionally unregistered
+ * (no Postgres table yet). Kept for reference when wire-up lands; not seeded.
+ * See apps/admin/src/lib/collections/registry.ts WIRE-UP-PENDING.
+ */
 const sampleContent = {
   contents: [
     {
@@ -205,7 +214,48 @@ const sampleContent = {
   ],
 };
 
+interface SeedCollectionResult {
+  created: number;
+  skipped: number;
+  failed: number;
+}
+
 // --- Seed Functions ---
+
+/**
+ * When the users table is empty, onInit will try to bootstrap the first admin.
+ * Fail closed here so we do not continue into page creates that look "done"
+ * while bootstrap silently no-ops on a short/missing password.
+ */
+async function assertBootstrapCredentialsIfEmptyUsers(): Promise<void> {
+  const db = getClient();
+  const [existing] = await db.select({ id: users.id }).from(users).limit(1);
+  if (existing) return;
+
+  const email = process.env.REVEALUI_ADMIN_EMAIL?.trim() ?? '';
+  const password = process.env.REVEALUI_ADMIN_PASSWORD ?? '';
+
+  if (!(email && password)) {
+    throw new SeedEnvError(
+      [
+        'No users in the database and bootstrap credentials are incomplete.',
+        '  Set both REVEALUI_ADMIN_EMAIL and REVEALUI_ADMIN_PASSWORD (apps/admin/.env.local or revvault).',
+        '  Password must be at least 12 characters.',
+        '  Then re-run: pnpm db:seed:admin',
+      ].join('\n'),
+    );
+  }
+
+  if (password.length < 12) {
+    throw new SeedEnvError(
+      [
+        `REVEALUI_ADMIN_PASSWORD is set but only ${password.length} character(s); minimum is 12.`,
+        '  onInit will refuse first-admin create with the same rule.',
+        '  Fix the password in apps/admin/.env.local (or revvault), then re-run pnpm db:seed:admin.',
+      ].join('\n'),
+    );
+  }
+}
 
 async function seedCollection(
   revealui: Awaited<ReturnType<typeof getRevealUI>>,
@@ -213,30 +263,45 @@ async function seedCollection(
   items: Array<Record<string, unknown>>,
   identifierField: string,
   label: string,
-) {
+): Promise<SeedCollectionResult> {
   logger.info(`\nSeeding ${label}...`);
+  let created = 0;
+  let skipped = 0;
+  let failed = 0;
+
   for (const item of items) {
     const identifier = String(item[identifierField]);
     try {
+      // CLI seed has no interactive session — same override as first-admin bootstrap.
       const existing = await revealui.find({
         collection,
         where: { [identifierField]: { equals: item[identifierField] } } as never,
         limit: 1,
+        overrideAccess: true,
       });
 
       if (existing.docs && existing.docs.length > 0) {
         logger.info(`   Skipping "${identifier}" (already exists)`);
+        skipped++;
         continue;
       }
 
-      await revealui.create({ collection, data: item as never });
+      await revealui.create({
+        collection,
+        data: item as never,
+        overrideAccess: true,
+      });
       logger.success(`   Created: "${identifier}"`);
+      created++;
     } catch (error) {
+      failed++;
       logger.error(
         `   Error creating "${identifier}": ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
+
+  return { created, skipped, failed };
 }
 
 async function getOrCreateDefaultSite(
@@ -245,25 +310,38 @@ async function getOrCreateDefaultSite(
   if (!revealui.db) throw new Error('No database connection');
   const db = getClient();
 
-  // Check for existing site
-  const [existingSite] = await db.select({ id: sites.id }).from(sites).limit(1);
+  // Prefer a dedicated default site slug if present; else first site (often fleet-marketing in dogfood).
+  const [named] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(eq(sites.slug, 'revealui'))
+    .limit(1);
+  if (named?.id) {
+    logger.info(`   Using existing site: ${named.id} (slug=revealui)`);
+    return named.id;
+  }
+
+  const [existingSite] = await db.select({ id: sites.id, slug: sites.slug }).from(sites).limit(1);
   if (existingSite?.id) {
-    logger.info(`   Using existing site: ${existingSite.id}`);
+    logger.info(`   Using existing site: ${existingSite.id} (slug=${existingSite.slug ?? '?'})`);
     return existingSite.id;
   }
 
-  // Get admin user to set as site owner
-  // Check role column first (set by onInit), then fall back to any user
+  // role column is owner/admin/editor/... — app "super-admin" lives in roles[], not role.
   const [adminUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.role, 'super-admin'))
+    .where(or(eq(users.role, 'owner'), eq(users.role, 'admin')))
     .limit(1);
   const [anyUser] = adminUser ? [null] : await db.select({ id: users.id }).from(users).limit(1);
   const adminId = adminUser?.id ?? anyUser?.id;
-  if (!adminId) throw new Error('Admin user not found, run user seed first');
+  if (!adminId) {
+    throw new SeedEnvError(
+      'No user found to own a new default site. Bootstrap an admin user first ' +
+        '(REVEALUI_ADMIN_EMAIL + REVEALUI_ADMIN_PASSWORD ≥12), then re-run.',
+    );
+  }
 
-  // Create a default site
   const siteId = `site_${Date.now()}_default`;
   await db.insert(sites).values({
     id: siteId,
@@ -277,15 +355,24 @@ async function getOrCreateDefaultSite(
   return siteId;
 }
 
-async function seedPages(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
+async function seedPages(
+  revealui: Awaited<ReturnType<typeof getRevealUI>>,
+): Promise<SeedCollectionResult> {
   const siteId = await getOrCreateDefaultSite(revealui);
   const pagesWithSite = pages.map((p) => ({ ...p, site_id: siteId }));
-  await seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages');
+  return seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages');
 }
 
-async function seedContent(revealui: Awaited<ReturnType<typeof getRevealUI>>) {
-  await seedCollection(revealui, 'contents', sampleContent.contents, 'name', 'Contents');
-  await seedCollection(revealui, 'events', sampleContent.events, 'title', 'Events');
+/**
+ * contents / events are WIRE-UP-PENDING (registry omits them; no tables).
+ * Seeding them always produced "Collection not found" — gate closed here.
+ */
+function seedContentNotice(): void {
+  logger.info('\nContents / Events: skipped (not registered)');
+  logger.info(
+    '  apps/admin collections registry omits contents/events until Postgres tables exist',
+  );
+  logger.info('  (see registry.ts WIRE-UP-PENDING). Re-enable seed when those land.');
 }
 
 // --- Main ---
@@ -302,21 +389,35 @@ async function main() {
     const { target } = await assertSeedDatabaseReady();
     logger.info(`Database ${target.host}:${target.port}/${target.database}\n`);
 
+    await assertBootstrapCredentialsIfEmptyUsers();
+
     const revealuiConfig = await config;
     const revealui = await getRevealUI({ config: revealuiConfig });
 
+    let pageResult: SeedCollectionResult = { created: 0, skipped: 0, failed: 0 };
+
     if (!contentOnly) {
-      await seedPages(revealui);
+      pageResult = await seedPages(revealui);
     }
 
     if (!pagesOnly) {
-      await seedContent(revealui);
+      seedContentNotice();
+    }
+
+    if (pageResult.failed > 0) {
+      throw new SeedEnvError(
+        `Admin page seed finished with ${pageResult.failed} failure(s) ` +
+          `(created=${pageResult.created}, skipped=${pageResult.skipped}). ` +
+          'Fix the errors above and re-run pnpm db:seed:admin.',
+      );
     }
 
     logger.success('\nSeeding completed!');
 
     if (!contentOnly) {
-      logger.info('\nPages:');
+      logger.info(
+        `Pages: created=${pageResult.created} skipped=${pageResult.skipped} failed=${pageResult.failed}`,
+      );
       for (const page of pages) {
         logger.info(`   /${page.slug} — ${page.title}`);
       }
@@ -341,4 +442,4 @@ async function main() {
 
 main();
 
-export { pages, sampleContent, seedContent, seedPages };
+export { pages, sampleContent, seedContentNotice as seedContent, seedPages };
