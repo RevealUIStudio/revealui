@@ -11,6 +11,10 @@ import { type EditRuntimeHandle, initEditRuntime, type PreviewDoc } from '../ind
 const API_BASE = 'https://api.test';
 const ADMIN_ORIGIN = 'https://admin.test';
 const FOREIGN_ORIGIN = 'https://evil.test';
+/** Server-shaped UUID (crypto.randomUUID). */
+const SESSION_ID = '00000000-0000-4000-8000-000000000001';
+/** Preview token shape: base64url.payload.base64url.sig */
+const PREVIEW_TOKEN = 'eyJzaWQiOiJ4IiwiZXhwIjoxfQ.dGVzdHNpZw';
 
 function mockPreview(docs: PreviewDoc[]): void {
   vi.stubGlobal(
@@ -26,7 +30,11 @@ function mockPreview(docs: PreviewDoc[]): void {
 }
 
 function editUrl(): void {
-  window.history.pushState({}, '', '/?rvui-edit=tok&rvui-session=sid');
+  window.history.pushState(
+    {},
+    '',
+    `/?rvui-edit=${encodeURIComponent(PREVIEW_TOKEN)}&rvui-session=${SESSION_ID}`,
+  );
 }
 
 let handle: EditRuntimeHandle | null = null;
@@ -55,6 +63,14 @@ describe('initEditRuntime', () => {
     mockPreview(draftDocs());
     handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft: () => {} });
     expect(handle).toBeNull();
+  });
+
+  it('returns null when session id or token shape is illegal (path-injection guard)', async () => {
+    window.history.pushState({}, '', '/?rvui-edit=tok&rvui-session=../evil');
+    mockPreview(draftDocs());
+    handle = await initEditRuntime({ apiBaseUrl: API_BASE, onDraft: () => {} });
+    expect(handle).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('returns null when the preview fetch fails', async () => {
