@@ -11,14 +11,14 @@ describe('ClaudeCodeGenerator', () => {
     expect(getGenerator('claude-code')).toBeInstanceOf(ClaudeCodeGenerator);
   });
 
-  it('declares its output directory', () => {
+  it('declares its output directory under the project manager', () => {
     const generator = new ClaudeCodeGenerator();
     expect(generator.id).toBe('claude-code');
-    expect(generator.outputDir).toBe('.claude');
+    expect(generator.outputDir).toBe('.revealui/content');
   });
 
   describe('generateRule', () => {
-    it('writes markdown under .claude/rules/', () => {
+    it('writes markdown under .revealui/content/rules/', () => {
       const rule: Rule = {
         id: 'tracker-first',
         name: 'Tracker First',
@@ -31,13 +31,13 @@ describe('ClaudeCodeGenerator', () => {
       };
       const files = new ClaudeCodeGenerator().generateRule(rule, ctx);
       expect(files).toHaveLength(1);
-      expect(files[0]?.relativePath).toBe('.claude/rules/tracker-first.md');
+      expect(files[0]?.relativePath).toBe('.revealui/content/rules/tracker-first.md');
       expect(files[0]?.content).toContain('Open docs/TRACKER.md first');
     });
   });
 
   describe('generateCommand', () => {
-    it('writes frontmatter markdown under .claude/commands/', () => {
+    it('writes frontmatter markdown under .revealui/content/commands/', () => {
       const cmd: Command = {
         id: 'gate',
         name: 'Gate',
@@ -47,14 +47,14 @@ describe('ClaudeCodeGenerator', () => {
         content: 'Run lint, typecheck, and tests.',
       };
       const [file] = new ClaudeCodeGenerator().generateCommand(cmd, ctx);
-      expect(file?.relativePath).toBe('.claude/commands/gate.md');
+      expect(file?.relativePath).toBe('.revealui/content/commands/gate.md');
       expect(file?.content).toContain('description: Run the quality gate');
       expect(file?.content).toContain('Run lint, typecheck, and tests.');
     });
   });
 
   describe('generateAgent', () => {
-    it('writes frontmatter markdown under .claude/agents/', () => {
+    it('writes frontmatter markdown under .revealui/content/agents/', () => {
       const agent: Agent = {
         id: 'reviewer',
         name: 'Reviewer',
@@ -65,14 +65,14 @@ describe('ClaudeCodeGenerator', () => {
         content: 'You review code for quality.',
       };
       const [file] = new ClaudeCodeGenerator().generateAgent(agent, ctx);
-      expect(file?.relativePath).toBe('.claude/agents/reviewer.md');
+      expect(file?.relativePath).toBe('.revealui/content/agents/reviewer.md');
       expect(file?.content).toContain('name: Reviewer');
       expect(file?.content).toContain('tools: Read, Grep');
     });
   });
 
   describe('generateSkill', () => {
-    it('writes SKILL.md under .claude/skills/<id>/', () => {
+    it('writes SKILL.md under .revealui/content/skills/<id>/', () => {
       const skill: Skill = {
         id: 'tdd',
         name: 'TDD',
@@ -86,19 +86,21 @@ describe('ClaudeCodeGenerator', () => {
         content: 'Write tests first.',
       };
       const [file] = new ClaudeCodeGenerator().generateSkill(skill, ctx);
-      expect(file?.relativePath).toBe('.claude/skills/tdd/SKILL.md');
+      expect(file?.relativePath).toBe('.revealui/content/skills/tdd/SKILL.md');
       expect(file?.content).toContain('name: TDD');
       expect(file?.content).toContain('Write tests first.');
     });
   });
 
   describe('generateAll', () => {
-    it('emits rules, commands, agents, and skills from the canonical manifest', () => {
+    it('emits all content under .revealui/content (manager tree)', () => {
       const manifest = buildManifest();
       const files = generateContent('claude-code', manifest, ctx);
       expect(files.length).toBeGreaterThan(0);
-      expect(files.some((f) => f.relativePath === '.claude/rules/tracker-first.md')).toBe(true);
-      expect(files.every((f) => f.relativePath.startsWith('.claude/'))).toBe(true);
+      expect(files.some((f) => f.relativePath === '.revealui/content/rules/tracker-first.md')).toBe(
+        true,
+      );
+      expect(files.every((f) => f.relativePath.startsWith('.revealui/content/'))).toBe(true);
     });
   });
 });

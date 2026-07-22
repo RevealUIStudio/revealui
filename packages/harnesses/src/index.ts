@@ -37,6 +37,7 @@ export type {
 // Content layer (canonical content definitions and generators)
 export {
   buildManifest,
+  ClaudeCodeGenerator,
   CursorGenerator,
   diffContent,
   generateContent,
@@ -46,6 +47,15 @@ export {
   validateManifest,
 } from './content/index.js';
 export type { CoordinatorOptions } from './coordinator.js';
+// Project manager (.revealui) — equal vendor adapters reference this tree
+export type { ManagerCheckResult, ManagerConfig, MaterializeResult } from './manager/index.js';
+export {
+  checkManager,
+  loadManager,
+  materializeManager,
+  ManagerSchema,
+  writeManager,
+} from './manager/index.js';
 // Coordinator
 export { HarnessCoordinator } from './coordinator.js';
 // Detection

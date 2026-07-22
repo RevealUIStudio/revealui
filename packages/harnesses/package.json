@@ -47,6 +47,11 @@
       "import": "./dist/content/index.js",
       "default": "./dist/content/index.js"
     },
+    "./manager": {
+      "types": "./dist/manager/index.d.ts",
+      "import": "./dist/manager/index.js",
+      "default": "./dist/manager/index.js"
+    },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js",

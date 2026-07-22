@@ -1,43 +1,43 @@
 /**
- * Claude Code Content Generator
+ * Claude Code / manager content generator (GAP-406)
  *
- * Emits adapter trees from canonical harness content definitions so Claude
- * Code is a *consumer*, not a second authoring home (GAP-406 / ADR 2026-07-21).
+ * Primary emit lands under the **project manager** tree:
+ *   `.revealui/content/{rules,commands,agents,skills}/`
  *
- * Surfaces (Claude Code project layout):
- *   - rules:    `.claude/rules/<id>.md`
- *   - commands: `.claude/commands/<id>.md`  (slash commands; YAML frontmatter)
- *   - agents:   `.claude/agents/<id>.md`
- *   - skills:   `.claude/skills/<id>/SKILL.md`
+ * Vendor homes (`.claude`, `.cursor`, …) are **equal-rank adapters**.
+ * Thin stubs that *reference* the manager are produced by
+ * `revealui-harnesses manager materialize` — not by forking policy here.
  *
- * Hooks and settings.json are out of scope here — they remain machine-global
- * adapter config (claude-config) or protocol normalizers, same split as
- * Cursor's hooks-only generator vs MCP config normalizer.
+ * Package definitions in `@revealui/harnesses` remain build-time SSOT.
  */
 
 import type { ResolverContext } from '../resolvers/types.js';
 import type { Agent, Command, Manifest, Rule, Skill } from '../schemas/index.js';
 import type { ContentGenerator, GeneratedFile } from './types.js';
 
+const CONTENT = '.revealui/content';
+
 function yamlEscape(value: string): string {
-  // Keep frontmatter simple: quote when special chars present
   if (/[:#\n"'{}[\],&*?|>!%@`]/.test(value) || value.trim() !== value) {
     return JSON.stringify(value);
   }
   return value;
 }
 
+function ensureNl(body: string): string {
+  return body.endsWith('\n') ? body : `${body}\n`;
+}
+
 export class ClaudeCodeGenerator implements ContentGenerator {
   readonly id = 'claude-code';
-  readonly outputDir = '.claude';
+  /** Manager content root — not a vendor-private tree. */
+  readonly outputDir = CONTENT;
 
   generateRule(rule: Rule, _ctx: ResolverContext): GeneratedFile[] {
-    // Rule content is already full markdown (definitions own the heading).
-    const body = rule.content.endsWith('\n') ? rule.content : `${rule.content}\n`;
     return [
       {
-        relativePath: `.claude/rules/${rule.id}.md`,
-        content: body,
+        relativePath: `${CONTENT}/rules/${rule.id}.md`,
+        content: ensureNl(rule.content),
       },
     ];
   }
@@ -47,11 +47,10 @@ export class ClaudeCodeGenerator implements ContentGenerator {
     if (cmd.argumentHint) frontmatter.push(`argument-hint: ${yamlEscape(cmd.argumentHint)}`);
     if (cmd.disableModelInvocation) frontmatter.push('disable-model-invocation: true');
     frontmatter.push('---');
-    const body = cmd.content.endsWith('\n') ? cmd.content : `${cmd.content}\n`;
     return [
       {
-        relativePath: `.claude/commands/${cmd.id}.md`,
-        content: `${frontmatter.join('\n')}\n\n${body}`,
+        relativePath: `${CONTENT}/commands/${cmd.id}.md`,
+        content: `${frontmatter.join('\n')}\n\n${ensureNl(cmd.content)}`,
       },
     ];
   }
@@ -66,22 +65,20 @@ export class ClaudeCodeGenerator implements ContentGenerator {
       frontmatter.push(`tools: ${agent.tools.join(', ')}`);
     }
     frontmatter.push('---');
-    const body = agent.content.endsWith('\n') ? agent.content : `${agent.content}\n`;
     return [
       {
-        relativePath: `.claude/agents/${agent.id}.md`,
-        content: `${frontmatter.join('\n')}\n\n${body}`,
+        relativePath: `${CONTENT}/agents/${agent.id}.md`,
+        content: `${frontmatter.join('\n')}\n\n${ensureNl(agent.content)}`,
       },
     ];
   }
 
   generateSkill(skill: Skill, _ctx: ResolverContext): GeneratedFile[] {
     if (skill.skipFrontmatter) {
-      const body = skill.content.endsWith('\n') ? skill.content : `${skill.content}\n`;
       return [
         {
-          relativePath: `.claude/skills/${skill.id}/SKILL.md`,
-          content: body,
+          relativePath: `${CONTENT}/skills/${skill.id}/SKILL.md`,
+          content: ensureNl(skill.content),
         },
       ];
     }
@@ -92,11 +89,10 @@ export class ClaudeCodeGenerator implements ContentGenerator {
     ];
     if (skill.disableModelInvocation) frontmatter.push('disable-model-invocation: true');
     frontmatter.push('---');
-    const body = skill.content.endsWith('\n') ? skill.content : `${skill.content}\n`;
     return [
       {
-        relativePath: `.claude/skills/${skill.id}/SKILL.md`,
-        content: `${frontmatter.join('\n')}\n\n${body}`,
+        relativePath: `${CONTENT}/skills/${skill.id}/SKILL.md`,
+        content: `${frontmatter.join('\n')}\n\n${ensureNl(skill.content)}`,
       },
     ];
   }
