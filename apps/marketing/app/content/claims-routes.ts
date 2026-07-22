@@ -60,6 +60,14 @@ export const CONTENT_FILE_ROUTES: Readonly<Record<string, RouteEntry>> = {
   'marketplace.ts': { route: '/roadmap', pageTitle: 'Roadmap' },
   'roadmap.ts': { route: '/roadmap', pageTitle: 'Roadmap' },
   'claims.ts': { route: '/claims', pageTitle: 'The claims ledger' },
+  'contact.ts': { route: '/contact', pageTitle: 'Contact' },
+  'legal/privacy.ts': { route: '/privacy', pageTitle: 'Privacy' },
+  'legal/refund-policy.ts': { route: '/refund-policy', pageTitle: 'Refund policy' },
+  'legal/security.ts': { route: '/security', pageTitle: 'Security' },
+  'legal/sla.ts': { route: '/sla', pageTitle: 'Service level commitments' },
+  'legal/subprocessors.ts': { route: '/subprocessors', pageTitle: 'Subprocessors' },
+  'legal/support.ts': { route: '/support', pageTitle: 'Support' },
+  'legal/terms.ts': { route: '/terms', pageTitle: 'Terms of service' },
 } as const;
 
 /** Number of non-empty path segments; "/" is depth 0. Zero authored regex. */
