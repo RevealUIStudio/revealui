@@ -87,95 +87,90 @@ function richTextDoc(...nodes: unknown[]) {
 
 // --- Seed Data ---
 
+/** Page seed rows — canonical columns (siteId, blocks, status), not legacy layout. */
+function pageSeed(input: {
+  title: string;
+  slug: string;
+  path: string;
+  richText: ReturnType<typeof richTextDoc>;
+}) {
+  return {
+    title: input.title,
+    slug: input.slug,
+    path: input.path,
+    status: 'published' as const,
+    _status: 'published' as const,
+    blocks: [
+      {
+        blockType: 'content',
+        columns: [
+          {
+            size: 'full',
+            richText: input.richText,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 const pages = [
-  {
+  pageSeed({
     title: 'Home',
     slug: 'home',
     path: '/',
-    layout: [
-      {
-        blockType: 'content',
-        columns: [
-          {
-            size: 'full',
-            richText: richTextDoc(
-              heading('Stop building the backend. Ship the AI business.'),
-              paragraph(
-                'Auth, billing, content, and agents - wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
-              ),
-              heading('Why RevealUI?', 'h3'),
-              paragraph(
-                'You define your business data once. The admin UI, REST API, and MCP tools all appear simultaneously. Humans manage through the dashboard. Agents operate through the same API. Same permissions, same audit trail, same policy plane.',
-              ),
-              heading('Get Started', 'h3'),
-              paragraph(
-                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 20 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
-              ),
-            ),
-          },
-        ],
-      },
-    ],
-  },
-  {
+    richText: richTextDoc(
+      heading('Stop building the backend. Ship the AI business.'),
+      paragraph(
+        'Auth, billing, content, and agents - wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
+      ),
+      heading('Why RevealUI?', 'h3'),
+      paragraph(
+        'You define your business data once. The admin UI, REST API, and MCP tools all appear simultaneously. Humans manage through the dashboard. Agents operate through the same API. Same permissions, same audit trail, same policy plane.',
+      ),
+      heading('Get Started', 'h3'),
+      paragraph(
+        'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 20 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
+      ),
+    ),
+  }),
+  pageSeed({
     title: 'About',
     slug: 'about',
     path: '/about',
-    layout: [
-      {
-        blockType: 'content',
-        columns: [
-          {
-            size: 'full',
-            richText: richTextDoc(
-              heading('About RevealUI'),
-              paragraph(
-                'RevealUI is an agentic business runtime. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack, pre-wired for human builders and AI agents alike.',
-              ),
-              paragraph(
-                'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Every feature works for you and is accessible to your agents. One runtime, one set of permissions, one audit trail.',
-              ),
-              heading('Open Source + Pro', 'h3'),
-              paragraph(
-                'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, services) are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
-              ),
-            ),
-          },
-        ],
-      },
-    ],
-  },
-  {
+    richText: richTextDoc(
+      heading('About RevealUI'),
+      paragraph(
+        'RevealUI is an agentic business runtime. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack, pre-wired for human builders and AI agents alike.',
+      ),
+      paragraph(
+        'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Every feature works for you and is accessible to your agents. One runtime, one set of permissions, one audit trail.',
+      ),
+      heading('Open Source + Pro', 'h3'),
+      paragraph(
+        'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, services) are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
+      ),
+    ),
+  }),
+  pageSeed({
     title: 'Getting Started',
     slug: 'getting-started',
     path: '/getting-started',
-    layout: [
-      {
-        blockType: 'content',
-        columns: [
-          {
-            size: 'full',
-            richText: richTextDoc(
-              heading('Getting Started'),
-              paragraph('Three commands from zero to running application.'),
-              heading('1. Scaffold', 'h3'),
-              paragraph(
-                'Run npx create-revealui my-app to create a new project with everything pre-configured.',
-              ),
-              heading('2. Start', 'h3'),
-              paragraph(
-                'Run pnpm dev to start the admin dashboard, API, and frontend in parallel.',
-              ),
-              heading('3. Build', 'h3'),
-              paragraph(
-                'Visit /admin to create pages, manage content, configure products and pricing. Your first customer can sign up immediately.',
-              ),
-            ),
-          },
-        ],
-      },
-    ],
-  },
+    richText: richTextDoc(
+      heading('Getting Started'),
+      paragraph('Three commands from zero to running application.'),
+      heading('1. Scaffold', 'h3'),
+      paragraph(
+        'Run npx create-revealui my-app to create a new project with everything pre-configured.',
+      ),
+      heading('2. Start', 'h3'),
+      paragraph('Run pnpm dev to start the admin dashboard, API, and frontend in parallel.'),
+      heading('3. Build', 'h3'),
+      paragraph(
+        'Visit /admin to create pages, manage content, configure products and pricing. Your first customer can sign up immediately.',
+      ),
+    ),
+  }),
 ];
 
 /**
@@ -273,11 +268,14 @@ async function seedCollection(
     const identifier = String(item[identifierField]);
     try {
       // CLI seed has no interactive session — same override as first-admin bootstrap.
+      // draft: true so drafts-enabled collections (pages) are not filtered to
+      // published-only via `_status` (typed storage maps that to `status`).
       const existing = await revealui.find({
         collection,
         where: { [identifierField]: { equals: item[identifierField] } } as never,
         limit: 1,
         overrideAccess: true,
+        draft: true,
       });
 
       if (existing.docs && existing.docs.length > 0) {
@@ -296,7 +294,7 @@ async function seedCollection(
     } catch (error) {
       failed++;
       logger.error(
-        `   Error creating "${identifier}": ${error instanceof Error ? error.message : String(error)}`,
+        `   Error seeding "${identifier}": ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -359,7 +357,8 @@ async function seedPages(
   revealui: Awaited<ReturnType<typeof getRevealUI>>,
 ): Promise<SeedCollectionResult> {
   const siteId = await getOrCreateDefaultSite(revealui);
-  const pagesWithSite = pages.map((p) => ({ ...p, site_id: siteId }));
+  // Typed pages bridge reads siteId (camelCase), not site_id.
+  const pagesWithSite = pages.map((p) => ({ ...p, siteId }));
   return seedCollection(revealui, 'pages', pagesWithSite, 'slug', 'Pages');
 }
 
