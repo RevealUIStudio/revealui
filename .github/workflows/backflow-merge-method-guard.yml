@@ -29,9 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # Evaluate with the BASE branch's copy of the guard script so a PR
-          # cannot rewrite the policy. For push:test, checkout the pushed SHA.
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+          # PR: evaluate the head copy (required so the introducing PR can pass
+          # before the script exists on test; ancestry mode still fail-closes on
+          # push to test). Push: the pushed SHA.
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           sparse-checkout: |
             scripts/validate/backflow-merge-method-guard.cjs
           sparse-checkout-cone-mode: false
