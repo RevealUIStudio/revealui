@@ -1,14 +1,15 @@
-// Vercel serverless function entry point
-// Uses @hono/node-server/vercel adapter to convert Hono app to Node.js handler
-import { handle } from '@hono/node-server/vercel';
+// Vercel serverless function entry point.
+// @hono/node-server 2.x removed the `/vercel` subpath; `getRequestListener(app.fetch)`
+// is the same adapter the old `handle(app)` wrapper used (one-line thin export).
+import { getRequestListener } from '@hono/node-server';
 import app from '../dist/index.js';
 
-const honoHandler = handle(app);
+const honoHandler = getRequestListener(app.fetch);
 
 /**
  * Pre-buffer the request body before passing to the Hono adapter.
  *
- * @hono/node-server/vercel checks `incoming.rawBody` first. If it's a Buffer,
+ * `getRequestListener` checks `incoming.rawBody` first. If it's a Buffer,
  * the adapter wraps it in a ReadableStream and never touches the underlying
  * Node.js stream. Without this step, `Readable.toWeb(incoming)` produces a
  * stream that hangs in Vercel's serverless environment because the runtime
