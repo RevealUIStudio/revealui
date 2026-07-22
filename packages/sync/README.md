@@ -153,9 +153,9 @@ Offline mutation replay with configurable conflict strategies:
 import { resolveConflict, coalesceMutations, replayMutations } from '@revealui/sync'
 ```
 
-- `resolveConflict(conflict, strategy)` — resolve a detected conflict using `last-write-wins`, `merge`, or `reject`
+- `resolveConflict(conflict, strategy)` — resolve a detected conflict using `last-write-wins`, `server-wins`, or `manual` (`packages/sync/src/conflict-resolution.ts`)
 - `coalesceMutations(mutations)` — deduplicate and squash offline mutations before replay
-- `replayMutations(mutations, executor)` — replay a queue of offline mutations against the server
+- `replayMutations(mutations, strategy?)` — replay a queue of offline mutations (default strategy `last-write-wins`)
 
 ## Collaboration (Yjs)
 

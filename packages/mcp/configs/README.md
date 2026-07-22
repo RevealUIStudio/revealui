@@ -32,12 +32,12 @@ Template for Claude Code / Claude Desktop
 | Server | Command | Description |
 |--------|---------|-------------|
 | code-validator | `tsx packages/mcp/src/servers/code-validator.ts` | Validates code against standards |
-| vercel | `pnpm mcp:vercel` | Vercel deployment |
-| stripe | `pnpm mcp:stripe` | Payment processing |
-| neon | `pnpm mcp:neon` | Database operations |
-| supabase | `pnpm mcp:supabase` | Supabase management |
-| playwright | `pnpm mcp:playwright` | Browser automation |
-| next-devtools | `pnpm mcp:next-devtools` | Next.js debugging |
+| vercel | `tsx packages/mcp/src/servers/vercel.ts` | Vercel deployment |
+| stripe | `tsx packages/mcp/src/servers/stripe.ts` | Payment processing |
+| neon | `tsx packages/mcp/src/servers/neon.ts` | Database operations |
+| supabase | `tsx packages/mcp/src/servers/supabase.ts` | Supabase management |
+| playwright | `tsx packages/mcp/src/servers/playwright.ts` | Browser automation |
+| next-devtools | `tsx packages/mcp/src/servers/next-devtools.ts` | Next.js debugging |
 
 ## Quick Setup Script
 

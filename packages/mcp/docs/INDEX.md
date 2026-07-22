@@ -46,7 +46,7 @@ packages/mcp/
 │   ├── README.md         # Main guide
 │   ├── SETUP.md          # Setup instructions
 │   └── servers/          # Per-server docs
-├── migrations/           # Database migrations
+├── (schema lives in `@revealui/db` migrations, not this package)           # Database migrations
 └── package.json
 ```
 

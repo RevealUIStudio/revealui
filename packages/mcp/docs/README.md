@@ -49,7 +49,7 @@ All servers are **free** and run locally as npm packages.
 
 ---
 
-**Prerequisites**: Complete [QUICK_START.md](./QUICK_START.md) first for basic setup.
+**Prerequisites**: Complete [QUICK_START.md](../../docs/QUICK_START.md) first for basic setup.
 
 ## MCP-Specific Setup
 
@@ -82,15 +82,15 @@ See [Getting API Keys](#getting-api-keys) section below for instructions.
 
 ```bash
 # Start all servers
-pnpm mcp:all
+# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)
 
 # Or start individually
-pnpm mcp:vercel
-pnpm mcp:stripe
-pnpm mcp:neon
-pnpm mcp:supabase
-pnpm mcp:playwright
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/vercel.ts
+tsx packages/mcp/src/servers/stripe.ts
+tsx packages/mcp/src/servers/neon.ts
+tsx packages/mcp/src/servers/supabase.ts
+tsx packages/mcp/src/servers/playwright.ts
+tsx packages/mcp/src/servers/next-devtools.ts
 ```
 
 ---
@@ -221,7 +221,7 @@ pnpm mcp:next-devtools
 3. Copy the key (starts with `neon_`)
 4. Add to `.env`: `NEON_API_KEY=neon_xxx...`
 
-**Detailed guide**: See [NEON_API_KEY_SETUP.md](./ENVIRONMENT_VARIABLES_GUIDE.md)
+**Detailed guide**: See [NEON_API_KEY_SETUP.md](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Supabase Credentials
 
@@ -546,10 +546,10 @@ pnpm dev
 **Step 2: Start Next.js DevTools MCP Server (Optional)**
 ```bash
 # In another terminal
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/next-devtools.ts
 
 # Or start all MCP servers
-pnpm mcp:all
+# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)
 ```
 
 **Note:** Cursor manages MCP servers automatically, so manual startup is only for testing.
@@ -606,7 +606,7 @@ Complete automated setup with error detection and fixing.
 ### "Connection refused" Error
 
 **Solution:**
-- Ensure MCP servers are running: `pnpm mcp:all`
+- Ensure MCP servers are running: `# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)`
 - Check if port conflicts exist
 - Verify Cursor has restarted after configuration
 
@@ -673,7 +673,7 @@ Complete automated setup with error detection and fixing.
 If you want to test manually:
 ```bash
 # Check if script works
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/next-devtools.ts
 
 # Should start MCP server (will run until stopped)
 ```
@@ -686,19 +686,19 @@ pnpm mcp:next-devtools
 
 ```bash
 # Test each server (will timeout after 3 seconds - this is normal)
-timeout 3 pnpm mcp:vercel     # Should show "Starting Vercel MCP Server..."
-timeout 3 pnpm mcp:stripe     # Should show "Starting Stripe MCP Server..."
-timeout 3 pnpm mcp:neon       # Will fail if NEON_API_KEY not set
-timeout 3 pnpm mcp:supabase   # Will fail if SUPABASE_URL not set
-timeout 3 pnpm mcp:playwright # Should show "Starting Playwright MCP Server..."
-timeout 3 pnpm mcp:next-devtools # Should show "Starting Next.js DevTools MCP..."
+timeout 3 tsx packages/mcp/src/servers/vercel.ts     # Should show "Starting Vercel MCP Server..."
+timeout 3 tsx packages/mcp/src/servers/stripe.ts     # Should show "Starting Stripe MCP Server..."
+timeout 3 tsx packages/mcp/src/servers/neon.ts       # Will fail if NEON_API_KEY not set
+timeout 3 tsx packages/mcp/src/servers/supabase.ts   # Will fail if SUPABASE_URL not set
+timeout 3 tsx packages/mcp/src/servers/playwright.ts # Should show "Starting Playwright MCP Server..."
+timeout 3 tsx packages/mcp/src/servers/next-devtools.ts # Should show "Starting Next.js DevTools MCP..."
 ```
 
 ### Verify All Servers Start
 
 ```bash
 # Start all servers (Ctrl+C to stop)
-pnpm mcp:all
+# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)
 
 # Expected output:
 # [0] ✅ Vercel MCP Server running
@@ -714,7 +714,7 @@ pnpm mcp:all
 Use this checklist to verify everything is working:
 
 - [ ] CMS dev server running (`cd apps/admin && pnpm dev`)
-- [ ] Next.js DevTools MCP running (`pnpm mcp:next-devtools`)
+- [ ] Next.js DevTools MCP running (`tsx packages/mcp/src/servers/next-devtools.ts`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")
 - [ ] Can query errors (ask: "what errors are in my app?")
@@ -769,9 +769,9 @@ All MCP servers are **completely free**:
 - [MCP Fixes 2025](./MCP_FIXES_2025.md) - Recent MCP updates and fixes
 - [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
-- [Neon API Key Setup](./ENVIRONMENT_VARIABLES_GUIDE.md) - Detailed Neon setup
+- [Neon API Key Setup](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Detailed Neon setup
 - [Supabase IPv4/IPv6](./DATABASE.md) - Network compatibility
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Environment Variables Guide](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
 
 ---

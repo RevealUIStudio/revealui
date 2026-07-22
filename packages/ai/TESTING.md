@@ -44,7 +44,7 @@ pnpm --filter @revealui/ai test __tests__/integration/
 
 ### Production Validation
 ```bash
-POSTGRES_URL="postgresql://..." ./scripts/validate-production.sh
+pnpm --filter @revealui/ai test  # production validation script retired; use package tests / gate
 ```
 
 ---
@@ -54,13 +54,13 @@ POSTGRES_URL="postgresql://..." ./scripts/validate-production.sh
 ### Commands
 ```bash
 # Unit tests (always work)
-pnpm --filter @revealui/memory test
+pnpm --filter @revealui/ai test
 
 # Integration tests (require Neon)
-POSTGRES_URL="postgresql://..." pnpm --filter @revealui/memory test __tests__/integration
+POSTGRES_URL="postgresql://..." pnpm --filter @revealui/ai test __tests__/integration
 
 # Production validation
-POSTGRES_URL="postgresql://..." ./scripts/validate-production.sh
+pnpm --filter @revealui/ai test  # production validation script retired; use package tests / gate
 ```
 
 ### Known Issues
@@ -212,7 +212,7 @@ export POSTGRES_URL="postgresql://user:pass@neon-host/dbname"
 pnpm --filter @revealui/db db:push
 
 # 3. Run validation script
-./scripts/validate-production.sh
+pnpm --filter @revealui/ai test
 ```
 
 **Validation Checklist**:
@@ -327,7 +327,7 @@ If staging environment is not available, use this manual checklist:
 - **Drizzle Docs**: https://orm.drizzle.team
 - **Test Files**: `packages/ai/__tests__/integration/`
 - **Helper Functions**: `packages/ai/src/memory/utils/sql-helpers.ts`
-- **Validation Script**: `scripts/validate-production.sh`
+- **Validation**: `pnpm --filter @revealui/ai test` (package suite; no standalone validate-production.sh)
 
 ---
 

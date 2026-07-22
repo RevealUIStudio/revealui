@@ -118,7 +118,7 @@ Validates code content against RevealUI standards.
       "message": "Use logger instead of console.*",
       "line": 1,
       "column": 1,
-      "suggestedFix": "import { logger } from '@revealui/core/logger'..."
+      "suggestedFix": "import { logger } from '@revealui/core/observability/logger'..."
     }
   ],
   "errors": 1,

@@ -28,7 +28,7 @@ pnpm create revealui@latest my-project --template basic-blog
 - Multiple templates: basic-blog, e-commerce, portfolio, starter, starter-native (Vite + @revealui/router, no Next.js)
 - Automatic environment configuration
 - Database setup (NeonDB, Supabase, or local PostgreSQL)
-- Storage setup (Cloudflare R2, or legacy Vercel Blob)
+- Storage setup (Cloudflare R2, or skip)
 - Payment setup (Stripe)
 - Dev Container and Devbox configuration
 - Git initialization with initial commit
