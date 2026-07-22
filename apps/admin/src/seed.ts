@@ -27,7 +27,7 @@ import {
   assertSeedDatabaseReady,
   loadSeedEnv,
   SeedEnvError,
-} from '../../../scripts/lib/seed-env.ts';
+} from '../../../scripts/lib/seed-env.js';
 
 // pnpm db:seed:admin runs from monorepo root; seed-env loads apps/admin/.env.local
 // and demotes passwordless direnv/Nix POSTGRES_URL placeholders.
