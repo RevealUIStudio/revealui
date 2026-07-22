@@ -3,13 +3,11 @@
  *
  * Tool-agnostic definitions for AI guidance content (rules, commands, agents, skills).
  * Generators produce tool-specific output from canonical definitions.
- * `opencode` (`./generators/opencode.ts`), `cursor` (`./generators/cursor.ts`,
- * hooks.json only -- see that file's doc comment), and `vscode`
- * (`./generators/vscode.ts`, plugin.json hooks contribution only) are
- * registered today. The adapter layer (`../adapters/`) ships
- * `revealui-agent`, `opencode`, and `cursor` -- `vscode` has no adapter (no
- * headless CLI to exec; see `./generators/vscode.ts`'s doc comment). A
- * Claude Code generator is not implemented.
+ * Generators registered today: `opencode`, `cursor` (hooks.json only),
+ * `vscode` (plugin.json hooks contribution only), and `claude-code` (rules /
+ * commands / agents / skills under `.claude/` — GAP-406 adapter path).
+ * The adapter layer (`../adapters/`) ships `revealui-agent`, `opencode`, and
+ * `cursor` -- `vscode` has no adapter (no headless CLI to exec).
  *
  * @example
  * ```ts
@@ -31,6 +29,7 @@ import { type Manifest, ManifestSchema } from './schemas/manifest.js';
 
 export { buildManifest } from './definitions/index.js';
 export {
+  ClaudeCodeGenerator,
   CursorGenerator,
   getGenerator,
   listGenerators,

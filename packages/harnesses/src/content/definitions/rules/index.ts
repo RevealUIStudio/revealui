@@ -7,6 +7,7 @@ import { monorepoRule } from './monorepo.js';
 import { parameterizationRule } from './parameterization.js';
 import { skillsUsageRule } from './skills-usage.js';
 import { tailwindRule } from './tailwind.js';
+import { trackerFirstRule } from './tracker-first.js';
 import { unusedDeclarationsRule } from './unused-declarations.js';
 
 export const rules: Rule[] = [
@@ -18,5 +19,6 @@ export const rules: Rule[] = [
   parameterizationRule,
   skillsUsageRule,
   tailwindRule,
+  trackerFirstRule,
   unusedDeclarationsRule,
 ];
