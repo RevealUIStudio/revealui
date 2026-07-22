@@ -70,8 +70,7 @@ async function main(): Promise<void> {
   }
   console.log('[marketing-voice-prose-slots] source OK');
 
-  let distPath = DIST_BLOCKS;
-  if (!existsSync(distPath)) {
+  if (!existsSync(DIST_BLOCKS)) {
     if (process.env.CI === 'true') {
       buildContracts();
     } else {
@@ -83,15 +82,13 @@ async function main(): Promise<void> {
     }
   }
 
-  if (!existsSync(distPath)) {
+  if (!existsSync(DIST_BLOCKS)) {
     console.error(
       `[marketing-voice-prose-slots] still missing ${path.relative(ROOT, DIST_BLOCKS)} after build`,
     );
     process.exit(1);
   }
 
-  // Cache-bust: Node may have cached a prior failed import path.
-  distPath = `${DIST_BLOCKS}?t=${Date.now()}`;
   const distSlots = await loadSlots(DIST_BLOCKS);
   const distMissing = missingKeys(distSlots);
   if (distMissing.length > 0) {
