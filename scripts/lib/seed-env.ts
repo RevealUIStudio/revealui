@@ -2,13 +2,19 @@
  * Shared environment bootstrap for fleet seed scripts.
  *
  * Durable rules (do not re-discover the hard way):
- * 1. Load local dotenv files without overriding a URL already in process.env
- *    (so `POSTGRES_URL=… pnpm db:seed:fleet-marketing` always wins).
- * 2. Prefer POSTGRES_URL over DATABASE_URL (same as @revealui/db getClient).
- * 3. Refuse the electric-latency-probe database (port 5434 / db revealui_probe)
+ * 1. Load local dotenv files without overriding an *authoritative* URL already
+ *    in process.env (so `POSTGRES_URL=postgresql://user:pass@… pnpm db:seed:…`
+ *    always wins).
+ * 2. Demote passwordless shell defaults (Nix/direnv placeholder
+ *    `postgresql://postgres@localhost:5432/postgres`) so apps/admin/.env.local
+ *    and other seed env files can supply real credentials. Those placeholders
+ *    produce SCRAM "client password must be a string" against docker-compose.
+ * 3. Prefer POSTGRES_URL over DATABASE_URL (same as @revealui/db getClient).
+ * 4. Refuse the electric-latency-probe database (port 5434 / db revealui_probe)
  *    for fleet seeds unless REVEALUI_ALLOW_PROBE_DB=1 — that DB is ephemeral and
  *    must never be the silent target of marketing seed / bootstrap.
- * 4. Fail loud with a redacted host:port/db when the URL is missing or unreachable.
+ * 5. Fail loud with a redacted host:port/db when the URL is missing, passwordless
+ *    without an escape hatch, or unreachable.
  *
  * Owner resolution for site.ownerId is separate (see resolveSeedOwnerEmail).
  */
@@ -30,6 +36,12 @@ const DEFAULT_ENV_FILES = [
 /** Well-known electric-latency-probe compose identity (scripts/electric-latency-probe/). */
 export const PROBE_DB_PORT = '5434';
 export const PROBE_DB_NAME = 'revealui_probe';
+
+/**
+ * Nix flake / .envrc local default when no password is configured.
+ * Trust-auth nix `db-start` can use this; docker-compose SCRAM cannot.
+ */
+export const NIX_DIRENV_DEFAULT_DB_URL = 'postgresql://postgres@localhost:5432/postgres';
 
 export interface ParsedDbTarget {
   readonly host: string;
@@ -73,6 +85,23 @@ export function redactDatabaseUrl(raw: string): string {
 }
 
 /**
+ * True when the URL has a username but no password.
+ * pg SCRAM then fails with: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string.
+ */
+export function isPasswordlessDatabaseUrl(raw: string): boolean {
+  try {
+    const normalized = raw.startsWith('postgres:') ? raw.replace(/^postgres(ql)?:/i, 'http:') : raw;
+    const url = new URL(normalized);
+    const user = url.username;
+    if (!user) return false;
+    // URL.password is "" when omitted (`postgres://user@host/db`) or empty (`user:@host`).
+    return url.password.length === 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * True when the URL targets the electric-latency-probe stack.
  * Probe identity is port 5434 and/or database name `revealui_probe`.
  */
@@ -85,7 +114,51 @@ export function isProbeDatabaseUrl(raw: string): boolean {
 }
 
 /**
- * Load dotenv files into process.env (no override of already-set vars).
+ * A shell URL is authoritative only when it is non-empty and has credentials
+ * suitable for password-auth servers (or is explicitly passwordless-allowed later).
+ * Passwordless placeholders (direnv/flake) are demoted so dotenv files win.
+ */
+export function isAuthoritativeDatabaseUrl(raw: string | undefined): boolean {
+  if (typeof raw !== 'string' || raw.length === 0) return false;
+  if (isPasswordlessDatabaseUrl(raw)) return false;
+  return true;
+}
+
+/**
+ * Clear passwordless POSTGRES_URL / DATABASE_URL so dotenv files can replace them.
+ * Returns which keys were demoted (for tests / diagnostics).
+ */
+export function demotePasswordlessShellDatabaseUrls(): {
+  demotedPostgres: boolean;
+  demotedDatabase: boolean;
+} {
+  let demotedPostgres = false;
+  let demotedDatabase = false;
+
+  if (
+    typeof process.env.POSTGRES_URL === 'string' &&
+    process.env.POSTGRES_URL.length > 0 &&
+    isPasswordlessDatabaseUrl(process.env.POSTGRES_URL)
+  ) {
+    delete process.env.POSTGRES_URL;
+    demotedPostgres = true;
+  }
+
+  if (
+    typeof process.env.DATABASE_URL === 'string' &&
+    process.env.DATABASE_URL.length > 0 &&
+    isPasswordlessDatabaseUrl(process.env.DATABASE_URL)
+  ) {
+    delete process.env.DATABASE_URL;
+    demotedDatabase = true;
+  }
+
+  return { demotedPostgres, demotedDatabase };
+}
+
+/**
+ * Load dotenv files into process.env (no override of authoritative already-set vars).
+ * Passwordless shell defaults are demoted first so apps/admin/.env.local can win.
  * Then promote DATABASE_URL → POSTGRES_URL when only the former is set so
  * seed scripts and getClient share one resolution order.
  */
@@ -93,6 +166,8 @@ export function loadSeedEnv(
   rootDir: string,
   envFiles: readonly string[] = DEFAULT_ENV_FILES,
 ): void {
+  demotePasswordlessShellDatabaseUrls();
+
   for (const envFile of envFiles) {
     config({ path: resolve(rootDir, envFile), override: false });
   }
@@ -121,9 +196,13 @@ export class SeedEnvError extends Error {
  *
  * Escape hatch (tests / intentional probe work only):
  *   REVEALUI_ALLOW_PROBE_DB=1
+ *
+ * Escape hatch for intentional passwordless / trust-auth local nix postgres:
+ *   REVEALUI_ALLOW_PASSWORDLESS_DB=1
  */
 export async function assertSeedDatabaseReady(options?: {
   allowProbe?: boolean;
+  allowPasswordless?: boolean;
   connect?: (url: string) => Promise<void>;
 }): Promise<{ url: string; target: ParsedDbTarget }> {
   const url = resolveSeedDatabaseUrl();
@@ -136,6 +215,33 @@ export async function assertSeedDatabaseReady(options?: {
   }
 
   const allowProbe = options?.allowProbe === true || process.env.REVEALUI_ALLOW_PROBE_DB === '1';
+  const allowPasswordless =
+    options?.allowPasswordless === true || process.env.REVEALUI_ALLOW_PASSWORDLESS_DB === '1';
+
+  if (isPasswordlessDatabaseUrl(url) && !allowPasswordless) {
+    const target = parseDbTarget(url);
+    throw new SeedEnvError(
+      [
+        'Seed refused a passwordless database URL (SCRAM needs a string password).',
+        target
+          ? `  target: ${target.host}:${target.port}/${target.database} user=${target.user || '(none)'}`
+          : `  url: ${redactDatabaseUrl(url)}`,
+        '',
+        'This is usually the Nix/direnv default:',
+        `  ${NIX_DIRENV_DEFAULT_DB_URL}`,
+        'which .envrc / flake.nix export when REVEALUI_USE_REMOTE_DB is not set.',
+        'Docker-compose Postgres (revealui user, password auth) rejects that URL with:',
+        '  SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string',
+        '',
+        'Fix (durable):',
+        '  1. Put a real URL in apps/admin/.env.local (POSTGRES_URL or DATABASE_URL)',
+        '     matching docker-compose, e.g. postgres://revealui:…@localhost:5432/revealui',
+        '  2. Or pass an explicit override:',
+        '     POSTGRES_URL=postgresql://user:pass@127.0.0.1:5432/revealui pnpm db:seed:fleet-marketing',
+        '  3. Trust-auth nix `db-start` only: REVEALUI_ALLOW_PASSWORDLESS_DB=1',
+      ].join('\n'),
+    );
+  }
 
   if (isProbeDatabaseUrl(url) && !allowProbe) {
     const target = parseDbTarget(url);
@@ -187,6 +293,15 @@ export async function assertSeedDatabaseReady(options?: {
     await connect(url);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
+    const passwordHint = /password must be a string|password authentication failed/i.test(detail)
+      ? [
+          '',
+          'Password/auth hint:',
+          '  - direnv may still be exporting the passwordless nix default; ensure',
+          '    apps/admin/.env.local has a password-bearing URL (seed demotes passwordless shell vars)',
+          '  - credentials must match the running container (docker: often revealui user, not postgres)',
+        ]
+      : [];
     throw new SeedEnvError(
       [
         `Database unreachable at ${target.host}:${target.port}/${target.database}.`,
@@ -196,6 +311,7 @@ export async function assertSeedDatabaseReady(options?: {
         '  - docker compose postgres is up on the host port in your URL (default 5432)',
         '  - POSTGRES_URL is not a stale probe (5434 / revealui_probe)',
         '  - credentials match the running container',
+        ...passwordHint,
       ].join('\n'),
     );
   }
