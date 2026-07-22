@@ -42,7 +42,6 @@ jobs:
           sparse-checkout: |
             scripts/validate/security-review-gate.cjs
             scripts/validate/guardrail2-verdict.cjs
-            scripts/validate/security-paths.shared.json
           sparse-checkout-cone-mode: false
 
       - name: Evaluate review gate
