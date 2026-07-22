@@ -65,9 +65,7 @@ async function main(): Promise<void> {
   const sourceSlots = await loadSlots(SOURCE_BLOCKS);
   const sourceMissing = missingKeys(sourceSlots);
   if (sourceMissing.length > 0) {
-    console.error(
-      `[marketing-voice-prose-slots] SOURCE missing keys: ${sourceMissing.join(', ')}`,
-    );
+    console.error(`[marketing-voice-prose-slots] SOURCE missing keys: ${sourceMissing.join(', ')}`);
     process.exit(1);
   }
   console.log('[marketing-voice-prose-slots] source OK');
