@@ -7,15 +7,15 @@
  * list those slots while a stale local `packages/contracts/dist` still only
  * has hero/content/cta (dogfood 2026-07-22: 422 unmapped blockType section).
  *
- * - Always validates **source** MARKETING_PROSE_SLOTS keys.
- * - If **dist** exists, validates the same keys on dist (stale dist fails).
- * - If dist is missing and `CI=true`, builds `@revealui/contracts` then checks dist.
- * - If dist is missing offline, source-pass is enough (print rebuild hint).
+ * - Always validates **source** MARKETING_PROSE_SLOTS keys (CI SoT).
+ * - If **dist** exists, validates the same keys on dist (stale local dist fails).
+ * - If dist is missing, source-pass is enough. Dist is gitignored; Quality CI
+ *   never has a prior monorepo build, and a full `@revealui/contracts` tsc needs
+ *   `@revealui/db` — so this gate must not try to build contracts here.
  *
  * Usage: `pnpm validate:marketing-voice-prose-slots`
  */
 
-import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -53,14 +53,6 @@ async function loadSlots(filePath: string): Promise<Record<string, string[]>> {
   return mod.MARKETING_PROSE_SLOTS;
 }
 
-function buildContracts(): void {
-  console.log('[marketing-voice-prose-slots] building @revealui/contracts…');
-  execFileSync('pnpm', ['--filter', '@revealui/contracts', 'build'], {
-    cwd: ROOT,
-    stdio: 'inherit',
-  });
-}
-
 async function main(): Promise<void> {
   const sourceSlots = await loadSlots(SOURCE_BLOCKS);
   const sourceMissing = missingKeys(sourceSlots);
@@ -71,22 +63,11 @@ async function main(): Promise<void> {
   console.log('[marketing-voice-prose-slots] source OK');
 
   if (!existsSync(DIST_BLOCKS)) {
-    if (process.env.CI === 'true') {
-      buildContracts();
-    } else {
-      console.log(
-        '[marketing-voice-prose-slots] dist absent (ok offline) — source passed; ' +
-          'run `pnpm --filter @revealui/contracts build` before local API dogfood',
-      );
-      process.exit(0);
-    }
-  }
-
-  if (!existsSync(DIST_BLOCKS)) {
-    console.error(
-      `[marketing-voice-prose-slots] still missing ${path.relative(ROOT, DIST_BLOCKS)} after build`,
+    console.log(
+      '[marketing-voice-prose-slots] dist absent (ok) — source passed; ' +
+        'run `pnpm --filter @revealui/contracts build` before local API dogfood',
     );
-    process.exit(1);
+    process.exit(0);
   }
 
   const distSlots = await loadSlots(DIST_BLOCKS);

@@ -99,9 +99,11 @@ jobs:
       - name: Marketing voice validation (hard fail)
         run: pnpm validate:marketing-voice
 
-      - name: Marketing voice prose-slot dist freshness (hard fail)
-        # Ensures packages/contracts dist MARKETING_PROSE_SLOTS includes VES
-        # block types (section/ctaSection). Stale dist → 422 on session.patch.
+      - name: Marketing voice prose-slot freshness (hard fail)
+        # Source MARKETING_PROSE_SLOTS must include VES block types
+        # (section/ctaSection). Dist is gitignored — when present locally the
+        # same keys are required (stale dist → 422 on session.patch). Does not
+        # build @revealui/contracts (needs @revealui/db; Quality has install only).
         run: pnpm validate:marketing-voice-prose-slots
 
       - name: Doc-currency validation (hard fail)
