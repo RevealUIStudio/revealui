@@ -29,35 +29,43 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./types": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js"
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
     },
     "./workboard": {
       "types": "./dist/workboard/index.d.ts",
-      "import": "./dist/workboard/index.js"
+      "import": "./dist/workboard/index.js",
+      "default": "./dist/workboard/index.js"
     },
     "./content": {
       "types": "./dist/content/index.d.ts",
-      "import": "./dist/content/index.js"
+      "import": "./dist/content/index.js",
+      "default": "./dist/content/index.js"
     },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
-      "import": "./dist/storage/index.js"
+      "import": "./dist/storage/index.js",
+      "default": "./dist/storage/index.js"
     },
     "./goals": {
       "types": "./dist/goals/index.d.ts",
-      "import": "./dist/goals/index.js"
+      "import": "./dist/goals/index.js",
+      "default": "./dist/goals/index.js"
     },
     "./protocol": {
       "types": "./dist/protocol/index.d.ts",
-      "import": "./dist/protocol/index.js"
+      "import": "./dist/protocol/index.js",
+      "default": "./dist/protocol/index.js"
     },
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
-      "import": "./dist/hooks/index.js"
+      "import": "./dist/hooks/index.js",
+      "default": "./dist/hooks/index.js"
     }
   },
   "files": [

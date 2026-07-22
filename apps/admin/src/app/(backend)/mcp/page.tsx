@@ -165,11 +165,14 @@ export default function McpCatalogPage() {
       <div className="border-b border-border bg-card">
         <nav className="mx-auto flex max-w-5xl gap-1 px-6" aria-label="MCP page tabs">
           {(['catalog', 'usage'] as CatalogTab[]).map((t) => (
-            <button
+            <Button
               key={t}
               type="button"
+              appearance="ghost"
+              variant={activeTab === t ? 'success' : 'neutral'}
+              size="sm"
               onClick={() => setActiveTab(t)}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm capitalize transition-colors ${
+              className={`-mb-px h-auto rounded-none border-b-2 px-3 py-2 text-sm capitalize ${
                 activeTab === t
                   ? 'border-success text-success'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -177,7 +180,7 @@ export default function McpCatalogPage() {
               aria-current={activeTab === t ? 'page' : undefined}
             >
               {t}
-            </button>
+            </Button>
           ))}
         </nav>
       </div>
@@ -277,13 +280,16 @@ export default function McpCatalogPage() {
                               >
                                 Inspect
                               </a>
-                              <button
+                              <Button
                                 type="button"
+                                appearance="link"
+                                variant="danger"
+                                size="sm"
                                 onClick={() => void handleDisconnect(r.server)}
-                                className="text-xs font-medium text-error hover:text-error"
+                                className="h-auto px-0 py-0 text-xs font-medium"
                               >
                                 Disconnect
-                              </button>
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>

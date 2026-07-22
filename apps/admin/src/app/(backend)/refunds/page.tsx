@@ -4,6 +4,7 @@ import {
   Badge,
   Button,
   Card,
+  IconClose,
   Input,
   Select,
   Table,
@@ -308,27 +309,17 @@ function RefundsDashboard() {
                 }`}
               >
                 <span>{message}</span>
-                <button
+                <Button
                   type="button"
+                  appearance="ghost"
+                  variant="neutral"
+                  size="icon"
                   onClick={() => dispatch({ type: 'DISMISS_MESSAGE' })}
-                  className="ml-3 shrink-0 text-muted-foreground hover:text-foreground"
+                  className="ml-3 size-8 shrink-0 text-muted-foreground hover:text-foreground"
                   aria-label="Dismiss message"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+                  <IconClose size="sm" />
+                </Button>
               </div>
             )}
 

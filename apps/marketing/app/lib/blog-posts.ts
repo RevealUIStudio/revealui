@@ -31,6 +31,15 @@ interface PostMeta {
 
 const POST_METADATA: PostMeta[] = [
   {
+    slug: 'shareable-upside',
+    title: 'I Built This So More People Could Own the Upside of AI',
+    excerpt:
+      'AI is splitting outcomes. I spent the longer path building a self-hosted runtime so more people could own the tools, not only rent them.',
+    publishedAt: '2026-07-21T12:00:00.000Z',
+    author: 'Joshua Vaughn',
+    file: '17-shareable-upside.md',
+  },
+  {
     slug: 'ui-of-the-future',
     title: 'The UI of the Future Has Yet to Reveal Itself',
     excerpt:

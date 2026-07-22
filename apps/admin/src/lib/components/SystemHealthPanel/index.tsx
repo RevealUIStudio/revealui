@@ -4,6 +4,7 @@
  * Displays system health status with individual health check details
  */
 
+import { Button, IconChevronDown } from '@revealui/presentation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
@@ -140,14 +141,9 @@ export function SystemHealthPanel({
         <div className="text-error">
           <h2 className="text-lg font-semibold mb-2">Error Loading Health Data</h2>
           <p className="mb-4">{error}</p>
-          <button
-            onClick={onRetry}
-            className="bg-error text-primary-foreground hover:bg-error/90 px-4 py-2 rounded transition-colors disabled:opacity-50"
-            type="button"
-            disabled={!onRetry}
-          >
+          <Button type="button" variant="danger" onClick={onRetry} disabled={!onRetry}>
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -188,24 +184,26 @@ export function SystemHealthPanel({
 
       <div className="space-y-3">
         {Object.entries(data.checks).map(([name, check]) => (
-          <button
+          <Button
             key={name}
             type="button"
-            className="border border-border rounded-lg p-4 hover:bg-muted transition-colors cursor-pointer w-full text-left"
+            appearance="ghost"
+            variant="neutral"
+            className="h-auto w-full cursor-pointer justify-start rounded-lg border border-border p-4 text-left hover:bg-muted"
             onClick={() => toggleCheck(name)}
             aria-expanded={expandedChecks[name]}
             aria-label={`${name} health check: ${check.status}`}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex w-full items-center justify-between">
+              <div className="flex flex-1 items-center gap-3">
                 <div
-                  className={`w-2 h-2 rounded-full ${getStatusColor(check.status)}`}
+                  className={`h-2 w-2 rounded-full ${getStatusColor(check.status)}`}
                   aria-hidden="true"
                   data-testid={`status-${check.status}`}
                 />
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-medium text-foreground capitalize"
+                    className="font-medium capitalize text-foreground"
                     data-testid={`${name}-check-name`}
                   >
                     {name}
@@ -217,24 +215,15 @@ export function SystemHealthPanel({
                   )}
                 </div>
               </div>
-              <svg
-                className={`w-5 h-5 text-muted-foreground transition-transform ${expandedChecks[name] ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <IconChevronDown
+                size="md"
+                className={`text-muted-foreground transition-transform ${expandedChecks[name] ? 'rotate-180' : ''}`}
                 aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              />
             </div>
 
             {expandedChecks[name] && (
-              <div className="mt-3 pt-3 border-t border-border">
+              <div className="mt-3 border-t border-border pt-3">
                 <p className="text-sm text-muted-foreground">{check.message}</p>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div>
@@ -248,7 +237,7 @@ export function SystemHealthPanel({
                 </div>
               </div>
             )}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

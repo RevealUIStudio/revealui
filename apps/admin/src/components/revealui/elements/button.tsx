@@ -1,10 +1,25 @@
-import { cn } from '@revealui/presentation/server';
+import { cn, Button as PresentationButton } from '@revealui/presentation';
+import Link from 'next/link';
 import type { ComponentProps } from 'react';
 
 const sizes = {
   md: 'px-3 py-1',
   lg: 'px-4 py-2',
 };
+
+const solidColor = {
+  'dark/light':
+    'bg-mist-950 text-white hover:bg-mist-800 dark:bg-mist-300 dark:text-mist-950 dark:hover:bg-mist-200',
+  light: 'hover bg-white text-mist-950 hover:bg-mist-100 dark:bg-mist-100 dark:hover:bg-white',
+} as const;
+
+const plainColor = {
+  'dark/light': 'text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10',
+  light: 'text-white hover:bg-white/15 dark:hover:bg-white/10',
+} as const;
+
+type KitColor = keyof typeof solidColor;
+type KitSize = keyof typeof sizes;
 
 export function Button({
   size = 'md',
@@ -13,18 +28,18 @@ export function Button({
   className,
   ...props
 }: {
-  size?: keyof typeof sizes;
-  color?: 'dark/light' | 'light';
-} & ComponentProps<'button'>) {
+  size?: KitSize;
+  color?: KitColor;
+} & Omit<ComponentProps<typeof PresentationButton>, 'size' | 'color' | 'variant' | 'appearance'>) {
   return (
-    <button
+    <PresentationButton
       type={type}
+      appearance="ghost"
+      variant="neutral"
+      size="clear"
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full text-sm/7 font-medium',
-        color === 'dark/light' &&
-          'bg-mist-950 text-white hover:bg-mist-800 dark:bg-mist-300 dark:text-mist-950 dark:hover:bg-mist-200',
-        color === 'light' &&
-          'hover bg-white text-mist-950 hover:bg-mist-100 dark:bg-mist-100 dark:hover:bg-white',
+        solidColor[color],
         sizes[size],
         className,
       )}
@@ -32,8 +47,6 @@ export function Button({
     />
   );
 }
-
-import Link from 'next/link';
 
 export function ButtonLink({
   size = 'md',
@@ -43,18 +56,15 @@ export function ButtonLink({
   ...props
 }: {
   href: string;
-  size?: keyof typeof sizes;
-  color?: 'dark/light' | 'light';
+  size?: KitSize;
+  color?: KitColor;
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
       href={href}
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full text-sm/7 font-medium',
-        color === 'dark/light' &&
-          'bg-mist-950 text-white hover:bg-mist-800 dark:bg-mist-300 dark:text-mist-950 dark:hover:bg-mist-200',
-        color === 'light' &&
-          'hover bg-white text-mist-950 hover:bg-mist-100 dark:bg-mist-100 dark:hover:bg-white',
+        solidColor[color],
         sizes[size],
         className,
       )}
@@ -69,11 +79,14 @@ export function SoftButton({
   className,
   ...props
 }: {
-  size?: keyof typeof sizes;
-} & ComponentProps<'button'>) {
+  size?: KitSize;
+} & Omit<ComponentProps<typeof PresentationButton>, 'size' | 'variant' | 'appearance'>) {
   return (
-    <button
+    <PresentationButton
       type={type}
+      appearance="ghost"
+      variant="neutral"
+      size="clear"
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-mist-950/10 text-sm/7 font-medium text-mist-950 hover:bg-mist-950/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20',
         sizes[size],
@@ -91,7 +104,7 @@ export function SoftButtonLink({
   ...props
 }: {
   href: string;
-  size?: keyof typeof sizes;
+  size?: KitSize;
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
@@ -113,17 +126,18 @@ export function PlainButton({
   className,
   ...props
 }: {
-  size?: keyof typeof sizes;
-  color?: 'dark/light' | 'light';
-} & ComponentProps<'button'>) {
+  size?: KitSize;
+  color?: KitColor;
+} & Omit<ComponentProps<typeof PresentationButton>, 'size' | 'color' | 'variant' | 'appearance'>) {
   return (
-    <button
+    <PresentationButton
       type={type}
+      appearance="ghost"
+      variant="neutral"
+      size="clear"
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm/7 font-medium',
-        color === 'dark/light' &&
-          'text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10',
-        color === 'light' && 'text-white hover:bg-white/15 dark:hover:bg-white/10',
+        plainColor[color],
         sizes[size],
         className,
       )}
@@ -140,17 +154,15 @@ export function PlainButtonLink({
   ...props
 }: {
   href: string;
-  size?: keyof typeof sizes;
-  color?: 'dark/light' | 'light';
+  size?: KitSize;
+  color?: KitColor;
 } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
     <Link
       href={href}
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm/7 font-medium',
-        color === 'dark/light' &&
-          'text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10',
-        color === 'light' && 'text-white hover:bg-white/15 dark:hover:bg-white/10',
+        plainColor[color],
         sizes[size],
         className,
       )}

@@ -39,91 +39,113 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./adapter": {
       "types": "./dist/servers/adapter.d.ts",
-      "import": "./dist/servers/adapter.js"
+      "import": "./dist/servers/adapter.js",
+      "default": "./dist/servers/adapter.js"
     },
     "./author": {
       "types": "./dist/author/index.d.ts",
-      "import": "./dist/author/index.js"
+      "import": "./dist/author/index.js",
+      "default": "./dist/author/index.js"
     },
     "./author/scaffold": {
       "types": "./dist/author/scaffold.d.ts",
-      "import": "./dist/author/scaffold.js"
+      "import": "./dist/author/scaffold.js",
+      "default": "./dist/author/scaffold.js"
     },
     "./author/test": {
       "types": "./dist/author/test.d.ts",
-      "import": "./dist/author/test.js"
+      "import": "./dist/author/test.js",
+      "default": "./dist/author/test.js"
     },
     "./author/publish": {
       "types": "./dist/author/publish.d.ts",
-      "import": "./dist/author/publish.js"
+      "import": "./dist/author/publish.js",
+      "default": "./dist/author/publish.js"
     },
     "./contracts": {
       "types": "./dist/contracts.d.ts",
-      "import": "./dist/contracts.js"
+      "import": "./dist/contracts.js",
+      "default": "./dist/contracts.js"
     },
     "./contracts-server": {
       "types": "./dist/servers/factories/contracts.d.ts",
-      "import": "./dist/servers/factories/contracts.js"
+      "import": "./dist/servers/factories/contracts.js",
+      "default": "./dist/servers/factories/contracts.js"
     },
     "./revealui-content-factory": {
       "types": "./dist/servers/factories/revealui-content.d.ts",
-      "import": "./dist/servers/factories/revealui-content.js"
+      "import": "./dist/servers/factories/revealui-content.js",
+      "default": "./dist/servers/factories/revealui-content.js"
     },
     "./docs-server": {
       "types": "./dist/servers/factories/docs.d.ts",
-      "import": "./dist/servers/factories/docs.js"
+      "import": "./dist/servers/factories/docs.js",
+      "default": "./dist/servers/factories/docs.js"
     },
     "./kg-server": {
       "types": "./dist/servers/factories/knowledge-graph.d.ts",
-      "import": "./dist/servers/factories/knowledge-graph.js"
+      "import": "./dist/servers/factories/knowledge-graph.js",
+      "default": "./dist/servers/factories/knowledge-graph.js"
     },
     "./hypervisor": {
       "types": "./dist/hypervisor.d.ts",
-      "import": "./dist/hypervisor.js"
+      "import": "./dist/hypervisor.js",
+      "default": "./dist/hypervisor.js"
     },
     "./db": {
       "types": "./dist/adapters/db.d.ts",
-      "import": "./dist/adapters/db.js"
+      "import": "./dist/adapters/db.js",
+      "default": "./dist/adapters/db.js"
     },
     "./config": {
       "types": "./dist/config/index.d.ts",
-      "import": "./dist/config/index.js"
+      "import": "./dist/config/index.js",
+      "default": "./dist/config/index.js"
     },
     "./pipeline": {
       "types": "./dist/pipeline.d.ts",
-      "import": "./dist/pipeline.js"
+      "import": "./dist/pipeline.js",
+      "default": "./dist/pipeline.js"
     },
     "./rate-limiter": {
       "types": "./dist/rate-limiter.d.ts",
-      "import": "./dist/rate-limiter.js"
+      "import": "./dist/rate-limiter.js",
+      "default": "./dist/rate-limiter.js"
     },
     "./telemetry": {
       "types": "./dist/telemetry.d.ts",
-      "import": "./dist/telemetry.js"
+      "import": "./dist/telemetry.js",
+      "default": "./dist/telemetry.js"
     },
     "./auth": {
       "types": "./dist/auth.d.ts",
-      "import": "./dist/auth.js"
+      "import": "./dist/auth.js",
+      "default": "./dist/auth.js"
     },
     "./streamable-http": {
       "types": "./dist/streamable-http.d.ts",
-      "import": "./dist/streamable-http.js"
+      "import": "./dist/streamable-http.js",
+      "default": "./dist/streamable-http.js"
     },
     "./oauth": {
       "types": "./dist/oauth.d.ts",
-      "import": "./dist/oauth.js"
+      "import": "./dist/oauth.js",
+      "default": "./dist/oauth.js"
     },
     "./client": {
       "types": "./dist/client.d.ts",
-      "import": "./dist/client.js"
+      "import": "./dist/client.js",
+      "default": "./dist/client.js"
     },
     "./remote-client": {
       "types": "./dist/remote-client.d.ts",
-      "import": "./dist/remote-client.js"
+      "import": "./dist/remote-client.js",
+      "default": "./dist/remote-client.js"
     }
   },
   "files": [

@@ -24,13 +24,18 @@ import { AuthorizationSystem } from '@revealui/core/security';
 /** Server-derived account tier (mirrors `EntitlementContext['tier']`). */
 export type McpTier = 'free' | 'pro' | 'max' | 'enterprise';
 
-/** The governed tool surface (Phase 1 scope: the five read tools). */
+/** The governed tool surface (content reads + VES session propose tools). */
 export const MCP_TOOL_NAMES = [
   'revealui_list_sites',
   'revealui_list_content',
   'revealui_get_content',
   'revealui_site_stats',
   'revealui_list_users',
+  'revealui_session_list',
+  'revealui_session_open',
+  'revealui_session_get',
+  'revealui_session_patch',
+  'revealui_page_read',
 ] as const;
 export type McpToolName = (typeof MCP_TOOL_NAMES)[number];
 
@@ -39,6 +44,14 @@ const CONTENT_READ_TOOLS: readonly McpToolName[] = [
   'revealui_list_content',
   'revealui_get_content',
   'revealui_site_stats',
+  'revealui_page_read',
+];
+/** VES session tools — agents may propose; humans publish outside MCP. */
+const SESSION_PROPOSE_TOOLS: readonly McpToolName[] = [
+  'revealui_session_list',
+  'revealui_session_open',
+  'revealui_session_get',
+  'revealui_session_patch',
 ];
 const ADMIN_TOOLS: readonly McpToolName[] = ['revealui_list_users'];
 
@@ -50,12 +63,12 @@ function toolPermissionKey(toolName: string): string {
 
 /** Which tools each role may execute (RBAC grants). */
 const ROLE_TOOL_GRANTS: Record<string, readonly McpToolName[]> = {
-  owner: [...CONTENT_READ_TOOLS, ...ADMIN_TOOLS],
-  admin: [...CONTENT_READ_TOOLS, ...ADMIN_TOOLS],
-  editor: CONTENT_READ_TOOLS,
+  owner: [...CONTENT_READ_TOOLS, ...SESSION_PROPOSE_TOOLS, ...ADMIN_TOOLS],
+  admin: [...CONTENT_READ_TOOLS, ...SESSION_PROPOSE_TOOLS, ...ADMIN_TOOLS],
+  editor: [...CONTENT_READ_TOOLS, ...SESSION_PROPOSE_TOOLS],
   viewer: CONTENT_READ_TOOLS,
-  agent: CONTENT_READ_TOOLS,
-  contributor: CONTENT_READ_TOOLS,
+  agent: [...CONTENT_READ_TOOLS, ...SESSION_PROPOSE_TOOLS],
+  contributor: [...CONTENT_READ_TOOLS, ...SESSION_PROPOSE_TOOLS],
 };
 
 /** Which tiers may see/execute each tool (tier gate). `list_users` is pro-gated. */
@@ -67,6 +80,11 @@ const TOOL_TIER_GATE: Record<McpToolName, ReadonlySet<McpTier>> = {
   revealui_get_content: ALL_TIERS,
   revealui_site_stats: ALL_TIERS,
   revealui_list_users: PAID_TIERS,
+  revealui_session_list: ALL_TIERS,
+  revealui_session_open: ALL_TIERS,
+  revealui_session_get: ALL_TIERS,
+  revealui_session_patch: ALL_TIERS,
+  revealui_page_read: ALL_TIERS,
 };
 
 // A dedicated engine instance registered with the exact tool-permission keys.

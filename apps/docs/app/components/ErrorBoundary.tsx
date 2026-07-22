@@ -4,6 +4,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { Button } from '@revealui/presentation';
 import { Component, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
@@ -75,15 +76,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </pre>
             </details>
           )}
-          <button
+          <Button
+            type="button"
+            variant="brand"
+            className="mt-4"
             onClick={() => {
               this.setState({ hasError: false, error: null });
             }}
-            type="button"
-            className="mt-4 cursor-pointer rounded-lg border-none bg-accent px-4 py-2 font-sans text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Try Again
-          </button>
+          </Button>
         </div>
       );
     }

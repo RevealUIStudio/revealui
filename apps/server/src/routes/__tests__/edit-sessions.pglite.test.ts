@@ -688,6 +688,116 @@ describe('structural path validation', () => {
 });
 
 // ---------------------------------------------------------------------------
+// P2 — block array ops + fleet-marketing voice gate
+// ---------------------------------------------------------------------------
+
+describe('P2 block array ops', () => {
+  async function blockOp(
+    app: ReturnType<typeof createApp>,
+    sessionId: string,
+    payload: Record<string, unknown>,
+  ): Promise<Response> {
+    return app.request(`/sessions/${sessionId}/docs/page/${PAGE_ID}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  it('inserts a text block at the end', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+    expect((await patch(app, sessionId, 'title', 'T')).status).toBe(200);
+
+    const res = await blockOp(app, sessionId, {
+      op: 'blocks.insert',
+      index: 1,
+      block: { id: 'blk-new', type: 'text', data: { content: 'fresh' } },
+    });
+    expect(res.status).toBe(200);
+
+    const get = await app.request(`/sessions/${sessionId}`);
+    const body = (await get.json()) as {
+      data: { docs: Array<{ draft: { blocks: Array<{ id: string; type: string }> } }> };
+    };
+    expect(body.data.docs[0].draft.blocks).toHaveLength(2);
+    expect(body.data.docs[0].draft.blocks[1].id).toBe('blk-new');
+    expect(body.data.docs[0].draft.blocks[1].type).toBe('text');
+  });
+
+  it('moves and removes blocks', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+    await patch(app, sessionId, 'title', 'T');
+    await blockOp(app, sessionId, {
+      op: 'blocks.insert',
+      index: 1,
+      block: { id: 'blk-2', type: 'text', data: { content: 'second' } },
+    });
+
+    expect((await blockOp(app, sessionId, { op: 'blocks.move', from: 1, to: 0 })).status).toBe(200);
+
+    let get = await app.request(`/sessions/${sessionId}`);
+    let body = (await get.json()) as {
+      data: { docs: Array<{ draft: { blocks: Array<{ id: string }> } }> };
+    };
+    expect(body.data.docs[0].draft.blocks[0].id).toBe('blk-2');
+
+    expect((await blockOp(app, sessionId, { op: 'blocks.remove', index: 0 })).status).toBe(200);
+    get = await app.request(`/sessions/${sessionId}`);
+    body = (await get.json()) as {
+      data: { docs: Array<{ draft: { blocks: Array<{ id: string }> } }> };
+    };
+    expect(body.data.docs[0].draft.blocks).toHaveLength(1);
+    expect(body.data.docs[0].draft.blocks[0].id).toBe('blk-1');
+  });
+
+  it('refuses to remove the last block', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+    await patch(app, sessionId, 'title', 'T');
+    const res = await blockOp(app, sessionId, { op: 'blocks.remove', index: 0 });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('P2 voice gate on fleet-marketing', () => {
+  beforeEach(async () => {
+    await testDb.drizzle
+      .update(schema.sites)
+      .set({ slug: 'fleet-marketing' })
+      .where(eq(schema.sites.id, SITE_ID));
+  });
+
+  it('rejects an em-dash field patch with 422 and does not write', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+
+    const res = await patch(app, sessionId, 'blocks.0.data.text', 'Hello\u2014world');
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as {
+      rejected?: boolean;
+      violations?: unknown[];
+    };
+    expect(body.rejected).toBe(true);
+    expect(Array.isArray(body.violations)).toBe(true);
+    expect((body.violations ?? []).length).toBeGreaterThan(0);
+
+    const get = await app.request(`/sessions/${sessionId}`);
+    const detail = (await get.json()) as { data: { docs: unknown[] } };
+    // First patch rejected: no overlay row.
+    expect(detail.data.docs).toHaveLength(0);
+  });
+
+  it('accepts a clean field patch on fleet-marketing', async () => {
+    const app = createApp(EDITOR);
+    const sessionId = await openSession(app);
+    const res = await patch(app, sessionId, 'blocks.0.data.text', 'Clean copy');
+    expect(res.status).toBe(200);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Non-open session mutations
 // ---------------------------------------------------------------------------
 

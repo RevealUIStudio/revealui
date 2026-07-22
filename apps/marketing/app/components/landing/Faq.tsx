@@ -1,17 +1,17 @@
-import { type BlockAnnotation, fieldAttrs } from '@revealui/presentation';
+import { type BlockAnnotation, fieldAttrs, IconPlus } from '@revealui/presentation';
 import { HOME_FAQ } from '../../content/home';
 import type { FaqData } from '../../lib/page-blocks';
 
 export interface FaqProps {
   /** Rich FAQ data; defaults to the static content module (byte-identical). */
   data?: FaqData;
-  /** Dot-path base of this block within the page array, e.g. `blocks.1`. */
+  /** Dot-path of this block's data object within the page array, e.g. `blocks.1.data`. */
   path?: string;
   /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
   annotation?: BlockAnnotation;
 }
 
-export function Faq({ data = HOME_FAQ, path = 'blocks.1', annotation = {} }: FaqProps) {
+export function Faq({ data = HOME_FAQ, path = 'blocks.1.data', annotation = {} }: FaqProps) {
   return (
     <section id="faq" className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -42,16 +42,7 @@ export function Faq({ data = HOME_FAQ, path = 'blocks.1', annotation = {} }: Faq
                 </h3>
 
                 <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition group-open:rotate-45 group-open:bg-primary/10 group-open:text-primary">
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                  >
-                    <title>Toggle</title>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
+                  <IconPlus size="sm" label="Toggle" />
                 </span>
               </summary>
               <div

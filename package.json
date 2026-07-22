@@ -116,7 +116,9 @@
       "ws@8": ">=8.20.1",
       "@revealui/config": "workspace:*",
       "@revealui/contracts": "workspace:*",
-      "@revealui/db": "workspace:*"
+      "@revealui/db": "workspace:*",
+      "sharp": ">=0.35.0",
+      "@hono/node-server": ">=2.0.5"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
@@ -232,6 +234,7 @@
     "validate:claims-evidence": "tsx scripts/validate/claims-evidence.ts",
     "validate:marketing-voice": "tsx scripts/validate/marketing-voice.ts",
     "validate:client-safety": "tsx scripts/validate/client-safety.ts",
+    "validate:tier1-presentation": "tsx scripts/validate/tier1-presentation.ts",
     "validate:design-context": "tsx scripts/validate/design-context-drift.ts",
     "validate:brand-bridge": "tsx scripts/validate/brand-bridge.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts",
@@ -258,7 +261,9 @@
     "vercel:sync:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
     "vercel:drift-check": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json",
     "vercel:sync:staging": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml",
-    "vercel:sync:staging:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml --apply"
+    "vercel:sync:staging:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml --apply",
+    "dogfood:api": "tsx scripts/dev-tools/dogfood-api.ts",
+    "validate:marketing-voice-prose-slots": "tsx scripts/validate/marketing-voice-prose-slots.ts"
   },
   "type": "module"
 }

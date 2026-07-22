@@ -6,12 +6,14 @@
  * one of them. Copy is VERBATIM from §7 — do not paraphrase headline,
  * body, or CTA text when editing this file.
  *
- * Not every nudge has a live trigger evaluator (see ./triggers.ts):
- * five of the eleven have no observable signal in the schema today
- * (upgrade-intent, self-hosted license activation, audit-trail-viewed,
- * MCP connection state, an AI-memory enable toggle) and are excluded
- * from selection rather than approximated. See the PR description for
- * the id-by-id rationale.
+ * All 11 §7 nudges have live trigger evaluators (server-owned signals only).
+ * Durable write points:
+ * - free-pro-gate: requireFeature free denial → upgrade_intent meter
+ * - pro-license-wire: licenses row + license_key_fetched (billing) or
+ *   license_activated (POST /license/verify). Not client-reported.
+ * - pro-connect-data: day3+ without content, API key, or MCP tool usage
+ * - max-enable-memory: no ai_memory_sessions yet (product has no toggle;
+ *   first use is the durable "enabled" signal)
  */
 
 export type NudgeId =
@@ -134,7 +136,13 @@ export const NUDGE_DEFINITIONS: Record<NudgeId, NudgeDefinition> = {
 export const IMPLEMENTED_NUDGE_IDS: readonly NudgeId[] = [
   'free-first-reply',
   'free-first-content',
+  'free-pro-gate',
   'pro-first-action',
+  'pro-license-wire',
+  'pro-read-receipts',
+  'pro-connect-data',
+  'max-enable-memory',
   'max-local-inference',
+  'max-export-audit',
   'ent-second-tenant',
 ];

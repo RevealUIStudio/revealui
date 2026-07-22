@@ -23,8 +23,8 @@ describe('NavBar (marketing)', () => {
     renderNavBar();
     const toggle = screen.getByRole('button', { name: 'Open menu' });
     // WCAG 2.5.5 / Apple HIG minimum 44x44 tap target.
-    expect(toggle.className).toContain('h-11');
-    expect(toggle.className).toContain('w-11');
+    // Button size="icon" applies size-11 (2.75rem = 44px square).
+    expect(toggle.className).toContain('size-11');
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(toggle).toHaveAttribute('aria-controls', MENU_ID);
     expect(document.getElementById(MENU_ID)).not.toBeInTheDocument();

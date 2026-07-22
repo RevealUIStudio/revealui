@@ -292,28 +292,34 @@ function BillingContent() {
               })}
             </strong>
             . You&apos;ll retain access to {TIER_LABELS[tier]} features until then.
-            <button
+            <Button
               type="button"
+              appearance="link"
+              variant="neutral"
+              size="sm"
               onClick={handleManageBilling}
               disabled={actionLoading}
-              className="ml-2 font-medium underline hover:text-amber-900 disabled:cursor-not-allowed dark:hover:text-amber-200"
+              className="ml-2 h-auto p-0 font-medium text-inherit underline"
             >
               Resubscribe
-            </button>
+            </Button>
           </div>
         )}
 
       {subscription?.status === 'expired' && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           Your subscription has expired. Pro features are no longer available.
-          <button
+          <Button
             type="button"
+            appearance="link"
+            variant="neutral"
+            size="sm"
             onClick={() => void handleCheckout()}
             disabled={actionLoading}
-            className="ml-2 font-medium underline hover:text-red-900 dark:hover:text-red-200"
+            className="ml-2 h-auto p-0 font-medium text-inherit underline"
           >
             Resubscribe
-          </button>
+          </Button>
         </div>
       )}
 
@@ -327,14 +333,17 @@ function BillingContent() {
             support@revealui.com
           </a>{' '}
           or{' '}
-          <button
+          <Button
             type="button"
+            appearance="link"
+            variant="neutral"
+            size="sm"
             onClick={handleManageBilling}
             disabled={actionLoading}
-            className="font-medium underline hover:text-red-900 dark:hover:text-red-200"
+            className="inline h-auto p-0 font-medium text-inherit underline"
           >
             update your payment method
-          </button>
+          </Button>
           .
         </div>
       )}
@@ -351,14 +360,17 @@ function BillingContent() {
               })}
             </strong>
             . Please update your payment method to avoid losing access.
-            <button
+            <Button
               type="button"
+              appearance="link"
+              variant="neutral"
+              size="sm"
               onClick={handleManageBilling}
               disabled={actionLoading}
-              className="ml-2 font-medium underline hover:text-amber-900 dark:hover:text-amber-200"
+              className="ml-2 h-auto p-0 font-medium text-inherit underline"
             >
               Update payment
-            </button>
+            </Button>
           </div>
         )}
 
@@ -402,14 +414,17 @@ function BillingContent() {
       {subscriptionLoadFailed && upgrade && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           We could not load your subscription, so checkout did not start automatically.
-          <button
+          <Button
             type="button"
+            appearance="link"
+            variant="neutral"
+            size="sm"
             onClick={() => void handleCheckout(upgrade)}
             disabled={actionLoading}
-            className="ml-2 font-medium underline hover:text-red-900 disabled:cursor-not-allowed dark:hover:text-red-200"
+            className="ml-2 h-auto p-0 font-medium text-inherit underline"
           >
             Continue to checkout
-          </button>
+          </Button>
         </div>
       )}
 

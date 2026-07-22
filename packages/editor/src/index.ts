@@ -18,6 +18,7 @@ export {
   isClickMessage,
   isPatchAppliedMessage,
   isReadyMessage,
+  isSetThemeMessage,
   type PatchAppliedMessage,
   type ReadyMessage,
   type RuntimeToCanvasMessage,
@@ -25,4 +26,6 @@ export {
   RVUI_CLICK,
   RVUI_PATCH_APPLIED,
   RVUI_READY,
+  RVUI_SET_THEME,
+  type SetThemeMessage,
 } from './protocol.js';

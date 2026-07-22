@@ -18,7 +18,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./tokens.css": "./dist/tokens.css",
     "./design-context/MANIFEST.sha256": "./design-context/MANIFEST.sha256",

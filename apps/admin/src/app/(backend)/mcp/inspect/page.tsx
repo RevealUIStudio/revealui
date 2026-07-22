@@ -13,6 +13,7 @@
 
 'use client';
 
+import { Button } from '@revealui/presentation';
 import { useCallback, useEffect, useState } from 'react';
 import { LogsPanel } from '@/lib/components/mcp/logs-panel';
 import { PromptsPanel } from '@/lib/components/mcp/prompts-panel';
@@ -129,11 +130,14 @@ export default function InspectMcpServerPage() {
       <div className="border-b border-border bg-card">
         <nav className="mx-auto flex max-w-5xl gap-1 px-6" aria-label="Inspector surfaces">
           {(['tools', 'resources', 'prompts', 'logs'] as InspectorTab[]).map((t) => (
-            <button
+            <Button
               key={t}
               type="button"
+              appearance="ghost"
+              variant={activeTab === t ? 'brand' : 'neutral'}
+              size="sm"
               onClick={() => setActiveTab(t)}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm capitalize transition-colors ${
+              className={`-mb-px h-auto rounded-none border-b-2 px-3 py-2 text-sm capitalize ${
                 activeTab === t
                   ? 'border-primary text-foreground'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -141,7 +145,7 @@ export default function InspectMcpServerPage() {
               aria-current={activeTab === t ? 'page' : undefined}
             >
               {t}
-            </button>
+            </Button>
           ))}
         </nav>
       </div>

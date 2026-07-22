@@ -41,7 +41,7 @@
     },
     "rules/git.md": {
       "source": "profiles/revfleet/claude/rules/git.md",
-      "sha256": "c74adb8ef145d651353c9335245868ee75c5e23d4f439e7ff20b93748060a703"
+      "sha256": "59fdde78476f102a1b65f88ec4a874471f5178e6ee9c1cdbe68f53f532221694"
     },
     "rules/no-regex.md": {
       "source": "profiles/revealui/claude/rules/no-regex.md",
@@ -66,6 +66,10 @@
     "rules/skills-usage.md": {
       "source": "profiles/revealui/claude/rules/skills-usage.md",
       "sha256": "29f32b43a17f7842d34e05bb3c77e1abe5fa47247dc74ad9334aef60ed3211e3"
+    },
+    "rules/token-economy.md": {
+      "source": "profiles/revfleet/claude/rules/token-economy.md",
+      "sha256": "b30a830e9dd333b05085bc5ce3994c477ac66390aabe4cf41741a64ccd12ef57"
     },
     "rules/tool-routing.md": {
       "source": "profiles/revealui/claude/rules/tool-routing.md",

@@ -37,10 +37,22 @@ describe('Slider', () => {
   it('shows label when provided', () => {
     render(<Slider label="Volume" />);
     expect(screen.getByText('Volume')).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Volume' })).toBeInTheDocument();
+  });
+
+  it('exposes a fallback accessible name when no label is provided', () => {
+    render(<Slider />);
+    expect(screen.getByRole('slider', { name: 'Slider' })).toBeInTheDocument();
   });
 
   it('shows current value when showValue is true', () => {
     render(<Slider defaultValue={42} showValue />);
     expect(screen.getByText('42')).toBeInTheDocument();
+  });
+
+  it('shows a custom valueLabel when provided', () => {
+    render(<Slider label="MRR" value={10000} valueLabel="$10k" />);
+    expect(screen.getByRole('slider', { name: 'MRR' })).toBeInTheDocument();
+    expect(screen.getByText('$10k')).toBeInTheDocument();
   });
 });

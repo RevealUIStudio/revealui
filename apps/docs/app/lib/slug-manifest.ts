@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 65 entries.
+ * Generated: 72 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -35,6 +35,13 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'blog/08-getting-started': 'blog/08-getting-started.md',
   'blog/09-component-library': 'blog/09-component-library.md',
   'blog/10-own-your-data': 'blog/10-own-your-data.md',
+  'blog/11-revfleet-product-family': 'blog/11-revfleet-product-family.md',
+  'blog/12-own-your-secrets': 'blog/12-own-your-secrets.md',
+  'blog/13-zero-regex': 'blog/13-zero-regex.md',
+  'blog/14-claim-drift': 'blog/14-claim-drift.md',
+  'blog/15-dashboard-agent-chat': 'blog/15-dashboard-agent-chat.md',
+  'blog/16-ui-of-the-future': 'blog/16-ui-of-the-future.md',
+  'blog/17-shareable-upside': 'blog/17-shareable-upside.md',
   'build-your-business': 'BUILD_YOUR_BUSINESS.md',
   'component-catalog': 'COMPONENT_CATALOG.md',
   'core-stability': 'CORE_STABILITY.md',
@@ -42,6 +49,9 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'decisions/2026-05-01-supabase-removal': 'decisions/2026-05-01-supabase-removal.md',
   'decisions/2026-05-08-deployment-target-vercel-not-k8s':
     'decisions/2026-05-08-deployment-target-vercel-not-k8s.md',
+  'decisions/2026-06-13-collab-snapshot-durability':
+    'decisions/2026-06-13-collab-snapshot-durability.md',
+  'decisions/2026-06-14-stripe-mode-coherence': 'decisions/2026-06-14-stripe-mode-coherence.md',
   'decisions/licensing-platform-evaluation': 'decisions/licensing-platform-evaluation.md',
   'environment-variables-guide': 'ENVIRONMENT-VARIABLES-GUIDE.md',
   examples: 'EXAMPLES.md',
@@ -49,7 +59,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   fleet: 'FLEET.md',
   'fleet/revcon': 'fleet/revcon.md',
   'fleet/revdev': 'fleet/revdev.md',
-  'fleet/revkit': 'fleet/revkit.md',
   'fleet/revskills': 'fleet/revskills.md',
   'fleet/revvault': 'fleet/revvault.md',
   forge: 'FORGE.md',

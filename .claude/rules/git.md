@@ -18,6 +18,20 @@
 - `main` only ever receives changes via a promotion PR whose head is `test` (enforced by `promotion-gate.yml`). Never push directly to `main` or `test`, and never open a feature PR directly against `main`.
 - Merge manually after review — no auto-merge.
 
+### HARDLINE: never branch off a feature branch (owner 2026-07-21)
+
+Always cut new branches from **`origin/test`** (or `origin/main` when the
+repo has no `test`). Never from an existing `feat/*` / `fix/*` / `chore/*` tip.
+
+```bash
+git fetch origin test
+git switch -c fix/<name> origin/test
+```
+
+Grok worktrees: use `rfg … --worktree=…` (injects `--ref test`) or pass
+`--ref test` explicitly. Architecture: ADR
+`2026-07-21-harness-policy-runtime-launch-planes` (policy / runtime / launch).
+
 ## Issue → PR → Close Workflow
 - PRs that fix a GitHub issue MUST include `Closes #N` in the PR description
 - Place `Closes #N` at the top of the PR body (the template prompts for it)

@@ -15,7 +15,7 @@
 // 2026-07-12: messaging rewrite (frontend-excellence Phase 1b spec in .jv).
 // Every prose sentence in this file is indexed in ./claims-evidence.ts with
 // the code that proves it (owner directive); the collections-over-MCP claims
-// are corrected to the shipped opt-in resource mechanism.
+// reflect default-on resources (mcpResource !== false; opt out with false).
 
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
@@ -101,7 +101,7 @@ export const HOME_PROBLEM = {
       capability: 'Agent access to your data',
       sprawl: 'One-off integrations',
       agentOnly: 'Tool registry only',
-      revealui: 'Content tools over MCP, plus collections you opt in',
+      revealui: 'Content tools over MCP; collections surface as resources unless you opt out',
     },
   ] as readonly ProblemRow[],
   footnote: `Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.`,
@@ -182,7 +182,7 @@ export const HOME_FAQ = {
     {
       question: 'What does "agent-native" actually mean in code?',
       answer:
-        'Agents authenticate like users and pass the same tier gates your customers pass. The content MCP server ships discovery and read tools, any collection becomes a discoverable MCP resource with one flag, and writes go through the same REST API your app uses.',
+        'Agents authenticate like users and pass the same tier gates your customers pass. The content MCP server ships discovery and read tools, collections surface as discoverable MCP resources by default (set mcpResource: false to opt out), and writes go through the same REST API your app uses.',
     },
     {
       question: 'How does AI inference work?',

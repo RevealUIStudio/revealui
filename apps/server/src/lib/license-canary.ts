@@ -33,6 +33,11 @@ const CANARY_JOB = 'hosted-license-canary';
  * Docker-build / build-only contexts compile without live credentials. Takes
  * `env` as an argument (defaulted to `process.env`) so tests pass fixtures.
  */
+function isLocalDevEnv(env: EnvMap): boolean {
+  const nodeEnv = env.NODE_ENV;
+  return nodeEnv === 'development' || nodeEnv === 'test';
+}
+
 export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap): Promise<void> {
   if (env.SKIP_ENV_VALIDATION === 'true') {
     return;
@@ -54,6 +59,18 @@ export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap
   const privateKey = normalizePem(rawPrivate);
   const publicKeys = getPublicKeys();
 
+  // Local dogfood (`pnpm dogfood:api`) often sets only the private key so
+  // detectDeploymentMode === 'hosted'. Without public keys the canary is
+  // environmentally incomplete — soft-skip in development/test (no ERROR alert).
+  // Production/staging still degrade+alert when keys are incomplete.
+  if (publicKeys.length === 0 && isLocalDevEnv(env)) {
+    logger.info(
+      'Hosted license canary skipped in development/test (no REVEALUI_LICENSE_PUBLIC_KEY). ' +
+        'Set public key(s) to exercise sign→verify self-check locally.',
+    );
+    return;
+  }
+
   const result = await selfVerifyLicenseKeypair(privateKey, publicKeys);
 
   if (result.status === 'ok') {
@@ -74,8 +91,13 @@ export async function runHostedLicenseCanary(env: EnvMap = process.env as EnvMap
   }
 
   // status === 'degraded' — alert + Sentry + readiness-red, but do not crash.
+  // In development/test, log only (dogfood noise); still mark degraded for readiness.
   const error = new Error(`Hosted license canary degraded: ${result.reason}`);
   setLicenseCanaryDegraded(true, error.message);
+  if (isLocalDevEnv(env)) {
+    logger.warn(`${error.message} (dev soft-fail: no cron alert)`);
+    return;
+  }
   await sendCronFailureAlert({
     jobName: CANARY_JOB,
     error,

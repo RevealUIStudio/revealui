@@ -2,7 +2,7 @@
 
 const SAVED_FEEDBACK_MS = 2_000;
 
-import { Input, Select } from '@revealui/presentation';
+import { Button, IconCheck, Input, Select } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -157,54 +157,45 @@ export default function ApiKeysPageClient({ providers, isHosted }: ApiKeysPageCl
                     placeholder={activeProviderInfo?.placeholder ?? ''}
                     className="pr-16 font-mono"
                   />
-                  <button
+                  <Button
                     type="button"
+                    appearance="ghost"
+                    variant="neutral"
+                    size="sm"
                     onClick={() => setShowKey((v) => !v)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                    className="absolute right-2.5 top-1/2 h-auto -translate-y-1/2 px-1 py-0.5 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground"
                   >
                     {showKey ? 'hide' : 'show'}
-                  </button>
+                  </Button>
                 </div>
               </Field>
 
               {/* Actions */}
               <div className="flex items-center gap-2 pt-1">
-                <button
+                <Button
                   type="button"
+                  variant="brand"
                   onClick={handleSave}
                   disabled={!apiKey.trim()}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saved ? (
                     <span className="inline-flex items-center gap-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                      <IconCheck size="sm" />
                       Saved
                     </span>
                   ) : (
                     'Save Key'
                   )}
-                </button>
+                </Button>
                 {currentProvider && (
-                  <button
+                  <Button
                     type="button"
+                    appearance="outline"
+                    variant="neutral"
                     onClick={handleClear}
-                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                   >
                     Clear
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

@@ -58,6 +58,11 @@ interface AgentProcess {
   status: 'running' | 'stopped' | 'errored';
   /** Pending SIGKILL escalation timer, set while a SIGTERM grace window is open. */
   graceTimer?: ReturnType<typeof setTimeout>;
+  /**
+   * True once an intentional terminate() was requested. Maps SIGKILL / non-zero
+   * close during grace to status 'stopped' rather than 'errored' (GAP-390).
+   */
+  terminating?: boolean;
 }
 
 /**
@@ -150,7 +155,12 @@ export class SpawnerService extends EventEmitter {
         clearTimeout(proc.graceTimer);
         proc.graceTimer = undefined;
       }
-      proc.status = code === 0 ? 'stopped' : 'errored';
+      // Intentional terminate (incl. SIGKILL after grace) → stopped, not errored.
+      if (proc.terminating || code === 0) {
+        proc.status = 'stopped';
+      } else {
+        proc.status = 'errored';
+      }
       this.emit('exit', { sessionId, code } satisfies AgentExitEvent);
     });
 
@@ -168,6 +178,8 @@ export class SpawnerService extends EventEmitter {
    * the status transition is event-driven (the child's `close` handler sets the
    * terminal status), so `list()` keeps reporting `running` until the process
    * actually exits.
+   *
+   * If a grace window is already open, returns without re-arming (idempotent).
    */
   stop(sessionId: string): void {
     const proc = this.sessions.get(sessionId);
@@ -205,8 +217,8 @@ export class SpawnerService extends EventEmitter {
   /**
    * Request termination of all running agents (called on daemon shutdown).
    * Same SIGTERM → grace → SIGKILL escalation as `stop`, with event-driven
-   * status, so shutdown neither wedges a child that ignores SIGTERM nor lies
-   * about its status.
+   * status. Prefer `stopAllAndWait()` on the shutdown path so SIGKILL can land
+   * before the process exits (GAP-390).
    */
   stopAll(): void {
     for (const [, proc] of this.sessions) {
@@ -217,13 +229,54 @@ export class SpawnerService extends EventEmitter {
   }
 
   /**
+   * Terminate every running agent and resolve only after each has exited
+   * (or the grace window elapsed and SIGKILL was sent). Holds the event loop
+   * until then so a draining daemon does not orphan SIGTERM-ignoring children
+   * (GAP-390).
+   */
+  async stopAllAndWait(): Promise<void> {
+    const pendingIds: string[] = [];
+    for (const [sessionId, proc] of this.sessions) {
+      if (proc.status === 'running') pendingIds.push(sessionId);
+    }
+    if (pendingIds.length === 0) return;
+
+    const waits = pendingIds.map(
+      (sessionId) =>
+        new Promise<void>((resolve) => {
+          const onExit = (event: AgentExitEvent): void => {
+            if (event.sessionId === sessionId) {
+              this.off('exit', onExit);
+              resolve();
+            }
+          };
+          this.on('exit', onExit);
+          // Race: already closed between snapshot and listener.
+          const proc = this.sessions.get(sessionId);
+          if (!proc || proc.status !== 'running') {
+            this.off('exit', onExit);
+            resolve();
+          }
+        }),
+    );
+
+    this.stopAll();
+    await Promise.all(waits);
+  }
+
+  /**
    * Send SIGTERM and arm a bounded SIGKILL escalation. Status is left `running`;
    * the child's `close` handler owns the terminal transition. Idempotent while a
-   * grace window is already open. The escalation timer is unref'd so it can never
-   * keep the process alive or fire after exit.
+   * grace window is already open.
+   *
+   * GAP-390: the escalation timer stays **ref'd** so it holds the event loop
+   * through the grace window. `close` clears it, so a clean exit never keeps
+   * the process alive past the child's death. Do not `unref()` — that let
+   * stopAll + event-loop drain skip SIGKILL entirely.
    */
   private terminate(proc: AgentProcess): void {
     if (proc.graceTimer) return;
+    proc.terminating = true;
     proc.child.kill('SIGTERM');
     const timer = setTimeout(() => {
       proc.graceTimer = undefined;
@@ -231,7 +284,6 @@ export class SpawnerService extends EventEmitter {
         proc.child.kill('SIGKILL');
       }
     }, this.config.terminationGraceMs);
-    timer.unref?.();
     proc.graceTimer = timer;
   }
 }

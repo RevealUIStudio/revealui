@@ -1,3 +1,4 @@
+import { Button } from '@revealui/presentation';
 import { useTheme } from '@revealui/presentation/client';
 import { IconMonitor, IconMoon, IconSun } from '@revealui/presentation/server';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
@@ -15,19 +16,21 @@ function ThemeDemo() {
     <div className="flex flex-col items-center gap-6">
       <div className="flex gap-2">
         {themes.map(({ value, label, Icon }) => (
-          <button
+          <Button
             key={value}
             type="button"
+            appearance={theme === value ? 'solid' : 'ghost'}
+            variant={theme === value ? 'brand' : 'neutral'}
             onClick={() => setTheme(value)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+            className={
               theme === value
-                ? 'bg-(--rvui-color-primary) text-white shadow-md'
+                ? 'shadow-md'
                 : 'bg-(--rvui-color-surface-2) text-(--rvui-color-text-secondary) hover:bg-(--rvui-color-surface-3)'
-            }`}
+            }
           >
             <Icon size="sm" />
             {label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -88,13 +91,17 @@ const story: ShowcaseStory = {
         function Toggle() {
           const { resolvedTheme, setTheme } = useTheme();
           return (
-            <button
+            <Button
               type="button"
+              appearance="ghost"
+              variant="neutral"
+              size="icon"
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="rounded-full bg-(--rvui-color-surface-2) p-2 transition-colors hover:bg-(--rvui-color-surface-3)"
+              className="rounded-full bg-(--rvui-color-surface-2) hover:bg-(--rvui-color-surface-3)"
+              aria-label="Toggle theme"
             >
               {resolvedTheme === 'dark' ? <IconSun size="md" /> : <IconMoon size="md" />}
-            </button>
+            </Button>
           );
         }
         return <Toggle />;

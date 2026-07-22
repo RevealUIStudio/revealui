@@ -65,10 +65,41 @@ export class UnmappedBlockTypeError extends Error {
  * Phase B block types register here. Field paths may use a single array-glob
  * segment (e.g. `items[].q`) resolved by `resolveFieldPath`.
  */
+/**
+ * Source of truth mapping a block type to voice-validated prose field paths.
+ *
+ * Covers both shapes still in the fleet:
+ * - **Admin/legacy Lexical:** `blockType` + top-level `richText` (hero/content/cta).
+ * - **VES contracts blocks:** `type` adapted to `blockType` + plain-string fields
+ *   under `data.*` (hero/section/ctaSection/primitives). Missing paths are skipped
+ *   by `getProseSlots`; both shapes can share an entry.
+ *
+ * Empty arrays mean "no prose" (structural blocks like divider/spacer): validation
+ * runs, finds nothing, and passes. Unregistered types still throw
+ * `UnmappedBlockTypeError` (fail-closed).
+ */
 export const MARKETING_PROSE_SLOTS: Record<string, string[]> = {
-  hero: ['richText'],
+  // Admin Lexical + VES contracts hero
+  hero: ['richText', 'data.title', 'data.subtitle', 'data.eyebrow', 'data.support'],
   content: ['richText'],
   cta: ['richText'],
+  // VES marketing contracts blocks
+  section: [
+    'data.heading',
+    'data.body',
+    'data.eyebrow',
+    'data.items[].title',
+    'data.items[].body',
+    'data.items[].label',
+  ],
+  ctaSection: ['data.heading', 'data.body', 'data.snippet.caption'],
+  // `data.text` is accepted as a legacy/plain alias next to contracts `content`.
+  text: ['data.content', 'data.text'],
+  heading: ['data.text'],
+  quote: ['data.content', 'data.attribution'],
+  list: ['data.items[].content'],
+  divider: [],
+  spacer: [],
 };
 
 const PROSE_CONTAINER_TYPES = new Set(['paragraph', 'heading', 'listitem', 'quote']);

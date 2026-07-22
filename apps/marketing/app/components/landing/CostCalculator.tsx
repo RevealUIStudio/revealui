@@ -1,3 +1,4 @@
+import { Slider } from '@revealui/presentation';
 import { useState } from 'react';
 import { PRICING_COST_CALCULATOR as C } from '../../content/pricing';
 
@@ -6,6 +7,8 @@ import { PRICING_COST_CALCULATOR as C } from '../../content/pricing';
  * The output is ALWAYS one of the sanctioned 00-truth-source §3 brackets (entry /
  * growth / scale); the inputs only move you between sourced ranges, so the figure
  * is never fabricated outside the §3 band. No vendor names. CSR-only (Vite SPA).
+ *
+ * Tier-1: range inputs use @revealui/presentation Slider (GAP-398).
  */
 function pickTier(products: number, vendors: number, mrr: number) {
   const score = (products >= 3 ? 1 : 0) + (vendors >= 5 ? 1 : 0) + (mrr >= 20000 ? 1 : 0);
@@ -14,7 +17,7 @@ function pickTier(products: number, vendors: number, mrr: number) {
   return C.tiers[0];
 }
 
-function Slider({
+function LabeledSlider({
   label,
   min,
   max,
@@ -31,22 +34,19 @@ function Slider({
   display: string;
   onChange: (v: number) => void;
 }) {
+  // Pass `label` + `valueLabel` into Slider so the range input is associated
+  // via htmlFor/id (axe "label" / WCAG 4.1.2). valueLabel keeps marketing
+  // units (products+, $k) without decoupling the accessible name.
   return (
-    <label className="block">
-      <span className="flex items-baseline justify-between">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="font-mono text-sm text-primary">{display}</span>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-2 w-full accent-primary"
-      />
-    </label>
+    <Slider
+      label={label}
+      valueLabel={display}
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      onChange={onChange}
+    />
   );
 }
 
@@ -71,9 +71,8 @@ export function CostCalculator() {
         </div>
 
         <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Inputs */}
           <div className="space-y-6 rounded-2xl bg-card p-8 ring-1 ring-border">
-            <Slider
+            <LabeledSlider
               label={C.inputs.products.label}
               min={C.inputs.products.min}
               max={C.inputs.products.max}
@@ -82,7 +81,7 @@ export function CostCalculator() {
               display={products >= C.inputs.products.max ? `${products}+` : String(products)}
               onChange={setProducts}
             />
-            <Slider
+            <LabeledSlider
               label={C.inputs.vendors.label}
               min={C.inputs.vendors.min}
               max={C.inputs.vendors.max}
@@ -91,7 +90,7 @@ export function CostCalculator() {
               display={String(vendors)}
               onChange={setVendors}
             />
-            <Slider
+            <LabeledSlider
               label={C.inputs.mrr.label}
               min={C.inputs.mrr.min}
               max={C.inputs.mrr.max}
@@ -106,7 +105,6 @@ export function CostCalculator() {
             />
           </div>
 
-          {/* Output */}
           <div className="flex flex-col justify-center gap-6 rounded-2xl bg-secondary p-8 ring-1 ring-border">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

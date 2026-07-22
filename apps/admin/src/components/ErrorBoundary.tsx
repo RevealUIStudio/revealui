@@ -7,6 +7,7 @@
  * Integrates with Sentry for error reporting in production.
  */
 
+import { Button } from '@revealui/presentation/server';
 import * as Sentry from '@sentry/nextjs';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
@@ -117,56 +118,32 @@ function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackP
           The application encountered an unexpected error. This has been reported to our team.
         </p>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <button
-            type="button"
-            onClick={reset}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginRight: '0.5rem',
-            }}
-          >
+        <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+          <Button type="button" variant="brand" onClick={reset}>
             Try Again
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="neutral"
+            appearance="outline"
             onClick={() => window.location.reload()}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#666',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
           >
             Reload Page
-          </button>
+          </Button>
         </div>
 
         {process.env.NODE_ENV !== 'production' && (
           <>
-            <button
+            <Button
               type="button"
+              variant="neutral"
+              appearance="ghost"
+              size="sm"
               onClick={() => setShowDetails(!showDetails)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: 'transparent',
-                color: '#666',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-              }}
             >
               {showDetails ? 'Hide' : 'Show'} Technical Details
-            </button>
+            </Button>
 
             {showDetails && (
               <div

@@ -27,6 +27,7 @@ import {
   type ApplyPatchMessage,
   devWarn,
   isApplyPatchMessage,
+  isSetThemeMessage,
   RVUI_CLICK,
   RVUI_PATCH_APPLIED,
   RVUI_READY,
@@ -52,6 +53,25 @@ export interface EditRuntimeHandle {
 
 const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
+/**
+ * Path segments are identifiers or decimal array indices only. This blocks
+ * prototype pollution (`__proto__` / `constructor` / `prototype`) and any
+ * non-identifier injection without relying on a denylist alone (CodeQL
+ * `js/prototype-pollution-utility`).
+ */
+function isSafePathSegment(segment: string): boolean {
+  if (segment.length === 0 || DANGEROUS_KEYS.has(segment)) return false;
+  for (let i = 0; i < segment.length; i++) {
+    const code = segment.charCodeAt(i);
+    const isDigit = code >= 48 && code <= 57;
+    const isUpper = code >= 65 && code <= 90;
+    const isLower = code >= 97 && code <= 122;
+    const isUnder = code === 95;
+    if (!(isDigit || isUpper || isLower || isUnder)) return false;
+  }
+  return true;
+}
+
 function isArrayIndex(segment: string): boolean {
   if (segment.length === 0) return false;
   for (let i = 0; i < segment.length; i++) {
@@ -65,7 +85,7 @@ function isArrayIndex(segment: string): boolean {
 function setAtPath(draft: Record<string, unknown>, path: string, value: unknown): void {
   const segments = path.split('.');
   for (const segment of segments) {
-    if (segment.length === 0 || DANGEROUS_KEYS.has(segment)) {
+    if (!isSafePathSegment(segment)) {
       devWarn(`ignored patch with illegal path segment: ${path}`);
       return;
     }
@@ -74,9 +94,19 @@ function setAtPath(draft: Record<string, unknown>, path: string, value: unknown)
   for (let i = 0; i < segments.length - 1; i++) {
     const segment = segments[i];
     if (segment === undefined) return;
-    const next: unknown = Array.isArray(cursor)
-      ? cursor[Number(segment)]
-      : (cursor as Record<string, unknown>)[segment];
+    let next: unknown;
+    if (Array.isArray(cursor)) {
+      if (!isArrayIndex(segment)) {
+        devWarn(`patch target path does not exist: ${path}`);
+        return;
+      }
+      next = cursor[Number(segment)];
+    } else if (Object.hasOwn(cursor, segment)) {
+      next = cursor[segment];
+    } else {
+      devWarn(`patch target path does not exist: ${path}`);
+      return;
+    }
     if (next === null || typeof next !== 'object') {
       devWarn(`patch target path does not exist: ${path}`);
       return;
@@ -84,12 +114,18 @@ function setAtPath(draft: Record<string, unknown>, path: string, value: unknown)
     cursor = next as Record<string, unknown> | unknown[];
   }
   const last = segments[segments.length - 1];
-  if (last === undefined) return;
+  if (last === undefined || !isSafePathSegment(last)) return;
   if (Array.isArray(cursor)) {
     if (!isArrayIndex(last)) return;
     cursor[Number(last)] = value;
   } else {
-    (cursor as Record<string, unknown>)[last] = value;
+    // Own-property write only after segment allowlist (no __proto__ chain).
+    Object.defineProperty(cursor, last, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
   }
 }
 
@@ -112,8 +148,32 @@ function isValidPayload(body: unknown): body is Required<PreviewResponse> {
 }
 
 /**
+ * Session ids are server-minted UUIDs. Restrict path segments so URL query
+ * values cannot rewrite the request path (CodeQL `js/client-side-request-forgery`).
+ */
+const SAFE_SESSION_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Preview tokens are `base64url(payload).base64url(sig)` — no `/`, `\`, or `..`.
+ * See apps/server/src/routes/content/_helpers/preview-token.ts.
+ */
+const SAFE_PREVIEW_TOKEN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
+function isSafeSessionId(value: string): boolean {
+  return SAFE_SESSION_ID.test(value);
+}
+
+function isSafePreviewToken(value: string): boolean {
+  return value.length <= 4096 && SAFE_PREVIEW_TOKEN.test(value);
+}
+
+/**
  * Fetch + validate the session's read-only preview payload. Returns `null` on
  * any transport error, non-OK response, or shape mismatch (never throws).
+ *
+ * `sessionId` and `token` MUST already pass {@link isSafeSessionId} /
+ * {@link isSafePreviewToken} so the pathname cannot be attacker-controlled.
  */
 async function fetchPreviewPayload(
   apiBaseUrl: string,
@@ -121,9 +181,14 @@ async function fetchPreviewPayload(
   token: string,
 ): Promise<Required<PreviewResponse>['data'] | null> {
   try {
-    const url = new URL(`/api/content/sessions/${sessionId}/preview`, apiBaseUrl);
+    // Pathname is built only from allowlisted session ids (UUID). Token goes
+    // in the query string via URLSearchParams (encoded), never in the path.
+    const url = new URL(
+      `/api/content/sessions/${encodeURIComponent(sessionId)}/preview`,
+      apiBaseUrl,
+    );
     url.searchParams.set('token', token);
-    const res = await fetch(url.toString(), { credentials: 'omit' });
+    const res = await fetch(url.href, { credentials: 'omit' });
     if (!res.ok) {
       devWarn(`preview fetch failed: ${res.status}`);
       return null;
@@ -151,6 +216,10 @@ export async function initEditRuntime(
   const token = params.get('rvui-edit');
   const sessionId = params.get('rvui-session');
   if (!(token && sessionId)) {
+    return null;
+  }
+  if (!(isSafeSessionId(sessionId) && isSafePreviewToken(token))) {
+    devWarn('ignored edit-mode params with illegal session id or preview token shape');
     return null;
   }
 
@@ -211,9 +280,23 @@ export async function initEditRuntime(
     post({ type: RVUI_PATCH_APPLIED, doc: msg.doc, field: msg.field });
   };
 
+  const applyThemeTokens = (tokens: Record<string, string>): void => {
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(tokens)) {
+      // Only accept design-token names (D8); reject arbitrary CSS injection.
+      if (!key.startsWith('--rvui-')) continue;
+      if (value.includes(';') || value.includes('{') || value.includes('}')) continue;
+      root.style.setProperty(key, value);
+    }
+  };
+
   const onMessage = (event: MessageEvent): void => {
     if (event.origin !== adminOrigin) {
       devWarn(`dropped message from foreign origin: ${event.origin}`);
+      return;
+    }
+    if (isSetThemeMessage(event.data)) {
+      applyThemeTokens(event.data.tokens);
       return;
     }
     if (!isApplyPatchMessage(event.data)) {
@@ -231,12 +314,17 @@ export async function initEditRuntime(
     const doc = el.getAttribute('data-rvui-doc');
     const field = el.getAttribute('data-rvui-field');
     if (!(doc && field)) return;
+    // Prefer attribute values for link/image fields so the canvas gets href/src.
+    const attrValue =
+      el.getAttribute('href') ??
+      el.getAttribute('src') ??
+      (el instanceof HTMLElement ? el.dataset.rvuiValue : null);
     post({
       type: RVUI_CLICK,
       doc,
       field,
       rect: rectOf(el),
-      currentValue: el.textContent ?? '',
+      currentValue: attrValue ?? el.textContent ?? '',
     });
   };
 

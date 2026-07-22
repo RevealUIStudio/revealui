@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@revealui/presentation';
+import { Button, cn } from '@revealui/presentation';
 
 import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState } from 'react';
@@ -61,9 +61,16 @@ const RevealUIAdminBar = (props: RevealUIAdminBarProps) => {
         <div>{logo}</div>
         <div className="flex items-center gap-4">
           {preview ? (
-            <button type="button" onClick={onPreviewExit} className="text-sm underline">
+            <Button
+              type="button"
+              appearance="link"
+              variant="neutral"
+              size="sm"
+              onClick={onPreviewExit}
+              className="h-auto p-0 text-sm text-inherit underline"
+            >
               Exit Preview
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

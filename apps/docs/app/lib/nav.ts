@@ -99,6 +99,11 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
     {
       title: 'Blog',
       items: [
+        {
+          label: 'Own the Upside of AI',
+          path: '/blog/17-shareable-upside',
+        },
+        { label: 'UI of the Future', path: '/blog/16-ui-of-the-future' },
         { label: 'Why We Built RevealUI', path: '/blog/01-why-we-built-revealui' },
         { label: 'HTTP 402 Payments', path: '/blog/02-http-402-payments' },
         { label: 'Multi-Agent Coordination', path: '/blog/03-multi-agent-coordination' },

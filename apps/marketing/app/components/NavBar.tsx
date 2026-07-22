@@ -1,4 +1,5 @@
 import {
+  Button,
   GitHubIcon,
   IconClose,
   IconMenu,
@@ -112,10 +113,13 @@ export function NavBar() {
           <LinkButton href={NAV_AUTH.signup.href}>{NAV_AUTH.signup.label}</LinkButton>
 
           {/* Hamburger - mobile only. 44x44 tap target per WCAG 2.5.5 / Apple HIG. */}
-          <button
+          <Button
             ref={toggleRef}
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted lg:hidden"
+            appearance="ghost"
+            variant="neutral"
+            size="icon"
+            className="text-muted-foreground lg:hidden"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             aria-controls={MOBILE_MENU_ID}
@@ -126,7 +130,7 @@ export function NavBar() {
             ) : (
               <IconMenu size="md" strokeWidth={2} />
             )}
-          </button>
+          </Button>
         </div>
       </nav>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, IconChevronDown, IconInfo, Select } from '@revealui/presentation';
 import { type ChangeEvent, useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -255,11 +256,14 @@ function JobsDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <nav className="flex min-w-max gap-1 -mb-px" aria-label="State filter">
             {STATE_ORDER.map((s) => (
-              <button
+              <Button
                 key={s}
                 type="button"
+                appearance="ghost"
+                variant={stateFilter === s ? 'brand' : 'neutral'}
+                size="sm"
                 onClick={() => dispatch({ type: 'SET_STATE_FILTER', filter: s })}
-                className={`border-b-2 px-4 py-3 text-sm font-medium capitalize transition-colors ${
+                className={`h-auto rounded-none border-b-2 px-4 py-3 text-sm font-medium capitalize ${
                   stateFilter === s
                     ? 'border-primary text-foreground'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -267,14 +271,14 @@ function JobsDashboard() {
               >
                 {s}
                 {s !== 'all' && summary ? ` (${summary.stateCounts[s as JobState]})` : ''}
-              </button>
+              </Button>
             ))}
           </nav>
           <div className="flex items-center gap-2 py-2">
             <label htmlFor="name-filter" className="text-xs text-muted-foreground">
               Handler:
             </label>
-            <select
+            <Select
               id="name-filter"
               value={nameFilter}
               onChange={(
@@ -288,7 +292,7 @@ function JobsDashboard() {
                   {n}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
       </div>
@@ -409,13 +413,15 @@ function JobRow({
 
   return (
     <div className="rounded-lg border border-border bg-card transition-colors hover:border-border">
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
         onClick={onToggle}
-        className="w-full px-4 py-3 text-left"
+        className="h-auto w-full justify-start rounded-none px-4 py-3 text-left"
         aria-expanded={expanded}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex w-full items-center gap-3">
           <StateBadge state={job.state} />
           <span className="truncate font-mono text-sm text-muted-foreground">{job.name}</span>
           <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
@@ -437,15 +443,18 @@ function JobRow({
               {durationMs}ms
             </span>
           )}
-          <ChevronIcon expanded={expanded} />
+          <IconChevronDown
+            size="sm"
+            className={`shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
         </div>
         {!expanded && job.lastError && (
-          <p className="mt-1.5 truncate text-xs text-error">
+          <p className="mt-1.5 w-full truncate text-xs text-error">
             <span className="text-muted-foreground">err: </span>
             {job.lastError}
           </p>
         )}
-      </button>
+      </Button>
 
       {expanded && (
         <div className="border-t border-border px-4 py-3">
@@ -517,20 +526,6 @@ function MetaField({ label, value, mono }: { label: string; value: string; mono?
   );
 }
 
-function ChevronIcon({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  );
-}
-
 function EmptyState({ stateFilter, nameFilter }: { stateFilter: StateFilter; nameFilter: string }) {
   const message = (() => {
     if (stateFilter === 'all' && !nameFilter) {
@@ -545,20 +540,7 @@ function EmptyState({ stateFilter, nameFilter }: { stateFilter: StateFilter; nam
   return (
     <div className="flex flex-col items-center py-16">
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <svg
-          className="h-6 w-6 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
+        <IconInfo size="lg" className="text-muted-foreground" />
       </div>
       <p className="max-w-md text-center text-sm text-muted-foreground">{message}</p>
     </div>

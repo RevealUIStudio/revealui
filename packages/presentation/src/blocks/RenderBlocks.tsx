@@ -44,7 +44,12 @@ export function RenderBlocks({ blocks, docId, editable }: RenderBlocksProps): Re
           return null;
         }
         const block = parsed.data as Block;
-        const path = `blocks.${index}`;
+        // `.data`: every block component addresses its fields as
+        // `block.data.<field>` (fieldAttrs paths mirror that), so the path
+        // handed down must already point at the data object, not the block
+        // itself  -  otherwise a patch lands as a sibling of `data` instead of
+        // inside it.
+        const path = `blocks.${index}.data`;
         return (
           <BlockView key={block.id || path} block={block} path={path} annotation={annotation} />
         );

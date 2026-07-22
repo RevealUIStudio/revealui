@@ -1,0 +1,35 @@
+{
+  "description": "Allowlisted Tier-1 JSX intrinsics in apps/* (GAP-398 residual floor). Hard-fail gate: pnpm validate:tier1-presentation -- --hard-fail. Each entry needs a non-empty reason. Intentional floor classes: data charts, Lexical letterform toolbar icons, CMS/content-driven path icons. ADR 2026-05-16 amendment 2026-07-21. Do not empty without new presentation primitives.",
+  "entries": [
+    {
+      "path": "apps/admin/src/components/revealui/sections/stats-with-graph.tsx",
+      "tag": "svg",
+      "reason": "data-driven chart path geometry (stacked area); no Icon* match (GAP-398 residual)"
+    },
+    {
+      "path": "apps/admin/src/lib/components/mcp/usage-dashboard.tsx",
+      "tag": "svg",
+      "reason": "data-driven stacked bar SVG (dynamic rect widths); no Icon* match (GAP-398 residual)"
+    },
+    {
+      "path": "apps/admin/src/lib/features/label/icons/LabelIcon.tsx",
+      "tag": "svg",
+      "reason": "Lexical toolbar letterform icon (custom AA glyph); no Icon* match (GAP-398 residual)"
+    },
+    {
+      "path": "apps/admin/src/lib/features/largeBody/icons/LargeBodyIcon.tsx",
+      "tag": "svg",
+      "reason": "Lexical toolbar letterform icon (custom Aa glyph); no Icon* match (GAP-398 residual)"
+    },
+    {
+      "path": "apps/marketing/app/components/landing/Primitives.tsx",
+      "tag": "svg",
+      "reason": "CMS/static content-driven icon path data per primitive; no Icon* match (GAP-398 residual)"
+    },
+    {
+      "path": "apps/marketing/app/routes/ProductsPage.tsx",
+      "tag": "svg",
+      "reason": "content-driven product icon path data; no Icon* match (GAP-398 residual)"
+    }
+  ]
+}

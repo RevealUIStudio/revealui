@@ -1,3 +1,4 @@
+import { Button } from '@revealui/presentation';
 import { usePresence, useSpring, useStagger } from '@revealui/presentation/animations';
 import { useState } from 'react';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
@@ -17,13 +18,9 @@ function SpringDemo({ stiffness, damping }: { stiffness: number; damping: number
         />
       </div>
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => setTarget(target === 0 ? 1 : 0)}
-          className="rounded-lg bg-(--rvui-color-primary) px-4 py-2 text-sm font-medium text-white"
-        >
+        <Button type="button" variant="brand" onClick={() => setTarget(target === 0 ? 1 : 0)}>
           Toggle
-        </button>
+        </Button>
         <span className="flex items-center text-sm font-mono text-(--rvui-color-text-secondary)">
           v: {spring.value.toFixed(2)} | vel: {spring.velocity.toFixed(0)}
         </span>
@@ -38,13 +35,9 @@ function PresenceDemo() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <button
-        type="button"
-        onClick={() => setShow(!show)}
-        className="rounded-lg bg-(--rvui-color-primary) px-4 py-2 text-sm font-medium text-white"
-      >
+      <Button type="button" variant="brand" onClick={() => setShow(!show)}>
         {show ? 'Hide' : 'Show'}
-      </button>
+      </Button>
       {mounted && (
         <div
           ref={ref}
@@ -71,27 +64,25 @@ function StaggerDemo() {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => setKey((k) => k + 1)}
-          className="rounded-lg bg-(--rvui-color-primary) px-4 py-2 text-sm font-medium text-white"
-        >
+        <Button type="button" variant="brand" onClick={() => setKey((k) => k + 1)}>
           Replay
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          appearance="outline"
+          variant="neutral"
           onClick={() => setCount((c) => Math.min(c + 1, 12))}
-          className="rounded-lg border border-(--rvui-color-border) px-3 py-2 text-sm"
         >
           +
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          appearance="outline"
+          variant="neutral"
           onClick={() => setCount((c) => Math.max(c - 1, 2))}
-          className="rounded-lg border border-(--rvui-color-border) px-3 py-2 text-sm"
         >
           -
-        </button>
+        </Button>
       </div>
       <div key={key} className="flex gap-2">
         {delays.map((delay) => (
@@ -186,13 +177,16 @@ const story: ShowcaseStory = {
                   style={{ left: `${spring.value * 164}px` }}
                 />
               </div>
-              <button
+              <Button
                 type="button"
+                appearance="link"
+                variant="brand"
+                size="sm"
                 onClick={() => setTarget(target === 0 ? 1 : 0)}
-                className="text-xs text-(--rvui-color-primary) hover:underline"
+                className="h-auto px-0 py-0 text-xs"
               >
                 toggle
-              </button>
+              </Button>
             </div>
           );
         }

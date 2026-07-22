@@ -1,4 +1,4 @@
-import { Input, Select } from '@revealui/presentation';
+import { Button, Input, Select, Slider, Switch } from '@revealui/presentation';
 import { Field, Label } from '@revealui/presentation/client';
 import type { PropControls } from './types.js';
 
@@ -59,34 +59,21 @@ export function PropPanel({ controls, values, onChange }: PropPanelProps) {
                 {key}
               </label>
               {control.type === 'boolean' && (
-                <button
-                  type="button"
+                <Switch
                   id={`prop-${key}`}
-                  role="switch"
-                  aria-checked={values[key] as boolean}
-                  onClick={() => onChange(key, !(values[key] as boolean))}
-                  className={`relative h-6 w-10 rounded-full transition-colors ${
-                    values[key] ? 'bg-accent' : 'bg-border'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform ${
-                      values[key] ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                  checked={values[key] as boolean}
+                  onChange={(checked) => onChange(key, checked)}
+                />
               )}
               {(control.type === 'number' || control.type === 'range') && (
                 <div className="flex items-center gap-2">
-                  <input
-                    id={`prop-${key}`}
-                    type="range"
+                  <Slider
                     value={values[key] as number}
                     min={control.min}
                     max={control.max}
                     step={control.step ?? 1}
-                    onChange={(e) => onChange(key, Number(e.target.value))}
-                    className="h-1.5 flex-1 appearance-none rounded-full bg-border accent-accent"
+                    onChange={(next) => onChange(key, next)}
+                    className="flex-1"
                   />
                   <span className="min-w-[2rem] text-right text-xs tabular-nums text-text-muted">
                     {values[key] as number}
@@ -96,12 +83,15 @@ export function PropPanel({ controls, values, onChange }: PropPanelProps) {
               {control.type === 'color' && (
                 <div className="flex flex-wrap gap-1">
                   {control.options.map((color) => (
-                    <button
+                    <Button
                       key={color}
                       type="button"
+                      size="icon"
+                      appearance="ghost"
+                      variant="neutral"
                       title={color}
                       onClick={() => onChange(key, color)}
-                      className={`size-5 rounded-full border-2 transition-transform hover:scale-110 ${
+                      className={`size-5 min-h-0 rounded-full border-2 p-0 transition-transform hover:scale-110 ${
                         values[key] === color ? 'border-accent scale-110' : 'border-transparent'
                       }`}
                       style={{ backgroundColor: `var(--color-${color}-500, ${color})` }}

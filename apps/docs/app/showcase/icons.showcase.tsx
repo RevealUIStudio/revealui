@@ -1,3 +1,4 @@
+import { Button } from '@revealui/presentation';
 import {
   IconAlertCircle,
   IconAlertTriangle,
@@ -163,24 +164,15 @@ const story: ShowcaseStory = {
       name: 'Icon in Button',
       render: () => (
         <div className="flex gap-3">
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg bg-(--rvui-color-primary) px-4 py-2 text-sm font-medium text-white"
-          >
+          <Button type="button" variant="brand">
             <IconPlus size="sm" /> Add Item
-          </button>
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg border border-(--rvui-color-border) px-4 py-2 text-sm font-medium"
-          >
+          </Button>
+          <Button type="button" appearance="outline" variant="neutral">
             <IconDownload size="sm" /> Export
-          </button>
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-500"
-          >
+          </Button>
+          <Button type="button" variant="danger" appearance="ghost">
             <IconTrash size="sm" /> Delete
-          </button>
+          </Button>
         </div>
       ),
     },

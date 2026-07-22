@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  Button,
+  IconChevronDown,
+  IconTerminal,
+  EmptyState as PresentationEmptyState,
+} from '@revealui/presentation';
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -197,36 +203,37 @@ function AgentTasksDashboard() {
           <div className="overflow-x-auto">
             <nav className="flex gap-1 -mb-px min-w-max" aria-label="Status filter">
               {(['all', 'completed', 'failed', 'running', 'pending'] as StatusFilter[]).map((f) => (
-                <button
+                <Button
                   key={f}
                   type="button"
+                  appearance="ghost"
+                  variant="neutral"
                   onClick={() => dispatch({ type: 'SET_FILTER', filter: f })}
-                  className={`border-b-2 px-4 py-3 text-sm font-medium capitalize transition-colors ${
+                  className={`h-auto rounded-none border-b-2 px-4 py-3 text-sm font-medium capitalize ${
                     statusFilter === f
                       ? 'border-primary text-foreground'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {f} ({counts[f]})
-                </button>
+                </Button>
               ))}
             </nav>
           </div>
           <fieldset className="flex items-center gap-1 border-none p-0 py-2">
             <legend className="sr-only">Date filter</legend>
             {(['24h', '7d', '30d', 'all'] as DateFilter[]).map((d) => (
-              <button
+              <Button
                 key={d}
                 type="button"
+                appearance={dateFilter === d ? 'solid' : 'ghost'}
+                variant={dateFilter === d ? 'brand' : 'neutral'}
+                size="sm"
                 onClick={() => dispatch({ type: 'SET_DATE_FILTER', filter: d })}
-                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-                  dateFilter === d
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className="h-auto rounded px-2.5 py-1 text-xs font-medium"
               >
                 {d === 'all' ? 'All time' : d}
-              </button>
+              </Button>
             ))}
           </fieldset>
         </div>
@@ -259,7 +266,7 @@ function AgentTasksDashboard() {
             {error}
           </div>
         ) : filtered.length === 0 ? (
-          <EmptyState filter={statusFilter} dateFilter={dateFilter} />
+          <TasksEmptyState filter={statusFilter} dateFilter={dateFilter} />
         ) : (
           <div className="flex flex-col gap-2">
             {filtered.map((task) => (
@@ -321,13 +328,15 @@ function TaskRow({
 
   return (
     <div className="rounded-lg border border-border bg-card transition-colors hover:border-border">
-      <button
+      <Button
         type="button"
+        appearance="ghost"
+        variant="neutral"
         onClick={onToggle}
-        className="w-full px-4 py-3 text-left"
+        className="h-auto w-full flex-col items-stretch justify-start rounded-none px-4 py-3 text-left"
         aria-expanded={expanded}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex w-full items-center gap-3">
           <StatusBadge status={task.status} />
           <span className="truncate text-sm text-muted-foreground">{inputText ?? task.tool}</span>
           <span className="ml-auto hidden shrink-0 text-xs text-muted-foreground sm:inline">
@@ -339,15 +348,18 @@ function TaskRow({
               {task.durationMs}ms
             </span>
           )}
-          <ChevronIcon expanded={expanded} />
+          <IconChevronDown
+            className={`size-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
         </div>
         {!expanded && outputText && (
-          <p className="mt-1.5 truncate text-xs text-muted-foreground">
+          <p className="mt-1.5 w-full truncate text-xs text-muted-foreground">
             <span className="text-muted-foreground">out: </span>
             {outputText}
           </p>
         )}
-      </button>
+      </Button>
 
       {expanded && (
         <div className="border-t border-border px-4 py-3">
@@ -431,28 +443,14 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ChevronIcon({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  );
-}
-
-function EmptyState({ filter, dateFilter }: { filter: StatusFilter; dateFilter: DateFilter }) {
+function TasksEmptyState({ filter, dateFilter }: { filter: StatusFilter; dateFilter: DateFilter }) {
   const dateLabel: Record<DateFilter, string> = {
     all: '',
     '24h': ' in the last 24 hours',
     '7d': ' in the last 7 days',
     '30d': ' in the last 30 days',
   };
-  const message =
+  const description =
     filter === 'all' && dateFilter === 'all'
       ? 'No agent tasks recorded yet. Submit a task from the Agents page to get started.'
       : filter === 'all'
@@ -460,25 +458,12 @@ function EmptyState({ filter, dateFilter }: { filter: StatusFilter; dateFilter: 
         : `No ${filter} tasks found${dateLabel[dateFilter]}.`;
 
   return (
-    <div className="flex flex-col items-center py-16">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <svg
-          className="h-6 w-6 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714a2.25 2.25 0 00.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-2.47 2.47a2.25 2.25 0 01-1.591.659H9.061a2.25 2.25 0 01-1.591-.659L5 14.5m14 0V17a2.25 2.25 0 01-2.25 2.25H7.25A2.25 2.25 0 015 17v-2.5"
-          />
-        </svg>
-      </div>
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
+    <PresentationEmptyState
+      icon={<IconTerminal className="size-6" aria-hidden="true" />}
+      title="No tasks"
+      description={description}
+      className="border-0 py-16"
+    />
   );
 }
 

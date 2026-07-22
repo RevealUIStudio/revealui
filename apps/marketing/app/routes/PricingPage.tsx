@@ -1,4 +1,10 @@
-import { Button } from '@revealui/presentation';
+import {
+  Button,
+  IconCheckCircle,
+  IconCode,
+  IconSearch,
+  IconTerminal,
+} from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import { CenteredCardGrid } from '../components/CenteredCardGrid';
 import { Footer } from '../components/Footer';
@@ -38,19 +44,6 @@ const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com'
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-      <title>Included</title>
-      <path
-        fillRule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
@@ -170,7 +163,7 @@ export function PricingPage() {
             <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {PRICING_VALUE_BAND.points.map((point) => (
                 <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -179,32 +172,30 @@ export function PricingPage() {
 
           {showAnnualToggle && (
             <div className="mb-8 flex justify-center">
-              <div className="inline-flex items-center rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
-                <button
+              <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1 text-sm font-medium ring-1 ring-border">
+                <Button
                   type="button"
+                  size="sm"
+                  appearance={billingInterval === 'month' ? 'solid' : 'ghost'}
+                  variant={billingInterval === 'month' ? 'neutral' : 'neutral'}
                   onClick={() => setBillingInterval('month')}
-                  className={`rounded-full px-4 py-1.5 transition-colors ${
-                    billingInterval === 'month'
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className="rounded-full"
                 >
                   Monthly
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  size="sm"
+                  appearance={billingInterval === 'year' ? 'solid' : 'ghost'}
+                  variant={billingInterval === 'year' ? 'neutral' : 'neutral'}
                   onClick={() => setBillingInterval('year')}
-                  className={`rounded-full px-4 py-1.5 transition-colors ${
-                    billingInterval === 'year'
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                  className="rounded-full"
                 >
                   Annually
                   <span className="ml-1.5 rounded-full bg-green-500/15 px-1.5 py-0.5 text-xs font-semibold text-green-800 dark:text-green-400">
                     Save 20%
                   </span>
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -244,7 +235,7 @@ export function PricingPage() {
                 <ul className="mb-8 flex-1 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
-                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -317,7 +308,7 @@ export function PricingPage() {
             <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {PRICING_AGENCY_VALUE_BAND.points.map((point) => (
                 <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -357,7 +348,7 @@ export function PricingPage() {
                 <ul className="mb-8 mt-6 flex-1 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
-                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -397,21 +388,7 @@ export function PricingPage() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
-                  <svg
-                    className="h-5 w-5 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <title>Discovery</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                    />
-                  </svg>
+                  <IconSearch size="md" className="text-primary" />
                 </div>
                 <h3 className="text-base font-semibold text-foreground">
                   {PRICING_AGENT_A2A.heading}
@@ -432,21 +409,7 @@ export function PricingPage() {
 
               <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
-                  <svg
-                    className="h-5 w-5 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <title>Payment</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"
-                    />
-                  </svg>
+                  <IconCode size="md" className="text-blue-600" />
                 </div>
                 <h3 className="text-base font-semibold text-foreground">
                   {PRICING_AGENT_X402.heading}
@@ -456,21 +419,7 @@ export function PricingPage() {
 
               <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 ring-1 ring-violet-500/20">
-                  <svg
-                    className="h-5 w-5 text-violet-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <title>MCP</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.39 48.39 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.008-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401v0c.317 0 .573-.262.553-.578a48.14 48.14 0 0 0-.529-5.004.546.546 0 0 0-.574-.473 40.098 40.098 0 0 0-4.93.357.62.62 0 0 1-.658-.647v0Z"
-                    />
-                  </svg>
+                  <IconTerminal size="md" className="text-violet-600" />
                 </div>
                 <h3 className="text-base font-semibold text-foreground">
                   {PRICING_AGENT_MCP.heading}
@@ -492,21 +441,7 @@ export function PricingPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg bg-card px-4 py-2 text-sm font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-muted"
               >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <title>API</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
-                  />
-                </svg>
+                <IconCode size="sm" />
                 {PRICING_AGENT_CTA_LINKS.openapi.label}
               </a>
               <a

@@ -4,6 +4,7 @@
  * Displays a metric panel with value, trend, and status indicators
  */
 
+import { IconAlertCircle, IconChevronDown, IconChevronUp } from '@revealui/presentation/server';
 import type React from 'react';
 
 export interface DataPanelProps {
@@ -102,21 +103,7 @@ export function DataPanel({
         data-status={status}
       >
         <div className="text-error">
-          <svg
-            className="w-6 h-6 mb-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            role="img"
-            aria-label="Error icon"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <IconAlertCircle className="mb-2 size-6" label="Error icon" />
           <p className="font-medium">{error}</p>
         </div>
       </div>
@@ -168,37 +155,9 @@ export function DataPanel({
           aria-live="polite"
         >
           {trend > 0 ? (
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              role="img"
-              aria-label="Trending up"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 10l7-7m0 0l7 7m-7-7v18"
-              />
-            </svg>
+            <IconChevronUp className="mr-1 size-4" label="Trending up" />
           ) : trend < 0 ? (
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              role="img"
-              aria-label="Trending down"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
+            <IconChevronDown className="mr-1 size-4" label="Trending down" />
           ) : null}
           <span>
             <span className="sr-only">{getTrendAriaLabel()}</span>

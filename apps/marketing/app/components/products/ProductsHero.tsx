@@ -11,7 +11,7 @@ const ALL_PRODUCT_ANCHORS = [
 export interface ProductsHeroProps {
   /** Rich hero data; defaults to the static content module (byte-identical). */
   data?: ProductsHeroData;
-  /** Dot-path base of this block within the page array, e.g. `blocks.0`. */
+  /** Dot-path of this block's data object within the page array, e.g. `blocks.0.data`. */
   path?: string;
   /** Edit-mode annotation. Inactive by default: emits zero data attributes. */
   annotation?: BlockAnnotation;
@@ -19,7 +19,7 @@ export interface ProductsHeroProps {
 
 export function ProductsHero({
   data = PRODUCTS_PAGE_HERO,
-  path = 'blocks.0',
+  path = 'blocks.0.data',
   annotation = {},
 }: ProductsHeroProps) {
   return (

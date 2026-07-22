@@ -7,6 +7,7 @@
 
 'use client';
 
+import { Button } from '@revealui/presentation/server';
 import { logger } from '@revealui/utils/logger';
 import React, { Component, type ReactNode } from 'react';
 
@@ -101,13 +102,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </details>
             )}
 
-            <button
-              onClick={this.handleReset}
-              className="self-start px-4 py-2 bg-error text-primary-foreground rounded hover:bg-error/90 transition-colors"
+            <Button
               type="button"
+              variant="danger"
+              className="self-start"
+              onClick={this.handleReset}
             >
               Try Again
-            </button>
+            </Button>
           </div>
         </div>
       );

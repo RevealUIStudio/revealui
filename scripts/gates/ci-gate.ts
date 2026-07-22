@@ -338,6 +338,12 @@ async function gate(): Promise<void> {
         args: ['validate:marketing-voice'],
       },
       {
+        // VES fleet-marketing voice gate needs dist prose slots (section/ctaSection).
+        name: 'Marketing voice prose-slot dist (hard fail)',
+        command: 'pnpm',
+        args: ['validate:marketing-voice-prose-slots'],
+      },
+      {
         // Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
         // plus apps/marketing/app/content/**/*.ts marketing-copy string
         // literals (TypeScript AST, no identifiers/imports/comments). A
@@ -397,6 +403,14 @@ async function gate(): Promise<void> {
         name: 'Client-bundle safety (hard fail)',
         command: 'pnpm',
         args: ['validate:client-safety'],
+      },
+      {
+        // GAP-398: Tier-1 handroll JSX (button/input/select/textarea/svg) must
+        // use @revealui/presentation. Hard-fail on non-allowlisted hits (burn
+        // remaining allowlist entries separately; do not re-widen).
+        name: 'Tier-1 presentation (hard fail)',
+        command: 'pnpm',
+        args: ['validate:tier1-presentation', '--', '--hard-fail'],
       },
       {
         name: 'Security audit',
