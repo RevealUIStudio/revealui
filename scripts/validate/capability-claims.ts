@@ -168,9 +168,31 @@ export function analyzeClaimText(text: string): CapabilitySignal {
   return { markers, denylist };
 }
 
+/**
+ * Legal/policy content modules (`legal/*`) use universal quantifiers
+ * ("every", "never", "govern", "cannot") as legal English, not as product
+ * capability assertions in the GAP-354 sense. Marker-based proof obligation
+ * does not apply to them. Denylisted claim families still do — a policy page
+ * must not re-ship "hash-chain" / "stop an agent" without a production-path
+ * test proof.
+ */
+export function isLegalPolicyFile(file: string): boolean {
+  return file.startsWith('legal/');
+}
+
 /** A claim needs a proof when it is capability-shaped or hits the denylist. */
 export function isCapabilityClaim(signal: CapabilitySignal): boolean {
   return signal.markers.length > 0 || signal.denylist.length > 0;
+}
+
+/**
+ * Capability signal for one claims-evidence entry. Legal policy files keep
+ * denylist hits only; product marketing files keep the full marker set.
+ */
+export function analyzeClaimEntry(entry: ClaimEntry): CapabilitySignal {
+  const signal = analyzeClaimText(entry.text);
+  if (!isLegalPolicyFile(entry.file)) return signal;
+  return { markers: [], denylist: signal.denylist };
 }
 
 /**
@@ -356,7 +378,7 @@ export function checkCapabilityClaims(
   let proven = 0;
 
   for (const entry of claims) {
-    const signal = analyzeClaimText(entry.text);
+    const signal = analyzeClaimEntry(entry);
     if (!isCapabilityClaim(signal)) continue;
     scanned++;
 
@@ -452,7 +474,7 @@ export function loadCapabilityBaseline(baselinePath: string): Set<string> {
 export function computeBaselineKeys(claims: readonly ClaimEntry[], repoRoot: string): string[] {
   const keys: string[] = [];
   for (const entry of claims) {
-    const signal = analyzeClaimText(entry.text);
+    const signal = analyzeClaimEntry(entry);
     if (!isCapabilityClaim(signal)) continue;
     if (signal.denylist.length > 0) continue;
     const hasValidProof = testEvidenceRefs(entry).some((r) => validateTestRef(r.ref, repoRoot).ok);

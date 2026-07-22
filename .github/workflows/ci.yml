@@ -90,6 +90,13 @@ jobs:
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
+      - name: Claims evidence validation (hard fail)
+        # Every prose sentence in covered marketing content must carry a
+        # claims-evidence entry citing the code that proves it. Sibling of
+        # claim-drift (numbers); this step pins the sentences. Mirrors the
+        # local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:claims-evidence
+
       - name: Rules lockstep validation (hard fail)
         # The .claude config surface (rules/agents/skills) is materialized
         # from revcon profiles with a sha256 manifest; tracked copies must

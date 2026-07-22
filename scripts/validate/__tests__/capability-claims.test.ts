@@ -4,12 +4,14 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ClaimEntry } from '../../../apps/marketing/app/content/claims-evidence.js';
 import {
+  analyzeClaimEntry,
   analyzeClaimText,
   capabilityClaimKey,
   checkCapabilityClaims,
   computeBaselineKeys,
   importsMockMarker,
   isCapabilityClaim,
+  isLegalPolicyFile,
   isTitleSkipped,
   validateTestRef,
 } from '../capability-claims.js';
@@ -111,6 +113,49 @@ describe('analyzeClaimText', () => {
     expect(
       analyzeClaimText('Decide who can stop an agent.').denylist.map((d) => d.family),
     ).toContain('stop-an-agent');
+  });
+});
+
+describe('legal policy files (claims-evidence legal/* ratchet)', () => {
+  it('recognizes legal/* paths only', () => {
+    expect(isLegalPolicyFile('legal/privacy.ts')).toBe(true);
+    expect(isLegalPolicyFile('legal/terms.ts')).toBe(true);
+    expect(isLegalPolicyFile('home.ts')).toBe(false);
+    expect(isLegalPolicyFile('security.ts')).toBe(false);
+  });
+
+  it('ignores capability markers on legal/* but keeps denylist', () => {
+    const legalGovern = entry({
+      file: 'legal/terms.ts',
+      text: 'These Terms of Service govern your use of the platform.',
+    });
+    const signal = analyzeClaimEntry(legalGovern);
+    expect(signal.markers).toEqual([]);
+    expect(isCapabilityClaim(signal)).toBe(false);
+
+    const legalDeny = entry({
+      file: 'legal/security.ts',
+      text: 'We operate a hash-chained tamper-evident audit log.',
+    });
+    const denySignal = analyzeClaimEntry(legalDeny);
+    expect(denySignal.markers).toEqual([]);
+    expect(denySignal.denylist.length).toBeGreaterThan(0);
+    expect(isCapabilityClaim(denySignal)).toBe(true);
+  });
+
+  it('does not require kind:test proofs for marker-only legal prose', () => {
+    const result = checkCapabilityClaims(
+      [
+        entry({
+          file: 'legal/privacy.ts',
+          text: 'We never store credit card numbers. Stripe handles payments.',
+        }),
+      ],
+      new Set(),
+      root,
+    );
+    expect(result.scanned).toBe(0);
+    expect(result.violations).toHaveLength(0);
   });
 });
 
