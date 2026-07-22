@@ -5,7 +5,7 @@ export const preambles: PreambleTier[] = [
     tier: 1,
     name: 'Identity',
     description: 'Always injected  -  core project identity and structure',
-    ruleIds: ['monorepo'],
+    ruleIds: ['monorepo', 'tracker-first', 'quality-over-speed'],
   },
   {
     tier: 2,
