@@ -23,7 +23,7 @@
  *   pnpm dev:admin                # :4000 (after NEXT_PUBLIC_API_URL)
  */
 
-import { spawn, execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
@@ -69,9 +69,9 @@ function buildContracts(): void {
 async function main(): Promise<void> {
   const buildContractsFlag = process.argv.includes('--build-contracts');
 
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('  Dogfood API (local server :3004)');
-  console.log('='.repeat(60) + '\n');
+  console.log(`${'='.repeat(60)}\n`);
 
   loadSeedEnv(rootDir);
   const url = resolveSeedDatabaseUrl();
@@ -110,8 +110,7 @@ async function main(): Promise<void> {
 
   // Match packages/config default when unset so admin session cookies validate CSRF.
   const secret =
-    process.env.REVEALUI_SECRET ||
-    'INSECURE-DEV-ONLY-CHANGE-ME-SET-REVEALUI_SECRET-IN-PRODUCTION';
+    process.env.REVEALUI_SECRET || 'INSECURE-DEV-ONLY-CHANGE-ME-SET-REVEALUI_SECRET-IN-PRODUCTION';
 
   if (!process.env.NEXT_PUBLIC_API_URL) {
     console.log(
@@ -130,7 +129,9 @@ async function main(): Promise<void> {
       DATABASE_URL: url,
       REVEALUI_LICENSE_PRIVATE_KEY: privateKey,
       REVEALUI_SECRET: secret,
-      SESSION_SECRET: process.env.SESSION_SECRET || secret,
+      // Same value as REVEALUI_SECRET (admin CSRF/session alignment); do not
+      // read process.env.SESSION_SECRET here — biome noUndeclaredEnvVars.
+      SESSION_SECRET: secret,
     },
     stdio: 'inherit',
   });
