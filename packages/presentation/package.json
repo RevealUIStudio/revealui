@@ -40,27 +40,33 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./server": {
       "types": "./dist/server.d.ts",
-      "import": "./dist/server.js"
+      "import": "./dist/server.js",
+      "default": "./dist/server.js"
     },
     "./client": {
       "types": "./dist/client.d.ts",
-      "import": "./dist/client.js"
+      "import": "./dist/client.js",
+      "default": "./dist/client.js"
     },
     "./components": {
       "types": "./dist/components/index.d.ts",
-      "import": "./dist/components/index.js"
+      "import": "./dist/components/index.js",
+      "default": "./dist/components/index.js"
     },
     "./primitives": {
       "types": "./dist/primitives/index.d.ts",
-      "import": "./dist/primitives/index.js"
+      "import": "./dist/primitives/index.js",
+      "default": "./dist/primitives/index.js"
     },
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
-      "import": "./dist/hooks/index.js"
+      "import": "./dist/hooks/index.js",
+      "default": "./dist/hooks/index.js"
     },
     "./tokens.css": "./dist/tokens.css",
     "./design-context/MANIFEST.sha256": "./dist/design-context/MANIFEST.sha256",
@@ -68,7 +74,8 @@
     "./design-context/tokens.css": "./dist/design-context/tokens.css",
     "./animations": {
       "types": "./dist/animations/index.d.ts",
-      "import": "./dist/animations/index.js"
+      "import": "./dist/animations/index.js",
+      "default": "./dist/animations/index.js"
     }
   },
   "files": [

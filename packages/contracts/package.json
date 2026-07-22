@@ -28,103 +28,128 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./foundation": {
       "types": "./dist/foundation/index.d.ts",
-      "import": "./dist/foundation/index.js"
+      "import": "./dist/foundation/index.js",
+      "default": "./dist/foundation/index.js"
     },
     "./representation": {
       "types": "./dist/representation/index.d.ts",
-      "import": "./dist/representation/index.js"
+      "import": "./dist/representation/index.js",
+      "default": "./dist/representation/index.js"
     },
     "./entities": {
       "types": "./dist/entities/index.d.ts",
-      "import": "./dist/entities/index.js"
+      "import": "./dist/entities/index.js",
+      "default": "./dist/entities/index.js"
     },
     "./content": {
       "types": "./dist/content/index.d.ts",
-      "import": "./dist/content/index.js"
+      "import": "./dist/content/index.js",
+      "default": "./dist/content/index.js"
     },
     "./admin": {
       "types": "./dist/admin/index.d.ts",
-      "import": "./dist/admin/index.js"
+      "import": "./dist/admin/index.js",
+      "default": "./dist/admin/index.js"
     },
     "./agents": {
       "types": "./dist/agents/index.d.ts",
-      "import": "./dist/agents/index.js"
+      "import": "./dist/agents/index.js",
+      "default": "./dist/agents/index.js"
     },
     "./database": {
       "types": "./dist/database/index.d.ts",
-      "import": "./dist/database/index.js"
+      "import": "./dist/database/index.js",
+      "default": "./dist/database/index.js"
     },
     "./marketing-voice": {
       "types": "./dist/marketing-voice/index.d.ts",
-      "import": "./dist/marketing-voice/index.js"
+      "import": "./dist/marketing-voice/index.js",
+      "default": "./dist/marketing-voice/index.js"
     },
     "./actions": {
       "types": "./dist/actions/index.d.ts",
-      "import": "./dist/actions/index.js"
+      "import": "./dist/actions/index.js",
+      "default": "./dist/actions/index.js"
     },
     "./core": {
       "types": "./dist/cms/index.d.ts",
-      "import": "./dist/cms/index.js"
+      "import": "./dist/cms/index.js",
+      "default": "./dist/cms/index.js"
     },
     "./core/contracts": {
       "types": "./dist/cms/index.d.ts",
-      "import": "./dist/cms/index.js"
+      "import": "./dist/cms/index.js",
+      "default": "./dist/cms/index.js"
     },
     "./blocks": {
       "types": "./dist/content/index.d.ts",
-      "import": "./dist/content/index.js"
+      "import": "./dist/content/index.js",
+      "default": "./dist/content/index.js"
     },
     "./pricing": {
       "types": "./dist/pricing.d.ts",
-      "import": "./dist/pricing.js"
+      "import": "./dist/pricing.js",
+      "default": "./dist/pricing.js"
     },
     "./generated": {
       "types": "./dist/generated/database.d.ts",
-      "import": "./dist/generated/database.js"
+      "import": "./dist/generated/database.js",
+      "default": "./dist/generated/database.js"
     },
     "./generated/database": {
       "types": "./dist/generated/database.d.ts",
-      "import": "./dist/generated/database.js"
+      "import": "./dist/generated/database.js",
+      "default": "./dist/generated/database.js"
     },
     "./generated/zod-schemas": {
       "types": "./dist/generated/zod-schemas.d.ts",
-      "import": "./dist/generated/zod-schemas.js"
+      "import": "./dist/generated/zod-schemas.js",
+      "default": "./dist/generated/zod-schemas.js"
     },
     "./generated/contracts": {
       "types": "./dist/generated/contracts.d.ts",
-      "import": "./dist/generated/contracts.js"
+      "import": "./dist/generated/contracts.js",
+      "default": "./dist/generated/contracts.js"
     },
     "./content-validation": {
       "types": "./dist/content-validation.d.ts",
-      "import": "./dist/content-validation.js"
+      "import": "./dist/content-validation.js",
+      "default": "./dist/content-validation.js"
     },
     "./security": {
       "types": "./dist/security/index.d.ts",
-      "import": "./dist/security/index.js"
+      "import": "./dist/security/index.js",
+      "default": "./dist/security/index.js"
     },
     "./secrets": {
       "types": "./dist/secrets/index.d.ts",
-      "import": "./dist/secrets/index.js"
+      "import": "./dist/secrets/index.js",
+      "default": "./dist/secrets/index.js"
     },
     "./a2a": {
       "types": "./dist/a2a/index.d.ts",
-      "import": "./dist/a2a/index.js"
+      "import": "./dist/a2a/index.js",
+      "default": "./dist/a2a/index.js"
     },
     "./api/auth": {
       "types": "./dist/api/auth.d.ts",
-      "import": "./dist/api/auth.js"
+      "import": "./dist/api/auth.js",
+      "default": "./dist/api/auth.js"
     },
     "./api/chat": {
       "types": "./dist/api/chat.d.ts",
-      "import": "./dist/api/chat.js"
+      "import": "./dist/api/chat.js",
+      "default": "./dist/api/chat.js"
     },
     "./api/gdpr": {
       "types": "./dist/api/gdpr.d.ts",
-      "import": "./dist/api/gdpr.js"
+      "import": "./dist/api/gdpr.js",
+      "default": "./dist/api/gdpr.js"
     }
   },
   "files": [

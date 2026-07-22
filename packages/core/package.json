@@ -46,279 +46,348 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./license": {
       "types": "./dist/license.d.ts",
-      "import": "./dist/license.js"
+      "import": "./dist/license.js",
+      "default": "./dist/license.js"
     },
     "./revforge-license": {
       "types": "./dist/revforge-license.d.ts",
-      "import": "./dist/revforge-license.js"
+      "import": "./dist/revforge-license.js",
+      "default": "./dist/revforge-license.js"
     },
     "./features": {
       "types": "./dist/features.d.ts",
-      "import": "./dist/features.js"
+      "import": "./dist/features.js",
+      "default": "./dist/features.js"
     },
     "./server": {
       "types": "./dist/server/index.d.ts",
-      "import": "./dist/server/index.js"
+      "import": "./dist/server/index.js",
+      "default": "./dist/server/index.js"
     },
     "./types": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js"
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
     },
     "./types/core": {
       "types": "./dist/types/core.d.ts",
-      "import": "./dist/types/core.js"
+      "import": "./dist/types/core.js",
+      "default": "./dist/types/core.js"
     },
     "./types/schema": {
       "types": "./dist/types/schema.d.ts",
-      "import": "./dist/types/schema.js"
+      "import": "./dist/types/schema.js",
+      "default": "./dist/types/schema.js"
     },
     "./types/generated": {
       "types": "./dist/types/generated.d.ts",
-      "import": "./dist/types/generated.js"
+      "import": "./dist/types/generated.js",
+      "default": "./dist/types/generated.js"
     },
     "./types/admin": {
       "types": "./dist/types/admin.d.ts",
-      "import": "./dist/types/admin.js"
+      "import": "./dist/types/admin.js",
+      "default": "./dist/types/admin.js"
     },
     "./types/frontend": {
       "types": "./dist/types/frontend.d.ts",
-      "import": "./dist/types/frontend.js"
+      "import": "./dist/types/frontend.js",
+      "default": "./dist/types/frontend.js"
     },
     "./generated": {
       "types": "./dist/generated/index.d.ts",
-      "import": "./dist/generated/index.js"
+      "import": "./dist/generated/index.js",
+      "default": "./dist/generated/index.js"
     },
     "./generated/types": {
       "types": "./dist/generated/types/index.d.ts",
-      "import": "./dist/generated/types/index.js"
+      "import": "./dist/generated/types/index.js",
+      "default": "./dist/generated/types/index.js"
     },
     "./generated/types/admin": {
       "types": "./dist/generated/types/admin.d.ts",
-      "import": "./dist/generated/types/admin.js"
+      "import": "./dist/generated/types/admin.js",
+      "default": "./dist/generated/types/admin.js"
     },
     "./generated/types/neon": {
       "types": "./dist/generated/types/neon.d.ts",
-      "import": "./dist/generated/types/neon.js"
+      "import": "./dist/generated/types/neon.js",
+      "default": "./dist/generated/types/neon.js"
     },
     "./config": {
       "types": "./dist/config/index.d.ts",
-      "import": "./dist/config/index.js"
+      "import": "./dist/config/index.js",
+      "default": "./dist/config/index.js"
     },
     "./database": {
       "types": "./dist/database/index.d.ts",
-      "import": "./dist/database/index.js"
+      "import": "./dist/database/index.js",
+      "default": "./dist/database/index.js"
     },
     "./database/ssl-config": {
       "types": "./dist/database/ssl-config.d.ts",
-      "import": "./dist/database/ssl-config.js"
+      "import": "./dist/database/ssl-config.js",
+      "default": "./dist/database/ssl-config.js"
     },
     "./database/type-adapter": {
       "types": "./dist/database/type-adapter.d.ts",
-      "import": "./dist/database/type-adapter.js"
+      "import": "./dist/database/type-adapter.js",
+      "default": "./dist/database/type-adapter.js"
     },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
-      "import": "./dist/storage/index.js"
+      "import": "./dist/storage/index.js",
+      "default": "./dist/storage/index.js"
     },
     "./auth": {
       "types": "./dist/auth/index.d.ts",
-      "import": "./dist/auth/index.js"
+      "import": "./dist/auth/index.js",
+      "default": "./dist/auth/index.js"
     },
     "./admin": {
       "types": "./dist/client/admin/index.d.ts",
-      "import": "./dist/client/admin/index.js"
+      "import": "./dist/client/admin/index.js",
+      "default": "./dist/client/admin/index.js"
     },
     "./admin/utils/serializeConfig": {
       "types": "./dist/client/admin/utils/serializeConfig.d.ts",
-      "import": "./dist/client/admin/utils/serializeConfig.js"
+      "import": "./dist/client/admin/utils/serializeConfig.js",
+      "default": "./dist/client/admin/utils/serializeConfig.js"
     },
     "./admin/utils/apiClient": {
       "types": "./dist/client/admin/utils/apiClient.d.ts",
-      "import": "./dist/client/admin/utils/apiClient.js"
+      "import": "./dist/client/admin/utils/apiClient.js",
+      "default": "./dist/client/admin/utils/apiClient.js"
     },
     "./richtext": {
       "types": "./dist/richtext/index.d.ts",
-      "import": "./dist/richtext/index.js"
+      "import": "./dist/richtext/index.js",
+      "default": "./dist/richtext/index.js"
     },
     "./richtext/client": {
       "types": "./dist/client/richtext/index.d.ts",
-      "import": "./dist/client/richtext/index.js"
+      "import": "./dist/client/richtext/index.js",
+      "default": "./dist/client/richtext/index.js"
     },
     "./richtext/react": {
       "types": "./dist/richtext/exports/react/index.d.ts",
-      "import": "./dist/richtext/exports/react/index.js"
+      "import": "./dist/richtext/exports/react/index.js",
+      "default": "./dist/richtext/exports/react/index.js"
     },
     "./richtext/html": {
       "types": "./dist/richtext/exports/html/index.d.ts",
-      "import": "./dist/richtext/exports/html/index.js"
+      "import": "./dist/richtext/exports/html/index.js",
+      "default": "./dist/richtext/exports/html/index.js"
     },
     "./richtext/rsc": {
       "types": "./dist/richtext/exports/server/rsc.d.tsx",
-      "import": "./dist/richtext/exports/server/rsc.js"
+      "import": "./dist/richtext/exports/server/rsc.js",
+      "default": "./dist/richtext/exports/server/rsc.js"
     },
     "./translations": {
       "types": "./dist/translations/index.d.ts",
-      "import": "./dist/translations/index.js"
+      "import": "./dist/translations/index.js",
+      "default": "./dist/translations/index.js"
     },
     "./ui": {
       "types": "./dist/client/ui/index.d.tsx",
-      "import": "./dist/client/ui/index.js"
+      "import": "./dist/client/ui/index.js",
+      "default": "./dist/client/ui/index.js"
     },
     "./plugins": {
       "types": "./dist/plugins/index.d.ts",
-      "import": "./dist/plugins/index.js"
+      "import": "./dist/plugins/index.js",
+      "default": "./dist/plugins/index.js"
     },
     "./api/rest": {
       "types": "./dist/api/rest.d.ts",
-      "import": "./dist/api/rest.js"
+      "import": "./dist/api/rest.js",
+      "default": "./dist/api/rest.js"
     },
     "./api/compression": {
       "types": "./dist/api/compression.d.ts",
-      "import": "./dist/api/compression.js"
+      "import": "./dist/api/compression.js",
+      "default": "./dist/api/compression.js"
     },
     "./api/payload-optimization": {
       "types": "./dist/api/payload-optimization.d.ts",
-      "import": "./dist/api/payload-optimization.js"
+      "import": "./dist/api/payload-optimization.js",
+      "default": "./dist/api/payload-optimization.js"
     },
     "./api/rate-limit": {
       "types": "./dist/api/rate-limit.d.ts",
-      "import": "./dist/api/rate-limit.js"
+      "import": "./dist/api/rate-limit.js",
+      "default": "./dist/api/rate-limit.js"
     },
     "./api/response-cache": {
       "types": "./dist/api/response-cache.d.ts",
-      "import": "./dist/api/response-cache.js"
+      "import": "./dist/api/response-cache.js",
+      "default": "./dist/api/response-cache.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
+      "import": "./dist/client/index.js",
+      "default": "./dist/client/index.js"
     },
     "./client/ui": {
       "types": "./dist/client/ui/index.d.ts",
-      "import": "./dist/client/ui/index.js"
+      "import": "./dist/client/ui/index.js",
+      "default": "./dist/client/ui/index.js"
     },
     "./client/admin": {
       "types": "./dist/client/admin/index.d.ts",
-      "import": "./dist/client/admin/index.js"
+      "import": "./dist/client/admin/index.js",
+      "default": "./dist/client/admin/index.js"
     },
     "./client/richtext": {
       "types": "./dist/client/richtext/index.d.ts",
-      "import": "./dist/client/richtext/index.js"
+      "import": "./dist/client/richtext/index.js",
+      "default": "./dist/client/richtext/index.js"
     },
     "./types/interfaces/app": {
       "types": "./dist/types/interfaces/app.d.ts",
-      "import": "./dist/types/interfaces/app.js"
+      "import": "./dist/types/interfaces/app.js",
+      "default": "./dist/types/interfaces/app.js"
     },
     "./nextjs": {
       "types": "./dist/nextjs/index.d.ts",
-      "import": "./dist/nextjs/index.js"
+      "import": "./dist/nextjs/index.js",
+      "default": "./dist/nextjs/index.js"
     },
     "./nextjs/withRevealUI": {
       "types": "./dist/nextjs/withRevealUI.d.ts",
-      "import": "./dist/nextjs/withRevealUI.js"
+      "import": "./dist/nextjs/withRevealUI.js",
+      "default": "./dist/nextjs/withRevealUI.js"
     },
     "./utils/logger": {
       "types": "./dist/utils/logger.d.ts",
-      "import": "./dist/utils/logger.js"
+      "import": "./dist/utils/logger.js",
+      "default": "./dist/utils/logger.js"
     },
     "./utils/logger/client": {
       "types": "./dist/utils/logger-client.d.ts",
-      "import": "./dist/utils/logger-client.js"
+      "import": "./dist/utils/logger-client.js",
+      "default": "./dist/utils/logger-client.js"
     },
     "./utils/logger/server": {
       "types": "./dist/utils/logger-server.d.ts",
-      "import": "./dist/utils/logger-server.js"
+      "import": "./dist/utils/logger-server.js",
+      "default": "./dist/utils/logger-server.js"
     },
     "./security": {
       "types": "./dist/security/index.d.ts",
-      "import": "./dist/security/index.js"
+      "import": "./dist/security/index.js",
+      "default": "./dist/security/index.js"
     },
     "./license-encryption": {
       "types": "./dist/license-encryption.d.ts",
-      "import": "./dist/license-encryption.js"
+      "import": "./dist/license-encryption.js",
+      "default": "./dist/license-encryption.js"
     },
     "./observability": {
       "types": "./dist/observability/index.d.ts",
-      "import": "./dist/observability/index.js"
+      "import": "./dist/observability/index.js",
+      "default": "./dist/observability/index.js"
     },
     "./observability/logger": {
       "types": "./dist/observability/logger.d.ts",
-      "import": "./dist/observability/logger.js"
+      "import": "./dist/observability/logger.js",
+      "default": "./dist/observability/logger.js"
     },
     "./observability/metrics": {
       "types": "./dist/observability/metrics.d.ts",
-      "import": "./dist/observability/metrics.js"
+      "import": "./dist/observability/metrics.js",
+      "default": "./dist/observability/metrics.js"
     },
     "./observability/alerts": {
       "types": "./dist/observability/alerts.d.ts",
-      "import": "./dist/observability/alerts.js"
+      "import": "./dist/observability/alerts.js",
+      "default": "./dist/observability/alerts.js"
     },
     "./utils/cache": {
       "types": "./dist/utils/cache.d.ts",
-      "import": "./dist/utils/cache.js"
+      "import": "./dist/utils/cache.js",
+      "default": "./dist/utils/cache.js"
     },
     "./utils/deep-clone": {
       "types": "./dist/utils/deep-clone.d.ts",
-      "import": "./dist/utils/deep-clone.js"
+      "import": "./dist/utils/deep-clone.js",
+      "default": "./dist/utils/deep-clone.js"
     },
     "./utils/errors": {
       "types": "./dist/utils/errors.d.ts",
-      "import": "./dist/utils/errors.js"
+      "import": "./dist/utils/errors.js",
+      "default": "./dist/utils/errors.js"
     },
     "./jobs": {
       "types": "./dist/jobs/index.d.ts",
-      "import": "./dist/jobs/index.js"
+      "import": "./dist/jobs/index.js",
+      "default": "./dist/jobs/index.js"
     },
     "./monitoring": {
       "types": "./dist/monitoring/index.d.ts",
-      "import": "./dist/monitoring/index.js"
+      "import": "./dist/monitoring/index.js",
+      "default": "./dist/monitoring/index.js"
     },
     "./monitoring/process-registry": {
       "types": "./dist/monitoring/process-registry.d.ts",
-      "import": "./dist/monitoring/process-registry.js"
+      "import": "./dist/monitoring/process-registry.js",
+      "default": "./dist/monitoring/process-registry.js"
     },
     "./monitoring/query-monitor": {
       "types": "./dist/monitoring/query-monitor.d.ts",
-      "import": "./dist/monitoring/query-monitor.js"
+      "import": "./dist/monitoring/query-monitor.js",
+      "default": "./dist/monitoring/query-monitor.js"
     },
     "./utils/error-responses": {
       "types": "./dist/utils/error-responses.d.ts",
-      "import": "./dist/utils/error-responses.js"
+      "import": "./dist/utils/error-responses.js",
+      "default": "./dist/utils/error-responses.js"
     },
     "./utils/request-context": {
       "types": "./dist/utils/request-context.d.ts",
-      "import": "./dist/utils/request-context.js"
+      "import": "./dist/utils/request-context.js",
+      "default": "./dist/utils/request-context.js"
     },
     "./error-handling": {
       "types": "./dist/error-handling/index.d.ts",
-      "import": "./dist/error-handling/index.js"
+      "import": "./dist/error-handling/index.js",
+      "default": "./dist/error-handling/index.js"
     },
     "./error-handling/error-reporter": {
       "types": "./dist/error-handling/error-reporter.d.ts",
-      "import": "./dist/error-handling/error-reporter.js"
+      "import": "./dist/error-handling/error-reporter.js",
+      "default": "./dist/error-handling/error-reporter.js"
     },
     "./caching": {
       "types": "./dist/caching/index.d.ts",
-      "import": "./dist/caching/index.js"
+      "import": "./dist/caching/index.js",
+      "default": "./dist/caching/index.js"
     },
     "./cache/query-cache": {
       "types": "./dist/cache/query-cache.d.ts",
-      "import": "./dist/cache/query-cache.js"
+      "import": "./dist/cache/query-cache.js",
+      "default": "./dist/cache/query-cache.js"
     },
     "./optimization/code-splitting": {
       "types": "./dist/optimization/code-splitting.d.ts",
-      "import": "./dist/optimization/code-splitting.js"
+      "import": "./dist/optimization/code-splitting.js",
+      "default": "./dist/optimization/code-splitting.js"
     },
     "./richtext/lexical": {
       "types": "./dist/richtext/lexical.d.ts",
-      "import": "./dist/richtext/lexical.js"
+      "import": "./dist/richtext/lexical.js",
+      "default": "./dist/richtext/lexical.js"
     },
     "./admin/i18n/en": {
       "types": "./dist/client/admin/i18n/en.d.ts",
-      "import": "./dist/client/admin/i18n/en.js"
+      "import": "./dist/client/admin/i18n/en.js",
+      "default": "./dist/client/admin/i18n/en.js"
     }
   },
   "files": [

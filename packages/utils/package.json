@@ -19,19 +19,23 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./logger": {
       "types": "./dist/logger/index.d.ts",
-      "import": "./dist/logger/index.js"
+      "import": "./dist/logger/index.js",
+      "default": "./dist/logger/index.js"
     },
     "./database": {
       "types": "./dist/database/index.d.ts",
-      "import": "./dist/database/index.js"
+      "import": "./dist/database/index.js",
+      "default": "./dist/database/index.js"
     },
     "./validation": {
       "types": "./dist/validation/index.d.ts",
-      "import": "./dist/validation/index.js"
+      "import": "./dist/validation/index.js",
+      "default": "./dist/validation/index.js"
     }
   },
   "files": [
