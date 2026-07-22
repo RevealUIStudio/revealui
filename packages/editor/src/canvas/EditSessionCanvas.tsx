@@ -81,15 +81,22 @@ interface PreviewPageCandidate {
 
 /**
  * Choose which published page a fresh (empty) session should land the iframe on.
- * Prefers the VES Phase-1 marketing slice (`home`, then `products`), else the
- * first published page. Pure helper so canvas tests can lock the order.
+ * Prefers the VES marketing slice (`home`, then `products`, then `philosophy`,
+ * then `local-ai`), else the first published page. Pure helper so canvas tests
+ * can lock the order.
  */
 export function pickDefaultPreviewPageId(
   pages: readonly PreviewPageCandidate[],
 ): string | undefined {
   if (pages.length === 0) return undefined;
   const bySlug = (slug: string): string | undefined => pages.find((p) => p.slug === slug)?.id;
-  return bySlug('home') ?? bySlug('products') ?? pages[0]?.id;
+  return (
+    bySlug('home') ??
+    bySlug('products') ??
+    bySlug('philosophy') ??
+    bySlug('local-ai') ??
+    pages[0]?.id
+  );
 }
 
 interface ActiveField {
