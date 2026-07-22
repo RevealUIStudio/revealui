@@ -47,15 +47,6 @@ export {
   validateManifest,
 } from './content/index.js';
 export type { CoordinatorOptions } from './coordinator.js';
-// Project manager (.revealui) — equal vendor adapters reference this tree
-export type { ManagerCheckResult, ManagerConfig, MaterializeResult } from './manager/index.js';
-export {
-  checkManager,
-  loadManager,
-  materializeManager,
-  ManagerSchema,
-  writeManager,
-} from './manager/index.js';
 // Coordinator
 export { HarnessCoordinator } from './coordinator.js';
 // Detection
@@ -123,6 +114,15 @@ export {
   normalizeVSCodeHookEvent,
   runHookCommand,
 } from './hooks/index.js';
+// Project manager (.revealui) — equal vendor adapters reference this tree
+export type { ManagerCheckResult, ManagerConfig, MaterializeResult } from './manager/index.js';
+export {
+  checkManager,
+  loadManager,
+  ManagerSchema,
+  materializeManager,
+  writeManager,
+} from './manager/index.js';
 // Harness Protocol (was VAUGHN until 2026-05-18; see docs/HARNESS_PROTOCOL.md)
 export type {
   ClaudeCodeSettings,

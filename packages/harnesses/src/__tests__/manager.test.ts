@@ -5,8 +5,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   checkManager,
   loadManager,
-  materializeManager,
   ManagerSchema,
+  materializeManager,
   writeManager,
 } from '../manager/index.js';
 
