@@ -14,8 +14,9 @@
 import type { ResolverContext } from '../resolvers/types.js';
 import type { Agent, Command, Manifest, Rule, Skill } from '../schemas/index.js';
 import type { ContentGenerator, GeneratedFile } from './types.js';
+import { MANAGER_CONTENT_OUTPUT } from './types.js';
 
-const CONTENT = '.revealui/content';
+const CONTENT = MANAGER_CONTENT_OUTPUT;
 
 function yamlEscape(value: string): string {
   if (/[:#\n"'{}[\],&*?|>!%@`]/.test(value) || value.trim() !== value) {

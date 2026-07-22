@@ -26,8 +26,10 @@ AI harness coordination for RevealUI  -  enables multiple AI coding tools to wor
 
 ```
 packages/harnesses/src/
-├── adapters/       # AI tool adapters (Claude Code, Copilot)
+├── adapters/       # AI tool adapters (Claude Code, Copilot, OpenCode, Cursor)
 ├── config/         # Config path resolution and SSD sync
+├── content/        # Canonical rules/commands/agents/skills + generators
+├── manager/        # .revealui project manager (equal vendor adapters)
 ├── detection/      # Auto-detect installed/running harnesses
 ├── registry/       # Lifecycle management of adapters
 ├── server/         # JSON-RPC 2.0 over Unix socket
@@ -36,6 +38,35 @@ packages/harnesses/src/
 ├── coordinator.ts  # Main orchestrator (start/stop lifecycle)
 └── cli.ts          # CLI daemon and RPC client
 ```
+
+## Project manager (`.revealui`)
+
+All vendors (Claude, Grok, Cursor, OpenCode, VS Code, native agent) are **equal
+adapters**. Shared policy is not owned by any vendor home.
+
+| Layer | Role |
+|-------|------|
+| Package definitions (`src/content/definitions`) | Build-time SSOT |
+| **`.revealui/`** (`manager.json` + `content/`) | On-disk project manager |
+| `.claude` / `.cursor` / `.opencode` / `~/.grok` | Thin stubs or machine prefs only |
+
+```bash
+# Write manager.json + adapter stubs + generate .revealui/content/
+pnpm exec revealui-harnesses manager materialize
+
+# Verify manager present and valid
+pnpm exec revealui-harnesses manager check
+
+# Content only — default generator is the manager tree (not a vendor fork)
+pnpm exec revealui-harnesses content sync
+# equivalent:
+pnpm exec revealui-harnesses content sync --generator claude-code
+```
+
+`content sync` without `--generator` uses `DEFAULT_CONTENT_GENERATOR_ID`
+(`claude-code`). That generator emits into **`.revealui/content/`** (the manager
+tree). Vendor trees stay adapters; do not full-copy hardlines into `~/.claude`
+or `~/.grok`.
 
 ## CLI
 
@@ -51,6 +82,11 @@ revealui-harnesses sync claude-code push
 
 # Print workboard state
 revealui-harnesses coordinate --print
+
+# Project manager (equal vendors)
+revealui-harnesses manager materialize
+revealui-harnesses manager check
+revealui-harnesses content sync
 ```
 
 ## Usage
@@ -114,7 +150,8 @@ Tokens are durable (default 90-day TTL) and persisted as hashes, so a daemon res
 | `@revealui/harnesses` | Full API: adapters, registry, coordinator, detection, config, protocol |
 | `@revealui/harnesses/types` | Type definitions: HarnessAdapter, commands, events, capabilities |
 | `@revealui/harnesses/workboard` | WorkboardManager, deriveSessionId, detectSessionType, file-locking |
-| `@revealui/harnesses/content` | Content definitions, manifest builders, generators |
+| `@revealui/harnesses/content` | Content definitions, manifest builders, generators (`DEFAULT_CONTENT_GENERATOR_ID` → manager tree) |
+| `@revealui/harnesses/manager` | Project manager schema, materialize, check (`.revealui`) |
 | `@revealui/harnesses/storage` | DaemonStore (PGlite-backed daemon state), schema |
 | `@revealui/harnesses/protocol` | Protocol adapter types, config generators, event normalizer |
 

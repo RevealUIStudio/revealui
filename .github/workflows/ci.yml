@@ -103,6 +103,41 @@ jobs:
         # match it exactly. Mirrors the local gate step in scripts/gates/ci-gate.ts.
         run: pnpm validate:rules-lockstep
 
+      - name: Project manager check (path-gated hard fail)
+        # GAP-406: when a PR (or push) touches .revealui or packages/harnesses,
+        # hard-fail if manager.json is missing/invalid. Extends validate:structure
+        # (`--manager-only`) — same checkManager primitive as
+        # `revealui-harnesses manager check`. No parallel validator.
+        # Unrelated PRs skip. Full structure validation still runs above and
+        # includes the manager check when packages/harnesses is present.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          run_check=false
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${BASE_SHA:-}" ]; then
+            if git diff --name-only "$BASE_SHA"...HEAD | grep -qE '^(\.revealui/|packages/harnesses/)'; then
+              run_check=true
+            fi
+          elif [ "$EVENT_NAME" = "push" ]; then
+            if [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+              if git diff --name-only "$BEFORE_SHA"...HEAD | grep -qE '^(\.revealui/|packages/harnesses/)'; then
+                run_check=true
+              fi
+            else
+              run_check=true
+            fi
+          else
+            run_check=true
+          fi
+          if [ "$run_check" != "true" ]; then
+            echo "skip: no .revealui/ or packages/harnesses/ changes"
+            exit 0
+          fi
+          pnpm validate:structure -- --manager-only
+
       - name: Marketing voice validation (hard fail)
         run: pnpm validate:marketing-voice
 

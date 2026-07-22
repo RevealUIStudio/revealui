@@ -46,6 +46,33 @@ describe('project manager (.revealui)', () => {
     expect(result.stubs.length).toBeGreaterThanOrEqual(3);
   });
 
+  it('materialize preserves existing monorepo manager fields', () => {
+    const root = tempProject();
+    writeManager(root, {
+      version: 1,
+      name: 'RevealUI monorepo',
+      contentRoot: 'content',
+      tracker: {
+        path: 'docs/TRACKER.md',
+        note: 'Fleet day-to-day board lives in private .jv',
+      },
+      adapters: [
+        { id: 'claude-code', projectTree: '.claude', rank: 'equal' },
+        { id: 'cursor', projectTree: '.cursor', rank: 'equal' },
+        { id: 'opencode', projectTree: '.opencode', rank: 'equal' },
+        { id: 'vscode', projectTree: null, rank: 'equal' },
+        { id: 'grok', projectTree: null, rank: 'equal' },
+        { id: 'revealui-agent', projectTree: null, rank: 'equal' },
+      ],
+      mcp: { configPath: 'mcp.json' },
+      contentPackage: '@revealui/harnesses',
+    });
+    materializeManager(root);
+    const cfg = loadManager(root);
+    expect(cfg.name).toBe('RevealUI monorepo');
+    expect(cfg.tracker.note).toContain('private .jv');
+  });
+
   it('check fails without manager and passes after write', () => {
     const root = tempProject();
     expect(checkManager(root).ok).toBe(false);

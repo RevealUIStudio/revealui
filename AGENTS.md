@@ -6,6 +6,10 @@ status: verified
 audience: agent
 ---
 
+> **Project manager (all vendors equal):** open [`.revealui/manager.json`](.revealui/manager.json) first.
+> Shared rules/skills: [`.revealui/content/`](.revealui/content/) (generated from `@revealui/harnesses`).
+> This file is an adapter orientation doc, not a second policy home. See [`.revealui/README.md`](.revealui/README.md).
+
 # RevealUI
 
 RevealUI is the agentic business runtime. People, content, offers, payments, and agents  -  pre-wired, open source, and ready to deploy.

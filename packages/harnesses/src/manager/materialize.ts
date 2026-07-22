@@ -33,13 +33,33 @@ export function loadManager(projectRoot: string): ManagerConfig {
   return ManagerSchema.parse(raw);
 }
 
-/** Write manager.json (pretty). */
+/** Write manager.json (pretty). Skips the write when on-disk content already matches. */
 export function writeManager(projectRoot: string, config?: ManagerConfig): string {
   const parsed = ManagerSchema.parse(config ?? {});
   const path = managerPath(projectRoot);
+  const next = `${JSON.stringify(parsed, null, 2)}\n`;
+  if (existsSync(path) && readFileSync(path, 'utf-8') === next) {
+    return path;
+  }
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(parsed, null, 2)}\n`, 'utf-8');
+  writeFileSync(path, next, 'utf-8');
   return path;
+}
+
+/**
+ * Persist manager.json without clobbering project-specific fields.
+ * When no explicit config is passed and a file already exists, re-load it
+ * (schema-normalized) and write back so monorepo name/tracker notes survive
+ * `manager materialize`.
+ */
+export function writeManagerPreserving(projectRoot: string, config?: ManagerConfig): string {
+  if (config !== undefined) {
+    return writeManager(projectRoot, config);
+  }
+  if (existsSync(managerPath(projectRoot))) {
+    return writeManager(projectRoot, loadManager(projectRoot));
+  }
+  return writeManager(projectRoot);
 }
 
 /** Thin Claude project stub: one rule file that points at the manager. */
@@ -137,7 +157,7 @@ export function materializeManager(
     adapters?: Array<'claude-code' | 'cursor' | 'opencode' | 'grok'>;
   },
 ): MaterializeResult {
-  const managerFile = writeManager(projectRoot, options?.config);
+  const managerFile = writeManagerPreserving(projectRoot, options?.config);
   const adapters = options?.adapters ?? ['claude-code', 'cursor', 'opencode', 'grok'];
   const stubs: string[] = [];
   for (const id of adapters) {
