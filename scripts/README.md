@@ -78,6 +78,7 @@ scripts/
 ├── utils/                     # base.ts (shared script helpers)
 ├── seed-fleet-marketing-site.ts       # `pnpm db:seed:fleet-marketing`
 ├── seed-fleet-marketing-home-page.ts  # `pnpm db:seed:fleet-marketing-home`
+├── dev-tools/dogfood-api.ts             # `pnpm dogfood:api` (local server + env)
 ├── gen-brand-assets.cjs               # brand asset generation
 ├── audit-no-submodules.sh
 └── check-client-leaks.sh
