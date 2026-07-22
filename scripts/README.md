@@ -78,6 +78,7 @@ scripts/
 ├── utils/                     # base.ts (shared script helpers)
 ├── seed-fleet-marketing-site.ts       # `pnpm db:seed:fleet-marketing`
 ├── seed-fleet-marketing-home-page.ts  # `pnpm db:seed:fleet-marketing-home`
+├── dev-tools/dogfood-api.ts             # `pnpm dogfood:api` (local server + env)
 ├── gen-brand-assets.cjs               # brand asset generation
 ├── audit-no-submodules.sh
 └── check-client-leaks.sh
@@ -274,3 +275,18 @@ When adding a new script:
 - **Validation**: [validate/README.md](./validate/README.md)
 - **Dev Tools**: [dev-tools/README.md](./dev-tools/README.md)
 - **Setup**: [setup/README.md](./setup/README.md)
+
+### Local dogfood (VES + API)
+
+```bash
+pnpm db:migrate                 # if audit_log / schema lag docker
+pnpm dogfood:api                # API :3004 (DB via seed-env, license via revvault)
+# optional if voice gate rejects section/ctaSection after a pull:
+pnpm dogfood:api -- --build-contracts
+
+# apps/admin/.env.local
+# NEXT_PUBLIC_API_URL=http://localhost:3004
+
+pnpm --filter marketing dev     # :3000
+pnpm dev:admin                  # :4000 — restart after changing NEXT_PUBLIC_*
+```
