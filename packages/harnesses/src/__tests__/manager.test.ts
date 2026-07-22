@@ -80,4 +80,13 @@ describe('project manager (.revealui)', () => {
     const after = checkManager(root);
     expect(after.ok).toBe(true);
   });
+
+  it('writeManager is a no-op when content is already identical', () => {
+    const root = tempProject();
+    writeManager(root, { version: 1, name: 'same', contentRoot: 'content' });
+    const before = readFileSync(join(root, '.revealui/manager.json'), 'utf-8');
+    writeManager(root, { version: 1, name: 'same', contentRoot: 'content' });
+    const after = readFileSync(join(root, '.revealui/manager.json'), 'utf-8');
+    expect(after).toBe(before);
+  });
 });

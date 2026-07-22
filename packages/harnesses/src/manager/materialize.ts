@@ -23,23 +23,47 @@ export function contentRootPath(projectRoot: string, config?: ManagerConfig): st
   return join(projectRoot, MANAGER_DIR, root);
 }
 
+function isEnoent(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code: unknown }).code === 'ENOENT'
+  );
+}
+
 /** Load manager.json or return defaults. */
 export function loadManager(projectRoot: string): ManagerConfig {
   const path = managerPath(projectRoot);
-  if (!existsSync(path)) {
-    return ManagerSchema.parse({});
+  // Read first (no existsSync TOCTOU). Missing file → schema defaults.
+  try {
+    const raw = JSON.parse(readFileSync(path, 'utf-8')) as unknown;
+    return ManagerSchema.parse(raw);
+  } catch (err) {
+    if (isEnoent(err)) {
+      return ManagerSchema.parse({});
+    }
+    throw err;
   }
-  const raw = JSON.parse(readFileSync(path, 'utf-8')) as unknown;
-  return ManagerSchema.parse(raw);
 }
 
-/** Write manager.json (pretty). Skips the write when on-disk content already matches. */
+/**
+ * Write manager.json (pretty). Skips the write when on-disk content already matches.
+ * Uses try-read (not existsSync) so CodeQL js/file-system-race does not flag
+ * a check-then-write TOCTOU on the project manager path.
+ */
 export function writeManager(projectRoot: string, config?: ManagerConfig): string {
   const parsed = ManagerSchema.parse(config ?? {});
   const path = managerPath(projectRoot);
   const next = `${JSON.stringify(parsed, null, 2)}\n`;
-  if (existsSync(path) && readFileSync(path, 'utf-8') === next) {
-    return path;
+  try {
+    if (readFileSync(path, 'utf-8') === next) {
+      return path;
+    }
+  } catch (err) {
+    if (!isEnoent(err)) {
+      throw err;
+    }
   }
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, next, 'utf-8');
@@ -48,18 +72,14 @@ export function writeManager(projectRoot: string, config?: ManagerConfig): strin
 
 /**
  * Persist manager.json without clobbering project-specific fields.
- * When no explicit config is passed and a file already exists, re-load it
- * (schema-normalized) and write back so monorepo name/tracker notes survive
- * `manager materialize`.
+ * When no explicit config is passed, re-load via loadManager (defaults if
+ * missing) so monorepo name/tracker notes survive `manager materialize`.
  */
 export function writeManagerPreserving(projectRoot: string, config?: ManagerConfig): string {
   if (config !== undefined) {
     return writeManager(projectRoot, config);
   }
-  if (existsSync(managerPath(projectRoot))) {
-    return writeManager(projectRoot, loadManager(projectRoot));
-  }
-  return writeManager(projectRoot);
+  return writeManager(projectRoot, loadManager(projectRoot));
 }
 
 /** Thin Claude project stub: one rule file that points at the manager. */
