@@ -13,7 +13,8 @@ import { act, cleanup, render, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchPageBlocks } from '../../lib/api';
-import { homeBlocks, localAiBlocks, productsBlocks } from '../../lib/page-blocks';
+import { fairSourceBlocks, homeBlocks, localAiBlocks, productsBlocks } from '../../lib/page-blocks';
+import { FairSourcePage } from '../FairSourcePage';
 import { HomePage } from '../HomePage';
 import { LocalAiPage } from '../LocalAiPage';
 import { ProductsPage } from '../ProductsPage';
@@ -64,7 +65,7 @@ describe('marketing pages: edit-mode wiring', () => {
     editDraftsStore.setEditActive(false);
   });
 
-  it('HomePage, ProductsPage, and LocalAiPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
+  it('HomePage, ProductsPage, LocalAiPage, and FairSourcePage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
     const home = renderRouted(<HomePage />);
     expect(home.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(home.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -78,6 +79,11 @@ describe('marketing pages: edit-mode wiring', () => {
     const localAi = renderRouted(<LocalAiPage />);
     expect(localAi.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(localAi.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
+    localAi.unmount();
+
+    const fairSource = renderRouted(<FairSourcePage />);
+    expect(fairSource.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+    expect(fairSource.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
   });
 
   it('HomePage renders the draft heading annotated with the session docId when a matching overlay exists', () => {
@@ -134,6 +140,26 @@ describe('marketing pages: edit-mode wiring', () => {
     const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
     expect(title?.getAttribute('data-rvui-doc')).toBe('page-local-ai-id');
     expect(title?.textContent).toBe('Canvas-edited local-ai title');
+  });
+
+  it('FairSourcePage renders the draft contract heading annotated with the session docId when a matching overlay exists', () => {
+    const draftBlocks = fairSourceBlocks();
+    const contract = draftBlocks[0];
+    if (contract?.type === 'section') {
+      contract.data.heading = 'Canvas-edited fair-source contract';
+    }
+    editDraftsStore.set([
+      {
+        docType: 'page',
+        docId: 'page-fair-source-id',
+        draft: { slug: 'fair-source', blocks: draftBlocks },
+      },
+    ]);
+
+    const { container } = renderRouted(<FairSourcePage />);
+    const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
+    expect(heading?.getAttribute('data-rvui-doc')).toBe('page-fair-source-id');
+    expect(heading?.textContent).toBe('Canvas-edited fair-source contract');
   });
 
   it('re-renders HomePage with the patched value after an optimistic draft-store update', () => {
