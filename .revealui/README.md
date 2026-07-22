@@ -2,6 +2,14 @@
 
 This directory is the **RevealUI project manager**. Claude, Grok, Cursor, OpenCode, VS Code, and the native RevealUI agent all have **the same rank**: they are adapters that **reference** this tree. None of them is a second policy home.
 
+## Quality over speed (standing order)
+
+**Quality is always the primary metric** for code, config, and documentation.
+Concurrent sessions, cheaper inference, and faster hardware may arrive later;
+rushed dual-home shortcuts and unproven docs do not get a pass. Prefer a smaller
+correct slice over a larger weak one. Full bar: content rule \`quality-over-speed\`
+(from \`@revealui/harnesses\`).
+
 ## Authority
 
 | Layer | Role |

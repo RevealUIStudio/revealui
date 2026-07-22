@@ -11,6 +11,7 @@ import {
 const STUB_HEADER = `> **RevealUI manager.** Policy and skills are owned by \`.revealui/\`.
 > This vendor tree is an **adapter stub only** (equal rank with every other vendor).
 > Do not fork hardlines here. Edit package definitions → generate into \`.revealui/content/\`.
+> **Quality over speed:** correctness and proof outrank throughput in every session.
 `;
 
 export function managerPath(projectRoot: string): string {
