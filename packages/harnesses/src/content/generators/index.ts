@@ -1,8 +1,10 @@
+import { ClaudeCodeGenerator } from './claude-code.js';
 import { CursorGenerator } from './cursor.js';
 import { OpenCodeGenerator } from './opencode.js';
 import type { ContentGenerator } from './types.js';
 import { VSCodeGenerator } from './vscode.js';
 
+export { ClaudeCodeGenerator } from './claude-code.js';
 export { CursorGenerator } from './cursor.js';
 export { OpenCodeGenerator } from './opencode.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
@@ -31,3 +33,4 @@ export function listGenerators(): string[] {
 registerGenerator(new OpenCodeGenerator());
 registerGenerator(new CursorGenerator());
 registerGenerator(new VSCodeGenerator());
+registerGenerator(new ClaudeCodeGenerator());

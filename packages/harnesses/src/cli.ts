@@ -29,6 +29,7 @@ import {
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
+import { checkManager, materializeManager } from './manager/index.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -424,6 +425,44 @@ async function main() {
     return;
   }
 
+  if (command === 'manager') {
+    const [subcommand] = args;
+    const projectIdx = args.indexOf('--project');
+    const projectRoot =
+      projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
+
+    if (subcommand === 'materialize') {
+      const result = materializeManager(projectRoot);
+      // Also sync manager content from definitions
+      const files = generateContent('claude-code', buildManifest(), { projectRoot });
+      let written = 0;
+      for (const file of files) {
+        const absolutePath = join(projectRoot, file.relativePath);
+        mkdirSync(dirname(absolutePath), { recursive: true });
+        writeFileSync(absolutePath, file.content, 'utf-8');
+        written++;
+      }
+      process.stdout.write(`✓ Manager: ${result.managerPath}\n`);
+      process.stdout.write(`✓ Content files: ${written}\n`);
+      process.stdout.write(`✓ Adapter stubs:\n`);
+      for (const s of result.stubs) process.stdout.write(`  ${s}\n`);
+      return;
+    }
+
+    if (subcommand === 'check') {
+      const result = checkManager(projectRoot);
+      for (const w of result.warnings) process.stderr.write(`WARN: ${w}\n`);
+      for (const e of result.errors) process.stderr.write(`ERROR: ${e}\n`);
+      if (!result.ok) process.exit(1);
+      process.stdout.write(`✓ Manager OK at ${join(projectRoot, '.revealui', 'manager.json')}\n`);
+      return;
+    }
+
+    process.stderr.write(`Unknown manager subcommand: ${subcommand ?? '(none)'}\n`);
+    process.stderr.write(`Available: materialize, check\n`);
+    process.exit(1);
+  }
+
   switch (command) {
     case 'start': {
       const projectIdx = args.indexOf('--project');
@@ -610,12 +649,14 @@ Commands:
   coordinate --init [<path>]        Register + start daemon
   hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
   content <subcommand>              Manage canonical content definitions
+  manager materialize [--project p] Write .revealui/manager.json + content + equal adapter stubs
+  manager check [--project p]       Verify project manager present and valid
 
 Content Subcommands:
   content list                      List all canonical content with metadata
   content validate                  Validate all definitions against schemas
   content diff [--generator <id>]   Show what would change vs current files
-  content sync [--generator <id>] [--dry-run]  Generate and write files
+  content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (manager)
   content export --output <path>    Export canonical + generated files to directory
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo
 `);
