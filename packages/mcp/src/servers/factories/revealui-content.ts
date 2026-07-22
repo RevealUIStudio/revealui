@@ -260,6 +260,30 @@ async function apiGet(
   return body;
 }
 
+async function apiJson(
+  baseUrl: string,
+  apiKey: string,
+  method: 'POST' | 'PATCH',
+  path: string,
+  payload: unknown,
+): Promise<unknown> {
+  const res = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: apiHeaders(apiKey),
+    body: JSON.stringify(payload),
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    throw new ApiRequestError(
+      (body as { error?: string; message?: string }).error ??
+        (body as { message?: string }).message ??
+        `API ${res.status}`,
+      res.status,
+    );
+  }
+  return body;
+}
+
 // ---------------------------------------------------------------------------
 // Tool argument schemas (Zod 4)
 // ---------------------------------------------------------------------------
@@ -299,6 +323,43 @@ export const ListUsersArgsSchema = z
 export const SiteStatsArgsSchema = z
   .object({
     site_id: z.string().optional(),
+  })
+  .strict();
+
+/** VES edit-session tools (propose-only; no publish). */
+export const SessionListArgsSchema = z
+  .object({
+    site_id: z.string().optional(),
+    status: z.enum(['open', 'published', 'discarded']).optional(),
+  })
+  .strict();
+
+export const SessionOpenArgsSchema = z
+  .object({
+    site_id: z.string().min(1),
+    title: z.string().min(1).optional(),
+  })
+  .strict();
+
+export const SessionPatchArgsSchema = z
+  .object({
+    session_id: z.string().min(1),
+    page_id: z.string().min(1),
+    path: z.string().min(1),
+    value: z.unknown(),
+  })
+  .strict();
+
+export const SessionGetArgsSchema = z
+  .object({
+    session_id: z.string().min(1),
+  })
+  .strict();
+
+export const PageReadArgsSchema = z
+  .object({
+    site_id: z.string().min(1),
+    page_id: z.string().min(1),
   })
   .strict();
 
@@ -379,6 +440,75 @@ const TOOLS: Tool[] = [
           description: 'Site ID to fetch stats for (omit for global stats)',
         },
       },
+    },
+  },
+  // --- Visual edit sessions (VES P2) — propose patches; never publish ---
+  {
+    name: 'revealui_session_list',
+    description: 'List edit sessions for a site (open / published / discarded).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        site_id: { type: 'string', description: 'Site ID (e.g. fleet-marketing)' },
+        status: {
+          type: 'string',
+          description: 'Filter: open | published | discarded',
+        },
+      },
+    },
+  },
+  {
+    name: 'revealui_session_open',
+    description:
+      'Open a new edit session on a site. Agents may propose into sessions; only humans publish.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        site_id: { type: 'string', description: 'Site ID' },
+        title: { type: 'string', description: 'Optional session title' },
+      },
+      required: ['site_id'],
+    },
+  },
+  {
+    name: 'revealui_session_get',
+    description: 'Get an edit session with its draft docs and recent events.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        session_id: { type: 'string', description: 'Edit session ID' },
+      },
+      required: ['session_id'],
+    },
+  },
+  {
+    name: 'revealui_session_patch',
+    description:
+      'Propose a field patch into an open edit session (path + value). Voice rules apply for fleet-marketing. Does not publish.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        session_id: { type: 'string' },
+        page_id: { type: 'string', description: 'Page document id' },
+        path: {
+          type: 'string',
+          description: 'Dot path, e.g. blocks.0.data.heading or theme.--rvui-brand',
+        },
+        value: { description: 'New value (string, number, object, …)' },
+      },
+      required: ['session_id', 'page_id', 'path', 'value'],
+    },
+  },
+  {
+    name: 'revealui_page_read',
+    description: 'Read a published page (blocks + SEO) for a site.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        site_id: { type: 'string' },
+        page_id: { type: 'string' },
+      },
+      required: ['site_id', 'page_id'],
     },
   },
 ];
@@ -965,6 +1095,58 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
           // site_id is accepted for forward-compat; readiness is process-global.
           void parsed.value.site_id;
           data = await apiGet(apiUrl, apiKey, '/health/ready', {});
+          break;
+        }
+
+        case 'revealui_session_list': {
+          const parsed = validateToolArgs(SessionListArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
+          const params: Record<string, string> = {};
+          if (parsed.value.site_id) params.siteId = parsed.value.site_id;
+          if (parsed.value.status) params.status = parsed.value.status;
+          data = await apiGet(apiUrl, apiKey, '/api/content/sessions', params);
+          break;
+        }
+
+        case 'revealui_session_open': {
+          const parsed = validateToolArgs(SessionOpenArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
+          data = await apiJson(apiUrl, apiKey, 'POST', '/api/content/sessions', {
+            siteId: parsed.value.site_id,
+            title: parsed.value.title,
+          });
+          break;
+        }
+
+        case 'revealui_session_get': {
+          const parsed = validateToolArgs(SessionGetArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
+          data = await apiGet(apiUrl, apiKey, `/api/content/sessions/${parsed.value.session_id}`);
+          break;
+        }
+
+        case 'revealui_session_patch': {
+          const parsed = validateToolArgs(SessionPatchArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
+          const { session_id, page_id, path, value } = parsed.value;
+          data = await apiJson(
+            apiUrl,
+            apiKey,
+            'PATCH',
+            `/api/content/sessions/${session_id}/docs/page/${page_id}`,
+            { path, value },
+          );
+          break;
+        }
+
+        case 'revealui_page_read': {
+          const parsed = validateToolArgs(PageReadArgsSchema, rawArgs, toolName);
+          if (!parsed.ok) return denied(parsed.error);
+          data = await apiGet(
+            apiUrl,
+            apiKey,
+            `/api/content/sites/${parsed.value.site_id}/pages/${parsed.value.page_id}`,
+          );
           break;
         }
 

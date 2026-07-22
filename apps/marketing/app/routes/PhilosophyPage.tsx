@@ -88,20 +88,32 @@ function PhilosophyBody({ data, path, annotation }: PhilosophyBodyProps) {
 
 interface PhilosophyCtaProps {
   data: PhilosophyCtaData;
+  path: string;
+  annotation: BlockAnnotation;
 }
 
-function PhilosophyCta({ data }: PhilosophyCtaProps) {
-  // Link labels are editable via the ctaSection block's links in a later
-  // media/CTA canvas slice; for now labels ride the block data used by seed.
+function PhilosophyCta({ data, path, annotation }: PhilosophyCtaProps) {
   return (
     <section className="px-6 pb-24 sm:pb-32 lg:px-8">
       <div className="mx-auto flex max-w-3xl flex-col items-start gap-4 sm:flex-row">
         <Button asChild size="lg" variant="brand">
-          <a href={data.primary.href}>{data.primary.label}</a>
+          <a
+            href={data.primary.href}
+            {...fieldAttrs(annotation, `${path}.links.0.href`)}
+            data-rvui-value={data.primary.href}
+          >
+            <span {...fieldAttrs(annotation, `${path}.links.0.label`)}>{data.primary.label}</span>
+          </a>
         </Button>
         <Button asChild size="lg" appearance="outline" variant="neutral">
-          <a href={data.secondary.href} target="_blank" rel="noopener noreferrer">
-            {data.secondary.label}
+          <a
+            href={data.secondary.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...fieldAttrs(annotation, `${path}.links.1.href`)}
+            data-rvui-value={data.secondary.href}
+          >
+            <span {...fieldAttrs(annotation, `${path}.links.1.label`)}>{data.secondary.label}</span>
           </a>
         </Button>
       </div>
@@ -119,7 +131,7 @@ export function PhilosophyPage() {
     <div className="min-h-screen bg-background">
       <PhilosophyHero data={hero.data} path={hero.path} annotation={annotation} />
       <PhilosophyBody data={body.data} path={body.path} annotation={annotation} />
-      <PhilosophyCta data={cta.data} />
+      <PhilosophyCta data={cta.data} path={cta.path} annotation={annotation} />
       <Footer />
     </div>
   );

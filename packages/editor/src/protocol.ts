@@ -18,6 +18,8 @@ export const RVUI_CLICK = 'rvui:click';
 export const RVUI_PATCH_APPLIED = 'rvui:patch-applied';
 /** Canvas -> runtime: apply a committed field value optimistically. */
 export const RVUI_APPLY_PATCH = 'rvui:apply-patch';
+/** Canvas -> runtime: apply allowlisted design-token CSS variables (P2 theming). */
+export const RVUI_SET_THEME = 'rvui:set-theme';
 
 export interface FieldRect {
   top: number;
@@ -55,8 +57,14 @@ export interface ApplyPatchMessage {
   value: string;
 }
 
+export interface SetThemeMessage {
+  type: typeof RVUI_SET_THEME;
+  /** CSS custom property map; runtime applies only known --rvui-* keys. */
+  tokens: Record<string, string>;
+}
+
 export type RuntimeToCanvasMessage = ReadyMessage | ClickMessage | PatchAppliedMessage;
-export type CanvasToRuntimeMessage = ApplyPatchMessage;
+export type CanvasToRuntimeMessage = ApplyPatchMessage | SetThemeMessage;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -104,6 +112,16 @@ export function isApplyPatchMessage(value: unknown): value is ApplyPatchMessage 
     typeof value.field === 'string' &&
     typeof value.value === 'string'
   );
+}
+
+export function isSetThemeMessage(value: unknown): value is SetThemeMessage {
+  if (!(isRecord(value) && value.type === RVUI_SET_THEME && isRecord(value.tokens))) {
+    return false;
+  }
+  for (const [key, val] of Object.entries(value.tokens)) {
+    if (typeof key !== 'string' || typeof val !== 'string') return false;
+  }
+  return true;
 }
 
 /**
