@@ -233,6 +233,7 @@
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
     "validate:claims-evidence": "tsx scripts/validate/claims-evidence.ts",
     "validate:marketing-voice": "tsx scripts/validate/marketing-voice.ts",
+    "validate:page-blocks-modules": "tsx scripts/validate/page-blocks-modules.ts",
     "validate:client-safety": "tsx scripts/validate/client-safety.ts",
     "validate:tier1-presentation": "tsx scripts/validate/tier1-presentation.ts",
     "validate:design-context": "tsx scripts/validate/design-context-drift.ts",

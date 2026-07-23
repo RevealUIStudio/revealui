@@ -361,6 +361,13 @@ async function gate(): Promise<void> {
         args: ['validate:marketing-voice-prose-slots'],
       },
       {
+        // Conflict-proof VES page-blocks layout: mono shell + pages/* modules
+        // with *PageSeed auto-discovery (no shared mega-file merge cascade).
+        name: 'Page-blocks modules (hard fail)',
+        command: 'pnpm',
+        args: ['validate:page-blocks-modules'],
+      },
+      {
         // Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
         // plus apps/marketing/app/content/**/*.ts marketing-copy string
         // literals (TypeScript AST, no identifiers/imports/comments). A
