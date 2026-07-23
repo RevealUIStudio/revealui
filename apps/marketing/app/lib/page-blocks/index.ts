@@ -8,6 +8,7 @@
 
 export * from './pages/fair-source';
 export * from './pages/for-operators-how-it-works';
+export * from './pages/for-operators-managed';
 export * from './pages/home';
 export * from './pages/local-ai';
 export * from './pages/philosophy';

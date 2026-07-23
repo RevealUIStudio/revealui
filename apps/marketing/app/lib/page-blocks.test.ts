@@ -28,6 +28,14 @@ import {
   FO_HIW_STEPS,
   FO_HIW_TIMELINE,
 } from '../content/for-operators-how-it-works';
+import {
+  FO_MANAGED_HERO,
+  FO_MANAGED_PREREQS,
+  FO_MANAGED_STATUS,
+  FO_MANAGED_TODAY,
+  FO_MANAGED_WAITLIST,
+  FO_MANAGED_WOULD_BE,
+} from '../content/for-operators-managed';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 import { PHILOSOPHY } from '../content/philosophy';
@@ -39,6 +47,7 @@ import {
   demoSlot,
   FAIR_SOURCE_FALLBACK_BLOCKS,
   FO_HIW_FALLBACK_BLOCKS,
+  FO_MANAGED_FALLBACK_BLOCKS,
   fairSourceBlocks,
   fairSourceClockSlot,
   fairSourceContractSlot,
@@ -53,6 +62,13 @@ import {
   foHiwOwnershipSlot,
   foHiwStepsSlot,
   foHiwTimelineSlot,
+  foManagedBlocks,
+  foManagedHeroSlot,
+  foManagedPrereqsSlot,
+  foManagedStatusSlot,
+  foManagedTodaySlot,
+  foManagedWaitlistSlot,
+  foManagedWouldBeSlot,
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
   homeBlocks,
@@ -99,7 +115,7 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for home, products, philosophy, local-ai, fair-source, services, and fo-hiw', () => {
+  it('produces schema-valid blocks for home, products, philosophy, local-ai, fair-source, services, fo-hiw, and fo-managed', () => {
     for (const block of [
       ...homeBlocks(),
       ...productsBlocks(),
@@ -108,6 +124,7 @@ describe('page-blocks derivation', () => {
       ...fairSourceBlocks(),
       ...servicesBlocks(),
       ...foHiwBlocks(),
+      ...foManagedBlocks(),
     ]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
     }
@@ -148,6 +165,14 @@ describe('page-blocks derivation', () => {
       'section',
       'section',
       'ctaSection',
+    ]);
+    expect(foManagedBlocks().map((b) => b.type)).toEqual([
+      'hero',
+      'section',
+      'section',
+      'section',
+      'section',
+      'section',
     ]);
   });
 
@@ -362,6 +387,54 @@ describe('page-blocks derivation', () => {
     });
     expect(blocksMatchFallback(foHiwBlocks(), FO_HIW_FALLBACK_BLOCKS)).toBe(true);
   });
+
+  it('round-trips fo-managed slots against for-operators-managed content', () => {
+    const blocks = FO_MANAGED_FALLBACK_BLOCKS;
+    expect(foManagedHeroSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_HERO.eyebrow,
+      h1Lines: [...FO_MANAGED_HERO.h1Lines],
+      subtitle: FO_MANAGED_HERO.subtitle,
+      backLink: FO_MANAGED_HERO.backLink,
+    });
+    expect(foManagedStatusSlot(blocks).data).toEqual({ ...FO_MANAGED_STATUS });
+    expect(foManagedWouldBeSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_WOULD_BE.eyebrow,
+      heading: FO_MANAGED_WOULD_BE.heading,
+      capabilities: FO_MANAGED_WOULD_BE.capabilities.map((c) => ({
+        title: c.title,
+        body: c.body,
+      })),
+      closing: FO_MANAGED_WOULD_BE.closing,
+    });
+    expect(foManagedPrereqsSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_PREREQS.eyebrow,
+      heading: FO_MANAGED_PREREQS.heading,
+      intro: FO_MANAGED_PREREQS.intro,
+      prerequisites: FO_MANAGED_PREREQS.prerequisites.map((p) => ({
+        title: p.title,
+        body: p.body,
+      })),
+      closing: FO_MANAGED_PREREQS.closing,
+    });
+    expect(foManagedTodaySlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_TODAY.eyebrow,
+      heading: FO_MANAGED_TODAY.heading,
+      body: FO_MANAGED_TODAY.body,
+      primaryCta: FO_MANAGED_TODAY.primaryCta,
+      detailLink: FO_MANAGED_TODAY.detailLink,
+    });
+    expect(foManagedWaitlistSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_WAITLIST.eyebrow,
+      heading: FO_MANAGED_WAITLIST.heading,
+      body: FO_MANAGED_WAITLIST.body,
+      inputPlaceholder: FO_MANAGED_WAITLIST.inputPlaceholder,
+      buttonLabel: FO_MANAGED_WAITLIST.buttonLabel,
+      buttonLabelLoading: FO_MANAGED_WAITLIST.buttonLabelLoading,
+      successMessage: FO_MANAGED_WAITLIST.successMessage,
+    });
+    // product source tag never enters blocks
+    expect(collectStrings(foManagedBlocks()).join(' ')).not.toContain('managed-cloud');
+  });
 });
 
 describe('claims safety: prose is single-sourced, pinned values never enter blocks', () => {
@@ -373,6 +446,7 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     fairSourceBlocks(),
     servicesBlocks(),
     foHiwBlocks(),
+    foManagedBlocks(),
   ]);
   const haystack = strings.join(' ');
 
