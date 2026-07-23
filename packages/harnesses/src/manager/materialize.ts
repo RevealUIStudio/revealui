@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
   MANAGER_CONTENT_DIR,
@@ -14,6 +14,25 @@ const STUB_HEADER = `> **RevealUI manager.** Policy and skills are owned by \`.r
 > **Quality over speed:** correctness and proof outrank throughput in every session.
 `;
 
+function isEnoent(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as { code: unknown }).code === 'ENOENT'
+  );
+}
+
+/** Read UTF-8 file contents, or null when missing (no existsSync TOCTOU). */
+function readFileOrNull(filePath: string): string | null {
+  try {
+    return readFileSync(filePath, 'utf-8');
+  } catch (err) {
+    if (isEnoent(err)) return null;
+    throw err;
+  }
+}
+
 export function managerPath(projectRoot: string): string {
   return join(projectRoot, MANAGER_DIR, MANAGER_FILE);
 }
@@ -26,20 +45,37 @@ export function contentRootPath(projectRoot: string, config?: ManagerConfig): st
 /** Load manager.json or return defaults. */
 export function loadManager(projectRoot: string): ManagerConfig {
   const path = managerPath(projectRoot);
-  if (!existsSync(path)) {
+  const text = readFileOrNull(path);
+  if (text === null) {
     return ManagerSchema.parse({});
   }
-  const raw = JSON.parse(readFileSync(path, 'utf-8')) as unknown;
-  return ManagerSchema.parse(raw);
+  return ManagerSchema.parse(JSON.parse(text) as unknown);
 }
 
-/** Write manager.json (pretty). */
+/**
+ * Write manager.json (pretty).
+ * Always performs a single writeFileSync after mkdir — no existsSync/read
+ * then write race (CodeQL js/file-system-race). Manager files are small.
+ */
 export function writeManager(projectRoot: string, config?: ManagerConfig): string {
   const parsed = ManagerSchema.parse(config ?? {});
   const path = managerPath(projectRoot);
+  const next = `${JSON.stringify(parsed, null, 2)}\n`;
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(parsed, null, 2)}\n`, 'utf-8');
+  writeFileSync(path, next, 'utf-8');
   return path;
+}
+
+/**
+ * Persist manager.json without clobbering project-specific fields.
+ * When no explicit config is passed, re-load via loadManager (defaults if
+ * missing) so monorepo name/tracker notes survive `manager materialize`.
+ */
+export function writeManagerPreserving(projectRoot: string, config?: ManagerConfig): string {
+  if (config !== undefined) {
+    return writeManager(projectRoot, config);
+  }
+  return writeManager(projectRoot, loadManager(projectRoot));
 }
 
 /** Thin Claude project stub: one rule file that points at the manager. */
@@ -137,7 +173,7 @@ export function materializeManager(
     adapters?: Array<'claude-code' | 'cursor' | 'opencode' | 'grok'>;
   },
 ): MaterializeResult {
-  const managerFile = writeManager(projectRoot, options?.config);
+  const managerFile = writeManagerPreserving(projectRoot, options?.config);
   const adapters = options?.adapters ?? ['claude-code', 'cursor', 'opencode', 'grok'];
   const stubs: string[] = [];
   for (const id of adapters) {
@@ -160,23 +196,24 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const mPath = managerPath(projectRoot);
-  if (!existsSync(mPath)) {
+  const managerText = readFileOrNull(mPath);
+  if (managerText === null) {
     errors.push(
       `missing ${MANAGER_DIR}/${MANAGER_FILE} — run: revealui-harnesses manager materialize`,
     );
   } else {
     try {
-      loadManager(projectRoot);
+      ManagerSchema.parse(JSON.parse(managerText) as unknown);
     } catch (err) {
       errors.push(`invalid manager.json: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
   const claudeStub = join(projectRoot, '.claude', 'rules', '00-revealui-manager.md');
-  if (!existsSync(claudeStub)) {
+  if (readFileOrNull(claudeStub) === null) {
     warnings.push('missing .claude/rules/00-revealui-manager.md stub (materialize claude-code)');
   }
   const readme = join(projectRoot, MANAGER_DIR, 'README.md');
-  if (!existsSync(readme)) {
+  if (readFileOrNull(readme) === null) {
     warnings.push('missing .revealui/README.md manager contract');
   }
   return { ok: errors.length === 0, errors, warnings };

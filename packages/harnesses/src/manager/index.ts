@@ -10,6 +10,7 @@ export {
   materializeManager,
   materializeOpenCodeStub,
   writeManager,
+  writeManagerPreserving,
 } from './materialize.js';
 export {
   MANAGER_CONTENT_DIR,

@@ -3,19 +3,31 @@
  *
  * Tool-agnostic definitions for AI guidance content (rules, commands, agents, skills).
  * Generators produce tool-specific output from canonical definitions.
- * Generators registered today: `opencode`, `cursor` (hooks.json only),
- * `vscode` (plugin.json hooks contribution only), and `claude-code` (rules /
- * commands / agents / skills under `.claude/` — GAP-406 adapter path).
+ *
+ * Generators registered today:
+ * - `claude-code` (**default** via `DEFAULT_CONTENT_GENERATOR_ID`) — full
+ *   rules/commands/agents/skills under the **project manager** tree
+ *   `.revealui/content/` (GAP-406). Not a vendor-private `.claude/` fork.
+ * - `opencode` — agents + commands under `.opencode/`
+ * - `cursor` — hooks.json only
+ * - `vscode` — plugin.json hooks contribution only
+ *
  * The adapter layer (`../adapters/`) ships `revealui-agent`, `opencode`, and
- * `cursor` -- `vscode` has no adapter (no headless CLI to exec).
+ * `cursor` — `vscode` has no adapter (no headless CLI to exec).
  *
  * @example
  * ```ts
- * import { buildManifest, validateManifest, generateContent, diffContent } from '@revealui/harnesses/content';
+ * import {
+ *   buildManifest,
+ *   validateManifest,
+ *   generateContent,
+ *   DEFAULT_CONTENT_GENERATOR_ID,
+ * } from '@revealui/harnesses/content';
  *
  * const manifest = buildManifest();
  * const validation = validateManifest(manifest);
- * const files = generateContent('opencode', manifest, { projectRoot: '/path/to/project' });
+ * // Default sync lands under .revealui/content (manager tree)
+ * const files = generateContent(DEFAULT_CONTENT_GENERATOR_ID, manifest, { projectRoot: '/path/to/project' });
  * ```
  */
 
@@ -31,8 +43,10 @@ export { buildManifest } from './definitions/index.js';
 export {
   ClaudeCodeGenerator,
   CursorGenerator,
+  DEFAULT_CONTENT_GENERATOR_ID,
   getGenerator,
   listGenerators,
+  MANAGER_CONTENT_OUTPUT,
   OpenCodeGenerator,
   registerGenerator,
   VSCodeGenerator,

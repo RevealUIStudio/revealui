@@ -21,10 +21,12 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {
   buildManifest,
+  DEFAULT_CONTENT_GENERATOR_ID,
   diffContent,
   generateContent,
   listContent,
   listGenerators,
+  MANAGER_CONTENT_OUTPUT,
   validateManifest,
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
@@ -126,7 +128,10 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
     case 'diff': {
       const genIdx = args.indexOf('--generator');
-      const generatorId = genIdx >= 0 ? (args[genIdx + 1] ?? 'claude-code') : 'claude-code';
+      const generatorId =
+        genIdx >= 0
+          ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
+          : DEFAULT_CONTENT_GENERATOR_ID;
       const entries = diffContent(generatorId, manifest, ctx, projectRoot);
       const added = entries.filter((e) => e.status === 'added');
       const modified = entries.filter((e) => e.status === 'modified');
@@ -150,12 +155,21 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
     case 'sync': {
       const genIdx = args.indexOf('--generator');
-      const generatorId = genIdx >= 0 ? (args[genIdx + 1] ?? 'claude-code') : 'claude-code';
+      const generatorId =
+        genIdx >= 0
+          ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
+          : DEFAULT_CONTENT_GENERATOR_ID;
       const dryRun = args.includes('--dry-run');
       const files = generateContent(generatorId, manifest, ctx);
 
       if (dryRun) {
-        process.stdout.write(`Dry run — would write ${files.length} files:\n`);
+        process.stdout.write(
+          `Dry run — would write ${files.length} files (generator=${generatorId}` +
+            (generatorId === DEFAULT_CONTENT_GENERATOR_ID
+              ? `, manager tree ${MANAGER_CONTENT_OUTPUT}`
+              : '') +
+            `):\n`,
+        );
         for (const file of files) {
           process.stdout.write(`  ${file.relativePath}\n`);
         }
@@ -167,7 +181,11 @@ async function handleContentCommand(subcommand: string | undefined, args: string
           writeFileSync(absolutePath, file.content, 'utf-8');
           written++;
         }
-        process.stdout.write(`✓ Wrote ${written} files via ${generatorId} generator\n`);
+        const destNote =
+          generatorId === DEFAULT_CONTENT_GENERATOR_ID
+            ? ` → ${MANAGER_CONTENT_OUTPUT} (project manager)`
+            : '';
+        process.stdout.write(`✓ Wrote ${written} files via ${generatorId} generator${destNote}\n`);
       }
       break;
     }
@@ -280,7 +298,10 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
     case 'pull': {
       const genIdx = args.indexOf('--generator');
-      const generatorId = genIdx >= 0 ? (args[genIdx + 1] ?? 'claude-code') : 'claude-code';
+      const generatorId =
+        genIdx >= 0
+          ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
+          : DEFAULT_CONTENT_GENERATOR_ID;
       const tierIdx = args.indexOf('--tier');
       const tierFilter = tierIdx >= 0 ? (args[tierIdx + 1] ?? 'oss') : 'oss';
 
@@ -433,8 +454,10 @@ async function main() {
 
     if (subcommand === 'materialize') {
       const result = materializeManager(projectRoot);
-      // Also sync manager content from definitions
-      const files = generateContent('claude-code', buildManifest(), { projectRoot });
+      // Sync manager content via the same default generator as `content sync`
+      const files = generateContent(DEFAULT_CONTENT_GENERATOR_ID, buildManifest(), {
+        projectRoot,
+      });
       let written = 0;
       for (const file of files) {
         const absolutePath = join(projectRoot, file.relativePath);
@@ -443,7 +466,9 @@ async function main() {
         written++;
       }
       process.stdout.write(`✓ Manager: ${result.managerPath}\n`);
-      process.stdout.write(`✓ Content files: ${written}\n`);
+      process.stdout.write(
+        `✓ Content files: ${written} → ${MANAGER_CONTENT_OUTPUT} (generator=${DEFAULT_CONTENT_GENERATOR_ID})\n`,
+      );
       process.stdout.write(`✓ Adapter stubs:\n`);
       for (const s of result.stubs) process.stdout.write(`  ${s}\n`);
       return;
@@ -656,9 +681,11 @@ Content Subcommands:
   content list                      List all canonical content with metadata
   content validate                  Validate all definitions against schemas
   content diff [--generator <id>]   Show what would change vs current files
-  content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (manager)
+  content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo
+
+Default content generator: ${DEFAULT_CONTENT_GENERATOR_ID} → ${MANAGER_CONTENT_OUTPUT}
 `);
       break;
   }

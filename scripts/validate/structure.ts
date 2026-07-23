@@ -13,6 +13,7 @@
 
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { checkManager } from '../../packages/harnesses/src/manager/index.js';
 
 interface ValidationRule {
   path: string;
@@ -455,6 +456,27 @@ class StructureValidator {
       console.log('✅ .revealui/templates/ directory exists');
     }
 
+    // Project manager (GAP-406): monorepo always has packages/harnesses; when
+    // .revealui/manager.json is committed, fail closed if it is missing or
+    // invalid. Uses the same checkManager primitive as
+    // `revealui-harnesses manager check` (no parallel validator).
+    if (existsSync('packages/harnesses') || existsSync('.revealui/manager.json')) {
+      console.log('\n🔍 Checking project manager (.revealui)...');
+      const managerResult = checkManager(process.cwd());
+      for (const warning of managerResult.warnings) {
+        console.log(`⚠️  ${warning}`);
+      }
+      if (!managerResult.ok) {
+        for (const error of managerResult.errors) {
+          console.log(`❌ ${error}`);
+        }
+        console.log('   Run: pnpm exec revealui-harnesses manager materialize');
+        allValid = false;
+      } else {
+        console.log('✅ Project manager (.revealui/manager.json) present and valid');
+      }
+    }
+
     // Check that mcp is not in root
     if (existsSync('mcp')) {
       console.log('\n❌ mcp/ found in root - should be in packages/mcp/');
@@ -507,8 +529,42 @@ class StructureValidator {
   }
 }
 
+/**
+ * Focused manager check for path-gated CI (GAP-406).
+ * Same primitive as `revealui-harnesses manager check` / structure validate.
+ */
+export function validateProjectManager(root: string = process.cwd()): boolean {
+  if (
+    !(
+      existsSync(join(root, 'packages/harnesses')) ||
+      existsSync(join(root, '.revealui/manager.json'))
+    )
+  ) {
+    console.log('skip: no packages/harnesses or .revealui/manager.json');
+    return true;
+  }
+  const managerResult = checkManager(root);
+  for (const warning of managerResult.warnings) {
+    console.warn(`WARN: ${warning}`);
+  }
+  if (!managerResult.ok) {
+    for (const error of managerResult.errors) {
+      console.error(`ERROR: ${error}`);
+    }
+    console.error('Run: pnpm exec revealui-harnesses manager materialize');
+    return false;
+  }
+  console.log('✓ Project manager (.revealui/manager.json) present and valid');
+  return true;
+}
+
 // CLI interface
 async function main() {
+  // Path-gated CI entry: `pnpm validate:structure --manager-only`
+  if (process.argv.includes('--manager-only')) {
+    process.exit(validateProjectManager() ? 0 : 1);
+  }
+
   console.log('🎯 RevealUI Structure Validation');
   console.log('='.repeat(40));
 
