@@ -77,7 +77,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/cli | `create-revealui` scaffolding tool |
 | @revealui/setup | Environment setup utilities |
 | @revealui/sync | ElectricSQL real-time sync |
-| @revealui/cache | CDN config, edge cache, ISR presets, revalidation |
+| @revealui/cache | Cache store adapters + invalidation channel (edge/CDN helpers removed C11) |
 | @revealui/resilience | Circuit breaker, retry, bulkhead patterns |
 | @revealui/security | Headers, CORS, RBAC/ABAC, encryption, audit, GDPR |
 | create-revealui | `npm create revealui` initializer |
