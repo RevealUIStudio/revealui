@@ -19,12 +19,14 @@ import {
   homeBlocks,
   localAiBlocks,
   productsBlocks,
+  servicesBlocks,
 } from '../../lib/page-blocks';
 import { FairSourcePage } from '../FairSourcePage';
 import { ForOperatorsManagedPage } from '../ForOperatorsManagedPage';
 import { HomePage } from '../HomePage';
 import { LocalAiPage } from '../LocalAiPage';
 import { ProductsPage } from '../ProductsPage';
+import { ServicesPage } from '../ServicesPage';
 
 vi.mock('../../lib/api', () => ({ fetchPageBlocks: vi.fn() }));
 
@@ -72,7 +74,7 @@ describe('marketing pages: edit-mode wiring', () => {
     editDraftsStore.setEditActive(false);
   });
 
-  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, and ForOperatorsManagedPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
+  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, ServicesPage, and ForOperatorsManagedPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
     const home = renderRouted(<HomePage />);
     expect(home.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(home.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -92,6 +94,11 @@ describe('marketing pages: edit-mode wiring', () => {
     expect(fairSource.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(fairSource.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
     fairSource.unmount();
+
+    const services = renderRouted(<ServicesPage />);
+    expect(services.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+    expect(services.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
+    services.unmount();
 
     const managed = renderRouted(<ForOperatorsManagedPage />);
     expect(managed.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
@@ -172,6 +179,26 @@ describe('marketing pages: edit-mode wiring', () => {
     const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
     expect(heading?.getAttribute('data-rvui-doc')).toBe('page-fair-source-id');
     expect(heading?.textContent).toBe('Canvas-edited fair-source contract');
+  });
+
+  it('ServicesPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {
+    const draftBlocks = servicesBlocks();
+    const hero = draftBlocks[0];
+    if (hero?.type === 'hero') {
+      hero.data.title = 'Canvas-edited services title';
+    }
+    editDraftsStore.set([
+      {
+        docType: 'page',
+        docId: 'page-services-id',
+        draft: { slug: 'services', blocks: draftBlocks },
+      },
+    ]);
+
+    const { container } = renderRouted(<ServicesPage />);
+    const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
+    expect(title?.getAttribute('data-rvui-doc')).toBe('page-services-id');
+    expect(title?.textContent).toBe('Canvas-edited services title');
   });
 
   it('ForOperatorsManagedPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {

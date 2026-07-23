@@ -12,6 +12,15 @@ import {
   FAIR_SOURCE_PEERS_SECTION,
 } from '../content/fair-source';
 import {
+  FOR_OPERATORS_CLOSING,
+  FOR_OPERATORS_DISCOVERY,
+  FOR_OPERATORS_HERO,
+  FOR_OPERATORS_HOW_WE_DELIVER,
+  FOR_OPERATORS_PRICING,
+  FOR_OPERATORS_PROOF,
+  FOR_OPERATORS_WHAT_YOU_GET,
+} from '../content/for-operators';
+import {
   FO_MANAGED_HERO,
   FO_MANAGED_PREREQS,
   FO_MANAGED_STATUS,
@@ -65,6 +74,15 @@ import {
   productsCtaSlot,
   productsFaqSlot,
   productsHeroSlot,
+  SERVICES_FALLBACK_BLOCKS,
+  servicesBlocks,
+  servicesCtaSlot,
+  servicesDiscoverySlot,
+  servicesHeroSlot,
+  servicesHowWeDeliverSlot,
+  servicesPricingIntroSlot,
+  servicesProofSlot,
+  servicesWhatYouGetSlot,
 } from './page-blocks';
 import { SUBSCRIPTION_PRICE_FALLBACKS } from './pricing-fallbacks';
 
@@ -81,13 +99,14 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for home, products, philosophy, local-ai, fair-source, and fo-managed', () => {
+  it('produces schema-valid blocks for home, products, philosophy, local-ai, fair-source, services, and fo-managed', () => {
     for (const block of [
       ...homeBlocks(),
       ...productsBlocks(),
       ...philosophyBlocks(),
       ...localAiBlocks(),
       ...fairSourceBlocks(),
+      ...servicesBlocks(),
       ...foManagedBlocks(),
     ]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
@@ -106,6 +125,15 @@ describe('page-blocks derivation', () => {
       'ctaSection',
     ]);
     expect(fairSourceBlocks().map((b) => b.type)).toEqual([
+      'section',
+      'section',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
+    expect(servicesBlocks().map((b) => b.type)).toEqual([
+      'hero',
       'section',
       'section',
       'section',
@@ -211,6 +239,68 @@ describe('page-blocks derivation', () => {
     });
   });
 
+  it('round-trips services slots against the for-operators content module', () => {
+    const blocks = SERVICES_FALLBACK_BLOCKS;
+    expect(servicesHeroSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_HERO.eyebrow,
+      h1Lines: [...FOR_OPERATORS_HERO.h1Lines],
+      subtitle: FOR_OPERATORS_HERO.subtitle,
+      primaryCta: {
+        label: FOR_OPERATORS_HERO.primaryCta.label,
+        href: FOR_OPERATORS_HERO.primaryCta.href,
+        external: true,
+      },
+      reverseLink: {
+        label: FOR_OPERATORS_HERO.reverseLink.label,
+        href: FOR_OPERATORS_HERO.reverseLink.href,
+      },
+    });
+    expect(servicesWhatYouGetSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_WHAT_YOU_GET.eyebrow,
+      heading: FOR_OPERATORS_WHAT_YOU_GET.heading,
+      body: FOR_OPERATORS_WHAT_YOU_GET.body,
+      cards: FOR_OPERATORS_WHAT_YOU_GET.cards.map((c) => ({ title: c.title, body: c.body })),
+    });
+    expect(servicesHowWeDeliverSlot(blocks).data).toEqual(FOR_OPERATORS_HOW_WE_DELIVER);
+    expect(servicesPricingIntroSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_PRICING.eyebrow,
+      heading: FOR_OPERATORS_PRICING.heading,
+      body: FOR_OPERATORS_PRICING.body,
+    });
+    expect(servicesDiscoverySlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_DISCOVERY.eyebrow,
+      heading: FOR_OPERATORS_DISCOVERY.heading,
+      body: FOR_OPERATORS_DISCOVERY.body,
+      link: {
+        label: FOR_OPERATORS_DISCOVERY.link.label,
+        href: FOR_OPERATORS_DISCOVERY.link.href,
+      },
+    });
+    expect(servicesProofSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_PROOF.eyebrow,
+      heading: FOR_OPERATORS_PROOF.heading,
+      body: FOR_OPERATORS_PROOF.body,
+      bulletIntro: FOR_OPERATORS_PROOF.bulletIntro,
+      bullets: [...FOR_OPERATORS_PROOF.bullets],
+      links: FOR_OPERATORS_PROOF.links.map((l) => ({
+        label: l.label,
+        href: l.href,
+        ...(l.external ? { external: true } : {}),
+      })),
+    });
+    expect(servicesCtaSlot(blocks).data).toEqual({
+      heading: FOR_OPERATORS_CLOSING.heading,
+      body: FOR_OPERATORS_CLOSING.body,
+      primaryCta: {
+        label: FOR_OPERATORS_CLOSING.primaryCta.label,
+        href: FOR_OPERATORS_CLOSING.primaryCta.href,
+        external: true,
+      },
+      emailFallback: { ...FOR_OPERATORS_CLOSING.emailFallback },
+    });
+    expect(blocksMatchFallback(servicesBlocks(), SERVICES_FALLBACK_BLOCKS)).toBe(true);
+  });
+
   it('round-trips fo-managed slots against for-operators-managed content', () => {
     const blocks = FO_MANAGED_FALLBACK_BLOCKS;
     expect(foManagedHeroSlot(blocks).data).toEqual({
@@ -267,6 +357,7 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     philosophyBlocks(),
     localAiBlocks(),
     fairSourceBlocks(),
+    servicesBlocks(),
     foManagedBlocks(),
   ]);
   const haystack = strings.join(' ');
@@ -317,9 +408,10 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     }
     expect(strings).toContain(FAIR_SOURCE_CTA.heading);
     expect(strings).toContain(FAIR_SOURCE_CTA.body);
-    expect(strings).toContain(FO_MANAGED_HERO.subtitle);
-    expect(strings).toContain(FO_MANAGED_STATUS.heading);
-    expect(strings).toContain(FO_MANAGED_WAITLIST.heading);
+    expect(strings).toContain(FOR_OPERATORS_HERO.subtitle);
+    expect(strings).toContain(FOR_OPERATORS_WHAT_YOU_GET.heading);
+    expect(strings).toContain(FOR_OPERATORS_PRICING.heading);
+    expect(strings).toContain(FOR_OPERATORS_CLOSING.heading);
     // Env-code lines stay out of blocks (grep-accurate, component-local).
     expect(strings).not.toContain('LLM_PROVIDER=inference-snaps');
     expect(strings).not.toContain('LLM_PROVIDER=ollama');
@@ -330,6 +422,16 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     expect(haystack).not.toContain(PRODUCTS_FLAGSHIP.version);
     // The pro price lives only on the pricing surfaces, never in a block.
     expect(haystack).not.toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
+    // Services engagement ladder rungs stay component-local: pricing intro is
+    // header-only (FAQ prose may still mention dollar anchors).
+    const pricingIntro = servicesBlocks().find((b) => b.id === 'services-pricing-intro');
+    expect(pricingIntro?.type).toBe('section');
+    if (pricingIntro?.type === 'section') {
+      expect(pricingIntro.data.items ?? []).toHaveLength(0);
+      for (const rung of FOR_OPERATORS_PRICING.rungs) {
+        expect(pricingIntro.data.body ?? '').not.toContain(rung.price);
+      }
+    }
     // Metric counters are rendered from METRICS in TSX, never as block prose.
     // Fair-source hero (which interpolates METRICS) is intentionally not in blocks.
     for (const metric of [METRICS.packages, METRICS.dbTables, METRICS.mcpServers]) {
