@@ -16,6 +16,7 @@ import { fetchPageBlocks } from '../../lib/api';
 import {
   fairSourceBlocks,
   foHiwBlocks,
+  foManagedBlocks,
   homeBlocks,
   localAiBlocks,
   productsBlocks,
@@ -23,6 +24,7 @@ import {
 } from '../../lib/page-blocks';
 import { FairSourcePage } from '../FairSourcePage';
 import { ForOperatorsHowItWorksPage } from '../ForOperatorsHowItWorksPage';
+import { ForOperatorsManagedPage } from '../ForOperatorsManagedPage';
 import { HomePage } from '../HomePage';
 import { LocalAiPage } from '../LocalAiPage';
 import { ProductsPage } from '../ProductsPage';
@@ -74,7 +76,7 @@ describe('marketing pages: edit-mode wiring', () => {
     editDraftsStore.setEditActive(false);
   });
 
-  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, ServicesPage, and ForOperatorsHowItWorksPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
+  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, ServicesPage, ForOperatorsHowItWorksPage, and ForOperatorsManagedPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
     const home = renderRouted(<HomePage />);
     expect(home.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(home.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -103,6 +105,11 @@ describe('marketing pages: edit-mode wiring', () => {
     const hiw = renderRouted(<ForOperatorsHowItWorksPage />);
     expect(hiw.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(hiw.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
+    hiw.unmount();
+
+    const managed = renderRouted(<ForOperatorsManagedPage />);
+    expect(managed.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+    expect(managed.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
   });
 
   it('HomePage renders the draft heading annotated with the session docId when a matching overlay exists', () => {
@@ -219,6 +226,26 @@ describe('marketing pages: edit-mode wiring', () => {
     const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
     expect(title?.getAttribute('data-rvui-doc')).toBe('page-fo-hiw-id');
     expect(title?.textContent).toBe('Canvas-edited how-it-works title');
+  });
+
+  it('ForOperatorsManagedPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {
+    const draftBlocks = foManagedBlocks();
+    const hero = draftBlocks[0];
+    if (hero?.type === 'hero') {
+      hero.data.title = 'Canvas-edited managed title';
+    }
+    editDraftsStore.set([
+      {
+        docType: 'page',
+        docId: 'page-fo-managed-id',
+        draft: { slug: 'for-operators-managed', blocks: draftBlocks },
+      },
+    ]);
+
+    const { container } = renderRouted(<ForOperatorsManagedPage />);
+    const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
+    expect(title?.getAttribute('data-rvui-doc')).toBe('page-fo-managed-id');
+    expect(title?.textContent).toBe('Canvas-edited managed title');
   });
 
   it('re-renders HomePage with the patched value after an optimistic draft-store update', () => {
