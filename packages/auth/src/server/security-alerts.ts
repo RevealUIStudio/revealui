@@ -6,7 +6,9 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
-import type { AuditEvent, SecurityAlertService } from '@revealui/security';
+import type { SecurityAlertService } from '@revealui/security';
+// AuditEvent lives on the server subpath (node:crypto audit module); not on the client-safe barrel.
+import type { AuditEvent } from '@revealui/security/server';
 
 type AuditEventInput = Omit<AuditEvent, 'id' | 'timestamp'>;
 
