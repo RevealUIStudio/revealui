@@ -1,6 +1,6 @@
 /**
  * Static-first block derivation for marketing pages served from the CMS
- * (home, products, philosophy, local-ai, fair-source).
+ * (home, products, philosophy, local-ai, fair-source, for-operators-how-it-works).
  *
  * The marketing content modules stay the single source of truth for every prose
  * string. This module derives the canonical `pages.blocks` array from those
@@ -19,6 +19,9 @@
  * subhead, and body interpolate METRICS license-split counts. The package
  * inventory table stays structural (name/license/repo/npm), while section
  * headers, contract cards, clock, peers, FAQ, and CTA ride the CMS.
+ *
+ * For-operators how-it-works (`/for-operators/how-it-works`) is fully narrative
+ * (no dollar figures per content module). All six sections ride the CMS.
  *
  * No React or network imports live here so `scripts/seed-fleet-marketing-site.ts`
  * can import the same derivation the runtime falls back to.
@@ -45,6 +48,14 @@ import {
   FAIR_SOURCE_PEERS,
   FAIR_SOURCE_PEERS_SECTION,
 } from '../content/fair-source';
+import {
+  FO_HIW_CLOSING,
+  FO_HIW_FEAR,
+  FO_HIW_HERO,
+  FO_HIW_OWNERSHIP,
+  FO_HIW_STEPS,
+  FO_HIW_TIMELINE,
+} from '../content/for-operators-how-it-works';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 import { PHILOSOPHY } from '../content/philosophy';
@@ -234,6 +245,67 @@ export interface FairSourceCtaData {
   readonly secondary: Cta;
 }
 
+export interface FoHiwHeroData {
+  readonly eyebrow: string;
+  readonly h1Lines: readonly string[];
+  readonly subtitle: string;
+  readonly primaryCta: Cta;
+  readonly backLink: Cta;
+}
+
+export interface FoHiwStepData {
+  readonly number: string;
+  readonly title: string;
+  readonly body: string;
+}
+
+export interface FoHiwStepsData {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly steps: readonly FoHiwStepData[];
+}
+
+export interface FoHiwFearOptionData {
+  readonly title: string;
+  readonly body: string;
+}
+
+export interface FoHiwFearData {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly paragraph1: string;
+  readonly paragraph2: string;
+  readonly options: readonly FoHiwFearOptionData[];
+  readonly closing: string;
+}
+
+export interface FoHiwOwnershipClaimData {
+  readonly title: string;
+  readonly body: string;
+}
+
+export interface FoHiwOwnershipData {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly intro: string;
+  readonly claims: readonly FoHiwOwnershipClaimData[];
+  readonly differentiator: string;
+}
+
+export interface FoHiwTimelineData {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly paragraph1: string;
+  readonly paragraph2: string;
+}
+
+export interface FoHiwCtaData {
+  readonly heading: string;
+  readonly body: string;
+  readonly primaryCta: Cta;
+  readonly backLink: Cta;
+}
+
 // ---------------------------------------------------------------------------
 // Stable block ids + positions. Ids let the seed and fallback match, but the
 // runtime routes each slot by array POSITION + type (the CMS assigns its own
@@ -260,6 +332,12 @@ export const FAIR_SOURCE_CLOCK_BLOCK_ID = 'fair-source-clock';
 export const FAIR_SOURCE_PEERS_BLOCK_ID = 'fair-source-peers';
 export const FAIR_SOURCE_FAQ_BLOCK_ID = 'fair-source-faq';
 export const FAIR_SOURCE_CTA_BLOCK_ID = 'fair-source-cta';
+export const FO_HIW_HERO_BLOCK_ID = 'fo-hiw-hero';
+export const FO_HIW_STEPS_BLOCK_ID = 'fo-hiw-steps';
+export const FO_HIW_FEAR_BLOCK_ID = 'fo-hiw-fear';
+export const FO_HIW_OWNERSHIP_BLOCK_ID = 'fo-hiw-ownership';
+export const FO_HIW_TIMELINE_BLOCK_ID = 'fo-hiw-timeline';
+export const FO_HIW_CTA_BLOCK_ID = 'fo-hiw-cta';
 
 const HOME_DEMO_INDEX = 0;
 const HOME_PRIMITIVES_INDEX = 1;
@@ -281,6 +359,21 @@ const FAIR_SOURCE_CLOCK_INDEX = 2;
 const FAIR_SOURCE_PEERS_INDEX = 3;
 const FAIR_SOURCE_FAQ_INDEX = 4;
 const FAIR_SOURCE_CTA_INDEX = 5;
+const FO_HIW_HERO_INDEX = 0;
+const FO_HIW_STEPS_INDEX = 1;
+const FO_HIW_FEAR_INDEX = 2;
+const FO_HIW_OWNERSHIP_INDEX = 3;
+const FO_HIW_TIMELINE_INDEX = 4;
+const FO_HIW_CTA_INDEX = 5;
+
+function hrefLooksExternal(href: string): boolean {
+  return (
+    href.startsWith('http://') ||
+    href.startsWith('https://') ||
+    href.startsWith('mailto:') ||
+    href.startsWith('//')
+  );
+}
 
 function ctaToLink(cta: Cta, variant: 'primary' | 'secondary'): MarketingLink {
   return { label: cta.label, href: cta.href, variant };
@@ -546,6 +639,77 @@ function fairSourceCtaBlock(): CtaSectionBlock {
   });
 }
 
+function foHiwHeroBlock(): HeroBlock {
+  return createHeroBlock(FO_HIW_HERO_BLOCK_ID, FO_HIW_HERO.h1Lines.join('\n'), {
+    eyebrow: FO_HIW_HERO.eyebrow,
+    subtitle: FO_HIW_HERO.subtitle,
+    links: [
+      ctaToLink(FO_HIW_HERO.primaryCta, 'primary'),
+      ctaToLink(FO_HIW_HERO.backLink, 'secondary'),
+    ],
+  });
+}
+
+function foHiwStepsBlock(): SectionBlock {
+  return createSectionBlock(FO_HIW_STEPS_BLOCK_ID, FO_HIW_STEPS.heading, {
+    eyebrow: FO_HIW_STEPS.eyebrow,
+    items: FO_HIW_STEPS.steps.map((step) => ({
+      label: step.number,
+      title: step.title,
+      body: step.body,
+    })),
+  });
+}
+
+function foHiwFearBlock(): SectionBlock {
+  return createSectionBlock(FO_HIW_FEAR_BLOCK_ID, FO_HIW_FEAR.heading, {
+    eyebrow: FO_HIW_FEAR.eyebrow,
+    body: FO_HIW_FEAR.paragraph1,
+    items: [
+      { label: 'paragraph2', body: FO_HIW_FEAR.paragraph2 },
+      ...FO_HIW_FEAR.options.map((opt) => ({
+        label: 'option',
+        title: opt.title,
+        body: opt.body,
+      })),
+      { label: 'closing', body: FO_HIW_FEAR.closing },
+    ],
+  });
+}
+
+function foHiwOwnershipBlock(): SectionBlock {
+  return createSectionBlock(FO_HIW_OWNERSHIP_BLOCK_ID, FO_HIW_OWNERSHIP.heading, {
+    eyebrow: FO_HIW_OWNERSHIP.eyebrow,
+    body: FO_HIW_OWNERSHIP.intro,
+    items: [
+      ...FO_HIW_OWNERSHIP.claims.map((claim) => ({
+        label: 'claim',
+        title: claim.title,
+        body: claim.body,
+      })),
+      { label: 'differentiator', body: FO_HIW_OWNERSHIP.differentiator },
+    ],
+  });
+}
+
+function foHiwTimelineBlock(): SectionBlock {
+  return createSectionBlock(FO_HIW_TIMELINE_BLOCK_ID, FO_HIW_TIMELINE.heading, {
+    eyebrow: FO_HIW_TIMELINE.eyebrow,
+    body: FO_HIW_TIMELINE.paragraph1,
+    items: [{ label: 'paragraph2', body: FO_HIW_TIMELINE.paragraph2 }],
+  });
+}
+
+function foHiwCtaBlock(): CtaSectionBlock {
+  return createCtaSectionBlock(FO_HIW_CTA_BLOCK_ID, FO_HIW_CLOSING.heading, {
+    body: FO_HIW_CLOSING.body,
+    links: [
+      ctaToLink(FO_HIW_CLOSING.primaryCta, 'primary'),
+      ctaToLink(FO_HIW_CLOSING.backLink, 'secondary'),
+    ],
+  });
+}
+
 /** Derives the home page's block-driven sections (Demo, Primitives, GetStarted). */
 export function homeBlocks(): Block[] {
   return [homeDemoBlock(), homePrimitivesBlock(), homeGetStartedBlock()];
@@ -587,11 +751,24 @@ export function fairSourceBlocks(): Block[] {
   ];
 }
 
+/** Derives /for-operators/how-it-works CMS sections (fully narrative). */
+export function foHiwBlocks(): Block[] {
+  return [
+    foHiwHeroBlock(),
+    foHiwStepsBlock(),
+    foHiwFearBlock(),
+    foHiwOwnershipBlock(),
+    foHiwTimelineBlock(),
+    foHiwCtaBlock(),
+  ];
+}
+
 export const HOME_FALLBACK_BLOCKS: Block[] = homeBlocks();
 export const PRODUCTS_FALLBACK_BLOCKS: Block[] = productsBlocks();
 export const PHILOSOPHY_FALLBACK_BLOCKS: Block[] = philosophyBlocks();
 export const LOCAL_AI_FALLBACK_BLOCKS: Block[] = localAiBlocks();
 export const FAIR_SOURCE_FALLBACK_BLOCKS: Block[] = fairSourceBlocks();
+export const FO_HIW_FALLBACK_BLOCKS: Block[] = foHiwBlocks();
 
 // ---------------------------------------------------------------------------
 // Reverse mappers: canonical block -> rich component data shape
@@ -1000,6 +1177,138 @@ export function fairSourceCtaSlot(blocks: Block[]): BlockSlot<FairSourceCtaData>
   const path = `blocks.${FAIR_SOURCE_CTA_INDEX}.data`;
   if (block && block.type === 'ctaSection') return { data: ctaToFairSourceCta(block), path };
   return { data: ctaToFairSourceCta(fairSourceCtaBlock()), path };
+}
+
+function heroToFoHiwHero(block: HeroBlock): FoHiwHeroData {
+  const links = block.data.links ?? [];
+  const primary = links[0]
+    ? {
+        ...linkToCta(links[0]),
+        ...(hrefLooksExternal(links[0].href) ? { external: true as const } : {}),
+      }
+    : FO_HIW_HERO.primaryCta;
+  const back = links[1] ? linkToCta(links[1]) : FO_HIW_HERO.backLink;
+  const lines = block.data.title.split('\n').filter((line) => line.length > 0);
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    h1Lines: lines.length > 0 ? lines : [...FO_HIW_HERO.h1Lines],
+    subtitle: block.data.subtitle ?? '',
+    primaryCta: primary,
+    backLink: back,
+  };
+}
+
+function sectionToFoHiwSteps(block: SectionBlock): FoHiwStepsData {
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    heading: block.data.heading,
+    steps: (block.data.items ?? []).map((item) => ({
+      number: item.label ?? '',
+      title: item.title ?? '',
+      body: item.body,
+    })),
+  };
+}
+
+function sectionToFoHiwFear(block: SectionBlock): FoHiwFearData {
+  const items = block.data.items ?? [];
+  const p2 = items.find((item) => item.label === 'paragraph2');
+  const closing = items.find((item) => item.label === 'closing');
+  const options = items
+    .filter((item) => item.label === 'option')
+    .map((item) => ({ title: item.title ?? '', body: item.body }));
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    heading: block.data.heading,
+    paragraph1: block.data.body ?? '',
+    paragraph2: p2?.body ?? FO_HIW_FEAR.paragraph2,
+    options: options.length > 0 ? options : [...FO_HIW_FEAR.options],
+    closing: closing?.body ?? FO_HIW_FEAR.closing,
+  };
+}
+
+function sectionToFoHiwOwnership(block: SectionBlock): FoHiwOwnershipData {
+  const items = block.data.items ?? [];
+  const differentiator = items.find((item) => item.label === 'differentiator');
+  const claims = items
+    .filter((item) => item.label === 'claim')
+    .map((item) => ({ title: item.title ?? '', body: item.body }));
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    heading: block.data.heading,
+    intro: block.data.body ?? '',
+    claims: claims.length > 0 ? claims : [...FO_HIW_OWNERSHIP.claims],
+    differentiator: differentiator?.body ?? FO_HIW_OWNERSHIP.differentiator,
+  };
+}
+
+function sectionToFoHiwTimeline(block: SectionBlock): FoHiwTimelineData {
+  const p2 = (block.data.items ?? []).find((item) => item.label === 'paragraph2');
+  return {
+    eyebrow: block.data.eyebrow ?? '',
+    heading: block.data.heading,
+    paragraph1: block.data.body ?? '',
+    paragraph2: p2?.body ?? FO_HIW_TIMELINE.paragraph2,
+  };
+}
+
+function ctaToFoHiwCta(block: CtaSectionBlock): FoHiwCtaData {
+  const links = block.data.links ?? [];
+  const primary = links[0]
+    ? {
+        ...linkToCta(links[0]),
+        ...(hrefLooksExternal(links[0].href) ? { external: true as const } : {}),
+      }
+    : FO_HIW_CLOSING.primaryCta;
+  const back = links[1] ? linkToCta(links[1]) : FO_HIW_CLOSING.backLink;
+  return {
+    heading: block.data.heading,
+    body: block.data.body ?? '',
+    primaryCta: primary,
+    backLink: back,
+  };
+}
+
+export function foHiwHeroSlot(blocks: Block[]): BlockSlot<FoHiwHeroData> {
+  const block = blocks[FO_HIW_HERO_INDEX];
+  const path = `blocks.${FO_HIW_HERO_INDEX}.data`;
+  if (block && block.type === 'hero') return { data: heroToFoHiwHero(block), path };
+  return { data: heroToFoHiwHero(foHiwHeroBlock()), path };
+}
+
+export function foHiwStepsSlot(blocks: Block[]): BlockSlot<FoHiwStepsData> {
+  const block = blocks[FO_HIW_STEPS_INDEX];
+  const path = `blocks.${FO_HIW_STEPS_INDEX}.data`;
+  if (block && block.type === 'section') return { data: sectionToFoHiwSteps(block), path };
+  return { data: sectionToFoHiwSteps(foHiwStepsBlock()), path };
+}
+
+export function foHiwFearSlot(blocks: Block[]): BlockSlot<FoHiwFearData> {
+  const block = blocks[FO_HIW_FEAR_INDEX];
+  const path = `blocks.${FO_HIW_FEAR_INDEX}.data`;
+  if (block && block.type === 'section') return { data: sectionToFoHiwFear(block), path };
+  return { data: sectionToFoHiwFear(foHiwFearBlock()), path };
+}
+
+export function foHiwOwnershipSlot(blocks: Block[]): BlockSlot<FoHiwOwnershipData> {
+  const block = blocks[FO_HIW_OWNERSHIP_INDEX];
+  const path = `blocks.${FO_HIW_OWNERSHIP_INDEX}.data`;
+  if (block && block.type === 'section') return { data: sectionToFoHiwOwnership(block), path };
+  return { data: sectionToFoHiwOwnership(foHiwOwnershipBlock()), path };
+}
+
+export function foHiwTimelineSlot(blocks: Block[]): BlockSlot<FoHiwTimelineData> {
+  const block = blocks[FO_HIW_TIMELINE_INDEX];
+  const path = `blocks.${FO_HIW_TIMELINE_INDEX}.data`;
+  if (block && block.type === 'section') return { data: sectionToFoHiwTimeline(block), path };
+  return { data: sectionToFoHiwTimeline(foHiwTimelineBlock()), path };
+}
+
+export function foHiwCtaSlot(blocks: Block[]): BlockSlot<FoHiwCtaData> {
+  const block = blocks[FO_HIW_CTA_INDEX];
+  const path = `blocks.${FO_HIW_CTA_INDEX}.data`;
+  if (block && block.type === 'ctaSection') return { data: ctaToFoHiwCta(block), path };
+  return { data: ctaToFoHiwCta(foHiwCtaBlock()), path };
 }
 
 // ---------------------------------------------------------------------------

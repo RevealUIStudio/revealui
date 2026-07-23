@@ -11,6 +11,14 @@ import {
   FAIR_SOURCE_PEERS,
   FAIR_SOURCE_PEERS_SECTION,
 } from '../content/fair-source';
+import {
+  FO_HIW_CLOSING,
+  FO_HIW_FEAR,
+  FO_HIW_HERO,
+  FO_HIW_OWNERSHIP,
+  FO_HIW_STEPS,
+  FO_HIW_TIMELINE,
+} from '../content/for-operators-how-it-works';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 import { PHILOSOPHY } from '../content/philosophy';
@@ -28,6 +36,14 @@ import {
   fairSourceFaqSlot,
   fairSourcePackagesIntroSlot,
   fairSourcePeersSlot,
+  FO_HIW_FALLBACK_BLOCKS,
+  foHiwBlocks,
+  foHiwCtaSlot,
+  foHiwFearSlot,
+  foHiwHeroSlot,
+  foHiwOwnershipSlot,
+  foHiwStepsSlot,
+  foHiwTimelineSlot,
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
   homeBlocks,
@@ -65,13 +81,14 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for home, products, philosophy, local-ai, and fair-source', () => {
+  it('produces schema-valid blocks for home, products, philosophy, local-ai, fair-source, and fo-hiw', () => {
     for (const block of [
       ...homeBlocks(),
       ...productsBlocks(),
       ...philosophyBlocks(),
       ...localAiBlocks(),
       ...fairSourceBlocks(),
+      ...foHiwBlocks(),
     ]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
     }
@@ -90,6 +107,14 @@ describe('page-blocks derivation', () => {
     ]);
     expect(fairSourceBlocks().map((b) => b.type)).toEqual([
       'section',
+      'section',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
+    expect(foHiwBlocks().map((b) => b.type)).toEqual([
+      'hero',
       'section',
       'section',
       'section',
@@ -185,6 +210,68 @@ describe('page-blocks derivation', () => {
       secondary: { label: FAIR_SOURCE_CTA.secondaryLabel, href: FAIR_SOURCE_CTA.secondaryHref },
     });
   });
+
+  it('round-trips fo-hiw slots against the for-operators-how-it-works content module', () => {
+    const blocks = FO_HIW_FALLBACK_BLOCKS;
+    expect(foHiwHeroSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_HERO.eyebrow,
+      h1Lines: [...FO_HIW_HERO.h1Lines],
+      subtitle: FO_HIW_HERO.subtitle,
+      primaryCta: {
+        label: FO_HIW_HERO.primaryCta.label,
+        href: FO_HIW_HERO.primaryCta.href,
+        external: true,
+      },
+      backLink: {
+        label: FO_HIW_HERO.backLink.label,
+        href: FO_HIW_HERO.backLink.href,
+      },
+    });
+    expect(foHiwStepsSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_STEPS.eyebrow,
+      heading: FO_HIW_STEPS.heading,
+      steps: FO_HIW_STEPS.steps.map((s) => ({
+        number: s.number,
+        title: s.title,
+        body: s.body,
+      })),
+    });
+    expect(foHiwFearSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_FEAR.eyebrow,
+      heading: FO_HIW_FEAR.heading,
+      paragraph1: FO_HIW_FEAR.paragraph1,
+      paragraph2: FO_HIW_FEAR.paragraph2,
+      options: FO_HIW_FEAR.options.map((o) => ({ title: o.title, body: o.body })),
+      closing: FO_HIW_FEAR.closing,
+    });
+    expect(foHiwOwnershipSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_OWNERSHIP.eyebrow,
+      heading: FO_HIW_OWNERSHIP.heading,
+      intro: FO_HIW_OWNERSHIP.intro,
+      claims: FO_HIW_OWNERSHIP.claims.map((c) => ({ title: c.title, body: c.body })),
+      differentiator: FO_HIW_OWNERSHIP.differentiator,
+    });
+    expect(foHiwTimelineSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_TIMELINE.eyebrow,
+      heading: FO_HIW_TIMELINE.heading,
+      paragraph1: FO_HIW_TIMELINE.paragraph1,
+      paragraph2: FO_HIW_TIMELINE.paragraph2,
+    });
+    expect(foHiwCtaSlot(blocks).data).toEqual({
+      heading: FO_HIW_CLOSING.heading,
+      body: FO_HIW_CLOSING.body,
+      primaryCta: {
+        label: FO_HIW_CLOSING.primaryCta.label,
+        href: FO_HIW_CLOSING.primaryCta.href,
+        external: true,
+      },
+      backLink: {
+        label: FO_HIW_CLOSING.backLink.label,
+        href: FO_HIW_CLOSING.backLink.href,
+      },
+    });
+    expect(blocksMatchFallback(foHiwBlocks(), FO_HIW_FALLBACK_BLOCKS)).toBe(true);
+  });
 });
 
 describe('claims safety: prose is single-sourced, pinned values never enter blocks', () => {
@@ -194,6 +281,7 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     philosophyBlocks(),
     localAiBlocks(),
     fairSourceBlocks(),
+    foHiwBlocks(),
   ]);
   const haystack = strings.join(' ');
 
@@ -243,6 +331,12 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     }
     expect(strings).toContain(FAIR_SOURCE_CTA.heading);
     expect(strings).toContain(FAIR_SOURCE_CTA.body);
+    expect(strings).toContain(FO_HIW_HERO.subtitle);
+    expect(strings).toContain(FO_HIW_STEPS.heading);
+    expect(strings).toContain(FO_HIW_FEAR.heading);
+    expect(strings).toContain(FO_HIW_OWNERSHIP.heading);
+    expect(strings).toContain(FO_HIW_TIMELINE.heading);
+    expect(strings).toContain(FO_HIW_CLOSING.heading);
     // Env-code lines stay out of blocks (grep-accurate, component-local).
     expect(strings).not.toContain('LLM_PROVIDER=inference-snaps');
     expect(strings).not.toContain('LLM_PROVIDER=ollama');
