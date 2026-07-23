@@ -70,10 +70,11 @@ export class NeonCircuitBreakerStore implements CircuitBreakerStore {
 
   async remove(name: string): Promise<boolean> {
     const db = getClient();
+    // Neon HTTP client types require bare `.returning()` (no column selection map).
     const deleted = await db
       .delete(circuitBreakerState)
       .where(eq(circuitBreakerState.serviceName, name))
-      .returning({ serviceName: circuitBreakerState.serviceName });
+      .returning();
     return deleted.length > 0;
   }
 
