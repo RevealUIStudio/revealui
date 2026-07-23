@@ -16,6 +16,7 @@
  * - Error filtering and sampling
  */
 
+import { NetworkError } from '@revealui/core/error-handling';
 import {
   type Breadcrumb,
   type ErrorReport,
@@ -156,14 +157,7 @@ describe('Error Reporting System Integration Tests', () => {
     it('should determine error level based on error type', () => {
       const typeError = new TypeError('Type error');
       const referenceError = new ReferenceError('Reference error');
-
-      // Create custom error types
-      class NetworkError extends Error {
-        constructor(message: string) {
-          super(message);
-          this.name = 'NetworkError';
-        }
-      }
+      // Real NetworkError class — name-only spoofs no longer map to warning (P2-A).
       const networkError = new NetworkError('Network error');
 
       errorReporter.captureError(typeError);
@@ -174,7 +168,7 @@ describe('Error Reporting System Integration Tests', () => {
       expect(mockReporter.capturedErrors[0]?.context?.level).toBe('error');
       expect(mockReporter.capturedErrors[1]?.context?.level).toBe('error');
 
-      // NetworkError should be 'warning' level
+      // NetworkError should be 'warning' level (instanceof)
       expect(mockReporter.capturedErrors[2]?.context?.level).toBe('warning');
     });
   });
