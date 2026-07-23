@@ -16,7 +16,7 @@ That does not scale for autonomous agents. Each page owns its module.
    - `export const <name>PageSeed: FleetMarketingPageSeed = { slug, path, title, blocks, seo }`
 2. Add one line to `index.ts`: `export * from './pages/<slug>';`
 3. Wire the route component to import slots from `../lib/page-blocks` (barrel) or `../lib/page-blocks/pages/<slug>`.
-4. Do **not** edit a mono `PAGE_SEEDS` array. Seed auto-loads via `load-seeds.ts`.
+4. Do **not** edit a mono `PAGE_SEEDS` array. Seed auto-loads via `../../../../../scripts/lib/load-fleet-marketing-page-seeds.ts (server)`.
 
 Gate: `pnpm validate:page-blocks-modules` (hard-fail in phase-1 CI).
 
@@ -26,6 +26,6 @@ Gate: `pnpm validate:page-blocks-modules` (hard-fail in phase-1 CI).
 |------|------|
 | `shared.ts` | helpers, `BlockSlot`, `blocksMatchFallback`, seed type |
 | `pages/*.ts` | one file per CMS page (no cross-page edits) |
-| `load-seeds.ts` | auto-discover `*PageSeed` exports for fleet-marketing seed |
+| `../../../../../scripts/lib/load-fleet-marketing-page-seeds.ts (server)` | auto-discover `*PageSeed` exports for fleet-marketing seed |
 | `index.ts` | barrel re-exports |
 | `../page-blocks.ts` | pure re-export shell for existing import paths |

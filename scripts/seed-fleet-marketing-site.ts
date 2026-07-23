@@ -33,7 +33,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
-import { loadFleetMarketingPageSeeds } from '../apps/marketing/app/lib/page-blocks/load-seeds';
+import { loadFleetMarketingPageSeeds } from './lib/load-fleet-marketing-page-seeds.js';
 import {
   assertSeedDatabaseReady,
   loadSeedEnv,
@@ -54,18 +54,10 @@ const log = {
   error: (msg: string) => console.error(`  x ${msg}`),
 };
 
-interface PageSeed {
-  readonly slug: string;
-  readonly path: string;
-  readonly title: string;
-  readonly blocks: unknown[];
-  readonly seo: { title: string; description: string };
-}
-
 /* PAGE_SEEDS loaded at runtime from page-blocks/pages/*PageSeed (conflict-proof). */
 
 async function main(): Promise<void> {
-  const PAGE_SEEDS = await loadFleetMarketingPageSeeds();
+  const pageSeeds = await loadFleetMarketingPageSeeds();
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
 
@@ -212,7 +204,7 @@ async function main(): Promise<void> {
   // Pages (auto-discovered seeds) — version-safe, idempotent
   // ---------------------------------------------------------------------------
 
-  for (const seed of PAGE_SEEDS) {
+  for (const seed of pageSeeds) {
     const existing = await db
       .select({
         id: pages.id,

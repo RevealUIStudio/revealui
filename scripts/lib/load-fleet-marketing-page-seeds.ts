@@ -1,14 +1,24 @@
 /**
  * Collect fleet-marketing page seeds without a hand-maintained array.
- * Each `pages/*.ts` exports a uniquely named `*PageSeed`.
- * Adding a VES page = add `pages/<slug>.ts` only (no seed-array edit, no mono file).
+ * Each apps/marketing/app/lib/page-blocks/pages/*.ts exports *PageSeed.
+ * Lives under scripts/ (not apps/marketing) so client-safety never sees node:fs.
  */
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import type { FleetMarketingPageSeed } from './shared';
 
-const pagesDir = join(dirname(fileURLToPath(import.meta.url)), 'pages');
+export interface FleetMarketingPageSeed {
+  readonly slug: string;
+  readonly path: string;
+  readonly title: string;
+  readonly blocks: readonly unknown[];
+  readonly seo: { readonly title: string; readonly description: string };
+}
+
+const pagesDir = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../apps/marketing/app/lib/page-blocks/pages',
+);
 
 function pickSeed(mod: Record<string, unknown>, file: string): FleetMarketingPageSeed {
   for (const [key, value] of Object.entries(mod)) {

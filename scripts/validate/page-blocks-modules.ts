@@ -8,7 +8,7 @@
  *
  * Prevents the fair-source / services / hiw / managed cascade of merge conflicts.
  */
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,8 +31,7 @@ if (/function \w+Block\s*\(/.test(shell) || /export function \w+Blocks\s*\(/.tes
   );
 }
 if (
-  !shell.includes("from './page-blocks/index'") &&
-  !shell.includes('from "./page-blocks/index"')
+  !(shell.includes("from './page-blocks/index'") || shell.includes('from "./page-blocks/index"'))
 ) {
   fail('page-blocks.ts must re-export ./page-blocks/index');
 }
