@@ -43,6 +43,10 @@
       "sha256": "60508313d8412871180cd9897dd49eebc178277cb877aa0e35ef02d621ef7b1f"
     },
     {
+      "relativePath": ".revealui/content/rules/adapter-only.md",
+      "sha256": "dcd894a7516ad394e15a6485a77aea302db87c4a9c4b1910507edd05a97078b8"
+    },
+    {
       "relativePath": ".revealui/content/rules/agent-dispatch.md",
       "sha256": "0b2497c1817e23a1d4902cb5b5889cec4a6f6526179d7273622066705e444fe8"
     },
@@ -55,8 +59,20 @@
       "sha256": "0ec5699691c7505d6c9ac3fa7b2150c546b5e738e0089af42732ac1a6272a04e"
     },
     {
+      "relativePath": ".revealui/content/rules/code-over-docs.md",
+      "sha256": "092c970e6638e76ca6a14f8fb0f25ca70eb76fa3da95e34fcdb0f6cd18c59561"
+    },
+    {
       "relativePath": ".revealui/content/rules/database.md",
       "sha256": "cb66ad35bf9cd6c61846bb6b9ad1d1ec941f72b04a179441e7ccf0a1b873b341"
+    },
+    {
+      "relativePath": ".revealui/content/rules/disposition-actions.md",
+      "sha256": "184c2b6094fd21c96b06172dc0c29df05dfd903b78ff0d149e00c3e61ecf2a78"
+    },
+    {
+      "relativePath": ".revealui/content/rules/durable-solutions.md",
+      "sha256": "162e4f1925ca067d0a00f7257dae9f31b544ccf8b41b5cf8ea8a848b238259d6"
     },
     {
       "relativePath": ".revealui/content/rules/monorepo.md",
