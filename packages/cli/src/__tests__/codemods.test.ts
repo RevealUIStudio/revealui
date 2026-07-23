@@ -59,7 +59,7 @@ describe('password-hasher-to-auth transform', () => {
   };
 
   it('returns null when the source does not reference PasswordHasher', () => {
-    const source = `import { OAuthClient } from '@revealui/security';\nconst x = 1;\n`;
+    const source = `import { TwoFactorAuth } from '@revealui/security';\nconst x = 1;\n`;
     expect(passwordHasherToAuth.transform(source, api)).toBeNull();
   });
 
@@ -78,12 +78,12 @@ const ok = await PasswordHasher.verify('pw', hash);
   });
 
   it('preserves other named imports from @revealui/security', () => {
-    const source = `import { OAuthClient, PasswordHasher, TwoFactorAuth } from '@revealui/security';
+    const source = `import { TwoFactorAuth, PasswordHasher } from '@revealui/security';
 const h = PasswordHasher.hash('x');
 `;
     const out = passwordHasherToAuth.transform(source, api);
     expect(out).not.toBeNull();
-    expect(out).toContain("import { OAuthClient, TwoFactorAuth } from '@revealui/security'");
+    expect(out).toContain("import { TwoFactorAuth } from '@revealui/security'");
     expect(out).toContain("import { hashPassword, verifyPassword } from '@revealui/auth'");
     expect(out).toContain('hashPassword(');
   });

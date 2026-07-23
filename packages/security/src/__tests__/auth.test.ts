@@ -1,125 +1,13 @@
 /**
  * Authentication Utilities Tests
  *
- * Covers: OAuthClient, TwoFactorAuth (TOTP).
+ * Covers: TwoFactorAuth (TOTP).
+ * OAuthClient / OAuthProviders removed in fleet-redundancy P2-B (zero production
+ * importers; use @revealui/auth for OAuth/social sign-in).
  */
 
-import { describe, expect, it, vi } from 'vitest';
-import { OAuthClient, TwoFactorAuth } from '../auth.js';
-
-// =============================================================================
-// OAuthClient
-// =============================================================================
-
-describe('OAuthClient', () => {
-  const baseConfig = {
-    provider: 'github' as const,
-    clientId: 'test-client-id',
-    clientSecret: 'test-client-secret',
-    redirectUri: 'https://app.revealui.com/callback',
-  };
-
-  it('generates authorization URL with provider defaults', () => {
-    const client = new OAuthClient(baseConfig);
-    const url = client.getAuthorizationUrl();
-
-    expect(url).toContain('https://github.com/login/oauth/authorize');
-    expect(url).toContain('client_id=test-client-id');
-    expect(url).toContain('response_type=code');
-    expect(url).toContain('redirect_uri=');
-  });
-
-  it('includes state parameter when provided', () => {
-    const client = new OAuthClient(baseConfig);
-    const url = client.getAuthorizationUrl('random-state-123');
-    expect(url).toContain('state=random-state-123');
-  });
-
-  it('omits state parameter when not provided', () => {
-    const client = new OAuthClient(baseConfig);
-    const url = client.getAuthorizationUrl();
-    expect(url).not.toContain('state=');
-  });
-
-  it('uses Google provider defaults', () => {
-    const client = new OAuthClient({ ...baseConfig, provider: 'google' });
-    const url = client.getAuthorizationUrl();
-    expect(url).toContain('accounts.google.com');
-    expect(url).toContain('scope=openid+email+profile');
-  });
-
-  it('uses custom provider URLs', () => {
-    const client = new OAuthClient({
-      ...baseConfig,
-      provider: 'custom',
-      authorizationUrl: 'https://custom.auth/authorize',
-      tokenUrl: 'https://custom.auth/token',
-      userInfoUrl: 'https://custom.auth/userinfo',
-      scope: ['read', 'write'],
-    });
-    const url = client.getAuthorizationUrl();
-    expect(url).toContain('https://custom.auth/authorize');
-    expect(url).toContain('scope=read+write');
-  });
-
-  it('exchangeCodeForToken throws on non-ok response', async () => {
-    const client = new OAuthClient(baseConfig);
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response('Bad Request', { status: 400 }),
-    );
-
-    await expect(client.exchangeCodeForToken('bad-code')).rejects.toThrow(
-      'Failed to exchange code for token',
-    );
-
-    vi.restoreAllMocks();
-  });
-
-  it('exchangeCodeForToken returns token on success', async () => {
-    const client = new OAuthClient(baseConfig);
-    const tokenResponse = {
-      access_token: 'gho_test123',
-      token_type: 'bearer',
-      expires_in: 3600,
-    };
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify(tokenResponse), { status: 200 }),
-    );
-
-    const result = await client.exchangeCodeForToken('valid-code');
-    expect(result.access_token).toBe('gho_test123');
-
-    vi.restoreAllMocks();
-  });
-
-  it('getUserInfo throws on non-ok response', async () => {
-    const client = new OAuthClient(baseConfig);
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response('Unauthorized', { status: 401 }),
-    );
-
-    await expect(client.getUserInfo('bad-token')).rejects.toThrow('Failed to fetch user info');
-
-    vi.restoreAllMocks();
-  });
-
-  it('getUserInfo returns user data on success', async () => {
-    const client = new OAuthClient(baseConfig);
-    const userData = { id: '123', email: 'user@example.com', name: 'Test User' };
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify(userData), { status: 200 }),
-    );
-
-    const result = await client.getUserInfo('valid-token');
-    expect(result.email).toBe('user@example.com');
-
-    vi.restoreAllMocks();
-  });
-});
+import { describe, expect, it } from 'vitest';
+import { TwoFactorAuth } from '../auth.js';
 
 // =============================================================================
 // TwoFactorAuth (TOTP)
