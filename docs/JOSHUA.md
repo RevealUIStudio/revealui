@@ -55,7 +55,7 @@ Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No v
 
 **Evidence:**
 - MIT license on the 20 OSS packages; 5 Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source (FSL-1.1-MIT, MIT after 2 years)
-- No vendor-specific APIs in core (Vercel adapters are optional, in `@revealui/cache`)
+- No vendor-specific APIs in core (CDN provider helpers were removed from `@revealui/cache`; use platform APIs)
 - NeonDB (Postgres) is the primary store via vendor-agnostic Drizzle ORM  -  replaceable with any Postgres provider
 - Open-model AI default: Ubuntu Inference Snaps, Ollama, and open source models. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via env vars — there is no vendor lock-in
 - Self-hostable: Docker Compose, Fly, bare metal  -  documented in CI/CD guide
