@@ -45,7 +45,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/enterprise)
 - **UI components**  -  59 native React 19 components in `@revealui/presentation` (80 with `@revealui/core` admin/richtext); Tailwind v4, zero external UI deps
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  96 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
+- **Database**  -  97 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers**  -  12 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, plus the adapter base class)

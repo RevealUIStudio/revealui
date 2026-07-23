@@ -74,6 +74,12 @@
       "rationale": "GAP-355 Stage 2 PR-2: enforce audit_log append-only at the DB layer + add monotonic seq + tenant scope. Hand-written because the core of it is a PL/pgSQL trigger (enforce_audit_log_append_only) + BEFORE UPDATE OR DELETE trigger that RAISEs — not expressible in Drizzle's schema DSL, following the 0002_triggers_search_vectors / 0007 precedent. A plain REVOKE is toothless against the table-owner role the app connects as (owners bypass table privileges), so the trigger is the real enforcement and the REVOKE UPDATE/DELETE FROM PUBLIC is defense-in-depth for future non-owner roles. Also adds `seq` (bigserial, DB-assigned monotonic order — deletion-gap detectable) and `tenant` (nullable) via ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS, idempotent against fresh + re-applied environments. Companion Drizzle schema change at packages/db/src/schema/audit-log.ts models seq + tenant + their indexes for ORM typing.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader 0021-0025 snapshot-debt backfill happens (db:generate against the current stale-0020 snapshot would otherwise re-emit the unrelated kg_*/CHECK drift). The Drizzle schema at audit-log.ts already reflects seq + tenant at the type level; consumers query via DrizzleAuditStore / Drizzle ORM."
+    },
+    {
+      "tag": "0028_audit_anchors",
+      "rationale": "GAP-355 S4-1 hand-written CREATE TABLE audit_anchors + indexes + CHECK constraints. Hand-written so ADD CONSTRAINT uses DO $$ BEGIN ... EXCEPTION WHEN duplicate_object for idempotency (drizzle-kit does not emit that form). Companion Drizzle schema: packages/db/src/schema/audit-anchors.ts.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Snapshot deferred to shared snapshot-debt backfill; schema is fully modeled in audit-anchors.ts for type consumers."
     }
   ]
 }
