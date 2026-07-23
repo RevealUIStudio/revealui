@@ -66,16 +66,8 @@ export {
   classifyAuditWriteFailure,
   recordAuditWriteResult,
 } from './audit-write-failures.js';
-export type {
-  OAuthConfig,
-  User,
-} from './auth.js';
-// Authentication
-export {
-  OAuthClient,
-  OAuthProviders,
-  TwoFactorAuth,
-} from './auth.js';
+// Authentication (TOTP only — OAuthClient/OAuthProviders removed P2-B; use @revealui/auth)
+export { TwoFactorAuth } from './auth.js';
 export type {
   ConsentRecord,
   ConsentType,
