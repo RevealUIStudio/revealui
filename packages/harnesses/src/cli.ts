@@ -21,13 +21,18 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {
   buildManifest,
+  checkAllContentSnapshots,
+  checkContentSnapshot,
   DEFAULT_CONTENT_GENERATOR_ID,
   diffContent,
   generateContent,
   listContent,
   listGenerators,
+  loadContentSnapshot,
   MANAGER_CONTENT_OUTPUT,
+  snapshotPathFor,
   validateManifest,
+  writeAllContentSnapshots,
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
@@ -132,6 +137,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
         genIdx >= 0
           ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
           : DEFAULT_CONTENT_GENERATOR_ID;
+      const check = args.includes('--check');
       const entries = diffContent(generatorId, manifest, ctx, projectRoot);
       const added = entries.filter((e) => e.status === 'added');
       const modified = entries.filter((e) => e.status === 'modified');
@@ -149,6 +155,71 @@ async function handleContentCommand(subcommand: string | undefined, args: string
           for (const e of modified) process.stdout.write(`  ~ ${e.relativePath}\n`);
         }
         process.stdout.write(`Unchanged: ${unchanged.length}\n`);
+        if (check) {
+          process.stderr.write(
+            'content diff --check: disk output drifts from definitions (run content sync)\n',
+          );
+          process.exit(1);
+        }
+      }
+      break;
+    }
+
+    case 'snapshot': {
+      // GAP-406: definition ↔ committed generator snapshot lock.
+      // --write refreshes content-snapshots/*.json; --check fails CI on drift.
+      const write = args.includes('--write');
+      const check = args.includes('--check') || !write;
+      const genIdx = args.indexOf('--generator');
+      const onlyGen = genIdx >= 0 ? (args[genIdx + 1] ?? undefined) : undefined;
+
+      if (write) {
+        const paths = writeAllContentSnapshots(onlyGen ? { generatorIds: [onlyGen] } : undefined);
+        process.stdout.write(`✓ Wrote ${paths.length} content snapshot(s):\n`);
+        for (const p of paths) process.stdout.write(`  ${p}\n`);
+        if (!check) break;
+      }
+
+      if (check) {
+        if (onlyGen) {
+          const path = snapshotPathFor(onlyGen);
+          const expected = loadContentSnapshot(path);
+          const result = checkContentSnapshot(expected);
+          if (!result.ok) {
+            process.stderr.write(
+              `✗ Content snapshot drift for ${onlyGen} (${result.drifts.length} file(s))\n`,
+            );
+            for (const d of result.drifts.slice(0, 40)) {
+              process.stderr.write(`  ${d.kind}: ${d.relativePath}\n`);
+            }
+            process.stderr.write(
+              'Refresh: pnpm exec revealui-harnesses content snapshot --write\n',
+            );
+            process.exit(1);
+          }
+          process.stdout.write(
+            `✓ Content snapshot OK for ${onlyGen} (${result.fileCount} files)\n`,
+          );
+        } else {
+          const all = checkAllContentSnapshots();
+          for (const err of all.errors) process.stderr.write(`ERROR: ${err}\n`);
+          for (const r of all.results) {
+            if (r.ok) {
+              process.stdout.write(`✓ ${r.generatorId}: ${r.fileCount} files match snapshot\n`);
+            } else {
+              process.stderr.write(`✗ ${r.generatorId}: ${r.drifts.length} drift(s)\n`);
+              for (const d of r.drifts.slice(0, 20)) {
+                process.stderr.write(`  ${d.kind}: ${d.relativePath}\n`);
+              }
+            }
+          }
+          if (!all.ok) {
+            process.stderr.write(
+              'Refresh: pnpm exec revealui-harnesses content snapshot --write\n',
+            );
+            process.exit(1);
+          }
+        }
       }
       break;
     }
@@ -680,7 +751,8 @@ Commands:
 Content Subcommands:
   content list                      List all canonical content with metadata
   content validate                  Validate all definitions against schemas
-  content diff [--generator <id>]   Show what would change vs current files
+  content diff [--generator <id>] [--check]  Disk vs definitions (exit 1 with --check on drift)
+  content snapshot [--check|--write] [--generator <id>]  Definition ↔ committed snapshot (GAP-406)
   content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo

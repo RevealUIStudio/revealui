@@ -64,6 +64,24 @@ export {
   RuleSchema,
   SkillSchema,
 } from './schemas/index.js';
+export type {
+  ContentSnapshot,
+  ContentSnapshotFile,
+  SnapshotCheckResult,
+  SnapshotDrift,
+} from './snapshot.js';
+export {
+  buildContentSnapshot,
+  CONTENT_SNAPSHOT_VERSION,
+  checkAllContentSnapshots,
+  checkContentSnapshot,
+  getContentSnapshotsDir,
+  hashContent,
+  loadContentSnapshot,
+  snapshotPathFor,
+  writeAllContentSnapshots,
+  writeContentSnapshot,
+} from './snapshot.js';
 
 export interface ValidationResult {
   valid: boolean;
