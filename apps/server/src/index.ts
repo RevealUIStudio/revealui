@@ -837,14 +837,6 @@ app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
 app.use('/api/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
 app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
 
-// GAP-355 Stage 4 S4-4: Merkle anchor list + inclusion proof (receipt download).
-// Public-key stays free/unauthenticated; only /anchors* is Max+ gated.
-// Free/Pro → 403; Max+ → route. Auth required inside handlers (401 if no user).
-app.use('/api/audit/anchors', requireFeature('auditLog', { mode: 'entitlements' }));
-app.use('/api/audit/anchors/*', requireFeature('auditLog', { mode: 'entitlements' }));
-app.use('/api/v1/audit/anchors', requireFeature('auditLog', { mode: 'entitlements' }));
-app.use('/api/v1/audit/anchors/*', requireFeature('auditLog', { mode: 'entitlements' }));
-
 // Per-site inference configuration is a Max+ tier feature ("aiInference" in
 // DEFAULT_FEATURES). Backed by workspace_inference_configs + the in-memory
 // WorkspaceProviderRegistry hydrated at boot (lib/hydrate-inference-configs.ts).

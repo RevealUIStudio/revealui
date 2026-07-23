@@ -13,12 +13,7 @@
  * is the gated surface. Verification is never for sale (ADR §2a).
  */
 
-import {
-  buildInclusionProof,
-  buildMerkleRootFromSignatures,
-  hashAuditSignatureLeaf,
-  resolveAuditPublicKey,
-} from '@revealui/core/security';
+import { resolveAuditPublicKey } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
 import { accountMemberships, auditAnchors, auditLog } from '@revealui/db/schema';
@@ -26,6 +21,7 @@ import { OpenAPIHono } from '@revealui/openapi';
 import { and, asc, count, desc, eq, gt, gte, isNotNull, lte, max } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { buildAnchorInclusionProof } from '../lib/audit-anchor-proof.js';
 
 interface UserContext {
   id: string;
@@ -202,12 +198,6 @@ app.get('/anchors/:id/proof', async (c) => {
   if (anchor.tenant !== tenant) {
     throw new HTTPException(404, { message: 'Anchor not found' });
   }
-  if (seq < anchor.seqFrom || seq > anchor.seqTo) {
-    throw new HTTPException(400, {
-      message: `seq ${seq} is outside this anchor range [${anchor.seqFrom}, ${anchor.seqTo}]`,
-    });
-  }
-
   const rows = await db
     .select({
       id: auditLog.id,
@@ -227,41 +217,37 @@ app.get('/anchors/:id/proof', async (c) => {
     )
     .orderBy(asc(auditLog.seq));
 
-  if (rows.length !== anchor.leafCount) {
-    throw new HTTPException(409, {
-      message: `Anchor leaf_count ${anchor.leafCount} does not match ${rows.length} signed rows in range (integrity)`,
-    });
-  }
-
-  const signatures: string[] = [];
+  const signedRows: Array<{ seq: number; signature: string }> = [];
   for (const row of rows) {
     if (!row.signature) {
       throw new HTTPException(409, { message: 'Missing signature in anchor range' });
     }
-    signatures.push(row.signature);
+    signedRows.push({ seq: row.seq, signature: row.signature });
   }
 
-  // Rebuild leaf list the same way the worker did; refuse if root drifts.
-  const { root, leafHashes } = buildMerkleRootFromSignatures(signatures);
-  if (root !== anchor.root) {
-    throw new HTTPException(409, {
-      message: 'Rebuilt Merkle root does not match stored anchor (integrity)',
-    });
+  const built = buildAnchorInclusionProof(
+    {
+      seqFrom: anchor.seqFrom,
+      seqTo: anchor.seqTo,
+      root: anchor.root,
+      leafCount: anchor.leafCount,
+    },
+    signedRows,
+    seq,
+  );
+  if (!built.ok) {
+    if (built.code === 'SEQ_OUT_OF_RANGE') {
+      throw new HTTPException(400, {
+        message: `seq ${seq} is outside this anchor range [${anchor.seqFrom}, ${anchor.seqTo}]`,
+      });
+    }
+    throw new HTTPException(409, { message: built.error });
   }
 
-  const leafIndex = seq - anchor.seqFrom;
-  const target = rows[leafIndex];
-  if (!target || target.seq !== seq) {
-    throw new HTTPException(409, {
-      message: `Expected seq ${seq} at leaf index ${leafIndex}; range is not contiguous`,
-    });
+  const target = rows[built.leafIndex];
+  if (!target) {
+    throw new HTTPException(409, { message: 'leaf missing after proof build' });
   }
-  if (!target.signature) {
-    throw new HTTPException(409, { message: 'Target row has no signature' });
-  }
-
-  const proof = buildInclusionProof(leafHashes, leafIndex);
-  const leafHash = hashAuditSignatureLeaf(target.signature);
 
   // First successful API download = delivered (design §3 delivery_channel).
   let deliveredAt = anchor.deliveredAt;
@@ -287,12 +273,12 @@ app.get('/anchors/:id/proof', async (c) => {
       row: {
         id: target.id,
         seq: target.seq,
-        signature: target.signature,
-        leafHash,
+        signature: built.signature,
+        leafHash: built.leafHash,
         timestamp: target.timestamp.toISOString(),
         eventType: target.eventType,
       },
-      proof,
+      proof: built.proof,
     },
     200,
   );
