@@ -1,5 +1,16 @@
 import { BlockSchema } from '@revealui/contracts/content';
 import { describe, expect, it } from 'vitest';
+import {
+  FAIR_SOURCE_CLOCK_SECTION,
+  FAIR_SOURCE_CONTRACT_CARDS,
+  FAIR_SOURCE_CONTRACT_SECTION,
+  FAIR_SOURCE_CTA,
+  FAIR_SOURCE_FAQ_SECTION,
+  FAIR_SOURCE_FAQS,
+  FAIR_SOURCE_PACKAGES_SECTION,
+  FAIR_SOURCE_PEERS,
+  FAIR_SOURCE_PEERS_SECTION,
+} from '../content/fair-source';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 import { PHILOSOPHY } from '../content/philosophy';
@@ -9,6 +20,14 @@ import { METRICS } from '../content/site';
 import {
   blocksMatchFallback,
   demoSlot,
+  FAIR_SOURCE_FALLBACK_BLOCKS,
+  fairSourceBlocks,
+  fairSourceClockSlot,
+  fairSourceContractSlot,
+  fairSourceCtaSlot,
+  fairSourceFaqSlot,
+  fairSourcePackagesIntroSlot,
+  fairSourcePeersSlot,
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
   homeBlocks,
@@ -46,12 +65,13 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for home, products, philosophy, and local-ai', () => {
+  it('produces schema-valid blocks for home, products, philosophy, local-ai, and fair-source', () => {
     for (const block of [
       ...homeBlocks(),
       ...productsBlocks(),
       ...philosophyBlocks(),
       ...localAiBlocks(),
+      ...fairSourceBlocks(),
     ]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
     }
@@ -63,6 +83,14 @@ describe('page-blocks derivation', () => {
     expect(philosophyBlocks().map((b) => b.type)).toEqual(['hero', 'section', 'ctaSection']);
     expect(localAiBlocks().map((b) => b.type)).toEqual([
       'hero',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
+    expect(fairSourceBlocks().map((b) => b.type)).toEqual([
+      'section',
+      'section',
       'section',
       'section',
       'section',
@@ -113,6 +141,50 @@ describe('page-blocks derivation', () => {
     });
     expect(localAiCtaSlot(blocks).data).toEqual(LOCAL_AI_PAGE.cta);
   });
+
+  it('round-trips fair-source slots against the static content module', () => {
+    const blocks = FAIR_SOURCE_FALLBACK_BLOCKS;
+    expect(fairSourceContractSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_CONTRACT_SECTION.eyebrow,
+      heading: FAIR_SOURCE_CONTRACT_SECTION.heading,
+      cards: FAIR_SOURCE_CONTRACT_CARDS.map((c) => ({
+        kind: c.kind,
+        title: c.title,
+        body: c.body,
+      })),
+    });
+    const packagesIntro = fairSourcePackagesIntroSlot(blocks).data;
+    expect(packagesIntro.eyebrow).toBe(FAIR_SOURCE_PACKAGES_SECTION.eyebrow);
+    expect(packagesIntro.heading).toBe(FAIR_SOURCE_PACKAGES_SECTION.heading);
+    expect(packagesIntro.body).toContain(FAIR_SOURCE_PACKAGES_SECTION.body.privatePackage);
+    expect(packagesIntro.footerCommand).toBe(FAIR_SOURCE_PACKAGES_SECTION.footer.command);
+    expect(fairSourceClockSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_CLOCK_SECTION.eyebrow,
+      heading: FAIR_SOURCE_CLOCK_SECTION.heading,
+      body: FAIR_SOURCE_CLOCK_SECTION.body,
+      steps: FAIR_SOURCE_CLOCK_SECTION.steps.map((s) => ({
+        title: s.title,
+        body: s.body,
+        color: s.color,
+      })),
+    });
+    expect(fairSourcePeersSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_PEERS_SECTION.eyebrow,
+      heading: FAIR_SOURCE_PEERS_SECTION.heading,
+      peers: FAIR_SOURCE_PEERS.map((p) => ({ name: p.name, note: p.note, url: p.url })),
+    });
+    expect(fairSourceFaqSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_FAQ_SECTION.eyebrow,
+      heading: FAIR_SOURCE_FAQ_SECTION.heading,
+      items: FAIR_SOURCE_FAQS.map((f) => ({ question: f.question, answer: f.answer })),
+    });
+    expect(fairSourceCtaSlot(blocks).data).toEqual({
+      heading: FAIR_SOURCE_CTA.heading,
+      body: FAIR_SOURCE_CTA.body,
+      primary: { label: FAIR_SOURCE_CTA.primaryLabel, href: FAIR_SOURCE_CTA.primaryHref },
+      secondary: { label: FAIR_SOURCE_CTA.secondaryLabel, href: FAIR_SOURCE_CTA.secondaryHref },
+    });
+  });
 });
 
 describe('claims safety: prose is single-sourced, pinned values never enter blocks', () => {
@@ -121,6 +193,7 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     productsBlocks(),
     philosophyBlocks(),
     localAiBlocks(),
+    fairSourceBlocks(),
   ]);
   const haystack = strings.join(' ');
 
@@ -163,6 +236,13 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     }
     expect(strings).toContain(LOCAL_AI_PAGE.marketProof.heading);
     expect(strings).toContain(LOCAL_AI_SECTION.snippet.caption);
+    expect(strings).toContain(FAIR_SOURCE_CONTRACT_SECTION.heading);
+    for (const card of FAIR_SOURCE_CONTRACT_CARDS) {
+      expect(strings).toContain(card.title);
+      expect(strings).toContain(card.body);
+    }
+    expect(strings).toContain(FAIR_SOURCE_CTA.heading);
+    expect(strings).toContain(FAIR_SOURCE_CTA.body);
     // Env-code lines stay out of blocks (grep-accurate, component-local).
     expect(strings).not.toContain('LLM_PROVIDER=inference-snaps');
     expect(strings).not.toContain('LLM_PROVIDER=ollama');
@@ -174,6 +254,7 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     // The pro price lives only on the pricing surfaces, never in a block.
     expect(haystack).not.toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
     // Metric counters are rendered from METRICS in TSX, never as block prose.
+    // Fair-source hero (which interpolates METRICS) is intentionally not in blocks.
     for (const metric of [METRICS.packages, METRICS.dbTables, METRICS.mcpServers]) {
       expect(strings).not.toContain(String(metric));
     }
@@ -258,6 +339,7 @@ describe('blocksMatchFallback shape guard', () => {
     expect(blocksMatchFallback(homeBlocks(), HOME_FALLBACK_BLOCKS)).toBe(true);
     expect(blocksMatchFallback(productsBlocks(), PRODUCTS_FALLBACK_BLOCKS)).toBe(true);
     expect(blocksMatchFallback(philosophyBlocks(), PHILOSOPHY_FALLBACK_BLOCKS)).toBe(true);
+    expect(blocksMatchFallback(fairSourceBlocks(), FAIR_SOURCE_FALLBACK_BLOCKS)).toBe(true);
   });
 
   it('rejects empty, wrong-length, and wrong-type arrays', () => {

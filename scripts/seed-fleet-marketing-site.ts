@@ -2,7 +2,7 @@
 
 /**
  * Seed the fleet-marketing `sites` row plus its published marketing pages
- * (home, products, philosophy, local-ai) for the visual-edit-sessions block wire.
+ * (home, products, philosophy, local-ai, fair-source) for the visual-edit-sessions block wire.
  *
  * The page `blocks` come from the SAME pure derivation the marketing app falls
  * back to (`apps/marketing/app/lib/page-blocks.ts`), so the seeded CMS content
@@ -32,6 +32,7 @@
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import {
+  fairSourceBlocks,
   homeBlocks,
   localAiBlocks,
   philosophyBlocks,
@@ -105,6 +106,17 @@ const PAGE_SEEDS: readonly PageSeed[] = [
       title: 'Local-first AI | RevealUI',
       description:
         'Run your AI on infrastructure you own. Open-weight default, frontier one config line away.',
+    },
+  },
+  {
+    slug: 'fair-source',
+    path: '/fair-source',
+    title: 'Fair Source',
+    blocks: fairSourceBlocks(),
+    seo: {
+      title: 'Fair Source | RevealUI',
+      description:
+        'Source-visible. Commercially usable. MIT in two years. The license contract for RevealUI Pro packages.',
     },
   },
 ];
@@ -253,7 +265,7 @@ async function main(): Promise<void> {
   }
 
   // ---------------------------------------------------------------------------
-  // Pages (home + products + philosophy + local-ai) — version-safe, idempotent
+  // Pages (home + products + philosophy + local-ai + fair-source) — version-safe, idempotent
   // ---------------------------------------------------------------------------
 
   for (const seed of PAGE_SEEDS) {
