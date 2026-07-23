@@ -2,8 +2,8 @@
 
 /**
  * Seed the fleet-marketing `sites` row plus its published marketing pages
- * (home, products, philosophy, local-ai, fair-source, services) for the
- * visual-edit-sessions block wire.
+ * (home, products, philosophy, local-ai, fair-source, services,
+ * for-operators-how-it-works) for the visual-edit-sessions block wire.
  *
  * The page `blocks` come from the SAME pure derivation the marketing app falls
  * back to (`apps/marketing/app/lib/page-blocks.ts`), so the seeded CMS content
@@ -34,6 +34,7 @@ import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import {
   fairSourceBlocks,
+  foHiwBlocks,
   homeBlocks,
   localAiBlocks,
   philosophyBlocks,
@@ -130,6 +131,17 @@ const PAGE_SEEDS: readonly PageSeed[] = [
       title: 'Services | RevealUI',
       description:
         'Done-for-you software with AI built in. Discovery, fixed-scope engagement, delivered by the team that builds the runtime.',
+    },
+  },
+  {
+    slug: 'for-operators-how-it-works',
+    path: '/for-operators/how-it-works',
+    title: 'How the engagement works',
+    blocks: foHiwBlocks(),
+    seo: {
+      title: 'How the engagement works | RevealUI',
+      description:
+        'Discovery, fixed-scope proposal, build, and handoff. Weeks, not quarters. How RevealUI Studio delivers operator software.',
     },
   },
 ];
@@ -278,7 +290,7 @@ async function main(): Promise<void> {
   }
 
   // ---------------------------------------------------------------------------
-  // Pages (home + products + philosophy + local-ai + fair-source + services) — version-safe, idempotent
+  // Pages (home + products + philosophy + local-ai + fair-source + services + how-it-works) — version-safe, idempotent
   // ---------------------------------------------------------------------------
 
   for (const seed of PAGE_SEEDS) {
