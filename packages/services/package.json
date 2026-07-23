@@ -13,6 +13,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
+    "@revealui/resilience": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@vercel/node": "^5.8.22",
     "drizzle-orm": "catalog:",

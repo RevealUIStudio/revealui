@@ -1,23 +1,26 @@
 /**
  * DB-Backed Circuit Breaker
  *
- * Stores circuit state in NeonDB so all API instances share the same view.
+ * Shared multi-instance circuit for Stripe (and similar) operations.
  *
- * Architecture:
- *   - Local in-memory cache (5s TTL)  -  fast read path, no DB hit per request
- *   - DB write only on state transitions (open/closed/half-open changes)
- *   - Fail-open on DB errors: if we can't read state, we let the call through
+ * Architecture (fleet-redundancy P2-D):
+ *   - State machine thresholds align with `@revealui/resilience` CircuitBreaker
+ *   - Durable state via CircuitBreakerStore (default: NeonCircuitBreakerStore)
+ *   - Local in-memory cache (5s TTL) — fast read path, no store hit per request
+ *   - Store write only on state transitions (open/closed/half-open changes)
+ *   - Fail-open on store errors: if we can't read state, we let the call through
  *     rather than blocking all traffic because the circuit state store is down
  */
 
 import { createLogger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
-import { circuitBreakerState } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import type {
+  CircuitBreakerSnapshot,
+  CircuitBreakerStore,
+  CircuitState,
+} from '@revealui/resilience';
+import { NeonCircuitBreakerStore } from './neon-circuit-breaker-store.js';
 
 const logger = createLogger({ service: 'DbCircuitBreaker' });
-
-type CircuitState = 'closed' | 'open' | 'half-open';
 
 interface CachedState {
   state: CircuitState;
@@ -49,14 +52,43 @@ const DEFAULT_CONFIG: DbCircuitBreakerConfig = {
 // Module-level cache shared across all instances in the same process
 const localCache = new Map<string, CachedState>();
 
+const defaultStore: CircuitBreakerStore = new NeonCircuitBreakerStore();
+
+function toSnapshot(s: CachedState): CircuitBreakerSnapshot {
+  return {
+    state: s.state,
+    failureCount: s.failureCount,
+    successCount: s.successCount,
+    consecutiveFailures: s.failureCount,
+    consecutiveSuccesses: s.successCount,
+    lastFailureAt: s.lastFailureAt,
+    lastSuccessAt: 0,
+    stateChangedAt: s.stateChangedAt,
+  };
+}
+
+function fromSnapshot(snap: CircuitBreakerSnapshot): CachedState {
+  return {
+    state: snap.state,
+    failureCount: snap.consecutiveFailures || snap.failureCount,
+    successCount: snap.consecutiveSuccesses || snap.successCount,
+    lastFailureAt: snap.lastFailureAt,
+    stateChangedAt: snap.stateChangedAt,
+    cachedAt: Date.now(),
+  };
+}
+
 export class DbCircuitBreaker {
   private readonly config: DbCircuitBreakerConfig;
+  private readonly store: CircuitBreakerStore;
 
   constructor(
     private readonly serviceName: string,
     config: Partial<DbCircuitBreakerConfig> = {},
+    store: CircuitBreakerStore = defaultStore,
   ) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.store = store;
   }
 
   /**
@@ -102,7 +134,7 @@ export class DbCircuitBreaker {
           stateChangedAt: Date.now(),
         });
       } else {
-        // Update local cache only  -  no DB write until threshold is reached
+        // Update local cache only  -  no store write until threshold is reached
         localCache.set(this.serviceName, {
           ...s,
           successCount: newSuccesses,
@@ -113,7 +145,7 @@ export class DbCircuitBreaker {
     }
 
     if (s.state === 'closed' && s.failureCount > 0) {
-      // Reset sub-threshold failure counter locally (no DB write needed)
+      // Reset sub-threshold failure counter locally (no store write needed)
       localCache.set(this.serviceName, { ...s, failureCount: 0 });
     }
   }
@@ -136,7 +168,7 @@ export class DbCircuitBreaker {
         stateChangedAt: Date.now(),
       });
     } else {
-      // Sub-threshold: update local counter without hitting DB
+      // Sub-threshold: update local counter without hitting the store
       localCache.set(this.serviceName, {
         ...s,
         failureCount: newFailures,
@@ -159,7 +191,7 @@ export class DbCircuitBreaker {
     await this.writeState(fresh);
   }
 
-  /** Clear only the local cache (forces next read to hit DB). For testing. */
+  /** Clear only the local cache (forces next read to hit the store). For testing. */
   clearLocalCache(): void {
     localCache.delete(this.serviceName);
   }
@@ -171,26 +203,14 @@ export class DbCircuitBreaker {
     if (cached && Date.now() - cached.cachedAt < this.config.cacheTtlMs) {
       return cached;
     }
-    return this.readFromDb();
+    return this.readFromStore();
   }
 
-  private async readFromDb(): Promise<CachedState> {
+  private async readFromStore(): Promise<CachedState> {
     try {
-      const db = getClient();
-      const [row] = await db
-        .select()
-        .from(circuitBreakerState)
-        .where(eq(circuitBreakerState.serviceName, this.serviceName));
-
-      const state: CachedState = row
-        ? {
-            state: row.state as CircuitState,
-            failureCount: row.failureCount,
-            successCount: row.successCount,
-            lastFailureAt: row.lastFailureAt?.getTime() ?? 0,
-            stateChangedAt: row.stateChangedAt.getTime(),
-            cachedAt: Date.now(),
-          }
+      const snap = await this.store.load(this.serviceName);
+      const state: CachedState = snap
+        ? fromSnapshot(snap)
         : {
             state: 'closed',
             failureCount: 0,
@@ -203,8 +223,8 @@ export class DbCircuitBreaker {
       localCache.set(this.serviceName, state);
       return state;
     } catch {
-      // Fail-open: if DB is unreachable, default to closed so Stripe calls proceed.
-      // We log a warning but don't block traffic over a missing circuit state row.
+      // Fail-open: if the store is unreachable, default to closed so Stripe
+      // calls proceed. Log a warning but do not block traffic.
       logger.warn(
         `DbCircuitBreaker: failed to read state for '${this.serviceName}', defaulting to closed`,
       );
@@ -222,37 +242,14 @@ export class DbCircuitBreaker {
   }
 
   private async writeState(s: CachedState): Promise<void> {
-    const now = new Date();
     // Optimistically update local cache first so subsequent in-process
-    // calls see the new state without waiting for the DB round-trip to complete.
+    // calls see the new state without waiting for the store round-trip.
     localCache.set(this.serviceName, { ...s, cachedAt: Date.now() });
 
     try {
-      const db = getClient();
-      await db
-        .insert(circuitBreakerState)
-        .values({
-          serviceName: this.serviceName,
-          state: s.state,
-          failureCount: s.failureCount,
-          successCount: s.successCount,
-          lastFailureAt: s.lastFailureAt ? new Date(s.lastFailureAt) : null,
-          stateChangedAt: new Date(s.stateChangedAt),
-          updatedAt: now,
-        })
-        .onConflictDoUpdate({
-          target: circuitBreakerState.serviceName,
-          set: {
-            state: s.state,
-            failureCount: s.failureCount,
-            successCount: s.successCount,
-            lastFailureAt: s.lastFailureAt ? new Date(s.lastFailureAt) : null,
-            stateChangedAt: new Date(s.stateChangedAt),
-            updatedAt: now,
-          },
-        });
+      await this.store.save(this.serviceName, toSnapshot(s));
     } catch (err) {
-      // Non-fatal: local cache has the new state; DB will catch up on next write.
+      // Non-fatal: local cache has the new state; store will catch up on next write.
       logger.warn(`DbCircuitBreaker: failed to persist state for '${this.serviceName}'`, {
         error: err instanceof Error ? err.message : String(err),
         newState: s.state,
