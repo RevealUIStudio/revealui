@@ -378,6 +378,32 @@ export type AppLogsRow = z.infer<typeof AppLogsSelectSchema>
 export type AppLogsInsert = z.infer<typeof AppLogsInsertSchema>
 
 // =============================================================================
+// AuditAnchors Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting auditAnchors rows from database
+ * Generated from Drizzle table definition: tables.auditAnchors
+ */
+export const AuditAnchorsSelectSchema = createSelectSchema(tables.auditAnchors)
+
+/**
+ * Zod schema for inserting auditAnchors rows to database
+ * Generated from Drizzle table definition: tables.auditAnchors
+ */
+export const AuditAnchorsInsertSchema = createInsertSchema(tables.auditAnchors)
+
+/**
+ * TypeScript type for auditAnchors row (Select)
+ */
+export type AuditAnchorsRow = z.infer<typeof AuditAnchorsSelectSchema>
+
+/**
+ * TypeScript type for auditAnchors insert
+ */
+export type AuditAnchorsInsert = z.infer<typeof AuditAnchorsInsertSchema>
+
+// =============================================================================
 // AuditLog Schemas
 // =============================================================================
 
