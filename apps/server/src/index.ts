@@ -869,6 +869,17 @@ app.use('/api/v1/rotation/*', requireFeature('vaultRotation', { mode: 'entitleme
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
+// GAP-355 Stage 4 S4-4: Merkle anchor download + inclusion proof (Max+ auditLog).
+// Public-key stays unauthenticated under /api/audit/public-key.
+app.use('/api/audit/anchors', writeProtected);
+app.use('/api/audit/anchors/*', writeProtected);
+app.use('/api/v1/audit/anchors', writeProtected);
+app.use('/api/v1/audit/anchors/*', writeProtected);
+app.use('/api/audit/anchors', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/audit/anchors/*', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/v1/audit/anchors', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/v1/audit/anchors/*', requireFeature('auditLog', { mode: 'entitlements' }));
+
 // Block recovery sessions (magic link) from mutating routes.
 // Recovery sessions should only be used for password change and sign-out.
 const rejectRecovery = createMiddleware(async (c, next) => {
