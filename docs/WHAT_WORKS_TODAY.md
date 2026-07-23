@@ -110,7 +110,7 @@ Honest list of things that are not done, not deployed, or not verified.
 | UI components | 65 in `@revealui/presentation` | Yes |
 | Database tables | 96 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | CHECK constraints | 81 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
-| MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
+| MCP servers | 13 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
 | API route files | run `find apps/server/src/routes -name '*.ts' -not -name '*.test.ts' \| wc -l` | Reproducible |

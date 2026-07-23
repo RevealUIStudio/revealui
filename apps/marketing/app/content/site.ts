@@ -35,7 +35,7 @@ export const METRICS = {
    * utilities). Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon concrete
    * adapter subclasses). Source: claim-drift countMCPServers.
    */
-  mcpServers: 14,
+  mcpServers: 13,
   /** Drizzle pgTable declarations across packages/db/src/schema/. Source: claim-drift countDbTables. */
   dbTables: 96,
   /** License split. Source: claim-drift licenseSplit. */

@@ -9,7 +9,7 @@
  * affordances") at the discovery layer; complement to the /llms.txt prose
  * layer (revealui#720) and the existing /.well-known/agent.json A2A layer.
  *
- * Source of truth: `packages/mcp/README.md` ("14 MCP Servers" — enforced
+ * Source of truth: `packages/mcp/README.md` ("13 MCP Servers" — enforced
  * by `pnpm validate:claims`). This manifest mirrors that list 1:1 and
  * MUST be updated alongside any addition or removal in
  * `packages/mcp/src/servers/`.

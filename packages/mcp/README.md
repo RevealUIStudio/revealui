@@ -19,7 +19,7 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **14 MCP Servers** - Code Validator, Contracts Introspection, RevealUI Docs, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, and the Adapter base (BaseAdapter with retry and idempotency, plus the Vercel/Stripe/Neon adapter subclasses). This roster matches the CI counter in `scripts/validate/claim-drift.ts` (adapter counted, the underscore-prefixed email-provider utility not); the count is enforced by `pnpm validate:claims`. Of the 14, eight are RevealUI-authored and six are first-party launchers that start vendor MCP server packages.
+- **13 MCP Servers** - Code Validator, Contracts Introspection, RevealUI Docs, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Vercel, and the Adapter base (BaseAdapter with retry and idempotency, plus the Vercel/Stripe/Neon adapter subclasses). This roster matches the CI counter in `scripts/validate/claim-drift.ts` (adapter counted, the underscore-prefixed email-provider utility not); the count is enforced by `pnpm validate:claims`. Of the 13, eight are RevealUI-authored and five are first-party launchers that start vendor MCP server packages.
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
 - **Documentation** - Complete guides and per-server docs
@@ -258,5 +258,5 @@ FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../..
 ---
 
 **Status:** ✅ Consolidated and Active
-**Servers:** 14 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
+**Servers:** 13 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
 **Last Updated:** 2026-05-03

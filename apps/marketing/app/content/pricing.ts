@@ -3,7 +3,7 @@
 // match the shipped code (whiteLabel forced false, x402 rail off by default).
 // Sourced from: app/routes/PricingPage.tsx (Phase 1 extraction).
 // Phase 3 (2026-05-18) update: agent-section MCP count now references
-// METRICS.mcpServers (canonical 14 per docs/MARKETING_METRICS.md §1).
+// METRICS.mcpServers (canonical 13 per docs/MARKETING_METRICS.md §1).
 // Canonical pricing numbers re-exported from @revealui/contracts/pricing for component convenience.
 // 2026-07-09: PRICING_COST_CALCULATOR moved here from the homepage (internal
 // marketing funnel audit); it is the one anchor number set for the
