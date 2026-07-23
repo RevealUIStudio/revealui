@@ -224,6 +224,7 @@
     "test:integration": "tsx scripts/dev-tools/run-integration-tests.ts",
     "typecheck:all": "turbo run typecheck --concurrency=3",
     "verify:audit-signatures": "tsx scripts/security/verify-audit-signatures.ts",
+    "verify:audit-anchor": "tsx scripts/security/verify-audit-anchor.ts",
     "validate:artifacts": "tsx scripts/validate/build-artifacts.ts",
     "validate:boundary": "tsx scripts/validate/boundary.ts",
     "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",

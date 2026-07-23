@@ -507,7 +507,8 @@ const CLAIMS_PAGE_ROUTE: EvidenceRef = {
 };
 // ── audit-log signing (GAP-355 Stage 3): the log is signed with a key anyone
 // can check, verifiable offline without our secret. Scoped to the log, not
-// "every agent action" (Stage 5). ─────────────────────────────────────────────
+// "every agent action" (Stage 5). Stage 4 adds Merkle roots + offline anchor
+// CLI (S4-5) for customers who hold a delivered root. ─────────────────────────
 const AUDIT_ROW_SIGNER: EvidenceRef = {
   kind: 'code',
   ref: 'packages/security/src/audit-signing.ts',
@@ -517,6 +518,31 @@ const AUDIT_SIGN_ROUNDTRIP: EvidenceRef = {
   kind: 'test',
   ref: 'apps/server/src/lib/__tests__/audit-signing-roundtrip.pglite.test.ts#a canonically-signed row verifies OFFLINE after the jsonb + timestamptz round trip',
   note: 'a row written through the one door verifies offline from the jsonb + timestamptz readback using only the public key',
+};
+const AUDIT_MERKLE: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-merkle.ts',
+  note: 'Stage 4: per-tenant Merkle roots over row signature leaves; inclusion proofs recompute the root offline',
+};
+const AUDIT_ANCHOR_VERIFY: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-anchor-verify.ts',
+  note: 'Stage 4 S4-5: pure offline verify of root signature + optional inclusion proof (no network)',
+};
+const AUDIT_ANCHOR_VERIFY_CLI: EvidenceRef = {
+  kind: 'command',
+  ref: 'pnpm verify:audit-anchor -- --public-key <pem> --anchor <json> [--proof <json>]',
+  note: 'Stage 4 offline CLI (scripts/security/verify-audit-anchor.ts); exit 0 iff checks pass',
+};
+const AUDIT_ANCHOR_SCHEMA: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/db/src/schema/audit-anchors.ts',
+  note: 'audit_anchors stores delivered roots + root_signature for customer hold',
+};
+const AUDIT_ANCHOR_VERIFY_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/security/src/__tests__/audit-anchor-verify.test.ts#accepts root + inclusion proof for one leaf',
+  note: 'root signature + inclusion path verify offline with only the public key',
 };
 
 export const CLAIMS: readonly ClaimEntry[] = [
@@ -3294,7 +3320,15 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'claims.ts',
     exportPath: 'CLAIMS_SIGNED_LEDGER_NOTE.body',
     text: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
-    evidence: [AUDIT_ROW_SIGNER, AUDIT_SIGN_ROUNDTRIP],
+    evidence: [
+      AUDIT_ROW_SIGNER,
+      AUDIT_SIGN_ROUNDTRIP,
+      AUDIT_MERKLE,
+      AUDIT_ANCHOR_VERIFY,
+      AUDIT_ANCHOR_VERIFY_CLI,
+      AUDIT_ANCHOR_SCHEMA,
+      AUDIT_ANCHOR_VERIFY_TEST,
+    ],
   },
   {
     file: 'claims.ts',
