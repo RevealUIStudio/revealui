@@ -1,8 +1,6 @@
-import { defineConfig } from 'vitest/config';
+import { createVitestConfig } from '@revealui/dev/vitest';
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-  },
+export default createVitestConfig({
+  // Engines facade is thin; no coverage thresholds enforced yet.
+  coverage: false,
 });
