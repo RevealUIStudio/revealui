@@ -2,6 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { MANAGER_MATERIALIZE_GENERATORS, writeManagerAdapterContent } from '../content/index.js';
 import {
   checkManager,
   loadManager,
@@ -44,6 +45,51 @@ describe('project manager (.revealui)', () => {
     expect(stub).toContain('.revealui/manager.json');
     expect(stub).toContain('equal');
     expect(result.stubs.length).toBeGreaterThanOrEqual(3);
+    const cursorStub = readFileSync(join(root, '.cursor/revealui-manager.md'), 'utf-8');
+    expect(cursorStub).toContain('.revealui/content/');
+    expect(cursorStub).toContain('Equal');
+    const opencodeStub = readFileSync(join(root, '.opencode/revealui-manager.md'), 'utf-8');
+    expect(opencodeStub).toContain('.revealui/manager.json');
+    expect(opencodeStub).toContain('equal');
+  });
+
+  it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
+    const root = tempProject();
+    materializeManager(root);
+    const written = writeManagerAdapterContent(root);
+    expect(MANAGER_MATERIALIZE_GENERATORS).toEqual(['claude-code', 'cursor', 'opencode']);
+    expect(written.byGenerator['claude-code']).toBeGreaterThan(0);
+    expect(written.byGenerator.cursor).toBe(1);
+    expect(written.byGenerator.opencode).toBeGreaterThan(0);
+    expect(written.total).toBe(
+      written.byGenerator['claude-code'] +
+        written.byGenerator.cursor +
+        written.byGenerator.opencode,
+    );
+
+    const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf-8')) as {
+      version: number;
+      hooks: Record<string, Array<{ command: string; type: string }>>;
+    };
+    expect(hooks.version).toBe(1);
+    expect(hooks.hooks.sessionStart?.[0]?.command).toContain('revealui-harnesses hook cursor');
+
+    // Manager content (claude-code generator) still lands under .revealui/content
+    const contentRule = readFileSync(
+      join(root, '.revealui/content/rules/code-over-docs.md'),
+      'utf-8',
+    );
+    expect(contentRule.length).toBeGreaterThan(20);
+
+    // OpenCode gets at least one agent or command under .opencode
+    const opencodePaths = written.paths.filter((p) => p.startsWith('.opencode/'));
+    expect(opencodePaths.length).toBeGreaterThan(0);
+
+    const check = checkManager(root);
+    expect(check.ok).toBe(true);
+    expect(check.warnings.filter((w) => w.includes('cursor') || w.includes('opencode'))).toEqual(
+      [],
+    );
   });
 
   it('materialize preserves existing monorepo manager fields', () => {

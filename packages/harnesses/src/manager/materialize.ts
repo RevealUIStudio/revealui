@@ -98,7 +98,7 @@ See \`.revealui/README.md\`.
   return rel;
 }
 
-/** Thin Cursor stub note under .cursor if tree exists or always create pointer. */
+/** Thin Cursor stub: equal-rank adapter pointing at the project manager. */
 export function materializeCursorStub(projectRoot: string): string {
   const rel = join('.cursor', 'revealui-manager.md');
   const abs = join(projectRoot, rel);
@@ -108,15 +108,23 @@ export function materializeCursorStub(projectRoot: string): string {
     `${STUB_HEADER}
 # RevealUI manager (Cursor adapter)
 
-Authority: \`.revealui/manager.json\` + \`.revealui/content/\`.
-Hooks may call \`revealui-harnesses hook cursor\`; policy text is not owned here.
+1. Open **\`.revealui/manager.json\`** for project authority.
+2. Shared rules/skills: **\`.revealui/content/\`** (generated from \`@revealui/harnesses\`).
+3. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
+4. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
+5. Equal vendors: Cursor is not more authoritative than Claude, Grok, or OpenCode.
+
+\`manager materialize\` also emits \`.cursor/hooks.json\` (command hooks → \`revealui-harnesses hook cursor\`).
+Do not fork hardline policy under \`.cursor/rules/\`; edit package definitions instead.
+
+See \`.revealui/README.md\`.
 `,
     'utf-8',
   );
   return rel;
 }
 
-/** OpenCode: short AGENTS fragment note under .opencode */
+/** Thin OpenCode stub: equal-rank adapter pointing at the project manager. */
 export function materializeOpenCodeStub(projectRoot: string): string {
   const rel = join('.opencode', 'revealui-manager.md');
   const abs = join(projectRoot, rel);
@@ -126,7 +134,16 @@ export function materializeOpenCodeStub(projectRoot: string): string {
     `${STUB_HEADER}
 # RevealUI manager (OpenCode adapter)
 
-Authority: \`.revealui/manager.json\` + \`.revealui/content/\`.
+1. Open **\`.revealui/manager.json\`** for project authority.
+2. Shared rules/skills: **\`.revealui/content/\`** (generated from \`@revealui/harnesses\`).
+3. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
+4. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
+5. Equal vendors: OpenCode is not more authoritative than Claude, Grok, or Cursor.
+
+\`manager materialize\` also emits \`.opencode/agents/\` and \`.opencode/commands/\` from package definitions.
+Policy text is not owned under \`.opencode/\`.
+
+See \`.revealui/README.md\`.
 `,
     'utf-8',
   );
@@ -191,7 +208,7 @@ export interface ManagerCheckResult {
   warnings: string[];
 }
 
-/** Fail if manager missing or Claude tree looks like a full policy fork without stub. */
+/** Fail if manager missing; warn if equal-rank adapter stubs/surfaces lag materialize. */
 export function checkManager(projectRoot: string): ManagerCheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -211,6 +228,20 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
   const claudeStub = join(projectRoot, '.claude', 'rules', '00-revealui-manager.md');
   if (readFileOrNull(claudeStub) === null) {
     warnings.push('missing .claude/rules/00-revealui-manager.md stub (materialize claude-code)');
+  }
+  const cursorStub = join(projectRoot, '.cursor', 'revealui-manager.md');
+  if (readFileOrNull(cursorStub) === null) {
+    warnings.push('missing .cursor/revealui-manager.md stub (materialize cursor)');
+  }
+  const cursorHooks = join(projectRoot, '.cursor', 'hooks.json');
+  if (readFileOrNull(cursorHooks) === null) {
+    warnings.push(
+      'missing .cursor/hooks.json (manager materialize writes cursor generator output)',
+    );
+  }
+  const opencodeStub = join(projectRoot, '.opencode', 'revealui-manager.md');
+  if (readFileOrNull(opencodeStub) === null) {
+    warnings.push('missing .opencode/revealui-manager.md stub (materialize opencode)');
   }
   const readme = join(projectRoot, MANAGER_DIR, 'README.md');
   if (readFileOrNull(readme) === null) {

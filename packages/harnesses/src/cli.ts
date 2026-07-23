@@ -30,9 +30,11 @@ import {
   listGenerators,
   loadContentSnapshot,
   MANAGER_CONTENT_OUTPUT,
+  MANAGER_MATERIALIZE_GENERATORS,
   snapshotPathFor,
   validateManifest,
   writeAllContentSnapshots,
+  writeManagerAdapterContent,
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
@@ -525,21 +527,23 @@ async function main() {
 
     if (subcommand === 'materialize') {
       const result = materializeManager(projectRoot);
-      // Sync manager content via the same default generator as `content sync`
-      const files = generateContent(DEFAULT_CONTENT_GENERATOR_ID, buildManifest(), {
-        projectRoot,
-      });
-      let written = 0;
-      for (const file of files) {
-        const absolutePath = join(projectRoot, file.relativePath);
-        mkdirSync(dirname(absolutePath), { recursive: true });
-        writeFileSync(absolutePath, file.content, 'utf-8');
-        written++;
-      }
+      // Equal-rank adapters: manager content + Cursor hooks + OpenCode agents/commands
+      const content = writeManagerAdapterContent(projectRoot);
       process.stdout.write(`✓ Manager: ${result.managerPath}\n`);
       process.stdout.write(
-        `✓ Content files: ${written} → ${MANAGER_CONTENT_OUTPUT} (generator=${DEFAULT_CONTENT_GENERATOR_ID})\n`,
+        `✓ Content files: ${content.total} (${MANAGER_MATERIALIZE_GENERATORS.join(', ')})\n`,
       );
+      for (const [genId, count] of Object.entries(content.byGenerator)) {
+        const dest =
+          genId === DEFAULT_CONTENT_GENERATOR_ID
+            ? ` → ${MANAGER_CONTENT_OUTPUT}`
+            : genId === 'cursor'
+              ? ' → .cursor/'
+              : genId === 'opencode'
+                ? ' → .opencode/'
+                : '';
+        process.stdout.write(`  ${genId}: ${count}${dest}\n`);
+      }
       process.stdout.write(`✓ Adapter stubs:\n`);
       for (const s of result.stubs) process.stdout.write(`  ${s}\n`);
       return;
@@ -745,7 +749,7 @@ Commands:
   coordinate --init [<path>]        Register + start daemon
   hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
   content <subcommand>              Manage canonical content definitions
-  manager materialize [--project p] Write .revealui/manager.json + content + equal adapter stubs
+  manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid
 
 Content Subcommands:

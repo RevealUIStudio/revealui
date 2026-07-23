@@ -9,8 +9,12 @@
  *   rules/commands/agents/skills under the **project manager** tree
  *   `.revealui/content/` (GAP-406). Not a vendor-private `.claude/` fork.
  * - `opencode` — agents + commands under `.opencode/`
- * - `cursor` — hooks.json only
+ * - `cursor` — hooks.json only (vendor-native surface; policy still in manager)
  * - `vscode` — plugin.json hooks contribution only
+ *
+ * `manager materialize` runs `writeManagerAdapterContent` so Cursor/OpenCode
+ * vendor surfaces are emitted on the **same path** as manager content (equal
+ * adapters), not only as orphaned hooks-tree tooling.
  *
  * The adapter layer (`../adapters/`) ships `revealui-agent`, `opencode`, and
  * `cursor` — `vscode` has no adapter (no headless CLI to exec).
@@ -82,6 +86,11 @@ export {
   writeAllContentSnapshots,
   writeContentSnapshot,
 } from './snapshot.js';
+export type { WriteManagerAdapterContentResult } from './write-manager-adapters.js';
+export {
+  MANAGER_MATERIALIZE_GENERATORS,
+  writeManagerAdapterContent,
+} from './write-manager-adapters.js';
 
 export interface ValidationResult {
   valid: boolean;

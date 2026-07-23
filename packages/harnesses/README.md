@@ -51,8 +51,10 @@ adapters**. Shared policy is not owned by any vendor home.
 | `.claude` / `.cursor` / `.opencode` / `~/.grok` | Thin stubs or machine prefs only |
 
 ```bash
-# Write manager.json + adapter stubs + generate .revealui/content/
+# Write manager.json + equal adapter content (manager tree + Cursor/OpenCode surfaces)
 pnpm exec revealui-harnesses manager materialize
+# writes: .revealui/manager.json + .revealui/content/* + .cursor/hooks.json
+#          + .opencode/{agents,commands}/* + equal adapter stubs
 
 # Verify manager present and valid
 pnpm exec revealui-harnesses manager check
