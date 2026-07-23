@@ -15,7 +15,7 @@
 
 import { resolveAuditPublicKey } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
-import type { DatabaseClient } from '@revealui/db/client';
+import type { Database } from '@revealui/db/client';
 import { accountMemberships, auditAnchors, auditLog } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { and, asc, count, desc, eq, gt, gte, isNotNull, lte, max } from 'drizzle-orm';
@@ -31,7 +31,7 @@ interface UserContext {
 }
 
 type AuditVariables = {
-  db: DatabaseClient;
+  db: Database;
   user: UserContext | undefined;
 };
 
@@ -74,7 +74,7 @@ function requireUser(c: Context): UserContext {
  * Resolve the authenticated user's primary active account. Tenant on
  * audit_log / audit_anchors matches accountId (S4-3 worker).
  */
-async function getUserAccountId(db: DatabaseClient, userId: string): Promise<string> {
+async function getUserAccountId(db: Database, userId: string): Promise<string> {
   const [row] = await db
     .select({ accountId: accountMemberships.accountId })
     .from(accountMemberships)
@@ -108,7 +108,7 @@ function serializeAnchor(row: typeof auditAnchors.$inferSelect) {
  */
 app.get('/anchors', async (c) => {
   const user = requireUser(c);
-  const db = (c.get('db') as DatabaseClient | undefined) ?? getClient();
+  const db = (c.get('db') as Database | undefined) ?? getClient();
   const tenant = await getUserAccountId(db, user.id);
 
   const limitRaw = c.req.query('limit');
@@ -176,7 +176,7 @@ app.get('/anchors', async (c) => {
  */
 app.get('/anchors/:id/proof', async (c) => {
   const user = requireUser(c);
-  const db = (c.get('db') as DatabaseClient | undefined) ?? getClient();
+  const db = (c.get('db') as Database | undefined) ?? getClient();
   const tenant = await getUserAccountId(db, user.id);
   const id = c.req.param('id');
   const seqRaw = c.req.query('seq');
