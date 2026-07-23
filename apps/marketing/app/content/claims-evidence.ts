@@ -557,6 +557,30 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'home.ts',
+    exportPath: 'HOME_HERO.subtitle.sentence2',
+    text: 'Every agent is a governed and audited user that lives on your infrastructure.',
+    evidence: [
+      AGENT_ROUTES,
+      RBAC_ABAC,
+      TIER_GATES,
+      AUDIT_LOG_SCHEMA,
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      {
+        kind: 'code',
+        ref: 'packages/auth/src/server/auth.ts',
+        note: 'agents authenticate as first-class principals under the same session/auth surface as human users',
+      },
+      {
+        kind: 'test',
+        ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts#authenticated() allows when user is present',
+        note: 'identity-gated access: a principal must authenticate before protected operations; agents use the same gate surface as human users',
+      },
+      SELF_HOST,
+    ],
+  },
+  {
+    file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.support',
     text: 'It runs on any AI provider you choose.',
     evidence: [PROVIDERS, OPEN_WEIGHT],

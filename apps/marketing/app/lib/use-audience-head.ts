@@ -30,16 +30,17 @@ const SEO: Record<Audience, AudienceSeo> = {
   },
   technical: {
     title: 'RevealUI | Run your whole business on one runtime you own.',
+    // Mirrors HOME_HERO subtitle (canonical 2026-07-09 form, no em dashes).
     description:
-      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host. Ship one product or stamp a branded copy per client.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.',
     ogTitle: 'RevealUI | Run your whole business on one runtime you own.',
     ogDescription:
-      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host. Ship one product or stamp a branded copy per client.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Run%20your%20whole%20business%20on%20one%20runtime%20you%20own.',
     twitterTitle: 'RevealUI | Run your whole business on one runtime you own.',
     twitterDescription:
-      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host. Ship one product or stamp a branded copy per client.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     twitterImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Run%20your%20whole%20business%20on%20one%20runtime%20you%20own.',
   },
