@@ -9,13 +9,9 @@
     "directory": "packages/paywall"
   },
   "peerDependencies": {
-    "hono": ">=4.0.0",
     "react": ">=19.0.0"
   },
   "peerDependenciesMeta": {
-    "hono": {
-      "optional": true
-    },
     "react": {
       "optional": true
     }
@@ -25,7 +21,6 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@revealui/dev": "workspace:*",
-    "hono": "^4.12.27",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tsup": "catalog:",
@@ -40,16 +35,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./server/hono": {
-      "types": "./dist/server/hono.d.ts",
-      "import": "./dist/server/hono.js",
-      "default": "./dist/server/hono.js"
-    },
-    "./server/next": {
-      "types": "./dist/server/next.d.ts",
-      "import": "./dist/server/next.js",
-      "default": "./dist/server/next.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",

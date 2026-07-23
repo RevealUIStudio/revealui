@@ -1,17 +1,10 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: [
-    'src/index.ts',
-    'src/server/hono.ts',
-    'src/server/next.ts',
-    'src/client/index.ts',
-    'src/stripe/index.ts',
-    'src/x402/index.ts',
-  ],
+  entry: ['src/index.ts', 'src/client/index.ts', 'src/stripe/index.ts', 'src/x402/index.ts'],
   format: ['esm'],
   dts: true,
   sourcemap: false,
   clean: true,
-  external: ['react', 'react/jsx-runtime', 'hono', 'stripe'],
+  external: ['react', 'react/jsx-runtime', 'stripe'],
 });
