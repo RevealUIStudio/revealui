@@ -4,6 +4,7 @@
  * Seed the fleet-marketing `sites` row plus its published marketing pages
  * (home, products, philosophy, local-ai, fair-source, services,
  * for-operators-how-it-works) for the visual-edit-sessions block wire.
+ * Page seeds auto-load from apps/marketing/app/lib/page-blocks/pages/* (no mono array).
  *
  * The page `blocks` come from the SAME pure derivation the marketing app falls
  * back to (`apps/marketing/app/lib/page-blocks.ts`), so the seeded CMS content
@@ -32,15 +33,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
-import {
-  fairSourceBlocks,
-  foHiwBlocks,
-  homeBlocks,
-  localAiBlocks,
-  philosophyBlocks,
-  productsBlocks,
-  servicesBlocks,
-} from '../apps/marketing/app/lib/page-blocks';
+import { loadFleetMarketingPageSeeds } from '../apps/marketing/app/lib/page-blocks/load-seeds';
 import {
   assertSeedDatabaseReady,
   loadSeedEnv,
@@ -69,84 +62,10 @@ interface PageSeed {
   readonly seo: { title: string; description: string };
 }
 
-const PAGE_SEEDS: readonly PageSeed[] = [
-  {
-    slug: 'home',
-    path: '/',
-    title: 'Home',
-    blocks: homeBlocks(),
-    seo: {
-      title: 'RevealUI',
-      description: 'Agentic business runtime. People, content, offers, payments, and agents.',
-    },
-  },
-  {
-    slug: 'products',
-    path: '/products',
-    title: 'Products',
-    blocks: productsBlocks(),
-    seo: {
-      title: 'The RevFleet product family',
-      description: 'Seven products on one foundation, all built and operated by RevealUI Studio.',
-    },
-  },
-  {
-    slug: 'philosophy',
-    path: '/philosophy',
-    title: 'Philosophy',
-    blocks: philosophyBlocks(),
-    seo: {
-      title: 'Philosophy | RevealUI',
-      description: 'Software that compounds. Why RevealUI exists.',
-    },
-  },
-  {
-    slug: 'local-ai',
-    path: '/local-ai',
-    title: 'Local-first AI',
-    blocks: localAiBlocks(),
-    seo: {
-      title: 'Local-first AI | RevealUI',
-      description:
-        'Run your AI on infrastructure you own. Open-weight default, frontier one config line away.',
-    },
-  },
-  {
-    slug: 'fair-source',
-    path: '/fair-source',
-    title: 'Fair Source',
-    blocks: fairSourceBlocks(),
-    seo: {
-      title: 'Fair Source | RevealUI',
-      description:
-        'Source-visible. Commercially usable. MIT in two years. The license contract for RevealUI Pro packages.',
-    },
-  },
-  {
-    slug: 'services',
-    path: '/services',
-    title: 'Services',
-    blocks: servicesBlocks(),
-    seo: {
-      title: 'Services | RevealUI',
-      description:
-        'Done-for-you software with AI built in. Discovery, fixed-scope engagement, delivered by the team that builds the runtime.',
-    },
-  },
-  {
-    slug: 'for-operators-how-it-works',
-    path: '/for-operators/how-it-works',
-    title: 'How the engagement works',
-    blocks: foHiwBlocks(),
-    seo: {
-      title: 'How the engagement works | RevealUI',
-      description:
-        'Discovery, fixed-scope proposal, build, and handoff. Weeks, not quarters. How RevealUI Studio delivers operator software.',
-    },
-  },
-];
+/* PAGE_SEEDS loaded at runtime from page-blocks/pages/*PageSeed (conflict-proof). */
 
 async function main(): Promise<void> {
+  const PAGE_SEEDS = await loadFleetMarketingPageSeeds();
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
 
@@ -290,7 +209,7 @@ async function main(): Promise<void> {
   }
 
   // ---------------------------------------------------------------------------
-  // Pages (home + products + philosophy + local-ai + fair-source + services + how-it-works) — version-safe, idempotent
+  // Pages (auto-discovered seeds) — version-safe, idempotent
   // ---------------------------------------------------------------------------
 
   for (const seed of PAGE_SEEDS) {
