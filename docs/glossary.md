@@ -67,11 +67,11 @@ The customer's right to use the Pro tier features of a RevealUI runtime. Encoded
 
 ## MCP — Model Context Protocol
 
-The protocol agents use to discover and invoke external tools (Stripe, Neon, Vercel, Playwright, Slack, Linear, etc.). RevealUI ships an MCP **hypervisor** that hosts multiple MCP servers behind one process. See `packages/mcp` and [`./PRO`](./PRO.md) for the canonical server list.
+The protocol agents use to discover and invoke external tools (Stripe, Neon, Vercel, Playwright, Slack, Linear, etc.). RevealUI ships first-party MCP servers plus an **incubating** multi-server process **hypervisor** in source (not app-mounted by default; ADR-007). See `packages/mcp` and [`./PRO`](./PRO.md) for the canonical server list.
 
 ## MCP server
 
-A specific tool integration exposed via [MCP](#mcp---model-context-protocol). E.g., `stripe-mcp`, `neon-mcp`. Distinct from the **MCP hypervisor** that hosts them. RevealUI's marketplace lets customers wire third-party MCP servers (e.g., a customer's own Supabase MCP server) without forking the hypervisor.
+A specific tool integration exposed via [MCP](#mcp---model-context-protocol). E.g., `stripe-mcp`, `neon-mcp`. Distinct from the optional multi-server **MCP hypervisor** library that can host them when wired. RevealUI's marketplace path is for attaching third-party MCP servers without forking the framework.
 
 ## Operator
 
