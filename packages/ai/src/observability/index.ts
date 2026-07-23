@@ -1,6 +1,10 @@
 /**
  * @revealui/ai - Observability
  *
+ * **INCUBATING (fleet-redundancy C11 / ADR-007).** Agent event/metrics helpers
+ * are available as a library. No RevealUI app currently mounts this surface as
+ * the product observability path; prefer explicit wiring under a WIRE ticket.
+ *
  * Agent operation tracking, logging, and metrics collection.
  */
 

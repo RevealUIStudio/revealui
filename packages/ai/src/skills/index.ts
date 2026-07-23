@@ -1,6 +1,10 @@
 /**
  * Agent Skills
  *
+ * **INCUBATING (fleet-redundancy C11 / ADR-007).** Library exports for skill
+ * install/activation remain. No RevealUI app currently mounts the skills
+ * registry as a product path; wire only under a dedicated WIRE ticket.
+ *
  * Implementation of the Agent Skills open standard (skills.sh).
  * Allows RevealUI agents to install and use skill packages.
  *

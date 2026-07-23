@@ -1,6 +1,11 @@
 /**
  * MCP Hypervisor
  *
+ * **INCUBATING (fleet-redundancy C11 / ADR-007).** Library surface is kept and
+ * tested. No RevealUI app currently constructs or starts this singleton at
+ * process boot. Prefer explicit `revealui-mcp` / per-server launchers until a
+ * dedicated WIRE ticket mounts the hypervisor with credential + metering ownership.
+ *
  * Manages N running MCP server processes, pings them for liveness, and
  * dynamically exposes their tools at runtime. Inspired by the
  * MCPCompatibilityLayer/MCPHypervisor pattern from AnythingLLM.

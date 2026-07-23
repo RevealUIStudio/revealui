@@ -3065,13 +3065,13 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'marketplace.ts',
     exportPath: 'MARKETPLACE_DISCOVERY_STEPS[0].description',
-    text: 'Agents find available tools through the MCP hypervisor. Each server advertises its capabilities and required permissions.',
+    text: 'Agents attach MCP servers that advertise tools and required permissions through the open protocol.',
     evidence: [HYPERVISOR],
   },
   {
     file: 'marketplace.ts',
     exportPath: 'MARKETPLACE_DISCOVERY_STEPS[1].description',
-    text: 'The MCP hypervisor routes the call to the right server.',
+    text: 'Each call targets the matching MCP server. A multi-server process hypervisor is available in source when you wire multi-hosting.',
     evidence: [HYPERVISOR],
   },
   {
