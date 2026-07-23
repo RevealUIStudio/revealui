@@ -41,6 +41,10 @@ export default defineConfig({
       '@revealui/db/validation': path.resolve(__dirname, '../db/dist/validation/cross-db.js'),
       '@revealui/db': path.resolve(__dirname, '../db/dist/index.js'),
       '@revealui/contracts': path.resolve(__dirname, '../contracts/src'),
+      // More-specific first: package exports map ./admin → dist/client/admin.
+      // A bare @revealui/core → src alias would resolve
+      // @revealui/core/admin/utils/csrf to src/admin/... (missing client/).
+      '@revealui/core/admin': path.resolve(__dirname, '../core/src/client/admin'),
       '@revealui/core': path.resolve(__dirname, '../core/src'),
     },
   },

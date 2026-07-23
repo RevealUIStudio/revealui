@@ -164,6 +164,11 @@
       "import": "./dist/client/admin/utils/apiClient.js",
       "default": "./dist/client/admin/utils/apiClient.js"
     },
+    "./admin/utils/csrf": {
+      "types": "./dist/client/admin/utils/csrf.d.ts",
+      "import": "./dist/client/admin/utils/csrf.js",
+      "default": "./dist/client/admin/utils/csrf.js"
+    },
     "./richtext": {
       "types": "./dist/richtext/index.d.ts",
       "import": "./dist/richtext/index.js",

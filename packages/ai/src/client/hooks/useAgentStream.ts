@@ -22,6 +22,7 @@
 
 'use client';
 
+import { readCsrfToken } from '@revealui/core/admin/utils/csrf';
 import { useCallback, useRef, useState } from 'react';
 
 /**
@@ -138,32 +139,6 @@ const INITIAL_STATE: UseAgentStreamState = {
   sessionId: null,
   pendingElicitations: [],
 };
-
-/**
- * Read the JS-readable `revealui-csrf` cookie. The api's csrfMiddleware
- * (`apps/server/src/middleware/csrf.ts`) requires it as an `X-CSRF-Token`
- * header on any session-cookie-bearing unsafe request; the admin proxy
- * issues it on page load. Returns undefined outside the browser or when
- * the cookie is absent/empty. Mirrors the cookie-read in `@revealui/core`'s
- * admin APIClient (`request()`).
- */
-function readCsrfToken(): string | undefined {
-  if (typeof document === 'undefined') return undefined;
-  for (const part of document.cookie.split(';')) {
-    const eqIdx = part.indexOf('=');
-    if (eqIdx === -1) continue;
-    if (part.slice(0, eqIdx).trim() === 'revealui-csrf') {
-      const raw = part.slice(eqIdx + 1).trim();
-      if (!raw) return undefined;
-      try {
-        return decodeURIComponent(raw);
-      } catch {
-        return raw;
-      }
-    }
-  }
-  return undefined;
-}
 
 export function useAgentStream(): UseAgentStreamReturn {
   const [state, setState] = useState<UseAgentStreamState>(INITIAL_STATE);
