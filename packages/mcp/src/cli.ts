@@ -24,7 +24,6 @@ const SERVERS: Record<string, () => Promise<unknown>> = {
   'revealui-memory': () => import('./servers/revealui-memory.js'),
   'revealui-stripe': () => import('./servers/revealui-stripe.js'),
   stripe: () => import('./servers/stripe.js'),
-  supabase: () => import('./servers/supabase.js'),
   vercel: () => import('./servers/vercel.js'),
 };
 

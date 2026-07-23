@@ -13,7 +13,7 @@ last-updated: 2026-05-29
 
 This policy defines how RevealUI protects user data, application secrets, and infrastructure across its open-core monorepo (MIT core + Fair Source Pro packages). It applies to all code, services, and data managed under the RevealUI project.
 
-> **Infrastructure note (updated 2026-07-11).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`). NeonDB is the sole primary database, RAG and vector data live on Neon `pgvector`, and the RevealUI runtime no longer reads Supabase credentials. Supabase survives only as an optional customer-facing MCP adapter (`packages/mcp/src/servers/supabase.ts`) for installs that choose Supabase as their own backend, which is out of scope for RevealUI's own controls. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative infrastructure status.
+> **Infrastructure note (updated 2026-07-23).** Supabase was removed as an internal datastore (ADR `2026-05-01-supabase-removal.md`). NeonDB is the sole primary database, RAG and vector data live on Neon `pgvector`, and the RevealUI runtime no longer reads Supabase credentials. The customer-facing Supabase MCP adapter was also removed. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative infrastructure status.
 
 ## 2. Scope
 

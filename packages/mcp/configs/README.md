@@ -35,7 +35,6 @@ Template for Claude Code / Claude Desktop
 | vercel | `tsx packages/mcp/src/servers/vercel.ts` | Vercel deployment |
 | stripe | `tsx packages/mcp/src/servers/stripe.ts` | Payment processing |
 | neon | `tsx packages/mcp/src/servers/neon.ts` | Database operations |
-| supabase | `tsx packages/mcp/src/servers/supabase.ts` | Supabase management |
 | playwright | `tsx packages/mcp/src/servers/playwright.ts` | Browser automation |
 | next-devtools | `tsx packages/mcp/src/servers/next-devtools.ts` | Next.js debugging |
 
@@ -60,8 +59,6 @@ Make sure these are set:
 VERCEL_API_KEY=vercel_...
 STRIPE_SECRET_KEY=sk_test_...
 NEON_API_KEY=neon_...
-SUPABASE_URL=https://....supabase.co
-SUPABASE_ANON_KEY=eyJ...
 ```
 
 ## See Also

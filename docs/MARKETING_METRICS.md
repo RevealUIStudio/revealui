@@ -30,7 +30,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-07-22 (
 | Workspaces (monorepo total) | **33** | `countWorkspaces()` (= 29 packages + 4 apps) | |
 | Test files | **1122** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
 | UI components in `packages/presentation/` | **65** | `countUIComponents()` | Marketing copy says "65 native React components" or similar. |
-| **MCP servers** | **14** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); confirmed by `packages/mcp/README.md` + `CHANGELOG.md` 12→13 bump. |
+| **MCP servers** | **13** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); Supabase launcher removed (13 count). |
 | DB tables (Drizzle pgTable) | **97** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86 (2026-06-22); 93 after GAP-300; 96 on 2026-07-22; **97** after GAP-355 S4-1 `audit_anchors` (2026-07-23). `site.ts` METRICS.dbTables is gate-enforced by claim-drift. |
 | Access-control enforcement tests | **60** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
 | License: MIT packages | **23** | `licenseSplit.mit` | |
@@ -97,7 +97,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant, enabled only by owner directive. Tracked in [revealui#526](https://github.com/RevealUIStudio/revealui/issues/526) section D. |
-| MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (14 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
+| MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (13 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
 | Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; the Stripe live-mode flip landed 2026-06-26, so charging rides the live catalog. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
@@ -150,7 +150,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Ph
 Five testable rules — Phase 5 audits every page against these:
 
 1. **Lead with what ships today.** Every page's first sentence under H1 names a capability with a verifiable artifact.
-2. **Specifics over adjectives.** "Fast" → "14 first-party MCP servers." "Secure" → "Ed25519-signed license JWTs."
+2. **Specifics over adjectives.** "Fast" → "13 first-party MCP servers." "Secure" → "Ed25519-signed license JWTs."
 3. **Identify the reader by their stack, not job title.**
 4. **Surface the trade-off, don't bury it.** "Three yeses and one no" pattern.
 5. **No marketing-speak, no emojis, no exclamation points.** Banned adjective table in `voice-and-headline-rules.md` §1.

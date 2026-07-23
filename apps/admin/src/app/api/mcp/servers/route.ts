@@ -109,29 +109,6 @@ const MCP_SERVERS: McpServerInfo[] = [
     ],
   },
   {
-    id: 'supabase',
-    name: 'Supabase',
-    description: 'Query Supabase tables, manage vector embeddings, and use Supabase Auth.',
-    status: 'configured',
-    packageName: 'supabase-mcp',
-    envRequired: ['SUPABASE_URL', 'SUPABASE_SECRET_KEY'],
-    tools: [
-      { name: 'query', description: 'Run a SQL query against Supabase', parameterCount: 2 },
-      {
-        name: 'list_tables',
-        description: 'List all tables in the public schema',
-        parameterCount: 0,
-      },
-      { name: 'get_table', description: 'Get schema and row count for a table', parameterCount: 1 },
-      {
-        name: 'vector_search',
-        description: 'Perform pgvector similarity search',
-        parameterCount: 3,
-      },
-      { name: 'list_users', description: 'List Supabase Auth users', parameterCount: 2 },
-    ],
-  },
-  {
     id: 'playwright',
     name: 'Playwright',
     description: 'Automate browser interactions, take screenshots, and run E2E tests.',

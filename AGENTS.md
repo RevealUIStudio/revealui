@@ -43,7 +43,7 @@ Mission: build the self-hosted runtime where a business and the AI agents that r
 
 ## MCP Servers
 
-14 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
+13 MCP servers ship with RevealUI — ground-truth count from `packages/mcp/src/servers/`, enforced by `pnpm validate:claims`:
 
 **External integrations:** Stripe, Supabase, Neon, Vercel, Playwright
 **Developer tools:** Code Validator, Contracts Introspection, RevealUI Docs, Next.js DevTools

@@ -1,12 +1,7 @@
 import { commandExists, isTcpReachable } from '../utils/command.js';
 import { detectDbTarget, resolveLocalDbConfig } from '../utils/db.js';
 import { findWorkspaceRoot } from '../utils/workspace.js';
-import {
-  validateNeonUrl,
-  validateNpmToken,
-  validateStripeKey,
-  validateSupabaseUrl,
-} from '../validators/credentials.js';
+import { validateNeonUrl, validateNpmToken, validateStripeKey } from '../validators/credentials.js';
 import { validateNodeVersion } from '../validators/node-version.js';
 
 export interface DoctorCheck {
@@ -95,22 +90,6 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     validate: (v) => ({
       valid: v.startsWith('whsec_'),
       message: 'Must start with whsec_',
-    }),
-  },
-  // Customer-facing Supabase MCP adapter (optional — only set if running pnpm mcp:supabase)
-  {
-    key: 'NEXT_PUBLIC_SUPABASE_URL',
-    label: 'Customer Supabase MCP URL',
-    required: false,
-    validate: validateSupabaseUrl,
-  },
-  {
-    key: 'SUPABASE_SERVICE_ROLE_KEY',
-    label: 'Customer Supabase MCP service role key',
-    required: false,
-    validate: (v) => ({
-      valid: v.startsWith('eyJ'),
-      message: 'Must be a JWT (starts with eyJ)',
     }),
   },
   // npm

@@ -29,13 +29,6 @@
       "description": "NeonDB database operations",
       "enabled": false
     },
-    "revealui-supabase": {
-      "command": "tsx",
-      "args": ["packages/mcp/src/servers/supabase.ts"],
-      "cwd": "<REPO_PATH>",
-      "description": "Supabase project management",
-      "enabled": false
-    },
     "revealui-playwright": {
       "command": "tsx",
       "args": ["packages/mcp/src/servers/playwright.ts"],

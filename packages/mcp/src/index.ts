@@ -201,7 +201,6 @@ export { launchNeonMcp } from './servers/neon.js';
 export { launchNextDevtoolsMcp } from './servers/next-devtools.js';
 export { launchPlaywrightMcp } from './servers/playwright.js';
 export { launchStripeMcp } from './servers/stripe.js';
-export { launchSupabaseMcp } from './servers/supabase.js';
 export { launchVercelMcp } from './servers/vercel.js';
 // Streamable HTTP server-side helper (Stage 1 PR-1.1)
 export {

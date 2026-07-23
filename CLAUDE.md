@@ -189,7 +189,7 @@ Collections are defined in `apps/admin/src/lib/collections/` with access control
 Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise.
 
 ### Database Schema
-Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (Postgres) is the primary store. Legacy Supabase code (vectors, some auth flows) remains in tree during phase-out — **new features must not depend on Supabase-specific behavior**. The Supabase MCP adapter at `packages/mcp/src/servers/supabase.ts` is intentionally retained as an adapter for customers who use Supabase, separate from internal usage.
+Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (Postgres) is the primary store. Legacy Supabase code (vectors, some auth flows) remains in tree during phase-out — **new features must not depend on Supabase-specific behavior**. The customer Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts` / `launchSupabaseMcp`) was removed; use Neon MCP for database agent tooling.
 
 ### Testing
 - Unit/integration: Vitest (`*.test.ts`)

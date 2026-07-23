@@ -449,7 +449,7 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:
+RevealUI ships **13 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:
 
 | Server | Purpose |
 |--------|---------|

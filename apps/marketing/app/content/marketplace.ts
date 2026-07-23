@@ -93,11 +93,6 @@ export const MARKETPLACE_MCP_SERVERS: readonly McpServer[] = [
     category: 'Database',
   },
   {
-    name: 'Supabase',
-    description: 'Interact with Supabase for vector storage, auth, and real-time subscriptions.',
-    category: 'Database',
-  },
-  {
     name: 'Vercel',
     description: 'Deploy, manage environment variables, inspect deployments, and view logs.',
     category: 'Infrastructure',
