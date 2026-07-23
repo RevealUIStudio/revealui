@@ -13,8 +13,15 @@ import { act, cleanup, render, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchPageBlocks } from '../../lib/api';
-import { fairSourceBlocks, homeBlocks, localAiBlocks, productsBlocks } from '../../lib/page-blocks';
+import {
+  fairSourceBlocks,
+  foManagedBlocks,
+  homeBlocks,
+  localAiBlocks,
+  productsBlocks,
+} from '../../lib/page-blocks';
 import { FairSourcePage } from '../FairSourcePage';
+import { ForOperatorsManagedPage } from '../ForOperatorsManagedPage';
 import { HomePage } from '../HomePage';
 import { LocalAiPage } from '../LocalAiPage';
 import { ProductsPage } from '../ProductsPage';
@@ -65,7 +72,7 @@ describe('marketing pages: edit-mode wiring', () => {
     editDraftsStore.setEditActive(false);
   });
 
-  it('HomePage, ProductsPage, LocalAiPage, and FairSourcePage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
+  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, and ForOperatorsManagedPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
     const home = renderRouted(<HomePage />);
     expect(home.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(home.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -84,6 +91,11 @@ describe('marketing pages: edit-mode wiring', () => {
     const fairSource = renderRouted(<FairSourcePage />);
     expect(fairSource.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(fairSource.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
+    fairSource.unmount();
+
+    const managed = renderRouted(<ForOperatorsManagedPage />);
+    expect(managed.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+    expect(managed.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
   });
 
   it('HomePage renders the draft heading annotated with the session docId when a matching overlay exists', () => {
@@ -160,6 +172,26 @@ describe('marketing pages: edit-mode wiring', () => {
     const heading = container.querySelector('[data-rvui-field="blocks.0.data.heading"]');
     expect(heading?.getAttribute('data-rvui-doc')).toBe('page-fair-source-id');
     expect(heading?.textContent).toBe('Canvas-edited fair-source contract');
+  });
+
+  it('ForOperatorsManagedPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {
+    const draftBlocks = foManagedBlocks();
+    const hero = draftBlocks[0];
+    if (hero?.type === 'hero') {
+      hero.data.title = 'Canvas-edited managed title';
+    }
+    editDraftsStore.set([
+      {
+        docType: 'page',
+        docId: 'page-fo-managed-id',
+        draft: { slug: 'for-operators-managed', blocks: draftBlocks },
+      },
+    ]);
+
+    const { container } = renderRouted(<ForOperatorsManagedPage />);
+    const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
+    expect(title?.getAttribute('data-rvui-doc')).toBe('page-fo-managed-id');
+    expect(title?.textContent).toBe('Canvas-edited managed title');
   });
 
   it('re-renders HomePage with the patched value after an optimistic draft-store update', () => {
