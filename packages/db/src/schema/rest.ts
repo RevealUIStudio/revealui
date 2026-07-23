@@ -47,6 +47,7 @@ export {
 export * from './api-keys.js';
 export * from './app-logs.js';
 export * from './audit-log.js';
+export * from './audit-anchors.js';
 export * from './circuit-breaker.js';
 export * from './code-provenance.js';
 export * from './collab-edits.js';
