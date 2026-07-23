@@ -44,13 +44,20 @@ const CAPABILITY_BASELINE_PATH = path.join(
 );
 
 // ---------------------------------------------------------------------------
-// Walker exclusions
+// Walker exclusions + tracked-file counts
 //
-// Two layers keep stale local artifacts from skewing local validator runs vs
-// the clean checkout CI sees (incident 2026-06-11: a stale opensrc/ cache
-// held 53 third-party *.test.ts files, inflating countTestFiles() from 961
-// to 1014 — past the ±100 testFiles tolerance — so the local gate
-// hard-failed while CI stayed green):
+// Whole-repo METRICS (test files) prefer `git ls-files` (see countTestFiles /
+// countTrackedFiles) so nested agent worktrees under `.wt/` never inflate
+// counts (GAP-399). Filesystem walkers remain for fixtures, git-less trees,
+// and scoped collectors (packages/, apps/, presentation components, mcp
+// servers, db schema) which only readdir a single known directory and cannot
+// double-count a nested full checkout.
+//
+// Two layers still protect walk-based paths and claim scans when git is
+// unavailable (incident 2026-06-11: a stale opensrc/ cache held 53 third-party
+// *.test.ts files, inflating countTestFiles() from 961 to 1014 — past the
+// ±100 testFiles tolerance — so the local gate hard-failed while CI stayed
+// green):
 //
 // 1. WALK_EXCLUDED_DIRS — directory NAMES the walkers below must never
 //    enter, matched per entry at any depth. This is the only protection when
@@ -60,17 +67,14 @@ const CAPABILITY_BASELINE_PATH = path.join(
 //    assert every entry except .git has a covering .gitignore line AND that
 //    no entry shadows git-tracked files (e.g. screenshots/ is gitignored yet
 //    apps/marketing/public/screenshots is tracked, so it must NOT be listed
-//    here).
+//    here). Includes `.wt` and `.worktrees` for the walk fallback.
 //
-// 2. The git-derived ignored-path set (below) — one lazy `git ls-files` pass
-//    covering what a name set cannot express: path-shaped ignores (the
-//    generated docs mirrors apps/docs/public/docs/ + apps/docs/dist/docs/
-//    written by apps/docs/scripts/copy-docs.sh, where a local docs build
-//    duplicates every scan hit under the generated copy) and pattern-shaped
-//    file ignores inside scanned dirs (docs/*VERIFICATION*.md /
-//    docs/*REPORT*.md report artifacts carrying stale counts). It also
-//    honors nested .gitignore files (apps/docs/.gitignore `public/*/`),
-//    which the name set and its sync-guard test never see.
+// 2. The git-derived ignored-path set (below) — one lazy `git ls-files`
+//    --others --ignored pass covering what a name set cannot express:
+//    path-shaped ignores (the generated docs mirrors apps/docs/public/docs/
+//    + apps/docs/dist/docs/ written by apps/docs/scripts/copy-docs.sh) and
+//    pattern-shaped file ignores inside scanned dirs (docs/*VERIFICATION*.md
+//    / docs/*REPORT*.md). It also honors nested .gitignore files.
 // ---------------------------------------------------------------------------
 
 /** Exported for tests. */
@@ -252,16 +256,67 @@ function countApps(): number {
   return countDirs(path.join(ROOT, 'apps'));
 }
 
+/** Suffixes counted as test files (METRICS.testFiles). Exported for tests. */
+export const TEST_FILE_SUFFIXES: readonly string[] = [
+  '.test.ts',
+  '.test.tsx',
+  '.spec.ts',
+  '.spec.tsx',
+  '.e2e.ts',
+] as const;
+
+function hasTestFileSuffix(filePath: string): boolean {
+  return TEST_FILE_SUFFIXES.some((suffix) => filePath.endsWith(suffix));
+}
+
+/**
+ * Count matching tracked files via `git ls-files` (index paths for THIS
+ * worktree only). Returns null when git is unavailable so callers can fall
+ * back to a filesystem walk.
+ *
+ * GAP-399: peer worktrees under `.wt/` (or any future scratch dir) are full
+ * working trees on disk. A readdir walk from the main checkout double-counts
+ * every test file. `git ls-files` lists only this worktree's tracked paths,
+ * so nested checkouts never inflate the count — even if a name is missing
+ * from WALK_EXCLUDED_DIRS. Prefer this over directory walks for whole-repo
+ * METRICS. Exported for tests.
+ */
+export function countTrackedFiles(
+  root: string,
+  match: (repoRelativePath: string) => boolean,
+): number | null {
+  try {
+    const raw = execFileSync('git', ['ls-files', '-z'], {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    let count = 0;
+    for (const entry of raw.split('\0')) {
+      if (entry.length === 0) continue;
+      // Normalize to forward slashes (git always emits them).
+      if (match(entry)) count++;
+    }
+    return count;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Count test files across the repo. Path-injectable + exported for tests
  * (mirrors countEnforcementTests); tests may also inject a skip-predicate.
+ *
+ * Default path (real repo root, no custom predicate): `git ls-files` so
+ * nested `.wt/` worktrees cannot inflate METRICS.testFiles (GAP-399).
+ * Fixtures and custom predicates keep the filesystem walk.
  */
 export function countTestFiles(base: string = ROOT, isIgnored?: IgnoredPathPredicate): number {
-  return countByGlob(
-    base,
-    ['.test.ts', '.test.tsx', '.spec.ts', '.spec.tsx', '.e2e.ts'],
-    isIgnored,
-  );
+  if (base === ROOT && isIgnored === undefined) {
+    const tracked = countTrackedFiles(ROOT, hasTestFileSuffix);
+    if (tracked !== null) return tracked;
+  }
+  return countByGlob(base, [...TEST_FILE_SUFFIXES], isIgnored);
 }
 
 function countUIComponents(): number {
