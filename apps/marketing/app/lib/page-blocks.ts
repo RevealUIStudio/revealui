@@ -21,8 +21,9 @@
  * headers, contract cards, clock, peers, FAQ, and CTA ride the CMS.
  *
  * Services (`/services`) engagement ladder rungs (titles, prices, bodies, CTAs)
- * stay component-local from `for-operators` + contracts pricing anchors. CMS
- * carries hero through FAQ/CTA narrative and the pricing section header only.
+ * and the FAQ (answers interpolate ladder prices) stay component-local from
+ * `for-operators` + contracts pricing anchors. CMS carries hero through proof
+ * narrative, the pricing section header, and the closing CTA.
  *
  * No React or network imports live here so `scripts/seed-fleet-marketing-site.ts`
  * can import the same derivation the runtime falls back to.
@@ -52,7 +53,6 @@ import {
 import {
   FOR_OPERATORS_CLOSING,
   FOR_OPERATORS_DISCOVERY,
-  FOR_OPERATORS_FAQ,
   FOR_OPERATORS_HERO,
   FOR_OPERATORS_HOW_WE_DELIVER,
   FOR_OPERATORS_PRICING,
@@ -303,12 +303,6 @@ export interface ServicesProofData {
   readonly links: readonly Cta[];
 }
 
-export interface ServicesFaqData {
-  readonly eyebrow: string;
-  readonly heading: string;
-  readonly items: readonly FaqItemData[];
-}
-
 export interface ServicesCtaData {
   readonly heading: string;
   readonly body: string;
@@ -352,7 +346,6 @@ export const SERVICES_HOW_WE_DELIVER_BLOCK_ID = 'services-how-we-deliver';
 export const SERVICES_PRICING_INTRO_BLOCK_ID = 'services-pricing-intro';
 export const SERVICES_DISCOVERY_BLOCK_ID = 'services-discovery';
 export const SERVICES_PROOF_BLOCK_ID = 'services-proof';
-export const SERVICES_FAQ_BLOCK_ID = 'services-faq';
 export const SERVICES_CTA_BLOCK_ID = 'services-cta';
 
 const HOME_DEMO_INDEX = 0;
@@ -381,8 +374,7 @@ const SERVICES_HOW_WE_DELIVER_INDEX = 2;
 const SERVICES_PRICING_INTRO_INDEX = 3;
 const SERVICES_DISCOVERY_INDEX = 4;
 const SERVICES_PROOF_INDEX = 5;
-const SERVICES_FAQ_INDEX = 6;
-const SERVICES_CTA_INDEX = 7;
+const SERVICES_CTA_INDEX = 6;
 
 function hrefLooksExternal(href: string): boolean {
   return (
@@ -739,16 +731,6 @@ function servicesProofBlock(): SectionBlock {
   });
 }
 
-function servicesFaqBlock(): SectionBlock {
-  return createSectionBlock(SERVICES_FAQ_BLOCK_ID, FOR_OPERATORS_FAQ.heading, {
-    eyebrow: FOR_OPERATORS_FAQ.eyebrow,
-    items: FOR_OPERATORS_FAQ.items.map((item) => ({
-      label: item.question,
-      body: item.answer,
-    })),
-  });
-}
-
 function servicesCtaBlock(): CtaSectionBlock {
   return createCtaSectionBlock(SERVICES_CTA_BLOCK_ID, FOR_OPERATORS_CLOSING.heading, {
     body: FOR_OPERATORS_CLOSING.body,
@@ -806,7 +788,7 @@ export function fairSourceBlocks(): Block[] {
 
 /**
  * Derives the /services page CMS-driven sections from for-operators content.
- * Engagement ladder rungs stay component-local (price anchors).
+ * Engagement ladder rungs and FAQ stay component-local (price anchors).
  */
 export function servicesBlocks(): Block[] {
   return [
@@ -816,7 +798,6 @@ export function servicesBlocks(): Block[] {
     servicesPricingIntroBlock(),
     servicesDiscoveryBlock(),
     servicesProofBlock(),
-    servicesFaqBlock(),
     servicesCtaBlock(),
   ];
 }
@@ -1330,17 +1311,6 @@ function sectionToServicesProof(block: SectionBlock): ServicesProofData {
   };
 }
 
-function sectionToServicesFaq(block: SectionBlock): ServicesFaqData {
-  return {
-    eyebrow: block.data.eyebrow ?? '',
-    heading: block.data.heading,
-    items: (block.data.items ?? []).map((item) => ({
-      question: item.label ?? '',
-      answer: item.body,
-    })),
-  };
-}
-
 function ctaToServicesCta(block: CtaSectionBlock): ServicesCtaData {
   const links = block.data.links ?? [];
   const lines = block.data.snippet?.lines ?? [];
@@ -1408,13 +1378,6 @@ export function servicesProofSlot(blocks: Block[]): BlockSlot<ServicesProofData>
   const path = `blocks.${SERVICES_PROOF_INDEX}.data`;
   if (block && block.type === 'section') return { data: sectionToServicesProof(block), path };
   return { data: sectionToServicesProof(servicesProofBlock()), path };
-}
-
-export function servicesFaqSlot(blocks: Block[]): BlockSlot<ServicesFaqData> {
-  const block = blocks[SERVICES_FAQ_INDEX];
-  const path = `blocks.${SERVICES_FAQ_INDEX}.data`;
-  if (block && block.type === 'section') return { data: sectionToServicesFaq(block), path };
-  return { data: sectionToServicesFaq(servicesFaqBlock()), path };
 }
 
 export function servicesCtaSlot(blocks: Block[]): BlockSlot<ServicesCtaData> {

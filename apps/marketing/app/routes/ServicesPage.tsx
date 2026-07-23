@@ -11,7 +11,6 @@ import {
   SERVICES_FALLBACK_BLOCKS,
   servicesCtaSlot,
   servicesDiscoverySlot,
-  servicesFaqSlot,
   servicesHeroSlot,
   servicesHowWeDeliverSlot,
   servicesPricingIntroSlot,
@@ -21,15 +20,10 @@ import {
 import { useMarketingPageBlocks } from '../lib/use-page-blocks';
 
 /**
- * Done-for-you services landing: `/services`. The operator pitch used to be
- * only reachable as the homepage's non-technical audience view; it now also
- * has its own URL, using the standalone for-operators Hero (eyebrow + reverse
- * link back to `/`) that predates the in-hero audience toggle. `?for=non-
- * technical` on `/` still serves the same underlying content as a static alias
- * (CMS wire lives only here).
- *
- * Narrative sections are CMS-wired via useMarketingPageBlocks (VES residual).
- * Engagement ladder rungs stay component-local (price anchors from contracts).
+ * Done-for-you services landing: `/services`. Narrative sections are CMS-wired
+ * via useMarketingPageBlocks (VES residual, same pattern as fair-source).
+ * Engagement ladder rungs and FAQ stay static (answers interpolate price
+ * anchors from contracts). `?for=non-technical` on `/` is a static alias.
  */
 export function ServicesPage() {
   const { blocks, annotation } = useMarketingPageBlocks('services', SERVICES_FALLBACK_BLOCKS);
@@ -39,7 +33,6 @@ export function ServicesPage() {
   const pricingIntro = servicesPricingIntroSlot(blocks);
   const discovery = servicesDiscoverySlot(blocks);
   const proof = servicesProofSlot(blocks);
-  const faq = servicesFaqSlot(blocks);
   const cta = servicesCtaSlot(blocks);
 
   return (
@@ -54,7 +47,7 @@ export function ServicesPage() {
       />
       <DiscoveryScopeShip data={discovery.data} path={discovery.path} annotation={annotation} />
       <ServicesProof data={proof.data} path={proof.path} annotation={annotation} />
-      <ServicesFaq data={faq.data} path={faq.path} annotation={annotation} />
+      <ServicesFaq />
       <ClosingCta data={cta.data} path={cta.path} annotation={annotation} />
       <Footer />
     </div>

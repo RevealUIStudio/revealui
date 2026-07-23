@@ -14,7 +14,6 @@ import {
 import {
   FOR_OPERATORS_CLOSING,
   FOR_OPERATORS_DISCOVERY,
-  FOR_OPERATORS_FAQ,
   FOR_OPERATORS_HERO,
   FOR_OPERATORS_HOW_WE_DELIVER,
   FOR_OPERATORS_PRICING,
@@ -63,7 +62,6 @@ import {
   servicesBlocks,
   servicesCtaSlot,
   servicesDiscoverySlot,
-  servicesFaqSlot,
   servicesHeroSlot,
   servicesHowWeDeliverSlot,
   servicesPricingIntroSlot,
@@ -119,7 +117,6 @@ describe('page-blocks derivation', () => {
     ]);
     expect(servicesBlocks().map((b) => b.type)).toEqual([
       'hero',
-      'section',
       'section',
       'section',
       'section',
@@ -265,11 +262,6 @@ describe('page-blocks derivation', () => {
         href: l.href,
         ...(l.external ? { external: true } : {}),
       })),
-    });
-    expect(servicesFaqSlot(blocks).data).toEqual({
-      eyebrow: FOR_OPERATORS_FAQ.eyebrow,
-      heading: FOR_OPERATORS_FAQ.heading,
-      items: FOR_OPERATORS_FAQ.items.map((i) => ({ question: i.question, answer: i.answer })),
     });
     expect(servicesCtaSlot(blocks).data).toEqual({
       heading: FOR_OPERATORS_CLOSING.heading,
