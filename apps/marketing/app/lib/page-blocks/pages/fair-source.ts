@@ -18,6 +18,7 @@ import {
   type CtaSectionBlock,
   createCtaSectionBlock,
   createSectionBlock,
+  type FaqItemData,
   type FleetMarketingPageSeed,
   linkToCta,
   type SectionBlock,

@@ -14,7 +14,7 @@ import {
   type MarketingLink,
   type SectionBlock,
 } from '@revealui/contracts/content';
-import type { Cta } from '../content/types';
+import type { Cta } from '../../content/types';
 
 export interface FaqItemData {
   readonly question: string;

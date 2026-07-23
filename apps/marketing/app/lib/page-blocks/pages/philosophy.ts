@@ -16,6 +16,8 @@ import {
   type SectionBlock,
 } from '../shared';
 
+export type PhilosophyParagraphRole = 'lead' | 'body' | 'footer';
+
 export interface PhilosophyParagraphData {
   readonly role: PhilosophyParagraphRole;
   readonly body: string;
