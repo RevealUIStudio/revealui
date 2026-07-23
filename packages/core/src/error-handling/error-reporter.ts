@@ -5,7 +5,8 @@
  */
 
 import { logger } from '../observability/logger.js';
-import type { ErrorInfo } from './error-boundary.js';
+import { ValidationError as DomainValidationError } from '../utils/errors.js';
+import { ClientValidationError, type ErrorInfo, NetworkError } from './error-boundary.js';
 
 export interface ErrorReport {
   error: Error;
@@ -278,11 +279,13 @@ export class ErrorReportingSystem implements ErrorReporter {
       return 'error';
     }
 
-    if (error.name === 'NetworkError') {
+    // instanceof only — name checks false-positive across dual ValidationError
+    // classes (P2-A fleet-redundancy).
+    if (error instanceof NetworkError) {
       return 'warning';
     }
 
-    if (error.name === 'ValidationError') {
+    if (error instanceof ClientValidationError || error instanceof DomainValidationError) {
       return 'warning';
     }
 

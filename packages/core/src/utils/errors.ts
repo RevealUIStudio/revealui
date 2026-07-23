@@ -24,14 +24,27 @@ export class ApplicationError extends Error {
 }
 
 /**
- * Validation Error
- * Use for input validation failures, schema validation failures
+ * Validation Error (canonical domain / API / field-ingress class)
+ *
+ * Single source for server-side validation failures. Carries HTTP 400 via
+ * `status` / `statusCode` so REST and middleware treat field-ingress and
+ * API validation the same. Distinct from `ClientValidationError` in the
+ * React error-boundary module (client form field map).
+ *
+ * Always branch with `instanceof ValidationError` — never `name ===
+ * 'ValidationError'`, which false-positives against other classes that
+ * historically shared the same name.
  */
 export class ValidationError extends Error {
+  /** HTTP status for transports that read `error.status` (e.g. rest.ts). */
+  readonly status = 400;
+  /** Alias for handlers that read `statusCode`. */
+  readonly statusCode = 400;
+
   constructor(
     message: string,
     public field: string,
-    public value: unknown,
+    public value?: unknown,
     public context?: Record<string, unknown>,
   ) {
     super(message);

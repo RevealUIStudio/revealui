@@ -386,15 +386,28 @@ export class NetworkError extends Error {
   }
 }
 
-export class ValidationError extends Error {
+/**
+ * Client-side form / UI validation error (field-map payload).
+ *
+ * Not the same class as domain `ValidationError` in `utils/errors.ts`.
+ * Renamed from ValidationError (P2-A fleet-redundancy) so `instanceof` and
+ * `name` no longer collide with API/field-ingress errors.
+ */
+export class ClientValidationError extends Error {
   constructor(
     message: string,
     public fields?: Record<string, string>,
   ) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = 'ClientValidationError';
   }
 }
+
+/**
+ * @deprecated Use {@link ClientValidationError}. Alias kept for one minor.
+ */
+export const ValidationError = ClientValidationError;
+export type ValidationError = ClientValidationError;
 
 export class AuthenticationError extends Error {
   constructor(message: string) {
@@ -420,10 +433,13 @@ export function isNetworkError(error: unknown): error is NetworkError {
   return error instanceof NetworkError || (error instanceof Error && error.name === 'NetworkError');
 }
 
-export function isValidationError(error: unknown): error is ValidationError {
-  return (
-    error instanceof ValidationError || (error instanceof Error && error.name === 'ValidationError')
-  );
+export function isClientValidationError(error: unknown): error is ClientValidationError {
+  return error instanceof ClientValidationError;
+}
+
+/** @deprecated Prefer {@link isClientValidationError}; still instanceof-only (no name check). */
+export function isValidationError(error: unknown): error is ClientValidationError {
+  return isClientValidationError(error);
 }
 
 export function isAuthenticationError(error: unknown): error is AuthenticationError {

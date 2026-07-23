@@ -52,10 +52,12 @@ export type {
 // Error boundaries
 export {
   AuthenticationError,
+  ClientValidationError,
   ErrorBoundary,
   ErrorBoundaryWithRetry,
   getErrorSeverity,
   isAuthenticationError,
+  isClientValidationError,
   isNetworkError,
   isNotFoundError,
   isValidationError,

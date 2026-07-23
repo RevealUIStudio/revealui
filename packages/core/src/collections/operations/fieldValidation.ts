@@ -7,8 +7,8 @@
  *
  * A field's `validate(value, { value, data, siblingData, operation, req })`
  * returns `true` when the value is valid, or a non-empty string error message
- * when it is not. On the first failure the engine throws a ValidationError
- * (HTTP 400) carrying that message, so the write is rejected at ingress.
+ * when it is not. On the first failure the engine throws the canonical ValidationError
+ * (HTTP 400, `instanceof`) carrying that message, so the write is rejected at ingress.
  *
  * Enforcement note: this is one of the engine's ingress checks and runs for
  * EVERY collection written through create()/update(). For public page/post
@@ -19,27 +19,11 @@
 
 import type { Field } from '@revealui/contracts/admin';
 import type { RevealCollectionConfig, RevealRequest } from '../../types/index.js';
+import { ValidationError } from '../../utils/errors.js';
 import { flattenFields } from '../../utils/type-guards.js';
 
-/**
- * Thrown when a field's `validate` predicate rejects a value.
- *
- * Carries `status`/`statusCode` 400 so transports surface it as a client error
- * with the validator's message intact (core `rest.ts` reads `status`; the
- * server error middleware can branch on `name === 'ValidationError'`), rather
- * than the generic 500 that a bare Error would produce.
- */
-export class ValidationError extends Error {
-  readonly status = 400;
-  readonly statusCode = 400;
-  readonly field?: string;
-
-  constructor(message: string, field?: string) {
-    super(message);
-    this.name = 'ValidationError';
-    this.field = field;
-  }
-}
+/** Re-export canonical domain ValidationError for collection call sites/tests. */
+export { ValidationError };
 
 /**
  * Executes every field's `validate` predicate for the fields present in `data`.
