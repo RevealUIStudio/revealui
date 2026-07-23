@@ -15,12 +15,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchPageBlocks } from '../../lib/api';
 import {
   fairSourceBlocks,
+  foHiwBlocks,
   homeBlocks,
   localAiBlocks,
   productsBlocks,
   servicesBlocks,
 } from '../../lib/page-blocks';
 import { FairSourcePage } from '../FairSourcePage';
+import { ForOperatorsHowItWorksPage } from '../ForOperatorsHowItWorksPage';
 import { HomePage } from '../HomePage';
 import { LocalAiPage } from '../LocalAiPage';
 import { ProductsPage } from '../ProductsPage';
@@ -72,7 +74,7 @@ describe('marketing pages: edit-mode wiring', () => {
     editDraftsStore.setEditActive(false);
   });
 
-  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, and ServicesPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
+  it('HomePage, ProductsPage, LocalAiPage, FairSourcePage, ServicesPage, and ForOperatorsHowItWorksPage emit zero data-rvui-* attributes with no active draft (regression pin)', () => {
     const home = renderRouted(<HomePage />);
     expect(home.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(home.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
@@ -96,6 +98,11 @@ describe('marketing pages: edit-mode wiring', () => {
     const services = renderRouted(<ServicesPage />);
     expect(services.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
     expect(services.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
+    services.unmount();
+
+    const hiw = renderRouted(<ForOperatorsHowItWorksPage />);
+    expect(hiw.container.querySelectorAll('[data-rvui-field]')).toHaveLength(0);
+    expect(hiw.container.querySelectorAll('[data-rvui-doc]')).toHaveLength(0);
   });
 
   it('HomePage renders the draft heading annotated with the session docId when a matching overlay exists', () => {
@@ -192,6 +199,26 @@ describe('marketing pages: edit-mode wiring', () => {
     const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
     expect(title?.getAttribute('data-rvui-doc')).toBe('page-services-id');
     expect(title?.textContent).toBe('Canvas-edited services title');
+  });
+
+  it('ForOperatorsHowItWorksPage renders the draft hero annotated with the session docId when a matching overlay exists', () => {
+    const draftBlocks = foHiwBlocks();
+    const hero = draftBlocks[0];
+    if (hero?.type === 'hero') {
+      hero.data.title = 'Canvas-edited how-it-works title';
+    }
+    editDraftsStore.set([
+      {
+        docType: 'page',
+        docId: 'page-fo-hiw-id',
+        draft: { slug: 'for-operators-how-it-works', blocks: draftBlocks },
+      },
+    ]);
+
+    const { container } = renderRouted(<ForOperatorsHowItWorksPage />);
+    const title = container.querySelector('[data-rvui-field="blocks.0.data.title"]');
+    expect(title?.getAttribute('data-rvui-doc')).toBe('page-fo-hiw-id');
+    expect(title?.textContent).toBe('Canvas-edited how-it-works title');
   });
 
   it('re-renders HomePage with the patched value after an optimistic draft-store update', () => {
