@@ -32,8 +32,8 @@ Peer dependencies: `hono` (>=4.3.6), `zod` (>=4.0.0)
 | `OpenAPIHono` | Class | Extended Hono app with OpenAPI route registration |
 | `createRoute` | Function | Define a typed route with request/response schemas |
 | `zValidator` | Middleware | Validate request body/query/params against Zod schemas |
-| `$` | Helper | Shorthand for OpenAPI schema references |
-| `extendZodWithOpenApi` | Function | Add `.openapi()` method to Zod types (re-exported from `@asteasolutions/zod-to-openapi`) |
+| `$` | Helper | Cast a Hono instance to `OpenAPIHono` after chaining (identity type helper; not a schema `$ref` shorthand) |
+| `extendZodWithOpenApi` | Function | Add `.openapi()` method to Zod types (native implementation in this package) |
 | `z` | Re-export | Zod instance for convenience |
 
 ### Types
@@ -89,6 +89,6 @@ See the internal contracts-protocol-pyramid ADR (2026-05-03) §"Phase 3" for the
 ## Related
 
 - Pairs well with `@revealui/contracts` for shared Zod schemas between API and clients
-- Built on `@asteasolutions/zod-to-openapi` for Zod → OpenAPI schema generation
+- Native Zod → OpenAPI extension (no `@asteasolutions/zod-to-openapi` dependency)
 - Supports OpenAPI 3.0 and 3.1 spec output
 - Contracts mirror consumes `@revealui/mcp/contracts-server` (F8 Phase 1 of the protocol-pyramid ADR)

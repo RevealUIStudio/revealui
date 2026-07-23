@@ -15,7 +15,7 @@ AI harness coordination for RevealUI  -  enables multiple AI coding tools to wor
 
 ## Features
 
-- **Multi-Harness Coordination**: Claude Code, Cursor, Copilot adapters with conflict detection
+- **Multi-Harness Coordination**: Cursor, OpenCode, and RevealUI agent adapters with conflict detection; Claude Code / VS Code via hooks and content generators
 - **Workboard Protocol**: Shared `.claude/workboard.md` for session tracking and file reservations
 - **Auto-Detection**: Discovers installed harnesses via PATH and running processes
 - **JSON-RPC 2.0 Server**: Unix domain socket IPC for harness-to-harness communication

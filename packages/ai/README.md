@@ -255,7 +255,7 @@ pnpm --filter @revealui/ai test
 POSTGRES_URL="postgresql://..." pnpm --filter @revealui/ai test __tests__/integration
 
 # Production validation
-POSTGRES_URL="postgresql://..." ./scripts/validate-production.sh
+pnpm --filter @revealui/ai test  # production validation script retired; use package tests / gate
 ```
 
 ### Testing Limitations

@@ -73,8 +73,8 @@ Runtime dependencies: `@revealui/contracts`, `@revealui/utils`, `parse5` (HTML s
 | `EnvelopeEncryption` | Class | Envelope encryption (data key + master key) |
 | `FieldEncryption` | Class | Encrypt/decrypt individual database fields |
 | `KeyRotationManager` | Class | Scheduled key rotation with re-encryption |
-| `DataMasking` | Class | Mask sensitive data for display (email, phone, SSN) |
-| `TokenGenerator` | Class | Secure random token generation |
+| `DataMasking` | Object helpers | Mask sensitive data for display (email, phone, SSN) |
+| `TokenGenerator` | Object helpers | Secure random token generation |
 
 ### Security Alerting
 
@@ -97,7 +97,7 @@ Server-only (`@revealui/security/server`).
 | `createAuditMiddleware` | Function | Hono middleware for automatic request auditing |
 | `InMemoryAuditStorage` | Class | In-memory storage for testing |
 
-### GDPR Compliance
+### GDPR (server-only — import from `@revealui/security/server`) Compliance
 
 | Export | Type | Purpose |
 |--------|------|---------|

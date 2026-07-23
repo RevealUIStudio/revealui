@@ -66,12 +66,8 @@ packages/mcp/
 │   ├── servers/          # MCP server implementations (run `ls packages/mcp/src/servers/` for the current list)
 │   │   ├── code-validator.ts   ← AI code standards enforcer
 │   │   └── …                   ← Neon, Next.js DevTools, Playwright, RevealUI-*, Stripe, Supabase, Vercel
-│   ├── config/           # Configuration utilities
-│   │   ├── index.ts
-│   │   ├── config.json
-│   │   └── README.md
-│   └── adapters/         # Database adapters
-│       └── db.ts
+│   ├── config/           # Configuration utilities (index.ts, config.json)
+│   └── adapters/         # Database adapters (db.ts)
 ├── configs/              # Template configurations
 │   ├── claude-template.json
 │   └── README.md
@@ -105,7 +101,7 @@ tsx packages/mcp/src/servers/code-validator.ts
 Deploy and manage Vercel projects.
 
 ```bash
-pnpm mcp:vercel
+tsx packages/mcp/src/servers/vercel.ts
 ```
 
 ### 3. Stripe
@@ -114,7 +110,7 @@ pnpm mcp:vercel
 Payment processing and billing operations.
 
 ```bash
-pnpm mcp:stripe
+tsx packages/mcp/src/servers/stripe.ts
 ```
 
 ### 4. Neon
@@ -123,7 +119,7 @@ pnpm mcp:stripe
 Database operations and SQL queries.
 
 ```bash
-pnpm mcp:neon
+tsx packages/mcp/src/servers/neon.ts
 ```
 
 ### 5. Supabase
@@ -132,7 +128,7 @@ pnpm mcp:neon
 Supabase project management and CRUD operations.
 
 ```bash
-pnpm mcp:supabase
+tsx packages/mcp/src/servers/supabase.ts
 ```
 
 ### 6. Playwright
@@ -141,7 +137,7 @@ pnpm mcp:supabase
 Browser automation and web scraping.
 
 ```bash
-pnpm mcp:playwright
+tsx packages/mcp/src/servers/playwright.ts
 ```
 
 ### 7. Next.js DevTools
@@ -150,7 +146,7 @@ pnpm mcp:playwright
 Next.js 16+ runtime diagnostics and automation.
 
 ```bash
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/next-devtools.ts
 ```
 
 ### 8. Contracts Introspection
@@ -218,18 +214,23 @@ pnpm typecheck
 pnpm lint
 ```
 
-## Package Scripts (Root)
+## Running servers
+
+There are no root `pnpm mcp:*` script aliases. Start a server with `tsx` against the file under `src/servers/` (underscore-prefixed files are helpers, not counted servers):
 
 ```bash
-# Start individual MCP servers
-pnpm mcp:vercel
-pnpm mcp:stripe
-pnpm mcp:neon
-pnpm mcp:supabase
-pnpm mcp:playwright
-pnpm mcp:next-devtools
+# Examples (from monorepo root)
+tsx packages/mcp/src/servers/code-validator.ts
+tsx packages/mcp/src/servers/vercel.ts
+tsx packages/mcp/src/servers/stripe.ts
+tsx packages/mcp/src/servers/neon.ts
+tsx packages/mcp/src/servers/supabase.ts
+tsx packages/mcp/src/servers/playwright.ts
+tsx packages/mcp/src/servers/next-devtools.ts
+tsx packages/mcp/src/servers/contracts.ts
+tsx packages/mcp/src/servers/docs.ts
 
-# Setup MCP configuration
+# Copy Claude config template
 pnpm setup:mcp
 ```
 
