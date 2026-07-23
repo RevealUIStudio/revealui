@@ -64,7 +64,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/database.md",
-      "sha256": "cb66ad35bf9cd6c61846bb6b9ad1d1ec941f72b04a179441e7ccf0a1b873b341"
+      "sha256": "861acd93c300dbc33edc5e309826989c86500ba594b4eade3fa92186d202b756"
     },
     {
       "relativePath": ".revealui/content/rules/disposition-actions.md",
@@ -116,7 +116,7 @@
     },
     {
       "relativePath": ".revealui/content/skills/revealui-db/SKILL.md",
-      "sha256": "e323d7a738c88c3431df034ce1a773a60c90ea28f8820b9641db53ef95cc92b0"
+      "sha256": "92c1cd8ee31e113395a17c19b95001d71235a385966f32c565e4d0abf21046b0"
     },
     {
       "relativePath": ".revealui/content/skills/revealui-debugging/SKILL.md",
@@ -128,7 +128,7 @@
     },
     {
       "relativePath": ".revealui/content/skills/revealui-safety/SKILL.md",
-      "sha256": "b0e1146445f425c9c1d4f0e1fa3170ad2ccb573a5816d8a977d2994e631efdd9"
+      "sha256": "46430c8c872efc933731412254a15503402efa6075684eabac36d3592a799572"
     },
     {
       "relativePath": ".revealui/content/skills/revealui-tdd/SKILL.md",

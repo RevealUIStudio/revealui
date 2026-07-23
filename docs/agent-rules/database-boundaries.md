@@ -20,9 +20,7 @@ audience: agent
 **`@supabase/supabase-js` must only be imported inside designated vector/auth modules:**
 
 ### Allowed paths for Supabase imports
-- `packages/mcp/src/servers/supabase.ts`  -  the Supabase MCP adapter for installer customers who chose Supabase as their own backend; not invoked by RevealUI's internal runtime
-
-As of the current phase-out state, there are zero `@supabase/supabase-js` imports left in `packages/` or `apps/`  -  the path above is the only intentionally-retained integration point, and this boundary governs any future addition.
+None. The customer Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) was removed. There are zero `@supabase/supabase-js` imports left in `packages/` or `apps/`. Do not reintroduce either.
 
 ### Forbidden: Supabase imports in
 - `packages/core/`  -  Runtime engine must be DB-agnostic

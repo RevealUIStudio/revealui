@@ -27,7 +27,6 @@ Complete documentation for RevealUI's Model Context Protocol integration.
 - **Vercel** - Deployment and storage (`src/servers/vercel.ts`)
 - **Stripe** - Payment processing (`src/servers/stripe.ts`)
 - **Neon** - Database operations (`src/servers/neon.ts`)
-- **Supabase** - Project management (`src/servers/supabase.ts`)
 - **Playwright** - Browser automation (`src/servers/playwright.ts`)
 - **Next.js DevTools** - Debugging (`src/servers/next-devtools.ts`)
 

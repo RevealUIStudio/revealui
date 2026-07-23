@@ -123,13 +123,12 @@ RevealUI ships **14 MCP servers** under `packages/mcp/src/servers/` for enhanced
 - **Vercel MCP** - Deploy and manage Vercel projects
 - **Stripe MCP** + **RevealUI Stripe MCP** - Payment processing and billing operations
 - **NeonDB MCP** - Database operations and SQL queries (remote endpoint at `mcp.neon.tech`)
-- **Supabase MCP** - Supabase project management and CRUD operations
 - **Playwright MCP** - Browser automation and web scraping
 - **Next.js DevTools MCP** - Next.js 16+ runtime diagnostics and automation
 - **RevealUI Content MCP** - admin content collections via MCP
 - **RevealUI Email MCP** + **RevealUI Memory MCP** - first-party platform servers
 
-The full list lives at [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers); exports use launcher functions (`launchStripeMcp`, `launchSupabaseMcp`, etc.).
+The full list lives at [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers); exports use launcher functions (`launchStripeMcp`, `launchNeonMcp`, etc.).
 
 All servers are **free**; most run locally as npm packages (NeonDB MCP is a remote endpoint).
 
@@ -152,11 +151,6 @@ STRIPE_SECRET_KEY=sk_test_xxx...
 
 # NeonDB MCP
 NEON_API_KEY=neon_xxx...
-
-# Supabase MCP
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJxxx...
-SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
 
 # Next.js DevTools MCP
 NEXT_TELEMETRY_DISABLED=0
@@ -232,21 +226,6 @@ The supported local workflow is to validate credentials with `pnpm setup:mcp` an
 
 ---
 
-### Supabase MCP (`supabase-mcp@1.5.0`)
-
-**Capabilities:**
-
-- CRUD operations on tables
-- Query data
-- Manage database records
-- Interact with Supabase projects
-
-**Environment:** `SUPABASE_URL`, `SUPABASE_ANON_KEY` (required), `SUPABASE_SERVICE_ROLE_KEY` (optional)
-
-**Status:** ⚠️ Requires credentials setup
-
----
-
 ### Playwright MCP (`@executeautomation/playwright-mcp-server@1.0.12`)
 
 **Capabilities:**
@@ -308,65 +287,6 @@ The supported local workflow is to validate credentials with `pnpm setup:mcp` an
 4. Add to `.env`: `NEON_API_KEY=neon_xxx...`
 
 **Detailed guide**: See [NEON_API_KEY_SETUP.md](./ENVIRONMENT-VARIABLES-GUIDE.md)
-
-### Supabase Credentials
-
-**⚠️ Important: Supabase API Key Changes (2025)**
-
-Supabase introduced new API keys in June 2025. Both legacy and new keys are supported:
-
-**New API Keys (Recommended):**
-
-- **Publishable Key** (`sb_publishable_...`) - Replaces anon key, safe to expose
-- **Secret Key** (`sb_secret_...`) - Replaces service_role key, for backend use
-
-**Legacy API Keys (Deprecated Nov 2025):**
-
-- **anon key** (JWT format) - Still works but will be deprecated
-- **service_role key** (JWT format) - Still works but will be deprecated
-
-**Getting Your Keys:**
-
-1. Go to https://supabase.com/dashboard
-2. Select your project
-3. Go to Settings → API
-4. Copy:
-   - **Project URL** → `SUPABASE_URL`
-   - **For new keys:**
-     - **Publishable key** (`sb_publishable_...`) → `SUPABASE_PUBLISHABLE_KEY`
-     - **Secret key** (`sb_secret_...`) → `SUPABASE_SECRET_KEY`
-   - **For legacy keys:**
-     - **anon/public key** (JWT) → `SUPABASE_ANON_KEY`
-     - **service_role key** (JWT) → `SUPABASE_SERVICE_ROLE_KEY`
-
-**Migration Timeline:**
-
-- **June 2025**: New keys available (early preview)
-- **July 2025**: Full feature launch
-- **November 2025**: Legacy keys deprecated for new projects
-
-**Reference:** [Supabase API Key Changes Discussion](https://github.com/orgs/supabase/discussions/29260) | [Official Docs](https://supabase.com/docs/guides/api/api-keys)
-
-**MCP_API_KEY (Optional but Recommended):**
-
-The `MCP_API_KEY` is **NOT** a Supabase key - it's a key you generate yourself to secure the MCP server HTTP endpoint.
-
-- **Auto-generated**: If not set, the script will auto-generate a secure random key (shown in console)
-- **Recommended**: Copy the auto-generated key to your `.env` file to persist it across restarts
-- **Manual generation**: Run `pnpm secrets:generate --hex --length=32` to generate a 64-character hex string
-- **Purpose**: Authenticates requests to the MCP server HTTP endpoint (prevents unauthorized access)
-
-**Example:**
-
-```env
-MCP_API_KEY=5b32a7c681704fdef16dcfd018e86660bf2a79dc7f7551a987cb94bb0a72eda1
-```
-
-**Note**: The script will show you the auto-generated key when you first run it - just copy it to your `.env` file.
-
-**IPv4/IPv6 Note**: See [SUPABASE_IPV4_EXPLANATION.md](./DATABASE.md) for network compatibility info.
-
----
 
 ## Next.js DevTools MCP
 
@@ -569,14 +489,6 @@ MCP servers are configured in `.cursor/mcp-config.json`:
         "NEON_API_KEY": "${NEON_API_KEY}"
       }
     },
-    "supabase": {
-      "command": "pnpm",
-      "args": ["mcp:supabase"],
-      "env": {
-        "SUPABASE_URL": "${SUPABASE_URL}",
-        "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
-      }
-    },
     "playwright": {
       "command": "pnpm",
       "args": ["mcp:playwright"]
@@ -604,7 +516,7 @@ To enable automatic restart in the Cursor-managed process, add `"--", "--restart
 }
 ```
 
-Restart applies to Stripe, Neon, Supabase, and Vercel launchers. Playwright and Next.js DevTools do not support `--restart` (managed by their own upstream packages).
+Restart applies to Stripe, Neon, and Vercel launchers. Playwright and Next.js DevTools do not support `--restart` (managed by their own upstream packages).
 
 ---
 
@@ -897,7 +809,6 @@ All MCP servers are **completely free**:
 | Vercel           | ✅ Working           | `vercel-mcp@0.0.7`                                | `VERCEL_API_KEY`                    |
 | Stripe           | ✅ Working           | `@stripe/mcp@0.1.4`                               | `STRIPE_SECRET_KEY`                 |
 | NeonDB           | ⚠️ Needs API Key     | Remote: `mcp.neon.tech`                            | `NEON_API_KEY`                      |
-| Supabase         | ⚠️ Needs Credentials | `supabase-mcp@1.5.0`                              | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 | Playwright       | ✅ Working           | `@executeautomation/playwright-mcp-server@1.0.12` | None                                |
 | Next.js DevTools | ✅ Working           | `next-devtools-mcp@0.3.9`                         | None (requires Next.js 16+)         |
 
@@ -916,7 +827,6 @@ All MCP servers are **completely free**:
 - [Next.js DevTools MCP GitHub](https://github.com/vercel/next-devtools-mcp)
 - [Next.js 16 MCP Documentation](https://nextjs.org/docs)
 - [Model Context Protocol Spec](https://modelcontextprotocol.io)
-- [Supabase API Key Changes Discussion](https://github.com/orgs/supabase/discussions/29260)
 
 ---
 
@@ -1227,14 +1137,6 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 
-# Supabase (new API keys, recommended)
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-SUPABASE_SECRET_KEY=sb_secret_...
-
-# Supabase (legacy JWT keys, deprecated Nov 2025)
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
 ---

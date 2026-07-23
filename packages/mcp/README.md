@@ -122,16 +122,7 @@ Database operations and SQL queries.
 tsx packages/mcp/src/servers/neon.ts
 ```
 
-### 5. Supabase
-**Status:** Available (requires API key)
-
-Supabase project management and CRUD operations.
-
-```bash
-tsx packages/mcp/src/servers/supabase.ts
-```
-
-### 6. Playwright
+### 5. Playwright
 **Status:** Available
 
 Browser automation and web scraping.
@@ -140,7 +131,7 @@ Browser automation and web scraping.
 tsx packages/mcp/src/servers/playwright.ts
 ```
 
-### 7. Next.js DevTools
+### 6. Next.js DevTools
 **Status:** Available
 
 Next.js 16+ runtime diagnostics and automation.
@@ -183,11 +174,6 @@ STRIPE_SECRET_KEY=sk_test_...
 
 # Neon MCP
 NEON_API_KEY=neon_...
-
-# Supabase MCP
-SUPABASE_URL=https://....supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
 ## Documentation
@@ -224,7 +210,6 @@ tsx packages/mcp/src/servers/code-validator.ts
 tsx packages/mcp/src/servers/vercel.ts
 tsx packages/mcp/src/servers/stripe.ts
 tsx packages/mcp/src/servers/neon.ts
-tsx packages/mcp/src/servers/supabase.ts
 tsx packages/mcp/src/servers/playwright.ts
 tsx packages/mcp/src/servers/next-devtools.ts
 tsx packages/mcp/src/servers/contracts.ts

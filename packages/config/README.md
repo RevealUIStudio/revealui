@@ -109,7 +109,7 @@ VERCEL_API_KEY=vercel_...
 NEON_API_KEY=neon_...
 ```
 
-> **Note:** prior versions of this list included a `SUPABASE_*` block. Those env vars are not validated by `@revealui/config` and were a stale leak from the customer-facing Supabase MCP adapter (which lives at `packages/mcp/src/servers/supabase.ts` and documents its own env vars in `packages/mcp/README.md`). If you're configuring the Supabase MCP server for customer use, see the MCP README; this package validates only the runtime env that `@revealui/server` and `@revealui/admin` actually read.
+> **Note:** prior versions of this list included a `SUPABASE_*` block. Those env vars are not validated by `@revealui/config` (legacy leak from the removed customer Supabase MCP adapter). This package validates only the runtime env that `@revealui/server` and `@revealui/admin` actually read.
 
 ## File Loading Priority
 

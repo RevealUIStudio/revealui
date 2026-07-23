@@ -192,18 +192,6 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     requiresCredentials: true,
   },
   {
-    id: 'supabase',
-    name: 'Supabase',
-    description:
-      'Supabase project management and CRUD operations. Legacy adapter retained for migrating customers; new RevealUI deployments default to Neon.',
-    category: 'integration',
-    transport: 'stdio',
-    modulePath: '@revealui/mcp/dist/servers/supabase.js',
-    license: 'FSL-1.1-MIT',
-    proGated: true,
-    requiresCredentials: true,
-  },
-  {
     id: 'vercel',
     name: 'Vercel',
     description: 'Deploy and manage Vercel projects, domains, and environment variables.',

@@ -43,8 +43,6 @@ mcp-servers:
   neon:
     remote: "https://mcp.neon.tech"
     adapter: "NeonAdapter extends MCPAdapter"
-  supabase:
-    launcher: "pnpm dlx supabase-mcp"
   vercel:
     launcher: "pnpm dlx vercel-mcp"
     adapter: "VercelAdapter extends MCPAdapter"

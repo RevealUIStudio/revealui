@@ -32,9 +32,9 @@ const results = await db.select().from(posts).where(eq(posts.status, 'published'
 
 Vector embeddings (RAG, AI memory) live in NeonDB on the \`pgvector\` extension. HNSW indexes are created in \`0002_triggers_search_vectors.sql\`. Schemas: \`rag_documents\`, \`rag_chunks\`, \`agent_memories.embedding\`.
 
-## Customer-Facing Supabase MCP Adapter
+## Database MCP
 
-The MCP adapter at \`packages/mcp/src/servers/supabase.ts\` is **for installer customers** who chose Supabase as their backend. It spawns the customer's \`supabase-mcp\` package with their \`SUPABASE_*\` credentials so AI agents can query the customer's database. It is not part of RevealUI's internal runtime; do not couple new internal code to it.
+Agent database tooling uses the Neon MCP launcher (\`launchNeonMcp\`). The legacy customer Supabase MCP adapter was removed; do not reintroduce \`supabase-mcp\` or \`@supabase/supabase-js\` as runtime dependencies.
 
 ## Migration Discipline
 
