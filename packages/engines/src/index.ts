@@ -1,13 +1,18 @@
 /**
- * @revealui/engines — Unified entry point for the five RevealUI business primitives.
+ * @revealui/engines — Optional unified barrel for the five business primitives.
  *
- * Each primitive is available as a namespace import:
+ * **Posture (ADR-006, 2026-07-23):** incubating. Apps and production routes
+ * import leaf packages (`@revealui/auth`, `@revealui/db`, …) directly. This
+ * package is a composed surface for kits / future consumers — not the required
+ * application entry point today. Package is private (not published on npm).
+ *
+ * Namespace import (when you intentionally want the barrel):
  *
  * ```ts
  * import { users, content, products, payments, agents } from '@revealui/engines';
  * ```
  *
- * Or import a specific primitive directly:
+ * Or a specific primitive:
  *
  * ```ts
  * import { signIn, useSession, UserSchema } from '@revealui/engines/users';

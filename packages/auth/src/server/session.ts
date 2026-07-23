@@ -360,6 +360,8 @@ export async function rotateSession(
     persistent?: boolean;
     userAgent?: string;
     ipAddress?: string;
+    /** Session metadata (e.g. `{ mfaVerified: true }` after MFA login). */
+    metadata?: Record<string, unknown>;
   },
 ): Promise<{ token: string; session: Session }> {
   try {
@@ -389,6 +391,7 @@ export async function rotateSession(
       persistent: options?.persistent,
       userAgent: options?.userAgent,
       ipAddress: options?.ipAddress,
+      metadata: options?.metadata,
     });
   } catch (err: unknown) {
     if (err instanceof DatabaseError || err instanceof TokenError) {
