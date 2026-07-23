@@ -1,5 +1,5 @@
 {
-  description = "RevealUI - Business Operating System Software Development Environment";
+  description = "RevealUI — Agentic Business Runtime (Nix dev environment)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -97,7 +97,7 @@
             direnv
             nix-direnv
 
-            # Workboard live viewer: `wb` alias renders workboard.md every 3s
+            # glow: TRACKER / workboard viewers (`tracker`, `wb`)
             glow
             figlet
             toilet
@@ -108,41 +108,54 @@
             # Database helper functions — defined directly in shellHook so they
             # are shell functions, not subprocesses. Available in any interactive
             # session that enters this dev environment.
+            #
+            # Two local Postgres surfaces (do not conflate):
+            #   1) App/dev DB on 127.0.0.1:5432 (Docker/system) — what seed/dev
+            #      use via POSTGRES_URL from dotenv/revvault.
+            #   2) Optional Nix PGDATA at $PWD/.pgdata — db-init/db-start only.
             db-start() {
               if [ ! -d "$PGDATA" ]; then
-                echo "❌ PostgreSQL not initialized. Run 'db-init' first."
+                echo "Nix PostgreSQL not initialized. Run 'db-init' first (optional .pgdata)."
+                echo "App DB: ensure something is listening on 127.0.0.1:5432 (Docker/system)."
                 return 1
               fi
               if pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo "ℹ️  PostgreSQL is already running"
+                echo "Nix PostgreSQL is already running ($PGDATA)"
                 return 0
               fi
               pg_ctl start -D "$PGDATA" -l "$PGDATA/logfile" -o "-k $PGDATA"
-              echo "✅ PostgreSQL started (data: $PGDATA)"
+              echo "Nix PostgreSQL started (data: $PGDATA)"
               echo "   Connect: psql -h $PGHOST -d postgres"
             }
 
             db-stop() {
               if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo "ℹ️  PostgreSQL is not running"
+                echo "Nix PostgreSQL is not running"
                 return 0
               fi
               pg_ctl stop -D "$PGDATA"
-              echo "✅ PostgreSQL stopped"
+              echo "Nix PostgreSQL stopped"
             }
 
             db-status() {
-              if pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo "✅ PostgreSQL is running"
-                pg_ctl status -D "$PGDATA"
+              if command -v pg_isready >/dev/null 2>&1 && pg_isready -h 127.0.0.1 -p 5432 -q 2>/dev/null; then
+                echo "App Postgres: accepting connections on 127.0.0.1:5432"
               else
-                echo "❌ PostgreSQL is not running"
+                echo "App Postgres: nothing accepting on 127.0.0.1:5432"
+              fi
+              if [ -d "$PGDATA" ] && pg_ctl status -D "$PGDATA" &>/dev/null; then
+                echo "Nix .pgdata: running"
+                pg_ctl status -D "$PGDATA"
+              elif [ -d "$PGDATA" ]; then
+                echo "Nix .pgdata: present, not running (db-start)"
+              else
+                echo "Nix .pgdata: not initialized (db-init, optional)"
               fi
             }
 
             db-init() {
               if [ -d "$PGDATA" ]; then
-                echo "⚠️  PostgreSQL already initialized at $PGDATA"
+                echo "Nix PostgreSQL already initialized at $PGDATA"
                 read -p "Delete and reinitialize? (y/N) " -n 1 -r
                 echo
                 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -150,7 +163,7 @@
                 fi
                 rm -rf "$PGDATA"
               fi
-              echo "Initializing PostgreSQL..."
+              echo "Initializing Nix PostgreSQL..."
               initdb --locale=C.UTF-8 --encoding=UTF8 -D "$PGDATA" --username=postgres
               cat >> "$PGDATA/postgresql.conf" << 'PGCONF'
 
@@ -167,7 +180,7 @@ local   all             all                                     trust
 host    all             all             127.0.0.1/32            trust
 host    all             all             ::1/128                 trust
 PGHBA
-              echo "✅ PostgreSQL initialized at $PGDATA"
+              echo "Nix PostgreSQL initialized at $PGDATA"
               echo "   Run 'db-start' to start the server"
             }
 
@@ -175,18 +188,23 @@ PGHBA
               db-stop
               rm -rf "$PGDATA"
               db-init
-              echo "✅ Database reset complete"
+              echo "Nix database reset complete"
             }
 
             db-psql() {
-              if ! pg_ctl status -D "$PGDATA" &>/dev/null; then
-                echo "❌ PostgreSQL is not running. Run 'db-start' first."
-                return 1
+              if command -v pg_isready >/dev/null 2>&1 && pg_isready -h 127.0.0.1 -p 5432 -q 2>/dev/null; then
+                psql -h 127.0.0.1 -p 5432 -U "''${PGUSER:-postgres}" "''${PGDATABASE:-postgres}" "$@"
+                return
               fi
-              psql -h "$PGHOST" -U postgres -d postgres "$@"
+              if [ -d "$PGDATA" ] && pg_ctl status -D "$PGDATA" &>/dev/null; then
+                psql -h "$PGHOST" -U postgres -d postgres "$@"
+                return
+              fi
+              echo "No Postgres accepting connections. Start app DB on :5432 or Nix .pgdata via db-start."
+              return 1
             }
 
-            # Set up PostgreSQL environment early so banner can reference $PGDATA
+            # Optional Nix PGDATA (not the same as app POSTGRES_URL / Docker PG)
             export PGDATA="$PWD/.pgdata"
             export PGHOST="$PWD/.pgdata"
             export PGDATABASE="postgres"
@@ -209,6 +227,10 @@ PGHBA
             export TURBO_CACHE_DIR="$PWD/.turbo"
 
             # ── Dev Environment Banner ────────────────────────────────────────
+            # Methodology (RevealUI + Studio fleet): TRACKER free surfaces,
+            # cut work from origin/test, PR→test, revvault secrets, agents propose
+            # / owner disposes. Marketing CMS: page-blocks/pages/<slug>.ts +
+            # pnpm db:seed:fleet-marketing.
 
             _B='\033[1m'
             _AMBER='\033[1;38;2;251;191;36m'
@@ -219,6 +241,7 @@ PGHBA
 
             _BRANCH=$(git -C "$PWD" branch --show-current 2>/dev/null || echo "detached")
             _DIRTY=$(git -C "$PWD" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+            _BEHIND=$(git -C "$PWD" rev-list --count HEAD..origin/test 2>/dev/null || echo 0)
             _NODE=$(node --version 2>/dev/null | tr -d 'v')
             _PNPM=$(pnpm --version 2>/dev/null)
             _DOCK=$(docker --version 2>/dev/null | sed 's/Docker version //' | cut -d, -f1)
@@ -234,11 +257,14 @@ PGHBA
             echo -e "  ''${_DIM}╭''${_LINE}╮''${_NC}"
             echo -e "  ''${_DIM}│''${_NC}''${_B}$_TITLE''${_NC}''${_DIM}│''${_NC}"
             echo -e "  ''${_DIM}╰''${_LINE}╯''${_NC}"
+            echo -e "   ''${_DIM}fleet: base origin/test · PR→test · TRACKER free surfaces · revvault secrets''${_NC}"
 
             # ── Env context line ───────────────────────────────────────────────
             _CTXLINE="node $_NODE  ·  pnpm $_PNPM"
             [ -n "$_DOCK" ] && _CTXLINE="$_CTXLINE  ·  docker $_DOCK"
-            if [ "$_DIRTY" = "0" ]; then
+            if [ "$_BEHIND" != "0" ] && [ -n "$_BEHIND" ]; then
+              _GIT="''${_AMBER}$_BRANCH  ·  $_BEHIND behind origin/test''${_NC}"
+            elif [ "$_DIRTY" = "0" ]; then
               _GIT="''${_GREEN}$_BRANCH  ·  clean''${_NC}"
             else
               _GIT="''${_AMBER}$_BRANCH  ·  $_DIRTY uncommitted''${_NC}"
@@ -250,12 +276,15 @@ PGHBA
             _ok()   { [ -n "$_OK" ] && _OK="$_OK  ''${_DIM}·''${_NC}  $1" || _OK="$1"; }
             _warn() { _WARNS="$_WARNS   ''${_AMBER}⚠  $1''${_NC}\n"; }
 
-            if [ ! -d "$PGDATA" ]; then
-              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db-init''${_NC}"
-            elif pg_ctl status -D "$PGDATA" &>/dev/null; then
-              _ok "''${_GREEN}✓ postgres''${_NC}"; _PG_READY=1
+            # Prefer app Postgres on :5432 (seed/dev). Nix .pgdata is optional.
+            if command -v pg_isready >/dev/null 2>&1 && pg_isready -h 127.0.0.1 -p 5432 -q 2>/dev/null; then
+              _ok "''${_GREEN}✓ postgres :5432''${_NC}"; _PG_READY=1
+            elif [ -d "$PGDATA" ] && pg_ctl status -D "$PGDATA" &>/dev/null; then
+              _ok "''${_GREEN}✓ postgres (nix .pgdata)''${_NC}"; _PG_READY=1
+            elif [ ! -d "$PGDATA" ]; then
+              _warn "postgres  ''${_DIM}→''${_NC}  start app DB on :5432  ''${_DIM}or''${_NC}  ''${_CYAN}db-init''${_NC} (optional nix .pgdata)"
             else
-              _warn "postgres  ''${_DIM}→''${_NC}  ''${_CYAN}db-start''${_NC}"
+              _warn "postgres  ''${_DIM}→''${_NC}  start app DB on :5432  ''${_DIM}or''${_NC}  ''${_CYAN}db-start''${_NC} (nix .pgdata)"
             fi
 
             if [ -d "node_modules" ]; then
@@ -276,27 +305,52 @@ PGHBA
             # ACP only applies inside Zed — a plain terminal is not degraded.
             [ "''${TERM_PROGRAM:-}" = "zed" ] && _ok "''${_GREEN}✓ acp''${_NC}"
 
+            # Fleet TRACKER present (coordination authority for free surfaces)
+            if [ -f "''${REVEALUI_TRACKER:-$HOME/revfleet/.jv/docs/TRACKER.md}" ]; then
+              _ok "''${_GREEN}✓ tracker''${_NC}"
+            else
+              _warn "tracker  ''${_DIM}→''${_NC}  missing ~/revfleet/.jv/docs/TRACKER.md"
+            fi
+
             echo ""
             [ -n "$_OK"    ] && echo -e "   $_OK"
             [ -n "$_WARNS" ] && printf "\n%b" "$_WARNS"
 
-            # ── Quick commands ─────────────────────────────────────────────────
-            _CMDS="''${_CYAN}pnpm dev''${_NC}  ''${_DIM}·''${_NC}  ''${_CYAN}wb''${_NC}"
-            [ "$_PG_READY"   = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}db-psql''${_NC}"
-            [ "$_DEPS_READY" = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}pnpm gate:quick''${_NC}"
+            # ── Quick commands (methodology-aligned) ───────────────────────────
+            _CMDS="''${_CYAN}pnpm dev''${_NC}  ''${_DIM}·''${_NC}  ''${_CYAN}pnpm gate:quick''${_NC}  ''${_DIM}·''${_NC}  ''${_CYAN}tracker''${_NC}"
+            [ "$_PG_READY"   = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}pnpm db:seed:fleet-marketing''${_NC}"
+            [ "$_DEPS_READY" = 1 ] && _CMDS="$_CMDS  ''${_DIM}·''${_NC}  ''${_CYAN}rfg''${_NC}"
             echo -e "\n   $_CMDS\n"
 
             unset _B _AMBER _GREEN _CYAN _DIM _NC
-            unset _BRANCH _DIRTY _NODE _PNPM _DOCK _ENV _TITLE _W _LINE _CTXLINE _GIT
+            unset _BRANCH _DIRTY _BEHIND _NODE _PNPM _DOCK _ENV _TITLE _W _LINE _CTXLINE _GIT
             unset _OK _WARNS _PG_READY _DEPS_READY _CMDS
             unset -f _ok _warn
 
-            # Live workboard watcher — renders the workboard every 3 s.
-            # The in-repo .claude/workboard.md may be a redirect stub; set
-            # REVEALUI_WORKBOARD (e.g. in .envrc.local) to watch the real one.
-            # Usage: wb
+            # TRACKER — day-to-day free surfaces for all harnesses (fleet methodology).
+            # Override path: REVEALUI_TRACKER
+            tracker() {
+              local t="''${REVEALUI_TRACKER:-$HOME/revfleet/.jv/docs/TRACKER.md}"
+              if [ ! -f "$t" ]; then
+                echo "tracker: not found at $t" >&2
+                return 1
+              fi
+              if [ "''${1:-}" = "watch" ]; then
+                watch -n5 "glow '$t' 2>/dev/null || cat '$t'"
+              else
+                glow "$t" 2>/dev/null || less -R "$t"
+              fi
+            }
+            export -f tracker
+
+            # Workboard watcher — canonical fleet workboard under .jv (not the
+            # in-repo stub at apps/.claude/workboard.md). Override: REVEALUI_WORKBOARD
             wb() {
-              local _wb="''${REVEALUI_WORKBOARD:-$PWD/.claude/workboard.md}"
+              local _wb="''${REVEALUI_WORKBOARD:-$HOME/revfleet/.jv/.claude/workboard.md}"
+              if [ ! -f "$_wb" ]; then
+                echo "wb: workboard not found at $_wb" >&2
+                return 1
+              fi
               watch -n3 "glow '$_wb' 2>/dev/null || cat '$_wb'"
             }
             export -f wb
