@@ -7,7 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetSession = vi.fn();
-const mockCheckSessionMfa = vi.fn(() => ({ allowed: true }));
+const mockCheckSessionMfa = vi.fn((..._args: unknown[]) => ({ allowed: true }));
 const mockGetRevealUIInstance = vi.fn();
 const mockWriteGDPRAuditEntry = vi.fn();
 
