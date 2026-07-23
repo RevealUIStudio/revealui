@@ -33,6 +33,23 @@ export {
   createAuditMiddleware,
   InMemoryAuditStorage,
 } from './audit.js';
+// Merkle roots over row signatures (GAP-355 Stage 4 S4-2)
+export type {
+  AuditAnchorSignable,
+  InclusionProof,
+  MerkleBuildResult,
+} from './audit-merkle.js';
+export {
+  assertContiguousSeq,
+  auditAnchorSignableBytes,
+  buildInclusionProof,
+  buildMerkleRootFromSignatures,
+  hashAuditSignatureLeaf,
+  hashMerklePair,
+  signAuditAnchorRoot,
+  verifyAuditAnchorRoot,
+  verifyInclusionProof,
+} from './audit-merkle.js';
 // Env-composed audit signer + public-key resolution (GAP-355 Stage 3, D4/D5)
 export type {
   AuditRowSignerFn,
