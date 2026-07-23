@@ -30,8 +30,13 @@ export type AuditSignerEnv = Record<string, string | undefined>;
 export type AuditRowSignerFn = (row: AuditSignable) => string;
 
 export interface AuditSignerResolution {
-  /** The composed signer, or `undefined` in unsigned mode. */
+  /** The composed row signer, or `undefined` in unsigned mode. */
   readonly signer: AuditRowSignerFn | undefined;
+  /**
+   * The raw Ed25519 signer for non-row payloads (GAP-355 S4-3 anchor roots).
+   * Same instance the row `signer` closes over; signed mode only.
+   */
+  readonly cryptoSigner: Ed25519AuditRowSigner | undefined;
   /** `signed` when a valid key was present, `unsigned` otherwise. */
   readonly mode: 'signed' | 'unsigned';
   /** The resolved key id (signed mode only). */
@@ -68,11 +73,18 @@ function resolveKid(env: AuditSignerEnv, publicKey: KeyObject): string {
  */
 export function createAuditRowSignerFromEnv(env: AuditSignerEnv): AuditSignerResolution {
   const privateKeyPem = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
-  if (!privateKeyPem) return { signer: undefined, mode: 'unsigned' };
+  if (!privateKeyPem) {
+    return { signer: undefined, cryptoSigner: undefined, mode: 'unsigned' };
+  }
   const publicKey = createPublicKey(createPrivateKey(privateKeyPem));
   const kid = resolveKid(env, publicKey);
-  const signer = new Ed25519AuditRowSigner(privateKeyPem, kid);
-  return { signer: (row) => signer.sign(auditSignableBytes(row)).value, mode: 'signed', kid };
+  const cryptoSigner = new Ed25519AuditRowSigner(privateKeyPem, kid);
+  return {
+    signer: (row) => cryptoSigner.sign(auditSignableBytes(row)).value,
+    cryptoSigner,
+    mode: 'signed',
+    kid,
+  };
 }
 
 /** The published audit public key (spec D4): what `GET /api/audit/public-key` returns. */

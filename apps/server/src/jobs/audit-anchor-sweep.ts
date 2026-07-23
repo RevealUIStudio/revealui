@@ -1,0 +1,391 @@
+/**
+ * GAP-355 Stage 4 S4-3 — Fly worker sweep: per-tenant Merkle anchors.
+ *
+ * For each non-null tenant with Max+ `auditLog` and new signed audit_log
+ * rows after the last anchor, when the batch is **ready** (size ≥ N or
+ * age ≥ max lag), build a contiguous batch, Merkle-root the signature
+ * leaves, sign the root (Stage 3 Ed25519), insert audit_anchors, and
+ * meter `audit_anchor`. Failures never delete audit rows (append-only).
+ * Null-tenant rows are never anchored (§9); volume is gauged each tick.
+ *
+ * Gated by AUDIT_ANCHOR_SWEEP_ENABLED=true on the worker process.
+ */
+
+import { randomUUID } from 'node:crypto';
+import { isFeatureEnabled } from '@revealui/core/features';
+import { logger } from '@revealui/core/observability/logger';
+import { metrics } from '@revealui/core/observability/metrics';
+import {
+  assertContiguousSeq,
+  buildMerkleRootFromSignatures,
+  createAuditRowSignerFromEnv,
+  type Ed25519AuditRowSigner,
+  signAuditAnchorRoot,
+} from '@revealui/core/security';
+import { getClient } from '@revealui/db';
+import type { Database } from '@revealui/db/client';
+import { auditAnchors, auditLog } from '@revealui/db/schema';
+import { and, asc, count, eq, gt, isNotNull, isNull, max } from 'drizzle-orm';
+import { accountHasAuditLogFeature } from '../lib/account-entitlement.js';
+import { recordUsageMeter } from '../lib/metering.js';
+import { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
+
+export { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
+
+/** Countersigned default batch size (§9). Override: AUDIT_ANCHOR_BATCH_SIZE. */
+export const DEFAULT_ANCHOR_BATCH_SIZE = 256;
+
+/**
+ * Max lag before a partial batch anchors (§9: 1h since first unanchored
+ * signed row). Override: AUDIT_ANCHOR_MAX_LAG_MS.
+ */
+export const DEFAULT_ANCHOR_MAX_LAG_MS = 60 * 60 * 1000;
+
+/**
+ * How often the worker polls for ready batches (not the lag itself).
+ * Override: AUDIT_ANCHOR_INTERVAL_MS.
+ */
+export const DEFAULT_ANCHOR_POLL_MS = 60 * 1000;
+
+/** Usage meter name after successful root insert (design §4 step 7 / §9). */
+export const AUDIT_ANCHOR_METER_NAME = 'audit_anchor';
+
+// Process-wide metrics (registered once; Prometheus via /metrics on worker).
+const mAnchorsCreated = metrics.counter(
+  'revealui_audit_anchors_created_total',
+  'Merkle audit anchors successfully inserted',
+);
+const mGaps = metrics.counter(
+  'revealui_audit_anchor_seq_gaps_total',
+  'Tenant batches skipped because of a non-contiguous seq gap',
+);
+const mEntitlementSkip = metrics.counter(
+  'revealui_audit_anchor_entitlement_skip_total',
+  'Tenants skipped because auditLog (Max+) was not enabled',
+);
+const mErrors = metrics.counter(
+  'revealui_audit_anchor_errors_total',
+  'Anchor sweep tenant failures',
+);
+const mNullTenant = metrics.gauge(
+  'revealui_audit_null_tenant_signed_rows',
+  'Signed audit_log rows with null tenant (never anchored in Stage 4)',
+);
+const mWaiting = metrics.counter(
+  'revealui_audit_anchor_waiting_total',
+  'Tenants with unanchored rows still under batch-size and max-lag thresholds',
+);
+
+export interface AnchorSweepResult {
+  tenantsConsidered: number;
+  anchorsInserted: number;
+  tenantsSkipped: number;
+  tenantsWaiting: number;
+  nullTenantSignedRows: number;
+  errors: string[];
+}
+
+export interface AnchorSweepOptions {
+  db?: Database;
+  env?: Record<string, string | undefined>;
+  batchSize?: number;
+  maxLagMs?: number;
+  /** Injected for tests; default: account entitlement + process license fallback. */
+  canAnchorTenant?: (tenant: string) => Promise<boolean>;
+  signer?: Ed25519AuditRowSigner | null;
+  /** Injected now() for lag tests. */
+  now?: () => Date;
+  /** When false, skip usage_meters write (tests without accounts table rows). */
+  recordMeter?: boolean;
+}
+
+function batchSizeFromEnv(env: Record<string, string | undefined>): number {
+  const raw = env.AUDIT_ANCHOR_BATCH_SIZE?.trim();
+  if (!raw) return DEFAULT_ANCHOR_BATCH_SIZE;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : DEFAULT_ANCHOR_BATCH_SIZE;
+}
+
+function maxLagFromEnv(env: Record<string, string | undefined>): number {
+  const raw = env.AUDIT_ANCHOR_MAX_LAG_MS?.trim();
+  if (!raw) return DEFAULT_ANCHOR_MAX_LAG_MS;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : DEFAULT_ANCHOR_MAX_LAG_MS;
+}
+
+function pollMsFromEnv(env: Record<string, string | undefined>): number {
+  const raw = env.AUDIT_ANCHOR_INTERVAL_MS?.trim();
+  if (!raw) return DEFAULT_ANCHOR_POLL_MS;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : DEFAULT_ANCHOR_POLL_MS;
+}
+
+function resolveRootSigner(env: Record<string, string | undefined>): Ed25519AuditRowSigner | null {
+  const { cryptoSigner, mode } = createAuditRowSignerFromEnv(env);
+  if (mode !== 'signed' || !cryptoSigner) return null;
+  return cryptoSigner;
+}
+
+async function defaultCanAnchorTenant(db: Database, tenant: string): Promise<boolean> {
+  if (await accountHasAuditLogFeature(db, tenant)) return true;
+  // Forge / process license: Max+ singleton unlocks all tenants.
+  return isFeatureEnabled('auditLog');
+}
+
+/**
+ * One sweep pass across all tenants that have non-null tenant + signed rows.
+ */
+export async function runAuditAnchorSweep(
+  options: AnchorSweepOptions = {},
+): Promise<AnchorSweepResult> {
+  const env = options.env ?? process.env;
+  const db = options.db ?? getClient();
+  const batchSize = options.batchSize ?? batchSizeFromEnv(env);
+  const maxLagMs = options.maxLagMs ?? maxLagFromEnv(env);
+  const signer = options.signer !== undefined ? options.signer : resolveRootSigner(env);
+  const now = options.now ?? (() => new Date());
+  const canAnchor = options.canAnchorTenant ?? ((t: string) => defaultCanAnchorTenant(db, t));
+  const doMeter = options.recordMeter !== false;
+
+  const result: AnchorSweepResult = {
+    tenantsConsidered: 0,
+    anchorsInserted: 0,
+    tenantsSkipped: 0,
+    tenantsWaiting: 0,
+    nullTenantSignedRows: 0,
+    errors: [],
+  };
+
+  if (!signer) {
+    logger.info('audit-anchor-sweep: skipped (no REVEALUI_AUDIT_SIGNING_KEY — unsigned mode)');
+    return result;
+  }
+
+  // §9: null-tenant volume metric (never anchored in Stage 4).
+  const [nullRow] = await db
+    .select({ c: count() })
+    .from(auditLog)
+    .where(and(isNull(auditLog.tenant), isNotNull(auditLog.signature)));
+  result.nullTenantSignedRows = Number(nullRow?.c ?? 0);
+  mNullTenant.set(result.nullTenantSignedRows);
+  if (result.nullTenantSignedRows > 0) {
+    logger.warn(
+      `audit-anchor-sweep: ${result.nullTenantSignedRows} signed audit_log row(s) have null tenant (skipped)`,
+    );
+  }
+
+  const tenantRows = await db
+    .selectDistinct({ tenant: auditLog.tenant })
+    .from(auditLog)
+    .where(and(isNotNull(auditLog.tenant), isNotNull(auditLog.signature)));
+
+  for (const { tenant } of tenantRows) {
+    if (!tenant) continue;
+    result.tenantsConsidered++;
+    try {
+      if (!(await canAnchor(tenant))) {
+        mEntitlementSkip.inc();
+        result.tenantsSkipped++;
+        continue;
+      }
+
+      const outcome = await anchorTenantBatch(
+        db,
+        signer,
+        tenant,
+        batchSize,
+        maxLagMs,
+        now,
+        doMeter,
+      );
+      if (outcome === 'inserted') result.anchorsInserted++;
+      else if (outcome === 'waiting') {
+        result.tenantsWaiting++;
+        mWaiting.inc();
+      } else result.tenantsSkipped++;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      result.errors.push(`${tenant}: ${msg}`);
+      mErrors.inc();
+      logger.error(
+        `audit-anchor-sweep: tenant ${tenant} failed`,
+        err instanceof Error ? err : new Error(msg),
+      );
+    }
+  }
+
+  return result;
+}
+
+async function lastAnchoredSeq(db: Database, tenant: string): Promise<number> {
+  const rows = await db
+    .select({ m: max(auditAnchors.seqTo) })
+    .from(auditAnchors)
+    .where(eq(auditAnchors.tenant, tenant));
+  const m = rows[0]?.m;
+  return typeof m === 'number' && Number.isFinite(m) ? m : 0;
+}
+
+type TenantOutcome = 'inserted' | 'waiting' | 'skipped';
+
+async function anchorTenantBatch(
+  db: Database,
+  signer: Ed25519AuditRowSigner,
+  tenant: string,
+  batchSize: number,
+  maxLagMs: number,
+  now: () => Date,
+  doMeter: boolean,
+): Promise<TenantOutcome> {
+  const last = await lastAnchoredSeq(db, tenant);
+
+  const candidates = await db
+    .select({
+      seq: auditLog.seq,
+      signature: auditLog.signature,
+      timestamp: auditLog.timestamp,
+    })
+    .from(auditLog)
+    .where(and(eq(auditLog.tenant, tenant), isNotNull(auditLog.signature), gt(auditLog.seq, last)))
+    .orderBy(asc(auditLog.seq))
+    .limit(batchSize);
+
+  const signed: SignedAuditRow[] = [];
+  let oldestTs: Date | null = null;
+  for (const row of candidates) {
+    if (row.signature === null || row.signature === undefined) continue;
+    signed.push({ seq: row.seq, signature: row.signature });
+    if (oldestTs === null) oldestTs = row.timestamp;
+  }
+
+  if (signed.length === 0) return 'skipped';
+
+  const batch = planContiguousBatch(last, signed);
+  if (!batch || batch.length === 0) {
+    if (signed[0] && (last === 0 || signed[0].seq !== last + 1)) {
+      mGaps.inc();
+      logger.warn(
+        `audit-anchor-sweep: gap for tenant=${tenant} lastAnchored=${last} nextSeq=${signed[0].seq} — skip`,
+      );
+    }
+    return 'skipped';
+  }
+
+  // Size primary; time is max lag for a partial batch (§9).
+  const readyBySize = batch.length >= batchSize;
+  const ageMs = oldestTs ? now().getTime() - oldestTs.getTime() : 0;
+  const readyByLag = batch.length >= 1 && ageMs >= maxLagMs;
+  if (!(readyBySize || readyByLag)) {
+    return 'waiting';
+  }
+
+  const seqs = batch.map((r) => r.seq);
+  assertContiguousSeq(seqs);
+  const signatures = batch.map((r) => r.signature);
+  const { root, leafCount } = buildMerkleRootFromSignatures(signatures);
+  const seqFrom = batch[0]?.seq;
+  const seqTo = batch[batch.length - 1]?.seq;
+  if (seqFrom === undefined || seqTo === undefined) return 'skipped';
+
+  const { value: rootSignature } = signAuditAnchorRoot(signer, {
+    tenant,
+    seqFrom,
+    seqTo,
+    leafCount,
+    root,
+  });
+
+  await db.insert(auditAnchors).values({
+    tenant,
+    seqFrom,
+    seqTo,
+    root,
+    rootSignature,
+    leafCount,
+  });
+
+  mAnchorsCreated.inc();
+  logger.info(
+    `audit-anchor-sweep: anchored tenant=${tenant} seq=${seqFrom}..${seqTo} leaves=${leafCount}`,
+  );
+
+  if (doMeter) {
+    try {
+      const periodStart = now();
+      await recordUsageMeter({
+        id: randomUUID(),
+        accountId: tenant,
+        meterName: AUDIT_ANCHOR_METER_NAME,
+        quantity: 1,
+        periodStart,
+        source: 'system',
+        idempotencyKey: `audit_anchor:${tenant}:${seqFrom}:${seqTo}`,
+      });
+    } catch (err) {
+      // Meter is best-effort after insert; missing accounts FK must not roll back anchors.
+      logger.warn(`audit-anchor-sweep: meter write failed for tenant=${tenant}`, {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return 'inserted';
+}
+
+let sweepTimer: ReturnType<typeof setInterval> | null = null;
+let bootTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Start the poll loop on the Fly worker. No-op when disabled.
+ *
+ * Env:
+ *   AUDIT_ANCHOR_SWEEP_ENABLED=true
+ *   AUDIT_ANCHOR_INTERVAL_MS (default 60000 — poll cadence)
+ *   AUDIT_ANCHOR_BATCH_SIZE (default 256)
+ *   AUDIT_ANCHOR_MAX_LAG_MS (default 3600000 — partial-batch age trigger)
+ *   REVEALUI_AUDIT_SIGNING_KEY (required for any insert)
+ */
+export function startAuditAnchorSweep(env: Record<string, string | undefined> = process.env): void {
+  if (env.AUDIT_ANCHOR_SWEEP_ENABLED !== 'true') {
+    logger.info('audit-anchor-sweep: not started (set AUDIT_ANCHOR_SWEEP_ENABLED=true to enable)');
+    return;
+  }
+
+  const intervalMs = pollMsFromEnv(env);
+
+  const tick = () => {
+    void runAuditAnchorSweep({ env }).then((r) => {
+      logger.info(
+        `audit-anchor-sweep: tick tenants=${r.tenantsConsidered} inserted=${r.anchorsInserted} ` +
+          `waiting=${r.tenantsWaiting} skipped=${r.tenantsSkipped} nullTenant=${r.nullTenantSignedRows} ` +
+          `errors=${r.errors.length}`,
+      );
+    });
+  };
+
+  // Fire once soon after boot, then on interval
+  bootTimer = setTimeout(tick, 15_000);
+  if (typeof bootTimer === 'object' && bootTimer !== null && 'unref' in bootTimer) {
+    (bootTimer as NodeJS.Timeout).unref?.();
+  }
+  sweepTimer = setInterval(tick, intervalMs);
+  if (typeof sweepTimer === 'object' && sweepTimer !== null && 'unref' in sweepTimer) {
+    (sweepTimer as NodeJS.Timeout).unref?.();
+  }
+  logger.info(
+    `audit-anchor-sweep: started pollMs=${intervalMs} batchSize=${batchSizeFromEnv(env)} ` +
+      `maxLagMs=${maxLagFromEnv(env)}`,
+  );
+}
+
+/** Test / shutdown helper. */
+export function stopAuditAnchorSweep(): void {
+  if (sweepTimer) {
+    clearInterval(sweepTimer);
+    sweepTimer = null;
+  }
+  if (bootTimer) {
+    clearTimeout(bootTimer);
+    bootTimer = null;
+  }
+}
