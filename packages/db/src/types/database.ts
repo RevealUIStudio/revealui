@@ -23,6 +23,7 @@ import type {
   agentTaskUsage,
   aiMemorySessions,
   appLogs,
+  auditAnchors,
   auditLog,
   billingCatalog,
   boardColumns,
@@ -180,6 +181,11 @@ export type AiMemorySessionsUpdate = Partial<AiMemorySessionsInsert>
 export type AppLogsRow = typeof appLogs.$inferSelect
 export type AppLogsInsert = typeof appLogs.$inferInsert
 export type AppLogsUpdate = Partial<AppLogsInsert>
+
+// Audit Anchors
+export type AuditAnchorsRow = typeof auditAnchors.$inferSelect
+export type AuditAnchorsInsert = typeof auditAnchors.$inferInsert
+export type AuditAnchorsUpdate = Partial<AuditAnchorsInsert>
 
 // Audit Log
 export type AuditLogRow = typeof auditLog.$inferSelect
@@ -629,6 +635,7 @@ export type DatabaseRelationships = {
   agentTaskUsage: Relationship[]
   aiMemorySessions: Relationship[]
   appLogs: Relationship[]
+  auditAnchors: Relationship[]
   auditLog: Relationship[]
   billingCatalog: Relationship[]
   boardColumns: Relationship[]
@@ -771,6 +778,9 @@ export const aiMemorySessionsRelationships: readonly Relationship[] = []
 
 // AppLogs relationships
 export const appLogsRelationships: readonly Relationship[] = []
+
+// AuditAnchors relationships
+export const auditAnchorsRelationships: readonly Relationship[] = []
 
 // AuditLog relationships
 export const auditLogRelationships: readonly Relationship[] = []
@@ -1221,6 +1231,12 @@ export type Database = {
         Insert: AppLogsInsert
         Update: AppLogsUpdate
         Relationships: typeof appLogsRelationships
+      }
+      audit_anchors: {
+        Row: AuditAnchorsRow
+        Insert: AuditAnchorsInsert
+        Update: AuditAnchorsUpdate
+        Relationships: typeof auditAnchorsRelationships
       }
       audit_log: {
         Row: AuditLogRow

@@ -54,16 +54,9 @@ export const auditAnchors = pgTable(
     deliveryChannel: text('delivery_channel'),
   },
   (table) => [
-    uniqueIndex('audit_anchors_tenant_seq_range_uidx').on(
-      table.tenant,
-      table.seqFrom,
-      table.seqTo,
-    ),
+    uniqueIndex('audit_anchors_tenant_seq_range_uidx').on(table.tenant, table.seqFrom, table.seqTo),
     index('audit_anchors_tenant_created_idx').on(table.tenant, table.createdAt),
-    check(
-      'audit_anchors_seq_range_check',
-      sql`${table.seqTo} >= ${table.seqFrom}`,
-    ),
+    check('audit_anchors_seq_range_check', sql`${table.seqTo} >= ${table.seqFrom}`),
     check('audit_anchors_leaf_count_check', sql`${table.leafCount} > 0`),
   ],
 );

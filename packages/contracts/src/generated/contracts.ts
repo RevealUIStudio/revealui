@@ -379,6 +379,32 @@ export const AppLogsInsertContract = createContract({
 })
 
 // =============================================================================
+// AuditAnchors Contracts
+// =============================================================================
+
+/**
+ * Contract for auditAnchors row (Select)
+ * Database table: audit_anchors
+ */
+export const AuditAnchorsRowContract = createContract({
+  name: 'AuditAnchorsRow',
+  version: '1',
+  description: 'Database row contract for audit_anchors table',
+  schema: Schemas.AuditAnchorsSelectSchema,
+})
+
+/**
+ * Contract for auditAnchors insert
+ * Database table: audit_anchors
+ */
+export const AuditAnchorsInsertContract = createContract({
+  name: 'AuditAnchorsInsert',
+  version: '1',
+  description: 'Database insert contract for audit_anchors table',
+  schema: Schemas.AuditAnchorsInsertSchema,
+})
+
+// =============================================================================
 // AuditLog Contracts
 // =============================================================================
 
