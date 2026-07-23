@@ -75,6 +75,7 @@
   },
   "files": [
     "dist",
+    "content-snapshots",
     "LICENSE"
   ],
   "funding": {
@@ -96,7 +97,9 @@
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "content:snapshot:check": "vitest run src/__tests__/content-snapshot.test.ts",
+    "content:snapshot:write": "tsx scripts/write-content-snapshots.mts"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

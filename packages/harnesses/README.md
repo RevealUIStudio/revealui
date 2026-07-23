@@ -61,12 +61,23 @@ pnpm exec revealui-harnesses manager check
 pnpm exec revealui-harnesses content sync
 # equivalent:
 pnpm exec revealui-harnesses content sync --generator claude-code
+
+# Definition ↔ committed generator snapshot (CI lock, GAP-406)
+pnpm --filter @revealui/harnesses content:snapshot:check
+# After editing content/definitions/**, refresh hashes:
+pnpm --filter @revealui/harnesses content:snapshot:write
+# Local disk vs definitions (when .revealui/content exists):
+pnpm exec revealui-harnesses content diff --check
 ```
 
 `content sync` without `--generator` uses `DEFAULT_CONTENT_GENERATOR_ID`
 (`claude-code`). That generator emits into **`.revealui/content/`** (the manager
 tree). Vendor trees stay adapters; do not full-copy hardlines into `~/.claude`
 or `~/.grok`.
+
+Committed SHA-256 locks live in `content-snapshots/<generatorId>.json`. Unit
+tests and the local CI gate fail when definitions change without refreshing
+those files in the same PR.
 
 ## CLI
 

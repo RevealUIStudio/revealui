@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "generatorId": "opencode",
+  "files": [
+    {
+      "relativePath": ".opencode/agents/builder.md",
+      "sha256": "ff56efad6e406a37f74f219ff7b968a6dfa93f91c1bdc777a82bf26add65d3b8"
+    },
+    {
+      "relativePath": ".opencode/agents/docs-sync.md",
+      "sha256": "9ee6323a1f307d4dda338405ba33f1007d6fea02be7e589befc456dbf0668616"
+    },
+    {
+      "relativePath": ".opencode/agents/gate-runner.md",
+      "sha256": "5e0a5f04999866b27dac38487350908b880b955698b50c41adbb93ea567664f3"
+    },
+    {
+      "relativePath": ".opencode/agents/linter.md",
+      "sha256": "a010a690b016d807bba0408a84887c37cd0632c23d79b55b41c6a06705f2b34f"
+    },
+    {
+      "relativePath": ".opencode/agents/security-reviewer.md",
+      "sha256": "27b8070965ea218c309fddee8db196e2b1e663cbfcca0d8ad5a4b961c2f523c6"
+    },
+    {
+      "relativePath": ".opencode/agents/tester.md",
+      "sha256": "09b1670b5027fb97d07e2752e0b2fbdc4fc5fc2fb02fc8252fad266931aa4c44"
+    },
+    {
+      "relativePath": ".opencode/commands/audit.md",
+      "sha256": "2894e093ee9d1442f3ba5c7f082b90358e337e2bab1f37be5b1a860cef69ed7d"
+    },
+    {
+      "relativePath": ".opencode/commands/gate.md",
+      "sha256": "151d065e5db72875eb1dc27c4457c310ad54847004a9ca5d37e1715a50f8e94f"
+    },
+    {
+      "relativePath": ".opencode/commands/new-package.md",
+      "sha256": "1f1a31766b225b75582af388f891600a6749cbb532e71ad018dcf133b3dc4d14"
+    },
+    {
+      "relativePath": ".opencode/commands/stripe-best-practices.md",
+      "sha256": "558ae6a7f17ae42c33ecfd6c69c803ccb1a84a49cad0ab113433172ed686495a"
+    }
+  ]
+}

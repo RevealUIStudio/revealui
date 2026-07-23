@@ -272,6 +272,14 @@ async function gate(): Promise<void> {
         args: ['validate:structure', '--', '--manager-only'],
       },
       {
+        // GAP-406 residual: definition ↔ committed generator snapshot lock.
+        // Fails when package definitions change without refreshing
+        // packages/harnesses/content-snapshots/*.json (unit tests also cover this).
+        name: 'Harnesses content snapshot (hard fail)',
+        command: 'pnpm',
+        args: ['--filter', '@revealui/harnesses', 'content:snapshot:check'],
+      },
+      {
         name: 'Boundary validation',
         command: 'pnpm',
         args: ['validate:boundary'],

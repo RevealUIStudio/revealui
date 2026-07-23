@@ -36,15 +36,19 @@ export type {
 } from './content/index.js';
 // Content layer (canonical content definitions and generators)
 export {
+  buildContentSnapshot,
   buildManifest,
   ClaudeCodeGenerator,
   CursorGenerator,
+  checkAllContentSnapshots,
+  checkContentSnapshot,
   diffContent,
   generateContent,
   listContent,
   OpenCodeGenerator,
   VSCodeGenerator,
   validateManifest,
+  writeAllContentSnapshots,
 } from './content/index.js';
 export type { CoordinatorOptions } from './coordinator.js';
 // Coordinator
