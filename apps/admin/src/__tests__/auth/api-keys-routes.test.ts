@@ -14,6 +14,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
+  // C11 requireSessionWithMfa: allow MFA gate by default so route unit tests
+  // focus on key crypto/DB behavior (MFA unit-tested in packages/auth).
+  checkSessionMfa: vi.fn(() => ({ allowed: true })),
 }));
 
 vi.mock('@revealui/core/utils/logger', () => ({

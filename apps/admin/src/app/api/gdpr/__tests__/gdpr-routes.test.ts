@@ -7,11 +7,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetSession = vi.fn();
+const mockCheckSessionMfa = vi.fn(() => ({ allowed: true }));
 const mockGetRevealUIInstance = vi.fn();
 const mockWriteGDPRAuditEntry = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
+  // C11 requireSessionWithMfa on account_delete: allow gate by default.
+  checkSessionMfa: (...args: unknown[]) => mockCheckSessionMfa(...args),
 }));
 
 vi.mock('@revealui/core/utils/logger', () => ({
