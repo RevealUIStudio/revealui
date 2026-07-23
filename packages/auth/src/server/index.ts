@@ -63,7 +63,7 @@ export type {
   MfaSession,
   MfaSessionUser,
 } from './mfa-enforcement.js';
-export { requireMfa } from './mfa-enforcement.js';
+export { checkSessionMfa, requireMfa, toMfaSession } from './mfa-enforcement.js';
 export {
   buildAuthUrl,
   exchangeCode,

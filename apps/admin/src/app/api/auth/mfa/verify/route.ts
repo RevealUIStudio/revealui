@@ -97,6 +97,8 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
     const { token: sessionToken } = await rotateSession(payload.userId, {
       userAgent,
       ipAddress,
+      // Marks this session as MFA step-up complete for requireMfa (C11).
+      metadata: { mfaVerified: true },
     });
 
     const response = NextResponse.json({ success: true });

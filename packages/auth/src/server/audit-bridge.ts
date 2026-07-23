@@ -8,6 +8,7 @@
 
 import { logger } from '@revealui/core/observability/logger';
 import type { AuditEvent, AuditSystem } from '@revealui/security/server';
+import { evaluateSecurityAlert } from './security-alerts.js';
 
 type AuditEventInput = Omit<AuditEvent, 'id' | 'timestamp'>;
 
@@ -33,16 +34,17 @@ async function getAudit(): Promise<AuditSystem | null> {
  */
 async function logAuditEvent(event: AuditEventInput): Promise<void> {
   const auditSystem = await getAudit();
-  if (!auditSystem) {
-    return;
+  if (auditSystem) {
+    try {
+      await auditSystem.log(event);
+    } catch (error) {
+      logger.error('Failed to write audit event', error instanceof Error ? error : undefined, {
+        type: event.type,
+      });
+    }
   }
-  try {
-    await auditSystem.log(event);
-  } catch (error) {
-    logger.error('Failed to write audit event', error instanceof Error ? error : undefined, {
-      type: event.type,
-    });
-  }
+  // Threshold alerts (failed logins, MFA disable, lockouts, …) — C11 WIRE
+  await evaluateSecurityAlert(event);
 }
 
 /**

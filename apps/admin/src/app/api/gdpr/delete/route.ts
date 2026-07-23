@@ -1,15 +1,14 @@
 export const runtime = 'nodejs';
 
-import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { appLogs, errorEvents, users } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { requireSessionWithMfa } from '@/lib/auth/require-mfa';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { writeGDPRAuditEntry } from '@/lib/utils/gdpr-audit';
-import { extractRequestContext } from '@/lib/utils/request-context';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 export const dynamic = 'force-dynamic';
@@ -53,11 +52,18 @@ async function deleteAllUserDocs(
  */
 async function gdprDeleteHandler(request: NextRequest) {
   try {
-    // Require authentication
-    const session = await getSession(request.headers, extractRequestContext(request));
-    if (!session) {
-      return createApplicationErrorResponse('Authentication required', 'UNAUTHORIZED', 401);
+    // Auth + MFA for account deletion (all roles; C11 requireMfa).
+    const gate = await requireSessionWithMfa(request, {
+      operations: ['account_delete'],
+      operation: 'account_delete',
+    });
+    if (!gate.ok) {
+      if (gate.response.status === 401) {
+        return createApplicationErrorResponse('Authentication required', 'UNAUTHORIZED', 401);
+      }
+      return gate.response;
     }
+    const { session } = gate;
 
     const revealui = await getRevealUIInstance();
 
