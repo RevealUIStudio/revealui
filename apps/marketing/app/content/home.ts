@@ -3,10 +3,11 @@
 //   app/components/GetStarted.tsx (Phase 1c extraction).
 // Per the internal marketing-overhaul plan §4.4.
 // 2026-07-09: homepage funnel declutter (internal marketing funnel audit). Hero
-// subtitle now carries the canonical positioning sentence + foil; the "What
-// ships today" grid, the audience Fork, and the Objections section moved out
-// (their 3 strongest metrics live in the Proof section; the two objection
-// cards became the first two FAQ items below).
+// subtitle carries the canonical positioning sentences; receipt foil lives on
+// the ReceiptCard. The "What ships today" grid, audience Fork, and Objections
+// section moved out (metrics in Proof; objections in FAQ).
+// 2026-07-23: hero subtitle restored to the full 2026-07-09 locked form
+// (sentence1 + sentence2 + support). Foil stays on ReceiptCard.
 // 2026-07-10: frontend-excellence Phase 1 (11->7 section cut, ADR
 // 2026-07-10-frontend-design-direction). HOME_ACTORS and HOME_THESIS_BAND
 // removed (thin vocabulary/pull-quote content, no longer rendered anywhere);
@@ -28,9 +29,13 @@ import type { Cta, FaqItem } from './types';
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable.',
   h1: 'Run your whole business on one runtime you own.',
+  // Locked public form (copy-voice.md + ADR 2026-07-09 / 2026-07-21): two
+  // positioning sentences + support. Receipt foil is NOT in the subtitle; it
+  // is the ReceiptCard caption under this hero.
   subtitle: {
     sentence1:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
+    sentence2: 'Every agent is a governed and audited user that lives on your infrastructure.',
     support: 'It runs on any AI provider you choose.',
   },
   cta: {

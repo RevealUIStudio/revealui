@@ -43,7 +43,7 @@ function TechnicalHero({ hero }: { hero: ReturnType<typeof selectHomeHero> }) {
       </h1>
 
       <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-        {hero.subtitle.sentence1} {hero.subtitle.support}
+        {hero.subtitle.sentence1} {hero.subtitle.sentence2} {hero.subtitle.support}
       </p>
 
       <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">

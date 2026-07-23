@@ -26,4 +26,13 @@ describe('selectHomeHero', () => {
   it('matches the corpus §4.1 H1 lock verbatim', () => {
     expect(HOME_HERO_FOUNDATION.h1).toBe('The foundation your business runs on.');
   });
+
+  it('keeps the full locked positioning form on both hero variants', () => {
+    expect(HOME_HERO.subtitle.sentence1).toContain('under one roof');
+    expect(HOME_HERO.subtitle.sentence2).toBe(
+      'Every agent is a governed and audited user that lives on your infrastructure.',
+    );
+    expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
+    expect(HOME_HERO_FOUNDATION.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
+  });
 });
