@@ -999,9 +999,6 @@ importers:
       '@lexical/yjs':
         specifier: ^0.46.0
         version: 0.46.0(typescript@6.0.3)(yjs@13.6.31)
-      '@revealui/cache':
-        specifier: workspace:*
-        version: link:../cache
       '@revealui/contracts':
         specifier: workspace:*
         version: link:../contracts

@@ -160,7 +160,6 @@ if (isFeatureEnabled('ai')) {
 | `@revealui/core/observability/alerts` | Alerts |
 | `@revealui/core/error-handling` | Error boundaries, retry, circuit breaker, fallback UI |
 | `@revealui/core/error-handling/error-reporter` | Error reporting |
-| `@revealui/core/caching` | Caching utilities |
 | `@revealui/core/cache/query-cache` | Query cache |
 | `@revealui/core/jobs` | Background jobs |
 | `@revealui/core/translations` | i18n translations |
