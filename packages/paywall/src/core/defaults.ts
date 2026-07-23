@@ -30,7 +30,7 @@ export const DEFAULT_FEATURES: Record<string, FeatureDefinition<DefaultTier>> = 
   // --- Max tier ---
   aiMemory: { tier: 'max', label: 'AI Memory System' },
   aiInference: { tier: 'max', label: 'Inference Configuration' },
-  auditLog: { tier: 'max', label: 'Audit Logging' },
+  auditLog: { tier: 'max', label: 'Audit receipts (signed log + downloadable Merkle roots)' },
   devkitProfiles: { tier: 'max', label: 'DevKit Profiles' },
 
   // --- Enterprise tier ---

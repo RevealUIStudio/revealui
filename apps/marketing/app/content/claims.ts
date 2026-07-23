@@ -17,14 +17,21 @@ export const CLAIMS_COUNTS_LABELS = {
   filesLabel: 'covered files',
 } as const;
 
-// The flagship provable claim this page can now make (GAP-355 Stage 3): the
-// audit log is signed with a key anyone can check, and verifying a record needs
-// no secret of ours. Scoped to the log (not "every agent action") until agent-
-// surface emission lands in Stage 5. The heading is under the prose threshold,
-// so only the body is indexed in claims-evidence.ts.
+// GAP-355 Stage 3 flagship claim: the audit log is signed with a key anyone
+// can check, and verifying a record needs no secret of ours. Scoped to the log
+// (not "every agent action") until agent-surface emission lands in Stage 5.
+// The heading is under the prose threshold, so only the body is indexed.
 export const CLAIMS_SIGNED_LEDGER_NOTE = {
   heading: 'Checkable by design',
   body: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+} as const;
+
+// GAP-355 Stage 4 S4-6: lift the "receipt you hold" embargo only for Max+
+// root delivery. Free/Pro keep row signing; Max downloads Merkle roots and
+// verifies them offline. Verification itself is never a paid product.
+export const CLAIMS_RECEIPT_HOLD_NOTE = {
+  heading: 'Hold a root on Max',
+  body: 'On Max, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free and Pro still get a signed log. Root delivery is Max. Checking a receipt is free either way.',
 } as const;
 
 export const CLAIMS_LEDGER_INTRO =

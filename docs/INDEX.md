@@ -70,6 +70,11 @@ RevealUI is one product in a fleet of seven that compose into an agent-first SDL
 - [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
 - [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
 
+## Security & trust
+
+- [Audit receipts](./security/AUDIT_RECEIPTS.md): signed log vs Max Merkle roots, offline CLI, honesty by tier
+- [Security policies](./security/INFORMATION_SECURITY_POLICY.md): information security policy index under `docs/security/`
+
 ## Legal
 
 - [Third Party Licenses](./THIRD_PARTY_LICENSES.md)
