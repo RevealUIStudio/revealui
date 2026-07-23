@@ -1,20 +1,49 @@
-import { Button } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
 import { FOR_OPERATORS_PRICING } from '../../content/for-operators';
+import type { ServicesPricingIntroData } from '../../lib/page-blocks';
 
-export function EngagementPricing() {
-  const { eyebrow, heading, body, rungs } = FOR_OPERATORS_PRICING;
+export interface EngagementPricingProps {
+  /**
+   * CMS-driven section header only. Engagement ladder rungs (titles, prices,
+   * bodies, CTAs) stay component-local from for-operators + contracts.
+   */
+  readonly data?: ServicesPricingIntroData;
+  readonly path?: string;
+  readonly annotation?: BlockAnnotation;
+}
+
+export function EngagementPricing({ data, path, annotation }: EngagementPricingProps = {}) {
+  const intro = data ?? {
+    eyebrow: FOR_OPERATORS_PRICING.eyebrow,
+    heading: FOR_OPERATORS_PRICING.heading,
+    body: FOR_OPERATORS_PRICING.body,
+  };
+  const { rungs } = FOR_OPERATORS_PRICING;
+  const ann = annotation ?? {};
+  const base = path ?? '';
 
   return (
     <section className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            {eyebrow}
+          <p
+            className="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
+            {...(base ? fieldAttrs(ann, `${base}.eyebrow`) : {})}
+          >
+            {intro.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {heading}
+          <h2
+            className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            {...(base ? fieldAttrs(ann, `${base}.heading`) : {})}
+          >
+            {intro.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">{body}</p>
+          <p
+            className="mt-6 text-lg leading-8 text-muted-foreground"
+            {...(base ? fieldAttrs(ann, `${base}.body`) : {})}
+          >
+            {intro.body}
+          </p>
         </div>
 
         <ul className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3 list-none p-0">

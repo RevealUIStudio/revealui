@@ -2,7 +2,8 @@
 
 /**
  * Seed the fleet-marketing `sites` row plus its published marketing pages
- * (home, products, philosophy, local-ai, fair-source) for the visual-edit-sessions block wire.
+ * (home, products, philosophy, local-ai, fair-source, services) for the
+ * visual-edit-sessions block wire.
  *
  * The page `blocks` come from the SAME pure derivation the marketing app falls
  * back to (`apps/marketing/app/lib/page-blocks.ts`), so the seeded CMS content
@@ -37,6 +38,7 @@ import {
   localAiBlocks,
   philosophyBlocks,
   productsBlocks,
+  servicesBlocks,
 } from '../apps/marketing/app/lib/page-blocks';
 import {
   assertSeedDatabaseReady,
@@ -117,6 +119,17 @@ const PAGE_SEEDS: readonly PageSeed[] = [
       title: 'Fair Source | RevealUI',
       description:
         'Source-visible. Commercially usable. MIT in two years. The license contract for RevealUI Pro packages.',
+    },
+  },
+  {
+    slug: 'services',
+    path: '/services',
+    title: 'Services',
+    blocks: servicesBlocks(),
+    seo: {
+      title: 'Services | RevealUI',
+      description:
+        'Done-for-you software with AI built in. Discovery, fixed-scope engagement, delivered by the team that builds the runtime.',
     },
   },
 ];
@@ -265,7 +278,7 @@ async function main(): Promise<void> {
   }
 
   // ---------------------------------------------------------------------------
-  // Pages (home + products + philosophy + local-ai + fair-source) — version-safe, idempotent
+  // Pages (home + products + philosophy + local-ai + fair-source + services) — version-safe, idempotent
   // ---------------------------------------------------------------------------
 
   for (const seed of PAGE_SEEDS) {

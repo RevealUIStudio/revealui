@@ -1,6 +1,10 @@
 import { IconPlus } from '@revealui/presentation';
 import { FOR_OPERATORS_FAQ } from '../../content/for-operators';
 
+/**
+ * Services FAQ stays component-local (not CMS). The cost answer interpolates
+ * engagement ladder prices from contracts; claims-safety forbids prices in blocks.
+ */
 export function Faq() {
   return (
     <section className="bg-background py-24 sm:py-32">
