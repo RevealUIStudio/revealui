@@ -33,6 +33,14 @@ export {
   createAuditMiddleware,
   InMemoryAuditStorage,
 } from './audit.js';
+// Offline anchor verify (GAP-355 Stage 4 S4-5)
+export type {
+  OfflineAnchorRecord,
+  OfflineInclusionProofInput,
+  OfflineVerifyInput,
+  OfflineVerifyResult,
+} from './audit-anchor-verify.js';
+export { verifyAuditAnchorOffline } from './audit-anchor-verify.js';
 // Merkle roots over row signatures (GAP-355 Stage 4 S4-2)
 export type {
   AuditAnchorSignable,
