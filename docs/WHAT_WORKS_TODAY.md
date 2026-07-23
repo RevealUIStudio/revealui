@@ -6,7 +6,7 @@ status: verified
 audience: user
 ---
 
-> Last verified: 2026-07-11
+> Last verified: 2026-07-22
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **65 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**96 PostgreSQL tables** with Drizzle ORM, **72 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
+**96 PostgreSQL tables** with Drizzle ORM, **81 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); it remains only as an optional customer-facing MCP adapter (`packages/mcp/src/servers/supabase.ts`) for installs that choose Supabase as their own backend. ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -36,7 +36,7 @@ ElectricSQL integration for real-time data synchronization. Proxy, auth, and sha
 have been verified working between Fly and NeonDB. Off by default — opt-in via env vars when you want it.
 
 ### CLI scaffolding
-**`create-revealui` published to npm at v0.5.12**. `@revealui/cli` is at v0.8.3. Bootstraps a new RevealUI project with working config, database setup, and development server.
+**`create-revealui` published to npm at v0.5.15**. `@revealui/cli` is at v0.9.2. Bootstraps a new RevealUI project with working config, database setup, and development server.
 
 ### CI and code quality
 3-phase CI gate (lint, typecheck, test, build) with an extensive test suite across
@@ -102,14 +102,14 @@ Honest list of things that are not done, not deployed, or not verified.
 
 | Metric | Value | Verified |
 |--------|-------|----------|
-| Workspaces (apps + packages) | 31 | Yes |
+| Workspaces (apps + packages) | 33 | Yes |
 | Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
-| OSS packages (MIT) | 21 | Yes |
+| OSS packages (MIT) | 23 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 1 (`@revealui/scripts`, unlicensed build tooling) | Yes |
-| UI components | 61 in `@revealui/presentation` | Yes |
-| Database tables | 85 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
-| CHECK constraints | 72 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
+| UI components | 65 in `@revealui/presentation` | Yes |
+| Database tables | 96 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
+| CHECK constraints | 81 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |

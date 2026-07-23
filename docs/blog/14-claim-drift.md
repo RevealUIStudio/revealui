@@ -22,11 +22,13 @@ It is not malice, it is structure. The claim and the thing it describes have no 
 The first half of the fix is a single source of truth. Every number the marketing site can state lives in one typed object, and no page is allowed to hardcode the integer anywhere else.
 
 ```ts
+// Illustrative shape (numbers are whatever claim-drift counts today;
+// see apps/marketing/app/content/site.ts METRICS for the live values).
 export const METRICS = {
-  packages: 27,        // workspace packages
-  uiComponents: 60,    // components in @revealui/presentation
+  packages: 29,        // workspace packages
+  uiComponents: 65,    // components in @revealui/presentation
   mcpServers: 14,      // first-party MCP servers
-  dbTables: 85,        // Drizzle table declarations
+  dbTables: 96,        // Drizzle table declarations
   // ...
 } as const;
 ```
