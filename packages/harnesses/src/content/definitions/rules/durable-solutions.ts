@@ -47,12 +47,22 @@ overrides are not done unless the owner accepts a **registered hotfix**.
 - Gaps/ADRs when the durable fix needs multi-session design
 - Tests that lock the durable behavior (prove red, then green)
 
+## CLI (control layer)
+
+\`\`\`bash
+revealui-harnesses hotfix check
+revealui-harnesses hotfix list
+revealui-harnesses hotfix audit [path]
+# Only if a temporary patch is unavoidable (admits debt):
+revealui-harnesses hotfix register --title … --symptom … --temporary … --durable …
+revealui-harnesses hotfix resolve <id> --pr <url>
+\`\`\`
+
+Store: \`~/.local/share/revealui/hotfixes/manifest.json\` (not vendor homes).
+
 ## References
 
 - Sibling: extend-before-create, quality-over-speed, code-over-docs, adapter-only
-- **Control layer:** hotfix register / resolve / audit is owned by RevealUI
-  (\`@revealui/harnesses\` / project manager). Adapters surface it; they do not
-  re-author a second registry (GAP-405). Studio \`hotfix.js\` is transitional
-  bootstrap until cutover.
+- GAP-405 — registry + adapter cutover; no dual Claude/Grok mirrors
 `,
 };

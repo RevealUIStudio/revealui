@@ -11,6 +11,7 @@ export default defineConfig({
     'src/storage/index.ts',
     'src/goals/index.ts',
     'src/hooks/index.ts',
+    'src/hotfix/index.ts',
   ],
   format: ['esm'],
   dts: true,
