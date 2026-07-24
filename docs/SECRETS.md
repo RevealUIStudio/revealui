@@ -62,6 +62,7 @@ revealui/dev/admin-password
 revealui/dev/admin-session-cookie
 revealui/dev/electric/service-url
 revealui/dev/founder-license-key    # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon
+revealui/dev/mcp/opencode-device-token   # rvui_dev_* device token minted via the studio-auth link/verify flow; used as REVEALUI_MCP_TOKEN by MCP clients (e.g. OpenCode)
 # Stripe TEST-mode keys (dev namespace) — used by local dev + the CI integration suite.
 revealui/dev/stripe/restricted-ci-test     # rk_test_* restricted (Write: PaymentIntents/Products/Prices/Checkout) — mirrored to CI as STRIPE_SECRET_KEY (see CI / publishing)
 revealui/dev/stripe/secret-key             # sk_test_* full test secret (broader; CI uses the restricted key above)

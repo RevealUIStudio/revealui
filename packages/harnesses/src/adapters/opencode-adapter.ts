@@ -8,9 +8,12 @@
  * RevealUI data-plane authority -- that flows through the governed MCP
  * endpoint with its own bearer token (design doc §3, "bridging rule B-1").
  *
- * `opencode run <prompt> --format json` output shape is UNVERIFIED against a
- * real binary (design doc §2.4) -- `parseRunOutput` below is defensive and
- * documents exactly what it assumes.
+ * `opencode run <prompt> --format json` output shape is pinned against
+ * opencode 1.18.3, 2026-07-24 (live verification with a minted device
+ * token; see `scripts/opencode-live-walk.md` in this package for the
+ * reproducible manual walk) -- `parseOpenCodeRunOutput` below implements
+ * the verified newline-delimited JSON (JSONL) event-stream shape, with a
+ * defensive fallback for stdout that is not JSONL.
  */
 
 import { execFile } from 'node:child_process';
@@ -64,24 +67,87 @@ const DEFAULT_CONFIG: Required<Pick<OpenCodeAdapterConfig, 'timeoutMs' | 'binary
 };
 
 /**
+ * One event line from `opencode run --format json` stdout, pinned against
+ * opencode 1.18.3 (2026-07-24 live verification). Every event carries this
+ * envelope: `type` (envelope-level, underscore-separated -- `step_start`,
+ * `tool_use`, `step_finish`, `text`), `timestamp` (ms), `sessionID`, and
+ * `part` (the event body; `part.type` is hyphen-separated -- `step-start`,
+ * `tool`, `step-finish`, `text` -- note the underscore/hyphen split between
+ * envelope and part).
+ */
+interface OpenCodeRunEventEnvelope {
+  type: string;
+  timestamp: number;
+  sessionID: string;
+  part: Record<string, unknown>;
+}
+
+function isOpenCodeRunEventEnvelope(value: unknown): value is OpenCodeRunEventEnvelope {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.type === 'string' &&
+    typeof obj.timestamp === 'number' &&
+    typeof obj.sessionID === 'string' &&
+    typeof obj.part === 'object' &&
+    obj.part !== null
+  );
+}
+
+/**
  * Parse `opencode run --format json` stdout into a plain-text output string.
- * The exact shape is UNVERIFIED against a real binary (design doc §2.4) --
- * this deliberately degrades gracefully:
- *   1. Valid JSON object with a known text-bearing key (`output`, `text`,
- *      `message`, `content`) -- return that string.
- *   2. Valid JSON of any other shape -- return the raw JSON text so no
- *      information is lost.
- *   3. Not JSON at all -- treat stdout as plain text (opencode's non-JSON
- *      `run` mode is plain text; `--format json` failing silently to emit
- *      JSON should not throw away the response).
+ *
+ * Pinned shape (opencode 1.18.3, verified live 2026-07-24): stdout is
+ * newline-delimited JSON (JSONL) -- one event object per line, NOT a single
+ * JSON document. This function:
+ *   1. Parses every non-blank line as JSON. If every line parses AND matches
+ *      the `OpenCodeRunEventEnvelope` shape, treat stdout as a real JSONL
+ *      event stream: return the `part.text` of the LAST `text` event (the
+ *      assistant's final message for the turn). If no `text` event is
+ *      present (e.g. a tool-only turn with no closing message), return the
+ *      raw stdout so no information is lost.
+ *   2. Otherwise (not JSONL -- e.g. a version banner, a plain-text error, or
+ *      an older/newer opencode `run` output shape), fall back to the
+ *      pre-pin heuristic: a JSON object with a known text-bearing key
+ *      (`output`, `text`, `message`, `content`), any other valid JSON
+ *      (returned verbatim), or plain text (returned verbatim). This branch
+ *      is a documented defensive fallback, not a verified shape.
  *
  * Exported (rather than a private method) so the parsing logic is directly
- * unit-testable against the documented-but-unverified shape without
- * mocking `execFile`.
+ * unit-testable against the pinned shape without mocking `execFile`.
  */
 export function parseOpenCodeRunOutput(stdout: string): string {
   const trimmed = stdout.trim();
   if (trimmed.length === 0) return '';
+
+  const lines = trimmed.split('\n').filter((line) => line.trim().length > 0);
+  const events: OpenCodeRunEventEnvelope[] = [];
+  let isEventStream = lines.length > 0;
+
+  for (const line of lines) {
+    let parsedLine: unknown;
+    try {
+      parsedLine = JSON.parse(line);
+    } catch {
+      isEventStream = false;
+      break;
+    }
+    if (!isOpenCodeRunEventEnvelope(parsedLine)) {
+      isEventStream = false;
+      break;
+    }
+    events.push(parsedLine);
+  }
+
+  if (isEventStream) {
+    for (let i = events.length - 1; i >= 0; i -= 1) {
+      const part = events[i]?.part;
+      if (part && part.type === 'text' && typeof part.text === 'string') {
+        return part.text;
+      }
+    }
+    return trimmed;
+  }
 
   try {
     const parsed: unknown = JSON.parse(trimmed);
