@@ -42,6 +42,7 @@ describe('SettingsLayout', () => {
     expect(within(sidebar).getByText('Settings')).toBeInTheDocument();
     expect(within(sidebar).getByText('Account')).toBeInTheDocument();
     expect(within(sidebar).getByText('API Keys')).toBeInTheDocument();
+    expect(within(sidebar).getByText('Local AI')).toBeInTheDocument();
   });
 
   it('renders children in the content area', () => {
