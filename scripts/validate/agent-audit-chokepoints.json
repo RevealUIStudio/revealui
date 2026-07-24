@@ -9,7 +9,12 @@
     {
       "id": "mcp-adapter-onToolAudit",
       "file": "packages/ai/src/tools/mcp-adapter.ts",
-      "mustContain": ["onToolAudit", "awaitToolAudit", "finishToolIntegrity", "DiscoverMCPToolsOptions"]
+      "mustContain": [
+        "onToolAudit",
+        "awaitToolAudit",
+        "finishToolIntegrity",
+        "DiscoverMCPToolsOptions"
+      ]
     },
     {
       "id": "agent-runtime-onToolAudit",
