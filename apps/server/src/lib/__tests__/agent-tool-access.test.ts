@@ -169,4 +169,26 @@ describe('authorizeAgentTool — dispatch principal', () => {
     });
     expect(authorizeAgentTool(p, 'file_read').allowed).toBe(true);
   });
+
+  it('allows ticket sidecars under admin ∩ for editor', () => {
+    const p = resolveDispatchPrincipal({
+      ticketId: 't1',
+      userId: 'u',
+      userRole: 'editor',
+    });
+    expect(authorizeAgentTool(p, 'add_ticket_comment').allowed).toBe(true);
+    expect(authorizeAgentTool(p, 'update_ticket_status').allowed).toBe(true);
+  });
+
+  it('denies ticket sidecars for viewer human role (∩)', () => {
+    const p = resolveDispatchPrincipal({
+      ticketId: 't1',
+      userId: 'u',
+      userRole: 'viewer',
+    });
+    expect(authorizeAgentTool(p, 'add_ticket_comment')).toMatchObject({
+      allowed: false,
+      reason: 'user_role_denied',
+    });
+  });
 });

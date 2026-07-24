@@ -39,7 +39,14 @@
     {
       "id": "agent-dispatcher-task-lifecycle",
       "file": "apps/server/src/lib/agent-dispatcher.ts",
-      "mustContain": ["agent:task:started", "agent:task:completed", "createAuditStore"]
+      "mustContain": [
+        "agent:task:started",
+        "agent:task:completed",
+        "createAuditStore",
+        "wrapTools",
+        "applyAgentToolGovernance",
+        "resolveDispatchPrincipal"
+      ]
     },
     {
       "id": "agent-stream-mcp-and-native-tools",

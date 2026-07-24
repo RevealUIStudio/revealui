@@ -40,6 +40,7 @@ import type { AgentDispatchOutput, AgentDispatchPayload } from '../jobs/agent-di
 import { buildDispatcher, type Dispatcher } from '../lib/agent-dispatcher.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
+import { getEntitlementsFromContext } from '../middleware/entitlements.js';
 
 type Variables = {
   db: DatabaseClient;
@@ -85,7 +86,8 @@ const LLMNotConfiguredSchema = z.object({
 async function buildDispatcherOr409(
   db: DatabaseClient,
   tenantId: string | undefined,
-  userId: string,
+  user: { id: string; role: string },
+  accountId?: string | null,
 ): Promise<
   | { ok: true; dispatcher: Dispatcher | null }
   | {
@@ -95,7 +97,9 @@ async function buildDispatcherOr409(
 > {
   try {
     const dispatcher = await buildDispatcher(db, tenantId, {
-      userId,
+      userId: user.id,
+      userRole: user.role,
+      accountId: accountId ?? null,
       isHosted: detectDeploymentMode(process.env as EnvMap) === 'hosted',
       workspaceId: tenantId,
     });
@@ -217,7 +221,14 @@ app.openapi(
 
     // --- Durable dispatch path (flag on) ---
     if (isDurableDispatchEnabled()) {
-      const outcome = await runDurableDispatch(db, ticket, user, tenant, c.get('requestId'));
+      const outcome = await runDurableDispatch(
+        db,
+        ticket,
+        user,
+        tenant,
+        c.get('requestId'),
+        getEntitlementsFromContext(c).accountId,
+      );
       if (outcome.kind === 'complete') {
         return c.json(
           {
@@ -248,7 +259,12 @@ app.openapi(
     }
 
     // --- Legacy sync path (flag off) ---
-    const built = await buildDispatcherOr409(db, tenant?.id, user.id);
+    const built = await buildDispatcherOr409(
+      db,
+      tenant?.id,
+      user,
+      getEntitlementsFromContext(c).accountId,
+    );
     if (!built.ok) {
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
       return c.json(built.body, 409);
@@ -342,7 +358,14 @@ app.openapi(
     // --- Durable dispatch path ---
     if (isDurableDispatchEnabled()) {
       await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
-      const outcome = await runDurableDispatch(db, ticket, user, tenant, c.get('requestId'));
+      const outcome = await runDurableDispatch(
+        db,
+        ticket,
+        user,
+        tenant,
+        c.get('requestId'),
+        getEntitlementsFromContext(c).accountId,
+      );
       if (outcome.kind === 'complete') {
         return c.json(
           {
@@ -371,7 +394,12 @@ app.openapi(
     }
 
     // --- Legacy sync path ---
-    const built = await buildDispatcherOr409(db, tenant?.id, user.id);
+    const built = await buildDispatcherOr409(
+      db,
+      tenant?.id,
+      user,
+      getEntitlementsFromContext(c).accountId,
+    );
     if (!built.ok) {
       return c.json(built.body, 409);
     }
@@ -514,9 +542,10 @@ type DispatchOutcome =
 async function runDurableDispatch(
   db: DatabaseClient,
   ticket: { id: string },
-  user: { id: string },
+  user: { id: string; role: string },
   tenant: { id: string } | undefined,
   requestId: string | undefined,
+  accountId?: string | null,
 ): Promise<DispatchOutcome> {
   const jobId = jobIdForTicket(ticket.id);
 
@@ -526,6 +555,8 @@ async function runDurableDispatch(
       ticketId: ticket.id,
       tenantId: tenant?.id,
       userId: user.id,
+      userRole: user.role,
+      accountId: accountId ?? null,
       requestId,
     },
     { idempotencyKey: jobId, retryLimit: 3 },

@@ -66,6 +66,13 @@ export interface AgentDispatchPayload extends Record<string, unknown> {
    */
   userId: string;
   /**
+   * Authenticated dispatcher's role at enqueue (GAP-355 S6-4). Server-captured
+   * from the session — never client-supplied as an untrusted field alone.
+   */
+  userRole?: string;
+  /** Account id at enqueue for audit tenant / principal. */
+  accountId?: string | null;
+  /**
    * Correlation id from the originating POST request. All logs from the
    * handler carry this so POST / worker / status-poll share a trace.
    */
@@ -135,8 +142,11 @@ export async function agentDispatchHandler(
 
   const dispatcher = await buildDispatcher(db, data.tenantId, {
     userId: dispatcherUserId,
+    userRole: data.userRole ?? null,
+    accountId: data.accountId ?? null,
     isHosted,
     workspaceId: data.tenantId,
+    asJob: true,
   });
   if (!dispatcher) {
     throw new Error(
