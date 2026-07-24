@@ -49,7 +49,10 @@ overrides are not done unless the owner accepts a **registered hotfix**.
 
 ## References
 
-- Sibling: extend-before-create, quality-over-speed, code-over-docs
-- Operator registry (Studio): \`hotfix.js register\` / \`resolve\` / \`audit\`
+- Sibling: extend-before-create, quality-over-speed, code-over-docs, adapter-only
+- **Control layer:** hotfix register / resolve / audit is owned by RevealUI
+  (\`@revealui/harnesses\` / project manager). Adapters surface it; they do not
+  re-author a second registry (GAP-405). Studio \`hotfix.js\` is transitional
+  bootstrap until cutover.
 `,
 };
