@@ -187,7 +187,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/ai`](packages/ai)                           | AI agents, CRDT memory, LLM providers             |
-| [`@revealui/engines`](packages/engines)                 | Unified entry point for the five primitives (private) |
+| [`@revealui/engines`](packages/engines)                 | Incubating optional barrel for the five primitives (not the app entry; private) |
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
 | [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
 | [`@revealui/services`](packages/services)               | Stripe (billing + circuit breaker), transactional email (Gmail API) |
