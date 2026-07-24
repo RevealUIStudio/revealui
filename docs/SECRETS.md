@@ -305,6 +305,11 @@ revealui/env/license   # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVAT
 # value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
 ```
 
+**Deployment mode (GAP-260 P4-1):** set `REVEALUI_DEPLOYMENT_MODE=hosted` or `forge` on each
+runtime (api + admin). Prefer explicit MODE over private-key sniffing so hosted admin can boot
+without the signing private key (signer isolation). When MODE is unset, runtimes still fall
+back to "private key present → hosted". `MODE=forge` with a private key present fails boot.
+
 ### LLM / AI providers
 
 ```

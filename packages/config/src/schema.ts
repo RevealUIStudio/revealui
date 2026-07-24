@@ -120,9 +120,11 @@ const optionalSchema = z.object({
     .max(3650, 'Must not exceed 3650 days (10 years)')
     .default(90),
 
-  // License key signing (RSA-2048 PEM)
+  // License key signing (Ed25519 PEM)
   REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),
   REVEALUI_LICENSE_PUBLIC_KEY: z.string().optional(),
+  // GAP-260 P4-1: explicit hosted vs forge posture (fallback: private-key presence)
+  REVEALUI_DEPLOYMENT_MODE: z.enum(['hosted', 'forge']).optional(),
 
   // Email provider  -  Gmail REST API (preferred, edge-compatible)
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),

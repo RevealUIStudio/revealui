@@ -116,11 +116,10 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
       // The deployment-license user cap is a self-hosted (Forge) concept and must
       // NOT gate hosted onboarding. A global active-user count would cap the whole
-      // control plane at the free seat count. Mirrors apps/server validate-startup
-      // and the password sign-up route: license-signing-key presence ⇒ hosted
-      // multi-tenant mode, where admission is governed per-account, not by a
-      // deployment-global seat count.
-      const isSelfHostedForge = !process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+      // control plane at the free seat count. Mode: REVEALUI_DEPLOYMENT_MODE
+      // (GAP-260 P4-1) with private-key fallback — hosted is per-account admission.
+      const { detectDeploymentMode } = await import('@revealui/core/deployment-mode');
+      const isSelfHostedForge = detectDeploymentMode(process.env) === 'forge';
       // Enforce user limit based on license tier (R5-H11 fix  -  was missing from passkey flow)
       try {
         await initializeLicense();

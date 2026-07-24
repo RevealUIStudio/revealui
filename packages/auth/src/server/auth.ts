@@ -455,9 +455,10 @@ export async function signUp(
     // exists from signup. Best-effort: the Stripe billing webhook
     // (ensureHostedAccount) is idempotent on an active membership and backfills
     // this if it fails here, so a transient error never blocks signup. Skipped on
-    // self-hosted (Forge) deployments — single-tenant, no per-user accounts (mode
-    // detected by the license signing key, as in apps/server validate-startup).
-    if (process.env.REVEALUI_LICENSE_PRIVATE_KEY) {
+    // self-hosted (Forge) deployments — single-tenant, no per-user accounts
+    // (GAP-260 P4-1: REVEALUI_DEPLOYMENT_MODE, fallback private-key presence).
+    const { isHostedDeployment } = await import('@revealui/core/deployment-mode');
+    if (isHostedDeployment(process.env)) {
       try {
         const accountId = crypto.randomUUID();
         const now = new Date();

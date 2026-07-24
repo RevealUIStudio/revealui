@@ -6,6 +6,12 @@ import {
   classifyStripeSecretKey,
 } from '@revealui/config/stripe-mode';
 import {
+  type DeploymentMode,
+  type DetectDeploymentModeOptions,
+  deploymentModeKeyConsistencyError,
+  detectDeploymentMode as detectDeploymentModeCore,
+} from '@revealui/core/deployment-mode';
+import {
   computeKeyId,
   hostMatchesLicensedDomains,
   validateLicenseKey,
@@ -16,6 +22,8 @@ import { eq } from 'drizzle-orm';
 import { REQUIRED_ALWAYS_GROUPS, REQUIRED_IN_PRODUCTION_HOSTED } from './required-env.js';
 
 export type EnvMap = Record<string, string | undefined>;
+/** Re-export SSOT type (GAP-260 P4-1). */
+export type { DeploymentMode };
 
 /**
  * Row shape returned by the billing_catalog lookup. Exported so tests can
@@ -77,23 +85,6 @@ export function findBillingCatalogGaps(rows: BillingCatalogRow[]): {
 }
 
 /**
- * Where this RevealUI deployment runs.
- *
- * - `hosted`: revealui.com SaaS. We sign per-subscriber license JWTs, so
- *   `REVEALUI_LICENSE_PRIVATE_KEY` is set; entitlement is DB-driven via
- *   `account_entitlements` rows. Strict Stripe + HTTPS posture.
- * - `forge`: self-hosted Forge customer kit (Docker stack from
- *   `forge/stamp.sh`). Customer consumes a studio-issued JWT in
- *   `REVEALUI_LICENSE_KEY` against the master public key in
- *   `REVEALUI_LICENSE_PUBLIC_KEY`. No Stripe, no signing key, can run on
- *   `http://localhost`.
- *
- * Detection is by presence of the signing key: only the studio's hosted
- * deployment has it.
- */
-export type DeploymentMode = 'forge' | 'hosted';
-
-/**
  * Options that change validation behavior across runtime vs pre-deploy contexts.
  *
  * - `lenient` (default false): treats empty-string values as "present, sensitive
@@ -127,11 +118,22 @@ function isPresent(env: EnvMap, key: string, lenient: boolean): boolean {
   return Boolean(env[key]);
 }
 
+/**
+ * Where this RevealUI deployment runs (GAP-260 P4-1).
+ *
+ * - `hosted`: revealui.com SaaS. Entitlement is DB-driven; may or may not hold
+ *   the signing private key locally (signer isolation may put it elsewhere).
+ * - `forge`: self-hosted customer kit. Studio-issued JWT + public key; no mint.
+ *
+ * Prefer explicit `REVEALUI_DEPLOYMENT_MODE=hosted|forge`. During the dual-run
+ * window, falls back to private-key presence (legacy). SSOT implementation:
+ * `@revealui/core/deployment-mode`.
+ */
 export function detectDeploymentMode(
   env: EnvMap,
-  { lenient = false }: ValidateOptions = {},
+  options: DetectDeploymentModeOptions = {},
 ): DeploymentMode {
-  return isPresent(env, 'REVEALUI_LICENSE_PRIVATE_KEY', lenient) ? 'hosted' : 'forge';
+  return detectDeploymentModeCore(env, options);
 }
 
 const REQUIRED_IN_PRODUCTION_FORGE = [
@@ -249,8 +251,20 @@ export function validateStartup(
   }
 
   const mode = detectDeploymentMode(env, { lenient });
+  const modeConsistency = deploymentModeKeyConsistencyError(env, { lenient });
+  if (modeConsistency) {
+    throw new Error(`STARTUP VALIDATION FAILED: ${modeConsistency}`);
+  }
   const required = mode === 'forge' ? REQUIRED_IN_PRODUCTION_FORGE : REQUIRED_IN_PRODUCTION_HOSTED;
-  const missingProd = required.filter((key) => !isPresent(env, key, lenient));
+  // Hosted list historically required the private key because mint lived in-process.
+  // With REVEALUI_DEPLOYMENT_MODE=hosted, private key may be absent (signer isolation).
+  const requiredFiltered =
+    mode === 'hosted' &&
+    (env.REVEALUI_DEPLOYMENT_MODE ?? '').trim().toLowerCase() === 'hosted' &&
+    !isPresent(env, 'REVEALUI_LICENSE_PRIVATE_KEY', lenient)
+      ? required.filter((key) => key !== 'REVEALUI_LICENSE_PRIVATE_KEY')
+      : required;
+  const missingProd = requiredFiltered.filter((key) => !isPresent(env, key, lenient));
   if (missingProd.length > 0) {
     throw new Error(
       `STARTUP VALIDATION FAILED (${mode} mode): Missing production-required env vars: ${missingProd.join(', ')}.`,

@@ -307,12 +307,13 @@ export async function POST(request: NextRequest) {
 
     // Resolve the LLM client via the GAP-360 resolver: per-account BYOK on
     // hosted, env on self-hosted. userId is the authenticated session user
-    // (§6.1). Hosted detection mirrors the deployment signal used elsewhere
-    // (REVEALUI_LICENSE_PRIVATE_KEY presence, matching instrumentation.ts).
+    // (§6.1). Hosted detection: REVEALUI_DEPLOYMENT_MODE (GAP-260 P4-1),
+    // fallback private-key presence (matching instrumentation.ts).
     // NOTE (§6.4 / GAP-338): the admin process has no durable audit sink yet,
     // so no auditStore is wired — byok:key:accessed does not persist here until
     // GAP-338 closes. Recorded limitation, not a Phase-1 blocker.
-    const isHosted = !!process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    const { isHostedDeployment } = await import('@revealui/core/deployment-mode');
+    const isHosted = isHostedDeployment(process.env);
     let resolvedClient: ChatLLMClient;
     try {
       if (aiDeps.resolveLLMClientForRequest) {

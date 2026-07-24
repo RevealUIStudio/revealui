@@ -53,6 +53,11 @@
       "import": "./dist/license.js",
       "default": "./dist/license.js"
     },
+    "./deployment-mode": {
+      "types": "./dist/deployment-mode.d.ts",
+      "import": "./dist/deployment-mode.js",
+      "default": "./dist/deployment-mode.js"
+    },
     "./revforge-license": {
       "types": "./dist/revforge-license.d.ts",
       "import": "./dist/revforge-license.js",
