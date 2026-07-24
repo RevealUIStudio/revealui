@@ -32,11 +32,11 @@ export async function register() {
   }
 
   // ── Forge boot license enforcement ─────────────────────────────────
-  // Mirrors apps/server/src/lib/validate-startup.ts → validateLicenseAtStartup.
-  // Hosted SaaS (REVEALUI_LICENSE_PRIVATE_KEY present) is a no-op; self-
-  // hosted Forge customer mode hard-fails the runtime on missing/invalid
-  // license so Docker restart-loops instead of serving traffic without a
-  // valid studio-issued JWT.
+  // Mirrors apps/server validateLicenseAtStartup / detectDeploymentMode.
+  // Hosted SaaS (REVEALUI_DEPLOYMENT_MODE=hosted, or legacy private-key
+  // presence) is a no-op; Forge hard-fails on missing/invalid customer JWT.
+  // GAP-260 P4-1: MODE is the durable signal so admin can boot hosted with
+  // the signing private key ABSENT (signer isolation).
   //
   // We use process.exit(1) rather than `throw` because Next.js's
   // instrumentation.ts contract is "never throw — it kills the entire
@@ -46,7 +46,8 @@ export async function register() {
   // TODO: extract this block to @revealui/core/revforge-license-boot once
   // the same pattern is needed in a third app. Today (api + admin) the
   // ~25-line duplication is preferable to a new package boundary.
-  if (process.env.SKIP_ENV_VALIDATION !== 'true' && !process.env.REVEALUI_LICENSE_PRIVATE_KEY) {
+  const { detectDeploymentMode } = await import('@revealui/core/deployment-mode');
+  if (process.env.SKIP_ENV_VALIDATION !== 'true' && detectDeploymentMode(process.env) === 'forge') {
     const failures: string[] = [];
     if (!process.env.REVEALUI_LICENSE_KEY) {
       failures.push(

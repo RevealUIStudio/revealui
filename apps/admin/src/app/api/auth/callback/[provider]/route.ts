@@ -105,9 +105,9 @@ export async function GET(
     // Enforce user limit for new OAuth signups (CR5-2).
     // Only check if this OAuth identity doesn't already map to a user. The
     // deployment-license cap is a self-hosted (Forge) concept; hosted admission
-    // is per-account, so a deployment-global seat cap must not gate hosted OAuth
-    // onboarding (mirrors the password sign-up route + apps/server validate-startup).
-    const isSelfHostedForge = !process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    // is per-account (GAP-260 P4-1 MODE / detectDeploymentMode).
+    const { detectDeploymentMode } = await import('@revealui/core/deployment-mode');
+    const isSelfHostedForge = detectDeploymentMode(process.env) === 'forge';
     try {
       await initializeLicense();
       const maxUsers = getMaxUsers();

@@ -644,6 +644,29 @@ describe('detectDeploymentMode', () => {
   it('returns "forge" for empty-string private key (treated as unset)', () => {
     expect(detectDeploymentMode({ REVEALUI_LICENSE_PRIVATE_KEY: '' })).toBe('forge');
   });
+
+  it('returns "hosted" when REVEALUI_DEPLOYMENT_MODE=hosted without private key (GAP-260 P4-1)', () => {
+    expect(detectDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toBe('hosted');
+  });
+});
+
+describe('validateStartup — hosted MODE without private key', () => {
+  it('accepts production hosted with MODE=hosted and no private key', () => {
+    const env = {
+      ...validLiveProdEnv(),
+      REVEALUI_DEPLOYMENT_MODE: 'hosted',
+    };
+    delete env.REVEALUI_LICENSE_PRIVATE_KEY;
+    expect(() => validateStartup(env)).not.toThrow();
+  });
+
+  it('rejects MODE=forge when private key is present', () => {
+    const env = {
+      ...validLiveProdEnv(),
+      REVEALUI_DEPLOYMENT_MODE: 'forge',
+    };
+    expect(() => validateStartup(env)).toThrow(/MODE=forge/);
+  });
 });
 
 describe('validateStartup — forge mode', () => {
