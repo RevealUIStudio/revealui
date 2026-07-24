@@ -30,21 +30,27 @@ function parseArgs(argv: string[]): {
   id?: string;
 } {
   const opts: ReturnType<typeof parseArgs> = { _: [] };
-  for (let i = 0; i < argv.length; i++) {
+  let i = 0;
+  while (i < argv.length) {
     const a = argv[i] ?? '';
-    if (a === '--title') opts.title = argv[++i];
-    else if (a === '--symptom') opts.symptom = argv[++i];
-    else if (a === '--temporary') opts.temporary = argv[++i];
-    else if (a === '--durable') opts.durable = argv[++i];
-    else if (a === '--paths') opts.paths = argv[++i];
-    else if (a === '--repo') opts.repo = argv[++i];
-    else if (a === '--gap') opts.gap = argv[++i];
-    else if (a === '--pr') opts.pr = argv[++i];
-    else if (a === '--note') opts.note = argv[++i];
-    else if (a === '--id') opts.id = argv[++i];
+    const next = (): string => {
+      i += 1;
+      return argv[i] ?? '';
+    };
+    if (a === '--title') opts.title = next();
+    else if (a === '--symptom') opts.symptom = next();
+    else if (a === '--temporary') opts.temporary = next();
+    else if (a === '--durable') opts.durable = next();
+    else if (a === '--paths') opts.paths = next();
+    else if (a === '--repo') opts.repo = next();
+    else if (a === '--gap') opts.gap = next();
+    else if (a === '--pr') opts.pr = next();
+    else if (a === '--note') opts.note = next();
+    else if (a === '--id') opts.id = next();
     else if (a.startsWith('--')) {
       throw new Error(`hotfix: unknown flag ${a}`);
     } else opts._.push(a);
+    i += 1;
   }
   return opts;
 }

@@ -85,7 +85,7 @@ export function registerHotfix(
   if (!input.title?.trim()) {
     throw new Error('hotfix: register requires --title');
   }
-  if (!input.symptom?.trim() || !input.temporary?.trim() || !input.durable?.trim()) {
+  if (!(input.symptom?.trim() && input.temporary?.trim() && input.durable?.trim())) {
     throw new Error('hotfix: register requires --symptom, --temporary, and --durable');
   }
 
@@ -125,7 +125,7 @@ export function resolveHotfix(
   const e = findEntry(m, key);
   if (!e) throw new Error(`hotfix: no entry for: ${key}`);
   if (e.status === 'resolved') return e;
-  if (!input.pr && !input.note) {
+  if (!(input.pr || input.note)) {
     throw new Error('hotfix: resolve requires --pr <url> and/or --note <text>');
   }
   e.status = 'resolved';
@@ -166,7 +166,7 @@ export function sweepResolved(options?: { controlPath?: string; legacyPath?: str
 
 function walkFiles(root: string, out: string[], depth: number): void {
   if (depth > 12) return;
-  let entries;
+  let entries: ReturnType<typeof readdirSync>;
   try {
     entries = readdirSync(root, { withFileTypes: true });
   } catch {
@@ -196,7 +196,7 @@ function scanFile(filePath: string): AuditHit[] {
   const lines = text.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? '';
-    if (!line.includes('HOTFIX') && !line.includes('FIXME(durable)') && !line.includes('@hotfix')) {
+    if (!(line.includes('HOTFIX') || line.includes('FIXME(durable)') || line.includes('@hotfix'))) {
       continue;
     }
     for (const re of MARKER_PATTERNS) {
