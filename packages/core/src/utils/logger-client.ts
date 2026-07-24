@@ -1,5 +1,9 @@
 /**
- * Client-Safe Logger
+ * Client-Safe Logger (legacy core path)
+ *
+ * @deprecated Prefer `@revealui/core/observability/logger` or
+ * `@revealui/utils/logger` per ADR-008. This module stays client-safe (no
+ * async_hooks) until D3/D4 collapses core logger surfaces.
  *
  * Production-safe logging utility that works in both client and server contexts.
  * Does not depend on Node.js APIs (no async_hooks, no crypto).
