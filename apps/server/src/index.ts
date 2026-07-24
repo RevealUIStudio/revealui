@@ -1415,8 +1415,13 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // Swap in persistent audit storage (replaces default InMemoryAuditStorage).
     assertAuditStorageEnv();
     installAuditStorage();
-    // GAP-406 WIRE phase 1: opt-in MCPHypervisor meter/audit sinks (no spawn).
-    wireMcpHypervisorIfEnabled();
+    // GAP-406 WIRE: opt-in MCPHypervisor sinks (+ optional process-local spawn).
+    void wireMcpHypervisorIfEnabled().catch((err: unknown) => {
+      logger.error(
+        '[mcp-hypervisor-wire] boot failed',
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    });
     validateStartup();
     // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
     // present); in self-hosted Forge mode it throws on missing/invalid license,
@@ -1523,7 +1528,12 @@ if (process.env.NODE_ENV === 'production') {
     // round trip — the serverless-safe substitute for the worker's self-test.
     assertAuditStorageEnv();
     installAuditStorage();
-    // GAP-406 WIRE phase 1: opt-in MCPHypervisor meter/audit sinks (no spawn).
-    wireMcpHypervisorIfEnabled();
+    // GAP-406 WIRE: opt-in MCPHypervisor sinks (+ optional process-local spawn).
+    void wireMcpHypervisorIfEnabled().catch((err: unknown) => {
+      logger.error(
+        '[mcp-hypervisor-wire] boot failed',
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    });
   }
 }
