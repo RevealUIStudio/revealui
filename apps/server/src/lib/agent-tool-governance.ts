@@ -14,11 +14,13 @@ import type { AgentPrincipal } from './agent-principal.js';
 import { authorizeAgentTool } from './agent-tool-access.js';
 import { recordAgentToolDenied } from './agent-tool-audit.js';
 
-/** Minimal tool shape (matches @revealui/ai Tool execute contract). */
+/**
+ * Minimal tool shape (structurally satisfied by `@revealui/ai` Tool).
+ * No index signature — keeps `Tool[]` assignable without casts.
+ */
 export interface GovernableTool {
   name: string;
   execute: (params: unknown) => Promise<unknown>;
-  [key: string]: unknown;
 }
 
 export interface AgentToolGovernanceContext {
@@ -32,9 +34,10 @@ export interface AgentToolGovernanceContext {
 
 /**
  * Wrap tools so each execute is pre-authorized. Soft-fail denials do not throw.
+ * Preserves extra tool fields via spread; return type stays the input element type.
  */
 export function applyAgentToolGovernance<T extends GovernableTool>(
-  tools: T[],
+  tools: readonly T[],
   ctx: AgentToolGovernanceContext,
 ): T[] {
   const { principal } = ctx;
@@ -66,6 +69,6 @@ export function applyAgentToolGovernance<T extends GovernableTool>(
         }
         return originalExecute(params);
       },
-    } as T;
-  });
+    };
+  }) as T[];
 }
