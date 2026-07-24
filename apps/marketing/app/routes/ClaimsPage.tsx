@@ -1,6 +1,7 @@
 import { Badge, Callout, CodeBlock, Divider } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import {
+  CLAIMS_AGENT_GOVERNANCE_NOTE,
   CLAIMS_COUNTS_LABELS,
   CLAIMS_HERO,
   CLAIMS_HONESTY_RAILS_SECTION,
@@ -190,6 +191,9 @@ export function ClaimsPage() {
           </Callout>
           <Callout variant="info" title={CLAIMS_RECEIPT_HOLD_NOTE.heading}>
             <p>{CLAIMS_RECEIPT_HOLD_NOTE.body}</p>
+          </Callout>
+          <Callout variant="info" title={CLAIMS_AGENT_GOVERNANCE_NOTE.heading}>
+            <p>{CLAIMS_AGENT_GOVERNANCE_NOTE.body}</p>
           </Callout>
         </div>
       </section>

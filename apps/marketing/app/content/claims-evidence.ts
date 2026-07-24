@@ -247,6 +247,47 @@ const AGENT_ROUTES: EvidenceRef = {
   ref: 'apps/server/src/routes/agent-tasks.ts',
   note: 'agent surfaces mounted behind the same auth + entitlement middleware as user routes',
 };
+// GAP-355 Stage 6: in-process agent tool pre-authorize (S6-1…S6-5 on test).
+const AGENT_PRINCIPAL: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/agent-principal.ts',
+  note: 'AgentPrincipal resolvers for stream, dispatch, job, and MCP-bound runs',
+};
+const AGENT_AUTHORIZE_TOOL: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/agent-tool-access.ts',
+  note: 'authorizeAgentTool: deny-by-default matrix (coding exec needs explicit grant; admin ∩ human role)',
+};
+const AGENT_TOOL_GOVERNANCE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/agent-tool-governance.ts',
+  note: 'applyAgentToolGovernance wraps tools: authorize then execute; soft-fail deny + audit',
+};
+const AGENT_STREAM_GOVERNANCE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/agent-stream.ts',
+  note: 'resolveStreamPrincipal + applyAgentToolGovernance on admin CMS and coding tool lists',
+};
+const AGENT_DISPATCH_GOVERNANCE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/agent-dispatcher.ts',
+  note: 'resolveDispatchPrincipal / resolveJobPrincipal + applyAgentToolGovernance via wrapTools',
+};
+const AGENT_TOOL_DENIED_AUDIT: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/agent-tool-audit.ts',
+  note: 'recordAgentToolDenied writes agent:tool:denied through the one audit door',
+};
+const AGENT_AUTHORIZE_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/lib/__tests__/agent-tool-access.test.ts#authorizeAgentTool — coding exec requires grant',
+  note: 'exec tools deny without grant; grant allows',
+};
+const AGENT_AUTHORIZE_CI: EvidenceRef = {
+  kind: 'command',
+  ref: 'pnpm validate:agent-authorize-chokepoints',
+  note: 'GAP-355 S6-5 hard-fail checklist: named chokepoints still call authorize',
+};
 const REFUND_ROUTE: EvidenceRef = {
   kind: 'code',
   ref: 'apps/server/src/routes/billing.ts',
@@ -506,9 +547,10 @@ const CLAIMS_PAGE_ROUTE: EvidenceRef = {
   note: 'renders this index publicly at /claims',
 };
 // ── audit-log signing (GAP-355 Stage 3): the log is signed with a key anyone
-// can check, verifiable offline without our secret. Scoped to the log, not
-// "every agent action" (Stage 5). Stage 4 adds Merkle roots + offline anchor
-// CLI (S4-5) for customers who hold a delivered root. ─────────────────────────
+// can check, verifiable offline without our secret. Scoped to the log table
+// (not a universal every-agent-path inventory claim). Stage 4 adds Merkle
+// roots + offline anchor CLI (S4-5). Stage 5+6 add agent tool/task receipts
+// and pre-authorize on stream/dispatch (see CLAIMS_AGENT_GOVERNANCE_NOTE). ────
 const AUDIT_ROW_SIGNER: EvidenceRef = {
   kind: 'code',
   ref: 'packages/security/src/audit-signing.ts',
@@ -607,6 +649,14 @@ export const CLAIMS: readonly ClaimEntry[] = [
       AUDIT_LOG_SCHEMA,
       AUDIT_SIGNING,
       AUDIT_SIGNING_TEST,
+      AGENT_PRINCIPAL,
+      AGENT_AUTHORIZE_TOOL,
+      AGENT_TOOL_GOVERNANCE,
+      AGENT_STREAM_GOVERNANCE,
+      AGENT_DISPATCH_GOVERNANCE,
+      AGENT_TOOL_DENIED_AUDIT,
+      AGENT_AUTHORIZE_TEST,
+      AGENT_AUTHORIZE_CI,
       {
         kind: 'code',
         ref: 'packages/auth/src/server/auth.ts',
@@ -3375,6 +3425,32 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'claims.ts',
+    exportPath: 'CLAIMS_AGENT_GOVERNANCE_NOTE.heading',
+    text: 'Agent tools are pre-authorized',
+    evidence: [AGENT_AUTHORIZE_TOOL, AGENT_TOOL_GOVERNANCE, AGENT_AUTHORIZE_CI],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_AGENT_GOVERNANCE_NOTE.body',
+    text: 'On stream and ticket dispatch, tools run only after a principal check. Denials leave a receipt and do not execute. Governed MCP keeps its own role and tier gate.',
+    evidence: [
+      AGENT_PRINCIPAL,
+      AGENT_AUTHORIZE_TOOL,
+      AGENT_TOOL_GOVERNANCE,
+      AGENT_STREAM_GOVERNANCE,
+      AGENT_DISPATCH_GOVERNANCE,
+      AGENT_TOOL_DENIED_AUDIT,
+      AGENT_AUTHORIZE_TEST,
+      AGENT_AUTHORIZE_CI,
+      {
+        kind: 'code',
+        ref: 'apps/server/src/lib/mcp-tool-access.ts',
+        note: 'governed /api/mcp role + tier deny-by-default (gold path; not authorizeAgentTool)',
+      },
+    ],
+  },
+  {
+    file: 'claims.ts',
     exportPath: 'CLAIMS_HERO.subtitle',
     text: 'Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.',
     evidence: [
@@ -3506,9 +3582,11 @@ export const CLAIMS: readonly ClaimEntry[] = [
       AUDIT_SIGNING_TEST,
       AUDIT_LOG_SCHEMA,
       REFUND_ROUTE,
+      AGENT_TOOL_DENIED_AUDIT,
+      AGENT_STREAM_GOVERNANCE,
       {
         ...AUDIT_RECEIPTS_DOC,
-        note: 'Stage 4 S4-6: foil is positioning; sealed root download is Max (auditLog); verification never paid',
+        note: 'Stage 4 S4-6: foil is positioning; sealed root download is Max (auditLog); verification never paid. Stage 5+6: wired agent tool/task + deny receipts on stream/dispatch',
       },
       AUDIT_LOG_FEATURE_MAX,
     ],

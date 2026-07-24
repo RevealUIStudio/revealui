@@ -18,9 +18,10 @@ export const CLAIMS_COUNTS_LABELS = {
 } as const;
 
 // GAP-355 Stage 3 flagship claim: the audit log is signed with a key anyone
-// can check, and verifying a record needs no secret of ours. Scoped to the log
-// (not "every agent action") until agent-surface emission lands in Stage 5.
-// The heading is under the prose threshold, so only the body is indexed.
+// can check, and verifying a record needs no secret of ours. Scoped to the
+// audit log table (not a universal "every agent action" inventory claim).
+// Stage 5+6 add agent tool/task receipts and pre-authorize on wired paths;
+// residual surfaces stay out of this sentence. Heading under prose threshold.
 export const CLAIMS_SIGNED_LEDGER_NOTE = {
   heading: 'Checkable by design',
   body: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
@@ -32,6 +33,15 @@ export const CLAIMS_SIGNED_LEDGER_NOTE = {
 export const CLAIMS_RECEIPT_HOLD_NOTE = {
   heading: 'Hold a root on Max',
   body: 'On Max, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free and Pro still get a signed log. Root delivery is Max. Checking a receipt is free either way.',
+} as const;
+
+// GAP-355 Stage 6 S6-6: Stage 6 build is green on test (principal +
+// authorizeAgentTool + stream/dispatch wrap + authorize CI checklist).
+// Scoped honesty: stream and ticket dispatch pre-authorize tools; governed
+// MCP keeps its role/tier matrix. Not a universal inventory claim.
+export const CLAIMS_AGENT_GOVERNANCE_NOTE = {
+  heading: 'Agent tools are pre-authorized',
+  body: 'On stream and ticket dispatch, tools run only after a principal check. Denials leave a receipt and do not execute. Governed MCP keeps its own role and tier gate.',
 } as const;
 
 export const CLAIMS_LEDGER_INTRO =
