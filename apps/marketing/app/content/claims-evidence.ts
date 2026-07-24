@@ -2737,6 +2737,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'local-ai.ts',
+    exportPath: 'PROVIDER_SWITCH.modes.local.model',
+    text: 'nemotron-3-nano, open-weight (US-origin)',
+    evidence: [LLM_CLIENT, OPEN_WEIGHT],
+  },
+  {
+    file: 'local-ai.ts',
     exportPath: 'PROVIDER_SWITCH.modes.local.cost',
     text: 'Your inference cost, no per-token fee',
     evidence: [OPEN_WEIGHT],
