@@ -144,10 +144,11 @@ function checkSurfaceDocHonesty(): string[] {
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i] ?? '';
-      if (
-        !(line.includes('@revealui/engines') || line.includes('engines]')) &&
-        !(rel === 'README.md' && line.includes('packages/engines'))
-      ) {
+      const mentionsEngines =
+        line.includes('@revealui/engines') ||
+        line.includes('engines]') ||
+        (rel === 'README.md' && line.includes('packages/engines'));
+      if (!mentionsEngines) {
         continue;
       }
       const lower = line.toLowerCase();
