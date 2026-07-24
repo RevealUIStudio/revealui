@@ -60,7 +60,12 @@ export interface CreateVitestConfigOptions {
   overrides?: ViteUserConfig;
 }
 
-const DEFAULT_INCLUDE = ['src/**/*.test.ts', 'src/**/*.spec.ts'] as const;
+const DEFAULT_INCLUDE = [
+  'src/**/*.test.ts',
+  'src/**/*.test.tsx',
+  'src/**/*.spec.ts',
+  'src/**/*.spec.tsx',
+] as const;
 const DEFAULT_EXCLUDE = ['**/node_modules/**', '**/dist/**'] as const;
 const DEFAULT_COVERAGE_INCLUDE = ['src/**/*.ts'] as const;
 const DEFAULT_COVERAGE_EXCLUDE = [

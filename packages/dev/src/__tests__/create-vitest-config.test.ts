@@ -8,7 +8,12 @@ describe('createVitestConfig', () => {
     expect(config.test?.environment).toBe('node');
     expect(config.test?.pool).toBe('forks');
     expect(config.test?.maxWorkers).toBe(2);
-    expect(config.test?.include).toEqual(['src/**/*.test.ts', 'src/**/*.spec.ts']);
+    expect(config.test?.include).toEqual([
+      'src/**/*.test.ts',
+      'src/**/*.test.tsx',
+      'src/**/*.spec.ts',
+      'src/**/*.spec.tsx',
+    ]);
     expect(config.test?.exclude).toEqual(['**/node_modules/**', '**/dist/**']);
   });
 

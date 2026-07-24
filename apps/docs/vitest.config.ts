@@ -10,6 +10,12 @@ export default createVitestConfig({
   testTimeout: 30_000,
   hookTimeout: 30_000,
   maxWorkers: 1,
+  // Tests live under app/ and __tests__/ (not packages/src default).
+  include: [
+    'app/**/*.{test,spec}.{ts,tsx}',
+    '__tests__/**/*.{test,spec}.{ts,tsx}',
+    'scripts/**/*.{test,spec}.{ts,tsx}',
+  ],
   coverageExclude: [
     'app/components/showcase/registry.ts',
     'app/showcase/**/*.showcase.tsx',
