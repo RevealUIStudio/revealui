@@ -432,6 +432,12 @@ async function gate(): Promise<void> {
         args: ['validate:agent-audit-chokepoints'],
       },
       {
+        // GAP-355 S6-5: named agent chokepoints must still pre-authorize tools.
+        name: 'agent authorize chokepoints (hard fail)',
+        command: 'pnpm',
+        args: ['validate:agent-authorize-chokepoints'],
+      },
+      {
         name: 'Stripe-client consolidation (hard fail)',
         command: 'pnpm',
         args: ['validate:stripe-client'],

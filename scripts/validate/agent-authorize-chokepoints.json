@@ -1,0 +1,71 @@
+{
+  "$comment": "GAP-355 Stage 6 S6-5 — mechanical checklist that named agent execution chokepoints still pre-authorize tools (deny-by-default). Sibling to agent-audit-chokepoints.json (integrity audit). Literal substring matches only (no regex). Design: .jv gap-specs/GAP-355-stage6-govern-agents-design.md.",
+  "chokepoints": [
+    {
+      "id": "agent-principal-resolvers",
+      "file": "apps/server/src/lib/agent-principal.ts",
+      "mustContain": [
+        "AgentPrincipal",
+        "resolveStreamPrincipal",
+        "resolveDispatchPrincipal",
+        "resolveJobPrincipal"
+      ]
+    },
+    {
+      "id": "agent-tool-access-matrix",
+      "file": "apps/server/src/lib/agent-tool-access.ts",
+      "mustContain": ["authorizeAgentTool", "agent:tool:"]
+    },
+    {
+      "id": "agent-tool-governance-wrap",
+      "file": "apps/server/src/lib/agent-tool-governance.ts",
+      "mustContain": [
+        "applyAgentToolGovernance",
+        "authorizeAgentTool",
+        "recordAgentToolDenied"
+      ]
+    },
+    {
+      "id": "tool-governance-wrapper",
+      "file": "packages/ai/src/tools/governance.ts",
+      "mustContain": ["wrapToolWithGovernance", "Permission denied"]
+    },
+    {
+      "id": "agent-stream-pre-authorize",
+      "file": "apps/server/src/routes/agent-stream.ts",
+      "mustContain": [
+        "resolveStreamPrincipal",
+        "applyAgentToolGovernance"
+      ]
+    },
+    {
+      "id": "agent-dispatcher-pre-authorize",
+      "file": "apps/server/src/lib/agent-dispatcher.ts",
+      "mustContain": [
+        "resolveDispatchPrincipal",
+        "resolveJobPrincipal",
+        "applyAgentToolGovernance"
+      ]
+    },
+    {
+      "id": "agent-dispatch-job-uses-dispatcher",
+      "file": "apps/server/src/jobs/agent-dispatch.ts",
+      "mustContain": ["buildDispatcher", "userRole"]
+    },
+    {
+      "id": "agent-tool-denied-receipt",
+      "file": "apps/server/src/lib/agent-tool-audit.ts",
+      "mustContain": ["recordAgentToolDenied", "agent:tool:denied"]
+    }
+  ],
+  "residuals": [
+    {
+      "id": "governed-mcp-uses-mcp-tool-access",
+      "note": "Governed /api/mcp remains on mcp-tool-access (role+tier), not authorizeAgentTool. Intentional gold path — do not dual-gate without a design pass."
+    },
+    {
+      "id": "s6-6-claims-hold",
+      "note": "S6-6 marketing foil remains owner-gated until Stage 6 product acceptance is fully green."
+    }
+  ]
+}
