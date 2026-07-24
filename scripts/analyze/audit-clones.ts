@@ -19,7 +19,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { type Dirent, existsSync, readdirSync, readFileSync, type Stats, statSync } from 'node:fs';
+import { type Dirent, existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const REPO_ROOT = process.cwd();
