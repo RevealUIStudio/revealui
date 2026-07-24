@@ -141,8 +141,8 @@ export function parseOpenCodeRunOutput(stdout: string): string {
 
   if (isEventStream) {
     for (let i = events.length - 1; i >= 0; i -= 1) {
-      const { part } = events[i];
-      if (part.type === 'text' && typeof part.text === 'string') {
+      const part = events[i]?.part;
+      if (part && part.type === 'text' && typeof part.text === 'string') {
         return part.text;
       }
     }
