@@ -1,30 +1,33 @@
 /**
  * Secret-path LIVE-drift checker (read-only).
  *
- * Consumes the JSON output of `revvault sync vercel --json` (and, optionally,
- * `flyctl secrets list --json`) and classifies each live env var against the
- * canonical secret spec (`SECRET_PATHS`, via the lockstep-guaranteed manifest
- * mapping in parse-manifests.ts) into:
+ * Two input modes (both never print secret VALUES):
  *
- *   • orphan          — live in Vercel/Fly but NOT in the vault/spec (DiffAction Orphan)
- *   • missing         — in the vault/spec but absent live            (DiffAction Add)
- *   • shape-violation — present live but corrupt: empty / at-rest ciphertext (DiffAction DropShape)
+ * 1. **revvault sync JSONL** (`--vercel-json`) — full Orphan/Add/DropShape from a
+ *    local `revvault sync vercel --json` capture (owner machine; needs age identity).
+ * 2. **Vercel name-diff** (`--live-vercel` or `--vercel-names-json`) — orphan/missing
+ *    only, from env-var NAMES listed by the Vercel API (or a fixture). This is the
+ *    CI-safe path for GAP-258 P0-8: no vault decrypt, no age identity in Actions.
+ *    Shape-violation stays a local/owner check.
  *
- * NEVER writes, NEVER applies, NEVER prints a secret VALUE — the sync `--json`
- * emits env-var NAMES + action + reason only. This process itself takes no token
- * and makes no network call; the workflow feeds it the captured `--json` files.
- * Token-gating + the live `revvault`/`flyctl` invocation live in
- * .github/workflows/secret-path-drift.yml.
+ * Classification vs the lockstep-guaranteed manifest (`parse-manifests.ts`):
+ *
+ *   • orphan          — live but NOT in the manifest vars (or revvault Orphan)
+ *   • missing         — in the manifest vars but absent live (or revvault Add)
+ *   • shape-violation — revvault DropShape only (not available in name-diff mode)
  *
  * KNOWN, already-tracked drift is allow-listed (surfaced as KNOWN, does not fail
  * the run); any NEW drift fails the run so it is triaged before it compounds —
  * the doc-currency-baseline pattern.
+ *
+ * Scheduled workflow: `.github/workflows/secret-path-drift.yml` (no-op if
+ * `VERCEL_TOKEN` unset).
  */
 
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { collectVars } from './parse-manifests.js';
+import { collectVars, collectVercelProjects, type VercelProjectSpec } from './parse-manifests.js';
 import { DECLARED_PATHS } from './secret-paths.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -150,6 +153,115 @@ export function classifyVercelDrift(
   return findings;
 }
 
+/**
+ * Name-only classification (CI path): live env keys vs declared manifest vars.
+ * `skip` names are never orphans (intentionally Vercel-direct / platform-managed).
+ * No shape-violation — values are never fetched.
+ */
+export function classifyVercelNameDrift(
+  projects: readonly VercelProjectSpec[],
+  liveNamesBySlug: ReadonlyMap<string, readonly string[]>,
+): DriftFinding[] {
+  const findings: DriftFinding[] = [];
+  for (const proj of projects) {
+    const surface = `vercel:${proj.slug}`;
+    const live = new Set(liveNamesBySlug.get(proj.slug) ?? []);
+    const skip = new Set(proj.skip);
+    for (const name of live) {
+      if (skip.has(name)) continue;
+      if (!proj.vars.has(name)) {
+        findings.push({
+          surface,
+          key: name,
+          category: 'orphan',
+          reason: 'live on Vercel, not in manifest vars',
+        });
+      }
+    }
+    for (const [name, path] of proj.vars) {
+      if (!live.has(name)) {
+        findings.push({
+          surface,
+          key: name,
+          category: 'missing',
+          reason: 'in manifest vars, absent on Vercel (production target)',
+          path,
+        });
+      }
+    }
+  }
+  return findings;
+}
+
+/** Fixture / offline shape for `--vercel-names-json`. */
+export interface VercelNamesDoc {
+  projects: Array<{ project: string; names: string[] }>;
+}
+
+export function parseVercelNamesJson(text: string): Map<string, string[]> {
+  const obj = JSON.parse(text) as VercelNamesDoc;
+  const map = new Map<string, string[]>();
+  if (!obj || !Array.isArray(obj.projects)) {
+    throw new Error('vercel-names-json: expected { projects: [{ project, names }] }');
+  }
+  for (const p of obj.projects) {
+    if (typeof p.project !== 'string' || !Array.isArray(p.names)) continue;
+    map.set(
+      p.project,
+      p.names.filter((n): n is string => typeof n === 'string' && n.length > 0),
+    );
+  }
+  return map;
+}
+
+/**
+ * Fetch production env-var NAMES for a Vercel project (no values used).
+ * Uses the public list endpoint; decrypt is never requested.
+ */
+export async function fetchVercelProductionEnvNames(
+  token: string,
+  projectId: string,
+): Promise<string[]> {
+  const names = new Set<string>();
+  let url: string | null =
+    `https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/env?limit=100`;
+  while (url) {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(
+        `Vercel env list failed for ${projectId}: HTTP ${res.status} ${body.slice(0, 200)}`,
+      );
+    }
+    const data = (await res.json()) as {
+      envs?: Array<{ key?: string; target?: string[] | string }>;
+      pagination?: { next?: number | null };
+    };
+    for (const env of data.envs ?? []) {
+      if (typeof env.key !== 'string' || env.key.length === 0) continue;
+      const targets = Array.isArray(env.target)
+        ? env.target
+        : typeof env.target === 'string'
+          ? [env.target]
+          : [];
+      // Name-diff CI scopes to production (manifest targets = production-only).
+      if (targets.length === 0 || targets.includes('production')) {
+        names.add(env.key);
+      }
+    }
+    // Vercel pagination: next is a timestamp cursor when more pages exist.
+    const next = data.pagination?.next;
+    if (typeof next === 'number' && next > 0) {
+      url = `https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/env?limit=100&until=${next}`;
+    } else {
+      url = null;
+    }
+  }
+  return [...names].sort();
+}
+
 interface FlySecret {
   Name?: string;
 }
@@ -214,42 +326,13 @@ function argValue(argv: string[], flag: string): string | undefined {
   return i !== -1 && i + 1 < argv.length ? argv[i + 1] : undefined;
 }
 
-function main(): void {
-  const argv = process.argv.slice(2);
-  const vercelJsonPath = argValue(argv, '--vercel-json');
-  const flyJsonPath = argValue(argv, '--fly-json');
-  if (!vercelJsonPath) {
-    process.stderr.write('usage: secret-path-drift --vercel-json <file> [--fly-json <file>]\n');
-    process.exit(2);
-  }
-
-  const nameToPath = manifestNamePathIndex();
-  const findings: DriftFinding[] = [];
-
-  const vercelDocs = parseSyncDiffJsonl(readFileSync(vercelJsonPath, 'utf8'));
-  findings.push(...classifyVercelDrift(vercelDocs, nameToPath));
-
-  if (flyJsonPath) {
-    let flyLive: string[] = [];
-    try {
-      const parsed = JSON.parse(readFileSync(flyJsonPath, 'utf8')) as FlySecret[];
-      flyLive = parsed.map((s) => s.Name).filter((n): n is string => typeof n === 'string');
-    } catch {
-      process.stderr.write(
-        'secret-path-drift: --fly-json unreadable/empty — Fly surface skipped\n',
-      );
-    }
-    if (flyLive.length > 0) findings.push(...classifyFlyDrift(flyLive, nameToPath));
-  }
-
-  // Belt-and-suspenders: a non-orphan live key whose manifest path is undeclared
-  // would mean manifest↔spec drift the per-PR lockstep somehow missed.
+function reportAndExit(findings: DriftFinding[], projectsScanned: number, mode: string): void {
   const undeclared = findings.filter((f) => f.path !== undefined && !DECLARED_PATHS.has(f.path));
-
   const { fresh, known } = partitionFindings(findings);
 
   process.stdout.write('── secret-path live-drift check (read-only) ──\n');
-  process.stdout.write(`vercel projects scanned: ${vercelDocs.length}\n\n`);
+  process.stdout.write(`mode: ${mode}\n`);
+  process.stdout.write(`vercel projects scanned: ${projectsScanned}\n\n`);
 
   if (known.length > 0) {
     process.stdout.write(`KNOWN drift (${known.length}, tracked — not failing):\n`);
@@ -282,6 +365,85 @@ function main(): void {
     for (const f of undeclared) process.stdout.write(`  ${f.surface} ${f.key} → ${f.path}\n`);
   }
   process.exit(1);
+}
+
+async function runLiveVercel(): Promise<void> {
+  const token = process.env.VERCEL_TOKEN;
+  if (!token || token.length === 0) {
+    process.stdout.write('VERCEL_TOKEN not set; skipping live Vercel name-diff (no-op pass).\n');
+    process.exit(0);
+  }
+  const projects = collectVercelProjects(readFileSync(VERCEL_MANIFEST, 'utf8'));
+  if (projects.length === 0) {
+    process.stderr.write('secret-path-drift: no projects with project_id in prod manifest\n');
+    process.exit(2);
+  }
+  // De-dupe by projectId (staging reuses prod IDs in a separate manifest).
+  const byId = new Map<string, VercelProjectSpec>();
+  for (const p of projects) {
+    if (!byId.has(p.projectId)) byId.set(p.projectId, p);
+  }
+  const unique = [...byId.values()];
+  const liveNamesBySlug = new Map<string, string[]>();
+  for (const p of unique) {
+    process.stdout.write(`fetching production env names: ${p.slug} (${p.projectId})\n`);
+    const names = await fetchVercelProductionEnvNames(token, p.projectId);
+    liveNamesBySlug.set(p.slug, names);
+  }
+  const findings = classifyVercelNameDrift(unique, liveNamesBySlug);
+  reportAndExit(findings, unique.length, 'vercel-name-diff (live API)');
+}
+
+function main(): void {
+  const argv = process.argv.slice(2);
+  if (argv.includes('--live-vercel')) {
+    runLiveVercel().catch((err) => {
+      process.stderr.write(
+        `secret-path-drift --live-vercel failed: ${err instanceof Error ? err.message : String(err)}\n`,
+      );
+      process.exit(1);
+    });
+    return;
+  }
+
+  const namesJsonPath = argValue(argv, '--vercel-names-json');
+  if (namesJsonPath) {
+    const projects = collectVercelProjects(readFileSync(VERCEL_MANIFEST, 'utf8'));
+    const live = parseVercelNamesJson(readFileSync(namesJsonPath, 'utf8'));
+    const findings = classifyVercelNameDrift(projects, live);
+    reportAndExit(findings, projects.length, 'vercel-name-diff (fixture)');
+    return;
+  }
+
+  const vercelJsonPath = argValue(argv, '--vercel-json');
+  const flyJsonPath = argValue(argv, '--fly-json');
+  if (!vercelJsonPath) {
+    process.stderr.write(
+      'usage: secret-path-drift --live-vercel | --vercel-names-json <file> | --vercel-json <file> [--fly-json <file>]\n',
+    );
+    process.exit(2);
+  }
+
+  const nameToPath = manifestNamePathIndex();
+  const findings: DriftFinding[] = [];
+
+  const vercelDocs = parseSyncDiffJsonl(readFileSync(vercelJsonPath, 'utf8'));
+  findings.push(...classifyVercelDrift(vercelDocs, nameToPath));
+
+  if (flyJsonPath) {
+    let flyLive: string[] = [];
+    try {
+      const parsed = JSON.parse(readFileSync(flyJsonPath, 'utf8')) as FlySecret[];
+      flyLive = parsed.map((s) => s.Name).filter((n): n is string => typeof n === 'string');
+    } catch {
+      process.stderr.write(
+        'secret-path-drift: --fly-json unreadable/empty — Fly surface skipped\n',
+      );
+    }
+    if (flyLive.length > 0) findings.push(...classifyFlyDrift(flyLive, nameToPath));
+  }
+
+  reportAndExit(findings, vercelDocs.length, 'revvault-sync-json');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
