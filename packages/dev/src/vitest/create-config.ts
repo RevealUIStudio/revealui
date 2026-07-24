@@ -14,7 +14,7 @@
  * })
  * ```
  */
-import { defineConfig, mergeConfig, type UserConfig } from 'vitest/config';
+import { defineConfig, mergeConfig, type ViteUserConfig } from 'vitest/config';
 
 /** Coverage thresholds — all four keys required when set (matches gate habit). */
 export interface VitestCoverageThresholds {
@@ -57,7 +57,7 @@ export interface CreateVitestConfigOptions {
    * Deep-merged onto the factory result via `mergeConfig`. Use for resolve
    * aliases, `define`, `env`, multi-project setups, etc.
    */
-  overrides?: UserConfig;
+  overrides?: ViteUserConfig;
 }
 
 const DEFAULT_INCLUDE = ['src/**/*.test.ts', 'src/**/*.spec.ts'] as const;
@@ -75,7 +75,7 @@ const DEFAULT_COVERAGE_REPORTERS = ['text', 'json', 'html', 'lcov'] as const;
  *
  * Returns the result of `defineConfig` so configs can `export default` it.
  */
-export function createVitestConfig(options: CreateVitestConfigOptions = {}): UserConfig {
+export function createVitestConfig(options: CreateVitestConfigOptions = {}): ViteUserConfig {
   const {
     environment = 'node',
     maxWorkers = 2,
@@ -91,7 +91,7 @@ export function createVitestConfig(options: CreateVitestConfigOptions = {}): Use
     overrides,
   } = options;
 
-  const base: UserConfig = {
+  const base: ViteUserConfig = {
     test: {
       globals: true,
       environment,
