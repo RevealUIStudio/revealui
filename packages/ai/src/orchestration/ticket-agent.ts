@@ -22,6 +22,7 @@ import type {
   GlobalMetadata,
 } from '../tools/admin/factory.js';
 import { createAdminTools } from '../tools/admin/factory.js';
+import type { Tool } from '../tools/base.js';
 import { createDocumentSummarizerTool } from '../tools/document-summarizer.js';
 import type { TicketMutationClient } from '../tools/ticket-tools.js';
 import { createTicketTools } from '../tools/ticket-tools.js';
@@ -72,6 +73,13 @@ export interface TicketAgentConfig {
 
   /** Timeout in ms (default: 120_000) */
   timeout?: number;
+
+  /**
+   * Optional tool transform after the tool set is assembled (GAP-355 S6-4).
+   * Server injects pre-authorize wraps without `@revealui/ai` importing server.
+   * Called once per dispatch with the ticket id and optional dispatchId.
+   */
+  wrapTools?: (tools: Tool[], ctx: { ticketId: string; dispatchId?: string }) => Tool[];
 }
 
 /**
@@ -170,7 +178,13 @@ export class TicketAgentDispatcher {
     const extraTools = db
       ? [webScraperTool, createDocumentSummarizerTool(db, this.config.llmClient)]
       : [webScraperTool];
-    const tools = [...cmsTools, ...ticketTools, ...extraTools];
+    let tools: Tool[] = [...cmsTools, ...ticketTools, ...extraTools];
+    if (this.config.wrapTools) {
+      tools = this.config.wrapTools(tools, {
+        ticketId: ticket.id,
+        ...(options.dispatchId !== undefined ? { dispatchId: options.dispatchId } : {}),
+      });
+    }
 
     // The runtime does not call agent.memory  -  satisfy the interface with a stub when no
     // shared memory instance is provided. Cast is safe: only runtime touches this field.

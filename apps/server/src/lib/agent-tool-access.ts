@@ -63,6 +63,9 @@ export const AGENT_TOOL_CATALOG: readonly AgentToolMeta[] = [
   { name: 'create_user', surface: 'admin', class: 'admin-pii' },
   { name: 'update_user', surface: 'admin', class: 'admin-pii' },
   { name: 'delete_user', surface: 'admin', class: 'admin-pii' },
+  // Ticket agent sidecars (S6-4 — TicketAgentDispatcher)
+  { name: 'update_ticket_status', surface: 'admin', class: 'mutate' },
+  { name: 'add_ticket_comment', surface: 'admin', class: 'mutate' },
   // Coding
   { name: 'file_read', surface: 'coding', class: 'read' },
   { name: 'file_glob', surface: 'coding', class: 'read' },
@@ -74,6 +77,9 @@ export const AGENT_TOOL_CATALOG: readonly AgentToolMeta[] = [
   { name: 'git_ops', surface: 'coding', class: 'exec' },
   { name: 'test_runner', surface: 'coding', class: 'exec' },
   { name: 'lint_fix', surface: 'coding', class: 'exec' },
+  // Dispatch extras (read-class; no shell)
+  { name: 'web_scrape', surface: 'coding', class: 'read' },
+  { name: 'document_summarize', surface: 'coding', class: 'read' },
 ] as const;
 
 const TOOL_BY_NAME = new Map(AGENT_TOOL_CATALOG.map((t) => [t.name, t]));
