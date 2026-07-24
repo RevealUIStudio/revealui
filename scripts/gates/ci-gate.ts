@@ -327,6 +327,12 @@ async function gate(): Promise<void> {
         args: ['validate:gitignore'],
       },
       {
+        // ADR-006: engines incubate posture (no app entry claim / no app importers)
+        name: 'Engines posture (hard fail)',
+        command: 'pnpm',
+        args: ['validate:engines-posture'],
+      },
+      {
         name: 'Claim drift (hard fail)',
         command: 'pnpm',
         args: ['validate:claims'],
