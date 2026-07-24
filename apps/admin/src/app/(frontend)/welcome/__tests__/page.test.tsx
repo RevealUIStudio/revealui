@@ -33,9 +33,9 @@ describe('WelcomePage', () => {
     expect(hrefs[1]).toBe('/agents');
 
     expect(screen.getByText('Your license key')).toBeInTheDocument();
-    expect(screen.getByText('Run your first agent')).toBeInTheDocument();
-    // Only one "Run your first agent" CTA in the paid-success state.
-    expect(screen.getAllByText('Run your first agent')).toHaveLength(1);
+    expect(screen.getByText('First governed agent action')).toBeInTheDocument();
+    // Only one first-agent CTA in the paid-success state.
+    expect(screen.getAllByText('First governed agent action')).toHaveLength(1);
   });
 
   it('keeps the original CTA order and appends the agent CTA for non-paid success', () => {
@@ -57,6 +57,8 @@ describe('WelcomePage', () => {
     mockUseLicense.mockReturnValue({ tier: 'free' });
     render(<WelcomePage />);
 
+    // Free / non-paid-success still uses the original heading; paid-success
+    // uses "First governed agent action" (GAP-302 residual).
     expect(screen.getByText('Run your first agent')).toBeInTheDocument();
     expect(screen.queryByText('Your license key')).not.toBeInTheDocument();
   });
