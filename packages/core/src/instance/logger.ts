@@ -1,5 +1,9 @@
 /**
- * RevealUI Logger
+ * RevealUI Logger (legacy instance path)
+ *
+ * @deprecated Prefer `@revealui/core/observability/logger` (facade over
+ * `@revealui/utils/logger`). See ADR-008. Migration is D2 in that ADR;
+ * this module remains for existing core call sites until then.
  *
  * Production-safe logging utility for RevealUI framework operations.
  * Info/warn messages are no-ops in production to avoid console pollution.

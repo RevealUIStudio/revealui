@@ -1,12 +1,16 @@
 /**
- * Server Logger Utility
+ * Server Logger Utility (legacy core path)
+ *
+ * @deprecated Prefer `@revealui/core/observability/logger` (utils-backed)
+ * per ADR-008. Request-id enrichment must be preserved in D3 migration.
  *
  * Server-side logging utility for RevealUI framework.
  * Supports different log levels and structured output.
  * Automatically includes request ID from request context when available.
  *
  * WARNING: This module uses Node.js APIs (async_hooks via request-context).
- * For client-safe logging, use './logger-client.js' instead.
+ * For client-safe logging, use './logger-client.js' instead. Never import
+ * this file from browser/RSC client graphs.
  */
 
 import { getRequestId } from './request-context.js';
