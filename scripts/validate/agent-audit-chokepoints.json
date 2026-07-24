@@ -1,0 +1,69 @@
+{
+  "$comment": "GAP-355 Stage 5 S5-4 — mechanical checklist that named agent audit chokepoints still call the door. Strings are literal substring matches (no regex). Residual inventory lives in .jv gap-specs/GAP-355-stage5-agent-emit-design.md.",
+  "chokepoints": [
+    {
+      "id": "hypervisor-setAuditSink",
+      "file": "packages/mcp/src/hypervisor.ts",
+      "mustContain": ["setAuditSink", "emitAudit", "fail-closed"]
+    },
+    {
+      "id": "mcp-adapter-onToolAudit",
+      "file": "packages/ai/src/tools/mcp-adapter.ts",
+      "mustContain": ["onToolAudit", "awaitToolAudit"]
+    },
+    {
+      "id": "tool-integrity-wrapper",
+      "file": "packages/ai/src/tools/integrity-audit.ts",
+      "mustContain": ["wrapToolWithIntegrityAudit", "ToolIntegrityAuditEvent"]
+    },
+    {
+      "id": "admin-tools-onToolAudit",
+      "file": "packages/ai/src/tools/admin/factory.ts",
+      "mustContain": ["onToolAudit", "maybeWrapToolsWithIntegrityAudit"]
+    },
+    {
+      "id": "coding-tools-onToolAudit",
+      "file": "packages/ai/src/tools/coding/index.ts",
+      "mustContain": ["onToolAudit", "maybeWrapToolsWithIntegrityAudit"]
+    },
+    {
+      "id": "agent-dispatcher-task-lifecycle",
+      "file": "apps/server/src/lib/agent-dispatcher.ts",
+      "mustContain": ["agent:task:started", "agent:task:completed", "createAuditStore"]
+    },
+    {
+      "id": "agent-stream-mcp-and-native-tools",
+      "file": "apps/server/src/routes/agent-stream.ts",
+      "mustContain": [
+        "recordAgentMcpToolAudit",
+        "onToolAudit",
+        "agent:task:started",
+        "streamToolAudit"
+      ]
+    },
+    {
+      "id": "agent-tool-audit-adapter",
+      "file": "apps/server/src/lib/agent-tool-audit.ts",
+      "mustContain": ["recordAgentMcpToolAudit", "createAuditStore", "agent:tool:called"]
+    },
+    {
+      "id": "governed-mcp-tool-audit",
+      "file": "apps/server/src/lib/mcp-audit.ts",
+      "mustContain": ["recordMcpToolAudit", "createAuditStore"]
+    }
+  ],
+  "residuals": [
+    {
+      "id": "hypervisor-no-apps-server-install",
+      "note": "MCPHypervisor.setAuditSink has unit tests but no apps/server boot-time install; production agent path uses createToolsFromMcpClient + onToolAudit."
+    },
+    {
+      "id": "discoverMCPTools-legacy",
+      "note": "packages/ai discoverMCPTools (hypervisor legacy path) does not take onToolAudit; prefer createToolsFromMcpClient."
+    },
+    {
+      "id": "resource-prompt-meta-tools",
+      "note": "MCP resource/prompt meta-tools are not covered by onToolAudit (inventory residual; server tools only)."
+    }
+  ]
+}
