@@ -634,6 +634,92 @@ describe('MCPHypervisor', () => {
   });
 
   // ===========================================================================
+  // GAP-355 Stage 5 — integrity audit sink
+  // ===========================================================================
+
+  describe('setAuditSink() + emitAudit', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('awaits audit sink after successful callTool', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      const order: string[] = [];
+      hv.setAuditSink(async () => {
+        order.push('audit');
+      });
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', { x: 1 }).then(() => {
+        order.push('resolved');
+      });
+
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      await toolPromise;
+      expect(order).toEqual(['audit', 'resolved']);
+    });
+
+    it('fails the successful tool call when audit sink throws (fail-closed)', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      hv.setAuditSink(async () => {
+        throw new Error('audit write failed');
+      });
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', {});
+
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      await expect(toolPromise).rejects.toThrow(/audit write failed/);
+    });
+
+    it('setAuditSink(null) disables integrity auditing', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      const sink = vi.fn(async () => {
+        throw new Error('should not run');
+      });
+      hv.setAuditSink(sink);
+      hv.setAuditSink(null);
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', {});
+
+      const req = JSON.parse(String(mockProcess.stdin.write.mock.calls[0]?.[0] ?? '').trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      await expect(toolPromise).resolves.toBeDefined();
+      expect(sink).not.toHaveBeenCalled();
+    });
+  });
+
+  // ===========================================================================
   // Stage 6.2 — usage metering sink
   // ===========================================================================
 

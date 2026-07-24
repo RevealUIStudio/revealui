@@ -53,6 +53,7 @@ export async function buildDispatcher(
   const aiMod = await import('@revealui/ai').catch(() => null);
   if (!aiMod) return null;
 
+  const auditStore = createAuditStore(db);
   let llmClient: unknown;
   try {
     // Resolve the client through the single GAP-360 resolver. A durable audit
@@ -61,7 +62,7 @@ export async function buildDispatcher(
     llmClient = await aiMod.resolveLLMClientForRequest(resolution.userId, db, {
       isHosted: resolution.isHosted,
       workspaceId: resolution.workspaceId,
-      auditStore: createAuditStore(db),
+      auditStore,
     });
   } catch (err) {
     if ((err as { code?: unknown } | null)?.code === 'LLM_NOT_CONFIGURED') throw err;
@@ -95,11 +96,79 @@ export async function buildDispatcher(
   // Type assertions: TicketAgentDispatcher comes from the Pro package via
   // dynamic import; the runtime shape matches Dispatcher.
   type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
-  return new aiMod.TicketAgentDispatcher({
+  const inner = new aiMod.TicketAgentDispatcher({
     llmClient: llmClient as DispatcherConfig['llmClient'],
     apiClient,
     ticketClient,
   }) as unknown as Dispatcher;
+
+  // GAP-355 Stage 5: wrap dispatch with task lifecycle audit rows (ONE DOOR).
+  // Fail closed if start cannot be recorded. Tenant = workspaceId when present.
+  const tenant = resolution.workspaceId ?? null;
+
+  return {
+    async dispatch(ticket, options) {
+      const startId = crypto.randomUUID();
+      await auditStore.append({
+        id: startId,
+        timestamp: new Date(),
+        eventType: 'agent:task:started',
+        severity: 'info',
+        agentId: 'ticket-agent-dispatcher',
+        taskId: ticket.id,
+        sessionId: options?.dispatchId,
+        payload: {
+          title: ticket.title,
+          userId: resolution.userId,
+          isHosted: resolution.isHosted,
+        },
+        policyViolations: [],
+        tenant,
+      });
+
+      try {
+        const result = await inner.dispatch(ticket, options);
+        await auditStore.append({
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+          eventType: result.success ? 'agent:task:completed' : 'agent:task:failed',
+          severity: result.success ? 'info' : 'warn',
+          agentId: 'ticket-agent-dispatcher',
+          taskId: ticket.id,
+          sessionId: options?.dispatchId,
+          payload: {
+            success: result.success,
+            tokensUsed: result.metadata?.tokensUsed,
+            executionTime: result.metadata?.executionTime,
+          },
+          policyViolations: [],
+          tenant,
+        });
+        return result;
+      } catch (err) {
+        try {
+          await auditStore.append({
+            id: crypto.randomUUID(),
+            timestamp: new Date(),
+            eventType: 'agent:task:failed',
+            severity: 'warn',
+            agentId: 'ticket-agent-dispatcher',
+            taskId: ticket.id,
+            sessionId: options?.dispatchId,
+            payload: {
+              success: false,
+              error: err instanceof Error ? err.message : String(err),
+            },
+            policyViolations: [],
+            tenant,
+          });
+        } catch {
+          // Prefer original dispatch error if completion audit also fails
+        }
+        throw err;
+      }
+    },
+  };
 }
 
 /**

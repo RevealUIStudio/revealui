@@ -22,6 +22,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import { logger } from '@revealui/core/observability/logger';
+import type { McpAuditEvent, McpAuditSink } from './audit-sink.js';
 import type { McpMeterEvent, McpMeterSink } from './metering.js';
 
 // =============================================================================
@@ -145,6 +146,8 @@ export class MCPHypervisor {
   private tenantServers: Map<string, ServerEntry> = new Map();
   private credentialResolver: MCPCredentialResolver | null = null;
   private meterSink: McpMeterSink | null = null;
+  /** GAP-355 Stage 5: integrity audit sink (awaited; fail-closed when set). */
+  private auditSink: McpAuditSink | null = null;
   private requestCounter = 0;
   private pendingRequests: Map<
     number,
@@ -475,6 +478,13 @@ export class MCPHypervisor {
         duration_ms: durationMs,
         success: true,
       });
+      await this.emitAudit({
+        kind: 'mcp.tool.call',
+        serverName,
+        toolName,
+        duration_ms: durationMs,
+        success: true,
+      });
 
       return result;
     } catch (error) {
@@ -494,6 +504,22 @@ export class MCPHypervisor {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });
+      try {
+        await this.emitAudit({
+          kind: 'mcp.tool.call',
+          serverName,
+          toolName,
+          duration_ms: durationMs,
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      } catch (auditErr) {
+        // Prefer the tool failure; still surface audit failure if tool path succeeded...
+        // here the tool already failed, so attach audit fail only as secondary log.
+        logger.warn('[MCPHypervisor] audit sink failed after tool error; rethrowing tool error', {
+          auditError: auditErr instanceof Error ? auditErr.message : String(auditErr),
+        });
+      }
       throw error;
     }
   }
@@ -542,6 +568,18 @@ export class MCPHypervisor {
   }
 
   /**
+   * Install an integrity audit sink (GAP-355 Stage 5). Unlike usage metering,
+   * the sink is **awaited**. When non-null, a throw/reject from the sink after
+   * a successful tool call **fails the call** (fail-closed: unrecorded action
+   * does not complete as success).
+   *
+   * Pass `null` to disable.
+   */
+  setAuditSink(sink: McpAuditSink | null): void {
+    this.auditSink = sink;
+  }
+
+  /**
    * Fire the consumer-wired metering sink. Swallows errors so
    * observability can never corrupt a successful tool call.
    *
@@ -566,6 +604,17 @@ export class MCPHypervisor {
         error: error instanceof Error ? error.message : String(error),
       });
     }
+  }
+
+  /**
+   * Await the integrity audit sink. Propagates errors (fail-closed).
+   *
+   * @internal
+   */
+  private async emitAudit(event: McpAuditEvent): Promise<void> {
+    const sink = this.auditSink;
+    if (!sink) return;
+    await sink(event);
   }
 
   // ---------------------------------------------------------------------------
@@ -757,6 +806,14 @@ export class MCPHypervisor {
         duration_ms: durationMs,
         success: true,
       });
+      await this.emitAudit({
+        kind: 'mcp.tool.call',
+        serverName,
+        toolName,
+        tenantId,
+        duration_ms: durationMs,
+        success: true,
+      });
 
       return result;
     } catch (error) {
@@ -778,6 +835,21 @@ export class MCPHypervisor {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });
+      try {
+        await this.emitAudit({
+          kind: 'mcp.tool.call',
+          serverName,
+          toolName,
+          tenantId,
+          duration_ms: durationMs,
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      } catch (auditErr) {
+        logger.warn('[MCPHypervisor] audit sink failed after tool error; rethrowing tool error', {
+          auditError: auditErr instanceof Error ? auditErr.message : String(auditErr),
+        });
+      }
       throw error;
     }
   }

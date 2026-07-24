@@ -56,6 +56,24 @@ import agentTasksApp from '../agent-tasks.js';
 const mb = vi.mocked(boardQueries);
 const mt = vi.mocked(ticketQueries);
 
+/** Rows written via mockDbInsert, keyed by drizzle table name (GAP-355 audit vs memory). */
+const insertedByTable = {
+  agentMemories: [] as Array<Record<string, unknown>>,
+  auditLog: [] as Array<Record<string, unknown>>,
+};
+
+/** Read `Symbol(drizzle:Name)` without importing schema tables (keeps the test light). */
+function drizzleTableName(table: unknown): string | undefined {
+  if (!table || typeof table !== 'object') return undefined;
+  for (const sym of Object.getOwnPropertySymbols(table)) {
+    if (String(sym) === 'Symbol(drizzle:Name)') {
+      const name = (table as Record<symbol, unknown>)[sym];
+      return typeof name === 'string' ? name : undefined;
+    }
+  }
+  return undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Env setup  -  provide a fake API key so buildDispatcher returns a dispatcher
 // ---------------------------------------------------------------------------
@@ -63,8 +81,19 @@ const mt = vi.mocked(ticketQueries);
 beforeEach(() => {
   vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test');
   vi.stubEnv('ADMIN_URL', 'http://localhost:4000');
+  insertedByTable.agentMemories.length = 0;
+  insertedByTable.auditLog.length = 0;
   mockDbInsert.mockClear();
-  mockDbInsert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
+  // GAP-355 S5: TicketAgentDispatcher path also inserts audit_log (start + complete/fail).
+  // Capture every insert by table so memory assertions are not polluted by audit rows.
+  mockDbInsert.mockImplementation((table: unknown) => ({
+    values: vi.fn(async (row: unknown) => {
+      const payload = row as Record<string, unknown>;
+      const name = drizzleTableName(table);
+      if (name === 'agent_memories') insertedByTable.agentMemories.push(payload);
+      if (name === 'audit_log') insertedByTable.auditLog.push(payload);
+    }),
+  }));
 });
 
 afterEach(() => {
@@ -242,24 +271,24 @@ describe('POST /  -  submit agent task', () => {
   });
 
   it('persists agent output to agent_memories table on success', async () => {
-    const mockValues = vi.fn().mockResolvedValue(undefined);
-    mockDbInsert.mockReturnValueOnce({ values: mockValues });
-
     mb.getBoardById.mockResolvedValue(makeBoard() as never);
     mt.createTicket.mockResolvedValue(makeTicket() as never);
     mt.getTicketById.mockResolvedValue(makeTicket({ status: 'done' }) as never);
     const app = createApp();
     await app.request('/', post({ instruction: 'Publish blog post', boardId: 'board-1' }));
 
-    // db.insert(agentMemories) must have been called once with the agent output
-    expect(mockDbInsert).toHaveBeenCalledOnce();
-    const insertedRow = mockValues.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(insertedRow).toBeDefined();
+    // Memory insert is independent of GAP-355 task audit_log rows (start + complete).
+    expect(insertedByTable.agentMemories).toHaveLength(1);
+    const insertedRow = insertedByTable.agentMemories[0] as Record<string, unknown>;
     expect(insertedRow.content).toBe('Agent completed the task.');
     expect(insertedRow.type).toBe('decision');
     expect(typeof insertedRow.agentId).toBe('string');
     expect(insertedRow.agentId as string).toContain('ticket-agent-');
     expect((insertedRow.metadata as Record<string, unknown>).success).toBe(true);
+
+    // Lifecycle audit: started + completed via ONE DOOR
+    const eventTypes = insertedByTable.auditLog.map((r) => r.eventType);
+    expect(eventTypes).toEqual(['agent:task:started', 'agent:task:completed']);
   });
 
   it('does not insert agent_memories when agent returns no output', async () => {
@@ -271,7 +300,12 @@ describe('POST /  -  submit agent task', () => {
     const app = createApp();
     await app.request('/', post({ instruction: 'Publish blog post', boardId: 'board-1' }));
 
-    expect(mockDbInsert).not.toHaveBeenCalled();
+    expect(insertedByTable.agentMemories).toHaveLength(0);
+    // Task still audited even when there is no memory payload
+    expect(insertedByTable.auditLog.map((r) => r.eventType)).toEqual([
+      'agent:task:started',
+      'agent:task:completed',
+    ]);
   });
 
   it('marks ticket blocked when agent fails', async () => {
