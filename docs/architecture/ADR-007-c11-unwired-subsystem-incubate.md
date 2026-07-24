@@ -47,7 +47,7 @@ Marketing and package copy still describe the MCP hypervisor as the live agent t
 
 ## Progress — GAP-406 WIRE (2026-07-24)
 
-**Partial WIRE of MCPHypervisor** (sinks + opt-in process-local spawn):
+**WIRE train** (opt-in; default process still no-op when env unset):
 
 | Item | Status |
 |------|--------|
@@ -55,15 +55,16 @@ Marketing and package copy still describe the MCP hypervisor as the live agent t
 | `setUsageMeterSink` → `usage_meters` | Shipped when `tenantId` present on event |
 | `setAuditSink` → `recordMcpToolAudit` | Shipped |
 | Process-local spawn | Phase 2: `REVEALUI_MCP_HYPERVISOR_SPAWN=1`; default servers `contracts,docs`; override via `REVEALUI_MCP_HYPERVISOR_SERVERS` |
-| Credential resolver | Stub returns `null` (tenant spawn closed); process-local children inherit `process.env` |
-| `@revealui/ai/skills` / `observability` app mount | Still incubating |
+| Credential resolver | Phase 3: vault path `mcp/<tenant>/<server>/env` (JSON env map); missing → null |
+| `@revealui/ai/skills` | Phase 4: `REVEALUI_AI_SKILLS=1` → `AgentSkillProvider` on agent-stream runtime |
+| `@revealui/ai/observability` | Phase 4: `REVEALUI_AI_OBSERVABILITY=1` → `AgentEventLogger` on agent-stream start |
 
-`validate:incubate-posture` allowlists only `mcp-hypervisor-wire.ts` for Hypervisor imports.
+`validate:incubate-posture` allowlists wire modules under `apps/server/src/lib/*-wire.ts` (and agent-stream consumer for skills/observability).
 
 ## Verification
 
-- No production import of `MCPHypervisor.getInstance` / constructor under `apps/` (code-over-docs).
-- No production import of `@revealui/ai/skills` or `@revealui/ai/observability` under `apps/`.
-- File headers and package README/index comments state incubating posture (same change set).
-- **Phase 6 gate:** `pnpm validate:incubate-posture` (CI phase 1 + Quality job) fails if apps mount these surfaces without a WIRE train. Standing ticket: GAP-406.
+- Production mounts of incubating surfaces go only through allowlisted GAP-406 wire modules (env-gated).
+- Package headers still note library surfaces; app default remains off without env flags.
+- **Phase 6 gate:** `pnpm validate:incubate-posture` fails on non-allowlisted app imports. Standing ticket: GAP-406 (close when residual product follow-ups done or abandoned).
 - **Clone advisory:** `pnpm audit:clones` reports exact multi-file clones under `packages/` (optional prevention; advisory exit 0).
+- **Follow-up (not this train):** tenant spawn env isolation (avoid host `process.env` merge); deeper skill catalog install; durable event storage for observability.

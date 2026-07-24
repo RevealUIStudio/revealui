@@ -24,8 +24,22 @@ function isExemptAppPath(rel: string, label?: string): boolean {
   if (lower.endsWith('.test.ts') || lower.endsWith('.test.tsx')) return true;
   if (lower.endsWith('.spec.ts') || lower.endsWith('.spec.tsx')) return true;
   if (lower.includes('/content/') || lower.includes('/public/')) return true;
-  // GAP-406 WIRE phase 1: sole allowed MCPHypervisor consumer (sink wire only).
+  // GAP-406 WIRE: sole allowed app mounts (env-gated wire modules + consumers).
   if (label === 'MCPHypervisor' && rel === 'apps/server/src/lib/mcp-hypervisor-wire.ts') {
+    return true;
+  }
+  if (
+    label === '@revealui/ai/skills' &&
+    (rel === 'apps/server/src/lib/ai-skills-wire.ts' ||
+      rel === 'apps/server/src/routes/agent-stream.ts')
+  ) {
+    return true;
+  }
+  if (
+    label === '@revealui/ai/observability' &&
+    (rel === 'apps/server/src/lib/ai-observability-wire.ts' ||
+      rel === 'apps/server/src/routes/agent-stream.ts')
+  ) {
     return true;
   }
   return false;
