@@ -1,21 +1,38 @@
-# Security review gate — review-before-merge enforcement.
+# Security review gate — review-before-merge enforcement (GAP-376 cutover).
 #
-# Runs on EVERY pull request (passes immediately when no security-sensitive
-# surface is touched), so the check is safe to mark as a REQUIRED status check
-# on `test`/`main`. Re-evaluates when reviews land or labels change, so a fresh
-# verdict flips the same head SHA from HOLD to clear without a new push.
+# Provenance: pull_request_target runs the WORKFLOW DEFINITION from the BASE
+# ref, so a PR cannot rewrite this file for its own evaluation. Scripts still
+# pin to base.sha (belt-and-braces with #1921). The job does not check out
+# PR-head code; it only runs trusted gate scripts and queries the API for
+# files/labels/reviews.
 #
-# Verdict sources the gate accepts: an approving GitHub review, or one of the
-# labels understood by scripts/validate/security-review-gate.cjs.
+# Shadow verify (A1–A3) recorded 2026-07-24:
+#   A1 — check-run attaches to PR head SHA (#2110)
+#   A2 — payload/verdict parity with prior pull_request gate (#2110)
+#   A3 — workflow-edit self-pass fails on _target base copy (#2113 closed)
+#
+# Rename-in-place: job name stays "Security review gate" so the protect-main-
+# test ruleset required context needs no owner edit.
+#
+# Dual-trigger residual (intentional, short-lived): pull_request remains so
+# this cutover PR (and the first post-land residual) still report the required
+# context from the merge-ref path. A follow-up PR removes pull_request only;
+# after that, _target alone is the enforcement path. pull_request_review has
+# no _target form — re-eval via labels until org-migration companion (design
+# §Review-trigger).
+#
+# Permissions stay least-privilege: pull_request_target defaults are wider.
 
 name: Security Review Gate
 
 on:
+  pull_request_target:
+    branches: [test, main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  # Residual dual-trigger — remove in follow-up PR after this lands on test.
   pull_request:
     branches: [test, main]
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
-  pull_request_review:
-    types: [submitted, dismissed]
 
 concurrency:
   group: security-review-gate-${{ github.event.pull_request.number }}
@@ -31,6 +48,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Log gate provenance
+        run: |
+          set -euo pipefail
+          echo "event_name=${{ github.event_name }}"
+          echo "head_sha=${{ github.event.pull_request.head.sha }}"
+          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "pr_number=${{ github.event.pull_request.number }}"
+          echo "workflow_ref=${{ github.workflow_ref }}"
+
       - uses: actions/checkout@v7
         with:
           # Evaluate with the BASE branch's copy of the gate scripts: the
@@ -38,6 +64,7 @@ jobs:
           # own edits to these files cannot influence its evaluation. Changed
           # files, labels, comments, and reviews all come from the API, so the
           # checkout exists only to supply this script code.
+          # Kept under pull_request_target (defaults to base) as belt-and-braces.
           ref: ${{ github.event.pull_request.base.sha }}
           # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
           # at module load. Sparse list must include that JSON or the job
@@ -52,6 +79,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           node scripts/validate/security-review-gate.cjs \
             --pr "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}"

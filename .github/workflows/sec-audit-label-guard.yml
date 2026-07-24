@@ -21,7 +21,11 @@
 name: Security Audit Label Guard
 
 on:
-  pull_request:
+  # GAP-376: labeled path uses pull_request_target so the workflow definition
+  # is base-provenance (same class as the security review gate cutover).
+  # issue_comment / check_suite already run from the default branch (trusted).
+  # pull_request_review has no _target form — keep as-is (re-eval only).
+  pull_request_target:
     branches: [test, main]
     types: [labeled]
   pull_request_review:
