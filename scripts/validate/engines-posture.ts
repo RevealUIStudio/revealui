@@ -11,7 +11,7 @@
  * Exit 0 = posture holds. Exit 1 = drift.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..');
@@ -33,17 +33,29 @@ function isExemptAppPath(rel: string): boolean {
 }
 
 function walkFiles(dir: string, out: string[]): void {
-  if (!existsSync(dir)) return;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === '.next') {
+  // No existsSync→readdir TOCTOU: attempt readdir and skip on failure.
+  let names: string[];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return;
+  }
+  for (const name of names) {
+    if (name === 'node_modules' || name === 'dist' || name === '.next') {
       continue;
     }
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
+    const full = join(dir, name);
+    let isDir = false;
+    try {
+      isDir = statSync(full).isDirectory();
+    } catch {
+      continue;
+    }
+    if (isDir) {
       walkFiles(full, out);
       continue;
     }
-    const ext = entry.name.includes('.') ? `.${entry.name.split('.').pop()}` : '';
+    const ext = name.includes('.') ? `.${name.split('.').pop()}` : '';
     if (SOURCE_EXT.has(ext)) {
       out.push(full);
     }
@@ -65,11 +77,14 @@ function hasEnginesImport(source: string): boolean {
 
 function checkPrivatePackage(): string[] {
   const errors: string[] = [];
-  if (!existsSync(ENGINES_PKG)) {
+  let raw: string;
+  try {
+    raw = readFileSync(ENGINES_PKG, 'utf8');
+  } catch {
     errors.push('packages/engines/package.json missing');
     return errors;
   }
-  const pj = JSON.parse(readFileSync(ENGINES_PKG, 'utf8')) as {
+  const pj = JSON.parse(raw) as {
     private?: boolean;
     name?: string;
   };
@@ -119,8 +134,14 @@ function checkSurfaceDocHonesty(): string[] {
 
   for (const rel of files) {
     const full = join(REPO_ROOT, rel);
-    if (!existsSync(full) || !statSync(full).isFile()) continue;
-    const lines = readFileSync(full, 'utf8').split('\n');
+    // Single open: avoid existsSync/statSync then read (CodeQL TOCTOU).
+    let content: string;
+    try {
+      content = readFileSync(full, 'utf8');
+    } catch {
+      continue;
+    }
+    const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i] ?? '';
       if (!line.includes('@revealui/engines') && !line.includes('engines]')) {
