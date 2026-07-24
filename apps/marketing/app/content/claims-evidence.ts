@@ -544,6 +544,21 @@ const AUDIT_ANCHOR_VERIFY_TEST: EvidenceRef = {
   ref: 'packages/security/src/__tests__/audit-anchor-verify.test.ts#accepts root + inclusion proof for one leaf',
   note: 'root signature + inclusion path verify offline with only the public key',
 };
+const AUDIT_ANCHOR_API: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/audit.ts',
+  note: 'GET /api/audit/anchors and /proof (S4-4); Max+ auditLog gate + tenant lag in list response',
+};
+const AUDIT_LOG_FEATURE_MAX: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/features.ts',
+  note: 'auditLog feature requires Max tier; Free/Pro cannot download roots (403)',
+};
+const AUDIT_RECEIPTS_DOC: EvidenceRef = {
+  kind: 'code',
+  ref: 'docs/security/AUDIT_RECEIPTS.md',
+  note: 'Stage 4 honesty: what Free/Pro get vs Max root delivery; offline CLI; verification never paid',
+};
 
 export const CLAIMS: readonly ClaimEntry[] = [
   // ── site.ts ───────────────────────────────────────────────────────────────
@@ -1624,6 +1639,21 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'SUBSCRIPTION_TIERS[2].features[4]',
     text: 'Advanced inference configuration (coming soon)',
     evidence: [PROVIDERS],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
+    text: 'Signed audit log plus downloadable Merkle roots you verify offline',
+    evidence: [
+      AUDIT_ROW_SIGNER,
+      AUDIT_MERKLE,
+      AUDIT_ANCHOR_API,
+      AUDIT_ANCHOR_VERIFY_CLI,
+      AUDIT_ANCHOR_VERIFY_TEST,
+      AUDIT_SIGN_ROUNDTRIP,
+      AUDIT_LOG_FEATURE_MAX,
+      AUDIT_RECEIPTS_DOC,
+    ],
   },
   {
     file: 'pricing.ts',
@@ -3320,14 +3350,21 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'claims.ts',
     exportPath: 'CLAIMS_SIGNED_LEDGER_NOTE.body',
     text: 'Every action in the audit log is signed with a key you can check yourself. Verifying a record does not require our secret.',
+    evidence: [AUDIT_ROW_SIGNER, AUDIT_SIGN_ROUNDTRIP],
+  },
+  {
+    file: 'claims.ts',
+    exportPath: 'CLAIMS_RECEIPT_HOLD_NOTE.body',
+    text: 'On Max, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free and Pro still get a signed log. Root delivery is Max. Checking a receipt is free either way.',
     evidence: [
-      AUDIT_ROW_SIGNER,
-      AUDIT_SIGN_ROUNDTRIP,
       AUDIT_MERKLE,
+      AUDIT_ANCHOR_SCHEMA,
+      AUDIT_ANCHOR_API,
       AUDIT_ANCHOR_VERIFY,
       AUDIT_ANCHOR_VERIFY_CLI,
-      AUDIT_ANCHOR_SCHEMA,
       AUDIT_ANCHOR_VERIFY_TEST,
+      AUDIT_LOG_FEATURE_MAX,
+      AUDIT_RECEIPTS_DOC,
     ],
   },
   {
@@ -3458,7 +3495,17 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_CAPTION.text',
     text: "If an agent did it, there's a receipt.",
-    evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, AUDIT_LOG_SCHEMA, REFUND_ROUTE],
+    evidence: [
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      AUDIT_LOG_SCHEMA,
+      REFUND_ROUTE,
+      {
+        ...AUDIT_RECEIPTS_DOC,
+        note: 'Stage 4 S4-6: foil is positioning; sealed root download is Max (auditLog); verification never paid',
+      },
+      AUDIT_LOG_FEATURE_MAX,
+    ],
   },
 
   // ── contact + legal/* ratchet (claims-evidence audit 2026-07-22) ─────────

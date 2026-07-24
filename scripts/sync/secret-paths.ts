@@ -234,7 +234,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'prod',
     consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
     envVars: ['REVEALUI_AUDIT_PUBLIC_KEY'],
-    note: 'Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key',
+    note: 'Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key. See docs/security/AUDIT_RECEIPTS.md (Stage 4: row verify free; root download Max)',
   },
   // Visual edit sessions (P1). HMAC-SHA256 key behind the read-only preview
   // tokens; the API both mints and verifies (routes/content/sessions), no
