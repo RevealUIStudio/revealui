@@ -1,6 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { validateLicenseKey } from '../license.js';
 import {
   canMintLicense,
   isSignViaSigner,
@@ -12,7 +11,8 @@ import {
   SIGNER_SIGNATURE_HEADER,
   SIGNER_TIMESTAMP_HEADER,
   signMintRequest,
-} from '../license-mint-client.js';
+} from '../license/mint-client.js';
+import { validateLicenseKey } from '../license.js';
 
 let privateKeyPem: string;
 let publicKeyPem: string;

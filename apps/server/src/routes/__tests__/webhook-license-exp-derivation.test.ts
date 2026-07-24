@@ -73,8 +73,8 @@ vi.mock('@revealui/core/license', async () => {
 
 vi.mock('@revealui/core/license/mint-client', async () => {
   const actual = await vi.importActual<
-    typeof import('../../../../../packages/core/src/license-mint-client.ts')
-  >('../../../../../packages/core/src/license-mint-client.ts');
+    typeof import('../../../../../packages/core/src/license/mint-client.ts')
+  >('../../../../../packages/core/src/license/mint-client.ts');
   return actual;
 });
 

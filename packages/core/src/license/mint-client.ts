@@ -21,7 +21,7 @@
  */
 
 import { createHmac } from 'node:crypto';
-import { generateLicenseKey, readPemEnv } from './license.js';
+import { generateLicenseKey, readPemEnv } from '../license.js';
 
 export const SIGNER_TIMESTAMP_HEADER = 'x-revealui-signer-timestamp';
 export const SIGNER_SIGNATURE_HEADER = 'x-revealui-signer-signature';
@@ -123,9 +123,17 @@ function buildMintBody(input: MintLicensePayload): Record<string, unknown> {
   return body;
 }
 
+/** Strip trailing `/` without regex (CodeQL js/polynomial-redos + fleet no-regex). */
+function stripTrailingSlashes(s: string): string {
+  let end = s.length;
+  while (end > 0 && s.charCodeAt(end - 1) === 47 /* / */) {
+    end -= 1;
+  }
+  return end === s.length ? s : s.slice(0, end);
+}
+
 function joinSignerUrl(base: string, path: string): string {
-  const trimmed = base.replace(/\/+$/, '');
-  return `${trimmed}${path}`;
+  return `${stripTrailingSlashes(base)}${path}`;
 }
 
 async function mintViaSigner(
