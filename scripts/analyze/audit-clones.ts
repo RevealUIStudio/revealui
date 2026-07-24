@@ -88,6 +88,7 @@ function walk(dir: string, out: string[]): void {
       walk(join(dir, e.name), out);
       continue;
     }
+    if (!e.isFile()) continue;
     if (shouldSkipFile(e.name)) continue;
     out.push(join(dir, e.name));
   }
@@ -109,25 +110,20 @@ function main(): void {
   let skippedSmall = 0;
 
   for (const file of files) {
-    let st: Stats;
-    try {
-      st = statSync(file);
-    } catch {
-      continue;
-    }
-    if (!st.isFile() || st.size < minBytes) {
-      skippedSmall++;
-      continue;
-    }
-    // Cap read size for pathological huge files
-    if (st.size > 2_000_000) continue;
-
+    // Single read — avoid stat+read TOCTOU (CodeQL js/file-system-race).
     let buf: Buffer;
     try {
       buf = readFileSync(file);
     } catch {
       continue;
     }
+    const size = buf.byteLength;
+    if (size < minBytes) {
+      skippedSmall++;
+      continue;
+    }
+    // Cap pathological huge files (already in memory once; skip hashing only)
+    if (size > 2_000_000) continue;
     // Skip likely-binary
     if (buf.includes(0)) continue;
 
