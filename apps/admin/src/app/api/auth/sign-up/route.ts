@@ -63,7 +63,8 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     }
 
     const rawPlan = request.nextUrl.searchParams.get('plan');
-    const plan: 'pro' | 'max' | null = rawPlan === 'pro' || rawPlan === 'max' ? rawPlan : null;
+    const plan: 'pro' | 'max' | 'enterprise' | null =
+      rawPlan === 'pro' || rawPlan === 'max' || rawPlan === 'enterprise' ? rawPlan : null;
 
     let body: unknown;
     try {

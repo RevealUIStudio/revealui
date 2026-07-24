@@ -111,6 +111,14 @@ describe('SUBSCRIPTION_TIERS', () => {
     expect(highlighted[0].id).toBe('pro');
   });
 
+  // GAP-302 Phase 1: Enterprise subscription is self-serve (not mailto).
+  it('enterprise subscription CTA is self-serve signup, not mailto', () => {
+    const enterprise = SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise')!;
+    expect(enterprise.ctaHref.startsWith('mailto:')).toBe(false);
+    expect(enterprise.ctaHref).toBe('/signup?plan=enterprise');
+    expect(enterprise.features.some((f) => f.includes('coming soon'))).toBe(true);
+  });
+
   it('free tier has no period', () => {
     const free = SUBSCRIPTION_TIERS.find((t) => t.id === 'free')!;
     expect(free.period).toBeUndefined();

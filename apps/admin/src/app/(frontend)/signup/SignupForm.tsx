@@ -46,10 +46,11 @@ export function SignupForm({ apiUrl }: SignupFormProps) {
 function SignupContent({ apiUrl }: SignupFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Paid-tier deep link from the marketing pricing cards (?plan=pro|max).
+  // Paid-tier deep link from the marketing pricing cards (?plan=pro|max|enterprise).
   // Unknown values are ignored rather than forwarded to the billing page.
   const planParam = searchParams.get('plan');
-  const plan: 'pro' | 'max' | null = planParam === 'pro' || planParam === 'max' ? planParam : null;
+  const plan: 'pro' | 'max' | 'enterprise' | null =
+    planParam === 'pro' || planParam === 'max' || planParam === 'enterprise' ? planParam : null;
   const {
     register: registerPasskey,
     isLoading: isPasskeyLoading,
@@ -243,7 +244,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
 
       {plan ? (
         <p className="text-sm text-muted-foreground">
-          Sign up to start your free 7-day {plan === 'pro' ? 'Pro' : 'Max'} trial.
+          Sign up to start your free 7-day{' '}
+          {plan === 'pro' ? 'Pro' : plan === 'max' ? 'Max' : 'Enterprise'} trial.
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">

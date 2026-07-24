@@ -11,15 +11,24 @@ const reader = (params: Record<string, string | null>) => ({
 });
 
 describe('parseUpgrade', () => {
-  it('accepts the known checkout plans', () => {
+  it('accepts the known checkout plans including enterprise (GAP-302 Phase 1)', () => {
     expect(parseUpgrade('pro')).toBe('pro');
     expect(parseUpgrade('max')).toBe('max');
+    expect(parseUpgrade('enterprise')).toBe('enterprise');
   });
 
   it('rejects unknown values and null', () => {
-    expect(parseUpgrade('enterprise')).toBeNull();
+    expect(parseUpgrade('enterprise-deluxe')).toBeNull();
     expect(parseUpgrade('')).toBeNull();
     expect(parseUpgrade(null)).toBeNull();
+  });
+});
+
+describe('resolveAuthDest enterprise', () => {
+  it('routes enterprise upgrade to billing checkout intent', () => {
+    expect(resolveAuthDest({ upgrade: 'enterprise', redirect: null, fallback: '/welcome' })).toBe(
+      '/account/billing?upgrade=enterprise',
+    );
   });
 });
 
