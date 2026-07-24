@@ -45,6 +45,18 @@ describe('isUsOriginInferenceSnap', () => {
       expect(isUsOriginInferenceSnap(id)).toBe(false);
     },
   );
+
+  it('allows Canonical engine model ids under an allowlisted snap prefix', () => {
+    expect(isUsOriginInferenceSnap('nemotron-3-nano-30b-a3b-q4-k-m')).toBe(true);
+    expect(isUsOriginInferenceSnap('nemotron-3-nano-omni-vision')).toBe(true);
+    expect(isUsOriginInferenceSnap('gemma4:it')).toBe(true);
+  });
+
+  it('does not treat unrelated prefixes as allowlisted snaps', () => {
+    // Must not match by loose substring (e.g. "nano" alone)
+    expect(isUsOriginInferenceSnap('not-nemotron-3-nano')).toBe(false);
+    expect(isUsOriginInferenceSnap('deepseek-r1-nemotron-3-nano')).toBe(false);
+  });
 });
 
 describe('assertUsOriginInferenceSnap', () => {
