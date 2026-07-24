@@ -18,6 +18,7 @@ import {
 } from '@revealui/resilience';
 import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
+import { applyLocalAiProfileToEnv } from './local-ai-profile.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
 import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js';
 import type {
@@ -38,7 +39,6 @@ import {
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
-import { applyLocalAiProfileToEnv } from './local-ai-profile.js';
 import { DEFAULT_US_ORIGIN_INFERENCE_SNAP } from './providers/us-origin-snaps.js';
 import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';

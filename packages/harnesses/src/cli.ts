@@ -536,7 +536,7 @@ async function main() {
     }
     if (subcommand === 'apply') {
       const tier = tierArg as 'idle' | 'daily' | 'snaps' | 'heavy' | undefined;
-      if (!tier || !['idle', 'daily', 'snaps', 'heavy'].includes(tier)) {
+      if (!(tier && ['idle', 'daily', 'snaps', 'heavy'].includes(tier))) {
         process.stderr.write(
           'Usage: revealui-harnesses inference apply <idle|daily|snaps|heavy>\n',
         );

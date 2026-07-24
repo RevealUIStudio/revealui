@@ -8,10 +8,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   applyLocalAiProfileToEnv,
   emptyIdleProfile,
+  type LocalAiProfile,
   loadLocalAiProfile,
   profileDefaultsForTier,
   saveLocalAiProfile,
-  type LocalAiProfile,
 } from '../local-ai-profile.js';
 
 const dirs: string[] = [];
