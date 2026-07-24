@@ -6,6 +6,8 @@
  * cross-package imports beyond its own declared dependencies.
  */
 
+import { pathToFileURL } from 'node:url';
+
 // =============================================================================
 // Exit Codes
 // =============================================================================
@@ -18,6 +20,31 @@ export const ExitCode = {
 } as const;
 
 export type ExitCode = (typeof ExitCode)[keyof typeof ExitCode];
+
+// =============================================================================
+// Entry detection
+// =============================================================================
+
+/**
+ * True when `importMetaUrl` is the process entry script (direct `node`/`tsx` run).
+ *
+ * Launcher modules export `launch*Mcp` for programmatic use and re-export from
+ * the package barrel. They must not call `main()` on every import — that
+ * `process.exit`s the host process (apps/server, Vitest) when anything loads
+ * `@revealui/mcp` for `MCPHypervisor` (GAP-406 WIRE).
+ *
+ * CLI (`revealui-mcp <server>`) calls `launch*Mcp` explicitly; direct file
+ * runs still auto-start via this check.
+ */
+export function isDirectEntry(importMetaUrl: string): boolean {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return importMetaUrl === pathToFileURL(entry).href;
+  } catch {
+    return false;
+  }
+}
 
 // =============================================================================
 // Logger

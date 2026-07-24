@@ -11,7 +11,7 @@
 
 import { spawn } from 'node:child_process';
 import { config } from 'dotenv';
-import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
+import { createLauncherLogger, ExitCode, isDirectEntry } from './_launcher-utils.js';
 
 const logger = createLauncherLogger();
 
@@ -97,4 +97,7 @@ async function main() {
   }
 }
 
-main();
+// Direct CLI only — never on package import (barrel re-exports launchNeonMcp).
+if (isDirectEntry(import.meta.url)) {
+  void main();
+}
