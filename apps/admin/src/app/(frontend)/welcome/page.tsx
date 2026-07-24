@@ -123,8 +123,8 @@ export default function WelcomePage() {
               </div>
               <h2 className="text-lg font-semibold text-foreground">First governed agent action</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Run an agent in your workspace. Every agent is a governed and audited user
-                with a receipt you can check.
+                Run an agent in your workspace. Every agent is a governed and audited user with a
+                receipt you can check.
               </p>
               <a
                 href="/agents"
