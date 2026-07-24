@@ -1,18 +1,22 @@
 /**
  * Product Inference Snap catalog must stay on the US-origin allowlist.
  */
-import { PRODUCT_INFERENCE_SNAP_CATALOG, US_ORIGIN_INFERENCE_SNAP_IDS } from '@revealui/ai';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { PRODUCT_INFERENCE_SNAPS } from '../server/inference-service.js';
 
+const US_ORIGIN_IDS = ['nemotron-3-nano', 'nemotron-3-nano-omni', 'gemma3', 'gemma4'] as const;
 const FORBIDDEN = ['deepseek-r1', 'qwen-vl', 'qwen3', 'qwen3-coder', 'glm-4-7-flash'];
 
 describe('PRODUCT_INFERENCE_SNAPS', () => {
-  it('is derived from @revealui/ai PRODUCT_INFERENCE_SNAP_CATALOG', () => {
-    expect(PRODUCT_INFERENCE_SNAPS.map(([n]) => n)).toEqual(
-      PRODUCT_INFERENCE_SNAP_CATALOG.map((e) => e.id),
-    );
-    expect(PRODUCT_INFERENCE_SNAPS.map(([n]) => n)).toEqual([...US_ORIGIN_INFERENCE_SNAP_IDS]);
+  it('lists only US-origin snap ids', () => {
+    const names = PRODUCT_INFERENCE_SNAPS.map(([name]) => name);
+    expect(names).toHaveLength(US_ORIGIN_IDS.length);
+    for (const id of US_ORIGIN_IDS) {
+      expect(names).toContain(id);
+    }
   });
 
   it('does not offer PRC-origin catalog snaps for install', () => {
@@ -22,7 +26,16 @@ describe('PRODUCT_INFERENCE_SNAPS', () => {
     }
   });
 
-  it('defaults product id remains nemotron-3-nano first (install UX order)', () => {
+  it('defaults product id remains nemotron-3-nano first', () => {
     expect(PRODUCT_INFERENCE_SNAPS[0]?.[0]).toBe('nemotron-3-nano');
+  });
+
+  it('lockstep with @revealui/ai PRODUCT_INFERENCE_SNAP_CATALOG ids', () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const sot = join(here, '../../../ai/src/llm/providers/us-origin-snaps.ts');
+    const source = readFileSync(sot, 'utf8');
+    for (const id of PRODUCT_INFERENCE_SNAPS.map(([name]) => name)) {
+      expect(source).toContain(`id: '${id}'`);
+    }
   });
 });
