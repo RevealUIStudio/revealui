@@ -23,7 +23,7 @@
 
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from './base.js';
-import { emitMcpEvent, type McpEventSink } from './mcp-events.js';
+import { emitMcpEvent, type McpEventSink, type McpToolCallEvent } from './mcp-events.js';
 
 export interface MCPTool {
   name: string;
@@ -197,6 +197,14 @@ export interface CreateToolsFromMcpClientOptions {
    * Safe to pass a throwing sink — adapter swallows sink errors.
    */
   onEvent?: McpEventSink;
+  /**
+   * Integrity audit hook (GAP-355 Stage 5). Fires once per **server tool**
+   * call with the same summary shape as `mcp.tool.call` events. Unlike
+   * `onEvent`, this is **awaited** and **rethrows** so a failed audit write
+   * fails the tool execution (fail-closed). Resource/prompt meta-tools are
+   * not audited here (inventory residual S5-4).
+   */
+  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
 }
 
 /** Spec-shaped `Progress` notification subset. */
@@ -263,6 +271,7 @@ export async function createToolsFromMcpClient(
     ...(options.onProgress !== undefined ? { onProgress: options.onProgress } : {}),
     ...(options.signal !== undefined ? { signal: options.signal } : {}),
     ...(options.onEvent !== undefined ? { onEvent: options.onEvent } : {}),
+    ...(options.onToolAudit !== undefined ? { onToolAudit: options.onToolAudit } : {}),
   };
 
   const tools: Tool[] = [];
@@ -302,6 +311,13 @@ interface BuildToolContext {
   onProgress?: (event: McpProgressEvent) => void;
   signal?: AbortSignal;
   onEvent?: McpEventSink;
+  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
+}
+
+/** Await integrity audit; rethrow so unrecorded tool success cannot complete. */
+async function awaitToolAudit(ctx: BuildToolContext, event: McpToolCallEvent): Promise<void> {
+  if (!ctx.onToolAudit) return;
+  await ctx.onToolAudit(event);
 }
 
 /**
@@ -338,6 +354,10 @@ function buildServerTool(
     async execute(params: unknown): Promise<ToolResult> {
       const validated = zodSchema.parse(params);
       const started = Date.now();
+      let toolSucceeded = false;
+      let errorText: string | undefined;
+      let payload: unknown;
+
       try {
         const result = await client.callTool(
           descriptor.name,
@@ -345,38 +365,37 @@ function buildServerTool(
           buildRequestOptions(ctx, descriptor.name),
         );
         if (result.isError) {
-          const errorText = extractErrorText(result);
-          emitMcpEvent(ctx.onEvent, {
-            kind: 'mcp.tool.call',
-            namespace: ctx.namespace,
-            toolName: descriptor.name,
-            duration_ms: Date.now() - started,
-            success: false,
-            error: errorText,
-          });
-          return { success: false, error: errorText };
+          errorText = extractErrorText(result);
+        } else {
+          toolSucceeded = true;
+          payload = result.structuredContent ?? result.content;
         }
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.tool.call',
-          namespace: ctx.namespace,
-          toolName: descriptor.name,
-          duration_ms: Date.now() - started,
-          success: true,
-        });
-        const payload = result.structuredContent ?? result.content;
-        return { success: true, data: serializeMCPResult(payload) };
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.tool.call',
-          namespace: ctx.namespace,
-          toolName: descriptor.name,
-          duration_ms: Date.now() - started,
-          success: false,
-          error: message,
-        });
-        return { success: false, error: message };
+        errorText = error instanceof Error ? error.message : String(error);
       }
+
+      const event: McpToolCallEvent = {
+        kind: 'mcp.tool.call',
+        namespace: ctx.namespace,
+        toolName: descriptor.name,
+        duration_ms: Date.now() - started,
+        success: toolSucceeded,
+        ...(errorText !== undefined ? { error: errorText } : {}),
+      };
+      emitMcpEvent(ctx.onEvent, event);
+
+      if (toolSucceeded) {
+        // Integrity: unrecorded success must not complete as success.
+        await awaitToolAudit(ctx, event);
+        return { success: true, data: serializeMCPResult(payload) };
+      }
+
+      try {
+        await awaitToolAudit(ctx, event);
+      } catch {
+        // Prefer the tool failure over a secondary audit failure.
+      }
+      return { success: false, error: errorText ?? 'Tool failed' };
     },
 
     getMetadata() {

@@ -27,6 +27,7 @@ import {
   createAgentRunSession,
   deleteAgentRunSession,
 } from '../lib/agent-run-sessions.js';
+import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { recordUsageMeter } from '../lib/metering.js';
@@ -275,6 +276,8 @@ app.openapi(agentStreamRoute, async (c) => {
   const accountId = getEntitlementsFromContext(c).accountId;
   const runSession = createAgentRunSession(user.id);
   const streamRef: { current: SSEStreamingApi | undefined } = { current: undefined };
+  // Late-bound task id for tool-audit rows (task object is built after MCP tools).
+  const taskRef: { id: string } = { id: `task-${Date.now()}` };
 
   const loggerSink = aiMod.createCoreLoggerSink();
   const meterSink = accountId
@@ -418,6 +421,21 @@ app.openapi(agentStreamRoute, async (c) => {
         const mcpTools = await aiMod.createToolsFromMcpClient(built.client, {
           namespace: server,
           onEvent,
+          // GAP-355 S5-2: integrity audit (awaited, fail-closed on success).
+          onToolAudit: async (event) => {
+            await recordAgentMcpToolAudit({
+              namespace: event.namespace,
+              toolName: event.toolName,
+              success: event.success,
+              durationMs: event.duration_ms,
+              ...(event.error !== undefined ? { error: event.error } : {}),
+              sessionId: runSession.sessionId,
+              accountId,
+              userId: user.id,
+              agentId: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
+              taskId: taskRef.id,
+            });
+          },
         });
         mcpClients.push(built.client);
         allTools.push(...mcpTools);
@@ -473,7 +491,7 @@ Workspace: ${workspaceId}`,
   };
 
   const task = {
-    id: `task-${Date.now()}`,
+    id: taskRef.id,
     type: 'instruction',
     description: body.instruction,
   };
@@ -482,6 +500,9 @@ Workspace: ${workspaceId}`,
     maxIterations: 10,
     timeout: 120_000,
   });
+
+  const streamAgentId = mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent';
+  const auditStore = createAuditStore(getClient());
 
   return streamSSE(c, async (stream) => {
     const controller = new AbortController();
@@ -503,6 +524,39 @@ Workspace: ${workspaceId}`,
       }),
     });
 
+    // GAP-355 S5-2: task start — fail closed if we cannot record.
+    try {
+      await auditStore.append({
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        eventType: 'agent:task:started',
+        severity: 'info',
+        agentId: streamAgentId,
+        taskId: task.id,
+        sessionId: runSession.sessionId,
+        payload: {
+          mode,
+          userId: user.id,
+          instructionPreview: body.instruction.slice(0, 200),
+        },
+        policyViolations: [],
+        tenant: accountId ?? null,
+      });
+    } catch (startAuditErr) {
+      await stream.writeSSE({
+        data: JSON.stringify({
+          type: 'error',
+          error:
+            startAuditErr instanceof Error
+              ? `Audit start failed: ${startAuditErr.message}`
+              : 'Audit start failed',
+        }),
+        event: 'error',
+      });
+      return;
+    }
+
+    let taskOk = false;
     try {
       // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
       // the runtime type is LLMClient when present.
@@ -518,7 +572,11 @@ Workspace: ${workspaceId}`,
           event: chunk.type,
         });
 
-        if (chunk.type === 'done' || chunk.type === 'error') break;
+        if (chunk.type === 'done') {
+          taskOk = true;
+          break;
+        }
+        if (chunk.type === 'error') break;
       }
     } catch (error) {
       await stream.writeSSE({
@@ -529,6 +587,22 @@ Workspace: ${workspaceId}`,
         event: 'error',
       });
     } finally {
+      try {
+        await auditStore.append({
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+          eventType: taskOk ? 'agent:task:completed' : 'agent:task:failed',
+          severity: taskOk ? 'info' : 'warn',
+          agentId: streamAgentId,
+          taskId: task.id,
+          sessionId: runSession.sessionId,
+          payload: { success: taskOk, mode },
+          policyViolations: [],
+          tenant: accountId ?? null,
+        });
+      } catch {
+        // Completion audit best-effort after stream ends
+      }
       // Tear down any MCP clients we connected at handler entry so
       // sockets + OAuth-refresh timers don't leak across requests.
       for (const client of mcpClients) {
