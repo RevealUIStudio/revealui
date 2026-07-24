@@ -50,3 +50,5 @@ Marketing and package copy still describe the MCP hypervisor as the live agent t
 - No production import of `MCPHypervisor.getInstance` / constructor under `apps/` (code-over-docs).
 - No production import of `@revealui/ai/skills` or `@revealui/ai/observability` under `apps/`.
 - File headers and package README/index comments state incubating posture (same change set).
+- **Phase 6 gate:** `pnpm validate:incubate-posture` (CI phase 1 + Quality job) fails if apps mount these surfaces without a WIRE train. Standing ticket: GAP-406.
+- **Clone advisory:** `pnpm audit:clones` reports exact multi-file clones under `packages/` (optional prevention; advisory exit 0).
