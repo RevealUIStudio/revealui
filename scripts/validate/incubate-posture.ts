@@ -16,7 +16,7 @@ import { join, relative } from 'node:path';
 const REPO_ROOT = join(import.meta.dirname, '..', '..');
 const SOURCE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 
-function isExemptAppPath(rel: string): boolean {
+function isExemptAppPath(rel: string, label?: string): boolean {
   const lower = rel.toLowerCase();
   if (lower.includes('__tests__') || lower.includes('/test/') || lower.includes('/tests/')) {
     return true;
@@ -24,6 +24,10 @@ function isExemptAppPath(rel: string): boolean {
   if (lower.endsWith('.test.ts') || lower.endsWith('.test.tsx')) return true;
   if (lower.endsWith('.spec.ts') || lower.endsWith('.spec.tsx')) return true;
   if (lower.includes('/content/') || lower.includes('/public/')) return true;
+  // GAP-406 WIRE phase 1: sole allowed MCPHypervisor consumer (sink wire only).
+  if (label === 'MCPHypervisor' && rel === 'apps/server/src/lib/mcp-hypervisor-wire.ts') {
+    return true;
+  }
   return false;
 }
 
@@ -92,7 +96,6 @@ function main(): void {
 
   for (const file of files) {
     const rel = relative(REPO_ROOT, file).replaceAll('\\', '/');
-    if (isExemptAppPath(rel)) continue;
     let source: string;
     try {
       source = readFileSync(file, 'utf8');
@@ -100,6 +103,7 @@ function main(): void {
       continue;
     }
     for (const rule of FORBIDDEN) {
+      if (isExemptAppPath(rel, rule.label)) continue;
       for (const n of rule.needles) {
         if (source.includes(n)) {
           errors.push(
@@ -116,7 +120,9 @@ function main(): void {
   console.log('================================================================');
 
   if (errors.length === 0) {
-    console.log('  ✓ no apps/* production imports of MCPHypervisor');
+    console.log(
+      '  ✓ no apps/* production imports of MCPHypervisor (except mcp-hypervisor-wire GAP-406 p1)',
+    );
     console.log('  ✓ no apps/* production imports of @revealui/ai/skills');
     console.log('  ✓ no apps/* production imports of @revealui/ai/observability');
     console.log('================================================================\n');

@@ -45,6 +45,20 @@ Marketing and package copy still describe the MCP hypervisor as the live agent t
 - Future WIRE PRs must update claims and this ADR status (or supersede) in the same train.
 - Phase 3 parallel work (C3 logger ADR, C5 `createVitestConfig`) is unaffected.
 
+## Progress — GAP-406 WIRE phase 1 (2026-07-24)
+
+**Partial WIRE of MCPHypervisor only** (sink installation, not process spawn):
+
+| Item | Status |
+|------|--------|
+| Opt-in env `REVEALUI_MCP_HYPERVISOR=1` | Shipped — `apps/server/src/lib/mcp-hypervisor-wire.ts` |
+| `setUsageMeterSink` → `usage_meters` | Shipped when `tenantId` present on event |
+| `setAuditSink` → `recordMcpToolAudit` | Shipped |
+| Auto-spawn MCP children / credential resolver | **Not** in phase 1 |
+| `@revealui/ai/skills` / `observability` app mount | Still incubating |
+
+`validate:incubate-posture` allowlists only `mcp-hypervisor-wire.ts` for Hypervisor imports.
+
 ## Verification
 
 - No production import of `MCPHypervisor.getInstance` / constructor under `apps/` (code-over-docs).
