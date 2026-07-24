@@ -73,3 +73,58 @@ export async function recordAgentMcpToolAudit(input: AgentMcpToolAuditInput): Pr
     throw err;
   }
 }
+
+export interface AgentToolDeniedAuditInput {
+  toolName: string;
+  reason: string;
+  namespace?: string;
+  sessionId?: string;
+  accountId?: string | null;
+  userId?: string | null;
+  agentId?: string;
+  taskId?: string;
+  db?: Database;
+}
+
+/**
+ * Append agent:tool:denied (GAP-355 Stage 6 S6-3). Soft-fail path on stream —
+ * callers may swallow throw so the model still receives a deny ToolResult.
+ */
+export async function recordAgentToolDenied(input: AgentToolDeniedAuditInput): Promise<void> {
+  const id = randomUUID();
+  const eventType = 'agent:tool:denied';
+  const agentId = input.agentId ?? 'agent-stream';
+
+  const payload: Record<string, unknown> = {
+    tool: input.toolName,
+    reason: input.reason,
+    success: false,
+  };
+  if (input.namespace !== undefined) payload.namespace = input.namespace;
+  if (input.userId !== undefined) payload.userId = input.userId;
+  if (input.accountId !== undefined) payload.accountId = input.accountId;
+
+  try {
+    await createAuditStore(input.db ?? getClient()).append({
+      id,
+      timestamp: new Date(),
+      eventType,
+      severity: 'warn',
+      agentId,
+      ...(input.taskId !== undefined ? { taskId: input.taskId } : {}),
+      ...(input.sessionId !== undefined ? { sessionId: input.sessionId } : {}),
+      payload,
+      policyViolations: [input.reason],
+      tenant: input.accountId ?? null,
+    });
+    recordAuditWriteResult({ ok: true, eventId: id, eventType });
+  } catch (err) {
+    recordAuditWriteResult({
+      ok: false,
+      reason: classifyAuditWriteFailure(err),
+      eventId: id,
+      eventType,
+    });
+    throw err;
+  }
+}

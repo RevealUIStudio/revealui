@@ -22,12 +22,14 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { type SSEStreamingApi, streamSSE } from 'hono/streaming';
+import { resolveStreamPrincipal } from '../lib/agent-principal.js';
 import {
   awaitElicitationResponse,
   createAgentRunSession,
   deleteAgentRunSession,
 } from '../lib/agent-run-sessions.js';
 import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
+import { applyAgentToolGovernance } from '../lib/agent-tool-governance.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { recordUsageMeter } from '../lib/metering.js';
@@ -195,11 +197,21 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
   const mode = body.mode ?? 'admin';
-  const streamAgentId = mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent';
   const accountId = getEntitlementsFromContext(c).accountId;
+  const tenantId = c.get('tenant')?.id ?? null;
   const runSession = createAgentRunSession(user.id);
   // Late-bound task id for tool-audit rows (task object is built after tools).
   const taskRef: { id: string } = { id: `task-${Date.now()}` };
+
+  // GAP-355 S6-1: server-derived principal for pre-authorize (never client input).
+  const streamPrincipal = resolveStreamPrincipal({
+    mode,
+    userId: user.id,
+    userRole: user.role,
+    tenantId,
+    accountId,
+  });
+  const streamAgentId = streamPrincipal.agentId;
 
   // GAP-355 S5-4: integrity audit for non-MCP tools (admin CMS + coding).
   const streamToolAudit =
@@ -219,10 +231,19 @@ app.openapi(agentStreamRoute, async (c) => {
         sessionId: runSession.sessionId,
         accountId,
         userId: user.id,
-        agentId: streamAgentId,
+        agentId: streamPrincipal.agentId,
         taskId: taskRef.id,
       });
     };
+
+  const governanceCtx = (namespace: string) => ({
+    principal: streamPrincipal,
+    namespace,
+    sessionId: runSession.sessionId,
+    accountId,
+    userId: user.id,
+    taskId: taskRef.id,
+  });
 
   // Load admin tools so the agent can manage content, media, users, globals
   let cmsTools: unknown[] = [];
@@ -247,10 +268,13 @@ app.openapi(agentStreamRoute, async (c) => {
       const { createInternalAdminClient } = await import('../lib/internal-admin-client.js');
       const apiClient = createInternalAdminClient(apiBase, sessionToken);
 
-      cmsTools = cmsToolsMod.createAdminTools({
+      // Integrity (S5) inside factory; governance (S6) wraps outside so deny
+      // never executes the tool.
+      const rawAdmin = cmsToolsMod.createAdminTools({
         apiClient,
         onToolAudit: streamToolAudit('admin-cms'),
       });
+      cmsTools = applyAgentToolGovernance(rawAdmin, governanceCtx('admin-cms'));
     }
   } catch {
     // admin tools unavailable  -  agent will work without them
@@ -282,13 +306,14 @@ app.openapi(agentStreamRoute, async (c) => {
             error?: string;
           }) => void | Promise<void>;
         }) => unknown[];
-        codingTools = createCodingTools({
+        const rawCoding = createCodingTools({
           projectRoot,
           allowedPaths: process.env.CODING_ALLOWED_PATHS?.split(','),
           // Local (free tier): only read-only tools (no file_write, file_edit, shell_exec, git_ops)
           ...(isLocalOnly && { include: readOnlyCodingTools }),
           onToolAudit: streamToolAudit('coding'),
-        });
+        }) as Array<{ name: string; execute: (params: unknown) => Promise<unknown> }>;
+        codingTools = applyAgentToolGovernance(rawCoding, governanceCtx('coding'));
       }
     } catch {
       // Coding tools unavailable  -  agent will work with admin tools only
