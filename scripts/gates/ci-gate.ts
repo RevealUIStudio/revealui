@@ -327,6 +327,12 @@ async function gate(): Promise<void> {
         args: ['validate:gitignore'],
       },
       {
+        // ADR-007: C11 incubators stay unmounted from apps until WIRE (GAP-406)
+        name: 'Incubate posture (hard fail)',
+        command: 'pnpm',
+        args: ['validate:incubate-posture'],
+      },
+      {
         name: 'Claim drift (hard fail)',
         command: 'pnpm',
         args: ['validate:claims'],

@@ -66,6 +66,11 @@ jobs:
       - name: Console audit
         run: pnpm audit:console
 
+      # Phase 6 prevention: exact clone report under packages/ (advisory only)
+      - name: Exact clone audit (packages/, advisory)
+        continue-on-error: true
+        run: pnpm audit:clones
+
       - name: Structure validation
         run: pnpm validate:structure
 
@@ -86,6 +91,9 @@ jobs:
 
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
+
+      - name: Incubate posture (ADR-007, hard fail)
+        run: pnpm validate:incubate-posture
 
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims

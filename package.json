@@ -133,6 +133,7 @@
   },
   "scripts": {
     "audit:any": "tsx scripts/analyze/audit-any-types.ts",
+    "audit:clones": "tsx scripts/analyze/audit-clones.ts",
     "audit:console": "tsx scripts/analyze/audit-console.ts",
     "audit:emdash": "tsx scripts/analyze/audit-emdash.ts",
     "audit:palette-text": "tsx scripts/analyze/audit-text-palette.ts",
@@ -228,6 +229,7 @@
     "validate:artifacts": "tsx scripts/validate/build-artifacts.ts",
     "validate:boundary": "tsx scripts/validate/boundary.ts",
     "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",
+    "validate:incubate-posture": "tsx scripts/validate/incubate-posture.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
