@@ -19,7 +19,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync, type Dirent, type Stats } from 'node:fs';
+import { type Dirent, existsSync, readdirSync, readFileSync, type Stats, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const REPO_ROOT = process.cwd();
@@ -145,7 +145,13 @@ function main(): void {
       groups.push(paths.sort());
     }
   }
-  groups.sort((a, b) => b.length - a.length || a[0]!.localeCompare(b[0]!));
+  groups.sort((a, b) => {
+    const byLen = b.length - a.length;
+    if (byLen !== 0) return byLen;
+    const a0 = a[0] ?? '';
+    const b0 = b[0] ?? '';
+    return a0.localeCompare(b0);
+  });
 
   console.log('\n================================================================');
   console.log('  Exact clone audit (packages/) — Phase 6 prevention');
