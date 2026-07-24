@@ -85,6 +85,12 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseExp: vi.fn(async () => null),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('test-jwt-license-key'),
+}));
+
 vi.mock('@revealui/core/features', () => ({
   getFeaturesForTier: vi.fn(() => ({ ai: true, payments: true })),
 }));

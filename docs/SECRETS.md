@@ -305,9 +305,11 @@ revealui/env/license-signing  # PRIVATE: REVEALUI_LICENSE_PRIVATE_KEY
 # It previously held a pre-cutover RSA/RS256 pair. The target is UNVERIFIED: a stale RSA-era value
 # may still occupy this path (RSA is incompatible with the Ed25519 runtime verifier), so the P3-4
 # value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
-# GAP-260 P4-2 (apps/license-signer), not platform-synced until signer deploy:
+# GAP-260 P4-2/P4-3 (apps/license-signer + mint-client), not platform-synced until deploy:
 revealui/prod/license/signer-invoke-secret  # REVEALUI_SIGNER_INVOKE_SECRET
                                             # HMAC for POST /internal/mint; NEVER reuse REVEALUI_SECRET
+revealui/prod/license/signer-url            # REVEALUI_LICENSE_SIGNER_URL (public base URL)
+# Plain env (not vault): REVEALUI_LICENSE_SIGN_VIA_SIGNER=1 enables remote mint (P4-3)
 ```
 
 Operator migration (one-time, owner machine):
@@ -328,7 +330,12 @@ back to "private key present → hosted". `MODE=forge` with a private key presen
 
 **License-signer (GAP-260 P4-2):** `apps/license-signer` is the isolated mint process. It
 requires `REVEALUI_LICENSE_PRIVATE_KEY` + `REVEALUI_SIGNER_INVOKE_SECRET` at boot (fail-loud).
-Mint cutover from api/webhooks is P4-3; private-key drop from admin/Fly is P4-4.
+
+**Mint cutover (GAP-260 P4-3):** online mint surfaces (`apps/server` webhooks +
+`POST /api/license/generate`) call `@revealui/core/license/mint-client`. Default remains
+local private-key mint. Set `REVEALUI_LICENSE_SIGN_VIA_SIGNER=1` plus
+`REVEALUI_LICENSE_SIGNER_URL` and `REVEALUI_SIGNER_INVOKE_SECRET` on api (and worker if
+it mints) to route mints to the signer. Private-key drop from admin/Fly is P4-4.
 
 ### LLM / AI providers
 

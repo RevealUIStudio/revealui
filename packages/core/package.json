@@ -53,6 +53,11 @@
       "import": "./dist/license.js",
       "default": "./dist/license.js"
     },
+    "./license/mint-client": {
+      "types": "./dist/license/mint-client.d.ts",
+      "import": "./dist/license/mint-client.js",
+      "default": "./dist/license/mint-client.js"
+    },
     "./deployment-mode": {
       "types": "./dist/deployment-mode.d.ts",
       "import": "./dist/deployment-mode.js",

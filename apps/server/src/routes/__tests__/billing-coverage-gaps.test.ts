@@ -66,6 +66,12 @@ vi.mock('@revealui/core/license', () => ({
   getMaxAgentTasks: vi.fn(() => 10_000),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => {
   const mockLog = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
   return { logger: mockLog, createLogger: () => mockLog };

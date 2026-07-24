@@ -86,6 +86,12 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseExp: vi.fn(async () => null),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
@@ -273,6 +279,7 @@ vi.mock('../../middleware/license.js', () => ({
 // ─── Imports (after mocks) ──────────────────────────────────────────────────
 
 import * as licenseModule from '@revealui/core/license';
+import * as mintModule from '@revealui/core/license/mint-client';
 import webhooksApp from '../webhooks.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -337,7 +344,7 @@ describe('Webhook Lifecycle Complete', () => {
     vi.clearAllMocks();
     resetChains();
 
-    vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test');
+    vi.mocked(mintModule.mintLicenseKey).mockResolvedValue('rv-license-key-test');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
     mockSubscriptionsList.mockResolvedValue({ data: [] });
@@ -390,7 +397,7 @@ describe('Webhook Lifecycle Complete', () => {
 
       expect(res.status).toBe(200);
       // License key generated
-      expect(licenseModule.generateLicenseKey).toHaveBeenCalled();
+      expect(mintModule.mintLicenseKey).toHaveBeenCalled();
       // License inserted
       expect(mockDb.insert).toHaveBeenCalled();
       // Audit logged
@@ -427,10 +434,11 @@ describe('Webhook Lifecycle Complete', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(licenseModule.generateLicenseKey).toHaveBeenCalledWith(
-        expect.objectContaining({ tier: 'max' }),
-        expect.anything(),
-        expect.any(Number), // GAP-287 PR-2: period-bound expiresInSeconds
+      expect(mintModule.mintLicenseKey).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tier: 'max',
+          expiresInSeconds: expect.any(Number), // GAP-287 PR-2 period-bound
+        }),
       );
     });
 
@@ -507,7 +515,7 @@ describe('Webhook Lifecycle Complete', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(licenseModule.generateLicenseKey).toHaveBeenCalled();
+      expect(mintModule.mintLicenseKey).toHaveBeenCalled();
       expect(mockDb.insert).toHaveBeenCalled();
     });
   });
