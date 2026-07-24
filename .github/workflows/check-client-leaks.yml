@@ -17,4 +17,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: RevealUIStudio/.github/.github/actions/check-client-leaks@42fa7c4438bc4900f095f2374e3c4b8d2707e3f8
+      - uses: RevealUIStudio/.github/.github/actions/check-client-leaks@650b8dcaa4be7d21768a0d3f47ebb9437768d156
