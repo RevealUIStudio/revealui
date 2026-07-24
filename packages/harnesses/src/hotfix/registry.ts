@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
 import { controlManifestPath } from './paths.js';
 import { loadManifest, saveManifest } from './store.js';
@@ -166,21 +166,29 @@ export function sweepResolved(options?: { controlPath?: string; legacyPath?: str
 
 function walkFiles(root: string, out: string[], depth: number): void {
   if (depth > 12) return;
-  let entries: ReturnType<typeof readdirSync>;
+  let names: string[];
   try {
-    entries = readdirSync(root, { withFileTypes: true });
+    // string names (not Dirent) — Node 24 Dirent generics break tsup dts otherwise
+    names = readdirSync(root);
   } catch {
     return;
   }
-  for (const ent of entries) {
-    if (ent.isDirectory()) {
-      if (SKIP_DIR_NAMES.has(ent.name)) continue;
-      if (ent.name.startsWith('.') && ent.name !== '.claude' && ent.name !== '.jv') continue;
-      walkFiles(join(root, ent.name), out, depth + 1);
+  for (const name of names) {
+    const full = join(root, name);
+    let isDir = false;
+    try {
+      isDir = statSync(full).isDirectory();
+    } catch {
       continue;
     }
-    if (!SCAN_EXTENSIONS.has(extname(ent.name))) continue;
-    out.push(join(root, ent.name));
+    if (isDir) {
+      if (SKIP_DIR_NAMES.has(name)) continue;
+      if (name.startsWith('.') && name !== '.claude' && name !== '.jv') continue;
+      walkFiles(full, out, depth + 1);
+      continue;
+    }
+    if (!SCAN_EXTENSIONS.has(extname(name))) continue;
+    out.push(full);
   }
 }
 
