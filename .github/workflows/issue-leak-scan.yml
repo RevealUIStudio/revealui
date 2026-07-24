@@ -23,5 +23,5 @@ concurrency:
 
 jobs:
   scan:
-    uses: RevealUIStudio/.github/.github/workflows/issue-leak-scan-reusable.yml@650b8dcaa4be7d21768a0d3f47ebb9437768d156
+    uses: RevealUIStudio/.github/.github/workflows/issue-leak-scan-reusable.yml@8ea1ca5697dfc1f2041aac1368a9dd6d241121ab
     secrets: inherit
