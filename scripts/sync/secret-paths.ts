@@ -55,6 +55,7 @@ export interface SecretPathDef {
    * Where this path is consumed. Tokens:
    *   vercel:api | vercel:admin | vercel:marketing | vercel:docs | fly:worker
    *   with-secrets:license | with-secrets:license-signing
+   *   app:license-signer (GAP-260 P4-2 isolated mint process; not a Vercel app)
    */
   consumers: string[];
   /** Feeds P0-5 (⊇ REQUIRED_IN_PRODUCTION_HOSTED). Set only where confirmed required-at-boot. */
@@ -841,6 +842,18 @@ export const SECRET_PATHS: SecretPathDef[] = [
     consumers: ['with-secrets:license-signing'],
     intentionallyUnsynced: true,
     note: 'export-env signing bundle: REVEALUI_LICENSE_PRIVATE_KEY (+ public if needed for self-check). with-secrets license-signing requires REVVAULT_ALLOW_PRIVATE=1',
+  },
+  // GAP-260 P4-2: dedicated HMAC for apps/license-signer mint API.
+  // NOT REVEALUI_SECRET. Not platform-synced until the signer deploy lands (P4-3/P4-4).
+  {
+    path: 'revealui/prod/license/signer-invoke-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['app:license-signer'],
+    intentionallyUnsynced: true,
+    envVars: ['REVEALUI_SIGNER_INVOKE_SECRET'],
+    note: 'HMAC-SHA256 per-call auth for POST /internal/mint on apps/license-signer. No REVEALUI_SECRET fallback. Owner mints vault value before first signer deploy.',
   },
 ];
 
