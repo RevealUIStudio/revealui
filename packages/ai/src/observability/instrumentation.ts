@@ -89,6 +89,32 @@ export function instrumentAgent(
 }
 
 /**
+ * Optional observability fields callers may attach to a Task (not on core Task).
+ */
+type TaskObservabilityFields = Task & {
+  sessionId?: string;
+  input?: unknown;
+};
+
+function taskSessionId(task: Task): string {
+  const sessionId = (task as TaskObservabilityFields).sessionId;
+  return typeof sessionId === 'string' && sessionId.length > 0 ? sessionId : 'session';
+}
+
+function taskInputParams(task: Task): Record<string, unknown> {
+  const extended = task as TaskObservabilityFields;
+  if (
+    extended.input !== undefined &&
+    extended.input !== null &&
+    typeof extended.input === 'object' &&
+    !Array.isArray(extended.input)
+  ) {
+    return extended.input as Record<string, unknown>;
+  }
+  return (task.parameters ?? {}) as Record<string, unknown>;
+}
+
+/**
  * Instrument a task delegation decision
  */
 export function logTaskDelegation(
@@ -101,7 +127,7 @@ export function logTaskDelegation(
   logger.logDecision({
     timestamp: Date.now(),
     agentId: selectedAgent.id,
-    sessionId: task.sessionId,
+    sessionId: taskSessionId(task),
     taskId: task.id,
     reasoning,
     chosenTool: selectedAgent.name,
@@ -123,6 +149,7 @@ export async function instrumentTaskExecution<T extends AgentResult>(
   executor: () => Promise<T>,
 ): Promise<T> {
   const startTime = Date.now();
+  const sessionId = taskSessionId(task);
 
   try {
     const result = await executor();
@@ -132,10 +159,10 @@ export async function instrumentTaskExecution<T extends AgentResult>(
     logger.logToolCall({
       timestamp: Date.now(),
       agentId,
-      sessionId: task.sessionId,
+      sessionId,
       taskId: task.id,
       toolName: `task:${task.type}`,
-      params: task.input as Record<string, unknown>,
+      params: taskInputParams(task),
       result: result.output,
       durationMs,
       success: result.success,
@@ -149,7 +176,7 @@ export async function instrumentTaskExecution<T extends AgentResult>(
     logger.logError({
       timestamp: Date.now(),
       agentId,
-      sessionId: task.sessionId,
+      sessionId,
       taskId: task.id,
       message: `Task execution failed: ${task.type}`,
       stack: error instanceof Error ? error.stack : undefined,
@@ -252,7 +279,7 @@ export const LLMCostCalculators = {
       'gpt-3.5-turbo': { input: 0.5, output: 1.5 },
     };
 
-    const price = prices[model] || prices['gpt-3.5-turbo'];
+    const price = prices[model] ?? prices['gpt-3.5-turbo'] ?? { input: 0.5, output: 1.5 };
     return (
       (usage.promptTokens / 1_000_000) * price.input +
       (usage.completionTokens / 1_000_000) * price.output
@@ -270,7 +297,7 @@ export const LLMCostCalculators = {
       'claude-3-haiku': { input: 0.25, output: 1.25 },
     };
 
-    const price = prices[model] || prices['claude-3-sonnet'];
+    const price = prices[model] ?? prices['claude-3-sonnet'] ?? { input: 3, output: 15 };
     return (
       (usage.promptTokens / 1_000_000) * price.input +
       (usage.completionTokens / 1_000_000) * price.output

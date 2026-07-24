@@ -105,6 +105,11 @@
       "import": "./dist/skills/registry/index.js",
       "default": "./dist/skills/registry/index.js"
     },
+    "./observability": {
+      "types": "./dist/observability/index.d.ts",
+      "import": "./dist/observability/index.js",
+      "default": "./dist/observability/index.js"
+    },
     "./llm/cache-utils": {
       "types": "./dist/llm/cache-utils.d.ts",
       "import": "./dist/llm/cache-utils.js",

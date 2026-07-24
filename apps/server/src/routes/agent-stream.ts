@@ -30,6 +30,8 @@ import {
 } from '../lib/agent-run-sessions.js';
 import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
 import { applyAgentToolGovernance } from '../lib/agent-tool-governance.js';
+import { createAgentEventLoggerIfEnabled } from '../lib/ai-observability-wire.js';
+import { createSkillProviderIfEnabled } from '../lib/ai-skills-wire.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { recordUsageMeter } from '../lib/metering.js';
@@ -555,9 +557,25 @@ Workspace: ${workspaceId}`,
     description: body.instruction,
   };
 
+  // GAP-406 phase 4: opt-in skills + agent event logger (env-gated wire modules).
+  const skillProvider = await createSkillProviderIfEnabled();
+  const agentEventLogger = await createAgentEventLoggerIfEnabled();
+  if (agentEventLogger) {
+    agentEventLogger.logDecision({
+      timestamp: Date.now(),
+      agentId: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
+      sessionId: runSession.sessionId,
+      reasoning: `agent_stream_start mode=${mode}`,
+      context: { mode },
+    });
+  }
+
+  // skillProvider is loaded via dynamic import (boundary); cast through never
+  // so RuntimeConfig accepts it without a static @revealui/ai/skills type import.
   const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
     maxIterations: 10,
     timeout: 120_000,
+    ...(skillProvider ? { skillProvider: skillProvider as never } : {}),
   });
 
   const auditStore = createAuditStore(getClient());

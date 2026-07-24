@@ -3,13 +3,19 @@
  *
  * Phase 1 (`REVEALUI_MCP_HYPERVISOR=1`):
  *   Install usage-meter + integrity-audit sinks on the process singleton.
+ *   Install vault-backed credential resolver (phase 3).
  *
  * Phase 2 (`REVEALUI_MCP_HYPERVISOR_SPAWN=1` in addition):
  *   Register + start process-local first-party MCP servers via `revealui-mcp`.
  *   Default server list is public introspection only (`contracts,docs`) unless
  *   `REVEALUI_MCP_HYPERVISOR_SERVERS` overrides (comma-separated allowlist).
- *   Credential resolver is a stub that returns null (tenant spawn still blocked);
- *   process-local children inherit `process.env` for any credentials they need.
+ *   Process-local children inherit `process.env` for host credentials.
+ *
+ * Phase 3 (with phase 1):
+ *   Credential resolver reads `mcp/<tenantId>/<serverName>/env` (JSON object of
+ *   env vars) from a Vault (default revvault). Missing path → null (no tenant
+ *   env). Tenant spawn still merges process.env in the hypervisor today;
+ *   isolation tightening is a follow-up.
  *
  * Default (env unset): no-op. Safe for local/dev/serverless without hypervisor traffic.
  *
@@ -25,12 +31,16 @@ import type {
   MCPServerConfig,
   McpAuditEvent,
   McpMeterEvent,
+  Vault,
 } from '@revealui/mcp';
-import { MCPHypervisor } from '@revealui/mcp';
+import { createRevvaultVault, MCPHypervisor } from '@revealui/mcp';
 import { recordMcpToolAudit } from './mcp-audit.js';
 import { recordUsageMeter } from './metering.js';
 
 const ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on']);
+
+/** Safe tenant/server path segment (matches MCP remote-client SAFE_ID_RE). */
+const SAFE_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
 /** Servers safe to auto-spawn without product tenant credentials. */
 export const DEFAULT_SPAWN_SERVERS = ['contracts', 'docs'] as const;
@@ -171,9 +181,40 @@ function installAuditSink(hv: MCPHypervisor): void {
 }
 
 /**
- * Tenant credential resolver stub (phase 2).
- * Returns null so startServerForTenant fails closed until a real vault-backed
- * resolver lands. Process-local startServer still inherits process.env.
+ * Canonical revvault path for process-env credentials for a tenant MCP server.
+ * Value must be a JSON object of string env keys → string values.
+ */
+export function mcpTenantEnvVaultPath(tenantId: string, serverName: string): string {
+  return `mcp/${tenantId}/${serverName}/env`;
+}
+
+/**
+ * Parse vault blob into env map. Rejects non-objects and non-string values.
+ */
+export function parseTenantEnvBlob(raw: string): Record<string, string> | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return null;
+  }
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+    if (typeof key !== 'string' || key.length === 0) continue;
+    if (typeof value !== 'string') {
+      return null;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * Tenant credential resolver stub (phase 2 / tests).
+ * Always returns null (no tenant env). Prefer {@link createVaultCredentialResolver}.
  */
 export function createStubCredentialResolver(): MCPCredentialResolver {
   return {
@@ -183,6 +224,69 @@ export function createStubCredentialResolver(): MCPCredentialResolver {
         serverName,
       });
       return null;
+    },
+  };
+}
+
+export interface VaultCredentialResolverOptions {
+  /** Injected vault (tests use memory vault). Default: revvault CLI vault. */
+  vault?: Vault;
+}
+
+/**
+ * Vault-backed credential resolver (GAP-406 phase 3).
+ *
+ * Reads `mcp/<tenantId>/<serverName>/env` as JSON `Record<string, string>`.
+ * Returns null when path missing, ids unsafe, server not allowlisted, blob
+ * invalid, or vault errors (logged).
+ */
+export function createVaultCredentialResolver(
+  options: VaultCredentialResolverOptions = {},
+): MCPCredentialResolver {
+  const vault = options.vault ?? createRevvaultVault();
+
+  return {
+    async resolve(tenantId: string, serverName: string): Promise<Record<string, string> | null> {
+      if (!(SAFE_ID_RE.test(tenantId) && SAFE_ID_RE.test(serverName))) {
+        logger.warn('[mcp-hypervisor-wire] reject unsafe tenant/server id for vault resolve', {
+          tenantId,
+          serverName,
+        });
+        return null;
+      }
+      if (!SPAWN_ALLOWLIST.has(serverName)) {
+        logger.debug('[mcp-hypervisor-wire] server not on spawn allowlist; no vault env', {
+          serverName,
+        });
+        return null;
+      }
+
+      const path = mcpTenantEnvVaultPath(tenantId, serverName);
+      let raw: string | undefined;
+      try {
+        raw = await vault.get(path);
+      } catch (error) {
+        logger.warn('[mcp-hypervisor-wire] vault get failed for tenant env', {
+          path,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return null;
+      }
+
+      if (raw === undefined || raw.trim() === '') {
+        logger.debug('[mcp-hypervisor-wire] no vault env for tenant server', { path });
+        return null;
+      }
+
+      const envMap = parseTenantEnvBlob(raw);
+      if (!envMap) {
+        logger.warn('[mcp-hypervisor-wire] invalid vault env JSON (expect object of strings)', {
+          path,
+        });
+        return null;
+      }
+
+      return envMap;
     },
   };
 }
@@ -205,8 +309,6 @@ async function registerAndStartServers(hv: MCPHypervisor, env: NodeJS.ProcessEnv
     return;
   }
 
-  hv.setCredentialResolver(createStubCredentialResolver());
-
   for (const name of servers) {
     const config = buildServerConfig(name, cliPath);
     hv.registerServer(config);
@@ -223,11 +325,12 @@ async function registerAndStartServers(hv: MCPHypervisor, env: NodeJS.ProcessEnv
 }
 
 /**
- * Wire sinks (and optional spawn) when enabled.
+ * Wire sinks, vault credential resolver, and optional spawn when enabled.
  * Returns true when phase-1 wiring ran.
  */
 export async function wireMcpHypervisorIfEnabled(
   env: NodeJS.ProcessEnv = process.env,
+  options: VaultCredentialResolverOptions = {},
 ): Promise<boolean> {
   if (!isMcpHypervisorWireEnabled(env)) {
     return false;
@@ -236,8 +339,11 @@ export async function wireMcpHypervisorIfEnabled(
   const hv = MCPHypervisor.getInstance();
   installMeterSink(hv);
   installAuditSink(hv);
+  hv.setCredentialResolver(createVaultCredentialResolver(options));
 
-  logger.info('[mcp-hypervisor-wire] GAP-406 phase 1: meter + audit sinks installed');
+  logger.info(
+    '[mcp-hypervisor-wire] GAP-406 phase 1+3: meter + audit sinks + vault credential resolver',
+  );
 
   if (isMcpHypervisorSpawnEnabled(env)) {
     await registerAndStartServers(hv, env);

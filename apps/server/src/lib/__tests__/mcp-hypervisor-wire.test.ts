@@ -13,10 +13,28 @@ const getInstance = vi.fn(() => ({
   setCredentialResolver,
 }));
 
+const memoryStore = new Map<string, string>();
+const memoryVault = {
+  async get(path: string) {
+    return memoryStore.get(path);
+  },
+  async set(path: string, value: string) {
+    memoryStore.set(path, value);
+  },
+  async delete(path: string) {
+    memoryStore.delete(path);
+  },
+  async list(prefix: string) {
+    return [...memoryStore.keys()].filter((k) => k.startsWith(prefix));
+  },
+};
+
 vi.mock('@revealui/mcp', () => ({
   MCPHypervisor: {
     getInstance,
   },
+  createRevvaultVault: () => memoryVault,
+  createMemoryVault: () => memoryVault,
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -55,6 +73,7 @@ describe('mcp-hypervisor-wire', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    memoryStore.clear();
   });
 
   it('is disabled by default', async () => {
@@ -66,12 +85,13 @@ describe('mcp-hypervisor-wire', () => {
     expect(getInstance).not.toHaveBeenCalled();
   });
 
-  it('enables on REVEALUI_MCP_HYPERVISOR=1 and installs sinks without spawn', async () => {
+  it('enables on REVEALUI_MCP_HYPERVISOR=1 and installs sinks + vault resolver', async () => {
     const { wireMcpHypervisorIfEnabled } = await import('../mcp-hypervisor-wire.js');
     expect(await wireMcpHypervisorIfEnabled({ REVEALUI_MCP_HYPERVISOR: '1' })).toBe(true);
     expect(getInstance).toHaveBeenCalledOnce();
     expect(setUsageMeterSink).toHaveBeenCalledOnce();
     expect(setAuditSink).toHaveBeenCalledOnce();
+    expect(setCredentialResolver).toHaveBeenCalledOnce();
     expect(registerServer).not.toHaveBeenCalled();
     expect(startServer).not.toHaveBeenCalled();
   });
@@ -144,5 +164,28 @@ describe('mcp-hypervisor-wire', () => {
       }),
     );
     expect(startServer).toHaveBeenCalledWith('contracts');
+  });
+
+  it('vault credential resolver returns env map from mcp/tenant/server/env', async () => {
+    const { createVaultCredentialResolver, mcpTenantEnvVaultPath } = await import(
+      '../mcp-hypervisor-wire.js'
+    );
+    const path = mcpTenantEnvVaultPath('tenant1', 'neon');
+    await memoryVault.set(path, JSON.stringify({ NEON_API_KEY: 'nk_test' }));
+
+    const resolver = createVaultCredentialResolver({ vault: memoryVault });
+    await expect(resolver.resolve('tenant1', 'neon')).resolves.toEqual({
+      NEON_API_KEY: 'nk_test',
+    });
+    await expect(resolver.resolve('tenant1', 'missing-server')).resolves.toBeNull();
+    await expect(resolver.resolve('bad/id', 'neon')).resolves.toBeNull();
+  });
+
+  it('parseTenantEnvBlob rejects non-string values', async () => {
+    const { parseTenantEnvBlob } = await import('../mcp-hypervisor-wire.js');
+    expect(parseTenantEnvBlob('{"A":"ok"}')).toEqual({ A: 'ok' });
+    expect(parseTenantEnvBlob('{"A":1}')).toBeNull();
+    expect(parseTenantEnvBlob('[]')).toBeNull();
+    expect(parseTenantEnvBlob('not-json')).toBeNull();
   });
 });
