@@ -92,7 +92,7 @@ export function assertUsOriginInferenceSnap(
   const allowNonUs =
     options?.allowNonUs === true || isNonUsModelsEscapeEnabled(options?.env ?? process.env);
 
-  if (!allowNonUs && !isUsOriginInferenceSnap(resolved)) {
+  if (!(allowNonUs || isUsOriginInferenceSnap(resolved))) {
     throw new NonUsOriginInferenceSnapError(resolved);
   }
 
