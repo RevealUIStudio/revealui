@@ -19,7 +19,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, type Dirent, type Stats } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const REPO_ROOT = process.cwd();
@@ -72,7 +72,7 @@ function shouldSkipFile(name: string): boolean {
 }
 
 function walk(dir: string, out: string[]): void {
-  let entries;
+  let entries: Dirent[];
   try {
     entries = readdirSync(dir, { withFileTypes: true });
   } catch {
@@ -109,7 +109,7 @@ function main(): void {
   let skippedSmall = 0;
 
   for (const file of files) {
-    let st;
+    let st: Stats;
     try {
       st = statSync(file);
     } catch {
