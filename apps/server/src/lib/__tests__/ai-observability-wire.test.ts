@@ -6,9 +6,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 const AgentEventLogger = vi.fn(function AgentEventLogger(
   this: { maxEvents?: number },
-  opts?: {
-    maxEvents?: number;
-  },
+  opts?: { maxEvents?: number },
 ) {
   this.maxEvents = opts?.maxEvents;
   return this;
@@ -29,13 +27,13 @@ describe('ai-observability-wire', () => {
       '../ai-observability-wire.js'
     );
     expect(isAiObservabilityWireEnabled({})).toBe(false);
-    expect(createAgentEventLoggerIfEnabled({})).toBeNull();
+    await expect(createAgentEventLoggerIfEnabled({})).resolves.toBeNull();
     expect(AgentEventLogger).not.toHaveBeenCalled();
   });
 
   it('creates logger when REVEALUI_AI_OBSERVABILITY=1', async () => {
     const { createAgentEventLoggerIfEnabled } = await import('../ai-observability-wire.js');
-    const eventLogger = createAgentEventLoggerIfEnabled({ REVEALUI_AI_OBSERVABILITY: '1' });
+    const eventLogger = await createAgentEventLoggerIfEnabled({ REVEALUI_AI_OBSERVABILITY: '1' });
     expect(eventLogger).not.toBeNull();
     expect(AgentEventLogger).toHaveBeenCalledWith({ maxEvents: 1000 });
   });

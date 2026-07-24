@@ -558,8 +558,8 @@ Workspace: ${workspaceId}`,
   };
 
   // GAP-406 phase 4: opt-in skills + agent event logger (env-gated wire modules).
-  const skillProvider = createSkillProviderIfEnabled();
-  const agentEventLogger = createAgentEventLoggerIfEnabled();
+  const skillProvider = await createSkillProviderIfEnabled();
+  const agentEventLogger = await createAgentEventLoggerIfEnabled();
   if (agentEventLogger) {
     agentEventLogger.logDecision({
       timestamp: Date.now(),

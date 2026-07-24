@@ -28,17 +28,13 @@ function isExemptAppPath(rel: string, label?: string): boolean {
   if (label === 'MCPHypervisor' && rel === 'apps/server/src/lib/mcp-hypervisor-wire.ts') {
     return true;
   }
-  if (
-    label === '@revealui/ai/skills' &&
-    (rel === 'apps/server/src/lib/ai-skills-wire.ts' ||
-      rel === 'apps/server/src/routes/agent-stream.ts')
-  ) {
+  // Dynamic import() strings still match needles; wire modules are the WIRE path.
+  if (label === '@revealui/ai/skills' && rel === 'apps/server/src/lib/ai-skills-wire.ts') {
     return true;
   }
   if (
     label === '@revealui/ai/observability' &&
-    (rel === 'apps/server/src/lib/ai-observability-wire.ts' ||
-      rel === 'apps/server/src/routes/agent-stream.ts')
+    rel === 'apps/server/src/lib/ai-observability-wire.ts'
   ) {
     return true;
   }

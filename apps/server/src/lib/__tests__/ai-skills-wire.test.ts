@@ -26,13 +26,13 @@ describe('ai-skills-wire', () => {
       '../ai-skills-wire.js'
     );
     expect(isAiSkillsWireEnabled({})).toBe(false);
-    expect(createSkillProviderIfEnabled({})).toBeNull();
+    await expect(createSkillProviderIfEnabled({})).resolves.toBeNull();
     expect(createAgentSkillProvider).not.toHaveBeenCalled();
   });
 
   it('builds provider when REVEALUI_AI_SKILLS=1', async () => {
     const { createSkillProviderIfEnabled } = await import('../ai-skills-wire.js');
-    const provider = createSkillProviderIfEnabled({ REVEALUI_AI_SKILLS: '1' });
+    const provider = await createSkillProviderIfEnabled({ REVEALUI_AI_SKILLS: '1' });
     expect(provider).not.toBeNull();
     expect(SkillActivator).toHaveBeenCalledOnce();
     expect(createAgentSkillProvider).toHaveBeenCalledOnce();
