@@ -305,6 +305,9 @@ revealui/env/license-signing  # PRIVATE: REVEALUI_LICENSE_PRIVATE_KEY
 # It previously held a pre-cutover RSA/RS256 pair. The target is UNVERIFIED: a stale RSA-era value
 # may still occupy this path (RSA is incompatible with the Ed25519 runtime verifier), so the P3-4
 # value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
+# GAP-260 P4-2 (apps/license-signer), not platform-synced until signer deploy:
+revealui/prod/license/signer-invoke-secret  # REVEALUI_SIGNER_INVOKE_SECRET
+                                            # HMAC for POST /internal/mint; NEVER reuse REVEALUI_SECRET
 ```
 
 Operator migration (one-time, owner machine):
@@ -314,12 +317,18 @@ Operator migration (one-time, owner machine):
 # 1) Ensure revealui/env/license contains only PUBLIC KEY= lines
 # 2) Put PRIVATE KEY lines under revealui/env/license-signing
 # 3) Mint/local sign: REVVAULT_ALLOW_PRIVATE=1 with-secrets license-signing -- <cmd>
+# 4) P4-2: mint a high-entropy invoke secret once:
+#    revvault set revealui/prod/license/signer-invoke-secret
 ```
 
 **Deployment mode (GAP-260 P4-1):** set `REVEALUI_DEPLOYMENT_MODE=hosted` or `forge` on each
 runtime (api + admin). Prefer explicit MODE over private-key sniffing so hosted admin can boot
 without the signing private key (signer isolation). When MODE is unset, runtimes still fall
 back to "private key present → hosted". `MODE=forge` with a private key present fails boot.
+
+**License-signer (GAP-260 P4-2):** `apps/license-signer` is the isolated mint process. It
+requires `REVEALUI_LICENSE_PRIVATE_KEY` + `REVEALUI_SIGNER_INVOKE_SECRET` at boot (fail-loud).
+Mint cutover from api/webhooks is P4-3; private-key drop from admin/Fly is P4-4.
 
 ### LLM / AI providers
 
