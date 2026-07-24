@@ -55,10 +55,22 @@ export function normalizeInferenceSnapModelId(modelId: string): string {
   return modelId.trim().toLowerCase();
 }
 
-/** True when the model id is on the US-origin product allowlist. */
+/**
+ * True when the model id is on the US-origin product allowlist.
+ *
+ * Accepts exact snap ids (`nemotron-3-nano`) and engine-served variants that
+ * Canonical publishes under the same snap (e.g.
+ * `nemotron-3-nano-30b-a3b-q4-k-m`, `gemma4:e2b` style suffixes with `-` or `:`).
+ * Match longest snap id first so `nemotron-3-nano-omni` wins over `nemotron-3-nano`.
+ */
 export function isUsOriginInferenceSnap(modelId: string): boolean {
   const id = normalizeInferenceSnapModelId(modelId);
-  return (US_ORIGIN_INFERENCE_SNAP_IDS as readonly string[]).includes(id);
+  const snaps = [...US_ORIGIN_INFERENCE_SNAP_IDS].sort((a, b) => b.length - a.length);
+  for (const snap of snaps) {
+    if (id === snap) return true;
+    if (id.startsWith(`${snap}-`) || id.startsWith(`${snap}:`)) return true;
+  }
+  return false;
 }
 
 /** True when the operator escape hatch is enabled. */
