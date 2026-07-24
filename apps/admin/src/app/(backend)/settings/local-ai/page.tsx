@@ -7,6 +7,7 @@
 
 'use client';
 
+import { Button } from '@revealui/presentation';
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -77,13 +78,15 @@ export default function LocalAiSettingsPage() {
             Host resource tier for self-hosted inference (US-origin snaps + Ollama).
           </p>
         </div>
-        <button
+        <Button
           type="button"
+          appearance="outline"
+          variant="neutral"
+          size="sm"
           onClick={() => void load()}
-          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
         >
           Refresh
-        </button>
+        </Button>
       </div>
 
       {loading ? (
