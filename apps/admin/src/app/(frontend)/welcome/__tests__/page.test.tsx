@@ -57,7 +57,9 @@ describe('WelcomePage', () => {
     mockUseLicense.mockReturnValue({ tier: 'free' });
     render(<WelcomePage />);
 
-    expect(screen.getByText('First governed agent action')).toBeInTheDocument();
+    // Free / non-paid-success still uses the original heading; paid-success
+    // uses "First governed agent action" (GAP-302 residual).
+    expect(screen.getByText('Run your first agent')).toBeInTheDocument();
     expect(screen.queryByText('Your license key')).not.toBeInTheDocument();
   });
 });
