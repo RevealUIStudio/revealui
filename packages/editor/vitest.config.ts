@@ -1,5 +1,5 @@
-import react from '@vitejs/plugin-react';
 import { createVitestConfig } from '@revealui/dev/vitest';
+import react from '@vitejs/plugin-react';
 
 export default createVitestConfig({
   environment: 'jsdom',
