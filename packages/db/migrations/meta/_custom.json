@@ -80,6 +80,12 @@
       "rationale": "GAP-355 S4-1 hand-written CREATE TABLE audit_anchors + indexes + CHECK constraints. Hand-written so ADD CONSTRAINT uses DO $$ BEGIN ... EXCEPTION WHEN duplicate_object for idempotency (drizzle-kit does not emit that form). Companion Drizzle schema: packages/db/src/schema/audit-anchors.ts.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Snapshot deferred to shared snapshot-debt backfill; schema is fully modeled in audit-anchors.ts for type consumers."
+    },
+    {
+      "tag": "0029_drop_licenses_npm_username",
+      "rationale": "GAP-302 residual (b): DROP COLUMN licenses.npm_username. Column was never written at runtime (perpetual package access is GitHub-team based via github_username + provisionGitHubAccess). Hand-written single-statement DROP COLUMN IF EXISTS for idempotency. Companion Drizzle schema change at packages/db/src/schema/licenses.ts removes the field so types match the DB.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at licenses.ts already omits npmUsername at the type level."
     }
   ]
 }
