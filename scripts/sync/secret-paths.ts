@@ -13,7 +13,8 @@
  * SCOPE (Phase 0, P0-1): this declares the PRODUCTION-SYNCED runtime path set -
  * the union of scripts/sync/revvault-vercel.toml + revvault-fly.toml (the
  * drift-critical surface) - plus the license signing keypair and the one
- * security-relevant `with-secrets` env bundle it mirrors (revealui/env/license,
+ * security-relevant `with-secrets` env bundles it mirrors (revealui/env/license +
+ * revealui/env/license-signing after GAP-260 P2-2,
  * R8). The dev/*, api-keys/*, credentials/*, revdev/tauri-*, forge/*, and
  * agents/* tiers are NOT modeled here yet; they remain hand-written prose in
  * docs/SECRETS.md OUTSIDE the generated markers. The SecretTier union carries
@@ -819,20 +820,27 @@ export const SECRET_PATHS: SecretPathDef[] = [
     note: 'the api own origin (MCP loopback + OpenAPI); also VITE_API_URL on marketing (anti-cross-wire, GAP-343)',
   },
 
-  // ── Env bundle (derived, verify-only - NOT synced to any platform) ────────
-  // Tracked here to enforce the R8 invariant: with-secrets loads the license
-  // keypair from a SEPARATE bundle path. intentionallyUnsynced excludes it from
-  // the manifest-missing check AND the doc generated-block bijection; it is
-  // documented in hand-prose. The private-vs-public split (env/license-public
-  // vs env/license-signing) is Phase 2 (P2-2).
+  // ── Env bundles (derived, verify-only - NOT synced to any platform) ───────
+  // R8: with-secrets loads license material from SEPARATE paths (GAP-260 P2-2).
+  //   license          → public SPKI only (verify / mode fallbacks)
+  //   license-signing  → private PKCS#8 (mint only; REVVAULT_ALLOW_PRIVATE=1)
   {
     path: 'revealui/env/license',
-    kind: 'signing-private',
-    sensitive: true,
+    kind: 'signing-public',
+    sensitive: false,
     tier: 'env',
     consumers: ['with-secrets:license'],
     intentionallyUnsynced: true,
-    note: 'export-env bundle for local dev - REVEALUI_LICENSE_PRIVATE_KEY + PUBLIC_KEY; mirrors the canonical license leaves (R8; split in P2-2)',
+    note: 'export-env public-only bundle: REVEALUI_LICENSE_PUBLIC_KEY (and MODE). Must NOT hold private key; with-secrets license uses revvault export-env --public-only',
+  },
+  {
+    path: 'revealui/env/license-signing',
+    kind: 'signing-private',
+    sensitive: true,
+    tier: 'env',
+    consumers: ['with-secrets:license-signing'],
+    intentionallyUnsynced: true,
+    note: 'export-env signing bundle: REVEALUI_LICENSE_PRIVATE_KEY (+ public if needed for self-check). with-secrets license-signing requires REVVAULT_ALLOW_PRIVATE=1',
   },
 ];
 

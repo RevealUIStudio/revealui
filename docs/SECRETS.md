@@ -258,7 +258,8 @@ revealui/env/backup
 revealui/env/cms-url
 revealui/env/core
 revealui/env/cron
-revealui/env/license        # REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY
+revealui/env/license          # REVEALUI_LICENSE_PUBLIC_KEY only (GAP-260 P2-2 public)
+revealui/env/license-signing  # REVEALUI_LICENSE_PRIVATE_KEY (+ optional public); needs REVVAULT_ALLOW_PRIVATE=1
 revealui/env/npm
 revealui/env/services
 revealui/env/stripe
@@ -293,16 +294,26 @@ revdev/tauri-signing-public-key           # updater public key (also embedded in
 The canonical license-signing keypair (`revdev/license-signing-{private,public}-key`) is a
 production-runtime secret - it appears in the machine-checked Production runtime table above,
 carrying its declared migration target `revealui/prod/license/{private,public}-key` (the
-value-move is P3-4, owner-gated). The `revealui/env/license` bundle below is the local-dev
-`with-secrets` mirror of that keypair, consumed by `~/revfleet/revealui/.envrc` via
-`revvault export-env`.
+value-move is P3-4, owner-gated). Local-dev bundles (GAP-260 P2-2):
 
 ```
-revealui/env/license   # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY
+revealui/env/license          # PUBLIC only: REVEALUI_LICENSE_PUBLIC_KEY (+ optional MODE)
+                              # with-secrets license → revvault export-env --public-only
+revealui/env/license-signing  # PRIVATE: REVEALUI_LICENSE_PRIVATE_KEY
+                              # with-secrets license-signing requires REVVAULT_ALLOW_PRIVATE=1
 # Reserved: revealui/prod/license/{private,public}-key - the DECLARED Ed25519 migration target (P3-4).
 # It previously held a pre-cutover RSA/RS256 pair. The target is UNVERIFIED: a stale RSA-era value
 # may still occupy this path (RSA is incompatible with the Ed25519 runtime verifier), so the P3-4
 # value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
+```
+
+Operator migration (one-time, owner machine):
+
+```bash
+# Split the old combined bundle into public + signing paths (values never printed).
+# 1) Ensure revealui/env/license contains only PUBLIC KEY= lines
+# 2) Put PRIVATE KEY lines under revealui/env/license-signing
+# 3) Mint/local sign: REVVAULT_ALLOW_PRIVATE=1 with-secrets license-signing -- <cmd>
 ```
 
 **Deployment mode (GAP-260 P4-1):** set `REVEALUI_DEPLOYMENT_MODE=hosted` or `forge` on each
