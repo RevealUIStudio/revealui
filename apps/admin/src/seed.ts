@@ -203,7 +203,7 @@ const sampleContent = {
       title: 'VISION',
       name: 'Agentic Business Runtime',
       description:
-        'You build the product. Agents extend it. Bring your own model: default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) so the inference bill does not scale with usage; switch to Claude or GPT in one config line. The runtime is provider-agnostic.',
+        'You build the product. Agents extend it. Bring your own model: default ships open-weight US-origin models (Nemotron 3 Nano, Gemma 3/4) so the inference bill does not scale with usage; switch to Claude or GPT in one config line. The runtime is provider-agnostic.',
       alt: 'RevealUI agentic vision',
     },
   ],

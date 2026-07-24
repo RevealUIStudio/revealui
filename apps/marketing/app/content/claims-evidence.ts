@@ -414,7 +414,7 @@ const SERVICES_STRIPE: EvidenceRef = {
 const LLM_CLIENT: EvidenceRef = {
   kind: 'code',
   ref: 'packages/ai/src/llm/client.ts',
-  note: 'createLLMClientFromEnv default provider inference-snaps, defaultModel gemma3, port 9090; LLMProviderType union groq/ollama/huggingface/inference-snaps',
+  note: 'createLLMClientFromEnv default provider inference-snaps, defaultModel nemotron-3-nano, port 9090; US-origin allowlist; LLMProviderType union groq/ollama/huggingface/inference-snaps',
 };
 const OLLAMA: EvidenceRef = {
   kind: 'code',
@@ -2612,7 +2612,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_SECTION.snippet.lines[0].note',
-    text: 'gemma3 on your box, port 9090 (default runner)',
+    text: 'nemotron-3-nano on your box, port 9090 (default runner)',
     evidence: [LLM_CLIENT],
   },
   {

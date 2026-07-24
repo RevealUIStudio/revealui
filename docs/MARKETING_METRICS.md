@@ -131,7 +131,7 @@ Customer-stamped Fleet kits are NOT fleet products — they are per-customer bra
 
 ## 6. Open-weight inference defaults (per memory)
 
-Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Phi-4-mini (via Ollama), DeepSeek-R1, Qwen-VL, Nemotron-3-nano, Nemotron-3-omni (via Ubuntu Inference Snaps).
+Canonical defaults (when "open-model AI" is mentioned in marketing): Nemotron-3-nano (default), Nemotron-3-omni, Gemma 3/4 (via Ubuntu Inference Snaps; US-origin allowlist); Phi-4-mini and other US open weights via Ollama.
 
 **Hard rule per memory `project_suite_roadmap`:** Anthropic SDK is NEVER imported by RevealUI runtime code. Marketing copy may say "Claude / Anthropic" as one of the supported model providers (the Claude API integration runs out-of-band) but never as the default. Default is open-weight.
 
