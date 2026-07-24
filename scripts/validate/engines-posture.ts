@@ -144,11 +144,11 @@ function checkSurfaceDocHonesty(): string[] {
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i] ?? '';
-      if (!line.includes('@revealui/engines') && !line.includes('engines]')) {
-        // README table uses packages/engines link text
-        if (!(rel === 'README.md' && line.includes('packages/engines'))) {
-          continue;
-        }
+      if (
+        !(line.includes('@revealui/engines') || line.includes('engines]')) &&
+        !(rel === 'README.md' && line.includes('packages/engines'))
+      ) {
+        continue;
       }
       const lower = line.toLowerCase();
       const claimsUnified =
