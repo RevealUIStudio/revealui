@@ -38,6 +38,7 @@ import {
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
+import { DEFAULT_US_ORIGIN_INFERENCE_SNAP } from './providers/us-origin-snaps.js';
 import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
@@ -638,11 +639,12 @@ export class LLMClient {
  * (Anthropic + OpenAI ride their OpenAI-compatible endpoints).
  *
  * Canonical Inference Snaps is the reference local provider on Ubuntu — offline,
- * silicon-optimized, no API key required. See `providers/inference-snaps.ts` for
- * install docs (`sudo snap install gemma3`, etc.).
+ * silicon-optimized, no API key required. Product usage is **US-origin snaps
+ * only** (nemotron-3-nano default; gemma3/4 also allowlisted). See
+ * `providers/us-origin-snaps.ts` and `providers/inference-snaps.ts`.
  *
  * Provider defaults:
- *   inference-snaps → gemma3            (base URL defaults to http://localhost:9090/v1)
+ *   inference-snaps → nemotron-3-nano   (base URL defaults to http://localhost:9090/v1)
  *   groq            → qwen/qwen3-32b
  *   ollama          → gemma4:e2b        (base URL defaults to http://localhost:11434)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
@@ -716,8 +718,9 @@ export function createLLMClientFromEnv(): LLMClient {
     apiKey = 'inference-snaps'; // inference-snaps ignores the API key
     // Defaults to Canonical's Inference Snap local service on port 9090; override
     // via INFERENCE_SNAPS_BASE_URL when the snap listens on a non-default port.
+    // Model defaults to the US-origin allowlist default (asserted in provider ctor).
     baseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? 'http://localhost:9090/v1';
-    defaultModel = 'gemma3';
+    defaultModel = DEFAULT_US_ORIGIN_INFERENCE_SNAP;
   }
 
   if (!apiKey) {
