@@ -1,16 +1,6 @@
 name: Client Name Leak Scan
 
-# REQUIRED status check on test + main.
-#
-# This workflow hard-fails when any RevealUI Studio client / prospect /
-# warm-intro contact name appears in tracked repo content. Patterns live
-# in scripts/check-client-leaks.sh and are extended in the same PR that
-# introduces a new client into the operator's pipeline.
-#
-# Companion: .github/workflows/issue-leak-scan.yml covers issue + PR body
-# + comment surfaces with the same pattern class (config in
-# .gitleaks.issues.toml). Together the two scanners give blanket coverage
-# across tracked files + GitHub conversation surfaces.
+# Thin caller — shared composite action. Job name preserved for rulesets.
 
 on:
   push:
@@ -27,10 +17,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Run scanner
-        run: bash scripts/check-client-leaks.sh
+      - uses: RevealUIStudio/.github/.github/actions/check-client-leaks@42fa7c4438bc4900f095f2374e3c4b8d2707e3f8
