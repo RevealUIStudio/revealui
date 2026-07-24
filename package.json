@@ -247,6 +247,7 @@
     "validate:empty-catch": "tsx scripts/validate/empty-catch.ts",
     "validate:as-never-values": "tsx scripts/validate/as-never-values.ts",
     "validate:audit-one-door": "tsx scripts/validate/audit-log-single-door.ts",
+    "validate:agent-audit-chokepoints": "tsx scripts/validate/agent-audit-chokepoints.ts",
     "validate:kek-rotation": "vitest run scripts/security/__tests__/rotate-kek.test.ts",
     "validate:migrations": "tsx scripts/validate/migration-journal.ts",
     "validate:prod-env": "tsx scripts/validate/prod-env.ts",

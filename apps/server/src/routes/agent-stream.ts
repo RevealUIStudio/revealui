@@ -195,6 +195,34 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
   const mode = body.mode ?? 'admin';
+  const streamAgentId = mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent';
+  const accountId = getEntitlementsFromContext(c).accountId;
+  const runSession = createAgentRunSession(user.id);
+  // Late-bound task id for tool-audit rows (task object is built after tools).
+  const taskRef: { id: string } = { id: `task-${Date.now()}` };
+
+  // GAP-355 S5-4: integrity audit for non-MCP tools (admin CMS + coding).
+  const streamToolAudit =
+    (namespace: string) =>
+    async (event: {
+      toolName: string;
+      success: boolean;
+      duration_ms: number;
+      error?: string;
+    }): Promise<void> => {
+      await recordAgentMcpToolAudit({
+        namespace,
+        toolName: event.toolName,
+        success: event.success,
+        durationMs: event.duration_ms,
+        ...(event.error !== undefined ? { error: event.error } : {}),
+        sessionId: runSession.sessionId,
+        accountId,
+        userId: user.id,
+        agentId: streamAgentId,
+        taskId: taskRef.id,
+      });
+    };
 
   // Load admin tools so the agent can manage content, media, users, globals
   let cmsTools: unknown[] = [];
@@ -219,7 +247,10 @@ app.openapi(agentStreamRoute, async (c) => {
       const { createInternalAdminClient } = await import('../lib/internal-admin-client.js');
       const apiClient = createInternalAdminClient(apiBase, sessionToken);
 
-      cmsTools = cmsToolsMod.createAdminTools({ apiClient });
+      cmsTools = cmsToolsMod.createAdminTools({
+        apiClient,
+        onToolAudit: streamToolAudit('admin-cms'),
+      });
     }
   } catch {
     // admin tools unavailable  -  agent will work without them
@@ -244,12 +275,19 @@ app.openapi(agentStreamRoute, async (c) => {
           projectRoot: string;
           allowedPaths?: string[];
           include?: string[];
+          onToolAudit?: (event: {
+            toolName: string;
+            success: boolean;
+            duration_ms: number;
+            error?: string;
+          }) => void | Promise<void>;
         }) => unknown[];
         codingTools = createCodingTools({
           projectRoot,
           allowedPaths: process.env.CODING_ALLOWED_PATHS?.split(','),
           // Local (free tier): only read-only tools (no file_write, file_edit, shell_exec, git_ops)
           ...(isLocalOnly && { include: readOnlyCodingTools }),
+          onToolAudit: streamToolAudit('coding'),
         });
       }
     } catch {
@@ -273,11 +311,7 @@ app.openapi(agentStreamRoute, async (c) => {
   // `streamSSE()` starts can write into the stream once it exists.
   const mcpClients: McpClient[] = [];
   const tenant = c.get('tenant')?.id;
-  const accountId = getEntitlementsFromContext(c).accountId;
-  const runSession = createAgentRunSession(user.id);
   const streamRef: { current: SSEStreamingApi | undefined } = { current: undefined };
-  // Late-bound task id for tool-audit rows (task object is built after MCP tools).
-  const taskRef: { id: string } = { id: `task-${Date.now()}` };
 
   const loggerSink = aiMod.createCoreLoggerSink();
   const meterSink = accountId
@@ -501,7 +535,6 @@ Workspace: ${workspaceId}`,
     timeout: 120_000,
   });
 
-  const streamAgentId = mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent';
   const auditStore = createAuditStore(getClient());
 
   return streamSSE(c, async (stream) => {

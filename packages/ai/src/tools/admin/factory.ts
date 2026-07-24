@@ -5,6 +5,10 @@
 
 import type { Tool } from '../base.js';
 import {
+  maybeWrapToolsWithIntegrityAudit,
+  type ToolIntegrityAuditHandler,
+} from '../integrity-audit.js';
+import {
   createDocumentTool,
   deleteDocumentTool,
   findDocumentsTool,
@@ -106,6 +110,12 @@ export interface AdminToolsConfig {
 
   /** Current user context (for permission checks) */
   user?: UserContext;
+
+  /**
+   * GAP-355 S5-4 integrity audit. When set, every tool execute is awaited and
+   * successful results fail closed if the audit write throws.
+   */
+  onToolAudit?: ToolIntegrityAuditHandler;
 }
 
 /**
@@ -113,7 +123,7 @@ export interface AdminToolsConfig {
  * This factory function creates functional tools by injecting the actual API implementation
  */
 export function createAdminTools(config: AdminToolsConfig): Tool[] {
-  const { apiClient, collections, globals, user } = config;
+  const { apiClient, collections, globals, user, onToolAudit } = config;
 
   // Clone tools and inject API client implementation
   const tools: Tool[] = [];
@@ -623,5 +633,5 @@ export function createAdminTools(config: AdminToolsConfig): Tool[] {
     },
   });
 
-  return tools;
+  return maybeWrapToolsWithIntegrityAudit(tools, onToolAudit);
 }

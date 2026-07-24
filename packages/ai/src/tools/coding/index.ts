@@ -5,6 +5,10 @@
  */
 
 import type { Tool } from '../base.js';
+import {
+  maybeWrapToolsWithIntegrityAudit,
+  type ToolIntegrityAuditHandler,
+} from '../integrity-audit.js';
 import { fileEditTool } from './file-edit.js';
 import { fileGlobTool } from './file-glob.js';
 import { fileGrepTool } from './file-grep.js';
@@ -64,6 +68,11 @@ export interface CodingToolsConfig {
     | 'test_runner'
     | 'lint_fix'
   >;
+  /**
+   * GAP-355 S5-4 integrity audit. When set, every tool execute is awaited and
+   * successful results fail closed if the audit write throws.
+   */
+  onToolAudit?: ToolIntegrityAuditHandler;
 }
 
 /** All coding tools in registration order */
@@ -96,12 +105,15 @@ export function createCodingTools(config: CodingToolsConfig): Tool[] {
   configureSafety(safetyConfig);
 
   // Filter tools if include list is provided
+  let tools: Tool[];
   if (config.include) {
     const includeSet = new Set(config.include);
-    return ALL_CODING_TOOLS.filter((t) =>
+    tools = ALL_CODING_TOOLS.filter((t) =>
       includeSet.has(t.name as CodingToolsConfig['include'] extends Array<infer U> ? U : never),
     );
+  } else {
+    tools = [...ALL_CODING_TOOLS];
   }
 
-  return [...ALL_CODING_TOOLS];
+  return maybeWrapToolsWithIntegrityAudit(tools, config.onToolAudit);
 }

@@ -14,6 +14,7 @@ import type { ApprovalCallback, Tool, ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
 import type { MCPToolSource, McpClientLike } from '../tools/mcp-adapter.js';
 import { createToolsFromMcpClient, discoverMCPTools } from '../tools/mcp-adapter.js';
+import type { McpToolCallEvent } from '../tools/mcp-events.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
 
@@ -71,6 +72,12 @@ export interface RuntimeConfig {
    */
   mcpClients?: ReadonlyArray<{ name: string; client: McpClientLike }>;
   /**
+   * GAP-355 integrity audit for MCP tools discovered at run time.
+   * Passed into `createToolsFromMcpClient` and `discoverMCPTools` so library
+   * consumers (not only agent-stream) fail closed when a receipt cannot land.
+   */
+  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
+  /**
    * Optional skill provider. When set, activated skills are injected into the
    * system prompt before the first LLM call, giving the agent contextual
    * instructions from the matching skill packages.
@@ -116,6 +123,7 @@ export class AgentRuntime {
       enableCache: config.enableCache ?? true, // Enable by default for cost savings
       mcpToolSource: config.mcpToolSource,
       mcpClients: config.mcpClients,
+      onToolAudit: config.onToolAudit,
       skillProvider: config.skillProvider,
       thinkingLevel: config.thinkingLevel,
       modelTier: config.modelTier,
@@ -173,13 +181,21 @@ export class AgentRuntime {
     //   - Standard `McpClient` instances (Stage 5.1a, preferred)
     //   - `MCPToolSource` / hypervisor (legacy, deprecated but supported)
     const mcpTools: Tool[] = [];
+    const onToolAudit = this.config.onToolAudit;
     if (this.config.mcpToolSource) {
-      mcpTools.push(...discoverMCPTools(this.config.mcpToolSource));
+      mcpTools.push(
+        ...discoverMCPTools(this.config.mcpToolSource, {
+          ...(onToolAudit !== undefined ? { onToolAudit } : {}),
+        }),
+      );
     }
     if (this.config.mcpClients && this.config.mcpClients.length > 0) {
       for (const { name, client } of this.config.mcpClients) {
         try {
-          const fromClient = await createToolsFromMcpClient(client, { namespace: name });
+          const fromClient = await createToolsFromMcpClient(client, {
+            namespace: name,
+            ...(onToolAudit !== undefined ? { onToolAudit } : {}),
+          });
           mcpTools.push(...fromClient);
         } catch {
           // empty-catch-ok: an unhealthy MCP client shouldn't fail the whole task — other clients + base tools still apply

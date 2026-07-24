@@ -83,6 +83,7 @@ export * from './templates/index.js';
 export * from './tools/base.js';
 export * from './tools/deduplicator.js';
 export * from './tools/document-summarizer.js';
+export * from './tools/integrity-audit.js';
 export * from './tools/mcp-adapter.js';
 export * from './tools/mcp-elicitation.js';
 export * from './tools/mcp-events.js';

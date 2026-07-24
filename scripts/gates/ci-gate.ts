@@ -414,6 +414,12 @@ async function gate(): Promise<void> {
         args: ['validate:audit-one-door'],
       },
       {
+        // GAP-355 S5-4: named agent emit chokepoints must still wire integrity audit.
+        name: 'agent audit chokepoints (hard fail)',
+        command: 'pnpm',
+        args: ['validate:agent-audit-chokepoints'],
+      },
+      {
         name: 'Stripe-client consolidation (hard fail)',
         command: 'pnpm',
         args: ['validate:stripe-client'],
