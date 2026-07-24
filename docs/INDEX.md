@@ -73,7 +73,6 @@ RevealUI is one product in a fleet of seven that compose into an agent-first SDL
 ## Security & trust
 
 - [Audit receipts](./security/AUDIT_RECEIPTS.md): signed log vs Max Merkle roots, offline CLI, honesty by tier
-- [Security policies](./security/INFORMATION_SECURITY_POLICY.md): information security policy index under `docs/security/`
 
 ## Legal
 
