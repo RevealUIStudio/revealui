@@ -121,9 +121,10 @@ export default function WelcomePage() {
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <span className="text-lg font-semibold">2</span>
               </div>
-              <h2 className="text-lg font-semibold text-foreground">Run your first agent</h2>
+              <h2 className="text-lg font-semibold text-foreground">First governed agent action</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Talk to an agent and watch it take a real action in your workspace.
+                Run an agent in your workspace. Every agent is a governed and audited user
+                with a receipt you can check.
               </p>
               <a
                 href="/agents"

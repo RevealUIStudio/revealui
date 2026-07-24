@@ -43,7 +43,7 @@ beforeAll(async () => {
       perpetual BOOLEAN NOT NULL DEFAULT false,
       support_expires_at TIMESTAMPTZ,
       github_username TEXT,
-      npm_username TEXT,
+
       deleted_at TIMESTAMPTZ
     )
   `);
