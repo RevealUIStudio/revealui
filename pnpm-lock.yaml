@@ -714,6 +714,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@revealui/dev':
+        specifier: workspace:*
+        version: link:../../packages/dev
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.5
@@ -897,6 +900,9 @@ importers:
         specifier: ^0.2.17
         version: 0.2.17
     devDependencies:
+      '@revealui/dev':
+        specifier: workspace:*
+        version: link:../dev
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.5
@@ -1333,6 +1339,9 @@ importers:
       '@electric-sql/pglite':
         specifier: 'catalog:'
         version: 0.5.4
+      '@revealui/dev':
+        specifier: workspace:*
+        version: link:../dev
       pg:
         specifier: 'catalog:'
         version: 8.22.0
@@ -1513,6 +1522,9 @@ importers:
         specifier: 4.12.27
         version: 4.12.27
     devDependencies:
+      '@revealui/dev':
+        specifier: workspace:*
+        version: link:../dev
       '@testing-library/jest-dom':
         specifier: 'catalog:'
         version: 6.9.1
@@ -1556,6 +1568,9 @@ importers:
       '@electric-sql/pglite':
         specifier: 'catalog:'
         version: 0.5.4
+      '@revealui/dev':
+        specifier: workspace:*
+        version: link:../dev
 
   packages/security:
     dependencies:
@@ -1682,6 +1697,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@revealui/dev':
+        specifier: workspace:*
+        version: link:../dev
       '@types/inquirer':
         specifier: ^9.0.9
         version: 9.0.10
