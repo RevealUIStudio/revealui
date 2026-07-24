@@ -79,6 +79,12 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseExp: vi.fn(async () => null),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
@@ -162,6 +168,7 @@ vi.mock('@revealui/db', () => ({
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
 import * as licenseModule from '@revealui/core/license';
+import * as mintModule from '@revealui/core/license/mint-client';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
 
@@ -210,7 +217,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
+    vi.mocked(mintModule.mintLicenseKey).mockResolvedValue('rv-license-key-test-123');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
     mockSubscriptionsList.mockResolvedValue({ data: [] });
@@ -430,7 +437,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
       expect(Math.abs(supportExpiry.getTime() - expectedMs)).toBeLessThan(10_000);
     });
 
-    it('calls generateLicenseKey with perpetual:true and null expiresInSeconds', async () => {
+    it('calls mintLicenseKey with perpetual:true and null expiresInSeconds', async () => {
       mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_perp' }]);
       const event = makePerpetualEvent('evt_perp_keygen');
       mockConstructEvent.mockReturnValueOnce(event);
@@ -438,11 +445,12 @@ describe('POST /stripe webhook  -  handler tests', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      expect(vi.mocked(licenseModule.generateLicenseKey)).toHaveBeenCalledWith(
-        { tier: 'pro', customerId: 'cus_perp', perpetual: true },
-        expect.any(String),
-        null,
-      );
+      expect(vi.mocked(mintModule.mintLicenseKey)).toHaveBeenCalledWith({
+        tier: 'pro',
+        customerId: 'cus_perp',
+        perpetual: true,
+        expiresInSeconds: null,
+      });
     });
 
     it('skips when payment-mode checkout has no tier metadata', async () => {
@@ -1002,10 +1010,12 @@ describe('POST /stripe webhook  -  handler tests', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      expect(vi.mocked(licenseModule.generateLicenseKey)).toHaveBeenCalledWith(
-        expect.any(Object),
-        'BEGIN\nMIDDLE\nEND',
-        expect.any(Number), // GAP-287 PR-2: period-bound expiresInSeconds
+      expect(vi.mocked(mintModule.mintLicenseKey)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tier: expect.any(String),
+          customerId: expect.any(String),
+          expiresInSeconds: expect.any(Number),
+        }),
       );
     });
   });

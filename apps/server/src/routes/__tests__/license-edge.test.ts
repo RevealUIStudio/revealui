@@ -60,6 +60,12 @@ vi.mock('@revealui/core/license', () => {
   };
 });
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('generated.key'),
+}));
+
 vi.mock('@revealui/db/schema', () => ({
   licenses: { status: 'status', licenseKey: 'license_key' },
 }));
@@ -77,13 +83,14 @@ vi.mock('@revealui/db', () => ({
   })),
 }));
 
-import { generateLicenseKey, validateLicenseKey } from '@revealui/core/license';
+import { validateLicenseKey } from '@revealui/core/license';
+import { mintLicenseKey } from '@revealui/core/license/mint-client';
 import { getClient } from '@revealui/db';
 import { Hono } from 'hono';
 import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
-const mockedGenerate = vi.mocked(generateLicenseKey);
+const mockedGenerate = vi.mocked(mintLicenseKey);
 
 function createApp() {
   const app = new Hono();
@@ -156,9 +163,7 @@ describe('POST /generate  -  expiresInDays schema boundaries', () => {
     expect(res.status).toBe(201);
     // Route converts to seconds: 3650 * 24 * 60 * 60
     expect(mockedGenerate).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      3650 * 24 * 60 * 60,
+      expect.objectContaining({ expiresInSeconds: 3650 * 24 * 60 * 60 }),
     );
   });
 
@@ -168,9 +173,7 @@ describe('POST /generate  -  expiresInDays schema boundaries', () => {
 
     // Route (GAP-287 PR-3): expiresInSeconds = (expiresInDays ?? DEFAULT_MANUAL_MINT_DAYS) * 86400
     expect(mockedGenerate).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      90 * 24 * 60 * 60,
+      expect.objectContaining({ expiresInSeconds: 90 * 24 * 60 * 60 }),
     );
   });
 
@@ -182,9 +185,7 @@ describe('POST /generate  -  expiresInDays schema boundaries', () => {
     );
 
     expect(mockedGenerate).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      30 * 24 * 60 * 60,
+      expect.objectContaining({ expiresInSeconds: 30 * 24 * 60 * 60 }),
     );
   });
 });
@@ -229,7 +230,7 @@ describe('POST /generate  -  maxSites and domains schema boundaries', () => {
     expect(res.status).toBe(400);
   });
 
-  it('passes domains to generateLicenseKey when provided', async () => {
+  it('passes domains to mintLicenseKey when provided', async () => {
     const app = createApp();
     await app.request(
       '/generate',
@@ -241,8 +242,6 @@ describe('POST /generate  -  maxSites and domains schema boundaries', () => {
 
     expect(mockedGenerate).toHaveBeenCalledWith(
       expect.objectContaining({ domains: ['example.com', 'app.example.com'] }),
-      expect.anything(),
-      expect.anything(),
     );
   });
 });

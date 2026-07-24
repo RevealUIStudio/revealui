@@ -12,13 +12,16 @@
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import {
   coversRenewalBound,
-  generateLicenseKey,
-  normalizePem,
   readLicenseExp,
   resetLicenseState,
   subscriptionExpBound,
   subscriptionLicenseExpiresInSeconds,
 } from '@revealui/core/license';
+import {
+  canMintLicense,
+  mintConfigMissingMessage,
+  mintLicenseKey,
+} from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { executeSaga, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
@@ -426,22 +429,21 @@ async function remintSubscriptionLicenseOnRenewal(
   const storedExp = await readLicenseExp(row.licenseKey);
   if (coversRenewalBound(storedExp, newBound)) return;
 
-  const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
-  if (!privateKey) {
-    logger.error(
-      'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  renewal re-mint skipped',
-      undefined,
-      { customerId: params.customerId, subscriptionId: params.subscriptionId },
-    );
+  if (!canMintLicense()) {
+    logger.error(`CRITICAL: ${mintConfigMissingMessage()}  -  renewal re-mint skipped`, undefined, {
+      customerId: params.customerId,
+      subscriptionId: params.subscriptionId,
+    });
     return;
   }
-  const normalizedKey = normalizePem(privateKey);
 
-  const licenseKey = await generateLicenseKey(
-    { tier, customerId: params.customerId },
-    normalizedKey,
-    subscriptionLicenseExpiresInSeconds(params.periodEnd),
-  );
+  // GAP-260 P4-3: mintLicenseKey routes to license-signer when
+  // REVEALUI_LICENSE_SIGN_VIA_SIGNER is set; otherwise local private key.
+  const licenseKey = await mintLicenseKey({
+    tier,
+    customerId: params.customerId,
+    expiresInSeconds: subscriptionLicenseExpiresInSeconds(params.periodEnd),
+  });
 
   // WH-3-shaped monotonic guard: a stale (out-of-order) invoice must not clobber
   // newer state. When the row's updatedAt is already at/after this event, the
@@ -1340,17 +1342,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
             );
           }
 
-          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
-          if (!privateKey) {
+          if (!canMintLicense()) {
             logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  perpetual license not generated',
+              `CRITICAL: ${mintConfigMissingMessage()}  -  perpetual license not generated`,
               undefined,
               { customerId, tier },
             );
-            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+            throw new Error(mintConfigMissingMessage());
           }
-
-          const normalizedKey = normalizePem(privateKey);
 
           // Support contract expires 1 year from purchase
           const supportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
@@ -1406,11 +1405,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 }
 
                 // null expiresInSeconds = no exp claim — perpetual license never expires
-                const licenseKey = await generateLicenseKey(
-                  { tier, customerId, perpetual: true },
-                  normalizedKey,
-                  null,
-                );
+                // GAP-260 P4-3: mint via signer when flagged, else local private key.
+                const licenseKey = await mintLicenseKey({
+                  tier,
+                  customerId,
+                  perpetual: true,
+                  expiresInSeconds: null,
+                });
 
                 await ctx.db.insert(licenses).values({
                   id: licenseId,
@@ -1601,11 +1602,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           );
         }
 
-        // Generate license key
-        const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
-        if (!privateKey) {
+        // Generate license key (GAP-260 P4-3: mint-client; local or signer)
+        if (!canMintLicense()) {
           logger.error(
-            'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  license not generated',
+            `CRITICAL: ${mintConfigMissingMessage()}  -  license not generated`,
             undefined,
             {
               customerId,
@@ -1614,13 +1614,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
             },
           );
           // Return 500 so Stripe retries  -  a payment was captured but no license was issued.
-          throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+          throw new Error(mintConfigMissingMessage());
         }
-
-        // Unescape literal \n sequences  -  Vercel stores multi-line PEM keys
-        // with \n escaped in the .env format; the runtime preserves the literal
-        // \n chars, so we must convert them to real newlines for jose/importPKCS8.
-        const normalizedKey = normalizePem(privateKey);
 
         const isTrialing = checkoutSubscription.status === 'trialing';
         // `licenses.status` is the license-lifecycle vocabulary
@@ -1692,13 +1687,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
               // at trial_end, so the token covers the trial and is re-minted on
               // the first renewal invoice. Falls back to the 365d default only
               // when the subscription has no billing period.
-              const licenseKey = await generateLicenseKey(
-                { tier, customerId },
-                normalizedKey,
-                subscriptionLicenseExpiresInSeconds(
+              // GAP-260 P4-3: mintLicenseKey (local private key or license-signer).
+              const licenseKey = await mintLicenseKey({
+                tier,
+                customerId,
+                expiresInSeconds: subscriptionLicenseExpiresInSeconds(
                   getSubscriptionPeriodDate(checkoutSubscription, 'current_period_end'),
                 ),
-              );
+              });
 
               if (existing) {
                 await ctx.db
@@ -2275,19 +2271,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
             });
             break;
           }
-          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
           sagaSubtype = 'reactivated';
 
-          if (!privateKey) {
+          if (!canMintLicense()) {
             logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  license sync failed',
+              `CRITICAL: ${mintConfigMissingMessage()}  -  license sync failed`,
               undefined,
               { customerId, subscriptionId: subscription.id, tier: newTier },
             );
-            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+            throw new Error(mintConfigMissingMessage());
           }
-
-          const normalizedKey = normalizePem(privateKey);
 
           updateSteps.push(
             {
@@ -2317,13 +2310,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
                 // GAP-287 PR-2: same period-bound exp derivation as the checkout
                 // mint — a tier change re-issues the key for the current period.
-                const licenseKey = await generateLicenseKey(
-                  { tier: newTier, customerId },
-                  normalizedKey,
-                  subscriptionLicenseExpiresInSeconds(
+                // GAP-260 P4-3: mintLicenseKey (local or signer).
+                const licenseKey = await mintLicenseKey({
+                  tier: newTier,
+                  customerId,
+                  expiresInSeconds: subscriptionLicenseExpiresInSeconds(
                     getSubscriptionPeriodDate(subscription, 'current_period_end'),
                   ),
-                );
+                });
 
                 // WH-3: monotonic-timestamp guard against out-of-order delivery.
                 // THIS is the resurrection vector: a delayed .updated(active)
@@ -2854,26 +2848,24 @@ app.openapi(stripeWebhookRoute, async (c) => {
               tier: recoveredTier,
             });
           } else {
-            const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
-
-            if (!privateKey) {
+            if (!canMintLicense()) {
               logger.error(
-                'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  payment recovery failed',
+                `CRITICAL: ${mintConfigMissingMessage()}  -  payment recovery failed`,
                 undefined,
                 { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
               );
-              throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+              throw new Error(mintConfigMissingMessage());
             }
 
-            const normalizedKey = normalizePem(privateKey);
             // GAP-287 PR-2: period-bound exp on the recovery re-mint too.
-            const licenseKey = await generateLicenseKey(
-              { tier: recoveredTier, customerId },
-              normalizedKey,
-              subscriptionLicenseExpiresInSeconds(
+            // GAP-260 P4-3: mintLicenseKey (local or signer).
+            const licenseKey = await mintLicenseKey({
+              tier: recoveredTier,
+              customerId,
+              expiresInSeconds: subscriptionLicenseExpiresInSeconds(
                 getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
               ),
-            );
+            });
             await db
               .update(licenses)
               .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })

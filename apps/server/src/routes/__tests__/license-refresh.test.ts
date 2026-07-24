@@ -34,6 +34,12 @@ vi.mock('@revealui/core/license', () => ({
   getPublicKeys: vi.fn(() => ['pub-key']),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
@@ -53,17 +59,14 @@ vi.mock('@revealui/db/schema', () => ({
   },
 }));
 
-import {
-  generateLicenseKey,
-  getPublicKeys,
-  validateLicenseKeyForRefresh,
-} from '@revealui/core/license';
+import { getPublicKeys, validateLicenseKeyForRefresh } from '@revealui/core/license';
+import { mintLicenseKey } from '@revealui/core/license/mint-client';
 import { getClient } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedRefreshValidate = vi.mocked(validateLicenseKeyForRefresh);
 const mockedGetPublicKeys = vi.mocked(getPublicKeys);
-const mockedGenerate = vi.mocked(generateLicenseKey);
+const mockedGenerate = vi.mocked(mintLicenseKey);
 
 const VALID_PAYLOAD = {
   tier: 'pro' as const,
@@ -207,7 +210,7 @@ describe('POST /refresh', () => {
     expect(await res.json()).toEqual(DENIED);
   });
 
-  it('never mints — generateLicenseKey is not called on any path', async () => {
+  it('never mints — mintLicenseKey is not called on any path', async () => {
     mockedRefreshValidate.mockResolvedValue(VALID_PAYLOAD as never);
     mockDbRows([{ licenseKey: 'stored.current.key' }]);
 
