@@ -108,6 +108,23 @@ describe('Dev Package Configs Integration', () => {
     });
   });
 
+  describe('Vitest Config Factory', () => {
+    it('should import createVitestConfig', async () => {
+      const { createVitestConfig } = await import('@revealui/dev/vitest');
+      expect(typeof createVitestConfig).toBe('function');
+    });
+
+    it('should produce a node package default config', async () => {
+      const { createVitestConfig } = await import('@revealui/dev/vitest');
+      const config = createVitestConfig({
+        thresholds: { lines: 50, functions: 50, branches: 40, statements: 50 },
+      });
+      expect(config.test?.environment).toBe('node');
+      expect(config.test?.pool).toBe('forks');
+      expect(config.test?.globals).toBe(true);
+    });
+  });
+
   describe('Biome Config', () => {
     it('should import biome config', async () => {
       const config = await import('@revealui/dev/biome');

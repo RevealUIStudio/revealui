@@ -31,7 +31,8 @@
     "@electric-sql/pglite": "catalog:",
     "pg": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "@revealui/dev": "workspace:*"
   },
   "engines": {
     "node": ">=24.13.0"

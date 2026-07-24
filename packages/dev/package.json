@@ -40,6 +40,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./vite": "./src/vite/vite.shared.ts",
+    "./vitest": "./src/vitest/create-config.ts",
     "./tailwind": "./src/tailwind/tailwind.config.ts",
     "./tailwind/create-config": "./src/tailwind/create-config.ts",
     "./postcss": "./src/postcss/postcss.config.ts",
@@ -54,7 +55,13 @@
     "./editors": "./src/editors/index.ts"
   },
   "peerDependencies": {
-    "vite": ">=5.0.0"
+    "vite": ">=5.0.0",
+    "vitest": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
   },
   "scripts": {
     "build": "tsc",

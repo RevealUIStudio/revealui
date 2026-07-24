@@ -1,25 +1,17 @@
-import { defineConfig } from 'vitest/config';
+import { createVitestConfig } from '@revealui/dev/vitest';
 
-export default defineConfig({
-  resolve: {
-    conditions: ['import', 'module', 'browser', 'default'],
-  },
-  test: {
-    globals: true,
-    environment: 'node',
-    pool: 'forks',
-    maxWorkers: 2,
-    hookTimeout: 30000,
-    include: ['__tests__/**/*.test.ts', 'src/**/*.test.ts'],
-    env: {
-      // Set NODE_ENV to 'test' to skip integration tests that require database setup
-      // Integration tests will check for TEST_DATABASE_URL and skip if not present
-      NODE_ENV: 'test',
+export default createVitestConfig({
+  hookTimeout: 30_000,
+  include: ['__tests__/**/*.test.ts', 'src/**/*.test.ts'],
+  coverageExclude: ['node_modules/', 'dist/', '**/*.test.ts', '**/__tests__/**'],
+  overrides: {
+    resolve: {
+      conditions: ['import', 'module', 'browser', 'default'],
     },
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: ['node_modules/', 'dist/', '**/*.test.ts', '**/__tests__/**'],
+    test: {
+      env: {
+        NODE_ENV: 'test',
+      },
     },
   },
 });

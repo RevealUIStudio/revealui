@@ -26,7 +26,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "tsup": "^8.5.1",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@revealui/dev": "workspace:*"
   },
   "engines": {
     "node": ">=24.13.0"

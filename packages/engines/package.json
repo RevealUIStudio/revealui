@@ -18,6 +18,11 @@
   "peerDependencies": {
     "typescript": "^6.0.2"
   },
+  "devDependencies": {
+    "@revealui/dev": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./users": "./src/users/index.ts",
