@@ -54,3 +54,49 @@ export function collectVars(
   }
   return out;
 }
+
+/**
+ * One Vercel project block from the sync manifest (slug + project_id + skip + vars).
+ * Used by the scheduled name-diff drift check (GAP-258 P0-8): live env NAMES from
+ * the Vercel API vs declared vars — no vault decrypt, no secret values.
+ */
+export interface VercelProjectSpec {
+  slug: string;
+  projectId: string;
+  /** Env names intentionally not managed by revvault (never orphans). */
+  skip: readonly string[];
+  /** Declared var name → vault path. */
+  vars: ReadonlyMap<string, string>;
+}
+
+/**
+ * Parse `[projects.<slug>]` blocks for Vercel name-diff classification.
+ * Projects without a usable `project_id` string are skipped (fail soft for that block).
+ */
+export function collectVercelProjects(tomlText: string): VercelProjectSpec[] {
+  const parsed = parseToml(tomlText) as Record<string, unknown>;
+  const container = parsed.projects;
+  if (container === undefined || container === null || typeof container !== 'object') return [];
+  const out: VercelProjectSpec[] = [];
+  for (const [slug, block] of Object.entries(container as Record<string, unknown>)) {
+    if (block === null || typeof block !== 'object') continue;
+    const b = block as Record<string, unknown>;
+    if (typeof b.project_id !== 'string' || b.project_id.length === 0) continue;
+    const skip: string[] = [];
+    if (Array.isArray(b.skip)) {
+      for (const s of b.skip) {
+        if (typeof s === 'string' && s.length > 0) skip.push(s);
+      }
+    }
+    const vars = new Map<string, string>();
+    if (b.vars !== undefined && b.vars !== null && typeof b.vars === 'object') {
+      for (const [name, value] of Object.entries(b.vars as Record<string, unknown>)) {
+        const parsedVar = readVarPath(value);
+        if (parsedVar === null) continue;
+        vars.set(name, parsedVar.path);
+      }
+    }
+    out.push({ slug, projectId: b.project_id, skip, vars });
+  }
+  return out;
+}

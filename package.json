@@ -260,6 +260,7 @@
     "kek:rotate": "tsx scripts/security/rotate-kek.ts",
     "vercel:sync": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml",
     "vercel:sync:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
+    "secret-path:drift:live": "tsx scripts/sync/secret-path-drift.ts --live-vercel",
     "vercel:drift-check": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json",
     "vercel:sync:staging": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml",
     "vercel:sync:staging:apply": "VERCEL_TOKEN=$(revvault get revealui/prod/api-keys/vercel-token) revvault sync vercel --manifest scripts/sync/revvault-vercel-staging.toml --apply",
