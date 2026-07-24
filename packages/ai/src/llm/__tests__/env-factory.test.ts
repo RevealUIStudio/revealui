@@ -44,6 +44,7 @@ const PROVIDER_ENV_KEYS = [
   'LLM_MODEL',
   'LLM_TEMPERATURE',
   'LLM_MAX_TOKENS',
+  'REVEALUI_ALLOW_NON_US_MODELS',
 ] as const;
 
 const savedEnv: Record<string, string | undefined> = {};
@@ -183,6 +184,18 @@ describe('createLLMClientFromEnv — auto-detect for new providers (appended aft
   });
 
   it('falls back to the inference-snaps localhost default with no provider env', () => {
+    expect(providerOf(createLLMClientFromEnv())).toBe('inference-snaps');
+  });
+
+  it('rejects non-US LLM_MODEL for inference-snaps (US-origin hardline)', () => {
+    process.env.LLM_PROVIDER = 'inference-snaps';
+    process.env.LLM_MODEL = 'deepseek-r1';
+    expect(() => createLLMClientFromEnv()).toThrow(/US-origin allowlist/);
+  });
+
+  it('accepts allowlisted LLM_MODEL for inference-snaps', () => {
+    process.env.LLM_PROVIDER = 'inference-snaps';
+    process.env.LLM_MODEL = 'gemma4';
     expect(providerOf(createLLMClientFromEnv())).toBe('inference-snaps');
   });
 });

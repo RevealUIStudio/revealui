@@ -39,29 +39,41 @@ The recommended on-prem / on-device stack pairs `@revealui/ai` with a
                                                     ▲
                                                     │
                                          Canonical Inference Snap
-                                         (DeepSeek R1, Qwen 2.5 VL,
-                                          Gemma 3, Nemotron Nano —
+                                         (US-origin allowlist only:
+                                          Nemotron 3 Nano / Omni, Gemma 3/4 —
                                           silicon-optimized on Intel/
                                           Ampere/NVIDIA/NPU)
 ```
 
+**US-origin hardline:** product Inference Snaps usage allows only
+`nemotron-3-nano`, `nemotron-3-nano-omni`, `gemma3`, and `gemma4`.
+Non-US snaps in Canonical's catalog (`deepseek-r1`, `qwen-*`, `glm-*`) are
+rejected at provider construction. Operator escape (never seed):
+`REVEALUI_ALLOW_NON_US_MODELS=1`.
+
 Quick setup:
 
 ```bash
-sudo snap install gemma3               # or deepseek-r1, qwen-vl, etc.
-gemma3 set http.port=9090
-gemma3 status                          # confirms base URL
+sudo snap install nemotron-3-nano      # default; or gemma4 / nemotron-3-nano-omni
+nemotron-3-nano set http.port=9090
+nemotron-3-nano status                 # confirms base URL
 ```
 
 ```typescript
 import { InferenceSnapsProvider, LLMClient } from '@revealui/ai'
 
-const provider = new InferenceSnapsProvider({
+const client = new LLMClient({
+  provider: 'inference-snaps',
+  apiKey: 'inference-snaps',
   baseURL: 'http://localhost:9090/v1',
-  model: 'gemma3',
+  model: 'nemotron-3-nano', // default when omitted
 })
 
-const client = new LLMClient({ provider })
+// Or the provider alone:
+const provider = new InferenceSnapsProvider({
+  baseURL: 'http://localhost:9090/v1',
+  model: 'gemma4',
+})
 ```
 
 Groq, Anthropic, OpenAI, and HuggingFace remain supported as pluggable,
@@ -189,7 +201,7 @@ import { InferenceSnapsProvider, createSamplingHandler } from '@revealui/ai'
 
 const llm = new InferenceSnapsProvider({
   baseURL: 'http://localhost:9090/v1',
-  model: 'gemma3',
+  model: 'nemotron-3-nano',
 })
 
 const client = new McpClient({
@@ -197,8 +209,9 @@ const client = new McpClient({
   transport: { kind: 'streamable-http', url: 'https://example.com/mcp' },
   samplingHandler: createSamplingHandler({
     llm,
-    defaultModel: 'gemma3',
-    allowedModels: ['gemma3', 'deepseek-r1'],  // strongly recommended
+    defaultModel: 'nemotron-3-nano',
+    // Keep sampling hints on the US-origin allowlist (provider also enforces).
+    allowedModels: ['nemotron-3-nano', 'gemma4', 'gemma3'],
     onSamplingRequest: (info) => {
       // metering / audit trail
       metrics.incr('mcp.sampling', { model: info.model })
