@@ -230,6 +230,7 @@
     "validate:boundary": "tsx scripts/validate/boundary.ts",
     "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",
     "validate:incubate-posture": "tsx scripts/validate/incubate-posture.ts",
+    "validate:engines-posture": "tsx scripts/validate/engines-posture.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",

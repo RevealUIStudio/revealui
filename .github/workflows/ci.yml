@@ -95,6 +95,9 @@ jobs:
       - name: Incubate posture (ADR-007, hard fail)
         run: pnpm validate:incubate-posture
 
+      - name: Engines posture (ADR-006, hard fail)
+        run: pnpm validate:engines-posture
+
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 

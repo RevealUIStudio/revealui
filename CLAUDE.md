@@ -93,7 +93,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
-| @revealui/engines | Unified entry point for the five business primitives (private workspace package) |
+| @revealui/engines | Incubating optional barrel for the five primitives (not the app entry; private workspace package) |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 | @revealui/mcp | MCP servers + adapters; process hypervisor incubating (ADR-007) |
 | @revealui/services | Stripe (payment processing + circuit breaker), email (Gmail API delivery) |

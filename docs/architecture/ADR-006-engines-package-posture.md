@@ -46,4 +46,5 @@ Keeping silent “the one import” framing while apps bypass the facade is clai
 ## Verification
 
 - `grep` for production imports of `@revealui/engines` remains empty outside `packages/engines` and tests (code-over-docs).
+- **Phase 6 gate:** `pnpm validate:engines-posture` (CI phase 1) fails on app importers, non-private package.json, or surface docs that call engines the unified app entry without incubating/optional language.
 - Package README / index comment state incubating posture (same change set as this ADR or immediate follow-up).
