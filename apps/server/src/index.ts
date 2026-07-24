@@ -50,10 +50,10 @@ import {
   auditStorageSelfTest,
   installAuditStorage,
 } from './lib/audit-storage.js';
-import { wireMcpHypervisorIfEnabled } from './lib/mcp-hypervisor-wire.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { createLazyHonoRoute } from './lib/lazy-hono-route.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
+import { wireMcpHypervisorIfEnabled } from './lib/mcp-hypervisor-wire.js';
 import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 import {
   validateBillingCatalogAtStartup,
