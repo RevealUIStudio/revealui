@@ -570,10 +570,12 @@ Workspace: ${workspaceId}`,
     });
   }
 
+  // skillProvider is loaded via dynamic import (boundary); cast through never
+  // so RuntimeConfig accepts it without a static @revealui/ai/skills type import.
   const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
     maxIterations: 10,
     timeout: 120_000,
-    ...(skillProvider ? { skillProvider } : {}),
+    ...(skillProvider ? { skillProvider: skillProvider as never } : {}),
   });
 
   const auditStore = createAuditStore(getClient());
