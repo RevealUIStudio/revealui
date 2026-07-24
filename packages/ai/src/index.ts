@@ -58,6 +58,7 @@ export * from './embeddings/index.js';
 export * from './ingestion/index.js';
 // Re-export LLM providers and client
 export * from './llm/client.js';
+export * from './llm/local-ai-profile.js';
 export * from './llm/provider-health.js';
 export * from './llm/providers/base.js';
 export * from './llm/providers/inference-snaps.js';

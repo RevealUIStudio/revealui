@@ -183,6 +183,15 @@ export {
 // Registry
 export { HarnessRegistry } from './registry/harness-registry.js';
 // Server
+export type {
+  LocalAiProfileView,
+  ModelPullResult,
+  OllamaModel,
+  OllamaStatus,
+  SnapModel,
+  SnapStatus,
+} from './server/inference-service.js';
+export { InferenceService, PRODUCT_INFERENCE_SNAPS } from './server/inference-service.js';
 export { RpcServer } from './server/rpc-server.js';
 export type {
   ReconcileResult,

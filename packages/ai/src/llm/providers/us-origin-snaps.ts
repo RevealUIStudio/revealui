@@ -17,18 +17,44 @@
  * Companion ADR: .jv docs/decisions/2026-07-24-us-origin-inference-snaps.md
  */
 
-/** Snap model IDs permitted for product Inference Snaps usage. */
-export const US_ORIGIN_INFERENCE_SNAP_IDS = [
-  'nemotron-3-nano',
-  'nemotron-3-nano-omni',
-  'gemma3',
-  'gemma4',
+/**
+ * Product install/list catalog (snap name + operator-facing description).
+ * SSOT for harnesses InferenceService + Studio install UIs.
+ * Order: product default first (nemotron for capable hosts; gemma preferred on low-RAM via profile daily).
+ */
+export const PRODUCT_INFERENCE_SNAP_CATALOG = [
+  {
+    id: 'nemotron-3-nano',
+    description: 'NVIDIA (US) — general + tools; product default on capable hosts',
+  },
+  {
+    id: 'nemotron-3-nano-omni',
+    description: 'NVIDIA (US) — multimodal (text/image/video/audio in)',
+  },
+  {
+    id: 'gemma4',
+    description: 'Google (US) — general + vision + tools',
+  },
+  {
+    id: 'gemma3',
+    description: 'Google (US) — general + vision; prefer 270m on low-RAM hosts',
+  },
 ] as const;
 
-export type UsOriginInferenceSnapId = (typeof US_ORIGIN_INFERENCE_SNAP_IDS)[number];
+export type UsOriginInferenceSnapId = (typeof PRODUCT_INFERENCE_SNAP_CATALOG)[number]['id'];
 
-/** Default chat/embed model when none is specified. */
+/** Snap model IDs permitted for product Inference Snaps usage. */
+export const US_ORIGIN_INFERENCE_SNAP_IDS: readonly UsOriginInferenceSnapId[] =
+  PRODUCT_INFERENCE_SNAP_CATALOG.map((entry) => entry.id);
+
+/** Default chat/embed model when none is specified (env factory / provider). */
 export const DEFAULT_US_ORIGIN_INFERENCE_SNAP: UsOriginInferenceSnapId = 'nemotron-3-nano';
+
+/** Preferred snap on constrained hosts (profile `snaps` tier). */
+export const DEFAULT_LOW_RAM_INFERENCE_SNAP: UsOriginInferenceSnapId = 'gemma3';
+
+/** Preferred Ollama model for profile `daily` tier (fits ~4GB WSL). */
+export const DEFAULT_DAILY_OLLAMA_MODEL = 'gemma3:1b';
 
 /** Operator escape env var. Never set in customer seed or CI green paths. */
 export const NON_US_MODELS_ESCAPE_ENV = 'REVEALUI_ALLOW_NON_US_MODELS';

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "catalog:",
+    "@revealui/ai": "workspace:*",
     "@revealui/core": "workspace:*",
     "zod": "catalog:"
   },

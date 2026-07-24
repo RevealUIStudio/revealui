@@ -84,6 +84,8 @@ const ERR_INTERNAL = -32603;
  *   inference.snap.status     → SnapStatus
  *   inference.snap.install    → ModelPullResult
  *   inference.snap.remove     → { ok: true }
+ *   inference.profile.get     → LocalAiProfileView
+ *   inference.profile.apply   → LocalAiProfileView ({ tier: idle|daily|snaps|heavy })
  *   merge.request             → MergeResult
  *   merge.status              → MergeResult
  *   merge.resolve             → MergeResult
@@ -686,6 +688,33 @@ export class RpcServer {
         if (!snapName) return this.missingParam(id, 'snapName');
         await this.inference.snapRemove(snapName);
         return { jsonrpc: '2.0', id, result: { ok: true } };
+      }
+
+      case 'inference.profile.get': {
+        if (!this.inference) return this.noService(id, 'inference');
+        return { jsonrpc: '2.0', id, result: await this.inference.profileGet() };
+      }
+
+      case 'inference.profile.apply': {
+        if (!this.inference) return this.noService(id, 'inference');
+        const tier = p.tier as string | undefined;
+        if (!tier) return this.missingParam(id, 'tier');
+        const allowed = new Set(['idle', 'daily', 'snaps', 'heavy']);
+        if (!allowed.has(tier)) {
+          return {
+            jsonrpc: '2.0',
+            id,
+            error: {
+              code: -32602,
+              message: `Invalid tier "${tier}". Expected idle|daily|snaps|heavy`,
+            },
+          };
+        }
+        return {
+          jsonrpc: '2.0',
+          id,
+          result: await this.inference.profileApply(tier as 'idle' | 'daily' | 'snaps' | 'heavy'),
+        };
       }
 
       // -----------------------------------------------------------------------

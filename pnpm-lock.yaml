@@ -1248,6 +1248,9 @@ importers:
       '@electric-sql/pglite':
         specifier: 'catalog:'
         version: 0.5.4
+      '@revealui/ai':
+        specifier: workspace:*
+        version: link:../ai
       '@revealui/core':
         specifier: workspace:*
         version: link:../core

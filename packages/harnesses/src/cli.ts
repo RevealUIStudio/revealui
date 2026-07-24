@@ -40,6 +40,7 @@ import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
 import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
+import { InferenceService } from './server/inference-service.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -525,6 +526,30 @@ async function main() {
     process.exit(code);
   }
 
+  if (command === 'inference') {
+    const [subcommand, tierArg] = args;
+    const inference = new InferenceService();
+    if (subcommand === 'profile' || subcommand === 'status') {
+      const view = await inference.profileGet();
+      process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
+      return;
+    }
+    if (subcommand === 'apply') {
+      const tier = tierArg as 'idle' | 'daily' | 'snaps' | 'heavy' | undefined;
+      if (!tier || !['idle', 'daily', 'snaps', 'heavy'].includes(tier)) {
+        process.stderr.write(
+          'Usage: revealui-harnesses inference apply <idle|daily|snaps|heavy>\n',
+        );
+        process.exit(1);
+      }
+      const view = await inference.profileApply(tier);
+      process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
+      return;
+    }
+    process.stderr.write('Usage: revealui-harnesses inference <status|apply> [tier]\n');
+    process.exit(1);
+  }
+
   if (command === 'manager') {
     const [subcommand] = args;
     const projectIdx = args.indexOf('--project');
@@ -758,6 +783,8 @@ Commands:
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid
   hotfix <subcommand>               Durable-debt registry (long-term fixes only; GAP-405)
+  inference status                  Local AI profile (tier, mem, engines)
+  inference apply <tier>            idle|daily|snaps|heavy (host control plane)
 
 Content Subcommands:
   content list                      List all canonical content with metadata

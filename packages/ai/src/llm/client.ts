@@ -38,6 +38,7 @@ import {
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
+import { applyLocalAiProfileToEnv } from './local-ai-profile.js';
 import { DEFAULT_US_ORIGIN_INFERENCE_SNAP } from './providers/us-origin-snaps.js';
 import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
@@ -652,6 +653,10 @@ export class LLMClient {
  *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)
  */
 export function createLLMClientFromEnv(): LLMClient {
+  // Self-host profile (idle/daily/snaps) fills missing LLM_* only; explicit env wins.
+  // Hosted (VERCEL / REVEALUI_HOSTED) never loads the profile.
+  applyLocalAiProfileToEnv();
+
   // Auto-detect provider when LLM_PROVIDER is not explicitly set. The existing
   // priority order (INFERENCE_SNAPS → GROQ → OLLAMA) is preserved so existing
   // deployments resolve identically; the frontier providers are appended after.
