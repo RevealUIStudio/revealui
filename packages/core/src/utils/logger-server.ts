@@ -15,10 +15,10 @@
 
 import {
   createLogger as createUtilsLogger,
-  Logger as UtilsLoggerClass,
   type LogContext,
-  type Logger as UtilsLogger,
   type LogLevel,
+  type Logger as UtilsLogger,
+  Logger as UtilsLoggerClass,
 } from '@revealui/utils/logger';
 import { getRequestId } from './request-context.js';
 

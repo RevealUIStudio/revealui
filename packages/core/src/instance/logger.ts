@@ -14,9 +14,9 @@
 
 import {
   createLogger as createUtilsLogger,
-  logger as utilsLogger,
   type LogContext,
   type Logger as UtilsLogger,
+  logger as utilsLogger,
 } from '@revealui/utils/logger';
 
 export interface RevealUILogger {

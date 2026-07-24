@@ -2059,7 +2059,7 @@ To add new validation rules:
 
 ## Overview
 
-RevealUI has a comprehensive logging system already implemented in `@revealui/core` (`packages/core/src/utils/logger-client.ts:70`). This guide shows how to use it instead of `console.log`.
+RevealUI has a comprehensive logging system implemented in `@revealui/utils/logger` and re-exported from `@revealui/core` (`packages/core/src/observability/logger.ts:1`, ADR-008). This guide shows how to use it instead of `console.log`.
 
 ## Quick Start
 
