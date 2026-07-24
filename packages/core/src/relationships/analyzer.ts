@@ -1,4 +1,4 @@
-import { defaultLogger } from '../instance/logger.js';
+import { logger } from '../observability/logger.js';
 import type { RevealCollectionConfig, RevealGlobalConfig, RevealUIField } from '../types/index.js';
 import type { RelationshipMetadata } from '../types/query.js';
 
@@ -89,7 +89,7 @@ export function getRelationshipFields(
   const validation = validateRelationshipMetadata(relationships);
   if (!validation.valid) {
     for (const error of validation.errors) {
-      defaultLogger.warn(`[RelationshipAnalyzer] ${error}`);
+      logger.warn(`[RelationshipAnalyzer] ${error}`);
     }
   }
 

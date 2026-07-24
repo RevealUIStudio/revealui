@@ -100,7 +100,10 @@ That path remains a **thin facade** over utils (plus core-only middleware helper
 - Legacy core logger modules carry a short header pointing at ADR-008 (no behavior change).
 - Fleet-redundancy plan next-action no longer lists “write C3 ADR” as open design.
 
-## Verification (future D2–D4)
+## Verification (D2–D4 — landed)
 
-- `grep` for `instance/logger` and `utils/logger-server` under `packages/core/src` (excluding tests and deprecation shims) trends to zero.
-- Client-bundle safety gate remains green (no server logger on client graphs).
+- **D2:** Production free-function call sites no longer import `instance/logger` for logging; they use `observability/logger`. `instance/logger` remains as a **varargs adapter** over utils for `RevealUIInstance.logger` / public `RevealUILogger` API only.
+- **D3:** `utils/logger-server` is a thin request-id enricher over utils (not a second ConsoleLogger). Monitoring + `@revealui/core/server` keep that path for Node-only request-id injection (cannot live in the client-safe observability barrel).
+- **D4:** `utils/logger-client` + `utils/logger` barrel re-export `@revealui/utils/logger`. One structured implementation; legacy files are facades/adapters only.
+- **Production silencing:** hard-silence of info/warn in production is retired; product logs follow utils `LOG_LEVEL` (default `info`). Documented product decision for this consolidation.
+- Client-bundle safety gate must stay green (no `logger-server` / `request-context` on client graphs).

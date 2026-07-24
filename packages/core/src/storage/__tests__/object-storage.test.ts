@@ -8,8 +8,8 @@ const mockPut = vi.fn();
 const mockDel = vi.fn();
 const mockList = vi.fn();
 
-vi.mock('../../instance/logger.js', () => ({
-  defaultLogger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+vi.mock('../../observability/logger.js', () => ({
+  logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
 import { objectStorage } from '../object-storage.js';

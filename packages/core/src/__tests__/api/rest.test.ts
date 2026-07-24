@@ -19,8 +19,8 @@ import type {
 // Mock the logger to suppress output during tests
 // ---------------------------------------------------------------------------
 
-vi.mock('../../instance/logger.js', () => ({
-  defaultLogger: {
+vi.mock('../../observability/logger.js', () => ({
+  logger: {
     error: vi.fn(),
     warn: vi.fn(),
     info: vi.fn(),

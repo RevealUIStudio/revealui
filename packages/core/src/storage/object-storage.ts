@@ -18,7 +18,7 @@
  * Do NOT import in client-side code or edge runtime.
  */
 
-import { defaultLogger } from '../instance/logger.js';
+import { logger } from '../observability/logger.js';
 import type { Plugin } from '../types/index.js';
 import type { StorageProvider } from './types.js';
 
@@ -104,7 +104,10 @@ export function objectStorage(config: ObjectStorageConfig): Plugin {
                         height: file.height,
                       };
                     } catch (error) {
-                      defaultLogger.error('Object storage upload error:', error);
+                      logger.error(
+                        'Object storage upload error',
+                        error instanceof Error ? error : new Error(String(error)),
+                      );
                       throw error;
                     }
                   },
@@ -119,7 +122,10 @@ export function objectStorage(config: ObjectStorageConfig): Plugin {
 
                       await getProvider().del(keyOrUrl);
                     } catch (error) {
-                      defaultLogger.error('Object storage delete error:', error);
+                      logger.error(
+                        'Object storage delete error',
+                        error instanceof Error ? error : new Error(String(error)),
+                      );
                       throw error;
                     }
                   },
