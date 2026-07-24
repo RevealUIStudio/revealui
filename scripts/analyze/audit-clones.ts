@@ -19,7 +19,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { type Dirent, existsSync, readdirSync, readFileSync } from 'node:fs';
+import { type Dirent, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const REPO_ROOT = process.cwd();
@@ -71,6 +71,11 @@ function shouldSkipFile(name: string): boolean {
   return SKIP_FILE_SUFFIXES.some((s) => lower.endsWith(s));
 }
 
+/**
+ * Collect candidate paths. Directory-only branching uses Dirent.isDirectory();
+ * non-directories are queued without isFile()/stat — content is validated only
+ * via a single readFileSync (avoids CodeQL js/file-system-race).
+ */
 function walk(dir: string, out: string[]): void {
   let entries: Dirent[];
   try {
@@ -79,59 +84,68 @@ function walk(dir: string, out: string[]): void {
     return;
   }
   for (const e of entries) {
-    if (e.name.startsWith('.') && e.name !== '.env.example') {
-      // skip hidden dirs/files except explicit examples
-      if (e.isDirectory()) continue;
-    }
     if (e.isDirectory()) {
       if (SKIP_DIR_NAMES.has(e.name)) continue;
+      if (e.name.startsWith('.')) continue;
       walk(join(dir, e.name), out);
       continue;
     }
-    if (!e.isFile()) continue;
+    if (e.name.startsWith('.') && e.name !== '.env.example') continue;
     if (shouldSkipFile(e.name)) continue;
     out.push(join(dir, e.name));
   }
 }
 
+function hashFile(path: string): { ok: true; hash: string; size: number } | { ok: false } {
+  let buf: Buffer;
+  try {
+    // Single open/read — no prior exists/stat/isFile on this path.
+    buf = readFileSync(path);
+  } catch {
+    return { ok: false };
+  }
+  if (buf.includes(0)) {
+    return { ok: false };
+  }
+  return {
+    ok: true,
+    size: buf.byteLength,
+    hash: createHash('sha256').update(buf).digest('hex'),
+  };
+}
+
 function main(): void {
   const { fail, minBytes } = parseArgs(process.argv.slice(2));
 
-  if (!existsSync(PACKAGES_ROOT)) {
-    console.error('[audit-clones] packages/ missing');
-    process.exit(2);
-  }
-
   const files: string[] = [];
   walk(PACKAGES_ROOT, files);
+  if (files.length === 0) {
+    // packages/ missing or empty — treat as setup error only if root walk failed hard
+    try {
+      readdirSync(PACKAGES_ROOT);
+    } catch {
+      console.error('[audit-clones] packages/ missing or unreadable');
+      process.exit(2);
+    }
+  }
 
   const byHash = new Map<string, string[]>();
   let scanned = 0;
   let skippedSmall = 0;
 
   for (const file of files) {
-    // Single read — avoid stat+read TOCTOU (CodeQL js/file-system-race).
-    let buf: Buffer;
-    try {
-      buf = readFileSync(file);
-    } catch {
-      continue;
-    }
-    const size = buf.byteLength;
-    if (size < minBytes) {
+    const result = hashFile(file);
+    if (!result.ok) continue;
+    if (result.size < minBytes) {
       skippedSmall++;
       continue;
     }
-    // Cap pathological huge files (already in memory once; skip hashing only)
-    if (size > 2_000_000) continue;
-    // Skip likely-binary
-    if (buf.includes(0)) continue;
+    if (result.size > 2_000_000) continue;
 
-    const hash = createHash('sha256').update(buf).digest('hex');
     const rel = relative(REPO_ROOT, file).replaceAll('\\', '/');
-    const list = byHash.get(hash) ?? [];
+    const list = byHash.get(result.hash) ?? [];
     list.push(rel);
-    byHash.set(hash, list);
+    byHash.set(result.hash, list);
     scanned++;
   }
 
