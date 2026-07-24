@@ -38,6 +38,7 @@ import {
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
+import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
@@ -519,6 +520,11 @@ async function main() {
     return;
   }
 
+  if (command === 'hotfix') {
+    const code = runHotfixCli(args);
+    process.exit(code);
+  }
+
   if (command === 'manager') {
     const [subcommand] = args;
     const projectIdx = args.indexOf('--project');
@@ -751,6 +757,7 @@ Commands:
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid
+  hotfix <subcommand>               Durable-debt registry (long-term fixes only; GAP-405)
 
 Content Subcommands:
   content list                      List all canonical content with metadata
@@ -760,6 +767,12 @@ Content Subcommands:
   content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo
+
+Hotfix Subcommands (prefer durable root-cause fixes; register only as debt):
+  hotfix check | list | store | audit [root] | sweep
+  hotfix register --title T --symptom S --temporary X --durable D
+  hotfix resolve <id> --pr URL | --note TEXT
+  hotfix promote <id> --gap GAP-N
 
 Default content generator: ${DEFAULT_CONTENT_GENERATOR_ID} → ${MANAGER_CONTENT_OUTPUT}
 `);

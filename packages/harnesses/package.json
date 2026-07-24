@@ -71,6 +71,11 @@
       "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.js",
       "default": "./dist/hooks/index.js"
+    },
+    "./hotfix": {
+      "types": "./dist/hotfix/index.d.ts",
+      "import": "./dist/hotfix/index.js",
+      "default": "./dist/hotfix/index.js"
     }
   },
   "files": [
