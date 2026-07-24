@@ -1,4 +1,4 @@
-# Security review gate — review-before-merge enforcement (GAP-376 cutover).
+# Security review gate — review-before-merge enforcement (GAP-376 complete).
 #
 # Provenance: pull_request_target runs the WORKFLOW DEFINITION from the BASE
 # ref, so a PR cannot rewrite this file for its own evaluation. Scripts still
@@ -10,16 +10,11 @@
 #   A1 — check-run attaches to PR head SHA (#2110)
 #   A2 — payload/verdict parity with prior pull_request gate (#2110)
 #   A3 — workflow-edit self-pass fails on _target base copy (#2113 closed)
+# Cutover: #2114. Residual pull_request dual-trigger removed in this file.
 #
-# Rename-in-place: job name stays "Security review gate" so the protect-main-
-# test ruleset required context needs no owner edit.
-#
-# Dual-trigger residual (intentional, short-lived): pull_request remains so
-# this cutover PR (and the first post-land residual) still report the required
-# context from the merge-ref path. A follow-up PR removes pull_request only;
-# after that, _target alone is the enforcement path. pull_request_review has
-# no _target form — re-eval via labels until org-migration companion (design
-# §Review-trigger).
+# Job name stays "Security review gate" (ruleset required context; rename-
+# in-place). pull_request_review has no _target form — re-eval via labels
+# until org-migration companion (design §Review-trigger).
 #
 # Permissions stay least-privilege: pull_request_target defaults are wider.
 
@@ -27,10 +22,6 @@ name: Security Review Gate
 
 on:
   pull_request_target:
-    branches: [test, main]
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
-  # Residual dual-trigger — remove in follow-up PR after this lands on test.
-  pull_request:
     branches: [test, main]
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
 
