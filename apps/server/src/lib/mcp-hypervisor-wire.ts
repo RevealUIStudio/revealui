@@ -20,7 +20,12 @@
 import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { logger } from '@revealui/core/observability/logger';
-import type { MCPServerConfig, McpAuditEvent, McpMeterEvent } from '@revealui/mcp';
+import type {
+  MCPCredentialResolver,
+  MCPServerConfig,
+  McpAuditEvent,
+  McpMeterEvent,
+} from '@revealui/mcp';
 import { MCPHypervisor } from '@revealui/mcp';
 import { recordMcpToolAudit } from './mcp-audit.js';
 import { recordUsageMeter } from './metering.js';
@@ -170,16 +175,15 @@ function installAuditSink(hv: MCPHypervisor): void {
  * Returns null so startServerForTenant fails closed until a real vault-backed
  * resolver lands. Process-local startServer still inherits process.env.
  */
-export function createStubCredentialResolver(): (
-  tenantId: string,
-  serverName: string,
-) => Promise<Record<string, string> | null> {
-  return async (tenantId, serverName) => {
-    logger.debug('[mcp-hypervisor-wire] credential resolver stub (null)', {
-      tenantId,
-      serverName,
-    });
-    return null;
+export function createStubCredentialResolver(): MCPCredentialResolver {
+  return {
+    async resolve(tenantId: string, serverName: string): Promise<Record<string, string> | null> {
+      logger.debug('[mcp-hypervisor-wire] credential resolver stub (null)', {
+        tenantId,
+        serverName,
+      });
+      return null;
+    },
   };
 }
 
