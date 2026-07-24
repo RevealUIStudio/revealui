@@ -9,7 +9,12 @@
     {
       "id": "mcp-adapter-onToolAudit",
       "file": "packages/ai/src/tools/mcp-adapter.ts",
-      "mustContain": ["onToolAudit", "awaitToolAudit"]
+      "mustContain": ["onToolAudit", "awaitToolAudit", "finishToolIntegrity", "DiscoverMCPToolsOptions"]
+    },
+    {
+      "id": "agent-runtime-onToolAudit",
+      "file": "packages/ai/src/orchestration/runtime.ts",
+      "mustContain": ["onToolAudit", "createToolsFromMcpClient", "discoverMCPTools"]
     },
     {
       "id": "tool-integrity-wrapper",
@@ -55,15 +60,7 @@
   "residuals": [
     {
       "id": "hypervisor-no-apps-server-install",
-      "note": "MCPHypervisor.setAuditSink has unit tests but no apps/server boot-time install; production agent path uses createToolsFromMcpClient + onToolAudit."
-    },
-    {
-      "id": "discoverMCPTools-legacy",
-      "note": "packages/ai discoverMCPTools (hypervisor legacy path) does not take onToolAudit; prefer createToolsFromMcpClient."
-    },
-    {
-      "id": "resource-prompt-meta-tools",
-      "note": "MCP resource/prompt meta-tools are not covered by onToolAudit (inventory residual; server tools only)."
+      "note": "MCPHypervisor.setAuditSink has unit tests but no apps/server boot-time install. Accept residual: wire setAuditSink only at a real hypervisor construction site, not a fake boot install. Prod agent-stream uses createToolsFromMcpClient + onToolAudit."
     }
   ]
 }

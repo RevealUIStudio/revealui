@@ -9,6 +9,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createToolsFromMcpClient,
+  discoverMCPTools,
+  type MCPToolSource,
   type McpCallToolResultLike,
   type McpClientLike,
   type McpGetPromptResultLike,
@@ -924,8 +926,8 @@ describe('createToolsFromMcpClient — onToolAudit', () => {
     });
   });
 
-  it('does not call onToolAudit for resource/prompt meta-tools', async () => {
-    const onToolAudit = vi.fn(async () => undefined);
+  it('audits resource/prompt meta-tools (S5-4b live residual close)', async () => {
+    const audited: string[] = [];
     const client = makeFullClient({
       resources: [{ uri: 'x://1', name: 'one' }],
       resourceContents: { 'x://1': [{ uri: 'x://1', text: 'body' }] },
@@ -938,7 +940,11 @@ describe('createToolsFromMcpClient — onToolAudit', () => {
     const tools = await createToolsFromMcpClient(client, {
       namespace: 'srv',
       include: { tools: false, resources: true, prompts: true },
-      onToolAudit,
+      onToolAudit: async (e) => {
+        audited.push(e.toolName);
+        expect(e.kind).toBe('mcp.tool.call');
+        expect(e.success).toBe(true);
+      },
     });
 
     for (const tool of tools) {
@@ -951,7 +957,26 @@ describe('createToolsFromMcpClient — onToolAudit', () => {
       }
     }
 
-    expect(onToolAudit).not.toHaveBeenCalled();
+    expect(audited.sort()).toEqual(
+      ['get_prompt', 'list_prompts', 'list_resources', 'read_resource'].sort(),
+    );
+  });
+
+  it('fails closed when onToolAudit throws after read_resource success', async () => {
+    const client = makeFullClient({
+      resources: [{ uri: 'x://1', name: 'one' }],
+      resourceContents: { 'x://1': [{ uri: 'x://1', text: 'body' }] },
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      include: { tools: false, resources: true, prompts: false },
+      onToolAudit: async () => {
+        throw new Error('audit write failed');
+      },
+    });
+    const readTool = tools.find((t) => t.name.endsWith('__read_resource'));
+    await expect(readTool?.execute({ uri: 'x://1' })).rejects.toThrow(/audit write failed/);
   });
 
   it('works without onToolAudit — success path unchanged', async () => {
@@ -963,5 +988,62 @@ describe('createToolsFromMcpClient — onToolAudit', () => {
     const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
     const result = await tools[0]?.execute({});
     expect(result?.success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// discoverMCPTools — legacy hypervisor path integrity (S5-4b)
+// ---------------------------------------------------------------------------
+
+describe('discoverMCPTools — onToolAudit', () => {
+  function makeSource(
+    callHandler: (server: string, tool: string, args: unknown) => Promise<unknown>,
+  ): MCPToolSource {
+    return {
+      getAllTools: () => [
+        {
+          namespacedName: '@@mcp_srv_ping',
+          serverName: 'srv',
+          tool: {
+            name: 'ping',
+            description: 'ping',
+            inputSchema: { type: 'object', properties: {} },
+          },
+        },
+      ],
+      callTool: callHandler,
+    };
+  }
+
+  it('awaits onToolAudit after a successful legacy tool call', async () => {
+    const order: string[] = [];
+    const source = makeSource(async () => {
+      order.push('rpc');
+      return { ok: true };
+    });
+    const tools = discoverMCPTools(source, {
+      onToolAudit: async (e) => {
+        order.push('audit');
+        expect(e).toMatchObject({
+          kind: 'mcp.tool.call',
+          namespace: 'srv',
+          toolName: 'ping',
+          success: true,
+        });
+      },
+    });
+    const result = await tools[0]?.execute({});
+    expect(result?.success).toBe(true);
+    expect(order).toEqual(['rpc', 'audit']);
+  });
+
+  it('fails closed when audit throws after success', async () => {
+    const source = makeSource(async () => ({ ok: true }));
+    const tools = discoverMCPTools(source, {
+      onToolAudit: async () => {
+        throw new Error('audit write failed');
+      },
+    });
+    await expect(tools[0]?.execute({})).rejects.toThrow(/audit write failed/);
   });
 });
