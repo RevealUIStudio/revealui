@@ -1,0 +1,71 @@
+# Security review gate — SHADOW pull_request_target provenance (GAP-376).
+#
+# Design: .jv docs/gap-specs/GAP-376-trigger-provenance-design.md §Rollout step 1.
+#
+# This workflow runs ALONGSIDE `security-review-gate.yml` (pull_request). It is
+# NOT a required status check. Purpose: prove A1–A3 before cutover:
+#   A1 — check-run attaches to the PR head SHA
+#   A2 — event payload parity with the pull_request gate
+#   A3 — workflow-edit self-pass regression (base copy still evaluates)
+#
+# pull_request_target runs the WORKFLOW DEFINITION from the BASE ref, so a PR
+# cannot rewrite this file for its own evaluation. Scripts still pin to base.sha
+# (belt-and-braces with #1921). The job does not check out PR-head code; it only
+# runs the trusted gate scripts and queries the API for files/labels/reviews.
+#
+# Do NOT add this context name to branch protection until shadow verification
+# is recorded and a follow-up cutover PR retires the pull_request variant.
+#
+# pull_request_review has no _target form — review re-eval stays on the
+# primary gate until org-migration companion (design §Review-trigger).
+
+name: Security Review Gate (target)
+
+on:
+  pull_request_target:
+    branches: [test, main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+concurrency:
+  group: security-review-gate-target-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Explicit least privilege — pull_request_target defaults are wider; do not widen.
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  security-review-gate-target:
+    name: Security review gate (target)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Log shadow provenance (A1/A2 diagnostics)
+        run: |
+          set -euo pipefail
+          echo "event_name=${{ github.event_name }}"
+          echo "head_sha=${{ github.event.pull_request.head.sha }}"
+          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "pr_number=${{ github.event.pull_request.number }}"
+          echo "workflow_ref=${{ github.workflow_ref }}"
+          echo "GAP-376 shadow: not required; compare verdict to 'Security review gate'"
+
+      - uses: actions/checkout@v7
+        with:
+          # Same pin as #1921: evaluate with BASE scripts even under _target.
+          ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: |
+            scripts/validate/security-review-gate.cjs
+            scripts/validate/guardrail2-verdict.cjs
+            scripts/validate/security-paths.shared.json
+          sparse-checkout-cone-mode: false
+
+      - name: Evaluate review gate (shadow)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node scripts/validate/security-review-gate.cjs \
+            --pr "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}"
