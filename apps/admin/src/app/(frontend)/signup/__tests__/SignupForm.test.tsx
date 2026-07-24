@@ -115,7 +115,7 @@ describe('SignupForm post-signup routing', () => {
     expect(screen.queryByText('Check your inbox')).not.toBeInTheDocument();
   });
 
-  it.each(['pro', 'max'] as const)(
+  it.each(['pro', 'max', 'enterprise'] as const)(
     'routes an auto-verified user with ?plan=%s into the billing upgrade flow',
     async (plan) => {
       mockPlanParam = plan;

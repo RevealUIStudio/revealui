@@ -2,11 +2,13 @@
 
 import { safeInternalRedirect } from '@/lib/utils/safe-internal-redirect';
 
-export type UpgradePlan = 'pro' | 'max';
+/** Paid self-serve checkout plans (subscription). GAP-302 Phase 1 adds enterprise. */
+export type UpgradePlan = 'pro' | 'max' | 'enterprise';
 
-/** Narrow a raw ?upgrade= value to a known checkout plan, or null. */
+/** Narrow a raw ?upgrade= / ?plan= value to a known checkout plan, or null. */
 export function parseUpgrade(raw: string | null): UpgradePlan | null {
-  return raw === 'pro' || raw === 'max' ? raw : null;
+  if (raw === 'pro' || raw === 'max' || raw === 'enterprise') return raw;
+  return null;
 }
 
 /** A URLSearchParams-like reader (matches Next's useSearchParams() return). */

@@ -77,12 +77,14 @@ function BillingContent() {
   const perpetual = searchParams.get('perpetual');
   const credits = searchParams.get('credits');
   const renewal = searchParams.get('renewal');
-  // ?upgrade=pro|max deep link (marketing pricing cards via /signup?plan=).
-  // Unknown values are ignored. Enterprise upgrades go through the manual
-  // button below (proration confirm), never the auto-trigger.
+  // ?upgrade=pro|max|enterprise deep link (marketing pricing cards via /signup?plan=).
+  // Unknown values are ignored. GAP-302 Phase 1: enterprise uses the same
+  // auto-checkout path as pro/max (server resolves catalog price).
   const upgradeParam = searchParams.get('upgrade');
-  const upgrade: 'pro' | 'max' | null =
-    upgradeParam === 'pro' || upgradeParam === 'max' ? upgradeParam : null;
+  const upgrade: 'pro' | 'max' | 'enterprise' | null =
+    upgradeParam === 'pro' || upgradeParam === 'max' || upgradeParam === 'enterprise'
+      ? upgradeParam
+      : null;
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -172,14 +174,16 @@ function BillingContent() {
   }, [session, sessionLoading, fetchSubscription, router]);
 
   const handleCheckout = useCallback(
-    async (target: 'pro' | 'max' = 'pro') => {
+    async (target: 'pro' | 'max' | 'enterprise' = 'pro') => {
       setActionLoading(true);
       setError(null);
       try {
         const priceId =
-          target === 'max'
-            ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
-            : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+          target === 'enterprise'
+            ? process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
+            : target === 'max'
+              ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
+              : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
         const res = await apiFetch(`${apiUrl}/api/billing/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -204,7 +208,7 @@ function BillingContent() {
     [apiUrl],
   );
 
-  // Auto-redirect to checkout on signup with ?upgrade=pro|max, and for churned
+  // Auto-redirect to checkout on signup with ?upgrade=pro|max|enterprise, and for churned
   // users (expired/canceled) arriving with explicit upgrade intent. Never fires
   // for active or trialing subscribers.
   useEffect(() => {

@@ -30,9 +30,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const token = request.nextUrl.searchParams.get('token');
   const rawUpgrade = request.nextUrl.searchParams.get('upgrade');
   // Whitelist to known checkout plans  -  never forward an arbitrary value
-  // into a redirect destination.
-  const upgrade: 'pro' | 'max' | null =
-    rawUpgrade === 'pro' || rawUpgrade === 'max' ? rawUpgrade : null;
+  // into a redirect destination. GAP-302 Phase 1: enterprise self-serve.
+  const upgrade: 'pro' | 'max' | 'enterprise' | null =
+    rawUpgrade === 'pro' || rawUpgrade === 'max' || rawUpgrade === 'enterprise' ? rawUpgrade : null;
   const baseUrl = request.nextUrl.origin;
 
   if (!token) {
