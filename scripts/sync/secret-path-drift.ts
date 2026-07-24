@@ -201,7 +201,7 @@ export interface VercelNamesDoc {
 export function parseVercelNamesJson(text: string): Map<string, string[]> {
   const obj = JSON.parse(text) as VercelNamesDoc;
   const map = new Map<string, string[]>();
-  if (!obj || !Array.isArray(obj.projects)) {
+  if (!(obj && Array.isArray(obj.projects))) {
     throw new Error('vercel-names-json: expected { projects: [{ project, names }] }');
   }
   for (const p of obj.projects) {
