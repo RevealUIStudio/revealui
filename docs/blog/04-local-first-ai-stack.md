@@ -51,7 +51,7 @@ RevealUI's AI agents run on open source models locally. The recommended path is 
 
 ```bash
 # Install a model (one command)
-sudo snap install gemma3
+sudo snap install nemotron-3-nano
 
 # Check status
 gemma3 status
@@ -79,7 +79,7 @@ cd RevealUI
 direnv allow        # Nix builds and activates the full dev environment
 
 # Install a model via inference snaps (recommended)
-sudo snap install gemma3
+sudo snap install nemotron-3-nano
 
 # Or use Ollama
 ollama pull gemma4:e2b
@@ -99,7 +99,7 @@ flake.nix
 └── devShell
     └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-sudo snap install gemma3             # Or: ollama pull gemma4:e2b
+sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
 └── OpenAI-compatible API served locally
 
 @revealui/ai                         # Agent orchestration routes to local model

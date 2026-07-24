@@ -38,13 +38,19 @@ export interface SnapModel {
 
 // ── Configuration ───────────────────────────────────────────────────
 
-const KNOWN_SNAPS: Array<[string, string]> = [
-  ['gemma3', 'General + vision  -  default; image understanding, multimodal (Apache 2.0)'],
-  ['deepseek-r1', 'Reasoning  -  complex analysis, chain-of-thought'],
-  ['qwen-vl', 'Vision-language  -  document parsing, visual Q&A'],
-  ['nemotron-3-nano', 'General (text-only)  -  lightweight alternative for low-resource hosts'],
-  ['nemotron-3-nano-omni', 'Multimodal  -  text/image/video/audio in, text out'],
-];
+/**
+ * Product install/list catalog for Inference Snaps.
+ * Must stay lockstep with `@revealui/ai` `US_ORIGIN_INFERENCE_SNAP_IDS`
+ * (US-origin hardline; PRC catalog snaps are not product-installable here).
+ */
+export const PRODUCT_INFERENCE_SNAPS: ReadonlyArray<readonly [string, string]> = [
+  ['nemotron-3-nano', 'NVIDIA (US)  -  general + tools; product default'],
+  ['nemotron-3-nano-omni', 'NVIDIA (US)  -  multimodal (text/image/video/audio in)'],
+  ['gemma4', 'Google (US)  -  general + vision + tools'],
+  ['gemma3', 'Google (US)  -  general + vision (allowlisted)'],
+] as const;
+
+const KNOWN_SNAPS = PRODUCT_INFERENCE_SNAPS;
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -224,6 +230,8 @@ export class InferenceService {
   }
 
   async snapRemove(snapName: string): Promise<void> {
+    const known = KNOWN_SNAPS.some(([name]) => name === snapName);
+    if (!known) throw new Error(`Unknown inference snap: ${snapName}`);
     await execFileAsync('sudo', ['snap', 'remove', snapName], { timeout: 60_000 });
   }
 }

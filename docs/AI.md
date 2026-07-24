@@ -15,7 +15,7 @@ AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 - **Agents**  -  long-running task agents with persistent state
 - **Memory**  -  four-store cognitive memory (episodic, working, semantic, procedural)
-- **Bring your own model**  -  default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) via Ubuntu Inference Snaps or Ollama so the inference bill does not scale with usage; switch to Claude, GPT, or any provider in one config line
+- **Bring your own model**  -  default ships open-weight US-origin models (Nemotron 3 Nano, Gemma 3/4) via Ubuntu Inference Snaps or Ollama so the inference bill does not scale with usage; switch to Claude, GPT, or any provider in one config line
 - **Streaming**  -  SSE-based token streaming via `StreamingAgentRuntime` and `useAgentStream`
 - **Orchestration**  -  multi-agent coordination with the A2A protocol
 - **MCP integration**  -  tool use via Model Context Protocol
@@ -33,11 +33,10 @@ pnpm add @revealui/ai
 Install a model via Ubuntu Inference Snaps (canonical default — install + run yourself today; Studio lifecycle pending):
 
 ```bash
-sudo snap install gemma3             # default — general + vision (~8 GB, Apache 2.0)
-# or: sudo snap install deepseek-r1            # reasoning, chain-of-thought
-# or: sudo snap install qwen-vl                # vision-language, document parsing
-# or: sudo snap install nemotron-3-nano        # text-only, lightweight (~4 GB)
-# or: sudo snap install nemotron-3-nano-omni   # multimodal — text/image/video/audio in, text out
+sudo snap install nemotron-3-nano    # default — NVIDIA US-origin general + tools
+# or: sudo snap install gemma4                 # Google US-origin general + vision + tools
+# or: sudo snap install gemma3                 # Google US-origin (allowlisted)
+# or: sudo snap install nemotron-3-nano-omni   # NVIDIA multimodal
 ```
 
 ```typescript
@@ -106,11 +105,12 @@ const memory = {
 
 | Snap | Type | Use Case |
 | ---- | ---- | -------- |
-| `gemma3` | General + vision | **Default**  -  vision-capable, Apache 2.0 (~8 GB) |
-| `deepseek-r1` | Reasoning | Complex analysis, chain-of-thought |
-| `qwen-vl` | Vision-language | Document parsing, visual Q&A |
-| `nemotron-3-nano` | General (text-only) | Lightweight alternative for low-resource hosts (~4 GB) |
-| `nemotron-3-nano-omni` | Multimodal | Text/image/video/audio in, text out |
+| `nemotron-3-nano` | General + tools (NVIDIA, US) | **Default** product snap |
+| `nemotron-3-nano-omni` | Multimodal (NVIDIA, US) | Text/image/video/audio in |
+| `gemma4` | General + vision + tools (Google, US) | Strong general alternative |
+| `gemma3` | General + vision (Google, US) | Allowlisted legacy snap |
+
+Non-US snaps in Canonical's catalog (DeepSeek, Qwen, GLM) are rejected in product code unless `REVEALUI_ALLOW_NON_US_MODELS=1`.
 
 Install: `sudo snap install <name>`. Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 
@@ -151,7 +151,7 @@ For the planned recommended path (when you're ready to install + run a Canonical
 
 ```bash
 # Install your first model (default)
-sudo snap install gemma3
+sudo snap install nemotron-3-nano
 
 # Check status
 gemma3 status

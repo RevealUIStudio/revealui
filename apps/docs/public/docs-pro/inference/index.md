@@ -55,7 +55,7 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 | Path | Runtime | Cost | Use Case |
 |------|---------|------|----------|
 | **Ollama** (default) | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
-| **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  Gemma 3, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
+| **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  US-origin: Nemotron 3 Nano/Omni, Gemma 3/4 |
 | **Groq** | Cloud, your own key | Pay Groq directly | Fast cloud inference, opt-in via `GROQ_API_KEY` |
 | **Anthropic** | Cloud, your own key | Pay Anthropic directly | Bring your own key, opt-in via `ANTHROPIC_API_KEY` |
 | **OpenAI** | Cloud, your own key | Pay OpenAI directly | Bring your own key, opt-in via `OPENAI_API_KEY` |

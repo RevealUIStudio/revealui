@@ -66,7 +66,7 @@ The runtime is provider-agnostic by contract and ships with no default AI vendor
 |---|---|
 | **Ollama** | Local model runner — the standard developer-machine path. |
 | **Ubuntu Inference Snaps** | Snap-packaged model runtimes — recommended for production on Ubuntu hosts. |
-| **Canonical model catalog** | Gemma 3/4, DeepSeek R1, Qwen VL, Nemotron — Apache-2.0 preferred. |
+| **Canonical model catalog (product)** | Nemotron 3 Nano/Omni, Gemma 3/4 (US-origin allowlist). |
 | **Pluggable provider adapters** | Claude, OpenAI, and others available as opt-in adapters — never bundled. |
 
 ## Deployment targets

@@ -70,6 +70,10 @@ vi.mock('@revealui/ai', () => {
     createCoreLoggerSink: vi.fn().mockReturnValue(() => {}),
     createUsageMeterSink: vi.fn().mockReturnValue(() => {}),
     createToolsFromMcpClient: vi.fn().mockResolvedValue([]),
+    // US-origin Inference Snaps hardline (agent-stream sampling allowlist)
+    US_ORIGIN_INFERENCE_SNAP_IDS: ['nemotron-3-nano', 'nemotron-3-nano-omni', 'gemma3', 'gemma4'],
+    DEFAULT_US_ORIGIN_INFERENCE_SNAP: 'nemotron-3-nano',
+    createSamplingHandler: vi.fn().mockReturnValue(async () => ({ model: 'nemotron-3-nano' })),
   };
 });
 

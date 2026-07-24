@@ -372,17 +372,10 @@ app.openapi(agentStreamRoute, async (c) => {
 
     // A.2a: Sampling handler allowlist. MCP servers may request any model
     // via `modelPreferences.hints`; we filter those hints to this list so
-    // servers can't silently route us to expensive models. Models outside
-    // the list fall back to `defaultModel`. Conservative set — extend when
-    // specific models are validated + cost-bounded.
-    const samplingAllowedModels = [
-      'gemma3',
-      'gemma3:e2b',
-      'gemma3:e4b',
-      'deepseek-r1',
-      'qwen3',
-    ] as const;
-    const samplingDefaultModel = process.env.LLM_MODEL ?? 'gemma3';
+    // servers can't silently route us off the product US-origin snap set.
+    // SSOT: @revealui/ai US_ORIGIN_INFERENCE_SNAP_IDS.
+    const samplingAllowedModels = [...aiMod.US_ORIGIN_INFERENCE_SNAP_IDS];
+    const samplingDefaultModel = process.env.LLM_MODEL ?? aiMod.DEFAULT_US_ORIGIN_INFERENCE_SNAP;
 
     for (const server of serverIds) {
       try {
