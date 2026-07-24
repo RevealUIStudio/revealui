@@ -147,14 +147,25 @@ describe('SECRETS.md ↔ spec lockstep (rendered derived view)', () => {
 });
 
 describe('env/* mirror invariant (R8)', () => {
-  it('revealui/env/license is declared, intentionally unsynced, and absent from every manifest', () => {
+  it('revealui/env/license is public-only, intentionally unsynced, and absent from every manifest (GAP-260 P2-2)', () => {
     expect(DECLARED_PATHS.has('revealui/env/license')).toBe(true);
     expect(SYNCED_PATHS.has('revealui/env/license')).toBe(false);
     expect(allManifestPaths).not.toContain('revealui/env/license');
     const def = SECRET_PATHS.find((d) => d.path === 'revealui/env/license');
-    // It bundles the private key → must be sensitive.
+    expect(def?.kind).toBe('signing-public');
+    expect(def?.sensitive).toBe(false);
+    expect(isSensitiveKind(def?.kind ?? 'public-config')).toBe(false);
+    expect(def?.consumers).toEqual(['with-secrets:license']);
+  });
+
+  it('revealui/env/license-signing is private, intentionally unsynced (GAP-260 P2-2)', () => {
+    expect(DECLARED_PATHS.has('revealui/env/license-signing')).toBe(true);
+    expect(SYNCED_PATHS.has('revealui/env/license-signing')).toBe(false);
+    expect(allManifestPaths).not.toContain('revealui/env/license-signing');
+    const def = SECRET_PATHS.find((d) => d.path === 'revealui/env/license-signing');
+    expect(def?.kind).toBe('signing-private');
     expect(def?.sensitive).toBe(true);
-    expect(isSensitiveKind(def?.kind ?? 'public-config')).toBe(true);
+    expect(def?.consumers).toEqual(['with-secrets:license-signing']);
   });
 });
 
