@@ -7,7 +7,7 @@
  * out prevents crashes from unexpected driver behavior or schema migrations.
  */
 
-import { defaultLogger } from '../instance/logger.js';
+import { logger } from '../observability/logger.js';
 import type { RevealDocument } from '../types/index.js';
 
 /**
@@ -22,14 +22,14 @@ import type { RevealDocument } from '../types/index.js';
  */
 export function safeParseRevealDocument(row: unknown): RevealDocument | null {
   if (row === null || typeof row !== 'object') {
-    defaultLogger.warn('Database row is not an object  -  skipping', { row });
+    logger.warn('Database row is not an object  -  skipping', { row });
     return null;
   }
 
   const r = row as Record<string, unknown>;
 
   if (typeof r.id !== 'string' && typeof r.id !== 'number') {
-    defaultLogger.warn('Database row missing required id field  -  skipping', {
+    logger.warn('Database row missing required id field  -  skipping', {
       keys: Object.keys(r),
     });
     return null;

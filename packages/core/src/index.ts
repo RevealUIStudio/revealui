@@ -153,7 +153,9 @@ export {
 } from './richtext/index.js';
 // Storage adapters
 export { objectStorage } from './storage/object-storage.js';
-// Note: Logger class is exported from ./revealui.ts (instance/logger.js), not from utils/logger.js
+// Note: Instance-shaped Logger (RevealUILogger adapter) is exported from
+// ./revealui.ts (instance/logger.js). Structured utils logger is re-exported
+// below from ./utils/logger.js (ADR-008: both backed by @revealui/utils/logger).
 export { LRUCache, type LRUCacheOptions } from './utils/cache.js';
 // Deep clone utility
 export { deepClone } from './utils/deep-clone.js';
@@ -178,7 +180,7 @@ export {
   RateLimitError,
   ValidationError,
 } from './utils/errors.js';
-// Utilities
+// Structured logger (utils-backed client barrel — ADR-008 D4)
 export {
   createLogger,
   type LogContext,

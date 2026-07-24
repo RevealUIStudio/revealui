@@ -5,7 +5,7 @@
  */
 
 import bcrypt from 'bcryptjs';
-import { defaultLogger } from '../../instance/logger.js';
+import { logger } from '../../observability/logger.js';
 import type {
   QueryableDatabaseAdapter,
   RevealCollectionConfig,
@@ -257,10 +257,9 @@ export async function update(
           }
         } catch (error) {
           // Log JSON parse error for debugging
-          defaultLogger.warn(
-            `[CollectionOperations] Failed to parse _json for ${tableName}.id=${id}:`,
-            error,
-          );
+          logger.warn(`[CollectionOperations] Failed to parse _json for ${tableName}.id=${id}`, {
+            error: error instanceof Error ? { message: error.message, name: error.name } : error,
+          });
           existingJson = {};
         }
       }

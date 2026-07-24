@@ -35,8 +35,8 @@ vi.mock('bcryptjs', () => ({
 }));
 
 // Mock defaultLogger
-vi.mock('../../../instance/logger', () => ({
-  defaultLogger: { warn: vi.fn() },
+vi.mock('../../../observability/logger', () => ({
+  logger: { warn: vi.fn() },
 }));
 
 // ---------------------------------------------------------------------------

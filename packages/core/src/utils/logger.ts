@@ -1,13 +1,25 @@
 /**
- * Logger Utility - Default Export (legacy core barrel → client logger)
+ * Logger barrel (client-safe) — ADR-008 D4
  *
- * @deprecated Prefer `@revealui/core/observability/logger` per ADR-008.
- * This barrel re-exports the client-safe logger only (no async_hooks).
+ * Re-exports `@revealui/utils/logger`. Prefer
+ * `@revealui/core/observability/logger` for new core-dependent code.
  *
- * For server-side logging with request context (until D3):
- *   import { logger } from '@revealui/core/server'
- *   import { logger } from '@revealui/core/utils/logger/server'
+ * Server + request-id: `@revealui/core/server` or
+ * `@revealui/core/utils/logger/server`.
  */
 
-export type { LogContext, Logger, LogLevel } from './logger-client.js';
-export { createLogger, logger } from './logger-client.js';
+export type {
+  LogContext,
+  LogEntry,
+  LoggerConfig,
+  LogLevel,
+} from '@revealui/utils/logger';
+
+export {
+  createLogger,
+  Logger,
+  logAudit,
+  logError,
+  logger,
+  logQuery,
+} from '@revealui/utils/logger';
