@@ -19,11 +19,7 @@
     {
       "id": "agent-tool-governance-wrap",
       "file": "apps/server/src/lib/agent-tool-governance.ts",
-      "mustContain": [
-        "applyAgentToolGovernance",
-        "authorizeAgentTool",
-        "recordAgentToolDenied"
-      ]
+      "mustContain": ["applyAgentToolGovernance", "authorizeAgentTool", "recordAgentToolDenied"]
     },
     {
       "id": "tool-governance-wrapper",
@@ -33,19 +29,12 @@
     {
       "id": "agent-stream-pre-authorize",
       "file": "apps/server/src/routes/agent-stream.ts",
-      "mustContain": [
-        "resolveStreamPrincipal",
-        "applyAgentToolGovernance"
-      ]
+      "mustContain": ["resolveStreamPrincipal", "applyAgentToolGovernance"]
     },
     {
       "id": "agent-dispatcher-pre-authorize",
       "file": "apps/server/src/lib/agent-dispatcher.ts",
-      "mustContain": [
-        "resolveDispatchPrincipal",
-        "resolveJobPrincipal",
-        "applyAgentToolGovernance"
-      ]
+      "mustContain": ["resolveDispatchPrincipal", "resolveJobPrincipal", "applyAgentToolGovernance"]
     },
     {
       "id": "agent-dispatch-job-uses-dispatcher",
