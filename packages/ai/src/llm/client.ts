@@ -18,6 +18,7 @@ import {
 } from '@revealui/resilience';
 import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
+import { applyLocalAiProfileToEnv } from './local-ai-profile.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
 import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js';
 import type {
@@ -652,6 +653,10 @@ export class LLMClient {
  *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)
  */
 export function createLLMClientFromEnv(): LLMClient {
+  // Self-host profile (idle/daily/snaps) fills missing LLM_* only; explicit env wins.
+  // Hosted (VERCEL / REVEALUI_HOSTED) never loads the profile.
+  applyLocalAiProfileToEnv();
+
   // Auto-detect provider when LLM_PROVIDER is not explicitly set. The existing
   // priority order (INFERENCE_SNAPS → GROQ → OLLAMA) is preserved so existing
   // deployments resolve identically; the frontier providers are appended after.

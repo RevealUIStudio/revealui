@@ -8,13 +8,11 @@ import { describe, expect, it } from 'vitest';
 import { PRODUCT_INFERENCE_SNAPS } from '../server/inference-service.js';
 
 const US_ORIGIN_IDS = ['nemotron-3-nano', 'nemotron-3-nano-omni', 'gemma3', 'gemma4'] as const;
-
 const FORBIDDEN = ['deepseek-r1', 'qwen-vl', 'qwen3', 'qwen3-coder', 'glm-4-7-flash'];
 
 describe('PRODUCT_INFERENCE_SNAPS', () => {
-  it('lists only US-origin snap ids (lockstep with @revealui/ai allowlist)', () => {
+  it('lists only US-origin snap ids', () => {
     const names = PRODUCT_INFERENCE_SNAPS.map(([name]) => name);
-    expect(names).toEqual(expect.arrayContaining([...US_ORIGIN_IDS]));
     expect(names).toHaveLength(US_ORIGIN_IDS.length);
     for (const id of US_ORIGIN_IDS) {
       expect(names).toContain(id);
@@ -28,16 +26,16 @@ describe('PRODUCT_INFERENCE_SNAPS', () => {
     }
   });
 
-  it('defaults product id remains nemotron-3-nano first (install UX order)', () => {
+  it('defaults product id remains nemotron-3-nano first', () => {
     expect(PRODUCT_INFERENCE_SNAPS[0]?.[0]).toBe('nemotron-3-nano');
   });
 
-  it('matches the SSOT ids in @revealui/ai us-origin-snaps.ts', () => {
+  it('lockstep with @revealui/ai PRODUCT_INFERENCE_SNAP_CATALOG ids', () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const sot = join(here, '../../../ai/src/llm/providers/us-origin-snaps.ts');
     const source = readFileSync(sot, 'utf8');
     for (const id of PRODUCT_INFERENCE_SNAPS.map(([name]) => name)) {
-      expect(source).toContain(`'${id}'`);
+      expect(source).toContain(`id: '${id}'`);
     }
   });
 });
