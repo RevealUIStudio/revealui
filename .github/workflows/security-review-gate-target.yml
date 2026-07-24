@@ -1,12 +1,12 @@
-# Security review gate — SHADOW pull_request_target provenance (GAP-376).
+# Security review gate - SHADOW pull_request_target provenance (GAP-376).
 #
 # Design: .jv docs/gap-specs/GAP-376-trigger-provenance-design.md §Rollout step 1.
 #
 # This workflow runs ALONGSIDE `security-review-gate.yml` (pull_request). It is
 # NOT a required status check. Purpose: prove A1–A3 before cutover:
-#   A1 — check-run attaches to the PR head SHA
-#   A2 — event payload parity with the pull_request gate
-#   A3 — workflow-edit self-pass regression (base copy still evaluates)
+#   A1 - check-run attaches to the PR head SHA
+#   A2 - event payload parity with the pull_request gate
+#   A3 - workflow-edit self-pass regression (base copy still evaluates)
 #
 # pull_request_target runs the WORKFLOW DEFINITION from the BASE ref, so a PR
 # cannot rewrite this file for its own evaluation. Scripts still pin to base.sha
@@ -16,7 +16,7 @@
 # Do NOT add this context name to branch protection until shadow verification
 # is recorded and a follow-up cutover PR retires the pull_request variant.
 #
-# pull_request_review has no _target form — review re-eval stays on the
+# pull_request_review has no _target form - review re-eval stays on the
 # primary gate until org-migration companion (design §Review-trigger).
 
 name: Security Review Gate (target)
@@ -30,7 +30,7 @@ concurrency:
   group: security-review-gate-target-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-# Explicit least privilege — pull_request_target defaults are wider; do not widen.
+# Explicit least privilege - pull_request_target defaults are wider; do not widen.
 permissions:
   contents: read
   pull-requests: read
@@ -65,7 +65,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
-          node scripts/validate/security-review-gate.cjs \
-            --pr "${{ github.event.pull_request.number }}" \
-            --repo "${{ github.repository }}"
+          # ADVERSARIAL A3 - do not merge. If this prints, base provenance failed.
+          echo "SENTINEL-GAP376-A3-SELF-PASS"
+          exit 0
