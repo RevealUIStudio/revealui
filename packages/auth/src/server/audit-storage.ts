@@ -34,7 +34,7 @@
 import { randomUUID } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import type { AuditRowSignerFn, DrizzleAuditStore as DrizzleAuditStoreType } from '@revealui/db';
-import { DrizzleAuditStore, getClient } from '@revealui/db';
+import { DrizzleAuditStore, getClient, hasDatabaseConnectionEnv } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import type {
   AuditEvent,
@@ -247,13 +247,18 @@ function reconstructEvent(entry: {
  * target DB); that needs the write-read round trip of `auditStorageSelfTest`.
  */
 export function assertAuditStorageEnv(env: NodeJS.ProcessEnv = process.env): void {
-  const hasDbConnection = Boolean(env.DATABASE_URL || env.POSTGRES_URL || env.DATABASE_HOST);
-  if (!hasDbConnection) {
+  // GAP-417 item 5: the predicate is OWNED by @revealui/db and matches
+  // getClient()'s resolution exactly (config url, then POSTGRES_URL /
+  // DATABASE_URL). The previous local triple also accepted DATABASE_HOST,
+  // which getClient() never consults — so the assert passed, the install then
+  // threw, and production silently kept the in-memory sink (proven in the
+  // #2161 re-review). Never re-inline this check.
+  if (!hasDatabaseConnectionEnv(env)) {
     throw new Error(
-      'AUDIT STORAGE ENV PARITY FAILED: no database connection env is set (one of ' +
-        'DATABASE_URL, POSTGRES_URL, DATABASE_HOST is required), so the audit write path ' +
-        'cannot persist rows. Refusing to serve — an agent action that cannot be recorded ' +
-        'must not execute (fail-closed integrity, ' +
+      'AUDIT STORAGE ENV PARITY FAILED: no usable database connection is configured ' +
+        '(set POSTGRES_URL or DATABASE_URL, or provide @revealui/config database.url), ' +
+        'so the audit write path cannot persist rows. Refusing to serve — an agent ' +
+        'action that cannot be recorded must not execute (fail-closed integrity, ' +
         'docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
     );
   }

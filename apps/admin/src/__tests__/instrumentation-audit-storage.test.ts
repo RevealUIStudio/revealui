@@ -109,6 +109,20 @@ describe('installAdminAuditStorage (GAP-338)', () => {
     expect(written).not.toContain('non-production');
   });
 
+  it('production + install-construct failure: refuses to serve — assert/client drift must not fail open (GAP-417 item 5)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    installAuditStorage.mockImplementation(() => {
+      throw new Error('Database connection string not provided');
+    });
+
+    const { installAdminAuditStorage } = await import('../instrumentation-node');
+    await installAdminAuditStorage();
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const written = stderrSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
+    expect(written).toContain('AUDIT STORAGE INSTALL FAILED');
+  });
+
   it('Forge kit (RUNTIME_INIT): self-test BLOCKS and a failure refuses to serve (#2161 review)', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('RUNTIME_INIT', 'true');

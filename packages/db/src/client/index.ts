@@ -269,22 +269,42 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
 /**
  * Internal function to get (or lazily create) the single 'rest' client.
  */
+/**
+ * Resolve the database connection string EXACTLY the way `getClient()` will:
+ * `@revealui/config` (lazy, process-global) first, then the `POSTGRES_URL` /
+ * `DATABASE_URL` fallback (`||` also catches empty strings). The `env`
+ * parameter covers only the env-var fallback — the config module always reads
+ * the real process env, matching runtime behavior.
+ */
+function resolveDatabaseUrl(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  let url: string | undefined;
+  try {
+    const configUrl = configModule.database?.url;
+    if (typeof configUrl === 'string') {
+      url = configUrl;
+    }
+  } catch {
+    // Config validation failed or module unavailable - will use env fallback
+    url = undefined;
+  }
+  return url || env.POSTGRES_URL || env.DATABASE_URL || undefined;
+}
+
+/**
+ * Whether `getClient()` would be able to construct a client from the current
+ * environment. THE boot-time predicate for callers that must fail closed
+ * before installing a DB-backed subsystem (GAP-417: the audit env assert
+ * previously accepted `DATABASE_HOST`, which this resolution never consults,
+ * so the assert passed and the install then threw — a silent fail-open).
+ * Keep this and `getClientByType` on the same resolution, always.
+ */
+export function hasDatabaseConnectionEnv(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(resolveDatabaseUrl(env));
+}
+
 function getClientByType(): Database {
   if (!restClient) {
-    // Try to get from config module (ESM - lazy validation via Proxy)
-    let url: string | undefined;
-    try {
-      const configUrl = configModule.database?.url;
-      if (typeof configUrl === 'string') {
-        url = configUrl;
-      }
-    } catch {
-      // Config validation failed or module unavailable - will use process.env fallback
-      url = undefined;
-    }
-
-    // Fallback to process.env (use || to also catch empty strings)
-    url = url || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    const url = resolveDatabaseUrl();
 
     if (!url || typeof url !== 'string') {
       throw new Error(
