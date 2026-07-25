@@ -27,6 +27,56 @@
  * "never throw — it kills the runtime", so any failure is logged and swallowed
  * (a retry on the next boot is safe because of idempotency).
  */
+/**
+ * GAP-338: swap the process-wide `@revealui/security` AuditSystem onto
+ * persistent storage at admin boot — the same
+ * `assertAuditStorageEnv()` + `installAuditStorage()` pair apps/server runs
+ * (shared home: `@revealui/auth/server`). Without this, every admin-process
+ * audit emit (including the GAP-334 login receipts wired through the auth
+ * bridge) lands in the default `InMemoryAuditStorage` and evaporates on
+ * restart, never reaching the `audit_log` table the audit-trail UI reads.
+ *
+ * Semantics mirror the admin instrumentation contract:
+ * - Env parity failure in production (no DB connection env, or no
+ *   `REVEALUI_AUDIT_SIGNING_KEY`): refuse to serve via `process.exit(1)` — the
+ *   intentional kill, same rail as the env-validation block in
+ *   `instrumentation.ts` (never `throw`; it kills the runtime accidentally).
+ *   `SKIP_ENV_VALIDATION=true` stays the documented escape hatch (the assert
+ *   itself honors it for the signing key; the DB-connection failure honors it
+ *   here for parity with `validateRequiredEnvVars`).
+ * - Env parity failure in dev: warn to stderr and keep the in-memory sink —
+ *   honest and loud, but a dev shell without a DB must still boot.
+ * - Any unexpected failure: logged, swallowed (never throw out of
+ *   instrumentation).
+ */
+export async function installAdminAuditStorage(): Promise<void> {
+  try {
+    const { assertAuditStorageEnv, installAuditStorage } = await import(
+      '@revealui/auth/audit-storage'
+    );
+    try {
+      assertAuditStorageEnv();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (process.env.NODE_ENV === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+        process.stderr.write(`AUDIT STORAGE ENV PARITY FAILED (admin):\n  - ${message}\n`);
+        process.exit(1);
+      }
+      process.stderr.write(
+        `[GAP-338] admin audit storage NOT installed (non-production, env incomplete): ${message}\n`,
+      );
+      return;
+    }
+    installAuditStorage();
+  } catch (err) {
+    process.stderr.write(
+      `[GAP-338] admin audit storage install failed (non-fatal): ${
+        err instanceof Error ? err.message : String(err)
+      }\n`,
+    );
+  }
+}
+
 export async function initEngineAtBoot(): Promise<void> {
   if (!process.env.RUNTIME_INIT) {
     return;

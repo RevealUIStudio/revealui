@@ -17,6 +17,12 @@ export {
   auditPasswordReset,
   auditSessionRevoked,
 } from './audit-bridge.js';
+// NOTE (GAP-338): the audit storage boundary lives at the DEDICATED subpath
+// `@revealui/auth/audit-storage`, deliberately NOT re-exported from this
+// barrel. `@revealui/auth/server` is the fleet's most-mocked module (route
+// tests bare-mock it for getSession), and a bare vi.mock of this barrel must
+// never swallow the audit write path (it broke the GAP-352 + mcp-endpoint
+// integration suites when the boundary briefly lived here).
 export { isSignupAllowed, signIn, signUp } from './auth.js';
 export {
   clearFailedAttempts,

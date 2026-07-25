@@ -249,7 +249,11 @@ export async function register() {
   // gated on RUNTIME_INIT, so hosted/Vercel boot is unchanged.
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     try {
-      const { initEngineAtBoot } = await import('./instrumentation-node');
+      const { initEngineAtBoot, installAdminAuditStorage } = await import('./instrumentation-node');
+      // GAP-338: install persistent audit storage FIRST, before anything that
+      // can emit an audit event runs — otherwise early emits (engine init,
+      // first requests) land in the in-memory sink and evaporate.
+      await installAdminAuditStorage();
       await initEngineAtBoot();
     } catch (err) {
       process.stderr.write(
