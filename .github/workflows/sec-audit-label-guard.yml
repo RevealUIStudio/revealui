@@ -58,10 +58,43 @@ jobs:
           # expression is empty and checkout falls back to the default-branch
           # ref those events already run from.
           ref: ${{ github.event.pull_request.base.sha }}
+          # GAP-408: guardrail2-verdict.cjs is a thin adapter over the
+          # @revealui/harnesses gates module. Builds it from THIS checkout's
+          # own source (packages/harnesses/ + packages/dev/ for the shared
+          # tsconfig, plus every package.json so pnpm can resolve the
+          # workspace filter) rather than installing a published npm artifact
+          # — see security-review-gate.yml's matching comment for why (a
+          # publish-pinned dependency would leave the gate fail-closed on an
+          # unbounded window until the next manual stable release). The
+          # resolver's npm-install fallback (REVEALUI_HARNESSES_DIR) stays in
+          # gates-resolver.cjs for the .jv side, unused here.
           sparse-checkout: |
             scripts/validate/sec-audit-label-decision.cjs
             scripts/validate/guardrail2-verdict.cjs
+            scripts/validate/gates-resolver.cjs
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
           sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: '10.28.2'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Build @revealui/harnesses (guardrail2-verdict gates module, GAP-408)
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --filter @revealui/harnesses
+          pnpm --filter @revealui/harnesses build
 
       - name: Guard the clearance label
         env:

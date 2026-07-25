@@ -60,11 +60,46 @@ jobs:
           # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
           # at module load. Sparse list must include that JSON or the job
           # crashes ENOENT before it can classify the PR (revealui#2074).
+          # GAP-408: guardrail2-verdict.cjs is a thin adapter over the
+          # @revealui/harnesses gates module. Builds it from THIS checkout's
+          # own source (packages/harnesses/ + packages/dev/ for the shared
+          # tsconfig, plus every package.json so pnpm can resolve the
+          # workspace filter) rather than installing a published npm artifact
+          # — a pinned-to-a-release dependency would leave every PR (including
+          # the test->main promotion) fail-closed until a manual stable
+          # release publishes a version that doesn't exist yet at merge time.
+          # gates-resolver.cjs's local-dist path picks up the build below with
+          # no further wiring; the resolver's npm-install fallback
+          # (REVEALUI_HARNESSES_DIR) stays in the module for the .jv side,
+          # unused here.
           sparse-checkout: |
             scripts/validate/security-review-gate.cjs
             scripts/validate/guardrail2-verdict.cjs
+            scripts/validate/gates-resolver.cjs
             scripts/validate/security-paths.shared.json
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
           sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: '10.28.2'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Build @revealui/harnesses (guardrail2-verdict gates module, GAP-408)
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --filter @revealui/harnesses
+          pnpm --filter @revealui/harnesses build
 
       - name: Evaluate review gate
         env:
