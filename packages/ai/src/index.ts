@@ -14,13 +14,18 @@
  * ```typescript
  * import { EpisodicMemory } from '@revealui/ai/memory/stores'
  * import { NodeIdService } from '@revealui/ai/memory/services'
+ * import { AgentOrchestrator, LLMClient, ToolRegistry } from '@revealui/ai'
  *
  * // Memory operations
  * const memory = new EpisodicMemory(userId, nodeId, db)
  * await memory.add(agentMemory)
- *
- * // LLM, orchestration, and tools coming soon
  * ```
+ *
+ * LLM, orchestration, and tools all ship from this root entry today:
+ * `LLMClient` and `createLLMClientFromEnv` come from `./llm/client.js`,
+ * `AgentOrchestrator` from `./orchestration/orchestrator.js`, and
+ * `ToolRegistry` plus `globalToolRegistry` from `./tools/registry.js`.
+ * See the re-export block below for the full surface.
  *
  * ## Architecture
  *
