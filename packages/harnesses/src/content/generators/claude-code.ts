@@ -24,6 +24,8 @@ const YAML_QUOTING_CHARS = new Set([
   ':',
   '#',
   '\n',
+  '\r', // bare CR is a YAML break character; unquoted it can split the scalar
+
   '"',
   "'",
   '{',
