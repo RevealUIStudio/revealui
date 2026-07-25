@@ -97,6 +97,49 @@ describe('GET /api/health', () => {
     expect(body.service).toBe('RevealUI Admin');
   });
 
+  it('non-production in-memory audit storage is informational: degraded check entry, still 200 (GAP-338/417)', async () => {
+    mockGetSession.mockResolvedValue({ user: { role: 'admin' } });
+    const mockFind = vi.fn().mockResolvedValue({ docs: [] });
+    mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+
+    const { GET } = await loadRoute();
+    const res = await GET({ headers: { get: () => null } } as never);
+
+    // The test process runs on the real in-memory audit singleton — a
+    // by-design non-production state must not 503 the admin.
+    expect((res as { status: number }).status).toBe(200);
+    const body = (
+      res as unknown as {
+        body: { status: string; checks: Array<{ name: string; status: string }> };
+      }
+    ).body;
+    expect(body.status).toBe('healthy');
+    expect(body.checks.find((c) => c.name === 'audit-storage')?.status).toBe('degraded');
+  });
+
+  it('PRODUCTION in-memory audit storage is an outage: unhealthy check, 503 (GAP-338/417)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      mockGetSession.mockResolvedValue({ user: { role: 'admin' } });
+      const mockFind = vi.fn().mockResolvedValue({ docs: [] });
+      mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+
+      const { GET } = await loadRoute();
+      const res = await GET({ headers: { get: () => null } } as never);
+
+      expect((res as { status: number }).status).toBe(503);
+      const body = (
+        res as unknown as {
+          body: { status: string; checks: Array<{ name: string; status: string }> };
+        }
+      ).body;
+      expect(body.status).toBe('unhealthy');
+      expect(body.checks.find((c) => c.name === 'audit-storage')?.status).toBe('unhealthy');
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('returns 503 when database is unhealthy', async () => {
     mockGetSession.mockResolvedValue({ user: { role: 'admin' } });
     mockGetRevealUIInstance.mockRejectedValue(new Error('Connection refused'));
