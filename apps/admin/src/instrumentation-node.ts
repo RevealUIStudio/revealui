@@ -51,7 +51,9 @@
  */
 export async function installAdminAuditStorage(): Promise<void> {
   try {
-    const { assertAuditStorageEnv, installAuditStorage } = await import('@revealui/auth/server');
+    const { assertAuditStorageEnv, installAuditStorage } = await import(
+      '@revealui/auth/audit-storage'
+    );
     try {
       assertAuditStorageEnv();
     } catch (err) {

@@ -18,7 +18,7 @@
  */
 
 import { generateKeyPairSync, randomUUID } from 'node:crypto';
-import { __resetAuditSignerForTest, DrizzleBackedAuditStorage } from '@revealui/auth/server';
+import { __resetAuditSignerForTest, DrizzleBackedAuditStorage } from '@revealui/auth/audit-storage';
 import type { AuditEvent, AuditSignable } from '@revealui/core/security';
 import { verifyAuditRow } from '@revealui/core/security';
 import type { Database } from '@revealui/db/client';

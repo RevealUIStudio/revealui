@@ -13,4 +13,4 @@ export {
   DrizzleBackedAuditStorage,
   installAuditStorage,
   mapSeverityToDb,
-} from '@revealui/auth/server';
+} from '@revealui/auth/audit-storage';

@@ -19,7 +19,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const assertAuditStorageEnv = vi.fn();
 const installAuditStorage = vi.fn();
 
-vi.mock('@revealui/auth/server', () => ({
+vi.mock('@revealui/auth/audit-storage', () => ({
   assertAuditStorageEnv: (...args: unknown[]) => assertAuditStorageEnv(...args),
   installAuditStorage: (...args: unknown[]) => installAuditStorage(...args),
 }));

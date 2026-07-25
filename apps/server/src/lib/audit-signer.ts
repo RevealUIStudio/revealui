@@ -9,4 +9,4 @@ export {
   __resetAuditSignerForTest,
   createAuditStore,
   getAuditRowSigner,
-} from '@revealui/auth/server';
+} from '@revealui/auth/audit-storage';
