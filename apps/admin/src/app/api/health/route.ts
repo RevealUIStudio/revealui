@@ -116,7 +116,10 @@ export async function GET(request: Request) {
           'Audit storage is IN-MEMORY in production — admin audit emits evaporate on restart',
       });
     } else {
-      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
+      // By-design state (dev shell / test env without a DB): informational
+      // check entry only. It must NOT downgrade overallStatus — this route
+      // maps every non-healthy overall to 503, and a deliberate dev default
+      // is not an outage (the 503 belongs to production in-memory only).
       checks.push({
         name: 'audit-storage',
         status: 'degraded',
@@ -124,7 +127,9 @@ export async function GET(request: Request) {
       });
     }
   } catch (error) {
-    overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
+    // Probe failure is informational too — the audit path itself is guarded
+    // at boot (instrumentation) and at write time; the health probe must not
+    // 503 the whole admin because the check could not run.
     checks.push({
       name: 'audit-storage',
       status: 'degraded',

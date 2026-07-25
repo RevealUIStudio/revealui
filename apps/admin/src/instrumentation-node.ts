@@ -80,7 +80,23 @@ export async function installAdminAuditStorage(): Promise<void> {
       return;
     }
 
-    installAuditStorage();
+    try {
+      installAuditStorage();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (process.env.NODE_ENV === 'production') {
+        // GAP-417 item-5 backstop: a construct-time failure here means the
+        // parity assert and the real client contract have drifted (the exact
+        // DATABASE_HOST fail-open the #2161 re-review proved). Refuse to
+        // serve rather than silently keep the in-memory sink.
+        process.stderr.write(`AUDIT STORAGE INSTALL FAILED (admin):\n  - ${message}\n`);
+        process.exit(1);
+      }
+      process.stderr.write(
+        `[GAP-338] admin audit storage install failed (non-fatal, non-production): ${message}\n`,
+      );
+      return;
+    }
 
     if (process.env.RUNTIME_INIT) {
       // Forge kit: a long-running container with an async boot chain, the

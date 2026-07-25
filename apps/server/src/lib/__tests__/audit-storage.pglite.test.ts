@@ -167,10 +167,20 @@ describe('assertAuditStorageEnv — synchronous env-parity guard (GAP-355 Stage 
     );
   });
 
-  it('passes when any of DATABASE_URL / POSTGRES_URL / DATABASE_HOST is present', () => {
+  it('passes when DATABASE_URL or POSTGRES_URL is present', () => {
     expect(() => assertAuditStorageEnv({ DATABASE_URL: 'postgres://x' })).not.toThrow();
     expect(() => assertAuditStorageEnv({ POSTGRES_URL: 'postgres://x' })).not.toThrow();
-    expect(() => assertAuditStorageEnv({ DATABASE_HOST: 'db.internal' })).not.toThrow();
+  });
+
+  it('DATABASE_HOST alone THROWS — getClient() cannot build a connection from it (GAP-417 item 5)', () => {
+    // The #2161 re-review proved this empirically on the old predicate: the
+    // assert passed on DATABASE_HOST alone, getClient() then threw inside
+    // installAuditStorage, the caller swallowed it, and production silently
+    // kept the in-memory sink. The assert must accept exactly what
+    // getClient() accepts.
+    expect(() => assertAuditStorageEnv({ DATABASE_HOST: 'db.internal' })).toThrow(
+      'AUDIT STORAGE ENV PARITY FAILED',
+    );
   });
 
   it('on a production deployment, throws when the signing key is absent (GAP-355 Stage 3)', () => {
