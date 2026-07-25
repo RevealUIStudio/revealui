@@ -1,5 +1,16 @@
 # @revealui/editor
 
+## 0.2.1
+
+### Patch Changes
+
+- 86780ad: Land canvas defaults for a fresh edit session: resolve a published page (`home` then `products` then first) when no dirty docs exist, so the preview iframe is not stuck on bare `/`. Export `pickDefaultPreviewPageId` for the preference order.
+- 86780ad: VES P2 slice: gate fleet-marketing session patches with marketing-voice Tier-1 validation, extend prose slots for contracts block shapes, and add blocks.insert/remove/move ops on the session API plus canvas block chrome.
+- Updated dependencies [86780ad]
+- Updated dependencies [86780ad]
+  - @revealui/presentation@0.12.1
+  - @revealui/contracts@0.8.1
+
 ## 0.2.0
 
 ### Minor Changes
