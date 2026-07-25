@@ -69,6 +69,19 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn(),
 }));
 
+// GAP-360 §5.7: the POST route probes the key against the provider via the
+// @revealui/ai key-validator before storing. Mocked here so route tests never
+// make a real network call; defaults to valid so unrelated tests are unchanged.
+const mockValidateProviderKey = vi.fn(
+  async (
+    _provider: string,
+    _key: string,
+  ): Promise<{ valid: true } | { valid: false; error: string }> => ({ valid: true }),
+);
+vi.mock('@revealui/ai/llm/key-validator', () => ({
+  validateProviderKey: (provider: string, key: string) => mockValidateProviderKey(provider, key),
+}));
+
 import { getSession } from '@revealui/auth/server';
 import { NextRequest } from 'next/server';
 
@@ -288,6 +301,37 @@ describe('POST /api/user/api-keys', () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toBe('Invalid JSON body');
+  });
+
+  it('rejects a provider-rejected key with 400 and does not store it (GAP-360 §5.7)', async () => {
+    vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
+    mockValidateProviderKey.mockResolvedValueOnce({
+      valid: false,
+      error: 'Invalid Anthropic API key',
+    });
+
+    const req = makePostRequest('/api/user/api-keys', {
+      provider: 'anthropic',
+      key: 'sk-ant-bad',
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Invalid Anthropic API key');
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it('passes the provider and plaintext key to the probe, and stores on valid (GAP-360 §5.7)', async () => {
+    vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
+
+    const req = makePostRequest('/api/user/api-keys', {
+      provider: 'openai',
+      key: 'sk-good',
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockValidateProviderKey).toHaveBeenCalledWith('openai', 'sk-good');
+    expect(mockInsert).toHaveBeenCalled();
   });
 
   it('accepts all valid provider values', async () => {

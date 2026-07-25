@@ -53,6 +53,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
   const { provider, key } = parsed.data;
 
+  // GAP-360 §5.7: verify the key against the provider before storing it, the
+  // same probe the apps/server route runs (models-list-class call via
+  // @revealui/ai key-validator). A provider-rejected key returns 400 so the
+  // "tasks will use your key" banner never becomes a lie; an UNREACHABLE
+  // provider (timeout, outage) validates as ok so network failures never block
+  // storage. @revealui/ai is an optional Pro peer — absent module skips the
+  // probe (pro-stub pattern).
+  const keyValidatorMod = await import('@revealui/ai/llm/key-validator').catch(() => null);
+  if (keyValidatorMod) {
+    const validation = await keyValidatorMod.validateProviderKey(provider, key);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+  }
+
   const encryptedKey = encryptApiKey(key);
   const keyHint = redactApiKey(key);
 
