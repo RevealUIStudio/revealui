@@ -430,11 +430,6 @@ const LICENSE_ED25519: EvidenceRef = {
   ref: 'packages/core/src/revforge-license.ts',
   note: 'EdDSA-signed license JWTs; runtime verification in apps/server/src/routes/license.ts',
 };
-const MEMORY_STORES: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/ai/src/memory/stores',
-  note: 'episodic, semantic, procedural + working memory stores; vector layer alongside',
-};
 const ENGINES: EvidenceRef = {
   kind: 'code',
   ref: 'packages/engines/src',
@@ -449,11 +444,6 @@ const DOCS_APP: EvidenceRef = {
   kind: 'code',
   ref: 'apps/docs',
   note: 'documentation site (docs.revealui.com)',
-};
-const DOCS_MCP: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/mcp/src/servers/docs.ts',
-  note: 'revealui-docs MCP server: first-party @revealui/* package docs (list/resolve/get), not Pro-gated',
 };
 const REVDEV_STUDIO_INFERENCE: EvidenceRef = {
   kind: 'url',
