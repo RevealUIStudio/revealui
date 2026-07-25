@@ -73,6 +73,53 @@ describe('GET /api/health', () => {
     );
   });
 
+  it('unauthenticated + PRODUCTION in-memory audit storage: bare 503, no detail, no I/O (GAP-417)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    try {
+      mockGetSession.mockResolvedValue(null);
+      const { GET } = await loadRoute();
+      const res = await GET({ headers: { get: () => null } } as never);
+
+      // The test process runs on the real in-memory audit singleton, so the
+      // production zero-I/O probe fires. Monitors see the outage; the body
+      // stays a bare status (public-issue-redaction posture) and the engine
+      // is never touched for an anonymous caller.
+      expect((res as { status: number }).status).toBe(503);
+      const body = (res as unknown as { body: Record<string, unknown> }).body;
+      expect(body).toEqual({ status: 'unhealthy' });
+      expect(mockGetRevealUIInstance).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('authenticated admin + PRODUCTION probe failure: unhealthy 503 (#2162 review refinement)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const { audit } = await import('@revealui/security/server');
+    const probeSpy = vi.spyOn(audit, 'isInMemoryStorage').mockImplementation(() => {
+      throw new Error('probe boom');
+    });
+    try {
+      mockGetSession.mockResolvedValue({ user: { role: 'admin' } });
+      const mockFind = vi.fn().mockResolvedValue({ docs: [] });
+      mockGetRevealUIInstance.mockResolvedValue({ find: mockFind });
+
+      const { GET } = await loadRoute();
+      const res = await GET({ headers: { get: () => null } } as never);
+
+      expect((res as { status: number }).status).toBe(503);
+      const body = (
+        res as unknown as {
+          body: { status: string; checks: Array<{ name: string; status: string }> };
+        }
+      ).body;
+      expect(body.checks.find((c) => c.name === 'audit-storage')?.status).toBe('unhealthy');
+    } finally {
+      probeSpy.mockRestore();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('returns minimal status for non-admin authenticated users', async () => {
     mockGetSession.mockResolvedValue({ user: { role: 'user' } });
     const { GET } = await loadRoute();

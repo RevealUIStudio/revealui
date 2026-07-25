@@ -41,6 +41,7 @@
 import { createPrivateKey, createPublicKey } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import {
+  normalizeEnvPem,
   type OfflineAnchorRecord,
   type OfflineInclusionProofInput,
   verifyAuditAnchorOffline,
@@ -105,11 +106,13 @@ No network. No database.
 function resolvePublicKeyPem(args: Args): string | null {
   if (args.publicKeyPem) return args.publicKeyPem;
   if (args.publicKeyPath) return readFileSync(args.publicKeyPath, 'utf8');
+  // normalizeEnvPem: env-carried PEMs may be single-line \n-escaped (env_file
+  // transport) — every reader of these vars normalizes (#2164 review).
   const fromEnv = process.env.REVEALUI_AUDIT_PUBLIC_KEY;
-  if (fromEnv) return fromEnv;
+  if (fromEnv) return normalizeEnvPem(fromEnv);
   const privatePem = process.env.REVEALUI_AUDIT_SIGNING_KEY;
   if (privatePem) {
-    return createPublicKey(createPrivateKey(privatePem))
+    return createPublicKey(createPrivateKey(normalizeEnvPem(privatePem)))
       .export({ type: 'spki', format: 'pem' })
       .toString();
   }
