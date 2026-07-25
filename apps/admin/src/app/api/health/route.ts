@@ -25,6 +25,21 @@ export async function GET(request: Request) {
   const isAuthenticated = session?.user?.role === 'admin';
 
   if (!isAuthenticated) {
+    // GAP-417 (owner-ruled 2026-07-25): the unauthenticated arm reflects the
+    // real overall status CODE so uptime monitors and the kit healthcheck
+    // finally see a production audit outage, while leaking zero check detail
+    // (public-issue-redaction posture: a bare {status} body either way).
+    // Only zero-I/O probes run for anonymous callers — no DB query, no
+    // Stripe call, no new anonymous load surface.
+    try {
+      const { audit } = await import('@revealui/security/server');
+      if (process.env.NODE_ENV === 'production' && audit.isInMemoryStorage()) {
+        return NextResponse.json({ status: 'unhealthy' }, { status: 503 });
+      }
+    } catch {
+      // Probe unavailable: stay minimal-healthy — the boot rails and the
+      // authenticated arm carry the detailed signal.
+    }
     return NextResponse.json({ status: 'healthy' });
   }
 
@@ -127,14 +142,26 @@ export async function GET(request: Request) {
       });
     }
   } catch (error) {
-    // Probe failure is informational too — the audit path itself is guarded
-    // at boot (instrumentation) and at write time; the health probe must not
-    // 503 the whole admin because the check could not run.
-    checks.push({
-      name: 'audit-storage',
-      status: 'degraded',
-      message: error instanceof Error ? error.message : 'Audit storage check failed',
-    });
+    if (process.env.NODE_ENV === 'production') {
+      // #2162 review refinement: a probe that cannot even run in PRODUCTION
+      // is an anomalous state that must keep its status-code signal — it is
+      // the one arm that would otherwise report 200 while the audit surface
+      // is unobservable.
+      overallStatus = 'unhealthy';
+      checks.push({
+        name: 'audit-storage',
+        status: 'unhealthy',
+        message: error instanceof Error ? error.message : 'Audit storage check failed',
+      });
+    } else {
+      // Non-production probe failure stays informational — the audit path is
+      // guarded at boot and at write time; a dev shell must not 503 on it.
+      checks.push({
+        name: 'audit-storage',
+        status: 'degraded',
+        message: error instanceof Error ? error.message : 'Audit storage check failed',
+      });
+    }
   }
 
   // System metrics

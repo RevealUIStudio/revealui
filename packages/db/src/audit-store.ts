@@ -105,10 +105,31 @@ export class DrizzleAuditStore {
     private readonly signer?: AuditRowSignerFn,
   ) {}
 
+  /**
+   * GAP-417 items 1-2 (owner-countersigned 2026-07-25), store-level rail: a
+   * production process must never land an unsigned audit row, regardless of
+   * how it booted. Unsigned rows are indistinguishable from tampering and
+   * permanently stall anchor contiguity once the sweep filters them. The
+   * boot-time assert is the first rail; this is the backstop for any path
+   * that constructs a signer-less store while NODE_ENV=production.
+   */
+  private refuseUnsignedInProduction(): void {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'DrizzleAuditStore: refusing to write an UNSIGNED audit row in production — ' +
+          'no row signer is injected. An unsigned row is indistinguishable from ' +
+          'tampering and stalls anchor contiguity (GAP-417). Provision ' +
+          'REVEALUI_AUDIT_SIGNING_KEY and construct the store through createAuditStore.',
+      );
+    }
+  }
+
   /** Append a single entry to the audit log */
   async append(entry: AuditEntry): Promise<void> {
     if (!this.signer) {
-      // Unsigned mode: DB assigns `seq` (column default), `signature` stays NULL.
+      this.refuseUnsignedInProduction();
+      // Unsigned mode (dev/test only): DB assigns `seq` (column default),
+      // `signature` stays NULL.
       await this.db.insert(auditLog).values(this.unsignedValues(entry));
       return;
     }
@@ -134,6 +155,7 @@ export class DrizzleAuditStore {
     if (entries.length === 0) return;
 
     if (!this.signer) {
+      this.refuseUnsignedInProduction();
       await this.db.insert(auditLog).values(entries.map((entry) => this.unsignedValues(entry)));
       return;
     }

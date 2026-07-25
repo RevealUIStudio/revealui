@@ -44,6 +44,17 @@ export interface AuditSignerResolution {
 }
 
 /**
+ * Restore real newlines in a single-line PEM. `env_file` transports (RevForge
+ * kits write `docker/.env`, and Docker's env_file format is one line per key)
+ * deliver PEMs with literal `\n` escapes; real multi-line PEMs pass through
+ * untouched. Mirrors the license path's normalizePem (GAP-259 P0-4 precedent:
+ * split/join, no authored regex).
+ */
+function normalizeEnvPem(raw: string): string {
+  return raw.includes('\\n') ? raw.split('\\n').join('\n') : raw;
+}
+
+/**
  * Derive a stable, key-bound kid: `ed25519-<first 16 hex of sha256(SPKI DER)>`.
  * Computed over the PUBLIC half, so it is identical whether derived from the
  * private key (a signer) or the public key (the endpoint). Deterministic for a
@@ -72,10 +83,11 @@ function resolveKid(env: AuditSignerEnv, publicKey: KeyObject): string {
  * with a fallback is not a signing key.
  */
 export function createAuditRowSignerFromEnv(env: AuditSignerEnv): AuditSignerResolution {
-  const privateKeyPem = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
-  if (!privateKeyPem) {
+  const rawKey = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
+  if (!rawKey) {
     return { signer: undefined, cryptoSigner: undefined, mode: 'unsigned' };
   }
+  const privateKeyPem = normalizeEnvPem(rawKey);
   const publicKey = createPublicKey(createPrivateKey(privateKeyPem));
   const kid = resolveKid(env, publicKey);
   const cryptoSigner = new Ed25519AuditRowSigner(privateKeyPem, kid);
@@ -111,8 +123,10 @@ export interface ResolvedAuditPublicKey {
  * key. A misconfiguration must be loud.
  */
 export function resolveAuditPublicKey(env: AuditSignerEnv): ResolvedAuditPublicKey | null {
-  const explicit = env.REVEALUI_AUDIT_PUBLIC_KEY?.trim();
-  const privateKeyPem = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
+  const rawExplicit = env.REVEALUI_AUDIT_PUBLIC_KEY?.trim();
+  const explicit = rawExplicit ? normalizeEnvPem(rawExplicit) : rawExplicit;
+  const rawPrivate = env.REVEALUI_AUDIT_SIGNING_KEY?.trim();
+  const privateKeyPem = rawPrivate ? normalizeEnvPem(rawPrivate) : rawPrivate;
   let publicKey: KeyObject;
   if (explicit) {
     publicKey = createPublicKey(explicit);

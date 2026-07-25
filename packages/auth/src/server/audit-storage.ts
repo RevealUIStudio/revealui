@@ -270,13 +270,21 @@ export function assertAuditStorageEnv(env: NodeJS.ProcessEnv = process.env): voi
   // done by validate-startup; this is the audit-owned presence parity check, so
   // the contract cannot silently drift on one serving process. Dev/test
   // (NODE_ENV !== 'production') runs unsigned by design and is exempt.
-  if (env.NODE_ENV === 'production' && env.SKIP_ENV_VALIDATION !== 'true') {
+  //
+  // GAP-417 items 1-2 (owner-countersigned 2026-07-25): SKIP_ENV_VALIDATION no
+  // longer exempts this check. The audit path has NO escape hatch — a
+  // production process that cannot sign must not boot, because unsigned rows
+  // are indistinguishable from tampering AND permanently stall anchor
+  // contiguity once the sweep filters them. SKIP still covers non-audit env
+  // validation elsewhere; it never buys an unsigned production audit log.
+  if (env.NODE_ENV === 'production') {
     if (!env.REVEALUI_AUDIT_SIGNING_KEY) {
       throw new Error(
         'AUDIT STORAGE ENV PARITY FAILED: REVEALUI_AUDIT_SIGNING_KEY is not set on a ' +
           'production deployment, so the audit write path cannot sign rows. Refusing to ' +
           'serve — an unsigned row in the post-Stage-3 era is indistinguishable from ' +
-          'tampering (docs/decisions/2026-07-12-audit-receipt-architecture.md §2a).',
+          'tampering (docs/decisions/2026-07-12-audit-receipt-architecture.md §2a). ' +
+          'SKIP_ENV_VALIDATION does not exempt the audit path (GAP-417).',
       );
     }
   }
