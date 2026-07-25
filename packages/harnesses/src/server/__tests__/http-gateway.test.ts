@@ -18,8 +18,8 @@ import {
   isPreAuthRoute,
   PairingRateLimiter,
   PRE_AUTH_ROUTES,
+  type RpcDispatch,
 } from '../http-gateway.js';
-import type { RpcServer } from '../rpc-server.js';
 
 // A default-noop hook that lets one test plant a file inside the SUT's mkdirSync
 // call (which runs immediately before the exclusive 'wx' write) to deterministically
@@ -63,15 +63,13 @@ vi.mock('node:fs', async (importOriginal) => {
   };
 });
 
-/** A stub RpcServer.dispatchHttp that records calls and replies with a success envelope. */
-function makeDispatchStub(): RpcServer & { dispatchHttp: ReturnType<typeof vi.fn> } {
+/** A stub RPC dispatch backend that records calls and replies with a success envelope. */
+function makeDispatchStub(): RpcDispatch & { dispatchHttp: ReturnType<typeof vi.fn> } {
   const dispatchHttp = vi.fn((body: string, reply: (response: unknown) => void) => {
     const req = JSON.parse(body) as { id: number | string | null; method: string };
     reply({ jsonrpc: '2.0', id: req.id, result: { ok: true, method: req.method } });
   });
-  return { dispatchHttp } as unknown as RpcServer & {
-    dispatchHttp: ReturnType<typeof vi.fn>;
-  };
+  return { dispatchHttp };
 }
 
 interface Harness {

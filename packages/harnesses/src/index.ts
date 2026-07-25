@@ -1,8 +1,10 @@
 /**
  * @revealui/harnesses  -  AI Harness Integration System (Server-side)
  *
- * Adapters, registry, workboard coordination, and JSON-RPC server for
- * integrating native AI agents into the RevealUI development workflow.
+ * Adapters, registry, content definitions, and workboard primitives for
+ * integrating native AI agents into the RevealUI development workflow. The
+ * coordination runtime (RPC server, storage, spawner) lives in the RevDev
+ * daemon; see the daemon-ownership ADR (2026-07-25).
  *
  * @packageDocumentation
  */
@@ -50,9 +52,6 @@ export {
   validateManifest,
   writeAllContentSnapshots,
 } from './content/index.js';
-export type { CoordinatorOptions } from './coordinator.js';
-// Coordinator
-export { HarnessCoordinator } from './coordinator.js';
 // Detection
 export { autoDetectHarnesses } from './detection/auto-detector.js';
 export {
@@ -61,31 +60,6 @@ export {
   findHarnessProcesses,
   findProcesses,
 } from './detection/process-detector.js';
-// Goals (goal-driven coordination; propose-only)
-export type {
-  CreateGoalInput,
-  CriterionRecordResult,
-  CriterionStatus,
-  GoalAction,
-  GoalActionItem,
-  GoalHarnessOptions,
-  GoalOwner,
-  GoalPriority,
-  GoalProgress,
-  GoalStatus,
-  GoalTransitionResult,
-  GoalWithCriteria,
-  ProposeTaskResult,
-} from './goals/index.js';
-export {
-  CRITERION_STATUSES,
-  createGoalInputSchema,
-  GOAL_ACTIONS,
-  GOAL_OWNERS,
-  GOAL_PRIORITIES,
-  GOAL_STATUSES,
-  GoalHarness,
-} from './goals/index.js';
 // Hooks  -  normalizers, local policy evaluation, receipt spool (see also `./hooks` subpath export)
 export type {
   FlushConfig,
@@ -192,17 +166,10 @@ export type {
   SnapStatus,
 } from './server/inference-service.js';
 export { InferenceService, PRODUCT_INFERENCE_SNAPS } from './server/inference-service.js';
-export { RpcServer } from './server/rpc-server.js';
-export type {
-  ReconcileResult,
-  SharedFact,
-  SharedMemory,
-  SharedMemoryClientConfig,
-  YjsPatch,
-} from './server/shared-memory-client.js';
-export { SharedMemoryClient } from './server/shared-memory-client.js';
 export type { DaemonStoreConfig } from './storage/daemon-store.js';
-// Storage (PGlite-backed daemon state)
+// Storage (PGlite-backed). Retained out of the daemon-ownership ADR's DELETE set:
+// server/__tests__/http-gateway.test.ts exercises the real store for the gateway's
+// auth flow (GAP-353), a consumer the ADR's routing did not account for.
 export { DaemonStore } from './storage/daemon-store.js';
 export type {
   AgentMessage,

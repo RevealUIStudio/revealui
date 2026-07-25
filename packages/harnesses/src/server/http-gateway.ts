@@ -13,9 +13,55 @@ import {
 } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { dirname, extname, join, normalize } from 'node:path';
-import type { DaemonStore } from '../storage/daemon-store.js';
-import type { RpcServer } from './rpc-server.js';
-import type { AgentExitEvent, AgentOutputEvent, SpawnerService } from './spawner-service.js';
+
+/**
+ * Structural contracts covering this gateway's real dependencies on modules
+ * deleted per the daemon-ownership ADR (2026-07-25): `server/rpc-server.ts`,
+ * `storage/daemon-store.ts`, and `server/spawner-service.ts`. The RevDev daemon
+ * owns the coordination runtime; this gateway is ported into that daemon
+ * separately (the ADR's wire-path steps). Until the port lands, these
+ * interfaces cover each module's actual usage here so the gateway keeps
+ * compiling and its tests keep passing against mocks.
+ */
+
+/** Covers `RpcServer.dispatchHttp`, the gateway's only RPC-server usage. */
+export interface RpcDispatch {
+  dispatchHttp(body: string, reply: (response: unknown) => void): void;
+}
+
+/** Covers the gateway auth methods `DaemonStore` provided (gateway_bootstrap + gateway_tokens). */
+export interface GatewayStore {
+  getBootstrapSecretHash(): Promise<string | null>;
+  putBootstrapSecretHash(secretHash: string): Promise<unknown>;
+  findValidToken(tokenHash: string): Promise<{ token_hash: string } | null>;
+  insertToken(token: {
+    tokenHash: string;
+    expiresAt?: string | null;
+    label?: string | null;
+  }): Promise<unknown>;
+  pruneExpiredTokens(): Promise<number>;
+}
+
+/** Covers the SSE event payloads `SpawnerService` emitted. */
+export interface AgentOutputEvent {
+  sessionId: string;
+  stream: 'stdout' | 'stderr';
+  data: string;
+}
+
+/** Covers the SSE event payloads `SpawnerService` emitted. */
+export interface AgentExitEvent {
+  sessionId: string;
+  code: number | null;
+}
+
+/** Covers the `on`/`off` subset of the `EventEmitter`-based `SpawnerService` this gateway uses. */
+export interface SpawnerLike {
+  on(event: 'output', listener: (evt: AgentOutputEvent) => void): unknown;
+  on(event: 'exit', listener: (evt: AgentExitEvent) => void): unknown;
+  off(event: 'output', listener: (evt: AgentOutputEvent) => void): unknown;
+  off(event: 'exit', listener: (evt: AgentExitEvent) => void): unknown;
+}
 
 /**
  * HTTP gateway that exposes the harness daemon over TCP.
@@ -68,12 +114,12 @@ export interface HttpGatewayConfig {
   host: string;
   /** Path to Studio static build directory (optional  -  disables static serving if absent) */
   staticDir?: string;
-  /** Reference to the Unix-socket RPC server for dispatching */
-  rpcDispatch: RpcServer;
+  /** Reference to the RPC dispatch backend for proxying HTTP requests */
+  rpcDispatch: RpcDispatch;
   /** Reference to the spawner service (enables SSE streaming) */
-  spawner?: SpawnerService;
+  spawner?: SpawnerLike;
   /** Durable daemon store (bootstrap secret hash + hashed bearer tokens) */
-  store: DaemonStore;
+  store: GatewayStore;
   /** Absolute path to the 0600 bootstrap pairing secret file */
   secretPath: string;
   /** Optional auth tuning (TTLs, lockout, clock) */

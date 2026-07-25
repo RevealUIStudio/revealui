@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 
 /**
- * revealui-harnesses  -  CLI daemon and RPC client for AI harness coordination.
+ * revealui-harnesses  -  CLI and RPC client for AI harness coordination.
+ *
+ * The RPC server lives in the RevDev daemon (`~/.local/share/revealui/harness.sock`);
+ * this CLI dispatches to it and no longer hosts a socket server itself. See the
+ * daemon-ownership ADR (2026-07-25).
  *
  * Commands:
- *   start [--project <path>]         Detect harnesses, register in workboard, start RPC server
  *   status                           List available harnesses via RPC
  *   list                             List harnesses in TSV format
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
- *   coordinate [--print]             Print current workboard state
- *   coordinate --init <path>         Register this session in the workboard and start daemon
+ *   coordinate [--project <path>]    Print current workboard state
  *   hook <cursor|claude-code|vscode> Normalize a hook payload from stdin, evaluate policy, spool the receipt
  *
  * License: FSL-1.1-MIT
  */
 
-import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -36,7 +38,6 @@ import {
   writeAllContentSnapshots,
   writeManagerAdapterContent,
 } from './content/index.js';
-import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
 import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
@@ -45,7 +46,6 @@ import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
 const DEFAULT_SOCKET = join(DATA_DIR, 'harness.sock');
-const PID_FILE = join(DATA_DIR, 'harness.pid');
 const DEFAULT_PROJECT = process.cwd();
 
 const [, , command, ...args] = process.argv;
@@ -595,60 +595,6 @@ async function main() {
   }
 
   switch (command) {
-    case 'start': {
-      const projectIdx = args.indexOf('--project');
-      const projectRoot =
-        projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
-
-      const httpPortIdx = args.indexOf('--http-port');
-      const httpPort = httpPortIdx >= 0 ? Number(args[httpPortIdx + 1]) : undefined;
-      const httpHostIdx = args.indexOf('--http-host');
-      const httpHost = httpHostIdx >= 0 ? (args[httpHostIdx + 1] ?? '0.0.0.0') : undefined;
-      const httpStaticIdx = args.indexOf('--http-static');
-      const httpStaticDir = httpStaticIdx >= 0 ? args[httpStaticIdx + 1] : undefined;
-
-      const coordinator = new HarnessCoordinator({
-        projectRoot,
-        task: 'Harness coordination active',
-        httpPort,
-        httpHost,
-        httpStaticDir,
-      });
-
-      await coordinator.start();
-
-      // Write PID file for external process management
-      mkdirSync(dirname(PID_FILE), { recursive: true });
-      writeFileSync(PID_FILE, String(process.pid), 'utf8');
-
-      const ids = await coordinator.getRegistry().listAvailable();
-      process.stdout.write(`✓ Detected harnesses: ${ids.length > 0 ? ids.join(', ') : 'none'}\n`);
-      process.stdout.write(`✓ RPC server listening on ${DEFAULT_SOCKET}\n`);
-      process.stdout.write(`✓ PID ${process.pid} written to ${PID_FILE}\n`);
-      process.stdout.write(`✓ Session registered in workboard\n`);
-
-      if (httpPort) {
-        const gateway = coordinator.getHttpGateway();
-        process.stdout.write(`✓ HTTP gateway listening on ${httpHost ?? '0.0.0.0'}:${httpPort}\n`);
-        if (gateway) {
-          process.stdout.write(`✓ Bootstrap pairing secret: ${gateway.getSecretPath()}\n`);
-        }
-      }
-
-      const shutdown = async () => {
-        await coordinator.stop();
-        try {
-          unlinkSync(PID_FILE);
-        } catch {
-          /* already removed */
-        }
-        process.exit(0);
-      };
-      process.on('SIGINT', shutdown);
-      process.on('SIGTERM', shutdown);
-      break;
-    }
-
     case 'status': {
       try {
         const infos = (await rpcCall('harness.list')) as Array<{
@@ -706,31 +652,18 @@ async function main() {
     }
 
     case 'coordinate': {
-      if (args.includes('--init')) {
-        const pathIdx = args.indexOf('--init');
-        const projectRoot = args[pathIdx + 1] ?? DEFAULT_PROJECT;
-        const coordinator = new HarnessCoordinator({ projectRoot, task: 'Coordinate harnesses' });
-        await coordinator.start();
-        const workboard = coordinator.getWorkboard();
-        const conflicts = workboard.checkConflicts('', []);
-        process.stdout.write(
-          `✓ Session registered. Conflicts: ${conflicts.clean ? 'none' : conflicts.conflicts.length}\n`,
-        );
-        await coordinator.stop();
-      } else {
-        // --print: dump current workboard to stdout
-        const projectRoot = args[args.indexOf('--project') + 1] ?? DEFAULT_PROJECT;
-        const workboardPath = join(projectRoot, '.claude', 'workboard.md');
-        const manager = new WorkboardManager(workboardPath);
-        const state = manager.read();
-        process.stdout.write(`Agents (${state.agents.length}):\n`);
-        for (const a of state.agents) {
-          const stale = Date.now() - new Date(a.updated).getTime() > 4 * 60 * 60 * 1000;
-          process.stdout.write(`  ${a.id} [${a.env}] — ${a.task}${stale ? ' (STALE)' : ''}\n`);
-          if (a.files) process.stdout.write(`    files: ${a.files}\n`);
-        }
-        if (state.agents.length === 0) process.stdout.write('  (no active agents)\n');
+      // dump current workboard to stdout
+      const projectRoot = args[args.indexOf('--project') + 1] ?? DEFAULT_PROJECT;
+      const workboardPath = join(projectRoot, '.claude', 'workboard.md');
+      const manager = new WorkboardManager(workboardPath);
+      const state = manager.read();
+      process.stdout.write(`Agents (${state.agents.length}):\n`);
+      for (const a of state.agents) {
+        const stale = Date.now() - new Date(a.updated).getTime() > 4 * 60 * 60 * 1000;
+        process.stdout.write(`  ${a.id} [${a.env}] — ${a.task}${stale ? ' (STALE)' : ''}\n`);
+        if (a.files) process.stdout.write(`    files: ${a.files}\n`);
       }
+      if (state.agents.length === 0) process.stdout.write('  (no active agents)\n');
       break;
     }
 
@@ -771,13 +704,11 @@ async function main() {
       process.stdout.write(`revealui-harnesses — AI harness coordination for RevealUI
 
 Commands:
-  start [--project <path>]          Start daemon (detects harnesses, registers session)
   status                            List available harnesses (requires daemon)
   list                              List harnesses in TSV format (requires daemon)
   sync <id> <push|pull>             Sync harness config to/from SSD (requires daemon)
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
-  coordinate --init [<path>]        Register + start daemon
   hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs

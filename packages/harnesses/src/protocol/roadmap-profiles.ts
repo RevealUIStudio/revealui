@@ -19,8 +19,11 @@
  *
  * The separation from `TOOL_PROFILES` is structural: it surfaces the
  * spec-vs-shipped gap as a code-level distinction instead of a comment.
- * `HarnessCoordinator.dispatchTask` consults both — registered capabilities
- * win, then `TOOL_PROFILES` (shipped), then `ROADMAP_PROFILES` (declared).
+ * A capability-aware dispatcher would consult both, in priority order:
+ * registered capabilities win, then `TOOL_PROFILES` (shipped), then
+ * `ROADMAP_PROFILES` (declared). No such dispatcher ships in this package
+ * today — the coordination runtime lives in the RevDev daemon (see the
+ * daemon-ownership ADR, 2026-07-25).
  */
 
 import type { ProtocolCapabilities } from './capabilities.js';

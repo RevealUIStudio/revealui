@@ -170,20 +170,15 @@ We extracted the workboard protocol into a proper package: [`@revealui/harnesses
 
 > **How this evolved.** RevealUI's own coordination has matured past the exact hooks above: today the Claude Code hooks *read and warn* rather than write the workboard, agents maintain it directly, and a coordination daemon tracks live session state over RPC. The file-based workboard stays the durable, greppable, git-committed archive layer, which is the part that mattered most. `@revealui/harnesses` ships the productized version.
 
-```typescript
-import { WorkboardManager, HarnessCoordinator } from '@revealui/harnesses'
+```bash
+# List harnesses the running coordination daemon has detected
+revealui-harnesses status
 
-const coordinator = new HarnessCoordinator({
-  projectRoot: '/path/to/your/project',
-  socketPath: '/tmp/revealui-harness.sock',
-  task: 'Implement auth middleware',
-})
-
-await coordinator.start()
-// Registers in workboard, starts RPC server, auto-detects harnesses
+# Print the current workboard state
+revealui-harnesses coordinate --project /path/to/your/project
 ```
 
-`WorkboardManager` handles the low-level parsing:
+`WorkboardManager` handles the low-level parsing directly, for callers that want to register sessions and claim files programmatically rather than through the CLI:
 
 ```typescript
 const wb = new WorkboardManager('/path/to/.claude/workboard.md')
