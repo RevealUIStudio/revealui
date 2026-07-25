@@ -62,11 +62,6 @@
       "import": "./dist/goals/index.js",
       "default": "./dist/goals/index.js"
     },
-    "./protocol": {
-      "types": "./dist/protocol/index.d.ts",
-      "import": "./dist/protocol/index.js",
-      "default": "./dist/protocol/index.js"
-    },
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.js",

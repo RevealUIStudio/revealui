@@ -166,7 +166,8 @@ Tokens are durable (default 90-day TTL) and persisted as hashes, so a daemon res
 | `@revealui/harnesses/content` | Content definitions, manifest builders, generators (`DEFAULT_CONTENT_GENERATOR_ID` → manager tree) |
 | `@revealui/harnesses/manager` | Project manager schema, materialize, check (`.revealui`) |
 | `@revealui/harnesses/storage` | DaemonStore (PGlite-backed daemon state), schema |
-| `@revealui/harnesses/protocol` | Protocol adapter types, config generators, event normalizer |
+
+Protocol adapter types, config generators, and the event normalizer are re-exported from the root `@revealui/harnesses` entry only (see `packages/harnesses/src/index.ts:130-182`). The dedicated `@revealui/harnesses/protocol` subpath was removed (GAP-421): it was mapped in `package.json` but never listed in `packages/harnesses/tsup.config.ts:4-16`, so it 404'd for anyone who tried it, and nothing in the fleet consumed it. Re-add it once a real consumer needs the narrower import.
 
 ## Development
 
