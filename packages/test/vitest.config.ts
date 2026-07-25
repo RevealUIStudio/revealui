@@ -5,6 +5,15 @@ export default createVitestConfig({
   maxWorkers: 1,
   hookTimeout: 30_000,
   exclude: ['src/integration/**', 'src/integration-pro/**', '**/e2e/**', '**/node_modules/**'],
+  // Loaded-files-only coverage (no `include` key). This package is test
+  // infrastructure: its fixtures/mocks/patterns/integration helpers are
+  // exercised by OTHER packages' suites and by the integration/e2e runs this
+  // unit job excludes, so an include-all denominator counts them at 0% and
+  // sank the package from green to 15% lines at the 2026-07-25 promotion
+  // (#2110 factory migration regression — the pre-factory config had no
+  // include key and the thresholds below were calibrated to loaded-only
+  // measurement).
+  coverageInclude: false,
   coverageExclude: [
     'node_modules/**',
     '**/*.test.ts',

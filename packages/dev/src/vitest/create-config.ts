@@ -39,8 +39,16 @@ export interface CreateVitestConfigOptions {
   exclude?: string[];
   /** When false, omit coverage block. Default: true. */
   coverage?: boolean;
-  /** Coverage include globs. Default: src TypeScript files. */
-  coverageInclude?: string[];
+  /**
+   * Coverage include globs. Default: src TypeScript files. Pass `false` to
+   * omit the `include` key entirely — the v8 provider then measures ONLY
+   * files the test run actually loads, instead of reporting every
+   * include-matched file (unloaded files count 0% and enter the
+   * denominator). Use for test-utilities packages whose helper trees are
+   * exercised by OTHER packages' suites or by integration/e2e runs excluded
+   * from the unit-coverage job.
+   */
+  coverageInclude?: string[] | false;
   /** Coverage exclude globs. Default: tests and __tests__ trees. */
   coverageExclude?: string[];
   /**
@@ -111,7 +119,7 @@ export function createVitestConfig(options: CreateVitestConfigOptions = {}): Vit
             coverage: {
               provider: 'v8' as const,
               reporter: coverageReporters,
-              include: coverageInclude,
+              ...(coverageInclude !== false ? { include: coverageInclude } : {}),
               exclude: coverageExclude,
               ...(thresholds ? { thresholds } : {}),
             },
