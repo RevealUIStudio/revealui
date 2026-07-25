@@ -68,7 +68,6 @@ export const COVERED_FILES: readonly CoveredFile[] = [
   { file: 'local-ai.ts' },
   { file: 'fair-source.ts' },
   { file: 'philosophy.ts' },
-  { file: 'marketplace.ts' },
   { file: 'roadmap.ts' },
   { file: 'claims.ts' },
   { file: 'receipt.ts' },
@@ -431,11 +430,6 @@ const LICENSE_ED25519: EvidenceRef = {
   ref: 'packages/core/src/revforge-license.ts',
   note: 'EdDSA-signed license JWTs; runtime verification in apps/server/src/routes/license.ts',
 };
-const MEMORY_STORES: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/ai/src/memory/stores',
-  note: 'episodic, semantic, procedural + working memory stores; vector layer alongside',
-};
 const ENGINES: EvidenceRef = {
   kind: 'code',
   ref: 'packages/engines/src',
@@ -450,16 +444,6 @@ const DOCS_APP: EvidenceRef = {
   kind: 'code',
   ref: 'apps/docs',
   note: 'documentation site (docs.revealui.com)',
-};
-const VERCEL_REDIRECT: EvidenceRef = {
-  kind: 'code',
-  ref: 'apps/marketing/vercel.json',
-  note: '/marketplace 308-redirects to /roadmap; the catalog is preserved seed data for the future revmarket repo',
-};
-const DOCS_MCP: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/mcp/src/servers/docs.ts',
-  note: 'revealui-docs MCP server: first-party @revealui/* package docs (list/resolve/get), not Pro-gated',
 };
 const REVDEV_STUDIO_INFERENCE: EvidenceRef = {
   kind: 'url',
@@ -3102,173 +3086,6 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'PHILOSOPHY.sections[4].body',
     text: 'Used in production by the team that maintains it.',
     evidence: [THIS_SITE],
-  },
-
-  // ── marketplace.ts (claims-ratchet 3) ───────────────────────────────────
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_HERO.subtitle',
-    text: '(interpolated: server count from METRICS.mcpServers)',
-    match: 'path',
-    evidence: [MCP_SERVERS, VERCEL_REDIRECT],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_DISCOVERY_SECTION.title',
-    text: 'How agents discover and use tools',
-    evidence: [HYPERVISOR],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_DISCOVERY_SECTION.subtitle',
-    text: 'MCP (Model Context Protocol) is the open standard for connecting AI agents to tools and data sources. RevealUI implements MCP natively.',
-    evidence: [HYPERVISOR, OPEN_STANDARDS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_DISCOVERY_STEPS[0].description',
-    text: 'Agents attach MCP servers that advertise tools and required permissions through the open protocol.',
-    evidence: [HYPERVISOR],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_DISCOVERY_STEPS[1].description',
-    text: 'Each call targets the matching MCP server. A multi-server process hypervisor is available in source when you wire multi-hosting.',
-    evidence: [HYPERVISOR],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_DISCOVERY_STEPS[2].description',
-    text: 'The agent calls the tool through a standardized, typed JSON-RPC interface.',
-    evidence: [HYPERVISOR],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_SERVERS_SECTION.heading',
-    text: '(interpolated: server count from METRICS.mcpServers)',
-    match: 'path',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_SERVERS_SECTION.body',
-    text: 'MCP servers included with RevealUI.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[0].description',
-    text: 'Manage products, prices, subscriptions, and payment intents through MCP.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[1].description',
-    text: 'RevealUI-specific Stripe operations: billing portal, webhook management, tier enforcement.',
-    evidence: [MCP_SERVERS, BILLING],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[2].description',
-    text: 'Query and manage Neon PostgreSQL databases: branches, roles, and SQL execution.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[3].description',
-    text: 'Deploy, manage environment variables, inspect deployments, and view logs.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[4].description',
-    text: 'Run browser automation, take screenshots, and execute end-to-end test flows.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[5].description',
-    text: 'Inspect routes, middleware, server components, and build output in development.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[6].description',
-    text: 'Create, query, and manage collections and documents through the content API.',
-    evidence: [MCP_CONTENT],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[7].description',
-    text: 'Send transactional emails, manage templates, and track delivery status.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[8].description',
-    text: 'Validate TypeScript, lint with Biome, and run type checks on code snippets.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[9].description',
-    text: 'Read and write the agent memory store (episodic, semantic, and procedural layers).',
-    evidence: [MEMORY_STORES, MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[10].description',
-    text: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[11].description',
-    text: 'Search and read first-party @revealui/* package docs: list libraries, resolve names, and fetch curated README and export metadata over MCP.',
-    evidence: [DOCS_MCP],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[12].description',
-    text: 'Base class plus concrete Vercel/Stripe/Neon adapters. Standardizes the MCP server contract (error handling, idempotency, observability) across every first-party server above. Source: packages/mcp/src/servers/adapter.ts.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_COMING_SOON.badge',
-    text: 'Coming after marketplace v1',
-    evidence: [ROADMAP],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_COMING_SOON.heading',
-    text: 'Publishing and monetization',
-    evidence: [ROADMAP],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_COMING_SOON.body.prefix',
-    text: 'Third-party MCP server publishing, developer earnings, and marketplace discovery are planned for a future release. See the',
-    evidence: [ROADMAP],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_COMING_SOON.body.suffix',
-    text: 'for current status, listed under "Agent Marketplace" in the Mid-Term section.',
-    evidence: [ROADMAP],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_CTA.heading',
-    text: 'Start with the MCP server catalog',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_CTA.body',
-    text: '(interpolated: server count from METRICS.mcpServers)',
-    match: 'path',
-    evidence: [MCP_SERVERS, DOCS_APP],
   },
 
   // ── roadmap.ts (claims-ratchet 3) ───────────────────────────────────────
