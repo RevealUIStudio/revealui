@@ -24,7 +24,14 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { createRequire } from 'node:module';
+// Aliased import + non-`require` const: the tsup banner injects
+// `createRequire` + `const require` into every chunk, so the bare names
+// collide as duplicate identifiers in the built bundle (dist boots dead;
+// only the E2E smoke job runs dist — the 2026-07-25 promotion regression).
+// `import.meta.resolve` is NOT a substitute here: vitest's transform does
+// not support it, which silently turns the spawn path into a no-op in
+// tests. See also index.ts (GAP-401) and tsup.config.ts's banner comment.
+import { createRequire as nodeCreateRequire } from 'node:module';
 import { logger } from '@revealui/core/observability/logger';
 import type {
   MCPCredentialResolver,
@@ -60,8 +67,6 @@ export const SPAWN_ALLOWLIST = new Set([
   'next-devtools',
 ]);
 
-const require = createRequire(import.meta.url);
-
 export function isMcpHypervisorWireEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const raw = env.REVEALUI_MCP_HYPERVISOR?.trim().toLowerCase();
   return raw !== undefined && ENABLED_VALUES.has(raw);
@@ -96,11 +101,13 @@ export function parseSpawnServerList(env: NodeJS.ProcessEnv = process.env): stri
   return out;
 }
 
+const moduleRequire = nodeCreateRequire(import.meta.url);
+
 /**
  * Resolve the compiled revealui-mcp CLI entry for process.execPath spawn.
  */
 export function resolveMcpCliPath(): string {
-  return require.resolve('@revealui/mcp/dist/cli.js');
+  return moduleRequire.resolve('@revealui/mcp/dist/cli.js');
 }
 
 export function buildServerConfig(serverName: string, cliPath: string): MCPServerConfig {

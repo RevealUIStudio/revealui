@@ -11,6 +11,13 @@ export default createVitestConfig({
     'src/__tests__/auth/access-control.test.ts',
     'src/__tests__/auth/authentication.test.ts',
   ],
+  // Loaded-files-only coverage (no `include` key): the pre-factory config
+  // had no include, so the thresholds below were calibrated against files
+  // the unit tests actually load. The factory's default include put every
+  // src/**/*.ts file (loaded or not) in the denominator and dropped
+  // functions/branches just under threshold at the 2026-07-25 promotion
+  // (#2110 migration regression, same class as @revealui/test).
+  coverageInclude: false,
   coverageExclude: [
     'node_modules/**',
     'src/__tests__/**',
