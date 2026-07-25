@@ -140,7 +140,9 @@ export function BlogPostPage() {
             ) : typeof post.content === 'string' ? (
               <Markdown>{post.content}</Markdown>
             ) : (
-              <p className="text-muted-foreground italic">Content rendering coming soon.</p>
+              // Content shape unrecognized (neither Lexical nor markdown string):
+              // render the real excerpt instead of placeholder copy (GAP-423).
+              <p className="text-muted-foreground">{post.excerpt}</p>
             )}
           </div>
         </div>
