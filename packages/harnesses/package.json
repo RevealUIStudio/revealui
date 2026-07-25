@@ -76,6 +76,11 @@
       "types": "./dist/hotfix/index.d.ts",
       "import": "./dist/hotfix/index.js",
       "default": "./dist/hotfix/index.js"
+    },
+    "./gates": {
+      "types": "./dist/gates/index.d.ts",
+      "import": "./dist/gates/index.js",
+      "default": "./dist/gates/index.js"
     }
   },
   "files": [

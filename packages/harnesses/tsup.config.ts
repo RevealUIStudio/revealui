@@ -12,6 +12,7 @@ export default defineConfig({
     'src/goals/index.ts',
     'src/hooks/index.ts',
     'src/hotfix/index.ts',
+    'src/gates/index.ts',
   ],
   format: ['esm'],
   dts: true,
