@@ -121,6 +121,16 @@ export class AuditSystem {
   }
 
   /**
+   * Whether this system is still on the in-memory default (GAP-338 health
+   * probe). Lets a ROUTE-bundle context prove the boot-time storage swap
+   * reached the same singleton it resolves — the executable cross-bundle
+   * check the #2156 review asked for. True means emits evaporate on restart.
+   */
+  isInMemoryStorage(): boolean {
+    return this.storage instanceof InMemoryAuditStorage;
+  }
+
+  /**
    * Log audit event. Returns the full constructed event (including the
    * generated `id`/`timestamp`) so callers can correlate it with later
    * failures; throws `AuditWriteError` (wrapping the storage-layer cause) on

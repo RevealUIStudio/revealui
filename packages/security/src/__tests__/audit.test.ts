@@ -422,3 +422,28 @@ describe('AuditReportGenerator', () => {
     expect(result.auditTrailComplete).toBe(true);
   });
 });
+
+// =============================================================================
+// isInMemoryStorage (GAP-338 health probe)
+// =============================================================================
+
+describe('AuditSystem.isInMemoryStorage', () => {
+  it('is true on the in-memory default', () => {
+    const system = new AuditSystem(new InMemoryAuditStorage());
+    expect(system.isInMemoryStorage()).toBe(true);
+  });
+
+  it('is false after a persistent storage swap, and true again after swapping back', () => {
+    const system = new AuditSystem(new InMemoryAuditStorage());
+    const persistentLike = {
+      write: () => Promise.resolve(),
+      query: () => Promise.resolve([]),
+      count: () => Promise.resolve(0),
+    };
+    system.setStorage(persistentLike);
+    expect(system.isInMemoryStorage()).toBe(false);
+
+    system.setStorage(new InMemoryAuditStorage());
+    expect(system.isInMemoryStorage()).toBe(true);
+  });
+});
