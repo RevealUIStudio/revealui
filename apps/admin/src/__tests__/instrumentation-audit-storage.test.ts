@@ -90,7 +90,7 @@ describe('installAdminAuditStorage (GAP-338)', () => {
     expect(written).toContain('GAP-338');
   });
 
-  it('production + SKIP_ENV_VALIDATION + parity failure: installs ANYWAY, no exit (#2156 review)', async () => {
+  it('production + SKIP_ENV_VALIDATION + parity failure: STILL exits — the audit path has no escape hatch (#2161 review)', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('SKIP_ENV_VALIDATION', 'true');
     assertAuditStorageEnv.mockImplementation(() => {
@@ -100,12 +100,39 @@ describe('installAdminAuditStorage (GAP-338)', () => {
     const { installAdminAuditStorage } = await import('../instrumentation-node');
     await installAdminAuditStorage();
 
-    expect(exitSpy).not.toHaveBeenCalled();
-    // The escape hatch skips the fail-fast, never persistence.
-    expect(installAuditStorage).toHaveBeenCalledTimes(1);
+    // Same rail as the worker (bare assert): no caller-side SKIP carve-out.
+    // The #2161 review proved the install-anyway alternative was dead for the
+    // DB-missing case and unsigned-row-hazardous for the key-missing case.
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(installAuditStorage).not.toHaveBeenCalled();
     const written = stderrSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
-    expect(written).toContain('SKIP_ENV_VALIDATION');
     expect(written).not.toContain('non-production');
+  });
+
+  it('Forge kit (RUNTIME_INIT): self-test BLOCKS and a failure refuses to serve (#2161 review)', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('RUNTIME_INIT', 'true');
+    auditStorageSelfTest.mockRejectedValueOnce(new Error('round trip failed'));
+
+    const { installAdminAuditStorage } = await import('../instrumentation-node');
+    await installAdminAuditStorage();
+
+    expect(installAuditStorage).toHaveBeenCalledTimes(1);
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const written = stderrSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
+    expect(written).toContain('Forge boot');
+  });
+
+  it('Forge kit (RUNTIME_INIT): healthy self-test boots normally', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('RUNTIME_INIT', 'true');
+    auditStorageSelfTest.mockResolvedValueOnce(undefined);
+
+    const { installAdminAuditStorage } = await import('../instrumentation-node');
+    await installAdminAuditStorage();
+
+    expect(auditStorageSelfTest).toHaveBeenCalledTimes(1);
+    expect(exitSpy).not.toHaveBeenCalled();
   });
 
   it('production happy path: runs the fire-and-forget self-test after install (#2156 review)', async () => {

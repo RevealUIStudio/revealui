@@ -37,19 +37,25 @@
  * restart, never reaching the `audit_log` table the audit-trail UI reads.
  *
  * Semantics mirror the admin instrumentation contract:
- * - Env parity failure in production: refuse to serve via `process.exit(1)` —
- *   the intentional kill, same rail as the env-validation block in
- *   `instrumentation.ts` (never `throw`; it kills the runtime accidentally).
- * - `SKIP_ENV_VALIDATION=true` in production skips ONLY the fail-fast, never
- *   persistence: the store is installed anyway (#2156 review finding — the
- *   escape hatch must not silently downgrade a production admin to the
- *   in-memory sink).
+ * - Env parity failure in production: refuse to serve via `process.exit(1)`,
+ *   UNCONDITIONALLY — the same rail as the worker, which calls the assert
+ *   bare (apps/server/src/worker.ts). There is deliberately NO caller-side
+ *   `SKIP_ENV_VALIDATION` carve-out here: the #2161 review proved the
+ *   "install anyway under SKIP" branch was both dead (a missing DB URL makes
+ *   `getClient()` throw, so nothing installs) and hazardous (a missing
+ *   signing key would land UNSIGNED rows in the production audit_log, which
+ *   the anchor sweep filters and which stall contiguity). The audit path has
+ *   no escape hatch; the assert's own internal SKIP gate for the signing key
+ *   is the single shared exception, identical on every process.
  * - Env parity failure in dev: warn to stderr and keep the in-memory sink —
  *   honest and loud, but a dev shell without a DB must still boot.
- * - In production, a fire-and-forget `auditStorageSelfTest()` round trip runs
- *   after install as the executable proof the swap landed (#2156 review
- *   finding); failure screams on stderr rather than blocking a serverless
- *   cold start.
+ * - Executable proof the swap landed (#2156 review): on Forge kits
+ *   (`RUNTIME_INIT`, long-running container) the `auditStorageSelfTest()`
+ *   round trip BLOCKS and kills the boot on failure — true refuse-to-serve,
+ *   same as the worker. On serverless production it runs fire-and-forget
+ *   (a blocking DB round trip per cold start buys latency, not a guarantee
+ *   Vercel can act on) and screams on stderr; the route-bundle-side proof is
+ *   the /api/health `audit-storage` check (audit.isInMemoryStorage).
  * - Any unexpected failure: logged, swallowed (never throw out of
  *   instrumentation).
  */
@@ -59,47 +65,39 @@ export async function installAdminAuditStorage(): Promise<void> {
       '@revealui/auth/audit-storage'
     );
 
-    let parityFailure: string | null = null;
     try {
       assertAuditStorageEnv();
     } catch (err) {
-      parityFailure = err instanceof Error ? err.message : String(err);
-    }
-
-    if (parityFailure !== null) {
+      const parityFailure = err instanceof Error ? err.message : String(err);
       if (process.env.NODE_ENV === 'production') {
-        if (process.env.SKIP_ENV_VALIDATION !== 'true') {
-          process.stderr.write(`AUDIT STORAGE ENV PARITY FAILED (admin):\n  - ${parityFailure}\n`);
-          process.exit(1);
-        }
-        // #2156 review finding: SKIP_ENV_VALIDATION skips the fail-fast, NEVER
-        // persistence. A production admin must not silently downgrade to the
-        // in-memory sink under the escape hatch — install anyway; if the env
-        // is truly broken the write path fails loudly at request time through
-        // the recordAuditWriteResult rails instead of evaporating silently.
-        process.stderr.write(
-          '[GAP-338] audit env parity failed on a PRODUCTION admin under ' +
-            `SKIP_ENV_VALIDATION=true — installing persistent audit storage anyway: ${parityFailure}\n`,
-        );
-      } else {
-        // Dev shells without a DB must still boot; the sink stays in-memory.
-        process.stderr.write(
-          `[GAP-338] admin audit storage NOT installed (non-production, env incomplete): ${parityFailure}\n`,
-        );
-        return;
+        process.stderr.write(`AUDIT STORAGE ENV PARITY FAILED (admin):\n  - ${parityFailure}\n`);
+        process.exit(1);
       }
+      // Dev shells without a DB must still boot; the sink stays in-memory.
+      process.stderr.write(
+        `[GAP-338] admin audit storage NOT installed (non-production, env incomplete): ${parityFailure}\n`,
+      );
+      return;
     }
 
     installAuditStorage();
 
-    // #2156 review finding: the cross-bundle singleton swap needs an
-    // EXECUTABLE proof, not an assumption. Run the real write-read round trip
-    // through the installed path once per process. Fire-and-forget on this
-    // serverless boot path (the same reason apps/server's Vercel path skips
-    // the blocking self-test): a failure cannot refuse-to-serve here, but it
-    // screams on stderr instead of silently no-oping. The route-bundle-side
-    // proof is the /api/health `audit-storage` check (audit.isInMemoryStorage).
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.RUNTIME_INIT) {
+      // Forge kit: a long-running container with an async boot chain, the
+      // same shape as the worker — the self-test blocks and a failure is the
+      // intentional kill (fail-closed integrity, ADR §2a).
+      try {
+        await auditStorageSelfTest();
+      } catch (err) {
+        process.stderr.write(
+          '[GAP-338] ADMIN AUDIT SELF-TEST FAILED (Forge boot) — refusing to serve: ' +
+            `${err instanceof Error ? err.message : String(err)}\n`,
+        );
+        process.exit(1);
+      }
+    } else if (process.env.NODE_ENV === 'production') {
+      // Serverless: fire-and-forget. A failure cannot refuse-to-serve here,
+      // but it screams on stderr instead of silently no-oping.
       void auditStorageSelfTest().catch((err: unknown) => {
         process.stderr.write(
           '[GAP-338] ADMIN AUDIT SELF-TEST FAILED — admin audit emits may not be ' +
