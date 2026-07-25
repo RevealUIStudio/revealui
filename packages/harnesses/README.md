@@ -18,25 +18,32 @@ AI harness coordination for RevealUI  -  enables multiple AI coding tools to wor
 - **Multi-Harness Coordination**: Cursor, OpenCode, and RevealUI agent adapters with conflict detection; Claude Code / VS Code via hooks and content generators
 - **Workboard Protocol**: Shared `.claude/workboard.md` for session tracking and file reservations
 - **Auto-Detection**: Discovers installed harnesses via PATH and running processes
-- **JSON-RPC 2.0 Server**: Unix domain socket IPC for harness-to-harness communication
 - **Config Sync**: Portable config backup to external drives (DevPod/LTS)
 - **Session Identity**: Detects parent environment (Zed, Cursor, terminal) via process chain
+
+The JSON-RPC coordination runtime (the daemon that serves `session.*`, `mail.*`,
+`files.*`, `tasks.*`, `events.*` over `~/.local/share/revealui/harness.sock`)
+lives in the RevDev daemon, not in this package — see the daemon-ownership ADR
+(2026-07-25). This package is the CLI, the content-definition layer, and the
+`./gates` module that a fail-closed merge-authorization dependency in the
+private repo consumes.
 
 ## Architecture
 
 ```
 packages/harnesses/src/
-├── adapters/       # AI tool adapters (Claude Code, Copilot, OpenCode, Cursor)
+├── adapters/       # AI tool adapters (Claude Code, Copilot, OpenCode, Cursor) — incubating
 ├── config/         # Config path resolution and SSD sync
 ├── content/        # Canonical rules/commands/agents/skills + generators
+├── gates/          # CI guardrails (guardrail-2 verdict parser, doc-currency shared rules)
 ├── manager/        # .revealui project manager (equal vendor adapters)
-├── detection/      # Auto-detect installed/running harnesses
-├── registry/       # Lifecycle management of adapters
-├── server/         # JSON-RPC 2.0 over Unix socket
+├── detection/      # Auto-detect installed/running harnesses — incubating
+├── registry/       # Lifecycle management of adapters — incubating
+├── server/         # inference-service.ts (in-process); http-gateway.ts (awaiting the RevDev daemon port)
+├── storage/        # PGlite-backed row types shared with the http-gateway auth test
 ├── types/          # HarnessAdapter contract, commands, events
-├── workboard/      # Multi-agent workboard coordination
-├── coordinator.ts  # Main orchestrator (start/stop lifecycle)
-└── cli.ts          # CLI daemon and RPC client
+├── workboard/      # Multi-agent workboard primitives — incubating
+└── cli.ts          # CLI + RPC client (dispatches to the RevDev daemon's socket)
 ```
 
 ## Project manager (`.revealui`)
@@ -84,10 +91,7 @@ those files in the same PR.
 ## CLI
 
 ```bash
-# Start daemon (detect harnesses, register session, start RPC server)
-revealui-harnesses start --project /path/to/repo
-
-# List available harnesses
+# List available harnesses (dispatches to the RevDev daemon's socket)
 revealui-harnesses status
 
 # Sync harness config to/from SSD
@@ -103,17 +107,6 @@ revealui-harnesses content sync
 ```
 
 ## Usage
-
-```typescript
-import { HarnessCoordinator } from '@revealui/harnesses'
-
-const coordinator = new HarnessCoordinator({ projectRoot: '/path/to/repo' })
-await coordinator.start()
-
-// Coordinator auto-detects harnesses, registers in workboard, starts RPC server
-// On shutdown:
-await coordinator.stop()
-```
 
 ### Workboard Coordination
 
@@ -135,13 +128,16 @@ await manager.registerSession({
 
 ### Remote Gateway (HTTP)
 
-The daemon can optionally expose the same JSON-RPC surface as the Unix socket over HTTP, for remote access (for example the Studio app connecting from another machine on the network):
+`server/http-gateway.ts` implements a fail-closed HMAC challenge-response HTTP
+gateway that exposes the same JSON-RPC surface as the daemon's Unix socket, for
+remote access (for example the Studio app connecting from another machine on
+the network). It is not currently runnable from this package's CLI — per the
+daemon-ownership ADR (2026-07-25) it is being ported into the RevDev daemon,
+which will host it alongside the socket dispatch it proxies to. The module and
+its test suite (`server/__tests__/http-gateway.test.ts`) stay here until that
+port lands.
 
-```bash
-revealui-harnesses start --http-port 7890
-```
-
-The gateway is fail-closed. Every `/rpc` and `/api/*` call, including `agent.spawn` and `agent.stop`, is refused with `401` until it carries a valid bearer token. There is no pre-pairing bypass, on a fresh daemon or after a restart.
+Every `/rpc` and `/api/*` call, including `agent.spawn` and `agent.stop`, is refused with `401` until it carries a valid bearer token. There is no pre-pairing bypass, on a fresh daemon or after a restart.
 
 **Pairing (challenge-response  -  the secret never crosses the wire):**
 
@@ -160,7 +156,7 @@ Tokens are durable (default 90-day TTL) and persisted as hashes, so a daemon res
 
 | Subpath | Contents |
 |---------|----------|
-| `@revealui/harnesses` | Full API: adapters, registry, coordinator, detection, config, protocol |
+| `@revealui/harnesses` | Full API: adapters, registry, detection, config, protocol, storage row types |
 | `@revealui/harnesses/types` | Type definitions: HarnessAdapter, commands, events, capabilities |
 | `@revealui/harnesses/workboard` | WorkboardManager, deriveSessionId, detectSessionType, file-locking |
 | `@revealui/harnesses/content` | Content definitions, manifest builders, generators (`DEFAULT_CONTENT_GENERATOR_ID` → manager tree) |

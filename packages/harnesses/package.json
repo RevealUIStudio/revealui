@@ -1,7 +1,7 @@
 {
   "name": "@revealui/harnesses",
   "version": "0.10.0",
-  "description": "AI harness integration — adapters, daemon, workboard coordination, JSON-RPC server.",
+  "description": "AI harness integration — CLI, content definitions, and CI gates; the coordination daemon lives in RevDev.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
@@ -56,11 +56,6 @@
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js",
       "default": "./dist/storage/index.js"
-    },
-    "./goals": {
-      "types": "./dist/goals/index.d.ts",
-      "import": "./dist/goals/index.js",
-      "default": "./dist/goals/index.js"
     },
     "./protocol": {
       "types": "./dist/protocol/index.d.ts",
