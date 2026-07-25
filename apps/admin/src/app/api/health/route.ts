@@ -92,6 +92,46 @@ export async function GET(request: Request) {
     }
   }
 
+  // Audit storage (GAP-338, #2156 review): this check runs in the ROUTE
+  // bundle, so it proves the boot-time storage swap in instrumentation reached
+  // the same `audit` singleton the routes resolve — the executable
+  // cross-bundle proof. In-memory in production means admin emits (incl.
+  // login receipts) evaporate on restart: unhealthy. Dev shells without a DB
+  // keep the in-memory sink by design: degraded, not unhealthy.
+  try {
+    const { audit } = await import('@revealui/security/server');
+    const inMemory = audit.isInMemoryStorage();
+    if (!inMemory) {
+      checks.push({
+        name: 'audit-storage',
+        status: 'healthy',
+        message: 'Persistent audit storage installed (route bundle sees the swap)',
+      });
+    } else if (process.env.NODE_ENV === 'production') {
+      overallStatus = 'unhealthy';
+      checks.push({
+        name: 'audit-storage',
+        status: 'unhealthy',
+        message:
+          'Audit storage is IN-MEMORY in production — admin audit emits evaporate on restart',
+      });
+    } else {
+      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
+      checks.push({
+        name: 'audit-storage',
+        status: 'degraded',
+        message: 'Audit storage is in-memory (non-production without a DB — by design)',
+      });
+    }
+  } catch (error) {
+    overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
+    checks.push({
+      name: 'audit-storage',
+      status: 'degraded',
+      message: error instanceof Error ? error.message : 'Audit storage check failed',
+    });
+  }
+
   // System metrics
   const memoryUsage = process.memoryUsage();
   const cpuUsage = process.cpuUsage();
