@@ -49,8 +49,14 @@ export interface AuditSignerResolution {
  * deliver PEMs with literal `\n` escapes; real multi-line PEMs pass through
  * untouched. Mirrors the license path's normalizePem (GAP-259 P0-4 precedent:
  * split/join, no authored regex).
+ *
+ * EXPORTED so every reader of the audit key env normalizes identically — the
+ * #2164 review proved the one-reader-of-four drift class empirically: the
+ * signer composed fine while validate-startup's format check and both offline
+ * verifiers threw on the same single-line key. Never read
+ * `REVEALUI_AUDIT_SIGNING_KEY` / `REVEALUI_AUDIT_PUBLIC_KEY` without this.
  */
-function normalizeEnvPem(raw: string): string {
+export function normalizeEnvPem(raw: string): string {
   return raw.includes('\\n') ? raw.split('\\n').join('\n') : raw;
 }
 

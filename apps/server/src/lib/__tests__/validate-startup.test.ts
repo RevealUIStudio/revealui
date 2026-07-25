@@ -157,6 +157,17 @@ describe('validateStartup — audit signing key (GAP-355 Stage 3, both modes)', 
     expect(() => validateStartup(env)).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
   });
 
+  it('accepts a single-line \\n-escaped Ed25519 key (env_file transport, #2164 review)', () => {
+    // The kit's docker/.env carries the PEM one-line with literal \n escapes;
+    // the format check must read the SAME normalized value the signer does,
+    // or a valid kit key fails boot blaming the key instead of the transport.
+    const env = validLiveProdEnv();
+    const escaped = (env.REVEALUI_AUDIT_SIGNING_KEY as string).split('\n').join('\\n');
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_SIGNING_KEY: escaped })),
+    ).not.toThrow();
+  });
+
   it('rejects a REVEALUI_AUDIT_SIGNING_KEY that is not a valid Ed25519 key', () => {
     expect(() =>
       validateStartup(validLiveProdEnv({ REVEALUI_AUDIT_SIGNING_KEY: 'not-a-pem' })),

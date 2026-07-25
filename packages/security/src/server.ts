@@ -68,6 +68,7 @@ export type {
 export {
   createAuditRowSignerFromEnv,
   deriveAuditKid,
+  normalizeEnvPem,
   resolveAuditPublicKey,
 } from './audit-signer-env.js';
 // Per-row Ed25519 audit signing (GAP-355 Stage 3 — node:crypto)
