@@ -48,15 +48,6 @@ vi.mock('@electric-sql/pglite', () => ({
 
 // --- Mock internal modules ---
 
-vi.mock('../../instance/logger.js', () => ({
-  defaultLogger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
-
 vi.mock('../../observability/logger.js', () => ({
   logger: {
     info: vi.fn(),

@@ -27,7 +27,7 @@ Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui)  -  
 - **Plugins**  -  Extensible plugin system (form builder, nested docs, redirects)
 - **Feature Gating**  -  Tier-based licensing (free, pro, max, enterprise) with JWT license keys
 - **Database**  -  PostgreSQL adapters (NeonDB + PGlite for testing), connection pooling, SSL/TLS
-- **Storage**  -  Pluggable storage interface (Cloudflare R2 primary; Vercel Blob legacy adapter retained during migration)
+- **Storage**  -  Pluggable storage interface (Cloudflare R2 sole non-mock backend; mock adapter for tests)
 
 ## Installation
 
@@ -145,7 +145,7 @@ if (isFeatureEnabled('ai')) {
 | `@revealui/core/database` | Database adapters |
 | `@revealui/core/database/ssl-config` | SSL/TLS config |
 | `@revealui/core/database/type-adapter` | Type adapter utilities |
-| `@revealui/core/storage` | Storage adapters (R2 + legacy Vercel Blob) |
+| `@revealui/core/storage` | Storage adapters (R2 + mock for tests) |
 | `@revealui/core/plugins` | Plugin system |
 | `@revealui/core/features` | Feature flags |
 | `@revealui/core/license` | License validation |
@@ -160,7 +160,6 @@ if (isFeatureEnabled('ai')) {
 | `@revealui/core/observability/alerts` | Alerts |
 | `@revealui/core/error-handling` | Error boundaries, retry, circuit breaker, fallback UI |
 | `@revealui/core/error-handling/error-reporter` | Error reporting |
-| `@revealui/core/caching` | Caching utilities |
 | `@revealui/core/cache/query-cache` | Query cache |
 | `@revealui/core/jobs` | Background jobs |
 | `@revealui/core/translations` | i18n translations |

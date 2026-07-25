@@ -89,7 +89,12 @@ describe('OpenCodeAdapter', () => {
       expect(result.success).toBe(true);
       expect(result.command).toBe('get-status');
       const data = result.data as { available: boolean; projectRoot: string };
-      expect(data.available).toBe(false); // opencode not installed in this env
+      // Whether `opencode` is on PATH is a property of the machine running
+      // the suite, not of this adapter -- assert shape, not a specific
+      // value. (A same-test comparison against a second real
+      // `adapter.isAvailable()` call is flaky under parallel test load: two
+      // independent execFile calls to the real binary can race.)
+      expect(typeof data.available).toBe('boolean');
       expect(data.projectRoot).toBe(projectRoot);
     });
 
@@ -253,6 +258,146 @@ describe('parseOpenCodeRunOutput', () => {
 
   it('treats non-JSON stdout as plain text', () => {
     expect(parseOpenCodeRunOutput('just plain text, not json')).toBe('just plain text, not json');
+  });
+
+  // Fixtures below are SYNTHESIZED against the pinned opencode 1.18.3 event
+  // shape (all ids/values invented -- see the adapter header comment). Every
+  // event carries the envelope `{type, timestamp, sessionID, part}`, with
+  // `type` underscore-separated and `part.type` hyphen-separated.
+  //
+  // The pre-pin parser treated stdout as a single JSON document. Against
+  // this real newline-delimited shape it either (a) throws on multi-line
+  // JSONL and falls back to returning the raw stdout verbatim, or (b) on a
+  // single-event line, finds no top-level `output`/`text`/`message`/
+  // `content` key (those live under `part`, not the envelope) and also
+  // returns the raw JSON verbatim. Both were verified false-red against the
+  // pre-fix parser (stashed locally, not committed) before this fix landed.
+  describe('pinned opencode 1.18.3 JSONL event-stream shape', () => {
+    function eventLine(event: Record<string, unknown>): string {
+      return JSON.stringify(event);
+    }
+
+    it('extracts the final assistant text from a full tool-using turn (multi-event JSONL)', () => {
+      const jsonl = [
+        eventLine({
+          type: 'step_start',
+          timestamp: 1721000000000,
+          sessionID: 'ses_test_fixture_1',
+          part: { type: 'step-start' },
+        }),
+        eventLine({
+          type: 'tool_use',
+          timestamp: 1721000000001,
+          sessionID: 'ses_test_fixture_1',
+          part: {
+            type: 'tool',
+            tool: 'revealui_revealui_list_sites',
+            callID: 'call_fixture_1',
+            id: 'part_fixture_1',
+            messageID: 'msg_fixture_1',
+            sessionID: 'ses_test_fixture_1',
+            state: {
+              status: 'completed',
+              input: {},
+              output: '{"sites":[{"id":"site_fixture_1","name":"Example Site"}]}',
+            },
+          },
+        }),
+        eventLine({
+          type: 'step_finish',
+          timestamp: 1721000000002,
+          sessionID: 'ses_test_fixture_1',
+          part: { type: 'step-finish' },
+        }),
+        eventLine({
+          type: 'step_start',
+          timestamp: 1721000000003,
+          sessionID: 'ses_test_fixture_1',
+          part: { type: 'step-start' },
+        }),
+        eventLine({
+          type: 'text',
+          timestamp: 1721000000004,
+          sessionID: 'ses_test_fixture_1',
+          part: { type: 'text', text: 'You have one site: Example Site.' },
+        }),
+        eventLine({
+          type: 'step_finish',
+          timestamp: 1721000000005,
+          sessionID: 'ses_test_fixture_1',
+          part: { type: 'step-finish' },
+        }),
+      ].join('\n');
+
+      expect(parseOpenCodeRunOutput(jsonl)).toBe('You have one site: Example Site.');
+    });
+
+    it('extracts text from a single-event JSONL line (no tool use)', () => {
+      const jsonl = eventLine({
+        type: 'text',
+        timestamp: 1721000000010,
+        sessionID: 'ses_test_fixture_2',
+        part: { type: 'text', text: 'Hello from a single-event turn.' },
+      });
+
+      expect(parseOpenCodeRunOutput(jsonl)).toBe('Hello from a single-event turn.');
+    });
+
+    it('prefers the LAST text event when a turn has multiple text events', () => {
+      const jsonl = [
+        eventLine({
+          type: 'text',
+          timestamp: 1721000000020,
+          sessionID: 'ses_test_fixture_3',
+          part: { type: 'text', text: 'first partial' },
+        }),
+        eventLine({
+          type: 'text',
+          timestamp: 1721000000021,
+          sessionID: 'ses_test_fixture_3',
+          part: { type: 'text', text: 'final answer' },
+        }),
+      ].join('\n');
+
+      expect(parseOpenCodeRunOutput(jsonl)).toBe('final answer');
+    });
+
+    it('falls back to raw stdout for a JSONL stream with no terminal text event (tool-only turn)', () => {
+      const jsonl = [
+        eventLine({
+          type: 'step_start',
+          timestamp: 1721000000030,
+          sessionID: 'ses_test_fixture_4',
+          part: { type: 'step-start' },
+        }),
+        eventLine({
+          type: 'tool_use',
+          timestamp: 1721000000031,
+          sessionID: 'ses_test_fixture_4',
+          part: {
+            type: 'tool',
+            tool: 'revealui_revealui_site_stats',
+            callID: 'call_fixture_4',
+            state: { status: 'completed', input: {}, output: '{"views":0}' },
+          },
+        }),
+      ].join('\n');
+
+      // Documented fallback (no information loss): no `text` event, so the
+      // raw JSONL is returned verbatim rather than silently dropped.
+      expect(parseOpenCodeRunOutput(jsonl)).toBe(jsonl);
+    });
+
+    it('handles trailing blank lines in JSONL stdout', () => {
+      const jsonl = `${eventLine({
+        type: 'text',
+        timestamp: 1721000000040,
+        sessionID: 'ses_test_fixture_5',
+        part: { type: 'text', text: 'trailing newline handled' },
+      })}\n\n`;
+
+      expect(parseOpenCodeRunOutput(jsonl)).toBe('trailing newline handled');
+    });
   });
 });
 

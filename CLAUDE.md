@@ -6,6 +6,10 @@ status: verified
 audience: agent
 ---
 
+> **Project manager (all vendors equal):** open [`.revealui/manager.json`](.revealui/manager.json) first.
+> Shared rules/skills: [`.revealui/content/`](.revealui/content/) (generated from `@revealui/harnesses`).
+> This file is an adapter orientation doc, not a second policy home. See [`.revealui/README.md`](.revealui/README.md).
+
 # RevealUI Monorepo
 
 Agentic business runtime. People, content, offers, payments, and agents  -  pre-wired, open source, and ready to deploy.
@@ -64,7 +68,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (96 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
+| @revealui/db | Drizzle ORM schema (97 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -73,7 +77,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/cli | `create-revealui` scaffolding tool |
 | @revealui/setup | Environment setup utilities |
 | @revealui/sync | ElectricSQL real-time sync |
-| @revealui/cache | CDN config, edge cache, ISR presets, revalidation |
+| @revealui/cache | Cache store adapters + invalidation channel (edge/CDN helpers removed C11) |
 | @revealui/resilience | Circuit breaker, retry, bulkhead patterns |
 | @revealui/security | Headers, CORS, RBAC/ABAC, encryption, audit, GDPR |
 | create-revealui | `npm create revealui` initializer |
@@ -89,9 +93,9 @@ feature/* ──PR──▶ test ──PR──▶ main
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
-| @revealui/engines | Unified entry point for the five business primitives (private workspace package) |
+| @revealui/engines | Incubating optional barrel for the five primitives (not the app entry; private workspace package) |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
-| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
+| @revealui/mcp | MCP servers + adapters; process hypervisor incubating (ADR-007) |
 | @revealui/services | Stripe (payment processing + circuit breaker), email (Gmail API delivery) |
 
 ### Internal Package (no license, build tooling) — 1
@@ -185,7 +189,7 @@ Collections are defined in `apps/admin/src/lib/collections/` with access control
 Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise.
 
 ### Database Schema
-Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (Postgres) is the primary store. Legacy Supabase code (vectors, some auth flows) remains in tree during phase-out — **new features must not depend on Supabase-specific behavior**. The Supabase MCP adapter at `packages/mcp/src/servers/supabase.ts` is intentionally retained as an adapter for customers who use Supabase, separate from internal usage.
+Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (Postgres) is the primary store. Legacy Supabase code (vectors, some auth flows) remains in tree during phase-out — **new features must not depend on Supabase-specific behavior**. The customer Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts` / `launchSupabaseMcp`) was removed; use Neon MCP for database agent tooling.
 
 ### Testing
 - Unit/integration: Vitest (`*.test.ts`)

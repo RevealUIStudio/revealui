@@ -36,14 +36,19 @@ export type {
 } from './content/index.js';
 // Content layer (canonical content definitions and generators)
 export {
+  buildContentSnapshot,
   buildManifest,
+  ClaudeCodeGenerator,
   CursorGenerator,
+  checkAllContentSnapshots,
+  checkContentSnapshot,
   diffContent,
   generateContent,
   listContent,
   OpenCodeGenerator,
   VSCodeGenerator,
   validateManifest,
+  writeAllContentSnapshots,
 } from './content/index.js';
 export type { CoordinatorOptions } from './coordinator.js';
 // Coordinator
@@ -113,6 +118,15 @@ export {
   normalizeVSCodeHookEvent,
   runHookCommand,
 } from './hooks/index.js';
+// Project manager (.revealui) — equal vendor adapters reference this tree
+export type { ManagerCheckResult, ManagerConfig, MaterializeResult } from './manager/index.js';
+export {
+  checkManager,
+  loadManager,
+  ManagerSchema,
+  materializeManager,
+  writeManager,
+} from './manager/index.js';
 // Harness Protocol (was VAUGHN until 2026-05-18; see docs/HARNESS_PROTOCOL.md)
 export type {
   ClaudeCodeSettings,
@@ -169,6 +183,15 @@ export {
 // Registry
 export { HarnessRegistry } from './registry/harness-registry.js';
 // Server
+export type {
+  LocalAiProfileView,
+  ModelPullResult,
+  OllamaModel,
+  OllamaStatus,
+  SnapModel,
+  SnapStatus,
+} from './server/inference-service.js';
+export { InferenceService, PRODUCT_INFERENCE_SNAPS } from './server/inference-service.js';
 export { RpcServer } from './server/rpc-server.js';
 export type {
   ReconcileResult,

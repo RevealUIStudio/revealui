@@ -43,6 +43,7 @@ import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import app, { initAlerting, terminalWs } from './index.js';
+import { startAuditAnchorSweep } from './jobs/audit-anchor-sweep.js';
 import {
   assertAuditStorageEnv,
   auditStorageSelfTest,
@@ -104,6 +105,10 @@ if (process.env.REVMARKET_EXECUTOR_ENABLED === 'true') {
 } else {
   logger.info('RVMarket executor not started (set REVMARKET_EXECUTOR_ENABLED=true to enable)');
 }
+
+// GAP-355 Stage 4 S4-3: per-tenant Merkle anchor sweep (Fly worker only).
+// Default OFF — set AUDIT_ANCHOR_SWEEP_ENABLED=true when signing key is live.
+startAuditAnchorSweep();
 
 const port = Number(process.env.WORKER_PORT || process.env.PORT) || 8080;
 const server = serve({ fetch: app.fetch, port });

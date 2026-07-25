@@ -1,11 +1,8 @@
 {
   "name": "@revealui/cache",
   "version": "0.2.5",
-  "description": "Framework-agnostic CDN config, edge cache, ISR-style presets, and revalidation helpers. Compatible with NextRequest/NextResponse, Hono, and Cloudflare Workers via structural typing — no `next` peer dep.",
+  "description": "Cache store adapters (memory, PGlite, browser) and distributed invalidation channel for RevealUI. Edge/CDN helpers were removed (C11: tests-only, zero app consumers).",
   "license": "MIT",
-  "dependencies": {
-    "@revealui/security": "workspace:*"
-  },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
     "@types/node": "catalog:",
@@ -63,9 +60,8 @@
   "keywords": [
     "revealui",
     "cache",
-    "cdn",
-    "edge-cache",
-    "isr",
-    "revalidation"
+    "adapters",
+    "invalidation",
+    "pglite"
   ]
 }

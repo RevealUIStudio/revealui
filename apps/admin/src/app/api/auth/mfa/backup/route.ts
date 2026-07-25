@@ -98,6 +98,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
     const { token: sessionToken } = await rotateSession(payload.userId, {
       userAgent,
       ipAddress,
+      metadata: { mfaVerified: true },
     });
 
     const response = NextResponse.json({

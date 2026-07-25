@@ -13,7 +13,8 @@
  * SCOPE (Phase 0, P0-1): this declares the PRODUCTION-SYNCED runtime path set -
  * the union of scripts/sync/revvault-vercel.toml + revvault-fly.toml (the
  * drift-critical surface) - plus the license signing keypair and the one
- * security-relevant `with-secrets` env bundle it mirrors (revealui/env/license,
+ * security-relevant `with-secrets` env bundles it mirrors (revealui/env/license +
+ * revealui/env/license-signing after GAP-260 P2-2,
  * R8). The dev/*, api-keys/*, credentials/*, revdev/tauri-*, forge/*, and
  * agents/* tiers are NOT modeled here yet; they remain hand-written prose in
  * docs/SECRETS.md OUTSIDE the generated markers. The SecretTier union carries
@@ -54,6 +55,7 @@ export interface SecretPathDef {
    * Where this path is consumed. Tokens:
    *   vercel:api | vercel:admin | vercel:marketing | vercel:docs | fly:worker
    *   with-secrets:license | with-secrets:license-signing
+   *   app:license-signer (GAP-260 P4-2 isolated mint process; not a Vercel app)
    */
   consumers: string[];
   /** Feeds P0-5 (⊇ REQUIRED_IN_PRODUCTION_HOSTED). Set only where confirmed required-at-boot. */
@@ -234,7 +236,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'prod',
     consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
     envVars: ['REVEALUI_AUDIT_PUBLIC_KEY'],
-    note: 'Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key',
+    note: 'Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key. See docs/security/AUDIT_RECEIPTS.md (Stage 4: row verify free; root download Max)',
   },
   // Visual edit sessions (P1). HMAC-SHA256 key behind the read-only preview
   // tokens; the API both mints and verifies (routes/content/sessions), no
@@ -819,20 +821,49 @@ export const SECRET_PATHS: SecretPathDef[] = [
     note: 'the api own origin (MCP loopback + OpenAPI); also VITE_API_URL on marketing (anti-cross-wire, GAP-343)',
   },
 
-  // ── Env bundle (derived, verify-only - NOT synced to any platform) ────────
-  // Tracked here to enforce the R8 invariant: with-secrets loads the license
-  // keypair from a SEPARATE bundle path. intentionallyUnsynced excludes it from
-  // the manifest-missing check AND the doc generated-block bijection; it is
-  // documented in hand-prose. The private-vs-public split (env/license-public
-  // vs env/license-signing) is Phase 2 (P2-2).
+  // ── Env bundles (derived, verify-only - NOT synced to any platform) ───────
+  // R8: with-secrets loads license material from SEPARATE paths (GAP-260 P2-2).
+  //   license          → public SPKI only (verify / mode fallbacks)
+  //   license-signing  → private PKCS#8 (mint only; REVVAULT_ALLOW_PRIVATE=1)
   {
     path: 'revealui/env/license',
-    kind: 'signing-private',
-    sensitive: true,
+    kind: 'signing-public',
+    sensitive: false,
     tier: 'env',
     consumers: ['with-secrets:license'],
     intentionallyUnsynced: true,
-    note: 'export-env bundle for local dev - REVEALUI_LICENSE_PRIVATE_KEY + PUBLIC_KEY; mirrors the canonical license leaves (R8; split in P2-2)',
+    note: 'export-env public-only bundle: REVEALUI_LICENSE_PUBLIC_KEY (and MODE). Must NOT hold private key; with-secrets license uses revvault export-env --public-only',
+  },
+  {
+    path: 'revealui/env/license-signing',
+    kind: 'signing-private',
+    sensitive: true,
+    tier: 'env',
+    consumers: ['with-secrets:license-signing'],
+    intentionallyUnsynced: true,
+    note: 'export-env signing bundle: REVEALUI_LICENSE_PRIVATE_KEY (+ public if needed for self-check). with-secrets license-signing requires REVVAULT_ALLOW_PRIVATE=1',
+  },
+  // GAP-260 P4-2/P4-3: dedicated HMAC for apps/license-signer mint API.
+  // NOT REVEALUI_SECRET. Not platform-synced until the signer deploy lands (P4-4).
+  {
+    path: 'revealui/prod/license/signer-invoke-secret',
+    kind: 'credential',
+    sensitive: true,
+    tier: 'prod',
+    consumers: ['app:license-signer', 'vercel:api', 'fly:worker'],
+    intentionallyUnsynced: true,
+    envVars: ['REVEALUI_SIGNER_INVOKE_SECRET'],
+    note: 'HMAC-SHA256 per-call auth for POST /internal/mint. Consumed by license-signer AND mint-client (api/worker) when REVEALUI_LICENSE_SIGN_VIA_SIGNER is on. No REVEALUI_SECRET fallback.',
+  },
+  {
+    path: 'revealui/prod/license/signer-url',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:api', 'fly:worker'],
+    intentionallyUnsynced: true,
+    envVars: ['REVEALUI_LICENSE_SIGNER_URL'],
+    note: 'Base URL for apps/license-signer (GAP-260 P4-3 mint-client). Not a secret. Flag REVEALUI_LICENSE_SIGN_VIA_SIGNER is a plain env toggle (not vaulted).',
   },
 ];
 

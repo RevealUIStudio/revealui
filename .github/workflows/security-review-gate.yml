@@ -1,21 +1,29 @@
-# Security review gate — review-before-merge enforcement.
+# Security review gate — review-before-merge enforcement (GAP-376 complete).
 #
-# Runs on EVERY pull request (passes immediately when no security-sensitive
-# surface is touched), so the check is safe to mark as a REQUIRED status check
-# on `test`/`main`. Re-evaluates when reviews land or labels change, so a fresh
-# verdict flips the same head SHA from HOLD to clear without a new push.
+# Provenance: pull_request_target runs the WORKFLOW DEFINITION from the BASE
+# ref, so a PR cannot rewrite this file for its own evaluation. Scripts still
+# pin to base.sha (belt-and-braces with #1921). The job does not check out
+# PR-head code; it only runs trusted gate scripts and queries the API for
+# files/labels/reviews.
 #
-# Verdict sources the gate accepts: an approving GitHub review, or one of the
-# labels understood by scripts/validate/security-review-gate.cjs.
+# Shadow verify (A1–A3) recorded 2026-07-24:
+#   A1 — check-run attaches to PR head SHA (#2110)
+#   A2 — payload/verdict parity with prior pull_request gate (#2110)
+#   A3 — workflow-edit self-pass fails on _target base copy (#2113 closed)
+# Cutover: #2114. Residual pull_request dual-trigger removed in this file.
+#
+# Job name stays "Security review gate" (ruleset required context; rename-
+# in-place). pull_request_review has no _target form — re-eval via labels
+# until org-migration companion (design §Review-trigger).
+#
+# Permissions stay least-privilege: pull_request_target defaults are wider.
 
 name: Security Review Gate
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [test, main]
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
-  pull_request_review:
-    types: [submitted, dismissed]
 
 concurrency:
   group: security-review-gate-${{ github.event.pull_request.number }}
@@ -31,6 +39,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Log gate provenance
+        run: |
+          set -euo pipefail
+          echo "event_name=${{ github.event_name }}"
+          echo "head_sha=${{ github.event.pull_request.head.sha }}"
+          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "pr_number=${{ github.event.pull_request.number }}"
+          echo "workflow_ref=${{ github.workflow_ref }}"
+
       - uses: actions/checkout@v7
         with:
           # Evaluate with the BASE branch's copy of the gate scripts: the
@@ -38,16 +55,57 @@ jobs:
           # own edits to these files cannot influence its evaluation. Changed
           # files, labels, comments, and reviews all come from the API, so the
           # checkout exists only to supply this script code.
+          # Kept under pull_request_target (defaults to base) as belt-and-braces.
           ref: ${{ github.event.pull_request.base.sha }}
+          # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
+          # at module load. Sparse list must include that JSON or the job
+          # crashes ENOENT before it can classify the PR (revealui#2074).
+          # GAP-408: guardrail2-verdict.cjs is a thin adapter over the
+          # @revealui/harnesses gates module. Builds it from THIS checkout's
+          # own source (packages/harnesses/ + packages/dev/ for the shared
+          # tsconfig, plus every package.json so pnpm can resolve the
+          # workspace filter) rather than installing a published npm artifact
+          # — a pinned-to-a-release dependency would leave every PR (including
+          # the test->main promotion) fail-closed until a manual stable
+          # release publishes a version that doesn't exist yet at merge time.
+          # gates-resolver.cjs's local-dist path picks up the build below with
+          # no further wiring; the resolver's npm-install fallback
+          # (REVEALUI_HARNESSES_DIR) stays in the module for the .jv side,
+          # unused here.
           sparse-checkout: |
             scripts/validate/security-review-gate.cjs
             scripts/validate/guardrail2-verdict.cjs
+            scripts/validate/gates-resolver.cjs
+            scripts/validate/security-paths.shared.json
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
           sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: '10.28.2'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Build @revealui/harnesses (guardrail2-verdict gates module, GAP-408)
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --filter @revealui/harnesses
+          pnpm --filter @revealui/harnesses build
 
       - name: Evaluate review gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           node scripts/validate/security-review-gate.cjs \
             --pr "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}"

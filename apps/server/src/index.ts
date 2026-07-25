@@ -53,6 +53,7 @@ import {
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { createLazyHonoRoute } from './lib/lazy-hono-route.js';
 import { runHostedLicenseCanary } from './lib/license-canary.js';
+import { wireMcpHypervisorIfEnabled } from './lib/mcp-hypervisor-wire.js';
 import { resolveSelfApiBaseUrl } from './lib/self-api-url.js';
 import {
   validateBillingCatalogAtStartup,
@@ -88,6 +89,7 @@ import { createTenantMembershipValidator, tenantMiddleware } from './middleware/
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminCoordinationRoute from './routes/admin/coordination.js';
 import adminInferenceConfigRoute from './routes/admin/inference-config.js';
+import adminLocalAiStatusRoute from './routes/admin/local-ai-status.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
@@ -869,6 +871,17 @@ app.use('/api/v1/rotation/*', requireFeature('vaultRotation', { mode: 'entitleme
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
+// GAP-355 Stage 4 S4-4: Merkle anchor download + inclusion proof (Max+ auditLog).
+// Public-key stays unauthenticated under /api/audit/public-key.
+app.use('/api/audit/anchors', writeProtected);
+app.use('/api/audit/anchors/*', writeProtected);
+app.use('/api/v1/audit/anchors', writeProtected);
+app.use('/api/v1/audit/anchors/*', writeProtected);
+app.use('/api/audit/anchors', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/audit/anchors/*', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/v1/audit/anchors', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/v1/audit/anchors/*', requireFeature('auditLog', { mode: 'entitlements' }));
+
 // Block recovery sessions (magic link) from mutating routes.
 // Recovery sessions should only be used for password change and sign-out.
 const rejectRecovery = createMiddleware(async (c, next) => {
@@ -1250,6 +1263,7 @@ app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/admin/local-ai/status', adminLocalAiStatusRoute);
 app.route('/api/admin/coordination', adminCoordinationRoute);
 app.route('/api/analytics', analyticsRoute);
 app.route('/api/nudges', nudgesRoute);
@@ -1323,6 +1337,7 @@ app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/v1/admin/local-ai/status', adminLocalAiStatusRoute);
 app.route('/api/v1/admin/coordination', adminCoordinationRoute);
 app.route('/api/v1/analytics', analyticsRoute);
 app.route('/api/v1/nudges', nudgesRoute);
@@ -1403,6 +1418,13 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // Swap in persistent audit storage (replaces default InMemoryAuditStorage).
     assertAuditStorageEnv();
     installAuditStorage();
+    // GAP-406 WIRE: opt-in MCPHypervisor sinks (+ optional process-local spawn).
+    void wireMcpHypervisorIfEnabled().catch((err: unknown) => {
+      logger.error(
+        '[mcp-hypervisor-wire] boot failed',
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    });
     validateStartup();
     // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
     // present); in self-hosted Forge mode it throws on missing/invalid license,
@@ -1509,5 +1531,12 @@ if (process.env.NODE_ENV === 'production') {
     // round trip — the serverless-safe substitute for the worker's self-test.
     assertAuditStorageEnv();
     installAuditStorage();
+    // GAP-406 WIRE: opt-in MCPHypervisor sinks (+ optional process-local spawn).
+    void wireMcpHypervisorIfEnabled().catch((err: unknown) => {
+      logger.error(
+        '[mcp-hypervisor-wire] boot failed',
+        err instanceof Error ? err : new Error(String(err)),
+      );
+    });
   }
 }

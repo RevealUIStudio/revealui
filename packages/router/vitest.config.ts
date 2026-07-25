@@ -1,19 +1,11 @@
-import { defineConfig } from 'vitest/config';
+import { createVitestConfig } from '@revealui/dev/vitest';
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    pool: 'forks',
-    maxWorkers: 2,
-    coverage: {
-      provider: 'v8',
-      thresholds: {
-        lines: 60,
-        functions: 60,
-        branches: 55,
-        statements: 60,
-      },
-    },
+export default createVitestConfig({
+  environment: 'jsdom',
+  thresholds: {
+    lines: 60,
+    functions: 60,
+    branches: 55,
+    statements: 60,
   },
 });

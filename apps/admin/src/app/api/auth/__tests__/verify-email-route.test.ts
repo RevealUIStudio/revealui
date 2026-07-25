@@ -291,7 +291,7 @@ describe('GET /api/auth/verify-email', () => {
     expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('admin');
   });
 
-  it('ignores an unrecognized upgrade value (no open redirect)', async () => {
+  it('routes enterprise upgrade into billing checkout (GAP-302 Phase 1)', async () => {
     mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
     mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
     mockRotateSession.mockResolvedValue({
@@ -302,8 +302,22 @@ describe('GET /api/auth/verify-email', () => {
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token', 'enterprise'));
 
+    expect((res as MockRes).url).toContain('/account/billing?upgrade=enterprise');
+  });
+
+  it('ignores an unrecognized upgrade value (no open redirect)', async () => {
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue({ id: 'u1', role: 'viewer', emailVerified: true });
+    mockRotateSession.mockResolvedValue({
+      token: 'session-token-abc',
+      session: { id: 'sess1', userId: 'u1' },
+    });
+
+    const GET = await loadRoute();
+    const res = await GET(makeRequest('valid-token', 'enterprise-deluxe'));
+
     expect((res as MockRes).url).toContain('/welcome');
-    expect((res as MockRes).url).not.toContain('enterprise');
+    expect((res as MockRes).url).not.toContain('enterprise-deluxe');
   });
 
   it('redirects with error on unexpected DB failure, and creates no session', async () => {

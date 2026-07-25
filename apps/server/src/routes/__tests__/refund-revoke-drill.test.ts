@@ -75,6 +75,13 @@ vi.mock('@revealui/core/license', () => ({
   subscriptionExpBound: vi.fn(() => 9_999_999_999),
   readLicenseExp: vi.fn(async () => null),
 }));
+
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-key'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({ logger: mockLogger }));
 vi.mock('../../lib/webhook-emails.js', () => ({
   sendLicenseActivatedEmail: vi.fn().mockResolvedValue(undefined),

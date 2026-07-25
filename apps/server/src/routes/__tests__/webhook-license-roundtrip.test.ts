@@ -70,17 +70,23 @@ vi.mock('@revealui/core/features', () => ({
   getFeaturesForTier: vi.fn(() => ({})),
 }));
 
-// Resolve `@revealui/core/license` to the REAL source. The package subpath maps
-// to ./dist/license.js, which is not built during the server test run (and the
+// Resolve `@revealui/core/license` (+ mint-client) to REAL source. The package
+// subpaths map to dist/, which is not built during the server test run (and the
 // build runs in parallel with vitest in CI), so a bare import fails to resolve.
-// Other server tests sidestep this by mocking the module; this file needs the
-// genuine issuer + verifier, so we redirect the specifier to source. webhooks.ts
-// (the code under test) imports generateLicenseKey from the same specifier, so it
-// too gets the real implementation — that is the whole point of this file.
+// Other server tests sidestep this by mocking; this file needs the genuine
+// issuer + verifier. GAP-260 P4-3: webhooks mint via mintLicenseKey (local path
+// still calls generateLicenseKey under the hood).
 vi.mock('@revealui/core/license', async () => {
   const actual = await vi.importActual<
     typeof import('../../../../../packages/core/src/license.ts')
   >('../../../../../packages/core/src/license.ts');
+  return actual;
+});
+
+vi.mock('@revealui/core/license/mint-client', async () => {
+  const actual = await vi.importActual<
+    typeof import('../../../../../packages/core/src/license/mint-client.ts')
+  >('../../../../../packages/core/src/license/mint-client.ts');
   return actual;
 });
 

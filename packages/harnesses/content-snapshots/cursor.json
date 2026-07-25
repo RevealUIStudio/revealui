@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "generatorId": "cursor",
+  "files": [
+    {
+      "relativePath": ".cursor/hooks.json",
+      "sha256": "b372095f362cf16864ed62b8307e613bcbef3a73df428abd3f1289cf7497d915"
+    }
+  ]
+}

@@ -13,7 +13,6 @@
  */
 
 import type { Field } from '@revealui/contracts/admin';
-import { defaultLogger } from '../instance/logger.js';
 import { logger } from '../observability/logger.js';
 import type { DatabaseAdapter, DatabaseResult, QueryableDatabaseAdapter } from '../types/index.js';
 import { safeParseRevealDocuments } from './safe-parse.js';
@@ -191,9 +190,9 @@ export function universalPostgresAdapter(
         try {
           await client.query('ROLLBACK');
         } catch (rollbackErr) {
-          defaultLogger.error(
-            `${providerLabel} transaction rollback failed after error:`,
-            rollbackErr,
+          logger.error(
+            `${providerLabel} transaction rollback failed after error`,
+            rollbackErr instanceof Error ? rollbackErr : new Error(String(rollbackErr)),
           );
         }
         throw error;
@@ -279,7 +278,10 @@ export function universalPostgresAdapter(
               client.release();
             }
           } catch (error) {
-            defaultLogger.error('Neon database query error:', error);
+            logger.error(
+              'Neon database query error',
+              error instanceof Error ? error : new Error(String(error)),
+            );
             throw error;
           }
         };
@@ -338,7 +340,10 @@ export function universalPostgresAdapter(
                 client.release();
               }
             } catch (error) {
-              defaultLogger.error('Supabase database query error:', error);
+              logger.error(
+                'Supabase database query error',
+                error instanceof Error ? error : new Error(String(error)),
+              );
               throw error;
             }
           };
@@ -407,7 +412,10 @@ export function universalPostgresAdapter(
               client.release();
             }
           } catch (error) {
-            defaultLogger.error('PostgreSQL query error:', error);
+            logger.error(
+              'PostgreSQL query error',
+              error instanceof Error ? error : new Error(String(error)),
+            );
             throw error;
           }
         };
@@ -442,7 +450,10 @@ export function universalPostgresAdapter(
           // Clear promises after successful execution
           pendingCreations.length = 0;
         } catch (error) {
-          defaultLogger.error('Failed to create tables:', error);
+          logger.error(
+            'Failed to create tables',
+            error instanceof Error ? error : new Error(String(error)),
+          );
           throw error;
         }
       }
@@ -451,7 +462,10 @@ export function universalPostgresAdapter(
       try {
         await queryFn('SELECT 1', []);
       } catch (error) {
-        defaultLogger.error(`Failed to connect to ${provider} database:`, error);
+        logger.error(
+          `Failed to connect to ${provider} database`,
+          error instanceof Error ? error : new Error(String(error)),
+        );
         throw error;
       }
     },
@@ -490,7 +504,10 @@ export function universalPostgresAdapter(
             '[PGlite] Table creation failed',
             error instanceof Error ? error : new Error(String(error)),
           );
-          defaultLogger.error('Failed to create tables before query:', error);
+          logger.error(
+            'Failed to create tables before query',
+            error instanceof Error ? error : new Error(String(error)),
+          );
           throw error;
         }
       }
@@ -512,7 +529,10 @@ export function universalPostgresAdapter(
           await Promise.all(pendingCreations);
           pendingCreations.length = 0;
         } catch (error) {
-          defaultLogger.error('Failed to create tables before transaction:', error);
+          logger.error(
+            'Failed to create tables before transaction',
+            error instanceof Error ? error : new Error(String(error)),
+          );
           throw error;
         }
       }
@@ -617,8 +637,11 @@ export function universalPostgresAdapter(
                   error instanceof Error ? error : new Error(String(error)),
                   { workerId: getWorkerID(), tableName },
                 );
-                defaultLogger.error(`Failed to create table ${tableName}:`, error);
-                defaultLogger.error('SQL:', createTableSQL);
+                logger.error(
+                  `Failed to create table ${tableName}`,
+                  error instanceof Error ? error : new Error(String(error)),
+                  { sql: createTableSQL },
+                );
                 throw error;
               }
             })();
@@ -710,8 +733,11 @@ export function universalPostgresAdapter(
               } catch (error) {
                 // Remove from created set on failure so it can be retried
                 workerCreatedTables.delete(tableName);
-                defaultLogger.error(`Failed to create global table ${tableName}:`, error);
-                defaultLogger.error('SQL:', createTableSQL);
+                logger.error(
+                  `Failed to create global table ${tableName}`,
+                  error instanceof Error ? error : new Error(String(error)),
+                  { sql: createTableSQL },
+                );
                 throw error;
               }
             })();

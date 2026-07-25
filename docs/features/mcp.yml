@@ -16,7 +16,8 @@ api-surface:
     endpoint: "MCPHypervisor singleton — manages N running MCP server processes"
     openapi: false
     tested: true
-    notes: "Spawns stdio processes, health checks every 60s, tool namespacing (@@mcp_server_tool)"
+    status: incubating
+    notes: "ADR-007 C11: library kept and tested; not app-mounted at boot. Spawns stdio processes, health checks every 60s, tool namespacing (@@mcp_server_tool). Prefer revealui-mcp launchers until WIRE."
   adapter:
     endpoint: "MCPAdapter abstract class — base for service-specific adapters"
     openapi: false
@@ -43,8 +44,6 @@ mcp-servers:
   neon:
     remote: "https://mcp.neon.tech"
     adapter: "NeonAdapter extends MCPAdapter"
-  supabase:
-    launcher: "pnpm dlx supabase-mcp"
   vercel:
     launcher: "pnpm dlx vercel-mcp"
     adapter: "VercelAdapter extends MCPAdapter"
@@ -59,7 +58,7 @@ package-exports:
   ".": "dist/index.js — license check, re-exports all modules"
   "./adapter": "dist/servers/adapter.js — MCPAdapter base class"
   "./contracts": "dist/contracts.js — Zod schemas"
-  "./hypervisor": "dist/hypervisor.js — MCPHypervisor singleton"
+  "./hypervisor": "dist/hypervisor.js — MCPHypervisor singleton (incubating; ADR-007)"
   "./db": "dist/adapters/db.js — PGlite/PostgreSQL + CRDT"
   "./config": "dist/config/index.js — MCP environment config"
 

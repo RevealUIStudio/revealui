@@ -7,27 +7,30 @@ RevealUI AI defaults to open-model inference (Snaps, Ollama). Groq, Anthropic, O
 **Inference Snaps** from Canonical are the planned recommended path for local AI with RevealUI. Today, you install + run the snap yourself, then point RevealUI at it via `INFERENCE_SNAPS_BASE_URL`. Studio lifecycle management (start / stop / health / model discovery) is on the roadmap; until that ships, treat Snap operations as standalone (Ollama is the practical default for most users today).
 
 ```bash
-# Install the default model
-sudo snap install gemma3
+# Install the default model (US-origin allowlist)
+sudo snap install nemotron-3-nano
 
 # Check status and endpoint
-gemma3 status
+nemotron-3-nano status
 
 # Optional: change the HTTP port (default 9090)
-gemma3 set http.port=9090
+nemotron-3-nano set http.port=9090
 ```
 
 The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the RevealUI AI provider uses this directly with zero additional configuration.
 
-### Available Models
+### Product allowlist (US-origin only)
 
-| Snap | Type | RAM | Use Case |
-|------|------|-----|----------|
-| `gemma3` | General + vision | ~8 GB | **Default**  -  vision-capable, Apache 2.0 |
-| `deepseek-r1` | Reasoning | ~16 GB | Complex analysis, chain-of-thought |
-| `qwen-vl` | Vision-language | ~8 GB | Document parsing, visual Q&A |
-| `nemotron-3-nano` | General (text-only) | ~4 GB | Lightweight alternative for low-resource hosts |
-| `nemotron-3-nano-omni` | Multimodal | ~4 GB | Text/image/video/audio in, text out |
+RevealUI rejects non-US snap model IDs at provider construction. Canonical's
+catalog may still list other models; product code will not use them unless the
+operator sets `REVEALUI_ALLOW_NON_US_MODELS=1` (never seed this).
+
+| Snap | Origin | Type | Use Case |
+|------|--------|------|----------|
+| `nemotron-3-nano` | NVIDIA (US) | General + tools | **Default** |
+| `nemotron-3-nano-omni` | NVIDIA (US) | Multimodal | Text/image/video/audio in |
+| `gemma4` | Google (US) | General + vision + tools | Strong general alternative |
+| `gemma3` | Google (US) | General + vision | Legacy allowlisted snap |
 
 ### Configuration
 
@@ -52,7 +55,7 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 | Path | Runtime | Cost | Use Case |
 |------|---------|------|----------|
 | **Ollama** (default) | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
-| **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  Gemma 3, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
+| **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  US-origin: Nemotron 3 Nano/Omni, Gemma 3/4 |
 | **Groq** | Cloud, your own key | Pay Groq directly | Fast cloud inference, opt-in via `GROQ_API_KEY` |
 | **Anthropic** | Cloud, your own key | Pay Anthropic directly | Bring your own key, opt-in via `ANTHROPIC_API_KEY` |
 | **OpenAI** | Cloud, your own key | Pay OpenAI directly | Bring your own key, opt-in via `OPENAI_API_KEY` |

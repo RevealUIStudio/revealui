@@ -6,6 +6,7 @@ import {
   CLAIMS_HONESTY_RAILS_SECTION,
   CLAIMS_KIND_LEGEND,
   CLAIMS_LEDGER_INTRO,
+  CLAIMS_RECEIPT_HOLD_NOTE,
   CLAIMS_SIGNED_LEDGER_NOTE,
 } from '../content/claims';
 import {
@@ -183,9 +184,12 @@ export function ClaimsPage() {
       </header>
 
       <section className="border-b border-border px-6 py-8 lg:px-8">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-3xl space-y-4">
           <Callout variant="info" title={CLAIMS_SIGNED_LEDGER_NOTE.heading}>
             <p>{CLAIMS_SIGNED_LEDGER_NOTE.body}</p>
+          </Callout>
+          <Callout variant="info" title={CLAIMS_RECEIPT_HOLD_NOTE.heading}>
+            <p>{CLAIMS_RECEIPT_HOLD_NOTE.body}</p>
           </Callout>
         </div>
       </section>

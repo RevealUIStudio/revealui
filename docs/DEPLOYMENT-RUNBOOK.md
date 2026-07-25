@@ -207,7 +207,7 @@ See [Section 5](#5-database-migration-steps) for details.
 
 - **Primary database**: NeonDB (PostgreSQL, Drizzle ORM)
 - **Secondary database**: ~~Supabase~~ **Legacy — retired per ADR `2026-05-01-supabase-removal.md`. Current stack: Neon (primary) + ElectricSQL (sync).**
-- **Schema definitions**: `packages/db/src/schema/` (96 tables)
+- **Schema definitions**: `packages/db/src/schema/` (97 tables)
 - **Migration files**: `packages/db/migrations/`
 - **ORM config**: `packages/db/drizzle.config.ts`
 

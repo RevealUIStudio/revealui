@@ -34,6 +34,13 @@ vi.mock('@revealui/core/license', () => {
   };
 });
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  // Mirror local canMintLicense: private key presence (default path; flag off).
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('generated.key'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
@@ -58,12 +65,13 @@ vi.mock('@revealui/db/schema', () => ({
   },
 }));
 
-import { generateLicenseKey, validateLicenseKey } from '@revealui/core/license';
+import { validateLicenseKey } from '@revealui/core/license';
+import { mintLicenseKey } from '@revealui/core/license/mint-client';
 import { getClient } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedValidate = vi.mocked(validateLicenseKey);
-const mockedGenerate = vi.mocked(generateLicenseKey);
+const mockedGenerate = vi.mocked(mintLicenseKey);
 
 function createApp() {
   const app = new Hono();
@@ -282,11 +290,9 @@ describe('POST /generate', () => {
     expect(res.status).toBe(401);
   });
 
-  it('unescapes literal \\n in REVEALUI_LICENSE_PRIVATE_KEY before signing', async () => {
-    // Vercel stores multi-line PEM with \n escaped in the .env format.
-    // The route must convert literal \n back to real newlines before passing
-    // the key to jose.importPKCS8 — same unescape pattern as the webhook
-    // handlers at apps/server/src/routes/webhooks.ts:1009, 1229, 1847, 2391.
+  it('calls mintLicenseKey when private key is configured (PEM unescape lives in mint-client)', async () => {
+    // GAP-260 P4-3: route delegates to mintLicenseKey; PEM normalize is covered
+    // by packages/core license-mint-client + generateLicenseKey tests.
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
     process.env.REVEALUI_LICENSE_PRIVATE_KEY =
       '-----BEGIN PRIVATE KEY-----\\nMC4CAQA\\n-----END PRIVATE KEY-----';
@@ -299,11 +305,9 @@ describe('POST /generate', () => {
       post('/generate', { tier: 'pro', customerId: 'cus_unesc' }, { 'X-Admin-API-Key': ADMIN_KEY }),
     );
     expect(res.status).toBe(201);
-
-    // generateLicenseKey must receive REAL newlines, not literal \n
-    const [, normalizedKey] = mockedGenerate.mock.calls[0]!;
-    expect(normalizedKey).toContain('\n');
-    expect(normalizedKey).not.toContain('\\n');
+    expect(mockedGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({ tier: 'pro', customerId: 'cus_unesc' }),
+    );
   });
 
   it('generates a max tier license', async () => {

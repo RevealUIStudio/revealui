@@ -50,18 +50,70 @@
 
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
+import { createRequire } from 'node:module';
 import * as path from 'node:path';
 import ts from 'typescript';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const BASELINE_PATH = path.join(ROOT, 'scripts/validate/doc-currency-baseline.json');
 
+// Detection data for the SHARED_FLEET_RULES below lives in @revealui/harnesses
+// (packages/harnesses/src/gates/doc-currency-shared-rules.ts) — single
+// editable source, GAP-408 control-layer redesign. Resolved via the same
+// gates-resolver.cjs guardrail2-verdict.cjs uses (local dist, or a
+// REVEALUI_HARNESSES_DIR npm install), through `createRequire` — a static
+// `import ... from '@revealui/harnesses'` would need a package.json
+// dependency edge, which scripts/validate/boundary.ts Check 4 forbids for an
+// optional Fair Source package.
+//
+// ABSENCE BEHAVIOR (decision, see doc-currency.md cross-scanner lockstep
+// section): WARN and continue with the shared rule set empty, rather than
+// hard-fail the whole scanner. doc-currency is a best-effort stale-fact
+// scanner, not a merge-authorization gate (contrast guardrail2-verdict, which
+// fails closed because a silently-skipped hold is a security miss) — and the
+// scanner's own design philosophy is "a noisy/broken gate gets disabled"
+// (see the file's top-level doc comment). This mirrors the existing
+// unreadable-baseline handling below (warn, degrade gracefully, never crash).
+interface GatesModuleShape {
+  COMMON_EXON: readonly string[];
+  STRIPE_LIVE_EXON: readonly string[];
+  SHARED_DETECTION_RULES: readonly {
+    id: string;
+    anyOf: readonly string[];
+    unlessLineHas: readonly string[];
+  }[];
+}
+
+function loadGatesModule(): GatesModuleShape | null {
+  const require = createRequire(import.meta.url);
+  const { resolveGatesModule } = require('./gates-resolver.cjs') as {
+    resolveGatesModule: () => GatesModuleShape | null;
+  };
+  const mod = resolveGatesModule();
+  if (!mod) {
+    process.stderr.write(
+      '[doc-currency] WARNING: could not resolve the @revealui/harnesses gates module ' +
+        '(packages/harnesses not built, and REVEALUI_HARNESSES_DIR is unset/unresolvable). ' +
+        'Scanning with the SHARED fleet-fact rules SKIPPED — this run only enforces no ' +
+        'repo-specific rules the public scanner has (none today). ' +
+        'Fix: pnpm --filter @revealui/harnesses build.\n',
+    );
+    return null;
+  }
+  return mod;
+}
+
+const gates = loadGatesModule();
+const SHARED_COMMON_EXON = gates?.COMMON_EXON ?? [];
+const SHARED_STRIPE_LIVE_EXON = gates?.STRIPE_LIVE_EXON ?? [];
+const SHARED_DETECTION_RULES = gates?.SHARED_DETECTION_RULES ?? [];
+
 export interface Rule {
   id: string;
   /** A occurrence is a candidate hit if it contains (case-insensitive) ANY of these. */
-  anyOf: string[];
+  anyOf: readonly string[];
   /** …UNLESS the same occurrence also contains ANY of these exoneration markers. */
-  unlessLineHas: string[];
+  unlessLineHas: readonly string[];
   message: string;
 }
 
@@ -119,216 +171,50 @@ export function parseArgs(argv: readonly string[]): {
 // doc-currency rule §lockstep.
 // ---------------------------------------------------------------------------
 
-/** Shared past-tense / correction markers — if any appears alongside the
- *  banned term, the term is being discussed as past/known, not asserted as
- *  current. */
-export const COMMON_EXON: readonly string[] = [
-  'cancel',
-  'dropped',
-  'drop ',
-  'remov',
-  'retir',
-  'superseded',
-  'supersede',
-  'deprecat',
-  'former',
-  'historical',
-  'history',
-  'archive',
-  'legacy',
-  'no longer',
-  'not required',
-  'not used',
-  'instead',
-  'migrat',
-  'replaced',
-  'sunset',
-  'void',
-  'was ',
-  'were ',
-  'used to',
-  'transitional',
-  'exempt',
-  '→',
-  '->',
-  '~~',
-  'do not',
-  "don't",
-  'never',
-  'pending',
-  'not yet',
-  'will be',
-  'once ',
-  'before ',
-  'n/a',
-  'obsolete',
-  'phased out',
-  'wind down',
-  'winding down',
-  'decommiss',
-];
+/** Re-exported for any external consumer that imported these from this
+ *  module before the GAP-408 control-layer move. The editable source is now
+ *  `@revealui/harnesses/gates` — see `packages/harnesses/src/gates/
+ *  doc-currency-shared-rules.ts`. */
+export const COMMON_EXON: readonly string[] = SHARED_COMMON_EXON;
+export const STRIPE_LIVE_EXON: readonly string[] = SHARED_STRIPE_LIVE_EXON;
 
-/**
- * Bespoke exoneration list for `stripe-not-live-claim` — NOT `COMMON_EXON`,
- * whose "not yet" / "pending" / "before" / "will be" markers would exonerate
- * the exact phrasing a stale not-flipped claim uses. This list exonerates
- * flip-done / rollback / past-tense markers instead.
- */
-export const STRIPE_LIVE_EXON: readonly string[] = [
-  'flipped 2026-06-26',
-  'flipped on 2026-06-26',
-  'executed 2026-06-26',
-  'was flipped',
-  'has been flipped',
-  'now flipped',
-  'now live',
-  'went live',
-  'rollback',
-  'roll back',
-  '~~',
-  'previously',
-  'used to',
-  'formerly',
-  'no longer',
-  'historical',
-  'archive',
-  'superseded',
-  'retired',
-  'was ',
-  'were ',
-];
+// Repo-appropriate messages, keyed by the shared rule id. Detection
+// (anyOf / unlessLineHas) is NOT edited here — that lives in
+// @revealui/harnesses/gates (packages/harnesses/src/gates/
+// doc-currency-shared-rules.ts). Only the wording is repo-specific.
+const SHARED_RULE_MESSAGES: Readonly<Record<string, string>> = {
+  'revealcoin-as-current':
+    'RevealCoin/RVC/$RVUI was cancelled. Present it as past only, not a current or planned payment rail.',
+  'railway-as-current':
+    'Railway was dropped as an infrastructure target (stack is Vercel + Neon + Fly). Do not present Railway as a live deployment target.',
+  'vercel-blob-as-current':
+    'Vercel Blob is being retired in favor of Cloudflare R2 as canonical object storage. Do not instruct provisioning a new Blob token.',
+  'supabase-as-current':
+    'Supabase is being removed in favor of the RevealUI-native stack (Neon + ElectricSQL). Present Supabase as transitional or legacy only.',
+  'stripe-not-live-claim':
+    'Stripe live mode is on. Do not present Stripe billing as not yet flipped, or test-mode as the current state.',
+  'forge-tier-name':
+    'The billing tier "Forge" was renamed to "Enterprise". Use "Enterprise" going forward.',
+  'max-price-stale':
+    'RevealUI Max is $299/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 as the current Max price.',
+  'retired-suite-path':
+    'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
+};
 
-const SHARED_FLEET_RULES: readonly Rule[] = [
-  {
-    id: 'revealcoin-as-current',
-    anyOf: ['revealcoin', 'rvc ', '$rvc', '$rvui', 'rvui-payment', 'rvui payment'],
-    unlessLineHas: [...COMMON_EXON, 'cancelled 2026-05-29', 'shelved'],
-    message:
-      'RevealCoin/RVC/$RVUI was cancelled. Present it as past only, not a current or planned payment rail.',
-  },
-  {
-    id: 'railway-as-current',
-    anyOf: ['railway'],
-    unlessLineHas: [...COMMON_EXON, 'fly.io', 'fly machine', 'not railway'],
-    message:
-      'Railway was dropped as an infrastructure target (stack is Vercel + Neon + Fly). Do not present Railway as a live deployment target.',
-  },
-  {
-    id: 'vercel-blob-as-current',
-    anyOf: ['blob_read_write_token', 'vercel blob', '@vercel/blob', 'vercel/postgres'],
-    unlessLineHas: [...COMMON_EXON, 'r2', 'cloudflare'],
-    message:
-      'Vercel Blob is being retired in favor of Cloudflare R2 as canonical object storage. Do not instruct provisioning a new Blob token.',
-  },
-  {
-    id: 'supabase-as-current',
-    anyOf: ['supabase'],
-    unlessLineHas: [
-      ...COMMON_EXON,
-      'neon',
-      'electric',
-      'removal',
-      'boundary',
-      'rag',
-      'dual-db',
-      'dual db',
-    ],
-    message:
-      'Supabase is being removed in favor of the RevealUI-native stack (Neon + ElectricSQL). Present Supabase as transitional or legacy only.',
-  },
-  {
-    // Inverse of a retired `stripe-live-claim`: Stripe live mode was flipped
-    // ON, so a doc still asserting Stripe is NOT flipped / test-mode AS
-    // CURRENT is the drift. Uses the bespoke STRIPE_LIVE_EXON list, not
-    // COMMON_EXON — see the constant's doc comment for why.
-    id: 'stripe-not-live-claim',
-    anyOf: [
-      'stripe live mode is not flipped',
-      'stripe live-mode is not flipped',
-      'stripe live-flip is not',
-      'stripe live-flip has not',
-      'stripe live-flip is owner-gated and has not',
-      'stripe is not flipped',
-      'stripe not flipped',
-      'stripe live keys are not flipped',
-      'stripe live mode is still false',
-      'stripe live-mode is still false',
-      'stripe_live_mode is still false',
-      'payments are not live',
-      'billing is not live',
-      'stripe live mode has not executed',
-      'stripe live-flip has not executed',
-      'flip stripe live mode',
-      'flip stripe live-mode',
-    ],
-    unlessLineHas: STRIPE_LIVE_EXON,
-    message:
-      'Stripe live mode is on. Do not present Stripe billing as not yet flipped, or test-mode as the current state.',
-  },
-  {
-    id: 'forge-tier-name',
-    anyOf: [
-      'forge tier',
-      'forge perpetual',
-      'forge (enterprise)',
-      'enterprise (forge)',
-      '"forge" tier',
-    ],
-    unlessLineHas: [...COMMON_EXON, 'renamed', 'now enterprise'],
-    message:
-      'The billing tier "Forge" was renamed to "Enterprise". Use "Enterprise" going forward.',
-  },
-  {
-    // Pricing-truth guard. The Max subscription is $299/mo; the cents-of-record
-    // is scripts/setup/stripe-catalog.ts (revealui_max_monthly.unitAmount =
-    // 29900). The retired $149/mo Max figure presented as current is stale
-    // drift. Enumerated tier+price phrasings (like stripe-not-live-claim) rather
-    // than a bare '$149' term, because $149 is a legitimate current figure
-    // elsewhere (the Pro Perpetual support renewal is $149/yr) — anchoring the
-    // Max name beside the price avoids flagging those.
-    id: 'max-price-stale',
-    anyOf: [
-      'max $149',
-      'max: $149',
-      'max - $149',
-      'max — $149',
-      'max plan $149',
-      'max tier $149',
-      'max is $149',
-      'max at $149',
-      'max ($149',
-      'revealui max $149',
-      '| max | $149',
-      '$149/mo max',
-      '$149/month max',
-      '$149 for max',
-      '$149/mo for max',
-      '$149/month for max',
-    ],
-    unlessLineHas: [...COMMON_EXON, '$299', '299/mo', 'perpetual', 'renewal'],
-    message:
-      'RevealUI Max is $299/mo (cents-of-record: scripts/setup/stripe-catalog.ts). Do not present $149 as the current Max price.',
-  },
-  {
-    // Retired developer path. `~/suite/` was renamed to `~/revfleet/` on
-    // 2026-05-08; a doc presenting `~/suite/` as a live path is stale. Fleet
-    // fact — kept in lockstep with the .jv scanner's retired-suite-path, EXCEPT
-    // this public scanner carries only the username-free `~/suite/` form. The
-    // absolute (`/home/<user>/suite/`) and WSL-UNC forms embed a developer
-    // username, which gate:security's local-path-leak check forbids in public
-    // code, so those two anyOf terms stay .jv-only. `~/suite/` is the form that
-    // actually appears in public docs anyway.
-    id: 'retired-suite-path',
-    anyOf: ['~/suite/'],
-    unlessLineHas: [...COMMON_EXON, 'now ~/revfleet', 'renamed'],
-    message: 'The ~/suite/ path was retired 2026-05-08 (now ~/revfleet/). Update the path.',
-  },
-];
+const SHARED_FLEET_RULES: readonly Rule[] = SHARED_DETECTION_RULES.map((rule) => ({
+  id: rule.id,
+  anyOf: rule.anyOf,
+  unlessLineHas: rule.unlessLineHas,
+  message: SHARED_RULE_MESSAGES[rule.id] ?? `stale-fact drift: ${rule.id}`,
+}));
 
 /** The public revealui scanner enforces the SHARED fleet-fact set only; it has
  *  no repo-specific rules (the private .jv scanner adds `boi-mandatory`, which
- *  has no public surface). Kept in lockstep with
- *  .jv/scripts/doc-currency-check.ts §SHARED_FLEET_RULES. */
+ *  has no public surface). Detection tuples come from
+ *  `@revealui/harnesses/gates` (single editable source, GAP-408); the private
+ *  `.jv/scripts/doc-currency-check.ts` loads the same package via its resolver
+ *  adapter and layers a private overlay (retired-suite-path's username-bearing
+ *  terms + the wholly-private boi-mandatory rule) on top. */
 export const RULES: readonly Rule[] = SHARED_FLEET_RULES;
 
 // ---------------------------------------------------------------------------

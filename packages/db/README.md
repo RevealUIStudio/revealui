@@ -140,7 +140,7 @@ await db.insert(users).values({
 
 ## Design Principles
 
-- **Unified**: One schema definition (85 tables) drives types, queries, and migrations across all apps
+- **Unified**: One schema definition (97 tables) drives types, queries, and migrations across all apps
 - **Orthogonal**: Schema files are cleanly separated by domain (cms, users, agents, vector, crdt) with no cross-domain entanglement
 - **Sovereign**: Your database, your schema, your migrations  -  no hosted schema service in the loop
 
@@ -148,7 +148,6 @@ await db.insert(users).values({
 
 - [Migration Discipline](./docs/migrations-discipline.md) - How migrations work and rules to prevent silent failures
 - [Database Guide](../../docs/DATABASE.md) - Complete database setup and configuration
-- [Database Management](../../docs/DATABASE_MANAGEMENT.md) - Operations and maintenance
 - [Drizzle ORM Docs](https://orm.drizzle.team/) - Official Drizzle documentation
 
 ## License

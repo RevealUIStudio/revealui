@@ -61,8 +61,8 @@ export const licenses = pgTable(
     /** GitHub username for revealui-pro team provisioning (perpetual only) */
     githubUsername: text('github_username'),
 
-    /** npm username for @revealui Pro package access provisioning */
-    npmUsername: text('npm_username'),
+    // npmUsername removed (GAP-302 residual b): never written; private GitHub
+    // team provisioning uses githubUsername only. Dropped in migration 0029.
 
     /** Soft-delete  -  license records must never be hard-deleted for audit trail */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),

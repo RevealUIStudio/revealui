@@ -7,7 +7,7 @@
  * Do NOT import in client-side code or edge runtime.
  */
 
-import { defaultLogger } from '../instance/logger.js';
+import { logger } from '../observability/logger.js';
 import type {
   Config,
   PopulateType,
@@ -374,7 +374,7 @@ async function handleCollectionOperation(
     const status =
       'status' in (error as { status?: number }) ? (error as { status: number }).status : 500;
     // Log error with context for debugging
-    defaultLogger.error('RevealUI Collection API Error:', {
+    logger.error('RevealUI Collection API Error:', {
       collection,
       method: request.method,
       error:
@@ -452,7 +452,7 @@ async function handleGlobalOperation(
     const status =
       'status' in (error as { status?: number }) ? (error as { status: number }).status : 500;
     // Log error with context for debugging
-    defaultLogger.error('RevealUI Global API Error:', {
+    logger.error('RevealUI Global API Error:', {
       global,
       method: request.method,
       error:
@@ -553,7 +553,7 @@ export async function handleRESTRequest(
     const message = error instanceof Error ? error.message : 'Internal server error';
 
     // Log error with context for debugging
-    defaultLogger.error('RevealUI REST API Error:', {
+    logger.error('RevealUI REST API Error:', {
       message,
       path: url.pathname,
       method: request.method,

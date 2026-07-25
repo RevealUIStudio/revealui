@@ -1,17 +1,3 @@
-import { defineConfig } from 'vitest/config';
+import { createVitestConfig } from '@revealui/dev/vitest';
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-    pool: 'forks',
-    maxWorkers: 2,
-    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
-    },
-  },
-});
+export default createVitestConfig();

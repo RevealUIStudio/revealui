@@ -69,7 +69,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 
 ### Core Systems
 
-1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 96 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
+1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 97 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
 2. **Supabase (legacy RAG sidecar — retired for internal use)**: Historically hosted `rag_chunks` and related embedding tables; RAG embeddings now live on NeonDB `pgvector` and the sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Legacy Supabase code remains in tree during phase-out.
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
@@ -257,7 +257,7 @@ graph TB
 
 - RAG chunk embeddings now live on NeonDB `pgvector` (see NeonDB above); the standalone Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Auth/storage/realtime/RLS/edge-fn were never used.
 - Legacy Supabase code remains in tree during phase-out; new features must not depend on Supabase-specific behavior.
-- The customer-facing Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) is a separate, retained integration for customers who run Supabase — distinct from RevealUI's own (removed) sidecar usage.
+- The customer-facing Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts` / `launchSupabaseMcp`) was removed; agent database tooling uses Neon MCP.
 
 #### ElectricSQL sync (optional)
 

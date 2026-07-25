@@ -1,39 +1,67 @@
-import { Button } from '@revealui/presentation';
+import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
 import { FOR_OPERATORS_CLOSING } from '../../content/for-operators';
+import type { ServicesCtaData } from '../../lib/page-blocks';
 
-export function ClosingCta() {
+export interface ClosingCtaProps {
+  readonly data?: ServicesCtaData;
+  readonly path?: string;
+  readonly annotation?: BlockAnnotation;
+}
+
+export function ClosingCta({ data, path, annotation }: ClosingCtaProps = {}) {
+  const content = data ?? {
+    heading: FOR_OPERATORS_CLOSING.heading,
+    body: FOR_OPERATORS_CLOSING.body,
+    primaryCta: FOR_OPERATORS_CLOSING.primaryCta,
+    emailFallback: { ...FOR_OPERATORS_CLOSING.emailFallback },
+  };
+  const ann = annotation ?? {};
+  const base = path ?? '';
+
   return (
     <section className="bg-muted py-24 sm:py-32">
       <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          {FOR_OPERATORS_CLOSING.heading}
+        <h2
+          className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+          {...(base ? fieldAttrs(ann, `${base}.heading`) : {})}
+        >
+          {content.heading}
         </h2>
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground">
-          {FOR_OPERATORS_CLOSING.body}
+        <p
+          className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground"
+          {...(base ? fieldAttrs(ann, `${base}.body`) : {})}
+        >
+          {content.body}
         </p>
 
         <div className="mt-10 flex justify-center">
           <Button asChild size="lg">
             <a
-              href={FOR_OPERATORS_CLOSING.primaryCta.href}
-              {...(FOR_OPERATORS_CLOSING.primaryCta.external
+              href={content.primaryCta.href}
+              {...(content.primaryCta.external
                 ? { target: '_blank', rel: 'noopener noreferrer' }
                 : {})}
+              {...(base ? fieldAttrs(ann, `${base}.links.0.label`) : {})}
             >
-              {FOR_OPERATORS_CLOSING.primaryCta.label}
+              {content.primaryCta.label}
             </a>
           </Button>
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">
-          {FOR_OPERATORS_CLOSING.emailFallback.prefix}
+          <span {...(base ? fieldAttrs(ann, `${base}.snippet.lines.0`) : {})}>
+            {content.emailFallback.prefix}
+          </span>
           <a
-            href={`mailto:${FOR_OPERATORS_CLOSING.emailFallback.address}`}
+            href={`mailto:${content.emailFallback.address}`}
             className="font-medium text-primary hover:underline underline-offset-4"
+            {...(base ? fieldAttrs(ann, `${base}.snippet.lines.1`) : {})}
           >
-            {FOR_OPERATORS_CLOSING.emailFallback.address}
+            {content.emailFallback.address}
           </a>
-          {FOR_OPERATORS_CLOSING.emailFallback.suffix}
+          <span {...(base ? fieldAttrs(ann, `${base}.snippet.lines.2`) : {})}>
+            {content.emailFallback.suffix}
+          </span>
         </p>
       </div>
     </section>

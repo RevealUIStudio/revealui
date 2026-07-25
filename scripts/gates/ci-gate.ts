@@ -263,6 +263,23 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        // GAP-406: hard-fail local gate when manager.json is missing/invalid.
+        // Same checkManager as `revealui-harnesses manager check` via
+        // validate:structure --manager-only (no parallel validator).
+        // CI mirrors this as a path-gated Quality step.
+        name: 'Project manager check (hard fail)',
+        command: 'pnpm',
+        args: ['validate:structure', '--', '--manager-only'],
+      },
+      {
+        // GAP-406 residual: definition ↔ committed generator snapshot lock.
+        // Fails when package definitions change without refreshing
+        // packages/harnesses/content-snapshots/*.json (unit tests also cover this).
+        name: 'Harnesses content snapshot (hard fail)',
+        command: 'pnpm',
+        args: ['--filter', '@revealui/harnesses', 'content:snapshot:check'],
+      },
+      {
         name: 'Boundary validation',
         command: 'pnpm',
         args: ['validate:boundary'],
@@ -310,6 +327,18 @@ async function gate(): Promise<void> {
         args: ['validate:gitignore'],
       },
       {
+        // ADR-007: C11 incubators stay unmounted from apps until WIRE (GAP-406)
+        name: 'Incubate posture (hard fail)',
+        command: 'pnpm',
+        args: ['validate:incubate-posture'],
+      },
+      {
+        // ADR-006: engines incubate posture (no app entry claim / no app importers)
+        name: 'Engines posture (hard fail)',
+        command: 'pnpm',
+        args: ['validate:engines-posture'],
+      },
+      {
         name: 'Claim drift (hard fail)',
         command: 'pnpm',
         args: ['validate:claims'],
@@ -342,6 +371,13 @@ async function gate(): Promise<void> {
         name: 'Marketing voice prose-slot dist (hard fail)',
         command: 'pnpm',
         args: ['validate:marketing-voice-prose-slots'],
+      },
+      {
+        // Conflict-proof VES page-blocks layout: mono shell + pages/* modules
+        // with *PageSeed auto-discovery (no shared mega-file merge cascade).
+        name: 'Page-blocks modules (hard fail)',
+        command: 'pnpm',
+        args: ['validate:page-blocks-modules'],
       },
       {
         // Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
@@ -388,6 +424,18 @@ async function gate(): Promise<void> {
         name: 'audit_log ONE DOOR (hard fail)',
         command: 'pnpm',
         args: ['validate:audit-one-door'],
+      },
+      {
+        // GAP-355 S5-4: named agent emit chokepoints must still wire integrity audit.
+        name: 'agent audit chokepoints (hard fail)',
+        command: 'pnpm',
+        args: ['validate:agent-audit-chokepoints'],
+      },
+      {
+        // GAP-355 S6-5: named agent chokepoints must still pre-authorize tools.
+        name: 'agent authorize chokepoints (hard fail)',
+        command: 'pnpm',
+        args: ['validate:agent-authorize-chokepoints'],
       },
       {
         name: 'Stripe-client consolidation (hard fail)',

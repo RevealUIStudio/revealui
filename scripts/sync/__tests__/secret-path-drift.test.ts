@@ -3,12 +3,15 @@
  * `revvault sync ... --json` fixture — no revvault, no network, no secret values.
  */
 import { describe, expect, it } from 'vitest';
+import { collectVercelProjects } from '../parse-manifests.js';
 import {
   classifyVercelDrift,
+  classifyVercelNameDrift,
   type DriftFinding,
   KNOWN_DRIFT,
   knownKey,
   parseSyncDiffJsonl,
+  parseVercelNamesJson,
   partitionFindings,
 } from '../secret-path-drift.js';
 
@@ -113,5 +116,50 @@ describe('KNOWN_DRIFT allowlist explicitly tracks the 2026-07-11 live findings',
         reason: null,
       });
     }
+  });
+});
+
+describe('classifyVercelNameDrift (CI name-diff path)', () => {
+  const projects = collectVercelProjects(`
+[projects.demo]
+project_id = "prj_demo"
+skip = ["NODE_ENV", "STRIPE_LIVE_MODE"]
+
+[projects.demo.vars]
+STRIPE_SECRET_KEY = { path = "revealui/prod/stripe/secret-key", sensitive = true }
+POSTGRES_URL = "revealui/prod/db/postgres-url"
+`);
+
+  it('parses project_id, skip, and vars from the manifest', () => {
+    expect(projects).toHaveLength(1);
+    expect(projects[0]?.slug).toBe('demo');
+    expect(projects[0]?.projectId).toBe('prj_demo');
+    expect(projects[0]?.skip).toEqual(['NODE_ENV', 'STRIPE_LIVE_MODE']);
+    expect(projects[0]?.vars.get('POSTGRES_URL')).toBe('revealui/prod/db/postgres-url');
+  });
+
+  it('reports orphan + missing; never orphans skip names', () => {
+    const live = new Map<string, string[]>([
+      ['demo', ['STRIPE_SECRET_KEY', 'BRAND_NEW', 'NODE_ENV']],
+    ]);
+    const findings = classifyVercelNameDrift(projects, live);
+    const byCat = (c: string) =>
+      findings
+        .filter((f) => f.category === c)
+        .map((f) => f.key)
+        .sort();
+    expect(byCat('orphan')).toEqual(['BRAND_NEW']);
+    expect(byCat('missing')).toEqual(['POSTGRES_URL']);
+    expect(findings.find((f) => f.key === 'NODE_ENV')).toBeUndefined();
+    expect(findings.find((f) => f.category === 'shape-violation')).toBeUndefined();
+  });
+
+  it('parseVercelNamesJson builds the live map', () => {
+    const map = parseVercelNamesJson(
+      JSON.stringify({
+        projects: [{ project: 'demo', names: ['A', 'B'] }],
+      }),
+    );
+    expect(map.get('demo')).toEqual(['A', 'B']);
   });
 });

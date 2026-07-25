@@ -3,21 +3,35 @@
  *
  * Tool-agnostic definitions for AI guidance content (rules, commands, agents, skills).
  * Generators produce tool-specific output from canonical definitions.
- * `opencode` (`./generators/opencode.ts`), `cursor` (`./generators/cursor.ts`,
- * hooks.json only -- see that file's doc comment), and `vscode`
- * (`./generators/vscode.ts`, plugin.json hooks contribution only) are
- * registered today. The adapter layer (`../adapters/`) ships
- * `revealui-agent`, `opencode`, and `cursor` -- `vscode` has no adapter (no
- * headless CLI to exec; see `./generators/vscode.ts`'s doc comment). A
- * Claude Code generator is not implemented.
+ *
+ * Generators registered today:
+ * - `claude-code` (**default** via `DEFAULT_CONTENT_GENERATOR_ID`) — full
+ *   rules/commands/agents/skills under the **project manager** tree
+ *   `.revealui/content/` (GAP-406). Not a vendor-private `.claude/` fork.
+ * - `opencode` — agents + commands under `.opencode/`
+ * - `cursor` — hooks.json only (vendor-native surface; policy still in manager)
+ * - `vscode` — plugin.json hooks contribution only
+ *
+ * `manager materialize` runs `writeManagerAdapterContent` so Cursor/OpenCode
+ * vendor surfaces are emitted on the **same path** as manager content (equal
+ * adapters), not only as orphaned hooks-tree tooling.
+ *
+ * The adapter layer (`../adapters/`) ships `revealui-agent`, `opencode`, and
+ * `cursor` — `vscode` has no adapter (no headless CLI to exec).
  *
  * @example
  * ```ts
- * import { buildManifest, validateManifest, generateContent, diffContent } from '@revealui/harnesses/content';
+ * import {
+ *   buildManifest,
+ *   validateManifest,
+ *   generateContent,
+ *   DEFAULT_CONTENT_GENERATOR_ID,
+ * } from '@revealui/harnesses/content';
  *
  * const manifest = buildManifest();
  * const validation = validateManifest(manifest);
- * const files = generateContent('opencode', manifest, { projectRoot: '/path/to/project' });
+ * // Default sync lands under .revealui/content (manager tree)
+ * const files = generateContent(DEFAULT_CONTENT_GENERATOR_ID, manifest, { projectRoot: '/path/to/project' });
  * ```
  */
 
@@ -31,9 +45,12 @@ import { type Manifest, ManifestSchema } from './schemas/manifest.js';
 
 export { buildManifest } from './definitions/index.js';
 export {
+  ClaudeCodeGenerator,
   CursorGenerator,
+  DEFAULT_CONTENT_GENERATOR_ID,
   getGenerator,
   listGenerators,
+  MANAGER_CONTENT_OUTPUT,
   OpenCodeGenerator,
   registerGenerator,
   VSCodeGenerator,
@@ -51,6 +68,29 @@ export {
   RuleSchema,
   SkillSchema,
 } from './schemas/index.js';
+export type {
+  ContentSnapshot,
+  ContentSnapshotFile,
+  SnapshotCheckResult,
+  SnapshotDrift,
+} from './snapshot.js';
+export {
+  buildContentSnapshot,
+  CONTENT_SNAPSHOT_VERSION,
+  checkAllContentSnapshots,
+  checkContentSnapshot,
+  getContentSnapshotsDir,
+  hashContent,
+  loadContentSnapshot,
+  snapshotPathFor,
+  writeAllContentSnapshots,
+  writeContentSnapshot,
+} from './snapshot.js';
+export type { WriteManagerAdapterContentResult } from './write-manager-adapters.js';
+export {
+  MANAGER_MATERIALIZE_GENERATORS,
+  writeManagerAdapterContent,
+} from './write-manager-adapters.js';
 
 export interface ValidationResult {
   valid: boolean;

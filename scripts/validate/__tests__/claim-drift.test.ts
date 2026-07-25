@@ -10,12 +10,14 @@ import {
   countDirs,
   countEnforcementTests,
   countTestFiles,
+  countTrackedFiles,
   extractRevealuiPackages,
   findIncompleteProList,
   findLicenseSplitAntiPattern,
   isRoadmapDeclaredFile,
   makeIgnoredPathPredicate,
   parseGitIgnoredOutput,
+  TEST_FILE_SUFFIXES,
   WALK_EXCLUDED_DIRS,
 } from '../claim-drift.ts';
 
@@ -290,6 +292,77 @@ describe('countTestFiles', () => {
     // File-granular skip: exactly the listed file, nothing else.
     const isIgnored = makeIgnoredPathPredicate(tmp, new Set(['docs/STALE_REPORT.test.ts']));
     expect(countTestFiles(tmp, isIgnored)).toBe(1);
+  });
+
+  it('GAP-399: walker skips a nested .wt/ full-checkout phantom (name exclusion)', () => {
+    fs.mkdirSync(path.join(tmp, 'packages', 'core'), { recursive: true });
+    fs.writeFileSync(path.join(tmp, 'packages', 'core', 'real.test.ts'), '');
+    // Incident shape: a peer worktree nested under the main checkout root
+    // (fleet convention .wt/<label>) carrying a full second copy of tests.
+    const phantom = path.join(tmp, '.wt', 'peer-session', 'packages', 'core');
+    fs.mkdirSync(phantom, { recursive: true });
+    fs.writeFileSync(path.join(phantom, 'phantom.test.ts'), '');
+    fs.writeFileSync(path.join(phantom, 'another.spec.tsx'), '');
+    // Without the durable name exclusion this would be 3.
+    expect(countTestFiles(tmp)).toBe(1);
+  });
+});
+
+describe('countTrackedFiles (GAP-399 durable path)', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-git-ls-'));
+    execFileSync('git', ['init', '-q'], { cwd: tmp });
+    execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: tmp });
+    execFileSync('git', ['config', 'user.name', 'claim-drift fixture'], { cwd: tmp });
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  function commitTracked(rel: string, body = ''): void {
+    const full = path.join(tmp, rel);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, body);
+    execFileSync('git', ['add', rel], { cwd: tmp });
+    execFileSync('git', ['commit', '-q', '-m', `add ${rel}`], { cwd: tmp });
+  }
+
+  it('counts only index-tracked test files (ignores untracked .wt/ phantoms)', () => {
+    commitTracked('packages/core/real.test.ts');
+    // Untracked nested worktree copy — never enters the index.
+    const phantom = path.join(tmp, '.wt', 'peer', 'packages', 'core');
+    fs.mkdirSync(phantom, { recursive: true });
+    fs.writeFileSync(path.join(phantom, 'phantom.test.ts'), '');
+    fs.writeFileSync(path.join(phantom, 'extra.spec.ts'), '');
+
+    const match = (rel: string) => TEST_FILE_SUFFIXES.some((s) => rel.endsWith(s));
+    expect(countTrackedFiles(tmp, match)).toBe(1);
+    // Filesystem walk without exclusions would see 3; durable path stays at 1.
+  });
+
+  it('returns null when the path is not a git work tree', () => {
+    const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-nogit-'));
+    try {
+      expect(countTrackedFiles(bare, () => true)).toBeNull();
+    } finally {
+      fs.rmSync(bare, { recursive: true, force: true });
+    }
+  });
+
+  it('repo-root countTestFiles matches git ls-files (tracked-files basis)', () => {
+    // Integration check against the real monorepo: both paths must agree so
+    // the durable switch cannot silently drift from the walk-era baseline
+    // when no nested .wt/ is present.
+    const repoRoot = path.resolve(import.meta.dirname, '../../..');
+    const viaDefault = countTestFiles(repoRoot);
+    const viaGit = countTrackedFiles(repoRoot, (rel) =>
+      TEST_FILE_SUFFIXES.some((s) => rel.endsWith(s)),
+    );
+    expect(viaGit).not.toBeNull();
+    expect(viaDefault).toBe(viaGit);
   });
 });
 

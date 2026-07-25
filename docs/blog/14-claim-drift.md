@@ -22,11 +22,13 @@ It is not malice, it is structure. The claim and the thing it describes have no 
 The first half of the fix is a single source of truth. Every number the marketing site can state lives in one typed object, and no page is allowed to hardcode the integer anywhere else.
 
 ```ts
+// Illustrative shape (numbers are whatever claim-drift counts today;
+// see apps/marketing/app/content/site.ts METRICS for the live values).
 export const METRICS = {
-  packages: 27,        // workspace packages
-  uiComponents: 60,    // components in @revealui/presentation
-  mcpServers: 14,      // first-party MCP servers
-  dbTables: 85,        // Drizzle table declarations
+  packages: 29,        // workspace packages
+  uiComponents: 65,    // components in @revealui/presentation
+  mcpServers: 13,      // first-party MCP servers
+  dbTables: 97,        // Drizzle table declarations
   // ...
 } as const;
 ```
@@ -45,7 +47,7 @@ claim-drift: docs/blog/09-component-library.md
   -> fix the copy or fix the count, but they must agree
 ```
 
-That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 29 packages, 65 UI components, 14 first-party MCP servers, 96 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.
+That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 29 packages, 65 UI components, 13 first-party MCP servers, 97 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.
 
 ## The validator practices what we preach
 

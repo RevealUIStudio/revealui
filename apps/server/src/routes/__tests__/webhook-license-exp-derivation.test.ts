@@ -62,12 +62,19 @@ vi.mock('@revealui/core/features', () => ({
   getFeaturesForTier: vi.fn(() => ({})),
 }));
 
-// Resolve `@revealui/core/license` to REAL source so the handler signs with the
-// genuine issuer (see webhook-license-roundtrip.test.ts for the rationale).
+// Resolve `@revealui/core/license` (+ mint-client) to REAL source so the handler
+// signs with the genuine issuer (see webhook-license-roundtrip.test.ts).
 vi.mock('@revealui/core/license', async () => {
   const actual = await vi.importActual<
     typeof import('../../../../../packages/core/src/license.ts')
   >('../../../../../packages/core/src/license.ts');
+  return actual;
+});
+
+vi.mock('@revealui/core/license/mint-client', async () => {
+  const actual = await vi.importActual<
+    typeof import('../../../../../packages/core/src/license/mint-client.ts')
+  >('../../../../../packages/core/src/license/mint-client.ts');
   return actual;
 });
 

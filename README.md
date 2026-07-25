@@ -39,7 +39,7 @@ You have:
 - **Billing:** Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard:** manage users, content, billing, and settings out of the box
 - **65 UI components:** built with Tailwind CSS v4, zero external UI dependencies
-- **14 MCP servers:** agents discover and use your business data through the same API humans use
+- **13 MCP servers:** agents discover and use your business data through the same API humans use
 - **Type-safe throughout:** Zod schemas shared between client, server, database, and agent tools
 
 No assembly required. Define your data once. Humans manage it through the dashboard, agents operate on it through MCP. Same permissions, same audit trail.
@@ -52,14 +52,14 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
 | **Offers**       | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | Same Stripe primitives, available to agents.                 |
-| **Agents**       | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 14 MCP servers.                   |
+| **Agents**       | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 13 MCP servers.                   |
 
 ## Open-model first
 
 The Agents primitive ships with open-model defaults. No proprietary API keys required, no API bill that scales with usage.
 
 - **Ollama** — local model runner; the standard developer-machine path.
-- **Ubuntu Inference Snaps** — Apache-2.0-preferred model runtimes for production. `sudo snap install gemma3` (or `deepseek-r1`, `qwen-vl`, `nemotron-3-nano`, `nemotron-3-nano-omni`).
+- **Ubuntu Inference Snaps** — US-origin model runtimes for production. `sudo snap install nemotron-3-nano` (or `gemma4`, `gemma3`, `nemotron-3-nano-omni`). Non-US catalog snaps are rejected in product code.
 - **Pluggable provider adapters** — Claude, OpenAI, and others available as opt-in adapters. The fleet runtime never imports any provider SDK by default; you wire whichever model you want.
 
 Verifiable: `git grep -l "@anthropic-ai/sdk" packages/` returns nothing inside `@revealui/*` packages. The runtime is provider-agnostic by contract.
@@ -127,7 +127,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** _(beta — works in staging, production usage is early)_: build and deploy purpose-built agents for your workflows
 - **MCP framework:** hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference:** Ubuntu Inference Snaps (canonical default — Studio lifecycle pending), Ollama, and open source models via the RevealUI harness. `sudo snap install gemma3` for instant local AI (or any of `deepseek-r1`, `qwen-vl`, `nemotron-3-nano`, `nemotron-3-nano-omni`). No proprietary APIs, no vendor lock-in, zero API bills
+- **Open-model inference:** Ubuntu Inference Snaps (canonical default — Studio lifecycle pending), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for US-origin local AI (or `gemma4` / `nemotron-3-nano-omni`). No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history:** every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync:** generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
@@ -161,7 +161,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (96 tables), dual-DB client     |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (97 tables), dual-DB client     |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
 | [`@revealui/presentation`](packages/presentation)       | 65 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
@@ -187,7 +187,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/ai`](packages/ai)                           | AI agents, CRDT memory, LLM providers             |
-| [`@revealui/engines`](packages/engines)                 | Unified entry point for the five primitives (private) |
+| [`@revealui/engines`](packages/engines)                 | Incubating optional barrel for the five primitives (not the app entry; private) |
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
 | [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
 | [`@revealui/services`](packages/services)               | Stripe (billing + circuit breaker), transactional email (Gmail API) |

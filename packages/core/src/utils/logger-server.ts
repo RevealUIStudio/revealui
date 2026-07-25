@@ -1,95 +1,69 @@
 /**
- * Server Logger Utility
+ * Server logger with request-id enrichment (ADR-008 D3/D4)
  *
- * Server-side logging utility for RevealUI framework.
- * Supports different log levels and structured output.
- * Automatically includes request ID from request context when available.
+ * Thin facade over `@revealui/utils/logger` that injects `requestId` from
+ * AsyncLocalStorage (`request-context`) on every log call. Not a second
+ * logger implementation.
  *
- * WARNING: This module uses Node.js APIs (async_hooks via request-context).
- * For client-safe logging, use './logger-client.js' instead.
+ * WARNING: Uses Node.js APIs (async_hooks via request-context). Do not import
+ * from browser / RSC client graphs. Client code: `@revealui/core/utils/logger`
+ * or `@revealui/core/observability/logger`.
+ *
+ * Package export: `@revealui/core/utils/logger/server`
+ * Also re-exported from `@revealui/core/server`.
  */
 
+import {
+  createLogger as createUtilsLogger,
+  type LogContext,
+  type LogLevel,
+  type Logger as UtilsLogger,
+  Logger as UtilsLoggerClass,
+} from '@revealui/utils/logger';
 import { getRequestId } from './request-context.js';
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type { LogContext, LogLevel };
+export type Logger = Pick<UtilsLogger, 'debug' | 'info' | 'warn' | 'error'>;
 
-export interface LogContext {
-  [key: string]: unknown;
+function withRequestId(context?: LogContext): LogContext | undefined {
+  const requestId = getRequestId();
+  if (!requestId) {
+    return context;
+  }
+  return { requestId, ...context };
 }
 
-export interface Logger {
-  debug(message: string, context?: LogContext): void;
-  info(message: string, context?: LogContext): void;
-  warn(message: string, context?: LogContext): void;
-  error(message: string, context?: LogContext): void;
-}
-
-class ConsoleLogger implements Logger {
-  private minLevel: LogLevel;
-
-  constructor(minLevel: LogLevel = 'info') {
-    this.minLevel = minLevel;
-  }
-
-  private shouldLog(level: LogLevel): boolean {
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-    return levels.indexOf(level) >= levels.indexOf(this.minLevel);
-  }
-
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
-    const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
-
-    // Automatically include request ID if available
-    const requestId = getRequestId();
-    const enrichedContext = requestId ? { requestId, ...context } : context;
-
-    if (enrichedContext && Object.keys(enrichedContext).length > 0) {
-      return `${prefix} ${message} ${JSON.stringify(enrichedContext)}`;
-    }
-
-    return `${prefix} ${message}`;
-  }
-
-  debug(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug(this.formatMessage('debug', message, context));
-    }
-  }
-
-  info(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV !== 'production') {
-      console.info(this.formatMessage('info', message, context));
-    }
-  }
-
-  warn(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(this.formatMessage('warn', message, context));
-    }
-  }
-
-  error(message: string, context?: LogContext): void {
-    if (this.shouldLog('error')) {
-      console.error(this.formatMessage('error', message, context));
-    }
-  }
+function wrap(backend: UtilsLogger): Logger {
+  return {
+    debug(message: string, context?: LogContext): void {
+      backend.debug(message, withRequestId(context));
+    },
+    info(message: string, context?: LogContext): void {
+      backend.info(message, withRequestId(context));
+    },
+    warn(message: string, context?: LogContext): void {
+      backend.warn(message, withRequestId(context));
+    },
+    error(message: string, context?: LogContext): void {
+      backend.error(message, withRequestId(context));
+    },
+  };
 }
 
 /**
- * Create a logger instance
+ * Create a server logger that enriches context with the active request ID.
  *
- * @param minLevel - Minimum log level to output (default: 'info')
- * @returns Logger instance
+ * @param minLevel - Optional minimum level (maps to utils `level` config)
  */
 export function createLogger(minLevel?: LogLevel): Logger {
-  // In production, can be extended to use structured logging services
-  // For now, use console-based logger
-  const level = minLevel || (process.env.LOG_LEVEL as LogLevel) || 'info';
-  return new ConsoleLogger(level);
+  const level = minLevel || (process.env.LOG_LEVEL as LogLevel | undefined) || 'info';
+  const backend = new UtilsLoggerClass({
+    level,
+  }).child({ component: 'core-server' });
+  return wrap(backend);
 }
 
 /**
- * Default logger instance
+ * Default server logger (request-id enriching).
  */
-export const logger = createLogger();
+export const logger: Logger = wrap(createUtilsLogger({ component: 'core-server' }));

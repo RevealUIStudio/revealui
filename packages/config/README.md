@@ -82,9 +82,10 @@ The config package validates these environment variables (schema: `packages/conf
 # Database
 POSTGRES_URL=postgresql://user:password@host/database
 
-# RevealUI
+# RevealUI (schema: packages/config/src/schema.ts requiredSchema)
 REVEALUI_SECRET=your_secret_key_here
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+NEXT_PUBLIC_SERVER_URL=http://localhost:3004
 ```
 
 ### Optional Variables
@@ -108,17 +109,17 @@ VERCEL_API_KEY=vercel_...
 NEON_API_KEY=neon_...
 ```
 
-> **Note:** prior versions of this list included a `SUPABASE_*` block. Those env vars are not validated by `@revealui/config` and were a stale leak from the customer-facing Supabase MCP adapter (which lives at `packages/mcp/src/servers/supabase.ts` and documents its own env vars in `packages/mcp/README.md`). If you're configuring the Supabase MCP server for customer use, see the MCP README; this package validates only the runtime env that `@revealui/server` and `@revealui/admin` actually read.
+> **Note:** prior versions of this list included a `SUPABASE_*` block. Those env vars are not validated by `@revealui/config` (legacy leak from the removed customer Supabase MCP adapter). This package validates only the runtime env that `@revealui/server` and `@revealui/admin` actually read.
 
 ## File Loading Priority
 
-Environment variables are loaded in this order (later overrides earlier):
+File loading is environment-specific (`packages/config/src/loader.ts`). **`process.env` always wins** when values are merged.
 
-1. System environment variables
-2. `.env` (shared defaults, if present)
-3. `.env.local` (local overrides)
-4. `.env.development.local` (development mode)
-5. `.env.production.local` (production mode)
+| Environment | Files loaded |
+|-------------|--------------|
+| **production** | None (process.env only) |
+| **test** | First existing of `.env.test.local`, then `.env.test` |
+| **development** | First existing of `.env.development.local`, then `.env.local`, then `.env` |
 
 ## Validation
 
@@ -170,9 +171,9 @@ pnpm --filter @revealui/config lint
 
 ## Related Documentation
 
-- [Environment Variables Guide](../../docs/ENVIRONMENT_VARIABLES_GUIDE.md) - Complete environment setup
+- [Environment Variables Guide](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Complete environment setup
 - [Quick Start](../../docs/QUICK_START.md) - Initial setup instructions
-- [MCP Guide](../../docs/MCP.md) - MCP server configuration
+- [MCP Guide](../mcp/README.md) - MCP server configuration
 
 ## License
 

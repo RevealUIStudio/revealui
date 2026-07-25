@@ -1,17 +1,16 @@
 # @revealui/mcp
 
-MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Stripe, Supabase, Neon, Vercel, Playwright, and more via standardized tool interfaces.
+MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Stripe, Neon, Vercel, Playwright, and more via standardized tool interfaces.
 
 > **License: Fair Source (FSL-1.1-MIT).** `@revealui/mcp` is one of the five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) — source-visible in the public repo, free to use commercially under the FSL non-compete, and converting to plain MIT two years after each release.
 
 ## Overview
 
-`@revealui/mcp` ships **14 first-party MCP server launchers** under `packages/mcp/src/servers/`. The full list lives in the source; a representative sample:
+`@revealui/mcp` ships **13 first-party MCP server launchers** under `packages/mcp/src/servers/`. The full list lives in the source; a representative sample:
 
 | Server | Launcher | Tools provided |
 |--------|----------|---------------|
 | Stripe | `launchStripeMcp` | Customers, invoices, subscriptions, products, prices |
-| Supabase | `launchSupabaseMcp` | Database queries, auth, storage, realtime |
 | Neon | `launchNeonMcp` | SQL queries, migrations, branching (remote endpoint at `mcp.neon.tech`) |
 | Vercel | `launchVercelMcp` | Deployments, domains, env vars, logs |
 | Playwright | `launchPlaywrightMcp` | Browser automation, screenshots, testing |
@@ -46,7 +45,6 @@ The MCP-to-agent integration ships in `@revealui/ai` (Fair Source / Pro). See [`
 Each launcher accepts its own configuration. The canonical reference is the source file under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers); examples:
 
 - `launchStripeMcp({ apiKey })` — local proxy around Stripe's official MCP package
-- `launchSupabaseMcp({ url, serviceRoleKey })`
 - `launchNeonMcp({ connectionString, readOnly })` — note: the public NeonDB MCP is also available remotely at `mcp.neon.tech`
 - `launchPlaywrightMcp({ browser: 'chromium', headless: true })`
 - `launchVercelMcp({ apiKey })`

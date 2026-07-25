@@ -12,7 +12,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
 
 - Big picture: Next.js 16 + React 19 monorepo. Apps live in `apps/` (notably `apps/admin`, `apps/server`, `apps/marketing`) and shared code lives in `packages/` (core, `auth`, `services`, `mcp`).
 
-- Key integrations: NeonDB + Drizzle ORM (`docs/DATABASE.md`), Vercel (edge-ready), MCP adapters in `packages/mcp/src/servers/` (e.g. `neon.ts`, `supabase.ts`). Third-party: Stripe (`packages/services/src/stripe`), Supabase (`packages/mcp/src/servers/supabase.ts`).
+- Key integrations: NeonDB + Drizzle ORM (`docs/DATABASE.md`), Vercel (edge-ready), MCP adapters in `packages/mcp/src/servers/` (e.g. `neon.ts`, `stripe.ts`). Third-party: Stripe (`packages/services/src/stripe`). Legacy Supabase MCP adapter was removed.
 
 - Quick start commands (most-used):
   - `pnpm install`

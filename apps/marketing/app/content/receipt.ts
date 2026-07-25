@@ -1,8 +1,12 @@
 // Receipt-motif hero content (frontend-excellence Phase 5, receipt-hero-concept
 // spec 2026-07-18). A demonstration, not live production data: timestamps are
 // static strings (never Date.now()) so the sequence is deterministic for SSR
-// and the visual gate. Content depicts something the product does today  -
-// see claims-evidence.ts for the evidence trail on every sentence here.
+// and the visual gate. Content depicts something the product does today.
+// See claims-evidence.ts for the evidence trail on every sentence here.
+//
+// GAP-355 Stage 4 S4-6: the foil remains canonical positioning copy. The
+// customer-held Merkle root + offline CLI are Max+ (auditLog); Free/Pro get
+// row signing without root delivery. Verification is never for sale.
 
 import type { AuditEvent } from '@revealui/presentation';
 

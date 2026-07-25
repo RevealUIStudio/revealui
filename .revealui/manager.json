@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "RevealUI monorepo",
+  "contentRoot": "content",
+  "tracker": {
+    "path": "docs/TRACKER.md",
+    "note": "Fleet day-to-day board lives in private .jv; monorepo may point at product ROADMAP. Prefer TRACKER when present under docs/."
+  },
+  "adapters": [
+    {
+      "id": "claude-code",
+      "projectTree": ".claude",
+      "rank": "equal"
+    },
+    {
+      "id": "cursor",
+      "projectTree": ".cursor",
+      "rank": "equal"
+    },
+    {
+      "id": "opencode",
+      "projectTree": ".opencode",
+      "rank": "equal"
+    },
+    {
+      "id": "vscode",
+      "projectTree": null,
+      "rank": "equal"
+    },
+    {
+      "id": "grok",
+      "projectTree": null,
+      "rank": "equal"
+    },
+    {
+      "id": "revealui-agent",
+      "projectTree": null,
+      "rank": "equal"
+    }
+  ],
+  "mcp": {
+    "configPath": "mcp.json"
+  },
+  "contentPackage": "@revealui/harnesses"
+}

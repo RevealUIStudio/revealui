@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MfaRequest } from '../mfa-enforcement.js';
-import { requireMfa } from '../mfa-enforcement.js';
+import { checkSessionMfa, requireMfa } from '../mfa-enforcement.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -238,5 +238,42 @@ describe('requireMfa', () => {
       expect(result.allowed).toBe(false);
       expect(result.body?.code).toBe('MFA_VERIFY_REQUIRED');
     });
+  });
+});
+
+describe('checkSessionMfa / toMfaSession', () => {
+  it('reads mfaVerified from session.metadata', () => {
+    const result = checkSessionMfa(
+      {
+        user: { id: 'u1', role: 'admin', mfaEnabled: true },
+        session: { metadata: { mfaVerified: true } },
+      },
+      {},
+    );
+    expect(result.allowed).toBe(true);
+  });
+
+  it('blocks admin when metadata lacks mfaVerified', () => {
+    const result = checkSessionMfa(
+      {
+        user: { id: 'u1', role: 'admin', mfaEnabled: true },
+        session: { metadata: null },
+      },
+      {},
+    );
+    expect(result.allowed).toBe(false);
+    expect(result.body?.code).toBe('MFA_VERIFY_REQUIRED');
+  });
+
+  it('blocks owner without MFA enrolled', () => {
+    const result = checkSessionMfa(
+      {
+        user: { id: 'u1', role: 'owner', mfaEnabled: false },
+        session: { metadata: {} },
+      },
+      {},
+    );
+    expect(result.allowed).toBe(false);
+    expect(result.body?.code).toBe('MFA_REQUIRED');
   });
 });

@@ -12,7 +12,7 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { config } from 'dotenv';
-import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
+import { createLauncherLogger, ExitCode, isDirectEntry } from './_launcher-utils.js';
 
 const logger = createLauncherLogger();
 
@@ -228,4 +228,6 @@ async function main() {
   }
 }
 
-main();
+if (isDirectEntry(import.meta.url)) {
+  void main();
+}

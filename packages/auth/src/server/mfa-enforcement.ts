@@ -62,7 +62,8 @@ export interface MfaCheckResult {
 // Middleware
 // =============================================================================
 
-const DEFAULT_ROLES = ['admin'];
+/** Admin-level DB roles that require MFA for sensitive operations (C11). */
+const DEFAULT_ROLES = ['admin', 'owner'];
 
 /**
  * Create an MFA enforcement checker.
@@ -139,4 +140,40 @@ export function requireMfa(
 
     return { allowed: true };
   };
+}
+
+/**
+ * Build MFA session shape from getSession / rotateSession results.
+ * `mfaVerified` comes from session.metadata set after MFA login (verify/backup).
+ */
+export function toMfaSession(sessionData: {
+  user: { id: string; role: string; mfaEnabled?: boolean | null };
+  session: { metadata?: Record<string, unknown> | null };
+}): MfaSession {
+  const meta = sessionData.session.metadata ?? null;
+  return {
+    user: {
+      id: sessionData.user.id,
+      role: sessionData.user.role,
+      mfaEnabled: sessionData.user.mfaEnabled === true,
+      mfaVerified: meta?.mfaVerified === true,
+    },
+  };
+}
+
+/**
+ * One-shot MFA check for a SessionData-like object (Next.js / Hono handlers).
+ */
+export function checkSessionMfa(
+  sessionData: {
+    user: { id: string; role: string; mfaEnabled?: boolean | null };
+    session: { metadata?: Record<string, unknown> | null };
+  },
+  options?: MfaEnforcementOptions & { operation?: string },
+): MfaCheckResult {
+  const check = requireMfa(options);
+  return check({
+    session: toMfaSession(sessionData),
+    operation: options?.operation,
+  });
 }

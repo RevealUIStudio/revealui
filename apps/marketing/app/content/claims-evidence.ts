@@ -414,7 +414,7 @@ const SERVICES_STRIPE: EvidenceRef = {
 const LLM_CLIENT: EvidenceRef = {
   kind: 'code',
   ref: 'packages/ai/src/llm/client.ts',
-  note: 'createLLMClientFromEnv default provider inference-snaps, defaultModel gemma3, port 9090; LLMProviderType union groq/ollama/huggingface/inference-snaps',
+  note: 'createLLMClientFromEnv default provider inference-snaps, defaultModel nemotron-3-nano, port 9090; US-origin allowlist; LLMProviderType union groq/ollama/huggingface/inference-snaps',
 };
 const OLLAMA: EvidenceRef = {
   kind: 'code',
@@ -507,7 +507,8 @@ const CLAIMS_PAGE_ROUTE: EvidenceRef = {
 };
 // ── audit-log signing (GAP-355 Stage 3): the log is signed with a key anyone
 // can check, verifiable offline without our secret. Scoped to the log, not
-// "every agent action" (Stage 5). ─────────────────────────────────────────────
+// "every agent action" (Stage 5). Stage 4 adds Merkle roots + offline anchor
+// CLI (S4-5) for customers who hold a delivered root. ─────────────────────────
 const AUDIT_ROW_SIGNER: EvidenceRef = {
   kind: 'code',
   ref: 'packages/security/src/audit-signing.ts',
@@ -517,6 +518,46 @@ const AUDIT_SIGN_ROUNDTRIP: EvidenceRef = {
   kind: 'test',
   ref: 'apps/server/src/lib/__tests__/audit-signing-roundtrip.pglite.test.ts#a canonically-signed row verifies OFFLINE after the jsonb + timestamptz round trip',
   note: 'a row written through the one door verifies offline from the jsonb + timestamptz readback using only the public key',
+};
+const AUDIT_MERKLE: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-merkle.ts',
+  note: 'Stage 4: per-tenant Merkle roots over row signature leaves; inclusion proofs recompute the root offline',
+};
+const AUDIT_ANCHOR_VERIFY: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-anchor-verify.ts',
+  note: 'Stage 4 S4-5: pure offline verify of root signature + optional inclusion proof (no network)',
+};
+const AUDIT_ANCHOR_VERIFY_CLI: EvidenceRef = {
+  kind: 'command',
+  ref: 'pnpm verify:audit-anchor -- --public-key <pem> --anchor <json> [--proof <json>]',
+  note: 'Stage 4 offline CLI (scripts/security/verify-audit-anchor.ts); exit 0 iff checks pass',
+};
+const AUDIT_ANCHOR_SCHEMA: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/db/src/schema/audit-anchors.ts',
+  note: 'audit_anchors stores delivered roots + root_signature for customer hold',
+};
+const AUDIT_ANCHOR_VERIFY_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/security/src/__tests__/audit-anchor-verify.test.ts#accepts root + inclusion proof for one leaf',
+  note: 'root signature + inclusion path verify offline with only the public key',
+};
+const AUDIT_ANCHOR_API: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/audit.ts',
+  note: 'GET /api/audit/anchors and /proof (S4-4); Max+ auditLog gate + tenant lag in list response',
+};
+const AUDIT_LOG_FEATURE_MAX: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/features.ts',
+  note: 'auditLog feature requires Max tier; Free/Pro cannot download roots (403)',
+};
+const AUDIT_RECEIPTS_DOC: EvidenceRef = {
+  kind: 'code',
+  ref: 'docs/security/AUDIT_RECEIPTS.md',
+  note: 'Stage 4 honesty: what Free/Pro get vs Max root delivery; offline CLI; verification never paid',
 };
 
 export const CLAIMS: readonly ClaimEntry[] = [
@@ -554,6 +595,30 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'HOME_HERO.subtitle.sentence1',
     text: 'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
     evidence: [SELF_HOST, AGENT_ROUTES, TIER_GATES],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_HERO.subtitle.sentence2',
+    text: 'Every agent is a governed and audited user that lives on your infrastructure.',
+    evidence: [
+      AGENT_ROUTES,
+      RBAC_ABAC,
+      TIER_GATES,
+      AUDIT_LOG_SCHEMA,
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      {
+        kind: 'code',
+        ref: 'packages/auth/src/server/auth.ts',
+        note: 'agents authenticate as first-class principals under the same session/auth surface as human users',
+      },
+      {
+        kind: 'test',
+        ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts#authenticated() allows when user is present',
+        note: 'identity-gated access: a principal must authenticate before protected operations; agents use the same gate surface as human users',
+      },
+      SELF_HOST,
+    ],
   },
   {
     file: 'home.ts',
@@ -1577,6 +1642,21 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
+    exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
+    text: 'Signed audit log plus downloadable Merkle roots you verify offline',
+    evidence: [
+      AUDIT_ROW_SIGNER,
+      AUDIT_MERKLE,
+      AUDIT_ANCHOR_API,
+      AUDIT_ANCHOR_VERIFY_CLI,
+      AUDIT_ANCHOR_VERIFY_TEST,
+      AUDIT_SIGN_ROUNDTRIP,
+      AUDIT_LOG_FEATURE_MAX,
+      AUDIT_RECEIPTS_DOC,
+    ],
+  },
+  {
+    file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].features[6]',
     text: '50,000 agent tasks/month included',
     evidence: [TIER_LIMITS],
@@ -2532,7 +2612,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_SECTION.snippet.lines[0].note',
-    text: 'gemma3 on your box, port 9090 (default runner)',
+    text: 'nemotron-3-nano on your box, port 9090 (default runner)',
     evidence: [LLM_CLIENT],
   },
   {
@@ -2654,6 +2734,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
     exportPath: 'LOCAL_AI_PAGE.roadmap.body',
     text: 'An air-gapped, container-image deployment path for fully disconnected environments. Not shipped yet, tracked on the roadmap.',
     evidence: [ROADMAP],
+  },
+  {
+    file: 'local-ai.ts',
+    exportPath: 'PROVIDER_SWITCH.modes.local.model',
+    text: 'nemotron-3-nano, open-weight (US-origin)',
+    evidence: [LLM_CLIENT, OPEN_WEIGHT],
   },
   {
     file: 'local-ai.ts',
@@ -3041,13 +3127,13 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'marketplace.ts',
     exportPath: 'MARKETPLACE_DISCOVERY_STEPS[0].description',
-    text: 'Agents find available tools through the MCP hypervisor. Each server advertises its capabilities and required permissions.',
+    text: 'Agents attach MCP servers that advertise tools and required permissions through the open protocol.',
     evidence: [HYPERVISOR],
   },
   {
     file: 'marketplace.ts',
     exportPath: 'MARKETPLACE_DISCOVERY_STEPS[1].description',
-    text: 'The MCP hypervisor routes the call to the right server.',
+    text: 'Each call targets the matching MCP server. A multi-server process hypervisor is available in source when you wire multi-hosting.',
     evidence: [HYPERVISOR],
   },
   {
@@ -3090,66 +3176,60 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'marketplace.ts',
     exportPath: 'MARKETPLACE_MCP_SERVERS[3].description',
-    text: 'Interact with Supabase for vector storage, auth, and real-time subscriptions.',
-    evidence: [MCP_SERVERS],
-  },
-  {
-    file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[4].description',
     text: 'Deploy, manage environment variables, inspect deployments, and view logs.',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[5].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[4].description',
     text: 'Run browser automation, take screenshots, and execute end-to-end test flows.',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[6].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[5].description',
     text: 'Inspect routes, middleware, server components, and build output in development.',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[7].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[6].description',
     text: 'Create, query, and manage collections and documents through the content API.',
     evidence: [MCP_CONTENT],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[8].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[7].description',
     text: 'Send transactional emails, manage templates, and track delivery status.',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[9].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[8].description',
     text: 'Validate TypeScript, lint with Biome, and run type checks on code snippets.',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[10].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[9].description',
     text: 'Read and write the agent memory store (episodic, semantic, and procedural layers).',
     evidence: [MEMORY_STORES, MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[11].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[10].description',
     text: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
     evidence: [MCP_SERVERS],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[12].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[11].description',
     text: 'Search and read first-party @revealui/* package docs: list libraries, resolve names, and fetch curated README and export metadata over MCP.',
     evidence: [DOCS_MCP],
   },
   {
     file: 'marketplace.ts',
-    exportPath: 'MARKETPLACE_MCP_SERVERS[13].description',
+    exportPath: 'MARKETPLACE_MCP_SERVERS[12].description',
     text: 'Base class plus concrete Vercel/Stripe/Neon adapters. Standardizes the MCP server contract (error handling, idempotency, observability) across every first-party server above. Source: packages/mcp/src/servers/adapter.ts.',
     evidence: [MCP_SERVERS],
   },
@@ -3280,6 +3360,21 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'claims.ts',
+    exportPath: 'CLAIMS_RECEIPT_HOLD_NOTE.body',
+    text: 'On Max, the worker seals ranges of your signed audit log into Merkle roots you can download. You verify those roots offline with the published public key, without calling us. Free and Pro still get a signed log. Root delivery is Max. Checking a receipt is free either way.',
+    evidence: [
+      AUDIT_MERKLE,
+      AUDIT_ANCHOR_SCHEMA,
+      AUDIT_ANCHOR_API,
+      AUDIT_ANCHOR_VERIFY,
+      AUDIT_ANCHOR_VERIFY_CLI,
+      AUDIT_ANCHOR_VERIFY_TEST,
+      AUDIT_LOG_FEATURE_MAX,
+      AUDIT_RECEIPTS_DOC,
+    ],
+  },
+  {
+    file: 'claims.ts',
     exportPath: 'CLAIMS_HERO.subtitle',
     text: 'Every sentence on this site that makes a claim about the product carries an entry below. Each one links to the code, the command, or the page that proves it.',
     evidence: [
@@ -3406,7 +3501,17 @@ export const CLAIMS: readonly ClaimEntry[] = [
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_CAPTION.text',
     text: "If an agent did it, there's a receipt.",
-    evidence: [AUDIT_SIGNING, AUDIT_SIGNING_TEST, AUDIT_LOG_SCHEMA, REFUND_ROUTE],
+    evidence: [
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      AUDIT_LOG_SCHEMA,
+      REFUND_ROUTE,
+      {
+        ...AUDIT_RECEIPTS_DOC,
+        note: 'Stage 4 S4-6: foil is positioning; sealed root download is Max (auditLog); verification never paid',
+      },
+      AUDIT_LOG_FEATURE_MAX,
+    ],
   },
 
   // ── contact + legal/* ratchet (claims-evidence audit 2026-07-22) ─────────

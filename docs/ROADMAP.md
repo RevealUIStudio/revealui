@@ -45,7 +45,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/enterprise)
 - **UI components**  -  59 native React 19 components in `@revealui/presentation` (80 with `@revealui/core` admin/richtext); Tailwind v4, zero external UI deps
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  96 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
+- **Database**  -  97 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers**  -  12 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, plus the adapter base class)
@@ -103,7 +103,7 @@ RevealUI is the runtime at the center of a three-project ecosystem. Each project
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
 #### Edge Cache + Encryption Helpers Integration
-- **`@revealui/cache`** edge-cache helpers (`getABTestVariant`, `addPreloadLinks`, `warmISRCache`, `setEdgeCacheHeaders`) — implemented in `packages/cache/src/edge-cache.ts` but not yet wired into `apps/marketing` or `apps/server` middleware. Not exported from the package barrel pending real consumer.
+- **`@revealui/cache`** edge/CDN helpers were **deleted** (C11 2026-07-23): `edge-cache.ts` / `cdn-config.ts` had zero app consumers (tests-only). Package retains store adapters + invalidation channel. App-layer revalidation stays on platform APIs (e.g. `next/cache`).
 - **`@revealui/security`** encryption + authorization helpers (`EncryptionSystem`, `FieldEncryption`, `KeyRotationManager`, `TokenGenerator`, `DataMasking`, `EnvelopeEncryption`, `PolicyBuilder`, `PermissionBuilder`) — implemented but not exported from the barrel. Production encryption today flows through KEK + revvault directly; these helpers are reserved for future consumer-facing surfaces.
 
 #### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)

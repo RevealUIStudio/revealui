@@ -68,7 +68,7 @@ Each vendor is evaluated against the following criteria:
 | Backup/Recovery | Continuous PITR (Point-in-Time Recovery) | RPO: near-zero, RTO: minutes |
 
 **Data shared with Neon:**
-- All relational data across 96 tables (users, content, products, sessions, payments metadata)
+- All relational data across 97 tables (users, content, products, sessions, payments metadata)
 - Connection metadata and query execution logs
 
 **Compensating controls:**
@@ -85,7 +85,7 @@ Each vendor is evaluated against the following criteria:
 
 > **Decommissioned (internal usage) per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md).** RevealUI's internal Supabase datastore dependency has been removed: RAG chunk embeddings and vector tables now live on NeonDB `pgvector`, and auth/storage/realtime/RLS/edge-fn were never used. Legacy Supabase code remains in tree during phase-out (final code removal tracked separately); no new features may depend on Supabase.
 >
-> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) is a legacy, retained customer integration that lets installers who chose Supabase point agents at their own database. It is no longer a RevealUI vendor data dependency and is out of scope for this assessment.
+> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) was removed; it is no longer a RevealUI vendor data dependency and is out of scope for this assessment.
 >
 > The vendor assessment below is retained as a **historical** record for the audit trail. RevealUI holds no active Supabase data dependency, so there is no forward review date.
 

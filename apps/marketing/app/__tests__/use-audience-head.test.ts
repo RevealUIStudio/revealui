@@ -93,7 +93,7 @@ describe('useAudienceHead — technical audience', () => {
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
     ).toBe(
-      'Auth, content, products, and payments, pre-wired into one open-source runtime you self-host. Ship one product or stamp a branded copy per client.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     );
   });
 

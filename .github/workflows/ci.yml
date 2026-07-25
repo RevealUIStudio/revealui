@@ -66,6 +66,11 @@ jobs:
       - name: Console audit
         run: pnpm audit:console
 
+      # Phase 6 prevention: exact clone report under packages/ (advisory only)
+      - name: Exact clone audit (packages/, advisory)
+        continue-on-error: true
+        run: pnpm audit:clones
+
       - name: Structure validation
         run: pnpm validate:structure
 
@@ -87,6 +92,12 @@ jobs:
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
 
+      - name: Incubate posture (ADR-007, hard fail)
+        run: pnpm validate:incubate-posture
+
+      - name: Engines posture (ADR-006, hard fail)
+        run: pnpm validate:engines-posture
+
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
@@ -103,6 +114,41 @@ jobs:
         # match it exactly. Mirrors the local gate step in scripts/gates/ci-gate.ts.
         run: pnpm validate:rules-lockstep
 
+      - name: Project manager check (path-gated hard fail)
+        # GAP-406: when a PR (or push) touches .revealui or packages/harnesses,
+        # hard-fail if manager.json is missing/invalid. Extends validate:structure
+        # (`--manager-only`) — same checkManager primitive as
+        # `revealui-harnesses manager check`. No parallel validator.
+        # Unrelated PRs skip. Full structure validation still runs above and
+        # includes the manager check when packages/harnesses is present.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          run_check=false
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${BASE_SHA:-}" ]; then
+            if git diff --name-only "$BASE_SHA"...HEAD | grep -qE '^(\.revealui/|packages/harnesses/)'; then
+              run_check=true
+            fi
+          elif [ "$EVENT_NAME" = "push" ]; then
+            if [ -n "${BEFORE_SHA:-}" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+              if git diff --name-only "$BEFORE_SHA"...HEAD | grep -qE '^(\.revealui/|packages/harnesses/)'; then
+                run_check=true
+              fi
+            else
+              run_check=true
+            fi
+          else
+            run_check=true
+          fi
+          if [ "$run_check" != "true" ]; then
+            echo "skip: no .revealui/ or packages/harnesses/ changes"
+            exit 0
+          fi
+          pnpm validate:structure -- --manager-only
+
       - name: Marketing voice validation (hard fail)
         run: pnpm validate:marketing-voice
 
@@ -112,6 +158,18 @@ jobs:
         # same keys are required (stale dist → 422 on session.patch). Does not
         # build @revealui/contracts (needs @revealui/db; Quality has install only).
         run: pnpm validate:marketing-voice-prose-slots
+
+      - name: Build @revealui/harnesses (doc-currency's gates module, GAP-408)
+        # doc-currency.ts resolves its shared SHARED_FLEET_RULES detection
+        # tuples from packages/harnesses/dist/gates — build just that one
+        # package rather than the whole monorepo (Quality is install-only
+        # otherwise). Absence degrades to a warn + shared-rules-skipped run
+        # (see doc-currency.ts's ABSENCE BEHAVIOR comment), not a crash, so
+        # this step is a belt-and-braces guarantee of full coverage, not a
+        # hard dependency of the job passing.
+        run: pnpm --filter @revealui/harnesses build
+        env:
+          SKIP_ENV_VALIDATION: "true"
 
       - name: Doc-currency validation (hard fail)
         # Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,

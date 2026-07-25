@@ -22,11 +22,16 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { type SSEStreamingApi, streamSSE } from 'hono/streaming';
+import { resolveStreamPrincipal } from '../lib/agent-principal.js';
 import {
   awaitElicitationResponse,
   createAgentRunSession,
   deleteAgentRunSession,
 } from '../lib/agent-run-sessions.js';
+import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
+import { applyAgentToolGovernance } from '../lib/agent-tool-governance.js';
+import { createAgentEventLoggerIfEnabled } from '../lib/ai-observability-wire.js';
+import { createSkillProviderIfEnabled } from '../lib/ai-skills-wire.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { recordUsageMeter } from '../lib/metering.js';
@@ -194,6 +199,53 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
   const mode = body.mode ?? 'admin';
+  const accountId = getEntitlementsFromContext(c).accountId;
+  const tenantId = c.get('tenant')?.id ?? null;
+  const runSession = createAgentRunSession(user.id);
+  // Late-bound task id for tool-audit rows (task object is built after tools).
+  const taskRef: { id: string } = { id: `task-${Date.now()}` };
+
+  // GAP-355 S6-1: server-derived principal for pre-authorize (never client input).
+  const streamPrincipal = resolveStreamPrincipal({
+    mode,
+    userId: user.id,
+    userRole: user.role,
+    tenantId,
+    accountId,
+  });
+  const streamAgentId = streamPrincipal.agentId;
+
+  // GAP-355 S5-4: integrity audit for non-MCP tools (admin CMS + coding).
+  const streamToolAudit =
+    (namespace: string) =>
+    async (event: {
+      toolName: string;
+      success: boolean;
+      duration_ms: number;
+      error?: string;
+    }): Promise<void> => {
+      await recordAgentMcpToolAudit({
+        namespace,
+        toolName: event.toolName,
+        success: event.success,
+        durationMs: event.duration_ms,
+        ...(event.error !== undefined ? { error: event.error } : {}),
+        sessionId: runSession.sessionId,
+        accountId,
+        userId: user.id,
+        agentId: streamPrincipal.agentId,
+        taskId: taskRef.id,
+      });
+    };
+
+  const governanceCtx = (namespace: string) => ({
+    principal: streamPrincipal,
+    namespace,
+    sessionId: runSession.sessionId,
+    accountId,
+    userId: user.id,
+    taskId: taskRef.id,
+  });
 
   // Load admin tools so the agent can manage content, media, users, globals
   let cmsTools: unknown[] = [];
@@ -218,7 +270,13 @@ app.openapi(agentStreamRoute, async (c) => {
       const { createInternalAdminClient } = await import('../lib/internal-admin-client.js');
       const apiClient = createInternalAdminClient(apiBase, sessionToken);
 
-      cmsTools = cmsToolsMod.createAdminTools({ apiClient });
+      // Integrity (S5) inside factory; governance (S6) wraps outside so deny
+      // never executes the tool.
+      const rawAdmin = cmsToolsMod.createAdminTools({
+        apiClient,
+        onToolAudit: streamToolAudit('admin-cms'),
+      });
+      cmsTools = applyAgentToolGovernance(rawAdmin, governanceCtx('admin-cms'));
     }
   } catch {
     // admin tools unavailable  -  agent will work without them
@@ -243,13 +301,21 @@ app.openapi(agentStreamRoute, async (c) => {
           projectRoot: string;
           allowedPaths?: string[];
           include?: string[];
+          onToolAudit?: (event: {
+            toolName: string;
+            success: boolean;
+            duration_ms: number;
+            error?: string;
+          }) => void | Promise<void>;
         }) => unknown[];
-        codingTools = createCodingTools({
+        const rawCoding = createCodingTools({
           projectRoot,
           allowedPaths: process.env.CODING_ALLOWED_PATHS?.split(','),
           // Local (free tier): only read-only tools (no file_write, file_edit, shell_exec, git_ops)
           ...(isLocalOnly && { include: readOnlyCodingTools }),
-        });
+          onToolAudit: streamToolAudit('coding'),
+        }) as Array<{ name: string; execute: (params: unknown) => Promise<unknown> }>;
+        codingTools = applyAgentToolGovernance(rawCoding, governanceCtx('coding'));
       }
     } catch {
       // Coding tools unavailable  -  agent will work with admin tools only
@@ -272,8 +338,6 @@ app.openapi(agentStreamRoute, async (c) => {
   // `streamSSE()` starts can write into the stream once it exists.
   const mcpClients: McpClient[] = [];
   const tenant = c.get('tenant')?.id;
-  const accountId = getEntitlementsFromContext(c).accountId;
-  const runSession = createAgentRunSession(user.id);
   const streamRef: { current: SSEStreamingApi | undefined } = { current: undefined };
 
   const loggerSink = aiMod.createCoreLoggerSink();
@@ -308,17 +372,10 @@ app.openapi(agentStreamRoute, async (c) => {
 
     // A.2a: Sampling handler allowlist. MCP servers may request any model
     // via `modelPreferences.hints`; we filter those hints to this list so
-    // servers can't silently route us to expensive models. Models outside
-    // the list fall back to `defaultModel`. Conservative set — extend when
-    // specific models are validated + cost-bounded.
-    const samplingAllowedModels = [
-      'gemma3',
-      'gemma3:e2b',
-      'gemma3:e4b',
-      'deepseek-r1',
-      'qwen3',
-    ] as const;
-    const samplingDefaultModel = process.env.LLM_MODEL ?? 'gemma3';
+    // servers can't silently route us off the product US-origin snap set.
+    // SSOT: @revealui/ai US_ORIGIN_INFERENCE_SNAP_IDS.
+    const samplingAllowedModels = [...aiMod.US_ORIGIN_INFERENCE_SNAP_IDS];
+    const samplingDefaultModel = process.env.LLM_MODEL ?? aiMod.DEFAULT_US_ORIGIN_INFERENCE_SNAP;
 
     for (const server of serverIds) {
       try {
@@ -418,6 +475,21 @@ app.openapi(agentStreamRoute, async (c) => {
         const mcpTools = await aiMod.createToolsFromMcpClient(built.client, {
           namespace: server,
           onEvent,
+          // GAP-355 S5-2: integrity audit (awaited, fail-closed on success).
+          onToolAudit: async (event) => {
+            await recordAgentMcpToolAudit({
+              namespace: event.namespace,
+              toolName: event.toolName,
+              success: event.success,
+              durationMs: event.duration_ms,
+              ...(event.error !== undefined ? { error: event.error } : {}),
+              sessionId: runSession.sessionId,
+              accountId,
+              userId: user.id,
+              agentId: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
+              taskId: taskRef.id,
+            });
+          },
         });
         mcpClients.push(built.client);
         allTools.push(...mcpTools);
@@ -473,15 +545,33 @@ Workspace: ${workspaceId}`,
   };
 
   const task = {
-    id: `task-${Date.now()}`,
+    id: taskRef.id,
     type: 'instruction',
     description: body.instruction,
   };
 
+  // GAP-406 phase 4: opt-in skills + agent event logger (env-gated wire modules).
+  const skillProvider = await createSkillProviderIfEnabled();
+  const agentEventLogger = await createAgentEventLoggerIfEnabled();
+  if (agentEventLogger) {
+    agentEventLogger.logDecision({
+      timestamp: Date.now(),
+      agentId: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
+      sessionId: runSession.sessionId,
+      reasoning: `agent_stream_start mode=${mode}`,
+      context: { mode },
+    });
+  }
+
+  // skillProvider is loaded via dynamic import (boundary); cast through never
+  // so RuntimeConfig accepts it without a static @revealui/ai/skills type import.
   const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
     maxIterations: 10,
     timeout: 120_000,
+    ...(skillProvider ? { skillProvider: skillProvider as never } : {}),
   });
+
+  const auditStore = createAuditStore(getClient());
 
   return streamSSE(c, async (stream) => {
     const controller = new AbortController();
@@ -503,6 +593,39 @@ Workspace: ${workspaceId}`,
       }),
     });
 
+    // GAP-355 S5-2: task start — fail closed if we cannot record.
+    try {
+      await auditStore.append({
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        eventType: 'agent:task:started',
+        severity: 'info',
+        agentId: streamAgentId,
+        taskId: task.id,
+        sessionId: runSession.sessionId,
+        payload: {
+          mode,
+          userId: user.id,
+          instructionPreview: body.instruction.slice(0, 200),
+        },
+        policyViolations: [],
+        tenant: accountId ?? null,
+      });
+    } catch (startAuditErr) {
+      await stream.writeSSE({
+        data: JSON.stringify({
+          type: 'error',
+          error:
+            startAuditErr instanceof Error
+              ? `Audit start failed: ${startAuditErr.message}`
+              : 'Audit start failed',
+        }),
+        event: 'error',
+      });
+      return;
+    }
+
+    let taskOk = false;
     try {
       // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
       // the runtime type is LLMClient when present.
@@ -518,7 +641,11 @@ Workspace: ${workspaceId}`,
           event: chunk.type,
         });
 
-        if (chunk.type === 'done' || chunk.type === 'error') break;
+        if (chunk.type === 'done') {
+          taskOk = true;
+          break;
+        }
+        if (chunk.type === 'error') break;
       }
     } catch (error) {
       await stream.writeSSE({
@@ -529,6 +656,22 @@ Workspace: ${workspaceId}`,
         event: 'error',
       });
     } finally {
+      try {
+        await auditStore.append({
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+          eventType: taskOk ? 'agent:task:completed' : 'agent:task:failed',
+          severity: taskOk ? 'info' : 'warn',
+          agentId: streamAgentId,
+          taskId: task.id,
+          sessionId: runSession.sessionId,
+          payload: { success: taskOk, mode },
+          policyViolations: [],
+          tenant: accountId ?? null,
+        });
+      } catch {
+        // Completion audit best-effort after stream ends
+      }
       // Tear down any MCP clients we connected at handler entry so
       // sockets + OAuth-refresh timers don't leak across requests.
       for (const client of mcpClients) {

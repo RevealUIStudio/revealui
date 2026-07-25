@@ -62,6 +62,7 @@ revealui/dev/admin-password
 revealui/dev/admin-session-cookie
 revealui/dev/electric/service-url
 revealui/dev/founder-license-key    # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon
+revealui/dev/mcp/opencode-device-token   # rvui_dev_* device token minted via the studio-auth link/verify flow; used as REVEALUI_MCP_TOKEN by MCP clients (e.g. OpenCode)
 # Stripe TEST-mode keys (dev namespace) — used by local dev + the CI integration suite.
 revealui/dev/stripe/restricted-ci-test     # rk_test_* restricted (Write: PaymentIntents/Products/Prices/Checkout) — mirrored to CI as STRIPE_SECRET_KEY (see CI / publishing)
 revealui/dev/stripe/secret-key             # sk_test_* full test secret (broader; CI uses the restricted key above)
@@ -105,7 +106,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/admin/password` | credential | yes | vercel:admin |  |
 | `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/server refuses to start without it |
 | `revealui/prod/audit/signing-private-key` | signing-private | yes | vercel:api, vercel:admin, fly:worker | required@boot; Ed25519 PKCS#8 PEM - signs every audit row; only signing surfaces read it, no fallback |
-| `revealui/prod/audit/signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker | Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key |
+| `revealui/prod/audit/signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker | Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key. See docs/security/AUDIT_RECEIPTS.md (Stage 4: row verify free; root download Max) |
 | `revealui/prod/billing/portal-config-id` | public-config | no | fly:worker | → migrating to `revealui/prod/stripe/billing-portal-config-id` (since 2026-07-01); R18 - Fly-side duplicate of the stripe/ canonical; converge in P3-3 |
 | `revealui/prod/cors-origin` | public-config | no | vercel:api, fly:worker |  |
 | `revealui/prod/cron-secret` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
@@ -258,7 +259,8 @@ revealui/env/backup
 revealui/env/cms-url
 revealui/env/core
 revealui/env/cron
-revealui/env/license        # REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY
+revealui/env/license          # REVEALUI_LICENSE_PUBLIC_KEY only (GAP-260 P2-2 public)
+revealui/env/license-signing  # REVEALUI_LICENSE_PRIVATE_KEY (+ optional public); needs REVVAULT_ALLOW_PRIVATE=1
 revealui/env/npm
 revealui/env/services
 revealui/env/stripe
@@ -293,17 +295,48 @@ revdev/tauri-signing-public-key           # updater public key (also embedded in
 The canonical license-signing keypair (`revdev/license-signing-{private,public}-key`) is a
 production-runtime secret - it appears in the machine-checked Production runtime table above,
 carrying its declared migration target `revealui/prod/license/{private,public}-key` (the
-value-move is P3-4, owner-gated). The `revealui/env/license` bundle below is the local-dev
-`with-secrets` mirror of that keypair, consumed by `~/revfleet/revealui/.envrc` via
-`revvault export-env`.
+value-move is P3-4, owner-gated). Local-dev bundles (GAP-260 P2-2):
 
 ```
-revealui/env/license   # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY
+revealui/env/license          # PUBLIC only: REVEALUI_LICENSE_PUBLIC_KEY (+ optional MODE)
+                              # with-secrets license → revvault export-env --public-only
+revealui/env/license-signing  # PRIVATE: REVEALUI_LICENSE_PRIVATE_KEY
+                              # with-secrets license-signing requires REVVAULT_ALLOW_PRIVATE=1
 # Reserved: revealui/prod/license/{private,public}-key - the DECLARED Ed25519 migration target (P3-4).
 # It previously held a pre-cutover RSA/RS256 pair. The target is UNVERIFIED: a stale RSA-era value
 # may still occupy this path (RSA is incompatible with the Ed25519 runtime verifier), so the P3-4
 # value-move is gated on a computeKeyId readback. Adversarial verification of the target is in flight.
+# GAP-260 P4-2/P4-3 (apps/license-signer + mint-client), not platform-synced until deploy:
+revealui/prod/license/signer-invoke-secret  # REVEALUI_SIGNER_INVOKE_SECRET
+                                            # HMAC for POST /internal/mint; NEVER reuse REVEALUI_SECRET
+revealui/prod/license/signer-url            # REVEALUI_LICENSE_SIGNER_URL (public base URL)
+# Plain env (not vault): REVEALUI_LICENSE_SIGN_VIA_SIGNER=1 enables remote mint (P4-3)
 ```
+
+Operator migration (one-time, owner machine):
+
+```bash
+# Split the old combined bundle into public + signing paths (values never printed).
+# 1) Ensure revealui/env/license contains only PUBLIC KEY= lines
+# 2) Put PRIVATE KEY lines under revealui/env/license-signing
+# 3) Mint/local sign: REVVAULT_ALLOW_PRIVATE=1 with-secrets license-signing -- <cmd>
+# 4) P4-2: mint a high-entropy invoke secret once:
+#    revvault set revealui/prod/license/signer-invoke-secret
+```
+
+**Deployment mode (GAP-260 P4-1):** set `REVEALUI_DEPLOYMENT_MODE=hosted` or `forge` on each
+runtime (api + admin). Prefer explicit MODE over private-key sniffing so hosted admin can boot
+without the signing private key (signer isolation). When MODE is unset, runtimes still fall
+back to "private key present → hosted". `MODE=forge` with a private key present fails boot.
+
+**License-signer (GAP-260 P4-2):** `apps/license-signer` is the isolated mint process. It
+requires `REVEALUI_LICENSE_PRIVATE_KEY` + `REVEALUI_SIGNER_INVOKE_SECRET` at boot (fail-loud).
+
+**Mint cutover (GAP-260 P4-3):** online mint surfaces (`apps/server` webhooks +
+`POST /api/license/generate`) call `@revealui/core/license/mint-client`. Default remains
+local private-key mint. Set `REVEALUI_LICENSE_SIGN_VIA_SIGNER=1` plus
+`REVEALUI_LICENSE_SIGNER_URL` and `REVEALUI_SIGNER_INVOKE_SECRET` on api (and worker if
+it mints) to route mints to the signer. Private-key drop from admin/Fly is P4-4.
 
 ### LLM / AI providers
 

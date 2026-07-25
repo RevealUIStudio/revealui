@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetSession = vi.fn();
+const mockCheckSessionMfa = vi.fn((..._args: unknown[]) => ({ allowed: true }));
 const mockGetClient = vi.fn();
 const mockEncryptApiKey = vi.fn();
 const mockRedactApiKey = vi.fn();
@@ -14,6 +15,8 @@ const mockDecryptApiKey = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
+  // C11 requireSessionWithMfa: allow MFA gate by default for route unit tests.
+  checkSessionMfa: (...args: unknown[]) => mockCheckSessionMfa(...args),
 }));
 
 vi.mock('@revealui/db', () => ({

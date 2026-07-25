@@ -173,14 +173,24 @@ CLAUDE.md
 !.claude/agents/
 !.claude/skills/
 !.claude/.revcon-manifest.json
+# Equal-rank adapter stubs from `revealui-harnesses manager materialize`
+# (must not enter the revcon rules-lockstep manifest).
+.claude/rules/00-revealui-manager.md
+.opencode/
 .agents/
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
 
-# RevealUI local configuration (but allow skills to be committed)
+# RevealUI local configuration (but allow manager contract + skills)
 .revealui/*
 !.revealui/skills/
+!.revealui/templates/
+!.revealui/code-standards.json
+!.revealui/README.md
+!.revealui/manager.json
+!.revealui/adapters/
+!.revealui/adapters/**
 # =============================================================================
 # Nix Development Environment
 # =============================================================================

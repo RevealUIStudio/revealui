@@ -7,6 +7,7 @@ import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
 import { deleteApiKeys, getApiKeyMetadata, upsertApiKey } from '@revealui/db/queries/user-api-keys';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { requireSessionWithMfa } from '@/lib/auth/require-mfa';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const ApiKeySchema = z.object({
@@ -31,10 +32,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 /** POST /api/user/api-keys  -  encrypt and upsert an API key */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const session = await getSession(request.headers, extractRequestContext(request));
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Admin/owner roles must have MFA enrolled + verified (C11 requireMfa).
+  const gate = await requireSessionWithMfa(request);
+  if (!gate.ok) return gate.response;
+  const { session } = gate;
 
   let body: unknown;
   try {
@@ -70,10 +71,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 /** DELETE /api/user/api-keys  -  remove the user's stored key */
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
-  const session = await getSession(request.headers, extractRequestContext(request));
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const gate = await requireSessionWithMfa(request);
+  if (!gate.ok) return gate.response;
+  const { session } = gate;
 
   const db = getClient();
   await deleteApiKeys(db, session.user.id);

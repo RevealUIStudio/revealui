@@ -14,6 +14,8 @@
 import type { Database } from '@revealui/db/client';
 import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
+import { resolveDispatchPrincipal, resolveJobPrincipal } from './agent-principal.js';
+import { applyAgentToolGovernance } from './agent-tool-governance.js';
 import { createAuditStore } from './audit-signer.js';
 
 export interface DispatcherResult {
@@ -43,6 +45,19 @@ export interface DispatcherResolution {
   userId: string | null;
   isHosted: boolean;
   workspaceId?: string;
+  /**
+   * Authenticated dispatcher's role (`users.role`). Required for admin ∩
+   * human role checks (GAP-355 S6-4). When omitted, principal is agent-only
+   * and admin tools soft-deny.
+   */
+  userRole?: string | null;
+  /** Account for audit tenant / Stage 4 anchoring when known. */
+  accountId?: string | null;
+  /**
+   * When true, principal kind is `job` (durable queue). Default `dispatch`
+   * for synchronous POST.
+   */
+  asJob?: boolean;
 }
 
 export async function buildDispatcher(
@@ -53,6 +68,7 @@ export async function buildDispatcher(
   const aiMod = await import('@revealui/ai').catch(() => null);
   if (!aiMod) return null;
 
+  const auditStore = createAuditStore(db);
   let llmClient: unknown;
   try {
     // Resolve the client through the single GAP-360 resolver. A durable audit
@@ -61,7 +77,7 @@ export async function buildDispatcher(
     llmClient = await aiMod.resolveLLMClientForRequest(resolution.userId, db, {
       isHosted: resolution.isHosted,
       workspaceId: resolution.workspaceId,
-      auditStore: createAuditStore(db),
+      auditStore,
     });
   } catch (err) {
     if ((err as { code?: unknown } | null)?.code === 'LLM_NOT_CONFIGURED') throw err;
@@ -92,14 +108,130 @@ export async function buildDispatcher(
   const adminBaseUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
   const apiClient = buildCMSClient(adminBaseUrl);
 
+  // GAP-355 S6-4: pre-authorize admin/ticket tools at dispatch via wrapTools.
+  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
+
+  const wrapTools: NonNullable<DispatcherConfig['wrapTools']> = (tools, ctx) => {
+    const principal = resolution.asJob
+      ? resolveJobPrincipal({
+          agentId: `ticket-agent-${ctx.ticketId}`,
+          userId: resolution.userId,
+          userRole: resolution.userRole,
+          tenantId: resolution.workspaceId ?? null,
+          accountId: resolution.accountId ?? null,
+        })
+      : resolveDispatchPrincipal({
+          ticketId: ctx.ticketId,
+          userId: resolution.userId,
+          userRole: resolution.userRole,
+          workspaceId: resolution.workspaceId,
+          accountId: resolution.accountId,
+        });
+
+    return applyAgentToolGovernance(tools, {
+      principal,
+      namespace: resolution.asJob ? 'ticket-job' : 'ticket-dispatch',
+      sessionId: ctx.dispatchId,
+      accountId: resolution.accountId ?? null,
+      userId: resolution.userId,
+      taskId: ctx.ticketId,
+    }) as typeof tools;
+  };
+
   // Type assertions: TicketAgentDispatcher comes from the Pro package via
   // dynamic import; the runtime shape matches Dispatcher.
-  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
-  return new aiMod.TicketAgentDispatcher({
+  const inner = new aiMod.TicketAgentDispatcher({
     llmClient: llmClient as DispatcherConfig['llmClient'],
     apiClient,
     ticketClient,
+    wrapTools,
   }) as unknown as Dispatcher;
+
+  // GAP-355 Stage 5: wrap dispatch with task lifecycle audit rows (ONE DOOR).
+  // Fail closed if start cannot be recorded. Tenant = workspaceId when present.
+  const tenant = resolution.workspaceId ?? null;
+
+  return {
+    async dispatch(ticket, options) {
+      const principal = resolution.asJob
+        ? resolveJobPrincipal({
+            agentId: `ticket-agent-${ticket.id}`,
+            userId: resolution.userId,
+            userRole: resolution.userRole,
+            tenantId: resolution.workspaceId ?? null,
+            accountId: resolution.accountId ?? null,
+          })
+        : resolveDispatchPrincipal({
+            ticketId: ticket.id,
+            userId: resolution.userId,
+            userRole: resolution.userRole,
+            workspaceId: resolution.workspaceId,
+            accountId: resolution.accountId,
+          });
+
+      const startId = crypto.randomUUID();
+      await auditStore.append({
+        id: startId,
+        timestamp: new Date(),
+        eventType: 'agent:task:started',
+        severity: 'info',
+        agentId: principal.agentId,
+        taskId: ticket.id,
+        sessionId: options?.dispatchId,
+        payload: {
+          title: ticket.title,
+          userId: resolution.userId,
+          isHosted: resolution.isHosted,
+          roles: principal.roles,
+          kind: principal.kind,
+        },
+        policyViolations: [],
+        tenant,
+      });
+
+      try {
+        const result = await inner.dispatch(ticket, options);
+        await auditStore.append({
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+          eventType: result.success ? 'agent:task:completed' : 'agent:task:failed',
+          severity: result.success ? 'info' : 'warn',
+          agentId: principal.agentId,
+          taskId: ticket.id,
+          sessionId: options?.dispatchId,
+          payload: {
+            success: result.success,
+            tokensUsed: result.metadata?.tokensUsed,
+            executionTime: result.metadata?.executionTime,
+          },
+          policyViolations: [],
+          tenant,
+        });
+        return result;
+      } catch (err) {
+        try {
+          await auditStore.append({
+            id: crypto.randomUUID(),
+            timestamp: new Date(),
+            eventType: 'agent:task:failed',
+            severity: 'warn',
+            agentId: principal.agentId,
+            taskId: ticket.id,
+            sessionId: options?.dispatchId,
+            payload: {
+              success: false,
+              error: err instanceof Error ? err.message : String(err),
+            },
+            policyViolations: [],
+            tenant,
+          });
+        } catch {
+          // Prefer original dispatch error if completion audit also fails
+        }
+        throw err;
+      }
+    },
+  };
 }
 
 /**

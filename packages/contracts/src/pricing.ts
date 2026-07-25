@@ -79,7 +79,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   customDomain: 'Custom Domain Mapping',
   analytics: 'Analytics & Tracking',
   aiInference: 'Open-Model Inference (Snaps, Ollama, Harness)',
-  auditLog: 'Audit Logging',
+  auditLog: 'Audit receipts (signed log + downloadable Merkle roots)',
   multiTenant: 'Multi-site Content Management',
   whiteLabel: 'White-label Branding (managed setup via revforge)',
   vaultDesktop: 'RevVault Desktop App',
@@ -182,7 +182,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 100 users/editors',
       'Full AI memory (working + episodic + vector)',
       'Advanced inference configuration (coming soon)',
-      'Audit logging',
+      'Signed audit log plus downloadable Merkle roots you verify offline',
       '50,000 agent tasks/month included',
       'RevKit environment provisioning (coming soon)',
       'Email support (24h response)',
@@ -202,14 +202,19 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Unlimited users/editors',
       'Session-based auth + OAuth',
       'Full inference suite (all open models)',
+      // Honesty (GAP-302): x402 remains off by default (X402_ENABLED); label it.
       'x402 agent payments (USDC, coming soon)',
       'Unlimited agent tasks',
       'Slack support (4h SLA)',
       'Annual pricing available',
       'Full source code access',
+      // whiteLabel / SSO-as-enterprise-sold-feature: not advertised until shipped
+      // (see packages/core features whiteLabel force-false + GAP-302 honesty bar).
     ],
-    cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Enterprise%20Tier%20Inquiry',
+    // Self-serve subscription checkout (GAP-302 Phase 1). Server resolves
+    // enterprise price from billing catalog; signup deep-link carries plan.
+    cta: 'Start your 7-day free trial',
+    ctaHref: '/signup?plan=enterprise',
     highlighted: false,
   },
 ];

@@ -1,7 +1,7 @@
 {
   "name": "@revealui/core",
   "version": "0.12.0",
-  "description": "RevealUI's runtime engine — admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
+  "description": "RevealUI's runtime engine \u2014 admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
   "license": "MIT",
   "dependencies": {
     "@electric-sql/pglite": "catalog:",
@@ -16,7 +16,6 @@
     "@lexical/table": "^0.46.0",
     "@lexical/utils": "^0.46.0",
     "@lexical/yjs": "^0.46.0",
-    "@revealui/cache": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
@@ -53,6 +52,16 @@
       "types": "./dist/license.d.ts",
       "import": "./dist/license.js",
       "default": "./dist/license.js"
+    },
+    "./license/mint-client": {
+      "types": "./dist/license/mint-client.d.ts",
+      "import": "./dist/license/mint-client.js",
+      "default": "./dist/license/mint-client.js"
+    },
+    "./deployment-mode": {
+      "types": "./dist/deployment-mode.d.ts",
+      "import": "./dist/deployment-mode.js",
+      "default": "./dist/deployment-mode.js"
     },
     "./revforge-license": {
       "types": "./dist/revforge-license.d.ts",
@@ -163,6 +172,11 @@
       "types": "./dist/client/admin/utils/apiClient.d.ts",
       "import": "./dist/client/admin/utils/apiClient.js",
       "default": "./dist/client/admin/utils/apiClient.js"
+    },
+    "./admin/utils/csrf": {
+      "types": "./dist/client/admin/utils/csrf.d.ts",
+      "import": "./dist/client/admin/utils/csrf.js",
+      "default": "./dist/client/admin/utils/csrf.js"
     },
     "./richtext": {
       "types": "./dist/richtext/index.d.ts",
@@ -363,11 +377,6 @@
       "types": "./dist/error-handling/error-reporter.d.ts",
       "import": "./dist/error-handling/error-reporter.js",
       "default": "./dist/error-handling/error-reporter.js"
-    },
-    "./caching": {
-      "types": "./dist/caching/index.d.ts",
-      "import": "./dist/caching/index.js",
-      "default": "./dist/caching/index.js"
     },
     "./cache/query-cache": {
       "types": "./dist/cache/query-cache.d.ts",

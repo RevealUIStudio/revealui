@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "generatorId": "claude-code",
+  "files": [
+    {
+      "relativePath": ".revealui/content/agents/builder.md",
+      "sha256": "23f88ef81bb1f491b72d28ee8547efb347ef62e01ecabb1953852e3c00704dcc"
+    },
+    {
+      "relativePath": ".revealui/content/agents/docs-sync.md",
+      "sha256": "a11efaa434d85d473240a0dddd1406484a0a5c192f4257c7cf84d9cfe2da7a93"
+    },
+    {
+      "relativePath": ".revealui/content/agents/gate-runner.md",
+      "sha256": "ef0f23bb19408a779c48e31d16ea8319d51850c78d5c0e1266d9b038fc1db1a9"
+    },
+    {
+      "relativePath": ".revealui/content/agents/linter.md",
+      "sha256": "05c4ed2419edc0b6c9158b61fbf89883c39ad9d918944202bccf834cef91df1d"
+    },
+    {
+      "relativePath": ".revealui/content/agents/security-reviewer.md",
+      "sha256": "d381b193ce8243ab97fe94ee536b8be3327dc33ea566908c43e571012580e3aa"
+    },
+    {
+      "relativePath": ".revealui/content/agents/tester.md",
+      "sha256": "835e1cf0da42614d375b4e671aa5c635044a5e306c07df89dbcd94078c08c329"
+    },
+    {
+      "relativePath": ".revealui/content/commands/audit.md",
+      "sha256": "599f5e84841b49adc751fea3deaa193477b7c8670afa2b28aaf35b11d8733771"
+    },
+    {
+      "relativePath": ".revealui/content/commands/gate.md",
+      "sha256": "70a9f25da6147d06cd9108db6e1e86c27e42791cbddf290989696ff367791a2f"
+    },
+    {
+      "relativePath": ".revealui/content/commands/new-package.md",
+      "sha256": "f7a9cec2fe1eafbb13ce7c0c96f98bedab85a864085d7facd20a9b8ed17b8c2c"
+    },
+    {
+      "relativePath": ".revealui/content/commands/stripe-best-practices.md",
+      "sha256": "60508313d8412871180cd9897dd49eebc178277cb877aa0e35ef02d621ef7b1f"
+    },
+    {
+      "relativePath": ".revealui/content/rules/adapter-only.md",
+      "sha256": "dcd894a7516ad394e15a6485a77aea302db87c4a9c4b1910507edd05a97078b8"
+    },
+    {
+      "relativePath": ".revealui/content/rules/agent-dispatch.md",
+      "sha256": "0b2497c1817e23a1d4902cb5b5889cec4a6f6526179d7273622066705e444fe8"
+    },
+    {
+      "relativePath": ".revealui/content/rules/biome.md",
+      "sha256": "053ac61189b299d733a99935c8b34285cc970c26b5b0b7d2ee7dc70ad1082d71"
+    },
+    {
+      "relativePath": ".revealui/content/rules/code-analysis-policy.md",
+      "sha256": "0ec5699691c7505d6c9ac3fa7b2150c546b5e738e0089af42732ac1a6272a04e"
+    },
+    {
+      "relativePath": ".revealui/content/rules/code-over-docs.md",
+      "sha256": "092c970e6638e76ca6a14f8fb0f25ca70eb76fa3da95e34fcdb0f6cd18c59561"
+    },
+    {
+      "relativePath": ".revealui/content/rules/database.md",
+      "sha256": "861acd93c300dbc33edc5e309826989c86500ba594b4eade3fa92186d202b756"
+    },
+    {
+      "relativePath": ".revealui/content/rules/disposition-actions.md",
+      "sha256": "184c2b6094fd21c96b06172dc0c29df05dfd903b78ff0d149e00c3e61ecf2a78"
+    },
+    {
+      "relativePath": ".revealui/content/rules/durable-solutions.md",
+      "sha256": "e540263e4ca28d21ae5a9842ad358ba29325fd6bdc256e8caa2693a6a956fb65"
+    },
+    {
+      "relativePath": ".revealui/content/rules/monorepo.md",
+      "sha256": "1fa60d068a0f0b6429cf13bd2821b9a92503187770e2b3ffe2065d4406c0e4f7"
+    },
+    {
+      "relativePath": ".revealui/content/rules/parameterization.md",
+      "sha256": "bfe4e287ca33926d9ee04f9eec6490ddffb04058594a4a9e1a20a5eb9e82e9e1"
+    },
+    {
+      "relativePath": ".revealui/content/rules/quality-over-speed.md",
+      "sha256": "7481acbbdcde46aa7c02ecdb7a72b60f9d270be8777e1ae8c0172dd1a0ff5277"
+    },
+    {
+      "relativePath": ".revealui/content/rules/skills-usage.md",
+      "sha256": "8607d1d76c2800137808a5a5e72185ad2a632a0fb1553b59d55b3246b412d647"
+    },
+    {
+      "relativePath": ".revealui/content/rules/tailwind.md",
+      "sha256": "498578c8bc2c7d3370667efd6a60d17c09903ab774659ce5a031b3acdb70e6d3"
+    },
+    {
+      "relativePath": ".revealui/content/rules/tracker-first.md",
+      "sha256": "a31d4380657565bcb45e65c34458de01e77d0f547b9304e627f6764d90f55f1c"
+    },
+    {
+      "relativePath": ".revealui/content/rules/unused-declarations.md",
+      "sha256": "34382001e3bf3eb36d655006542a8fe109b1210413676e8ac80bbb810d432f84"
+    },
+    {
+      "relativePath": ".revealui/content/skills/db-migrate/SKILL.md",
+      "sha256": "415ca913640e24181be20dc1b7867c4a61fbec617c15e54ca5b6887306fd560d"
+    },
+    {
+      "relativePath": ".revealui/content/skills/preflight/SKILL.md",
+      "sha256": "14db3848cd2a89f04e56b1dab1a82197a3c030fe292cd6d6baa6fff1cf960b1b"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-conventions/SKILL.md",
+      "sha256": "178e4c7365a0fbaf708b9e32e36f6b514c1f4bba5dbef00ad6545549036fe8f0"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-db/SKILL.md",
+      "sha256": "92c1cd8ee31e113395a17c19b95001d71235a385966f32c565e4d0abf21046b0"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-debugging/SKILL.md",
+      "sha256": "e78d583b7bd0574107f6d3fc5e4ee20d2db53ea3f4b0a12d5ff428d169bb0ad8"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-review/SKILL.md",
+      "sha256": "9e7d85e7b028e9668c36a31723abc8ede637dcfac65236aa8b0c135c91fdc895"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-safety/SKILL.md",
+      "sha256": "46430c8c872efc933731412254a15503402efa6075684eabac36d3592a799572"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-tdd/SKILL.md",
+      "sha256": "fdb25f906b7613b3dd24c95f9b3e581557c042c82a1acf2c0bfa91d039bb5e4e"
+    },
+    {
+      "relativePath": ".revealui/content/skills/revealui-testing/SKILL.md",
+      "sha256": "30e26f6bd81af5edf702e9079c09cd978c3ee8ef6a5e918906ee61d18b20e556"
+    },
+    {
+      "relativePath": ".revealui/content/skills/tailwind-4-docs/SKILL.md",
+      "sha256": "af697a576ad14aa59a7dff9864b2a95ee9a08bc18b2625eda76e7357be98bb13"
+    }
+  ]
+}

@@ -14,7 +14,7 @@ import { sendEmail } from './index';
 export async function sendVerificationEmail(
   email: string,
   token: string,
-  plan?: 'pro' | 'max',
+  plan?: 'pro' | 'max' | 'enterprise',
 ): Promise<{ success: boolean; error?: string }> {
   const baseUrl = config.reveal.serverURL;
 

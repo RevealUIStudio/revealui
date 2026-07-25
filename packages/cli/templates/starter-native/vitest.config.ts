@@ -4,6 +4,7 @@ import { defineConfig } from 'vitest/config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Customer starter template: keep a self-contained config (no monorepo-only deps).
 export default defineConfig({
   test: {
     environment: 'jsdom',

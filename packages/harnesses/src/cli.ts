@@ -21,14 +21,26 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import {
   buildManifest,
+  checkAllContentSnapshots,
+  checkContentSnapshot,
+  DEFAULT_CONTENT_GENERATOR_ID,
   diffContent,
   generateContent,
   listContent,
   listGenerators,
+  loadContentSnapshot,
+  MANAGER_CONTENT_OUTPUT,
+  MANAGER_MATERIALIZE_GENERATORS,
+  snapshotPathFor,
   validateManifest,
+  writeAllContentSnapshots,
+  writeManagerAdapterContent,
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
+import { runHotfixCli } from './hotfix/cli.js';
+import { checkManager, materializeManager } from './manager/index.js';
+import { InferenceService } from './server/inference-service.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -125,7 +137,11 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
     case 'diff': {
       const genIdx = args.indexOf('--generator');
-      const generatorId = genIdx >= 0 ? (args[genIdx + 1] ?? 'claude-code') : 'claude-code';
+      const generatorId =
+        genIdx >= 0
+          ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
+          : DEFAULT_CONTENT_GENERATOR_ID;
+      const check = args.includes('--check');
       const entries = diffContent(generatorId, manifest, ctx, projectRoot);
       const added = entries.filter((e) => e.status === 'added');
       const modified = entries.filter((e) => e.status === 'modified');
@@ -143,18 +159,92 @@ async function handleContentCommand(subcommand: string | undefined, args: string
           for (const e of modified) process.stdout.write(`  ~ ${e.relativePath}\n`);
         }
         process.stdout.write(`Unchanged: ${unchanged.length}\n`);
+        if (check) {
+          process.stderr.write(
+            'content diff --check: disk output drifts from definitions (run content sync)\n',
+          );
+          process.exit(1);
+        }
+      }
+      break;
+    }
+
+    case 'snapshot': {
+      // GAP-406: definition ↔ committed generator snapshot lock.
+      // --write refreshes content-snapshots/*.json; --check fails CI on drift.
+      const write = args.includes('--write');
+      const check = args.includes('--check') || !write;
+      const genIdx = args.indexOf('--generator');
+      const onlyGen = genIdx >= 0 ? (args[genIdx + 1] ?? undefined) : undefined;
+
+      if (write) {
+        const paths = writeAllContentSnapshots(onlyGen ? { generatorIds: [onlyGen] } : undefined);
+        process.stdout.write(`✓ Wrote ${paths.length} content snapshot(s):\n`);
+        for (const p of paths) process.stdout.write(`  ${p}\n`);
+        if (!check) break;
+      }
+
+      if (check) {
+        if (onlyGen) {
+          const path = snapshotPathFor(onlyGen);
+          const expected = loadContentSnapshot(path);
+          const result = checkContentSnapshot(expected);
+          if (!result.ok) {
+            process.stderr.write(
+              `✗ Content snapshot drift for ${onlyGen} (${result.drifts.length} file(s))\n`,
+            );
+            for (const d of result.drifts.slice(0, 40)) {
+              process.stderr.write(`  ${d.kind}: ${d.relativePath}\n`);
+            }
+            process.stderr.write(
+              'Refresh: pnpm exec revealui-harnesses content snapshot --write\n',
+            );
+            process.exit(1);
+          }
+          process.stdout.write(
+            `✓ Content snapshot OK for ${onlyGen} (${result.fileCount} files)\n`,
+          );
+        } else {
+          const all = checkAllContentSnapshots();
+          for (const err of all.errors) process.stderr.write(`ERROR: ${err}\n`);
+          for (const r of all.results) {
+            if (r.ok) {
+              process.stdout.write(`✓ ${r.generatorId}: ${r.fileCount} files match snapshot\n`);
+            } else {
+              process.stderr.write(`✗ ${r.generatorId}: ${r.drifts.length} drift(s)\n`);
+              for (const d of r.drifts.slice(0, 20)) {
+                process.stderr.write(`  ${d.kind}: ${d.relativePath}\n`);
+              }
+            }
+          }
+          if (!all.ok) {
+            process.stderr.write(
+              'Refresh: pnpm exec revealui-harnesses content snapshot --write\n',
+            );
+            process.exit(1);
+          }
+        }
       }
       break;
     }
 
     case 'sync': {
       const genIdx = args.indexOf('--generator');
-      const generatorId = genIdx >= 0 ? (args[genIdx + 1] ?? 'claude-code') : 'claude-code';
+      const generatorId =
+        genIdx >= 0
+          ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
+          : DEFAULT_CONTENT_GENERATOR_ID;
       const dryRun = args.includes('--dry-run');
       const files = generateContent(generatorId, manifest, ctx);
 
       if (dryRun) {
-        process.stdout.write(`Dry run — would write ${files.length} files:\n`);
+        process.stdout.write(
+          `Dry run — would write ${files.length} files (generator=${generatorId}` +
+            (generatorId === DEFAULT_CONTENT_GENERATOR_ID
+              ? `, manager tree ${MANAGER_CONTENT_OUTPUT}`
+              : '') +
+            `):\n`,
+        );
         for (const file of files) {
           process.stdout.write(`  ${file.relativePath}\n`);
         }
@@ -166,7 +256,11 @@ async function handleContentCommand(subcommand: string | undefined, args: string
           writeFileSync(absolutePath, file.content, 'utf-8');
           written++;
         }
-        process.stdout.write(`✓ Wrote ${written} files via ${generatorId} generator\n`);
+        const destNote =
+          generatorId === DEFAULT_CONTENT_GENERATOR_ID
+            ? ` → ${MANAGER_CONTENT_OUTPUT} (project manager)`
+            : '';
+        process.stdout.write(`✓ Wrote ${written} files via ${generatorId} generator${destNote}\n`);
       }
       break;
     }
@@ -279,7 +373,10 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 
     case 'pull': {
       const genIdx = args.indexOf('--generator');
-      const generatorId = genIdx >= 0 ? (args[genIdx + 1] ?? 'claude-code') : 'claude-code';
+      const generatorId =
+        genIdx >= 0
+          ? (args[genIdx + 1] ?? DEFAULT_CONTENT_GENERATOR_ID)
+          : DEFAULT_CONTENT_GENERATOR_ID;
       const tierIdx = args.indexOf('--tier');
       const tierFilter = tierIdx >= 0 ? (args[tierIdx + 1] ?? 'oss') : 'oss';
 
@@ -422,6 +519,79 @@ async function main() {
     const contentArgs = args.slice(1);
     await handleContentCommand(subcommand, contentArgs);
     return;
+  }
+
+  if (command === 'hotfix') {
+    const code = runHotfixCli(args);
+    process.exit(code);
+  }
+
+  if (command === 'inference') {
+    const [subcommand, tierArg] = args;
+    const inference = new InferenceService();
+    if (subcommand === 'profile' || subcommand === 'status') {
+      const view = await inference.profileGet();
+      process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
+      return;
+    }
+    if (subcommand === 'apply') {
+      const tier = tierArg as 'idle' | 'daily' | 'snaps' | 'heavy' | undefined;
+      if (!(tier && ['idle', 'daily', 'snaps', 'heavy'].includes(tier))) {
+        process.stderr.write(
+          'Usage: revealui-harnesses inference apply <idle|daily|snaps|heavy>\n',
+        );
+        process.exit(1);
+      }
+      const view = await inference.profileApply(tier);
+      process.stdout.write(`${JSON.stringify(view, null, 2)}\n`);
+      return;
+    }
+    process.stderr.write('Usage: revealui-harnesses inference <status|apply> [tier]\n');
+    process.exit(1);
+  }
+
+  if (command === 'manager') {
+    const [subcommand] = args;
+    const projectIdx = args.indexOf('--project');
+    const projectRoot =
+      projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
+
+    if (subcommand === 'materialize') {
+      const result = materializeManager(projectRoot);
+      // Equal-rank adapters: manager content + Cursor hooks + OpenCode agents/commands
+      const content = writeManagerAdapterContent(projectRoot);
+      process.stdout.write(`✓ Manager: ${result.managerPath}\n`);
+      process.stdout.write(
+        `✓ Content files: ${content.total} (${MANAGER_MATERIALIZE_GENERATORS.join(', ')})\n`,
+      );
+      for (const [genId, count] of Object.entries(content.byGenerator)) {
+        const dest =
+          genId === DEFAULT_CONTENT_GENERATOR_ID
+            ? ` → ${MANAGER_CONTENT_OUTPUT}`
+            : genId === 'cursor'
+              ? ' → .cursor/'
+              : genId === 'opencode'
+                ? ' → .opencode/'
+                : '';
+        process.stdout.write(`  ${genId}: ${count}${dest}\n`);
+      }
+      process.stdout.write(`✓ Adapter stubs:\n`);
+      for (const s of result.stubs) process.stdout.write(`  ${s}\n`);
+      return;
+    }
+
+    if (subcommand === 'check') {
+      const result = checkManager(projectRoot);
+      for (const w of result.warnings) process.stderr.write(`WARN: ${w}\n`);
+      for (const e of result.errors) process.stderr.write(`ERROR: ${e}\n`);
+      if (!result.ok) process.exit(1);
+      process.stdout.write(`✓ Manager OK at ${join(projectRoot, '.revealui', 'manager.json')}\n`);
+      return;
+    }
+
+    process.stderr.write(`Unknown manager subcommand: ${subcommand ?? '(none)'}\n`);
+    process.stderr.write(`Available: materialize, check\n`);
+    process.exit(1);
   }
 
   switch (command) {
@@ -610,14 +780,28 @@ Commands:
   coordinate --init [<path>]        Register + start daemon
   hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
   content <subcommand>              Manage canonical content definitions
+  manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
+  manager check [--project p]       Verify project manager present and valid
+  hotfix <subcommand>               Durable-debt registry (long-term fixes only; GAP-405)
+  inference status                  Local AI profile (tier, mem, engines)
+  inference apply <tier>            idle|daily|snaps|heavy (host control plane)
 
 Content Subcommands:
   content list                      List all canonical content with metadata
   content validate                  Validate all definitions against schemas
-  content diff [--generator <id>]   Show what would change vs current files
-  content sync [--generator <id>] [--dry-run]  Generate and write files
+  content diff [--generator <id>] [--check]  Disk vs definitions (exit 1 with --check on drift)
+  content snapshot [--check|--write] [--generator <id>]  Definition ↔ committed snapshot (GAP-406)
+  content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
   content pull [--generator <id>] [--tier oss|pro|all]  Pull rules from rules repo
+
+Hotfix Subcommands (prefer durable root-cause fixes; register only as debt):
+  hotfix check | list | store | audit [root] | sweep
+  hotfix register --title T --symptom S --temporary X --durable D
+  hotfix resolve <id> --pr URL | --note TEXT
+  hotfix promote <id> --gap GAP-N
+
+Default content generator: ${DEFAULT_CONTENT_GENERATOR_ID} → ${MANAGER_CONTENT_OUTPUT}
 `);
       break;
   }

@@ -1,5 +1,41 @@
 import { BlockSchema } from '@revealui/contracts/content';
 import { describe, expect, it } from 'vitest';
+import {
+  FAIR_SOURCE_CLOCK_SECTION,
+  FAIR_SOURCE_CONTRACT_CARDS,
+  FAIR_SOURCE_CONTRACT_SECTION,
+  FAIR_SOURCE_CTA,
+  FAIR_SOURCE_FAQ_SECTION,
+  FAIR_SOURCE_FAQS,
+  FAIR_SOURCE_PACKAGES_SECTION,
+  FAIR_SOURCE_PEERS,
+  FAIR_SOURCE_PEERS_SECTION,
+} from '../content/fair-source';
+import {
+  FOR_OPERATORS_CLOSING,
+  FOR_OPERATORS_DISCOVERY,
+  FOR_OPERATORS_HERO,
+  FOR_OPERATORS_HOW_WE_DELIVER,
+  FOR_OPERATORS_PRICING,
+  FOR_OPERATORS_PROOF,
+  FOR_OPERATORS_WHAT_YOU_GET,
+} from '../content/for-operators';
+import {
+  FO_HIW_CLOSING,
+  FO_HIW_FEAR,
+  FO_HIW_HERO,
+  FO_HIW_OWNERSHIP,
+  FO_HIW_STEPS,
+  FO_HIW_TIMELINE,
+} from '../content/for-operators-how-it-works';
+import {
+  FO_MANAGED_HERO,
+  FO_MANAGED_PREREQS,
+  FO_MANAGED_STATUS,
+  FO_MANAGED_TODAY,
+  FO_MANAGED_WAITLIST,
+  FO_MANAGED_WOULD_BE,
+} from '../content/for-operators-managed';
 import { HOME_DEMO, HOME_FAQ, HOME_GET_STARTED } from '../content/home';
 import { LOCAL_AI_PAGE, LOCAL_AI_SECTION } from '../content/local-ai';
 import { PHILOSOPHY } from '../content/philosophy';
@@ -9,6 +45,30 @@ import { METRICS } from '../content/site';
 import {
   blocksMatchFallback,
   demoSlot,
+  FAIR_SOURCE_FALLBACK_BLOCKS,
+  FO_HIW_FALLBACK_BLOCKS,
+  FO_MANAGED_FALLBACK_BLOCKS,
+  fairSourceBlocks,
+  fairSourceClockSlot,
+  fairSourceContractSlot,
+  fairSourceCtaSlot,
+  fairSourceFaqSlot,
+  fairSourcePackagesIntroSlot,
+  fairSourcePeersSlot,
+  foHiwBlocks,
+  foHiwCtaSlot,
+  foHiwFearSlot,
+  foHiwHeroSlot,
+  foHiwOwnershipSlot,
+  foHiwStepsSlot,
+  foHiwTimelineSlot,
+  foManagedBlocks,
+  foManagedHeroSlot,
+  foManagedPrereqsSlot,
+  foManagedStatusSlot,
+  foManagedTodaySlot,
+  foManagedWaitlistSlot,
+  foManagedWouldBeSlot,
   getStartedSlot,
   HOME_FALLBACK_BLOCKS,
   homeBlocks,
@@ -30,6 +90,15 @@ import {
   productsCtaSlot,
   productsFaqSlot,
   productsHeroSlot,
+  SERVICES_FALLBACK_BLOCKS,
+  servicesBlocks,
+  servicesCtaSlot,
+  servicesDiscoverySlot,
+  servicesHeroSlot,
+  servicesHowWeDeliverSlot,
+  servicesPricingIntroSlot,
+  servicesProofSlot,
+  servicesWhatYouGetSlot,
 } from './page-blocks';
 import { SUBSCRIPTION_PRICE_FALLBACKS } from './pricing-fallbacks';
 
@@ -46,12 +115,16 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 }
 
 describe('page-blocks derivation', () => {
-  it('produces schema-valid blocks for home, products, philosophy, and local-ai', () => {
+  it('produces schema-valid blocks for home, products, philosophy, local-ai, fair-source, services, fo-hiw, and fo-managed', () => {
     for (const block of [
       ...homeBlocks(),
       ...productsBlocks(),
       ...philosophyBlocks(),
       ...localAiBlocks(),
+      ...fairSourceBlocks(),
+      ...servicesBlocks(),
+      ...foHiwBlocks(),
+      ...foManagedBlocks(),
     ]) {
       expect(BlockSchema.safeParse(block).success).toBe(true);
     }
@@ -67,6 +140,39 @@ describe('page-blocks derivation', () => {
       'section',
       'section',
       'ctaSection',
+    ]);
+    expect(fairSourceBlocks().map((b) => b.type)).toEqual([
+      'section',
+      'section',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
+    expect(servicesBlocks().map((b) => b.type)).toEqual([
+      'hero',
+      'section',
+      'section',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
+    expect(foHiwBlocks().map((b) => b.type)).toEqual([
+      'hero',
+      'section',
+      'section',
+      'section',
+      'section',
+      'ctaSection',
+    ]);
+    expect(foManagedBlocks().map((b) => b.type)).toEqual([
+      'hero',
+      'section',
+      'section',
+      'section',
+      'section',
+      'section',
     ]);
   });
 
@@ -113,6 +219,222 @@ describe('page-blocks derivation', () => {
     });
     expect(localAiCtaSlot(blocks).data).toEqual(LOCAL_AI_PAGE.cta);
   });
+
+  it('round-trips fair-source slots against the static content module', () => {
+    const blocks = FAIR_SOURCE_FALLBACK_BLOCKS;
+    expect(fairSourceContractSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_CONTRACT_SECTION.eyebrow,
+      heading: FAIR_SOURCE_CONTRACT_SECTION.heading,
+      cards: FAIR_SOURCE_CONTRACT_CARDS.map((c) => ({
+        kind: c.kind,
+        title: c.title,
+        body: c.body,
+      })),
+    });
+    const packagesIntro = fairSourcePackagesIntroSlot(blocks).data;
+    expect(packagesIntro.eyebrow).toBe(FAIR_SOURCE_PACKAGES_SECTION.eyebrow);
+    expect(packagesIntro.heading).toBe(FAIR_SOURCE_PACKAGES_SECTION.heading);
+    expect(packagesIntro.body).toContain(FAIR_SOURCE_PACKAGES_SECTION.body.privatePackage);
+    expect(packagesIntro.footerCommand).toBe(FAIR_SOURCE_PACKAGES_SECTION.footer.command);
+    expect(fairSourceClockSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_CLOCK_SECTION.eyebrow,
+      heading: FAIR_SOURCE_CLOCK_SECTION.heading,
+      body: FAIR_SOURCE_CLOCK_SECTION.body,
+      steps: FAIR_SOURCE_CLOCK_SECTION.steps.map((s) => ({
+        title: s.title,
+        body: s.body,
+        color: s.color,
+      })),
+    });
+    expect(fairSourcePeersSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_PEERS_SECTION.eyebrow,
+      heading: FAIR_SOURCE_PEERS_SECTION.heading,
+      peers: FAIR_SOURCE_PEERS.map((p) => ({ name: p.name, note: p.note, url: p.url })),
+    });
+    expect(fairSourceFaqSlot(blocks).data).toEqual({
+      eyebrow: FAIR_SOURCE_FAQ_SECTION.eyebrow,
+      heading: FAIR_SOURCE_FAQ_SECTION.heading,
+      items: FAIR_SOURCE_FAQS.map((f) => ({ question: f.question, answer: f.answer })),
+    });
+    expect(fairSourceCtaSlot(blocks).data).toEqual({
+      heading: FAIR_SOURCE_CTA.heading,
+      body: FAIR_SOURCE_CTA.body,
+      primary: { label: FAIR_SOURCE_CTA.primaryLabel, href: FAIR_SOURCE_CTA.primaryHref },
+      secondary: { label: FAIR_SOURCE_CTA.secondaryLabel, href: FAIR_SOURCE_CTA.secondaryHref },
+    });
+  });
+
+  it('round-trips services slots against the for-operators content module', () => {
+    const blocks = SERVICES_FALLBACK_BLOCKS;
+    expect(servicesHeroSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_HERO.eyebrow,
+      h1Lines: [...FOR_OPERATORS_HERO.h1Lines],
+      subtitle: FOR_OPERATORS_HERO.subtitle,
+      primaryCta: {
+        label: FOR_OPERATORS_HERO.primaryCta.label,
+        href: FOR_OPERATORS_HERO.primaryCta.href,
+        external: true,
+      },
+      reverseLink: {
+        label: FOR_OPERATORS_HERO.reverseLink.label,
+        href: FOR_OPERATORS_HERO.reverseLink.href,
+      },
+    });
+    expect(servicesWhatYouGetSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_WHAT_YOU_GET.eyebrow,
+      heading: FOR_OPERATORS_WHAT_YOU_GET.heading,
+      body: FOR_OPERATORS_WHAT_YOU_GET.body,
+      cards: FOR_OPERATORS_WHAT_YOU_GET.cards.map((c) => ({ title: c.title, body: c.body })),
+    });
+    expect(servicesHowWeDeliverSlot(blocks).data).toEqual(FOR_OPERATORS_HOW_WE_DELIVER);
+    expect(servicesPricingIntroSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_PRICING.eyebrow,
+      heading: FOR_OPERATORS_PRICING.heading,
+      body: FOR_OPERATORS_PRICING.body,
+    });
+    expect(servicesDiscoverySlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_DISCOVERY.eyebrow,
+      heading: FOR_OPERATORS_DISCOVERY.heading,
+      body: FOR_OPERATORS_DISCOVERY.body,
+      link: {
+        label: FOR_OPERATORS_DISCOVERY.link.label,
+        href: FOR_OPERATORS_DISCOVERY.link.href,
+      },
+    });
+    expect(servicesProofSlot(blocks).data).toEqual({
+      eyebrow: FOR_OPERATORS_PROOF.eyebrow,
+      heading: FOR_OPERATORS_PROOF.heading,
+      body: FOR_OPERATORS_PROOF.body,
+      bulletIntro: FOR_OPERATORS_PROOF.bulletIntro,
+      bullets: [...FOR_OPERATORS_PROOF.bullets],
+      links: FOR_OPERATORS_PROOF.links.map((l) => ({
+        label: l.label,
+        href: l.href,
+        ...(l.external ? { external: true } : {}),
+      })),
+    });
+    expect(servicesCtaSlot(blocks).data).toEqual({
+      heading: FOR_OPERATORS_CLOSING.heading,
+      body: FOR_OPERATORS_CLOSING.body,
+      primaryCta: {
+        label: FOR_OPERATORS_CLOSING.primaryCta.label,
+        href: FOR_OPERATORS_CLOSING.primaryCta.href,
+        external: true,
+      },
+      emailFallback: { ...FOR_OPERATORS_CLOSING.emailFallback },
+    });
+    expect(blocksMatchFallback(servicesBlocks(), SERVICES_FALLBACK_BLOCKS)).toBe(true);
+  });
+
+  it('round-trips fo-hiw slots against the for-operators-how-it-works content module', () => {
+    const blocks = FO_HIW_FALLBACK_BLOCKS;
+    expect(foHiwHeroSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_HERO.eyebrow,
+      h1Lines: [...FO_HIW_HERO.h1Lines],
+      subtitle: FO_HIW_HERO.subtitle,
+      primaryCta: {
+        label: FO_HIW_HERO.primaryCta.label,
+        href: FO_HIW_HERO.primaryCta.href,
+        external: true,
+      },
+      backLink: {
+        label: FO_HIW_HERO.backLink.label,
+        href: FO_HIW_HERO.backLink.href,
+      },
+    });
+    expect(foHiwStepsSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_STEPS.eyebrow,
+      heading: FO_HIW_STEPS.heading,
+      steps: FO_HIW_STEPS.steps.map((s) => ({
+        number: s.number,
+        title: s.title,
+        body: s.body,
+      })),
+    });
+    expect(foHiwFearSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_FEAR.eyebrow,
+      heading: FO_HIW_FEAR.heading,
+      paragraph1: FO_HIW_FEAR.paragraph1,
+      paragraph2: FO_HIW_FEAR.paragraph2,
+      options: FO_HIW_FEAR.options.map((o) => ({ title: o.title, body: o.body })),
+      closing: FO_HIW_FEAR.closing,
+    });
+    expect(foHiwOwnershipSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_OWNERSHIP.eyebrow,
+      heading: FO_HIW_OWNERSHIP.heading,
+      intro: FO_HIW_OWNERSHIP.intro,
+      claims: FO_HIW_OWNERSHIP.claims.map((c) => ({ title: c.title, body: c.body })),
+      differentiator: FO_HIW_OWNERSHIP.differentiator,
+    });
+    expect(foHiwTimelineSlot(blocks).data).toEqual({
+      eyebrow: FO_HIW_TIMELINE.eyebrow,
+      heading: FO_HIW_TIMELINE.heading,
+      paragraph1: FO_HIW_TIMELINE.paragraph1,
+      paragraph2: FO_HIW_TIMELINE.paragraph2,
+    });
+    expect(foHiwCtaSlot(blocks).data).toEqual({
+      heading: FO_HIW_CLOSING.heading,
+      body: FO_HIW_CLOSING.body,
+      primaryCta: {
+        label: FO_HIW_CLOSING.primaryCta.label,
+        href: FO_HIW_CLOSING.primaryCta.href,
+        external: true,
+      },
+      backLink: {
+        label: FO_HIW_CLOSING.backLink.label,
+        href: FO_HIW_CLOSING.backLink.href,
+      },
+    });
+    expect(blocksMatchFallback(foHiwBlocks(), FO_HIW_FALLBACK_BLOCKS)).toBe(true);
+  });
+
+  it('round-trips fo-managed slots against for-operators-managed content', () => {
+    const blocks = FO_MANAGED_FALLBACK_BLOCKS;
+    expect(foManagedHeroSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_HERO.eyebrow,
+      h1Lines: [...FO_MANAGED_HERO.h1Lines],
+      subtitle: FO_MANAGED_HERO.subtitle,
+      backLink: FO_MANAGED_HERO.backLink,
+    });
+    expect(foManagedStatusSlot(blocks).data).toEqual({ ...FO_MANAGED_STATUS });
+    expect(foManagedWouldBeSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_WOULD_BE.eyebrow,
+      heading: FO_MANAGED_WOULD_BE.heading,
+      capabilities: FO_MANAGED_WOULD_BE.capabilities.map((c) => ({
+        title: c.title,
+        body: c.body,
+      })),
+      closing: FO_MANAGED_WOULD_BE.closing,
+    });
+    expect(foManagedPrereqsSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_PREREQS.eyebrow,
+      heading: FO_MANAGED_PREREQS.heading,
+      intro: FO_MANAGED_PREREQS.intro,
+      prerequisites: FO_MANAGED_PREREQS.prerequisites.map((p) => ({
+        title: p.title,
+        body: p.body,
+      })),
+      closing: FO_MANAGED_PREREQS.closing,
+    });
+    expect(foManagedTodaySlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_TODAY.eyebrow,
+      heading: FO_MANAGED_TODAY.heading,
+      body: FO_MANAGED_TODAY.body,
+      primaryCta: FO_MANAGED_TODAY.primaryCta,
+      detailLink: FO_MANAGED_TODAY.detailLink,
+    });
+    expect(foManagedWaitlistSlot(blocks).data).toEqual({
+      eyebrow: FO_MANAGED_WAITLIST.eyebrow,
+      heading: FO_MANAGED_WAITLIST.heading,
+      body: FO_MANAGED_WAITLIST.body,
+      inputPlaceholder: FO_MANAGED_WAITLIST.inputPlaceholder,
+      buttonLabel: FO_MANAGED_WAITLIST.buttonLabel,
+      buttonLabelLoading: FO_MANAGED_WAITLIST.buttonLabelLoading,
+      successMessage: FO_MANAGED_WAITLIST.successMessage,
+    });
+    // product source tag never enters blocks
+    expect(collectStrings(foManagedBlocks()).join(' ')).not.toContain('managed-cloud');
+  });
 });
 
 describe('claims safety: prose is single-sourced, pinned values never enter blocks', () => {
@@ -121,6 +443,10 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     productsBlocks(),
     philosophyBlocks(),
     localAiBlocks(),
+    fairSourceBlocks(),
+    servicesBlocks(),
+    foHiwBlocks(),
+    foManagedBlocks(),
   ]);
   const haystack = strings.join(' ');
 
@@ -163,6 +489,17 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     }
     expect(strings).toContain(LOCAL_AI_PAGE.marketProof.heading);
     expect(strings).toContain(LOCAL_AI_SECTION.snippet.caption);
+    expect(strings).toContain(FAIR_SOURCE_CONTRACT_SECTION.heading);
+    for (const card of FAIR_SOURCE_CONTRACT_CARDS) {
+      expect(strings).toContain(card.title);
+      expect(strings).toContain(card.body);
+    }
+    expect(strings).toContain(FAIR_SOURCE_CTA.heading);
+    expect(strings).toContain(FAIR_SOURCE_CTA.body);
+    expect(strings).toContain(FOR_OPERATORS_HERO.subtitle);
+    expect(strings).toContain(FOR_OPERATORS_WHAT_YOU_GET.heading);
+    expect(strings).toContain(FOR_OPERATORS_PRICING.heading);
+    expect(strings).toContain(FOR_OPERATORS_CLOSING.heading);
     // Env-code lines stay out of blocks (grep-accurate, component-local).
     expect(strings).not.toContain('LLM_PROVIDER=inference-snaps');
     expect(strings).not.toContain('LLM_PROVIDER=ollama');
@@ -173,7 +510,18 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     expect(haystack).not.toContain(PRODUCTS_FLAGSHIP.version);
     // The pro price lives only on the pricing surfaces, never in a block.
     expect(haystack).not.toContain(SUBSCRIPTION_PRICE_FALLBACKS.pro.price);
+    // Services engagement ladder rungs stay component-local: pricing intro is
+    // header-only (FAQ prose may still mention dollar anchors).
+    const pricingIntro = servicesBlocks().find((b) => b.id === 'services-pricing-intro');
+    expect(pricingIntro?.type).toBe('section');
+    if (pricingIntro?.type === 'section') {
+      expect(pricingIntro.data.items ?? []).toHaveLength(0);
+      for (const rung of FOR_OPERATORS_PRICING.rungs) {
+        expect(pricingIntro.data.body ?? '').not.toContain(rung.price);
+      }
+    }
     // Metric counters are rendered from METRICS in TSX, never as block prose.
+    // Fair-source hero (which interpolates METRICS) is intentionally not in blocks.
     for (const metric of [METRICS.packages, METRICS.dbTables, METRICS.mcpServers]) {
       expect(strings).not.toContain(String(metric));
     }
@@ -258,6 +606,7 @@ describe('blocksMatchFallback shape guard', () => {
     expect(blocksMatchFallback(homeBlocks(), HOME_FALLBACK_BLOCKS)).toBe(true);
     expect(blocksMatchFallback(productsBlocks(), PRODUCTS_FALLBACK_BLOCKS)).toBe(true);
     expect(blocksMatchFallback(philosophyBlocks(), PHILOSOPHY_FALLBACK_BLOCKS)).toBe(true);
+    expect(blocksMatchFallback(fairSourceBlocks(), FAIR_SOURCE_FALLBACK_BLOCKS)).toBe(true);
   });
 
   it('rejects empty, wrong-length, and wrong-type arrays', () => {

@@ -83,7 +83,7 @@ const RETRY_CONFIG = {
 
 /**
  * Shared DB-backed circuit breaker for all Stripe operations.
- * State is persisted to NeonDB so all API instances share the same view.
+ * State machine + Neon CircuitBreakerStore (@revealui/resilience, P2-D).
  * Local 5-second cache keeps the read path fast.
  */
 const stripeCircuitBreaker = new DbCircuitBreaker('stripe', {

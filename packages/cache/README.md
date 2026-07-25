@@ -1,6 +1,6 @@
 ---
 title: "@revealui/cache"
-description: "Caching infrastructure for RevealUI applications. Provides CDN cache configuration, edge cache helpers, ISR presets, tag-based revalidation, and rate limiting at the edge."
+description: "Cache store adapters and distributed invalidation for RevealUI. Memory, PGlite, and browser backends."
 visibility: public
 status: verified
 audience: user
@@ -8,17 +8,15 @@ audience: user
 
 # @revealui/cache
 
-Caching infrastructure for RevealUI applications. Provides CDN cache configuration, edge cache helpers, ISR presets, tag-based revalidation, and rate limiting at the edge.
+Cache store adapters and a distributed invalidation channel for RevealUI applications.
 
 ## When to Use This
 
-- You need Cache-Control headers for CDN responses (Vercel, Cloudflare)
-- You want ISR presets for Next.js pages (static, dynamic, real-time)
-- You need tag-based cache invalidation when content changes
-- You want edge-level rate limiting or A/B test variant assignment
-- You need cache warming for static paths
+- You need a pluggable `CacheStore` (in-memory, PGlite, or browser/WASM)
+- You need multi-instance cache busting via `CacheInvalidationChannel`
+- You want a small logger hook for cache package diagnostics
 
-If you're caching in-memory data within a single request, use standard `Map` or LRU  -  this package is for HTTP-layer and CDN caching.
+Edge/CDN helpers (Cache-Control builders, ISR presets, edge rate limit, CDN purge) were **removed** in fleet-redundancy C11 (2026-07-23): they were tests-only with zero app consumers. Prefer platform-native cache APIs at the app boundary (`next/cache`, provider CDN APIs).
 
 ## Installation
 
@@ -26,84 +24,31 @@ If you're caching in-memory data within a single request, use standard `Map` or 
 pnpm add @revealui/cache
 ```
 
-No peer dependencies. ISR helpers use structural typing compatible with `NextRequest`/`NextResponse`, Hono, and Cloudflare Workers  -  no `next` package required.
-
 ## API Reference
 
-### CDN Configuration
+### Main entry (`@revealui/cache`)
 
 | Export | Type | Purpose |
 |--------|------|---------|
-| `generateCacheControl` | Function | Build Cache-Control header string from config |
-| `getCacheTTL` | Function | Get TTL for a content type |
-| `CDN_CACHE_PRESETS` | Object | Pre-built configs (static, api, dynamic, immutable) |
-| `DEFAULT_CDN_CONFIG` | Object | Default CDN configuration |
-| `generateCacheTags` | Function | Generate cache tags for content-based invalidation |
-| `generateVercelCacheConfig` | Function | Vercel-specific cache headers |
-| `generateCloudflareConfig` | Function | Cloudflare-specific cache config |
-| `shouldCacheResponse` | Function | Determine if a response should be cached |
+| `CacheStore` / `CacheEntry` | Types | Store contract |
+| `CacheInvalidationChannel` | Class | Distributed cache busting across store instances |
+| `configureCacheLogger` / `getCacheLogger` | Functions | Package logger hook |
 
-### CDN Purge
+### Adapters subpath (`@revealui/cache/adapters`)
 
-| Export | Type | Purpose |
-|--------|------|---------|
-| `purgeCDNCache` | Function | Purge CDN cache by URL patterns |
-| `purgeCacheByTag` | Function | Purge by cache tag (content-type based) |
-| `purgeAllCache` | Function | Full CDN cache purge |
-| `warmCDNCache` | Function | Pre-warm cache for a list of URLs |
-
-### Edge Cache & ISR
-
-| Export | Type | Purpose |
-|--------|------|---------|
-| `ISR_PRESETS` | Object | Next.js ISR configs (static: 1h, dynamic: 60s, realtime: 10s, immutable: 1y) |
-| `revalidatePath` | Function | Revalidate a single Next.js path |
-| `revalidatePaths` | Function | Batch path revalidation |
-| `revalidateTag` | Function | Revalidate by cache tag |
-| `revalidateTags` | Function | Batch tag revalidation |
-| `generateStaticParams` | Function | Helper for Next.js static generation |
-| `setEdgeCacheHeaders` | Function | Set edge-specific cache headers on response |
-| `createEdgeCachedFetch` | Function | Fetch wrapper with edge caching |
-| `createCachedFunction` | Function | Memoize an async function with TTL |
-| `warmISRCache` | Function | Pre-warm ISR cache for static paths |
-| `addPreloadLinks` | Function | Add `Link: <url>; rel=preload` headers |
-
-### Edge Utilities
-
-| Export | Type | Purpose |
-|--------|------|---------|
-| `EdgeRateLimiter` | Class | Token bucket rate limiter for edge functions |
-| `getGeoLocation` | Function | Extract geo data from edge request headers |
-| `getABTestVariant` | Function | Deterministic A/B test variant assignment |
-| `getPersonalizationConfig` | Function | Edge personalization based on geo/device |
-
-### Invalidation Channel
-
-| Export | Type | Purpose |
-|--------|------|---------|
-| `CacheInvalidationChannel` | Class | Distributed cache busting via pub/sub channel |
-
-### Configuration
-
-| Export | Type | Purpose |
-|--------|------|---------|
-| `configureCacheLogger` | Function | Set custom logger (defaults to console) |
-
-### Subpath Exports
-
-| Subpath | Contents |
-|---------|----------|
-| `@revealui/cache` | All cache utilities |
-| `@revealui/cache/adapters` | `CacheStore` interface + implementations (for custom backends) |
+| Export | Purpose |
+|--------|---------|
+| `InMemoryCacheStore` | Map-backed, single-process |
+| `PGliteCacheStore` | PostgreSQL-backed via PGlite |
+| `createBrowserCache` | PGlite WASM + IndexedDB |
+| `useBrowserCache` | React hook for browser cache singleton |
 
 ## Design Principles
 
-- **Adaptive**: ISR presets scale from real-time (10s) to immutable (1y) based on content volatility
-- **Unified**: Cache tags follow the same taxonomy as CMS collections  -  invalidation is automatic
-- **Orthogonal**: Caching is a separate concern from content serving  -  swap CDN providers without changing business logic
+- **Adapters over monoliths** — pick a store backend; do not bake CDN provider SDKs into this package
+- **No Next.js peer dep** — HTTP edge helpers lived here previously; app frameworks own their revalidation APIs
+- **Honest surface** — only ship what runtime paths use
 
-## Related Packages
+## License
 
-- `apps/server`  -  Applies cache headers to REST responses
-- `apps/marketing`  -  Uses ISR presets for marketing pages
-- `@revealui/core`  -  Triggers cache invalidation on content changes
+MIT

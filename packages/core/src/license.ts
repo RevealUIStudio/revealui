@@ -16,7 +16,7 @@
 // other modules in the auth route bundle during page data collection.
 import { z } from 'zod';
 import { decryptLicenseKey } from './license-encryption.js';
-import { logger } from './utils/logger.js';
+import { logger } from './observability/logger.js';
 
 async function getJose() {
   return await import('jose');

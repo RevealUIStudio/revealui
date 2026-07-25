@@ -63,7 +63,8 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     }
 
     const rawPlan = request.nextUrl.searchParams.get('plan');
-    const plan: 'pro' | 'max' | null = rawPlan === 'pro' || rawPlan === 'max' ? rawPlan : null;
+    const plan: 'pro' | 'max' | 'enterprise' | null =
+      rawPlan === 'pro' || rawPlan === 'max' || rawPlan === 'enterprise' ? rawPlan : null;
 
     let body: unknown;
     try {
@@ -108,10 +109,10 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
 
     // The deployment-license user cap is a self-hosted (Forge) concept and must
     // NOT gate hosted onboarding (it would cap the whole control plane at the
-    // free seat count). Mode detection mirrors apps/server validate-startup:
-    // license-signing-key presence ⇒ hosted multi-tenant deployment, where
-    // admission is governed per-account rather than by a deployment-global cap.
-    const isSelfHostedForge = !process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+    // free seat count). Mode: REVEALUI_DEPLOYMENT_MODE (GAP-260 P4-1), fallback
+    // private-key presence — hosted multi-tenant uses per-account admission.
+    const { detectDeploymentMode } = await import('@revealui/core/deployment-mode');
+    const isSelfHostedForge = detectDeploymentMode(process.env) === 'forge';
     // Track whether this is the first user  -  they get admin role automatically.
     let isFirstUser = false;
     try {

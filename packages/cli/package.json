@@ -38,7 +38,8 @@
     "@types/node": "catalog:",
     "@types/semver": "^7.7.1",
     "tsup": "^8.5.1",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@revealui/dev": "workspace:*"
   },
   "engines": {
     "node": ">=24.13.0"

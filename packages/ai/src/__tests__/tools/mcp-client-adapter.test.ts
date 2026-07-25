@@ -9,6 +9,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createToolsFromMcpClient,
+  discoverMCPTools,
+  type MCPToolSource,
   type McpCallToolResultLike,
   type McpClientLike,
   type McpGetPromptResultLike,
@@ -829,5 +831,219 @@ describe('createToolsFromMcpClient — onEvent', () => {
 
     expect(result?.success).toBe(true);
     expect(sink).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP-355 Stage 5 S5-2 — onToolAudit integrity hook (awaited, fail-closed)
+// ---------------------------------------------------------------------------
+
+describe('createToolsFromMcpClient — onToolAudit', () => {
+  it('awaits onToolAudit after a successful server tool call', async () => {
+    const order: string[] = [];
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => {
+        order.push('rpc');
+        return { content: [{ type: 'text', text: 'ok' }] };
+      },
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onToolAudit: async (e) => {
+        order.push('audit');
+        expect(e).toMatchObject({
+          kind: 'mcp.tool.call',
+          namespace: 'srv',
+          toolName: 'noop',
+          success: true,
+        });
+      },
+    });
+    const result = await tools[0]?.execute({});
+
+    expect(result?.success).toBe(true);
+    expect(order).toEqual(['rpc', 'audit']);
+  });
+
+  it('fails closed: successful tool RPC + audit throw does not return success', async () => {
+    const client = makeClient(
+      [{ name: 'write_thing', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [{ type: 'text', text: 'written' }] }),
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onToolAudit: async () => {
+        throw new Error('audit write failed');
+      },
+    });
+
+    await expect(tools[0]?.execute({})).rejects.toThrow(/audit write failed/);
+  });
+
+  it('still returns tool failure when audit throws on an already-failed call', async () => {
+    const client = makeClient(
+      [{ name: 'flaky', inputSchema: { type: 'object', properties: {} } }],
+      async () => {
+        throw new Error('transport broke');
+      },
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onToolAudit: async () => {
+        throw new Error('audit write failed');
+      },
+    });
+    const result = await tools[0]?.execute({});
+
+    expect(result).toEqual({ success: false, error: 'transport broke' });
+  });
+
+  it('audits isError tool results without failing the ToolResult shape', async () => {
+    const audited: Array<Record<string, unknown>> = [];
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ isError: true, content: [{ type: 'text', text: 'server rejected' }] }),
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onToolAudit: async (e) => {
+        audited.push(e as unknown as Record<string, unknown>);
+      },
+    });
+    const result = await tools[0]?.execute({});
+
+    expect(result).toEqual({ success: false, error: 'server rejected' });
+    expect(audited).toHaveLength(1);
+    expect(audited[0]).toMatchObject({
+      success: false,
+      toolName: 'noop',
+      error: 'server rejected',
+    });
+  });
+
+  it('audits resource/prompt meta-tools (S5-4b live residual close)', async () => {
+    const audited: string[] = [];
+    const client = makeFullClient({
+      resources: [{ uri: 'x://1', name: 'one' }],
+      resourceContents: { 'x://1': [{ uri: 'x://1', text: 'body' }] },
+      prompts: [{ name: 'greet' }],
+      promptResults: {
+        greet: { messages: [{ role: 'user', content: { type: 'text', text: 'hi' } }] },
+      },
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      include: { tools: false, resources: true, prompts: true },
+      onToolAudit: async (e) => {
+        audited.push(e.toolName);
+        expect(e.kind).toBe('mcp.tool.call');
+        expect(e.success).toBe(true);
+      },
+    });
+
+    for (const tool of tools) {
+      if (tool.name.endsWith('__read_resource')) {
+        await tool.execute({ uri: 'x://1' });
+      } else if (tool.name.endsWith('__get_prompt')) {
+        await tool.execute({ name: 'greet' });
+      } else {
+        await tool.execute({});
+      }
+    }
+
+    expect(audited.sort()).toEqual(
+      ['get_prompt', 'list_prompts', 'list_resources', 'read_resource'].sort(),
+    );
+  });
+
+  it('fails closed when onToolAudit throws after read_resource success', async () => {
+    const client = makeFullClient({
+      resources: [{ uri: 'x://1', name: 'one' }],
+      resourceContents: { 'x://1': [{ uri: 'x://1', text: 'body' }] },
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      include: { tools: false, resources: true, prompts: false },
+      onToolAudit: async () => {
+        throw new Error('audit write failed');
+      },
+    });
+    const readTool = tools.find((t) => t.name.endsWith('__read_resource'));
+    await expect(readTool?.execute({ uri: 'x://1' })).rejects.toThrow(/audit write failed/);
+  });
+
+  it('works without onToolAudit — success path unchanged', async () => {
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [] }),
+    );
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const result = await tools[0]?.execute({});
+    expect(result?.success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// discoverMCPTools — legacy hypervisor path integrity (S5-4b)
+// ---------------------------------------------------------------------------
+
+describe('discoverMCPTools — onToolAudit', () => {
+  function makeSource(
+    callHandler: (server: string, tool: string, args: unknown) => Promise<unknown>,
+  ): MCPToolSource {
+    return {
+      getAllTools: () => [
+        {
+          namespacedName: '@@mcp_srv_ping',
+          serverName: 'srv',
+          tool: {
+            name: 'ping',
+            description: 'ping',
+            inputSchema: { type: 'object', properties: {} },
+          },
+        },
+      ],
+      callTool: callHandler,
+    };
+  }
+
+  it('awaits onToolAudit after a successful legacy tool call', async () => {
+    const order: string[] = [];
+    const source = makeSource(async () => {
+      order.push('rpc');
+      return { ok: true };
+    });
+    const tools = discoverMCPTools(source, {
+      onToolAudit: async (e) => {
+        order.push('audit');
+        expect(e).toMatchObject({
+          kind: 'mcp.tool.call',
+          namespace: 'srv',
+          toolName: 'ping',
+          success: true,
+        });
+      },
+    });
+    const result = await tools[0]?.execute({});
+    expect(result?.success).toBe(true);
+    expect(order).toEqual(['rpc', 'audit']);
+  });
+
+  it('fails closed when audit throws after success', async () => {
+    const source = makeSource(async () => ({ ok: true }));
+    const tools = discoverMCPTools(source, {
+      onToolAudit: async () => {
+        throw new Error('audit write failed');
+      },
+    });
+    await expect(tools[0]?.execute({})).rejects.toThrow(/audit write failed/);
   });
 });

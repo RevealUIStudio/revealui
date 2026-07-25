@@ -75,6 +75,12 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseExp: vi.fn(async () => null),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
@@ -220,6 +226,7 @@ vi.mock('drizzle-orm', () => ({
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
 import * as licenseModule from '@revealui/core/license';
+import * as mintModule from '@revealui/core/license/mint-client';
 import webhooksApp from '../webhooks.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -289,7 +296,7 @@ describe('Billing lifecycle integration', () => {
     mockDbUpdateChain.where.mockReset();
     mockDbDeleteChain.where.mockReset();
 
-    vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-lifecycle-test');
+    vi.mocked(mintModule.mintLicenseKey).mockResolvedValue('rv-license-key-lifecycle-test');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({ status: 'active', trial_end: null });
     mockSubscriptionsList.mockResolvedValue({ data: [] });
@@ -559,7 +566,7 @@ describe('Billing lifecycle integration', () => {
       expect(hasActiveUpdate).toBe(true);
 
       // generateLicenseKey should have been called for recovery
-      expect(licenseModule.generateLicenseKey).toHaveBeenCalled();
+      expect(mintModule.mintLicenseKey).toHaveBeenCalled();
     });
   });
 

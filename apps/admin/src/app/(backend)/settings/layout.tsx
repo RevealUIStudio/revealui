@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/settings/account', label: 'Account' },
   { href: '/settings/security', label: 'Security' },
   { href: '/settings/api-keys', label: 'API Keys' },
+  { href: '/settings/local-ai', label: 'Local AI' },
 ] as const;
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {

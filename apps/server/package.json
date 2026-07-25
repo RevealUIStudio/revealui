@@ -37,7 +37,8 @@
     "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@revealui/dev": "workspace:*"
   },
   "engines": {
     "node": ">=24.13.0"

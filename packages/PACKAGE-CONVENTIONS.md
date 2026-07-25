@@ -16,7 +16,7 @@ See [CLAUDE.md](../CLAUDE.md) for the full package map and [docs/REFERENCE.md](.
 
 Monorepo-wide naming split, enforced on the `name` field in `package.json`:
 
-- **Apps** (`apps/*`): unscoped  -  `"admin"`, `"api"`, `"docs"`, `"marketing"`, `"studio"`. Never `@revealui/<app>`.
+- **Apps** (`apps/*`): unscoped  -  `"admin"`, `"server"`, `"docs"`, `"marketing"`. Never `@revealui/<app>`.
 - **Packages** (`packages/*`): scoped  -  `"@revealui/core"`, `"@revealui/security"`, etc.
 
 Rationale: apps are deploy targets, not consumable libraries; the `@revealui/` prefix is reserved for things that get published to npm.

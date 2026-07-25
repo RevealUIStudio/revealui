@@ -7,6 +7,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ValidationError as DomainValidationError } from '../../utils/errors.js';
+import { ClientValidationError, NetworkError } from '../error-boundary.js';
 import type { Breadcrumb, ErrorReporter, UserContext } from '../error-reporter.js';
 import {
   ConsoleErrorReporter,
@@ -512,8 +514,7 @@ describe('ErrorReportingSystem', () => {
     });
 
     it('should classify NetworkError as warning level', () => {
-      const error = new Error('network issue');
-      error.name = 'NetworkError';
+      const error = new NetworkError('network issue');
       system.captureError(error);
 
       expect(mockReporter.captureError).toHaveBeenCalledWith(
@@ -522,14 +523,34 @@ describe('ErrorReportingSystem', () => {
       );
     });
 
-    it('should classify ValidationError as warning level', () => {
-      const error = new Error('invalid input');
-      error.name = 'ValidationError';
+    it('should classify ClientValidationError as warning level', () => {
+      const error = new ClientValidationError('invalid input');
       system.captureError(error);
 
       expect(mockReporter.captureError).toHaveBeenCalledWith(
         error,
         expect.objectContaining({ level: 'warning' }),
+      );
+    });
+
+    it('should classify domain ValidationError as warning level', () => {
+      const error = new DomainValidationError('invalid email', 'email', 'bad');
+      system.captureError(error);
+
+      expect(mockReporter.captureError).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({ level: 'warning' }),
+      );
+    });
+
+    it('should not treat name-only ValidationError spoof as warning', () => {
+      const error = new Error('spoofed');
+      error.name = 'ValidationError';
+      system.captureError(error);
+
+      expect(mockReporter.captureError).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({ level: 'error' }),
       );
     });
 

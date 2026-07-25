@@ -23,7 +23,7 @@
 
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from './base.js';
-import { emitMcpEvent, type McpEventSink } from './mcp-events.js';
+import { emitMcpEvent, type McpEventSink, type McpToolCallEvent } from './mcp-events.js';
 
 export interface MCPTool {
   name: string;
@@ -197,6 +197,14 @@ export interface CreateToolsFromMcpClientOptions {
    * Safe to pass a throwing sink — adapter swallows sink errors.
    */
   onEvent?: McpEventSink;
+  /**
+   * Integrity audit hook (GAP-355 Stage 5). Fires once per server tool **and**
+   * resource/prompt meta-tool call with the `mcp.tool.call` summary shape
+   * (`toolName` is the bare primitive name, e.g. `read_resource`). Unlike
+   * `onEvent`, this is **awaited** and **rethrows** so a failed audit write
+   * fails the tool execution (fail-closed).
+   */
+  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
 }
 
 /** Spec-shaped `Progress` notification subset. */
@@ -263,6 +271,7 @@ export async function createToolsFromMcpClient(
     ...(options.onProgress !== undefined ? { onProgress: options.onProgress } : {}),
     ...(options.signal !== undefined ? { signal: options.signal } : {}),
     ...(options.onEvent !== undefined ? { onEvent: options.onEvent } : {}),
+    ...(options.onToolAudit !== undefined ? { onToolAudit: options.onToolAudit } : {}),
   };
 
   const tools: Tool[] = [];
@@ -302,6 +311,43 @@ interface BuildToolContext {
   onProgress?: (event: McpProgressEvent) => void;
   signal?: AbortSignal;
   onEvent?: McpEventSink;
+  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
+}
+
+/** Await integrity audit; rethrow so unrecorded tool success cannot complete. */
+async function awaitToolAudit(ctx: BuildToolContext, event: McpToolCallEvent): Promise<void> {
+  if (!ctx.onToolAudit) return;
+  await ctx.onToolAudit(event);
+}
+
+/**
+ * Build an integrity event and await it. Success path rethrows audit failures;
+ * failure path prefers the original tool/meta-tool error.
+ */
+async function finishToolIntegrity(
+  ctx: BuildToolContext,
+  toolName: string,
+  started: number,
+  success: boolean,
+  error?: string,
+): Promise<void> {
+  const event: McpToolCallEvent = {
+    kind: 'mcp.tool.call',
+    namespace: ctx.namespace,
+    toolName,
+    duration_ms: Date.now() - started,
+    success,
+    ...(error !== undefined ? { error } : {}),
+  };
+  if (success) {
+    await awaitToolAudit(ctx, event);
+    return;
+  }
+  try {
+    await awaitToolAudit(ctx, event);
+  } catch {
+    // Prefer the tool / meta-tool failure over a secondary audit failure.
+  }
 }
 
 /**
@@ -338,6 +384,10 @@ function buildServerTool(
     async execute(params: unknown): Promise<ToolResult> {
       const validated = zodSchema.parse(params);
       const started = Date.now();
+      let toolSucceeded = false;
+      let errorText: string | undefined;
+      let payload: unknown;
+
       try {
         const result = await client.callTool(
           descriptor.name,
@@ -345,38 +395,37 @@ function buildServerTool(
           buildRequestOptions(ctx, descriptor.name),
         );
         if (result.isError) {
-          const errorText = extractErrorText(result);
-          emitMcpEvent(ctx.onEvent, {
-            kind: 'mcp.tool.call',
-            namespace: ctx.namespace,
-            toolName: descriptor.name,
-            duration_ms: Date.now() - started,
-            success: false,
-            error: errorText,
-          });
-          return { success: false, error: errorText };
+          errorText = extractErrorText(result);
+        } else {
+          toolSucceeded = true;
+          payload = result.structuredContent ?? result.content;
         }
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.tool.call',
-          namespace: ctx.namespace,
-          toolName: descriptor.name,
-          duration_ms: Date.now() - started,
-          success: true,
-        });
-        const payload = result.structuredContent ?? result.content;
-        return { success: true, data: serializeMCPResult(payload) };
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.tool.call',
-          namespace: ctx.namespace,
-          toolName: descriptor.name,
-          duration_ms: Date.now() - started,
-          success: false,
-          error: message,
-        });
-        return { success: false, error: message };
+        errorText = error instanceof Error ? error.message : String(error);
       }
+
+      const event: McpToolCallEvent = {
+        kind: 'mcp.tool.call',
+        namespace: ctx.namespace,
+        toolName: descriptor.name,
+        duration_ms: Date.now() - started,
+        success: toolSucceeded,
+        ...(errorText !== undefined ? { error: errorText } : {}),
+      };
+      emitMcpEvent(ctx.onEvent, event);
+
+      if (toolSucceeded) {
+        // Integrity: unrecorded success must not complete as success.
+        await awaitToolAudit(ctx, event);
+        return { success: true, data: serializeMCPResult(payload) };
+      }
+
+      try {
+        await awaitToolAudit(ctx, event);
+      } catch {
+        // Prefer the tool failure over a secondary audit failure.
+      }
+      return { success: false, error: errorText ?? 'Tool failed' };
     },
 
     getMetadata() {
@@ -394,28 +443,28 @@ function buildListResourcesTool(client: McpClientLike, ctx: BuildToolContext): T
 
     async execute(): Promise<ToolResult> {
       const started = Date.now();
+      let ok = false;
+      let errorText: string | undefined;
+      let resources: ReadonlyArray<McpResourceDescriptor> = [];
       try {
-        const resources =
+        resources =
           (await client.listResources?.(buildRequestOptions(ctx, 'list_resources'))) ?? [];
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.resource.list',
-          namespace: ctx.namespace,
-          duration_ms: Date.now() - started,
-          success: true,
-          resourceCount: resources.length,
-        });
-        return { success: true, data: serializeMCPResult(resources) };
+        ok = true;
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.resource.list',
-          namespace: ctx.namespace,
-          duration_ms: Date.now() - started,
-          success: false,
-          error: message,
-        });
-        return { success: false, error: message };
+        errorText = error instanceof Error ? error.message : String(error);
       }
+
+      emitMcpEvent(ctx.onEvent, {
+        kind: 'mcp.resource.list',
+        namespace: ctx.namespace,
+        duration_ms: Date.now() - started,
+        success: ok,
+        ...(ok ? { resourceCount: resources.length } : {}),
+        ...(errorText !== undefined ? { error: errorText } : {}),
+      });
+      await finishToolIntegrity(ctx, 'list_resources', started, ok, errorText);
+      if (ok) return { success: true, data: serializeMCPResult(resources) };
+      return { success: false, error: errorText ?? 'list_resources failed' };
     },
 
     getMetadata() {
@@ -442,34 +491,34 @@ function buildReadResourceTool(client: McpClientLike, ctx: BuildToolContext): To
     async execute(params: unknown): Promise<ToolResult> {
       const { uri } = paramsSchema.parse(params);
       const started = Date.now();
+      let ok = false;
+      let errorText: string | undefined;
+      let contents: ReadonlyArray<McpResourceContentLike> = [];
       try {
-        const contents =
+        contents =
           (await client.readResource?.(uri, buildRequestOptions(ctx, 'read_resource'))) ?? [];
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.resource.read',
-          namespace: ctx.namespace,
-          uri,
-          duration_ms: Date.now() - started,
-          success: true,
-        });
-        const joinedText = flattenResourceText(contents);
-        const base: ToolResult = {
-          success: true,
-          data: serializeMCPResult(contents),
-        };
-        return joinedText !== undefined ? { ...base, content: joinedText } : base;
+        ok = true;
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.resource.read',
-          namespace: ctx.namespace,
-          uri,
-          duration_ms: Date.now() - started,
-          success: false,
-          error: message,
-        });
-        return { success: false, error: message };
+        errorText = error instanceof Error ? error.message : String(error);
       }
+
+      emitMcpEvent(ctx.onEvent, {
+        kind: 'mcp.resource.read',
+        namespace: ctx.namespace,
+        uri,
+        duration_ms: Date.now() - started,
+        success: ok,
+        ...(errorText !== undefined ? { error: errorText } : {}),
+      });
+      await finishToolIntegrity(ctx, 'read_resource', started, ok, errorText);
+      if (!ok) return { success: false, error: errorText ?? 'read_resource failed' };
+
+      const joinedText = flattenResourceText(contents);
+      const base: ToolResult = {
+        success: true,
+        data: serializeMCPResult(contents),
+      };
+      return joinedText !== undefined ? { ...base, content: joinedText } : base;
     },
 
     getMetadata() {
@@ -492,28 +541,27 @@ function buildListPromptsTool(client: McpClientLike, ctx: BuildToolContext): Too
 
     async execute(): Promise<ToolResult> {
       const started = Date.now();
+      let ok = false;
+      let errorText: string | undefined;
+      let prompts: ReadonlyArray<McpPromptDescriptor> = [];
       try {
-        const prompts =
-          (await client.listPrompts?.(buildRequestOptions(ctx, 'list_prompts'))) ?? [];
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.prompt.list',
-          namespace: ctx.namespace,
-          duration_ms: Date.now() - started,
-          success: true,
-          promptCount: prompts.length,
-        });
-        return { success: true, data: serializeMCPResult(prompts) };
+        prompts = (await client.listPrompts?.(buildRequestOptions(ctx, 'list_prompts'))) ?? [];
+        ok = true;
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.prompt.list',
-          namespace: ctx.namespace,
-          duration_ms: Date.now() - started,
-          success: false,
-          error: message,
-        });
-        return { success: false, error: message };
+        errorText = error instanceof Error ? error.message : String(error);
       }
+
+      emitMcpEvent(ctx.onEvent, {
+        kind: 'mcp.prompt.list',
+        namespace: ctx.namespace,
+        duration_ms: Date.now() - started,
+        success: ok,
+        ...(ok ? { promptCount: prompts.length } : {}),
+        ...(errorText !== undefined ? { error: errorText } : {}),
+      });
+      await finishToolIntegrity(ctx, 'list_prompts', started, ok, errorText);
+      if (ok) return { success: true, data: serializeMCPResult(prompts) };
+      return { success: false, error: errorText ?? 'list_prompts failed' };
     },
 
     getMetadata() {
@@ -544,45 +592,39 @@ function buildGetPromptTool(client: McpClientLike, ctx: BuildToolContext): Tool 
     async execute(params: unknown): Promise<ToolResult> {
       const { name, args } = paramsSchema.parse(params);
       const started = Date.now();
+      let ok = false;
+      let errorText: string | undefined;
+      let result: McpGetPromptResultLike | undefined;
       try {
-        const result = await client.getPrompt?.(name, args, buildRequestOptions(ctx, 'get_prompt'));
+        result = await client.getPrompt?.(name, args, buildRequestOptions(ctx, 'get_prompt'));
         if (!result) {
-          const msg = 'client does not implement getPrompt';
-          emitMcpEvent(ctx.onEvent, {
-            kind: 'mcp.prompt.get',
-            namespace: ctx.namespace,
-            promptName: name,
-            duration_ms: Date.now() - started,
-            success: false,
-            error: msg,
-          });
-          return { success: false, error: msg };
+          errorText = 'client does not implement getPrompt';
+        } else {
+          ok = true;
         }
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.prompt.get',
-          namespace: ctx.namespace,
-          promptName: name,
-          duration_ms: Date.now() - started,
-          success: true,
-        });
-        const joinedText = flattenPromptMessages(result.messages);
-        const base: ToolResult = {
-          success: true,
-          data: serializeMCPResult(result),
-        };
-        return joinedText !== undefined ? { ...base, content: joinedText } : base;
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        emitMcpEvent(ctx.onEvent, {
-          kind: 'mcp.prompt.get',
-          namespace: ctx.namespace,
-          promptName: name,
-          duration_ms: Date.now() - started,
-          success: false,
-          error: message,
-        });
-        return { success: false, error: message };
+        errorText = error instanceof Error ? error.message : String(error);
       }
+
+      emitMcpEvent(ctx.onEvent, {
+        kind: 'mcp.prompt.get',
+        namespace: ctx.namespace,
+        promptName: name,
+        duration_ms: Date.now() - started,
+        success: ok,
+        ...(errorText !== undefined ? { error: errorText } : {}),
+      });
+      await finishToolIntegrity(ctx, 'get_prompt', started, ok, errorText);
+      if (!(ok && result)) {
+        return { success: false, error: errorText ?? 'get_prompt failed' };
+      }
+
+      const joinedText = flattenPromptMessages(result.messages);
+      const base: ToolResult = {
+        success: true,
+        data: serializeMCPResult(result),
+      };
+      return joinedText !== undefined ? { ...base, content: joinedText } : base;
     },
 
     getMetadata() {
@@ -723,6 +765,16 @@ export function serializeMCPResult(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value, replacer));
 }
 
+/** Options for the legacy hypervisor discovery path (GAP-355 integrity). */
+export interface DiscoverMCPToolsOptions {
+  /**
+   * Integrity audit hook (awaited, fail-closed on success). Same contract as
+   * `createToolsFromMcpClient({ onToolAudit })`. `namespace` on the event is
+   * the MCP server name from the hypervisor source.
+   */
+  onToolAudit?: (event: McpToolCallEvent) => void | Promise<void>;
+}
+
 /**
  * Discover all tools from a running MCPHypervisor (or any MCPToolSource)
  * and return them as RevealUI Tool instances.
@@ -730,17 +782,20 @@ export function serializeMCPResult(value: unknown): unknown {
  * Tool names use the hypervisor's namespacing (@@mcp_{server}_{tool}) so
  * collisions across servers are impossible.
  *
+ * @deprecated Prefer `createToolsFromMcpClient` (Stage 5.1a). Kept for
+ *   AgentRuntime `mcpToolSource` compatibility.
+ *
  * @example
  * ```typescript
  * import { MCPHypervisor } from '@revealui/mcp'
  * import { discoverMCPTools } from '@revealui/ai'
  *
  * const hypervisor = MCPHypervisor.getInstance()
- * const tools = discoverMCPTools(hypervisor)
+ * const tools = discoverMCPTools(hypervisor, { onToolAudit })
  * agent.tools.push(...tools)
  * ```
  */
-export function discoverMCPTools(source: MCPToolSource): Tool[] {
+export function discoverMCPTools(source: MCPToolSource, options?: DiscoverMCPToolsOptions): Tool[] {
   return source.getAllTools().map(({ namespacedName, serverName, tool }) => {
     const zodSchema = jsonSchemaToZod(tool.inputSchema);
 
@@ -752,19 +807,49 @@ export function discoverMCPTools(source: MCPToolSource): Tool[] {
       async execute(params: unknown): Promise<ToolResult> {
         // Validate params against the schema
         const validated = zodSchema.parse(params);
+        const started = Date.now();
+        let toolSucceeded = false;
+        let payload: unknown;
+        let errorText: string | undefined;
 
         try {
-          const callResult = await source.callTool(serverName, tool.name, validated);
+          payload = await source.callTool(serverName, tool.name, validated);
+          toolSucceeded = true;
+        } catch (error) {
+          errorText = error instanceof Error ? error.message : String(error);
+        }
+
+        const event: McpToolCallEvent = {
+          kind: 'mcp.tool.call',
+          namespace: serverName,
+          toolName: tool.name,
+          duration_ms: Date.now() - started,
+          success: toolSucceeded,
+          ...(errorText !== undefined ? { error: errorText } : {}),
+        };
+
+        if (toolSucceeded) {
+          // Integrity outside the RPC try so audit throws fail closed.
+          if (options?.onToolAudit) {
+            await options.onToolAudit(event);
+          }
           return {
             success: true,
-            data: serializeMCPResult(callResult),
-          };
-        } catch (error) {
-          return {
-            success: false,
-            error: error instanceof Error ? error.message : String(error),
+            data: serializeMCPResult(payload),
           };
         }
+
+        if (options?.onToolAudit) {
+          try {
+            await options.onToolAudit(event);
+          } catch {
+            // Prefer the tool failure over a secondary audit failure.
+          }
+        }
+        return {
+          success: false,
+          error: errorText ?? 'Tool failed',
+        };
       },
 
       getMetadata() {

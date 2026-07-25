@@ -29,7 +29,7 @@ Complete guide for setting up and using Model Context Protocol (MCP) servers in 
 
 ## Overview
 
-RevealUI includes 14 MCP servers for enhanced AI capabilities (ground-truth count enforced by `pnpm validate:claims`):
+RevealUI includes 13 MCP servers for enhanced AI capabilities (ground-truth count enforced by `pnpm validate:claims`):
 
 - **Code Validator MCP** — Static analysis and code quality checks
 - **Contracts Introspection MCP** — Read-only catalog of every `@revealui/contracts` category as MCP resources + per-category `validate_*` tools (F8 Phase 1 of the protocol-pyramid ADR; not Pro-gated)
@@ -41,7 +41,6 @@ RevealUI includes 14 MCP servers for enhanced AI capabilities (ground-truth coun
 - **RevealUI Memory MCP** — Agent memory store reads/writes
 - **RevealUI Stripe MCP** — RevealUI-specific Stripe ops (billing portal, webhooks, tier enforcement)
 - **Stripe MCP** — Generic Stripe payment / subscription / invoice ops
-- **Supabase MCP** — Supabase project management + CRUD operations
 - **Vercel MCP** — Vercel deploy, env var, log inspection
 - **Email Provider** — shared helper surface for other email-capable servers
 
@@ -49,7 +48,7 @@ All servers are **free** and run locally as npm packages.
 
 ---
 
-**Prerequisites**: Complete [QUICK_START.md](./QUICK_START.md) first for basic setup.
+**Prerequisites**: Complete [QUICK_START.md](../../docs/QUICK_START.md) first for basic setup.
 
 ## MCP-Specific Setup
 
@@ -67,11 +66,6 @@ STRIPE_SECRET_KEY=sk_test_xxx...
 # NeonDB MCP
 NEON_API_KEY=neon_xxx...
 
-# Supabase MCP
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJxxx...
-SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
-
 # Next.js DevTools MCP
 NEXT_TELEMETRY_DISABLED=0
 ```
@@ -82,15 +76,14 @@ See [Getting API Keys](#getting-api-keys) section below for instructions.
 
 ```bash
 # Start all servers
-pnpm mcp:all
+# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)
 
 # Or start individually
-pnpm mcp:vercel
-pnpm mcp:stripe
-pnpm mcp:neon
-pnpm mcp:supabase
-pnpm mcp:playwright
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/vercel.ts
+tsx packages/mcp/src/servers/stripe.ts
+tsx packages/mcp/src/servers/neon.ts
+tsx packages/mcp/src/servers/playwright.ts
+tsx packages/mcp/src/servers/next-devtools.ts
 ```
 
 ---
@@ -146,20 +139,6 @@ pnpm mcp:next-devtools
 **Environment:** `NEON_API_KEY`
 
 **Status:** ⚠️ Requires API key setup
-
----
-
-### Supabase MCP (`supabase-mcp@1.5.0`)
-
-**Capabilities:**
-- CRUD operations on tables
-- Query data
-- Manage database records
-- Interact with Supabase projects
-
-**Environment:** `SUPABASE_URL`, `SUPABASE_ANON_KEY` (required), `SUPABASE_SERVICE_ROLE_KEY` (optional)
-
-**Status:** ⚠️ Requires credentials setup
 
 ---
 
@@ -221,62 +200,7 @@ pnpm mcp:next-devtools
 3. Copy the key (starts with `neon_`)
 4. Add to `.env`: `NEON_API_KEY=neon_xxx...`
 
-**Detailed guide**: See [NEON_API_KEY_SETUP.md](./ENVIRONMENT_VARIABLES_GUIDE.md)
-
-### Supabase Credentials
-
-**⚠️ Important: Supabase API Key Changes (2025)**
-
-Supabase introduced new API keys in June 2025. Both legacy and new keys are supported:
-
-**New API Keys (Recommended):**
-- **Publishable Key** (`sb_publishable_...`) - Replaces anon key, safe to expose
-- **Secret Key** (`sb_secret_...`) - Replaces service_role key, for backend use
-
-**Legacy API Keys (Deprecated Nov 2025):**
-- **anon key** (JWT format) - Still works but will be deprecated
-- **service_role key** (JWT format) - Still works but will be deprecated
-
-**Getting Your Keys:**
-
-1. Go to https://supabase.com/dashboard
-2. Select your project
-3. Go to Settings → API
-4. Copy:
-   - **Project URL** → `SUPABASE_URL`
-   - **For new keys:**
-     - **Publishable key** (`sb_publishable_...`) → `SUPABASE_PUBLISHABLE_KEY`
-     - **Secret key** (`sb_secret_...`) → `SUPABASE_SECRET_KEY`
-   - **For legacy keys:**
-     - **anon/public key** (JWT) → `SUPABASE_ANON_KEY`
-     - **service_role key** (JWT) → `SUPABASE_SERVICE_ROLE_KEY`
-
-**Migration Timeline:**
-- **June 2025**: New keys available (early preview)
-- **July 2025**: Full feature launch
-- **November 2025**: Legacy keys deprecated for new projects
-
-**Reference:** [Supabase API Key Changes Discussion](https://github.com/orgs/supabase/discussions/29260) | [Official Docs](https://supabase.com/docs/guides/api/api-keys)
-
-**MCP_API_KEY (Optional but Recommended):**
-
-The `MCP_API_KEY` is **NOT** a Supabase key - it's a key you generate yourself to secure the MCP server HTTP endpoint.
-
-- **Auto-generated**: If not set, the script will auto-generate a secure random key (shown in console)
-- **Recommended**: Copy the auto-generated key to your `.env` file to persist it across restarts
-- **Manual generation**: Run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` to generate a 64-character hex string
-- **Purpose**: Authenticates requests to the MCP server HTTP endpoint (prevents unauthorized access)
-
-**Example:**
-```env
-MCP_API_KEY=your-generated-api-key-here
-```
-
-**Note**: The script will show you the auto-generated key when you first run it - just copy it to your `.env` file.
-
-**IPv4/IPv6 Note**: See [SUPABASE_IPV4_EXPLANATION.md](./DATABASE.md) for network compatibility info.
-
----
+**Detailed guide**: See [NEON_API_KEY_SETUP.md](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ## Next.js DevTools MCP
 
@@ -466,14 +390,6 @@ MCP servers are configured in `.cursor/mcp-config.json`:
         "NEON_API_KEY": "${NEON_API_KEY}"
       }
     },
-    "supabase": {
-      "command": "pnpm",
-      "args": ["mcp:supabase"],
-      "env": {
-        "SUPABASE_URL": "${SUPABASE_URL}",
-        "SUPABASE_ANON_KEY": "${SUPABASE_ANON_KEY}"
-      }
-    },
     "playwright": {
       "command": "pnpm",
       "args": ["mcp:playwright"]
@@ -546,10 +462,10 @@ pnpm dev
 **Step 2: Start Next.js DevTools MCP Server (Optional)**
 ```bash
 # In another terminal
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/next-devtools.ts
 
 # Or start all MCP servers
-pnpm mcp:all
+# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)
 ```
 
 **Note:** Cursor manages MCP servers automatically, so manual startup is only for testing.
@@ -606,7 +522,7 @@ Complete automated setup with error detection and fixing.
 ### "Connection refused" Error
 
 **Solution:**
-- Ensure MCP servers are running: `pnpm mcp:all`
+- Ensure MCP servers are running: `# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)`
 - Check if port conflicts exist
 - Verify Cursor has restarted after configuration
 
@@ -673,7 +589,7 @@ Complete automated setup with error detection and fixing.
 If you want to test manually:
 ```bash
 # Check if script works
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/next-devtools.ts
 
 # Should start MCP server (will run until stopped)
 ```
@@ -686,25 +602,23 @@ pnpm mcp:next-devtools
 
 ```bash
 # Test each server (will timeout after 3 seconds - this is normal)
-timeout 3 pnpm mcp:vercel     # Should show "Starting Vercel MCP Server..."
-timeout 3 pnpm mcp:stripe     # Should show "Starting Stripe MCP Server..."
-timeout 3 pnpm mcp:neon       # Will fail if NEON_API_KEY not set
-timeout 3 pnpm mcp:supabase   # Will fail if SUPABASE_URL not set
-timeout 3 pnpm mcp:playwright # Should show "Starting Playwright MCP Server..."
-timeout 3 pnpm mcp:next-devtools # Should show "Starting Next.js DevTools MCP..."
+timeout 3 tsx packages/mcp/src/servers/vercel.ts     # Should show "Starting Vercel MCP Server..."
+timeout 3 tsx packages/mcp/src/servers/stripe.ts     # Should show "Starting Stripe MCP Server..."
+timeout 3 tsx packages/mcp/src/servers/neon.ts       # Will fail if NEON_API_KEY not set
+timeout 3 tsx packages/mcp/src/servers/playwright.ts # Should show "Starting Playwright MCP Server..."
+timeout 3 tsx packages/mcp/src/servers/next-devtools.ts # Should show "Starting Next.js DevTools MCP..."
 ```
 
 ### Verify All Servers Start
 
 ```bash
 # Start all servers (Ctrl+C to stop)
-pnpm mcp:all
+# start each server with tsx packages/mcp/src/servers/<name>.ts (no mcp:all alias)
 
 # Expected output:
 # [0] ✅ Vercel MCP Server running
 # [1] ✅ Stripe MCP Server running
 # [2] ⚠️ NeonDB MCP: Missing NEON_API_KEY
-# [3] ⚠️ Supabase MCP: Missing SUPABASE_URL
 # [4] ✅ Playwright MCP Server running
 # [5] ✅ Next.js DevTools MCP Server running
 ```
@@ -714,7 +628,7 @@ pnpm mcp:all
 Use this checklist to verify everything is working:
 
 - [ ] CMS dev server running (`cd apps/admin && pnpm dev`)
-- [ ] Next.js DevTools MCP running (`pnpm mcp:next-devtools`)
+- [ ] Next.js DevTools MCP running (`tsx packages/mcp/src/servers/next-devtools.ts`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")
 - [ ] Can query errors (ask: "what errors are in my app?")
@@ -758,7 +672,6 @@ All MCP servers are **completely free**:
 | Vercel | ✅ Working | `vercel-mcp@0.0.7` | `VERCEL_API_KEY` |
 | Stripe | ✅ Working | `@stripe/mcp@0.1.4` | `STRIPE_SECRET_KEY` |
 | NeonDB | ⚠️ Needs API Key | `@neondatabase/mcp-server-neon@0.6.5` | `NEON_API_KEY` |
-| Supabase | ⚠️ Needs Credentials | `supabase-mcp@1.5.0` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 | Playwright | ✅ Working | `@executeautomation/playwright-mcp-server@1.0.12` | None |
 | Next.js DevTools | ✅ Working | `next-devtools-mcp@0.3.9` | None (requires Next.js 16+) |
 
@@ -769,9 +682,8 @@ All MCP servers are **completely free**:
 - [MCP Fixes 2025](./MCP_FIXES_2025.md) - Recent MCP updates and fixes
 - [Next.js DevTools Demo](./NEXTJS_DEVTOOLS_MCP_DEMO.md) - Demo and examples
 - [MCP Demo Interaction](./demo-mcp-interaction.md) - Interaction examples
-- [Neon API Key Setup](./ENVIRONMENT_VARIABLES_GUIDE.md) - Detailed Neon setup
-- [Supabase IPv4/IPv6](./DATABASE.md) - Network compatibility
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Neon API Key Setup](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Detailed Neon setup
+- [Environment Variables Guide](../../docs/ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Master Index](../INDEX.md) - Complete documentation index
 
 ---
@@ -781,7 +693,6 @@ All MCP servers are **completely free**:
 - [Next.js DevTools MCP GitHub](https://github.com/vercel/next-devtools-mcp)
 - [Next.js 16 MCP Documentation](https://nextjs.org/docs)
 - [Model Context Protocol Spec](https://modelcontextprotocol.io)
-- [Supabase API Key Changes Discussion](https://github.com/orgs/supabase/discussions/29260)
 
 ---
 

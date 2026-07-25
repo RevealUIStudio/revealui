@@ -7,11 +7,11 @@ category: reference
 audience: developer
 ---
 
-**Last Updated:** 2026-07-11
+**Last Updated:** 2026-07-22
 **Packages:** `@revealui/presentation`, `@revealui/core`
 **Total Components:** **65 native components in `@revealui/presentation`** (this catalog also documents admin and rich-text UI in `@revealui/core`, listed separately below).
 
-> Counting rule (enforced in CI by `pnpm validate:claims`; canonical source `scripts/validate/claim-drift.ts` `countUIComponents()`, canonical value in `apps/marketing/app/content/site.ts` `METRICS`): the 61 figure counts `.tsx` files directly in `packages/presentation/src/components/`, excluding `_`-prefixed internal helpers. The package's `packages/presentation/src/primitives/` subpath (Box, Flex, Grid, Text, Heading, Slot; 6 files, listed under Primitives below) ships from the same package but is a separate directory the validator does not scan, so it is not part of the 61. `@revealui/core` admin/rich-text counts below are catalog-maintained, not CI-gated.
+> Counting rule (enforced in CI by `pnpm validate:claims`; canonical source `scripts/validate/claim-drift.ts` `countUIComponents()`, canonical value in `apps/marketing/app/content/site.ts` `METRICS`): the **65** figure counts `.tsx` files directly in `packages/presentation/src/components/`, excluding `_`-prefixed internal helpers. The package's `packages/presentation/src/primitives/` subpath (Box, Flex, Grid, Text, Heading, Slot; 6 files, listed under Primitives below) ships from the same package but is a separate directory the validator does not scan, so it is not part of the 65. `@revealui/core` admin/rich-text counts below are catalog-maintained, not CI-gated.
 
 ---
 
@@ -1779,7 +1779,7 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Prop-Table Verification Scope
 
-This pass (2026-07-11) verified every per-component entry in `packages/presentation/src/components/` against real source files (61 files) and added rows for the 25 that had no catalog entry. Full prop tables were spot-verified against TypeScript source for the 10 most-used components (by import frequency across `apps/`): `Label`, `Input`, `Button` (`ButtonCVA`), `Badge`, `Card`, `Select`, `Textarea`, `LinkButton`, `Checkbox`, `Avatar`. Four of those ten had real drift, now fixed: `Button`/`Select` were documented under the wrong export name (see the naming notes on each entry), and `LinkButton`/`Checkbox`/`Avatar`/`Badge` prop tables were missing real props (`glow`, `shine`, `onCheckedChange`, `square`, `initials`, the full color union, `AvatarButton`, `BadgeButton`).
+This pass (2026-07-11) verified every per-component entry in `packages/presentation/src/components/` against real source files (live count is **65** `.tsx` files excluding `_`-prefixed helpers; the pass text originally said 61) and added rows for the 25 that had no catalog entry. Full prop tables were spot-verified against TypeScript source for the 10 most-used components (by import frequency across `apps/`): `Label`, `Input`, `Button` (`ButtonCVA`), `Badge`, `Card`, `Select`, `Textarea`, `LinkButton`, `Checkbox`, `Avatar`. Four of those ten had real drift, now fixed: `Button`/`Select` were documented under the wrong export name (see the naming notes on each entry), and `LinkButton`/`Checkbox`/`Avatar`/`Badge` prop tables were missing real props (`glow`, `shine`, `onCheckedChange`, `square`, `initials`, the full color union, `AvatarButton`, `BadgeButton`).
 
 The remaining detailed entries (`Box`, `Flex`, `Grid`, `Text`, `Heading`, `Slot`, `Input`, `Textarea`, `Radio`, `Switch`, `Label`, `FormLabel`, `Fieldset`, `Combobox`, `Listbox`, `Dropdown`, headless variants, `Table`, `Description List`, `Divider`, `Heading`/`Text` (Component), `Link`, `Navbar`, `Sidebar`, `Pagination`, `Alert`, `Dialog`, `Toast`, layout components, and the `@revealui/core` admin/rich-text entries) are carried forward from the prior pass, not re-verified line-by-line in this sweep. The 25 newly added rows (in the "Additional \<Category\> Components" tables) intentionally carry name + one-line purpose only, no prop tables, so they don't imply a verification depth this pass didn't do.
 

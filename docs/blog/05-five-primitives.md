@@ -433,7 +433,7 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 
 RevealUI defaults to open-weight models (no API key, no cloud bill, no vendor lock-in). Cloud providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are opt-in via environment variables. The inference path is auto-detected:
 
-1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
+1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (US-origin allowlist: Nemotron-3-nano, Gemma 3/4, Nemotron Omni)
 2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
 
 ### CRDT-based memory system
@@ -449,7 +449,7 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships **14 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:
+RevealUI ships **13 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT, source-visible, converts to MIT two years after release). The most commonly used:
 
 | Server | Purpose |
 |--------|---------|

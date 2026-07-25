@@ -25,102 +25,44 @@
 //
 // Dependency-free (Node built-ins + the gh CLI) so the CI job needs no package
 // install. No regex — substring matching + Set (repo no-regex posture).
+//
+// SECURITY_PATHS source of truth (GAP-404): scripts/validate/security-paths.shared.json
+// Widen shared surfaces there only. The fleet checker vendors a copy of that
+// file and adds a fleet-only overlay — never hand-edit a second full list.
 
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { execFileSync } = require('child_process');
 const { evaluateGuardrail2 } = require('./guardrail2-verdict.cjs');
 
+/**
+ * Load revealui security path markers from the single editable source
+ * (GAP-404). The fleet checker (.jv) loads this same file + a fleet-only
+ * overlay; never hand-edit a second copy of the shared list.
+ */
+function loadSharedSecurityPaths() {
+  const file = path.join(__dirname, 'security-paths.shared.json');
+  const raw = fs.readFileSync(file, 'utf8');
+  const data = JSON.parse(raw);
+  if (!data || !Array.isArray(data.markers) || data.markers.length === 0) {
+    throw new Error(
+      `security-paths.shared.json must export a non-empty "markers" array (${file})`,
+    );
+  }
+  for (const m of data.markers) {
+    if (typeof m !== 'string' || m.length === 0) {
+      throw new Error(`security-paths.shared.json marker must be a non-empty string: ${m}`);
+    }
+  }
+  return data.markers;
+}
+
 // A changed file is security-sensitive if its path contains ANY of these
 // substrings. Deliberately broad — money, identity, credential, code-exec,
-// and stored-content surfaces.
-const SECURITY_PATHS = [
-  'middleware/auth',
-  'middleware/license',
-  'middleware/entitlements',
-  'middleware/tenant',
-  'middleware/authorization',
-  'routes/webhooks',
-  'routes/license',
-  'routes/terminal',
-  'routes/billing',
-  'lib/billing-status',
-  'lib/access',
-  'lib/validate-startup',
-  'packages/security/',
-  'packages/auth/',
-  'access/roles',
-  'proxy.ts',
-  'collections/operations',
-  'license-crypto',
-  'signing',
-  'webhooks.ts',
-  'routes/agent-stream',
-  'routes/agent-tasks',
-  'packages/mcp/',
-  'remote-client',
-  'routes/auth',
-  'routes/api-keys',
-  'api/auth/',
-  'richtext',
-  'sanitize',
-  'RichText/',
-  'content-validation',
-  // Agent-payment + marketplace money surfaces. Added after an internal
-  // review found the x402 payment-verification path was not listed: a PR
-  // moving the verifier passed this gate unflagged and had to self-declare
-  // its review hold in the PR body.
-  'middleware/x402',
-  'packages/paywall/',
-  'routes/a2a',
-  'routes/marketplace',
-  'routes/revmarket',
-  // Electric shape + sync routes (GAP-349): the shape-route template
-  // (apps/admin/src/lib/api/electric-proxy.ts) authenticates + row-filters
-  // before proxying to Electric, and sync mutation endpoints are the
-  // write-through path Electric itself never touches. Widened ahead of the
-  // fleet knowledge-graph's own kg-nodes/kg-edges shape routes (P4) landing
-  // unflagged. Keep in lockstep with .jv scripts/security-pr-review-check.js.
-  'api/shapes/',
-  'api/sync/',
-  // Self-protection: changes to the security-enforcement machinery must
-  // themselves carry a guardrail-2 verdict. Surfaced 2026-07-16 when the
-  // sec-audit-label-guard work bypassed this gate — a PR editing the gate/guard
-  // scripts or their workflows classified as NOT security-sensitive, so the
-  // machinery that decides what is security-sensitive was itself unguarded.
-  // Keep in lockstep with the fleet checker (separate .jv PR).
-  'scripts/validate/security-review-gate',
-  'scripts/validate/sec-audit-label-decision',
-  'scripts/validate/guardrail2-verdict',
-  '.github/workflows/security-review-gate',
-  '.github/workflows/sec-audit-label-guard',
-  '.github/workflows/security.yml',
-  // Harness hook/policy enforcement plane. packages/harnesses/src/hooks/
-  // decides ALLOW/DENY for editor agent actions and emits the config that
-  // binds editors to it; the package's server surface forks caller-supplied
-  // agent commands. Added after an enforcement-plane PR merged over an
-  // outstanding request-changes because this list did not classify it as
-  // security-sensitive. Whole-package entry, matching packages/mcp//security//
-  // paywall/; adapters ride along fine. Keep in lockstep with the fleet checker.
-  'packages/harnesses/',
-  // GAP-400: the edit-session engine + preview-token flow (HMAC credential
-  // minting/verification, cross-origin postMessage, draft-read authorization)
-  // and the canvas/runtime package that consumes it. A prior PR shipped this
-  // surface and both gates classified it NOT security-sensitive; a manual
-  // review pass covered that PR, but the automated backstop had a hole for
-  // every future PR touching this surface. Keep in lockstep with the fleet
-  // checker (internal tooling, separate .jv PR).
-  'routes/content/sessions',
-  'preview-token',
-  'packages/editor/',
-  // GAP-400: audit-substrate widening. The append-only audit log is the
-  // tamper-evidence record for every other security-sensitive write in the
-  // fleet; its schema, store, and migrations are themselves a
-  // security-sensitive surface. Keep in lockstep with the fleet checker.
-  'packages/db/src/schema/audit-log',
-  'packages/db/src/audit-store',
-  'packages/db/migrations/',
-];
+// and stored-content surfaces. Source: security-paths.shared.json (GAP-404).
+const SECURITY_PATHS = loadSharedSecurityPaths();
 
 // A recorded reviewer verdict = an approving GH review OR one of these labels.
 const SEC_REVIEW_LABELS = new Set([

@@ -23,9 +23,9 @@ export const METRICS = {
   /** Packages in `packages/` directories. Source: claim-drift countPackages. */
   packages: 29,
   /** Apps in `apps/`. Source: claim-drift countApps. */
-  apps: 4,
+  apps: 5,
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
-  workspaces: 33,
+  workspaces: 34,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 1061,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
@@ -35,9 +35,9 @@ export const METRICS = {
    * utilities). Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon concrete
    * adapter subclasses). Source: claim-drift countMCPServers.
    */
-  mcpServers: 14,
+  mcpServers: 13,
   /** Drizzle pgTable declarations across packages/db/src/schema/. Source: claim-drift countDbTables. */
-  dbTables: 96,
+  dbTables: 97,
   /** License split. Source: claim-drift licenseSplit. */
   licenseSplit: {
     /** MIT-licensed packages. */

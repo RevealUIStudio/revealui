@@ -47,6 +47,11 @@
       "import": "./dist/content/index.js",
       "default": "./dist/content/index.js"
     },
+    "./manager": {
+      "types": "./dist/manager/index.d.ts",
+      "import": "./dist/manager/index.js",
+      "default": "./dist/manager/index.js"
+    },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js",
@@ -66,10 +71,21 @@
       "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.js",
       "default": "./dist/hooks/index.js"
+    },
+    "./hotfix": {
+      "types": "./dist/hotfix/index.d.ts",
+      "import": "./dist/hotfix/index.js",
+      "default": "./dist/hotfix/index.js"
+    },
+    "./gates": {
+      "types": "./dist/gates/index.d.ts",
+      "import": "./dist/gates/index.js",
+      "default": "./dist/gates/index.js"
     }
   },
   "files": [
     "dist",
+    "content-snapshots",
     "LICENSE"
   ],
   "funding": {
@@ -91,7 +107,9 @@
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "content:snapshot:check": "vitest run src/__tests__/content-snapshot.test.ts",
+    "content:snapshot:write": "tsx scripts/write-content-snapshots.mts"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

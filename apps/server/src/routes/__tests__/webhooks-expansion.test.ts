@@ -73,6 +73,12 @@ vi.mock('@revealui/core/license', () => ({
   readLicenseExp: vi.fn(async () => null),
 }));
 
+vi.mock('@revealui/core/license/mint-client', () => ({
+  canMintLicense: vi.fn(() => Boolean(process.env.REVEALUI_LICENSE_PRIVATE_KEY?.trim())),
+  mintConfigMissingMessage: vi.fn(() => 'REVEALUI_LICENSE_PRIVATE_KEY not configured'),
+  mintLicenseKey: vi.fn().mockResolvedValue('rv-license-key-test-123'),
+}));
+
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
@@ -142,6 +148,7 @@ vi.mock('@revealui/db', () => ({
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
 import * as licenseModule from '@revealui/core/license';
+import * as mintModule from '@revealui/core/license/mint-client';
 import * as loggerModule from '@revealui/core/observability/logger';
 import webhooksApp from '../webhooks.js';
 
@@ -170,7 +177,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(licenseModule.generateLicenseKey).mockResolvedValue('rv-license-key-test-123');
+    vi.mocked(mintModule.mintLicenseKey).mockResolvedValue('rv-license-key-test-123');
     mockSubscriptionsUpdate.mockResolvedValue({});
     mockSubscriptionsRetrieve.mockResolvedValue({
       status: 'active',

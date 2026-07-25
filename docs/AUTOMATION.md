@@ -52,7 +52,7 @@ Project conventions are loaded from [`CLAUDE.md`](../CLAUDE.md) at the repo root
 
 ### MCP servers
 
-The repo ships custom MCP servers under `packages/mcp/src/servers/`. They're consumed both by the framework's runtime hypervisor and by external agents (Claude Desktop, Claude Code, Zed). See [`packages/mcp/README.md`](../packages/mcp/README.md) for the current adapter set, and `apps/admin`'s MCP integration for in-product usage.
+The repo ships custom MCP servers under `packages/mcp/src/servers/`. External agents (Claude Desktop, Claude Code, Zed) attach them via config. The multi-server process hypervisor remains incubating in source (ADR-007). See [`packages/mcp/README.md`](../packages/mcp/README.md) for the current adapter set, and `apps/admin`'s MCP integration for in-product usage.
 
 The previous `.cursor/mcp-config.json` configuration file is not present in this repo.
 

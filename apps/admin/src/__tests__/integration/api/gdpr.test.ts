@@ -14,6 +14,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
+  // C11 requireSessionWithMfa on account_delete: allow gate by default.
+  checkSessionMfa: vi.fn(() => ({ allowed: true })),
 }));
 
 vi.mock('@/lib/utils/revealui-singleton', () => ({

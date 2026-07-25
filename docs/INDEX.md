@@ -53,6 +53,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 ## Agent Coordination
 
 - [Harness Protocol](./HARNESS_PROTOCOL.md): Agent normalization, capability model, lifecycle events, and the adapter/coordinator surface shipped in `@revealui/harnesses`
+- [Connect OpenCode](./guides/connect-opencode.md): Connect the OpenCode CLI to a RevealUI instance through the governed MCP endpoint
 - [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
 
 ## Pro & Enterprise
@@ -69,6 +70,10 @@ RevealUI is one product in a fleet of seven that compose into an agent-first SDL
 - [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
 - [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
 - [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
+
+## Security & trust
+
+- [Audit receipts](./security/AUDIT_RECEIPTS.md): signed log vs Max Merkle roots, offline CLI, honesty by tier
 
 ## Legal
 

@@ -1,8 +1,10 @@
 /**
- * Structured Logging Infrastructure
+ * Structured Logging Infrastructure (canonical core facade)
  *
- * Re-exports from @revealui/utils to maintain backward compatibility.
- * The actual implementation has been moved to @revealui/utils to break circular dependencies.
+ * Preferred import for packages that already depend on `@revealui/core`
+ * (ADR-008). Re-exports `@revealui/utils/logger` and adds core-only helpers
+ * (`createRequestLogger`, `logPerformance`, …). Leaf packages without a core
+ * dependency should import `@revealui/utils/logger` directly.
  */
 
 // Import logger for internal use

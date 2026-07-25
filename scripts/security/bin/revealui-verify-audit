@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# GAP-355 Stage 4 S4-5 — offline Merkle anchor verifier (no network).
+# Prefer: pnpm verify:audit-anchor -- …
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+exec pnpm --dir "$ROOT" exec tsx scripts/security/verify-audit-anchor.ts "$@"

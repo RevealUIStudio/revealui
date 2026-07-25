@@ -1,12 +1,15 @@
 /**
- * CSRF helpers for the admin client.
+ * CSRF helpers for browser clients (admin, auth hooks, agent stream).
+ *
+ * Single source of truth for reading the JS-readable `revealui-csrf` cookie
+ * (fleet-redundancy P2-C). Consumers: this package's admin APIClient,
+ * `@revealui/auth/react` (re-export), `@revealui/ai` useAgentStream.
  *
  * The admin proxy and the api server's csrfMiddleware require any unsafe
- * request carrying a `revealui-session` cookie to echo the JS-readable
- * `revealui-csrf` cookie as an `X-CSRF-Token` header. The token is re-read
- * immediately before each request because the proxy re-issues the cookie
- * whenever it no longer validates against the current session (e.g. after
- * re-login or session rotation).
+ * request carrying a `revealui-session` cookie to echo this cookie as an
+ * `X-CSRF-Token` header. Re-read immediately before each request because
+ * the proxy re-issues the cookie when it no longer validates against the
+ * current session (e.g. after re-login or session rotation).
  */
 
 /**

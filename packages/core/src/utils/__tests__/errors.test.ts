@@ -49,6 +49,15 @@ describe('Error Classes', () => {
       expect(err.field).toBe('email');
       expect(err.value).toBe('bad@');
       expect(err.name).toBe('ValidationError');
+      expect(err.status).toBe(400);
+      expect(err.statusCode).toBe(400);
+    });
+
+    it('allows optional value for field-ingress throws', () => {
+      const err = new ValidationError('Unsafe URL scheme', 'url');
+      expect(err.field).toBe('url');
+      expect(err.value).toBeUndefined();
+      expect(err).toBeInstanceOf(ValidationError);
     });
   });
 

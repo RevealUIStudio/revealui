@@ -19,7 +19,8 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **14 MCP Servers** - Code Validator, Contracts Introspection, RevealUI Docs, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, and the Adapter base (BaseAdapter with retry and idempotency, plus the Vercel/Stripe/Neon adapter subclasses). This roster matches the CI counter in `scripts/validate/claim-drift.ts` (adapter counted, the underscore-prefixed email-provider utility not); the count is enforced by `pnpm validate:claims`. Of the 14, eight are RevealUI-authored and six are first-party launchers that start vendor MCP server packages.
+- **13 MCP Servers** - Code Validator, Contracts Introspection, RevealUI Docs, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Vercel, and the Adapter base (BaseAdapter with retry and idempotency, plus the Vercel/Stripe/Neon adapter subclasses). This roster matches the CI counter in `scripts/validate/claim-drift.ts` (adapter counted, the underscore-prefixed email-provider utility not); the count is enforced by `pnpm validate:claims`. Of the 13, eight are RevealUI-authored and five are first-party launchers that start vendor MCP server packages.
+- **MCPHypervisor (incubating)** - Multi-server process manager in source (`src/hypervisor.ts`). Not started by apps at boot today (ADR-007). Use `revealui-mcp` / per-server launchers for day-to-day attach.
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
 - **Documentation** - Complete guides and per-server docs
@@ -66,12 +67,8 @@ packages/mcp/
 │   ├── servers/          # MCP server implementations (run `ls packages/mcp/src/servers/` for the current list)
 │   │   ├── code-validator.ts   ← AI code standards enforcer
 │   │   └── …                   ← Neon, Next.js DevTools, Playwright, RevealUI-*, Stripe, Supabase, Vercel
-│   ├── config/           # Configuration utilities
-│   │   ├── index.ts
-│   │   ├── config.json
-│   │   └── README.md
-│   └── adapters/         # Database adapters
-│       └── db.ts
+│   ├── config/           # Configuration utilities (index.ts, config.json)
+│   └── adapters/         # Database adapters (db.ts)
 ├── configs/              # Template configurations
 │   ├── claude-template.json
 │   └── README.md
@@ -105,7 +102,7 @@ tsx packages/mcp/src/servers/code-validator.ts
 Deploy and manage Vercel projects.
 
 ```bash
-pnpm mcp:vercel
+tsx packages/mcp/src/servers/vercel.ts
 ```
 
 ### 3. Stripe
@@ -114,7 +111,7 @@ pnpm mcp:vercel
 Payment processing and billing operations.
 
 ```bash
-pnpm mcp:stripe
+tsx packages/mcp/src/servers/stripe.ts
 ```
 
 ### 4. Neon
@@ -123,34 +120,25 @@ pnpm mcp:stripe
 Database operations and SQL queries.
 
 ```bash
-pnpm mcp:neon
+tsx packages/mcp/src/servers/neon.ts
 ```
 
-### 5. Supabase
-**Status:** Available (requires API key)
-
-Supabase project management and CRUD operations.
-
-```bash
-pnpm mcp:supabase
-```
-
-### 6. Playwright
+### 5. Playwright
 **Status:** Available
 
 Browser automation and web scraping.
 
 ```bash
-pnpm mcp:playwright
+tsx packages/mcp/src/servers/playwright.ts
 ```
 
-### 7. Next.js DevTools
+### 6. Next.js DevTools
 **Status:** Available
 
 Next.js 16+ runtime diagnostics and automation.
 
 ```bash
-pnpm mcp:next-devtools
+tsx packages/mcp/src/servers/next-devtools.ts
 ```
 
 ### 8. Contracts Introspection
@@ -187,11 +175,6 @@ STRIPE_SECRET_KEY=sk_test_...
 
 # Neon MCP
 NEON_API_KEY=neon_...
-
-# Supabase MCP
-SUPABASE_URL=https://....supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
 ## Documentation
@@ -218,18 +201,22 @@ pnpm typecheck
 pnpm lint
 ```
 
-## Package Scripts (Root)
+## Running servers
+
+There are no root `pnpm mcp:*` script aliases. Start a server with `tsx` against the file under `src/servers/` (underscore-prefixed files are helpers, not counted servers):
 
 ```bash
-# Start individual MCP servers
-pnpm mcp:vercel
-pnpm mcp:stripe
-pnpm mcp:neon
-pnpm mcp:supabase
-pnpm mcp:playwright
-pnpm mcp:next-devtools
+# Examples (from monorepo root)
+tsx packages/mcp/src/servers/code-validator.ts
+tsx packages/mcp/src/servers/vercel.ts
+tsx packages/mcp/src/servers/stripe.ts
+tsx packages/mcp/src/servers/neon.ts
+tsx packages/mcp/src/servers/playwright.ts
+tsx packages/mcp/src/servers/next-devtools.ts
+tsx packages/mcp/src/servers/contracts.ts
+tsx packages/mcp/src/servers/docs.ts
 
-# Setup MCP configuration
+# Copy Claude config template
 pnpm setup:mcp
 ```
 
@@ -272,5 +259,5 @@ FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../..
 ---
 
 **Status:** ✅ Consolidated and Active
-**Servers:** 14 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
+**Servers:** 13 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
 **Last Updated:** 2026-05-03

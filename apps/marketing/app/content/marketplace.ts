@@ -55,12 +55,13 @@ export const MARKETPLACE_DISCOVERY_STEPS: readonly DiscoveryStep[] = [
     step: '1',
     title: 'Discover',
     description:
-      'Agents find available tools through the MCP hypervisor. Each server advertises its capabilities and required permissions.',
+      'Agents attach MCP servers that advertise tools and required permissions through the open protocol.',
   },
   {
     step: '2',
     title: 'Route',
-    description: 'The MCP hypervisor routes the call to the right server.',
+    description:
+      'Each call targets the matching MCP server. A multi-server process hypervisor is available in source when you wire multi-hosting.',
   },
   {
     step: '3',
@@ -90,11 +91,6 @@ export const MARKETPLACE_MCP_SERVERS: readonly McpServer[] = [
   {
     name: 'Neon',
     description: 'Query and manage Neon PostgreSQL databases: branches, roles, and SQL execution.',
-    category: 'Database',
-  },
-  {
-    name: 'Supabase',
-    description: 'Interact with Supabase for vector storage, auth, and real-time subscriptions.',
     category: 'Database',
   },
   {

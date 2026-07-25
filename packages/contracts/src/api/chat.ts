@@ -14,7 +14,7 @@ const TextPartSchema = z.object({
 });
 
 /** Image content part  -  base64 data URL or HTTPS URL.
- *  Used with vision-capable models (inference-snaps gemma3/qwen-vl, GPT-4o, etc.) */
+ *  Used with vision-capable models (inference-snaps gemma4/omni, GPT-4o, etc.) */
 const ImagePartSchema = z.object({
   type: z.literal('image_url'),
   image_url: z.object({
@@ -32,7 +32,7 @@ export type ContentPart = z.infer<typeof ContentPartSchema>;
  *
  * Content may be a plain string or a multipart array (text + images).
  * Multipart content is passed through to OpenAI-compatible providers,
- * enabling vision models such as gemma3, qwen-vl, and GPT-4o.
+ * enabling vision models such as gemma4, nemotron-3-nano-omni, and GPT-4o.
  */
 export const ChatMessageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),

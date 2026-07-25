@@ -5,7 +5,7 @@
  * Handles the _json column pattern used for storing complex field types.
  */
 
-import { defaultLogger } from '../instance/logger.js';
+import { logger } from '../observability/logger.js';
 import type { RevealDocument } from '../types/index.js';
 
 /**
@@ -78,7 +78,9 @@ export function deserializeJsonFields(
       }
     } catch (error) {
       // Invalid JSON - log for debugging but continue
-      defaultLogger.warn(`Failed to parse _json in ${tableName || 'unknown'}:`, error);
+      logger.warn(`Failed to parse _json in ${tableName || 'unknown'}`, {
+        error: error instanceof Error ? { message: error.message, name: error.name } : error,
+      });
     }
   }
 

@@ -51,7 +51,7 @@ RevealUI's AI agents run on open source models locally. The recommended path is 
 
 ```bash
 # Install a model (one command)
-sudo snap install gemma3
+sudo snap install nemotron-3-nano
 
 # Check status
 gemma3 status
@@ -79,7 +79,7 @@ cd RevealUI
 direnv allow        # Nix builds and activates the full dev environment
 
 # Install a model via inference snaps (recommended)
-sudo snap install gemma3
+sudo snap install nemotron-3-nano
 
 # Or use Ollama
 ollama pull gemma4:e2b
@@ -99,7 +99,7 @@ flake.nix
 └── devShell
     └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-sudo snap install gemma3             # Or: ollama pull gemma4:e2b
+sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
 └── OpenAI-compatible API served locally
 
 @revealui/ai                         # Agent orchestration routes to local model
@@ -129,7 +129,7 @@ Running locally doesn't mean running poorly. The RevealUI agent stack has the sa
 
 - **Planning and tools**  -  agents can create todos, read and write files, execute shell commands
 - **Memory**  -  episodic memory, working memory, CRDT-based persistence across sessions
-- **MCP integrations**  -  14 first-party MCP servers (Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class)
+- **MCP integrations**  -  13 first-party MCP servers (Stripe, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe / Docs servers, the contracts introspection server, and the adapter base class)
 - **Orchestration**  -  multi-agent coordination, sub-agent spawning, streaming
 
 What you do give up: the raw capability of a 70B+ cloud model. Smaller local models like Gemma 4 are excellent for structured tasks  -  code generation, data processing, form filling, API orchestration  -  but won't match a frontier model on open-ended reasoning. For most business automation use cases, that's an acceptable trade.

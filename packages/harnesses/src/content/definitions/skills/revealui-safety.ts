@@ -28,9 +28,7 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 
 ## Database Imports
 
-\`@supabase/supabase-js\` has been phased out from internal runtime — do not reintroduce it as a runtime dependency. NeonDB (via \`@revealui/db\` + Drizzle) is the primary store.
-
-The customer-facing Supabase MCP adapter at \`packages/mcp/src/servers/supabase.ts\` is a separate concern (it spawns the customer's \`supabase-mcp\` package for installer customers using Supabase) and does not import \`@supabase/supabase-js\` into the app.
+\`@supabase/supabase-js\` has been phased out from internal runtime — do not reintroduce it as a runtime dependency. NeonDB (via \`@revealui/db\` + Drizzle) is the primary store. The legacy customer Supabase MCP adapter was also removed; do not re-add \`supabase-mcp\` launchers.
 
 ## Code Quality
 

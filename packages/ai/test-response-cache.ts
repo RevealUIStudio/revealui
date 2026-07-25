@@ -19,7 +19,7 @@ async function testResponseCaching() {
   const client = new LLMClient({
     provider: 'inference-snaps',
     apiKey: 'inference-snaps',
-    model: process.env.LLM_MODEL || 'gemma3',
+    model: process.env.LLM_MODEL || 'nemotron-3-nano',
     baseURL: process.env.INFERENCE_SNAPS_BASE_URL,
     enableResponseCache: true,
     responseCacheOptions: {
@@ -92,7 +92,7 @@ async function testResponseCaching() {
         '\n   Hint: Inference Snaps must be reachable at',
         process.env.INFERENCE_SNAPS_BASE_URL ?? 'http://localhost:9090/v1',
       );
-      console.error('   Install: sudo snap install gemma3 (or your model of choice).');
+      console.error('   Install: sudo snap install nemotron-3-nano (US-origin allowlist).');
     }
     process.exit(1);
   }

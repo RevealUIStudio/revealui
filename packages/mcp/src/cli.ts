@@ -7,25 +7,28 @@
  *   revealui-mcp <server>
  *   npx @revealui/mcp <server>
  *
- * Each server module self-starts on import (its own main() runs). The
- * allowlist below is static so no user input ever reaches an import path.
+ * The allowlist is static so no user input ever reaches an import path.
  * code-validator is repo-only (tsx, excluded from the build) and is not
  * listed here.
+ *
+ * External launchers (neon/stripe/vercel/playwright/next-devtools) export
+ * `launch*Mcp` and must not auto-start on import (barrel-safe for GAP-406).
+ * First-party stdio servers still self-start on import of their entry file.
  */
 
 const SERVERS: Record<string, () => Promise<unknown>> = {
   contracts: () => import('./servers/contracts.js'),
   docs: () => import('./servers/docs.js'),
-  neon: () => import('./servers/neon.js'),
-  'next-devtools': () => import('./servers/next-devtools.js'),
-  playwright: () => import('./servers/playwright.js'),
+  neon: () => import('./servers/neon.js').then((m) => m.launchNeonMcp()),
+  'next-devtools': () =>
+    import('./servers/next-devtools.js').then((m) => m.launchNextDevtoolsMcp()),
+  playwright: () => import('./servers/playwright.js').then((m) => m.launchPlaywrightMcp()),
   'revealui-content': () => import('./servers/revealui-content.js'),
   'revealui-email': () => import('./servers/revealui-email.js'),
   'revealui-memory': () => import('./servers/revealui-memory.js'),
   'revealui-stripe': () => import('./servers/revealui-stripe.js'),
-  stripe: () => import('./servers/stripe.js'),
-  supabase: () => import('./servers/supabase.js'),
-  vercel: () => import('./servers/vercel.js'),
+  stripe: () => import('./servers/stripe.js').then((m) => m.launchStripeMcp()),
+  vercel: () => import('./servers/vercel.js').then((m) => m.launchVercelMcp()),
 };
 
 const requested = process.argv[2];

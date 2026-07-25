@@ -49,9 +49,9 @@ Specifics:
 - `getVectorClient()` deprecated alias removed; all callers use `getRestClient()`.
 - `DATABASE_URL` env var removed from required set; `POSTGRES_URL` is canonical.
 - Dead Supabase setup files (`packages/db/src/supabase/`) deleted.
-- Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) retained as a
-  customer-facing adapter — this is for customers who use Supabase, not internal
-  RevealUI infrastructure.
+- Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) was initially
+  retained as a customer-facing adapter (not internal infrastructure). That
+  adapter was later removed (2026-07-23); use Neon MCP for agent DB tooling.
 
 ## What Was Removed
 
@@ -84,7 +84,8 @@ As of 2026-05-16 (this PR, `chore/postgres-supabase-cleanup-and-doc-hygiene`):
 
 **Neutral**:
 - ElectricSQL is unaffected — it has always synced from Neon, not Supabase.
-- The Supabase MCP adapter for customers remains in `packages/mcp/`.
+- The Supabase MCP adapter for customers was later removed from `packages/mcp/`
+  (2026-07-23); Neon MCP remains for agent database tooling.
 
 **Negative**:
 - None identified. Neon pgvector support is GA and production-stable.

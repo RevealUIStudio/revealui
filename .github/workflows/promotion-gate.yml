@@ -1,13 +1,10 @@
 name: promotion-gate
 
-# Fires on PRs targeting main. Enforces:
-#   1. Head branch is 'test' (no feature → main promotion).
-#   2. test contains all of main (covers "test behind main" and
-#      "main was squash-merged into test instead of merge-committed").
-#
-# Pairs with branch protection requiring this check to pass on
-# public repos. On private repos (free plan), enforcement is by
-# convention — the visible red X surfaces the gap.
+# Thin caller — logic lives in the org-shared composite action:
+#   RevealUIStudio/.github/.github/actions/promotion-gate
+# Composite (not workflow_call) so the required check context stays exactly
+# "promotion-gate" (repository rulesets). Pin is an immutable commit SHA;
+# bump deliberately or via Dependabot github-actions.
 
 on:
   pull_request:
@@ -20,55 +17,10 @@ jobs:
   promotion-gate:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify head branch is 'test' from the canonical repo
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          BASE_REPO: ${{ github.repository }}
-        run: |
-          # A fork can name a branch 'test' and open a PR to main; head_ref alone
-          # ('test') would pass, and the ancestry check below only proves the fork
-          # branch contains main — not that the changes were promoted through THIS
-          # repo's test branch. Require the PR to originate from this repository.
-          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
-            echo "::error title=Cross-repo promotion::Promotion PRs to main must come from '$BASE_REPO' (this repo's 'test' branch), not a fork. Got head repo: '$HEAD_REPO'."
-            exit 1
-          fi
-          if [ "$HEAD_REF" != "test" ]; then
-            echo "::error title=Wrong head branch::Promotion PRs to main must come from 'test'. Got: '$HEAD_REF'."
-            echo ""
-            echo "Feature branches must merge to 'test' first, then 'test' promotes to 'main'."
-            exit 1
-          fi
-
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: RevealUIStudio/.github/.github/actions/promotion-gate@092bb8d0dd0cb57e7aaa449399468a3cedf97b52
         with:
-          persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - name: Verify test contains all of main
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
-        run: |
-          git fetch origin "$BASE_REF" --depth=200
-          base_sha=$(git rev-parse "origin/$BASE_REF")
-
-          if git merge-base --is-ancestor "$base_sha" HEAD; then
-            echo "test contains all of $BASE_REF ✓"
-            exit 0
-          fi
-
-          behind=$(git rev-list --count "HEAD..origin/$BASE_REF")
-          echo "::error title=test is behind main::test is $behind commit(s) behind '$BASE_REF'. Backflow main into test using a merge commit (NOT squash):"
-          echo ""
-          echo "  git checkout test"
-          echo "  git fetch origin"
-          echo "  git merge --no-ff origin/$BASE_REF"
-          echo "  git push origin test"
-          echo ""
-          echo "Squash-merging main into test produces the same red X — main's parentage isn't preserved."
-          echo ""
-          echo "Missing commits:"
-          git log --oneline -20 "HEAD..origin/$BASE_REF"
-          exit 1
+          head_ref: ${{ github.head_ref }}
+          head_repo: ${{ github.event.pull_request.head.repo.full_name }}
+          base_repo: ${{ github.repository }}
+          head_sha: ${{ github.event.pull_request.head.sha }}
+          base_ref: ${{ github.event.pull_request.base.ref }}
