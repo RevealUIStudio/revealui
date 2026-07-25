@@ -15,13 +15,15 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { dirname, extname, join, normalize } from 'node:path';
 
 /**
- * Structural contracts covering this gateway's real dependencies on modules
- * deleted per the daemon-ownership ADR (2026-07-25): `server/rpc-server.ts`,
- * `storage/daemon-store.ts`, and `server/spawner-service.ts`. The RevDev daemon
- * owns the coordination runtime; this gateway is ported into that daemon
- * separately (the ADR's wire-path steps). Until the port lands, these
- * interfaces cover each module's actual usage here so the gateway keeps
- * compiling and its tests keep passing against mocks.
+ * Structural contracts for this gateway's dependencies, so it stays decoupled
+ * from concrete modules per the daemon-ownership ADR (2026-07-25). Two of these
+ * cover modules the ADR DELETED — `server/rpc-server.ts` and
+ * `server/spawner-service.ts` — and one decouples from the KEPT
+ * `storage/daemon-store.ts` (retained as a STOP) so the gateway does not import
+ * the concrete store. The RevDev daemon owns the coordination runtime; this
+ * gateway is ported into that daemon separately (the ADR's wire-path steps).
+ * Until the port lands, these interfaces cover each module's actual usage here
+ * so the gateway keeps compiling and its tests keep passing against mocks.
  */
 
 /** Covers `RpcServer.dispatchHttp`, the gateway's only RPC-server usage. */
