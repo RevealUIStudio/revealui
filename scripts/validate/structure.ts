@@ -12,8 +12,31 @@
  */
 
 import { existsSync, readdirSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { checkManager } from '../../packages/harnesses/src/manager/index.js';
+
+// The manager module is resolved through the built dist (manager-resolver.cjs,
+// the same pattern gates-resolver.cjs uses for the `./gates` subpath) rather
+// than a `src/` reach-in. GAP-421 §6.2: the previous relative import bypassed
+// both the export map and dist/, so the `./manager` subpath export had never
+// actually been exercised by its only consumer. Resolving through dist closes
+// that gap; CI builds @revealui/harnesses before running structure validation
+// (see .github/workflows/ci.yml) so this always resolves there.
+interface ManagerModuleShape {
+  checkManager: (projectRoot: string) => {
+    ok: boolean;
+    errors: string[];
+    warnings: string[];
+  };
+}
+
+function loadManagerModule(): ManagerModuleShape | null {
+  const require = createRequire(import.meta.url);
+  const { resolveManagerModule } = require('./manager-resolver.cjs') as {
+    resolveManagerModule: () => ManagerModuleShape | null;
+  };
+  return resolveManagerModule();
+}
 
 interface ValidationRule {
   path: string;
@@ -462,18 +485,27 @@ class StructureValidator {
     // `revealui-harnesses manager check` (no parallel validator).
     if (existsSync('packages/harnesses') || existsSync('.revealui/manager.json')) {
       console.log('\n🔍 Checking project manager (.revealui)...');
-      const managerResult = checkManager(process.cwd());
-      for (const warning of managerResult.warnings) {
-        console.log(`⚠️  ${warning}`);
-      }
-      if (!managerResult.ok) {
-        for (const error of managerResult.errors) {
-          console.log(`❌ ${error}`);
-        }
-        console.log('   Run: pnpm exec revealui-harnesses manager materialize');
+      const managerModule = loadManagerModule();
+      if (!managerModule) {
+        console.log(
+          '❌ @revealui/harnesses manager module not built (packages/harnesses/dist/manager missing)',
+        );
+        console.log('   Run: pnpm --filter @revealui/harnesses build');
         allValid = false;
       } else {
-        console.log('✅ Project manager (.revealui/manager.json) present and valid');
+        const managerResult = managerModule.checkManager(process.cwd());
+        for (const warning of managerResult.warnings) {
+          console.log(`⚠️  ${warning}`);
+        }
+        if (!managerResult.ok) {
+          for (const error of managerResult.errors) {
+            console.log(`❌ ${error}`);
+          }
+          console.log('   Run: pnpm exec revealui-harnesses manager materialize');
+          allValid = false;
+        } else {
+          console.log('✅ Project manager (.revealui/manager.json) present and valid');
+        }
       }
     }
 
@@ -543,7 +575,15 @@ export function validateProjectManager(root: string = process.cwd()): boolean {
     console.log('skip: no packages/harnesses or .revealui/manager.json');
     return true;
   }
-  const managerResult = checkManager(root);
+  const managerModule = loadManagerModule();
+  if (!managerModule) {
+    console.error(
+      'ERROR: @revealui/harnesses manager module not built (packages/harnesses/dist/manager missing)',
+    );
+    console.error('Run: pnpm --filter @revealui/harnesses build');
+    return false;
+  }
+  const managerResult = managerModule.checkManager(root);
   for (const warning of managerResult.warnings) {
     console.warn(`WARN: ${warning}`);
   }

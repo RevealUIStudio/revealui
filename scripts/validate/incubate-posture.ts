@@ -6,6 +6,21 @@
  * - MCPHypervisor (packages/mcp)
  * - @revealui/ai/skills
  * - @revealui/ai/observability
+ * - @revealui/harnesses workboard (WorkboardManager) — GAP-421 §8
+ * - @revealui/harnesses detection/adapters (autoDetectHarnesses,
+ *   findAllHarnessProcesses/findClaudeCodeSockets/findHarnessProcesses/
+ *   findProcesses) — GAP-421 §8. `adapters/` has no exported symbol of its
+ *   own (the three adapter classes are not re-exported from the package
+ *   root); it is only reachable through `autoDetectHarnesses`, so gating
+ *   that entry point covers both modules.
+ * - @revealui/harnesses registry (HarnessRegistry) — GAP-421 §8
+ *
+ * The harnesses entries route the GAP-421 routing audit's INCUBATE set (§7,
+ * §8: `workboard/`, `adapters/`, `detection/`, `registry/`) onto this
+ * existing allowlist pattern rather than a new validator, per the audit's
+ * own step 7 ("Extend incubate-posture.ts with a harnesses allowlist rather
+ * than writing a new validator"). Routing ratified by owner directive
+ * 2026-07-25.
  *
  * Exit 0 = incubate holds. Exit 1 = app production path imports incubating surface.
  */
@@ -97,6 +112,31 @@ const FORBIDDEN: { label: string; needles: string[] }[] = [
       'from "@revealui/ai/observability/',
     ],
   },
+  {
+    label: '@revealui/harnesses workboard',
+    needles: [
+      "from '@revealui/harnesses/workboard'",
+      'from "@revealui/harnesses/workboard"',
+      'WorkboardManager } from',
+      'WorkboardManager, ',
+      '{ WorkboardManager',
+    ],
+  },
+  {
+    label: '@revealui/harnesses detection/adapters',
+    needles: [
+      'autoDetectHarnesses } from',
+      'autoDetectHarnesses, ',
+      '{ autoDetectHarnesses',
+      'findAllHarnessProcesses } from',
+      'findAllHarnessProcesses, ',
+      '{ findAllHarnessProcesses',
+    ],
+  },
+  {
+    label: '@revealui/harnesses registry',
+    needles: ['HarnessRegistry } from', 'HarnessRegistry, ', '{ HarnessRegistry'],
+  },
 ];
 
 function main(): void {
@@ -116,9 +156,7 @@ function main(): void {
       if (isExemptAppPath(rel, rule.label)) continue;
       for (const n of rule.needles) {
         if (source.includes(n)) {
-          errors.push(
-            `${rel}: imports incubating surface ${rule.label} (ADR-007; needs WIRE ticket first)`,
-          );
+          errors.push(`${rel}: imports incubating surface ${rule.label} (needs WIRE ticket first)`);
           break;
         }
       }
@@ -126,7 +164,7 @@ function main(): void {
   }
 
   console.log('\n================================================================');
-  console.log('  C11 incubate posture (ADR-007)');
+  console.log('  C11 incubate posture (ADR-007 + GAP-421)');
   console.log('================================================================');
 
   if (errors.length === 0) {
@@ -135,6 +173,9 @@ function main(): void {
     );
     console.log('  ✓ no apps/* production imports of @revealui/ai/skills');
     console.log('  ✓ no apps/* production imports of @revealui/ai/observability');
+    console.log('  ✓ no apps/* production imports of @revealui/harnesses workboard');
+    console.log('  ✓ no apps/* production imports of @revealui/harnesses detection/adapters');
+    console.log('  ✓ no apps/* production imports of @revealui/harnesses registry');
     console.log('================================================================\n');
     process.exit(0);
   }
