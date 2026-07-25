@@ -1,6 +1,6 @@
 {
   "name": "@revealui/auth",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "Database-backed session auth for Hono and Next.js — bcrypt, OAuth, brute-force protection, rate limiting, password reset. Ships with RevealUI.",
   "keywords": [
     "auth",
