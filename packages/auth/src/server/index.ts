@@ -17,6 +17,17 @@ export {
   auditPasswordReset,
   auditSessionRevoked,
 } from './audit-bridge.js';
+// Audit storage boundary + signer composition (GAP-338 — shared by api + admin)
+export {
+  __resetAuditSignerForTest,
+  assertAuditStorageEnv,
+  auditStorageSelfTest,
+  createAuditStore,
+  DrizzleBackedAuditStorage,
+  getAuditRowSigner,
+  installAuditStorage,
+  mapSeverityToDb,
+} from './audit-storage.js';
 export { isSignupAllowed, signIn, signUp } from './auth.js';
 export {
   clearFailedAttempts,
