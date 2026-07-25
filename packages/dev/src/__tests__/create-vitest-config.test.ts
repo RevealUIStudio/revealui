@@ -41,6 +41,20 @@ describe('createVitestConfig', () => {
     expect(config.test?.coverage).toBeUndefined();
   });
 
+  it('omits the coverage include key when coverageInclude is false (loaded-files-only measurement)', () => {
+    const config = createVitestConfig({ coverageInclude: false });
+    const coverage = config.test?.coverage as { include?: string[]; exclude?: string[] };
+    expect(coverage).toBeDefined();
+    expect('include' in coverage).toBe(false);
+    expect(coverage?.exclude).toBeDefined();
+  });
+
+  it('writes the coverage include key by default', () => {
+    const config = createVitestConfig();
+    const coverage = config.test?.coverage as { include?: string[] };
+    expect(coverage?.include).toEqual(['src/**/*.ts']);
+  });
+
   it('merges overrides for env and aliases', () => {
     const config = createVitestConfig({
       overrides: {
