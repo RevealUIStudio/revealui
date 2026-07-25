@@ -33,6 +33,14 @@
  *    built-in Copilot agent-mode tool set (code.visualstudio.com/docs/copilot/agents/agent-tools),
  *    not from the hooks reference itself -- best-effort, same posture as
  *    Cursor's `beforeReadFile` -> synthetic `Read` toolName fallback.
+ *
+ * INTENTIONALLY UNREACHED TODAY (GAP-293 harness parity, GAP-421 §4.2): no
+ * VS Code harness home invokes `revealui-harnesses hook` yet, so this
+ * normalizer has zero live callers. It exists so `runHookCommand` /
+ * `normalizeHookEvent` (`../run-hook.ts`) already dispatch on
+ * `HarnessHookSource` for every editor the harness protocol targets, ahead of
+ * VS Code actually wiring the hook. Not dead code -- do not delete without
+ * re-checking GAP-293's wiring status first.
  */
 
 import type {

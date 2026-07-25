@@ -15,6 +15,14 @@
  *
  * `user_email` is read ONLY to prove the trust boundary: it is never copied
  * onto `HarnessHookIdentity` (design invariant I-1). It stays in `raw`.
+ *
+ * INTENTIONALLY UNREACHED TODAY (GAP-293 harness parity, GAP-421 §4.2): no
+ * Cursor harness home invokes `revealui-harnesses hook` yet, so this
+ * normalizer has zero live callers. It exists so `runHookCommand` /
+ * `normalizeHookEvent` (`../run-hook.ts`) already dispatch on
+ * `HarnessHookSource` for every editor the harness protocol targets, ahead of
+ * Cursor actually wiring the hook. Not dead code — do not delete without
+ * re-checking GAP-293's wiring status first.
  */
 
 import type {

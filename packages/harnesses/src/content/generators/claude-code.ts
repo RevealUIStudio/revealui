@@ -18,8 +18,40 @@ import { MANAGER_CONTENT_OUTPUT } from './types.js';
 
 const CONTENT = MANAGER_CONTENT_OUTPUT;
 
+// Characters that force a YAML scalar to be quoted (fleet no-regex hardline:
+// Set membership over a character class, per .claude/rules/no-regex.md).
+const YAML_QUOTING_CHARS = new Set([
+  ':',
+  '#',
+  '\n',
+  '"',
+  "'",
+  '{',
+  '}',
+  '[',
+  ']',
+  ',',
+  '&',
+  '*',
+  '?',
+  '|',
+  '>',
+  '!',
+  '%',
+  '@',
+  '`',
+]);
+
+function needsYamlQuoting(value: string): boolean {
+  if (value.trim() !== value) return true;
+  for (const char of value) {
+    if (YAML_QUOTING_CHARS.has(char)) return true;
+  }
+  return false;
+}
+
 function yamlEscape(value: string): string {
-  if (/[:#\n"'{}[\],&*?|>!%@`]/.test(value) || value.trim() !== value) {
+  if (needsYamlQuoting(value)) {
     return JSON.stringify(value);
   }
   return value;
