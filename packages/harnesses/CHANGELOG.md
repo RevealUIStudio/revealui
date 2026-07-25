@@ -1,5 +1,23 @@
 # @revealui/harnesses
 
+## 0.10.0
+
+### Minor Changes
+
+- 03560dd: feat(harnesses): GAP-199 native master-spec coupling advisory on file-edit hooks
+
+  Provider-agnostic twin of the Claude PostToolUse master-spec-pr-coupling hook.
+  Warns (never blocks) when contracts/db schema/apps sources edit without the
+  product canon doc dirty; wired through runHookCommand for all editor sources.
+
+- d11130e: Add a `gates` subpath export (GAP-408 control-layer redesign): `evaluateGuardrail2` / `verdictForBody` / `collectVerdicts` (the guardrail-2 verdict-marker parser) and `SHARED_DETECTION_RULES` / `COMMON_EXON` / `STRIPE_LIVE_EXON` (the doc-currency stale-fact detection data). These are now the single editable source for logic that `scripts/validate/guardrail2-verdict.cjs` and `scripts/validate/doc-currency.ts` load at runtime, and that the private revealui-jv checkout's equivalent scripts resolve via an adapter — no vendored copies on either side of the public/private boundary.
+- b5c7c57: Finish the `.revealui` project manager (GAP-406): default `content sync` lands under the manager tree, materialize preserves existing manager.json, structure/CI gate hard-fail on invalid manager when `.revealui` or harnesses change, equal-rank adapter stubs stay gitignored outside the manager tree.
+
+### Patch Changes
+
+- 4ff3280: Pin `parseOpenCodeRunOutput` (GAP-371 Phase 4) against the real `opencode run --format json` output shape, verified live against opencode 1.18.3: newline-delimited JSON (JSONL) events, one per line, not a single JSON document. The parser now extracts the assistant's final `text` event from a real turn instead of mis-treating the JSONL stream as invalid JSON and echoing it back verbatim.
+  - @revealui/core@0.12.1
+
 ## 0.9.0
 
 ### Minor Changes

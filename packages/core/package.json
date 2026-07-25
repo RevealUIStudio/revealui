@@ -1,7 +1,7 @@
 {
   "name": "@revealui/core",
-  "version": "0.12.0",
-  "description": "RevealUI's runtime engine \u2014 admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
+  "version": "0.12.1",
+  "description": "RevealUI's runtime engine — admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
   "license": "MIT",
   "dependencies": {
     "@electric-sql/pglite": "catalog:",
