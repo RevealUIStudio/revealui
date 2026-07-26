@@ -205,6 +205,8 @@ describe('GET /anchors + /anchors/:id/proof (GAP-355 S4-4, PGlite)', () => {
         lastAnchoredSeqTo: number;
         unanchoredSignedCount: number;
         oldestUnanchoredAt: string | null;
+        legacyFloor: number;
+        preFloorSignedCount: number;
       };
     };
     expect(body.tenant).toBe('acct_max');
@@ -213,6 +215,49 @@ describe('GET /anchors + /anchors/:id/proof (GAP-355 S4-4, PGlite)', () => {
     expect(body.lag.lastAnchoredSeqTo).toBe(seqTo);
     expect(body.lag.unanchoredSignedCount).toBe(1);
     expect(body.lag.oldestUnanchoredAt).toBeTruthy();
+    // GAP-429: all-signed history has no legacy era.
+    expect(body.lag.legacyFloor).toBe(0);
+    expect(body.lag.preFloorSignedCount).toBe(0);
+  });
+
+  it('GAP-429: lag names the legacy floor and the sub-floor signed rows', async () => {
+    const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    const unsignedStore = new DrizzleAuditStore(db); // pre-enforcement legacy rows
+    // Legacy era: unsigned seq 1, signed seq 2 interleaved, unsigned seq 3.
+    // Signed era: seq 4..5, anchored (the GAP-427 floor behavior).
+    await unsignedStore.append(makeEntry({ id: 'u1', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's2', tenant: 'acct_max' }));
+    await unsignedStore.append(makeEntry({ id: 'u3', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's4', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's5', tenant: 'acct_max' }));
+
+    const era = await db
+      .select()
+      .from(auditLog)
+      .where(eq(auditLog.tenant, 'acct_max'))
+      .orderBy(asc(auditLog.seq));
+    const eraSignatures = era
+      .filter((r) => r.seq >= 4 && r.signature)
+      .map((r) => r.signature as string);
+    await insertAnchor(eraSignatures, 4, 5);
+
+    const app = createAuthedApp(user, db);
+    const res = await app.request('/anchors');
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      lag: {
+        lastAnchoredSeqTo: number;
+        unanchoredSignedCount: number;
+        legacyFloor: number;
+        preFloorSignedCount: number;
+      };
+    };
+    expect(body.lag.lastAnchoredSeqTo).toBe(5);
+    expect(body.lag.unanchoredSignedCount).toBe(0);
+    // Floor = 3 (highest unsigned seq); the signed row at seq 2 is visible as
+    // pre-floor legacy (row-verifiable, never in a root), not silently absent.
+    expect(body.lag.legacyFloor).toBe(3);
+    expect(body.lag.preFloorSignedCount).toBe(1);
   });
 
   it('returns a verifiable inclusion proof and marks delivered', async () => {

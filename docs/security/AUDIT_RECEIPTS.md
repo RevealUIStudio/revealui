@@ -46,8 +46,10 @@ Positioning foil: "If an agent did it, there's a receipt." That is true for Max 
 - `lastAnchoredSeqTo`
 - `unanchoredSignedCount`
 - `oldestUnanchoredAt`
+- `legacyFloor` (the pre-enforcement floor for this tenant, 0 when there is no legacy era)
+- `preFloorSignedCount` (signed rows at or below the floor: row-verifiable, never in a root)
 
-Until the worker seals the tail (batch size or max lag), those signed rows are real but not yet in a customer-held root. UI and copy should not treat the foil as true for the unanchored tail.
+Until the worker seals the tail (batch size or max lag), those signed rows are real but not yet in a customer-held root. UI and copy should not treat the foil as true for the unanchored tail. The `unanchoredSignedCount` tail covers rows above the last anchor only; rows below the floor are reported separately via `preFloorSignedCount`, never counted as unanchored tail.
 
 ## Legacy floor (pre-enforcement rows)
 

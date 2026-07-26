@@ -21,6 +21,7 @@ import { OpenAPIHono } from '@revealui/openapi';
 import { and, asc, count, desc, eq, gt, gte, isNotNull, lte, max } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { legacyUnsignedFloor } from '../jobs/audit-anchor-sweep.js';
 import { buildAnchorInclusionProof } from '../lib/audit-anchor-proof.js';
 
 interface UserContext {
@@ -153,6 +154,26 @@ app.get('/anchors', async (c) => {
     .orderBy(asc(auditLog.timestamp))
     .limit(1);
 
+  // GAP-429: name the pre-enforcement legacy era instead of going silent about
+  // it. Signed rows at or below the floor are row-verifiable but never enter a
+  // root (GAP-427 — no retro-signing); the existing fields keep their
+  // semantics (unanchored tail = signed rows above the last anchor).
+  const legacyFloor = await legacyUnsignedFloor(db, tenant);
+  let preFloorSignedCount = 0;
+  if (legacyFloor > 0) {
+    const [preFloorRow] = await db
+      .select({ c: count() })
+      .from(auditLog)
+      .where(
+        and(
+          eq(auditLog.tenant, tenant),
+          isNotNull(auditLog.signature),
+          lte(auditLog.seq, legacyFloor),
+        ),
+      );
+    preFloorSignedCount = Number(preFloorRow?.c ?? 0);
+  }
+
   c.header('Cache-Control', 'no-store');
   return c.json(
     {
@@ -164,6 +185,8 @@ app.get('/anchors', async (c) => {
         oldestUnanchoredAt: oldestUnanchored?.timestamp
           ? oldestUnanchored.timestamp.toISOString()
           : null,
+        legacyFloor,
+        preFloorSignedCount,
       },
     },
     200,
