@@ -712,6 +712,38 @@ export class AuditReportGenerator {
 // (RFC 8785 canonicalization over the full row) — see `audit-signing.ts`.
 
 /**
- * Global audit system
+ * Global audit system — process-wide, anchored on `globalThis`.
+ *
+ * A plain module-level singleton is NOT process-wide under a bundler that
+ * duplicates this package's module graph across chunks. The admin production
+ * build does exactly that (Turbopack bundles a separate copy of
+ * `@revealui/security` into the instrumentation chunk and route chunks;
+ * `serverExternalPackages` does not take effect for this workspace package),
+ * so the GAP-338 boot-time persistent-storage swap landed on the
+ * instrumentation copy while every route emitted into its own pristine
+ * in-memory copy — observed live as `/api/health` `audit-storage: unhealthy`
+ * on hosted prod (2026-07-25), the exact cross-bundle failure the #2156
+ * health check exists to catch. Module identity cannot be trusted across
+ * bundles; `globalThis` + `Symbol.for` is the process-wide anchor, so every
+ * copy of this module resolves the same instance and a storage swap installed
+ * by any copy is seen by all of them.
  */
-export const audit = new AuditSystem(new InMemoryAuditStorage());
+const AUDIT_SYSTEM_GLOBAL_KEY = Symbol.for('revealui.security.audit-system');
+
+interface AuditSystemGlobal {
+  [AUDIT_SYSTEM_GLOBAL_KEY]?: AuditSystem;
+}
+
+const auditSystemGlobal = globalThis as AuditSystemGlobal;
+
+function resolveProcessWideAuditSystem(): AuditSystem {
+  const existing = auditSystemGlobal[AUDIT_SYSTEM_GLOBAL_KEY];
+  if (existing) {
+    return existing;
+  }
+  const created = new AuditSystem(new InMemoryAuditStorage());
+  auditSystemGlobal[AUDIT_SYSTEM_GLOBAL_KEY] = created;
+  return created;
+}
+
+export const audit: AuditSystem = resolveProcessWideAuditSystem();
