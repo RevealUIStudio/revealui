@@ -76,6 +76,14 @@ export const auditLog = pgTable(
     index('audit_log_severity_idx').on(table.severity),
     index('audit_log_seq_idx').on(table.seq),
     index('audit_log_tenant_idx').on(table.tenant),
+    // GAP-429: the legacy-floor derivation (max seq WHERE tenant AND signature
+    // IS NULL) runs on the anchors request path and every no-anchor sweep pass.
+    // Without this partial index the healthy no-legacy case scans the tenant's
+    // whole row set to return 0. Unsigned rows are a closed, non-growing era
+    // post-enforcement, so the index stays tiny.
+    index('audit_log_tenant_unsigned_idx')
+      .on(table.tenant, table.seq)
+      .where(sql`${table.signature} IS NULL`),
     check('audit_log_severity_check', sql`severity IN ('info', 'warn', 'critical')`),
   ],
 );

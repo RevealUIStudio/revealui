@@ -13,7 +13,7 @@ import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@reve
 import type { Database } from '@revealui/db/client';
 import { auditAnchors } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createTestDb,
   type TestDb,
@@ -338,6 +338,41 @@ describe('runAuditAnchorSweep (PGlite)', () => {
     expect(result.tenantsSkipped).toBe(1);
     expect(result.errors).toEqual([]);
     expect(await db.select().from(auditAnchors)).toHaveLength(0);
+  });
+
+  it('GAP-429: floor-engaged log fires once per tenant per process (metric every pass)', async () => {
+    // Unique tenant: the throttle Set is module-level, so tenants used by
+    // earlier tests in this file may already be marked as logged.
+    const tenant = 'acct_throttle_only';
+    const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    const unsignedStore = new DrizzleAuditStore(db);
+    await signedStore.append(makeEntry({ id: 'th-s1', tenant }));
+    await unsignedStore.append(makeEntry({ id: 'th-u2', tenant }));
+
+    const { logger } = await import('@revealui/core/observability/logger');
+    const infoSpy = vi.spyOn(logger, 'info');
+    try {
+      const sweepOptions = {
+        db,
+        signer: cryptoSigner,
+        batchSize: 1,
+        canAnchorTenant: async () => true,
+        recordMeter: false,
+        now: () => new Date('2026-07-23T12:00:10.000Z'),
+      };
+      const first = await runAuditAnchorSweep(sweepOptions);
+      const second = await runAuditAnchorSweep(sweepOptions);
+      // Engagement stays observable in the result on EVERY pass...
+      expect(first.tenantsFloorEngaged).toBe(1);
+      expect(second.tenantsFloorEngaged).toBe(1);
+      // ...but the log line fires only once for the tenant.
+      const floorLogs = infoSpy.mock.calls.filter((call) =>
+        String(call[0]).includes(`legacy floor engaged tenant=${tenant}`),
+      );
+      expect(floorLogs).toHaveLength(1);
+    } finally {
+      infoSpy.mockRestore();
+    }
   });
 
   it('no-ops without a signer (unsigned mode)', async () => {
