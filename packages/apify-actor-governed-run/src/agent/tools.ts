@@ -80,16 +80,30 @@ function isBlockedIPv4(ip: string): boolean {
   return false;
 }
 
-/** Blocked IPv6 ranges: loopback (::1), unique local addresses (fc00::/7,
- * covers fd00::/8), link-local (fe80::/10), and IPv4-mapped addresses
- * (::ffff:a.b.c.d), whose embedded IPv4 address is recursively checked
- * against `isBlockedIPv4` -- this is what closes the
- * `[::ffff:127.0.0.1]` / `[::ffff:a9fe:a9fe]` bypasses. */
+/** Render the last two 16-bit groups of an expanded IPv6 address as the dotted
+ * IPv4 address they embed -- shared by the IPv4-mapped (`::ffff:a.b.c.d`) and
+ * NAT64 (`64:ff9b::a.b.c.d`) embed forms below. */
+function embeddedIPv4(groups: number[]): string {
+  const g6 = groups[6] ?? 0;
+  const g7 = groups[7] ?? 0;
+  return [(g6 >> 8) & 0xff, g6 & 0xff, (g7 >> 8) & 0xff, g7 & 0xff].join('.');
+}
+
+/** Blocked IPv6 ranges: unspecified (::, which routes to localhost on
+ * Linux), loopback (::1), unique local addresses (fc00::/7, covers
+ * fd00::/8), link-local (fe80::/10), IPv4-mapped addresses (::ffff:a.b.c.d),
+ * and the NAT64 well-known prefix (64:ff9b::/96) -- both of the latter two
+ * embed an IPv4 address in the low 32 bits, recursively checked against
+ * `isBlockedIPv4`. This is what closes the `[::ffff:127.0.0.1]` /
+ * `[::ffff:a9fe:a9fe]` bypasses plus the residual `[::]` and
+ * `[64:ff9b::a9fe:a9fe]` bypasses (guardrail-2 APPROVE-with-residuals on
+ * revealui#2202). */
 function isBlockedIPv6(address: string): boolean {
   const groups = expandIPv6Groups(address);
   if (!groups) return true; // unparseable -- fail closed
 
   const isZero = (n: number): boolean => n === 0;
+  if (groups.every(isZero)) return true; // :: unspecified address
   if (groups.slice(0, 7).every(isZero) && groups[7] === 1) return true; // ::1
 
   const first = groups[0] ?? 0;
@@ -97,12 +111,10 @@ function isBlockedIPv6(address: string): boolean {
   if (first >= 0xfe80 && first <= 0xfebf) return true; // fe80::/10 (link-local)
 
   const isIPv4Mapped = groups.slice(0, 5).every(isZero) && groups[5] === 0xffff;
-  if (isIPv4Mapped) {
-    const g6 = groups[6] ?? 0;
-    const g7 = groups[7] ?? 0;
-    const embeddedIPv4 = [(g6 >> 8) & 0xff, g6 & 0xff, (g7 >> 8) & 0xff, g7 & 0xff].join('.');
-    return isBlockedIPv4(embeddedIPv4);
-  }
+  if (isIPv4Mapped) return isBlockedIPv4(embeddedIPv4(groups));
+
+  const isNAT64 = groups[0] === 0x64 && groups[1] === 0xff9b && groups.slice(2, 6).every(isZero);
+  if (isNAT64) return isBlockedIPv4(embeddedIPv4(groups));
 
   return false;
 }
