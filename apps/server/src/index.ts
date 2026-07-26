@@ -1456,7 +1456,11 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       .then(() => initializeLicense())
       .then((tier) => {
         logger.info(`License tier: ${tier}`);
-        return validateStripeTaxConfigAtStartup().catch(() => {});
+        return validateStripeTaxConfigAtStartup().catch(() => {
+          // Belt-and-suspenders (mirrors worker.ts): the function itself is
+          // structurally fail-open, but this call site must never let a
+          // defect in this advisory step reach the chain's exit(1) catch.
+        });
       })
       .catch((err: unknown) => {
         logger.error(
