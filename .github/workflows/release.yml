@@ -117,20 +117,27 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
 
-      # `changeset publish` creates tags only for the packages it actually
-      # publishes — on a re-run after a successful publish there are no tags at
-      # HEAD, so this step and the release step after it intentionally no-op.
-      # Say so explicitly instead of silently pushing nothing.
-      - name: Push tags
+      # `changeset publish` is SUPPOSED to create tags for what it publishes,
+      # but runs 30184318015 + the 0.10 morning train (2026-07-25) proved the
+      # in-runner tag creation can silently produce nothing even while logging
+      # "New tag:" — and `git push --follow-tags` only pushes ANNOTATED tags,
+      # while changesets creates LIGHTWEIGHT ones, so even created tags never
+      # left the runner. Last tags to actually reach the remote were 07-19.
+      # Belt and braces: `changeset tag` is idempotent (creates only missing
+      # tags for current package.json versions), and `--tags` pushes
+      # lightweight tags. A re-run after a successful publish becomes a no-op
+      # at the push (tags already on the remote), not a silent skip.
+      - name: Create + push tags
         if: ${{ !inputs.dry-run }}
         run: |
+          pnpm changeset tag
           tag_count="$(git tag --points-at HEAD | wc -l)"
           if [ "$tag_count" -eq 0 ]; then
-            echo "::notice title=No tags at HEAD::changeset publish created no tags (nothing newly published — likely a re-run), so no tags are pushed and no GitHub releases will be created."
-          else
-            echo "Pushing $tag_count tag(s) created by changeset publish."
+            echo "::error title=No tags at HEAD::changeset tag created nothing — package.json versions at HEAD have no tags to create, which after a publish means something is wrong. Failing loudly instead of skipping."
+            exit 1
           fi
-          git push --follow-tags
+          echo "Pushing $tag_count tag(s) at HEAD."
+          git push origin --tags
 
       # Release bodies come from each package's own CHANGELOG.md section for the
       # tagged version (changesets convention). generate_release_notes is
