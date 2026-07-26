@@ -1,0 +1,36 @@
+{
+  "name": "@revealui/apify-actor-governed-run",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apify pay-per-event actor: runs an AI agent task and returns a cryptographically signed, offline-verifiable receipt of every action (GAP-431).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@revealui/ai": "workspace:*",
+    "@revealui/security": "workspace:*",
+    "apify": "^3.7.2",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@revealui/dev": "workspace:*",
+    "@types/node": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "dev": "tsx src/main.ts",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  }
+}

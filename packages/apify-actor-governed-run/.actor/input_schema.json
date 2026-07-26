@@ -1,0 +1,65 @@
+{
+  "title": "Governed Agent Run input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "mode": {
+      "title": "Mode",
+      "type": "string",
+      "description": "\"run-task\" executes an agent task and returns a signed receipt. \"verify-receipt\" checks a receipt you already have (free).",
+      "editor": "select",
+      "enum": ["run-task", "verify-receipt"],
+      "enumTitles": ["Run a governed task", "Verify a receipt"],
+      "default": "run-task"
+    },
+    "task": {
+      "title": "Task",
+      "type": "string",
+      "description": "The task prompt for the agent to complete. Required when mode is \"run-task\".",
+      "editor": "textarea"
+    },
+    "llmProvider": {
+      "title": "LLM provider",
+      "type": "string",
+      "description": "Which model provider to call. Required when mode is \"run-task\".",
+      "editor": "select",
+      "enum": ["anthropic", "openai"],
+      "enumTitles": ["Anthropic", "OpenAI"]
+    },
+    "llmApiKey": {
+      "title": "LLM API key",
+      "type": "string",
+      "description": "Your own API key for the selected provider (bring-your-own-key). Never stored or logged. Required when mode is \"run-task\".",
+      "editor": "textfield",
+      "isSecret": true
+    },
+    "model": {
+      "title": "Model (optional)",
+      "type": "string",
+      "description": "Override the default model for the selected provider.",
+      "editor": "textfield"
+    },
+    "toolAllowlist": {
+      "title": "Tool allowlist (optional)",
+      "type": "array",
+      "description": "Restrict which built-in tools the agent may use. Omit to allow all built-in tools; pass an empty list to disable tools entirely.",
+      "editor": "stringList",
+      "items": { "type": "string" }
+    },
+    "maxSteps": {
+      "title": "Max steps (optional)",
+      "type": "integer",
+      "description": "Maximum model/tool-call round trips before the run stops itself. Default 10.",
+      "editor": "number",
+      "minimum": 1,
+      "maximum": 50
+    },
+    "receipt": {
+      "title": "Receipt to verify",
+      "type": "object",
+      "description": "A receipt object previously returned by a \"run-task\" run. Required when mode is \"verify-receipt\".",
+      "editor": "json"
+    }
+  },
+  "required": []
+}
