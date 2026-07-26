@@ -1,18 +1,25 @@
 /**
  * Tests for the billing-readiness cron's Stripe price parity check
- * (CR8-P2-04). Exercises the new section 4 added in this PR.
+ * (CR8-P2-04) and Stripe Tax flag check (GAP-437).
  *
  * The cron response only surfaces FAILED checks in `body.failures`, so the
  * tests assert:
  *   - parity pass → no `stripe:price:*` entries in `failures`
  *   - parity fail → `stripe:price:<tier>` in `failures` with the detail
  *
- * Covers:
+ * Price parity covers:
  *   1. Parity pass — Stripe unit_amount matches MRR fallback
  *   2. Parity fail — Stripe unit_amount differs (hard-fail check)
  *   3. Null unit_amount — Stripe returned a free-form / tiered price
  *   4. Stripe lookup error — prices.retrieve throws (deleted / network)
  *   5. Missing env var — tier is skipped (earlier check already flags)
+ *
+ * Stripe Tax flag (GAP-437) covers:
+ *   1. Live mode + active + flag off → alerts (stripe:tax-flag in failures)
+ *   2. Live mode + active + flag on → silent (ok:true, not in failures)
+ *   3. Live mode + pending status → silent (ok:true, not in failures)
+ *   4. Stripe API error → tolerated (surfaces as a warning, not a failure)
+ *   5. Not live mode → check skipped entirely (no stripe:tax-flag entry)
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,18 +28,21 @@ import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../../lib/tier-pricing.js';
 // --- Module mocks ---
 
 const mockRetrieve = vi.fn();
+const mockTaxSettingsRetrieve = vi.fn();
 
 vi.mock('stripe', () => ({
   default: class MockStripe {
     prices = { retrieve: mockRetrieve };
+    tax = { settings: { retrieve: mockTaxSettingsRetrieve } };
   },
 }));
 
 // GAP-131: billing-readiness now uses the protectedStripe wrapper from
-// @revealui/services for Stripe price parity checks.
+// @revealui/services for Stripe price parity + Tax Settings checks.
 vi.mock('@revealui/services', () => ({
   protectedStripe: {
     prices: { retrieve: mockRetrieve },
+    tax: { settings: { retrieve: mockTaxSettingsRetrieve } },
   },
 }));
 
@@ -100,6 +110,11 @@ beforeEach(() => {
   process.env.STRIPE_PRO_PRICE_ID = 'price_pro';
   process.env.STRIPE_MAX_PRICE_ID = 'price_max';
   process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise';
+  // GAP-437: default to not-live so the price-parity tests above (which
+  // predate this check) are unaffected; the tax-flag describe block below
+  // sets STRIPE_LIVE_MODE='true' explicitly per test.
+  delete process.env.STRIPE_LIVE_MODE;
+  delete process.env.STRIPE_TAX_ENABLED;
 
   // Default: every price matches the fallback (parity pass)
   mockRetrieve.mockImplementation((id: string) => {
@@ -112,6 +127,9 @@ beforeEach(() => {
     if (!tier) throw new Error(`no mock for ${id}`);
     return Promise.resolve({ id, unit_amount: MRR_TIER_PRICE_FALLBACK_CENTS[tier] });
   });
+
+  // Default Tax Settings mock: pending (steady state, never alerts).
+  mockTaxSettingsRetrieve.mockImplementation(() => Promise.resolve({ status: 'pending' }));
 });
 
 // Dynamic import to respect the env/module mocks above.
@@ -197,5 +215,72 @@ describe('billing-readiness cron — Stripe price parity (CR8-P2-04)', () => {
     const envCheck = body.failures.find((f) => f.check === 'env:STRIPE_ENTERPRISE_PRICE_ID');
     expect(envCheck).toBeDefined();
     expect(envCheck?.detail).toBe('MISSING');
+  });
+});
+
+describe('billing-readiness cron — Stripe Tax flag (GAP-437)', () => {
+  it('live + active + flag off → alerts (stripe:tax-flag in failures)', async () => {
+    process.env.STRIPE_LIVE_MODE = 'true';
+    delete process.env.STRIPE_TAX_ENABLED;
+    mockTaxSettingsRetrieve.mockResolvedValue({ status: 'active' });
+
+    const { body } = await callCron();
+    const taxCheck = body.failures.find((f) => f.check === 'stripe:tax-flag');
+    expect(taxCheck).toBeDefined();
+    expect(taxCheck?.detail).toMatch(/STRIPE_TAX_ENABLED/);
+    expect(body.status).toBe('failed');
+  });
+
+  it('live + active + flag "false" → alerts (same as unset)', async () => {
+    process.env.STRIPE_LIVE_MODE = 'true';
+    process.env.STRIPE_TAX_ENABLED = 'false';
+    mockTaxSettingsRetrieve.mockResolvedValue({ status: 'active' });
+
+    const { body } = await callCron();
+    const taxCheck = body.failures.find((f) => f.check === 'stripe:tax-flag');
+    expect(taxCheck).toBeDefined();
+  });
+
+  it('live + active + flag on → silent (no failure, ok entry only)', async () => {
+    process.env.STRIPE_LIVE_MODE = 'true';
+    process.env.STRIPE_TAX_ENABLED = 'true';
+    mockTaxSettingsRetrieve.mockResolvedValue({ status: 'active' });
+
+    const { body } = await callCron();
+    const taxFailure = body.failures.find((f) => f.check === 'stripe:tax-flag');
+    expect(taxFailure).toBeUndefined();
+  });
+
+  it('live + pending status → silent regardless of flag', async () => {
+    process.env.STRIPE_LIVE_MODE = 'true';
+    delete process.env.STRIPE_TAX_ENABLED;
+    mockTaxSettingsRetrieve.mockResolvedValue({ status: 'pending' });
+
+    const { body } = await callCron();
+    const taxFailure = body.failures.find((f) => f.check === 'stripe:tax-flag');
+    expect(taxFailure).toBeUndefined();
+  });
+
+  it('Stripe API error → tolerated: surfaces as a warning, not a failure', async () => {
+    process.env.STRIPE_LIVE_MODE = 'true';
+    delete process.env.STRIPE_TAX_ENABLED;
+    mockTaxSettingsRetrieve.mockRejectedValue(new Error('permission_denied: missing scope'));
+
+    const { body } = await callCron();
+    const taxFailure = body.failures.find((f) => f.check === 'stripe:tax-flag');
+    expect(taxFailure).toBeUndefined();
+    const taxWarning = body.warnings.find((w) => w.check === 'stripe:tax-flag');
+    expect(taxWarning).toBeDefined();
+    expect(taxWarning?.detail).toMatch(/permission_denied/);
+  });
+
+  it('not live mode → check skipped entirely (no stripe:tax-flag entry anywhere)', async () => {
+    delete process.env.STRIPE_LIVE_MODE;
+    mockTaxSettingsRetrieve.mockResolvedValue({ status: 'active' });
+
+    const { body } = await callCron();
+    expect(mockTaxSettingsRetrieve).not.toHaveBeenCalled();
+    expect(body.failures.find((f) => f.check === 'stripe:tax-flag')).toBeUndefined();
+    expect(body.warnings.find((w) => w.check === 'stripe:tax-flag')).toBeUndefined();
   });
 });

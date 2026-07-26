@@ -409,6 +409,7 @@ describe('validateStartup — STRIPE_LIVE_MODE toggle (test-mode pre-launch)', (
 
 // ─── validateLicenseAtStartup (Forge boot-time enforcement) ─────────────
 import { generateLicenseKey } from '@revealui/core/license';
+import { logger } from '@revealui/core/observability/logger';
 import { beforeAll } from 'vitest';
 import { validateLicenseAtStartup } from '../validate-startup.js';
 
@@ -610,6 +611,66 @@ describe('validateLicenseAtStartup', () => {
       }),
     ).resolves.toBeUndefined();
   });
+
+  // ── GAP-436: plain self-host opt-in (owner-ruled 2026-07-26) ────────────
+  describe('REVEALUI_ALLOW_UNLICENSED_SELF_HOST (GAP-436)', () => {
+    it('resolves (Free tier) when no license key is set and the flag is true', async () => {
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true',
+          // No REVEALUI_LICENSE_KEY, no REVEALUI_LICENSE_PUBLIC_KEY at all.
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('logs a clear one-line boot message on the plain self-host path', async () => {
+      const infoSpy = vi.spyOn(logger, 'info').mockImplementation(() => undefined);
+      await validateLicenseAtStartup({ REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true' });
+      expect(infoSpy).toHaveBeenCalledWith('no license key — running Free (OSS) tier');
+      infoSpy.mockRestore();
+    });
+
+    it('REGRESSION GUARD: still throws in forge mode when the flag is unset and no key is present', async () => {
+      // This is the exact scenario a careless relaxation would break: forge
+      // mode (no REVEALUI_LICENSE_PRIVATE_KEY), no license key, and the
+      // opt-in flag absent. Must still hard-refuse — RevForge-stamped kits
+      // never set this flag, so this is their default, unchanged behavior.
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        }),
+      ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for RevForge/);
+    });
+
+    it('REGRESSION GUARD: the flag does not bypass verification of a key that IS supplied', async () => {
+      // Supplying a key alongside the opt-in flag must still be verified —
+      // the flag only relaxes the REQUIREMENT of a key, never its validity.
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true',
+          REVEALUI_LICENSE_KEY: 'not.a.valid.jwt',
+          REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        }),
+      ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
+    });
+
+    it('does not treat any truthy-looking value as "true" (strict equality)', async () => {
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: '1',
+        }),
+      ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for RevForge/);
+    });
+
+    it('is a no-op in hosted mode regardless of the flag', async () => {
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_LICENSE_PRIVATE_KEY: 'any-non-empty-value',
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true',
+        }),
+      ).resolves.toBeUndefined();
+    });
+  });
 });
 
 // ─── Forge mode (validateStartup) ──────────────────────────────────────
@@ -731,6 +792,31 @@ describe('validateStartup — forge mode', () => {
     const env = validForgeProdEnv();
     delete env.REVEALUI_LICENSE_PUBLIC_KEY;
     expect(() => validateStartup(env)).toThrow(/forge mode.*REVEALUI_LICENSE_PUBLIC_KEY/);
+  });
+
+  // ── GAP-436: plain self-host opt-in (owner-ruled 2026-07-26) ────────────
+  it('does NOT require REVEALUI_LICENSE_KEY / REVEALUI_LICENSE_PUBLIC_KEY when REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true', () => {
+    const env = validForgeProdEnv({ REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true' });
+    delete env.REVEALUI_LICENSE_KEY;
+    delete env.REVEALUI_LICENSE_PUBLIC_KEY;
+    expect(() => validateStartup(env)).not.toThrow();
+  });
+
+  it('REGRESSION GUARD: still requires REVEALUI_LICENSE_KEY when the opt-in flag is unset (production presence gate)', () => {
+    const env = validForgeProdEnv();
+    delete env.REVEALUI_LICENSE_KEY;
+    delete env.REVEALUI_LICENSE_PUBLIC_KEY;
+    expect(() => validateStartup(env)).toThrow(/forge mode.*REVEALUI_LICENSE_KEY/);
+  });
+
+  it('still requires REVEALUI_KEK / REVEALUI_SECRET / REVEALUI_AUDIT_SIGNING_KEY even with the opt-in flag set', () => {
+    // The flag only relaxes license material — every other forge requirement
+    // (encryption + audit signing) is untouched.
+    const env = validForgeProdEnv({ REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true' });
+    delete env.REVEALUI_LICENSE_KEY;
+    delete env.REVEALUI_LICENSE_PUBLIC_KEY;
+    delete env.REVEALUI_KEK;
+    expect(() => validateStartup(env)).toThrow(/forge mode.*REVEALUI_KEK/);
   });
 
   it('requires REVEALUI_KEK in forge mode', () => {
@@ -1153,5 +1239,173 @@ describe('EXPECTED_LIVE_PLAN_IDS — sync with billing-readiness cron', () => {
       'credits:scale',
     ];
     expect([...EXPECTED_LIVE_PLAN_IDS_FOR_TEST]).toEqual(cronExpected);
+  });
+});
+
+// ─── validateStripeTaxConfigAtStartup (GAP-437) ─────────────────────────
+import { validateStripeTaxConfigAtStartup } from '../validate-startup.js';
+
+/**
+ * Live-mode hosted production fixture for the tax-config validator. Mirrors
+ * `validLiveProdEnv` but keeps only the fields the guard conditions inspect —
+ * the full fixture also works, this is just cheaper per-test.
+ */
+const liveHostedEnv: EnvMap = {
+  NODE_ENV: 'production',
+  STRIPE_LIVE_MODE: 'true',
+  REVEALUI_LICENSE_PRIVATE_KEY: 'present',
+};
+
+describe('validateStripeTaxConfigAtStartup — short-circuits (never calls Stripe)', () => {
+  it('no-ops when SKIP_ENV_VALIDATION=true', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, SKIP_ENV_VALIDATION: 'true' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('no-ops when NODE_ENV is not production', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, NODE_ENV: 'development' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('no-ops in Forge mode (no signing key → no Stripe account)', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { NODE_ENV: 'production', STRIPE_LIVE_MODE: 'true' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('never calls the Stripe API in test mode (STRIPE_LIVE_MODE unset)', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_LIVE_MODE: undefined },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('never calls the Stripe API when STRIPE_LIVE_MODE is "false"', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_LIVE_MODE: 'false' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+});
+
+describe('validateStripeTaxConfigAtStartup — live-mode tax-flag guard', () => {
+  it('warns when Tax Settings are active and STRIPE_TAX_ENABLED is unset', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const [message] = warnSpy.mock.calls[0] ?? [''];
+    expect(String(message)).toMatch(/STRIPE_TAX_ENABLED/);
+    expect(String(message)).toMatch(/tax/i);
+  });
+
+  it('warns when Tax Settings are active and STRIPE_TAX_ENABLED is "false"', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_TAX_ENABLED: 'false' },
+      fetchTaxSettings,
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays silent when Tax Settings are active and STRIPE_TAX_ENABLED=true', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_TAX_ENABLED: 'true' },
+      fetchTaxSettings,
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('stays silent when Tax Settings are pending (not yet active)', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'pending' as const });
+    await validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('boots fine (no throw) when the Stripe API call fails, and logs one non-secret line', async () => {
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.reject(new Error('ECONNRESET'));
+    await expect(
+      validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings),
+    ).resolves.toBeUndefined();
+    // Exactly one line — never the loud multi-line tax-flag banner (that's
+    // the misconfig path, not the "couldn't check" path).
+    expect(stderrSpy).toHaveBeenCalledTimes(1);
+    const [message] = stderrSpy.mock.calls[0] ?? [''];
+    expect(String(message)).toMatch(/ECONNRESET/);
+    expect(String(message)).toMatch(/non-fatal/);
+    expect(String(message)).not.toMatch(/STRIPE TAX ACTIVE/);
+  });
+
+  it('never throws even when the emitter itself throws (structural fail-open, B2)', async () => {
+    // Guardrail-2 verdict B2: the whole body, including the emitter, is
+    // wrapped in try/catch — a defect in emitStripeTaxFlagWarning must not
+    // be able to reject this function and propagate into a caller's boot
+    // chain (worker.ts turns a rejected chain into process.exit(1)).
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => {
+      throw new Error('stderr is not writable right now');
+    });
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await expect(
+      validateStripeTaxConfigAtStartup(
+        { ...liveHostedEnv, STRIPE_TAX_ENABLED: 'false' },
+        fetchTaxSettings,
+      ),
+    ).resolves.toBeUndefined();
+    stderrSpy.mockRestore();
+  });
+});
+
+// ─── fetchLiveStripeTaxSettings — uses protectedStripe (GAP-131) ───────
+describe('fetchLiveStripeTaxSettings', () => {
+  afterEach(() => {
+    vi.doUnmock('../services-loader.js');
+    vi.resetModules();
+  });
+
+  it('throws when @revealui/services is not installed', async () => {
+    vi.resetModules();
+    vi.doMock('../services-loader.js', () => ({
+      getServices: () => Promise.resolve(null),
+    }));
+    const { fetchLiveStripeTaxSettings: fetchFresh } = await import('../validate-startup.js');
+    await expect(fetchFresh()).rejects.toThrow(/@revealui\/services not installed/);
+  });
+
+  it('calls services.protectedStripe.tax.settings.retrieve (not raw getStripe)', async () => {
+    const retrieve = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    const getStripe = vi.fn();
+    vi.resetModules();
+    vi.doMock('../services-loader.js', () => ({
+      getServices: () =>
+        Promise.resolve({
+          protectedStripe: { tax: { settings: { retrieve } } },
+          getStripe,
+        }),
+    }));
+    const { fetchLiveStripeTaxSettings: fetchFresh } = await import('../validate-startup.js');
+    const result = await fetchFresh();
+    expect(result).toEqual({ status: 'active' });
+    expect(retrieve).toHaveBeenCalledTimes(1);
+    expect(getStripe).not.toHaveBeenCalled();
   });
 });

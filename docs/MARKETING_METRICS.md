@@ -25,9 +25,9 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-07-22 (
 
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
-| Packages in `packages/` | **29** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
+| Packages in `packages/` | **30** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
 | Apps in `apps/` | **5** | `countApps()` | admin / server / docs / marketing / license-signer (GAP-260 P4-2). |
-| Workspaces (monorepo total) | **34** | `countWorkspaces()` (= 29 packages + 5 apps) | |
+| Workspaces (monorepo total) | **35** | `countWorkspaces()` (= 30 packages + 5 apps) | |
 | Test files | **1122** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
 | UI components in `packages/presentation/` | **65** | `countUIComponents()` | Marketing copy says "65 native React components" or similar. |
 | **MCP servers** | **13** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); Supabase launcher removed (13 count). |

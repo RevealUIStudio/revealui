@@ -1,0 +1,13 @@
+{
+  "actorSpecification": 1,
+  "name": "governed-agent-run",
+  "title": "Governed Agent Run",
+  "description": "Run an AI agent task and get back a cryptographically signed, offline-verifiable receipt of every action it took. If an agent did it, there's a receipt.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "dockerfile": "../Dockerfile",
+  "readme": "../README.md",
+  "input": "./input_schema.json",
+  "minMemoryMbytes": 256,
+  "maxMemoryMbytes": 1024
+}

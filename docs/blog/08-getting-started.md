@@ -67,7 +67,6 @@ The wizard continues through database, storage, payment, and dev environment set
 @revealui/cli  [4/8] Configure storage
 ? Which storage provider would you like to use?
   > Cloudflare R2 - S3-compatible object storage (recommended)
-    Vercel Blob - legacy, being retired in favor of R2
     Skip - Configure later
 
 @revealui/cli  [5/8] Configure payments

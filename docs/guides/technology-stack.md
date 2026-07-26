@@ -24,7 +24,7 @@ RevealUI is a framework, not a stack. The five primitives (people, content, offe
 |---|---|---|
 | **NeonDB** (Postgres) | Primary database — 97 tables across the five primitives | Serverless Postgres; pgvector supported; any standard Postgres works as a substitute (the agnosticism principle is a contract, not a coupling). |
 | **Drizzle ORM** | Schema definition + type-safe queries | Schema-first, accurate types, no runtime overhead, no proprietary query DSL. |
-| **Cloudflare R2** | Canonical object-storage backend | S3-compatible, no egress fees; `@aws-sdk/client-s3` is the client. The legacy Vercel Blob backend is being retired per GAP-208. |
+| **Cloudflare R2** | Canonical object-storage backend | S3-compatible, no egress fees. The legacy Vercel Blob backend was retired. |
 | **ElectricSQL** (optional) | Real-time browser sync layer | Off by default. When enabled, syncs Postgres tables to a local PGlite store in the browser for offline-capable UIs. |
 
 ## Frontend
@@ -79,9 +79,9 @@ The runtime is provider-agnostic by contract and ships with no default AI vendor
 
 ## License posture
 
-- **23 of 29 packages MIT-licensed** (forever).
-- **5 of 29 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
-- **1 of 29 packages internal** (`@revealui/scripts`) — unlicensed build tooling.
+- **23 of 30 packages MIT-licensed** (forever).
+- **5 of 30 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
+- **2 of 30 packages internal** (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) — unlicensed, unpublished.
 
 See [FAIR_SOURCE.md](../FAIR_SOURCE.md) for the licensing rationale.
 

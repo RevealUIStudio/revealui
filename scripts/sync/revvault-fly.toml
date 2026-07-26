@@ -43,7 +43,16 @@ app = "revealui-worker"
 # LIVE key. So the operator sets the sk_test_ key DIRECTLY on Fly during the
 # gated period; at launch, flip STRIPE_LIVE_MODE=true + the live key together
 # (gated on the billing-readiness audit).
-skip = ["STRIPE_LIVE_MODE", "STRIPE_SECRET_KEY"]
+#
+# STRIPE_TAX_ENABLED (GAP-437) — a plain boolean flag, not a secret, so it has
+# no revvault path; set it Fly-direct like the two above. It gates
+# automatic_tax on Checkout (routes/billing.ts:102). REGISTER IT HERE
+# deliberately: the 2026-07-26 incident (a live charge collected zero sales
+# tax) happened because this flag was set nowhere in particular and silently
+# diverged between the Vercel `api` project and this worker app. When you flip
+# it on one, flip it on the other in the SAME change — this manifest is the
+# checklist that makes that explicit instead of implicit.
+skip = ["STRIPE_LIVE_MODE", "STRIPE_SECRET_KEY", "STRIPE_TAX_ENABLED"]
 
 [fly-apps.revealui-worker.vars]
 # Database (Neon)
