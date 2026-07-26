@@ -2,6 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/sync', () => ({
+  ClientOnly: ({ children }: { children: React.ReactNode }) => children,
   useAgentContexts: vi.fn(),
 }));
 

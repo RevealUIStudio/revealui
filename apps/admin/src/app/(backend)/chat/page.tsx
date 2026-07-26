@@ -9,12 +9,22 @@ import {
   IconGlobe,
   Skeleton,
 } from '@revealui/presentation';
-import { useConversations } from '@revealui/sync';
+import { ClientOnly, useConversations } from '@revealui/sync';
 import { useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
+// Shape hooks need a browser origin (Electric requires an absolute URL), so
+// the hook-bearing body only renders client-side.
 export default function ChatPage() {
+  return (
+    <ClientOnly>
+      <ChatPageInner />
+    </ClientOnly>
+  );
+}
+
+function ChatPageInner() {
   const {
     conversations,
     isLoading: sidebarLoading,
