@@ -1,10 +1,15 @@
 import { canonicalizeJcs } from '@revealui/security';
-import type { ActionLogEntry } from '../types.js';
+import type { ActionLogEntry, RunContext } from '../types.js';
 
 /** The exact fields a receipt's signature covers. `publicKey` travels with the
  * receipt for verification but is deliberately NOT part of the signed payload
- * -- it identifies the key, it isn't integrity-bearing data. */
-export interface ReceiptSignablePayload {
+ * -- it identifies the key, it isn't integrity-bearing data.
+ *
+ * `actorId` / `actorRunId` / `actorBuildId` (the run-context fields) ARE part
+ * of the signed payload -- that is the whole point (GAP-431 guardrail-2
+ * blocker 1): a receipt's provenance claim must be tamper-evident, not just
+ * carried alongside the signature as unsigned metadata. */
+export interface ReceiptSignablePayload extends RunContext {
   actionLog: ActionLogEntry[];
   algorithm: 'ed25519';
   timestamp: string;
@@ -24,6 +29,9 @@ export function receiptSignableBytes(payload: ReceiptSignablePayload): Uint8Arra
     actionLog: payload.actionLog,
     algorithm: payload.algorithm,
     timestamp: payload.timestamp,
+    actorId: payload.actorId,
+    actorRunId: payload.actorRunId,
+    actorBuildId: payload.actorBuildId,
   });
   return new TextEncoder().encode(canonical);
 }

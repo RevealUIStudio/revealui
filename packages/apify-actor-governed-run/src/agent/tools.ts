@@ -1,3 +1,5 @@
+import { lookup as dnsLookup } from 'node:dns/promises';
+import { isIPv4, isIPv6 } from 'node:net';
 import type { Tool, ToolResult } from '@revealui/ai';
 import { z } from 'zod/v4';
 
@@ -8,26 +10,142 @@ const WEB_FETCH_PARAMS = z.object({
 const MAX_RESPONSE_CHARS = 100_000;
 const FETCH_TIMEOUT_MS = 15_000;
 
-/**
- * Hostnames/ranges this tool refuses to fetch. This is a minimal, static
- * SSRF guard (no DNS resolution, no redirect-chain re-checking) appropriate
- * for a v0.1 scaffold running on Apify's own infrastructure -- it blocks the
- * obvious cloud-metadata and loopback/private targets an LLM-directed fetch
- * could otherwise be steered at. It is NOT a complete SSRF defense (e.g. DNS
- * rebinding is out of scope here); see the PR body's open design questions.
- */
-function isBlockedHost(hostname: string): boolean {
-  const host = hostname.toLowerCase();
-  if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1')
-    return true;
-  if (host === '169.254.169.254') return true; // cloud metadata endpoint
-  if (host.endsWith('.internal') || host.endsWith('.local')) return true;
-  if (host.startsWith('10.') || host.startsWith('192.168.')) return true;
-  if (host.startsWith('172.')) {
-    const secondOctet = Number(host.split('.')[1]);
-    if (secondOctet >= 16 && secondOctet <= 31) return true;
+const HEX_DIGITS = '0123456789abcdefABCDEF';
+
+function isValidHexGroup(group: string): boolean {
+  if (group.length === 0 || group.length > 4) return false;
+  for (const char of group) {
+    if (!HEX_DIGITS.includes(char)) return false;
   }
+  return true;
+}
+
+/** Strip the brackets WHATWG URL wraps a literal IPv6 host in (`[::1]` ->
+ * `::1`). Fixed bug (guardrail-2 blocker 3): the old guard compared against
+ * the bracketed form, so its own `'::1'` check could never match. */
+function stripIPv6Brackets(hostname: string): string {
+  if (hostname.startsWith('[') && hostname.endsWith(']')) {
+    return hostname.slice(1, -1);
+  }
+  return hostname;
+}
+
+/** Expand a (possibly `::`-compressed) IPv6 address into its 8 16-bit groups.
+ * Returns `null` for anything that doesn't parse as exactly 8 groups -- the
+ * caller treats an unparsed address as blocked (fail closed). No regex (fleet
+ * no-regex rule): hex-digit validation is a plain character-set membership
+ * check via `HEX_DIGITS.includes`. */
+function expandIPv6Groups(address: string): number[] | null {
+  const halves = address.split('::');
+  if (halves.length > 2) return null;
+
+  const parseSide = (side: string): number[] | null => {
+    if (side === '') return [];
+    const groups: number[] = [];
+    for (const part of side.split(':')) {
+      if (!isValidHexGroup(part)) return null;
+      groups.push(Number.parseInt(part, 16));
+    }
+    return groups;
+  };
+
+  if (halves.length === 1) {
+    const groups = parseSide(halves[0] ?? '');
+    return groups && groups.length === 8 ? groups : null;
+  }
+
+  const left = parseSide(halves[0] ?? '');
+  const right = parseSide(halves[1] ?? '');
+  if (!(left && right)) return null;
+  const missing = 8 - left.length - right.length;
+  if (missing < 0) return null;
+  return [...left, ...new Array(missing).fill(0), ...right];
+}
+
+/** Blocked IPv4 ranges: loopback, RFC1918 private, link-local (covers the
+ * cloud metadata endpoint and its whole /16, not just the single address),
+ * carrier-grade NAT (covers 100.100.100.200, the Alibaba Cloud metadata
+ * address), and 0.0.0.0/8. */
+function isBlockedIPv4(ip: string): boolean {
+  const octets = ip.split('.').map(Number);
+  const [a, b] = octets;
+  if (a === undefined || b === undefined) return true;
+  if (a === 127) return true; // 127.0.0.0/8 loopback
+  if (a === 0) return true; // 0.0.0.0/8
+  if (a === 10) return true; // 10.0.0.0/8
+  if (a === 192 && b === 168) return true; // 192.168.0.0/16
+  if (a === 169 && b === 254) return true; // 169.254.0.0/16 link-local + cloud metadata
+  if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
+  if (a === 100 && b >= 64 && b <= 127) return true; // 100.64.0.0/10 CGNAT
   return false;
+}
+
+/** Blocked IPv6 ranges: loopback (::1), unique local addresses (fc00::/7,
+ * covers fd00::/8), link-local (fe80::/10), and IPv4-mapped addresses
+ * (::ffff:a.b.c.d), whose embedded IPv4 address is recursively checked
+ * against `isBlockedIPv4` -- this is what closes the
+ * `[::ffff:127.0.0.1]` / `[::ffff:a9fe:a9fe]` bypasses. */
+function isBlockedIPv6(address: string): boolean {
+  const groups = expandIPv6Groups(address);
+  if (!groups) return true; // unparseable -- fail closed
+
+  const isZero = (n: number): boolean => n === 0;
+  if (groups.slice(0, 7).every(isZero) && groups[7] === 1) return true; // ::1
+
+  const first = groups[0] ?? 0;
+  if (first >= 0xfc00 && first <= 0xfdff) return true; // fc00::/7 (ULA)
+  if (first >= 0xfe80 && first <= 0xfebf) return true; // fe80::/10 (link-local)
+
+  const isIPv4Mapped = groups.slice(0, 5).every(isZero) && groups[5] === 0xffff;
+  if (isIPv4Mapped) {
+    const g6 = groups[6] ?? 0;
+    const g7 = groups[7] ?? 0;
+    const embeddedIPv4 = [(g6 >> 8) & 0xff, g6 & 0xff, (g7 >> 8) & 0xff, g7 & 0xff].join('.');
+    return isBlockedIPv4(embeddedIPv4);
+  }
+
+  return false;
+}
+
+/** Non-IP hostname heuristics that don't need DNS: obvious internal-only
+ * suffixes/names. */
+function isBlockedHostnameSuffix(host: string): boolean {
+  return host === 'localhost' || host.endsWith('.internal') || host.endsWith('.local');
+}
+
+/**
+ * SSRF guard for the `web_fetch` tool. Blocks the cloud-metadata, loopback,
+ * link-local, private, and carrier-grade-NAT ranges across both IPv4 and
+ * IPv6 (including IPv4-mapped IPv6 addresses), plus obvious internal
+ * hostname suffixes. For a hostname that isn't a literal IP, it resolves DNS
+ * and checks every resolved address, which is what stops a public name with
+ * a static A/AAAA record pointed at a blocked address (e.g. a
+ * `*.nip.io`-style wildcard DNS name resolving to the metadata IP).
+ *
+ * This does NOT re-check the resolved address at connection time, so a true
+ * DNS-rebinding attack (the DNS answer changing between this check and the
+ * `fetch()` call a few lines below) is still out of scope -- that requires
+ * pinning the TCP connection to the specific address validated here, which
+ * is more than this v0.1 scaffold carries. A *static* record pointed at a
+ * blocked address, which is the reviewed bypass class, is fully closed.
+ */
+async function isBlockedHost(hostname: string): Promise<boolean> {
+  const host = stripIPv6Brackets(hostname).toLowerCase();
+
+  if (isBlockedHostnameSuffix(host)) return true;
+  if (isIPv4(host)) return isBlockedIPv4(host);
+  if (isIPv6(host)) return isBlockedIPv6(host);
+
+  // Not a literal IP -- resolve it and check every address it points at.
+  let addresses: Array<{ address: string; family: number }>;
+  try {
+    addresses = await dnsLookup(host, { all: true });
+  } catch {
+    return true; // cannot resolve -- fail closed rather than let fetch() try
+  }
+  return addresses.some((entry) =>
+    entry.family === 6 ? isBlockedIPv6(entry.address) : isBlockedIPv4(entry.address),
+  );
 }
 
 export const webFetchTool: Tool = {
@@ -51,7 +169,7 @@ export const webFetchTool: Tool = {
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       return { success: false, error: 'only http/https URLs are allowed' };
     }
-    if (isBlockedHost(url.hostname)) {
+    if (await isBlockedHost(url.hostname)) {
       return {
         success: false,
         error: 'this host is not allowed (private, loopback, or internal address)',

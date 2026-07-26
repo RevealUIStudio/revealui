@@ -25,7 +25,16 @@ export function verifyReceipt(receipt: unknown): VerifyReceiptResult {
   if (!parsed.success) {
     return { valid: false, reason: `malformed receipt: ${parsed.error.message}` };
   }
-  const { actionLog, signature, publicKey, algorithm, timestamp } = parsed.data;
+  const {
+    actionLog,
+    signature,
+    publicKey,
+    algorithm,
+    timestamp,
+    actorId,
+    actorRunId,
+    actorBuildId,
+  } = parsed.data;
 
   let keyObject: ReturnType<typeof createPublicKey>;
   try {
@@ -50,7 +59,14 @@ export function verifyReceipt(receipt: unknown): VerifyReceiptResult {
     return { valid: false, reason: 'signature key id does not match the embedded public key' };
   }
 
-  const bytes = receiptSignableBytes({ actionLog, algorithm, timestamp });
+  const bytes = receiptSignableBytes({
+    actionLog,
+    algorithm,
+    timestamp,
+    actorId,
+    actorRunId,
+    actorBuildId,
+  });
   const result = verifyEd25519AuditSignature(bytes, signature, () => keyObject);
   if (!result.valid) {
     return { valid: false, reason: result.reason ?? 'signature verification failed' };

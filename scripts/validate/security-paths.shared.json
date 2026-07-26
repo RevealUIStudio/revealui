@@ -52,6 +52,7 @@
     "packages/editor/",
     "packages/db/src/schema/audit-log",
     "packages/db/src/audit-store",
-    "packages/db/migrations/"
+    "packages/db/migrations/",
+    "packages/apify-actor-governed-run/"
   ]
 }
