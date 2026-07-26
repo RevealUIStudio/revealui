@@ -46,8 +46,21 @@ Positioning foil: "If an agent did it, there's a receipt." That is true for Max 
 - `lastAnchoredSeqTo`
 - `unanchoredSignedCount`
 - `oldestUnanchoredAt`
+- `legacyFloor` (the pre-enforcement floor for this tenant, 0 when there is no legacy era)
+- `preFloorSignedCount` (signed rows at or below the floor: row-verifiable, never in a root)
 
-Until the worker seals the tail (batch size or max lag), those signed rows are real but not yet in a customer-held root. UI and copy should not treat the foil as true for the unanchored tail.
+Until the worker seals the tail (batch size or max lag), those signed rows are real but not yet in a customer-held root. UI and copy should not treat the foil as true for the unanchored tail. The `unanchoredSignedCount` tail covers rows above the last anchor only; rows below the floor are reported separately via `preFloorSignedCount`, never counted as unanchored tail.
+
+## Legacy floor (pre-enforcement rows)
+
+Anchors attest the signed era only. A deployment that wrote audit rows before signed writes were enforced carries a closed legacy era: unsigned rows, sometimes interleaved with early signed rows. Every unsigned row is a permanent hole in the sequence, so the sweep derives a per-tenant floor (the highest unsigned `seq`) and anchors from `floor + 1` forward. The floor is only consulted while a tenant has no anchors at all.
+
+Below the floor:
+
+- Unsigned legacy rows are never retro-signed. A backfilled signature would be indistinguishable from tampering, which is the exact failure receipts exist to prevent.
+- Signed rows interleaved below the floor remain verifiable per row with the offline check, but no Merkle root covers them.
+
+The floor never spans live history. A `seq` hole that appears above an existing anchor still stalls the sweep and raises the gap metric.
 
 ## Offline verify
 

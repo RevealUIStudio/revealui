@@ -237,14 +237,15 @@ describe('runAuditAnchorSweep (PGlite)', () => {
     expect(anchors.some((a) => a.tenant === '')).toBe(false);
   });
 
-  it('skips when signed seqs jump after last anchor (unsigned hole)', async () => {
+  it('skips when an unsigned hole appears above an existing anchor (strict contiguity)', async () => {
     const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
     const unsignedStore = new DrizzleAuditStore(db); // no signer → signature null
-    await signedStore.append(makeEntry({ id: 's1', tenant: 'acct_max' }));
-    await unsignedStore.append(makeEntry({ id: 'u2', tenant: 'acct_max' }));
-    await signedStore.append(makeEntry({ id: 's3', tenant: 'acct_max' }));
 
-    // First pass anchors contiguous prefix [seq 1] only (size/lag ready).
+    // Anchor seq 1 first, THEN an unsigned row lands above it. Post-GAP-417
+    // rails this cannot happen in prod; if it does, it is a genuine integrity
+    // signal — the sweep must stall on it, never jump it (GAP-427 floor only
+    // applies while a tenant has no anchors at all).
+    await signedStore.append(makeEntry({ id: 's1', tenant: 'acct_max' }));
     const first = await runAuditAnchorSweep({
       db,
       signer: cryptoSigner,
@@ -254,6 +255,9 @@ describe('runAuditAnchorSweep (PGlite)', () => {
       now: () => new Date('2026-07-23T12:00:10.000Z'),
     });
     expect(first.anchorsInserted).toBe(1);
+
+    await unsignedStore.append(makeEntry({ id: 'u2', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's3', tenant: 'acct_max' }));
 
     // last=1; next signed is seq 3 (seq 2 unsigned). Gap → no further insert.
     const second = await runAuditAnchorSweep({
@@ -269,6 +273,71 @@ describe('runAuditAnchorSweep (PGlite)', () => {
     const anchors = await db.select().from(auditAnchors).where(eq(auditAnchors.tenant, 'acct_max'));
     expect(anchors).toHaveLength(1);
     expect(anchors[0]?.seqTo).toBe(1);
+  });
+
+  it('GAP-427: first anchor starts above the closed unsigned legacy era (floor)', async () => {
+    const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    const unsignedStore = new DrizzleAuditStore(db); // pre-enforcement legacy rows
+
+    // Legacy era (closed): unsigned seq 1, signed seq 2 interleaved, unsigned
+    // seq 3. Signed era: seq 4..5. Mirrors the prod shape from the GAP-417
+    // item-4 sweep (unsigned rows interleaved up to the floor).
+    await unsignedStore.append(makeEntry({ id: 'u1', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's2', tenant: 'acct_max' }));
+    await unsignedStore.append(makeEntry({ id: 'u3', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's4', tenant: 'acct_max' }));
+    await signedStore.append(makeEntry({ id: 's5', tenant: 'acct_max' }));
+
+    // Without the floor the sweep anchors the interleaved legacy prefix
+    // [2..2] on pass one, then gap-stalls forever at the unsigned hole — the
+    // signed era 4..5 never anchors (proven red against the base code).
+    const sweepOptions = {
+      db,
+      signer: cryptoSigner,
+      batchSize: 2,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => new Date('2026-07-23T12:00:10.000Z'),
+    };
+    const first = await runAuditAnchorSweep(sweepOptions);
+    expect(first.anchorsInserted).toBe(1);
+    expect(first.tenantsFloorEngaged).toBe(1); // GAP-429: engagement is observable
+    const second = await runAuditAnchorSweep(sweepOptions);
+    expect(second.anchorsInserted).toBe(0);
+    expect(second.tenantsFloorEngaged).toBe(0); // anchors exist now — floor not consulted
+
+    // Floor = 3 (highest unsigned seq): the one anchor covers exactly the
+    // signed era. Legacy rows 1..3 (unsigned + interleaved signed) stay
+    // unanchored and are never retro-signed.
+    const anchors = await db.select().from(auditAnchors).where(eq(auditAnchors.tenant, 'acct_max'));
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0]?.seqFrom).toBe(4);
+    expect(anchors[0]?.seqTo).toBe(5);
+  });
+
+  it('GAP-429: floor above the entire signed era reports engagement and anchors nothing', async () => {
+    const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    const unsignedStore = new DrizzleAuditStore(db);
+    // Signed seq 1 sits below the floor (unsigned seq 2 closed the era); there
+    // is no signed era above the floor, so the sweep has nothing to anchor —
+    // but the engagement must still be visible, not a silent skip.
+    await signedStore.append(makeEntry({ id: 's1', tenant: 'acct_max' }));
+    await unsignedStore.append(makeEntry({ id: 'u2', tenant: 'acct_max' }));
+
+    const result = await runAuditAnchorSweep({
+      db,
+      signer: cryptoSigner,
+      batchSize: 1,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => new Date('2026-07-23T12:00:10.000Z'),
+    });
+
+    expect(result.tenantsFloorEngaged).toBe(1);
+    expect(result.anchorsInserted).toBe(0);
+    expect(result.tenantsSkipped).toBe(1);
+    expect(result.errors).toEqual([]);
+    expect(await db.select().from(auditAnchors)).toHaveLength(0);
   });
 
   it('no-ops without a signer (unsigned mode)', async () => {
