@@ -25,7 +25,7 @@ New features are built to stay portable on purpose: the project is mid-migration
 
 ## Object storage you can move
 
-Files, images, and uploads go to Cloudflare R2, which is S3-compatible. That hyphenated word is the whole point. R2 is the canonical backend (the older Vercel Blob integration is legacy and being retired), but the code talks to it through the S3 API, the same API that AWS S3, MinIO, and a dozen other stores speak.
+Files, images, and uploads go to Cloudflare R2, which is S3-compatible. That hyphenated word is the whole point. R2 is the canonical backend (the old Vercel Blob integration was retired), but the code talks to it through the S3 API, the same API that AWS S3, MinIO, and a dozen other stores speak.
 
 So the storage layer passes the same test the database does. Point the S3 credentials at a different provider and your application does not notice. Your media is not trapped behind a vendor SDK with no standard under it. It is objects in a bucket, addressable the way object storage has been addressable for fifteen years.
 
