@@ -409,6 +409,7 @@ describe('validateStartup — STRIPE_LIVE_MODE toggle (test-mode pre-launch)', (
 
 // ─── validateLicenseAtStartup (Forge boot-time enforcement) ─────────────
 import { generateLicenseKey } from '@revealui/core/license';
+import { logger } from '@revealui/core/observability/logger';
 import { beforeAll } from 'vitest';
 import { validateLicenseAtStartup } from '../validate-startup.js';
 
@@ -610,6 +611,66 @@ describe('validateLicenseAtStartup', () => {
       }),
     ).resolves.toBeUndefined();
   });
+
+  // ── GAP-436: plain self-host opt-in (owner-ruled 2026-07-26) ────────────
+  describe('REVEALUI_ALLOW_UNLICENSED_SELF_HOST (GAP-436)', () => {
+    it('resolves (Free tier) when no license key is set and the flag is true', async () => {
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true',
+          // No REVEALUI_LICENSE_KEY, no REVEALUI_LICENSE_PUBLIC_KEY at all.
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('logs a clear one-line boot message on the plain self-host path', async () => {
+      const infoSpy = vi.spyOn(logger, 'info').mockImplementation(() => undefined);
+      await validateLicenseAtStartup({ REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true' });
+      expect(infoSpy).toHaveBeenCalledWith('no license key — running Free (OSS) tier');
+      infoSpy.mockRestore();
+    });
+
+    it('REGRESSION GUARD: still throws in forge mode when the flag is unset and no key is present', async () => {
+      // This is the exact scenario a careless relaxation would break: forge
+      // mode (no REVEALUI_LICENSE_PRIVATE_KEY), no license key, and the
+      // opt-in flag absent. Must still hard-refuse — RevForge-stamped kits
+      // never set this flag, so this is their default, unchanged behavior.
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        }),
+      ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for RevForge/);
+    });
+
+    it('REGRESSION GUARD: the flag does not bypass verification of a key that IS supplied', async () => {
+      // Supplying a key alongside the opt-in flag must still be verified —
+      // the flag only relaxes the REQUIREMENT of a key, never its validity.
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true',
+          REVEALUI_LICENSE_KEY: 'not.a.valid.jwt',
+          REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        }),
+      ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
+    });
+
+    it('does not treat any truthy-looking value as "true" (strict equality)', async () => {
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: '1',
+        }),
+      ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for RevForge/);
+    });
+
+    it('is a no-op in hosted mode regardless of the flag', async () => {
+      await expect(
+        validateLicenseAtStartup({
+          REVEALUI_LICENSE_PRIVATE_KEY: 'any-non-empty-value',
+          REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true',
+        }),
+      ).resolves.toBeUndefined();
+    });
+  });
 });
 
 // ─── Forge mode (validateStartup) ──────────────────────────────────────
@@ -731,6 +792,31 @@ describe('validateStartup — forge mode', () => {
     const env = validForgeProdEnv();
     delete env.REVEALUI_LICENSE_PUBLIC_KEY;
     expect(() => validateStartup(env)).toThrow(/forge mode.*REVEALUI_LICENSE_PUBLIC_KEY/);
+  });
+
+  // ── GAP-436: plain self-host opt-in (owner-ruled 2026-07-26) ────────────
+  it('does NOT require REVEALUI_LICENSE_KEY / REVEALUI_LICENSE_PUBLIC_KEY when REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true', () => {
+    const env = validForgeProdEnv({ REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true' });
+    delete env.REVEALUI_LICENSE_KEY;
+    delete env.REVEALUI_LICENSE_PUBLIC_KEY;
+    expect(() => validateStartup(env)).not.toThrow();
+  });
+
+  it('REGRESSION GUARD: still requires REVEALUI_LICENSE_KEY when the opt-in flag is unset (production presence gate)', () => {
+    const env = validForgeProdEnv();
+    delete env.REVEALUI_LICENSE_KEY;
+    delete env.REVEALUI_LICENSE_PUBLIC_KEY;
+    expect(() => validateStartup(env)).toThrow(/forge mode.*REVEALUI_LICENSE_KEY/);
+  });
+
+  it('still requires REVEALUI_KEK / REVEALUI_SECRET / REVEALUI_AUDIT_SIGNING_KEY even with the opt-in flag set', () => {
+    // The flag only relaxes license material — every other forge requirement
+    // (encryption + audit signing) is untouched.
+    const env = validForgeProdEnv({ REVEALUI_ALLOW_UNLICENSED_SELF_HOST: 'true' });
+    delete env.REVEALUI_LICENSE_KEY;
+    delete env.REVEALUI_LICENSE_PUBLIC_KEY;
+    delete env.REVEALUI_KEK;
+    expect(() => validateStartup(env)).toThrow(/forge mode.*REVEALUI_KEK/);
   });
 
   it('requires REVEALUI_KEK in forge mode', () => {

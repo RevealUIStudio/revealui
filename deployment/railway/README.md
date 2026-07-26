@@ -14,20 +14,29 @@ running-but-unusable deployment.
 
 ## Who this is for
 
-RevealUI's self-hosted runtime enforces a real license at boot (this is by
-design, not a bug we're working around). There is currently no license-free
-"just try it" mode for a container deploy, so this template is for:
+RevealUI's self-hosted runtime enforces a real license at boot for RevForge-
+stamped Fleet kits (this is by design, not a bug we're working around, and it
+does not change here). As of GAP-436 (owner-ruled 2026-07-26), a **plain**
+self-hosted boot — this template included — can instead run at Free (OSS)
+tier with no license at all: set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on
+the `api` service and skip `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY`
+entirely. This template is for:
 
-- An existing RevealUI Fleet (enterprise) customer moving their deployment to
-  Railway.
-- A prospect who has requested a trial license from RevealUI Studio ahead of
-  publishing the template listing, so a click on the Railway marketplace
-  produces a working stack, not a boot-loop asking for a key they don't have.
+- Anyone who wants to try RevealUI's Free (OSS) tier on Railway with a single
+  click, no license required — set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true`
+  and omit the license vars.
+- An existing RevealUI Fleet (enterprise) customer moving their licensed
+  deployment to Railway — set `REVEALUI_LICENSE_KEY` /
+  `REVEALUI_LICENSE_PUBLIC_KEY` and leave `REVEALUI_ALLOW_UNLICENSED_SELF_HOST`
+  unset.
+- A prospect who has requested a trial license from RevealUI Studio for a
+  Pro/Enterprise-tier walkthrough ahead of publishing the template listing.
 
-If you're composing the public marketplace listing, get a trial license
-issuing flow in place first (see [Owner action](#owner-action-before-publishing)
-below). Deploying this template without a license produces a container that
-starts, logs a clear error, and exits. It does not silently degrade.
+Deploying this template with a license key present that is invalid, expired,
+or mismatched still produces a container that starts, logs a clear error, and
+exits — `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` only ever relaxes the
+requirement for a **completely absent** key; it never weakens verification of
+a key you do supply.
 
 ## Architecture
 

@@ -48,47 +48,68 @@ export async function register() {
   // ~25-line duplication is preferable to a new package boundary.
   const { detectDeploymentMode } = await import('@revealui/core/deployment-mode');
   if (process.env.SKIP_ENV_VALIDATION !== 'true' && detectDeploymentMode(process.env) === 'forge') {
-    const failures: string[] = [];
-    if (!process.env.REVEALUI_LICENSE_KEY) {
-      failures.push(
-        'REVEALUI_LICENSE_KEY is required for RevForge deployments. ' +
-          'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
-          'or contact the operator who stamped this kit.',
-      );
-    }
-    if (!process.env.REVEALUI_LICENSE_PUBLIC_KEY) {
-      failures.push(
-        'REVEALUI_LICENSE_PUBLIC_KEY is required for RevForge deployments. ' +
-          'Stamped kits embed this value in docker/.env.example.',
-      );
-    }
-    if (failures.length === 0) {
-      try {
-        const { validateLicenseKey } = await import('@revealui/core/license');
-        // Restore real newlines in a single-line PEM (split/join, no authored
-        // regex — mirrors @revealui/core/license normalizePem). GAP-259 P0-4.
-        const publicKey = (process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? '').split('\\n').join('\n');
-        const payload = await validateLicenseKey(process.env.REVEALUI_LICENSE_KEY ?? '', publicKey);
-        if (!payload) {
-          failures.push(
-            'REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
-              'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
-              'Contact the operator who stamped this kit to re-issue the license.',
-          );
-        }
-      } catch (err) {
+    // GAP-436 (owner-ruled 2026-07-26): a self-hosted boot with NO license key
+    // at all, that explicitly opts in via REVEALUI_ALLOW_UNLICENSED_SELF_HOST=
+    // true, is the plain OSS/self-host or marketplace-template path — not a
+    // RevForge-stamped kit (RevForge always mints and bakes a license key at
+    // stamp time). Mirrors apps/server/src/lib/validate-startup.ts
+    // validateLicenseAtStartup; the flag does nothing unless explicitly set,
+    // so a stamped kit's enforcement below is unchanged. A present-but-invalid
+    // key is still rejected regardless of this flag.
+    if (
+      !process.env.REVEALUI_LICENSE_KEY &&
+      process.env.REVEALUI_ALLOW_UNLICENSED_SELF_HOST === 'true'
+    ) {
+      const { logger } = await import('@revealui/core/observability/logger');
+      logger.info('no license key — running Free (OSS) tier');
+    } else {
+      const failures: string[] = [];
+      if (!process.env.REVEALUI_LICENSE_KEY) {
         failures.push(
-          `License validation failed unexpectedly: ${err instanceof Error ? err.message : String(err)}`,
+          'REVEALUI_LICENSE_KEY is required for RevForge deployments. ' +
+            'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
+            'or contact the operator who stamped this kit. A plain self-host deployment ' +
+            'that intends to run without a license should set ' +
+            'REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true to boot at Free (OSS) tier instead.',
         );
       }
-    }
-    if (failures.length > 0) {
-      // Logger may not be initialized yet — write directly to stderr so
-      // the failure is visible in Docker logs.
-      process.stderr.write(
-        `LICENSE VALIDATION FAILED:\n${failures.map((m) => `  - ${m}`).join('\n')}\n`,
-      );
-      process.exit(1);
+      if (!process.env.REVEALUI_LICENSE_PUBLIC_KEY) {
+        failures.push(
+          'REVEALUI_LICENSE_PUBLIC_KEY is required for RevForge deployments. ' +
+            'Stamped kits embed this value in docker/.env.example.',
+        );
+      }
+      if (failures.length === 0) {
+        try {
+          const { validateLicenseKey } = await import('@revealui/core/license');
+          // Restore real newlines in a single-line PEM (split/join, no authored
+          // regex — mirrors @revealui/core/license normalizePem). GAP-259 P0-4.
+          const publicKey = (process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? '').split('\\n').join('\n');
+          const payload = await validateLicenseKey(
+            process.env.REVEALUI_LICENSE_KEY ?? '',
+            publicKey,
+          );
+          if (!payload) {
+            failures.push(
+              'REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
+                'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
+                'Contact the operator who stamped this kit to re-issue the license.',
+            );
+          }
+        } catch (err) {
+          failures.push(
+            `License validation failed unexpectedly: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
+      if (failures.length > 0) {
+        // Logger may not be initialized yet — write directly to stderr so
+        // the failure is visible in Docker logs.
+        process.stderr.write(
+          `LICENSE VALIDATION FAILED:\n${failures.map((m) => `  - ${m}`).join('\n')}\n`,
+        );
+        process.exit(1);
+      }
     }
   }
 
