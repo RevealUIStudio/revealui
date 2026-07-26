@@ -226,6 +226,25 @@ async function lastAnchoredSeq(db: Database, tenant: string): Promise<number> {
   return typeof m === 'number' && Number.isFinite(m) ? m : 0;
 }
 
+/**
+ * GAP-427: legacy anchor floor. Rows written before signed writes were
+ * enforced (GAP-417 both rails) left unsigned rows interleaved in the seq
+ * order; each one is a permanent contiguity hole, so a tenant with no anchors
+ * yet would gap-stall forever after the first pre-hole run. The rails
+ * guarantee no new unsigned rows, so the era is closed and the tenant's
+ * highest unsigned seq is a stable floor: anchoring attests floor+1 forward.
+ * Legacy rows are never retro-signed — a backfilled signature would be
+ * indistinguishable from tampering (ADR 2026-07-12 §2a).
+ */
+async function legacyUnsignedFloor(db: Database, tenant: string): Promise<number> {
+  const rows = await db
+    .select({ m: max(auditLog.seq) })
+    .from(auditLog)
+    .where(and(eq(auditLog.tenant, tenant), isNull(auditLog.signature)));
+  const m = rows[0]?.m;
+  return typeof m === 'number' && Number.isFinite(m) ? m : 0;
+}
+
 type TenantOutcome = 'inserted' | 'waiting' | 'skipped';
 
 async function anchorTenantBatch(
@@ -237,7 +256,10 @@ async function anchorTenantBatch(
   now: () => Date,
   doMeter: boolean,
 ): Promise<TenantOutcome> {
-  const last = await lastAnchoredSeq(db, tenant);
+  const anchored = await lastAnchoredSeq(db, tenant);
+  // GAP-427: first anchor for a tenant starts above the closed unsigned era,
+  // not at seq 1. Once anchors exist, strict last+1 contiguity governs.
+  const last = anchored > 0 ? anchored : await legacyUnsignedFloor(db, tenant);
 
   const candidates = await db
     .select({
