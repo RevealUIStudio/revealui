@@ -258,6 +258,11 @@ export async function legacyUnsignedFloor(db: Database, tenant: string): Promise
 
 type TenantOutcome = 'inserted' | 'waiting' | 'skipped';
 
+// GAP-429: a tenant stuck in the no-anchors state (e.g. floor above the entire
+// signed era) re-engages the floor on every poll tick — log once per tenant
+// per process; the counter still increments every pass.
+const floorLoggedTenants = new Set<string>();
+
 async function anchorTenantBatch(
   db: Database,
   signer: Ed25519AuditRowSigner,
@@ -274,9 +279,12 @@ async function anchorTenantBatch(
   const floorEngaged = floor > 0;
   if (floorEngaged) {
     mFloorEngaged.inc();
-    logger.info(
-      `audit-anchor-sweep: legacy floor engaged tenant=${tenant} floor=${floor} — anchors attest seq ${floor + 1} onward`,
-    );
+    if (!floorLoggedTenants.has(tenant)) {
+      floorLoggedTenants.add(tenant);
+      logger.info(
+        `audit-anchor-sweep: legacy floor engaged tenant=${tenant} floor=${floor} — anchors attest seq ${floor + 1} onward`,
+      );
+    }
   }
   const done = (outcome: TenantOutcome) => ({ outcome, floorEngaged });
   const last = anchored > 0 ? anchored : floor;

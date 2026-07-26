@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, IconTrash } from '@revealui/presentation';
-import { useAgentMemory } from '@revealui/sync';
+import { ClientOnly, useAgentMemory } from '@revealui/sync';
 import { useState } from 'react';
 
 interface AgentMemoryProps {
@@ -55,7 +55,17 @@ function formatRelativeTime(isoDate: string): string {
  * Displays episodic, semantic, and working memories with live updates
  * via ElectricSQL shape subscriptions.
  */
-export function AgentMemory({ agentId }: AgentMemoryProps) {
+// Shape hooks need a browser origin (Electric requires an absolute URL), so
+// the hook-bearing body only renders client-side.
+export function AgentMemory(props: AgentMemoryProps) {
+  return (
+    <ClientOnly>
+      <AgentMemoryInner {...props} />
+    </ClientOnly>
+  );
+}
+
+function AgentMemoryInner({ agentId }: AgentMemoryProps) {
   const { memories, isLoading, error, remove } = useAgentMemory(agentId);
   const [filter, setFilter] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);

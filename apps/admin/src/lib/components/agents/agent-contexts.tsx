@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@revealui/presentation';
-import { useAgentContexts } from '@revealui/sync';
+import { ClientOnly, useAgentContexts } from '@revealui/sync';
 
 interface AgentContextsProps {
   agentId: string;
@@ -19,7 +19,17 @@ function formatRelativeTime(isoDate: string): string {
   return `${days}d ago`;
 }
 
-export function AgentContexts({ agentId }: AgentContextsProps) {
+// Shape hooks need a browser origin (Electric requires an absolute URL), so
+// the hook-bearing body only renders client-side.
+export function AgentContexts(props: AgentContextsProps) {
+  return (
+    <ClientOnly>
+      <AgentContextsInner {...props} />
+    </ClientOnly>
+  );
+}
+
+function AgentContextsInner({ agentId }: AgentContextsProps) {
   const { contexts, isLoading, error } = useAgentContexts();
 
   const agentContexts = contexts.filter((c) => c.agent_id === agentId);

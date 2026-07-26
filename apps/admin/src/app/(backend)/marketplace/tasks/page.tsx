@@ -2,7 +2,7 @@
 
 import { Badge, Button, Card, EmptyState, LinkButton, Skeleton } from '@revealui/presentation';
 import type { TaskSubmissionRecord } from '@revealui/sync';
-import { useTaskSubmissions } from '@revealui/sync';
+import { ClientOnly, useTaskSubmissions } from '@revealui/sync';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -34,7 +34,17 @@ const STATUS_BADGE_COLORS: Record<string, 'warning' | 'brand' | 'success' | 'dan
 // Task Dashboard
 // =============================================================================
 
+// Shape hooks need a browser origin (Electric requires an absolute URL), so
+// the hook-bearing body only renders client-side.
 export default function TaskDashboardPage() {
+  return (
+    <ClientOnly>
+      <TaskDashboardInner />
+    </ClientOnly>
+  );
+}
+
+function TaskDashboardInner() {
   const { submissions, isLoading, error } = useTaskSubmissions();
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [selectedTask, setSelectedTask] = useState<string | null>(null);

@@ -13,7 +13,7 @@ import {
   Textarea,
 } from '@revealui/presentation';
 import type { KgEdgeRecord, KgNodeRecord } from '@revealui/sync';
-import { useKgViewDocument, useKnowledgeGraph } from '@revealui/sync';
+import { ClientOnly, useKgViewDocument, useKnowledgeGraph } from '@revealui/sync';
 import { useEffect, useMemo, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -56,7 +56,10 @@ function formatTimestamp(iso: string | null): string {
 export default function KnowledgeGraphPage() {
   return (
     <LicenseGate feature="ai">
-      <KnowledgeGraphExplorer />
+      {/* Shape hooks need a browser origin (Electric requires an absolute URL). */}
+      <ClientOnly>
+        <KnowledgeGraphExplorer />
+      </ClientOnly>
     </LicenseGate>
   );
 }

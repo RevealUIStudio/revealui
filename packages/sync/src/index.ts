@@ -10,6 +10,7 @@
  * subscribers automatically through ElectricSQL replication.
  */
 
+export { ClientOnly } from './client-only.js';
 export type {
   CollabDocumentState,
   KgViewAnnotation,

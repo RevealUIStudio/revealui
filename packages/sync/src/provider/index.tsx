@@ -11,7 +11,11 @@ interface ElectricContextValue {
   serviceUrl: string | null;
   /**
    * Base URL prefix for authenticated admin shape proxy routes.
-   * Default '' keeps all hook URLs relative (works for same-origin apps).
+   * The Electric client requires an absolute shape URL (`new URL(url)` with
+   * no base), so this must never be relative at fetch time. When unset, the
+   * provider defaults to `window.location.origin` in the browser; during
+   * server prerender it stays '' — shape-hook components must therefore be
+   * gated behind `ClientOnly` (see `client-only.tsx`).
    * Set to 'https://admin.revealui.com' when consuming from a different origin.
    */
   proxyBaseUrl: string;
@@ -39,7 +43,8 @@ export function ElectricProvider(props: {
   const value = useMemo(
     () => ({
       serviceUrl: props.serviceUrl ?? null,
-      proxyBaseUrl: props.proxyBaseUrl ?? '',
+      proxyBaseUrl:
+        props.proxyBaseUrl ?? (typeof window !== 'undefined' ? window.location.origin : ''),
       debug: props.debug ?? false,
     }),
     [props.serviceUrl, props.proxyBaseUrl, props.debug],

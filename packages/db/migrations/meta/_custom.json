@@ -86,6 +86,12 @@
       "rationale": "GAP-302 residual (b): DROP COLUMN licenses.npm_username. Column was never written at runtime (perpetual package access is GitHub-team based via github_username + provisionGitHubAccess). Hand-written single-statement DROP COLUMN IF EXISTS for idempotency. Companion Drizzle schema change at packages/db/src/schema/licenses.ts removes the field so types match the DB.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at licenses.ts already omits npmUsername at the type level."
+    },
+    {
+      "tag": "0030_gap429_audit_log_unsigned_floor_idx",
+      "rationale": "GAP-429 item 4: partial index (tenant, seq) WHERE signature IS NULL supporting legacyUnsignedFloor() on the anchors request path and the no-anchor sweep pass. Hand-written for the CREATE INDEX IF NOT EXISTS idempotent form with a partial-index predicate, following the 0008_jobs_visibility_timeout precedent. Companion Drizzle schema change at packages/db/src/schema/audit-log.ts adds the same index via .where() for type-level modeling.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. A generate attempt from this branch re-emitted the 0028/0029 drift on top of the stale 0027 snapshot, confirming the debt is shared, not new."
     }
   ]
 }
