@@ -74,18 +74,26 @@ installAuditStorage();
 // synthetic event through the just-installed storage and reads it back, exiting
 // the process if the round trip fails (fail-closed integrity, ADR §2a) — the
 // worker boots once per deploy, so this is the deploy-time proof that the audit
-// path works end to end. validateStripeTaxConfigAtStartup (GAP-437) is a
-// warning-only Stripe Tax Settings check (live mode only); it never throws,
-// so it can't affect the exit(1) semantics of this chain.
+// path works end to end. runHostedLicenseCanary and initializeLicense complete
+// the fail-closed gate sequence.
+//
+// validateStripeTaxConfigAtStartup (GAP-437) runs LAST, after every fail-closed
+// gate above, and deliberately outside their critical path: it is a SECONDARY,
+// advisory signal (see its docstring) — the authoritative control is the daily
+// billing-readiness cron, which runs on the Vercel deployment that actually
+// serves checkout. It is structurally fail-open (wraps its own fetch + emitter
+// in try/catch, never throws) and additionally `.catch(() => {})`'d here so a
+// defect in this advisory step can never delay or fail the gates above it or
+// flip this chain's `process.exit(1)`.
 validateStartup();
 validateLicenseAtStartup()
   .then(() => validateBillingCatalogAtStartup())
-  .then(() => validateStripeTaxConfigAtStartup())
   .then(() => auditStorageSelfTest())
   .then(() => runHostedLicenseCanary())
   .then(() => initializeLicense())
   .then((tier) => {
     logger.info(`License tier: ${tier}`);
+    return validateStripeTaxConfigAtStartup().catch(() => {});
   })
   .catch((err: unknown) => {
     logger.error(

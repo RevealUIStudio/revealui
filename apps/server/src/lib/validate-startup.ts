@@ -754,10 +754,12 @@ export function emitStripeTestModeWarning(): void {
 }
 
 /**
- * Fetch this Stripe account's Tax Settings via the shared `getStripe()`
- * client (same secret key + pinned API version as every other Stripe call
- * site — see stripeClient.ts). Goes through the `services-loader.ts` lazy
- * import because `@revealui/services` is an OPTIONAL peer dependency of
+ * Fetch this Stripe account's Tax Settings via the shared `protectedStripe`
+ * wrapper (GAP-131: DB-backed circuit breaker + bounded retry/timeout —
+ * every other Stripe call site in this repo goes through it; a raw
+ * `getStripe()` call inherits the SDK's ~80s default timeout, which can
+ * stall a boot chain for minutes). Goes through the `services-loader.ts`
+ * lazy import because `@revealui/services` is an OPTIONAL peer dependency of
  * apps/server (OSS/Docker deployments may omit it) — a static top-level
  * import would crash module resolution at startup for those deployments.
  * Throws when the module isn't installed; `validateStripeTaxConfigAtStartup`
@@ -768,7 +770,7 @@ export async function fetchLiveStripeTaxSettings(): Promise<Pick<Stripe.Tax.Sett
   if (!services) {
     throw new Error('@revealui/services not installed — cannot query Stripe Tax Settings');
   }
-  return services.getStripe().tax.settings.retrieve();
+  return services.protectedStripe.tax.settings.retrieve();
 }
 
 /**
@@ -811,13 +813,30 @@ export function emitStripeTaxFlagWarning(): void {
  * account — `routes/billing.ts` correctly gates `automatic_tax` on the flag
  * (#828), the deployment just never flipped it.
  *
- * Fail-open by design, on two axes:
+ * **This is a SECONDARY signal, not the control.** The Vercel serverless API
+ * (`index.ts`'s production block) is the process that actually builds
+ * Checkout sessions, and it deliberately does not call this function (no
+ * per-cold-start Stripe round trip on the request path — see the comment
+ * above the production block in `index.ts`). This validator only runs from
+ * the Fly worker's boot chain and the local-dev boot chain, neither of which
+ * is the money path. The AUTHORITATIVE control for this class of drift is
+ * the daily `billing-readiness` cron
+ * (`apps/server/src/routes/cron/billing-readiness.ts`), which runs on the
+ * same Vercel deployment that serves checkout and emails
+ * `REVEALUI_ALERT_EMAIL` on failure. Treat a worker-boot warning as an early
+ * heads-up on a Fly redeploy, not proof the money path is safe.
+ *
+ * Fail-open by design, on three axes:
  *   - Tax Settings status other than `'active'` (e.g. `'pending'`, or no
  *     registrations at all) is a legitimate steady state, not a misconfig —
  *     silent in that case.
  *   - A Stripe API failure here (network, auth, rate limit) must never block
- *     boot. This is an advisory warning surface, not a required-config gate,
- *     so any rejection from `fetchTaxSettings` is swallowed.
+ *     boot. This is an advisory warning surface, not a required-config gate.
+ *   - Structurally fail-open: the entire body below — fetch AND the warning
+ *     emitter — runs inside one try/catch, so nothing this function does can
+ *     ever reject and propagate into a caller's `.then()` chain (worker.ts
+ *     turns a rejected chain into `process.exit(1)`; an advisory check must
+ *     never be able to trigger that).
  *
  * Runs only when ALL of:
  *   - `NODE_ENV === 'production'`
@@ -839,15 +858,26 @@ export async function validateStripeTaxConfigAtStartup(
   if (detectDeploymentMode(env) !== 'hosted') return;
   if (env.STRIPE_LIVE_MODE !== 'true') return;
 
-  let settings: Pick<Stripe.Tax.Settings, 'status'>;
   try {
-    settings = await fetchTaxSettings();
-  } catch {
-    // Network/API failure must never block boot — swallow and move on.
-    return;
-  }
-
-  if (settings.status === 'active' && env.STRIPE_TAX_ENABLED !== 'true') {
-    emitStripeTaxFlagWarning();
+    const settings = await fetchTaxSettings();
+    if (settings.status === 'active' && env.STRIPE_TAX_ENABLED !== 'true') {
+      emitStripeTaxFlagWarning();
+    }
+  } catch (err) {
+    // Network/API failure must never block boot. Still log ONE non-secret
+    // line (message only — never the error object, which can embed request
+    // params) so a scope-denied Stripe key or a persistent outage is visible
+    // somewhere instead of this control silently going dark forever. The
+    // logging attempt itself is wrapped too — a broken stderr stream must
+    // not be able to escalate an advisory check into a rejected promise.
+    try {
+      process.stderr.write(
+        `[validateStripeTaxConfigAtStartup] Stripe Tax Settings check failed (non-fatal, boot continues): ${
+          err instanceof Error ? err.message : String(err)
+        }\n`,
+      );
+    } catch {
+      // Nothing else to do — this function must never throw.
+    }
   }
 }

@@ -1255,12 +1255,71 @@ describe('validateStripeTaxConfigAtStartup — live-mode tax-flag guard', () => 
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('boots fine (no throw, no warning) when the Stripe API call fails', async () => {
-    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  it('boots fine (no throw) when the Stripe API call fails, and logs one non-secret line', async () => {
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     const fetchTaxSettings = () => Promise.reject(new Error('ECONNRESET'));
     await expect(
       validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings),
     ).resolves.toBeUndefined();
-    expect(warnSpy).not.toHaveBeenCalled();
+    // Exactly one line — never the loud multi-line tax-flag banner (that's
+    // the misconfig path, not the "couldn't check" path).
+    expect(stderrSpy).toHaveBeenCalledTimes(1);
+    const [message] = stderrSpy.mock.calls[0] ?? [''];
+    expect(String(message)).toMatch(/ECONNRESET/);
+    expect(String(message)).toMatch(/non-fatal/);
+    expect(String(message)).not.toMatch(/STRIPE TAX ACTIVE/);
+  });
+
+  it('never throws even when the emitter itself throws (structural fail-open, B2)', async () => {
+    // Guardrail-2 verdict B2: the whole body, including the emitter, is
+    // wrapped in try/catch — a defect in emitStripeTaxFlagWarning must not
+    // be able to reject this function and propagate into a caller's boot
+    // chain (worker.ts turns a rejected chain into process.exit(1)).
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => {
+      throw new Error('stderr is not writable right now');
+    });
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await expect(
+      validateStripeTaxConfigAtStartup(
+        { ...liveHostedEnv, STRIPE_TAX_ENABLED: 'false' },
+        fetchTaxSettings,
+      ),
+    ).resolves.toBeUndefined();
+    stderrSpy.mockRestore();
+  });
+});
+
+// ─── fetchLiveStripeTaxSettings — uses protectedStripe (GAP-131) ───────
+describe('fetchLiveStripeTaxSettings', () => {
+  afterEach(() => {
+    vi.doUnmock('../services-loader.js');
+    vi.resetModules();
+  });
+
+  it('throws when @revealui/services is not installed', async () => {
+    vi.resetModules();
+    vi.doMock('../services-loader.js', () => ({
+      getServices: () => Promise.resolve(null),
+    }));
+    const { fetchLiveStripeTaxSettings: fetchFresh } = await import('../validate-startup.js');
+    await expect(fetchFresh()).rejects.toThrow(/@revealui\/services not installed/);
+  });
+
+  it('calls services.protectedStripe.tax.settings.retrieve (not raw getStripe)', async () => {
+    const retrieve = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    const getStripe = vi.fn();
+    vi.resetModules();
+    vi.doMock('../services-loader.js', () => ({
+      getServices: () =>
+        Promise.resolve({
+          protectedStripe: { tax: { settings: { retrieve } } },
+          getStripe,
+        }),
+    }));
+    const { fetchLiveStripeTaxSettings: fetchFresh } = await import('../validate-startup.js');
+    const result = await fetchFresh();
+    expect(result).toEqual({ status: 'active' });
+    expect(retrieve).toHaveBeenCalledTimes(1);
+    expect(getStripe).not.toHaveBeenCalled();
   });
 });

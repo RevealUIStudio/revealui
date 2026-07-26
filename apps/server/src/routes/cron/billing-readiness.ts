@@ -5,7 +5,10 @@
  * 1. All expected Stripe price env vars are set
  * 2. REVEALUI_LICENSE_PRIVATE_KEY is present (for license JWT generation)
  * 3. Billing catalog DB rows exist for all tiers
- * 4. Email provider configured (warning only  -  Gmail API via Google Workspace service account)
+ * 4. Stripe price parity against the MRR fallback (CR8-P2-04)
+ * 5. Stripe Tax Settings vs STRIPE_TAX_ENABLED, live mode only (GAP-437) —
+ *    the authoritative control for this drift class; see inline comment
+ * 6. Email provider configured (warning only  -  Gmail API via Google Workspace service account)
  *
  * Sends an alert email to REVEALUI_ALERT_EMAIL on any failure.
  * Runs daily at 06:00 UTC (configured in vercel.json).
@@ -196,7 +199,53 @@ app.post('/billing-readiness', async (c) => {
     }
   }
 
-  // 5. Check email provider configuration (warning only  -  billing works without
+  // 5. Stripe Tax Settings vs STRIPE_TAX_ENABLED (GAP-437)
+  //
+  //    THE authoritative control for this class of drift — this cron runs
+  //    daily on the same Vercel deployment that actually builds Checkout
+  //    sessions (routes/billing.ts gates automatic_tax on STRIPE_TAX_ENABLED,
+  //    #828), unlike the boot-time warning in validate-startup.ts, which only
+  //    runs on the Fly worker (a separate process/deployment that does not
+  //    serve checkout). 2026-07-26 incident: a live $49 TN charge collected
+  //    zero sales tax because Stripe Tax + a TN registration were both ACTIVE
+  //    on the account while STRIPE_TAX_ENABLED was never set on this
+  //    deployment.
+  //
+  //    A Stripe API failure here (permission scope, network, rate limit) is
+  //    tolerated as a warning, not a check failure — an inability to CHECK
+  //    tax config is not evidence that tax config is wrong, and alerting on
+  //    every transient Stripe hiccup would train the on-call to ignore this
+  //    alert. GAP-131: goes through protectedStripe, matching every other
+  //    Stripe call site in this file.
+  if (services && process.env.STRIPE_LIVE_MODE === 'true') {
+    try {
+      const taxSettings = await services.protectedStripe.tax.settings.retrieve();
+      if (taxSettings.status === 'active' && process.env.STRIPE_TAX_ENABLED !== 'true') {
+        results.push({
+          check: 'stripe:tax-flag',
+          ok: false,
+          detail:
+            'Stripe Tax Settings are ACTIVE but STRIPE_TAX_ENABLED is not "true" — live ' +
+            'Checkout sessions are being created WITHOUT sales tax collection. Set ' +
+            'STRIPE_TAX_ENABLED=true on this deployment, or confirm untaxed billing is ' +
+            'intentional for this account.',
+        });
+      } else {
+        results.push({
+          check: 'stripe:tax-flag',
+          ok: true,
+          detail: `tax settings status: ${taxSettings.status}`,
+        });
+      }
+    } catch (err) {
+      warnings.push({
+        check: 'stripe:tax-flag',
+        detail: `Stripe Tax Settings lookup failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`,
+      });
+    }
+  }
+
+  // 6. Check email provider configuration (warning only  -  billing works without
   //    email, but transactional emails will silently fail)
   const hasGmail =
     Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_PRIVATE_KEY);
