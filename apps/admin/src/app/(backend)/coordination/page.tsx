@@ -10,7 +10,7 @@ import {
   Skeleton,
 } from '@revealui/presentation';
 import type { CoordinationSessionRecord } from '@revealui/sync';
-import { useCoordinationSessions } from '@revealui/sync';
+import { ClientOnly, useCoordinationSessions } from '@revealui/sync';
 import { useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
@@ -59,7 +59,10 @@ function truncate(s: string, n: number): string {
 export default function CoordinationPage() {
   return (
     <LicenseGate feature="dashboard">
-      <CoordinationDashboard />
+      {/* Shape hooks need a browser origin (Electric requires an absolute URL). */}
+      <ClientOnly>
+        <CoordinationDashboard />
+      </ClientOnly>
     </LicenseGate>
   );
 }
