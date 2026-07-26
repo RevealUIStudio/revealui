@@ -1,5 +1,15 @@
 # @revealui/services
 
+## 0.7.9
+
+### Patch Changes
+
+- Updated dependencies [fb3315c]
+- Updated dependencies [94d1714]
+  - @revealui/db@0.10.0
+  - @revealui/core@0.12.2
+  - @revealui/contracts@0.8.1
+
 ## 0.7.8
 
 ### Patch Changes

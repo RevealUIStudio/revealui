@@ -1,5 +1,12 @@
 # @revealui/db
 
+## 0.10.0
+
+### Minor Changes
+
+- fb3315c: Close the audit env-parity fail-open (GAP-417 item 5): `@revealui/db` now exports `hasDatabaseConnectionEnv()`, a boot-time predicate that matches `getClient()`'s connection resolution exactly (config url, then POSTGRES_URL / DATABASE_URL), and `assertAuditStorageEnv` consumes it instead of a local triple that also accepted `DATABASE_HOST` — an env shape `getClient()` never consults, which let the assert pass, the install throw, and production silently keep the in-memory audit sink.
+- 94d1714: GAP-417 both rails (owner-countersigned): the audit path has no escape hatch into unsigned production rows. `assertAuditStorageEnv` refuses a production boot without the signing key regardless of `SKIP_ENV_VALIDATION`; `DrizzleAuditStore.append`/`appendBatch` refuse to land an unsigned row when `NODE_ENV=production`; and the signer composition normalizes single-line `\n`-escaped PEMs so `env_file` transports (RevForge kits) can carry the key.
+
 ## 0.9.0
 
 ### Minor Changes
