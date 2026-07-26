@@ -55,6 +55,7 @@ import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
   validateStartup,
+  validateStripeTaxConfigAtStartup,
 } from './lib/validate-startup.js';
 import { startExecutor } from './services/revmarket-executor.js';
 
@@ -73,7 +74,17 @@ installAuditStorage();
 // synthetic event through the just-installed storage and reads it back, exiting
 // the process if the round trip fails (fail-closed integrity, ADR §2a) — the
 // worker boots once per deploy, so this is the deploy-time proof that the audit
-// path works end to end.
+// path works end to end. runHostedLicenseCanary and initializeLicense complete
+// the fail-closed gate sequence.
+//
+// validateStripeTaxConfigAtStartup (GAP-437) runs LAST, after every fail-closed
+// gate above, and deliberately outside their critical path: it is a SECONDARY,
+// advisory signal (see its docstring) — the authoritative control is the daily
+// billing-readiness cron, which runs on the Vercel deployment that actually
+// serves checkout. It is structurally fail-open (wraps its own fetch and
+// emitter in try/catch, never throws) and this call site adds a no-op safety
+// catch on top of that, so a defect in this advisory step can never delay or
+// fail the gates above it or flip this chain's exit(1).
 validateStartup();
 validateLicenseAtStartup()
   .then(() => validateBillingCatalogAtStartup())
@@ -82,6 +93,11 @@ validateLicenseAtStartup()
   .then(() => initializeLicense())
   .then((tier) => {
     logger.info(`License tier: ${tier}`);
+    return validateStripeTaxConfigAtStartup().catch(() => {
+      // Belt-and-suspenders: the function itself is structurally fail-open
+      // (see its docstring), but this call site must never let a defect in
+      // this advisory step reach the chain's process.exit(1) catch below.
+    });
   })
   .catch((err: unknown) => {
     logger.error(

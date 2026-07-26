@@ -72,3 +72,16 @@ export const REQUIRED_IN_PRODUCTION_HOSTED = [
   // "REVEALUI_API_URL is not configured". Vault: revealui/prod/public/api-url.
   'REVEALUI_API_URL',
 ] as const;
+
+// NOT required-at-boot, by design (GAP-437): STRIPE_TAX_ENABLED. Unlike
+// everything above, an account with Stripe Tax inactive is a legitimate
+// steady state — making this presence-required would fail boot for every
+// account that hasn't registered for tax collection yet, which is the
+// opposite of the fail-open posture the flag needs. It is still registered
+// (so "where does this get set" has one answer, not zero): the documented
+// env matrix (docs/ENVIRONMENT-VARIABLES-GUIDE.md, Stripe Payments section),
+// the Fly sync manifest skip-list (scripts/sync/revvault-fly.toml — a plain
+// boolean, not a secret, so it has no vault path), and validated for
+// live-mode drift by the daily billing-readiness cron
+// (apps/server/src/routes/cron/billing-readiness.ts) plus a secondary
+// boot-time warning in validate-startup.ts.

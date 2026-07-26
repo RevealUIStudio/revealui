@@ -431,6 +431,17 @@ function createProtectedStripe(stripeInstance?: Stripe) {
           ),
       },
     },
+    tax: {
+      settings: {
+        retrieve: (
+          ...args: Parameters<Stripe['tax']['settings']['retrieve']>
+        ): Promise<Stripe.Tax.Settings> =>
+          callWithResilience(
+            () => getStripeInstance().tax.settings.retrieve(...args),
+            'tax.settings.retrieve',
+          ),
+      },
+    },
     get webhooks(): Stripe['webhooks'] {
       return getStripeInstance().webhooks;
     },

@@ -59,6 +59,7 @@ import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
   validateStartup,
+  validateStripeTaxConfigAtStartup,
 } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
@@ -1441,6 +1442,13 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // storage and reads it back, exiting the process if the round trip fails —
     // fail-closed integrity (ADR §2a). Sequenced AFTER installAuditStorage() so
     // it exercises the real persistent path, not the in-memory default.
+    //
+    // validateStripeTaxConfigAtStartup (GAP-437) runs LAST — same shape as
+    // worker.ts (see that file's comment + the function's own docstring): a
+    // SECONDARY, structurally fail-open advisory signal, never the authoritative
+    // control (that's the daily billing-readiness cron). This dev block is local
+    // developer feedback only; it also short-circuits immediately outside
+    // production-hosted-live, which `pnpm dev:api` never is.
     validateLicenseAtStartup()
       .then(() => validateBillingCatalogAtStartup())
       .then(() => auditStorageSelfTest())
@@ -1448,6 +1456,11 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       .then(() => initializeLicense())
       .then((tier) => {
         logger.info(`License tier: ${tier}`);
+        return validateStripeTaxConfigAtStartup().catch(() => {
+          // Belt-and-suspenders (mirrors worker.ts): the function itself is
+          // structurally fail-open, but this call site must never let a
+          // defect in this advisory step reach the chain's exit(1) catch.
+        });
       })
       .catch((err: unknown) => {
         logger.error(
