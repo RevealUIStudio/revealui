@@ -71,7 +71,7 @@ Six principles that give you a tested starting point for every architectural dec
 | Principle | What it means |
 | --- | --- |
 | **Justifiable** | Every default earns its place. No magic, no hidden complexity, no decisions you can't explain to your team. |
-| **Orthogonal** | Clean separation of concerns across 29 packages. Use what you need, replace what you don't. Zero circular dependencies. |
+| **Orthogonal** | Clean separation of concerns across 30 packages. Use what you need, replace what you don't. Zero circular dependencies. |
 | **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
 | **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
@@ -278,7 +278,7 @@ revealui/
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   └── marketing/  # revealui.com marketing site (port 3000)
-├── packages/       # 23 OSS + 5 Pro + 1 internal = 29 packages
+├── packages/       # 23 OSS + 5 Pro + 2 internal = 30 packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```
