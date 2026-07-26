@@ -21,11 +21,11 @@
  */
 export const METRICS = {
   /** Packages in `packages/` directories. Source: claim-drift countPackages. */
-  packages: 29,
+  packages: 30,
   /** Apps in `apps/`. Source: claim-drift countApps. */
   apps: 5,
   /** Workspaces (packages + apps). Source: claim-drift countWorkspaces. */
-  workspaces: 34,
+  workspaces: 35,
   /** Test files across the monorepo. Source: claim-drift countTestFiles. */
   testFiles: 1061,
   /** UI components in `packages/presentation/`. Source: claim-drift countUIComponents. */
@@ -44,8 +44,8 @@ export const METRICS = {
     mit: 23,
     /** Fair Source (FSL-1.1-MIT) packages: @revealui/ai, engines, harnesses, mcp, services. */
     fsl: 5,
-    /** Internal/none: `test` workspace package (private, no public license). */
-    internal: 1,
+    /** Internal/none: `scripts` and `apify-actor-governed-run` (private, no public license). */
+    internal: 2,
   },
 } as const;
 

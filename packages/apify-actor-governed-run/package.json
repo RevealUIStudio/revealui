@@ -8,10 +8,12 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@revealui/ai": "workspace:*",
     "@revealui/security": "workspace:*",
     "apify": "^3.7.2",
     "zod": "catalog:"
+  },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:^"
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",

@@ -46,13 +46,13 @@ own model spend.
 
 ## Pricing (pay per event)
 
-Apify's pay-per-event pricing is configured in the Apify Console or via the
-`PUT /v2/acts/{actorId}` API, not in a file inside this repo -- there is no
-`pricingInfos` field in `.actor/actor.json` (verified against
-[docs.apify.com](https://docs.apify.com/platform/actors/development/actor-definition/actor-json),
-July 2026). [`src/pricing.config.ts`](./src/pricing.config.ts) is this
-repo's single source of truth for the event catalog; whoever applies pricing
-in Console/API must register the same event names with these prices.
+See https://docs.apify.com/platform/actors/development/actor-definition/actor-json
+(verified July 2026): there is no `pricingInfos` field in `.actor/actor.json`.
+Apify's pay-per-event prices are set through the Apify Console or through a
+`PUT /v2/acts/{actorId}` API call instead, not through a file in this repo.
+[`src/pricing.config.ts`](./src/pricing.config.ts) is this repo's single
+source of truth for the event catalog; whoever applies pricing in
+Console/API must register the same event names with these prices.
 
 **Launch prices, owner-ruled 2026-07-26** (value-anchored; will be recorded in
 `business/offerings-canonical.md` in the internal coordination repo once this

@@ -1,7 +1,8 @@
 // Sourced from: app/routes/FairSourcePage.tsx (Phase 1 extraction).
 // Hero headline + body math reference the METRICS license split
-// (validator: 23 MIT + 5 FSL + 1 internal = 29 packages). The single internal
-// package is @revealui/scripts (private build tooling, no license field).
+// (validator: 23 MIT + 5 FSL + 2 internal = 30 packages). The internal
+// packages are @revealui/scripts and @revealui/apify-actor-governed-run
+// (both private, no license field).
 // Per the internal marketing-overhaul plan §4.4 + docs/MARKETING_METRICS.md §1.
 // claims-ratchet 2026-07-12: services description scoped to Stripe + email,
 // internal-package identity corrected, MIT-conversion example made version-agnostic.
