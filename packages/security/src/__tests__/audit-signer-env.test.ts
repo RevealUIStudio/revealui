@@ -96,3 +96,37 @@ describe('createAuditRowSignerFromEnv', () => {
     expect(res.kid?.startsWith('ed25519-')).toBe(true);
   });
 });
+
+describe('env_file PEM normalization (GAP-417 — RevForge kit transport)', () => {
+  function makePem(): string {
+    const { privateKey } = generateKeyPairSync('ed25519', {
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+    });
+    return privateKey;
+  }
+
+  it('a single-line \\n-escaped private key composes the SAME signer as the multi-line PEM', () => {
+    const pem = makePem();
+    const escaped = pem.split('\n').join('\\n');
+
+    const fromMultiline = createAuditRowSignerFromEnv({ REVEALUI_AUDIT_SIGNING_KEY: pem });
+    const fromEscaped = createAuditRowSignerFromEnv({ REVEALUI_AUDIT_SIGNING_KEY: escaped });
+
+    expect(fromEscaped.mode).toBe('signed');
+    expect(fromEscaped.kid).toBe(fromMultiline.kid);
+  });
+
+  it('an escaped public key resolves and cross-checks against the escaped private key', () => {
+    const { privateKey, publicKey } = generateKeyPairSync('ed25519', {
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+    });
+    const resolved = resolveAuditPublicKey({
+      REVEALUI_AUDIT_SIGNING_KEY: privateKey.split('\n').join('\\n'),
+      REVEALUI_AUDIT_PUBLIC_KEY: publicKey.split('\n').join('\\n'),
+    });
+    expect(resolved).not.toBeNull();
+    expect(resolved?.publicKeyPem).toBe(publicKey);
+  });
+});

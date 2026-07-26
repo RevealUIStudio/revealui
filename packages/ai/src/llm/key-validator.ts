@@ -37,6 +37,44 @@ export async function validateProviderKey(
 ): Promise<ProviderValidationResult> {
   try {
     switch (provider) {
+      case 'anthropic': {
+        // Cheapest read-only probe: the models list. Honors the same base-URL
+        // override as the env factory (client.ts) so self-hosted proxies work.
+        const base = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com/v1';
+        const res = await probeFetch(`${base}/models`, {
+          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        });
+        if (res.ok) return { valid: true };
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: 'Invalid Anthropic API key' };
+        }
+        return { valid: false, error: `Anthropic validation failed: HTTP ${res.status}` };
+      }
+
+      case 'openai': {
+        const base = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1';
+        const res = await probeFetch(`${base}/models`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (res.ok) return { valid: true };
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: 'Invalid OpenAI API key' };
+        }
+        return { valid: false, error: `OpenAI validation failed: HTTP ${res.status}` };
+      }
+
+      case 'xai': {
+        const base = process.env.XAI_BASE_URL ?? 'https://api.x.ai/v1';
+        const res = await probeFetch(`${base}/models`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (res.ok) return { valid: true };
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: 'Invalid xAI API key' };
+        }
+        return { valid: false, error: `xAI validation failed: HTTP ${res.status}` };
+      }
+
       case 'groq': {
         const res = await probeFetch('https://api.groq.com/openai/v1/models', {
           headers: { Authorization: `Bearer ${apiKey}` },
@@ -58,9 +96,10 @@ export async function validateProviderKey(
         return { valid: false, error: `HuggingFace validation failed: HTTP ${res.status}` };
       }
 
-      case 'ollama': {
-        // Ollama is local  -  we cannot reliably probe it from the server.
-        // Accept the key as-is (Ollama doesn't use API keys anyway).
+      case 'ollama':
+      case 'inference-snaps': {
+        // Local providers  -  we cannot reliably probe them from the server,
+        // and neither uses a real API key. Accept the key as-is.
         return { valid: true };
       }
 

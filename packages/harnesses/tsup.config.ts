@@ -9,7 +9,6 @@ export default defineConfig({
     'src/content/index.ts',
     'src/manager/index.ts',
     'src/storage/index.ts',
-    'src/goals/index.ts',
     'src/hooks/index.ts',
     'src/hotfix/index.ts',
     'src/gates/index.ts',

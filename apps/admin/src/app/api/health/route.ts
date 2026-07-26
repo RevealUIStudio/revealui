@@ -25,6 +25,21 @@ export async function GET(request: Request) {
   const isAuthenticated = session?.user?.role === 'admin';
 
   if (!isAuthenticated) {
+    // GAP-417 (owner-ruled 2026-07-25): the unauthenticated arm reflects the
+    // real overall status CODE so uptime monitors and the kit healthcheck
+    // finally see a production audit outage, while leaking zero check detail
+    // (public-issue-redaction posture: a bare {status} body either way).
+    // Only zero-I/O probes run for anonymous callers — no DB query, no
+    // Stripe call, no new anonymous load surface.
+    try {
+      const { audit } = await import('@revealui/security/server');
+      if (process.env.NODE_ENV === 'production' && audit.isInMemoryStorage()) {
+        return NextResponse.json({ status: 'unhealthy' }, { status: 503 });
+      }
+    } catch {
+      // Probe unavailable: stay minimal-healthy — the boot rails and the
+      // authenticated arm carry the detailed signal.
+    }
     return NextResponse.json({ status: 'healthy' });
   }
 
@@ -88,6 +103,63 @@ export async function GET(request: Request) {
         name: 'stripe',
         status: 'degraded',
         message: 'Stripe check skipped: @revealui/services (Pro) not installed',
+      });
+    }
+  }
+
+  // Audit storage (GAP-338, #2156 review): this check runs in the ROUTE
+  // bundle, so it proves the boot-time storage swap in instrumentation reached
+  // the same `audit` singleton the routes resolve — the executable
+  // cross-bundle proof. In-memory in production means admin emits (incl.
+  // login receipts) evaporate on restart: unhealthy. Dev shells without a DB
+  // keep the in-memory sink by design: degraded, not unhealthy.
+  try {
+    const { audit } = await import('@revealui/security/server');
+    const inMemory = audit.isInMemoryStorage();
+    if (!inMemory) {
+      checks.push({
+        name: 'audit-storage',
+        status: 'healthy',
+        message: 'Persistent audit storage installed (route bundle sees the swap)',
+      });
+    } else if (process.env.NODE_ENV === 'production') {
+      overallStatus = 'unhealthy';
+      checks.push({
+        name: 'audit-storage',
+        status: 'unhealthy',
+        message:
+          'Audit storage is IN-MEMORY in production — admin audit emits evaporate on restart',
+      });
+    } else {
+      // By-design state (dev shell / test env without a DB): informational
+      // check entry only. It must NOT downgrade overallStatus — this route
+      // maps every non-healthy overall to 503, and a deliberate dev default
+      // is not an outage (the 503 belongs to production in-memory only).
+      checks.push({
+        name: 'audit-storage',
+        status: 'degraded',
+        message: 'Audit storage is in-memory (non-production without a DB — by design)',
+      });
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'production') {
+      // #2162 review refinement: a probe that cannot even run in PRODUCTION
+      // is an anomalous state that must keep its status-code signal — it is
+      // the one arm that would otherwise report 200 while the audit surface
+      // is unobservable.
+      overallStatus = 'unhealthy';
+      checks.push({
+        name: 'audit-storage',
+        status: 'unhealthy',
+        message: error instanceof Error ? error.message : 'Audit storage check failed',
+      });
+    } else {
+      // Non-production probe failure stays informational — the audit path is
+      // guarded at boot and at write time; a dev shell must not 503 on it.
+      checks.push({
+        name: 'audit-storage',
+        status: 'degraded',
+        message: error instanceof Error ? error.message : 'Audit storage check failed',
       });
     }
   }

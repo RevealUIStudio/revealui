@@ -20,6 +20,10 @@
 #   JWT_SECRET                — 32+ char random secret (openssl rand -hex 32)
 #   REVEALUI_PUBLIC_KEY       — RSA public key for license verification
 #   REVEALUI_PRIVATE_KEY      — RSA private key for license issuance
+#   REVEALUI_AUDIT_SIGNING_KEY — Ed25519 PKCS#8 PEM; signs every audit row
+#                               (required in production: api validate-startup
+#                               and admin instrumentation both refuse to boot
+#                               without it — ADR §2b, self-hosted signs too)
 #   RESEND_API_KEY            — transactional email (optional — disables email features if absent)
 # =============================================================================
 
@@ -72,6 +76,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       REVEALUI_PUBLIC_KEY: ${REVEALUI_PUBLIC_KEY:?REVEALUI_PUBLIC_KEY is required}
       REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY:?REVEALUI_PRIVATE_KEY is required}
+
+      # Audit-row signing (GAP-355 Stage 3 / GAP-417). validate-startup refuses
+      # to boot the api without a parseable Ed25519 key — the compose previously
+      # never passed it through, so an un-keyed kit restart-looped with a
+      # generic missing-env error instead of this named one.
+      REVEALUI_AUDIT_SIGNING_KEY: ${REVEALUI_AUDIT_SIGNING_KEY:?REVEALUI_AUDIT_SIGNING_KEY is required (Ed25519 PKCS#8 PEM - signs every audit row)}
 
       # CMS origin for CORS
       ADMIN_URL: ${ADMIN_URL:-http://admin:4000}
@@ -136,6 +146,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       REVEALUI_PUBLIC_KEY: ${REVEALUI_PUBLIC_KEY}
       REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY}
+
+      # Audit-row signing (GAP-338/GAP-417): the admin process installs
+      # persistent signed audit storage at boot and refuses to serve in
+      # production without the key. Same key as the api service.
+      REVEALUI_AUDIT_SIGNING_KEY: ${REVEALUI_AUDIT_SIGNING_KEY}
 
       # API URL (internal container network)
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:3004}

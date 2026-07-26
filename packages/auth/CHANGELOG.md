@@ -1,5 +1,23 @@
 # @revealui/auth
 
+## 0.5.0
+
+### Minor Changes
+
+- 50b9b4b: Add the shared audit storage boundary (`DrizzleBackedAuditStorage`, `installAuditStorage`, `assertAuditStorageEnv`, `auditStorageSelfTest`, `createAuditStore`, `getAuditRowSigner`, `mapSeverityToDb`) at the dedicated subpath `@revealui/auth/audit-storage`, moved from apps/server so the admin process can install persistent, signed audit storage at boot. The boundary is deliberately not re-exported from the `@revealui/auth/server` barrel: route tests bare-mock that barrel for `getSession`, and a bare mock must never swallow the audit write path. Fixes the defect where every admin-process audit emit (including login receipts) landed in the default in-memory store and evaporated on restart (GAP-338).
+- fb3315c: Close the audit env-parity fail-open (GAP-417 item 5): `@revealui/db` now exports `hasDatabaseConnectionEnv()`, a boot-time predicate that matches `getClient()`'s connection resolution exactly (config url, then POSTGRES_URL / DATABASE_URL), and `assertAuditStorageEnv` consumes it instead of a local triple that also accepted `DATABASE_HOST` — an env shape `getClient()` never consults, which let the assert pass, the install throw, and production silently keep the in-memory audit sink.
+- 94d1714: GAP-417 both rails (owner-countersigned): the audit path has no escape hatch into unsigned production rows. `assertAuditStorageEnv` refuses a production boot without the signing key regardless of `SKIP_ENV_VALIDATION`; `DrizzleAuditStore.append`/`appendBatch` refuse to land an unsigned row when `NODE_ENV=production`; and the signer composition normalizes single-line `\n`-escaped PEMs so `env_file` transports (RevForge kits) can carry the key.
+
+### Patch Changes
+
+- Updated dependencies [641ff50]
+- Updated dependencies [fb3315c]
+- Updated dependencies [94d1714]
+  - @revealui/security@0.6.0
+  - @revealui/db@0.10.0
+  - @revealui/core@0.12.2
+  - @revealui/contracts@0.8.1
+
 ## 0.4.10
 
 ### Patch Changes

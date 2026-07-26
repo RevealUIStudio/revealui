@@ -16,6 +16,7 @@ import {
   hostMatchesLicensedDomains,
   validateLicenseKey,
 } from '@revealui/core/license';
+import { normalizeEnvPem } from '@revealui/core/security';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
@@ -310,7 +311,11 @@ export function validateStartup(
   // / REVEALUI_SECRET fallback died with the HMAC path (a signing key with a
   // fallback is not a signing key). Self-hosted operators generate their own key
   // at `pnpm setup` (GAP-355 PR-3); until then a missing/invalid key fails boot.
-  const auditSigningKey = env.REVEALUI_AUDIT_SIGNING_KEY ?? '';
+  // normalizeEnvPem: env_file transports (RevForge kits) deliver the PEM
+  // single-line with \n escapes — the format check must read the SAME
+  // normalized value the signer composes from, or a valid kit key fails boot
+  // with a misleading parse error (#2164 review, proven across call sites).
+  const auditSigningKey = normalizeEnvPem(env.REVEALUI_AUDIT_SIGNING_KEY ?? '');
   if (!skipFormat(auditSigningKey)) {
     const signingKeyProblem = classifyEd25519PrivateKey(auditSigningKey);
     if (signingKeyProblem) {

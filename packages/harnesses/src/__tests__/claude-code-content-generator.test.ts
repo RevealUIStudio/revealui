@@ -101,6 +101,34 @@ describe('ClaudeCodeGenerator', () => {
     });
   });
 
+  describe('yaml quoting locks the injection-critical characters', () => {
+    // Exercises the REAL generator (not a mirrored predicate): if ':' , '\n'
+    // or '\r' is ever dropped from YAML_QUOTING_CHARS, the emitted frontmatter
+    // goes unquoted and these assertions fail by name. Origin: #2167
+    // guardrail-2 review finding 1 (the snapshot only locks ',' and '>').
+    const hostile: Array<[label: string, description: string, quoted: string]> = [
+      ['colon (key injection)', 'x: y', '"x: y"'],
+      ['newline (line injection)', 'a\nb', '"a\\nb"'],
+      ['carriage return (break injection)', 'a\rb', '"a\\rb"'],
+    ];
+
+    for (const [label, description, quoted] of hostile) {
+      it(`quotes a description containing ${label}`, () => {
+        const agent: Agent = {
+          id: 'hostile',
+          name: 'Hostile',
+          description,
+          tier: 'oss',
+          isolation: 'none',
+          tools: [],
+          content: 'body',
+        };
+        const [file] = new ClaudeCodeGenerator().generateAgent(agent, ctx);
+        expect(file?.content).toContain(`description: ${quoted}`);
+      });
+    }
+  });
+
   describe('generateAll', () => {
     it('emits all content under .revealui/content (manager tree)', () => {
       const manifest = buildManifest();

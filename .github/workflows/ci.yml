@@ -57,6 +57,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
+      - name: Build @revealui/harnesses (gates + manager modules, GAP-408/GAP-421)
+        # Built once, early, for two dist-only consumers that must not reach
+        # into src/ (GAP-421 §6.2): doc-currency.ts resolves its
+        # SHARED_FLEET_RULES detection tuples from dist/gates, and
+        # structure.ts resolves checkManager from dist/manager (manager-resolver.cjs,
+        # mirroring gates-resolver.cjs). Building just this one package is
+        # cheap relative to the whole monorepo (Quality is install-only
+        # otherwise). Absence degrades gracefully for doc-currency (warn +
+        # shared-rules-skipped run) but fails closed for the manager check
+        # (GAP-406 hard-fail posture), so this step must run before Structure
+        # validation and the path-gated manager-only check below.
+        run: pnpm --filter @revealui/harnesses build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
       - name: Biome lint (hard fail)
         run: pnpm lint
 
@@ -158,18 +173,6 @@ jobs:
         # same keys are required (stale dist → 422 on session.patch). Does not
         # build @revealui/contracts (needs @revealui/db; Quality has install only).
         run: pnpm validate:marketing-voice-prose-slots
-
-      - name: Build @revealui/harnesses (doc-currency's gates module, GAP-408)
-        # doc-currency.ts resolves its shared SHARED_FLEET_RULES detection
-        # tuples from packages/harnesses/dist/gates — build just that one
-        # package rather than the whole monorepo (Quality is install-only
-        # otherwise). Absence degrades to a warn + shared-rules-skipped run
-        # (see doc-currency.ts's ABSENCE BEHAVIOR comment), not a crash, so
-        # this step is a belt-and-braces guarantee of full coverage, not a
-        # hard dependency of the job passing.
-        run: pnpm --filter @revealui/harnesses build
-        env:
-          SKIP_ENV_VALIDATION: "true"
 
       - name: Doc-currency validation (hard fail)
         # Stale-fact drift guard: docs/**/*.md + apps/marketing/**/*.md prose,
@@ -690,6 +693,20 @@ jobs:
         env:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
+      # The admin server runs `next start` (NODE_ENV=production, not
+      # overridable) and the GAP-338/417 audit rails are fail-closed with no
+      # escape hatch: a production admin refuses to serve without a DB
+      # connection env AND an Ed25519 signing key. E2E provisions the real
+      # thing — an ephemeral per-run key — instead of bypassing the rail.
+      - name: Generate ephemeral audit signing key (E2E only)
+        run: |
+          openssl genpkey -algorithm ed25519 -out /tmp/e2e-audit-key.pem
+          {
+            echo "REVEALUI_AUDIT_SIGNING_KEY<<E2E_KEY_EOF"
+            cat /tmp/e2e-audit-key.pem
+            echo "E2E_KEY_EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Start API server
         run: pnpm --filter server start &
         env:
@@ -701,6 +718,7 @@ jobs:
         run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -750,6 +768,24 @@ jobs:
     needs: [quality, build]
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
+    # The admin server's GAP-338/417 audit rails are fail-closed in production
+    # (`next start`): a DB connection env + signing key are boot requirements.
+    # Same pgvector service + migrations as the E2E Smoke job.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -775,10 +811,27 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Apply migrations to the smoke database
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+
+      # See the E2E Smoke job: production admin refuses to boot without the
+      # audit env (GAP-338/417, no escape hatch by design). Provision it.
+      - name: Generate ephemeral audit signing key (E2E only)
+        run: |
+          openssl genpkey -algorithm ed25519 -out /tmp/e2e-audit-key.pem
+          {
+            echo "REVEALUI_AUDIT_SIGNING_KEY<<E2E_KEY_EOF"
+            cat /tmp/e2e-audit-key.pem
+            echo "E2E_KEY_EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -822,6 +875,23 @@ jobs:
     needs: [quality, build]
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
+    # See e2e-accessibility: production admin's fail-closed audit rails
+    # (GAP-338/417) require a DB env + signing key at boot.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -847,10 +917,27 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Apply migrations to the smoke database
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+
+      # See the E2E Smoke job: production admin refuses to boot without the
+      # audit env (GAP-338/417, no escape hatch by design). Provision it.
+      - name: Generate ephemeral audit signing key (E2E only)
+        run: |
+          openssl genpkey -algorithm ed25519 -out /tmp/e2e-audit-key.pem
+          {
+            echo "REVEALUI_AUDIT_SIGNING_KEY<<E2E_KEY_EOF"
+            cat /tmp/e2e-audit-key.pem
+            echo "E2E_KEY_EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
       - name: Wait for Admin
         run: |

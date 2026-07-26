@@ -945,31 +945,28 @@ RevCon is intentionally decoupled from the RevealUI runtime: editor profiles evo
 
 # @revealui/harnesses
 
-AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Claude Code and Cursor into the RevealUI development workflow.
+AI harness adapters and workboard coordination primitives. Integrates Claude Code and Cursor into the RevealUI development workflow, and ships the CLI that drives it.
 
 ## Overview
 
-`@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions  -  across editors, terminals, and CI  -  register themselves and claim file ownership to prevent conflicts.
+`@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions  -  across editors, terminals, and CI  -  register themselves and claim file ownership to prevent conflicts. The coordination runtime itself (the JSON-RPC socket that session/mail/file-reservation calls dispatch to) is served by the RevDev daemon; this package is the CLI, the content-definition layer, and the workboard/detection primitives that sit on top of it.
 
 **Requires a Pro or Enterprise license.**
 
 ## Quick start
 
-```typescript
-import { HarnessCoordinator } from "@revealui/harnesses";
+```bash
+# List harnesses the running daemon has detected
+revealui-harnesses status
 
-const coordinator = new HarnessCoordinator({
-  projectRoot: "/path/to/your/project",
-  socketPath: "/tmp/revealui-harness.sock",
-  task: "Implement auth middleware",
-});
+# Print the current workboard state
+revealui-harnesses coordinate --project /path/to/your/project
 
-await coordinator.start();
-// ... your agent work ...
-await coordinator.stop();
+# Normalize a hook payload from stdin, evaluate policy, spool the receipt
+cat hook-payload.json | revealui-harnesses hook claude-code
 ```
 
-`start()` auto-detects installed harnesses, registers this session in `.claude/workboard.md`, and opens a JSON-RPC socket. `stop()` cleans up the session and closes the socket.
+`status`, `list`, `sync`, and `health` dispatch over the daemon's Unix socket; `coordinate`, `hook`, `hotfix`, `manager`, and `content` run locally against the project's `.claude/workboard.md` and content definitions.
 
 ## Workboard
 
@@ -1011,37 +1008,16 @@ const stale = wb.detectStale();
 
 **Sync vs async:** `read()`/`write()` are sync (safe for CLI scripts); `readAsync()`/`writeAsync()` use `fs/promises` (preferred in server contexts).
 
-## JSON-RPC server
+## Coordination runtime
 
-`RpcServer` exposes harness operations over a Unix domain socket. The socket protocol is JSON-RPC 2.0 with newline-delimited messages.
-
-```typescript
-import { HarnessRegistry, RpcServer } from "@revealui/harnesses";
-
-const registry = new HarnessRegistry();
-registry.register("native", new RevealUIAgentAdapter());
-
-const server = new RpcServer(registry, "/tmp/harness.sock");
-await server.start();
-```
-
-**Available methods:**
-
-| Method                | Params                     | Returns                |
-| --------------------- | -------------------------- | ---------------------- |
-| `harness.list`        |  -                           | `HarnessInfo[]`        |
-| `harness.info`        | `{ harnessId }`            | `HarnessInfo`          |
-| `harness.execute`     | `{ harnessId, command }`   | `HarnessCommandResult` |
-| `harness.listRunning` | `{ harnessId }`            | `HarnessProcessInfo[]` |
-| `harness.syncConfig`  | `{ harnessId, direction }` | `ConfigSyncResult`     |
-| `harness.diffConfig`  | `{ harnessId }`            | `ConfigDiffEntry`      |
-
-**Example call:**
+The JSON-RPC socket at `~/.local/share/revealui/harness.sock` is served by the RevDev daemon, not by this package. The daemon owns `session.*`, `mail.*`, `files.*`, `tasks.*`, and `events.*`, plus the license, permission, and agent-identity layers that gate every call. `@revealui/harnesses` talks to it as a client: `revealui-harnesses status`, `list`, `sync`, and `health` each open the socket, send one newline-delimited JSON-RPC 2.0 request, and print the result.
 
 ```bash
 echo '{"jsonrpc":"2.0","id":1,"method":"harness.list","params":{}}' \
-  | nc -U /tmp/harness.sock
+  | nc -U ~/.local/share/revealui/harness.sock
 ```
+
+If you need to drive the daemon directly (rather than through the CLI subcommands above), see the RevDev daemon's own docs for its full method surface and its remote HTTP gateway (bearer-token pairing over the network, for a Studio-style client connecting from another machine).
 
 ## Process detection
 

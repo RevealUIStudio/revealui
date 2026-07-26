@@ -21,7 +21,7 @@ import type { AuditEvent, AuditStorage } from '@revealui/core/security';
 import { AuditSystem } from '@revealui/core/security';
 import type { Database } from '@revealui/db/client';
 import { eq } from 'drizzle-orm';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createTestDb,
   type TestDb,
@@ -167,10 +167,20 @@ describe('assertAuditStorageEnv — synchronous env-parity guard (GAP-355 Stage 
     );
   });
 
-  it('passes when any of DATABASE_URL / POSTGRES_URL / DATABASE_HOST is present', () => {
+  it('passes when DATABASE_URL or POSTGRES_URL is present', () => {
     expect(() => assertAuditStorageEnv({ DATABASE_URL: 'postgres://x' })).not.toThrow();
     expect(() => assertAuditStorageEnv({ POSTGRES_URL: 'postgres://x' })).not.toThrow();
-    expect(() => assertAuditStorageEnv({ DATABASE_HOST: 'db.internal' })).not.toThrow();
+  });
+
+  it('DATABASE_HOST alone THROWS — getClient() cannot build a connection from it (GAP-417 item 5)', () => {
+    // The #2161 re-review proved this empirically on the old predicate: the
+    // assert passed on DATABASE_HOST alone, getClient() then threw inside
+    // installAuditStorage, the caller swallowed it, and production silently
+    // kept the in-memory sink. The assert must accept exactly what
+    // getClient() accepts.
+    expect(() => assertAuditStorageEnv({ DATABASE_HOST: 'db.internal' })).toThrow(
+      'AUDIT STORAGE ENV PARITY FAILED',
+    );
   });
 
   it('on a production deployment, throws when the signing key is absent (GAP-355 Stage 3)', () => {
@@ -191,12 +201,71 @@ describe('assertAuditStorageEnv — synchronous env-parity guard (GAP-355 Stage 
 
   it('does not require the signing key outside production (dev/test run unsigned)', () => {
     expect(() => assertAuditStorageEnv({ DATABASE_URL: 'postgres://x' })).not.toThrow();
+  });
+
+  it('SKIP_ENV_VALIDATION no longer exempts the signing key in production (GAP-417 items 1-2, owner-countersigned)', () => {
+    // The audit path has no escape hatch: a production boot without the key
+    // refuses even under SKIP — unsigned rows stall anchor contiguity forever.
     expect(() =>
       assertAuditStorageEnv({
         NODE_ENV: 'production',
         DATABASE_URL: 'postgres://x',
         SKIP_ENV_VALIDATION: 'true',
       }),
-    ).not.toThrow();
+    ).toThrow('REVEALUI_AUDIT_SIGNING_KEY');
+  });
+});
+
+describe('GAP-417 store-level rail — a production process never lands an unsigned row', () => {
+  let testDb: TestDb;
+
+  beforeEach(async () => {
+    testDb = await createTestDb();
+  });
+
+  afterEach(async () => {
+    vi.unstubAllEnvs();
+    await testDb.close();
+  });
+
+  it('production + no injected signer: append AND appendBatch refuse, nothing lands', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const { DrizzleAuditStore } = await import('@revealui/db');
+    const { auditLog } = await import('@revealui/db/schema');
+    const store = new DrizzleAuditStore(testDb.drizzle as unknown as Database);
+
+    const entry = {
+      id: randomUUID(),
+      timestamp: new Date(),
+      eventType: 'data.read',
+      severity: 'info',
+      agentId: 'agent-1',
+      payload: {},
+      policyViolations: [],
+    };
+
+    await expect(store.append(entry)).rejects.toThrow('UNSIGNED');
+    await expect(store.appendBatch([entry])).rejects.toThrow('UNSIGNED');
+    const rows = await testDb.drizzle.select().from(auditLog);
+    expect(rows).toHaveLength(0);
+  });
+
+  it('non-production unsigned append still lands (dev/test run unsigned by design)', async () => {
+    const { DrizzleAuditStore } = await import('@revealui/db');
+    const { auditLog } = await import('@revealui/db/schema');
+    const store = new DrizzleAuditStore(testDb.drizzle as unknown as Database);
+
+    await store.append({
+      id: randomUUID(),
+      timestamp: new Date(),
+      eventType: 'data.read',
+      severity: 'info',
+      agentId: 'agent-1',
+      payload: {},
+      policyViolations: [],
+    });
+    const rows = await testDb.drizzle.select().from(auditLog);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.signature).toBeNull();
   });
 });

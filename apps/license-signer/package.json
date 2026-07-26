@@ -1,6 +1,6 @@
 {
   "name": "@revealui/license-signer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Isolated license JWT mint service (GAP-260 P4-2). Holds the signing private key; HMAC-authed internal mint API.",
   "private": true,
   "type": "module",
