@@ -83,10 +83,24 @@ USER hono
 
 EXPOSE 3004
 
-ENV API_PORT=3004
+# PORT is read by src/worker.ts (WORKER_PORT || PORT, falling back to 8080);
+# setting it explicitly here keeps the container's default bind port at 3004
+# to match this image's EXPOSE + every compose file's port mapping. A PaaS
+# that injects its own PORT (Railway, Render, etc.) overrides this at runtime
+# and the app follows it automatically.
+ENV PORT=3004
 
-# Health check
+# Health check — reads PORT so it still probes the right port when a
+# platform overrides it at runtime (see PORT comment above).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD node -e "fetch('http://localhost:3004/health').then(r=>{if(!r.ok)process.exit(1)})"
+    CMD node -e "require('http').get('http://localhost:'+(process.env.PORT||3004)+'/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
 
-CMD ["node", "dist/index.js"]
+# dist/index.ts is the Vercel serverless handler and is side-effect-free in
+# production (no serve() call — see the NODE_ENV==='production' guard in
+# src/index.ts). dist/worker.ts is the long-running entry that actually calls
+# serve() and binds a port; it is what every real container deploy (Fly's
+# apps/server/Dockerfile.forge, and this image) must run. Previously this
+# Dockerfile ran dist/index.js, which meant `docker compose up` on
+# docker-compose.yml booted the api container, passed validateStartup(), and
+# then exited without ever listening on 3004 (GAP-430 audit finding).
+CMD ["node", "dist/worker.js"]
