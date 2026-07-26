@@ -75,12 +75,18 @@ const mWaiting = metrics.counter(
   'revealui_audit_anchor_waiting_total',
   'Tenants with unanchored rows still under batch-size and max-lag thresholds',
 );
+const mFloorEngaged = metrics.counter(
+  'revealui_audit_anchor_floor_engaged_total',
+  'Tenant sweep passes that started from a derived legacy floor (GAP-427/429)',
+);
 
 export interface AnchorSweepResult {
   tenantsConsidered: number;
   anchorsInserted: number;
   tenantsSkipped: number;
   tenantsWaiting: number;
+  /** Tenants whose pass started from a derived legacy floor (no anchors yet). */
+  tenantsFloorEngaged: number;
   nullTenantSignedRows: number;
   errors: string[];
 }
@@ -152,6 +158,7 @@ export async function runAuditAnchorSweep(
     anchorsInserted: 0,
     tenantsSkipped: 0,
     tenantsWaiting: 0,
+    tenantsFloorEngaged: 0,
     nullTenantSignedRows: 0,
     errors: [],
   };
@@ -189,7 +196,7 @@ export async function runAuditAnchorSweep(
         continue;
       }
 
-      const outcome = await anchorTenantBatch(
+      const { outcome, floorEngaged } = await anchorTenantBatch(
         db,
         signer,
         tenant,
@@ -198,6 +205,7 @@ export async function runAuditAnchorSweep(
         now,
         doMeter,
       );
+      if (floorEngaged) result.tenantsFloorEngaged++;
       if (outcome === 'inserted') result.anchorsInserted++;
       else if (outcome === 'waiting') {
         result.tenantsWaiting++;
@@ -235,8 +243,11 @@ async function lastAnchoredSeq(db: Database, tenant: string): Promise<number> {
  * highest unsigned seq is a stable floor: anchoring attests floor+1 forward.
  * Legacy rows are never retro-signed — a backfilled signature would be
  * indistinguishable from tampering (ADR 2026-07-12 §2a).
+ *
+ * Exported for the anchors API lag surface (GAP-429), which reports the same
+ * floor so sub-floor legacy rows are visible rather than silently excluded.
  */
-async function legacyUnsignedFloor(db: Database, tenant: string): Promise<number> {
+export async function legacyUnsignedFloor(db: Database, tenant: string): Promise<number> {
   const rows = await db
     .select({ m: max(auditLog.seq) })
     .from(auditLog)
@@ -255,11 +266,20 @@ async function anchorTenantBatch(
   maxLagMs: number,
   now: () => Date,
   doMeter: boolean,
-): Promise<TenantOutcome> {
+): Promise<{ outcome: TenantOutcome; floorEngaged: boolean }> {
   const anchored = await lastAnchoredSeq(db, tenant);
   // GAP-427: first anchor for a tenant starts above the closed unsigned era,
   // not at seq 1. Once anchors exist, strict last+1 contiguity governs.
-  const last = anchored > 0 ? anchored : await legacyUnsignedFloor(db, tenant);
+  const floor = anchored > 0 ? 0 : await legacyUnsignedFloor(db, tenant);
+  const floorEngaged = floor > 0;
+  if (floorEngaged) {
+    mFloorEngaged.inc();
+    logger.info(
+      `audit-anchor-sweep: legacy floor engaged tenant=${tenant} floor=${floor} — anchors attest seq ${floor + 1} onward`,
+    );
+  }
+  const done = (outcome: TenantOutcome) => ({ outcome, floorEngaged });
+  const last = anchored > 0 ? anchored : floor;
 
   const candidates = await db
     .select({
@@ -280,7 +300,7 @@ async function anchorTenantBatch(
     if (oldestTs === null) oldestTs = row.timestamp;
   }
 
-  if (signed.length === 0) return 'skipped';
+  if (signed.length === 0) return done('skipped');
 
   const batch = planContiguousBatch(last, signed);
   if (!batch || batch.length === 0) {
@@ -290,7 +310,7 @@ async function anchorTenantBatch(
         `audit-anchor-sweep: gap for tenant=${tenant} lastAnchored=${last} nextSeq=${signed[0].seq} — skip`,
       );
     }
-    return 'skipped';
+    return done('skipped');
   }
 
   // Size primary; time is max lag for a partial batch (§9).
@@ -298,7 +318,7 @@ async function anchorTenantBatch(
   const ageMs = oldestTs ? now().getTime() - oldestTs.getTime() : 0;
   const readyByLag = batch.length >= 1 && ageMs >= maxLagMs;
   if (!(readyBySize || readyByLag)) {
-    return 'waiting';
+    return done('waiting');
   }
 
   const seqs = batch.map((r) => r.seq);
@@ -307,7 +327,7 @@ async function anchorTenantBatch(
   const { root, leafCount } = buildMerkleRootFromSignatures(signatures);
   const seqFrom = batch[0]?.seq;
   const seqTo = batch[batch.length - 1]?.seq;
-  if (seqFrom === undefined || seqTo === undefined) return 'skipped';
+  if (seqFrom === undefined || seqTo === undefined) return done('skipped');
 
   const { value: rootSignature } = signAuditAnchorRoot(signer, {
     tenant,
@@ -351,7 +371,7 @@ async function anchorTenantBatch(
     }
   }
 
-  return 'inserted';
+  return done('inserted');
 }
 
 let sweepTimer: ReturnType<typeof setInterval> | null = null;
