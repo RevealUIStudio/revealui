@@ -3,26 +3,41 @@
 If an agent did it, there's a receipt.
 
 This actor runs an AI agent task for you and hands back both the result and a
-cryptographically signed, offline-verifiable receipt of every action the
-agent took: every model call and every tool call, in order, with a signature
-you can check without ever talking to us again.
+cryptographically signed receipt of every action the agent took: every model
+call and every tool call, in order, with a signature you can check without
+ever talking to us again.
 
 ## What you get
 
 - **A completed task.** Give the actor a task and your own LLM API key
   (Anthropic or OpenAI), and it runs an agent loop until the task is done or
   it hits a step limit.
-- **A signed receipt.** Every model call and tool call is recorded into an
-  action log, and the whole log is signed with a fresh Ed25519 key generated
-  for that run. The public key travels with the receipt, so anyone can verify
-  it offline with nothing but the receipt itself.
+- **A signed, tamper-evident receipt.** Every model call and tool call is
+  recorded into an action log, and the whole log, together with the
+  identifiers of the Apify run that produced it, is signed with a fresh
+  Ed25519 key generated for that run. Anyone can check the signature offline
+  with nothing but the receipt itself, and confirm that nothing in it changed
+  after signing.
+- **A platform-attributable run record.** The actor also publishes the
+  receipt to that run's own dataset and key-value store on Apify, the same
+  places the rest of the run's output lives. Nobody but the actual running
+  actor process can write there for that run, so a verifier who wants proof
+  the run really happened, not just that the receipt is internally
+  consistent, can fetch that record from the Apify API for the `actorRunId`
+  embedded in the receipt and confirm it matches.
 - **A free way to check any receipt.** Run this actor again in
   "verify-receipt" mode with a receipt you already have, and it tells you
   whether the signature is valid. This mode is free.
 
-What the receipt is: a cryptographically signed and offline-verifiable record
-of the actions an agent took. What it is not: a compliance certification of
-any kind. This actor makes no SOC 2, ISO, or other compliance claim.
+**What a receipt proves, and what it doesn't.** Standalone verification
+(`verifyReceipt`, or "verify-receipt" mode) proves the action log was not
+altered after signing. It does not, by itself, prove the run happened on
+Apify at all. Anyone can generate their own Ed25519 keypair and sign a
+fabricated action log claiming any `actorRunId` they like, and that receipt
+will still verify. Proving provenance, that a specific receipt corresponds to
+a run RevealUI's actor actually executed, needs the extra step above: checking
+`receipt.actorRunId` against that run's own dataset or key-value record on
+Apify. This actor makes no SOC 2, ISO, or other compliance claim either way.
 
 ## Input
 
@@ -90,13 +105,22 @@ price-only adjustment. Example `PUT` body shape (see
 
 1. Every model call and tool call the agent makes is appended to an action
    log, in order, along with a final entry recording the run's output.
-2. The action log is canonicalized with RFC 8785 JSON Canonicalization (the
-   same canonicalizer RevealUI's own internal audit log uses, so the byte
-   representation is deterministic regardless of key order) and signed with a
-   fresh Ed25519 keypair generated for that run.
-3. The receipt embeds the action log, the signature, the public key, the
-   algorithm, and a timestamp. Nothing about verifying it depends on
-   RevealUI's infrastructure or on this actor still existing.
+2. The action log, together with the run's `actorId`, `actorRunId`, and
+   `actorBuildId` (read from `Actor.getEnv()`; all three are `null` for a run
+   outside the Apify platform, such as local `pnpm dev`), is canonicalized
+   with RFC 8785 JSON Canonicalization (the same canonicalizer RevealUI's own
+   internal audit log uses, so the byte representation is deterministic
+   regardless of key order) and signed with a fresh Ed25519 keypair generated
+   for that run.
+3. The receipt embeds the action log, the run identifiers, the signature, the
+   public key, the algorithm, and a timestamp. Checking the signature depends
+   on none of RevealUI's infrastructure and none of this actor still existing.
+   Checking provenance instead of just integrity does depend on the run's own
+   record still being retrievable from Apify.
+4. The actor publishes that same receipt to the run's dataset
+   (`Actor.pushData`) and key-value store (`Actor.setValue('OUTPUT', ...)`),
+   both of which only the actual running actor process can write to for that
+   run.
 
 ```ts
 import { verifyReceipt } from '@revealui/apify-actor-governed-run';
@@ -107,15 +131,20 @@ const result = verifyReceipt(receipt); // { valid: boolean, reason?: string }
 ## Known limitations (v0.1)
 
 - The built-in tool catalog has exactly one tool (`web_fetch`, a bounded
-  HTTP(S) fetch). It refuses obvious private/loopback/cloud-metadata hosts
-  and does not follow redirects, but it is not a complete SSRF defense (no
-  DNS-rebinding protection). Expanding the tool catalog is future work.
+  HTTP(S) fetch). It resolves DNS and blocks the private, loopback,
+  link-local, and carrier-grade-NAT ranges across both IPv4 and IPv6
+  (including IPv4-mapped IPv6 addresses), and it does not follow redirects.
+  It does not pin the connection to the address it validated, so a true
+  DNS-rebinding attack, where the DNS answer changes between that check and
+  the fetch a moment later, is still out of scope. A public hostname with a
+  static record pointed at a blocked address is fully blocked. Expanding the
+  tool catalog is future work.
 - The Dockerfile has not been smoke-tested against a live `apify run` or the
   Apify build system. Run `apify run` locally and `apify push` to a test
   actor before Store submission.
-- This PR is review-pending under the fleet's guardrail-2 security review
-  gate (the receipt-signing code touches a security-sensitive surface). See
-  the PR body.
+- This package is review-pending under the fleet's guardrail-2 security
+  review gate (the receipt-signing and SSRF-guard code touch a
+  security-sensitive surface). See the PR body for the current verdict.
 
 ## Development
 

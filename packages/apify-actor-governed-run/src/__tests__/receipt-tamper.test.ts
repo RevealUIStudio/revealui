@@ -2,7 +2,7 @@ import { generateKeyPairSync } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { signActionLog } from '../receipt/sign.js';
 import { verifyReceipt } from '../receipt/verify.js';
-import type { ActionLogEntry, Receipt } from '../types.js';
+import type { ActionLogEntry, Receipt, RunContext } from '../types.js';
 
 const baseActionLog: ActionLogEntry[] = [
   {
@@ -13,9 +13,11 @@ const baseActionLog: ActionLogEntry[] = [
   },
 ];
 
+const runContext: RunContext = { actorId: 'a', actorRunId: 'r', actorBuildId: 'b' };
+
 describe('verifyReceipt rejects tampered receipts (prove red)', () => {
   it('rejects a receipt whose action log was modified after signing', () => {
-    const receipt = signActionLog(baseActionLog);
+    const receipt = signActionLog(baseActionLog, runContext);
 
     const tampered: Receipt = {
       ...receipt,
@@ -28,22 +30,22 @@ describe('verifyReceipt rejects tampered receipts (prove red)', () => {
   });
 
   it('rejects a receipt whose timestamp was modified after signing', () => {
-    const receipt = signActionLog(baseActionLog);
+    const receipt = signActionLog(baseActionLog, runContext);
     const tampered: Receipt = { ...receipt, timestamp: '2099-01-01T00:00:00.000Z' };
 
     expect(verifyReceipt(tampered).valid).toBe(false);
   });
 
   it('rejects a receipt with a substituted signature from a different keypair', () => {
-    const receiptA = signActionLog(baseActionLog);
-    const receiptB = signActionLog(baseActionLog);
+    const receiptA = signActionLog(baseActionLog, runContext);
+    const receiptB = signActionLog(baseActionLog, runContext);
 
     const forged: Receipt = { ...receiptA, signature: receiptB.signature };
     expect(verifyReceipt(forged).valid).toBe(false);
   });
 
   it('rejects a receipt whose public key does not match the signature kid', () => {
-    const receipt = signActionLog(baseActionLog);
+    const receipt = signActionLog(baseActionLog, runContext);
     const { publicKey: unrelatedPublicKey } = generateKeyPairSync('ed25519', {
       privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
       publicKeyEncoding: { type: 'spki', format: 'pem' },
@@ -62,7 +64,7 @@ describe('verifyReceipt rejects tampered receipts (prove red)', () => {
   });
 
   it('rejects an unrecognized signature format', () => {
-    const receipt = signActionLog(baseActionLog);
+    const receipt = signActionLog(baseActionLog, runContext);
     const forged: Receipt = { ...receipt, signature: 'not-a-real-signature' };
     expect(verifyReceipt(forged).valid).toBe(false);
   });

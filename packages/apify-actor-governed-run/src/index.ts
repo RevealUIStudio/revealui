@@ -21,6 +21,7 @@ export {
   parseActorInput,
   type Receipt,
   ReceiptSchema,
+  type RunContext,
   type RunTaskInput,
   type VerifyReceiptInput,
 } from './types.js';
