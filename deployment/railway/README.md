@@ -14,20 +14,31 @@ running-but-unusable deployment.
 
 ## Who this is for
 
-RevealUI's self-hosted runtime enforces a real license at boot (this is by
-design, not a bug we're working around). There is currently no license-free
-"just try it" mode for a container deploy, so this template is for:
+RevealUI's self-hosted runtime enforces a real license at boot for RevForge-
+stamped Fleet kits (this is by design, not a bug we're working around, and it
+does not change here). As of GAP-436 (owner-ruled 2026-07-26), a **plain**
+self-hosted boot — this template included — can instead run at Free (OSS)
+tier with no license at all: set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on
+**both the `api` and `admin` services** (Railway env vars are per-service; the
+admin app runs its own copy of the license gate and will crash-loop without the
+flag) and skip `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY`
+entirely. This template is for:
 
-- An existing RevealUI Fleet (enterprise) customer moving their deployment to
-  Railway.
-- A prospect who has requested a trial license from RevealUI Studio ahead of
-  publishing the template listing, so a click on the Railway marketplace
-  produces a working stack, not a boot-loop asking for a key they don't have.
+- Anyone who wants to try RevealUI's Free (OSS) tier on Railway with a single
+  click, no license required — set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true`
+  and omit the license vars.
+- An existing RevealUI Fleet (enterprise) customer moving their licensed
+  deployment to Railway — set `REVEALUI_LICENSE_KEY` /
+  `REVEALUI_LICENSE_PUBLIC_KEY` and leave `REVEALUI_ALLOW_UNLICENSED_SELF_HOST`
+  unset.
+- A prospect who has requested a trial license from RevealUI Studio for a
+  Pro/Enterprise-tier walkthrough ahead of publishing the template listing.
 
-If you're composing the public marketplace listing, get a trial license
-issuing flow in place first (see [Owner action](#owner-action-before-publishing)
-below). Deploying this template without a license produces a container that
-starts, logs a clear error, and exits. It does not silently degrade.
+Deploying this template with a license key present that is invalid, expired,
+or mismatched still produces a container that starts, logs a clear error, and
+exits — `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` only ever relaxes the
+requirement for a **completely absent** key; it never weakens verification of
+a key you do supply.
 
 ## Architecture
 
@@ -187,8 +198,9 @@ and `apps/server/src/lib/required-env.ts` actually check today, not the
 | `REVEALUI_SECRET` | required, secret | `openssl rand -hex 32` (32-char minimum; this produces 64) |
 | `REVEALUI_KEK` | required, secret | `openssl rand -hex 32`, must be exactly 64 hex chars (AES-256-GCM envelope key) |
 | `REVEALUI_AUDIT_SIGNING_KEY` | required, secret | Ed25519 PKCS#8 PEM that signs every audit row: `openssl genpkey -algorithm Ed25519 -out audit-signing-key.pem`, then paste the file contents (with real newlines, or `\n`-escaped; both are normalized) |
-| `REVEALUI_LICENSE_KEY` | required, secret | **Issued by RevealUI Studio, not self-generated.** Contact RevealUI Studio or your account rep after purchasing a Fleet license at revealui.com/pricing. |
-| `REVEALUI_LICENSE_PUBLIC_KEY` | required | Issued alongside `REVEALUI_LICENSE_KEY` above, the matching Ed25519 public key. |
+| `REVEALUI_LICENSE_KEY` | required unless running Free tier | **Issued by RevealUI Studio, not self-generated.** Contact RevealUI Studio or your account rep after purchasing a Fleet license at revealui.com/pricing. Omit for the Free-tier path below. Secret. |
+| `REVEALUI_LICENSE_PUBLIC_KEY` | required unless running Free tier | Issued alongside `REVEALUI_LICENSE_KEY` above, the matching Ed25519 public key. Omit for the Free-tier path below. |
+| `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` | optional | Set `true` to run Free (OSS) tier with no license. Must be set on **both** `api` and `admin`. A present-but-invalid license key still fails boot regardless of this flag. |
 | `REVEALUI_PUBLIC_SERVER_URL` | required | `https://${{api.RAILWAY_PUBLIC_DOMAIN}}` |
 | `NEXT_PUBLIC_SERVER_URL` | required | Same value as `REVEALUI_PUBLIC_SERVER_URL`. The boot validator rejects a mismatch. |
 | `CORS_ORIGIN` | required | `https://${{admin.RAILWAY_PUBLIC_DOMAIN}}` (comma-separate if you add more origins) |
@@ -205,7 +217,8 @@ and `apps/server/src/lib/required-env.ts` actually check today, not the
 | `REVEALUI_SECRET` | required, secret | Same value as `api`'s |
 | `REVEALUI_KEK` | required, secret | Same value as `api`'s |
 | `REVEALUI_AUDIT_SIGNING_KEY` | required, secret | Same value as `api`'s |
-| `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY` | required, secret | Same values as `api`'s |
+| `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY` | required unless running Free tier | Same values as `api`'s. Omit both for the Free-tier path. Secret. |
+| `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` | optional | Same value as `api`'s — the admin app runs its own copy of the license gate, so the flag must be set here too. |
 | `NEXT_PUBLIC_API_URL` / `API_URL` | required | `https://${{api.RAILWAY_PUBLIC_DOMAIN}}`. Build-time var; see the ordering note above. |
 | `REVEALUI_PUBLIC_SERVER_URL` / `NEXT_PUBLIC_SERVER_URL` | required | `https://${{admin.RAILWAY_PUBLIC_DOMAIN}}` |
 | `REVEALUI_ADMIN_EMAIL` | required for first login | Your email. Seeds the first admin user on first boot. |
