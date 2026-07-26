@@ -75,12 +75,43 @@ describe('webFetchTool', () => {
       ['short-form IPv4 (normalizes to loopback)', 'http://127.1/'],
       ['canonical loopback', 'http://127.0.0.1/'],
       ['canonical cloud metadata endpoint', 'http://169.254.169.254/'],
+      // Guardrail-2 APPROVE-with-residuals on revealui#2202
+      // (https://github.com/RevealUIStudio/revealui/pull/2202#issuecomment-5085198453):
+      // two more IPv6 bypasses the 13-target probe above did not cover.
+      ['IPv6 unspecified address (:: routes to localhost on Linux)', 'http://[::]/'],
+      [
+        'NAT64 well-known prefix (64:ff9b::/96) embedding the cloud metadata IPv4 address',
+        'http://[64:ff9b::a9fe:a9fe]/',
+      ],
     ];
 
     it.each(mustBeBlocked)('blocks: %s (%s)', async (_label, url) => {
       const result = await webFetchTool.execute({ url });
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/not allowed/);
+    });
+  });
+
+  describe('SSRF guard -- confirmed-reachable addresses must not be over-blocked', () => {
+    const mustStayReachable: Array<[label: string, ip: string]> = [
+      ['just past the 172.16.0.0/12 private range', '172.32.0.1'],
+      ['just past the 100.64.0.0/10 CGNAT range', '100.128.0.1'],
+    ];
+
+    it.each(mustStayReachable)('does not block: %s (%s)', async (_label, ip) => {
+      // Stub fetch so the guard is exercised without a real network call --
+      // what's under test is that isBlockedHost lets the request through to
+      // fetch() at all, not the network behavior beyond that point.
+      const fetchSpy = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('ok', { status: 200 }));
+      try {
+        const result = await webFetchTool.execute({ url: `http://${ip}/` });
+        expect(fetchSpy).toHaveBeenCalled();
+        expect(result.success).toBe(true);
+      } finally {
+        fetchSpy.mockRestore();
+      }
     });
   });
 
