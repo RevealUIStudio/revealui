@@ -55,6 +55,7 @@ import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
   validateStartup,
+  validateStripeTaxConfigAtStartup,
 } from './lib/validate-startup.js';
 import { startExecutor } from './services/revmarket-executor.js';
 
@@ -73,10 +74,13 @@ installAuditStorage();
 // synthetic event through the just-installed storage and reads it back, exiting
 // the process if the round trip fails (fail-closed integrity, ADR §2a) — the
 // worker boots once per deploy, so this is the deploy-time proof that the audit
-// path works end to end.
+// path works end to end. validateStripeTaxConfigAtStartup (GAP-437) is a
+// warning-only Stripe Tax Settings check (live mode only); it never throws,
+// so it can't affect the exit(1) semantics of this chain.
 validateStartup();
 validateLicenseAtStartup()
   .then(() => validateBillingCatalogAtStartup())
+  .then(() => validateStripeTaxConfigAtStartup())
   .then(() => auditStorageSelfTest())
   .then(() => runHostedLicenseCanary())
   .then(() => initializeLicense())

@@ -1155,3 +1155,112 @@ describe('EXPECTED_LIVE_PLAN_IDS — sync with billing-readiness cron', () => {
     expect([...EXPECTED_LIVE_PLAN_IDS_FOR_TEST]).toEqual(cronExpected);
   });
 });
+
+// ─── validateStripeTaxConfigAtStartup (GAP-437) ─────────────────────────
+import { validateStripeTaxConfigAtStartup } from '../validate-startup.js';
+
+/**
+ * Live-mode hosted production fixture for the tax-config validator. Mirrors
+ * `validLiveProdEnv` but keeps only the fields the guard conditions inspect —
+ * the full fixture also works, this is just cheaper per-test.
+ */
+const liveHostedEnv: EnvMap = {
+  NODE_ENV: 'production',
+  STRIPE_LIVE_MODE: 'true',
+  REVEALUI_LICENSE_PRIVATE_KEY: 'present',
+};
+
+describe('validateStripeTaxConfigAtStartup — short-circuits (never calls Stripe)', () => {
+  it('no-ops when SKIP_ENV_VALIDATION=true', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, SKIP_ENV_VALIDATION: 'true' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('no-ops when NODE_ENV is not production', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, NODE_ENV: 'development' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('no-ops in Forge mode (no signing key → no Stripe account)', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { NODE_ENV: 'production', STRIPE_LIVE_MODE: 'true' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('never calls the Stripe API in test mode (STRIPE_LIVE_MODE unset)', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_LIVE_MODE: undefined },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+
+  it('never calls the Stripe API when STRIPE_LIVE_MODE is "false"', async () => {
+    const fetchTaxSettings = vi.fn(() => Promise.resolve({ status: 'active' as const }));
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_LIVE_MODE: 'false' },
+      fetchTaxSettings,
+    );
+    expect(fetchTaxSettings).not.toHaveBeenCalled();
+  });
+});
+
+describe('validateStripeTaxConfigAtStartup — live-mode tax-flag guard', () => {
+  it('warns when Tax Settings are active and STRIPE_TAX_ENABLED is unset', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const [message] = warnSpy.mock.calls[0] ?? [''];
+    expect(String(message)).toMatch(/STRIPE_TAX_ENABLED/);
+    expect(String(message)).toMatch(/tax/i);
+  });
+
+  it('warns when Tax Settings are active and STRIPE_TAX_ENABLED is "false"', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_TAX_ENABLED: 'false' },
+      fetchTaxSettings,
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays silent when Tax Settings are active and STRIPE_TAX_ENABLED=true', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'active' as const });
+    await validateStripeTaxConfigAtStartup(
+      { ...liveHostedEnv, STRIPE_TAX_ENABLED: 'true' },
+      fetchTaxSettings,
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('stays silent when Tax Settings are pending (not yet active)', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.resolve({ status: 'pending' as const });
+    await validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('boots fine (no throw, no warning) when the Stripe API call fails', async () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const fetchTaxSettings = () => Promise.reject(new Error('ECONNRESET'));
+    await expect(
+      validateStripeTaxConfigAtStartup(liveHostedEnv, fetchTaxSettings),
+    ).resolves.toBeUndefined();
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+});

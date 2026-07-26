@@ -20,7 +20,9 @@ import { normalizeEnvPem } from '@revealui/core/security';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
+import type Stripe from 'stripe';
 import { REQUIRED_ALWAYS_GROUPS, REQUIRED_IN_PRODUCTION_HOSTED } from './required-env.js';
+import { getServices } from './services-loader.js';
 
 export type EnvMap = Record<string, string | undefined>;
 /** Re-export SSOT type (GAP-260 P4-1). */
@@ -749,4 +751,103 @@ export function emitStripeTestModeWarning(): void {
   // and stderr is the canonical destination — Vercel captures it as a
   // runtime log identically to a higher-level warning facade.
   process.stderr.write(banner);
+}
+
+/**
+ * Fetch this Stripe account's Tax Settings via the shared `getStripe()`
+ * client (same secret key + pinned API version as every other Stripe call
+ * site — see stripeClient.ts). Goes through the `services-loader.ts` lazy
+ * import because `@revealui/services` is an OPTIONAL peer dependency of
+ * apps/server (OSS/Docker deployments may omit it) — a static top-level
+ * import would crash module resolution at startup for those deployments.
+ * Throws when the module isn't installed; `validateStripeTaxConfigAtStartup`
+ * treats that the same as any other fetch failure (fail-open, no warning).
+ */
+export async function fetchLiveStripeTaxSettings(): Promise<Pick<Stripe.Tax.Settings, 'status'>> {
+  const services = await getServices();
+  if (!services) {
+    throw new Error('@revealui/services not installed — cannot query Stripe Tax Settings');
+  }
+  return services.getStripe().tax.settings.retrieve();
+}
+
+/**
+ * Emitted when this Stripe account's Tax Settings are ACTIVE but
+ * `STRIPE_TAX_ENABLED` is not `'true'` — `routes/billing.ts` gates
+ * `automatic_tax` on that flag (#828), so this state means live checkout
+ * sessions are built with tax collection turned OFF in an account Stripe
+ * itself considers tax-ready. Exported separately so tests can spy on the
+ * emission, matching `emitStripeTestModeWarning`.
+ */
+export function emitStripeTaxFlagWarning(): void {
+  const banner = [
+    '',
+    '⚠️  ╔══════════════════════════════════════════════════════════════════╗',
+    '⚠️  ║  STRIPE TAX ACTIVE but STRIPE_TAX_ENABLED is off                ║',
+    '⚠️  ║                                                                  ║',
+    "⚠️  ║  This Stripe account's Tax Settings are ACTIVE, but the         ║",
+    '⚠️  ║  STRIPE_TAX_ENABLED env var is unset/false. routes/billing.ts   ║',
+    '⚠️  ║  gates automatic_tax on this flag (#828), so live Checkout      ║',
+    '⚠️  ║  sessions are being created WITHOUT sales tax collection.       ║',
+    '⚠️  ║                                                                  ║',
+    '⚠️  ║  Set STRIPE_TAX_ENABLED=true on this deployment, or confirm     ║',
+    '⚠️  ║  untaxed billing is intentional for this account.               ║',
+    '⚠️  ╚══════════════════════════════════════════════════════════════════╝',
+    '',
+    '',
+  ].join('\n');
+  // Direct stderr write, matching emitStripeTestModeWarning — see that
+  // function's comment for why this bypasses the console facade.
+  process.stderr.write(banner);
+}
+
+/**
+ * Warn at boot when live Stripe mode is on, this Stripe account's Tax
+ * Settings are ACTIVE, but `STRIPE_TAX_ENABLED` is not `'true'` (GAP-437).
+ *
+ * 2026-07-26 incident: prod collected a live $49 charge from a TN buyer with
+ * zero sales tax because `STRIPE_TAX_ENABLED` was never set on the prod api
+ * deployment while Stripe Tax + a TN registration were both ACTIVE on the
+ * account — `routes/billing.ts` correctly gates `automatic_tax` on the flag
+ * (#828), the deployment just never flipped it.
+ *
+ * Fail-open by design, on two axes:
+ *   - Tax Settings status other than `'active'` (e.g. `'pending'`, or no
+ *     registrations at all) is a legitimate steady state, not a misconfig —
+ *     silent in that case.
+ *   - A Stripe API failure here (network, auth, rate limit) must never block
+ *     boot. This is an advisory warning surface, not a required-config gate,
+ *     so any rejection from `fetchTaxSettings` is swallowed.
+ *
+ * Runs only when ALL of:
+ *   - `NODE_ENV === 'production'`
+ *   - mode === 'hosted' (Forge deployments have no Stripe account to query)
+ *   - `STRIPE_LIVE_MODE === 'true'` — never calls the Stripe API in test mode
+ *
+ * `fetchTaxSettings` is injectable (default `fetchLiveStripeTaxSettings`) so
+ * tests can stub the Stripe response, matching the
+ * `validateBillingCatalogAtStartup` convention. Takes `env` as an argument
+ * (defaulted to `process.env`) for the same reason as every other validator
+ * in this file.
+ */
+export async function validateStripeTaxConfigAtStartup(
+  env: EnvMap = process.env as EnvMap,
+  fetchTaxSettings: () => Promise<Pick<Stripe.Tax.Settings, 'status'>> = fetchLiveStripeTaxSettings,
+): Promise<void> {
+  if (env.SKIP_ENV_VALIDATION === 'true') return;
+  if (env.NODE_ENV !== 'production') return;
+  if (detectDeploymentMode(env) !== 'hosted') return;
+  if (env.STRIPE_LIVE_MODE !== 'true') return;
+
+  let settings: Pick<Stripe.Tax.Settings, 'status'>;
+  try {
+    settings = await fetchTaxSettings();
+  } catch {
+    // Network/API failure must never block boot — swallow and move on.
+    return;
+  }
+
+  if (settings.status === 'active' && env.STRIPE_TAX_ENABLED !== 'true') {
+    emitStripeTaxFlagWarning();
+  }
 }

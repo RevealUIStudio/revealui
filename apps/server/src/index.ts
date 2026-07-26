@@ -59,6 +59,7 @@ import {
   validateBillingCatalogAtStartup,
   validateLicenseAtStartup,
   validateStartup,
+  validateStripeTaxConfigAtStartup,
 } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware, requireRole } from './middleware/auth.js';
@@ -1437,12 +1438,19 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     // below, where it fails boot if `billing_catalog` isn't seeded for live
     // mode (prevents mid-customer-transaction 500s).
     //
+    // validateStripeTaxConfigAtStartup (GAP-437) is the same shape but never
+    // throws — it warns (loud stderr banner) when this Stripe account's Tax
+    // Settings are active but STRIPE_TAX_ENABLED is off, so live Checkout
+    // sessions would collect zero sales tax in a jurisdiction Stripe itself
+    // considers tax-ready. Also short-circuits outside production-hosted-live.
+    //
     // auditStorageSelfTest writes a synthetic event through the just-installed
     // storage and reads it back, exiting the process if the round trip fails —
     // fail-closed integrity (ADR §2a). Sequenced AFTER installAuditStorage() so
     // it exercises the real persistent path, not the in-memory default.
     validateLicenseAtStartup()
       .then(() => validateBillingCatalogAtStartup())
+      .then(() => validateStripeTaxConfigAtStartup())
       .then(() => auditStorageSelfTest())
       .then(() => runHostedLicenseCanary())
       .then(() => initializeLicense())
