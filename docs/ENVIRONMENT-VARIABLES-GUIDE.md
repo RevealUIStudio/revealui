@@ -34,6 +34,7 @@ For initial project setup, see [Quick Start](./QUICK_START.md). For deployment, 
    - [Forge Self-Hosted](#forge-self-hosted)
    - [MCP Marketplace](#mcp-marketplace)
    - [MCP Servers](#mcp-servers)
+   - [Audit Anchor Sweep](#audit-anchor-sweep)
    - [Error Monitoring (Sentry)](#error-monitoring-sentry)
    - [Feature Flags and Dev Tools](#feature-flags-and-dev-tools)
    - [App-Specific](#app-specific)
@@ -359,6 +360,20 @@ Phase 5.5. Required only when operating the RevealUI MCP marketplace.
 | `MCP_METRICS_MODE` | No | `logs` | MCP metrics output mode. Options: `logs`, `prometheus`, `otel`. | LOW | mcp |
 | `MCP_API_KEY` | No | None | Authentication key for MCP server integrations. | HIGH (server-only) | mcp |
 | `PGVECTOR_ENABLED` | No | `false` | Enable pgvector in MCP for vector search. | LOW | mcp |
+
+---
+
+### Audit Anchor Sweep
+
+GAP-355 Stage 4 (per-tenant Merkle anchors over signed `audit_log` rows) / GAP-447 (existence-classified hole traversal). Fly worker only; no-op unless `AUDIT_ANCHOR_SWEEP_ENABLED=true` AND `REVEALUI_AUDIT_SIGNING_KEY` is provisioned.
+
+| Variable | Required | Default | Description | Security | Used By |
+|----------|----------|---------|-------------|----------|---------|
+| `AUDIT_ANCHOR_SWEEP_ENABLED` | No | `false` | Starts the anchor sweep poll loop on the worker process. | LOW | server (worker) |
+| `AUDIT_ANCHOR_INTERVAL_MS` | No | `60000` | Poll cadence (not the max-lag threshold below). | LOW | server (worker) |
+| `AUDIT_ANCHOR_BATCH_SIZE` | No | `256` | Max signed rows per anchor batch (readiness-by-size threshold). | LOW | server (worker) |
+| `AUDIT_ANCHOR_MAX_LAG_MS` | No | `3600000` (1h) | Max age of the oldest unanchored signed row before a partial batch anchors anyway. | LOW | server (worker) |
+| `AUDIT_ANCHOR_SETTLE_MS` | No | `120000` (2m) | GAP-447 settlement window: how old a candidate row must be before hole traversal may extend up to (or past) its seq. `audit_log.seq` is allocated via `nextval()` in a round trip before the INSERT, so a lower seq can still be in flight while a higher one has already committed — an absent seq is only classified "burned" once every candidate up to it has had at least this long to land. Lower it only with a measured `nextval()`→commit latency ceiling for your write path; raising it only delays anchoring of genuinely burned seqs, never changes correctness. | LOW | server (worker) |
 
 ---
 

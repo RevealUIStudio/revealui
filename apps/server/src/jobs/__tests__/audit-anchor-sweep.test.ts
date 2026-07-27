@@ -11,7 +11,7 @@ import {
 } from '@revealui/core/security';
 import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
-import { auditAnchors, usageMeters } from '@revealui/db/schema';
+import { auditAnchors, auditLog, usageMeters } from '@revealui/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -25,6 +25,7 @@ import {
   planTraversableBatch,
   type ScopeRangeRow,
   type SignedAuditRow,
+  settledMaxSeq,
 } from '../audit-anchor-batch.js';
 import { runAuditAnchorSweep, SYSTEM_ANCHOR_SCOPE } from '../audit-anchor-sweep.js';
 
@@ -272,6 +273,60 @@ describe('assertTraversalIntegrity', () => {
   });
 });
 
+describe('settledMaxSeq (GAP-447 settlement amendment)', () => {
+  it('returns undefined when no rows are settled', () => {
+    expect(settledMaxSeq([{ seq: 1, timestampMs: 1000 }], 1050, 120_000)).toBeUndefined();
+  });
+
+  it('returns the highest seq when every row is settled', () => {
+    expect(
+      settledMaxSeq(
+        [
+          { seq: 1, timestampMs: 0 },
+          { seq: 2, timestampMs: 1000 },
+          { seq: 3, timestampMs: 2000 },
+        ],
+        200_000,
+        120_000,
+      ),
+    ).toBe(3);
+  });
+
+  it('stops at the first unsettled row (the hostile-fixture shape: settled, then fresh)', () => {
+    const nowMs = 200_000;
+    const settleMs = 120_000;
+    expect(
+      settledMaxSeq(
+        [
+          { seq: 1, timestampMs: 0 }, // age 200_000 >= 120_000: settled
+          { seq: 3, timestampMs: 199_000 }, // age 1_000 < 120_000: NOT settled
+        ],
+        nowMs,
+        settleMs,
+      ),
+    ).toBe(1);
+  });
+
+  it('a later-settled row after an earlier unsettled one is NOT reached (conservative)', () => {
+    const nowMs = 500_000;
+    const settleMs = 120_000;
+    expect(
+      settledMaxSeq(
+        [
+          { seq: 1, timestampMs: 490_000 }, // NOT settled (age 10_000)
+          { seq: 2, timestampMs: 0 }, // would be settled alone, but unreachable
+        ],
+        nowMs,
+        settleMs,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('settleMs=0 settles everything immediately (opt-out escape hatch)', () => {
+    expect(settledMaxSeq([{ seq: 5, timestampMs: 999_999 }], 999_999, 0)).toBe(5);
+  });
+});
+
 describe('runAuditAnchorSweep (PGlite)', () => {
   let testDb: TestDb;
   let db: Database;
@@ -312,6 +367,68 @@ describe('runAuditAnchorSweep (PGlite)', () => {
    */
   async function burnSeq(): Promise<void> {
     await db.execute(sql`SELECT nextval(pg_get_serial_sequence('audit_log', 'seq'))`);
+  }
+
+  /**
+   * GAP-447 settlement regression (guardrail-2 REQUEST-CHANGES): reserve a
+   * seq value via `nextval()` WITHOUT inserting — models writer B's
+   * `nextSeqValues()` round trip completing while the INSERT that follows it
+   * is still in flight (the exact `DrizzleAuditStore.append` mechanism,
+   * `packages/db/src/audit-store.ts`).
+   */
+  async function reserveSeq(): Promise<number> {
+    const result: unknown = await db.execute(
+      sql`SELECT nextval(pg_get_serial_sequence('audit_log', 'seq')) AS seq`,
+    );
+    const rows = Array.isArray(result)
+      ? (result as Array<{ seq: number | string }>)
+      : ((result as { rows?: Array<{ seq: number | string }> }).rows ?? []);
+    const seq = rows[0]?.seq;
+    if (seq === undefined) throw new Error('reserveSeq: no seq returned');
+    return Number(seq);
+  }
+
+  /**
+   * GAP-447 settlement regression: commit a row at a PREVIOUSLY reserved seq
+   * (from `reserveSeq`), simulating writer B's delayed transaction finally
+   * landing. Signs with the same canonical signer as `appendSigned`, then
+   * inserts explicitly at `seq` — the same two-step shape
+   * `DrizzleAuditStore.append`'s signed path uses internally.
+   */
+  async function insertSignedAtSeq(
+    seq: number,
+    tenant: string,
+    ts: Date,
+    idSuffix: string,
+  ): Promise<void> {
+    const entry = makeEntry({ id: `row-${tenant}-late-${idSuffix}`, tenant, timestamp: ts });
+    const signature = canonicalSignerFn(priv)({
+      id: entry.id,
+      sequence: seq,
+      tenant: entry.tenant ?? null,
+      timestamp: entry.timestamp,
+      eventType: entry.eventType,
+      severity: entry.severity,
+      agentId: entry.agentId,
+      taskId: entry.taskId ?? null,
+      sessionId: entry.sessionId ?? null,
+      payload: entry.payload,
+      policyViolations: entry.policyViolations,
+    });
+    await db.insert(auditLog).values({
+      id: entry.id,
+      timestamp: entry.timestamp,
+      eventType: entry.eventType,
+      severity: entry.severity,
+      agentId: entry.agentId,
+      taskId: entry.taskId ?? null,
+      sessionId: entry.sessionId ?? null,
+      payload: entry.payload,
+      policyViolations: entry.policyViolations,
+      tenant: entry.tenant ?? null,
+      seq,
+      signature,
+    });
   }
 
   it('inserts a verifiable anchor when batch size is reached', async () => {
@@ -700,6 +817,10 @@ describe('runAuditAnchorSweep (PGlite)', () => {
       db,
       signer: cryptoSigner,
       batchSize: 2,
+      // This test is about burned-seq CLASSIFICATION, not settlement timing
+      // (that has its own dedicated regression below) — opt out so a fresh
+      // burn isn't deferred by the default 120s settle window.
+      settleMs: 0,
       canAnchorTenant: async () => true,
       recordMeter: false,
       now: () => new Date('2026-07-27T09:00:10.000Z'),
@@ -749,6 +870,7 @@ describe('runAuditAnchorSweep (PGlite)', () => {
       signer: cryptoSigner,
       batchSize: 2, // system scope must fetch BOTH seq1 and seq3 as candidates in one query
       maxLagMs: 1, // tenant's lone leaf (below batchSize) anchors via max-lag instead
+      settleMs: 0, // classification test, not settlement — see the dedicated regression below
       canAnchorTenant: async () => true,
       recordMeter: false,
       now: () => new Date('2026-07-27T09:00:10.000Z'),
@@ -791,6 +913,7 @@ describe('runAuditAnchorSweep (PGlite)', () => {
       db,
       signer: cryptoSigner,
       batchSize: 1,
+      settleMs: 0, // fail-closed classification test, not settlement
       canAnchorTenant: async () => true,
       recordMeter: false,
       now: () => new Date('2026-07-27T09:00:10.000Z'),
@@ -807,6 +930,7 @@ describe('runAuditAnchorSweep (PGlite)', () => {
         db,
         signer: cryptoSigner,
         batchSize: 1,
+        settleMs: 0, // fail-closed classification test, not settlement
         canAnchorTenant: async () => true,
         recordMeter: false,
         now: () => new Date('2026-07-27T09:00:20.000Z'),
@@ -833,6 +957,111 @@ describe('runAuditAnchorSweep (PGlite)', () => {
       expect(stallWarns.length).toBeGreaterThan(0);
     } finally {
       warnSpy.mockRestore();
+    }
+  });
+
+  // ── GAP-447 settlement amendment (guardrail-2 REQUEST-CHANGES) ────────────
+  //
+  // Hostile fixture from the review (comment 5095491027): writer A commits
+  // seq 1, writer B reserves seq 2 via nextval() but its INSERT is still in
+  // flight, writer C commits seq 3, a sweep pass runs in that window, and
+  // ONLY THEN does writer B's row finally land at seq 2. Absence at query
+  // time proves non-DELETION (the append-only trigger), not non-PENDENCY —
+  // an unfixed sweep classifies seq 2 as permanently burned and seq 2's
+  // real, committed, signed row is never anchored by anything, ever.
+
+  it('GAP-447 settlement: an in-flight seq committing AFTER a sweep pass is never orphaned', async () => {
+    const settleMs = 120_000;
+    const anchorTime = new Date('2026-07-27T09:00:00.000Z');
+    // seq 1: comfortably settled by `anchorTime` (committed well before it).
+    const seq1Ts = new Date(anchorTime.getTime() - 200_000);
+    // seq 3: fresh relative to `anchorTime` — inside the settle window.
+    const seq3Ts = new Date(anchorTime.getTime() - 1_000);
+
+    await appendSigned(1, 'acct_max', seq1Ts); // seq 1, settled
+    const inFlightSeq = await reserveSeq(); // seq 2 reserved, INSERT still "in flight"
+    expect(inFlightSeq).toBe(2);
+    await appendSigned(1, 'acct_max', seq3Ts); // seq 3, fresh — commits before seq 2 does
+
+    // Sweep runs while seq 2 is still pending. The clean, settled prefix
+    // (seq 1) anchors; the fresh seq 3 and the hole at seq 2 are BOTH
+    // deferred — the sweep must not guess that seq 2 is burned yet.
+    const firstPass = await runAuditAnchorSweep({
+      db,
+      signer: cryptoSigner,
+      // Must fetch BOTH seq 1 and seq 3 as candidates so the classifier
+      // actually attempts to traverse the gap at seq 2 — a batchSize of 1
+      // would truncate candidates to just seq 1 and never exercise it.
+      batchSize: 10,
+      maxLagMs: 1, // the settled-only batch (1 leaf) anchors via max-lag, not size
+      settleMs,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => anchorTime,
+    });
+
+    expect(firstPass.anchorsInserted).toBe(1);
+    expect(firstPass.errors).toEqual([]);
+
+    const afterFirstPass = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, 'acct_max'));
+    expect(afterFirstPass).toHaveLength(1);
+    expect(afterFirstPass[0]?.seqFrom).toBe(1);
+    expect(afterFirstPass[0]?.seqTo).toBe(1); // truncated at the hole — seq 2/3 NOT touched
+    expect(afterFirstPass[0]?.holes).toBeNull(); // no burn classification happened at all
+
+    // Writer B's transaction finally commits — the "in flight" row lands at
+    // the seq it reserved earlier, exactly like a delayed real commit would.
+    await insertSignedAtSeq(inFlightSeq, 'acct_max', new Date(seq3Ts.getTime() + 500), 'b');
+
+    // Advance past the settle window so both seq 2 and seq 3 are now trusted.
+    const secondPassTime = new Date(anchorTime.getTime() + settleMs + 30_000);
+    const secondPass = await runAuditAnchorSweep({
+      db,
+      signer: cryptoSigner,
+      batchSize: 10, // fetch BOTH seq 2 and seq 3 as candidates in one query
+      maxLagMs: 1, // 2-leaf batch is below batchSize — anchor it via max-lag instead
+      settleMs,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => secondPassTime,
+    });
+
+    expect(secondPass.anchorsInserted).toBe(1);
+    expect(secondPass.errors).toEqual([]);
+
+    const allAnchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, 'acct_max'))
+      .orderBy(auditAnchors.seqFrom);
+    expect(allAnchors).toHaveLength(2);
+    expect(allAnchors[1]?.seqFrom).toBe(2);
+    expect(allAnchors[1]?.seqTo).toBe(3);
+    expect(allAnchors[1]?.leafCount).toBe(2);
+    // The late row was picked up as a REAL leaf once seq order caught up
+    // with commit order — never classified as burned, in either anchor.
+    expect(allAnchors[1]?.holes).toBeNull();
+
+    // Both anchors verify, and the live recheck (were the covered range's
+    // burned seqs, if any, still absent) has nothing to complain about,
+    // because there ARE no burned seqs recorded — seq 2 is a real leaf.
+    for (const a of allAnchors) {
+      const verify = verifyAuditAnchorRoot(
+        {
+          tenant: a.tenant,
+          seqFrom: a.seqFrom,
+          seqTo: a.seqTo,
+          leafCount: a.leafCount,
+          root: a.root,
+          holes: a.holes ?? undefined,
+        },
+        a.rootSignature,
+        (kid) => (kid === KID ? pub : null),
+      );
+      expect(verify.valid).toBe(true);
     }
   });
 });

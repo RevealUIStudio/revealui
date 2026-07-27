@@ -21,6 +21,21 @@
  * column) and covered by the root signature (`@revealui/security`'s
  * `signAuditAnchorRoot`/`verifyAuditAnchorRoot`).
  *
+ * GAP-447 SETTLEMENT AMENDMENT (guardrail-2 REQUEST-CHANGES, 2026-07-27):
+ * the append-only trigger proves non-DELETION, not non-PENDENCY. `seq` is
+ * allocated via `nextval()` in a round trip BEFORE the INSERT
+ * (`DrizzleAuditStore.append`/`appendBatch`), so two concurrent writers can
+ * commit out of seq order — a lower seq can still be in flight while a
+ * higher one has already landed. Classifying an absent seq as burned the
+ * instant it's absent would permanently sign away a row that is merely
+ * still pending. Burned-hole classification therefore only extends as far
+ * as `settledMaxSeq` (`audit-anchor-batch.ts`): the highest candidate whose
+ * own row is at least `AUDIT_ANCHOR_SETTLE_MS` old. Anything newer — and any
+ * hole beyond it — defers to the next tick, degrading to the old self-
+ * healing stall for exactly the window where an in-flight write could still
+ * land. Override: AUDIT_ANCHOR_SETTLE_MS (default 120000 = 2 minutes,
+ * comfortably beyond ordinary `nextval()`→commit latency).
+ *
  * Null-tenant (system) rows anchor too, via one additional pass per sweep
  * (GAP-427 ruling 2026-07-27): they land in `audit_anchors` under the
  * reserved `SYSTEM_ANCHOR_SCOPE` ('__system__') sentinel tenant value
@@ -56,6 +71,7 @@ import {
   planTraversableBatch,
   type ScopeRangeRow,
   type SignedAuditRow,
+  settledMaxSeq,
   type TraversableBatchResult,
 } from './audit-anchor-batch.js';
 
@@ -76,6 +92,13 @@ export const DEFAULT_ANCHOR_MAX_LAG_MS = 60 * 60 * 1000;
  * Override: AUDIT_ANCHOR_INTERVAL_MS.
  */
 export const DEFAULT_ANCHOR_POLL_MS = 60 * 1000;
+
+/**
+ * GAP-447 settlement window: how old a candidate row must be before a hole
+ * traversal is allowed to extend up to (or past) its seq. Comfortably beyond
+ * ordinary `nextval()`→INSERT-commit latency. Override: AUDIT_ANCHOR_SETTLE_MS.
+ */
+export const DEFAULT_ANCHOR_SETTLE_MS = 120 * 1000;
 
 /** Usage meter name after successful root insert (design §4 step 7 / §9). */
 export const AUDIT_ANCHOR_METER_NAME = 'audit_anchor';
@@ -132,6 +155,11 @@ export interface AnchorSweepOptions {
   env?: Record<string, string | undefined>;
   batchSize?: number;
   maxLagMs?: number;
+  /**
+   * GAP-447 settlement window override (see `DEFAULT_ANCHOR_SETTLE_MS`).
+   * Injected for tests; defaults to `AUDIT_ANCHOR_SETTLE_MS` / 120000ms.
+   */
+  settleMs?: number;
   /** Injected for tests; default: account entitlement + process license fallback. */
   canAnchorTenant?: (tenant: string) => Promise<boolean>;
   signer?: Ed25519AuditRowSigner | null;
@@ -162,6 +190,13 @@ function pollMsFromEnv(env: Record<string, string | undefined>): number {
   return Number.isInteger(n) && n > 0 ? n : DEFAULT_ANCHOR_POLL_MS;
 }
 
+function settleMsFromEnv(env: Record<string, string | undefined>): number {
+  const raw = env.AUDIT_ANCHOR_SETTLE_MS?.trim();
+  if (!raw) return DEFAULT_ANCHOR_SETTLE_MS;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 0 ? n : DEFAULT_ANCHOR_SETTLE_MS;
+}
+
 function resolveRootSigner(env: Record<string, string | undefined>): Ed25519AuditRowSigner | null {
   const { cryptoSigner, mode } = createAuditRowSignerFromEnv(env);
   if (mode !== 'signed' || !cryptoSigner) return null;
@@ -184,6 +219,7 @@ export async function runAuditAnchorSweep(
   const db = options.db ?? getClient();
   const batchSize = options.batchSize ?? batchSizeFromEnv(env);
   const maxLagMs = options.maxLagMs ?? maxLagFromEnv(env);
+  const settleMs = options.settleMs ?? settleMsFromEnv(env);
   const signer = options.signer !== undefined ? options.signer : resolveRootSigner(env);
   const now = options.now ?? (() => new Date());
   const canAnchor = options.canAnchorTenant ?? ((t: string) => defaultCanAnchorTenant(db, t));
@@ -238,6 +274,7 @@ export async function runAuditAnchorSweep(
         tenant,
         batchSize,
         maxLagMs,
+        settleMs,
         now,
         doMeter,
       );
@@ -267,6 +304,7 @@ export async function runAuditAnchorSweep(
       SYSTEM_ANCHOR_SCOPE,
       batchSize,
       maxLagMs,
+      settleMs,
       now,
       /* doMeter */ false,
       /* isSystem */ true,
@@ -375,6 +413,7 @@ async function anchorTenantBatch(
   tenant: string,
   batchSize: number,
   maxLagMs: number,
+  settleMs: number,
   now: () => Date,
   doMeter: boolean,
   isSystem = false,
@@ -415,10 +454,12 @@ async function anchorTenantBatch(
     .limit(batchSize);
 
   const signed: SignedAuditRow[] = [];
+  const signedTsMs = new Map<number, number>();
   let oldestTs: Date | null = null;
   for (const row of candidates) {
     if (row.signature === null || row.signature === undefined) continue;
     signed.push({ seq: row.seq, signature: row.signature });
+    signedTsMs.set(row.seq, row.timestamp.getTime());
     if (oldestTs === null) oldestTs = row.timestamp;
   }
 
@@ -426,7 +467,10 @@ async function anchorTenantBatch(
 
   // GAP-447: skip the classification query entirely when the fetched
   // candidates are already contiguous (the common case) — only a gap
-  // (relative to `last` or internally) triggers the extra range fetch.
+  // (relative to `last` or internally) triggers the extra range fetch. No
+  // burned-hole classification happens on this path, so the settlement
+  // window (below) does not apply — every leaf here is already a committed,
+  // visible row; there is no absence being interpreted.
   let plan: TraversableBatchResult | null;
   if (isConsecutiveFromStart(last, signed)) {
     const first = signed[0];
@@ -441,12 +485,46 @@ async function anchorTenantBatch(
           }
         : null;
   } else {
-    const maxSeq = signed[signed.length - 1]?.seq;
-    const rangeMap =
-      maxSeq !== undefined
-        ? await fetchScopeRangeMap(db, tenant, isSystem, last, maxSeq)
-        : new Map<number, ScopeRangeRow>();
-    plan = planTraversableBatch(last, signed, rangeMap);
+    // GAP-447 settlement amendment: a gap exists, so classifying it requires
+    // deciding burned vs. still-in-flight. Cap the working candidate set to
+    // the provably settled prefix (see `settledMaxSeq`) BEFORE doing any
+    // hole traversal — candidates newer than the settle window, and any hole
+    // at or beyond them, are deferred to a later pass rather than risking a
+    // permanent misattestation.
+    const nowMs = now().getTime();
+    const cappedMaxSeq = settledMaxSeq(
+      signed.map((r) => ({ seq: r.seq, timestampMs: signedTsMs.get(r.seq) ?? nowMs })),
+      nowMs,
+      settleMs,
+    );
+    const settled = cappedMaxSeq !== undefined ? signed.filter((r) => r.seq <= cappedMaxSeq) : [];
+
+    if (settled.length === 0) {
+      // Nothing in this pass is old enough to trust yet — not an anomaly,
+      // just needs more time. No warn, no gap metric.
+      return done('waiting');
+    }
+
+    if (isConsecutiveFromStart(last, settled)) {
+      const first = settled[0];
+      const lastRow = settled[settled.length - 1];
+      plan =
+        first && lastRow
+          ? {
+              rows: settled,
+              seqFrom: first.seq,
+              seqTo: lastRow.seq,
+              holes: { burned: [], foreign: 0 },
+            }
+          : null;
+    } else {
+      const maxSeq = settled[settled.length - 1]?.seq;
+      const rangeMap =
+        maxSeq !== undefined
+          ? await fetchScopeRangeMap(db, tenant, isSystem, last, maxSeq)
+          : new Map<number, ScopeRangeRow>();
+      plan = planTraversableBatch(last, settled, rangeMap);
+    }
   }
 
   if (!plan) return done('skipped');
@@ -547,6 +625,7 @@ let bootTimer: ReturnType<typeof setTimeout> | null = null;
  *   AUDIT_ANCHOR_INTERVAL_MS (default 60000 — poll cadence)
  *   AUDIT_ANCHOR_BATCH_SIZE (default 256)
  *   AUDIT_ANCHOR_MAX_LAG_MS (default 3600000 — partial-batch age trigger)
+ *   AUDIT_ANCHOR_SETTLE_MS (default 120000 — GAP-447 burned-hole settlement window)
  *   REVEALUI_AUDIT_SIGNING_KEY (required for any insert)
  */
 export function startAuditAnchorSweep(env: Record<string, string | undefined> = process.env): void {
@@ -578,7 +657,7 @@ export function startAuditAnchorSweep(env: Record<string, string | undefined> = 
   }
   logger.info(
     `audit-anchor-sweep: started pollMs=${intervalMs} batchSize=${batchSizeFromEnv(env)} ` +
-      `maxLagMs=${maxLagFromEnv(env)}`,
+      `maxLagMs=${maxLagFromEnv(env)} settleMs=${settleMsFromEnv(env)}`,
   );
 }
 

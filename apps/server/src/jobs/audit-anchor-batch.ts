@@ -182,6 +182,48 @@ export function isConsecutiveFromStart(
 }
 
 /**
+ * GAP-447 settlement amendment (guardrail-2 REQUEST-CHANGES, 2026-07-27):
+ * absence at query time proves non-deletion (the append-only trigger), NOT
+ * non-pendency. `DrizzleAuditStore.append`/`appendBatch` allocate `seq` via
+ * `nextval()` in a round trip BEFORE the INSERT (`packages/db/src/audit-
+ * store.ts`), so two concurrent writers can commit out of seq order —
+ * writer A takes seq N, writer B takes seq N+1 and commits first. Classifying
+ * N as "burned" the instant it's absent would sign away a row that is
+ * merely still in flight, permanently, since no future anchor ever revisits
+ * a covered range.
+ *
+ * The fix bounds burned-hole classification to a PROVABLY settled prefix.
+ * `audit_log.seq` is one global sequence, so `nextval()` calls happen in
+ * strictly increasing return-value order: if seq(A) < seq(B), A's
+ * `nextval()` necessarily happened before B's. So once the row at the
+ * highest candidate seq in a prefix has been committed for at least
+ * `settleMs`, every lower seq in that prefix started its own
+ * `nextval()`→INSERT race at least that long ago too — if it still hasn't
+ * landed, it never will (burned) or it already has (and would be present,
+ * not absent). No new state, no restart caveat: purely a function of the
+ * row timestamps the sweep already fetches.
+ *
+ * Returns the highest seq in `rows` (ordered ascending) old enough to trust,
+ * stopping at the first row that isn't — `undefined` if none are settled yet
+ * (defer this scope's hole traversal entirely to the next pass).
+ */
+export function settledMaxSeq(
+  rows: readonly { seq: number; timestampMs: number }[],
+  nowMs: number,
+  settleMs: number,
+): number | undefined {
+  let result: number | undefined;
+  for (const row of rows) {
+    if (nowMs - row.timestampMs >= settleMs) {
+      result = row.seq;
+    } else {
+      break;
+    }
+  }
+  return result;
+}
+
+/**
  * Self-consistency check before signing (replaces `assertContiguousSeq` for
  * the traversable planner): every seq strictly between consecutive rows must
  * be accounted for by a recorded hole (burned, individually, or foreign, by
