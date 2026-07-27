@@ -11,7 +11,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { postMediaUpload } from '../upload.js';
+import { deriveAltTextFromFilename, postMediaUpload } from '../upload.js';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -113,5 +113,45 @@ describe('postMediaUpload - CSRF token attach', () => {
       '/custom/upload',
       expect.objectContaining({ headers: { 'X-CSRF-Token': 'token-rotated' } }),
     );
+  });
+});
+
+describe('deriveAltTextFromFilename', () => {
+  it('strips the extension from a normal filename', () => {
+    expect(deriveAltTextFromFilename('photo.png')).toBe('photo');
+  });
+
+  it('keeps the whole name when there is no extension', () => {
+    expect(deriveAltTextFromFilename('photo')).toBe('photo');
+  });
+
+  it('keeps the whole name for a dotfile (leading dot is not an extension)', () => {
+    expect(deriveAltTextFromFilename('.env')).toBe('.env');
+  });
+});
+
+describe('image upload FormData - required alt field', () => {
+  function formDataFor(fileName: string): FormData {
+    const file = new Blob(['x'], { type: 'image/png' }) as unknown as File;
+    Object.defineProperty(file, 'name', { value: fileName });
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('alt', deriveAltTextFromFilename(fileName));
+    return formData;
+  }
+
+  it('includes an alt entry derived from a normal filename', () => {
+    const formData = formDataFor('photo.png');
+    expect(formData.get('alt')).toBe('photo');
+  });
+
+  it('includes an alt entry equal to the whole name when there is no extension', () => {
+    const formData = formDataFor('photo');
+    expect(formData.get('alt')).toBe('photo');
+  });
+
+  it('includes an alt entry equal to the whole name for a dotfile', () => {
+    const formData = formDataFor('.env');
+    expect(formData.get('alt')).toBe('.env');
   });
 });
