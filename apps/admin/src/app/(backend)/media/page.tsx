@@ -7,6 +7,7 @@ import {
   IconTrash,
   IconUpload,
   InputCVA,
+  Skeleton,
 } from '@revealui/presentation';
 import {
   SelectCVA as Select,
@@ -17,6 +18,7 @@ import {
 } from '@revealui/presentation/client';
 import { type ChangeEvent, useCallback, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
+import { useWindowFileDrop } from './use-window-file-drop.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -133,12 +135,16 @@ function DropZone({
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={(e) => {
+        // The page-level capture (use-window-file-drop.ts) also listens on
+        // window for stray drops; stop here so an in-zone drop doesn't fire
+        // onFiles twice.
         e.preventDefault();
+        e.stopPropagation();
         setDragOver(false);
         if (e.dataTransfer.files.length > 0) onFiles(e.dataTransfer.files);
       }}
-      className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
-        dragOver ? 'border-primary bg-primary/10' : 'border-border hover:border-ring'
+      className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 text-center transition-colors sm:p-12 ${
+        dragOver ? 'border-primary bg-primary/10' : 'border-border hover:border-ring hover:bg-card'
       } ${uploading ? 'pointer-events-none opacity-50' : ''}`}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => {
@@ -146,11 +152,20 @@ function DropZone({
       }}
       tabIndex={0}
     >
-      <IconUpload className="mb-2 size-8 text-muted-foreground" aria-hidden="true" />
-      <p className="text-sm text-muted-foreground">
-        {uploading ? 'Uploading...' : 'Drop files here or click to upload'}
+      <span
+        className={`flex size-14 items-center justify-center rounded-full transition-colors ${
+          dragOver ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'
+        }`}
+      >
+        <IconUpload className="size-6" aria-hidden="true" />
+      </span>
+      <p className="mt-4 text-sm font-medium text-foreground">
+        {uploading ? 'Uploading...' : 'Drop images to upload'}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, WebP, GIF</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {uploading ? 'Hang tight, this only takes a moment.' : 'or click to browse your files'}
+      </p>
+      <p className="mt-3 font-mono text-xs text-muted-foreground">JPEG · PNG · WebP · GIF</p>
       <InputCVA
         ref={inputRef}
         type="file"
@@ -168,6 +183,23 @@ function DropZone({
   );
 }
 
+function DragOverlay() {
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      aria-hidden="true"
+    >
+      <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary bg-card px-14 py-12 shadow-lg">
+        <span className="flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <IconUpload className="size-7" aria-hidden="true" />
+        </span>
+        <p className="text-lg font-semibold text-foreground">Drop to upload</p>
+        <p className="text-sm text-muted-foreground">Release anywhere on this page</p>
+      </div>
+    </div>
+  );
+}
+
 function MediaCard({
   item,
   onDelete,
@@ -180,7 +212,7 @@ function MediaCard({
   const [deleting, setDeleting] = useState(false);
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-ring">
+    <div className="group relative overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all hover:border-ring hover:shadow-md">
       <Button
         type="button"
         appearance="ghost"
@@ -204,11 +236,16 @@ function MediaCard({
           )}
         </div>
       </Button>
-      <div className="p-3">
+      <div className="space-y-1 p-3">
         <p className="truncate text-sm font-medium text-foreground" title={item.filename}>
           {item.filename}
         </p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        {item.alt && (
+          <p className="truncate text-xs text-muted-foreground" title={item.alt}>
+            Alt: {item.alt}
+          </p>
+        )}
+        <p className="font-mono text-xs text-muted-foreground">
           {item.mimeType.split('/')[1]?.toUpperCase()} · {formatBytes(item.filesize)}
         </p>
       </div>
@@ -226,7 +263,7 @@ function MediaCard({
           }
         }}
         disabled={deleting}
-        className="absolute top-2 right-2 size-8 rounded-full bg-card/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-error group-hover:opacity-100"
+        className="absolute top-2 right-2 size-8 rounded-full border border-border bg-card/90 p-1.5 text-muted-foreground opacity-0 backdrop-blur transition-all hover:border-error/40 hover:bg-error/10 hover:text-error focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
         aria-label={`Delete ${item.filename}`}
       >
         <IconTrash className="size-4" aria-hidden="true" />
@@ -248,7 +285,7 @@ function PreviewModal({ item, onClose }: { item: MediaItem; onClose: () => void 
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: click stops propagation to backdrop */}
       {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content panel needs click stop-propagation */}
       <div
-        className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-lg bg-popover p-4 shadow-2xl"
+        className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-xl border border-border bg-popover p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <Button
@@ -257,7 +294,7 @@ function PreviewModal({ item, onClose }: { item: MediaItem; onClose: () => void 
           variant="neutral"
           size="icon"
           onClick={onClose}
-          className="absolute top-3 right-3 size-8 rounded-full bg-muted p-1.5 text-muted-foreground hover:text-foreground"
+          className="absolute top-3 right-3 size-8 rounded-full border border-border bg-card p-1.5 text-muted-foreground hover:text-foreground"
           aria-label="Close preview"
         >
           <IconClose className="size-5" aria-hidden="true" />
@@ -267,21 +304,21 @@ function PreviewModal({ item, onClose }: { item: MediaItem; onClose: () => void 
           <img
             src={item.url}
             alt={item.alt ?? item.filename}
-            className="max-h-[80vh] max-w-full rounded object-contain"
+            className="max-h-[80vh] max-w-full rounded-lg object-contain"
           />
         ) : (
           <div className="flex h-64 w-96 items-center justify-center text-muted-foreground">
             File preview not available
           </div>
         )}
-        <div className="mt-4 space-y-1 text-sm">
+        <div className="mt-4 space-y-1.5 border-t border-border pt-4 text-sm">
           <p className="font-medium text-foreground">{item.filename}</p>
-          <p className="text-muted-foreground">
+          <p className="font-mono text-xs text-muted-foreground">
             {item.mimeType} · {formatBytes(item.filesize)}
             {item.width != null && item.height != null && ` · ${item.width}x${item.height}`}
           </p>
           {item.alt && <p className="text-muted-foreground">Alt: {item.alt}</p>}
-          <p className="text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Uploaded {new Date(item.createdAt).toLocaleDateString()}
           </p>
         </div>
@@ -338,20 +375,29 @@ export default function MediaLibraryPage() {
     loadMedia(0);
   }
 
-  const handleUpload = async (files: FileList) => {
-    setUploading(true);
-    setError(null);
-    try {
-      for (const file of Array.from(files)) {
-        await uploadMedia(serverUrl, file);
+  const handleUpload = useCallback(
+    async (files: FileList) => {
+      setUploading(true);
+      setError(null);
+      try {
+        for (const file of Array.from(files)) {
+          await uploadMedia(serverUrl, file);
+        }
+        await loadMedia(page, filter);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Upload failed');
+      } finally {
+        setUploading(false);
       }
-      await loadMedia(page, filter);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
-  };
+    },
+    [serverUrl, loadMedia, page, filter],
+  );
+
+  // Page-wide drag capture (owner report: a stray drop outside the DropZone
+  // navigated the whole tab to the raw image file and the in-progress edit
+  // was lost). Always preventDefaults window dragover/drop; routes dropped
+  // files to the same upload handler the DropZone uses.
+  const { isDraggingFiles } = useWindowFileDrop({ uploading, onFiles: handleUpload });
 
   const handleDelete = async (id: string) => {
     try {
@@ -376,9 +422,11 @@ export default function MediaLibraryPage() {
 
   return (
     <div className="space-y-6">
+      {isDraggingFiles && <DragOverlay />}
+
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Media Library</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {totalDocs} {totalDocs === 1 ? 'file' : 'files'}
           </p>
@@ -416,10 +464,10 @@ export default function MediaLibraryPage() {
       {loading && items.length === 0 ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div
+            <Skeleton
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders have no stable ID
               key={`skeleton-${i}`}
-              className="h-52 animate-pulse rounded-lg border border-border bg-card"
+              className="h-52 rounded-xl border border-border"
             />
           ))}
         </div>
