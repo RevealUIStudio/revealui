@@ -36,6 +36,7 @@
     "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "expect-type": "^1.4.0",
+    "jsdom": "catalog:",
     "tsup": "catalog:",
     "vitest": "catalog:"
   },
