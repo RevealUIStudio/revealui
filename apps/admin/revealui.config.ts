@@ -353,31 +353,36 @@ export default buildConfig({
             // — 'super-admin' here violates users_role_check and the create fails.
             role: 'owner',
             roles: ['super-admin'],
-            // The operator sets this account via REVEALUI_ADMIN_EMAIL/PASSWORD;
-            // it is trusted by definition and there is no mailbox to verify on a
-            // self-host. Mark it verified so sign-in does not gate the operator
-            // out after the 24h email-verification grace window.
-            emailVerified: true,
           },
         });
 
         revealui.logger.info(`First admin user created: ${adminEmail}`);
 
-        // Stamp TOS acceptance on the typed tos_accepted_at / tos_version
-        // columns: revealui.create() above can't persist them (the engine's
-        // dynamic-SQL adapter rejects camelCase column identifiers), so an
-        // onInit-created owner would otherwise have a NULL tos_accepted_at.
-        // Record them via a typed Drizzle write, mirroring the web setup route
-        // (api/setup) and the CLI (scripts/admin/bootstrap). Non-fatal — a
+        // Stamp TOS acceptance AND email verification on their typed columns.
+        // revealui.create() above cannot persist these (the engine's dynamic-SQL
+        // adapter rejects camelCase column identifiers), so an onInit-created
+        // owner would otherwise have NULL tos_accepted_at and email_verified
+        // stuck at its `false` default. The operator sets this account via
+        // REVEALUI_ADMIN_EMAIL/PASSWORD, so it is trusted by definition and there
+        // is no mailbox to verify on a self-host; marking it verified keeps
+        // sign-in from gating the operator out after the 24h grace window.
+        // Both are typed Drizzle writes (which DO map camelCase correctly),
+        // mirroring the web setup route (api/setup) and the CLI. Non-fatal — a
         // failure here is a backfillable gap, not a reason to abort startup.
         // Imports are lazy because pulling @revealui/db/client into the
         // top-level module graph causes Turbopack async-module-init issues
         // (see the poolFactory note near the top of this file).
         try {
           const { getClient } = await import('@revealui/db/client');
+          const { eq } = await import('@revealui/db/orm');
+          const { users } = await import('@revealui/db/schema');
           const { stampTosAcceptanceByEmail } = await import('@/lib/auth/tos');
           const db = getClient('rest');
           await stampTosAcceptanceByEmail(db, adminEmail);
+          await db
+            .update(users)
+            .set({ emailVerified: true, emailVerifiedAt: new Date() })
+            .where(eq(users.email, adminEmail));
         } catch (tosError) {
           const message = tosError instanceof Error ? tosError.message : String(tosError);
           revealui.logger.error(
