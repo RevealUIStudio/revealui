@@ -15,7 +15,7 @@
  *     `Content-Security-Policy` header and applies it to its framework, bundle,
  *     and inline bootstrap scripts (plus `<Script>` components).
  *   - We deliberately KEEP the external-script host allowlist (Stripe, Maps,
- *     Cloudinary, Vercel insights) in non-fleet mode and do NOT use
+ *     Vercel insights) in non-fleet mode and do NOT use
  *     `'strict-dynamic'`, which would make those host-sources be ignored. In
  *     fleet mode (`REVEALUI_FLEET_MODE=true`) the hosted third-party SDK domains
  *     are omitted — fleet kits are self-hosted and must not phone home to
@@ -56,10 +56,27 @@ export interface AdminCspOptions {
   /**
    * `REVEALUI_FLEET_MODE === 'true'` — running as a fleet kit.
    * When true, hosted third-party SDK domains (Stripe.js, Vercel Analytics,
-   * Google Maps, Cloudinary) are omitted from every CSP directive. Fleet kits
-   * are self-hosted and must not include SaaS-specific external origins.
+   * Google Maps) are omitted from every CSP directive. Fleet kits are
+   * self-hosted and must not include SaaS-specific external origins.
    */
   isFleetMode?: boolean;
+  /**
+   * `R2_PUBLIC_BASE_URL` — public base URL of the Cloudflare R2 media bucket
+   * (the canonical and sole object-storage backend; GAP-208). Its origin is
+   * added to `img-src` so R2-served media renders. `''` when unset (the
+   * next/image same-origin path still works via `'self'`).
+   */
+  r2PublicBaseUrl?: string;
+}
+
+/** Origin of a base URL, or `''` when unset/malformed (no-regex: URL parser). */
+function originOf(baseUrl: string): string {
+  if (!baseUrl) return '';
+  try {
+    return new URL(baseUrl).origin;
+  } catch {
+    return '';
+  }
 }
 
 /**
@@ -91,6 +108,7 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     serverUrl,
     marketingUrl,
     isFleetMode = false,
+    r2PublicBaseUrl = '',
   } = options;
   const vercelPreview = isVercel && !isVercelProd;
 
@@ -104,7 +122,6 @@ export function buildAdminCsp(options: AdminCspOptions): string {
           'https://checkout.stripe.com',
           'https://js.stripe.com',
           'https://maps.googleapis.com',
-          'https://res.cloudinary.com',
           'https://cdn.vercel-insights.com',
         ]),
     ...(vercelPreview ? ['https://vercel.live', 'https://*.vercel.live'] : []),
@@ -135,16 +152,31 @@ export function buildAdminCsp(options: AdminCspOptions): string {
     ...(isVercel ? [] : ['http://localhost:3000', 'http://localhost:4000']),
   ];
 
+  const r2Origin = originOf(r2PublicBaseUrl);
+  const imgSrc = [
+    "'self'",
+    // Local upload-preview thumbnails (URL.createObjectURL) — origin-local,
+    // kept in fleet mode too (GAP-208).
+    'blob:',
+    'data:',
+    ...(isFleetMode ? [] : ['https://*.stripe.com']),
+    ...(r2Origin ? [r2Origin] : []),
+    'https://www.gravatar.com',
+  ];
+
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSrc.join(' ')}`,
     "child-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' ${isFleetMode ? '' : 'https://res.cloudinary.com https://*.stripe.com '}data: https://www.gravatar.com`,
+    `img-src ${imgSrc.join(' ')}`,
     "font-src 'self' data:",
     `frame-src ${frameSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
-    ...(isFleetMode ? [] : ['object-src https://res.cloudinary.com']),
+    // No <object>/<embed> anywhere in admin; the old hosted-mode Cloudinary
+    // object-src was dead config (Cloudinary is not a storage backend — R2 is
+    // canonical and sole, GAP-208).
+    "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
     'upgrade-insecure-requests',

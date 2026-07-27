@@ -119,18 +119,13 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        // Vercel Blob CDN — originals stored here, next/image resizes on demand
-        hostname: '*.blob.vercel-storage.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'www.gravatar.com',
       },
-      ...[process.env.NEXT_PUBLIC_SERVER_URL?.trim()]
+      // Cloudflare R2 public bucket — the canonical (and sole) object-storage
+      // backend for media originals (GAP-208); next/image resizes on demand.
+      // The retired Vercel Blob + never-canonical Cloudinary entries were
+      // removed with the R2 cutover.
+      ...[process.env.R2_PUBLIC_BASE_URL?.trim(), process.env.NEXT_PUBLIC_SERVER_URL?.trim()]
         .filter(Boolean)
         .map((item) => {
           try {
