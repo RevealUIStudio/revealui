@@ -353,6 +353,11 @@ export default buildConfig({
             // — 'super-admin' here violates users_role_check and the create fails.
             role: 'owner',
             roles: ['super-admin'],
+            // The operator sets this account via REVEALUI_ADMIN_EMAIL/PASSWORD;
+            // it is trusted by definition and there is no mailbox to verify on a
+            // self-host. Mark it verified so sign-in does not gate the operator
+            // out after the 24h email-verification grace window.
+            emailVerified: true,
           },
         });
 
