@@ -100,6 +100,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       (process.env.REVEALUI_FLEET_MODE === 'true' ? '' : 'https://revealui.com')
     ).trim(),
     isFleetMode: process.env.REVEALUI_FLEET_MODE === 'true',
+    r2PublicBaseUrl: (process.env.R2_PUBLIC_BASE_URL || '').trim(),
   });
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);

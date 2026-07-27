@@ -57,6 +57,27 @@ describe('admin proxy — CSP nonce (GAP-219)', () => {
     expect(directive(csp, 'img-src')).toContain('https://*.stripe.com');
   });
 
+  it('allows blob: in img-src so media upload previews can render (GAP-208)', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const imgSrc = directive(res.headers.get('content-security-policy') ?? '', 'img-src');
+    expect(imgSrc).toContain('blob:');
+  });
+
+  it('adds the R2 public origin to img-src when R2_PUBLIC_BASE_URL is set (GAP-208)', async () => {
+    vi.stubEnv('R2_PUBLIC_BASE_URL', 'https://pub-abc123.r2.dev/media');
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const imgSrc = directive(res.headers.get('content-security-policy') ?? '', 'img-src');
+    expect(imgSrc).toContain('https://pub-abc123.r2.dev');
+    vi.unstubAllEnvs();
+  });
+
+  it('carries no Cloudinary sources and locks object-src to none (R2 is the sole backend)', async () => {
+    const res = await proxy(new NextRequest('https://admin.example.com/login'));
+    const csp = res.headers.get('content-security-policy') ?? '';
+    expect(csp).not.toContain('cloudinary.com');
+    expect(directive(csp, 'object-src')).toContain("'none'");
+  });
+
   it('allows the marketing origin in frame-src so the edit-session canvas can frame the preview', async () => {
     const res = await proxy(new NextRequest('https://admin.example.com/login'));
     const frameSrc = directive(res.headers.get('content-security-policy') ?? '', 'frame-src');
@@ -151,6 +172,8 @@ describe('admin proxy — CSP fleet mode (GAP-290)', () => {
     const imgSrc = directive(res.headers.get('content-security-policy') ?? '', 'img-src');
     expect(imgSrc).not.toContain('stripe.com');
     expect(imgSrc).not.toContain('cloudinary.com');
+    // blob: previews are origin-local; fleet kits keep them (GAP-208).
+    expect(imgSrc).toContain('blob:');
   });
 
   it('strips Stripe from frame-src and connect-src in fleet mode', async () => {
