@@ -25,6 +25,7 @@ import {
   createTestDb,
   type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
+import { SYSTEM_ANCHOR_SCOPE } from '../../jobs/audit-anchor-sweep.js';
 import auditRoute from '../audit.js';
 
 const KID = 'kid-s4-4';
@@ -320,6 +321,38 @@ describe('GET /anchors + /anchors/:id/proof (GAP-355 S4-4, PGlite)', () => {
 
     const app = createAuthedApp(user, db);
     const res = await app.request(`/anchors/${foreign?.id}/proof?seq=${seqFrom}`);
+    expect(res.status).toBe(404);
+  });
+
+  it('GAP-427: returns 404 for a system-scope anchor (tenant is never client-supplied)', async () => {
+    // GET /anchors derives `tenant` from the caller's own account membership
+    // (getUserAccountId) — there is no request param a client can set to
+    // '__system__'. This locks the existing tenant-isolation check (anchor
+    // .tenant !== caller tenant → 404) also covers the reserved sentinel, the
+    // same way it already covers any other tenant's anchors.
+    const { signatures, seqFrom, seqTo } = await seedSignedRows(2);
+    const { root, leafCount } = buildMerkleRootFromSignatures(signatures);
+    const { value: rootSignature } = signAuditAnchorRoot(cryptoSigner, {
+      tenant: SYSTEM_ANCHOR_SCOPE,
+      seqFrom,
+      seqTo,
+      leafCount,
+      root,
+    });
+    const [systemAnchor] = await db
+      .insert(auditAnchors)
+      .values({
+        tenant: SYSTEM_ANCHOR_SCOPE,
+        seqFrom,
+        seqTo,
+        root,
+        rootSignature,
+        leafCount,
+      })
+      .returning({ id: auditAnchors.id });
+
+    const app = createAuthedApp(user, db);
+    const res = await app.request(`/anchors/${systemAnchor?.id}/proof?seq=${seqFrom}`);
     expect(res.status).toBe(404);
   });
 
