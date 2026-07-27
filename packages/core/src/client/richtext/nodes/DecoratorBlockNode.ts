@@ -53,6 +53,14 @@ export abstract class DecoratorBlockNode<
     return false;
   }
 
+  isInline(): false {
+    return false;
+  }
+
+  canIndent(): false {
+    return false;
+  }
+
   exportJSON(): SerializedDecoratorBlockNode<T> {
     return {
       ...super.exportJSON(),
