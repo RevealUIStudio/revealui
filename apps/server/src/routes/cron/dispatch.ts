@@ -30,6 +30,7 @@ import reconcileStripeSubscriptionsApp from './reconcile-stripe-subscriptions.js
 import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
 import uptimeCheckApp from './uptime-check.js';
+import workerLivenessApp from './worker-liveness.js';
 
 const app = new Hono();
 
@@ -104,6 +105,10 @@ const JOBS = [
   { name: 'lifecycle-emails', app: lifecycleEmailsApp, path: '/lifecycle-emails' },
   { name: 'uptime-check', app: uptimeCheckApp, path: '/uptime-check' },
   { name: 'jobs-safety-net', app: jobsSafetyNetApp, path: '/jobs-safety-net' },
+  // Daily baseline for the Fly worker liveness probe (GAP-443). The route is
+  // also mounted directly so an external scheduler can drive it every few
+  // minutes  -  see worker-liveness.ts header.
+  { name: 'worker-liveness', app: workerLivenessApp, path: '/worker-liveness' },
   // report-agent-overage emits previous-cycle agent_task_overage to Stripe
   // Billing Meters via protectedStripe.billing.meterEvents.create. Idempotent
   // per (userId, prevCycle) so daily firings collapse to one charge per cycle.
