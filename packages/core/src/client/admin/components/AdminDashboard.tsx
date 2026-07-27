@@ -1,6 +1,13 @@
 'use client';
 
 import { logger } from '@revealui/core/utils/logger';
+import {
+  Badge,
+  Stat,
+  StatGroup,
+  StatusDot,
+  type StatusDotStatus,
+} from '@revealui/presentation/client';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import type {
   RevealCollectionConfig,
@@ -206,19 +213,235 @@ function SignOutButton() {
 // Dashboard home view
 // =============================================================================
 
+/**
+ * The dashboard's collection taxonomy. Fixed render order: day-to-day work
+ * first, catalog/content structure second, identity and access last.
+ */
+type CollectionTaxonomyGroup = 'Operate' | 'Build' | 'Configure';
+
+const TAXONOMY_GROUPS: readonly CollectionTaxonomyGroup[] = ['Operate', 'Build', 'Configure'];
+
+function isTaxonomyGroup(value: unknown): value is CollectionTaxonomyGroup {
+  return value === 'Operate' || value === 'Build' || value === 'Configure';
+}
+
+/**
+ * Buckets a collection into Operate / Build / Configure. A collection's own
+ * `admin.group` wins when it already names one of the three groups (a
+ * project can opt in explicitly). Otherwise the bucket falls out of
+ * structural traits every RevealCollectionConfig already carries: auth
+ * collections gate who can act (Configure), versioned collections are the
+ * ones worked day to day with drafts and publishing (Operate), and
+ * everything else is catalog or content structure (Build).
+ */
+function classifyCollectionGroup(collection: RevealCollectionConfig): CollectionTaxonomyGroup {
+  if (isTaxonomyGroup(collection.admin?.group)) {
+    return collection.admin.group;
+  }
+  if (collection.auth) return 'Configure';
+  if (collection.versions) return 'Operate';
+  return 'Build';
+}
+
+function groupCollectionsByTaxonomy(
+  collections: RevealCollectionConfig[],
+): Record<CollectionTaxonomyGroup, RevealCollectionConfig[]> {
+  const grouped: Record<CollectionTaxonomyGroup, RevealCollectionConfig[]> = {
+    Operate: [],
+    Build: [],
+    Configure: [],
+  };
+  for (const collection of collections) {
+    grouped[classifyCollectionGroup(collection)].push(collection);
+  }
+  return grouped;
+}
+
+/**
+ * Per-collection link overrides. A slug listed here has a dedicated page
+ * that supersedes the generic collection editor, so the dashboard links
+ * straight to it instead of opening the generic editor.
+ *
+ * GAP-452: the generic editor's create path posts JSON to a multipart-only
+ * endpoint and 400s for upload collections, so `media` must route to the
+ * media library instead.
+ */
+const COLLECTION_LINK_OVERRIDES: Readonly<Record<string, string>> = {
+  media: '/media',
+};
+
+// Static icons: hoisted so the same element is reused across renders instead
+// of re-created (they take no props and never change).
+const collectionsIcon = (
+  <svg
+    className="h-5 w-5 text-muted-foreground"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+    />
+  </svg>
+);
+
+const globalsIcon = (
+  <svg
+    className="h-5 w-5 text-muted-foreground"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+    />
+  </svg>
+);
+
+function CollectionGroupCard({
+  group,
+  collections,
+  onCollectionClick,
+}: {
+  group: CollectionTaxonomyGroup;
+  collections: RevealCollectionConfig[];
+  onCollectionClick: (c: RevealCollectionConfig) => void;
+}) {
+  if (collections.length === 0) return null;
+  const headingId = `dashboard-group-${group.toLowerCase()}`;
+
+  return (
+    <section aria-labelledby={headingId} className="overflow-hidden rounded-lg bg-card shadow">
+      <div className="flex items-center justify-between border-b px-5 py-3">
+        <h3 id={headingId} className="text-sm font-semibold text-foreground">
+          {group}
+        </h3>
+        <Badge color="muted">{collections.length}</Badge>
+      </div>
+      <ul className="divide-y divide-border">
+        {collections.map((collection) => {
+          const slug = String(collection.slug);
+          const overrideHref = COLLECTION_LINK_OVERRIDES[slug];
+          const rowClassName =
+            'flex w-full items-center px-5 py-2.5 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer';
+
+          return (
+            <li key={slug}>
+              {overrideHref ? (
+                <a href={overrideHref} className={rowClassName}>
+                  {slug}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onCollectionClick(collection)}
+                  className={rowClassName}
+                >
+                  {slug}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function GlobalsCard({
+  globals,
+  onGlobalClick,
+}: {
+  globals: RevealGlobalConfig[];
+  onGlobalClick: (g: RevealGlobalConfig) => void;
+}) {
+  return (
+    <section
+      aria-labelledby="dashboard-globals"
+      className="overflow-hidden rounded-lg bg-card shadow"
+    >
+      <div className="flex items-center justify-between border-b px-5 py-3">
+        <div className="flex items-center gap-2">
+          {globalsIcon}
+          <h3 id="dashboard-globals" className="text-sm font-semibold text-foreground">
+            Globals
+          </h3>
+        </div>
+        <Badge color="muted">{globals.length}</Badge>
+      </div>
+      {globals.length > 0 ? (
+        <ul className="divide-y divide-border">
+          {globals.map((global) => (
+            <li key={String(global.slug)}>
+              <button
+                type="button"
+                onClick={() => onGlobalClick(global)}
+                className="flex w-full items-center px-5 py-2.5 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+              >
+                {global.label || String(global.slug)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="px-5 py-4 text-sm text-muted-foreground">No globals configured</p>
+      )}
+    </section>
+  );
+}
+
+/** System status card: a StatusDot-led card, never a bare prose sentence. */
+function SystemStatusCard({ degraded }: { degraded: boolean }) {
+  const status: StatusDotStatus = degraded ? 'warn' : 'ok';
+  const word = degraded ? 'Degraded' : 'Healthy';
+  const description = degraded
+    ? 'The last admin action failed. Retry it or check the server logs.'
+    : 'The admin console is responding normally.';
+
+  return (
+    <section
+      aria-labelledby="dashboard-system-status"
+      className="overflow-hidden rounded-lg bg-card shadow"
+    >
+      <div className="flex items-center justify-between border-b px-5 py-3">
+        <h3 id="dashboard-system-status" className="text-sm font-semibold text-foreground">
+          System status
+        </h3>
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
+          <StatusDot status={status} label={`System status: ${word}`} pulse={!degraded} />
+          {word}
+        </span>
+      </div>
+      <p className="px-5 py-4 text-sm text-muted-foreground">{description}</p>
+    </section>
+  );
+}
+
 function DashboardHome({
   siteName,
   collections,
   globals,
+  degraded,
   onCollectionClick,
   onGlobalClick,
 }: {
   siteName: string;
   collections: RevealCollectionConfig[];
   globals: RevealGlobalConfig[];
+  degraded: boolean;
   onCollectionClick: (c: RevealCollectionConfig) => void;
   onGlobalClick: (g: RevealGlobalConfig) => void;
 }) {
+  const grouped = groupCollectionsByTaxonomy(collections);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card shadow-sm border-b">
@@ -235,165 +458,50 @@ function DashboardHome({
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Collections */}
-            <div className="bg-card overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-8 w-8 text-muted-foreground"
-                      aria-label="Collections"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      role="img"
-                    >
-                      <title>Collections</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-muted-foreground truncate">
-                        Collections
-                      </dt>
-                      <dd className="text-lg font-medium text-foreground">{collections.length}</dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-muted px-5 py-3">
-                <div className="text-sm">
-                  {collections.length > 0 ? (
-                    <ul className="space-y-1 max-h-48 overflow-y-auto">
-                      {collections.map((collection) => (
-                        <li
-                          key={String(collection.slug)}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onCollectionClick(collection)}
-                            className="hover:underline cursor-pointer"
-                          >
-                            {String(collection.slug)}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted-foreground">No collections configured</p>
-                  )}
-                </div>
-              </div>
-            </div>
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Overview</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Collections, globals, and system status for {siteName}.
+          </p>
+        </div>
 
-            {/* Globals */}
-            <div className="bg-card overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-8 w-8 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-labelledby="globals-icon-title"
-                      role="img"
-                    >
-                      <title id="globals-icon-title">Globals</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-muted-foreground truncate">
-                        Globals
-                      </dt>
-                      <dd className="text-lg font-medium text-foreground">{globals.length}</dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-muted px-5 py-3">
-                <div className="text-sm">
-                  {globals.length > 0 ? (
-                    <ul className="space-y-1 max-h-32 overflow-y-auto">
-                      {globals.map((global) => (
-                        <li
-                          key={String(global.slug)}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onGlobalClick(global)}
-                            className="hover:underline cursor-pointer"
-                          >
-                            {global.label || String(global.slug)}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted-foreground">No globals configured</p>
-                  )}
-                </div>
-              </div>
-            </div>
+        <StatGroup className="mb-8 sm:grid-cols-3 lg:grid-cols-3">
+          <Stat label="Collections" value={collections.length} icon={collectionsIcon} />
+          <Stat label="Globals" value={globals.length} icon={globalsIcon} />
+          <Stat
+            label="Status"
+            value={degraded ? 'Degraded' : 'Healthy'}
+            icon={
+              <StatusDot
+                status={degraded ? 'warn' : 'ok'}
+                label={degraded ? 'Degraded' : 'Healthy'}
+              />
+            }
+          />
+        </StatGroup>
 
-            {/* System Status */}
-            <div className="bg-card overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-success/15 rounded-full flex items-center justify-center">
-                      <svg
-                        className="h-5 w-5 text-success"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-labelledby="system-status-icon-title"
-                        role="img"
-                      >
-                        <title id="system-status-icon-title">System Status: Healthy</title>
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-muted-foreground truncate">
-                        System Status
-                      </dt>
-                      <dd className="text-lg font-medium text-foreground">Healthy</dd>
-                    </dl>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {collections.length > 0 ? (
+              TAXONOMY_GROUPS.map((group) => (
+                <CollectionGroupCard
+                  key={group}
+                  group={group}
+                  collections={grouped[group]}
+                  onCollectionClick={onCollectionClick}
+                />
+              ))
+            ) : (
+              <div className="rounded-lg bg-card p-5 shadow">
+                <p className="text-sm text-muted-foreground">No collections configured</p>
               </div>
-              <div className="bg-muted px-5 py-3">
-                <div className="text-sm text-muted-foreground">
-                  {siteName} admin is running successfully
-                </div>
-              </div>
-            </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-6">
+            <GlobalsCard globals={globals} onGlobalClick={onGlobalClick} />
+            <SystemStatusCard degraded={degraded} />
           </div>
         </div>
       </main>
@@ -755,6 +863,7 @@ export function AdminDashboard({ config, siteName = 'RevealUI' }: AdminDashboard
       siteName={siteName}
       collections={collections}
       globals={globals}
+      degraded={Boolean(state.error)}
       onCollectionClick={(c) => void handleCollectionClick(c)}
       onGlobalClick={(g) => void handleGlobalClick(g)}
     />

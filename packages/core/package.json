@@ -17,6 +17,7 @@
     "@lexical/utils": "^0.46.0",
     "@lexical/yjs": "^0.46.0",
     "@revealui/contracts": "workspace:*",
+    "@revealui/presentation": "workspace:*",
     "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
