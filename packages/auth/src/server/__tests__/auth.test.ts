@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock dependencies (vi.mock is hoisted above imports by Vitest)
 // ---------------------------------------------------------------------------
+const { mockLoggerError } = vi.hoisted(() => ({ mockLoggerError: vi.fn() }));
 vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+  logger: { error: mockLoggerError, info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
 // Mock bcryptjs
@@ -315,14 +316,72 @@ describe('auth', () => {
       }
     });
 
-    it('returns unexpected_error on uncaught exception', async () => {
-      mockCheckRateLimit.mockRejectedValueOnce(new Error('unexpected'));
+    it('returns database_error (not unexpected_error) when the rate-limit check throws', async () => {
+      // GAP-430 regression: checkRateLimit's storage backend (DatabaseStorage
+      // in production) can throw for reasons unrelated to the credential
+      // check. Before this guard, any such throw fell through to the outer
+      // catch and reported the generic, undiagnosable 'unexpected_error'.
+      mockCheckRateLimit.mockRejectedValueOnce(new Error('rate limit storage down'));
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('database_error');
+      }
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Error checking rate limit',
+        expect.any(Error),
+        expect.objectContaining({ message: 'rate limit storage down' }),
+      );
+    });
+
+    it('returns database_error (not unexpected_error) when the account-lock check throws', async () => {
+      mockIsAccountLocked.mockRejectedValueOnce(new Error('lock storage down'));
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('database_error');
+      }
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Error checking account lock status',
+        expect.any(Error),
+        expect.objectContaining({ message: 'lock storage down' }),
+      );
+    });
+
+    it('still succeeds when clearFailedAttempts throws (best-effort bookkeeping, not a gate)', async () => {
+      mockLimit.mockResolvedValueOnce([makeUser()]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+      mockClearFailedAttempts.mockRejectedValueOnce(new Error('clear storage down'));
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.success).toBe(true);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Error clearing failed attempts after successful login',
+        expect.any(Error),
+        expect.objectContaining({ message: 'clear storage down' }),
+      );
+    });
+
+    it('logs the real error on a genuinely uncaught exception (outer catch)', async () => {
+      // auditLoginSuccess is documented as best-effort/never-throwing, but the
+      // outer catch must still surface the real error object (not swallow it
+      // silently) if that guarantee is ever violated.
+      mockLimit.mockResolvedValueOnce([makeUser()]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+      mockAuditLoginSuccess.mockRejectedValueOnce(new Error('audit boom'));
 
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.reason).toBe('unexpected_error');
       }
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        'Unexpected error in signIn',
+        expect.any(Error),
+        expect.objectContaining({ message: 'audit boom' }),
+      );
     });
 
     it('returns email_not_verified for unverified account past grace period', async () => {
