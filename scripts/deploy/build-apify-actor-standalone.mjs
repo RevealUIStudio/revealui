@@ -126,7 +126,15 @@ mkdirSync(path.join(outDir, '.actor'), { recursive: true });
 
 console.log('[build-apify-actor] 3/6 copying compiled output + static files...');
 cpSync(path.join(pkgDir, 'dist'), path.join(outDir, 'dist'), { recursive: true });
-cpSync(path.join(pkgDir, 'README.md'), path.join(outDir, 'README.md'));
+// Apify extracts the Store listing from the pushed root README.md, so the
+// PUBLIC, §4.2-clean listing (packages/.../.actor/README.md) must land at the
+// artifact root — NOT the package root README.md, which is internal developer
+// notes (internal repo refs, guardrail-2 status, "unpublished"). Shipping the
+// dev README as the listing leaked internal detail to the public Store page.
+// Copy the clean listing to both the artifact root and .actor/ so whichever
+// path Apify resolves, it is the clean one.
+cpSync(path.join(pkgDir, '.actor', 'README.md'), path.join(outDir, 'README.md'));
+cpSync(path.join(pkgDir, '.actor', 'README.md'), path.join(outDir, '.actor', 'README.md'));
 cpSync(
   path.join(pkgDir, '.actor', 'input_schema.json'),
   path.join(outDir, '.actor', 'input_schema.json'),
