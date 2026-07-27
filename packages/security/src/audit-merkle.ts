@@ -180,12 +180,58 @@ export function verifyInclusionProof(
 
 // ── Root signing (binds range + root) ─────────────────────────────────
 
+/**
+ * GAP-447: seqs traversed within an anchor's [seqFrom, seqTo] range that are
+ * NOT among the anchor's own leaves — classified at sweep time from a single
+ * existence query over the range, never guessed:
+ *   - `burned`  — seqs with no audit_log row at all. The append-only trigger
+ *     (migrations 0002 + 0026) makes deletion impossible, so an absent seq
+ *     proves the value was consumed by `nextval()` without an INSERT landing
+ *     (an aborted transaction), not a deletion. Enumerated individually so a
+ *     verifier can re-check each is still absent (see `holes` on
+ *     `AuditAnchorSignable`).
+ *   - `foreign` — count of rows present at a traversed seq but scoped to a
+ *     different tenant (or, for the system scope, any non-null tenant).
+ *     Their existence already proves non-deletion, so only the count is
+ *     signed — the individual seqs carry no anomaly signal worth re-checking.
+ */
+export interface AuditAnchorHoles {
+  burned: readonly number[];
+  foreign: number;
+}
+
 export interface AuditAnchorSignable {
   tenant: string;
   seqFrom: number;
   seqTo: number;
   leafCount: number;
   root: string;
+  /**
+   * GAP-447: holes traversed while building this anchor. Optional and
+   * covered by the root signature when present — `undefined` serializes to
+   * EXACTLY the pre-GAP-447 payload (the key is omitted, not signed as
+   * `null`/`undefined`), so every anchor signed before this change still
+   * verifies unchanged.
+   */
+  holes?: AuditAnchorHoles;
+}
+
+function assertValidHoles(anchor: AuditAnchorSignable): void {
+  const holes = anchor.holes;
+  if (holes === undefined) return;
+  if (!Array.isArray(holes.burned)) {
+    throw new Error('auditAnchorSignableBytes: holes.burned must be an array');
+  }
+  for (const seq of holes.burned) {
+    if (!Number.isInteger(seq) || seq < anchor.seqFrom || seq > anchor.seqTo) {
+      throw new Error(
+        `auditAnchorSignableBytes: holes.burned seq ${seq} outside anchor range ${anchor.seqFrom}..${anchor.seqTo}`,
+      );
+    }
+  }
+  if (!Number.isInteger(holes.foreign) || holes.foreign < 0) {
+    throw new Error('auditAnchorSignableBytes: holes.foreign must be a non-negative integer');
+  }
 }
 
 /** Canonical bytes signed for an anchor root (shared by sign + verify). */
@@ -205,19 +251,32 @@ export function auditAnchorSignableBytes(anchor: AuditAnchorSignable): Uint8Arra
   if (!/^[0-9a-f]{64}$/.test(anchor.root)) {
     throw new Error('auditAnchorSignableBytes: root must be 64-char lowercase hex');
   }
-  const expectedLeaves = anchor.seqTo - anchor.seqFrom + 1;
+  assertValidHoles(anchor);
+  // GAP-447: with holes traversed, the leaf count is the seq span MINUS the
+  // burned + foreign seqs traversed within it (they occupy seq slots in the
+  // range without contributing a leaf). No holes ⇒ identical to the original
+  // "leafCount must equal the seq span" check.
+  const holesCount = anchor.holes ? anchor.holes.burned.length + anchor.holes.foreign : 0;
+  const expectedLeaves = anchor.seqTo - anchor.seqFrom + 1 - holesCount;
   if (anchor.leafCount !== expectedLeaves) {
     throw new Error(
-      `auditAnchorSignableBytes: leafCount ${anchor.leafCount} != seq span ${expectedLeaves}`,
+      `auditAnchorSignableBytes: leafCount ${anchor.leafCount} != seq span ${expectedLeaves} (span=${anchor.seqTo - anchor.seqFrom + 1}, holes=${holesCount})`,
     );
   }
-  const canonical = canonicalizeJcs({
+  const payload: Record<string, unknown> = {
     tenant: anchor.tenant,
     seqFrom: anchor.seqFrom,
     seqTo: anchor.seqTo,
     leafCount: anchor.leafCount,
     root: anchor.root,
-  });
+  };
+  if (anchor.holes !== undefined) {
+    payload.holes = {
+      burned: [...anchor.holes.burned].sort((a, b) => a - b),
+      foreign: anchor.holes.foreign,
+    };
+  }
+  const canonical = canonicalizeJcs(payload);
   return new TextEncoder().encode(canonical);
 }
 

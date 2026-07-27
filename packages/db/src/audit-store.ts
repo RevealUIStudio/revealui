@@ -11,6 +11,7 @@
 
 import { and, count, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import type { Database } from './client/index.js';
+import { SYSTEM_ANCHOR_SCOPE } from './schema/audit-anchors.js';
 import { auditLog } from './schema/audit-log.js';
 
 // ─── Local Type Mirrors ─────────────────────────────────────────────────────
@@ -124,8 +125,25 @@ export class DrizzleAuditStore {
     }
   }
 
+  /**
+   * GAP-447 ONE DOOR: `SYSTEM_ANCHOR_SCOPE` ('__system__') is reserved for
+   * the audit_anchors.tenant sentinel over null-tenant (system) rows
+   * (GAP-427). audit_log.tenant must never actually be set to that value —
+   * a row scoped to the sentinel would collide with the system anchor pass's
+   * own bookkeeping and be misclassified as a genuine tenant. Enforced here,
+   * the single write door, for both the signed and unsigned append paths.
+   */
+  private assertNotSentinelTenant(entry: AuditEntry): void {
+    if (entry.tenant === SYSTEM_ANCHOR_SCOPE) {
+      throw new Error(
+        `DrizzleAuditStore: entry.tenant cannot be the reserved system-anchor sentinel "${SYSTEM_ANCHOR_SCOPE}" (GAP-447) — use tenant: null for system-scope events.`,
+      );
+    }
+  }
+
   /** Append a single entry to the audit log */
   async append(entry: AuditEntry): Promise<void> {
+    this.assertNotSentinelTenant(entry);
     if (!this.signer) {
       this.refuseUnsignedInProduction();
       // Unsigned mode (dev/test only): DB assigns `seq` (column default),
@@ -153,6 +171,9 @@ export class DrizzleAuditStore {
   /** Append multiple entries atomically in a single INSERT */
   async appendBatch(entries: AuditEntry[]): Promise<void> {
     if (entries.length === 0) return;
+    for (const entry of entries) {
+      this.assertNotSentinelTenant(entry);
+    }
 
     if (!this.signer) {
       this.refuseUnsignedInProduction();

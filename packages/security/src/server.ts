@@ -33,16 +33,18 @@ export {
   createAuditMiddleware,
   InMemoryAuditStorage,
 } from './audit.js';
-// Offline anchor verify (GAP-355 Stage 4 S4-5)
+// Offline anchor verify (GAP-355 Stage 4 S4-5; GAP-447 live burned-seq recheck)
 export type {
   OfflineAnchorRecord,
   OfflineInclusionProofInput,
   OfflineVerifyInput,
   OfflineVerifyResult,
+  SeqExistsChecker,
 } from './audit-anchor-verify.js';
 export { verifyAuditAnchorOffline } from './audit-anchor-verify.js';
-// Merkle roots over row signatures (GAP-355 Stage 4 S4-2)
+// Merkle roots over row signatures (GAP-355 Stage 4 S4-2; GAP-447 holes)
 export type {
+  AuditAnchorHoles,
   AuditAnchorSignable,
   InclusionProof,
   MerkleBuildResult,

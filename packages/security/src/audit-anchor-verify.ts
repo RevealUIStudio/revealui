@@ -1,16 +1,33 @@
 /**
- * Offline audit-anchor verification (GAP-355 Stage 4 S4-5).
+ * Offline audit-anchor verification (GAP-355 Stage 4 S4-5; extended GAP-447).
  *
- * Pure library: no network, no database. Customers (and `verify-audit-anchor`
- * CLI) pass a published SPKI public key, a root record (from API download or
- * export), and optionally an inclusion proof for one row signature.
+ * Core verification (root signature + inclusion proof) is a pure library: no
+ * network, no database. Customers (and `verify-audit-anchor` CLI) pass a
+ * published SPKI public key, a root record (from API download or export), and
+ * optionally an inclusion proof for one row signature.
+ *
+ * GAP-447 adds one OPTIONAL live recheck on top of that pure core: an anchor
+ * may carry `holes.burned` seqs (traversed because no row existed there at
+ * anchor-build time). Since `audit_log.seq` is written explicitly by the
+ * store (not purely DB-generated per row — see `nextSeqValues` in
+ * `@revealui/db`'s `DrizzleAuditStore`), a "burned" seq could later be filled
+ * by a forged row, which would be a real integrity violation the signed
+ * payload alone cannot detect (it only proves what was true when signed). A
+ * caller with DB access may inject `checkBurnedSeqAbsent` to re-verify each
+ * recorded-burned seq is STILL absent right now. When omitted (the true
+ * "no network, no database" mode — e.g. the CLI verifying a customer-held
+ * export), that recheck is skipped and only the root + inclusion proof are
+ * verified.
  *
  * Exit contract for CLI consumers:
- *   - root signature must verify over JCS { tenant, seqFrom, seqTo, leafCount, root }
+ *   - root signature must verify over JCS { tenant, seqFrom, seqTo, leafCount, root[, holes] }
  *   - if proof present: leaf = SHA-256(signature), inclusion path must recompute root
+ *   - if checkBurnedSeqAbsent provided and holes.burned non-empty: every burned seq
+ *     must still be absent, or verification fails with a distinct reason
  */
 
 import {
+  type AuditAnchorHoles,
   type AuditAnchorSignable,
   hashAuditSignatureLeaf,
   type InclusionProof,
@@ -18,6 +35,9 @@ import {
   verifyInclusionProof,
 } from './audit-merkle.js';
 import type { PublicKeyResolver } from './audit-signing.js';
+
+/** Injected DB-aware check: does a row currently exist at this seq (for the anchor's scope)? */
+export type SeqExistsChecker = (seq: number) => Promise<boolean>;
 
 export interface OfflineAnchorRecord extends AuditAnchorSignable {
   /** Stage-3 style envelope: v1.ed25519.<kid>.<sig> */
@@ -40,6 +60,12 @@ export interface OfflineVerifyInput {
   publicKeyPem: string;
   anchor: OfflineAnchorRecord;
   inclusion?: OfflineInclusionProofInput;
+  /**
+   * GAP-447: optional live recheck that every seq in `anchor.holes.burned` is
+   * STILL absent. Omit for a true offline verify (no DB access available);
+   * provide when the caller has a live audit_log to re-check against.
+   */
+  checkBurnedSeqAbsent?: SeqExistsChecker;
 }
 
 export interface OfflineVerifyResult {
@@ -54,12 +80,48 @@ function singleKeyResolver(publicKeyPem: string): PublicKeyResolver {
 }
 
 /**
- * Verify an anchor root signature and optional inclusion proof offline.
- * Never throws for expected invalid crypto; returns ok:false + reasons.
+ * Recheck (GAP-447) that every recorded-burned seq is STILL absent. Skipped
+ * (ok:true, informational check only) when either there are no burned seqs to
+ * check or no `checkBurnedSeqAbsent` was injected — the pure offline mode.
  */
-export function verifyAuditAnchorOffline(input: OfflineVerifyInput): OfflineVerifyResult {
+async function verifyBurnedSeqsStillAbsent(
+  holes: AuditAnchorHoles | undefined,
+  checkBurnedSeqAbsent: SeqExistsChecker | undefined,
+): Promise<{ ok: boolean; checks: string[] }> {
+  const burned = holes?.burned ?? [];
+  if (burned.length === 0) return { ok: true, checks: [] };
+  if (!checkBurnedSeqAbsent) {
+    return {
+      ok: true,
+      checks: [
+        `${burned.length} burned seq(s) recorded; liveness recheck skipped (no checkBurnedSeqAbsent provided)`,
+      ],
+    };
+  }
+  for (const seq of burned) {
+    const exists = await checkBurnedSeqAbsent(seq);
+    if (exists) {
+      return {
+        ok: false,
+        checks: [
+          `burned seq ${seq} recorded as permanently absent, but a row now exists at that seq — anchor integrity violated (possible tamper)`,
+        ],
+      };
+    }
+  }
+  return { ok: true, checks: [`${burned.length} burned seq(s) confirmed still absent`] };
+}
+
+/**
+ * Verify an anchor root signature and optional inclusion proof offline, plus
+ * (GAP-447, optional) a live recheck that recorded-burned seqs are still
+ * absent. Never throws for expected invalid crypto; returns ok:false + reasons.
+ */
+export async function verifyAuditAnchorOffline(
+  input: OfflineVerifyInput,
+): Promise<OfflineVerifyResult> {
   const checks: string[] = [];
-  const { publicKeyPem, anchor, inclusion } = input;
+  const { publicKeyPem, anchor, inclusion, checkBurnedSeqAbsent } = input;
 
   if (!(publicKeyPem.includes('BEGIN PUBLIC KEY') || publicKeyPem.includes('BEGIN'))) {
     // Allow raw PEM without forcing exact header wording; empty is hard fail.
@@ -76,6 +138,7 @@ export function verifyAuditAnchorOffline(input: OfflineVerifyInput): OfflineVeri
       seqTo: anchor.seqTo,
       leafCount: anchor.leafCount,
       root: anchor.root,
+      ...(anchor.holes !== undefined ? { holes: anchor.holes } : {}),
     };
     // Validate shape via auditAnchorSignableBytes rules by calling verify path
   } catch (err) {
@@ -109,7 +172,9 @@ export function verifyAuditAnchorOffline(input: OfflineVerifyInput): OfflineVeri
 
   if (!inclusion) {
     checks.push('no inclusion proof provided (root-only verify)');
-    return { ok: true, checks, kid: rootResult.kid };
+    const holesResult = await verifyBurnedSeqsStillAbsent(anchor.holes, checkBurnedSeqAbsent);
+    checks.push(...holesResult.checks);
+    return { ok: holesResult.ok, checks, kid: rootResult.kid };
   }
 
   // Inclusion proof path
@@ -152,5 +217,8 @@ export function verifyAuditAnchorOffline(input: OfflineVerifyInput): OfflineVeri
   }
 
   checks.push(`inclusion proof VALID for seq=${inclusion.seq} leafIndex=${expectedLeafIndex}`);
-  return { ok: true, checks, kid: rootResult.kid };
+
+  const holesResult = await verifyBurnedSeqsStillAbsent(anchor.holes, checkBurnedSeqAbsent);
+  checks.push(...holesResult.checks);
+  return { ok: holesResult.ok, checks, kid: rootResult.kid };
 }

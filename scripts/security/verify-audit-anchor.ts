@@ -137,7 +137,21 @@ function asAnchor(raw: unknown): OfflineAnchorRecord {
   if (!(tenant && root && rootSignature)) {
     throw new Error('anchor requires tenant, root, rootSignature, seqFrom, seqTo, leafCount');
   }
-  return { tenant, seqFrom, seqTo, leafCount, root, rootSignature };
+  // GAP-447: pass through optional holes (burned seqs + foreign count) — they
+  // are covered by the root signature, so an anchor exported without them
+  // still verifies; one carrying them verifies only if the signature covers
+  // the exact holes present in the JSON.
+  const rawHoles = o.holes;
+  const holes =
+    rawHoles && typeof rawHoles === 'object'
+      ? {
+          burned: Array.isArray((rawHoles as Record<string, unknown>).burned)
+            ? ((rawHoles as Record<string, unknown>).burned as unknown[]).map((n) => Number(n))
+            : [],
+          foreign: Number((rawHoles as Record<string, unknown>).foreign ?? 0),
+        }
+      : undefined;
+  return { tenant, seqFrom, seqTo, leafCount, root, rootSignature, ...(holes ? { holes } : {}) };
 }
 
 function asProof(raw: unknown): OfflineInclusionProofInput {
@@ -160,7 +174,7 @@ function asProof(raw: unknown): OfflineInclusionProofInput {
   };
 }
 
-function main(): number {
+async function main(): Promise<number> {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     printHelp();
@@ -191,7 +205,7 @@ function main(): number {
     return 1;
   }
 
-  const result = verifyAuditAnchorOffline({
+  const result = await verifyAuditAnchorOffline({
     publicKeyPem,
     anchor,
     inclusion,
@@ -207,4 +221,4 @@ function main(): number {
   return result.ok ? 0 : 1;
 }
 
-process.exit(main());
+main().then((code) => process.exit(code));

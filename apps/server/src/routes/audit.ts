@@ -97,6 +97,12 @@ function serializeAnchor(row: typeof auditAnchors.$inferSelect) {
     root: row.root,
     rootSignature: row.rootSignature,
     leafCount: row.leafCount,
+    // GAP-447: burned seqs + foreign-scope-row count traversed within this
+    // anchor's range, covered by rootSignature. Required for offline
+    // verification to reproduce the exact signed bytes — omitting it here
+    // would make any holes-carrying anchor unverifiable by a downloading
+    // client. null when no holes were traversed (the common case).
+    holes: row.holes ?? null,
     createdAt: row.createdAt.toISOString(),
     deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
     deliveryChannel: row.deliveryChannel ?? null,
@@ -258,6 +264,11 @@ app.get('/anchors/:id/proof', async (c) => {
     signedRows,
     seq,
   );
+  // GAP-447: `signedRows` is already fetched scoped to (tenant, signed,
+  // [seqFrom, seqTo]) — it naturally excludes burned/foreign-scope seqs, so
+  // `buildAnchorInclusionProof` sees only real leaves and no `holes` param is
+  // needed there. `anchor.holes` is descriptive metadata surfaced to the
+  // client via `serializeAnchor` below, not an input to proof building.
   if (!built.ok) {
     if (built.code === 'SEQ_OUT_OF_RANGE') {
       throw new HTTPException(400, {
