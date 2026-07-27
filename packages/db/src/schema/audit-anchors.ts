@@ -27,7 +27,13 @@ export const auditAnchors = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
 
-    /** Matches audit_log.tenant; null-tenant rows are never anchored (Stage 4 §9). */
+    /**
+     * Matches audit_log.tenant for real tenants. Null-tenant (system) rows
+     * anchor under the reserved '__system__' sentinel instead, since this
+     * column is NOT NULL and audit_log.tenant itself stays null on those
+     * rows (GAP-427 ruling 2026-07-27; see SYSTEM_ANCHOR_SCOPE in
+     * apps/server/src/jobs/audit-anchor-sweep.ts).
+     */
     tenant: text('tenant').notNull(),
 
     /** Inclusive seq range of signed audit_log rows covered by this root. */

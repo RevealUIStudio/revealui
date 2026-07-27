@@ -144,7 +144,10 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
 
     return response;
   } catch (error) {
-    logger.error('Error signing in', { error });
+    logger.error('Error signing in', error instanceof Error ? error : undefined, {
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : 'unknown',
+    });
     return createErrorResponse(error, {
       endpoint: '/api/auth/sign-in',
       operation: 'sign_in',

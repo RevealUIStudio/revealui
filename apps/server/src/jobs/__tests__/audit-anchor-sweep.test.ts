@@ -11,7 +11,7 @@ import {
 } from '@revealui/core/security';
 import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
-import { auditAnchors } from '@revealui/db/schema';
+import { auditAnchors, usageMeters } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -19,7 +19,7 @@ import {
   type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import { planContiguousBatch, type SignedAuditRow } from '../audit-anchor-batch.js';
-import { runAuditAnchorSweep } from '../audit-anchor-sweep.js';
+import { runAuditAnchorSweep, SYSTEM_ANCHOR_SCOPE } from '../audit-anchor-sweep.js';
 
 const KID = 'kid-s4-3';
 
@@ -214,7 +214,7 @@ describe('runAuditAnchorSweep (PGlite)', () => {
     expect(await db.select().from(auditAnchors)).toHaveLength(0);
   });
 
-  it('counts null-tenant signed rows and never anchors them', async () => {
+  it('GAP-427: counts null-tenant signed rows and anchors them under the system scope, not per-tenant', async () => {
     const store = new DrizzleAuditStore(db, canonicalSignerFn(priv));
     await store.append(makeEntry({ tenant: null, id: 'null-tenant-1' }));
     await store.append(makeEntry({ tenant: 'acct_max', id: 't1' }));
@@ -231,10 +231,117 @@ describe('runAuditAnchorSweep (PGlite)', () => {
     });
 
     expect(result.nullTenantSignedRows).toBe(1);
-    const anchors = await db.select().from(auditAnchors);
-    expect(anchors.every((a) => a.tenant !== null && a.tenant.length > 0)).toBe(true);
-    // null-tenant row is not in any anchor range as a tenant key
-    expect(anchors.some((a) => a.tenant === '')).toBe(false);
+    // The per-tenant loop never treats the null-tenant row as a "tenant" key.
+    const tenantAnchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, 'acct_max'));
+    expect(tenantAnchors).toHaveLength(1);
+    // It anchors separately, via the system-scope pass.
+    expect(result.systemOutcome).toBe('inserted');
+    const systemAnchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, SYSTEM_ANCHOR_SCOPE));
+    expect(systemAnchors).toHaveLength(1);
+    expect(systemAnchors[0]?.leafCount).toBe(1);
+  });
+
+  it('GAP-427: system scope anchors signed null-tenant rows above the null-tenant unsigned floor', async () => {
+    const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    const unsignedStore = new DrizzleAuditStore(db); // pre-enforcement legacy rows, no signer
+
+    // Legacy era (closed): unsigned null-tenant seq 1. Signed era: seq 2..3.
+    await unsignedStore.append(makeEntry({ id: 'sys-u1', tenant: null }));
+    await signedStore.append(makeEntry({ id: 'sys-s2', tenant: null }));
+    await signedStore.append(makeEntry({ id: 'sys-s3', tenant: null }));
+
+    const result = await runAuditAnchorSweep({
+      db,
+      signer: cryptoSigner,
+      batchSize: 2,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => new Date('2026-07-23T12:00:10.000Z'),
+    });
+
+    expect(result.systemOutcome).toBe('inserted');
+    expect(result.tenantsFloorEngaged).toBe(1);
+    expect(result.anchorsInserted).toBe(1);
+
+    const anchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, SYSTEM_ANCHOR_SCOPE));
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0]?.seqFrom).toBe(2);
+    expect(anchors[0]?.seqTo).toBe(3);
+
+    // No account FK backs a null tenant — the system pass must never meter.
+    const meters = await db.select().from(usageMeters);
+    expect(meters).toHaveLength(0);
+  });
+
+  it('GAP-427: systemOutcome is skipped when there are no null-tenant rows', async () => {
+    await appendSigned(3, 'acct_max', new Date('2026-07-23T12:00:00.000Z'));
+
+    const result = await runAuditAnchorSweep({
+      db,
+      signer: cryptoSigner,
+      batchSize: 3,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => new Date('2026-07-23T12:00:10.000Z'),
+    });
+
+    expect(result.systemOutcome).toBe('skipped');
+    expect(result.nullTenantSignedRows).toBe(0);
+    const systemAnchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, SYSTEM_ANCHOR_SCOPE));
+    expect(systemAnchors).toHaveLength(0);
+  });
+
+  it('GAP-427: a tenant anchor and the system anchor both land in one sweep', async () => {
+    // Non-interleaved seq runs (tenant rows first, then null-tenant rows) —
+    // the global-seq interleave limitation is pre-existing and out of scope.
+    await appendSigned(2, 'acct_max', new Date('2026-07-23T12:00:00.000Z'));
+    const store = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    await store.append(
+      makeEntry({ id: 'sys-1', tenant: null, timestamp: new Date('2026-07-23T12:00:01.000Z') }),
+    );
+    await store.append(
+      makeEntry({ id: 'sys-2', tenant: null, timestamp: new Date('2026-07-23T12:00:02.000Z') }),
+    );
+
+    const result = await runAuditAnchorSweep({
+      db,
+      signer: cryptoSigner,
+      batchSize: 2,
+      canAnchorTenant: async () => true,
+      recordMeter: false,
+      now: () => new Date('2026-07-23T12:00:10.000Z'),
+    });
+
+    expect(result.anchorsInserted).toBe(2);
+    expect(result.systemOutcome).toBe('inserted');
+
+    const tenantAnchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, 'acct_max'));
+    expect(tenantAnchors).toHaveLength(1);
+    expect(tenantAnchors[0]?.seqFrom).toBe(1);
+    expect(tenantAnchors[0]?.seqTo).toBe(2);
+
+    const systemAnchors = await db
+      .select()
+      .from(auditAnchors)
+      .where(eq(auditAnchors.tenant, SYSTEM_ANCHOR_SCOPE));
+    expect(systemAnchors).toHaveLength(1);
+    expect(systemAnchors[0]?.seqFrom).toBe(3);
+    expect(systemAnchors[0]?.seqTo).toBe(4);
   });
 
   it('skips when an unsigned hole appears above an existing anchor (strict contiguity)', async () => {

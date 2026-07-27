@@ -5,6 +5,8 @@
  * Validates critical environment variables at startup.
  */
 
+import { isHostedDeployment } from '@revealui/core/deployment-mode';
+
 /**
  * Literal hex-set check (no regex). Returns true when value is exactly 64
  * characters and every character is in [0-9a-fA-F]. Mirrors the format
@@ -47,6 +49,18 @@ export function validateRequiredEnvVars(
   const { failOnMissing = false, environment } = options;
 
   const isFleetMode = Boolean(process.env.REVEALUI_FLEET_MODE);
+
+  // A RevealUI Studio hosted-SaaS deployment is the ONLY posture that uses
+  // self-billing (Stripe checkout), cross-subdomain session cookies, and the
+  // Workspace-backed signup verification email. Every other posture — a
+  // RevForge-stamped Fleet kit (isFleetMode) AND a plain OSS/unlicensed
+  // self-host or marketplace-template deploy (GAP-430/GAP-440) — never uses
+  // any of those, so requiring their env vars in "production" mode blocks a
+  // stranger's fresh deploy for no reason. isHostedDeployment() defaults to
+  // false whenever REVEALUI_LICENSE_PRIVATE_KEY is absent (the normal case
+  // for a self-host template with no license key at all), so this needs no
+  // new env var from the deploying operator.
+  const isSaasHosted = isHostedDeployment(process.env);
 
   // Base required variables — apply in all environments (hosted + Fleet).
   //
@@ -138,38 +152,48 @@ export function validateRequiredEnvVars(
       warnings.push(error);
     }
 
-    // SESSION_COOKIE_DOMAIN is required in production for cross-subdomain auth.
-    // Without it, sign-in throws at request time instead of at startup.
-    if (!process.env.SESSION_COOKIE_DOMAIN) {
-      missing.push('SESSION_COOKIE_DOMAIN');
-    }
-
-    // Stripe price IDs are required in production  -  without them, billing buttons
-    // silently send priceId:'' which the API rejects with a 400, showing
-    // "Failed to start checkout" to paying customers with no actionable error.
-    const stripePriceVars = [
-      'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
-      'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
-      'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
-    ];
-    for (const key of stripePriceVars) {
-      if (!process.env[key]) {
-        missing.push(key);
+    // SESSION_COOKIE_DOMAIN, Stripe checkout, and Workspace signup-verification
+    // email are all hosted-SaaS-only concerns (self-billing + cross-subdomain
+    // cookies + Workspace-backed mail). A self-host deploy — Fleet-branded
+    // (isFleetMode, checked above) or a plain OSS/unlicensed self-host or
+    // marketplace-template deploy (GAP-430/GAP-440, isSaasHosted false because
+    // it has no REVEALUI_LICENSE_PRIVATE_KEY) — never uses any of these, so
+    // requiring them here previously blocked a stranger's fresh deploy from
+    // booting without SKIP_ENV_VALIDATION.
+    if (isSaasHosted) {
+      // SESSION_COOKIE_DOMAIN is required in production for cross-subdomain auth.
+      // Without it, sign-in throws at request time instead of at startup.
+      if (!process.env.SESSION_COOKIE_DOMAIN) {
+        missing.push('SESSION_COOKIE_DOMAIN');
       }
-    }
 
-    // Transactional email transport (Gmail API — packages/services/src/email).
-    // The signup VERIFICATION email is sent from THIS admin app; without both
-    // vars getEmailProvider() falls back to a no-op that drops every send, so a
-    // non-first signup is created with no session and no email and (after the
-    // 24h grace) is locked out with no working recovery. Required in hosted
-    // production so a misconfigured deploy fails fast at boot (instrumentation.ts)
-    // instead of silently locking out every new user. Fleet kits are exempt
-    // (no Workspace email) via the !isFleetMode guard above.
-    const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_PRIVATE_KEY'];
-    for (const key of emailTransportVars) {
-      if (!process.env[key]) {
-        missing.push(key);
+      // Stripe price IDs are required in production  -  without them, billing buttons
+      // silently send priceId:'' which the API rejects with a 400, showing
+      // "Failed to start checkout" to paying customers with no actionable error.
+      const stripePriceVars = [
+        'NEXT_PUBLIC_STRIPE_PRO_PRICE_ID',
+        'NEXT_PUBLIC_STRIPE_MAX_PRICE_ID',
+        'NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID',
+      ];
+      for (const key of stripePriceVars) {
+        if (!process.env[key]) {
+          missing.push(key);
+        }
+      }
+
+      // Transactional email transport (Gmail API — packages/services/src/email).
+      // The signup VERIFICATION email is sent from THIS admin app; without both
+      // vars getEmailProvider() falls back to a no-op that drops every send, so a
+      // non-first signup is created with no session and no email and (after the
+      // 24h grace) is locked out with no working recovery. Required in hosted
+      // production so a misconfigured deploy fails fast at boot (instrumentation.ts)
+      // instead of silently locking out every new user. Fleet kits and other
+      // self-host deploys are exempt (no Workspace email) via isSaasHosted above.
+      const emailTransportVars = ['GOOGLE_SERVICE_ACCOUNT_EMAIL', 'GOOGLE_PRIVATE_KEY'];
+      for (const key of emailTransportVars) {
+        if (!process.env[key]) {
+          missing.push(key);
+        }
       }
     }
   }
