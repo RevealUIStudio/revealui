@@ -6,7 +6,7 @@
  * nothing on the worker itself can page anyone, so a separate deployment has
  * to do the probing.
  *
- * Chosen as a PRIVATE Vercel cron (this route) over a public status-page
+ * Chosen as a PRIVATE Vercel cron route (this file) over a public status-page
  * service (e.g. Upptime) specifically to keep the worker's hostname out of
  * the public `revealui` repo. Consequently the target URL is read from
  * `REVEALUI_WORKER_HEALTH_URL` at runtime and is NEVER hardcoded, logged, or
@@ -15,12 +15,13 @@
  * Fetches through `createSafeFetch()` (SSRF-guarded: rejects private/reserved
  * IPs, pins the resolved address, refuses redirects) with a 10s timeout.
  *
- * Piggybacks on the daily cron dispatcher for a baseline check (Vercel Hobby
- * allows one cron/day  -  see `dispatch.ts`). Also exposed directly at
- * `/api/cron/worker-liveness` so an external scheduler (GitHub Actions,
- * Upstash Cron, etc.) can drive it every few minutes without requiring a
- * Vercel Pro plan, matching the `drain-unreconciled` / `jobs-safety-net`
- * precedent for sub-daily cadence on this plan.
+ * Scheduling: this route is NOT wired into `dispatch.ts` and there is no
+ * `vercel.json` cron entry for it. The Vercel project is on the Hobby plan
+ * (one cron/day, which `dispatch.ts` already consumes for ~14 other jobs) and
+ * this probe needs a sub-daily cadence, so it is driven externally by
+ * `.github/workflows/worker-liveness.yml` (every 5 minutes via GitHub
+ * Actions, free on a public repo) instead  -  same rationale as GAP-142's
+ * `reconciliation-crons.yml`.
  *
  * Sends an alert via `sendCronFailureAlert` (log + Sentry + email to
  * `REVEALUI_ALERT_EMAIL`) on any non-200 response, timeout, or network error.
@@ -40,7 +41,7 @@ const HEALTH_CHECK_TIMEOUT_MS = 10_000;
 
 const safeFetch = createSafeFetch();
 
-app.post('/worker-liveness', async (c) => {
+app.get('/worker-liveness', async (c) => {
   const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
 

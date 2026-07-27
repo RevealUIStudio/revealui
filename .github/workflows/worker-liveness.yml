@@ -1,0 +1,62 @@
+name: Worker Liveness Probe (5-min)
+
+# GAP-443 — external GHA scheduler for the Fly worker liveness probe.
+#
+# Background: Vercel Hobby tier crons run at most daily, and the one daily
+# slot is already consumed by `dispatch.ts` (~14 billing/entitlement jobs).
+# The liveness probe needs a sub-daily cadence, so (same rationale as
+# GAP-142's reconciliation-crons.yml) this workflow drives it externally
+# every 5 minutes  -  free on a public repo, no Vercel Pro required.
+#
+# The probe route (apps/server/src/routes/cron/worker-liveness.ts) reads the
+# actual Fly worker URL from REVEALUI_WORKER_HEALTH_URL, a Vercel-direct env
+# var on the `api` project. This workflow never sees or prints that URL  -
+# it only knows the public api.revealui.com base and reports the probe's
+# healthy/status result, keeping the worker hostname out of the public repo
+# and out of Actions logs.
+
+on:
+  schedule:
+    # Every 5 minutes (GitHub's minimum granularity). UTC. Scheduled runs can
+    # be delayed 5-15 min during high GHA load, so actual cadence is
+    # "approximately every 5 minutes," not exact  -  acceptable for a
+    # liveness backstop.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual run'
+        required: false
+        default: 'manual ops trigger'
+
+# This job only GETs a public API endpoint with a bearer secret header; it
+# never uses GITHUB_TOKEN. Grant it nothing.
+permissions: {}
+
+jobs:
+  worker-liveness:
+    name: worker-liveness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: GET /api/cron/worker-liveness
+        env:
+          API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
+          CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+        run: |
+          if [[ -z "$CRON_SECRET" ]]; then
+            echo "::error::REVEALUI_CRON_SECRET secret not set"
+            exit 1
+          fi
+          response=$(curl -sS \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            "$API_URL/api/cron/worker-liveness" || true)
+          status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+          echo "Status: $status"
+          echo "Body: $body"
+          if [[ "$status" != "200" ]]; then
+            echo "::error::worker-liveness returned $status (non-200) — worker unhealthy, unreachable, or misconfigured"
+            exit 1
+          fi

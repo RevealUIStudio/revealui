@@ -49,7 +49,7 @@ const CRON_SECRET = 'test-cron-secret-long-enough-32chars!';
 
 function request(headers?: Record<string, string>) {
   return app.request('/worker-liveness', {
-    method: 'POST',
+    method: 'GET',
     headers,
   });
 }
