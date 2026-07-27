@@ -11,7 +11,7 @@ import { logger } from '@revealui/core/utils/logger';
 import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { INSERT_IMAGE_COMMAND } from '../nodes/ImageNode.js';
-import { postMediaUpload } from './upload.js';
+import { deriveAltTextFromFilename, postMediaUpload } from './upload.js';
 
 /** Default maximum file size: 10 MB */
 const DEFAULT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -92,9 +92,12 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
           img.src = URL.createObjectURL(file);
         });
 
-        // Upload file
+        // Upload file. The admin Media collection requires `alt`, so it is
+        // derived from the filename and sent alongside the file.
+        const altText = deriveAltTextFromFilename(file.name);
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('alt', altText);
 
         // Scale timeout with file size: 30s base + 10s per MB
         const timeoutMs = 30_000 + Math.ceil(file.size / (1024 * 1024)) * 10_000;
@@ -109,7 +112,16 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
         }
 
         if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
+          let message = `Upload failed: ${response.statusText}`;
+          try {
+            const body = (await response.json()) as { message?: unknown };
+            if (typeof body.message === 'string' && body.message.length > 0) {
+              message = body.message;
+            }
+          } catch {
+            // Body wasn't JSON - keep the generic message.
+          }
+          throw new Error(message);
         }
 
         const result = (await response.json()) as unknown;
@@ -123,7 +135,7 @@ export const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
         // Insert image into editor
         editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
           src: imageUrl,
-          alt: file.name.replace(/\.[^/.]+$/, ''), // Remove extension for alt text
+          alt: altText,
           width: imageDimensions.width,
           height: imageDimensions.height,
         });
