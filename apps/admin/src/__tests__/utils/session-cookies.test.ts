@@ -81,11 +81,14 @@ describe('requireSessionCookieDomain', () => {
     expect(requireSessionCookieDomain()).toBe('.revealui.com');
   });
 
-  it('throws in production when the variable is missing', () => {
+  it('throws in production on a hosted deployment when the variable is missing', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
+    // Hosted SaaS signal: REVEALUI_LICENSE_PRIVATE_KEY present (see
+    // @revealui/core/deployment-mode isHostedDeployment).
+    vi.stubEnv('REVEALUI_LICENSE_PRIVATE_KEY', 'a-private-key');
     expect(() => requireSessionCookieDomain()).toThrow(
-      'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
+      'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth on a RevealUI Studio hosted deployment',
     );
   });
 
@@ -93,6 +96,17 @@ describe('requireSessionCookieDomain', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
     vi.stubEnv('REVEALUI_FLEET_MODE', 'true');
+    expect(requireSessionCookieDomain()).toBeUndefined();
+  });
+
+  // GAP-446: a fresh, unlicensed self-host (e.g. the Railway marketplace
+  // template) has no REVEALUI_LICENSE_PRIVATE_KEY, no REVEALUI_DEPLOYMENT_MODE,
+  // and no REVEALUI_FLEET_MODE — exactly the env shape env-validation.ts's
+  // `isSaasHosted` already treats as "SESSION_COOKIE_DOMAIN not required" at
+  // boot. This must agree at request time too, or a correct login 500s.
+  it('falls back to host-only on a plain unlicensed self-host instead of throwing', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('SESSION_COOKIE_DOMAIN', '');
     expect(requireSessionCookieDomain()).toBeUndefined();
   });
 });
