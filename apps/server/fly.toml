@@ -59,15 +59,20 @@ primary_region = 'iad'
     hard_limit = 250
     soft_limit = 200
 
-  # Fly health check hits /api/health which is mounted by the Hono
-  # app at apps/server/src/routes/health.ts (worker.ts imports the
-  # full app so the route is available).
+  # Liveness check. The health route is mounted at /health (index.ts
+  # `app.route('/health', healthRoute)`), and its liveness handler ('/')
+  # returns 200 whenever the process is up. GAP-443: this was '/api/health',
+  # which 404s on the worker (the /api/* prefix only exists on the Vercel
+  # apps that rewrite to the Hono server; the worker serves it directly), so
+  # the machine flapped unhealthy on every probe. Use /health (liveness), NOT
+  # /health/ready — a readiness 503 on a degraded dependency would restart the
+  # worker in a loop; liveness only asks "is the process alive".
   [[http_service.checks]]
     interval = '30s'
     timeout = '5s'
     grace_period = '10s'
     method = 'GET'
-    path = '/api/health'
+    path = '/health'
 
 [[vm]]
   cpu_kind = 'shared'
