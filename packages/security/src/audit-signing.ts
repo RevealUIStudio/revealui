@@ -62,6 +62,38 @@ export function auditTimestampString(ts: Date | string): string {
   return d.toISOString();
 }
 
+/**
+ * Normalize the `payload` to the EXACT shape Postgres jsonb stores it as, before
+ * signing. The `payload` column is `jsonb`, and the driver writes it as
+ * `JSON.stringify(payload)` — which DROPS object keys whose value is `undefined`
+ * and turns `undefined` array elements into `null` (ES JSON semantics). So a
+ * payload signed with an `undefined` field nested inside it would produce bytes
+ * the verifier could NEVER reproduce from the DB readback (where that field is
+ * gone) — the signature would be permanently un-verifiable. Worse, the strict
+ * `canonicalizeJcs` (which throws on `undefined`, by design, to catch signer
+ * bugs on the STRUCTURAL columns) turns that latent verify-mismatch into a hard
+ * write failure (GAP-442: prod audit writes fell over on `data.read` events
+ * whose payload carried an undefined `actor.ip` / `userAgent` / `requestId`
+ * from a header-less health probe).
+ *
+ * A JSON round-trip is exactly the jsonb storage form, so signing over it makes
+ * sign-time bytes equal verify-time (DB) bytes. This does NOT relax the strict
+ * check on the structural columns (id/sequence/eventType/severity/agentId) —
+ * those still throw on `undefined`, because a signed row genuinely must have
+ * them. A clean payload (no undefined) round-trips to an equivalent object and
+ * `canonicalizeJcs` re-sorts keys either way, so existing signatures are
+ * unchanged; only payloads that previously THREW change (now they sign the
+ * stored form).
+ */
+function toJsonbStorageForm(payload: unknown): unknown {
+  if (payload === null || payload === undefined) return null;
+  const serialized = JSON.stringify(payload);
+  // JSON.stringify returns undefined for a top-level value JSON cannot represent
+  // (a bare function/symbol/undefined); jsonb would reject such a write, but the
+  // safe, storage-faithful fallback here is null.
+  return serialized === undefined ? null : JSON.parse(serialized);
+}
+
 /** Build the canonical byte string signed for a row (shared by sign + verify). */
 export function auditSignableBytes(row: AuditSignable): Uint8Array {
   const canonical = canonicalizeJcs({
@@ -74,7 +106,7 @@ export function auditSignableBytes(row: AuditSignable): Uint8Array {
     agentId: row.agentId,
     taskId: row.taskId ?? null,
     sessionId: row.sessionId ?? null,
-    payload: row.payload ?? null,
+    payload: toJsonbStorageForm(row.payload),
     policyViolations: row.policyViolations ?? [],
   });
   return new TextEncoder().encode(canonical);

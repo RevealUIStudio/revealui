@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - examples/starter-kit
 
 catalog:
   '@biomejs/biome': ^2.5.2

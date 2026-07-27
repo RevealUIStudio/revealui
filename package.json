@@ -142,6 +142,7 @@
     "build:api": "pnpm --filter server build",
     "build:auth": "pnpm --filter @revealui/auth build",
     "build:admin": "pnpm run build:auth && pnpm --filter admin build",
+    "build:apify": "node scripts/deploy/build-apify-actor-standalone.mjs",
     "changeset": "changeset",
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status",

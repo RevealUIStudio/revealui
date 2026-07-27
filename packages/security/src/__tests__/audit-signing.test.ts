@@ -85,6 +85,49 @@ describe('Ed25519 audit signing (GAP-355 Stage 3)', () => {
     expect(v1).toBe(v2);
   });
 
+  describe('GAP-442: payload is signed in jsonb-storage form (undefined dropped)', () => {
+    it('a payload with a nested undefined field signs without throwing', () => {
+      // Pre-fix this threw "canonicalizeJcs: undefined is not JSON-representable"
+      // — the exact prod failure on header-less /api/health data.read events.
+      const payload = {
+        tool: 'read',
+        actor: { id: 'anonymous', ip: undefined },
+        requestId: undefined,
+      };
+      expect(() => auditSignableBytes(makeRow({ payload }))).not.toThrow();
+    });
+
+    it('signs the undefined-dropped form so sign-time bytes == DB readback', () => {
+      // Postgres jsonb stores JSON.stringify(payload), which drops undefined
+      // keys. The signature must be over THAT form, or it can never verify
+      // against the stored row. Bytes for {a,b:undefined} must equal bytes for
+      // the round-tripped {a} the DB actually holds.
+      const withUndef = auditSignableBytes(makeRow({ payload: { a: 1, b: undefined } }));
+      const stored = auditSignableBytes(
+        makeRow({ payload: JSON.parse(JSON.stringify({ a: 1, b: undefined })) }),
+      );
+      expect(Buffer.from(withUndef).equals(Buffer.from(stored))).toBe(true);
+    });
+
+    it('a clean payload (no undefined) produces unchanged bytes (regression guard)', () => {
+      // The normalization must not perturb existing signatures: a payload with
+      // no undefined round-trips to an equivalent object and canonicalizes the
+      // same, so already-signed rows keep verifying.
+      const clean = { tool: 'read', args: { b: 2, a: 1 } };
+      const direct = auditSignableBytes(makeRow({ payload: clean }));
+      const roundtripped = auditSignableBytes(
+        makeRow({ payload: JSON.parse(JSON.stringify(clean)) }),
+      );
+      expect(Buffer.from(direct).equals(Buffer.from(roundtripped))).toBe(true);
+    });
+
+    it('an undefined array element is signed as null (jsonb semantics)', () => {
+      const withHole = auditSignableBytes(makeRow({ payload: { items: [1, undefined, 3] } }));
+      const asNull = auditSignableBytes(makeRow({ payload: { items: [1, null, 3] } }));
+      expect(Buffer.from(withHole).equals(Buffer.from(asNull))).toBe(true);
+    });
+  });
+
   it('verification fails for an unresolvable kid', () => {
     const row = makeRow();
     const { value } = signer.sign(auditSignableBytes(row));

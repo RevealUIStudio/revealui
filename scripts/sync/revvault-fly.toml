@@ -72,6 +72,11 @@ REVEALUI_ADMIN_API_KEY       = "revealui/prod/admin/api-key"
 # Public URLs (must be HTTPS + match each other per validate-startup.ts)
 REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
 NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
+# Governed-MCP loopback base (required-in-prod per required-env.ts). GAP-443:
+# was missing from this manifest, so the worker crash-looped on a missing
+# REVEALUI_API_URL until it was set Fly-direct by hand. Declaring it here means
+# a resync provisions it and a data-dir wipe can't silently reintroduce the gap.
+REVEALUI_API_URL           = "revealui/prod/public/api-url"
 
 # Required at prod boot (alerting + billing portal)
 REVEALUI_ALERT_EMAIL              = "revealui/prod/alert-email"

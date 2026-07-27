@@ -43,9 +43,14 @@ COPY packages/tokens/package.json ./packages/tokens/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/admin/package.json ./apps/admin/
 
-# Install dependencies with frozen lockfile
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter admin...
+# Install dependencies with frozen lockfile.
+# No BuildKit cache mount here on purpose: this Dockerfile is also the build
+# source for the public Railway marketplace template, and Railway's builder
+# rejects the `--mount=type=cache,id=...` syntax local Docker accepts
+# ("missing the cacheKey prefix from its id"). A plain install is portable
+# across Railway, local Docker, and CI. The fleet's own images build from the
+# .forge Dockerfiles.
+RUN pnpm install --frozen-lockfile --filter admin...
 
 # Builder stage
 FROM base AS builder
