@@ -1,0 +1,29 @@
+{
+  "name": "revealui-starter-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RevealUI Starter Kit — launch-ready self-host config, deploy scripts, and governed-agent recipes on top of create-revealui.",
+  "type": "module",
+  "scripts": {
+    "recipe:action": "tsx src/recipes/01-single-governed-action.ts",
+    "recipe:loop": "tsx src/recipes/02-budget-capped-agent-loop.ts",
+    "verify-receipt": "tsx src/verify-receipt-cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "@revealui/security": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@revealui/dev": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  }
+}

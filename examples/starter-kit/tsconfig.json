@@ -1,0 +1,13 @@
+{
+  "extends": "../../packages/dev/src/ts/library.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2022"],
+    "rootDir": ".",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
