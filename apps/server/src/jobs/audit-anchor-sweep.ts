@@ -6,7 +6,15 @@
  * age ≥ max lag), build a contiguous batch, Merkle-root the signature
  * leaves, sign the root (Stage 3 Ed25519), insert audit_anchors, and
  * meter `audit_anchor`. Failures never delete audit rows (append-only).
- * Null-tenant rows are never anchored (§9); volume is gauged each tick.
+ *
+ * Null-tenant (system) rows anchor too, via one additional pass per sweep
+ * (GAP-427 ruling 2026-07-27): they land in `audit_anchors` under the
+ * reserved `SYSTEM_ANCHOR_SCOPE` ('__system__') sentinel tenant value.
+ * `audit_log.tenant` itself stays null on those rows (no schema migration);
+ * only the anchor row's `tenant` column carries the sentinel. The system
+ * pass is not entitlement-gated (`canAnchorTenant` is per-account; system
+ * events are the operator's own audit trail) and never writes a usage
+ * meter (no account FK backs a null tenant).
  *
  * Gated by AUDIT_ANCHOR_SWEEP_ENABLED=true on the worker process.
  */
@@ -31,6 +39,13 @@ import { recordUsageMeter } from '../lib/metering.js';
 import { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
 
 export { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
+
+/**
+ * GAP-427: the audit_anchors.tenant value for anchors over null-tenant
+ * (system) audit_log rows. audit_anchors.tenant is NOT NULL, so a sentinel
+ * avoids a schema migration; the underlying audit_log rows stay null.
+ */
+export const SYSTEM_ANCHOR_SCOPE = '__system__';
 
 /** Countersigned default batch size (§9). Override: AUDIT_ANCHOR_BATCH_SIZE. */
 export const DEFAULT_ANCHOR_BATCH_SIZE = 256;
@@ -69,7 +84,7 @@ const mErrors = metrics.counter(
 );
 const mNullTenant = metrics.gauge(
   'revealui_audit_null_tenant_signed_rows',
-  'Signed audit_log rows with null tenant (never anchored in Stage 4)',
+  'Signed audit_log rows with null tenant, anchored under the __system__ scope (GAP-427 ruling 2026-07-27)',
 );
 const mWaiting = metrics.counter(
   'revealui_audit_anchor_waiting_total',
@@ -85,9 +100,11 @@ export interface AnchorSweepResult {
   anchorsInserted: number;
   tenantsSkipped: number;
   tenantsWaiting: number;
-  /** Tenants whose pass started from a derived legacy floor (no anchors yet). */
+  /** Tenant (and system-scope) passes that started from a derived legacy floor. */
   tenantsFloorEngaged: number;
   nullTenantSignedRows: number;
+  /** GAP-427: outcome of the one null-tenant system-scope pass this sweep. */
+  systemOutcome: 'inserted' | 'waiting' | 'skipped';
   errors: string[];
 }
 
@@ -160,6 +177,7 @@ export async function runAuditAnchorSweep(
     tenantsWaiting: 0,
     tenantsFloorEngaged: 0,
     nullTenantSignedRows: 0,
+    systemOutcome: 'skipped',
     errors: [],
   };
 
@@ -168,18 +186,14 @@ export async function runAuditAnchorSweep(
     return result;
   }
 
-  // §9: null-tenant volume metric (never anchored in Stage 4).
+  // GAP-427: null-tenant (system) volume gauge. Anchored below via the
+  // dedicated system-scope pass, not the per-tenant loop.
   const [nullRow] = await db
     .select({ c: count() })
     .from(auditLog)
     .where(and(isNull(auditLog.tenant), isNotNull(auditLog.signature)));
   result.nullTenantSignedRows = Number(nullRow?.c ?? 0);
   mNullTenant.set(result.nullTenantSignedRows);
-  if (result.nullTenantSignedRows > 0) {
-    logger.warn(
-      `audit-anchor-sweep: ${result.nullTenantSignedRows} signed audit_log row(s) have null tenant (skipped)`,
-    );
-  }
 
   const tenantRows = await db
     .selectDistinct({ tenant: auditLog.tenant })
@@ -188,6 +202,9 @@ export async function runAuditAnchorSweep(
 
   for (const { tenant } of tenantRows) {
     if (!tenant) continue;
+    // Defensive: a hostile or buggy writer must never collide with the
+    // system scope's anchor bookkeeping (GAP-427).
+    if (tenant === SYSTEM_ANCHOR_SCOPE) continue;
     result.tenantsConsidered++;
     try {
       if (!(await canAnchor(tenant))) {
@@ -222,7 +239,41 @@ export async function runAuditAnchorSweep(
     }
   }
 
+  // GAP-427: one system-scope pass for null-tenant rows. Not entitlement
+  // gated and never metered (recordMeter forced false — no account FK).
+  try {
+    const { outcome, floorEngaged } = await anchorTenantBatch(
+      db,
+      signer,
+      SYSTEM_ANCHOR_SCOPE,
+      batchSize,
+      maxLagMs,
+      now,
+      /* doMeter */ false,
+      /* isSystem */ true,
+    );
+    result.systemOutcome = outcome;
+    if (floorEngaged) result.tenantsFloorEngaged++;
+    if (outcome === 'inserted') result.anchorsInserted++;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    result.errors.push(`${SYSTEM_ANCHOR_SCOPE}: ${msg}`);
+    logger.error(
+      'audit-anchor-sweep: system scope failed',
+      err instanceof Error ? err : new Error(msg),
+    );
+  }
+
   return result;
+}
+
+/**
+ * audit_log.tenant predicate for a scope: a real tenant (`eq`) or the
+ * GAP-427 system scope, which matches null-tenant rows directly since
+ * audit_log.tenant is never set to SYSTEM_ANCHOR_SCOPE itself.
+ */
+function auditLogTenantMatch(tenant: string, isSystem: boolean) {
+  return isSystem ? isNull(auditLog.tenant) : eq(auditLog.tenant, tenant);
 }
 
 async function lastAnchoredSeq(db: Database, tenant: string): Promise<number> {
@@ -244,14 +295,22 @@ async function lastAnchoredSeq(db: Database, tenant: string): Promise<number> {
  * Legacy rows are never retro-signed — a backfilled signature would be
  * indistinguishable from tampering (ADR 2026-07-12 §2a).
  *
+ * `isSystem` (GAP-427 ruling 2026-07-27) selects the null-tenant floor
+ * instead of a real tenant's; `tenant` is still the audit_anchors.tenant key
+ * (SYSTEM_ANCHOR_SCOPE) the caller is deriving the floor for.
+ *
  * Exported for the anchors API lag surface (GAP-429), which reports the same
  * floor so sub-floor legacy rows are visible rather than silently excluded.
  */
-export async function legacyUnsignedFloor(db: Database, tenant: string): Promise<number> {
+export async function legacyUnsignedFloor(
+  db: Database,
+  tenant: string,
+  isSystem = false,
+): Promise<number> {
   const rows = await db
     .select({ m: max(auditLog.seq) })
     .from(auditLog)
-    .where(and(eq(auditLog.tenant, tenant), isNull(auditLog.signature)));
+    .where(and(auditLogTenantMatch(tenant, isSystem), isNull(auditLog.signature)));
   const m = rows[0]?.m;
   return typeof m === 'number' && Number.isFinite(m) ? m : 0;
 }
@@ -271,11 +330,13 @@ async function anchorTenantBatch(
   maxLagMs: number,
   now: () => Date,
   doMeter: boolean,
+  isSystem = false,
 ): Promise<{ outcome: TenantOutcome; floorEngaged: boolean }> {
   const anchored = await lastAnchoredSeq(db, tenant);
-  // GAP-427: first anchor for a tenant starts above the closed unsigned era,
-  // not at seq 1. Once anchors exist, strict last+1 contiguity governs.
-  const floor = anchored > 0 ? 0 : await legacyUnsignedFloor(db, tenant);
+  // GAP-427: first anchor for a tenant (or the system scope) starts above the
+  // closed unsigned era, not at seq 1. Once anchors exist, strict last+1
+  // contiguity governs.
+  const floor = anchored > 0 ? 0 : await legacyUnsignedFloor(db, tenant, isSystem);
   const floorEngaged = floor > 0;
   if (floorEngaged) {
     mFloorEngaged.inc();
@@ -296,7 +357,13 @@ async function anchorTenantBatch(
       timestamp: auditLog.timestamp,
     })
     .from(auditLog)
-    .where(and(eq(auditLog.tenant, tenant), isNotNull(auditLog.signature), gt(auditLog.seq, last)))
+    .where(
+      and(
+        auditLogTenantMatch(tenant, isSystem),
+        isNotNull(auditLog.signature),
+        gt(auditLog.seq, last),
+      ),
+    )
     .orderBy(asc(auditLog.seq))
     .limit(batchSize);
 
@@ -408,7 +475,7 @@ export function startAuditAnchorSweep(env: Record<string, string | undefined> = 
       logger.info(
         `audit-anchor-sweep: tick tenants=${r.tenantsConsidered} inserted=${r.anchorsInserted} ` +
           `waiting=${r.tenantsWaiting} skipped=${r.tenantsSkipped} nullTenant=${r.nullTenantSignedRows} ` +
-          `errors=${r.errors.length}`,
+          `system=${r.systemOutcome} errors=${r.errors.length}`,
       );
     });
   };

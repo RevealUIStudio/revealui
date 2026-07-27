@@ -62,6 +62,27 @@ Below the floor:
 
 The floor never spans live history. A `seq` hole that appears above an existing anchor still stalls the sweep and raises the gap metric.
 
+## System scope (GAP-427 ruling 2026-07-27)
+
+Not every audit row has a tenant. System and operator-level events (agent
+spawns outside an account context, platform-level actions) write `audit_log`
+rows with `tenant = null`. Those rows anchor too: each sweep runs one
+additional pass, after the per-tenant loop, that anchors them under the
+reserved `__system__` scope. `audit_anchors.tenant` carries the
+`SYSTEM_ANCHOR_SCOPE` ('__system__') sentinel value for these anchors (the
+column is `NOT NULL`); `audit_log.tenant` itself is untouched and stays null
+on the underlying rows.
+
+The system pass is not entitlement-gated (`auditLog`/Max+ is a per-account
+check; system events are the operator's own audit trail, not a customer's)
+and never writes a usage meter (no account FK backs a null tenant).
+
+The same legacy-floor semantics apply: while the system scope has zero
+anchors, the sweep derives a floor from the highest **unsigned** null-tenant
+row and anchors from `floor + 1` forward. Rows at or below that floor are
+pre-enforcement legacy rows and are never retro-signed, for the same reason
+as the per-tenant floor above.
+
 ## Offline verify
 
 ```bash
