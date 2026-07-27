@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",
+    "@testing-library/react": "catalog:",
     "@types/json-schema": "^7.0.15",
     "@types/pg": "^8.20.0",
     "@types/react": "catalog:",
