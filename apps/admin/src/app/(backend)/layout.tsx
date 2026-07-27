@@ -1,4 +1,5 @@
 import { RootLayout } from '@revealui/core/admin';
+import { isHostedDeployment } from '@revealui/core/deployment-mode';
 import { cookies, headers } from 'next/headers';
 import Script from 'next/script';
 /* RevealUI Admin Layout - Local implementation */
@@ -28,6 +29,9 @@ export const dynamic = 'force-dynamic';
 // `||` not `??`: Compose `${VAR:-}` delivers unset vars as empty strings.
 const siteName = process.env.REVEALUI_BRAND_NAME || process.env.REVEALUI_TENANT_NAME || 'RevealUI';
 const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
+// GAP-260 P4-1: which product posture is this process. FreeTierBanner uses
+// this to stop pointing self-host at a Stripe checkout it has no keys for.
+const isHosted = isHostedDeployment(process.env);
 const ADMIN_ROLES = new Set(['owner', 'admin', 'super-admin']);
 
 export default async function Layout({ children }: Args) {
@@ -47,7 +51,12 @@ export default async function Layout({ children }: Args) {
       ) : null}
       <LicenseProvider isFleetMode={isFleetMode}>
         <ErrorBoundary>
-          <AdminSidebarLayout siteName={siteName} isFleetMode={isFleetMode} isAdmin={isAdmin}>
+          <AdminSidebarLayout
+            siteName={siteName}
+            isFleetMode={isFleetMode}
+            isHosted={isHosted}
+            isAdmin={isAdmin}
+          >
             {children}
           </AdminSidebarLayout>
         </ErrorBoundary>

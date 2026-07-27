@@ -1087,18 +1087,8 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_LINKS[0].description',
-    text: 'Max adds AI memory, advanced inference, and compliance tooling.',
-    evidence: [
-      MEMORY,
-      { kind: 'code', ref: 'packages/ai/src/inference', note: 'inference layer' },
-      RBAC_ABAC,
-    ],
-  },
-  {
-    file: 'pricing-teaser.ts',
-    exportPath: 'PRICING_TEASER_LINKS[1].description',
-    text: 'Enterprise adds scale and compliance controls.',
-    evidence: [TIER_LIMITS, RBAC_ABAC],
+    text: 'Max adds AI memory and advanced inference.',
+    evidence: [MEMORY, { kind: 'code', ref: 'packages/ai/src/inference', note: 'inference layer' }],
   },
   {
     file: 'pricing-teaser.ts',
