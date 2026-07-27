@@ -151,7 +151,7 @@ const LICENSE_MIT: EvidenceRef = {
 const LICENSE_SPLIT: EvidenceRef = {
   kind: 'metric',
   ref: 'scripts/validate/claim-drift.ts',
-  note: 'licenseSplit 23 MIT + 5 FSL + 1 internal, pinned by the claim-drift gate',
+  note: 'licenseSplit 23 MIT + 5 FSL + 2 internal, pinned by the claim-drift gate',
 };
 const SELF_HOST: EvidenceRef = {
   kind: 'code',
