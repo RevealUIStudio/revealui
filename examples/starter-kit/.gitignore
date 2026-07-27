@@ -1,0 +1,3 @@
+receipt-*.json
+node_modules
+dist
