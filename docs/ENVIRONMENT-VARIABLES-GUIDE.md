@@ -401,6 +401,7 @@ Phase 5.5. Required only when operating the RevealUI MCP marketplace.
 | `ADMIN_ADMIN_EMAIL` | No | None | E2E test credentials for Playwright. | LOW | test |
 | `ADMIN_ADMIN_PASSWORD` | No | None | E2E test credentials for Playwright. | HIGH (server-only) | test |
 | `ADMIN_NAME` | No | None | Display name for the initial admin user. | LOW | admin |
+| `REVEALUI_WORKER_HEALTH_URL` | No | unset | Worker public health URL probed by `/api/cron/worker-liveness`; unset disables the probe. Set Vercel-direct on the `api` project and deliberately NOT defaulted in code (public repo; hostname disclosure). | LOW | api |
 
 ---
 

@@ -48,6 +48,12 @@ skip = [
   "NODE_ENV",
   # STRIPE_LIVE_MODE is a Vercel-direct deployment toggle (Q3 owner exception)
   "STRIPE_LIVE_MODE",
+  # REVEALUI_WORKER_HEALTH_URL (GAP-443) is a plain URL, not a secret, so it
+  # has no revvault path; set it Vercel-direct on this project only. It is
+  # the target the /api/cron/worker-liveness probe hits and is deliberately
+  # never hardcoded or vault-mirrored — this is a public repo and the value
+  # discloses the Fly worker's hostname.
+  "REVEALUI_WORKER_HEALTH_URL",
 ]
 
 [projects.revealui-api.vars]
