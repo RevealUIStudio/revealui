@@ -3,18 +3,33 @@
  *
  * For each non-null tenant with Max+ `auditLog` and new signed audit_log
  * rows after the last anchor, when the batch is **ready** (size ≥ N or
- * age ≥ max lag), build a contiguous batch, Merkle-root the signature
- * leaves, sign the root (Stage 3 Ed25519), insert audit_anchors, and
- * meter `audit_anchor`. Failures never delete audit rows (append-only).
+ * age ≥ max lag), build a batch, Merkle-root the signature leaves, sign the
+ * root (Stage 3 Ed25519), insert audit_anchors, and meter `audit_anchor`.
+ * Failures never delete audit rows (append-only).
+ *
+ * GAP-447: batches are built by existence-classified hole traversal
+ * (`planTraversableBatch`, `apps/server/src/jobs/audit-anchor-batch.ts`)
+ * rather than strict +1 contiguity. A non-consecutive candidate set no
+ * longer stalls the batch forever at a burned bigserial value — the
+ * append-only trigger (migrations 0002 + 0026) makes row deletion
+ * impossible, so an absent seq PROVES the value was consumed by `nextval()`
+ * without an INSERT ever landing (an aborted transaction), and a present row
+ * scoped to a different tenant proves non-deletion too. Both are traversable;
+ * only a present, SAME-scope, UNSIGNED row still stalls the batch (post-
+ * GAP-417 rails this should be impossible, so it remains the one real
+ * anomaly signal). Traversed holes are recorded on the anchor (`holes` jsonb
+ * column) and covered by the root signature (`@revealui/security`'s
+ * `signAuditAnchorRoot`/`verifyAuditAnchorRoot`).
  *
  * Null-tenant (system) rows anchor too, via one additional pass per sweep
  * (GAP-427 ruling 2026-07-27): they land in `audit_anchors` under the
- * reserved `SYSTEM_ANCHOR_SCOPE` ('__system__') sentinel tenant value.
- * `audit_log.tenant` itself stays null on those rows (no schema migration);
- * only the anchor row's `tenant` column carries the sentinel. The system
- * pass is not entitlement-gated (`canAnchorTenant` is per-account; system
- * events are the operator's own audit trail) and never writes a usage
- * meter (no account FK backs a null tenant).
+ * reserved `SYSTEM_ANCHOR_SCOPE` ('__system__') sentinel tenant value
+ * (canonical definition: `@revealui/db/schema`, re-exported here for
+ * compatibility). `audit_log.tenant` itself stays null on those rows (no
+ * schema migration); only the anchor row's `tenant` column carries the
+ * sentinel. The system pass is not entitlement-gated (`canAnchorTenant` is
+ * per-account; system events are the operator's own audit trail) and never
+ * writes a usage meter (no account FK backs a null tenant).
  *
  * Gated by AUDIT_ANCHOR_SWEEP_ENABLED=true on the worker process.
  */
@@ -24,7 +39,6 @@ import { isFeatureEnabled } from '@revealui/core/features';
 import { logger } from '@revealui/core/observability/logger';
 import { metrics } from '@revealui/core/observability/metrics';
 import {
-  assertContiguousSeq,
   buildMerkleRootFromSignatures,
   createAuditRowSignerFromEnv,
   type Ed25519AuditRowSigner,
@@ -32,20 +46,21 @@ import {
 } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
-import { auditAnchors, auditLog } from '@revealui/db/schema';
-import { and, asc, count, eq, gt, isNotNull, isNull, max } from 'drizzle-orm';
+import { auditAnchors, auditLog, SYSTEM_ANCHOR_SCOPE } from '@revealui/db/schema';
+import { and, asc, count, eq, gt, isNotNull, isNull, lte, max } from 'drizzle-orm';
 import { accountHasAuditLogFeature } from '../lib/account-entitlement.js';
 import { recordUsageMeter } from '../lib/metering.js';
-import { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
+import {
+  assertTraversalIntegrity,
+  isConsecutiveFromStart,
+  planTraversableBatch,
+  type ScopeRangeRow,
+  type SignedAuditRow,
+  type TraversableBatchResult,
+} from './audit-anchor-batch.js';
 
+export { SYSTEM_ANCHOR_SCOPE } from '@revealui/db/schema';
 export { planContiguousBatch, type SignedAuditRow } from './audit-anchor-batch.js';
-
-/**
- * GAP-427: the audit_anchors.tenant value for anchors over null-tenant
- * (system) audit_log rows. audit_anchors.tenant is NOT NULL, so a sentinel
- * avoids a schema migration; the underlying audit_log rows stay null.
- */
-export const SYSTEM_ANCHOR_SCOPE = '__system__';
 
 /** Countersigned default batch size (§9). Override: AUDIT_ANCHOR_BATCH_SIZE. */
 export const DEFAULT_ANCHOR_BATCH_SIZE = 256;
@@ -93,6 +108,10 @@ const mWaiting = metrics.counter(
 const mFloorEngaged = metrics.counter(
   'revealui_audit_anchor_floor_engaged_total',
   'Tenant sweep passes that started from a derived legacy floor (GAP-427/429)',
+);
+const mHolesTraversed = metrics.counter(
+  'revealui_audit_anchor_holes_traversed_total',
+  'Burned + foreign-scope seqs traversed while building an anchor (GAP-447)',
 );
 
 export interface AnchorSweepResult {
@@ -276,6 +295,34 @@ function auditLogTenantMatch(tenant: string, isSystem: boolean) {
   return isSystem ? isNull(auditLog.tenant) : eq(auditLog.tenant, tenant);
 }
 
+/**
+ * GAP-447: one existence-classification query over (fromSeqExclusive,
+ * toSeqInclusive] — every audit_log row in range, any scope, with just enough
+ * to classify: is it this scope's, and is it signed. Absence from the map
+ * means the seq is burned (no row at all). Fetched ONLY when the candidate
+ * set isn't already contiguous (`isConsecutiveFromStart`); the common,
+ * gapless case never pays this extra round trip.
+ */
+async function fetchScopeRangeMap(
+  db: Database,
+  tenant: string,
+  isSystem: boolean,
+  fromSeqExclusive: number,
+  toSeqInclusive: number,
+): Promise<Map<number, ScopeRangeRow>> {
+  const rows = await db
+    .select({ seq: auditLog.seq, rowTenant: auditLog.tenant, signature: auditLog.signature })
+    .from(auditLog)
+    .where(and(gt(auditLog.seq, fromSeqExclusive), lte(auditLog.seq, toSeqInclusive)));
+
+  const map = new Map<number, ScopeRangeRow>();
+  for (const row of rows) {
+    const sameScope = isSystem ? row.rowTenant === null : row.rowTenant === tenant;
+    map.set(row.seq, { sameScope, signed: row.signature !== null });
+  }
+  return map;
+}
+
 async function lastAnchoredSeq(db: Database, tenant: string): Promise<number> {
   const rows = await db
     .select({ m: max(auditAnchors.seqTo) })
@@ -377,16 +424,46 @@ async function anchorTenantBatch(
 
   if (signed.length === 0) return done('skipped');
 
-  const batch = planContiguousBatch(last, signed);
-  if (!batch || batch.length === 0) {
-    if (signed[0] && (last === 0 || signed[0].seq !== last + 1)) {
-      mGaps.inc();
-      logger.warn(
-        `audit-anchor-sweep: gap for tenant=${tenant} lastAnchored=${last} nextSeq=${signed[0].seq} — skip`,
-      );
-    }
-    return done('skipped');
+  // GAP-447: skip the classification query entirely when the fetched
+  // candidates are already contiguous (the common case) — only a gap
+  // (relative to `last` or internally) triggers the extra range fetch.
+  let plan: TraversableBatchResult | null;
+  if (isConsecutiveFromStart(last, signed)) {
+    const first = signed[0];
+    const lastRow = signed[signed.length - 1];
+    plan =
+      first && lastRow
+        ? {
+            rows: signed,
+            seqFrom: first.seq,
+            seqTo: lastRow.seq,
+            holes: { burned: [], foreign: 0 },
+          }
+        : null;
+  } else {
+    const maxSeq = signed[signed.length - 1]?.seq;
+    const rangeMap =
+      maxSeq !== undefined
+        ? await fetchScopeRangeMap(db, tenant, isSystem, last, maxSeq)
+        : new Map<number, ScopeRangeRow>();
+    plan = planTraversableBatch(last, signed, rangeMap);
   }
+
+  if (!plan) return done('skipped');
+
+  if (plan.stalledAtSeq !== undefined) {
+    // Present, same-scope, UNSIGNED row — post-GAP-417 rails this should be
+    // impossible, the one remaining anomaly signal. Stall (never traverse it).
+    mGaps.inc();
+    logger.warn(
+      `audit-anchor-sweep: same-scope unsigned row blocks traversal tenant=${tenant} seq=${plan.stalledAtSeq}` +
+        (plan.rows.length > 0 ? ` — partial batch up to seq=${plan.seqTo}` : ' — stall'),
+    );
+  }
+
+  if (plan.rows.length === 0) return done('skipped');
+
+  const batch = plan.rows;
 
   // Size primary; time is max lag for a partial batch (§9).
   const readyBySize = batch.length >= batchSize;
@@ -396,13 +473,13 @@ async function anchorTenantBatch(
     return done('waiting');
   }
 
-  const seqs = batch.map((r) => r.seq);
-  assertContiguousSeq(seqs);
+  assertTraversalIntegrity(plan);
   const signatures = batch.map((r) => r.signature);
   const { root, leafCount } = buildMerkleRootFromSignatures(signatures);
-  const seqFrom = batch[0]?.seq;
-  const seqTo = batch[batch.length - 1]?.seq;
-  if (seqFrom === undefined || seqTo === undefined) return done('skipped');
+  const { seqFrom, seqTo, holes } = plan;
+  const holesTraversed = holes.burned.length + holes.foreign;
+  const holesForSigning =
+    holesTraversed > 0 ? { burned: holes.burned, foreign: holes.foreign } : undefined;
 
   const { value: rootSignature } = signAuditAnchorRoot(signer, {
     tenant,
@@ -410,6 +487,7 @@ async function anchorTenantBatch(
     seqTo,
     leafCount,
     root,
+    ...(holesForSigning ? { holes: holesForSigning } : {}),
   });
 
   await db.insert(auditAnchors).values({
@@ -419,12 +497,21 @@ async function anchorTenantBatch(
     root,
     rootSignature,
     leafCount,
+    holes: holesForSigning ?? null,
   });
 
   mAnchorsCreated.inc();
-  logger.info(
-    `audit-anchor-sweep: anchored tenant=${tenant} seq=${seqFrom}..${seqTo} leaves=${leafCount}`,
-  );
+  if (holesTraversed > 0) {
+    mHolesTraversed.inc(holesTraversed);
+    logger.info(
+      `audit-anchor-sweep: anchored tenant=${tenant} seq=${seqFrom}..${seqTo} leaves=${leafCount} ` +
+        `holes(burned=[${holes.burned.join(',')}] foreign=${holes.foreign})`,
+    );
+  } else {
+    logger.info(
+      `audit-anchor-sweep: anchored tenant=${tenant} seq=${seqFrom}..${seqTo} leaves=${leafCount}`,
+    );
+  }
 
   if (doMeter) {
     try {

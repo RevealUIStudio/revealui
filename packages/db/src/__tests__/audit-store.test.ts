@@ -132,6 +132,30 @@ describe('DrizzleAuditStore  -  append-only enforcement', () => {
     expect(batchValues[1]?.id).toBe('e2');
   });
 
+  // ── GAP-447: reject the SYSTEM_ANCHOR_SCOPE sentinel as a tenant value ─────
+
+  it('append() rejects entry.tenant === SYSTEM_ANCHOR_SCOPE (unsigned path)', async () => {
+    await expect(store.append(makeEntry({ tenant: '__system__' }))).rejects.toThrow(
+      /reserved system-anchor sentinel/,
+    );
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it('append() rejects entry.tenant === SYSTEM_ANCHOR_SCOPE (signed path)', async () => {
+    const signedStore = new DrizzleAuditStore(db as never, () => 'v1.ed25519.kid.sig');
+    await expect(signedStore.append(makeEntry({ tenant: '__system__' }))).rejects.toThrow(
+      /reserved system-anchor sentinel/,
+    );
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  it('appendBatch() rejects a batch containing entry.tenant === SYSTEM_ANCHOR_SCOPE', async () => {
+    await expect(
+      store.appendBatch([makeEntry({ id: 'e1' }), makeEntry({ id: 'e2', tenant: '__system__' })]),
+    ).rejects.toThrow(/reserved system-anchor sentinel/);
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
   // ── DB-level trigger (migration verification) ─────────────────────────────
 
   it('migration SQL contains append-only trigger for audit_log', async () => {
