@@ -37,9 +37,31 @@ export async function signIn(
   },
 ): Promise<SignInResult> {
   try {
-    // Rate limiting by IP address
+    // Rate limiting by IP address. The storage backend (DatabaseStorage in
+    // production) can throw for reasons unrelated to the credential check
+    // itself (pool exhaustion, a transaction-pooling quirk, a storage
+    // misconfiguration) — guard it like every other DB-touching step below so
+    // a throw here fails closed with a diagnosable reason instead of falling
+    // through to the generic outer catch.
     const ipKey = options?.ipAddress || 'unknown';
-    const rateLimit = await checkRateLimit(`signin:${ipKey}`);
+    let rateLimit: { allowed: boolean };
+    try {
+      rateLimit = await checkRateLimit(`signin:${ipKey}`);
+    } catch (rateLimitError) {
+      logger.error(
+        'Error checking rate limit',
+        rateLimitError instanceof Error ? rateLimitError : undefined,
+        {
+          message:
+            rateLimitError instanceof Error ? rateLimitError.message : String(rateLimitError),
+        },
+      );
+      return {
+        success: false,
+        reason: 'database_error',
+        error: 'Database error',
+      };
+    }
     if (!rateLimit.allowed) {
       return {
         success: false,
@@ -48,8 +70,27 @@ export async function signIn(
       };
     }
 
-    // Brute force protection by email
-    const bruteForceCheck = await isAccountLocked(email);
+    // Brute force protection by email. Same rationale as the rate-limit
+    // guard above — the storage backend can throw independently of whether
+    // the account is actually locked.
+    let bruteForceCheck: { locked: boolean; lockUntil?: number };
+    try {
+      bruteForceCheck = await isAccountLocked(email);
+    } catch (lockCheckError) {
+      logger.error(
+        'Error checking account lock status',
+        lockCheckError instanceof Error ? lockCheckError : undefined,
+        {
+          message:
+            lockCheckError instanceof Error ? lockCheckError.message : String(lockCheckError),
+        },
+      );
+      return {
+        success: false,
+        reason: 'database_error',
+        error: 'Database error',
+      };
+    }
     if (bruteForceCheck.locked) {
       const lockMinutes = bruteForceCheck.lockUntil
         ? Math.ceil((bruteForceCheck.lockUntil - Date.now()) / (60 * 1000))
@@ -145,8 +186,24 @@ export async function signIn(
       return failInvalidCredentials();
     }
 
-    // Successful login - clear failed attempts
-    await clearFailedAttempts(email);
+    // Successful login - clear failed attempts. Best-effort: this is
+    // bookkeeping on an already-successful credential check, not a gate, so a
+    // storage hiccup here must not fail an otherwise-valid login (it can only
+    // make a future lockout trigger slightly sooner, never bypass one).
+    try {
+      await clearFailedAttempts(email);
+    } catch (clearAttemptsError) {
+      logger.error(
+        'Error clearing failed attempts after successful login',
+        clearAttemptsError instanceof Error ? clearAttemptsError : undefined,
+        {
+          message:
+            clearAttemptsError instanceof Error
+              ? clearAttemptsError.message
+              : String(clearAttemptsError),
+        },
+      );
+    }
 
     // Check email verification (with grace period for new accounts)
     if (!user.emailVerified) {
@@ -212,8 +269,12 @@ export async function signIn(
       user,
       sessionToken: token,
     };
-  } catch {
-    logger.error('Unexpected error in signIn');
+  } catch (err) {
+    logger.error('Unexpected error in signIn', err instanceof Error ? err : undefined, {
+      message: err instanceof Error ? err.message : String(err),
+      name: err instanceof Error ? err.name : 'unknown',
+      stack: err instanceof Error ? err.stack : undefined,
+    });
     return {
       success: false,
       reason: 'unexpected_error',
