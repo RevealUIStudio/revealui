@@ -205,9 +205,13 @@ export async function signIn(
       );
     }
 
-    // Check email verification (with grace period for new accounts)
+    // Check email verification (with grace period for new accounts).
+    // Coerce createdAt: the Postgres storage path returns timestamps as strings
+    // (not Date objects), so calling .getTime() directly threw a TypeError that
+    // fell through to the outer catch and turned a valid login into a generic
+    // "unexpected error" on real deploys. new Date() accepts a Date or a string.
     if (!user.emailVerified) {
-      const accountAge = Date.now() - user.createdAt.getTime();
+      const accountAge = Date.now() - new Date(user.createdAt).getTime();
       if (accountAge > EMAIL_VERIFICATION_GRACE_PERIOD_MS) {
         return {
           success: false,

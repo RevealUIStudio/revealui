@@ -168,6 +168,27 @@ describe('auth', () => {
       expect(result.sessionToken).toBe('session-token-abc');
     });
 
+    it('signs in when createdAt is a string, not a Date (Postgres storage path)', async () => {
+      // Regression (GAP-446): the Postgres storage path returns createdAt as an
+      // ISO string, not a Date object. With emailVerified:false the sign-in reads
+      // createdAt to compute account age; calling .getTime() on a string threw a
+      // TypeError that fell through to the outer catch and turned a valid login
+      // into "unexpected_error" on real deploys. The account is within the 24h
+      // grace window, so login must succeed.
+      const oneHourAgoIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const user = makeUser({
+        emailVerified: false,
+        createdAt: oneHourAgoIso as unknown as Date,
+      });
+      mockLimit.mockResolvedValueOnce([user]);
+      mockBcryptCompare.mockResolvedValueOnce(true);
+
+      const result = await signIn('test@example.com', 'Password123');
+      expect(result.reason).not.toBe('unexpected_error');
+      expect(result.success).toBe(true);
+      expect(result.sessionToken).toBe('session-token-abc');
+    });
+
     it('returns error for nonexistent user', async () => {
       mockLimit.mockResolvedValueOnce([]); // no user found
 
