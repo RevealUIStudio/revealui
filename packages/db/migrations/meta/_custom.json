@@ -92,6 +92,12 @@
       "rationale": "GAP-429 item 4: partial index (tenant, seq) WHERE signature IS NULL supporting legacyUnsignedFloor() on the anchors request path and the no-anchor sweep pass. Hand-written for the CREATE INDEX IF NOT EXISTS idempotent form with a partial-index predicate, following the 0008_jobs_visibility_timeout precedent. Companion Drizzle schema change at packages/db/src/schema/audit-log.ts adds the same index via .where() for type-level modeling.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. A generate attempt from this branch re-emitted the 0028/0029 drift on top of the stale 0027 snapshot, confirming the debt is shared, not new."
+    },
+    {
+      "tag": "0031_gap447_audit_anchors_holes",
+      "rationale": "GAP-447 existence-classified hole traversal: adds nullable `holes` jsonb column to audit_anchors recording burned seqs + foreign-scope-row count traversed within an anchor's range. Hand-written for the single ADD COLUMN IF NOT EXISTS idempotent statement, following the 0011/0015/0030 column-addition precedent. Companion Drizzle schema change at packages/db/src/schema/audit-anchors.ts adds the holes column (jsonb, typed via $type<AuditAnchorHoles>()) for type-safety; the security package's signAuditAnchorRoot/verifyAuditAnchorRoot cover the field in the signed payload only when present, so pre-existing anchors (NULL holes) verify unchanged.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. The Drizzle schema at audit-anchors.ts already reflects the holes column at the type level; the sweep + verify paths query via Drizzle ORM / the security package's pure functions."
     }
   ]
 }

@@ -30,12 +30,14 @@
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",
+    "@testing-library/react": "catalog:",
     "@types/json-schema": "^7.0.15",
     "@types/pg": "^8.20.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "expect-type": "^1.4.0",
+    "jsdom": "catalog:",
     "tsup": "catalog:",
     "vitest": "catalog:"
   },

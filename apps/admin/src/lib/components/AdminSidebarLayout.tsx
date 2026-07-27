@@ -203,11 +203,13 @@ export function AdminSidebarLayout({
   children,
   siteName = 'RevealUI',
   isFleetMode = false,
+  isHosted = false,
   isAdmin = true,
 }: {
   children: React.ReactNode;
   siteName?: string;
   isFleetMode?: boolean;
+  isHosted?: boolean;
   isAdmin?: boolean;
 }) {
   return (
@@ -215,7 +217,7 @@ export function AdminSidebarLayout({
       navbar={<span />}
       sidebar={<AdminSidebarContent siteName={siteName} isAdmin={isAdmin} />}
     >
-      {isFleetMode ? null : <FreeTierBanner />}
+      {isFleetMode ? null : <FreeTierBanner isHosted={isHosted} />}
       {children}
       {isFleetMode ? null : <UpgradeDialog />}
     </SidebarLayout>

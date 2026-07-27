@@ -18,7 +18,7 @@ import {
 import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { accountMemberships, accounts, auditAnchors, auditLog, users } from '@revealui/db/schema';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -177,6 +177,59 @@ describe('GET /anchors + /anchors/:id/proof (GAP-355 S4-4, PGlite)', () => {
     if (!row) throw new Error('insert failed');
     return row.id;
   }
+
+  it('GAP-447: surfaces holes in the list response and proves a leaf by position, not seq offset', async () => {
+    const signedStore = new DrizzleAuditStore(db, canonicalSignerFn(priv));
+    await signedStore.append(makeEntry({ id: 'h1', tenant: 'acct_max' })); // seq 1
+    await db.execute(sql`SELECT nextval(pg_get_serial_sequence('audit_log', 'seq'))`); // burn seq 2
+    await signedStore.append(makeEntry({ id: 'h3', tenant: 'acct_max' })); // seq 3
+
+    const rows = await db
+      .select()
+      .from(auditLog)
+      .where(eq(auditLog.tenant, 'acct_max'))
+      .orderBy(asc(auditLog.seq));
+    const signatures = rows.map((r) => {
+      if (!r.signature) throw new Error('missing sig');
+      return r.signature;
+    });
+    const { root, leafCount } = buildMerkleRootFromSignatures(signatures);
+    const holes = { burned: [2], foreign: 0 };
+    const { value: rootSignature } = signAuditAnchorRoot(cryptoSigner, {
+      tenant: 'acct_max',
+      seqFrom: 1,
+      seqTo: 3,
+      leafCount,
+      root,
+      holes,
+    });
+    const [inserted] = await db
+      .insert(auditAnchors)
+      .values({ tenant: 'acct_max', seqFrom: 1, seqTo: 3, root, rootSignature, leafCount, holes })
+      .returning({ id: auditAnchors.id });
+    if (!inserted) throw new Error('insert failed');
+
+    const app = createAuthedApp(user, db);
+
+    const listRes = await app.request('/anchors');
+    expect(listRes.status).toBe(200);
+    const listBody = (await listRes.json()) as {
+      anchors: Array<{ id: string; holes: { burned: number[]; foreign: number } | null }>;
+    };
+    expect(listBody.anchors[0]?.holes).toEqual(holes);
+
+    // seq 3 is the SECOND real leaf (position 1), not index (3 - seqFrom = 2).
+    const proofRes = await app.request(`/anchors/${inserted.id}/proof?seq=3`);
+    expect(proofRes.status).toBe(200);
+    const proofBody = (await proofRes.json()) as {
+      anchor: { holes: { burned: number[]; foreign: number } | null };
+      proof: { leafIndex: number };
+      row: { seq: number; leafHash: string };
+    };
+    expect(proofBody.anchor.holes).toEqual(holes);
+    expect(proofBody.proof.leafIndex).toBe(1);
+    expect(proofBody.row.seq).toBe(3);
+  });
 
   it('returns 401 when unauthenticated', async () => {
     const app = createAuthedApp(undefined, db);

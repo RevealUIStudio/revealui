@@ -109,7 +109,7 @@
     },
     "test": {
       "cache": false,
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",

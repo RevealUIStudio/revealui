@@ -11,6 +11,7 @@
  * host-only delete is a browser-level no-op and the user stays signed in.
  */
 
+import { isHostedDeployment } from '@revealui/core/deployment-mode';
 import { logger } from '@revealui/utils/logger';
 import type { NextResponse } from 'next/server';
 
@@ -53,16 +54,29 @@ export function sessionCookieDomain(options?: SessionCookieDomainOptions): strin
 
 /**
  * Strict domain derivation for the sign-in session cookie: in production a
- * missing `SESSION_COOKIE_DOMAIN` throws  -  unless `REVEALUI_FLEET_MODE` is
- * set (fleet kits run host-only cookies by design).
+ * missing `SESSION_COOKIE_DOMAIN` throws, but ONLY on a RevealUI Studio
+ * hosted-SaaS deployment (`isHostedDeployment()` — admin.revealui.com +
+ * api.revealui.com sharing one auth cookie across subdomains). Every other
+ * posture — a RevForge Fleet-branded kit or a plain OSS/unlicensed self-host
+ * (GAP-430/GAP-440, no `REVEALUI_LICENSE_PRIVATE_KEY`) — runs single-host and
+ * falls back to a host-only cookie, matching `sessionCookieDomain()`.
+ *
+ * This MUST use the same `isHostedDeployment()` signal as
+ * `env-validation.ts`'s `isSaasHosted` check (which already exempts every
+ * self-host posture from requiring `SESSION_COOKIE_DOMAIN` at boot). Before
+ * GAP-446 this function used a narrower, unrelated `REVEALUI_FLEET_MODE`-only
+ * exemption that never recognized a plain self-host — so a stranger's fresh
+ * Railway deploy (no license key, no Fleet flag) passed boot-time validation
+ * but threw on every successful sign-in at request time, turning a correct
+ * login into a 500.
  */
 export function requireSessionCookieDomain(): string | undefined {
   if (process.env.NODE_ENV !== 'production') {
     return undefined;
   }
-  if (!(process.env.SESSION_COOKIE_DOMAIN || process.env.REVEALUI_FLEET_MODE)) {
+  if (isHostedDeployment(process.env) && !process.env.SESSION_COOKIE_DOMAIN) {
     throw new Error(
-      'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
+      'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth on a RevealUI Studio hosted deployment',
     );
   }
   return process.env.SESSION_COOKIE_DOMAIN || undefined;

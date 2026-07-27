@@ -67,13 +67,13 @@ export const PRICING_TEASER_LINKS: readonly TeaserLink[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'Max adds AI memory, advanced inference, and compliance tooling.',
+    description: 'Max adds AI memory and advanced inference.',
     href: '/pricing',
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    description: 'Enterprise adds scale and compliance controls.',
+    description: 'Enterprise adds scale.',
     href: '/pricing',
   },
 ] as const;

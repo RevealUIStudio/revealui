@@ -143,4 +143,84 @@ describe('audit Merkle (GAP-355 Stage 4 S4-2)', () => {
       }),
     ).toThrow(/leafCount/);
   });
+
+  describe('holes (GAP-447)', () => {
+    it('an undefined holes field serializes IDENTICALLY to no holes field at all', () => {
+      const base = { tenant: 't', seqFrom: 1, seqTo: 2, leafCount: 2, root: 'c'.repeat(64) };
+      const withoutKey = auditAnchorSignableBytes(base);
+      const withUndefined = auditAnchorSignableBytes({ ...base, holes: undefined });
+      expect(new TextDecoder().decode(withoutKey)).toBe(new TextDecoder().decode(withUndefined));
+    });
+
+    it('an explicit (even empty) holes object changes the signed bytes', () => {
+      const base = { tenant: 't', seqFrom: 1, seqTo: 2, leafCount: 2, root: 'c'.repeat(64) };
+      const withoutHoles = auditAnchorSignableBytes(base);
+      const withEmptyHoles = auditAnchorSignableBytes({
+        ...base,
+        holes: { burned: [], foreign: 0 },
+      });
+      expect(new TextDecoder().decode(withoutHoles)).not.toBe(
+        new TextDecoder().decode(withEmptyHoles),
+      );
+    });
+
+    it('leafCount must equal the seq span MINUS the traversed holes', () => {
+      // span 1..4 = 4 seqs; 1 burned + 1 foreign traversed ⇒ 2 real leaves.
+      expect(() =>
+        auditAnchorSignableBytes({
+          tenant: 't',
+          seqFrom: 1,
+          seqTo: 4,
+          leafCount: 2,
+          root: 'd'.repeat(64),
+          holes: { burned: [2], foreign: 1 },
+        }),
+      ).not.toThrow();
+      expect(() =>
+        auditAnchorSignableBytes({
+          tenant: 't',
+          seqFrom: 1,
+          seqTo: 4,
+          leafCount: 4, // wrong: ignores the holes
+          root: 'd'.repeat(64),
+          holes: { burned: [2], foreign: 1 },
+        }),
+      ).toThrow(/leafCount/);
+    });
+
+    it('rejects a burned seq outside the seqFrom..seqTo range', () => {
+      expect(() =>
+        auditAnchorSignableBytes({
+          tenant: 't',
+          seqFrom: 1,
+          seqTo: 2,
+          leafCount: 1,
+          root: 'e'.repeat(64),
+          holes: { burned: [99], foreign: 0 },
+        }),
+      ).toThrow(/outside anchor range/);
+    });
+
+    it('signs and verifies an anchor carrying holes', () => {
+      const sigs = ['h0', 'h1'];
+      const { root, leafCount } = buildMerkleRootFromSignatures(sigs);
+      const anchor = {
+        tenant: 'acct_holes',
+        seqFrom: 10,
+        seqTo: 13,
+        leafCount,
+        root,
+        holes: { burned: [12], foreign: 1 },
+      };
+      const { value } = signAuditAnchorRoot(signer, anchor);
+      expect(
+        verifyAuditAnchorRoot(anchor, value, (kid) => (kid === 'kid-merkle' ? pub : null)).valid,
+      ).toBe(true);
+      // Tampering the holes after signing must invalidate the signature.
+      const tampered = { ...anchor, holes: { burned: [13], foreign: 1 } };
+      expect(
+        verifyAuditAnchorRoot(tampered, value, (kid) => (kid === 'kid-merkle' ? pub : null)).valid,
+      ).toBe(false);
+    });
+  });
 });

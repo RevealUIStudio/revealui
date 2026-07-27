@@ -14,6 +14,17 @@
 import { readCsrfToken } from '../../admin/utils/csrf.js';
 
 /**
+ * Derive alt text from a filename by stripping its extension. Falls back to
+ * the whole name when there is no extension (`lastIndexOf` returns -1) or
+ * the only dot is a leading dotfile marker (e.g. `.env`), where `dot > 0` is
+ * false.
+ */
+export function deriveAltTextFromFilename(fileName: string): string {
+  const dot = fileName.lastIndexOf('.');
+  return dot > 0 ? fileName.slice(0, dot) : fileName;
+}
+
+/**
  * POST `body` to `uploadEndpoint`, echoing the CSRF cookie as `X-CSRF-Token`
  * when one is readable. `Content-Type` is never set here - `fetch` derives
  * the multipart boundary from the FormData body, and an explicit value would

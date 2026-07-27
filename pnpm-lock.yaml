@@ -1145,6 +1145,9 @@ importers:
       '@revealui/dev':
         specifier: workspace:*
         version: link:../dev
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@types/json-schema':
         specifier: ^7.0.15
         version: 7.0.15
@@ -1163,6 +1166,9 @@ importers:
       expect-type:
         specifier: ^1.4.0
         version: 1.4.0
+      jsdom:
+        specifier: 29.0.1
+        version: 29.0.1(@noble/hashes@1.8.0)
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(@microsoft/api-extractor@7.58.11(@types/node@25.9.5))(jiti@2.7.0)(postcss@8.5.20)(tsx@4.23.1)(typescript@6.0.3)(yaml@2.9.0)

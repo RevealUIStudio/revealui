@@ -89,7 +89,7 @@ export const CATALOG: ProductDefinition[] = [
     key: 'revealui_enterprise',
     name: 'RevealUI Enterprise',
     description:
-      'SSO, audit logging, white-label, self-hosted deployment, and priority support. For agencies and enterprise teams.',
+      'Audit logging, white-label, self-hosted deployment, and priority support. For agencies and enterprise teams.',
     tier: 'enterprise',
     billingModel: 'subscription',
     defaultPriceKey: 'revealui_enterprise_monthly',

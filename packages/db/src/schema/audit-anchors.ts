@@ -15,12 +15,30 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+
+/**
+ * GAP-427 (ruling 2026-07-27), relocated here GAP-447: the audit_anchors.tenant
+ * value for anchors over null-tenant (system) audit_log rows. audit_anchors.tenant
+ * is NOT NULL, so a sentinel avoids a schema migration; the underlying
+ * audit_log rows stay null. Canonical home is `@revealui/db` (schema-adjacent,
+ * not crypto/DB-access) so `DrizzleAuditStore` can reject it as a tenant value
+ * at the single write door without importing from `apps/server`.
+ * `apps/server/src/jobs/audit-anchor-sweep.ts` re-exports this for compatibility.
+ */
+export const SYSTEM_ANCHOR_SCOPE = '__system__' as const;
+
+/** Burned (permanently absent) seqs + a foreign-scope-row count an anchor traversed (GAP-447). */
+export interface AuditAnchorHoles {
+  burned: number[];
+  foreign: number;
+}
 
 export const auditAnchors = pgTable(
   'audit_anchors',
@@ -50,6 +68,17 @@ export const auditAnchors = pgTable(
     rootSignature: text('root_signature').notNull(),
 
     leafCount: integer('leaf_count').notNull(),
+
+    /**
+     * GAP-447: burned seqs + foreign-scope-row count traversed within
+     * [seqFrom, seqTo] while building this anchor. NULL means no holes were
+     * traversed (the pre-GAP-447 shape, and still the common case) — every
+     * anchor written before this column existed reads back as NULL here,
+     * which round-trips to the same signed payload (see
+     * `auditAnchorSignableBytes` in `@revealui/security`: an `undefined`
+     * `holes` field is omitted from the canonical bytes entirely).
+     */
+    holes: jsonb('holes').$type<AuditAnchorHoles>(),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 

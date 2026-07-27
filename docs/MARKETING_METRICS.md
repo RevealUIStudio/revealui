@@ -35,7 +35,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-07-22 (
 | Access-control enforcement tests | **60** | `countEnforcementTests()` — `it(`/`test(` in `packages/core/src/__tests__/auth/` + `collections/operations/__tests__/access-enforcement.test.ts` | Quoted by the blog, both security attestations (`INFORMATION_SECURITY_POLICY`, `ASSET_INVENTORY`), `LAUNCH-CHECKLIST`, and marketing primitives. Gate-enforced so all surfaces move together. |
 | License: MIT packages | **23** | `licenseSplit.mit` | |
 | License: FSL-1.1-MIT packages | **5** | `licenseSplit.fsl` | @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services |
-| License: internal/none | **1** | `licenseSplit.internal` | `@revealui/scripts` (private build tooling; no public license field) |
+| License: internal/none | **2** | `licenseSplit.internal` | `@revealui/scripts` and `@revealui/apify-actor-governed-run` (private, no public license field) |
 
 **Marketing copy rule:** when a number appears, quote it as the canonical value. When a phrase says "more than N" or "N+", use the validated number as N. Don't round, don't approximate, don't add bonus framing like "(plus the adapter)" — the validator enforces the bare integer.
 

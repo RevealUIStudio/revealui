@@ -7,7 +7,18 @@ import { useLicense } from '@/lib/providers/LicenseProvider';
 
 const DISMISS_KEY = 'rvui-free-tier-dismissed';
 
-export function FreeTierBanner() {
+interface FreeTierBannerProps {
+  /**
+   * True on the hosted SaaS deployment, false on self-host (the unlicensed
+   * Forge/template shape). Resolved server-side via `isHostedDeployment()`
+   * and prop-drilled down, the same pattern used for `isFleetMode` — a
+   * `NEXT_PUBLIC_*` env would get inlined at framework build time and miss
+   * the value stamped into a self-host deploy at runtime.
+   */
+  isHosted: boolean;
+}
+
+export function FreeTierBanner({ isHosted }: FreeTierBannerProps) {
   const { tier, isLoading } = useLicense();
   // Start dismissed=true to avoid a hydration flash on the server render.
   // useEffect corrects it client-side after sessionStorage is available.
@@ -27,14 +38,25 @@ export function FreeTierBanner() {
   return (
     <div className="mb-4 flex items-center justify-between gap-x-6 rounded-lg bg-primary px-5 py-2.5 text-sm text-primary-foreground">
       <p>
-        You&apos;re on the <span className="font-semibold">Free plan</span> &mdash; 3 users and
-        1,000 agent tasks/month.{' '}
-        <Link
-          href="/account/billing?upgrade=pro"
-          className="font-semibold underline underline-offset-2 hover:opacity-80"
-        >
-          Start your 7-day Pro trial &rarr;
-        </Link>
+        You&apos;re on the <span className="font-semibold">Free plan</span>. 3 users and 1,000 agent
+        tasks/month.{' '}
+        {isHosted ? (
+          <Link
+            href="/account/billing?upgrade=pro"
+            className="font-semibold underline underline-offset-2 hover:opacity-80"
+          >
+            Start your 7-day Pro trial &rarr;
+          </Link>
+        ) : (
+          <a
+            href="https://revealui.com/pricing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline underline-offset-2 hover:opacity-80"
+          >
+            Unlock Pro with a license &rarr;
+          </a>
+        )}
       </p>
       <Button
         type="button"
