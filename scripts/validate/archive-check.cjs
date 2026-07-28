@@ -31,7 +31,22 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { resolveGatesModule } = require('./gates-resolver.cjs');
 
-const REPO_ROOT = path.resolve(__dirname, '..', '..');
+// `--root <dir>` scans a directory other than this repo. Its only purpose is
+// the CI self-test below: a gate wired into BOTH the local pre-push gate and CI
+// cannot be observed firing in CI by seeding a violation into the repo, because
+// the local gate correctly refuses the push first (and --no-verify is
+// forbidden). So the gate proves itself against a fixture instead, on every
+// run, which is stronger than a one-off observation anyway.
+function resolveRoot() {
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--root') return path.resolve(argv[i + 1] || '');
+    if (argv[i].startsWith('--root=')) return path.resolve(argv[i].slice('--root='.length));
+  }
+  return path.resolve(__dirname, '..', '..');
+}
+
+const REPO_ROOT = resolveRoot();
 const MANIFEST_PATH = path.join(__dirname, 'archived-paths.json');
 const REPO_FOLDER_NAME = 'revealui';
 
