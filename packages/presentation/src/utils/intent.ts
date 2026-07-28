@@ -95,6 +95,7 @@ export function resolveIntent(opts: {
           `[RevealUI] ${opts.component}: the \`color\` prop is deprecated and will be removed in 0.15. ` +
           `Use \`intent\` instead: color="${opts.color}" → intent="${next}". See ` +
           `https://docs.revealui.com/migrations/semantic-intents`;
+        // biome-ignore lint/suspicious/noConsole: intentional one-shot deprecation surface through 0.15
         console.warn(msg); // console-allowed
       }
     }
