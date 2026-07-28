@@ -3,7 +3,7 @@
 
 # Icon manifest
 
-**50 icons** — 44 general-purpose, 6 brand marks.
+**55 icons** — 49 general-purpose, 6 brand marks.
 
 Before adding an icon, search this file. A hand-inlined duplicate of a shipped
 glyph is the specific mistake this manifest exists to prevent.
@@ -34,32 +34,14 @@ Naming policy and the rules for adding one: `remediation/gate-5/ICONS.md`.
 
 `IconCode` · `IconTerminal` · `IconGlobe` · `IconHeart` · `IconStar`
 
+## Brand primitives (5)
+
+`IconPrimitivePeople` · `IconPrimitiveContent` · `IconPrimitiveOffers` · `IconPrimitivePayments` · `IconPrimitiveAgents`
+
 ## Brand marks (6)
 
 `GitHubIcon` · `GoogleIcon` · `LinkedInIcon` · `VercelIcon` · `XIcon` · `PasskeyIcon`
 
 Vendor geometry, not restyleable. `currentColor` so an OAuth row reads as one
 family; `aria-hidden` because the parent button carries the label.
-
-## Missing — the brand primitive icons
-
-5 of the 5 semantic primitive icons are **not exports of this package.**
-README calls them "the visual backbone of the marketing site" — hero background,
-Primitives grid, meta links, footer.
-
-The artwork is not missing: all five exist as `iconPath` strings in
-`apps/marketing/app/content/primitives.ts`, interpolated into an SVG by
-`landing/Primitives.tsx`. Landing them is a **move-and-import, not a design task.**
-
-| Expected export | Primitive | Accent |
-|---|---|---|
-| `IconPrimitivePeople` | People | cobalt (declared emerald, aliased) |
-| `IconPrimitiveContent` | Content | blue |
-| `IconPrimitiveOffers` | Offers | amber |
-| `IconPrimitivePayments` | Payments | cyan |
-| `IconPrimitiveAgents` | Agents | violet |
-
-This — not thirty more general-purpose glyphs — is the icon work. The set is
-already 15 icons past `Spec · Visual Dimensions`' 35-icon target; that target is
-stale, and the gap is these five.
 

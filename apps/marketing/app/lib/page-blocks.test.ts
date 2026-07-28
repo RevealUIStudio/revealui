@@ -525,10 +525,9 @@ describe('claims safety: prose is single-sourced, pinned values never enter bloc
     for (const metric of [METRICS.packages, METRICS.dbTables, METRICS.mcpServers]) {
       expect(strings).not.toContain(String(metric));
     }
-    // Primitive colors + icon paths are structural, never block prose.
-    for (const primitive of HOME_PRIMITIVES) {
-      expect(strings).not.toContain(primitive.iconPath);
-    }
+    // Primitive icons live on package exports (IconPrimitive*), not block prose.
+    // Accent color keys (blue/amber/…) appear in other marketing copy, so they
+    // are not a safe uniqueness probe here.
   });
 });
 
