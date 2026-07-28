@@ -10,7 +10,7 @@ export function DocsIndexPage() {
 
   const content = `# RevealUI Documentation
 
-Agentic business runtime. Users, content, products, payments, and AI come pre-wired, open source, and ready to deploy.
+Agentic business runtime. People, Content, Offers, Payments, and Agents come pre-wired, open source, and ready to deploy.
 
 ## Quick Start
 

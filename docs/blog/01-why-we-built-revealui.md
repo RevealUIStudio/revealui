@@ -11,7 +11,7 @@ I've started three software companies. Each time, I spent the first three to six
 
 That's not a skills problem. That's an infrastructure problem. And after the third time, I decided to solve it.
 
-RevealUI is the open runtime for businesses that run their own AI. Users, content, products, payments, and intelligence (the five primitives every product needs) are pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
+RevealUI is the open runtime for businesses that run their own AI. People, Content, Offers, Payments, and Agents (the five primitives every product needs) are pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
 
 ## The problem nobody talks about
 
@@ -225,7 +225,7 @@ RevealUI is not an admin with plugins bolted on. It's not a boilerplate you clon
 
 When a user signs up, the auth system creates their session, assigns their default role, and checks their license tier. When they access content, the collection's `access.read` function can reference their tier, their role, or any custom claim. When they upgrade via Stripe, the webhook handler updates their license, which updates their feature flags, which unlocks gated content and capabilities, all in the same request cycle.
 
-This is the part that's genuinely hard to replicate by stitching services together. The integration isn't in the glue code between separate tools. The integration is in the data model. Users, content, products, payments, and features share a schema. They share a database. They share a session. The relationships are first-class, not afterthoughts.
+This is the part that's genuinely hard to replicate by stitching services together. The integration isn't in the glue code between separate tools. The integration is in the data model. People, content, offers, payments, and agents share a schema. They share a database. They share a session. The relationships are first-class, not afterthoughts.
 
 Some numbers on what's actually shipped:
 
@@ -257,7 +257,7 @@ RevDev Studio (Tauri + React) is the native AI experience for agent coordination
 
 The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and a template marketplace where developers can publish project starters. The community lives on [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions), so join early and help shape what gets built next.
 
-But the core thesis won't change: **every software company needs users, content, products, payments, and intelligence. You shouldn't have to build them from scratch.**
+But the core thesis won't change: **every software company needs People, Content, Offers, Payments, and Agents. You shouldn't have to build them from scratch.**
 
 Build your business, not your boilerplate.
 

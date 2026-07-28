@@ -433,7 +433,7 @@ const LICENSE_ED25519: EvidenceRef = {
 const ENGINES: EvidenceRef = {
   kind: 'code',
   ref: 'packages/engines/src',
-  note: 'the five business primitives: users, content, products, payments, agents',
+  note: 'the five business primitives: People, Content, Offers, Payments, Agents',
 };
 const AGENT_CHAT: EvidenceRef = {
   kind: 'code',
