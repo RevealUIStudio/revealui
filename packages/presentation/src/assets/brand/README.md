@@ -46,7 +46,9 @@ large renders only.
   mark at ~70% tile coverage. Source for apple-touch / social / app-icon
   rasters, and the 22px nav mark in marketing.
 - `icon-maskable.svg` — the same tile at `rx=0` for full-bleed PWA masking.
-  Updated to the current emblem as of 2026-07-27.
+  Updated to the current emblem as of 2026-07-27. Rasterized to
+  `icon-maskable-512.png` per app; the mark sits at ~70% coverage, inside
+  the maskable spec's central 80% safe zone.
 - `revealui-mark-mono.svg` — single-colour mark (`currentColor`, no stroke).
   In app code prefer the `RevealUIMark` React component from
   `@revealui/presentation`, which renders these same paths.
@@ -101,36 +103,48 @@ Do not normalise these to a single value.
 
 ## Known drift
 
-- `icon-192.png` / `icon-512.png` are **stale** — still the pre-2026-07-27
-  emblem. `gen-brand-assets.cjs` does not emit them, and no app wires them
-  up (there is no `manifest.json` / `site.webmanifest` in any app). Either
-  add PWA manifests and extend the generator, or delete all three maskable
-  assets. Don't leave them half-wired.
-- `apps/admin` still serves `revealui-logo.svg` from its own `public/` for
-  the header. That's a circuit master rendered in app chrome — check the
-  render size against the floor above, and switch to `RevealUIMark` +
-  live text if it's under 96px.
+- No service worker, so Chrome's "Install app" prompt does not fire on any
+  app — installability criteria require a fetch-handling worker. Home-screen
+  icons, `theme_color`, and chromeless launch on manual add-to-home all work
+  today. Adding a worker is a separate, much larger job; don't bolt one on
+  without an offline/caching strategy, or it will serve stale builds.
 
 ## Per-app deployables
 
-`gen-brand-assets.cjs` writes the rasters. The **SVGs are copied by hand** —
-the generator does not sync them, so they drift silently after a master
-edit. After changing any master:
+`gen-brand-assets.cjs` writes everything each app serves — the SVG copies as
+well as the rasters. Nothing here is copied by hand.
 
-```bash
-B=packages/presentation/src/assets/brand
-cp $B/favicon.svg        apps/marketing/public/favicon.svg
-cp $B/icon-mark.svg      apps/marketing/public/icon-mark.svg
-cp $B/favicon.svg        apps/docs/public/favicon.svg
-cp $B/favicon.svg        apps/admin/public/favicon.svg
-cp $B/revealui-logo.svg  apps/admin/public/revealui-logo.svg
-```
+| App | Serves |
+|---|---|
+| marketing | `favicon.svg`, `icon-mark.svg`, `favicon.png` (64), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| docs | `favicon.svg`, `favicon.png` (32), `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` |
+| admin | same as docs |
 
-This is the highest-risk step in the pipeline: marketing's
+The SVG sync is load-bearing: marketing's
 `<link rel="icon" type="image/svg+xml">` and `NavBar`/`Footer`'s
-`<img src="/icon-mark.svg">` all read the app-local copies, so a missed
-`cp` ships the old mark while every raster shows the new one. Folding these
-copies into the generator is a worthwhile follow-up.
+`<img src="/icon-mark.svg">` read the app-local copies, not the masters.
+Before the generator synced them, a master edit shipped the old mark
+alongside new rasters. **Do not reintroduce hand-copying.**
+
+## PWA manifests
+
+| App | File | `display` | Why |
+|---|---|---|---|
+| marketing | `public/site.webmanifest` | `browser` | Public site. Gives home-screen icons and address-bar tint without offering to install a brochure. |
+| docs | `public/site.webmanifest` | `standalone` | Reasonable to keep open as an app window. |
+| admin | `src/app/manifest.ts` | `standalone` | Operator console. |
+
+Admin's is a **Next dynamic route, not a static file** — the app is
+white-labelled via `REVEALUI_BRAND_NAME` / `REVEALUI_TENANT_NAME`, and a
+static manifest would pin every tenant kit's home-screen label to
+"RevealUI admin". It derives `name` exactly as
+`(frontend)/layout.tsx`'s `generateMetadata` does; keep the two in step.
+Next injects `<link rel="manifest">` itself, so admin's layout needs no
+icon wiring. The Vite apps declare theirs in `index.html` alongside a
+`<meta name="theme-color" content="#060d1a">`.
+
+All three point at the same four icon entries — `favicon.svg` (`any`),
+`icon-192/512.png` (`any`), `icon-maskable-512.png` (`maskable`).
 
 ## Regenerating
 
@@ -143,15 +157,16 @@ package added). Edit a master, then run:
 node scripts/gen-brand-assets.cjs
 ```
 
-Expected output — three lines, one per app:
+Expected output — four lines:
 
 ```
-marketing: favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180)
-docs: favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180)
-admin: favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180)
+brand: icon-192.png, icon-512.png
+marketing: favicon.svg, icon-mark.svg, favicon.png (64), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+docs: favicon.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
+admin: favicon.svg, favicon.png (32), favicon.ico (16/32/48), apple-touch-icon.png (180), icon-192/512.png, icon-maskable-512.png
 ```
 
-Then run the `cp` block above.
+That is the whole pipeline — there is no follow-up copy step.
 
 The masters themselves are authored in the RevealUI Design System project and
 land here via its `repo-drop/` folder. Type outlining uses
