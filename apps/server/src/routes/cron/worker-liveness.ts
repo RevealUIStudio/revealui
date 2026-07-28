@@ -39,6 +39,18 @@ const app = new Hono();
 
 const HEALTH_CHECK_TIMEOUT_MS = 10_000;
 
+/**
+ * Diagnostic shape version, reported on every response.
+ *
+ * GAP-455: after the first classifier deployed, a run came back
+ * `{"healthy":false,"error":"network-error"}`  -  a body the OLD code and the
+ * NEW code both produce, so it was impossible to tell from the response
+ * whether the fix was live or the deploy had not taken. Bump this on any
+ * change to the diagnostic contract; then one run always says which build
+ * answered. Cheap, and it never leaks anything about the target.
+ */
+const PROBE_VERSION = 2;
+
 const safeFetch = createSafeFetch();
 
 /**
@@ -84,35 +96,81 @@ const GUARD_MESSAGE_TOKENS: ReadonlyArray<readonly [string, ProbeFailureReason]>
 /**
  * Classify a probe failure into one constant token.
  *
- * Walks the `cause` chain: the guard's pre-flight `assertPublicUrl` throws
- * directly, but a rejection from the undici dispatcher's validating `lookup`
- * surfaces wrapped, with the real reason one or more `cause` levels down.
+ * Walks the whole error TREE (`cause` chain plus `AggregateError.errors`  -
+ * see walkErrorTree for why both are load-bearing): the guard's pre-flight
+ * `assertPublicUrl` throws directly, while a rejection from the undici
+ * dispatcher's validating `lookup` surfaces wrapped, several levels down, and
+ * possibly beside its siblings inside an AggregateError.
+ *
  * Only the classification escapes this function  -  never the message.
  */
 export function classifyProbeError(err: unknown): ProbeFailureReason {
-  const seen = new Set<unknown>();
-  let current: unknown = err;
   let sawGuardRejection = false;
+  let reason: ProbeFailureReason | undefined;
 
-  while (current instanceof Error && !seen.has(current)) {
-    seen.add(current);
+  walkErrorTree(err, (current) => {
+    if (reason) return;
 
     if (current.name === 'TimeoutError' || current.name === 'AbortError') {
-      return 'timeout';
+      reason = 'timeout';
+      return;
     }
 
     const message = current.message;
-    for (const [fragment, reason] of GUARD_MESSAGE_TOKENS) {
-      if (message.includes(fragment)) return reason;
+    for (const [fragment, token] of GUARD_MESSAGE_TOKENS) {
+      if (message.includes(fragment)) {
+        reason = token;
+        return;
+      }
     }
     if (message.startsWith('SSRF:')) sawGuardRejection = true;
+  });
 
-    current = current.cause;
-  }
+  if (reason) return reason;
 
   // A guard rejection we have no specific token for still beats reporting a
   // network fault: it means the request never left the process.
   return sawGuardRejection ? 'blocked-by-guard' : 'network-error';
+}
+
+/**
+ * Visit an error and everything nested beneath it.
+ *
+ * Two nesting shapes matter here, and missing either one silently degrades a
+ * precise diagnosis into 'network-error':
+ *
+ *   1. `cause`   - undici wraps a dispatcher/socket failure as
+ *                  `TypeError: fetch failed` with the real error one or more
+ *                  levels down.
+ *   2. `errors`  - Node's Happy Eyeballs (`autoSelectFamily`, on by default)
+ *                  tries every address our SSRF lookup returns, and when all
+ *                  of them fail it throws an `AggregateError`. That error has
+ *                  NO `code` and NO `cause`; the real failures are in
+ *                  `.errors[]`. Because the guard deliberately returns BOTH
+ *                  the A and AAAA records, this is the LIKELY shape for a real
+ *                  outage here, not an exotic one.
+ *
+ * GAP-455: the first deployed version of this classifier followed only
+ * `cause`, so it stopped at the AggregateError and reported a bare
+ * 'network-error' with no code  -  which is exactly what the first real run
+ * returned, and exactly as undiagnosable as the bug it was meant to fix.
+ */
+function walkErrorTree(root: unknown, visit: (err: Error) => void): void {
+  const seen = new Set<unknown>();
+  const queue: unknown[] = [root];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!(current instanceof Error) || seen.has(current)) continue;
+    seen.add(current);
+
+    visit(current);
+
+    if (current.cause !== undefined) queue.push(current.cause);
+    // AggregateError, and anything else exposing sibling failures.
+    const nested = (current as AggregateError).errors;
+    if (Array.isArray(nested)) queue.push(...nested);
+  }
 }
 
 /**
@@ -124,16 +182,15 @@ export function classifyProbeError(err: unknown): ProbeFailureReason {
  * reported, never the message that may accompany it.
  */
 export function safeErrorCode(err: unknown): string | undefined {
-  const seen = new Set<unknown>();
-  let current: unknown = err;
+  let code: string | undefined;
 
-  while (current instanceof Error && !seen.has(current)) {
-    seen.add(current);
-    const code = (current as NodeJS.ErrnoException).code;
-    if (typeof code === 'string' && code.length > 0) return code;
-    current = current.cause;
-  }
-  return undefined;
+  walkErrorTree(err, (current) => {
+    if (code) return;
+    const candidate = (current as NodeJS.ErrnoException).code;
+    if (typeof candidate === 'string' && candidate.length > 0) code = candidate;
+  });
+
+  return code;
 }
 
 app.get('/worker-liveness', async (c) => {
@@ -162,7 +219,7 @@ app.get('/worker-liveness', async (c) => {
     // hostname must never be hardcoded. Unset is a supported no-op, not an
     // error: it lets the route ship ahead of the owner setting the var.
     logger.info('[worker-liveness] REVEALUI_WORKER_HEALTH_URL unset, probe skipped');
-    return c.json({ skipped: true, checkedAt }, 200);
+    return c.json({ skipped: true, checkedAt, probe: PROBE_VERSION }, 200);
   }
 
   try {
@@ -173,7 +230,10 @@ app.get('/worker-liveness', async (c) => {
 
     if (response.status === 200) {
       logger.info('[worker-liveness] worker healthy', { status: response.status });
-      return c.json({ healthy: true, status: response.status, checkedAt }, 200);
+      return c.json(
+        { healthy: true, status: response.status, checkedAt, probe: PROBE_VERSION },
+        200,
+      );
     }
 
     logger.error('[worker-liveness] worker returned non-200 status', undefined, {
@@ -185,7 +245,10 @@ app.get('/worker-liveness', async (c) => {
       severity: 'error',
       metadata: { status: response.status },
     });
-    return c.json({ healthy: false, status: response.status, checkedAt }, 503);
+    return c.json(
+      { healthy: false, status: response.status, checkedAt, probe: PROBE_VERSION },
+      503,
+    );
   } catch (err) {
     // Never forward the caught error's message  -  the SSRF guard and
     // network-error paths can embed the target hostname in their text, and
@@ -210,7 +273,7 @@ app.get('/worker-liveness', async (c) => {
       severity: 'error',
       metadata: { reason, code },
     });
-    return c.json({ healthy: false, error: reason, code, checkedAt }, 503);
+    return c.json({ healthy: false, error: reason, code, checkedAt, probe: PROBE_VERSION }, 503);
   }
 });
 
