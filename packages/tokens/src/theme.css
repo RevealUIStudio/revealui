@@ -1,0 +1,118 @@
+/*
+ * theme.css — the Tailwind v4 @theme bridge, shipped from @revealui/tokens.
+ * ─────────────────────────────────────────────────────────────────────────
+ * WHY THIS FILE EXISTS
+ *
+ * Every component in @revealui/presentation emits utility classes whose colour
+ * is defined by this mapping: `text-foreground`, `bg-card`, `border-border`,
+ * `ring-ring`, `bg-primary`, `text-muted-foreground`. Until now the mapping
+ * lived in FOUR hand-duplicated app stylesheets:
+ *
+ *   apps/docs/app/index.css
+ *   apps/marketing/app/index.css
+ *   apps/admin/src/app/(backend)/custom.css
+ *   apps/admin/src/app/(frontend)/tailwind-theme.css
+ *
+ * …and in no package. A consumer who installs the npm package with their own
+ * Tailwind config gets components with no colour, and no diagnostic saying so.
+ * Four copies also drift: they already disagree about which --color-* names
+ * exist.
+ *
+ * Import this instead, once, per app:
+ *
+ *   @import "@revealui/presentation/theme.css";
+ *
+ * Keep your app's own @theme block — breakpoints, app-specific palettes and
+ * the marketing named-palette aliases are app-level concerns and stay put.
+ * Only the @theme inline --color-* → --rvui-* mapping moves here.
+ *
+ * `@theme inline` (not `@theme`) is deliberate: it keeps the var() reference
+ * live so [data-theme] flips resolve at use time rather than being inlined at
+ * build time. Do not change it to a bare @theme.
+ *
+ * tokens.css remains the single source of truth for VALUES. This file only
+ * names them for Tailwind.
+ */
+
+@theme inline {
+  /* ── Surfaces ── */
+  --color-background: var(--rvui-surface-0);
+  --color-card: var(--rvui-surface-1);
+  --color-popover: var(--rvui-surface-1);
+  --color-muted: var(--rvui-surface-2);
+  --color-secondary: var(--rvui-surface-2);
+  /* Named surface steps, for components that need a specific layer rather
+   * than a semantic role (nested code blocks, kbd chips, table zebra). */
+  --color-surface-0: var(--rvui-surface-0);
+  --color-surface-1: var(--rvui-surface-1);
+  --color-surface-2: var(--rvui-surface-2);
+  --color-surface-3: var(--rvui-surface-3);
+
+  /* ── Text ──
+   * Three steps, matching the token ladder. `body` is the one the old bridge
+   * was missing, which is why components reached for `text-zinc-700
+   * dark:text-zinc-300` instead of a token. */
+  --color-foreground: var(--rvui-text-0);
+  --color-card-foreground: var(--rvui-text-0);
+  --color-popover-foreground: var(--rvui-text-0);
+  --color-secondary-foreground: var(--rvui-text-0);
+  --color-body: var(--rvui-text-1);
+  --color-muted-foreground: var(--rvui-text-2);
+
+  /* ── Brand ── */
+  --color-primary: var(--rvui-brand);
+  --color-primary-foreground: var(--rvui-text-on-brand);
+  --color-primary-hover: var(--rvui-brand-hover);
+  --color-primary-strong: var(--rvui-brand-strong);
+  --color-primary-soft: var(--rvui-brand-soft);
+  --color-primary-subtle: var(--rvui-brand-subtle);
+  --color-primary-text: var(--rvui-brand-text);
+
+  /* ── Accent ── */
+  --color-accent: var(--rvui-accent);
+  --color-accent-foreground: var(--rvui-text-on-accent);
+
+  /* ── Status ──
+   * `*-foreground` is the ink that goes ON the solid fill; the bare name is
+   * the fill or the text-on-surface use. --rvui-*-strong exists where a solid
+   * CTA fill needs to be darker for the ink to clear AA. */
+  --color-success: var(--rvui-success);
+  --color-success-strong: var(--rvui-success-strong);
+  --color-success-subtle: var(--rvui-success-subtle);
+  --color-success-foreground: var(--rvui-text-on-success);
+  --color-warning: var(--rvui-warning);
+  --color-warning-subtle: var(--rvui-warning-subtle);
+  --color-warning-foreground: var(--rvui-text-on-warning);
+  --color-warning-text: var(--rvui-warning-text);
+  --color-destructive: var(--rvui-error);
+  --color-destructive-foreground: var(--rvui-text-on-error);
+  --color-error: var(--rvui-error);
+  --color-error-subtle: var(--rvui-error-subtle);
+  --color-info: var(--rvui-info);
+  --color-info-subtle: var(--rvui-info-subtle);
+
+  /* ── Lines ── */
+  --color-border: var(--rvui-border);
+  --color-border-subtle: var(--rvui-border-subtle);
+  --color-border-strong: var(--rvui-border-strong);
+  --color-input: var(--rvui-border);
+  --color-ring: var(--rvui-brand);
+
+  /* ── Scrim ──
+   * Dialog / drawer / alert backdrops. Previously `bg-zinc-950/15` in light
+   * and `dark:bg-zinc-950/50` — one of the clearest cases where a `dark:`
+   * pair silently ignored [data-theme]. */
+  --color-scrim: var(--rvui-scrim);
+
+  /* ── Shape ── */
+  --radius: var(--rvui-radius-md);
+  --radius-sm: var(--rvui-radius-sm);
+  --radius-md: var(--rvui-radius-md);
+  --radius-lg: var(--rvui-radius-lg);
+  --radius-xl: var(--rvui-radius-xl);
+
+  /* ── Type ── */
+  --font-sans: var(--rvui-font-sans);
+  --font-display: var(--rvui-font-display);
+  --font-mono: var(--rvui-font-mono);
+}

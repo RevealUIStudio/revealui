@@ -24,16 +24,16 @@
     "./tokens.css": "./dist/tokens.css",
     "./design-context/MANIFEST.sha256": "./design-context/MANIFEST.sha256",
     "./design-context/brand-meta.json": "./design-context/brand-meta.json",
-    "./design-context/tokens.css": "./design-context/tokens.css"
+    "./design-context/tokens.css": "./design-context/tokens.css",
+    "./theme.css": "./dist/theme.css"
   },
   "files": [
     "dist",
     "design-context"
   ],
-  "dependencies": {},
   "devDependencies": {
-    "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
+    "@types/node": "catalog:",
     "postcss": "^8.5.16",
     "typescript": "catalog:",
     "vitest": "catalog:"
@@ -42,15 +42,20 @@
     "node": ">=24.13.0"
   },
   "scripts": {
-    "build": "tsc && cp src/tokens.css dist/tokens.css",
+    "build": "tsc && cp src/tokens.css dist/tokens.css && cp src/theme.css dist/theme.css",
     "clean": "rm -rf dist",
-    "gen:manifest": "node scripts/gen-manifest.cjs",
-    "gen:manifest:check": "node scripts/gen-manifest.cjs --check",
+    "gen:manifest": "node scripts/gen-manifest.cjs && node scripts/gen-dtcg.cjs",
+    "gen:manifest:check": "node scripts/gen-manifest.cjs --check && node scripts/gen-dtcg.cjs --check",
     "lint:adherence": "node scripts/adherence-lint.cjs",
     "lint": "biome check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint:presentation": "node scripts/presentation-lint.cjs ../presentation/src",
+    "gen:dtcg": "node scripts/gen-dtcg.cjs",
+    "gen:dtcg:check": "node scripts/gen-dtcg.cjs --check",
+    "gen:acr": "node scripts/gen-acr.cjs --vpat",
+    "gen:acr:check": "node scripts/gen-acr.cjs --check"
   },
   "publishConfig": {
     "access": "public",
