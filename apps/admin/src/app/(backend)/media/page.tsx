@@ -18,7 +18,7 @@ import {
 } from '@revealui/presentation/client';
 import { type ChangeEvent, useCallback, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
-import { useWindowFileDrop } from './use-window-file-drop.js';
+import { useWindowFileDrop } from './use-window-file-drop';
 
 // ---------------------------------------------------------------------------
 // Types

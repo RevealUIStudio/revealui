@@ -8,7 +8,7 @@
 
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { useWindowFileDrop } from '../use-window-file-drop.js';
+import { useWindowFileDrop } from '../use-window-file-drop';
 
 function makeFileList(count: number): FileList {
   const files = Array.from(
