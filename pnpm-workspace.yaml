@@ -1,7 +1,13 @@
 packages:
   - apps/*
   - packages/*
-  - examples/starter-kit
+  # examples/starter-kit is deliberately NOT a workspace member (GAP-434).
+  # It ships to buyers as a standalone repo, so it must resolve every
+  # dependency from the public npm registry — `workspace:*` and `catalog:`
+  # specs only exist inside this workspace and fail on a clean clone.
+  # Membership here is what hid that: the kit installed fine in-tree and
+  # was unbuildable everywhere else. CI verifies it standalone instead,
+  # via .github/workflows/starter-kit-standalone.yml.
 
 catalog:
   '@biomejs/biome': ^2.5.2

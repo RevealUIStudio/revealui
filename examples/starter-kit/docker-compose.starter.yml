@@ -1,30 +1,30 @@
 # =============================================================================
-# RevealUI Starter Kit — self-host compose (Free/OSS tier, no license key)
+# RevealUI Starter Kit — Postgres for local self-hosting
 # =============================================================================
 #
-# This is a fixed, minimal version of the repo root's `docker-compose.yml`,
-# scoped to the two services that make up the RevealUI backend: the API and
-# the admin dashboard, plus a local Postgres. It intentionally does not
-# include the `marketing` service from the root file — that service's
-# Dockerfile does not exist in this checkout (apps/marketing is a Vite app
-# with no Dockerfile), so including it here would produce a compose file that
-# fails to build. If you need the marketing site too, run it separately with
-# `pnpm --filter marketing dev` or build your own Dockerfile for it.
+# This file provides ONE thing: a correctly-configured Postgres for a RevealUI
+# app to run against. The app itself is not built here — you create it with
+# `npm create revealui@latest`, which installs the framework from the public
+# npm registry (see GETTING-STARTED.md).
+#
+# Why there are no api/admin services here: an earlier version of this file
+# built them from the RevealUI monorepo's own Dockerfiles via `context: ../..`,
+# which meant the kit only worked if you had the entire monorepo checked out
+# two levels above it. That is not something a buyer has. The framework ships
+# on npm, so the app is an npm install, and this file covers only the one piece
+# npm cannot give you.
 #
 # Quick start:
 #   1. cp .env.starter.example .env
 #   2. bash scripts/generate-secrets.sh >> .env   (fills in the *_SECRET vars)
-#   3. bash scripts/bootstrap.sh                  (boots postgres, migrates, then api+admin)
-#
-# This boots at Free (OSS) tier by default: REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true
-# is set on both api and admin below (GAP-436). Remove it and set
-# REVEALUI_LICENSE_KEY / REVEALUI_LICENSE_PUBLIC_KEY if you have a Fleet license.
+#   3. bash scripts/bootstrap.sh                  (starts postgres, waits for health)
 # =============================================================================
 
 services:
   postgres:
-    # pgvector/pgvector:pg16 (not vanilla postgres): migration 0000 runs
-    # `CREATE EXTENSION vector`, which a plain postgres image cannot satisfy.
+    # pgvector/pgvector:pg16 (not vanilla postgres): RevealUI's migration 0000
+    # runs `CREATE EXTENSION vector`, which a plain postgres image cannot
+    # satisfy.
     image: pgvector/pgvector:pg16
     container_name: revealui-starter-postgres
     environment:
@@ -35,70 +35,15 @@ services:
     volumes:
       - starter-postgres-data:/var/lib/postgresql/data
     ports:
+      # Exposed on the host so your RevealUI app (running via `pnpm dev`)
+      # can reach it at localhost.
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-revealui}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - starter
     restart: unless-stopped
-
-  api:
-    build:
-      context: ../..
-      dockerfile: apps/server/Dockerfile
-    container_name: revealui-starter-api
-    env_file: .env
-    environment:
-      NODE_ENV: production
-      API_PORT: "3004"
-      REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
-    ports:
-      - "${API_PORT:-3004}:3004"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3004/health').then(r=>{if(!r.ok)process.exit(1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    networks:
-      - starter
-    restart: unless-stopped
-
-  admin:
-    build:
-      context: ../..
-      dockerfile: apps/admin/Dockerfile
-    container_name: revealui-starter-admin
-    env_file: .env
-    environment:
-      NODE_ENV: production
-      PORT: "4000"
-      HOSTNAME: 0.0.0.0
-      REVEALUI_ALLOW_UNLICENSED_SELF_HOST: "true"
-    ports:
-      - "${CMS_PORT:-4000}:4000"
-    depends_on:
-      api:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>{if(!r.ok)process.exit(1)})"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - starter
-    restart: unless-stopped
-
-networks:
-  starter:
-    driver: bridge
 
 volumes:
   starter-postgres-data:
