@@ -1056,10 +1056,7 @@ const SCAN_DIRS = [
  * whole docs/archive/ dir were promoted to the central fleet archive on 2026-07-28
  * (GAP-451 Phase 5), so there is nothing left in this repo to exclude.
  */
-const EXCLUDE_FILES = [
-  'docs/system-tune/CRASH-POSTMORTEMS.md',
-  'docs/MASTER_PLAN.md',
-];
+const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', 'docs/MASTER_PLAN.md'];
 
 function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   const matches: ClaimMatch[] = [];
