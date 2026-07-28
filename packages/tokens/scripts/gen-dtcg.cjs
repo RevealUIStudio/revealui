@@ -213,8 +213,17 @@ if (lightOnly.length > 0) {
 }
 
 if (CHECK) {
+  // Compare parsed JSON, not raw bytes. Biome (lint-staged) pretty-prints short
+  // arrays onto one line; JSON.stringify(null, 2) expands them. Byte equality
+  // false-fails after every format pass even when the token set is identical.
   const current = existsSync(OUT) ? readFileSync(OUT, 'utf8') : '';
-  if (current !== json) {
+  let same = false;
+  try {
+    same = JSON.stringify(JSON.parse(current || 'null')) === JSON.stringify(JSON.parse(json));
+  } catch {
+    same = false;
+  }
+  if (!same) {
     console.error('::error::gen-dtcg: tokens.dtcg.json is stale.');
     console.error('Run: pnpm --filter @revealui/tokens gen:dtcg');
     process.exit(1);
