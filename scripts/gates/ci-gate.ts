@@ -391,6 +391,13 @@ async function gate(): Promise<void> {
         args: ['validate:doc-currency', '--mode=ci'],
       },
       {
+        // GAP-451: docs archived out of this repo must leave no live inbound
+        // links behind. Local parity with .github/workflows/archive-check.yml.
+        name: 'Archive links (hard fail)',
+        command: 'node',
+        args: ['scripts/validate/archive-check.cjs', '--ci'],
+      },
+      {
         name: 'Design-context drift (hard fail)',
         command: 'pnpm',
         args: ['validate:design-context'],

@@ -5,6 +5,19 @@
  * vendored per-repo copy.
  */
 
+export type {
+  DeadInboundLink,
+  ScanInboundLinksInput,
+  ScannedFile,
+} from './archive-check.js';
+export {
+  ARCHIVE_URL_PREFIX,
+  countOccurrences,
+  isHistoricalPath,
+  JV_HISTORICAL_MARKERS,
+  REVEALUI_HISTORICAL_MARKERS,
+  scanInboundLinks,
+} from './archive-check.js';
 export type { DetectionRule } from './doc-currency-shared-rules.js';
 export {
   COMMON_EXON,
