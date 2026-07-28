@@ -1,6 +1,6 @@
 # RevealUI
 
-> The agentic business runtime. Five primitives — users, content, products, payments, AI — pre-wired for humans and AI agents to build businesses together. Open source (MIT) + Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
+> The agentic business runtime. Five primitives: People, Content, Offers, Payments, and Agents, pre-wired for humans and AI agents to build businesses together. Open source (MIT) + Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
 
 ## Documentation
 
