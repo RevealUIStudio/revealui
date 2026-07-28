@@ -107,6 +107,26 @@ export function DocumentForm({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {collection.upload && !document ? (
+            <div>
+              <label htmlFor="__file" className="block text-sm font-medium text-foreground">
+                File
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="mt-1">
+                <input
+                  type="file"
+                  id="__file"
+                  required
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFieldChange('file', file);
+                  }}
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                />
+              </div>
+            </div>
+          ) : null}
           {visibleFields.map((field: RevealUIField) => (
             <div key={field.name || 'layout'}>
               <label htmlFor={field.name} className="block text-sm font-medium text-foreground">
