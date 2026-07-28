@@ -43,7 +43,7 @@ vi.mock('@revealui/security/server', async () => {
   };
 });
 
-import app, { classifyProbeError, safeErrorCode } from './worker-liveness.js';
+import app, { classifyProbeError, safeErrorCode, safeErrorNames } from './worker-liveness.js';
 
 const CRON_SECRET = 'test-cron-secret-long-enough-32chars!';
 
@@ -248,6 +248,34 @@ describe('classifyProbeError', () => {
     const top = new TypeError('fetch failed', { cause: aggregate });
 
     expect(classifyProbeError(top)).toBe('dns-unresolved');
+  });
+
+  // GAP-455 round 3. Two deployed classifiers both answered 'network-error'
+  // with no code, so the SHAPE of the throw is the remaining signal.
+  it('fingerprints the error tree with allowlisted class names', () => {
+    const aggregate = new AggregateError([new RangeError('x')], 'all failed');
+    const top = new TypeError('fetch failed', { cause: aggregate });
+    expect(safeErrorNames(top)).toEqual(['TypeError', 'AggregateError', 'RangeError']);
+  });
+
+  it('reports an unrecognized error class as "other" rather than echoing it', () => {
+    class SneakyError extends Error {
+      override name = 'Sneaky https://worker.example.internal';
+    }
+    const names = safeErrorNames(new SneakyError('boom'));
+    expect(names).toEqual(['other']);
+    expect(names.join(',')).not.toContain('worker.example.internal');
+  });
+
+  it('names a non-Error throw, which the walk cannot otherwise see', () => {
+    expect(safeErrorNames('just a string')).toEqual(['non-error-throw']);
+    expect(safeErrorNames(undefined)).toEqual(['undefined-throw']);
+  });
+
+  it('caps the fingerprint so a deep tree cannot produce unbounded output', () => {
+    let err = new Error('leaf');
+    for (let i = 0; i < 30; i++) err = new Error(`level-${i}`, { cause: err });
+    expect(safeErrorNames(err).length).toBeLessThanOrEqual(8);
   });
 
   it('terminates on an AggregateError that contains itself', () => {
