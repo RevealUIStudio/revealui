@@ -19,7 +19,7 @@ interface FreeTierBannerProps {
 }
 
 export function FreeTierBanner({ isHosted }: FreeTierBannerProps) {
-  const { tier, isLoading } = useLicense();
+  const { tier, isLoading, resolveError } = useLicense();
   // Start dismissed=true to avoid a hydration flash on the server render.
   // useEffect corrects it client-side after sessionStorage is available.
   const [dismissed, setDismissed] = useState(true);
@@ -33,7 +33,9 @@ export function FreeTierBanner({ isHosted }: FreeTierBannerProps) {
     setDismissed(true);
   }, []);
 
-  if (isLoading || dismissed || tier !== 'free') return null;
+  // GAP-454: never claim Free when tier resolution failed (401 / network).
+  // Only a successful resolve to free may show the money-adjacent banner.
+  if (isLoading || dismissed || resolveError || tier !== 'free') return null;
 
   return (
     <div className="mb-4 flex items-center justify-between gap-x-6 rounded-lg bg-primary px-5 py-2.5 text-sm text-primary-foreground">

@@ -185,7 +185,7 @@ export async function getSession(
     if (requestContext) {
       const bindingError = validateSessionBinding(session, requestContext);
       if (bindingError) {
-        logger.warn('Session binding violation  -  invalidating session', {
+        logger.error('Session binding violation  -  invalidating session', {
           sessionId: session.id,
           reason: bindingError,
         });
