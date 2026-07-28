@@ -27,7 +27,9 @@
       "text-1": "oklch(0.83 0.015 245)",
       "text-2": "oklch(0.65 0.025 250)",
       "text-on-brand": "oklch(0.16 0.030 260)",
-      "warning-text": "oklch(0.70 0.165 80)"
+      "warning-text": "oklch(0.70 0.165 80)",
+      "success-text": "oklch(0.60 0.125 165)",
+      "error-text": "oklch(0.62 0.170 18)"
     },
     "light": {
       "surface-0": "oklch(0.985 0.005 250)",
@@ -35,9 +37,11 @@
       "surface-2": "oklch(0.965 0.006 248)",
       "text-0": "oklch(0.16 0.030 260)",
       "text-1": "oklch(0.34 0.030 250)",
-      "text-2": "oklch(0.50 0.030 250)",
+      "text-2": "oklch(0.48 0.030 250)",
       "text-on-brand": "oklch(0.985 0.005 250)",
-      "warning-text": "oklch(0.45 0.130 75)"
+      "warning-text": "oklch(0.45 0.130 75)",
+      "success-text": "oklch(0.48 0.135 165)",
+      "error-text": "oklch(0.48 0.190 15)"
     }
   },
   "voice": {

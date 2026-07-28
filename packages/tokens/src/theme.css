@@ -80,6 +80,7 @@
   --color-success-strong: var(--rvui-success-strong);
   --color-success-subtle: var(--rvui-success-subtle);
   --color-success-foreground: var(--rvui-text-on-success);
+  --color-success-text: var(--rvui-success-text);
   --color-warning: var(--rvui-warning);
   --color-warning-subtle: var(--rvui-warning-subtle);
   --color-warning-foreground: var(--rvui-text-on-warning);
@@ -88,6 +89,7 @@
   --color-destructive-foreground: var(--rvui-text-on-error);
   --color-error: var(--rvui-error);
   --color-error-subtle: var(--rvui-error-subtle);
+  --color-error-text: var(--rvui-error-text);
   --color-info: var(--rvui-info);
   --color-info-subtle: var(--rvui-info-subtle);
 

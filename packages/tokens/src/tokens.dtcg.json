@@ -469,7 +469,7 @@
         "$extensions": {
           "com.revealui.theme": {
             "dark": "oklch(0.65 0.025 250)",
-            "light": "oklch(0.50 0.030 250)"
+            "light": "oklch(0.48 0.030 250)"
           }
         }
       }
@@ -586,6 +586,26 @@
           "com.revealui.theme": {
             "dark": "oklch(0.52 0.200 15 / 0.12)",
             "light": "oklch(0.50 0.200 15 / 0.10)"
+          }
+        }
+      },
+      "successText": {
+        "$type": "color",
+        "$value": "oklch(0.60 0.125 165)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.60 0.125 165)",
+            "light": "oklch(0.48 0.135 165)"
+          }
+        }
+      },
+      "errorText": {
+        "$type": "color",
+        "$value": "oklch(0.62 0.170 18)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.62 0.170 18)",
+            "light": "oklch(0.48 0.190 15)"
           }
         }
       },
