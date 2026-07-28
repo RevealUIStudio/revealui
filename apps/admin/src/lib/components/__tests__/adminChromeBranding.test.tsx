@@ -1,5 +1,5 @@
 import { AdminDashboard, generatePageMetadata } from '@revealui/core/admin';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminSidebarLayout } from '../AdminSidebarLayout';
@@ -51,7 +51,7 @@ describe('admin chrome white-label branding', () => {
   });
 
   describe('AdminDashboard', () => {
-    it('brands the top-bar heading and status copy from the siteName prop', () => {
+    it('brands the top-bar heading from the siteName prop', () => {
       render(<AdminDashboard config={{ collections: [], globals: [] } as never} siteName="Acme" />);
       expect(screen.getByRole('heading', { name: 'Acme Admin' })).toBeDefined();
       expect(screen.queryByText(/RevealUI/)).toBeNull();
@@ -60,6 +60,58 @@ describe('admin chrome white-label branding', () => {
     it('defaults to the canonical heading', () => {
       render(<AdminDashboard config={{ collections: [], globals: [] } as never} />);
       expect(screen.getByRole('heading', { name: 'RevealUI Admin' })).toBeDefined();
+    });
+
+    it('groups collections into the Operate / Build / Configure taxonomy', () => {
+      const collections = [
+        // versioned -> worked day to day -> Operate
+        { slug: 'orders', fields: [], versions: { drafts: true } },
+        // auth -> identity and access -> Configure
+        { slug: 'users', fields: [], auth: {} },
+        // no auth/versions -> catalog structure -> Build
+        { slug: 'products', fields: [] },
+      ];
+      render(<AdminDashboard config={{ collections, globals: [] } as never} />);
+
+      const operate = screen.getByRole('region', { name: 'Operate' });
+      const build = screen.getByRole('region', { name: 'Build' });
+      const configure = screen.getByRole('region', { name: 'Configure' });
+
+      expect(within(operate).getByText('orders')).toBeDefined();
+      expect(within(build).getByText('products')).toBeDefined();
+      expect(within(configure).getByText('users')).toBeDefined();
+    });
+
+    it('omits empty taxonomy groups instead of rendering blank cards', () => {
+      const collections = [{ slug: 'products', fields: [] }];
+      render(<AdminDashboard config={{ collections, globals: [] } as never} />);
+
+      expect(screen.getByRole('region', { name: 'Build' })).toBeDefined();
+      expect(screen.queryByRole('region', { name: 'Operate' })).toBeNull();
+      expect(screen.queryByRole('region', { name: 'Configure' })).toBeNull();
+    });
+
+    it('renders system status as a StatusDot-led card, not a prose sentence', () => {
+      render(<AdminDashboard config={{ collections: [], globals: [] } as never} siteName="Acme" />);
+
+      expect(screen.getByRole('heading', { name: 'System status' })).toBeDefined();
+      expect(screen.getByRole('img', { name: 'System status: Healthy' })).toBeDefined();
+      // The old hardcoded "{siteName} admin is running successfully" prose line is gone.
+      expect(screen.queryByText(/admin is running successfully/)).toBeNull();
+    });
+
+    it('links the media collection to the media library, not the generic editor (GAP-452)', () => {
+      const collections = [
+        { slug: 'media', fields: [], upload: {} },
+        { slug: 'products', fields: [] },
+      ];
+      render(<AdminDashboard config={{ collections, globals: [] } as never} />);
+
+      const mediaLink = screen.getByRole('link', { name: 'media' });
+      expect(mediaLink).toHaveAttribute('href', '/media');
+      // Non-overridden collections stay in-app clickable rows, not links.
+      expect(screen.getByRole('button', { name: 'products' })).toBeDefined();
+      expect(screen.queryByRole('link', { name: 'products' })).toBeNull();
     });
   });
 
