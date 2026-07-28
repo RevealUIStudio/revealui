@@ -16,12 +16,21 @@ name: Worker Liveness Probe (5-min)
 # and out of Actions logs.
 
 on:
-  schedule:
-    # Every 5 minutes (GitHub's minimum granularity). UTC. Scheduled runs can
-    # be delayed 5-15 min during high GHA load, so actual cadence is
-    # "approximately every 5 minutes," not exact  -  acceptable for a
-    # liveness backstop.
-    - cron: '*/5 * * * *'
+  # SCHEDULE DISABLED 2026-07-28 (GAP-455) — the probe false-alarmed on every
+  # scheduled run, returning {"healthy":false,"error":"network-error"} while
+  # the worker was verifiably healthy (direct /health 200, Fly checks passing,
+  # sweep ticks errors=0). A monitor that cries wolf is worse than no monitor,
+  # and this repo is PUBLIC, so each red run advertises an outage that is not
+  # happening. Re-enabling the cron below is part of GAP-455's acceptance,
+  # after the probe's error buckets are split (guard-blocked vs timeout vs
+  # network) and the real cause is confirmed and fixed. Manual runs still work.
+  #
+  # schedule:
+  #   # Every 5 minutes (GitHub's minimum granularity). UTC. Scheduled runs can
+  #   # be delayed 5-15 min during high GHA load, so actual cadence is
+  #   # "approximately every 5 minutes," not exact  -  acceptable for a
+  #   # liveness backstop.
+  #   - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       reason:

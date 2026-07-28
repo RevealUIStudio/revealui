@@ -13,10 +13,11 @@ This kit is content and curation layered on top of the free, MIT-licensed
 free in RevealUI (the scaffolder, the five app templates, the framework
 packages) stays free. What this kit adds:
 
-1. A **fixed, tested docker-compose recipe** for self-hosting the RevealUI
-   backend at Free (OSS) tier, no license key required.
-2. A **one-command bootstrap** that wires up the database migration step the
-   free scaffolder documents but doesn't run for you.
+1. A **ready-to-run Postgres** configured the way RevealUI actually needs it
+   (the `vector` extension its first migration requires), so self-hosting at
+   Free (OSS) tier works on the first try.
+2. A **one-command bootstrap** for that database, with the exact connection
+   string to paste into your app.
 3. An **env template with real secret-generation commands**, not just prose.
 4. **Three governed-agent recipes**, each producing a cryptographically
    signed, offline-verifiable receipt of every action — the pattern the
@@ -61,37 +62,53 @@ Read `src/receipts/sign.ts` and `src/receipts/verify.ts` for the primitives —
 they're built entirely on `@revealui/security` (MIT, free, ships with every
 RevealUI install). Nothing in the receipt mechanism requires a Pro license.
 
-## Self-hosting the RevealUI backend (Free tier, no license key)
+## Self-hosting RevealUI (Free tier, no license key)
 
-The docker-compose path here is a fixed, minimal version of the one in the
-main `revealui` repo root, scoped to Postgres + the API + the admin
-dashboard (the marketing site is a separate app; run it with
-`pnpm --filter marketing dev` if you want it too).
+RevealUI ships on the public npm registry, so your app is an ordinary npm
+install — there is no image to pull and nothing to build from source. Two
+pieces: a database (this kit gives you one), and the app itself (the free
+scaffolder gives you that).
+
+**1. Start the database.**
 
 ```bash
 cp .env.starter.example .env
 bash scripts/generate-secrets.sh >> .env   # fills in every *_SECRET / *_KEY value
-# edit .env: set REVEALUI_ADMIN_EMAIL to your real email
-bash scripts/bootstrap.sh                  # starts postgres, migrates, then api + admin
+bash scripts/bootstrap.sh                  # starts postgres, waits for health
 ```
 
-This boots at **Free (OSS) tier by default** — `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true`
-is already set in `docker-compose.starter.yml`. If you have a Fleet license,
-set `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY` in `.env` instead.
+`bootstrap.sh` prints the exact `POSTGRES_URL` to use in the next step.
 
-Once `admin` reports healthy, log in at `http://localhost:4000/` with the
-`REVEALUI_ADMIN_EMAIL` / `REVEALUI_ADMIN_PASSWORD` you set in `.env` (this
-only seeds the account once — rotate the password immediately after your
-first login).
+**2. Create your app.**
 
-`[owner: test once]` — the docker build itself (`docker compose -f
-docker-compose.starter.yml build`) was not run end-to-end in the session that
-built this kit, to avoid a long build inside an agent session. The compose
-file's YAML and env-var interpolation were validated (`docker compose config`),
-and every underlying piece (`apps/server/Dockerfile`, `apps/admin/Dockerfile`,
-the `REVEALUI_ALLOW_UNLICENSED_SELF_HOST` gate) is the same code the fleet's
-own Railway deployment doc verifies against. Run the actual build once before
-shipping the first purchase confirmation.
+```bash
+npm create revealui@latest my-app
+cd my-app
+```
+
+Put the `POSTGRES_URL` from step 1 into `my-app/.env`, along with the
+`REVEALUI_SECRET`, `REVEALUI_KEK`, and `REVEALUI_AUDIT_SIGNING_KEY` values
+that `generate-secrets.sh` produced — they are the same secrets, and the app
+is what reads them.
+
+```bash
+pnpm install
+pnpm db:migrate
+pnpm dev
+```
+
+Your app is on `http://localhost:4000/`.
+
+This runs at **Free (OSS) tier** — no license key, nothing to activate. If you
+have a Fleet license, set `REVEALUI_LICENSE_KEY` / `REVEALUI_LICENSE_PUBLIC_KEY`
+in your app's `.env`.
+
+> **Why the app is not in the compose file.** Earlier versions of this kit
+> shipped a compose file that built the API and admin from the RevealUI
+> monorepo's own Dockerfiles. That only worked with the full monorepo checked
+> out two levels above the kit, which is not something you have. The framework
+> is on npm, so the app is an npm install and the compose file covers only the
+> database.
 
 ## Upgrading to Pro
 

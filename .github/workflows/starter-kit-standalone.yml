@@ -1,0 +1,116 @@
+name: Starter Kit Standalone
+
+# GAP-434. The starter kit ships to buyers as its own repo, so it must resolve
+# every dependency from the public npm registry with NO monorepo present.
+#
+# This is the check that was missing when the kit shipped broken: the kit used
+# to be a pnpm workspace member, so `workspace:*` and `catalog:` specs resolved
+# in-tree and the whole thing looked healthy while being unbuildable for a
+# buyer. A `docker compose config --quiet` parse passed too. Neither proved
+# anything.
+#
+# So this job copies the kit OUT of the repo, into a directory with no
+# workspace above it, and does a real install + typecheck + test + recipe run.
+
+on:
+  push:
+    branches: [main, test]
+    paths:
+      - examples/starter-kit/**
+      - pnpm-workspace.yaml
+      - .github/workflows/starter-kit-standalone.yml
+  pull_request:
+    branches: [main, test]
+    paths:
+      - examples/starter-kit/**
+      - pnpm-workspace.yaml
+      - .github/workflows/starter-kit-standalone.yml
+  schedule:
+    # Weekly: the kit floats on ^ ranges of published @revealui packages, so it
+    # can break without anyone touching this repo.
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+concurrency:
+  group: starter-kit-standalone-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  standalone:
+    name: Clean-clone build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Assert the kit declares no workspace-only dependency specs
+        run: |
+          # `workspace:` and `catalog:` are pnpm-workspace protocols. They
+          # cannot resolve from a plain clone, so their presence here means the
+          # kit is unbuildable for a buyer no matter what the rest of CI says.
+          if grep -nF -e '"workspace:' -e '"catalog:' examples/starter-kit/package.json; then
+            echo "::error::examples/starter-kit/package.json uses workspace-only dep specs (workspace:/catalog:). A buyer's clean clone cannot resolve these. Use published npm ranges."
+            exit 1
+          fi
+          echo "OK — no workspace-only specs."
+
+      - name: Copy the kit out of the monorepo
+        run: |
+          mkdir -p "$RUNNER_TEMP/kit"
+          cp -r examples/starter-kit/. "$RUNNER_TEMP/kit/"
+          rm -rf "$RUNNER_TEMP/kit/node_modules"
+          echo "--- kit contents, with no workspace above it ---"
+          ls -a "$RUNNER_TEMP/kit"
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install from the public registry only
+        working-directory: ${{ runner.temp }}/kit
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Typecheck
+        working-directory: ${{ runner.temp }}/kit
+        run: pnpm typecheck
+
+      - name: Test
+        working-directory: ${{ runner.temp }}/kit
+        run: pnpm test
+
+      - name: Run the governed-agent recipes and verify their receipts
+        working-directory: ${{ runner.temp }}/kit
+        run: |
+          pnpm recipe:action
+          pnpm recipe:loop
+          pnpm verify-receipt receipt-action.json
+          pnpm verify-receipt receipt-loop.json
+
+      - name: Boot the kit's Postgres and confirm the vector extension
+        working-directory: ${{ runner.temp }}/kit
+        run: |
+          cp .env.starter.example .env
+          bash scripts/generate-secrets.sh >> .env
+          bash scripts/bootstrap.sh
+          set -a; . ./.env; set +a
+          docker compose -f docker-compose.starter.yml exec -T postgres \
+            psql -U "${POSTGRES_USER:-revealui}" -d "${POSTGRES_DB:-revealui}" \
+            -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+
+      - name: Tear down
+        if: always()
+        working-directory: ${{ runner.temp }}/kit
+        run: docker compose -f docker-compose.starter.yml down -v --remove-orphans || true
