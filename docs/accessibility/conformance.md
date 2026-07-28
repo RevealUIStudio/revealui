@@ -3,11 +3,11 @@
 
 # Accessibility conformance report
 
-**Package** `@revealui/presentation@0.12.1`  
+**Package** `@revealui/presentation@0.13.0`  
 **Target** WCAG 2.2 Level AA  
 **Generated** 2026-07-28  
-**Assessed** 6 of 65 shipped components (9%)
-**Documented** 55 of 65 have a showcase page
+**Assessed** 11 of 64 shipped components (17%)
+**Documented** 64 of 64 shipped components have showcase coverage (60 registry pages)
 
 ## How this report is produced
 
@@ -28,7 +28,7 @@ third-party audit — none has been performed, and this report does not imply on
 
 ## Not yet assessed
 
-49 of the 55 showcase pages carry no conformance claim. They are
+49 of the 60 showcase pages carry no conformance claim. They are
 covered by the axe gate like every other component, but no per-criterion claim has been
 recorded, so they are listed here rather than presented as conforming.
 
@@ -84,13 +84,6 @@ recorded, so they are listed here rather than presented as conforming.
 | Tooltip | not assessed |
 | Wordmark | partially documented — no criteria listed |
 
-## Not documented at all
-
-10 of 65 shipped components have no showcase page. A component without a
-showcase is outside the visual-regression gate, outside the axe gate, and outside this
-report — neither verified nor claimed. Closing that gap comes before backfilling
-conformance on the rest.
-
 ## Per-component conformance
 
 ### Audit Line
@@ -110,6 +103,17 @@ Documentation: https://docs.revealui.com/showcase/audit-line
 
 **Notes** The receipt reference copies to the clipboard on click; a visually-hidden live region announces the copy.
 
+### Auth Layout
+
+Source: `src/components/auth-layout.tsx`  
+Documentation: https://docs.revealui.com/showcase/auth-layout
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Renders a main landmark. Provide labelled controls inside children.
+
 ### Form Field
 
 Source: `src/components/form-field.tsx`  
@@ -127,6 +131,30 @@ Documentation: https://docs.revealui.com/showcase/form-field
 | `aria-invalid` | Set on the control by the consumer when an error is present. |
 
 **Notes** The child control must carry the same id passed to FormField so the label associates correctly. Helper text is hidden while an error is shown to avoid duplicate descriptions.
+
+### Form Label
+
+Source: `src/components/FormLabel.tsx`  
+Documentation: https://docs.revealui.com/showcase/form-label
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 3.3.2 Labels or Instructions
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Tab` | Moves focus to the associated control via label htmlFor |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `for` | Associates the label with a control id |
+
+**Notes** Required marker is visible text (*); pair with aria-required on the control.
 
 ### Label
 
@@ -165,6 +193,64 @@ Documentation: https://docs.revealui.com/showcase/linkbutton
 | `aria-busy` | Set to  |
 
 **Notes** External links (`external` prop) add `rel="noopener noreferrer"` for tab-nap protection. The component wraps children in `TouchTarget` to ensure ≥44×44 mobile tap area, matching `Button` ergonomics.
+
+### Sidebar Layout
+
+Source: `src/components/sidebar-layout.tsx`  
+Documentation: https://docs.revealui.com/showcase/sidebar-layout
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 2.4.3 Focus Order
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Closes the mobile navigation dialog |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-label` | Open navigation control on the mobile menu button |
+| `aria-modal` | Mobile nav uses a dialog with focus trap |
+
+### Split Auth Layout
+
+Source: `src/components/split-auth-layout.tsx`  
+Documentation: https://docs.revealui.com/showcase/split-auth-layout
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 1.4.3 Contrast (Minimum)
+
+**Notes** Set --tenant-brand-on when using a custom brand surface so brand text meets contrast.
+
+### Stacked Layout
+
+Source: `src/components/stacked-layout.tsx`  
+Documentation: https://docs.revealui.com/showcase/stacked-layout
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 2.4.3 Focus Order
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Closes the mobile navigation dialog |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-label` | Open navigation control on the mobile menu button |
+| `aria-modal` | Mobile nav uses a dialog with focus trap |
 
 ### Status Dot
 
@@ -208,6 +294,11 @@ Documentation: https://docs.revealui.com/showcase/verdict-chip
 | WCAG 1.3.1 Info and Relationships | Form Field, Label |
 | WCAG 1.4.1 Use of Color | Status Dot, Verdict Chip |
 | WCAG 2.1.1 Keyboard | Audit Line, LinkButton |
+| WCAG 2.2 1.3.1 Info and Relationships | Auth Layout, Form Label, Split Auth Layout |
+| WCAG 2.2 1.4.3 Contrast (Minimum) | Split Auth Layout |
+| WCAG 2.2 2.1.1 Keyboard | Sidebar Layout, Stacked Layout |
+| WCAG 2.2 2.4.3 Focus Order | Sidebar Layout, Stacked Layout |
+| WCAG 2.2 3.3.2 Labels or Instructions | Form Label |
 | WCAG 2.3.3 Animation from Interactions | Status Dot |
 | WCAG 2.4.4 Link Purpose (In Context) | LinkButton |
 | WCAG 3.3.1 Error Identification | Form Field |

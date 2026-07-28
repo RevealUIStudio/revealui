@@ -2,7 +2,7 @@
 
 # Accessibility Conformance Report — VPAT® 2.5 (WCAG edition)
 
-**Name of Product** @revealui/presentation 0.12.1  
+**Name of Product** @revealui/presentation 0.13.0  
 **Product Description** React component library and design token system.  
 **Report Date** 2026-07-28  
 **Contact** founder@revealui.com  
@@ -38,6 +38,11 @@ independent third-party audit has been performed.
 | WCAG 1.3.1 Info and Relationships | Supports | Claimed and gate-covered in: Form Field, Label |
 | WCAG 1.4.1 Use of Color | Supports | Claimed and gate-covered in: Status Dot, Verdict Chip |
 | WCAG 2.1.1 Keyboard | Supports | Claimed and gate-covered in: Audit Line, LinkButton |
+| WCAG 2.2 1.3.1 Info and Relationships | Supports | Claimed and gate-covered in: Auth Layout, Form Label, Split Auth Layout |
+| WCAG 2.2 1.4.3 Contrast (Minimum) | Supports | Claimed and gate-covered in: Split Auth Layout |
+| WCAG 2.2 2.1.1 Keyboard | Supports | Claimed and gate-covered in: Sidebar Layout, Stacked Layout |
+| WCAG 2.2 2.4.3 Focus Order | Supports | Claimed and gate-covered in: Sidebar Layout, Stacked Layout |
+| WCAG 2.2 3.3.2 Labels or Instructions | Supports | Claimed and gate-covered in: Form Label |
 | WCAG 2.3.3 Animation from Interactions | Supports | Claimed and gate-covered in: Status Dot |
 | WCAG 2.4.4 Link Purpose (In Context) | Supports | Claimed and gate-covered in: LinkButton |
 | WCAG 3.3.1 Error Identification | Supports | Claimed and gate-covered in: Form Field |
@@ -53,7 +58,7 @@ independent third-party audit has been performed.
 | 2.4.2 Page Titled | Not Applicable | Determined by the consuming application. |
 | 2.4.1 Bypass Blocks | Not Applicable | Determined by the consuming application; layout shells accept a skip-link slot. |
 
-## Components not yet individually assessed (49 of 55)
+## Components not yet individually assessed (49 of 60)
 
 Covered by the automated axe gate, without a recorded per-criterion claim:
 
