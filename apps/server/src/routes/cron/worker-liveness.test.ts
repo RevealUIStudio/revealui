@@ -310,6 +310,29 @@ describe('classifyProbeError against the real SSRF guard', () => {
     );
   });
 
+  // Locks the fragment against the guard's ACTUAL message. If ssrf.ts rewords
+  // "connection guard unavailable", this fails — rather than silently
+  // degrading to 'blocked-by-guard', which is a valid enum value and would
+  // therefore break nothing while pointing an operator at the wrong system.
+  it('classifies a guard that cannot build itself as guard-unavailable', async () => {
+    const { createSafeFetch: realSafeFetch } = await vi.importActual<
+      typeof import('@revealui/security/server')
+    >('@revealui/security/server');
+
+    const broken = realSafeFetch({
+      dispatcherFactory: async () => {
+        throw new TypeError('Agent is not a constructor');
+      },
+    });
+
+    const err = await broken('https://1.1.1.1/health').catch((e: unknown) => e);
+    expect(classifyProbeError(err)).toBe('guard-unavailable');
+
+    // The distinction that matters operationally: this must NOT read as the
+    // target having been blocked.
+    expect(classifyProbeError(err)).not.toBe('blocked-by-guard');
+  });
+
   it('classifies an unresolvable host as dns-unresolved', async () => {
     const { createSafeFetch: realSafeFetch } = await vi.importActual<
       typeof import('@revealui/security/server')

@@ -14,10 +14,9 @@ owner: RevealUI Studio
 
 **This public snapshot is retired (2026-07-16).**
 
-Detailed planning for RevealUI lives in the internal coordination hub, per the
-two-repo model in
-[ADR-005](./architecture/ADR-005-two-repo-model.md): release timelines and
-phase tracking are business-sensitive and are not mirrored into this repo. The
+Detailed planning for RevealUI lives in a private internal coordination hub:
+release timelines and phase tracking are business-sensitive and are not
+mirrored into this repo. The
 former quarterly public-snapshot cadence is retired with this stub; the
 snapshot repeatedly aged into stale guidance between refreshes (see the
 drift-sweep findings in PR #1893).

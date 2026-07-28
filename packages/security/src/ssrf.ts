@@ -274,7 +274,27 @@ export function createSafeFetch(options: SafeFetchOptions = {}): typeof fetch {
 
   let dispatcherPromise: Promise<unknown> | undefined;
   const getDispatcher = (): Promise<unknown> => {
-    if (!dispatcherPromise) dispatcherPromise = dispatcherFactory();
+    if (!dispatcherPromise) {
+      dispatcherPromise = dispatcherFactory().catch((err: unknown) => {
+        // Do NOT cache a rejected promise. Previously one transient failure
+        // poisoned every later call for the life of the process, because the
+        // rejected promise was memoized and returned forever.
+        dispatcherPromise = undefined;
+
+        // Re-label as an SSRF-prefixed failure. A raw construction error is a
+        // bare TypeError with no `cause` and no `code`, which is
+        // indistinguishable from a network fault to any caller — GAP-455 spent
+        // four rounds and three deploys discovering that a "worker unreachable"
+        // alarm was actually this. The guard failing to build itself and the
+        // network failing are different diagnoses and must read differently.
+        //
+        // The message is a fixed constant: nothing from `err` is interpolated,
+        // so no target hostname can reach a log or an alert through here.
+        throw new Error('SSRF: connection guard unavailable — dispatcher initialization failed', {
+          cause: err,
+        });
+      });
+    }
     return dispatcherPromise;
   };
 
@@ -316,7 +336,21 @@ export function createSafeFetch(options: SafeFetchOptions = {}): typeof fetch {
  * internal address.
  */
 async function createValidatingDispatcher(): Promise<unknown> {
-  const { Agent } = await import('undici');
+  const mod = await import('undici');
+
+  // Resolve `Agent` from either module shape. A bundler can hand back a CJS
+  // namespace whose real exports sit under `default`, leaving `mod.Agent`
+  // undefined so `new Agent(...)` throws a bare TypeError with no `code` —
+  // which is exactly the signature observed in production (GAP-455). A missing
+  // module would instead carry ERR_MODULE_NOT_FOUND, so the import succeeding
+  // while `Agent` is absent is the interop case, not an absent dependency.
+  const candidate =
+    (mod as { Agent?: unknown }).Agent ?? (mod as { default?: { Agent?: unknown } }).default?.Agent;
+
+  if (typeof candidate !== 'function') {
+    throw new Error('SSRF: connection guard unavailable — undici Agent could not be resolved');
+  }
+  const Agent = candidate as typeof import('undici').Agent;
   const lookup = (
     hostname: string,
     _options: unknown,
