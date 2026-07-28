@@ -1,5 +1,5 @@
 import { cn } from '../utils/cn.js';
-import { resolveIntent, type Intent, type LegacyColorway } from '../utils/intent.js';
+import { type Intent, type LegacyColorway, resolveIntent } from '../utils/intent.js';
 
 /** @deprecated Use `Intent` / the `intent` prop. Removed in 0.15. */
 type ProgressColor = 'blue' | 'green' | 'red' | 'amber' | 'violet' | 'zinc';

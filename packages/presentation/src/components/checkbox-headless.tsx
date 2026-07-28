@@ -5,7 +5,7 @@ import { FieldProvider } from '../hooks/use-field-context.js';
 import { useToggle } from '../hooks/use-toggle.js';
 import { cn } from '../utils/cn.js';
 import { focusRingGroup } from '../utils/focus.js';
-import { resolveIntent, type Intent, type LegacyColorway } from '../utils/intent.js';
+import { type Intent, type LegacyColorway, resolveIntent } from '../utils/intent.js';
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (

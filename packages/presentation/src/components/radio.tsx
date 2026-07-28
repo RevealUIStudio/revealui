@@ -5,7 +5,7 @@ import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { FieldProvider } from '../hooks/use-field-context.js';
 import { cn } from '../utils/cn.js';
 import { focusRingGroup } from '../utils/focus.js';
-import { resolveIntent, type Intent, type LegacyColorway } from '../utils/intent.js';
+import { type Intent, type LegacyColorway, resolveIntent } from '../utils/intent.js';
 
 // --- RadioGroup Context ---
 interface RadioGroupContextValue {
