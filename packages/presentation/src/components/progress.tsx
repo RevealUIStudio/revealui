@@ -1,20 +1,31 @@
 import { cn } from '../utils/cn.js';
+import { resolveIntent, type Intent, type LegacyColorway } from '../utils/intent.js';
 
+/** @deprecated Use `Intent` / the `intent` prop. Removed in 0.15. */
 type ProgressColor = 'blue' | 'green' | 'red' | 'amber' | 'violet' | 'zinc';
 
-const trackClasses: Record<ProgressColor, string> = {
-  blue: 'bg-blue-600 dark:bg-blue-500',
-  green: 'bg-green-600 dark:bg-green-500',
-  red: 'bg-red-600 dark:bg-red-500',
-  amber: 'bg-amber-500 dark:bg-amber-400',
-  violet: 'bg-violet-600 dark:bg-violet-500',
-  zinc: 'bg-zinc-600 dark:bg-zinc-400',
+const intentFill: Record<Intent, string> = {
+  brand: 'bg-primary',
+  neutral: 'bg-surface-3',
+  success: 'bg-success-strong',
+  warning: 'bg-warning',
+  danger: 'bg-destructive',
+};
+
+const legacyColorToIntent: Record<ProgressColor, Intent> = {
+  blue: 'brand',
+  violet: 'brand',
+  green: 'success',
+  red: 'danger',
+  amber: 'warning',
+  zinc: 'neutral',
 };
 
 export function Progress({
   value,
   max = 100,
-  color = 'blue',
+  intent,
+  color,
   size = 'md',
   label,
   showValue = false,
@@ -22,12 +33,24 @@ export function Progress({
 }: {
   value: number;
   max?: number;
+  /** Semantic fill. Default `brand` (was palette `blue`). */
+  intent?: Intent;
+  /**
+   * @deprecated Use `intent`. Maps blue→brand, green→success, red→danger,
+   * amber→warning, violet→brand, zinc→neutral. Removed in 0.15.
+   */
   color?: ProgressColor;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   label?: string;
   showValue?: boolean;
   className?: string;
 }) {
+  const resolved = resolveIntent({
+    intent: intent ?? (color ? legacyColorToIntent[color] : undefined),
+    color: color as LegacyColorway | undefined,
+    component: 'Progress',
+    defaultIntent: 'brand',
+  });
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
   const heightClass = { xs: 'h-1', sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' }[size];
 
@@ -35,13 +58,9 @@ export function Progress({
     <div className={cn('w-full', className)}>
       {(label || showValue) && (
         <div className="mb-1.5 flex items-center justify-between">
-          {label && (
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</span>
-          )}
+          {label && <span className="text-sm font-medium text-body">{label}</span>}
           {showValue && (
-            <span className="text-sm text-zinc-500 dark:text-zinc-400">
-              {Math.round(percentage)}%
-            </span>
+            <span className="text-sm text-muted-foreground">{Math.round(percentage)}%</span>
           )}
         </div>
       )}
@@ -51,15 +70,12 @@ export function Progress({
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label ?? 'Progress'}
-        className={cn(
-          'w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700',
-          heightClass,
-        )}
+        className={cn('w-full overflow-hidden rounded-full bg-surface-2', heightClass)}
       >
         <div
           className={cn(
             'h-full rounded-full transition-all duration-300 ease-in-out',
-            trackClasses[color],
+            intentFill[resolved],
           )}
           style={{ width: `${percentage}%` }}
         />

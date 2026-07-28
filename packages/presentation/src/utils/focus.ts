@@ -56,14 +56,14 @@ export const focusRingGroup =
  * another purpose and paint the ring via `::after` (listbox and combobox
  * triggers). Kept separate so the offset stays inside the rounded corner.
  *
- * Replaces: `data-focus:after:ring-2 data-focus:after:ring-blue-500`
+ * Replaces: `data-focus:after:ring-2 data-focus:after:ring-ring`
  */
 export const focusRingAfter = 'data-focus:after:ring-2 data-focus:after:ring-ring';
 
 /**
  * Active-option highlight inside menus and listboxes. Not a focus *ring* — the
  * filled row that follows keyboard navigation in Dropdown, Listbox and
- * Combobox. It was `data-focus:bg-blue-500 data-focus:text-white`, which is
+ * Combobox. It was `data-focus:bg-primary data-focus:text-primary-foreground`, which is
  * both off-brand and unthemeable; the ink token guarantees AA on the fill.
  */
 export const activeOption = 'data-focus:bg-primary data-focus:text-primary-foreground';

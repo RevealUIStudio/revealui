@@ -104,6 +104,8 @@ function classify(name) {
   let m;
   if ((m = k.match(/^(brand|accent)(?:-(.+))?$/))) return ['color', m[1], m[2] || 'base', 'color'];
   if ((m = k.match(/^surface-(\d)$/))) return ['color', 'surface', m[1], 'color'];
+  // Modal/drawer backdrop — not a surface step (opacity differs per theme).
+  if (k === 'scrim') return ['color', 'scrim', 'base', 'color'];
   if ((m = k.match(/^text-on-(.+)$/))) return ['color', 'textOn', m[1], 'color'];
   if ((m = k.match(/^text-(\d)$/))) return ['color', 'text', m[1], 'color'];
   if ((m = k.match(/^text-(.+)$/))) return FONT_SIZES.has(m[1]) ? ['fontSize', null, m[1], 'dimension'] : null;

@@ -27,8 +27,13 @@ export function Stepper({
 function StepIcon({ status }: { status: StepStatus }) {
   if (status === 'complete') {
     return (
-      <span className="flex size-8 items-center justify-center rounded-full bg-blue-600">
-        <svg viewBox="0 0 16 16" fill="none" className="size-4 text-white" aria-hidden="true">
+      <span className="flex size-8 items-center justify-center rounded-full bg-primary">
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          className="size-4 text-primary-foreground"
+          aria-hidden="true"
+        >
           <path
             d="M3 8l3.5 3.5L13 4"
             stroke="currentColor"
@@ -42,13 +47,13 @@ function StepIcon({ status }: { status: StepStatus }) {
   }
   if (status === 'current') {
     return (
-      <span className="flex size-8 items-center justify-center rounded-full border-2 border-blue-600 bg-white dark:bg-zinc-900">
-        <span className="size-2.5 rounded-full bg-blue-600" />
+      <span className="flex size-8 items-center justify-center rounded-full border-2 border-primary bg-card">
+        <span className="size-2.5 rounded-full bg-primary" />
       </span>
     );
   }
   return (
-    <span className="flex size-8 items-center justify-center rounded-full border-2 border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-900">
+    <span className="flex size-8 items-center justify-center rounded-full border-2 border-input bg-card">
       <span className="size-2.5 rounded-full bg-transparent" />
     </span>
   );
@@ -73,10 +78,10 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
                   className={cn(
                     'text-xs font-medium',
                     step.status === 'current'
-                      ? 'text-blue-600'
+                      ? 'text-primary'
                       : step.status === 'complete'
-                        ? 'text-zinc-950 dark:text-white'
-                        : 'text-zinc-400 dark:text-zinc-500',
+                        ? 'text-foreground'
+                        : 'text-muted-foreground',
                   )}
                 >
                   {step.label}
@@ -87,7 +92,7 @@ function StepperHorizontal({ steps, className }: { steps: StepperStep[]; classNa
                   aria-hidden="true"
                   className={cn(
                     'mx-3 h-px flex-1',
-                    step.status === 'complete' ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-700',
+                    step.status === 'complete' ? 'bg-primary' : 'bg-surface-2',
                   )}
                 />
               )}
@@ -119,7 +124,7 @@ function StepperVertical({ steps, className }: { steps: StepperStep[]; className
                     aria-hidden="true"
                     className={cn(
                       'w-px flex-1',
-                      step.status === 'complete' ? 'bg-blue-600' : 'bg-zinc-200 dark:bg-zinc-700',
+                      step.status === 'complete' ? 'bg-primary' : 'bg-surface-2',
                     )}
                   />
                 )}
@@ -129,18 +134,16 @@ function StepperVertical({ steps, className }: { steps: StepperStep[]; className
                   className={cn(
                     'text-sm font-medium',
                     step.status === 'current'
-                      ? 'text-blue-600'
+                      ? 'text-primary'
                       : step.status === 'complete'
-                        ? 'text-zinc-950 dark:text-white'
-                        : 'text-zinc-400 dark:text-zinc-500',
+                        ? 'text-foreground'
+                        : 'text-muted-foreground',
                   )}
                 >
                   {step.label}
                 </p>
                 {step.description && (
-                  <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-                    {step.description}
-                  </p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{step.description}</p>
                 )}
               </div>
             </li>

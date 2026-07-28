@@ -20,16 +20,16 @@ describe('Divider', () => {
     const { container } = render(<Divider />);
 
     const hr = container.querySelector('hr');
-    expect(hr).toHaveClass('border-zinc-950/10');
-    expect(hr).not.toHaveClass('border-zinc-950/5');
+    expect(hr).toHaveClass('border-border-strong');
+    expect(hr).not.toHaveClass('border-border');
   });
 
   it('should apply soft styling when soft prop is true', () => {
     const { container } = render(<Divider soft />);
 
     const hr = container.querySelector('hr');
-    expect(hr).toHaveClass('border-zinc-950/5');
-    expect(hr).not.toHaveClass('border-zinc-950/10');
+    expect(hr).toHaveClass('border-border');
+    expect(hr).not.toHaveClass('border-border-strong');
   });
 
   it('should apply custom className', () => {

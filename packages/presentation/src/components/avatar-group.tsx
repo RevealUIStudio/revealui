@@ -32,7 +32,7 @@ export function AvatarGroup({
             // biome-ignore lint/suspicious/noArrayIndexKey: avatar items are positionally ordered with no stable ID
             key={i}
             className={cn(
-              'ring-2 ring-white dark:ring-zinc-900',
+              'ring-2 ring-card',
               sizeClasses[size],
               i > 0 && overlapClass[size],
               'rounded-full',
@@ -52,7 +52,7 @@ export function AvatarGroup({
           className={cn(
             overlapClass[size],
             sizeClasses[size],
-            'flex items-center justify-center rounded-full bg-zinc-200 text-xs font-medium text-zinc-600 ring-2 ring-white dark:bg-zinc-700 dark:text-zinc-300 dark:ring-zinc-900',
+            'flex items-center justify-center rounded-full bg-surface-2 text-xs font-medium text-body ring-2 ring-card',
           )}
           role="img"
           aria-label={`${overflow} more`}

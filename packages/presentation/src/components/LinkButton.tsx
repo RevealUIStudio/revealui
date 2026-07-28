@@ -20,12 +20,12 @@ import { type ButtonProps, buttonVariants } from './Button.js';
  * `<a href="/contact" class="…button…">Book a call</a>` — SSR-safe, zero deps.
  *
  * App-level wiring (recommended for SPAs):
- *   <LinkBehaviorProvider component={MyLink} hrefProp="to">
- *     <App />  // every <LinkButton href="/x"> downstream uses MyLink
- *   </LinkBehaviorProvider>
+ * <LinkBehaviorProvider component={MyLink} hrefProp="to">
+ * <App /> // every <LinkButton href="/x"> downstream uses MyLink
+ * </LinkBehaviorProvider>
  *
  * Per-instance override (escape hatch):
- *   <LinkButton as={MyLink} to="/x">…</LinkButton>
+ * <LinkButton as={MyLink} to="/x">…</LinkButton>
  *
  * Shares its visual contract (variant, appearance, size, spinner, glow, shine,
  * transition) with `Button` via `_button-shared.tsx` and `buttonVariants`.

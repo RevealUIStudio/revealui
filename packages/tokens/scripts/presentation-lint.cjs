@@ -71,10 +71,14 @@ const SKIP_FILE = /(?:\.test\.tsx?|\.spec\.tsx?)$/;
 const EXEMPT = {
   // focus.ts documents the classes it replaces ("Replaces: outline-blue-500").
   // Without this, the fix for blocker 2 permanently fails the rule that checks it.
-  'raw-palette': [/utils\/focus\.ts$/],
+  'raw-palette': [/utils\/focus\.ts$/, /components\/badge\.tsx$/],
   'palette-css-var': [/utils\/focus\.ts$/],
   'literal-ring-colour': [/utils\/focus\.ts$/],
   'bare-white-black': [/utils\/focus\.ts$/],
+  // Badge keeps a 20-swatch product-tag palette on purpose (SEMANTIC-INTENTS.md):
+  // the colour carries user meaning, not system semantics. Gate 0 still removes
+  // its theme-lock `dark:` pairs; the remaining palette is the intentional API.
+  'dark-variant': [/components\/badge\.tsx$/],
   // The brand marks carry the brand's own geometry and fixed colours — cobalt
   // #003d94 and amber #eeb300 ARE the mark, and a themed logo is not a logo.
   'hex-literal': [/brand-mark\.tsx$/, /wordmark\.tsx$/],

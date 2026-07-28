@@ -162,6 +162,11 @@
    * Ratios computed against the fills below; see the PR body. */
   --rvui-text-on-success: oklch(0.985 0.005 250);
   --rvui-text-on-warning: var(--rvui-text-on-accent);
+  /* On-fill ink for solid error / danger surfaces (chips, Switch danger, etc.). */
+  --rvui-text-on-error: oklch(0.985 0.005 250);
+
+  /* Modal / drawer / alert backdrop. Higher opacity on dark so the layer reads. */
+  --rvui-scrim: oklch(0.10 0.020 260 / 0.62);
 
   /* ── Status ── */
   --rvui-success:         oklch(0.55 0.130 165);
@@ -201,7 +206,7 @@
   --accent: var(--rvui-accent);
   --accent-foreground: var(--rvui-text-on-accent);
   --destructive: var(--rvui-error);
-  --destructive-foreground: var(--rvui-text-0);
+  --destructive-foreground: var(--rvui-text-on-error);
   --border: var(--rvui-border);
   --input: var(--rvui-border);
   --ring: var(--rvui-brand);
@@ -257,6 +262,9 @@
    * Redeclared here so the cascade doesn't push the dark-mode near-black
    * ink onto a light-mode primary button (which would test at ~1.94:1). */
   --rvui-text-on-brand:  oklch(0.985 0.005 250);
+  --rvui-text-on-error:  oklch(0.985 0.005 250);
+  /* Lighter scrim over paper so the modal does not look bruised. */
+  --rvui-scrim: oklch(0.16 0.030 260 / 0.32);
 
   /* ── Status ── */
   --rvui-success:        oklch(0.48 0.135 165);
@@ -305,6 +313,8 @@
     --rvui-text-1: oklch(0.34 0.030 250);
     --rvui-text-2: oklch(0.50 0.030 250);
     --rvui-text-on-brand: oklch(0.985 0.005 250);  /* paper-white on cobalt-200, AAA */
+    --rvui-text-on-error: oklch(0.985 0.005 250);
+    --rvui-scrim: oklch(0.16 0.030 260 / 0.32);
 
     --rvui-success:        oklch(0.48 0.135 165);
     --rvui-success-subtle: oklch(0.48 0.135 165 / 0.10);

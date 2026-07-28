@@ -496,6 +496,22 @@
       "warning": {
         "$type": "color",
         "$value": "{color.textOn.accent}"
+      },
+      "error": {
+        "$type": "color",
+        "$value": "oklch(0.985 0.005 250)"
+      }
+    },
+    "scrim": {
+      "base": {
+        "$type": "color",
+        "$value": "oklch(0.10 0.020 260 / 0.62)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.10 0.020 260 / 0.62)",
+            "light": "oklch(0.16 0.030 260 / 0.32)"
+          }
+        }
       }
     },
     "status": {

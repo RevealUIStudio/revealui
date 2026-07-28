@@ -63,19 +63,19 @@ export function useToast(): Pick<ToastContextValue, 'addToast' | 'removeToast'> 
 }
 
 const variantClasses: Record<ToastVariant, string> = {
-  default: 'bg-white dark:bg-zinc-800 ring-zinc-950/10 dark:ring-white/10',
-  success: 'bg-white dark:bg-zinc-800 ring-green-500/30',
-  error: 'bg-white dark:bg-zinc-800 ring-red-500/30',
-  warning: 'bg-white dark:bg-zinc-800 ring-amber-500/30',
-  info: 'bg-white dark:bg-zinc-800 ring-blue-500/30',
+  default: 'bg-card ring-border-strong',
+  success: 'bg-card ring-success/30',
+  error: 'bg-card ring-error/30',
+  warning: 'bg-card ring-warning/30',
+  info: 'bg-card ring-info/30',
 };
 
 const variantIconClasses: Record<ToastVariant, string> = {
   default: 'hidden',
-  success: 'text-green-500',
-  error: 'text-red-500',
-  warning: 'text-amber-500',
-  info: 'text-blue-500',
+  success: 'text-success',
+  error: 'text-error',
+  warning: 'text-warning-text',
+  info: 'text-info',
 };
 
 const variantIcons: Record<ToastVariant, string> = {
@@ -137,16 +137,16 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
         </span>
       )}
       <div className="flex-1">
-        <p className="text-sm font-semibold text-zinc-950 dark:text-white">{toast.title}</p>
+        <p className="text-sm font-semibold text-foreground">{toast.title}</p>
         {toast.description && (
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{toast.description}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{toast.description}</p>
         )}
       </div>
       <button
         type="button"
         aria-label="Dismiss"
         onClick={handleRemove}
-        className="shrink-0 rounded-md text-zinc-400 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-zinc-500 dark:hover:text-zinc-300"
+        className="shrink-0 rounded-md text-muted-foreground hover:text-body focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span aria-hidden="true">✕</span>
       </button>

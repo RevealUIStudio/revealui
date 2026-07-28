@@ -78,13 +78,13 @@ function Checkbox({
           'peer h-4 w-4 shrink-0 rounded-[var(--rvui-radius-sm,6px)] border',
           // Default (neutral at rest — fixes prior brand-at-rest semantic bug where
           // unchecked boxes read as "selected")
-          'border-zinc-300 dark:border-zinc-700',
+          'border-input',
           // Hover affordance
-          'hover:border-zinc-400 dark:hover:border-zinc-600',
+          'hover:border-border-strong',
           // Focus
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--tenant-brand,var(--ring))] focus-visible:ring-offset-2 ring-offset-background',
           // Error state
-          'aria-invalid:border-red-500 aria-invalid:focus-visible:ring-red-500',
+          'aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive',
           // Disabled state
           'disabled:cursor-not-allowed disabled:opacity-50',
           // Checked + indeterminate use tenant brand
