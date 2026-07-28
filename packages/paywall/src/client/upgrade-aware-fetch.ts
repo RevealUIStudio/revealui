@@ -16,6 +16,9 @@
 /** The DOM event name dispatched when an upgrade is required. */
 export const UPGRADE_EVENT_NAME = 'revealui:upgrade-required';
 
+/** Dispatched when the API rejects the session (401). Admin re-auth listens. */
+export const AUTH_REQUIRED_EVENT_NAME = 'revealui:auth-required';
+
 /** Detail payload for the upgrade event. */
 export interface UpgradeEventDetail {
   /** The feature that triggered the upgrade prompt, if known. */
@@ -43,8 +46,16 @@ export function dispatchUpgradeEvent(detail: UpgradeEventDetail): void {
  * Reads the feature name from the `x-paywall-feature` or
  * `x-revealui-feature` response header when available.
  */
+export function dispatchAuthRequiredEvent(status = 401): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(AUTH_REQUIRED_EVENT_NAME, { detail: { status } }));
+}
+
 export function upgradeAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   return fetch(input, init).then((response) => {
+    if (response.status === 401) {
+      dispatchAuthRequiredEvent(401);
+    }
     if (response.status === 402 || response.status === 503) {
       const feature =
         response.headers.get('x-paywall-feature') ??

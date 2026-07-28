@@ -4,35 +4,72 @@ import type { LicenseTierId } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
+import { redirectToLogin } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
 const paywall = createPaywall();
+
+/**
+ * Why tier resolution failed. Surfaces must never invent a FREE plan when this
+ * is set (GAP-454): a 401 is re-auth, not free; a network/5xx is unknown.
+ */
+export type LicenseResolveError = 'auth-required' | 'unavailable' | null;
 
 /** The value exposed by the license context (backwards-compatible shape). */
 export interface LicenseContextValue {
   tier: LicenseTierId;
   features: FeatureFlags | null;
   isLoading: boolean;
+  /**
+   * Non-null when the tier fetch did not succeed. FreeTierBanner and other
+   * money-adjacent UI must treat this as "do not claim free".
+   */
+  resolveError: LicenseResolveError;
   refetch: () => Promise<void>;
+}
+
+/**
+ * Thrown from resolveSaasTier so PaywallProvider does not invent free.
+ * The paywall provider maps this to resolveError + null features.
+ */
+export class LicenseResolveFailure extends Error {
+  readonly kind: 'auth-required' | 'unavailable';
+
+  constructor(kind: 'auth-required' | 'unavailable', message: string) {
+    super(message);
+    this.name = 'LicenseResolveFailure';
+    this.kind = kind;
+  }
 }
 
 async function resolveSaasTier(): Promise<string> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!apiUrl) return 'free';
-
-  try {
-    const res = await fetch(`${apiUrl}/api/billing/subscription`, {
-      credentials: 'include',
-    });
-    if (res.ok) {
-      const data = (await res.json()) as { tier: LicenseTierId };
-      return data.tier;
-    }
-  } catch {
-    // Subscription check failed (CORS, network, 401)  -  stay on free tier
+  if (!apiUrl) {
+    // No SaaS API configured  -  genuine free/local posture.
+    return 'free';
   }
 
-  return 'free';
+  let res: Response;
+  try {
+    res = await fetch(`${apiUrl}/api/billing/subscription`, {
+      credentials: 'include',
+    });
+  } catch {
+    throw new LicenseResolveFailure('unavailable', 'subscription fetch failed (network)');
+  }
+
+  if (res.status === 401) {
+    // Dead session: send the operator to re-auth. Do not claim free.
+    redirectToLogin();
+    throw new LicenseResolveFailure('auth-required', 'subscription returned 401');
+  }
+
+  if (!res.ok) {
+    throw new LicenseResolveFailure('unavailable', `subscription returned ${res.status}`);
+  }
+
+  const data = (await res.json()) as { tier: LicenseTierId };
+  return data.tier;
 }
 
 interface LicenseProviderProps {
@@ -56,11 +93,12 @@ export function LicenseProvider({ children, isFleetMode = false }: LicenseProvid
  * `LicenseContextValue` shape for backwards compatibility.
  */
 export function useLicense(): LicenseContextValue {
-  const { tier, features, isLoading, refetch } = usePaywall();
+  const { tier, features, isLoading, refetch, resolveError } = usePaywall();
   return {
     tier: tier as LicenseTierId,
     features: features as FeatureFlags | null,
     isLoading,
+    resolveError: (resolveError as LicenseResolveError) ?? null,
     refetch,
   };
 }
