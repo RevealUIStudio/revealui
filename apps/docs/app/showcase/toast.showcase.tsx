@@ -114,6 +114,16 @@ addToast({
   ${attrs.join(',\n  ')},
 })`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 4.1.3 Status Messages', 'WCAG 2.2 2.1.1 Keyboard'],
+    keyboard: {
+      Escape: 'Dismisses when focus is in the toast region if supported',
+    },
+    aria: {
+      role: 'status or alert depending on severity',
+    },
+  },
 };
 
 export default story;

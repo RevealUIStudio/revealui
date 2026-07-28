@@ -89,6 +89,20 @@ const story: ShowcaseStory = {
     <DropdownItem>Delete</DropdownItem>
   </DropdownMenu>
 </Dropdown>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      Enter: 'Opens the menu / activates focused item',
+      Space: 'Opens the menu / activates focused item',
+      Escape: 'Closes the menu',
+      'Arrow keys': 'Move among menu items',
+    },
+    aria: {
+      'aria-haspopup': 'On the trigger',
+      'aria-expanded': 'On the trigger while open',
+    },
+  },
 };
 
 export default story;

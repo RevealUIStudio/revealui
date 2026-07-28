@@ -63,6 +63,14 @@ const story: ShowcaseStory = {
     attrs.push('label="Rating"');
     return `<Rating ${attrs.join(' ')} />`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      'Arrow keys': 'Change rating when interactive',
+      Tab: 'Moves focus to the control',
+    },
+  },
 };
 
 export default story;

@@ -83,6 +83,15 @@ const story: ShowcaseStory = {
   <Button>Hover me</Button>
 </Tooltip>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.4.13 Content on Hover or Focus', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      Escape: 'Dismisses the tooltip when open from focus',
+      Tab: 'Shows on focus of the trigger when configured',
+    },
+    notes: 'Do not put essential UI only inside a tooltip; pair with a visible label.',
+  },
 };
 
 export default story;

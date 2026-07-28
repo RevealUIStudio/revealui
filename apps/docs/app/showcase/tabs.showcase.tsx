@@ -103,6 +103,20 @@ const story: ShowcaseStory = {
   <TabPanel id="tab-1">Content 1</TabPanel>
   <TabPanel id="tab-2">Content 2</TabPanel>
 </Tabs>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      'Arrow keys': 'Move focus between tabs',
+      Tab: 'Moves into the active panel',
+      Home: 'First tab when supported',
+      End: 'Last tab when supported',
+    },
+    aria: {
+      role: 'tablist / tab / tabpanel',
+      'aria-selected': 'On the active tab',
+    },
+  },
 };
 
 export default story;

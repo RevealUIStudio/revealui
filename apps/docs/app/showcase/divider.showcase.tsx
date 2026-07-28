@@ -35,6 +35,11 @@ const story: ShowcaseStory = {
   ],
 
   code: (props: Record<string, unknown>) => `<Divider${props.soft ? ' soft' : ''} />`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Rendered as hr; decorative separators need no extra label.',
+  },
 };
 
 export default story;

@@ -38,13 +38,20 @@ independent third-party audit has been performed.
 | WCAG 1.3.1 Info and Relationships | Supports | Claimed and gate-covered in: Form Field, Label |
 | WCAG 1.4.1 Use of Color | Supports | Claimed and gate-covered in: Status Dot, Verdict Chip |
 | WCAG 2.1.1 Keyboard | Supports | Claimed and gate-covered in: Audit Line, LinkButton |
-| WCAG 2.2 1.3.1 Info and Relationships | Supports | Claimed and gate-covered in: Auth Layout, Form Label, Input, Progress, Split Auth Layout, Textarea |
-| WCAG 2.2 1.4.3 Contrast (Minimum) | Supports | Claimed and gate-covered in: Split Auth Layout |
-| WCAG 2.2 2.1.1 Keyboard | Supports | Claimed and gate-covered in: Button, Checkbox, Input, Radio, Select, Sidebar Layout, Stacked Layout, Switch, Textarea |
-| WCAG 2.2 2.4.3 Focus Order | Supports | Claimed and gate-covered in: Sidebar Layout, Stacked Layout |
+| WCAG 2.2 1.1.1 Non-text Content | Supports | Claimed and gate-covered in: Avatar, Icons |
+| WCAG 2.2 1.3.1 Info and Relationships | Supports | Claimed and gate-covered in: Auth Layout, Breadcrumb, Callout, Card, Code Block, Description List, Divider, Empty State, Fieldset, Form Label, Heading, Input, Kbd, Navbar, Progress, Sidebar, Split Auth Layout, Stat, Stepper, Table, Textarea, Timeline |
+| WCAG 2.2 1.4.1 Use of Color | Supports | Claimed and gate-covered in: Badge, Callout |
+| WCAG 2.2 1.4.13 Content on Hover or Focus | Supports | Claimed and gate-covered in: Tooltip |
+| WCAG 2.2 1.4.3 Contrast (Minimum) | Supports | Claimed and gate-covered in: Split Auth Layout, Text |
+| WCAG 2.2 2.1.1 Keyboard | Supports | Claimed and gate-covered in: Accordion, Alert, Button, Checkbox, Combobox, Dialog, Drawer, Dropdown, Input, Link, Listbox, Navbar, Pagination, Radio, Rating, Select, Sidebar, Sidebar Layout, Slider, Stacked Layout, Switch, Tabs, Textarea, Toast |
+| WCAG 2.2 2.4.3 Focus Order | Supports | Claimed and gate-covered in: Dialog, Drawer, Sidebar Layout, Stacked Layout |
+| WCAG 2.2 2.4.4 Link Purpose (In Context) | Supports | Claimed and gate-covered in: Link |
+| WCAG 2.2 2.4.6 Headings and Labels | Supports | Claimed and gate-covered in: Heading |
 | WCAG 2.2 2.4.7 Focus Visible | Supports | Claimed and gate-covered in: Button |
-| WCAG 2.2 3.3.2 Labels or Instructions | Supports | Claimed and gate-covered in: Form Label, Input, Textarea |
-| WCAG 2.2 4.1.2 Name, Role, Value | Supports | Claimed and gate-covered in: Button, Checkbox, Input, Progress, Radio, Select, Switch |
+| WCAG 2.2 2.4.8 Location | Supports | Claimed and gate-covered in: Breadcrumb, Pagination, Stepper |
+| WCAG 2.2 3.3.2 Labels or Instructions | Supports | Claimed and gate-covered in: Fieldset, Form Label, Input, Textarea |
+| WCAG 2.2 4.1.2 Name, Role, Value | Supports | Claimed and gate-covered in: Accordion, Alert, Button, Checkbox, Combobox, Dialog, Drawer, Dropdown, Input, Listbox, Progress, Radio, Rating, Select, Slider, Switch, Tabs, Tooltip |
+| WCAG 2.2 4.1.3 Status Messages | Supports | Claimed and gate-covered in: Skeleton, Toast |
 | WCAG 2.3.3 Animation from Interactions | Supports | Claimed and gate-covered in: Status Dot |
 | WCAG 2.4.4 Link Purpose (In Context) | Supports | Claimed and gate-covered in: LinkButton |
 | WCAG 3.3.1 Error Identification | Supports | Claimed and gate-covered in: Form Field |
@@ -60,9 +67,9 @@ independent third-party audit has been performed.
 | 2.4.2 Page Titled | Not Applicable | Determined by the consuming application. |
 | 2.4.1 Bypass Blocks | Not Applicable | Determined by the consuming application; layout shells accept a skip-link slot. |
 
-## Components not yet individually assessed (41 of 60)
+## Components not yet individually assessed (6 of 60)
 
 Covered by the automated axe gate, without a recorded per-criterion claim:
 
-Accordion, Alert, Avatar, Avatar Group, Badge, Brand Mark, Breadcrumb, Built With RevealUI, Callout, Card, Code Block, Combobox, Description List, Dialog, Divider, Drawer, Dropdown, Empty State, Fieldset, Heading, Icons, Kbd, Link, Listbox, Navbar, Pagination, Pricing Table, Rating, Receipt Card, Sidebar, Skeleton, Slider, Stat, Stepper, Table, Tabs, Text, Timeline, Toast, Tooltip, Wordmark
+Avatar Group, Brand Mark, Built With RevealUI, Pricing Table, Receipt Card, Wordmark
 

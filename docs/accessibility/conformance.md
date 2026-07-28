@@ -6,7 +6,7 @@
 **Package** `@revealui/presentation@0.13.0`  
 **Target** WCAG 2.2 Level AA  
 **Generated** 2026-07-28  
-**Assessed** 19 of 64 shipped components (30%)
+**Assessed** 54 of 64 shipped components (84%)
 **Documented** 64 of 64 shipped components have showcase coverage (60 registry pages)
 
 ## How this report is produced
@@ -28,55 +28,64 @@ third-party audit — none has been performed, and this report does not imply on
 
 ## Not yet assessed
 
-41 of the 60 showcase pages carry no conformance claim. They are
+6 of the 60 showcase pages carry no conformance claim. They are
 covered by the axe gate like every other component, but no per-criterion claim has been
 recorded, so they are listed here rather than presented as conforming.
 
 | Component | Status |
 |---|---|
-| Accordion | not assessed |
-| Alert | not assessed |
-| Avatar | not assessed |
 | Avatar Group | not assessed |
-| Badge | not assessed |
 | Brand Mark | partially documented — no criteria listed |
-| Breadcrumb | not assessed |
 | Built With RevealUI | partially documented — no criteria listed |
-| Callout | not assessed |
-| Card | not assessed |
-| Code Block | not assessed |
-| Combobox | not assessed |
-| Description List | not assessed |
-| Dialog | not assessed |
-| Divider | not assessed |
-| Drawer | not assessed |
-| Dropdown | not assessed |
-| Empty State | not assessed |
-| Fieldset | not assessed |
-| Heading | not assessed |
-| Icons | not assessed |
-| Kbd | not assessed |
-| Link | not assessed |
-| Listbox | not assessed |
-| Navbar | not assessed |
-| Pagination | not assessed |
 | Pricing Table | partially documented — no criteria listed |
-| Rating | not assessed |
 | Receipt Card | partially documented — no criteria listed |
-| Sidebar | not assessed |
-| Skeleton | not assessed |
-| Slider | not assessed |
-| Stat | not assessed |
-| Stepper | not assessed |
-| Table | not assessed |
-| Tabs | not assessed |
-| Text | not assessed |
-| Timeline | not assessed |
-| Toast | not assessed |
-| Tooltip | not assessed |
 | Wordmark | partially documented — no criteria listed |
 
 ## Per-component conformance
+
+### Accordion
+
+Documentation: https://docs.revealui.com/showcase/accordion
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Enter` | Expands or collapses the focused item |
+| `Space` | Expands or collapses the focused item |
+| `Tab` | Moves between triggers and page content |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-expanded` | On each trigger |
+
+### Alert
+
+Documentation: https://docs.revealui.com/showcase/alert
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Dismisses when dismissible |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | alertdialog or dialog depending on composition |
 
 ### Audit Line
 
@@ -106,6 +115,49 @@ Documentation: https://docs.revealui.com/showcase/auth-layout
 
 **Notes** Renders a main landmark. Provide labelled controls inside children.
 
+### Avatar
+
+Documentation: https://docs.revealui.com/showcase/avatar
+
+**Criteria met**
+
+- WCAG 2.2 1.1.1 Non-text Content
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `alt` | Required when the avatar is informative |
+
+**Notes** Decorative avatars should set alt="" or be aria-hidden.
+
+### Badge
+
+Documentation: https://docs.revealui.com/showcase/badge
+
+**Criteria met**
+
+- WCAG 2.2 1.4.1 Use of Color
+
+**Notes** Do not encode meaning only with badge color; include text.
+
+### Breadcrumb
+
+Documentation: https://docs.revealui.com/showcase/breadcrumb
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 2.4.8 Location
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-label` | Breadcrumb navigation landmark label |
+
+**Notes** Current page is not a link; prior crumbs are links.
+
 ### Button
 
 Documentation: https://docs.revealui.com/showcase/button
@@ -124,6 +176,27 @@ Documentation: https://docs.revealui.com/showcase/button
 | `Space` | Activates the button |
 
 **Notes** Focus ring uses the shared --ring token (outline-ring / focusRing helpers).
+
+### Callout
+
+Documentation: https://docs.revealui.com/showcase/callout
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 1.4.1 Use of Color
+
+**Notes** Tone is also conveyed in text, not color alone.
+
+### Card
+
+Documentation: https://docs.revealui.com/showcase/card
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Card is a surface; put headings and landmarks in children as needed.
 
 ### Checkbox
 
@@ -147,6 +220,157 @@ Documentation: https://docs.revealui.com/showcase/checkbox
 |---|---|
 | `role` | checkbox |
 | `aria-checked` | true | false | mixed (indeterminate) |
+
+### Code Block
+
+Documentation: https://docs.revealui.com/showcase/code-block
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Prefer a caption or preceding heading naming the language or purpose.
+
+### Combobox
+
+Documentation: https://docs.revealui.com/showcase/combobox
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Arrow keys` | Move among options |
+| `Enter` | Selects the focused option |
+| `Escape` | Closes the listbox |
+| `Typeahead` | Filters or jumps to matching options |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | combobox |
+| `aria-expanded` | While the list is open |
+| `aria-controls` | Listbox id |
+
+### Description List
+
+Documentation: https://docs.revealui.com/showcase/description-list
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+### Dialog
+
+Documentation: https://docs.revealui.com/showcase/dialog
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 2.4.3 Focus Order
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Closes the dialog |
+| `Tab` | Cycles within the focus trap while open |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | dialog |
+| `aria-modal` | true |
+| `aria-labelledby` | DialogTitle id |
+
+**Notes** Focus trap and scroll lock while open; focus returns when closed.
+
+### Divider
+
+Documentation: https://docs.revealui.com/showcase/divider
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Rendered as hr; decorative separators need no extra label.
+
+### Drawer
+
+Documentation: https://docs.revealui.com/showcase/drawer
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 2.4.3 Focus Order
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Closes the drawer |
+| `Tab` | Cycles within the panel while open |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | dialog |
+| `aria-modal` | true |
+
+### Dropdown
+
+Documentation: https://docs.revealui.com/showcase/dropdown
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Enter` | Opens the menu / activates focused item |
+| `Space` | Opens the menu / activates focused item |
+| `Escape` | Closes the menu |
+| `Arrow keys` | Move among menu items |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-haspopup` | On the trigger |
+| `aria-expanded` | On the trigger while open |
+
+### Empty State
+
+Documentation: https://docs.revealui.com/showcase/empty-state
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Include a heading and a clear next action in the composition.
+
+### Fieldset
+
+Documentation: https://docs.revealui.com/showcase/fieldset
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 3.3.2 Labels or Instructions
+
+**Notes** Use legend for the group name.
 
 ### Form Field
 
@@ -190,6 +414,27 @@ Documentation: https://docs.revealui.com/showcase/form-label
 
 **Notes** Required marker is visible text (*); pair with aria-required on the control.
 
+### Heading
+
+Documentation: https://docs.revealui.com/showcase/heading
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 2.4.6 Headings and Labels
+
+**Notes** level prop maps to h1–h6; keep a single logical outline per page.
+
+### Icons
+
+Documentation: https://docs.revealui.com/showcase/icons
+
+**Criteria met**
+
+- WCAG 2.2 1.1.1 Non-text Content
+
+**Notes** Pass label for informative icons; omit for decorative (aria-hidden).
+
 ### Input
 
 Documentation: https://docs.revealui.com/showcase/input
@@ -216,6 +461,16 @@ Documentation: https://docs.revealui.com/showcase/input
 
 **Notes** Pair with FormLabel or FormField for a visible name.
 
+### Kbd
+
+Documentation: https://docs.revealui.com/showcase/kbd
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Visual affordance for shortcuts; do not rely on kbd alone as the only instruction.
+
 ### Label
 
 Source: `src/components/Label.tsx`  
@@ -227,6 +482,22 @@ Documentation: https://docs.revealui.com/showcase/label
 - WCAG 3.3.2 Labels or Instructions
 
 **Notes** Always set htmlFor to the id of the control the label describes. The required asterisk is a visual cue only — also convey required state on the control itself (e.g. aria-required).
+
+### Link
+
+Documentation: https://docs.revealui.com/showcase/link
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 2.4.4 Link Purpose (In Context)
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Enter` | Activates the link |
+| `Tab` | Moves focus to the link |
 
 ### LinkButton
 
@@ -253,6 +524,68 @@ Documentation: https://docs.revealui.com/showcase/linkbutton
 | `aria-busy` | Set to  |
 
 **Notes** External links (`external` prop) add `rel="noopener noreferrer"` for tab-nap protection. The component wraps children in `TouchTarget` to ensure ≥44×44 mobile tap area, matching `Button` ergonomics.
+
+### Listbox
+
+Documentation: https://docs.revealui.com/showcase/listbox
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Arrow keys` | Move among options |
+| `Enter` | Selects the focused option |
+| `Escape` | Closes when used as a popup |
+| `Typeahead` | Jumps to matching options |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | listbox / option |
+| `aria-selected` | On the selected option |
+
+### Navbar
+
+Documentation: https://docs.revealui.com/showcase/navbar
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 2.1.1 Keyboard
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | navigation or landmark via nav element |
+
+### Pagination
+
+Documentation: https://docs.revealui.com/showcase/pagination
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 2.4.8 Location
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Tab` | Moves among page controls |
+| `Enter` | Activates the focused control |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-current` | page on the current page control |
 
 ### Progress
 
@@ -296,6 +629,22 @@ Documentation: https://docs.revealui.com/showcase/radio
 | `role` | radio |
 | `aria-checked` | true when selected |
 
+### Rating
+
+Documentation: https://docs.revealui.com/showcase/rating
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Arrow keys` | Change rating when interactive |
+| `Tab` | Moves focus to the control |
+
 ### Select
 
 Documentation: https://docs.revealui.com/showcase/select
@@ -320,6 +669,21 @@ Documentation: https://docs.revealui.com/showcase/select
 
 **Notes** Native select semantics; prefer Listbox for fully custom list UIs.
 
+### Sidebar
+
+Documentation: https://docs.revealui.com/showcase/sidebar
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 2.1.1 Keyboard
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | navigation composition via SidebarItem links |
+
 ### Sidebar Layout
 
 Source: `src/components/sidebar-layout.tsx`  
@@ -342,6 +706,47 @@ Documentation: https://docs.revealui.com/showcase/sidebar-layout
 |---|---|
 | `aria-label` | Open navigation control on the mobile menu button |
 | `aria-modal` | Mobile nav uses a dialog with focus trap |
+
+### Skeleton
+
+Documentation: https://docs.revealui.com/showcase/skeleton
+
+**Criteria met**
+
+- WCAG 2.2 4.1.3 Status Messages
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-busy` | Set on the loading region by the consumer |
+| `aria-hidden` | Decorative skeleton shapes are hidden from AT |
+
+### Slider
+
+Documentation: https://docs.revealui.com/showcase/slider
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Arrow keys` | Adjust value |
+| `Home` | Minimum when supported |
+| `End` | Maximum when supported |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | slider |
+| `aria-valuenow` | Current value |
+| `aria-valuemin` | Minimum |
+| `aria-valuemax` | Maximum |
 
 ### Split Auth Layout
 
@@ -378,6 +783,16 @@ Documentation: https://docs.revealui.com/showcase/stacked-layout
 | `aria-label` | Open navigation control on the mobile menu button |
 | `aria-modal` | Mobile nav uses a dialog with focus trap |
 
+### Stat
+
+Documentation: https://docs.revealui.com/showcase/stat
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Components never format numbers or currency; pass preformatted strings (Gate 3).
+
 ### Status Dot
 
 Source: `src/components/status-dot.tsx`  
@@ -395,6 +810,22 @@ Documentation: https://docs.revealui.com/showcase/status-dot
 | `aria-label` | Required. Color alone is not an accessible status cue. |
 
 **Notes** The pulse ring is suppressed when the user requests reduced motion. Always pass a descriptive label such as "Database: healthy".
+
+### Stepper
+
+Documentation: https://docs.revealui.com/showcase/stepper
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+- WCAG 2.2 2.4.8 Location
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `aria-current` | step on the current step |
+| `aria-label` | Progress on the nav landmark |
 
 ### Switch
 
@@ -420,6 +851,57 @@ Documentation: https://docs.revealui.com/showcase/switch
 | `role` | switch |
 | `aria-checked` | true when on |
 
+### Table
+
+Documentation: https://docs.revealui.com/showcase/table
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `scope` | Use th with scope for headers when composing data tables |
+
+**Notes** Prefer caption or aria-label on the table when the context is not adjacent.
+
+### Tabs
+
+Documentation: https://docs.revealui.com/showcase/tabs
+
+**Criteria met**
+
+- WCAG 2.2 2.1.1 Keyboard
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Arrow keys` | Move focus between tabs |
+| `Tab` | Moves into the active panel |
+| `Home` | First tab when supported |
+| `End` | Last tab when supported |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | tablist / tab / tabpanel |
+| `aria-selected` | On the active tab |
+
+### Text
+
+Documentation: https://docs.revealui.com/showcase/text
+
+**Criteria met**
+
+- WCAG 2.2 1.4.3 Contrast (Minimum)
+
+**Notes** Body uses text tokens; muted text is for secondary copy only (see text-2 constraint).
+
 ### Textarea
 
 Documentation: https://docs.revealui.com/showcase/textarea
@@ -438,6 +920,16 @@ Documentation: https://docs.revealui.com/showcase/textarea
 
 **Notes** Pair with FormLabel or FormField for a visible name.
 
+### Timeline
+
+Documentation: https://docs.revealui.com/showcase/timeline
+
+**Criteria met**
+
+- WCAG 2.2 1.3.1 Info and Relationships
+
+**Notes** Order is meaningful; keep chronological text in the content.
+
 ### Verdict Chip
 
 Source: `src/components/verdict-chip.tsx`  
@@ -455,6 +947,45 @@ Documentation: https://docs.revealui.com/showcase/verdict-chip
 
 **Notes** The verdict word is always visible, so meaning never depends on color alone.
 
+### Toast
+
+Documentation: https://docs.revealui.com/showcase/toast
+
+**Criteria met**
+
+- WCAG 2.2 4.1.3 Status Messages
+- WCAG 2.2 2.1.1 Keyboard
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Dismisses when focus is in the toast region if supported |
+
+**ARIA**
+
+| Attribute | Use |
+|---|---|
+| `role` | status or alert depending on severity |
+
+### Tooltip
+
+Documentation: https://docs.revealui.com/showcase/tooltip
+
+**Criteria met**
+
+- WCAG 2.2 1.4.13 Content on Hover or Focus
+- WCAG 2.2 4.1.2 Name, Role, Value
+
+**Keyboard**
+
+| Key | Behaviour |
+|---|---|
+| `Escape` | Dismisses the tooltip when open from focus |
+| `Tab` | Shows on focus of the trigger when configured |
+
+**Notes** Do not put essential UI only inside a tooltip; pair with a visible label.
+
 ## Criteria index
 
 | Criterion | Components claiming it |
@@ -462,13 +993,20 @@ Documentation: https://docs.revealui.com/showcase/verdict-chip
 | WCAG 1.3.1 Info and Relationships | Form Field, Label |
 | WCAG 1.4.1 Use of Color | Status Dot, Verdict Chip |
 | WCAG 2.1.1 Keyboard | Audit Line, LinkButton |
-| WCAG 2.2 1.3.1 Info and Relationships | Auth Layout, Form Label, Input, Progress, Split Auth Layout, Textarea |
-| WCAG 2.2 1.4.3 Contrast (Minimum) | Split Auth Layout |
-| WCAG 2.2 2.1.1 Keyboard | Button, Checkbox, Input, Radio, Select, Sidebar Layout, Stacked Layout, Switch, Textarea |
-| WCAG 2.2 2.4.3 Focus Order | Sidebar Layout, Stacked Layout |
+| WCAG 2.2 1.1.1 Non-text Content | Avatar, Icons |
+| WCAG 2.2 1.3.1 Info and Relationships | Auth Layout, Breadcrumb, Callout, Card, Code Block, Description List, Divider, Empty State, Fieldset, Form Label, Heading, Input, Kbd, Navbar, Progress, Sidebar, Split Auth Layout, Stat, Stepper, Table, Textarea, Timeline |
+| WCAG 2.2 1.4.1 Use of Color | Badge, Callout |
+| WCAG 2.2 1.4.13 Content on Hover or Focus | Tooltip |
+| WCAG 2.2 1.4.3 Contrast (Minimum) | Split Auth Layout, Text |
+| WCAG 2.2 2.1.1 Keyboard | Accordion, Alert, Button, Checkbox, Combobox, Dialog, Drawer, Dropdown, Input, Link, Listbox, Navbar, Pagination, Radio, Rating, Select, Sidebar, Sidebar Layout, Slider, Stacked Layout, Switch, Tabs, Textarea, Toast |
+| WCAG 2.2 2.4.3 Focus Order | Dialog, Drawer, Sidebar Layout, Stacked Layout |
+| WCAG 2.2 2.4.4 Link Purpose (In Context) | Link |
+| WCAG 2.2 2.4.6 Headings and Labels | Heading |
 | WCAG 2.2 2.4.7 Focus Visible | Button |
-| WCAG 2.2 3.3.2 Labels or Instructions | Form Label, Input, Textarea |
-| WCAG 2.2 4.1.2 Name, Role, Value | Button, Checkbox, Input, Progress, Radio, Select, Switch |
+| WCAG 2.2 2.4.8 Location | Breadcrumb, Pagination, Stepper |
+| WCAG 2.2 3.3.2 Labels or Instructions | Fieldset, Form Label, Input, Textarea |
+| WCAG 2.2 4.1.2 Name, Role, Value | Accordion, Alert, Button, Checkbox, Combobox, Dialog, Drawer, Dropdown, Input, Listbox, Progress, Radio, Rating, Select, Slider, Switch, Tabs, Tooltip |
+| WCAG 2.2 4.1.3 Status Messages | Skeleton, Toast |
 | WCAG 2.3.3 Animation from Interactions | Status Dot |
 | WCAG 2.4.4 Link Purpose (In Context) | LinkButton |
 | WCAG 3.3.1 Error Identification | Form Field |

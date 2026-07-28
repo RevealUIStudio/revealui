@@ -76,6 +76,20 @@ const story: ShowcaseStory = {
     <ListboxLabel>Paused</ListboxLabel>
   </ListboxOption>
 </Listbox>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      'Arrow keys': 'Move among options',
+      Enter: 'Selects the focused option',
+      Escape: 'Closes when used as a popup',
+      Typeahead: 'Jumps to matching options',
+    },
+    aria: {
+      role: 'listbox / option',
+      'aria-selected': 'On the selected option',
+    },
+  },
 };
 
 export default story;

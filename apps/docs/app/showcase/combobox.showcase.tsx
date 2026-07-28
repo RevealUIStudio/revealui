@@ -74,6 +74,21 @@ const story: ShowcaseStory = {
     </ComboboxOption>
   ))}
 </Combobox>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      'Arrow keys': 'Move among options',
+      Enter: 'Selects the focused option',
+      Escape: 'Closes the listbox',
+      Typeahead: 'Filters or jumps to matching options',
+    },
+    aria: {
+      role: 'combobox',
+      'aria-expanded': 'While the list is open',
+      'aria-controls': 'Listbox id',
+    },
+  },
 };
 
 export default story;

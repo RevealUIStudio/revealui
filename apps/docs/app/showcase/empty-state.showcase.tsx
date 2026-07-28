@@ -76,6 +76,11 @@ const story: ShowcaseStory = {
     if (props.showAction) attrs.push('action={<Button>Clear filters</Button>}');
     return `<EmptyState\n  ${attrs.join('\n  ')}\n/>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Include a heading and a clear next action in the composition.',
+  },
 };
 
 export default story;

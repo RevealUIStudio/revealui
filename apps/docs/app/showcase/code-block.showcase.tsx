@@ -52,6 +52,11 @@ export function App() {
   code="const x = 1;"
   language="${props.language}"${props.filename ? `\n  filename="${props.filename}"` : ''}${!props.showCopy ? '\n  showCopy={false}' : ''}
 />`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Prefer a caption or preceding heading naming the language or purpose.',
+  },
 };
 
 export default story;

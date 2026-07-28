@@ -30,6 +30,14 @@ const story: ShowcaseStory = {
   ],
 
   code: (props: Record<string, unknown>) => `<Link href="${props.href}">${props.children}</Link>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 2.4.4 Link Purpose (In Context)'],
+    keyboard: {
+      Enter: 'Activates the link',
+      Tab: 'Moves focus to the link',
+    },
+  },
 };
 
 export default story;

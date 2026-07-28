@@ -65,6 +65,14 @@ const story: ShowcaseStory = {
     if (props.alt) attrs.push(`alt="${props.alt}"`);
     return `<Avatar ${attrs.join(' ')} className="size-12" />`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.1.1 Non-text Content'],
+    aria: {
+      alt: 'Required when the avatar is informative',
+    },
+    notes: 'Decorative avatars should set alt="" or be aria-hidden.',
+  },
 };
 
 export default story;

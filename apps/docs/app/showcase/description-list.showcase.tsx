@@ -45,6 +45,10 @@ const story: ShowcaseStory = {
   <DescriptionTerm>Label</DescriptionTerm>
   <DescriptionDetails>Value</DescriptionDetails>
 </DescriptionList>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+  },
 };
 
 export default story;
