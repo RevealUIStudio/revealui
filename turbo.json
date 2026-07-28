@@ -43,9 +43,7 @@
   "tasks": {
     "build": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "env": [
         "NODE_ENV",
         "SKIP_ENV_VALIDATION",
@@ -72,12 +70,7 @@
         "vite.config.ts",
         "next.config.mjs"
       ],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "output/**",
-        "public/**"
-      ]
+      "outputs": ["dist/**", ".next/**", "output/**", "public/**"]
     },
     "dev": {
       "cache": false,
@@ -97,9 +90,7 @@
     },
     "typecheck": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -115,19 +106,11 @@
     },
     "format": {
       "cache": false,
-      "inputs": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.js",
-        "src/**/*.jsx",
-        "biome.json"
-      ]
+      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"]
     },
     "test": {
       "cache": false,
-      "dependsOn": [
-        "build"
-      ],
+      "dependsOn": ["build"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -148,9 +131,7 @@
     },
     "test:coverage": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -161,10 +142,7 @@
         "vitest.config.ts",
         "package.json"
       ],
-      "outputs": [
-        "coverage/**",
-        "coverage/lcov.info"
-      ]
+      "outputs": ["coverage/**", "coverage/lcov.info"]
     },
     "test:ui": {
       "cache": false,
@@ -172,9 +150,7 @@
     },
     "test:integration": {
       "cache": false,
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"]
     },
     "clean": {
       "cache": false
@@ -182,9 +158,7 @@
     "start": {
       "cache": false,
       "persistent": true,
-      "dependsOn": [
-        "build"
-      ]
+      "dependsOn": ["build"]
     }
   }
 }

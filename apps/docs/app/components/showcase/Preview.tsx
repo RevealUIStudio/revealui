@@ -37,8 +37,10 @@ export function Preview({ children }: PreviewProps) {
         </div>
       </div>
 
-      {/* Isolated preview area */}
+      {/* Isolated preview area — data-showcase-preview scopes axe scans to the
+          component under test (see e2e/showcase-a11y.e2e.ts), not docs chrome. */}
       <div
+        data-showcase-preview
         data-theme={theme}
         className="flex min-h-[200px] items-center justify-center p-8"
         style={{
