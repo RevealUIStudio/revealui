@@ -6,7 +6,8 @@
 **Package** `@revealui/presentation@0.12.1`  
 **Target** WCAG 2.2 Level AA  
 **Generated** 2026-07-28  
-**Assessed** 6 of 55 components (11%)
+**Assessed** 6 of 65 shipped components (9%)
+**Documented** 55 of 65 have a showcase page
 
 ## How this report is produced
 
@@ -27,7 +28,7 @@ third-party audit — none has been performed, and this report does not imply on
 
 ## Not yet assessed
 
-49 of 55 components carry no conformance claim. They are
+49 of the 55 showcase pages carry no conformance claim. They are
 covered by the axe gate like every other component, but no per-criterion claim has been
 recorded, so they are listed here rather than presented as conforming.
 
@@ -82,6 +83,13 @@ recorded, so they are listed here rather than presented as conforming.
 | Toast | not assessed |
 | Tooltip | not assessed |
 | Wordmark | partially documented — no criteria listed |
+
+## Not documented at all
+
+10 of 65 shipped components have no showcase page. A component without a
+showcase is outside the visual-regression gate, outside the axe gate, and outside this
+report — neither verified nor claimed. Closing that gap comes before backfilling
+conformance on the rest.
 
 ## Per-component conformance
 

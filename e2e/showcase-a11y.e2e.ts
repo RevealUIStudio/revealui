@@ -155,7 +155,7 @@ test.describe('Showcase accessibility', () => {
    * target) belongs in the unit tests — Gate 1's fourth bullet — where it can
    * assert against the DOM rather than a screenshot.
    */
-  const COMPOSITE = [
+  const composite = [
     'dropdown',
     'listbox',
     'combobox',
@@ -170,7 +170,7 @@ test.describe('Showcase accessibility', () => {
     'table',
   ];
 
-  for (const slug of COMPOSITE) {
+  for (const slug of composite) {
     test(`${slug} — keyboard reachable`, async ({ page }) => {
       await gotoShowcasePage(page, `/showcase/${slug}`);
       const preview = page.locator(PREVIEW).first();
