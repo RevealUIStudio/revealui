@@ -1,13 +1,7 @@
 'use client';
 
 import { logger } from '@revealui/core/utils/logger';
-import {
-  Badge,
-  Stat,
-  StatGroup,
-  StatusDot,
-  type StatusDotStatus,
-} from '@revealui/presentation/client';
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import type {
   RevealCollectionConfig,
@@ -306,6 +300,66 @@ const globalsIcon = (
   </svg>
 );
 
+/**
+ * Small local equivalents of `@revealui/presentation`'s `Badge` / `Stat` /
+ * `StatusDot`, built from the same `--rvui-*` token bridge classes (`bg-muted`,
+ * `bg-success`, `bg-warning`, ...) this file already uses elsewhere.
+ *
+ * `@revealui/core` is imported by the Hono API server (`apps/server`), which
+ * never renders React. `@revealui/presentation` is a browser UI package built
+ * with Vite, a devDependency the server Docker image's install layer does not
+ * carry. Depending on it here pulled a client-only build tool into a headless
+ * server's dependency closure and broke the `migrate`/`server` Docker builds
+ * (turbo builds the whole workspace closure, `vite: ENOENT`). Reproducing the
+ * handful of classes these components render keeps the same visual result
+ * without adding that edge. See PR discussion for the audited alternative
+ * (moving the view into `apps/admin`, which already depends on presentation)
+ * — rejected because it duplicates the grouping/status logic across packages
+ * for no benefit over inlining a few CSS classes.
+ */
+function CountBadge({ count }: { count: number }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+      {count}
+    </span>
+  );
+}
+
+function StatTile({ label, value, icon }: { label: string; value: ReactNode; icon: ReactNode }) {
+  return (
+    <div className="rounded-lg bg-card p-5 shadow">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <div className="rounded-md bg-muted p-1.5">{icon}</div>
+      </div>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function StatusIndicator({
+  degraded,
+  label,
+  pulse = false,
+}: {
+  degraded: boolean;
+  label: string;
+  pulse?: boolean;
+}) {
+  const fill = degraded ? 'bg-warning' : 'bg-success';
+  return (
+    <span role="img" aria-label={label} className="relative inline-flex size-2.5 shrink-0">
+      {pulse && (
+        <span
+          aria-hidden="true"
+          className={`absolute inline-flex size-full motion-safe:animate-ping rounded-full opacity-75 ${fill}`}
+        />
+      )}
+      <span aria-hidden="true" className={`relative inline-flex size-2.5 rounded-full ${fill}`} />
+    </span>
+  );
+}
+
 function CollectionGroupCard({
   group,
   collections,
@@ -324,7 +378,7 @@ function CollectionGroupCard({
         <h3 id={headingId} className="text-sm font-semibold text-foreground">
           {group}
         </h3>
-        <Badge color="muted">{collections.length}</Badge>
+        <CountBadge count={collections.length} />
       </div>
       <ul className="divide-y divide-border">
         {collections.map((collection) => {
@@ -375,7 +429,7 @@ function GlobalsCard({
             Globals
           </h3>
         </div>
-        <Badge color="muted">{globals.length}</Badge>
+        <CountBadge count={globals.length} />
       </div>
       {globals.length > 0 ? (
         <ul className="divide-y divide-border">
@@ -398,9 +452,8 @@ function GlobalsCard({
   );
 }
 
-/** System status card: a StatusDot-led card, never a bare prose sentence. */
+/** System status card: a status-dot-led card, never a bare prose sentence. */
 function SystemStatusCard({ degraded }: { degraded: boolean }) {
-  const status: StatusDotStatus = degraded ? 'warn' : 'ok';
   const word = degraded ? 'Degraded' : 'Healthy';
   const description = degraded
     ? 'The last admin action failed. Retry it or check the server logs.'
@@ -416,7 +469,7 @@ function SystemStatusCard({ degraded }: { degraded: boolean }) {
           System status
         </h3>
         <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
-          <StatusDot status={status} label={`System status: ${word}`} pulse={!degraded} />
+          <StatusIndicator degraded={degraded} label={`System status: ${word}`} pulse={!degraded} />
           {word}
         </span>
       </div>
@@ -466,20 +519,15 @@ function DashboardHome({
           </p>
         </div>
 
-        <StatGroup className="mb-8 sm:grid-cols-3 lg:grid-cols-3">
-          <Stat label="Collections" value={collections.length} icon={collectionsIcon} />
-          <Stat label="Globals" value={globals.length} icon={globalsIcon} />
-          <Stat
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatTile label="Collections" value={collections.length} icon={collectionsIcon} />
+          <StatTile label="Globals" value={globals.length} icon={globalsIcon} />
+          <StatTile
             label="Status"
             value={degraded ? 'Degraded' : 'Healthy'}
-            icon={
-              <StatusDot
-                status={degraded ? 'warn' : 'ok'}
-                label={degraded ? 'Degraded' : 'Healthy'}
-              />
-            }
+            icon={<StatusIndicator degraded={degraded} label={degraded ? 'Degraded' : 'Healthy'} />}
           />
-        </StatGroup>
+        </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 flex flex-col gap-6">
