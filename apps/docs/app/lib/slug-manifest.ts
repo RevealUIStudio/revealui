@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 72 entries.
+ * Generated: 74 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -19,10 +19,13 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'api/rest-api/readme': 'api/rest-api/README.md',
   architecture: 'ARCHITECTURE.md',
   'architecture/adr-001-agent-first': 'architecture/ADR-001-agent-first.md',
-  'architecture/adr-002-dual-database': 'architecture/ADR-002-dual-database.md',
   'architecture/adr-003-fair-source-licensing': 'architecture/ADR-003-fair-source-licensing.md',
   'architecture/adr-004-session-only-auth': 'architecture/ADR-004-session-only-auth.md',
-  'architecture/adr-005-two-repo-model': 'architecture/ADR-005-two-repo-model.md',
+  'architecture/adr-006-engines-package-posture': 'architecture/ADR-006-engines-package-posture.md',
+  'architecture/adr-007-c11-unwired-subsystem-incubate':
+    'architecture/ADR-007-c11-unwired-subsystem-incubate.md',
+  'architecture/adr-008-core-logger-consolidation':
+    'architecture/ADR-008-core-logger-consolidation.md',
   'architecture/ai-stack': 'architecture/ai-stack.md',
   auth: 'AUTH.md',
   'blog/01-why-we-built-revealui': 'blog/01-why-we-built-revealui.md',
@@ -52,7 +55,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'decisions/2026-06-13-collab-snapshot-durability':
     'decisions/2026-06-13-collab-snapshot-durability.md',
   'decisions/2026-06-14-stripe-mode-coherence': 'decisions/2026-06-14-stripe-mode-coherence.md',
-  'decisions/licensing-platform-evaluation': 'decisions/licensing-platform-evaluation.md',
   'environment-variables-guide': 'ENVIRONMENT-VARIABLES-GUIDE.md',
   examples: 'EXAMPLES.md',
   'fair-source': 'FAIR_SOURCE.md',
@@ -65,6 +67,7 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'guides/authentication': 'guides/authentication.md',
   'guides/billing': 'guides/billing.md',
   'guides/collections': 'guides/collections.md',
+  'guides/connect-opencode': 'guides/connect-opencode.md',
   'guides/deployment': 'guides/deployment.md',
   'guides/quick-start': 'guides/quick-start.md',
   'guides/readme': 'guides/README.md',
@@ -80,6 +83,7 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   reference: 'REFERENCE.md',
   revfleet: 'REVFLEET.md',
   roadmap: 'ROADMAP.md',
+  'security/audit-receipts': 'security/AUDIT_RECEIPTS.md',
   testing: 'TESTING.md',
   'third-party-licenses': 'THIRD_PARTY_LICENSES.md',
   troubleshooting: 'TROUBLESHOOTING.md',
