@@ -9,19 +9,17 @@
     "recipe:loop": "tsx src/recipes/02-budget-capped-agent-loop.ts",
     "verify-receipt": "tsx src/verify-receipt-cli.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "lint": "biome check ."
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@revealui/security": "workspace:*",
-    "zod": "catalog:"
+    "@revealui/security": "^0.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@revealui/dev": "workspace:*",
-    "@types/node": "catalog:",
-    "tsx": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/node": "^25.9.4",
+    "tsx": "^4.23.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=24.13.0"
