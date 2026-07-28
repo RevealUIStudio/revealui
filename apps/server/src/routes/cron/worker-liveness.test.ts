@@ -43,7 +43,7 @@ vi.mock('@revealui/security/server', async () => {
   };
 });
 
-import app, { classifyProbeError } from './worker-liveness.js';
+import app, { classifyProbeError, safeErrorCode } from './worker-liveness.js';
 
 const CRON_SECRET = 'test-cron-secret-long-enough-32chars!';
 
@@ -216,6 +216,44 @@ describe('classifyProbeError', () => {
     const err = new Error('boom') as Error & { cause?: unknown };
     err.cause = err;
     expect(classifyProbeError(err)).toBe('network-error');
+  });
+
+  // GAP-455 round 2. The first deployed classifier followed only `cause`, so
+  // it stopped dead at an AggregateError and returned a bare 'network-error'
+  // with no code  -  which is exactly what the first real run produced, and
+  // exactly as undiagnosable as the bug it was meant to fix.
+  //
+  // This shape is the LIKELY one here, not an exotic case: the SSRF guard
+  // returns both the A and AAAA records, and Node's Happy Eyeballs
+  // (autoSelectFamily) aggregates the per-address failures when all of them
+  // fail.
+  it('finds the reason inside an AggregateError', () => {
+    const v4 = Object.assign(new Error('connect ECONNREFUSED 203.0.113.1:443'), {
+      code: 'ECONNREFUSED',
+    });
+    const v6 = Object.assign(new Error('connect ENETUNREACH 2001:db8::1:443'), {
+      code: 'ENETUNREACH',
+    });
+    const aggregate = new AggregateError([v4, v6], 'All attempts to connect failed');
+    const top = new TypeError('fetch failed', { cause: aggregate });
+
+    expect(classifyProbeError(top)).toBe('network-error');
+    // The point of the fix: the code is no longer lost.
+    expect(safeErrorCode(top)).toBe('ECONNREFUSED');
+  });
+
+  it('finds a guard rejection nested inside an AggregateError', () => {
+    const inner = new Error('SSRF: host.example did not resolve to any public IP address');
+    const aggregate = new AggregateError([inner], 'All attempts to connect failed');
+    const top = new TypeError('fetch failed', { cause: aggregate });
+
+    expect(classifyProbeError(top)).toBe('dns-unresolved');
+  });
+
+  it('terminates on an AggregateError that contains itself', () => {
+    const aggregate = new AggregateError([], 'loop') as AggregateError & { errors: unknown[] };
+    aggregate.errors = [aggregate];
+    expect(classifyProbeError(aggregate)).toBe('network-error');
   });
 });
 
