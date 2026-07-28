@@ -201,4 +201,59 @@ describe('createSafeFetch', () => {
     });
     await expect(safeFetch('https://1.1.1.1/')).rejects.toThrow('refusing to follow redirect');
   });
+
+  // GAP-455. A dispatcher that cannot be built used to surface as a bare
+  // TypeError with no `cause` and no `code` — indistinguishable from a network
+  // fault. A "worker unreachable" alarm was actually this, and it took four
+  // rounds and three production deploys to tell the two apart.
+  describe('when the connection guard cannot be built', () => {
+    it('reports a guard failure, not something that looks like a network fault', async () => {
+      const baseFetch = vi.fn();
+      const safeFetch = createSafeFetch({
+        baseFetch: baseFetch as unknown as typeof fetch,
+        dispatcherFactory: async () => {
+          throw new TypeError('Agent is not a constructor');
+        },
+      });
+
+      await expect(safeFetch('https://1.1.1.1/')).rejects.toThrow('SSRF:');
+      // Fails CLOSED: the request must not proceed unpinned.
+      expect(baseFetch).not.toHaveBeenCalled();
+    });
+
+    it('does not leak the target into the guard-failure message', async () => {
+      const safeFetch = createSafeFetch({
+        baseFetch: vi.fn() as unknown as typeof fetch,
+        dispatcherFactory: async () => {
+          throw new TypeError('boom');
+        },
+      });
+
+      const err = await safeFetch('https://1.1.1.1/secret-path').catch((e: Error) => e);
+      expect(err.message.startsWith('SSRF: connection guard unavailable')).toBe(true);
+      expect(err.message).not.toContain('1.1.1.1');
+      expect(err.message).not.toContain('secret-path');
+    });
+
+    it('retries construction instead of caching the rejection forever', async () => {
+      let attempts = 0;
+      const dispatcher = { sentinel: true };
+      const baseFetch = vi.fn(async () => new Response('ok', { status: 200 }));
+
+      const safeFetch = createSafeFetch({
+        baseFetch: baseFetch as unknown as typeof fetch,
+        dispatcherFactory: async () => {
+          attempts += 1;
+          if (attempts === 1) throw new TypeError('transient');
+          return dispatcher;
+        },
+      });
+
+      await expect(safeFetch('https://1.1.1.1/')).rejects.toThrow('SSRF:');
+      // Second call must rebuild. Memoizing the rejected promise previously
+      // poisoned every later call for the life of the process.
+      await expect(safeFetch('https://1.1.1.1/')).resolves.toBeDefined();
+      expect(attempts).toBe(2);
+    });
+  });
 });
