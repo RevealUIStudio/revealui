@@ -49,7 +49,7 @@ const HEALTH_CHECK_TIMEOUT_MS = 10_000;
  * change to the diagnostic contract; then one run always says which build
  * answered. Cheap, and it never leaks anything about the target.
  */
-const PROBE_VERSION = 3;
+const PROBE_VERSION = 4;
 
 const safeFetch = createSafeFetch();
 
@@ -69,6 +69,7 @@ export type ProbeFailureReason =
   | 'blocked-private-ip'
   | 'blocked-redirect'
   | 'invalid-target'
+  | 'guard-unavailable'
   | 'blocked-by-guard'
   | 'network-error';
 
@@ -85,6 +86,15 @@ export type ProbeFailureReason =
  * (which is the exact bug GAP-455 is about).
  */
 const GUARD_MESSAGE_TOKENS: ReadonlyArray<readonly [string, ProbeFailureReason]> = [
+  // The guard could not BUILD itself, so nothing was ever dialled and the
+  // target's health is unknown rather than bad. Without this entry the message
+  // falls through to the generic `SSRF:` branch and reports
+  // 'blocked-by-guard', which an operator correctly reads as "the target was
+  // blocked" and takes to the worker URL or the allowlist — the wrong place
+  // entirely. That is the same misdirection GAP-455 spent four rounds and
+  // three deploys on, one level up, and nothing fails when it happens because
+  // 'blocked-by-guard' is a valid value. Caught in review of #2263.
+  ['connection guard unavailable', 'guard-unavailable'],
   ['did not resolve to any public IP', 'dns-unresolved'],
   ['resolved to private IP', 'blocked-private-ip'],
   ['is a private/reserved IP', 'blocked-private-ip'],
