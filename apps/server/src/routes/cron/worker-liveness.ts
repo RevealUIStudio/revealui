@@ -49,7 +49,7 @@ const HEALTH_CHECK_TIMEOUT_MS = 10_000;
  * change to the diagnostic contract; then one run always says which build
  * answered. Cheap, and it never leaks anything about the target.
  */
-const PROBE_VERSION = 2;
+const PROBE_VERSION = 3;
 
 const safeFetch = createSafeFetch();
 
@@ -193,6 +193,65 @@ export function safeErrorCode(err: unknown): string | undefined {
   return code;
 }
 
+/**
+ * Error class names we are willing to echo, because each is a fixed identifier
+ * from Node/undici/the platform and carries nothing about the target.
+ *
+ * An allowlist rather than "just report err.name": a custom error class could
+ * in principle carry data in its name, and this response is read from a PUBLIC
+ * repo's CI logs. Anything unrecognized is reported as 'other', which is still
+ * the diagnostic signal we need (it says "not one of the known shapes") while
+ * making a leak structurally impossible.
+ */
+const REPORTABLE_ERROR_NAMES: ReadonlySet<string> = new Set([
+  'AbortError',
+  'AggregateError',
+  'DOMException',
+  'Error',
+  'EvalError',
+  'RangeError',
+  'ReferenceError',
+  'SocketError',
+  'SyntaxError',
+  'TimeoutError',
+  'TypeError',
+  'URIError',
+  'UndiciError',
+]);
+
+/** Cap on reported names, so a pathological tree cannot produce unbounded output. */
+const MAX_REPORTED_NAMES = 8;
+
+/**
+ * A safe structural fingerprint of the failure: the class names along the
+ * error tree, in visit order.
+ *
+ * GAP-455, round 3. Two deployed classifiers have now both answered
+ * 'network-error' with no code — meaning the throw carries no SSRF message and
+ * no `code` anywhere, including inside AggregateError.errors. That narrows the
+ * cause but does not name it, and each further guess costs a full deploy
+ * cycle.
+ *
+ * Reporting the SHAPE ends the guessing: `['TypeError','AggregateError']` says
+ * something very different from `['Error']` or `['other']`, and none of it can
+ * leak the worker's hostname the way a message would.
+ */
+export function safeErrorNames(err: unknown): string[] {
+  const names: string[] = [];
+
+  walkErrorTree(err, (current) => {
+    if (names.length >= MAX_REPORTED_NAMES) return;
+    names.push(REPORTABLE_ERROR_NAMES.has(current.name) ? current.name : 'other');
+  });
+
+  // A throw that is not an Error at all never enters the walk, and that is
+  // itself a live hypothesis for the observed body — so say so explicitly
+  // rather than reporting an empty array that reads like "nothing happened".
+  if (names.length === 0) names.push(err === undefined ? 'undefined-throw' : 'non-error-throw');
+
+  return names;
+}
+
 app.get('/worker-liveness', async (c) => {
   const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
@@ -256,13 +315,16 @@ app.get('/worker-liveness', async (c) => {
     // from classifyProbeError and (when present) the constant error code.
     const reason = classifyProbeError(err);
     const code = safeErrorCode(err);
+    // Round 3: two deployed classifiers both answered 'network-error' with no
+    // code, so the SHAPE of the throw is now the only thing left to report.
+    const names = safeErrorNames(err);
 
     // GAP-455: these buckets used to be one. Every non-timeout throw reported
     // 'network-error', so a probe that never opened a socket (guard rejection,
     // DNS failure, bad env value) was indistinguishable from a genuinely dark
     // worker  -  and the first live runs were exactly that false alarm. The
     // split is what makes a red run diagnosable from its body alone.
-    logger.error(`[worker-liveness] probe failed (${reason})`, undefined, { reason, code });
+    logger.error(`[worker-liveness] probe failed (${reason})`, undefined, { reason, code, names });
     void sendCronFailureAlert({
       jobName: 'worker-liveness',
       error: new Error(
@@ -271,9 +333,12 @@ app.get('/worker-liveness', async (c) => {
           : `Worker liveness check failed: ${reason}${code ? ` (${code})` : ''}`,
       ),
       severity: 'error',
-      metadata: { reason, code },
+      metadata: { reason, code, names },
     });
-    return c.json({ healthy: false, error: reason, code, checkedAt, probe: PROBE_VERSION }, 503);
+    return c.json(
+      { healthy: false, error: reason, code, names, checkedAt, probe: PROBE_VERSION },
+      503,
+    );
   }
 });
 

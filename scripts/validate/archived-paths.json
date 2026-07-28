@@ -1,0 +1,18 @@
+{
+  "$comment": [
+    "Paths archived OUT of this repo into RevealUIStudio/revfleet-archive (GAP-451).",
+    "Paths only, by design: the archive repo is private and this repo is public, so no",
+    "archive content crosses the boundary. These are this repo's own former paths.",
+    "Consumed by scripts/validate/archive-check.cjs to flag live docs that still link them.",
+    "Regenerate when archiving a doc; the coordination repo's checker reads the real",
+    "archive and will flag this manifest if it drifts out of sync."
+  ],
+  "repoFolderName": "revealui",
+  "archivedPaths": [
+    "docs/architecture/ADR-002-dual-database.md",
+    "docs/architecture/ADR-005-two-repo-model.md",
+    "docs/archive/2026-03-28-DOCUMENTATION_ASSESSMENT.md",
+    "docs/archive/README.md",
+    "docs/decisions/licensing-platform-evaluation.md"
+  ]
+}
