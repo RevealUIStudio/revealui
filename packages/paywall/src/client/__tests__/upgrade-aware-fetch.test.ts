@@ -4,6 +4,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  AUTH_REQUIRED_EVENT_NAME,
   dispatchUpgradeEvent,
   UPGRADE_EVENT_NAME,
   type UpgradeEventDetail,
@@ -207,5 +208,18 @@ describe('upgradeAwareFetch', () => {
     expect(events).toHaveLength(0);
 
     window.removeEventListener(UPGRADE_EVENT_NAME, handler);
+  });
+
+  it('dispatches auth-required on 401 (GAP-454)', async () => {
+    const handler = vi.fn();
+    window.addEventListener(AUTH_REQUIRED_EVENT_NAME, handler);
+    const mockResponse = new Response(JSON.stringify({ error: 'Authentication required' }), {
+      status: 401,
+    });
+    vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse);
+    const res = await upgradeAwareFetch('/api/data');
+    expect(res.status).toBe(401);
+    expect(handler).toHaveBeenCalledTimes(1);
+    window.removeEventListener(AUTH_REQUIRED_EVENT_NAME, handler);
   });
 });

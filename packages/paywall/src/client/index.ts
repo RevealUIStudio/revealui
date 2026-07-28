@@ -49,9 +49,12 @@ export {
   type PaywallContextValue,
   PaywallProvider,
   type PaywallProviderProps,
+  type PaywallResolveError,
   usePaywall,
 } from './PaywallProvider.js';
 export {
+  AUTH_REQUIRED_EVENT_NAME,
+  dispatchAuthRequiredEvent,
   dispatchUpgradeEvent,
   UPGRADE_EVENT_NAME,
   type UpgradeEventDetail,

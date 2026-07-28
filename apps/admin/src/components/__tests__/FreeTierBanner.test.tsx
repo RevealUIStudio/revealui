@@ -47,18 +47,18 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockUseLicense.mockReturnValue({ tier: 'free', isLoading: false });
+  mockUseLicense.mockReturnValue({ tier: 'free', isLoading: false, resolveError: null });
 });
 
 describe('FreeTierBanner', () => {
   it('renders nothing while loading', () => {
-    mockUseLicense.mockReturnValue({ tier: 'free', isLoading: true });
+    mockUseLicense.mockReturnValue({ tier: 'free', isLoading: true, resolveError: null });
     render(<FreeTierBanner isHosted={false} />);
     expect(screen.queryByText(/Free plan/)).not.toBeInTheDocument();
   });
 
   it('renders nothing above the free tier', () => {
-    mockUseLicense.mockReturnValue({ tier: 'pro', isLoading: false });
+    mockUseLicense.mockReturnValue({ tier: 'pro', isLoading: false, resolveError: null });
     render(<FreeTierBanner isHosted={false} />);
     expect(screen.queryByText(/Free plan/)).not.toBeInTheDocument();
   });
@@ -79,4 +79,24 @@ describe('FreeTierBanner', () => {
     expect(screen.queryByText(/Start your 7-day Pro trial/)).not.toBeInTheDocument();
     expect(screen.queryByText(/7-day trial/)).not.toBeInTheDocument();
   });
+});
+
+it('renders nothing when tier resolution failed with auth-required (GAP-454)', () => {
+  mockUseLicense.mockReturnValue({
+    tier: 'free',
+    isLoading: false,
+    resolveError: 'auth-required',
+  });
+  render(<FreeTierBanner isHosted={true} />);
+  expect(screen.queryByText(/Free plan/)).not.toBeInTheDocument();
+});
+
+it('renders nothing when tier resolution failed as unavailable (GAP-454)', () => {
+  mockUseLicense.mockReturnValue({
+    tier: 'free',
+    isLoading: false,
+    resolveError: 'unavailable',
+  });
+  render(<FreeTierBanner isHosted={true} />);
+  expect(screen.queryByText(/Free plan/)).not.toBeInTheDocument();
 });

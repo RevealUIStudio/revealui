@@ -136,8 +136,10 @@ export class APIClient {
     const method = (options.method ?? 'GET').toUpperCase();
     const csrfToken = Unsafe.has(method) ? readCsrfToken() : undefined;
 
+    // FormData must set its own multipart boundary; never force JSON Content-Type.
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       ...options.headers,
     };
@@ -266,6 +268,30 @@ export class APIClient {
   async create(options: CreateOptions): Promise<RevealDocument> {
     const { collection, data } = options;
     const endpoint = `/api/collections/${collection}`;
+
+    // GAP-452: upload collections send File + fields as multipart so the api
+    // media endpoint (multipart-only) accepts the create.
+    const fileEntry = Object.entries(data).find(
+      ([, v]) => typeof File !== 'undefined' && v instanceof File,
+    );
+    if (fileEntry) {
+      const formData = new FormData();
+      const [fileKey, fileValue] = fileEntry;
+      // Api media upload expects the binary field name `file`.
+      formData.append('file', fileValue as File);
+      for (const [key, value] of Object.entries(data)) {
+        if (key === fileKey) continue;
+        if (value === null || value === undefined) continue;
+        // Skip nested objects (richtext caption) on create; follow-up PATCH owns them.
+        if (typeof value === 'object') continue;
+        formData.append(key, String(value));
+      }
+      const response = await this.request<{ doc: RevealDocument }>(endpoint, {
+        method: 'POST',
+        body: formData,
+      });
+      return response.doc;
+    }
 
     const response = await this.request<{ doc: RevealDocument }>(endpoint, {
       method: 'POST',

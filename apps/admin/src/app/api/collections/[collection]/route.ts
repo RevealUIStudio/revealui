@@ -75,6 +75,18 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
     );
   }
 
+  // Upload create (media) returns { success, data: T }; normalize for APIClient.
+  if (
+    data &&
+    typeof data === 'object' &&
+    data.data &&
+    !Array.isArray(data.data) &&
+    !data.docs &&
+    !data.doc
+  ) {
+    return NextResponse.json({ doc: data.data }, { status: response.status });
+  }
+
   return NextResponse.json(data, { status: response.status });
 }
 
@@ -110,6 +122,27 @@ export async function POST(
   }
 
   const { collection } = await params;
+  const contentType = request.headers.get('content-type') ?? '';
+
+  // GAP-452: upload collections (media) create via multipart. Stream the body
+  // through like /api/media so the api server's single-sourced validator stays
+  // the only upload gate. JSON create for non-upload collections is unchanged.
+  if (contentType.startsWith('multipart/form-data')) {
+    try {
+      const target = await resolveCreateTarget(collection, undefined);
+      const init: RequestInit & { duplex: 'half' } = {
+        method: 'POST',
+        headers: await apiForwardHeaders(request, { 'Content-Type': contentType }),
+        body: request.body,
+        duplex: 'half',
+      };
+      const apiResponse = await fetch(target, init);
+      return proxyResponse(apiResponse);
+    } catch (err) {
+      return apiUnavailable(collection, err);
+    }
+  }
+
   const body = await request.json();
 
   try {
