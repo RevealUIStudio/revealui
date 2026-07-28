@@ -5,7 +5,7 @@ title: "Marketing Metrics — Pinned Truth"
 description: "Single source of truth for every metric, count, and status claim used in the marketing app and public-facing copy. Updated when the code changes; validated by claim-drift CI gate."
 category: internal
 audience: maintainer
-last-verified: 2026-07-22
+last-verified: 2026-07-27
 verified-via: pnpm tsx scripts/validate/claim-drift.ts
 ---
 
@@ -21,14 +21,14 @@ If a number appears in marketing copy, it MUST match the value below. If a value
 
 ## 1. Codebase metrics (validated by claim-drift CI gate)
 
-Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-07-22 (GAP-407 Session B re-verify).
+Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-07-27 (re-verified while fixing the admin media library page; testFiles bump to 1162 kept the count inside the claim-drift tolerance).
 
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
 | Packages in `packages/` | **30** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
 | Apps in `apps/` | **5** | `countApps()` | admin / server / docs / marketing / license-signer (GAP-260 P4-2). |
 | Workspaces (monorepo total) | **35** | `countWorkspaces()` (= 30 packages + 5 apps) | |
-| Test files | **1122** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
+| Test files | **1162** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). claim-drift allows site.ts METRICS.testFiles within tolerance 100. |
 | UI components in `packages/presentation/` | **65** | `countUIComponents()` | Marketing copy says "65 native React components" or similar. |
 | **MCP servers** | **13** | `countMCPServers()` — `.ts` files in `packages/mcp/src/servers/` excluding `_`-prefixed | Includes `adapter.ts` (BaseAdapter + Vercel/Stripe/Neon subclasses); Supabase launcher removed (13 count). |
 | DB tables (Drizzle pgTable) | **97** | `countDbTables()` — `pgTable(` declarations across `packages/db/src/schema/*.ts` | Was 86 (2026-06-22); 93 after GAP-300; 96 on 2026-07-22; **97** after GAP-355 S4-1 `audit_anchors` (2026-07-23). `site.ts` METRICS.dbTables is gate-enforced by claim-drift. |
