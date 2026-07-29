@@ -12,7 +12,7 @@
  *   list                             List harnesses in TSV format
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--project <path>]    Print current workboard state
- *   hook <cursor|claude-code|vscode> Normalize a hook payload from stdin, evaluate policy, spool the receipt
+ *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
  *   session register|end             Soft-optional RevDev daemon session boundary (Grok/equal adapters)
  *
  * License: FSL-1.1-MIT
@@ -486,7 +486,7 @@ async function readStdin(): Promise<string> {
 async function handleHookCommand(source: string | undefined): Promise<void> {
   if (!(source && isImplementedHookSource(source))) {
     process.stderr.write(
-      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode\n`,
+      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode, grok\n`,
     );
     process.exitCode = 1;
     return;
@@ -716,7 +716,7 @@ Commands:
   sync <id> <push|pull>             Sync harness config to/from SSD (requires daemon)
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
-  hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
+  hook <cursor|claude-code|vscode|grok>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
   session register|end              Soft-optional RevDev daemon session boundary (equal adapters)
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs

@@ -5,19 +5,25 @@ import type {
 } from '../../types/hook-event.js';
 import { normalizeClaudeCodeHookEvent } from './claude-code.js';
 import { normalizeCursorHookEvent } from './cursor.js';
+import { normalizeGrokHookEvent } from './grok.js';
 import { normalizeVSCodeHookEvent } from './vscode.js';
 
 export { normalizeClaudeCodeHookEvent } from './claude-code.js';
 export { normalizeCursorHookEvent } from './cursor.js';
+export { normalizeGrokHookEvent } from './grok.js';
 export { normalizeVSCodeHookEvent } from './vscode.js';
 
 /** Sources with a normalizer implemented in this package today. */
-export type ImplementedHookSource = Extract<HarnessHookSource, 'cursor' | 'claude-code' | 'vscode'>;
+export type ImplementedHookSource = Extract<
+  HarnessHookSource,
+  'cursor' | 'claude-code' | 'vscode' | 'grok'
+>;
 
 const IMPLEMENTED_SOURCES: ReadonlySet<string> = new Set<ImplementedHookSource>([
   'cursor',
   'claude-code',
   'vscode',
+  'grok',
 ]);
 
 /** True if `normalizeHookEvent` has a normalizer for this source. */
@@ -45,5 +51,7 @@ export function normalizeHookEvent(
       return normalizeClaudeCodeHookEvent(raw, enforcementTier);
     case 'vscode':
       return normalizeVSCodeHookEvent(raw, enforcementTier);
+    case 'grok':
+      return normalizeGrokHookEvent(raw, enforcementTier);
   }
 }

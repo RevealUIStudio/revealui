@@ -36,6 +36,7 @@ What they run (warn-only, never blocks the session):
 | SessionStart / SessionEnd | `tmpscript-check.js` (lifecycle until GAP-295 control-layer cutover) |
 | SessionStart | `revealui-harnesses session register --backend grok` (soft if daemon down) |
 | SessionEnd | `revealui-harnesses session end` (signed when identity cached; soft if daemon down) |
+| PreToolUse | `revealui-harnesses hook grok` (policy + receipt spool) |
 
 Do not copy hardlines into `~/.grok/rules/`. Do not invent a second hotfix registry.
-Rebuild `@revealui/harnesses` so `dist/cli.js session` is available before expecting daemon register.
+Rebuild `@revealui/harnesses` so `dist/cli.js session` / `hook grok` are available.

@@ -57,7 +57,7 @@ export interface PolicySnapshot {
 }
 
 const PolicySnapshotRuleSchema = z.object({
-  source: z.enum(['cursor', 'claude-code', 'vscode', 'opencode']).optional(),
+  source: z.enum(['cursor', 'claude-code', 'vscode', 'opencode', 'grok']).optional(),
   kind: z
     .enum([
       'session-start',
