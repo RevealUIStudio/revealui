@@ -37,7 +37,7 @@ What MIT means practically: you can take RevealUI, strip the branding, deploy it
 
 If everything important is MIT, what's left to sell?
 
-Intelligence.
+Agents.
 
 RevealUI Pro includes:
 

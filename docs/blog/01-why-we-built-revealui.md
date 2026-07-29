@@ -17,11 +17,11 @@ RevealUI is the open runtime for businesses that run their own AI. People, Conte
 
 Every software company needs the same five things on day one:
 
-1. **Users** - sign up, sign in, sessions, roles, permissions (RBAC + ABAC)
+1. **People** - sign up, sign in, sessions, roles, permissions (RBAC + ABAC)
 2. **Content** - pages, posts, media, rich text, an API to serve it
-3. **Products** - a catalog, pricing tiers, license keys
+3. **Offers** - a catalog, pricing tiers, license keys
 4. **Payments** - checkout, subscriptions, invoices, a billing portal
-5. **Intelligence** - AI that actually knows your business context
+5. **Agents** - AI that actually knows your business context
 
 None of these are your product. All of them are required before your product can exist.
 

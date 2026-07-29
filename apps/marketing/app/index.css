@@ -10,7 +10,7 @@
  *     WITHOUT touching a single component file.
  *   - `blue-*`, `amber-*`, `cyan-*`, `violet-*` are LEFT ALONE
  *     because they are the multi-hue primitive accents
- *     (Content / Products / Payments / Intelligence).
+ *     (Content / Offers / Payments / Agents).
  *
  * To roll back: delete the bottom @theme block. Tailwind defaults
  * return; emerald-* paints emerald again.
