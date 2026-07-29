@@ -13,7 +13,7 @@
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--project <path>]    Print current workboard state
  *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
- *   session register|end             Soft-optional RevDev daemon session boundary (Grok/equal adapters)
+ *   session register|end|peers       Soft-optional RevDev daemon session boundary + peer panel (GAP-459)
  *
  * License: FSL-1.1-MIT
  */
@@ -717,7 +717,7 @@ Commands:
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
   hook <cursor|claude-code|vscode|grok>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
-  session register|end              Soft-optional RevDev daemon session boundary (equal adapters)
+  session register|end|peers        Soft-optional RevDev session boundary + peer panel (GAP-459)
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid
