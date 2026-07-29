@@ -37,19 +37,19 @@ claim-gates --root /path/to/revealui
 # agency / marketing-site (hard-fail when clean)
 claim-gates --root /path/to/agency --profile marketing-site
 
-# sibling product (warn while baselining fleet leaks)
-claim-gates --root /path/to/revdev --profile product-readme --warn
+# sibling product README / docs (hard-fail; fleet-attribution off)
+claim-gates --root /path/to/revdev --profile product-readme
 
 pnpm validate:claims   # revealui monorepo thin wrapper + capability slice
 ```
 
-## Profiles (Phase 2)
+## Profiles (Phase 2+)
 
-| Profile | Use | Metrics / license | Missing scan dirs |
-|---------|-----|-------------------|-------------------|
-| `product-runtime` | Full revealui monorepo | On | Hard-fail if missing |
-| `marketing-site` | Agency (app/ + README) | Off; fleet-attribution off until allowlist | Soft skip |
-| `product-readme` | Sibling product docs | Off | Soft skip |
+| Profile | Use | Metrics / license | Fleet attribution | Missing scan dirs |
+|---------|-----|-------------------|-------------------|-------------------|
+| `product-runtime` | Full revealui monorepo | On | On (docs / marketing) | Hard-fail if missing |
+| `marketing-site` | Agency | Off | Off (intentional Studio/Rev* copy) | Soft skip |
+| `product-readme` | Sibling product docs | Off | Off (peer products name each other) | Soft skip |
 
 Auto-detect from root shape:
 

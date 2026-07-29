@@ -58,6 +58,8 @@ describe('getProfile / existingRoots', () => {
     const readme = getProfile('product-readme');
     expect(readme.collectMonorepoMetrics).toBe(false);
     expect(readme.softScanDirs).toBe(true);
+    // Sibling product docs intentionally name fleet peers (see profiles.ts).
+    expect(readme.fleetAttributionFiles).toEqual([]);
   });
 
   it('filters candidates to paths that exist under root', () => {
@@ -76,7 +78,7 @@ describe('getProfile / existingRoots', () => {
 });
 
 describe('runClaimGates warn mode', () => {
-  it('exits 0 with --warn even when fleet leaks would fail hard', () => {
+  it('exits 0 with --warn even when unlinked future-tense would fail hard', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-gates-warn-'));
     try {
       fs.writeFileSync(
@@ -84,7 +86,8 @@ describe('runClaimGates warn mode', () => {
         [
           '# Fixture',
           '',
-          'RevDev is our engineering harness without any fleet attribution.',
+          // Unlinked future-tense marker (no issue/PR/milestone/workflow cite).
+          'The second surface (coming soon) will land later.',
           '',
         ].join('\n'),
       );
