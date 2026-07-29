@@ -35,7 +35,7 @@
  */
 'use strict';
 
-const { readFileSync, writeFileSync, existsSync, statSync } = require('node:fs');
+const { readFileSync, writeFileSync, existsSync } = require('node:fs');
 const { gzipSync } = require('node:zlib');
 const { join, resolve } = require('node:path');
 
@@ -103,13 +103,19 @@ const current = {};
 const missing = [];
 for (const [entry, file] of Object.entries(ENTRY_FILES)) {
   const path = join(DIST, file);
-  if (!existsSync(path)) {
-    missing.push(entry);
-    continue;
+  // Single open — no existsSync race before read (CodeQL js/file-system-race).
+  let raw;
+  try {
+    raw = readFileSync(path);
+  } catch (err) {
+    if (err && err.code === 'ENOENT') {
+      missing.push(entry);
+      continue;
+    }
+    throw err;
   }
-  const raw = readFileSync(path);
   current[entry] = {
-    raw: statSync(path).size,
+    raw: raw.length,
     gzip: gzipSync(raw, { level: 9 }).length,
   };
 }
@@ -129,13 +135,30 @@ if (missing.length > 0) {
 }
 
 /* ── write or update baseline ─────────────────────────────────────────── */
+// Avoid existsSync→read/write TOCTOU (CodeQL js/file-system-race): open once.
 
-if (!existsSync(BASELINE) || UPDATE) {
-  writeFileSync(BASELINE, `${JSON.stringify({ version: pkg.version, sizes: current }, null, 2)}\n`, 'utf8');
+const baselinePayload = `${JSON.stringify({ version: pkg.version, sizes: current }, null, 2)}\n`;
+let baseline;
+
+if (UPDATE) {
+  writeFileSync(BASELINE, baselinePayload, 'utf8');
   console.log(`size-budget: baseline written for ${pkg.version}. Commit size-budget.baseline.json.\n`);
+  baseline = { version: pkg.version, sizes: current };
+} else {
+  try {
+    baseline = JSON.parse(readFileSync(BASELINE, 'utf8'));
+  } catch (err) {
+    if (err && /** @type {NodeJS.ErrnoException} */ (err).code === 'ENOENT') {
+      writeFileSync(BASELINE, baselinePayload, 'utf8');
+      console.log(
+        `size-budget: baseline written for ${pkg.version}. Commit size-budget.baseline.json.\n`,
+      );
+      baseline = { version: pkg.version, sizes: current };
+    } else {
+      throw err;
+    }
+  }
 }
-
-const baseline = JSON.parse(readFileSync(BASELINE, 'utf8'));
 
 /* ── report ───────────────────────────────────────────────────────────── */
 
