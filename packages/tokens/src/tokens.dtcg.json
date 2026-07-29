@@ -490,10 +490,10 @@
       },
       "2": {
         "$type": "color",
-        "$value": "oklch(0.65 0.025 250)",
+        "$value": "oklch(0.72 0.020 250)",
         "$extensions": {
           "com.revealui.theme": {
-            "dark": "oklch(0.65 0.025 250)",
+            "dark": "oklch(0.72 0.020 250)",
             "light": "oklch(0.48 0.030 250)"
           }
         }

@@ -151,9 +151,11 @@
   /* ── Text ── */
   --rvui-text-0: oklch(0.985 0.005 250);   /* paper white */
   --rvui-text-1: oklch(0.83 0.015 245);    /* smoke-200 */
-  /* AA as text on surface-0/1 only. On surface-2/3 use as icon/separator colour;
-   * use text-1 for copy on those layers (CONTRAST-CLOSE-OUT finding A). */
-  --rvui-text-2: oklch(0.65 0.025 250);    /* smoke-300 */
+  /* AA normal text on surface-0/1/2. Was 0.65 (~3.6:1 on surface-2/3 card
+   * shells when nested data-theme=dark actually applied). Lifted to 0.72 so
+   * muted copy + icon fills on elevated surfaces clear 4.5:1 (axe showcase).
+   * Prefer text-1 for long body on surface-3 still. */
+  --rvui-text-2: oklch(0.72 0.020 250);
   /* Dark CTA labels run NEAR-BLACK INK on cobalt-300, not paper-white.
    * Paper-white on the lifted dark brand tested at 3.97:1 (failing 4.5:1 AA
    * for normal text). Near-black ink — reusing the same value as the dark

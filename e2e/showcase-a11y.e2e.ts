@@ -181,15 +181,16 @@ test.describe('Showcase accessibility', () => {
       const count = await focusables.count();
       expect(count, `${slug}: no focusable element inside the preview`).toBeGreaterThan(0);
 
-      // Keyboard focus so :focus-visible applies. Programmatic .focus() often
-      // does not (and Headless data-focus rings also key off keyboard focus).
-      await page.locator('body').click({ position: { x: 0, y: 0 }, force: true });
-      let inside = false;
-      for (let i = 0; i < 24; i++) {
-        await page.keyboard.press('Tab');
-        inside = await preview.evaluate((el) => el.contains(document.activeElement));
-        if (inside) break;
-      }
+      // Keyboard focus so :focus-visible applies. Docs chrome can have 30+ tab
+      // stops before the preview; do not depend on that budget. Park focus on
+      // the preview shell, then Tab once into the first focusable child so the
+      // browser marks keyboard modality (:focus-visible / data-focus).
+      await preview.evaluate((el) => {
+        (el as HTMLElement).tabIndex = -1;
+        (el as HTMLElement).focus({ preventScroll: true });
+      });
+      await page.keyboard.press('Tab');
+      const inside = await preview.evaluate((el) => el.contains(document.activeElement));
       expect(inside, `${slug}: focus did not land inside the preview via Tab`).toBe(true);
 
       // A visible focus indicator must exist. Post-Gate-0 it resolves to
