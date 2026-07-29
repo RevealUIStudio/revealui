@@ -6,8 +6,9 @@ Fleet claim honesty engines for multi-root claim-drift (GAP-462).
 
 Extracts the claim-drift detector so every RevFleet product repo can run the
 same honesty gates without a full-copy of the scanner. Phase 1 keeps revealui
-`pnpm validate:claims` hard-fail with pre-extract parity. Later phases add
-agency / revdev profiles and knowledge-graph claim ingest.
+`pnpm validate:claims` hard-fail with pre-extract parity. Phase 2 adds
+per-profile scan roots, soft missing-path handling, and `--warn` / `--baseline`
+for gradual fleet enablement.
 
 ## Installation
 
@@ -30,17 +31,33 @@ process.exit(result.exitCode);
 CLI (after build):
 
 ```bash
-claim-gates --root /path/to/checkout
-pnpm validate:claims   # revealui monorepo thin wrapper
+# revealui monorepo (default profile product-runtime)
+claim-gates --root /path/to/revealui
+
+# agency / marketing-site (hard-fail when clean)
+claim-gates --root /path/to/agency --profile marketing-site
+
+# sibling product (warn while baselining fleet leaks)
+claim-gates --root /path/to/revdev --profile product-readme --warn
+
+pnpm validate:claims   # revealui monorepo thin wrapper + capability slice
 ```
 
-## Profiles (Phase 1)
+## Profiles (Phase 2)
 
-| Profile | Use |
-|---------|-----|
-| `product-runtime` | Full revealui behavior (default when root looks like the monorepo) |
-| `marketing-site` | Agency / marketing surfaces (Phase 2) |
-| `product-readme` | Sibling product README gates (Phase 2) |
+| Profile | Use | Metrics / license | Missing scan dirs |
+|---------|-----|-------------------|-------------------|
+| `product-runtime` | Full revealui monorepo | On | Hard-fail if missing |
+| `marketing-site` | Agency (app/ + README) | Off; fleet-attribution off until allowlist | Soft skip |
+| `product-readme` | Sibling product docs | Off | Soft skip |
+
+Auto-detect from root shape:
+
+- `apps/` + `packages/` + `apps/marketing/app/content/claims-evidence.ts` → product-runtime
+- `app/` without `packages/` → marketing-site
+- else → product-readme
+
+Flags: `--fix`, `--warn` / `--baseline` (report failures, exit 0), `--root`, `--profile`.
 
 ## Development
 

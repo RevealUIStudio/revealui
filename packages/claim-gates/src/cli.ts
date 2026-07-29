@@ -6,14 +6,17 @@ function parseArgv(argv: readonly string[]): {
   root?: string;
   profile?: ClaimProfileName;
   showFix: boolean;
+  warn: boolean;
 } {
   let root: string | undefined;
   let profile: ClaimProfileName | undefined;
   let showFix = false;
+  let warn = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === undefined) continue;
     if (a === '--fix') showFix = true;
+    else if (a === '--warn' || a === '--baseline') warn = true;
     else if (a === '--root' && argv[i + 1]) {
       root = argv[++i];
     } else if (a.startsWith('--root=')) {
@@ -24,7 +27,7 @@ function parseArgv(argv: readonly string[]): {
       profile = a.slice('--profile='.length) as ClaimProfileName;
     }
   }
-  return { root, profile, showFix };
+  return { root, profile, showFix, warn };
 }
 
 /**
@@ -34,12 +37,15 @@ function parseArgv(argv: readonly string[]): {
 export function runClaimGatesCli(options: ClaimGatesCliOptions): ClaimGateResult {
   const argv = options.argv ?? process.argv;
   const parsed = parseArgv(argv);
-  const root = path.resolve(options.root ?? parsed.root ?? process.cwd());
+  // CLI --root wins over options.root so `node dist/cli.js --root <path>` works
+  // when the bin entry also defaults root to cwd.
+  const root = path.resolve(parsed.root ?? options.root ?? process.cwd());
   const result = runClaimGates({
     root,
     profile: options.profile ?? parsed.profile,
     argv,
     showFix: parsed.showFix,
+    warn: parsed.warn || options.warn,
     capability: options.capability,
   });
   if (options.exit !== false) {

@@ -37,7 +37,13 @@ import {
   tokenize,
 } from '@revealui/contracts/marketing-voice';
 import ts from 'typescript';
-import type { CapabilityGateSlice, ClaimGateResult, ClaimGateRunOptions } from './types.js';
+import { type ClaimProfile, existingRoots, getProfile, resolveProfile } from './profiles.js';
+import type {
+  CapabilityGateSlice,
+  ClaimGateResult,
+  ClaimGateRunOptions,
+  ClaimProfileName,
+} from './types.js';
 
 export type { Rule, Token };
 export { checkRule, isIntegerWithCommas, isPositiveIntegerToken, stripCommas, tokenize };
@@ -48,13 +54,40 @@ export { checkRule, isIntegerWithCommas, isPositiveIntegerToken, stripCommas, to
  */
 let Root = '';
 let showFix = false;
+let ActiveProfile: ClaimProfile = getProfile('product-runtime');
+let WarnOnly = false;
 /** Lazy cache; typed loosely until IgnoredPathPredicate is declared below. */
 let rootPredicateCache: ((fullPath: string) => boolean) | undefined;
 
 /** Configure the monorepo (or profile) root for subsequent collectors. */
-export function configureClaimGatesRoot(root: string): void {
+export function configureClaimGatesRoot(root: string, profileName?: ClaimProfileName): void {
   Root = path.resolve(root);
   rootPredicateCache = undefined;
+  ActiveProfile = getProfile(resolveProfile(Root, profileName));
+}
+
+function resolvedScanDirs(): string[] {
+  const candidates = ActiveProfile.scanDirs;
+  return ActiveProfile.softScanDirs ? existingRoots(Root, candidates) : [...candidates];
+}
+
+function resolvedLicenseRoots(): string[] {
+  const candidates = ActiveProfile.licenseScanRoots;
+  return ActiveProfile.softScanDirs ? existingRoots(Root, candidates) : [...candidates];
+}
+
+function resolvedFutureTenseFiles(): string[] {
+  return existingRoots(Root, ActiveProfile.futureTenseFiles);
+}
+
+function resolvedAspirationalPaths(): string[] {
+  const candidates = ActiveProfile.aspirationalPaths;
+  return ActiveProfile.softScanDirs ? existingRoots(Root, candidates) : [...candidates];
+}
+
+function resolvedFleetAttributionFiles(): string[] {
+  const candidates = ActiveProfile.fleetAttributionFiles;
+  return ActiveProfile.softScanDirs ? existingRoots(Root, candidates) : [...candidates];
 }
 
 /** Current configured root (absolute). Empty string if not configured. */
@@ -678,18 +711,6 @@ function buildPackageLicenseMap(): PackageLicenseMap {
 // drift checks; packages/* is huge and would slow the gate).
 // ---------------------------------------------------------------------------
 
-const LICENSE_SCAN_ROOTS = [
-  'docs',
-  'apps/marketing/app',
-  'apps/docs/public',
-  'README.md',
-  'CLAUDE.md',
-  'CONTRIBUTING.md',
-  '.syncpackrc.json',
-  'scripts',
-  'packages',
-];
-
 const LICENSE_SCAN_EXTENSIONS_FULL = ['.md', '.txt', '.ts', '.tsx', '.json', '.sh'];
 const LICENSE_SCAN_EXTENSIONS_PACKAGES = ['.md']; // packages/* is huge; restrict to docs
 
@@ -717,7 +738,7 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
       }
     }
   }
-  for (const root of LICENSE_SCAN_ROOTS) {
+  for (const root of resolvedLicenseRoots()) {
     const full = path.join(Root, root);
     try {
       const stat = fs.statSync(full);
@@ -1513,20 +1534,6 @@ function assertScanDirsExist(scanDirs: string[], arrayName: string): void {
   }
 }
 
-const SCAN_DIRS = [
-  'docs',
-  'apps/marketing/app',
-  'apps/marketing/public/llms.txt',
-  'apps/docs/public/docs-pro',
-  'apps/docs/public/llms.txt',
-  'README.md',
-  'CLAUDE.md',
-  'CONTRIBUTING.md',
-  'scripts/setup',
-  'packages/mcp/README.md',
-  'packages/mcp/docs',
-];
-
 /**
  * Files excluded from claim-drift scanning:
  *   - CRASH-POSTMORTEMS.md: historical document where counts were accurate at time of writing.
@@ -1616,8 +1623,9 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
     }
   }
 
-  assertScanDirsExist(SCAN_DIRS, 'SCAN_DIRS');
-  for (const p of SCAN_DIRS) {
+  const scanDirs = resolvedScanDirs();
+  assertScanDirsExist(scanDirs, 'SCAN_DIRS');
+  for (const p of scanDirs) {
     scanPath(p);
   }
 
@@ -1643,9 +1651,6 @@ interface FutureClaimMatch {
   marker: string;
   text: string;
 }
-
-/** Files scanned for unlinked future-tense markers. */
-const FUTURE_TENSE_SCAN_FILES = ['README.md', 'CLAUDE.md', 'docs/ROADMAP.md', 'docs/PRO.md'];
 
 /**
  * Parenthetical future-tense openers that must cite a tracker
@@ -1764,8 +1769,9 @@ export function hasAspirationalQualifier(line: string): boolean {
 
 function scanForFutureTenseClaims(): FutureClaimMatch[] {
   const matches: FutureClaimMatch[] = [];
+  const FutureTenseScanFiles = resolvedFutureTenseFiles();
 
-  for (const rel of FUTURE_TENSE_SCAN_FILES) {
+  for (const rel of FutureTenseScanFiles) {
     const full = path.join(Root, rel);
     let content: string;
     try {
@@ -1830,30 +1836,6 @@ interface AspirationalMatch {
   why: string;
   text: string;
 }
-
-/** Files scanned for aspirational features without qualifiers. */
-const ASPIRATIONAL_SCAN_FILES = [
-  // Marketing surfaces (existing — marketing-claims-2026-04-25)
-  'apps/marketing/app/components/landing',
-  'apps/marketing/app/components/GetStarted.tsx',
-  // Docs surfaces (PR-D continuation, docs-claims-2026-04-26)
-  // High-visibility orientation + tutorial pages where the same blocklist applies.
-  // Deeper technical docs (AI.md, DATABASE.md, etc.) are tuned in a follow-up.
-  'docs/INDEX.md',
-  'docs/BUILD_YOUR_BUSINESS.md',
-  'docs/EXAMPLES.md',
-  'docs/QUICK_START.md',
-  'docs/FLEET.md',
-  // Pro tier surface (paying-customer eyes)
-  'apps/docs/public/docs-pro/index.md',
-  'apps/docs/public/docs-pro/ai/index.md',
-  'apps/docs/public/docs-pro/inference/index.md',
-  'apps/docs/public/docs-pro/mcp/index.md',
-  'apps/docs/public/docs-pro/editors/index.md',
-  // Blog posts (wired 2026-06-19): CONTRIBUTING.md (Future-tense claims)
-  // explicitly covers blog drafts; long-form, but the same blocklist applies.
-  'docs/blog',
-];
 
 interface AspirationalBlocklistEntry {
   /** marketing-voice rules that fire this label (any hit counts once). */
@@ -2235,8 +2217,9 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
     }
   }
 
-  assertScanDirsExist(ASPIRATIONAL_SCAN_FILES, 'ASPIRATIONAL_SCAN_FILES');
-  for (const rel of ASPIRATIONAL_SCAN_FILES) {
+  const AspirationalScanFiles = resolvedAspirationalPaths();
+  assertScanDirsExist(AspirationalScanFiles, 'ASPIRATIONAL_SCAN_FILES');
+  for (const rel of AspirationalScanFiles) {
     const full = path.join(Root, rel);
     const stat = fs.statSync(full);
     if (stat.isFile()) {
@@ -2290,13 +2273,6 @@ interface FleetProductMatch {
  * The internal honesty audit (docs-claims, 2026-04-26)
  * tracks the coverage queue.
  */
-const FLEET_ATTRIBUTION_SCAN_FILES = [
-  'docs/BUILD_YOUR_BUSINESS.md',
-  'docs/EXAMPLES.md',
-  'docs/QUICK_START.md',
-  'apps/docs/public/docs-pro/mcp/index.md',
-];
-
 /**
  * Files that ARE the canonical home for naming fleet products. They can
  * mention products without per-line attribution because the whole file is
@@ -2660,11 +2636,29 @@ function scanForFleetProductLeaks(): FleetProductMatch[] {
     }
   }
 
-  for (const rel of FLEET_ATTRIBUTION_SCAN_FILES) {
+  function walkDir(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name)) continue;
+      if (e.isDirectory()) walkDir(full);
+      else if (e.name.endsWith('.tsx') || e.name.endsWith('.ts') || e.name.endsWith('.md')) {
+        scanFile(full);
+      }
+    }
+  }
+
+  for (const rel of resolvedFleetAttributionFiles()) {
     const full = path.join(Root, rel);
     try {
       const stat = fs.statSync(full);
       if (stat.isFile()) scanFile(full);
+      else if (stat.isDirectory()) walkDir(full);
     } catch {
       // path missing, skip
     }
@@ -2872,8 +2866,12 @@ function checkMarketingMetrics(checks: MarketingMetricCheck[]): MarketingMetricD
  * Phase 1 — inject a precomputed CapabilityGateSlice from the monorepo wrapper.
  */
 export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
-  configureClaimGatesRoot(options.root);
+  configureClaimGatesRoot(options.root, options.profile);
   showFix = options.showFix === true || (options.argv?.includes('--fix') ?? false);
+  WarnOnly =
+    options.warn === true ||
+    (options.argv?.includes('--warn') ?? false) ||
+    (options.argv?.includes('--baseline') ?? false);
   const capability: CapabilityGateSlice = options.capability ?? {
     scanned: 0,
     proven: 0,
@@ -2883,173 +2881,181 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
   };
 
   console.log('Claim Drift Detector');
+  console.log(`Profile: ${ActiveProfile.name}`);
+  console.log(`Root:    ${Root}`);
   console.log('====================\n');
 
-  // Collect actual metrics
-  const packages = countPackages();
-  const apps = countApps();
-  const workspaces = countWorkspaces();
-  const testFiles = countTestFiles();
-  const uiComponents = countUIComponents();
-  const mcpServers = countMCPServers();
-  const dbTables = countDbTables();
-  const cliTemplates = countCliTemplates();
-  const enforcementTests = countEnforcementTests();
-  const licenseSplit = countLicenseSplit();
+  // Collect actual metrics (product-runtime only)
+  const packages = ActiveProfile.collectMonorepoMetrics ? countPackages() : 0;
+  const apps = ActiveProfile.collectMonorepoMetrics ? countApps() : 0;
+  const workspaces = ActiveProfile.collectMonorepoMetrics ? countWorkspaces() : 0;
+  const testFiles = ActiveProfile.collectMonorepoMetrics ? countTestFiles() : 0;
+  const uiComponents = ActiveProfile.collectMonorepoMetrics ? countUIComponents() : 0;
+  const mcpServers = ActiveProfile.collectMonorepoMetrics ? countMCPServers() : 0;
+  const dbTables = ActiveProfile.collectMonorepoMetrics ? countDbTables() : 0;
+  const cliTemplates = ActiveProfile.collectMonorepoMetrics ? countCliTemplates() : 0;
+  const enforcementTests = ActiveProfile.collectMonorepoMetrics ? countEnforcementTests() : 0;
+  const licenseSplit = ActiveProfile.collectMonorepoMetrics
+    ? countLicenseSplit()
+    : { mit: 0, fsl: 0, internal: 0 };
 
-  console.log('Actual metrics:');
-  console.log(`  Packages:      ${packages}`);
-  console.log(`  Apps:          ${apps}`);
-  console.log(`  Workspaces:    ${workspaces} (${packages} + ${apps})`);
-  console.log(`  Test files:    ${testFiles}`);
-  console.log(`  UI components: ${uiComponents}`);
-  console.log(`  MCP servers:   ${mcpServers}`);
-  console.log(`  DB tables:     ${dbTables}`);
-  console.log(`  CLI templates: ${cliTemplates}`);
-  console.log(`  Enforcement:   ${enforcementTests}`);
-  console.log(
-    `  License split: ${licenseSplit.mit} MIT | ${licenseSplit.fsl} FSL-1.1-MIT | ${licenseSplit.internal} internal/none`,
-  );
-  console.log();
+  if (ActiveProfile.collectMonorepoMetrics) {
+    console.log('Actual metrics:');
+    console.log(`  Packages:      ${packages}`);
+    console.log(`  Apps:          ${apps}`);
+    console.log(`  Workspaces:    ${workspaces} (${packages} + ${apps})`);
+    console.log(`  Test files:    ${testFiles}`);
+    console.log(`  UI components: ${uiComponents}`);
+    console.log(`  MCP servers:   ${mcpServers}`);
+    console.log(`  DB tables:     ${dbTables}`);
+    console.log(`  CLI templates: ${cliTemplates}`);
+    console.log(`  Enforcement:   ${enforcementTests}`);
+    console.log(
+      `  License split: ${licenseSplit.mit} MIT | ${licenseSplit.fsl} FSL-1.1-MIT | ${licenseSplit.internal} internal/none`,
+    );
+    console.log();
+  }
 
   // GAP-192 PR4 — typed NumericClaimSpec[] (no authored claimPatterns regex).
-  const metrics: Metric[] = [
-    {
-      name: 'packages',
-      actual: packages,
-      claimSpecs: [
-        // "21 packages" or "21 npm packages" but not "14 packages patched"
-        // or small counts (<10). Range 10–39 matches the prior (1\d|2\d|3\d).
+  const metrics: Metric[] = ActiveProfile.collectMonorepoMetrics
+    ? [
         {
-          metricName: 'packages',
-          min: 10,
-          max: 39,
-          optionalIntervening: ['npm'],
-          requiredSequences: [['packages'], ['package']],
-          forbidNextWords: ['patched'],
-        },
-      ],
-    },
-    {
-      name: 'workspaces',
-      actual: workspaces,
-      claimSpecs: [
-        {
-          metricName: 'workspaces',
-          requiredSequences: [['workspaces'], ['workspace']],
-        },
-      ],
-    },
-    {
-      name: 'test files',
-      actual: testFiles,
-      claimSpecs: [
-        // "1,676 test files" — compare step still skips claimed < 100
-        {
-          metricName: 'test files',
-          allowCommas: true,
-          requiredSequences: [
-            ['test', 'files'],
-            ['test', 'file'],
+          name: 'packages',
+          actual: packages,
+          claimSpecs: [
+            // "21 packages" or "21 npm packages" but not "14 packages patched"
+            // or small counts (<10). Range 10–39 matches the prior (1\d|2\d|3\d).
+            {
+              metricName: 'packages',
+              min: 10,
+              max: 39,
+              optionalIntervening: ['npm'],
+              requiredSequences: [['packages'], ['package']],
+              forbidNextWords: ['patched'],
+            },
           ],
         },
-      ],
-    },
-    {
-      name: 'UI components',
-      actual: uiComponents,
-      claimSpecs: [
-        // Only match total component counts in 50–69, not per-category
         {
-          metricName: 'UI components',
-          min: 50,
-          max: 69,
-          optionalIntervening: ['native', 'React', 'UI'],
-          requiredSequences: [['components'], ['component']],
-        },
-        {
-          metricName: 'UI components',
-          min: 50,
-          max: 69,
-          requiredSequences: [['components'], ['component']],
-          trailingSequences: [['with'], ['built'], ['in', 'the']],
-        },
-      ],
-    },
-    {
-      name: 'MCP servers',
-      actual: mcpServers,
-      claimSpecs: [
-        {
-          metricName: 'MCP servers',
-          requiredSequences: [
-            ['mcp', 'servers'],
-            ['mcp', 'server'],
+          name: 'workspaces',
+          actual: workspaces,
+          claimSpecs: [
+            {
+              metricName: 'workspaces',
+              requiredSequences: [['workspaces'], ['workspace']],
+            },
           ],
         },
-      ],
-    },
-    {
-      name: 'DB tables',
-      actual: dbTables,
-      claimSpecs: [
-        // "85 tables", "85 PostgreSQL tables", … — 10..999 plausible totals
         {
-          metricName: 'DB tables',
-          min: 10,
-          max: 999,
-          optionalOneOf: ['PostgreSQL', 'database', 'Drizzle', 'primary'],
-          requiredSequences: [['tables'], ['table']],
-        },
-        // "Schema (85 tables)" parenthetical
-        {
-          metricName: 'DB tables',
-          min: 10,
-          max: 999,
-          parenWrapped: true,
-          requiredSequences: [['tables'], ['table']],
-        },
-      ],
-    },
-    {
-      name: 'CLI templates',
-      actual: cliTemplates,
-      claimSpecs: CLI_TEMPLATE_CLAIM_SPECS,
-    },
-    {
-      name: 'enforcement tests',
-      actual: enforcementTests,
-      claimSpecs: [
-        {
-          metricName: 'enforcement tests',
-          requiredSequences: [
-            ['enforcement', 'tests'],
-            ['enforcement', 'test'],
+          name: 'test files',
+          actual: testFiles,
+          claimSpecs: [
+            // "1,676 test files" — compare step still skips claimed < 100
+            {
+              metricName: 'test files',
+              allowCommas: true,
+              requiredSequences: [
+                ['test', 'files'],
+                ['test', 'file'],
+              ],
+            },
           ],
         },
-      ],
-    },
-    // License-split metrics — canonical fleet doc shape:
-    // "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
-    {
-      name: 'MIT packages',
-      actual: licenseSplit.mit,
-      claimSpecs: [{ metricName: 'MIT packages', shape: 'oss-mit' }],
-    },
-    {
-      name: 'FSL packages',
-      actual: licenseSplit.fsl,
-      claimSpecs: [{ metricName: 'FSL packages', shape: 'pro-fsl' }],
-    },
-    {
-      name: 'internal packages',
-      actual: licenseSplit.internal,
-      claimSpecs: [{ metricName: 'internal packages', shape: 'internal-paren' }],
-    },
-  ];
+        {
+          name: 'UI components',
+          actual: uiComponents,
+          claimSpecs: [
+            // Only match total component counts in 50–69, not per-category
+            {
+              metricName: 'UI components',
+              min: 50,
+              max: 69,
+              optionalIntervening: ['native', 'React', 'UI'],
+              requiredSequences: [['components'], ['component']],
+            },
+            {
+              metricName: 'UI components',
+              min: 50,
+              max: 69,
+              requiredSequences: [['components'], ['component']],
+              trailingSequences: [['with'], ['built'], ['in', 'the']],
+            },
+          ],
+        },
+        {
+          name: 'MCP servers',
+          actual: mcpServers,
+          claimSpecs: [
+            {
+              metricName: 'MCP servers',
+              requiredSequences: [
+                ['mcp', 'servers'],
+                ['mcp', 'server'],
+              ],
+            },
+          ],
+        },
+        {
+          name: 'DB tables',
+          actual: dbTables,
+          claimSpecs: [
+            // "85 tables", "85 PostgreSQL tables", … — 10..999 plausible totals
+            {
+              metricName: 'DB tables',
+              min: 10,
+              max: 999,
+              optionalOneOf: ['PostgreSQL', 'database', 'Drizzle', 'primary'],
+              requiredSequences: [['tables'], ['table']],
+            },
+            // "Schema (85 tables)" parenthetical
+            {
+              metricName: 'DB tables',
+              min: 10,
+              max: 999,
+              parenWrapped: true,
+              requiredSequences: [['tables'], ['table']],
+            },
+          ],
+        },
+        {
+          name: 'CLI templates',
+          actual: cliTemplates,
+          claimSpecs: CLI_TEMPLATE_CLAIM_SPECS,
+        },
+        {
+          name: 'enforcement tests',
+          actual: enforcementTests,
+          claimSpecs: [
+            {
+              metricName: 'enforcement tests',
+              requiredSequences: [
+                ['enforcement', 'tests'],
+                ['enforcement', 'test'],
+              ],
+            },
+          ],
+        },
+        // License-split metrics — canonical fleet doc shape:
+        // "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
+        {
+          name: 'MIT packages',
+          actual: licenseSplit.mit,
+          claimSpecs: [{ metricName: 'MIT packages', shape: 'oss-mit' }],
+        },
+        {
+          name: 'FSL packages',
+          actual: licenseSplit.fsl,
+          claimSpecs: [{ metricName: 'FSL packages', shape: 'pro-fsl' }],
+        },
+        {
+          name: 'internal packages',
+          actual: licenseSplit.internal,
+          claimSpecs: [{ metricName: 'internal packages', shape: 'internal-paren' }],
+        },
+      ]
+    : [];
 
   // Scan for claims
-  const claims = scanForClaims(metrics);
+  const claims = ActiveProfile.collectMonorepoMetrics ? scanForClaims(metrics) : [];
 
   // Compare
   let mismatches = 0;
@@ -3100,39 +3106,45 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
   // $RVUI internal-ticker leak guard (PR-D)
   const rvuiLeaks = scanForRvuiTickerLeaks();
 
-  // License-membership gates (added 2026-05-14)
-  const pkgMap = buildPackageLicenseMap();
-  const phantomMatches = scanForPhantomPackages();
-  const membershipMatches = scanForLicenseMembershipDrift(pkgMap);
-  const incompleteProMatches = scanForIncompleteProList(pkgMap);
-
-  // License-split anti-pattern gate (added 2026-06-14) — forbids the
-  // "N published + M private" phrasing class that prior copy used to reach
-  // 26 with off-by-4 arithmetic on both halves.
-  const licenseSplitAntiMatches = scanForLicenseSplitAntiPatterns();
+  // License-membership gates (product-runtime)
+  const pkgMap: PackageLicenseMap = ActiveProfile.licenseScanners
+    ? buildPackageLicenseMap()
+    : { mit: new Set(), fsl: new Set(), internal: new Set(), all: new Set() };
+  const phantomMatches = ActiveProfile.licenseScanners ? scanForPhantomPackages() : [];
+  const membershipMatches = ActiveProfile.licenseScanners
+    ? scanForLicenseMembershipDrift(pkgMap)
+    : [];
+  const incompleteProMatches = ActiveProfile.licenseScanners
+    ? scanForIncompleteProList(pkgMap)
+    : [];
+  const licenseSplitAntiMatches = ActiveProfile.licenseScanners
+    ? scanForLicenseSplitAntiPatterns()
+    : [];
 
   // Marketing METRICS drift (Phase 6) — site.ts METRICS vs canonical counts
-  const marketingMetricDrifts = checkMarketingMetrics([
-    { key: 'packages', actual: packages },
-    { key: 'apps', actual: apps },
-    { key: 'workspaces', actual: workspaces },
-    { key: 'uiComponents', actual: uiComponents },
-    { key: 'mcpServers', actual: mcpServers },
-    { key: 'dbTables', actual: dbTables },
-    { key: 'testFiles', actual: testFiles, tolerance: 100 },
-    { key: 'mit', actual: licenseSplit.mit },
-    { key: 'fsl', actual: licenseSplit.fsl },
-    { key: 'internal', actual: licenseSplit.internal },
-  ]);
+  const marketingMetricDrifts = ActiveProfile.marketingMetrics
+    ? checkMarketingMetrics([
+        { key: 'packages', actual: packages },
+        { key: 'apps', actual: apps },
+        { key: 'workspaces', actual: workspaces },
+        { key: 'uiComponents', actual: uiComponents },
+        { key: 'mcpServers', actual: mcpServers },
+        { key: 'dbTables', actual: dbTables },
+        { key: 'testFiles', actual: testFiles, tolerance: 100 },
+        { key: 'mit', actual: licenseSplit.mit },
+        { key: 'fsl', actual: licenseSplit.fsl },
+        { key: 'internal', actual: licenseSplit.internal },
+      ])
+    : [];
 
   // Capability slice is optional (injected by revealui wrapper for product-runtime).
 
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
   console.log(`Mismatches:     ${mismatches}`);
-  console.log(`Future-tense files scanned: ${FUTURE_TENSE_SCAN_FILES.length}`);
+  console.log(`Future-tense files scanned: ${resolvedFutureTenseFiles().length}`);
   console.log(`Unlinked future-tense markers: ${futureClaims.length}`);
-  console.log(`Aspirational-feature scan files: ${ASPIRATIONAL_SCAN_FILES.length}`);
+  console.log(`Aspirational-feature scan files: ${resolvedAspirationalPaths().length}`);
   console.log(`Unqualified aspirational features: ${aspirationalClaims.length}`);
   console.log(`Unattributed fleet-product mentions: ${fleetLeaks.length}`);
   console.log(`Internal $RVUI ticker leaks: ${rvuiLeaks.length}`);
@@ -3351,9 +3363,12 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
     );
   }
 
+  if (WarnOnly && anyFailures) {
+    console.log('\nWARN mode: reporting failures with exit 0 (GAP-462 Phase 2).\n');
+  }
   return {
     ok: !anyFailures,
-    exitCode: anyFailures ? 1 : 0,
+    exitCode: anyFailures && !WarnOnly ? 1 : 0,
     mismatches,
     capability,
   };

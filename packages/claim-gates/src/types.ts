@@ -44,6 +44,11 @@ export interface ClaimGateRunOptions {
   /** Force --fix style suggested corrections. */
   showFix?: boolean;
   /**
+   * Report failures but exit 0 (Phase 2 baseline enablement). Also set by
+   * CLI `--warn` / `--baseline`.
+   */
+  warn?: boolean;
+  /**
    * Precomputed capability results from the host monorepo. Omit or empty
    * when the root has no claims-evidence index (agency Phase 2, etc.).
    */
@@ -61,6 +66,7 @@ export interface ClaimGatesCliOptions {
   root: string;
   argv?: readonly string[];
   profile?: ClaimProfileName;
+  warn?: boolean;
   capability?: CapabilityGateSlice;
   /** When true, process.exit with result.exitCode (CLI default). */
   exit?: boolean;
