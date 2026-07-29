@@ -3,8 +3,8 @@
  * Never throws for "daemon down" — callers treat null as skip.
  */
 
-import { createConnection } from 'node:net';
 import { existsSync, statSync } from 'node:fs';
+import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 

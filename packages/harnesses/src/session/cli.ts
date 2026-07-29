@@ -16,29 +16,37 @@ function printResult(
   process.stderr.write(`${bits.join(' ')}\n`);
 }
 
+function nextArg(rest: string[], i: number): string | undefined {
+  return rest[i + 1];
+}
+
 export async function runSessionCli(args: string[]): Promise<void> {
   const [subcommand, ...rest] = args;
   if (subcommand === 'register') {
     let backend = 'grok';
     let workDir = process.cwd();
     for (let i = 0; i < rest.length; i++) {
-      if (rest[i] === '--backend' && rest[i + 1]) {
-        backend = rest[++i]!;
-      } else if (rest[i] === '--work-dir' && rest[i + 1]) {
-        workDir = rest[++i]!;
+      const nxt = nextArg(rest, i);
+      if (rest[i] === '--backend' && nxt) {
+        backend = nxt;
+        i++;
+      } else if (rest[i] === '--work-dir' && nxt) {
+        workDir = nxt;
+        i++;
       }
     }
     const result = await sessionRegister({ backend, workDir });
     printResult('register', result);
-    // Hooks: always exit 0
     return;
   }
 
   if (subcommand === 'end') {
     let exitSummary = 'hook-session-end';
     for (let i = 0; i < rest.length; i++) {
-      if (rest[i] === '--summary' && rest[i + 1]) {
-        exitSummary = rest[++i]!;
+      const nxt = nextArg(rest, i);
+      if (rest[i] === '--summary' && nxt) {
+        exitSummary = nxt;
+        i++;
       }
     }
     const result = await sessionEnd({ exitSummary });

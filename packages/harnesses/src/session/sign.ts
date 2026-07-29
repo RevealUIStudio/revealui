@@ -3,26 +3,30 @@
  * Wire format matches RevDev hook/rpc-sign + daemon agent-identity-crypto.
  */
 
-import { createHash, randomBytes, sign as cryptoSign } from 'node:crypto';
+import { createHash, sign as cryptoSign, randomBytes } from 'node:crypto';
 
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 export function base58Encode(bytes: Uint8Array): string {
   if (!bytes || bytes.length === 0) return '';
   let leadingZeros = 0;
-  for (let i = 0; i < bytes.length; i++) {
-    if (bytes[i] === 0) leadingZeros++;
+  for (const b of bytes) {
+    if (b === 0) leadingZeros++;
     else break;
   }
   let value = 0n;
-  for (let i = 0; i < bytes.length; i++) {
-    value = value * 256n + BigInt(bytes[i]!);
+  for (const b of bytes) {
+    value = value * 256n + BigInt(b);
   }
   let result = '';
   while (value > 0n) {
-    const remainder = value % 58n;
+    const remainder = Number(value % 58n);
     value = value / 58n;
-    result = BASE58_ALPHABET[Number(remainder)]! + result;
+    const ch = BASE58_ALPHABET[remainder];
+    if (ch === undefined) {
+      throw new Error('base58 encode invariant failed');
+    }
+    result = ch + result;
   }
   return '1'.repeat(leadingZeros) + result;
 }
