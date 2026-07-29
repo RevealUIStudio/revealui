@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeClaudeCodeHookEvent } from '../hooks/normalizers/claude-code.js';
 import { normalizeCursorHookEvent } from '../hooks/normalizers/cursor.js';
+import { normalizeGrokHookEvent } from '../hooks/normalizers/grok.js';
 import { isImplementedHookSource, normalizeHookEvent } from '../hooks/normalizers/index.js';
 import { normalizeVSCodeHookEvent } from '../hooks/normalizers/vscode.js';
 
@@ -364,10 +365,11 @@ describe('normalizeVSCodeHookEvent', () => {
 });
 
 describe('normalizeHookEvent dispatch', () => {
-  it('isImplementedHookSource is true for cursor, claude-code, and vscode; false otherwise', () => {
+  it('isImplementedHookSource is true for cursor, claude-code, vscode, grok; false otherwise', () => {
     expect(isImplementedHookSource('cursor')).toBe(true);
     expect(isImplementedHookSource('claude-code')).toBe(true);
     expect(isImplementedHookSource('vscode')).toBe(true);
+    expect(isImplementedHookSource('grok')).toBe(true);
     expect(isImplementedHookSource('opencode')).toBe(false);
     expect(isImplementedHookSource('something-else')).toBe(false);
   });
@@ -388,5 +390,56 @@ describe('normalizeHookEvent dispatch', () => {
     const event = normalizeHookEvent('vscode', { hook_event_name: 'Stop' }, 'advisory');
     expect(event.source).toBe('vscode');
     expect(event.kind).toBe('stop');
+  });
+});
+
+describe('normalizeGrokHookEvent', () => {
+  it('maps documented pre_tool_use snake payload to pre-shell for run_terminal_command', () => {
+    const event = normalizeGrokHookEvent(
+      {
+        hookEventName: 'pre_tool_use',
+        sessionId: 's1',
+        toolName: 'run_terminal_command',
+        toolInput: { command: 'ls' },
+      },
+      'advisory',
+    );
+    expect(event.source).toBe('grok');
+    expect(event.kind).toBe('pre-shell');
+    expect(event.command).toBe('ls');
+    expect(event.identity.conversationId).toBe('s1');
+  });
+
+  it('maps PreToolUse Pascal + Claude tool aliases', () => {
+    const event = normalizeGrokHookEvent(
+      {
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'echo hi' },
+      },
+      'advisory',
+    );
+    expect(event.kind).toBe('pre-shell');
+    expect(event.command).toBe('echo hi');
+  });
+
+  it('maps SessionStart and SessionEnd', () => {
+    expect(normalizeGrokHookEvent({ hookEventName: 'SessionStart' }, 'advisory').kind).toBe(
+      'session-start',
+    );
+    expect(normalizeGrokHookEvent({ hookEventName: 'session_end' }, 'advisory').kind).toBe(
+      'session-end',
+    );
+  });
+
+  it('is registered as an implemented hook source', () => {
+    expect(isImplementedHookSource('grok')).toBe(true);
+    const event = normalizeHookEvent(
+      'grok',
+      { hookEventName: 'PreToolUse', toolName: 'read_file' },
+      'advisory',
+    );
+    expect(event.source).toBe('grok');
+    expect(event.kind).toBe('pre-tool');
   });
 });

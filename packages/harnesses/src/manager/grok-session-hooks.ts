@@ -48,6 +48,10 @@ const SESSION_REGISTER_CMD =
 const SESSION_END_CMD =
   'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true';
 
+/** Policy + receipt spool for tool events (stdin JSON from Grok → control layer). */
+const HOOK_GROK_CMD =
+  'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" hook grok 2>/dev/null || revealui-harnesses hook grok 2>/dev/null || true';
+
 export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
   {
     hooks: [
@@ -81,8 +85,16 @@ export const GROK_SESSION_END_HOOKS_JSON = hookFile('SessionEnd', [
   },
 ]);
 
+/** PreToolUse: normalize + policy + spool receipt (same plane as Cursor/Claude). */
+export const GROK_PRE_TOOL_HOOKS_JSON = hookFile('PreToolUse', [
+  {
+    hooks: [{ type: 'command', command: HOOK_GROK_CMD, timeout: 15 }],
+  },
+]);
+
 /** Install filenames under `~/.grok/hooks/` (and under GROK_HOOK_TEMPLATE_DIR). */
 export const GROK_HOOK_FILES = {
   'session-start.json': GROK_SESSION_START_HOOKS_JSON,
   'session-end.json': GROK_SESSION_END_HOOKS_JSON,
+  'pre-tool.json': GROK_PRE_TOOL_HOOKS_JSON,
 } as const;

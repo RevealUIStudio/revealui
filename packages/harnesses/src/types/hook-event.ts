@@ -56,7 +56,7 @@ export const HARNESS_HOOK_EVENT_KINDS: readonly HarnessHookEventKind[] = [
 ] as const;
 
 /** Editors this package can normalize a hook payload from. */
-export type HarnessHookSource = 'cursor' | 'claude-code' | 'vscode' | 'opencode';
+export type HarnessHookSource = 'cursor' | 'claude-code' | 'vscode' | 'opencode' | 'grok';
 
 /** All valid sources as a readonly array (iteration / membership checks). */
 export const HARNESS_HOOK_SOURCES: readonly HarnessHookSource[] = [
@@ -64,6 +64,7 @@ export const HARNESS_HOOK_SOURCES: readonly HarnessHookSource[] = [
   'claude-code',
   'vscode',
   'opencode',
+  'grok',
 ] as const;
 
 /**
