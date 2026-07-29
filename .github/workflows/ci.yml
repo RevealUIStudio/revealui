@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -32,6 +33,47 @@ env:
   PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # GAP-428: seed GHCR mirrors before any job that uses service containers.
+  # Docker Hub anonymous pulls from runner IPs flake; GHCR + GITHUB_TOKEN does not.
+  # ---------------------------------------------------------------------------
+  ensure-ci-images:
+    name: Ensure CI service images (GHCR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mirror pgvector + postgres if missing or refresh
+        env:
+          GHCR_OWNER: revealuistudio
+        run: |
+          set -euo pipefail
+          mirror() {
+            local src="$1"
+            local dest="$2"
+            # If GHCR already has the tag, still re-pull upstream weekly via
+            # mirror-ci-images.yml; here we ensure presence for this run.
+            if docker pull "$dest" 2>/dev/null; then
+              echo "GHCR hit: $dest"
+              return 0
+            fi
+            echo "GHCR miss — seeding from Docker Hub: $src"
+            docker pull "$src"
+            docker tag "$src" "$dest"
+            docker push "$dest"
+          }
+          mirror "pgvector/pgvector:pg16" "ghcr.io/${GHCR_OWNER}/pgvector:pg16"
+          mirror "postgres:16" "ghcr.io/${GHCR_OWNER}/postgres:16"
+
   # ---------------------------------------------------------------------------
   # Phase 1: Quality checks (all branches)
   # ---------------------------------------------------------------------------
@@ -246,16 +288,19 @@ jobs:
     name: Drizzle Migrations
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: quality
+    needs: [quality, ensure-ci-images]
 
     services:
       postgres:
-        # pgvector/pgvector bundles pgvector into postgres:16. Migration
+        # GHCR mirror of pgvector/pgvector (GAP-428) bundles pgvector into postgres:16. Migration
         # 0000 starts with `CREATE EXTENSION IF NOT EXISTS vector`, which
         # vanilla postgres:16 cannot satisfy (extension not available).
         # drizzle-kit's TTY spinner silently eats the error, so this image
         # choice is what makes the failure surface at all.
-        image: pgvector/pgvector:pg16
+        image: ghcr.io/revealuistudio/pgvector:pg16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -408,12 +453,15 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: quality
+    needs: [quality, ensure-ci-images]
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     services:
       postgres:
-        image: postgres:16
+        image: ghcr.io/revealuistudio/postgres:16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -578,11 +626,14 @@ jobs:
     name: Server tsx boot
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality]
+    needs: [quality, ensure-ci-images]
 
     services:
       postgres:
-        image: pgvector/pgvector:pg16
+        image: ghcr.io/revealuistudio/pgvector:pg16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -639,15 +690,18 @@ jobs:
     name: E2E Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [quality, build]
+    needs: [quality, build, ensure-ci-images]
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     services:
       postgres:
-        # pgvector/pgvector bundles pgvector into postgres:16. The migrations
+        # GHCR mirror of pgvector/pgvector (GAP-428) bundles pgvector into postgres:16. The migrations
         # applied below (0000_init CREATE EXTENSION, vector(768) columns) cannot
         # run on vanilla postgres:16, same as the Drizzle Migrations job.
-        image: pgvector/pgvector:pg16
+        image: ghcr.io/revealuistudio/pgvector:pg16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -768,7 +822,7 @@ jobs:
     name: Accessibility (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, build]
+    needs: [quality, build, ensure-ci-images]
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     # The admin server's GAP-338/417 audit rails are fail-closed in production
@@ -776,7 +830,10 @@ jobs:
     # Same pgvector service + migrations as the E2E Smoke job.
     services:
       postgres:
-        image: pgvector/pgvector:pg16
+        image: ghcr.io/revealuistudio/pgvector:pg16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -875,14 +932,17 @@ jobs:
     name: Visual Regression (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, build]
+    needs: [quality, build, ensure-ci-images]
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     # See e2e-accessibility: production admin's fail-closed audit rails
     # (GAP-338/417) require a DB env + signing key at boot.
     services:
       postgres:
-        image: pgvector/pgvector:pg16
+        image: ghcr.io/revealuistudio/pgvector:pg16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -988,14 +1048,17 @@ jobs:
     name: Integration Tests (extended)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: quality
+    needs: [quality, ensure-ci-images]
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     services:
       postgres:
         # pgvector image: migration 0000 does CREATE EXTENSION vector, which
         # vanilla postgres:16 cannot satisfy (mirrors the db-migrations job).
-        image: pgvector/pgvector:pg16
+        image: ghcr.io/revealuistudio/pgvector:pg16
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

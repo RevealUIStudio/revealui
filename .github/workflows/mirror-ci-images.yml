@@ -1,0 +1,63 @@
+name: Mirror CI service images
+
+# GAP-428 — unauthenticated Docker Hub pulls from GitHub-hosted runners flake
+# (rate limits). Mirror the CI service images we need to GHCR so every job
+# can pull with GITHUB_TOKEN credentials (authenticated, not rate-limited).
+#
+# Destination:
+#   ghcr.io/revealuistudio/pgvector:pg16   ← from docker.io/pgvector/pgvector:pg16
+#   ghcr.io/revealuistudio/postgres:16     ← from docker.io/library/postgres:16
+#
+# Also run from ci.yml job `ensure-ci-images` so a cold GHCR still seeds on
+# every CI run before service containers start (needs: ensure-ci-images).
+
+on:
+  schedule:
+    # Weekly refresh so the mirror does not go stale if upstream retags.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+  push:
+    branches: [test, main]
+    paths:
+      - .github/workflows/mirror-ci-images.yml
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: mirror-ci-images
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Mirror to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mirror pgvector + postgres
+        env:
+          # Lowercase owner for GHCR path convention.
+          GHCR_OWNER: revealuistudio
+        run: |
+          set -euo pipefail
+          mirror() {
+            local src="$1"
+            local dest="$2"
+            echo "→ $src  ⇒  $dest"
+            # Prefer re-pushing from upstream so tags track Docker Hub; fall
+            # back is not needed — push overwrites the GHCR tag.
+            docker pull "$src"
+            docker tag "$src" "$dest"
+            docker push "$dest"
+          }
+          mirror "pgvector/pgvector:pg16" "ghcr.io/${GHCR_OWNER}/pgvector:pg16"
+          mirror "postgres:16" "ghcr.io/${GHCR_OWNER}/postgres:16"
+          echo "Mirrored OK."
