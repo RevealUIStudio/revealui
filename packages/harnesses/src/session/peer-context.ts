@@ -74,7 +74,7 @@ function asFinding(row: unknown): PeerFindingLine | null {
   if (!r) return null;
   const agentId = str(r.agentId) || str(r.agent_id);
   const eventType = str(r.eventType) || str(r.event_type);
-  if (!agentId || !eventType) return null;
+  if (!(agentId && eventType)) return null;
   const payload = asRecord(r.payload) ?? {};
   const summary = str(payload.summary) || str(payload.message) || eventType;
   return { agentId, eventType, summary };
@@ -85,7 +85,7 @@ function asReservation(row: unknown): PeerReservationLine | null {
   if (!r) return null;
   const agentId = str(r.agentId) || str(r.agent_id);
   const path = str(r.path) || str(r.file_path);
-  if (!agentId || !path) return null;
+  if (!(agentId && path)) return null;
   return { agentId, path };
 }
 

@@ -21,13 +21,13 @@ export {
 } from './identity-cache.js';
 export {
   type FetchPeerContextOptions,
+  fetchPeerContext,
+  formatPeerPanel,
   type PeerContextSnapshot,
   type PeerContextStatus,
   type PeerFindingLine,
   type PeerReservationLine,
   type PeerSessionLine,
-  fetchPeerContext,
-  formatPeerPanel,
   renderPeerPanel,
 } from './peer-context.js';
 export { defaultSocketPath, isDaemonSocketPresent, rpcCall } from './rpc.js';
