@@ -157,7 +157,12 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
       });
     }
     clearDaemonSessionCache(ppid);
-    return { ok: false, skipped: true, reason: 'daemon socket absent', agentId };
+    return {
+      ok: false,
+      skipped: true,
+      reason: 'daemon socket absent',
+      ...(agentId ? { agentId } : {}),
+    };
   }
 
   const agentId = options.agentId ?? readDaemonSessionCache(ppid);
