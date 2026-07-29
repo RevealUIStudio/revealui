@@ -68,6 +68,7 @@ describe('project manager (.revealui)', () => {
     expect(startCmds.some((c) => c.includes('tracker-session-check.js'))).toBe(true);
     expect(startCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
     expect(startCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('session register'))).toBe(true);
 
     const end = JSON.parse(
       readFileSync(join(root, '.revealui/adapters/grok/hooks/session-end.json'), 'utf-8'),
@@ -75,6 +76,7 @@ describe('project manager (.revealui)', () => {
     const endCmds = end.hooks.SessionEnd.flatMap((g) => g.hooks.map((h) => h.command));
     expect(endCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
     expect(endCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
+    expect(endCmds.some((c) => c.includes('session end'))).toBe(true);
   });
 
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
