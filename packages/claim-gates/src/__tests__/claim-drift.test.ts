@@ -34,7 +34,7 @@ import {
   scanNumericClaimsOnLine,
   TEST_FILE_SUFFIXES,
   WALK_EXCLUDED_DIRS,
-} from '../claim-drift.ts';
+} from '../claim-drift-engine.ts';
 
 describe('countPgTableCalls', () => {
   it('counts CallExpression pgTable identifiers and ignores comments/strings', () => {
@@ -498,7 +498,8 @@ describe('countTrackedFiles (GAP-399 durable path)', () => {
     // Integration check against the real monorepo: both paths must agree so
     // the durable switch cannot silently drift from the walk-era baseline
     // when no nested .wt/ is present.
-    const repoRoot = path.resolve(import.meta.dirname, '../../..');
+    // packages/claim-gates/src/__tests__ → monorepo root is four levels up.
+    const repoRoot = path.resolve(import.meta.dirname, '../../../..');
     const viaDefault = countTestFiles(repoRoot);
     const viaGit = countTrackedFiles(repoRoot, (rel) =>
       TEST_FILE_SUFFIXES.some((s) => rel.endsWith(s)),
@@ -542,9 +543,17 @@ describe('makeIgnoredPathPredicate', () => {
 });
 
 describe('WALK_EXCLUDED_DIRS', () => {
-  const repoRoot = path.resolve(import.meta.dirname, '../../..');
+  // packages/claim-gates/src/__tests__ → monorepo root is four levels up.
+  const repoRoot = path.resolve(import.meta.dirname, '../../../..');
 
-  it('every entry except .git has a covering .gitignore line', () => {
+  // `.git` is never gitignored as a name line. `.claude` is partially tracked
+  // (rules/agents/skills + revcon manifest; see .gitignore un-ignores) yet is
+  // walker-excluded because it is not a claim surface — agent config, not
+  // product/docs/marketing copy. Both are intentional carve-outs (pre-existing
+  // on the PR3-5 base; documented for GAP-462 Phase 1 extract).
+  const INTENTIONAL_WALK_EXCLUSIONS = new Set(['.git', '.claude']);
+
+  it('every entry except intentional carve-outs has a covering .gitignore line', () => {
     const gitignore = fs.readFileSync(path.join(repoRoot, '.gitignore'), 'utf8');
     const covered = new Set<string>();
     for (const raw of gitignore.split('\n')) {
@@ -556,12 +565,12 @@ describe('WALK_EXCLUDED_DIRS', () => {
       covered.add(name);
     }
     for (const dir of WALK_EXCLUDED_DIRS) {
-      if (dir === '.git') continue;
+      if (INTENTIONAL_WALK_EXCLUSIONS.has(dir)) continue;
       expect(covered.has(dir), `"${dir}" is walker-excluded but not gitignored`).toBe(true);
     }
   });
 
-  it('no entry shadows git-tracked files (e.g. screenshots/ must stay walkable)', () => {
+  it('no claim-surface entry shadows git-tracked files (e.g. screenshots/ stays walkable)', () => {
     const tracked = execFileSync('git', ['ls-files'], {
       cwd: repoRoot,
       encoding: 'utf8',
@@ -570,6 +579,7 @@ describe('WALK_EXCLUDED_DIRS', () => {
     const shadowed = new Set<string>();
     for (const file of tracked.split('\n')) {
       for (const segment of file.split('/')) {
+        if (INTENTIONAL_WALK_EXCLUSIONS.has(segment)) continue;
         if (WALK_EXCLUDED_DIRS.has(segment)) shadowed.add(file);
       }
     }
