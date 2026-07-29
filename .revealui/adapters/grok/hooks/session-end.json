@@ -5,8 +5,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' \"[grok] adapter SessionEnd → control layer (hotfix + temp-scripts)\"",
+            "command": "printf '%s\\n' \"[grok] adapter SessionEnd → control layer (daemon session.end + hotfix + temp-scripts)\"",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/revfleet/revealui/packages/harnesses/dist/cli.js\" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true",
+            "timeout": 20
           },
           {
             "type": "command",
