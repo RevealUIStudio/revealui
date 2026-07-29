@@ -7,12 +7,10 @@
  * invent a second hardline body under `~/.grok`.
  *
  * Design:
- * - SessionStart / SessionEnd only for this slice (lifecycle parity with Claude
- *   session-start + stop surfaces for hotfix / temp-script / TRACKER).
- * - Commands call existing thin control-layer adapters under `~/.claude`
- *   (hotfix.js / tmpscript.js / hooks/*-check.js) — same registry, no twin.
- * - TRACKER orientation via fleet `tracker-session-check.js` (shared with
- *   Claude SessionStart; GAP-406).
+ * - SessionStart / SessionEnd: TRACKER + hotfix + temp-scripts + RevDev
+ *   session.register / session.end (soft-optional when daemon socket down).
+ * - Hotfix/temp adapters under `~/.claude` call the same control registries.
+ * - Daemon boundary via `revealui-harnesses session register|end` (this package).
  * - No full hardline prose; no OpenClaw; subscription OAuth never appears here.
  *
  * Credential topology: ADR 2026-07-29-provider-credential-topology-green-yellow-red
@@ -41,18 +39,28 @@ const TRACKER_CMD =
 const HOTFIX_CMD = 'node "$HOME/.claude/hooks/hotfix-check.js" 2>/dev/null || true';
 const TMPSCRIPT_CMD = 'node "$HOME/.claude/hooks/tmpscript-check.js" 2>/dev/null || true';
 
+/**
+ * Soft-optional daemon session boundary. Tries monorepo dist CLI first, then
+ * PATH binary. Always `|| true` so hooks never block when daemon is down.
+ */
+const SESSION_REGISTER_CMD =
+  'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" session register --backend grok 2>/dev/null || revealui-harnesses session register --backend grok 2>/dev/null || true';
+const SESSION_END_CMD =
+  'node "$HOME/revfleet/revealui/packages/harnesses/dist/cli.js" session end 2>/dev/null || revealui-harnesses session end 2>/dev/null || true';
+
 export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
   {
     hooks: [
       {
         type: 'command',
         command:
-          'printf \'%s\\n\' "[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts); no full hardline mirrors"',
+          'printf \'%s\\n\' "[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session)"',
         timeout: 5,
       },
       { type: 'command', command: TRACKER_CMD, timeout: 12 },
       { type: 'command', command: HOTFIX_CMD, timeout: 15 },
       { type: 'command', command: TMPSCRIPT_CMD, timeout: 12 },
+      { type: 'command', command: SESSION_REGISTER_CMD, timeout: 20 },
     ],
   },
 ]);
@@ -63,9 +71,10 @@ export const GROK_SESSION_END_HOOKS_JSON = hookFile('SessionEnd', [
       {
         type: 'command',
         command:
-          'printf \'%s\\n\' "[grok] adapter SessionEnd → control layer (hotfix + temp-scripts)"',
+          'printf \'%s\\n\' "[grok] adapter SessionEnd → control layer (daemon session.end + hotfix + temp-scripts)"',
         timeout: 5,
       },
+      { type: 'command', command: SESSION_END_CMD, timeout: 20 },
       { type: 'command', command: HOTFIX_CMD, timeout: 15 },
       { type: 'command', command: TMPSCRIPT_CMD, timeout: 12 },
     ],

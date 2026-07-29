@@ -196,8 +196,11 @@ What they run (warn-only, never blocks the session):
 | SessionStart | \`tracker-session-check.js\` (manager + TRACKER) |
 | SessionStart / SessionEnd | \`hotfix-check.js\` → \`revealui-harnesses hotfix\` (GAP-405) |
 | SessionStart / SessionEnd | \`tmpscript-check.js\` (lifecycle until GAP-295 control-layer cutover) |
+| SessionStart | \`revealui-harnesses session register --backend grok\` (soft if daemon down) |
+| SessionEnd | \`revealui-harnesses session end\` (signed when identity cached; soft if daemon down) |
 
 Do not copy hardlines into \`~/.grok/rules/\`. Do not invent a second hotfix registry.
+Rebuild \`@revealui/harnesses\` so \`dist/cli.js session\` is available before expecting daemon register.
 `,
     'utf-8',
   );
