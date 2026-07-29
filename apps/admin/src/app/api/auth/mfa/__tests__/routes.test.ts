@@ -271,7 +271,10 @@ describe('POST /api/auth/mfa/verify-setup', () => {
   it('should return success on valid TOTP code', async () => {
     mockGetSession.mockResolvedValue(mockSession);
     mockVerifyMFASetup.mockResolvedValue({ success: true });
-    mockRotateSession.mockResolvedValue({ token: 'session-after-mfa-setup' });
+    mockRotateSession.mockResolvedValue({
+      token: 'session-after-mfa-setup',
+      session: { id: 'session-after-mfa-setup' } as never,
+    });
 
     const request = createJsonRequest('http://localhost:3000/api/auth/mfa/verify-setup', {
       code: '123456',
