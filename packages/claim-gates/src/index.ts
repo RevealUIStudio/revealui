@@ -3,26 +3,16 @@
  */
 
 export type {
-  CapabilityAdvisorySlice,
-  CapabilityGateSlice,
-  CapabilityViolationSlice,
-  ClaimGateResult,
-  ClaimGateRootSpec,
-  ClaimGateRunOptions,
-  ClaimGatesCliOptions,
-  ClaimProfileName,
-} from './types.js';
-
-export { getProfile, PROFILES, resolveProfile } from './profiles.js';
-export type { ClaimProfile } from './profiles.js';
-export { runClaimGates } from './run.js';
-export { runClaimGatesCli } from './cli.js';
-
+  IgnoredPathPredicate,
+  LicenseSplitAntiShape,
+  NumericClaimHit,
+  NumericClaimSpec,
+  Rule,
+  Token,
+} from './claim-drift-engine.js';
 export {
   AGENT_COMMERCE_ENTRIES,
   CLI_TEMPLATE_CLAIM_SPECS,
-  TEST_FILE_SUFFIXES,
-  WALK_EXCLUDED_DIRS,
   checkRule,
   configureClaimGatesRoot,
   countCliTemplates,
@@ -59,14 +49,21 @@ export {
   runClaimDrift,
   scanNumericClaimsOnLine,
   stripCommas,
+  TEST_FILE_SUFFIXES,
   tokenize,
+  WALK_EXCLUDED_DIRS,
 } from './claim-drift-engine.js';
-
+export { runClaimGatesCli } from './cli.js';
+export type { ClaimProfile } from './profiles.js';
+export { getProfile, PROFILES, resolveProfile } from './profiles.js';
+export { runClaimGates } from './run.js';
 export type {
-  IgnoredPathPredicate,
-  LicenseSplitAntiShape,
-  NumericClaimHit,
-  NumericClaimSpec,
-  Rule,
-  Token,
-} from './claim-drift-engine.js';
+  CapabilityAdvisorySlice,
+  CapabilityGateSlice,
+  CapabilityViolationSlice,
+  ClaimGateResult,
+  ClaimGateRootSpec,
+  ClaimGateRunOptions,
+  ClaimGatesCliOptions,
+  ClaimProfileName,
+} from './types.js';

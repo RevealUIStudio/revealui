@@ -24,7 +24,6 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import ts from 'typescript';
 // Shared marketing-voice engine (GAP-192).
 import {
   checkRule,
@@ -32,12 +31,13 @@ import {
   isPositiveIntegerToken,
   isRepoLinkToken,
   isTrackerToken,
-  stripCommas,
-  tokenize,
   type Rule,
+  stripCommas,
   type Token,
+  tokenize,
 } from '@revealui/contracts/marketing-voice';
-import type { CapabilityGateSlice, ClaimGateRunOptions, ClaimGateResult } from './types.js';
+import ts from 'typescript';
+import type { CapabilityGateSlice, ClaimGateResult, ClaimGateRunOptions } from './types.js';
 
 export type { Rule, Token };
 export { checkRule, isIntegerWithCommas, isPositiveIntegerToken, stripCommas, tokenize };
@@ -46,20 +46,20 @@ export { checkRule, isIntegerWithCommas, isPositiveIntegerToken, stripCommas, to
  * Active checkout root. Set via configureClaimGatesRoot / runClaimDrift before
  * any path-dependent collector runs. Pure line scanners do not need it.
  */
-let ROOT = '';
+let Root = '';
 let showFix = false;
 /** Lazy cache; typed loosely until IgnoredPathPredicate is declared below. */
 let rootPredicateCache: ((fullPath: string) => boolean) | undefined;
 
 /** Configure the monorepo (or profile) root for subsequent collectors. */
 export function configureClaimGatesRoot(root: string): void {
-  ROOT = path.resolve(root);
+  Root = path.resolve(root);
   rootPredicateCache = undefined;
 }
 
 /** Current configured root (absolute). Empty string if not configured. */
 export function getClaimGatesRoot(): string {
-  return ROOT;
+  return Root;
 }
 
 // ---------------------------------------------------------------------------
@@ -195,16 +195,16 @@ function loadGitIgnoredPaths(root: string): ReadonlySet<string> | null {
  * want path-skipping inject their own predicate instead.
  */
 function ignoredPathPredicateFor(base: string): IgnoredPathPredicate {
-  if (base !== ROOT && !base.startsWith(ROOT + path.sep)) return NEVER_IGNORED;
+  if (base !== Root && !base.startsWith(Root + path.sep)) return NEVER_IGNORED;
   if (rootPredicateCache === undefined) {
-    const ignored = loadGitIgnoredPaths(ROOT);
+    const ignored = loadGitIgnoredPaths(Root);
     if (ignored === null) {
       console.warn(
         'claim-drift: git unavailable — gitignored-path skipping disabled; ' +
           'walkers fall back to WALK_EXCLUDED_DIRS names only.',
       );
     }
-    rootPredicateCache = ignored === null ? NEVER_IGNORED : makeIgnoredPathPredicate(ROOT, ignored);
+    rootPredicateCache = ignored === null ? NEVER_IGNORED : makeIgnoredPathPredicate(Root, ignored);
   }
   return rootPredicateCache;
 }
@@ -303,11 +303,11 @@ function countDirs(
 }
 
 function countPackages(): number {
-  return countDirs(path.join(ROOT, 'packages'));
+  return countDirs(path.join(Root, 'packages'));
 }
 
 function countApps(): number {
-  return countDirs(path.join(ROOT, 'apps'));
+  return countDirs(path.join(Root, 'apps'));
 }
 
 /** Suffixes counted as test files (METRICS.testFiles). Exported for tests. */
@@ -365,7 +365,7 @@ export function countTrackedFiles(
  * nested `.wt/` worktrees cannot inflate METRICS.testFiles (GAP-399).
  * Fixtures and custom predicates keep the filesystem walk.
  */
-export function countTestFiles(base: string = ROOT, isIgnored?: IgnoredPathPredicate): number {
+export function countTestFiles(base: string = Root, isIgnored?: IgnoredPathPredicate): number {
   // Prefer git ls-files for any git checkout (not only the configured monorepo
   // ROOT) so multi-root fleet scans (GAP-462) never walk nested worktrees.
   // Custom isIgnored predicates keep the filesystem walk for fixture tests.
@@ -377,7 +377,7 @@ export function countTestFiles(base: string = ROOT, isIgnored?: IgnoredPathPredi
 }
 
 function countUIComponents(): number {
-  const compDir = path.join(ROOT, 'packages/presentation/src/components');
+  const compDir = path.join(Root, 'packages/presentation/src/components');
   if (!fs.existsSync(compDir)) return 0;
   // Each .tsx file in components/ is one component (excluding index.ts and
   // _-prefixed internal helpers, matching the MCP-server counter below).
@@ -389,7 +389,7 @@ function countUIComponents(): number {
 }
 
 function countMCPServers(): number {
-  const serversDir = path.join(ROOT, 'packages/mcp/src/servers');
+  const serversDir = path.join(Root, 'packages/mcp/src/servers');
   if (!fs.existsSync(serversDir)) return 0;
   try {
     return fs
@@ -439,7 +439,7 @@ export function countPgTableCalls(fileName: string, content: string): number {
  * Path-injectable + exported for tests (GAP-192 PR1).
  */
 export function countDbTables(schemaDir?: string): number {
-  const resolved = schemaDir ?? path.join(ROOT, 'packages/db/src/schema');
+  const resolved = schemaDir ?? path.join(Root, 'packages/db/src/schema');
   if (!fs.existsSync(resolved)) return 0;
   const isIgnored = ignoredPathPredicateFor(resolved);
   let total = 0;
@@ -491,7 +491,7 @@ export function countDbTables(schemaDir?: string): number {
 
 /** Path-injectable + exported for tests. */
 export function countCliTemplates(base?: string): number {
-  return countDirs(base ?? path.join(ROOT, 'packages/cli/templates'));
+  return countDirs(base ?? path.join(Root, 'packages/cli/templates'));
 }
 
 /** "5 templates" / "5 CLI templates" — not "4 template repos". Exported for tests. */
@@ -535,7 +535,7 @@ function defaultEnforcementTestRoots(root: string): string[] {
  * Path-injectable + exported for tests.
  */
 export function countEnforcementTests(roots?: string[]): number {
-  const resolvedRoots = roots ?? defaultEnforcementTestRoots(ROOT);
+  const resolvedRoots = roots ?? defaultEnforcementTestRoots(Root);
   const files: string[] = [];
   for (const root of resolvedRoots) {
     let stat: fs.Stats;
@@ -592,7 +592,7 @@ interface LicenseSplit {
 
 function countLicenseSplit(): LicenseSplit {
   const split: LicenseSplit = { mit: 0, fsl: 0, internal: 0 };
-  const pkgDir = path.join(ROOT, 'packages');
+  const pkgDir = path.join(Root, 'packages');
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(pkgDir, { withFileTypes: true });
@@ -643,7 +643,7 @@ function buildPackageLicenseMap(): PackageLicenseMap {
     internal: new Set(),
     all: new Set(),
   };
-  const pkgDir = path.join(ROOT, 'packages');
+  const pkgDir = path.join(Root, 'packages');
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(pkgDir, { withFileTypes: true });
@@ -694,7 +694,7 @@ const LICENSE_SCAN_EXTENSIONS_FULL = ['.md', '.txt', '.ts', '.tsx', '.json', '.s
 const LICENSE_SCAN_EXTENSIONS_PACKAGES = ['.md']; // packages/* is huge; restrict to docs
 
 function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void): void {
-  const isIgnored = ignoredPathPredicateFor(ROOT);
+  const isIgnored = ignoredPathPredicateFor(Root);
   function walk(dir: string): void {
     let entries: fs.Dirent[];
     try {
@@ -705,7 +705,7 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
     for (const e of entries) {
       const full = path.join(dir, e.name);
       if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
-      const rel = path.relative(ROOT, full).split(path.sep).join('/');
+      const rel = path.relative(Root, full).split(path.sep).join('/');
       if (e.isDirectory()) {
         walk(full);
       } else {
@@ -718,10 +718,10 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
     }
   }
   for (const root of LICENSE_SCAN_ROOTS) {
-    const full = path.join(ROOT, root);
+    const full = path.join(Root, root);
     try {
       const stat = fs.statSync(full);
-      const rel = path.relative(ROOT, full).split(path.sep).join('/');
+      const rel = path.relative(Root, full).split(path.sep).join('/');
       if (stat.isFile()) callback(full, rel);
       else if (stat.isDirectory()) walk(full);
     } catch {
@@ -1496,7 +1496,7 @@ export function scanNumericClaimsOnLine(
  */
 function assertScanDirsExist(scanDirs: string[], arrayName: string): void {
   for (const dir of scanDirs) {
-    const full = path.join(ROOT, dir);
+    const full = path.join(Root, dir);
     try {
       const stat = fs.statSync(full);
       if (!(stat.isFile() || stat.isDirectory())) {
@@ -1542,10 +1542,10 @@ const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', 'docs/MASTER_PLA
 
 function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   const matches: ClaimMatch[] = [];
-  const isIgnored = ignoredPathPredicateFor(ROOT);
+  const isIgnored = ignoredPathPredicateFor(Root);
 
   function scanFile(filePath: string): void {
-    const rel = path.relative(ROOT, filePath);
+    const rel = path.relative(Root, filePath);
     if (EXCLUDE_FILES.includes(rel)) return;
 
     let content: string;
@@ -1560,7 +1560,7 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
       const line = lines[i];
       for (const hit of scanNumericClaimsOnLine(line, allSpecs)) {
         matches.push({
-          file: path.relative(ROOT, filePath),
+          file: path.relative(Root, filePath),
           line: i + 1,
           text: line.trim(),
           claimed: hit.claimed,
@@ -1571,7 +1571,7 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   }
 
   function scanPath(p: string): void {
-    const full = path.join(ROOT, p);
+    const full = path.join(Root, p);
     try {
       const stat = fs.statSync(full);
       if (
@@ -1763,7 +1763,7 @@ function scanForFutureTenseClaims(): FutureClaimMatch[] {
   const matches: FutureClaimMatch[] = [];
 
   for (const rel of FUTURE_TENSE_SCAN_FILES) {
-    const full = path.join(ROOT, rel);
+    const full = path.join(Root, rel);
     let content: string;
     try {
       content = fs.readFileSync(full, 'utf8');
@@ -2142,10 +2142,10 @@ export function isRoadmapDeclaredFile(content: string): boolean {
 
 function scanForAspirationalFeatures(): AspirationalMatch[] {
   const matches: AspirationalMatch[] = [];
-  const isIgnored = ignoredPathPredicateFor(ROOT);
+  const isIgnored = ignoredPathPredicateFor(Root);
 
   function scanFile(filePath: string): void {
-    const rel = path.relative(ROOT, filePath);
+    const rel = path.relative(Root, filePath);
     let content: string;
     try {
       content = fs.readFileSync(filePath, 'utf8');
@@ -2234,7 +2234,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
 
   assertScanDirsExist(ASPIRATIONAL_SCAN_FILES, 'ASPIRATIONAL_SCAN_FILES');
   for (const rel of ASPIRATIONAL_SCAN_FILES) {
-    const full = path.join(ROOT, rel);
+    const full = path.join(Root, rel);
     const stat = fs.statSync(full);
     if (stat.isFile()) {
       scanFile(full);
@@ -2619,7 +2619,7 @@ function scanForFleetProductLeaks(): FleetProductMatch[] {
   }
 
   function scanFile(filePath: string): void {
-    const rel = path.relative(ROOT, filePath).split(path.sep).join('/');
+    const rel = path.relative(Root, filePath).split(path.sep).join('/');
     if (isAllowlisted(rel)) return;
     let content: string;
     try {
@@ -2655,7 +2655,7 @@ function scanForFleetProductLeaks(): FleetProductMatch[] {
   }
 
   for (const rel of FLEET_ATTRIBUTION_SCAN_FILES) {
-    const full = path.join(ROOT, rel);
+    const full = path.join(Root, rel);
     try {
       const stat = fs.statSync(full);
       if (stat.isFile()) scanFile(full);
@@ -2726,14 +2726,14 @@ const RVUI_LEAK_ALLOWLIST = new Set<string>([
 
 function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
   const matches: RvuiLeakMatch[] = [];
-  const isIgnored = ignoredPathPredicateFor(ROOT);
+  const isIgnored = ignoredPathPredicateFor(Root);
 
   function isAllowlisted(rel: string): boolean {
     return RVUI_LEAK_ALLOWLIST.has(rel) || rel.startsWith('docs/fleet/revealcoin');
   }
 
   function scanFile(filePath: string): void {
-    const rel = path.relative(ROOT, filePath).split(path.sep).join('/');
+    const rel = path.relative(Root, filePath).split(path.sep).join('/');
     if (isAllowlisted(rel)) return;
     let content: string;
     try {
@@ -2772,8 +2772,8 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
     }
   }
 
-  walk(path.join(ROOT, 'docs'));
-  walk(path.join(ROOT, 'apps/docs/public/docs-pro'));
+  walk(path.join(Root, 'docs'));
+  walk(path.join(Root, 'apps/docs/public/docs-pro'));
 
   return matches;
 }
@@ -2824,7 +2824,7 @@ function readDeclaredMetric(metricsBlock: string, key: string): number | null {
 }
 
 function checkMarketingMetrics(checks: MarketingMetricCheck[]): MarketingMetricDrift[] {
-  const full = path.join(ROOT, MARKETING_SITE_FILE);
+  const full = path.join(Root, MARKETING_SITE_FILE);
   let src: string;
   try {
     src = fs.readFileSync(full, 'utf8');

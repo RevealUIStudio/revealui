@@ -1,5 +1,5 @@
-import { resolveProfile } from './profiles.js';
 import { runClaimDrift } from './claim-drift-engine.js';
+import { resolveProfile } from './profiles.js';
 import type { ClaimGateResult, ClaimGateRunOptions } from './types.js';
 
 /**

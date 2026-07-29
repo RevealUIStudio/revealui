@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { runClaimGates } from './run.js';
-import type { ClaimGatesCliOptions, ClaimGateResult, ClaimProfileName } from './types.js';
+import type { ClaimGateResult, ClaimGatesCliOptions, ClaimProfileName } from './types.js';
 
 function parseArgv(argv: readonly string[]): {
   root?: string;
