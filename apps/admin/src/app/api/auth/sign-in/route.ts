@@ -85,7 +85,12 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         { userId: result.mfaUserId, expiresAt: Date.now() + 5 * 60 * 1000 },
         config.reveal.secret,
       );
-      const response = NextResponse.json({ requiresMfa: true }, { status: 200 });
+      // Body includes mfaUserId for client routing; the httpOnly mfa-pending
+      // cookie remains the authority for /api/auth/mfa/verify.
+      const response = NextResponse.json(
+        { requiresMfa: true, mfaUserId: result.mfaUserId },
+        { status: 200 },
+      );
       response.cookies.set('mfa-pending', signed, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
