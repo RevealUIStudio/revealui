@@ -21,16 +21,32 @@ on two sites is one row: the canonical graph is convergent by construction
   (`ON CONFLICT DO NOTHING` for G-Set rows, `LEAST`/`GREATEST` for monotonic
   columns).
 - **Tier-1 extractors** (`./extractors`): workspace, ts-project (TS compiler
-  API), db-schema, git, docs-frontmatter, routes — no regex over source.
+  API), db-schema, git, docs-frontmatter, routes, **claims** (claims-evidence →
+  `documents` edges, GAP-462) — no regex over source.
 - **Search** (`./search`): pgvector cosine + `websearch_to_tsquery`/`ts_rank` +
   recursive-CTE BFS, RRF-fused (k=60), reranked by node-distance and
-  episode-mentions, with point-in-time predicates.
-- **`revkg` CLI**: `scan`, `search`, `node`, `neighbors`, `at`.
+  episode-mentions, with point-in-time predicates. `kgDrift` walks current
+  `documents` edges for doc-currency candidates.
+- **`revkg` CLI**: `scan`, `search`, `node`, `neighbors`, `at`, `drift`,
+  `claims-check [--publish]`.
 
 Embeddings are injected (`Embedder`) and best-effort — wired to `@revealui/ai`
 `generateEmbedding` (nomic-embed-text, 768) by the CLI, degrading to NULL
 embeddings + deferred backfill when Ollama is down. The core library imports no
 LLM SDK.
+
+## Claims honesty (GAP-462)
+
+```bash
+# Parse claims-evidence, verify path evidence exists (no DB)
+pnpm exec revkg claims-check --root . --repo revealui
+
+# Ingest claim concepts + documents edges into Neon (needs POSTGRES_URL)
+pnpm exec revkg claims-check --root . --repo revealui --publish
+
+# After a claims publish (or full scan), report doc/code staleness
+pnpm exec revkg drift --repo revealui
+```
 
 ## Development
 

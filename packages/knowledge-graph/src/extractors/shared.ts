@@ -53,6 +53,14 @@ export function gapKey(gapId: string): string {
   return gapId;
 }
 
+/**
+ * A marketing claim entry from claims-evidence (repo-scoped).
+ * `contentFile` is relative to `apps/marketing/app/content/` (e.g. `home.ts`).
+ */
+export function claimKey(repo: string, contentFile: string, exportPath: string): string {
+  return `${repo}:claim:${toPosix(contentFile)}#${exportPath}`;
+}
+
 export function toPosix(p: string): string {
   return p.split('\\').join('/');
 }

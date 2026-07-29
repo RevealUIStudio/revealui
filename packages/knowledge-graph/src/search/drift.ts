@@ -7,13 +7,12 @@
  * walks every CURRENT `documents` edge and reports the ones where that holds,
  * sorted by staleness delta (largest first) so the worst drift surfaces first.
  *
- * Direction convention (no extractor emits `documents` edges yet as of P4 —
- * this is Tier-2/manual-episode territory per spec §6 Tier 2 and the P3 rider
- * list — so this is a documented assumption, not an empirically-observed
- * convention): `source` is the DOC node, `target` is the CODE node, matching
- * the spec's literal wording ("any doc node whose `documents` edge TARGETS a
- * code node"). `kgAddEpisode` / `kg_add_episode` callers that emit `documents`
- * edges must follow this direction for `revkg drift` to report them correctly.
+ * Direction convention: `source` is the DOC node, `target` is the CODE node,
+ * matching the spec's literal wording ("any doc node whose `documents` edge
+ * TARGETS a code node"). The Tier-1 `claims` extractor (GAP-462 Phase 3) emits
+ * claim concept → evidence file edges in this direction; manual
+ * `kgAddEpisode` / `kg_add_episode` callers must do the same for `revkg drift`
+ * to report them correctly.
  *
  * Read-only: no writes, no invalidation. Feeds the `doc-code-reconciliation`
  * lane and the doc-currency stale-fact scanner with grounded, per-claim
