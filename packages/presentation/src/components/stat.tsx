@@ -3,10 +3,11 @@ import { cn } from '../utils/cn.js';
 
 type TrendDirection = 'up' | 'down' | 'neutral';
 
+// Use *-text tokens for trend labels (fill tokens can fail AA on surface-1).
 const trendStyles: Record<TrendDirection, React.CSSProperties> = {
-  up: { color: 'var(--rvui-success, oklch(0.72 0.17 155))' },
-  down: { color: 'var(--rvui-error, oklch(0.65 0.2 25))' },
-  neutral: { color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' },
+  up: { color: 'var(--rvui-success-text, var(--rvui-success, oklch(0.72 0.17 155)))' },
+  down: { color: 'var(--rvui-error-text, var(--rvui-error, oklch(0.65 0.2 25)))' },
+  neutral: { color: 'var(--rvui-text-1, oklch(0.83 0.015 245))' },
 };
 
 const trendArrow = { up: '↑', down: '↓', neutral: '→' };
@@ -44,7 +45,7 @@ export function Stat({
       <div className="flex items-start justify-between">
         <p
           className="text-sm font-medium"
-          style={{ color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
+          style={{ color: 'var(--rvui-text-1, oklch(0.83 0.015 245))' }}
         >
           {label}
         </p>
@@ -73,7 +74,7 @@ export function Stat({
           {description && (
             <span
               className="text-sm"
-              style={{ color: 'var(--rvui-text-2, oklch(0.55 0.012 218))' }}
+              style={{ color: 'var(--rvui-text-1, oklch(0.83 0.015 245))' }}
             >
               {description}
             </span>

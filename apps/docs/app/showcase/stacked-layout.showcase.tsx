@@ -11,7 +11,7 @@ const story: ShowcaseStory = {
   render: () => (
     <div className="h-[28rem] w-full overflow-hidden rounded-lg border border-border">
       <StackedLayout
-        navbar={<div className="text-sm font-medium">Product</div>}
+        navbar={<div className="text-sm font-medium text-foreground">Product</div>}
         sidebar={
           <nav className="flex flex-col gap-2 p-4 text-sm">
             <a href="#overview">Overview</a>
