@@ -24,6 +24,13 @@ Mission: build the self-hosted runtime where a business and the AI agents that r
 4. **Payments**  -  Stripe checkout, subscriptions, webhooks, billing portal
 5. **Agents**  -  AI agents, CRDT memory, open-model inference, orchestration (Pro tier)
 
+## Documentation SoT
+
+Edit monorepo **`docs/`** only. Do **not** author under `apps/docs/public/*.md`
+(virtual publish plane: dev middleware + dist emit). Hand-authored exception:
+`apps/docs/public/docs-pro/`. See
+`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`.
+
 ## Stack
 
 - React 19, Next.js 16, Node 24, TypeScript 6

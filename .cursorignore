@@ -1,0 +1,6 @@
+# Docs publish plane: no authoring under the docs app public tree (except docs-pro).
+apps/docs/public/**/*.md
+apps/docs/public/*/
+!apps/docs/public/docs-pro/
+!apps/docs/public/docs-pro/**
+apps/docs/dist/

@@ -21,8 +21,20 @@ Agentic business runtime. People, content, offers, payments, and agents  -  pre-
 - React 19, Next.js 16 (admin), Vite (docs / marketing), Hono (server), Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
 - Drizzle ORM (NeonDB), Tailwind CSS v4
-- Cloudflare R2 (S3-compatible object storage; replacing Vercel Blob)
+- Cloudflare R2 (S3-compatible object storage; Vercel Blob was retired)
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
+
+## Documentation SoT
+
+| Path | Role |
+|------|------|
+| **`docs/`** | **Only place to edit** documentation |
+| **`apps/docs/public/**/*.md`** | Not a materialize mirror — do not create/edit |
+| **`apps/docs/public/docs-pro/`** | Hand-authored Pro exception |
+| **`apps/docs/dist/`** | Build output only |
+
+Publish plane: virtual serve + dist emit  
+(`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`).
 
 ## Git Identity
 RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>

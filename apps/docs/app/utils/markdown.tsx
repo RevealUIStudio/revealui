@@ -572,8 +572,10 @@ const markdownCache = new Map<string, { content: string; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
 
 /**
- * Load markdown file from public directory with caching
- * Files are copied there by the Vite plugin during dev/build
+ * Load markdown over HTTP with caching.
+ * Dev: Vite docs-publish middleware serves monorepo docs/ (visibility:public).
+ * Prod: same files were emitted into the static outDir (dist/) at build time.
+ * SoT is always monorepo docs/ — never apps/docs/public/*.md.
  */
 export async function loadMarkdownFile(
   filePath: string,
@@ -624,12 +626,11 @@ export async function loadMarkdownFile(
 
     throw new Error(
       `Failed to load markdown file: ${normalizedPath}. ` +
-        `Make sure the file exists in docs/ directory and has been copied by the Vite plugin. ` +
-        `Error: ${errorMessage}`,
+        `Make sure the file exists under monorepo docs/ with visibility: public ` +
+        `(docs-publish plane). Error: ${errorMessage}`,
     );
   }
 }
-
 /**
  * Clear the markdown cache (useful for testing or manual refresh)
  */

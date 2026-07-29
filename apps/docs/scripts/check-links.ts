@@ -1,24 +1,17 @@
 /**
  * Served-docs broken-link validator.
  *
- * Fails when any served documentation page links to a relative `.md` target
- * that is NOT part of the public served set (`apps/docs/public/`). Three
- * broken-link classes are reported:
+ * Fails when any publicly served documentation page links to a relative `.md`
+ * target that is NOT part of the public served set. Three broken-link classes:
  *
- *   - internal-excluded — the target exists in the source `docs/` tree but is
- *     deliberately withheld from the public site (an internal-only file or dir
- *     stripped by `scripts/copy-docs.sh`). This is the most common 404 source.
- *   - missing — the target exists nowhere in `docs/` (typo, renamed doc, or a
- *     path that was never created).
- *   - outside-root — the relative path escapes the served root.
+ *   - internal-excluded — target exists in monorepo docs/ but is not
+ *     visibility:public (would 404 on the public site).
+ *   - missing — target exists nowhere in docs/.
+ *   - outside-root — relative path escapes the served root.
  *
- * The served set is computed by RUNNING `scripts/copy-docs.sh` — the single
- * authority for what ships publicly — and scanning `apps/docs/public/`. This
- * deliberately avoids re-encoding the internal-exclusion lists a THIRD time
- * (they already live in `copy-docs.sh` + `vite.config.ts`); the validator
- * checks the real shipped artifact rather than a model of it. The source
- * `docs/` tree is scanned only to CLASSIFY a broken target (present-in-source
- * ⇒ internal-excluded; absent ⇒ missing).
+ * Served set = docs-publish plane (`scripts/docs-publish.mjs` +
+ * `served-docs.mjs`): walk monorepo docs/ with fail-closed visibility. No
+ * materialize-to-public mirror; content is read from monorepo docs/.
  *
  * No authored regex (fleet hardline): link extraction is an indexOf scan over
  * markdown `](target)` spans, with fenced and inline code stripped first.
@@ -26,18 +19,16 @@
  * Run: `tsx scripts/check-links.ts` (wired as `pnpm --filter docs check:links`).
  */
 
-import { execFileSync } from 'node:child_process';
 import { type Dirent, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { buildDocNavSections } from '../app/lib/nav';
 import { type DocSection, resolveDocPath } from '../app/utils/paths';
+import { collectPublicDocRels } from './docs-publish.mjs';
 
 const scriptDir = import.meta.dirname;
 const docsApp = path.resolve(scriptDir, '..'); // apps/docs
 const repoRoot = path.resolve(scriptDir, '..', '..', '..'); // monorepo root
 const sourceDocs = path.join(repoRoot, 'docs');
-const servedRoot = path.join(docsApp, 'public');
-const copyDocsScript = path.join(scriptDir, 'copy-docs.sh');
 
 type BrokenKind = 'internal-excluded' | 'missing' | 'outside-root';
 
@@ -155,7 +146,8 @@ function isExternal(target: string): boolean {
 function checkLinks(served: Set<string>, source: Set<string>): BrokenLink[] {
   const broken: BrokenLink[] = [];
   for (const rel of served) {
-    const content = readFileSync(path.join(servedRoot, rel), 'utf8');
+    // Content is always read from monorepo docs/ (SoT) — no public/ mirror.
+    const content = readFileSync(path.join(sourceDocs, rel), 'utf8');
     for (const raw of extractLinkTargets(content)) {
       // Strip anchor + query before resolving.
       let target = raw;
@@ -273,18 +265,9 @@ function checkNavLinks(served: Set<string>, source: Set<string>): BrokenLink[] {
   return broken;
 }
 
-function main(): void {
-  // Refresh the served set exactly as the build does — copy-docs.sh is the
-  // single authority for what ships to the public site.
-  try {
-    execFileSync('bash', [copyDocsScript], { stdio: 'inherit' });
-  } catch {
-    write('✗ docs link check: scripts/copy-docs.sh failed; cannot build the served set.'); // adherence-ignore: checkmark-glyph - CLI build-script console output, not UI copy
-    process.exitCode = 1;
-    return;
-  }
-
-  const served = collectMarkdownFiles(servedRoot);
+async function main(): Promise<void> {
+  // Served set from the docs-publish plane (monorepo docs/ + visibility).
+  const served = await collectPublicDocRels(sourceDocs);
   const source = collectMarkdownFiles(sourceDocs);
   const broken = [...checkLinks(served, source), ...checkNavLinks(served, source)];
 
@@ -316,9 +299,9 @@ function main(): void {
   }
   write('');
   write('Repoint each link to a served doc, or remove it. Internal-only targets');
-  write('(excluded by scripts/copy-docs.sh) must never be linked from served pages —');
+  write('(not visibility: public) must never be linked from served pages —');
   write('they 404 on the public site.');
   process.exitCode = 1;
 }
 
-main();
+void main();

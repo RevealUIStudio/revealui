@@ -152,7 +152,8 @@ docs/*VERIFICATION*.md
 docs/*REPORT*.md
 !docs/COVERAGE-REPORT-TEMPLATE.md
 
-# Generated documentation (copied from /docs during build)
+# Docs publish plane (ADR 2026-07-29): monorepo docs/ is SoT; no public/*.md mirror.
+# Legacy nested paths from pre-CHIP-3 / pre-virtual-serve still ignored.
 apps/docs/public/docs/
 apps/docs/dist/docs/
 

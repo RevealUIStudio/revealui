@@ -48,7 +48,10 @@ const PRODUCT_RUNTIME: ClaimProfile = {
   licenseScanRoots: [
     'docs',
     'apps/marketing/app',
-    'apps/docs/public',
+    // Hand-authored public docs only. Do NOT scan a materialize mirror of
+    // monorepo docs/ under apps/docs/public/ (ADR 2026-07-29 virtual serve).
+    'apps/docs/public/docs-pro',
+    'apps/docs/public/llms.txt',
     'README.md',
     'CLAUDE.md',
     'CONTRIBUTING.md',
