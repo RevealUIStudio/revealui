@@ -14,8 +14,13 @@ import {
   countTestFiles,
   countTrackedFiles,
   extractRevealuiPackages,
+  findAspirationalBlocklistHits,
+  findFleetProductHits,
   findIncompleteProList,
   findLicenseSplitAntiPattern,
+  hasAspirationalQualifier,
+  hasPhantomEditorsPackage,
+  hasRvuiTickerLeak,
   hasTrackerSignal,
   isRoadmapDeclaredFile,
   makeIgnoredPathPredicate,
@@ -89,6 +94,72 @@ describe('hasTrackerSignal', () => {
 
   it('rejects unlinked future-tense prose', () => {
     expect(hasTrackerSignal('SSO is coming soon with no tracker')).toBe(false);
+  });
+});
+
+describe('hasAspirationalQualifier + aspirational blocklist (GAP-192 PR2)', () => {
+  it('flags SSO without a qualifier', () => {
+    expect(findAspirationalBlocklistHits('Enterprise SSO for every workspace')).toContain('SSO');
+    expect(hasAspirationalQualifier('Enterprise SSO for every workspace')).toBe(false);
+  });
+
+  it('passes SSO when the line says roadmap', () => {
+    expect(hasAspirationalQualifier('SSO is on the roadmap')).toBe(true);
+    expect(hasAspirationalQualifier('SSO (coming soon)')).toBe(true);
+    expect(hasAspirationalQualifier('SSO tracked in #93')).toBe(true);
+  });
+
+  it('flags single sign-on and hyphenated auto-scaling / on-prem sequences', () => {
+    expect(findAspirationalBlocklistHits('we ship single sign-on today')).toContain('SSO');
+    expect(findAspirationalBlocklistHits('auto-scaling for your agents')).toContain('auto-scaling');
+    expect(findAspirationalBlocklistHits('air-gapped and on-prem deploy')).toEqual(
+      expect.arrayContaining(['air-gapped', 'on-prem']),
+    );
+  });
+
+  it('keeps RAG/SLA case-sensitive', () => {
+    expect(findAspirationalBlocklistHits('RAG pipelines ship by default')).toContain('RAG');
+    expect(findAspirationalBlocklistHits('rag pipelines ship by default')).not.toContain('RAG');
+    expect(findAspirationalBlocklistHits('our SLA guarantees')).toContain('SLA');
+    expect(findAspirationalBlocklistHits('our sla guarantees')).not.toContain('SLA');
+  });
+});
+
+describe('fleet product rules + Studio context (GAP-192 PR2)', () => {
+  it('flags bare Studio but not RevealUI Studio', () => {
+    expect(findFleetProductHits('Open Studio to manage agents')).toEqual(
+      expect.arrayContaining(['Studio (lives in RevDev, not the company name)']),
+    );
+    expect(findFleetProductHits('RevealUI Studio ships the fleet')).not.toContain(
+      'Studio (lives in RevDev, not the company name)',
+    );
+  });
+
+  it('flags proper-noun fleet products', () => {
+    expect(findFleetProductHits('store secrets in RevVault')).toEqual(
+      expect.arrayContaining(['RevVault (separate fleet product)']),
+    );
+  });
+
+  it('flags the phantom editors package path (built at runtime to avoid the phantom-package gate)', () => {
+    // Construct the scoped path so this test file never contains a contiguous
+    // phantom package literal (that string hard-fails claim-drift).
+    const phantomPkg = ['@', 'revealui', '/', 'editors'].join('');
+    const nearMiss = ['@', 'revealui', '/', 'editor'].join('');
+    const label = `${phantomPkg} (does not exist; ships in RevCon)`;
+    expect(hasPhantomEditorsPackage(`import from ${phantomPkg}`)).toBe(true);
+    expect(hasPhantomEditorsPackage(`import from ${nearMiss}`)).toBe(false);
+    expect(findFleetProductHits(`the ${phantomPkg} package`)).toEqual(
+      expect.arrayContaining([label]),
+    );
+  });
+});
+
+describe('hasRvuiTickerLeak (GAP-192 PR2)', () => {
+  it('flags $RVUI and not bare RVUI or lowercase route slugs', () => {
+    expect(hasRvuiTickerLeak('pay with $RVUI on-chain')).toBe(true);
+    expect(hasRvuiTickerLeak('use RVC not the internal form')).toBe(false);
+    expect(hasRvuiTickerLeak('/api/billing/rvui-payment')).toBe(false);
   });
 });
 
