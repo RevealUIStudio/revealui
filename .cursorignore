@@ -1,4 +1,5 @@
-# Docs publish plane: no authoring under the docs app public tree (except docs-pro).
+# Docs publish plane (ADR 2026-07-29): no authoring under public/*.md.
+# Monorepo docs/ is SoT; dist/ is build output. Hand-authored docs-pro stays.
 apps/docs/public/**/*.md
 apps/docs/public/*/
 !apps/docs/public/docs-pro/

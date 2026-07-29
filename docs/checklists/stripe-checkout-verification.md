@@ -182,6 +182,6 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 | ~~RVC disabled~~ (retired 2026-05-29 — RevealCoin cancelled, no longer a gating concern) | n/a | n/a |
 | Edge cases | | |
 
-**All flows verified → checkout mechanics tested in TEST mode.**
+**All flows verified → checkout mechanics tested in TEST mode (local/CI).**
 
-> Switching `STRIPE_SECRET_KEY` to a live key (`sk_live_*`) and flipping `STRIPE_LIVE_MODE=true` is gated on the internal billing-readiness audit. This checklist verifies the wire-up; it is not the only gate. Flip live mode only after billing-readiness sign-off.
+> Studio production already runs live mode (`STRIPE_LIVE_MODE=true` + `sk_live_*` since 2026-06-26). Use this checklist for wire-up verification in test mode and before promoting any new environment to live keys.

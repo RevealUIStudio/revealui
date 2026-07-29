@@ -1425,7 +1425,7 @@ Registers a named validation rule that can be referenced in field definitions.
 
 # @revealui/db
 
-Drizzle ORM schema, database clients, migrations, and encryption utilities. NeonDB (Postgres) is the primary, canonical database. A legacy Supabase sidecar (vectors/RAG) is being phased out — new features must not depend on Supabase-specific behavior.
+Drizzle ORM schema, database clients, migrations, and encryption utilities. NeonDB (Postgres) is the primary, canonical database. Supabase was removed as architecture (ADR 2026-05-01); vectors and RAG use NeonDB `pgvector`. New features must not reintroduce Supabase.
 
 ```bash
 npm install @revealui/db
@@ -1988,9 +1988,9 @@ R2_PUBLIC_BASE_URL=https://media.revealui.com
 
 # Optional
 SENTRY_DSN=https://...@sentry.io/...
-# Legacy Supabase sidecar (being phased out):
-NEXT_PUBLIC_SUPABASE_URL=https://...supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+# Supabase vars are legacy only (removed as architecture; leave unset):
+# NEXT_PUBLIC_SUPABASE_URL=
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
 
 See `.env.template` in the repo root for the full list with descriptions.
@@ -4412,8 +4412,8 @@ Pre-defined list of optional environment variables.
 | Variable                        | Description            | Validator       |
 | ------------------------------- | ---------------------- | --------------- |
 | `STRIPE_WEBHOOK_SECRET`         | Stripe webhook secret  |  -                |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL (legacy sidecar, being phased out) | `url`           |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key (legacy sidecar, being phased out) |  -                |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Legacy only; Supabase was removed (leave unset) | `url`           |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Legacy only; Supabase was removed (leave unset) |  -                |
 | `REVEALUI_ADMIN_EMAIL`          | Initial admin email    | `email`         |
 | `REVEALUI_ADMIN_PASSWORD`       | Initial admin password | `minLength(12)` |
 

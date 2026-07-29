@@ -295,7 +295,8 @@ revealui/
 - **[Auth Guide](docs/AUTH.md):** Authentication, sessions, RBAC
 - **[Admin Guide](docs/ADMIN_GUIDE.md):** Collections, fields, access control
 - **[Testing](docs/TESTING.md):** Vitest, Playwright, coverage
-- **[Deployment](docs/guides/deployment.md):** Vercel, Fly, or self-host
+- **[Deployment](docs/guides/deployment.md):** Vercel, Fly, Docker Compose, customer Railway marketplace template, or self-host Node
+- **[Railway marketplace template](deployment/railway/README.md):** One-click self-host on the buyer's Railway account (sales channel, not Studio production)
 - **[All docs](docs/INDEX.md):** Full documentation index
 
 ## Contributing

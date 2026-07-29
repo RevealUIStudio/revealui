@@ -83,9 +83,9 @@ Each vendor is evaluated against the following criteria:
 
 ### 3.2 Supabase — DECOMMISSIONED (internal datastore usage removed)
 
-> **Decommissioned (internal usage) per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md).** RevealUI's internal Supabase datastore dependency has been removed: RAG chunk embeddings and vector tables now live on NeonDB `pgvector`, and auth/storage/realtime/RLS/edge-fn were never used. Legacy Supabase code remains in tree during phase-out (final code removal tracked separately); no new features may depend on Supabase.
+> **Decommissioned per ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md).** RevealUI's Supabase datastore dependency was removed: RAG chunk embeddings and vector tables live on NeonDB `pgvector`, and auth/storage/realtime/RLS/edge-fn were never used. No new features may reintroduce Supabase.
 >
-> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) was removed; it is no longer a RevealUI vendor data dependency and is out of scope for this assessment.
+> The customer-facing Supabase **MCP adapter** (`packages/mcp/src/servers/supabase.ts`) was also removed; it is no longer a RevealUI vendor data dependency and is out of scope for this assessment.
 >
 > The vendor assessment below is retained as a **historical** record for the audit trail. RevealUI holds no active Supabase data dependency, so there is no forward review date.
 
@@ -122,7 +122,7 @@ _Historical assessment (retained for audit trail):_
 - Cross-DB cleanup (`@revealui/db/cleanup`) handles orphaned data after site deletion
 - Supabase imports restricted to permitted paths via `supabase-boundary.js` hook
 
-**Status:** Decommissioned as an internal datastore (ADR 2026-05-01) — RAG/vectors migrated to NeonDB `pgvector`; legacy code phase-out tracked separately. No forward review.
+**Status:** Removed as architecture (ADR 2026-05-01) — RAG/vectors on NeonDB `pgvector` only. No forward review.
 
 ---
 
@@ -254,7 +254,7 @@ _Historical assessment (retained for audit trail):_
 | Vendor | Asset IDs | Risk Rating | Key Strengths | Watchlist Items |
 |--------|-----------|-------------|---------------|-----------------|
 | Neon | DS-001, TP-005 | Low | SOC 2 Type II, PITR, standard PostgreSQL | Monitor for pricing changes, verify DPA annually |
-| ~~Supabase~~ (DECOMMISSIONED — internal datastore usage removed) | DS-002, TP-006 | n/a | _(historical)_ SOC 2 Type II, RLS, pgvector | Decommissioned as an internal datastore (ADR 2026-05-01) → RAG/vectors on NeonDB pgvector; legacy code phase-out tracked separately; customer-facing MCP adapter retained separately (not a RevealUI data dependency) |
+| ~~Supabase~~ (REMOVED — ADR 2026-05-01) | DS-002, TP-006 | n/a | _(historical)_ SOC 2 Type II, RLS, pgvector | Removed as datastore and MCP adapter → RAG/vectors on NeonDB pgvector only |
 | Vercel | TP-001 | Low | SOC 2 Type II, 99.99% SLA, instant rollback | Monitor for env var handling changes |
 | Stripe | TP-002 | Low | PCI DSS L1, SOC 2 Type II, no card data exposure | Live since 2026-06-26; monitor webhook delivery and reconciliation health |
 | GitHub | TP-003, TP-004 | Low | SOC 2 Type II, OIDC publishing, secret scanning | Monitor for Actions pricing changes, audit log retention |

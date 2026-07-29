@@ -26,6 +26,7 @@ See `public/DOCS-PUBLISH-PLANE.txt` and
 
 - **Markdown rendering** — react-markdown + remark-gfm
 - **Virtual publish plane** — no second authoring-shaped tree under `public/`
+- **Visibility filtering** — fail-closed `visibility: public` only
 - **SPA routing** — `@revealui/router` with Vercel SPA rewrite
 - **Flat URLs** — CHIP-3 D5a (`docs.revealui.com/admin-guide` → `ADMIN_GUIDE.md`)
 

@@ -153,7 +153,7 @@ docs/*REPORT*.md
 !docs/COVERAGE-REPORT-TEMPLATE.md
 
 # Docs publish plane (ADR 2026-07-29): monorepo docs/ is SoT; no public/*.md mirror.
-# Legacy nested paths from pre-CHIP-3 / pre-virtual-serve still ignored.
+# Primary ignore rules live in apps/docs/.gitignore. Legacy nested paths kept.
 apps/docs/public/docs/
 apps/docs/dist/docs/
 

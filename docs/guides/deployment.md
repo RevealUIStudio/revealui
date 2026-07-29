@@ -1,14 +1,14 @@
 ---
 title: "Deployment"
-description: "RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-h..."
+description: "RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, Railway marketplace template, and self-hosted Node.js."
 visibility: public
 status: verified
 audience: user
 ---
 
-RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
+RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, Railway (customer self-host on-ramp), and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
 
-> RevealUI Studio's own production runs on **Vercel (HTTP) + Fly (long-running `apps/server` subset + ElectricSQL) + Neon (Postgres)** — three vendors (Railway was dropped; Kubernetes is not a target). A `fly.toml` ships at `apps/server/fly.toml`.
+> RevealUI Studio's own production runs on **Vercel (HTTP) + Fly (long-running `apps/server` subset + ElectricSQL) + Neon (Postgres)**. Kubernetes is not a target. A `fly.toml` ships at `apps/server/fly.toml`. Railway is a **customer marketplace** path only (see [Railway](#railway-marketplace-template) below); it is not Studio's production host.
 
 ---
 
@@ -19,6 +19,7 @@ RevealUI supports several deployment targets: Vercel (recommended for the HTTP a
 | Vercel | SaaS, serverless (HTTP) | admin, API, Marketing, Docs |
 | Fly | Long-running services | Persistent `apps/server` subset + ElectricSQL sync |
 | Docker Compose | Self-hosted, on-prem | All apps in containers |
+| Railway | One-click self-host (customer account) | API + admin + migrate + pgvector Postgres |
 | Node.js | Custom infrastructure | Manual process management |
 
 ---
@@ -82,12 +83,12 @@ R2_BUCKET=revealui-media
 R2_PUBLIC_BASE_URL=https://media.yourdomain.com
 
 # Billing (required for payments)
-# Pre-launch posture: use sk_test_* / pk_test_* until billing-readiness audit
-# closes; STRIPE_LIVE_MODE=false (the default) keeps the runtime warnings on.
+# Local/CI: sk_test_* / pk_test_* with STRIPE_LIVE_MODE unset/false.
+# Studio production: sk_live_* / pk_live_* with STRIPE_LIVE_MODE=true (since 2026-06-26).
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-# STRIPE_LIVE_MODE=true             # flip ONLY after billing-readiness sign-off
+# STRIPE_LIVE_MODE=true             # required when using sk_live_* keys
 ```
 
 ### Build Configuration
@@ -216,6 +217,23 @@ The API exposes a health endpoint at `GET /health/ready` (root path, no `/api` p
 Pre-1.0; the `version` field reports the runtime package version from `package.json`. Don't depend on it being stable until the project promotes to 1.0.
 
 Use this in your Docker health check or load balancer configuration.
+
+---
+
+## Railway marketplace template
+
+For a one-click deploy of the self-hosted runtime **on the buyer's Railway account**, use the config-as-code under `deployment/railway/` in this repository (operator guide on GitHub:
+[deployment/railway/README.md](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/README.md)). That path is a sales channel (marketplace template), not a change to Studio's own production stack.
+
+| Piece | Location (repo root) |
+|-------|----------|
+| Operator guide (license, first boot, Free-tier unlicensed flag) | [deployment/railway/README.md](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/README.md) |
+| API service config | [deployment/railway/api.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/api.json) |
+| Admin service config | [deployment/railway/admin.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/admin.json) |
+
+Architecture (four services): `postgres` (`pgvector/pgvector:pg16`), one-shot `migrate`, `api` (`apps/server/Dockerfile`), `admin` (`apps/admin/Dockerfile`). Read the marketplace operator guide before publishing or deploying. Free (OSS) boots can set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **both** `api` and `admin` and omit license keys. Fleet (licensed) boots set `REVEALUI_LICENSE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY` instead.
+
+Marketplace listing publish and payout wiring remain an operator step once the template is ready to list.
 
 ---
 
