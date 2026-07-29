@@ -5,6 +5,7 @@ import Script from 'next/script';
 /* RevealUI Admin Layout - Local implementation */
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { AuthRequiredListener } from '@/lib/auth/AuthRequiredListener';
 import { AdminSidebarLayout } from '@/lib/components/AdminSidebarLayout';
 import { LicenseProvider } from '@/lib/providers/LicenseProvider';
 import config from '../../../revealui.config';
@@ -50,6 +51,7 @@ export default async function Layout({ children }: Args) {
         />
       ) : null}
       <LicenseProvider isFleetMode={isFleetMode}>
+        <AuthRequiredListener />
         <ErrorBoundary>
           <AdminSidebarLayout
             siteName={siteName}

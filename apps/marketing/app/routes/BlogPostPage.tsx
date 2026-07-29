@@ -154,8 +154,7 @@ export function BlogPostPage() {
             Ready to build?
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Users, content, products, payments, and intelligence, pre-wired. Start locally in
-            minutes.
+            People, Content, Offers, Payments, and Agents, pre-wired. Start locally in minutes.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" variant="brand">

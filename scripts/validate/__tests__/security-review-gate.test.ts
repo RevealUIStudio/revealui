@@ -163,3 +163,66 @@ describe('SECURITY_PATHS — machinery markers present', () => {
     expect(SECURITY_PATHS).toContain(marker);
   });
 });
+
+const {
+  isPromotePr,
+  decidePromoteUpstreamCoverage,
+  prRecordHasVerdict,
+} = require('../security-review-gate.cjs');
+
+describe('isPromotePr — GAP-458 promote detection', () => {
+  it('recognizes test → main', () => {
+    expect(isPromotePr('main', 'test')).toBe(true);
+  });
+  it('rejects feature → test', () => {
+    expect(isPromotePr('test', 'fix/gap-454')).toBe(false);
+  });
+  it('rejects main → test backflow', () => {
+    expect(isPromotePr('test', 'main')).toBe(false);
+  });
+});
+
+describe('prRecordHasVerdict', () => {
+  it('accepts sec-review:approved', () => {
+    expect(prRecordHasVerdict({ labels: ['sec-review:approved'] })).toBe(true);
+  });
+  it('accepts APPROVED reviewDecision', () => {
+    expect(prRecordHasVerdict({ labels: [], reviewDecision: 'APPROVED' })).toBe(true);
+  });
+  it('rejects empty', () => {
+    expect(prRecordHasVerdict({ labels: ['bug'] })).toBe(false);
+  });
+});
+
+describe('decidePromoteUpstreamCoverage — GAP-458', () => {
+  it('CLEARS when every security commit has a covering PR with verdict', () => {
+    const d = decidePromoteUpstreamCoverage([
+      { sha: 'aaa1111', shortSha: 'aaa1111', prs: [{ number: 2273, hasVerdict: true }] },
+      { sha: 'bbb2222', shortSha: 'bbb2222', prs: [{ number: 2273, hasVerdict: true }] },
+    ]);
+    expect(d.action).toBe('clear');
+    expect(d.kind).toBe('upstream-verdict');
+    expect(d.coveredCount).toBe(2);
+  });
+
+  it('HOLDS and names uncovered commits (red seed)', () => {
+    const d = decidePromoteUpstreamCoverage([
+      { sha: 'aaa1111deadbeef', shortSha: 'aaa1111', prs: [{ number: 2273, hasVerdict: true }] },
+      { sha: 'ccc3333orphan00', shortSha: 'ccc3333', prs: [] },
+      {
+        sha: 'ddd4444noverdict',
+        shortSha: 'ddd4444',
+        prs: [{ number: 9999, hasVerdict: false }],
+      },
+    ]);
+    expect(d.action).toBe('hold');
+    expect(d.kind).toBe('uncovered-commits');
+    expect(d.uncovered).toEqual(['ccc3333', 'ddd4444']);
+  });
+
+  it('HOLDS when coverage list is empty (fail closed)', () => {
+    const d = decidePromoteUpstreamCoverage([]);
+    expect(d.action).toBe('hold');
+    expect(d.kind).toBe('no-security-commits');
+  });
+});

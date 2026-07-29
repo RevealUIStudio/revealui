@@ -238,6 +238,42 @@ describe('POST /api/collections/[collection]', () => {
     });
     expect(res.status).toBe(503);
   });
+
+  it('GAP-452: streams multipart create through to content media without JSON re-encode', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({ success: true, data: { id: 'm1', url: 'https://cdn.example/a.png' } }, 201),
+    );
+    const form = new FormData();
+    form.append('file', new File([new Uint8Array([1, 2, 3])], 'a.png', { type: 'image/png' }));
+    form.append('alt', 'hero');
+    const req = new NextRequest('http://localhost/api/collections/media', {
+      method: 'POST',
+      body: form,
+    });
+    const res = await collectionsPost(req, { params: Promise.resolve({ collection: 'media' }) });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.doc).toEqual({ id: 'm1', url: 'https://cdn.example/a.png' });
+    const call = mockFetch.mock.calls[0];
+    expect(String(call?.[0])).toContain('/api/content/media');
+    const init = call?.[1] as RequestInit;
+    const ct = (init.headers as Record<string, string>)['Content-Type'] ?? '';
+    expect(ct.startsWith('multipart/form-data')).toBe(true);
+    expect(typeof init.body === 'string').toBe(false);
+  });
+
+  it('GAP-452: still rejects unauthenticated multipart create', async () => {
+    mockGetSession.mockResolvedValueOnce(null as never);
+    const form = new FormData();
+    form.append('file', new File([new Uint8Array([1])], 'a.png', { type: 'image/png' }));
+    const req = new NextRequest('http://localhost/api/collections/media', {
+      method: 'POST',
+      body: form,
+    });
+    const res = await collectionsPost(req, { params: Promise.resolve({ collection: 'media' }) });
+    expect(res.status).toBe(401);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------

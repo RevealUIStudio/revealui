@@ -9,7 +9,7 @@ author: Joshua Vaughn
 
 Most tools sell you a library. You install it, wire it into one corner of your app, and move on. RevealUI is built the other way around. It is a runtime that an entire family of products sits on top of, each one solving a problem you hit the moment you start running software for real.
 
-We call the family RevFleet. RevealUI is the flagship: the agentic business runtime that gives you users, content, products, payments, and intelligence pre-wired into one deployable system. The other seven products are the tools we built to operate it, and we ship every one of them.
+We call the family RevFleet. RevealUI is the flagship: the agentic business runtime that gives you People, Content, Offers, Payments, and Agents pre-wired into one deployable system. The other seven products are the tools we built to operate it, and we ship every one of them.
 
 This post is the map. It is also honest about where each product is, because "shipping" means different things at different stages, and you deserve to know which is which before you build on it.
 
@@ -26,7 +26,7 @@ No product on this page hides behind a vaguer word than that.
 
 ## The flagship: RevealUI
 
-**RevealUI** (Beta) is the foundation everything else builds on. The five primitives, users, content, products, payments, and intelligence, are pre-wired into a single runtime that your team and your AI agents share through one open protocol. Standard Postgres for data, S3-compatible object storage, real-time sync, a typed REST API with an OpenAPI spec, session auth, and feature gating, all in the box.
+**RevealUI** (Beta) is the foundation everything else builds on. The five primitives, People, Content, Offers, Payments, and Agents, are pre-wired into a single runtime that your team and your AI agents share through one open protocol. Standard Postgres for data, S3-compatible object storage, real-time sync, a typed REST API with an OpenAPI spec, session auth, and feature gating, all in the box.
 
 You can run a real business on the open-source core today. Start here. Add the rest of the fleet as you grow into it.
 
