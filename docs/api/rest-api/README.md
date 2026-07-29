@@ -1,10 +1,12 @@
 ---
 title: "REST API Reference"
-description: "**Version:** 0.1.0"
+description: "Generated REST API reference from the OpenAPI spec."
 visibility: public
 status: generated
 audience: user
 ---
+
+# REST API Reference
 
 **Version:** 0.1.0
 
@@ -45,7 +47,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 - [agent](#agent)
 - [content](#content)
 - [rag](#rag)
-- [Inference Keys](#inference-keys)
+- [BYOK](#byok)
 - [maintenance](#maintenance)
 - [marketplace](#marketplace)
 - [pricing](#pricing)
@@ -63,7 +65,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 **Responses**
 
 - `200`  -  Agent card
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
 
 ---
@@ -82,7 +84,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 - `200`  -  Agent card
 - `400`  -  Invalid agent ID format
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
 
 ---
@@ -115,7 +117,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 **Responses**
 
 - `200`  -  Agent card list
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -131,7 +133,7 @@ See API schema for request body shape.
 
 - `201`  -  Agent registered
 - `400`  -  Invalid request
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `409`  -  Agent already registered
 
 ---
@@ -150,7 +152,7 @@ See API schema for request body shape.
 
 - `200`  -  Agent card
 - `400`  -  Invalid agent ID format
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
 
 ---
@@ -169,19 +171,19 @@ See API schema for request body shape.
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
-| `systemPrompt` | `string` |  -  |  |
-| `model` | `string` |  -  |  |
-| `temperature` | `number` |  -  |  |
-| `maxTokens` | `number` |  -  |  |
-| `capabilities` | `any` |  -  |  |
+| `name` | `string` | - |  |
+| `description` | `string` | - |  |
+| `systemPrompt` | `string` | - |  |
+| `model` | `string` | - |  |
+| `temperature` | `number` | - |  |
+| `maxTokens` | `number` | - |  |
+| `capabilities` | `any` | - |  |
 
 **Responses**
 
 - `200`  -  Updated agent card
 - `400`  -  Invalid request
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
 
 ---
@@ -200,7 +202,7 @@ See API schema for request body shape.
 
 - `200`  -  Agent retired
 - `400`  -  Invalid agent ID format
-- `403`  -  Built-in agents cannot be retired or AI feature requires Pro or Forge license
+- `403`  -  Built-in agents cannot be retired or AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
 
 ---
@@ -219,7 +221,7 @@ See API schema for request body shape.
 
 - `200`  -  Agent definition
 - `400`  -  Invalid agent ID format
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Agent not found
 
 ---
@@ -255,7 +257,7 @@ See API schema for request body shape.
 **Responses**
 
 - `200`  -  SSE event stream
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -271,7 +273,7 @@ See API schema for request body shape.
 
 - `200`  -  JSON-RPC response
 - `400`  -  Parse error or invalid request
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -293,7 +295,7 @@ Instant response with no dependencies. Kubernetes/load balancers use this to dec
 
 **Liveness probe (alias)**
 
-Alias for the root liveness probe  -  used by Playwright smoke tests and some load balancer conventions.
+Alias for the root liveness probe — used by Playwright smoke tests and some load balancer conventions.
 
 **Responses**
 
@@ -323,7 +325,7 @@ Exposes all application metrics collected by the core MetricsCollector in Promet
 **Responses**
 
 - `200`  -  Prometheus-compatible metrics in text/plain format
-- `401`  -  Unauthorized  -  missing or invalid metrics secret
+- `401`  -  Unauthorized — missing or invalid metrics secret
 
 ---
 
@@ -331,12 +333,12 @@ Exposes all application metrics collected by the core MetricsCollector in Promet
 
 **Metrics (JSON)**
 
-Metrics in JSON format  -  useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.
+Metrics in JSON format — useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.
 
 **Responses**
 
 - `200`  -  Metrics as JSON
-- `401`  -  Unauthorized  -  missing or invalid metrics secret
+- `401`  -  Unauthorized — missing or invalid metrics secret
 
 ---
 
@@ -352,21 +354,21 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `level` | `string` |  -  |  |
+| `level` | `string` | - |  |
 | `message` | `string` | ✓ |  |
-| `stack` | `string` |  -  |  |
+| `stack` | `string` | - |  |
 | `app` | `string` | ✓ |  |
-| `context` | `string` |  -  |  |
-| `environment` | `string` |  -  |  |
-| `url` | `string` |  -  |  |
-| `requestId` | `string` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `context` | `string` | - |  |
+| `environment` | `string` | - |  |
+| `url` | `string` | - |  |
+| `requestId` | `string` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
 - `202`  -  Error accepted for processing
 - `400`  -  Invalid JSON or payload
-- `403`  -  Forbidden  -  invalid or missing internal token
+- `403`  -  Forbidden — invalid or missing internal token
 
 ---
 
@@ -380,21 +382,21 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `level` | `string` |  -  |  |
+| `level` | `string` | - |  |
 | `message` | `string` | ✓ |  |
-| `stack` | `string` |  -  |  |
+| `stack` | `string` | - |  |
 | `app` | `string` | ✓ |  |
-| `context` | `string` |  -  |  |
-| `environment` | `string` |  -  |  |
-| `url` | `string` |  -  |  |
-| `requestId` | `string` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `context` | `string` | - |  |
+| `environment` | `string` | - |  |
+| `url` | `string` | - |  |
+| `requestId` | `string` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
 - `202`  -  Error accepted for processing
 - `400`  -  Invalid JSON or payload
-- `403`  -  Forbidden  -  invalid or missing internal token
+- `403`  -  Forbidden — invalid or missing internal token
 
 ---
 
@@ -420,7 +422,7 @@ Accepts structured error payloads from admin client-side and any other app that 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `type` | `string` | ✓ |  |
-| `expiresIn` | `integer` |  -  |  |
+| `expiresIn` | `integer` | - |  |
 
 **Responses**
 
@@ -485,8 +487,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `categories` | `array` |  -  |  |
-| `reason` | `string` |  -  |  |
+| `categories` | `array` | - |  |
+| `reason` | `string` | - |  |
 
 **Responses**
 
@@ -545,7 +547,7 @@ Accepts structured error payloads from admin client-side and any other app that 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `type` | `string` | ✓ |  |
-| `expiresIn` | `integer` |  -  |  |
+| `expiresIn` | `integer` | - |  |
 
 **Responses**
 
@@ -610,8 +612,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `categories` | `array` |  -  |  |
-| `reason` | `string` |  -  |  |
+| `categories` | `array` | - |  |
+| `reason` | `string` | - |  |
 
 **Responses**
 
@@ -665,15 +667,15 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 | `level` | `string` | ✓ |  |
 | `message` | `string` | ✓ |  |
 | `app` | `string` | ✓ |  |
-| `environment` | `string` |  -  |  |
-| `requestId` | `string` |  -  |  |
-| `data` | `object` |  -  |  |
+| `environment` | `string` | - |  |
+| `requestId` | `string` | - |  |
+| `data` | `object` | - |  |
 
 **Responses**
 
 - `202`  -  Log entry accepted
 - `400`  -  Invalid payload
-- `403`  -  Forbidden  -  missing or invalid X-Internal-Token
+- `403`  -  Forbidden — missing or invalid X-Internal-Token
 
 ---
 
@@ -690,15 +692,15 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 | `level` | `string` | ✓ |  |
 | `message` | `string` | ✓ |  |
 | `app` | `string` | ✓ |  |
-| `environment` | `string` |  -  |  |
-| `requestId` | `string` |  -  |  |
-| `data` | `object` |  -  |  |
+| `environment` | `string` | - |  |
+| `requestId` | `string` | - |  |
+| `data` | `object` | - |  |
 
 **Responses**
 
 - `202`  -  Log entry accepted
 - `400`  -  Invalid payload
-- `403`  -  Forbidden  -  missing or invalid X-Internal-Token
+- `403`  -  Forbidden — missing or invalid X-Internal-Token
 
 ---
 
@@ -708,7 +710,7 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 
 **Verify a license key**
 
-Validates a JWT license key and returns the tier, features, and limits. (`apps/server/src/routes/license.ts:119`)
+Validates a JWT license key and returns the tier, features, and limits.
 
 **Request body** (JSON)
 
@@ -735,16 +737,16 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 |-------|------|:--------:|-------------|
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
-| `domains` | `array` |  -  | Licensed domains (optional) |
-| `maxSites` | `integer` |  -  | Maximum sites (defaults: Pro=5, Forge=unlimited) |
-| `maxUsers` | `integer` |  -  | Maximum users (defaults: Pro=25, Forge=unlimited) |
-| `expiresInDays` | `integer` |  -  | License duration in days (default: 90, max: 10 years) |
+| `domains` | `array` | - | Licensed domains (optional) |
+| `maxSites` | `integer` | - | Maximum sites (defaults: Pro=5, Enterprise=unlimited) |
+| `maxUsers` | `integer` | - | Maximum users (defaults: Pro=25, Enterprise=unlimited) |
+| `expiresInDays` | `integer` | - | License duration in days (default: 90, max: 10 years) |
 
 **Responses**
 
 - `201`  -  License key generated
-- `401`  -  Unauthorized  -  missing or invalid admin API key
-- `500`  -  Server error  -  missing private key configuration
+- `401`  -  Unauthorized — missing or invalid admin API key
+- `500`  -  Server error — missing private key configuration
 
 ---
 
@@ -764,7 +766,7 @@ Returns which features are available at each license tier.
 
 **Verify a license key**
 
-Validates a JWT license key and returns the tier, features, and limits. (`apps/server/src/routes/license.ts:119`)
+Validates a JWT license key and returns the tier, features, and limits.
 
 **Request body** (JSON)
 
@@ -791,16 +793,16 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 |-------|------|:--------:|-------------|
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
-| `domains` | `array` |  -  | Licensed domains (optional) |
-| `maxSites` | `integer` |  -  | Maximum sites (defaults: Pro=5, Forge=unlimited) |
-| `maxUsers` | `integer` |  -  | Maximum users (defaults: Pro=25, Forge=unlimited) |
-| `expiresInDays` | `integer` |  -  | License duration in days (default: 90, max: 10 years) |
+| `domains` | `array` | - | Licensed domains (optional) |
+| `maxSites` | `integer` | - | Maximum sites (defaults: Pro=5, Enterprise=unlimited) |
+| `maxUsers` | `integer` | - | Maximum users (defaults: Pro=25, Enterprise=unlimited) |
+| `expiresInDays` | `integer` | - | License duration in days (default: 90, max: 10 years) |
 
 **Responses**
 
 - `201`  -  License key generated
-- `401`  -  Unauthorized  -  missing or invalid admin API key
-- `500`  -  Server error  -  missing private key configuration
+- `401`  -  Unauthorized — missing or invalid admin API key
+- `500`  -  Server error — missing private key configuration
 
 ---
 
@@ -828,8 +830,8 @@ Creates a Stripe checkout session for subscription purchase. Requires authentica
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` |  -  | Stripe price ID for the subscription |
-| `tier` | `string` |  -  | License tier (defaults to pro) |
+| `priceId` | `string` | - | Stripe price ID for the subscription |
+| `tier` | `string` | - | License tier (defaults to pro) |
 
 **Responses**
 
@@ -855,7 +857,7 @@ Creates a Stripe billing portal session for subscription management.
 
 **Get subscription status**
 
-Returns the current user's license tier, status, and expiration. (`apps/server/src/routes/billing.ts:907`)
+Returns the current user's license tier, status, and expiration.
 
 **Responses**
 
@@ -874,12 +876,12 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` |  -  | Stripe price ID for the target tier |
+| `priceId` | `string` | - | Stripe price ID for the target tier |
 | `targetTier` | `string` | ✓ | Tier to upgrade to |
 
 **Responses**
 
-- `200`  -  Subscription upgraded  -  Stripe will fire customer.subscription.updated
+- `200`  -  Subscription upgraded — Stripe will fire customer.subscription.updated
 - `400`  -  No active subscription or no billing account
 - `401`  -  Not authenticated
 
@@ -889,7 +891,7 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 **Downgrade to free tier**
 
-Cancels the active subscription at the end of the current billing period. The user retains Pro/Forge access until then.
+Cancels the active subscription at the end of the current billing period. The user retains Pro/Enterprise access until then.
 
 **Responses**
 
@@ -909,9 +911,9 @@ Creates a one-time Stripe payment session for a perpetual license. Includes 1 ye
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` |  -  | Stripe price ID for the perpetual license product |
+| `priceId` | `string` | - | Stripe price ID for the perpetual license product |
 | `tier` | `string` | ✓ | Perpetual license tier |
-| `githubUsername` | `string` |  -  | GitHub username for revealui-pro team access provisioning |
+| `githubUsername` | `string` | - | GitHub username for revealui-pro team access provisioning |
 
 **Responses**
 
@@ -982,10 +984,10 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `paymentIntentId` | `string` |  -  | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
-| `chargeId` | `string` |  -  | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
-| `amount` | `integer` |  -  | Amount to refund in cents. Omit for full refund. |
-| `reason` | `string` |  -  | Reason for the refund (Stripe enum) |
+| `paymentIntentId` | `string` | - | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
+| `chargeId` | `string` | - | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
+| `amount` | `integer` | - | Amount to refund in cents. Omit for full refund. |
+| `reason` | `string` | - | Reason for the refund (Stripe enum) |
 
 **Responses**
 
@@ -1006,8 +1008,8 @@ Returns aggregate revenue metrics for the admin dashboard. Requires admin or own
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `from` | `string` |  -  |  -  | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
-| `to` | `string` |  -  |  -  | End of date range for recent events (ISO 8601). Defaults to now. |
+| `from` | `string` | - |  -  | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
+| `to` | `string` | - |  -  | End of date range for recent events (ISO 8601). Defaults to now. |
 
 **Responses**
 
@@ -1027,8 +1029,8 @@ Creates a Stripe checkout session for subscription purchase. Requires authentica
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` |  -  | Stripe price ID for the subscription |
-| `tier` | `string` |  -  | License tier (defaults to pro) |
+| `priceId` | `string` | - | Stripe price ID for the subscription |
+| `tier` | `string` | - | License tier (defaults to pro) |
 
 **Responses**
 
@@ -1054,7 +1056,7 @@ Creates a Stripe billing portal session for subscription management.
 
 **Get subscription status**
 
-Returns the current user's license tier, status, and expiration. (`apps/server/src/routes/billing.ts:907`)
+Returns the current user's license tier, status, and expiration.
 
 **Responses**
 
@@ -1073,12 +1075,12 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` |  -  | Stripe price ID for the target tier |
+| `priceId` | `string` | - | Stripe price ID for the target tier |
 | `targetTier` | `string` | ✓ | Tier to upgrade to |
 
 **Responses**
 
-- `200`  -  Subscription upgraded  -  Stripe will fire customer.subscription.updated
+- `200`  -  Subscription upgraded — Stripe will fire customer.subscription.updated
 - `400`  -  No active subscription or no billing account
 - `401`  -  Not authenticated
 
@@ -1088,7 +1090,7 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 **Downgrade to free tier**
 
-Cancels the active subscription at the end of the current billing period. The user retains Pro/Forge access until then.
+Cancels the active subscription at the end of the current billing period. The user retains Pro/Enterprise access until then.
 
 **Responses**
 
@@ -1108,9 +1110,9 @@ Creates a one-time Stripe payment session for a perpetual license. Includes 1 ye
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` |  -  | Stripe price ID for the perpetual license product |
+| `priceId` | `string` | - | Stripe price ID for the perpetual license product |
 | `tier` | `string` | ✓ | Perpetual license tier |
-| `githubUsername` | `string` |  -  | GitHub username for revealui-pro team access provisioning |
+| `githubUsername` | `string` | - | GitHub username for revealui-pro team access provisioning |
 
 **Responses**
 
@@ -1181,10 +1183,10 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `paymentIntentId` | `string` |  -  | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
-| `chargeId` | `string` |  -  | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
-| `amount` | `integer` |  -  | Amount to refund in cents. Omit for full refund. |
-| `reason` | `string` |  -  | Reason for the refund (Stripe enum) |
+| `paymentIntentId` | `string` | - | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
+| `chargeId` | `string` | - | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
+| `amount` | `integer` | - | Amount to refund in cents. Omit for full refund. |
+| `reason` | `string` | - | Reason for the refund (Stripe enum) |
 
 **Responses**
 
@@ -1205,8 +1207,8 @@ Returns aggregate revenue metrics for the admin dashboard. Requires admin or own
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `from` | `string` |  -  |  -  | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
-| `to` | `string` |  -  |  -  | End of date range for recent events (ISO 8601). Defaults to now. |
+| `from` | `string` | - |  -  | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
+| `to` | `string` | - |  -  | End of date range for recent events (ISO 8601). Defaults to now. |
 
 **Responses**
 
@@ -1278,11 +1280,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `authorType` | `string` |  -  |  -  |  |
-| `reviewStatus` | `string` |  -  |  -  |  |
-| `filePathPrefix` | `string` |  -  |  -  |  |
-| `limit` | `integer` |  -  |  -  |  |
-| `offset` | `integer` |  -  |  -  |  |
+| `authorType` | `string` | - |  -  |  |
+| `reviewStatus` | `string` | - |  -  |  |
+| `filePathPrefix` | `string` | - |  -  |  |
+| `limit` | `integer` | - |  -  |  |
+| `offset` | `integer` | - |  -  |  |
 
 **Responses**
 
@@ -1300,16 +1302,16 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `filePath` | `string` | ✓ |  |
 | `authorType` | `string` | ✓ |  |
-| `functionName` | `string` |  -  |  |
-| `lineStart` | `integer` |  -  |  |
-| `lineEnd` | `integer` |  -  |  |
-| `aiModel` | `string` |  -  |  |
-| `aiSessionId` | `string` |  -  |  |
-| `gitCommitHash` | `string` |  -  |  |
-| `gitAuthor` | `string` |  -  |  |
-| `confidence` | `number` |  -  |  |
-| `linesOfCode` | `integer` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `functionName` | `string` | - |  |
+| `lineStart` | `integer` | - |  |
+| `lineEnd` | `integer` | - |  |
+| `aiModel` | `string` | - |  |
+| `aiSessionId` | `string` | - |  |
+| `gitCommitHash` | `string` | - |  |
+| `gitAuthor` | `string` | - |  |
+| `confidence` | `number` | - |  |
+| `linesOfCode` | `integer` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -1375,19 +1377,19 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `filePath` | `string` |  -  |  |
-| `functionName` | `string` |  -  |  |
-| `lineStart` | `integer` |  -  |  |
-| `lineEnd` | `integer` |  -  |  |
-| `authorType` | `string` |  -  |  |
-| `aiModel` | `string` |  -  |  |
-| `aiSessionId` | `string` |  -  |  |
-| `gitCommitHash` | `string` |  -  |  |
-| `gitAuthor` | `string` |  -  |  |
-| `confidence` | `number` |  -  |  |
-| `reviewStatus` | `string` |  -  |  |
-| `linesOfCode` | `integer` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `filePath` | `string` | - |  |
+| `functionName` | `string` | - |  |
+| `lineStart` | `integer` | - |  |
+| `lineEnd` | `integer` | - |  |
+| `authorType` | `string` | - |  |
+| `aiModel` | `string` | - |  |
+| `aiSessionId` | `string` | - |  |
+| `gitCommitHash` | `string` | - |  |
+| `gitAuthor` | `string` | - |  |
+| `confidence` | `number` | - |  |
+| `reviewStatus` | `string` | - |  |
+| `linesOfCode` | `integer` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -1428,9 +1430,9 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `reviewType` | `string` | ✓ |  |
 | `status` | `string` | ✓ |  |
-| `reviewerId` | `string` |  -  |  |
-| `comment` | `string` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `reviewerId` | `string` | - |  |
+| `comment` | `string` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -1464,11 +1466,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `authorType` | `string` |  -  |  -  |  |
-| `reviewStatus` | `string` |  -  |  -  |  |
-| `filePathPrefix` | `string` |  -  |  -  |  |
-| `limit` | `integer` |  -  |  -  |  |
-| `offset` | `integer` |  -  |  -  |  |
+| `authorType` | `string` | - |  -  |  |
+| `reviewStatus` | `string` | - |  -  |  |
+| `filePathPrefix` | `string` | - |  -  |  |
+| `limit` | `integer` | - |  -  |  |
+| `offset` | `integer` | - |  -  |  |
 
 **Responses**
 
@@ -1486,16 +1488,16 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `filePath` | `string` | ✓ |  |
 | `authorType` | `string` | ✓ |  |
-| `functionName` | `string` |  -  |  |
-| `lineStart` | `integer` |  -  |  |
-| `lineEnd` | `integer` |  -  |  |
-| `aiModel` | `string` |  -  |  |
-| `aiSessionId` | `string` |  -  |  |
-| `gitCommitHash` | `string` |  -  |  |
-| `gitAuthor` | `string` |  -  |  |
-| `confidence` | `number` |  -  |  |
-| `linesOfCode` | `integer` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `functionName` | `string` | - |  |
+| `lineStart` | `integer` | - |  |
+| `lineEnd` | `integer` | - |  |
+| `aiModel` | `string` | - |  |
+| `aiSessionId` | `string` | - |  |
+| `gitCommitHash` | `string` | - |  |
+| `gitAuthor` | `string` | - |  |
+| `confidence` | `number` | - |  |
+| `linesOfCode` | `integer` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -1561,19 +1563,19 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `filePath` | `string` |  -  |  |
-| `functionName` | `string` |  -  |  |
-| `lineStart` | `integer` |  -  |  |
-| `lineEnd` | `integer` |  -  |  |
-| `authorType` | `string` |  -  |  |
-| `aiModel` | `string` |  -  |  |
-| `aiSessionId` | `string` |  -  |  |
-| `gitCommitHash` | `string` |  -  |  |
-| `gitAuthor` | `string` |  -  |  |
-| `confidence` | `number` |  -  |  |
-| `reviewStatus` | `string` |  -  |  |
-| `linesOfCode` | `integer` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `filePath` | `string` | - |  |
+| `functionName` | `string` | - |  |
+| `lineStart` | `integer` | - |  |
+| `lineEnd` | `integer` | - |  |
+| `authorType` | `string` | - |  |
+| `aiModel` | `string` | - |  |
+| `aiSessionId` | `string` | - |  |
+| `gitCommitHash` | `string` | - |  |
+| `gitAuthor` | `string` | - |  |
+| `confidence` | `number` | - |  |
+| `reviewStatus` | `string` | - |  |
+| `linesOfCode` | `integer` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -1614,9 +1616,9 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `reviewType` | `string` | ✓ |  |
 | `status` | `string` | ✓ |  |
-| `reviewerId` | `string` |  -  |  |
-| `comment` | `string` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `reviewerId` | `string` | - |  |
+| `comment` | `string` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -1664,8 +1666,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` |  -  |  |
-| `isDefault` | `boolean` |  -  |  |
+| `description` | `string` | - |  |
+| `isDefault` | `boolean` | - |  |
 
 **Responses**
 
@@ -1704,9 +1706,9 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `description` | `string` | - |  |
 
 **Responses**
 
@@ -1764,8 +1766,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `position` | `integer` | ✓ |  |
-| `wipLimit` | `integer` |  -  |  |
-| `color` | `string` |  -  |  |
+| `wipLimit` | `integer` | - |  |
+| `color` | `string` | - |  |
 
 **Responses**
 
@@ -1787,11 +1789,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `position` | `integer` |  -  |  |
-| `wipLimit` | `integer` |  -  |  |
-| `color` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `position` | `integer` | - |  |
+| `wipLimit` | `integer` | - |  |
+| `color` | `string` | - |  |
 
 **Responses**
 
@@ -1836,8 +1838,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` |  -  |  |
-| `isDefault` | `boolean` |  -  |  |
+| `description` | `string` | - |  |
+| `isDefault` | `boolean` | - |  |
 
 **Responses**
 
@@ -1876,9 +1878,9 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `description` | `string` | - |  |
 
 **Responses**
 
@@ -1936,8 +1938,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `position` | `integer` | ✓ |  |
-| `wipLimit` | `integer` |  -  |  |
-| `color` | `string` |  -  |  |
+| `wipLimit` | `integer` | - |  |
+| `color` | `string` | - |  |
 
 **Responses**
 
@@ -1959,11 +1961,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `position` | `integer` |  -  |  |
-| `wipLimit` | `integer` |  -  |  |
-| `color` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `position` | `integer` | - |  |
+| `wipLimit` | `integer` | - |  |
+| `color` | `string` | - |  |
 
 **Responses**
 
@@ -2004,11 +2006,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` |  -  |  -  |  |
-| `priority` | `string` |  -  |  -  |  |
-| `type` | `string` |  -  |  -  |  |
-| `assigneeId` | `string` |  -  |  -  |  |
-| `columnId` | `string` |  -  |  -  |  |
+| `status` | `string` | - |  -  |  |
+| `priority` | `string` | - |  -  |  |
+| `type` | `string` | - |  -  |  |
+| `assigneeId` | `string` | - |  -  |  |
+| `columnId` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -2031,16 +2033,16 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
-| `description` | `object` |  -  |  |
-| `columnId` | `string` |  -  |  |
-| `parentTicketId` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `priority` | `string` |  -  |  |
-| `type` | `string` |  -  |  |
-| `assigneeId` | `string` |  -  |  |
-| `reporterId` | `string` |  -  |  |
-| `dueDate` | `string (date-time)` |  -  |  |
-| `estimatedEffort` | `integer` |  -  |  |
+| `description` | `object` | - |  |
+| `columnId` | `string` | - |  |
+| `parentTicketId` | `string` | - |  |
+| `status` | `string` | - |  |
+| `priority` | `string` | - |  |
+| `type` | `string` | - |  |
+| `assigneeId` | `string` | - |  |
+| `reporterId` | `string` | - |  |
+| `dueDate` | `string (date-time)` | - |  |
+| `estimatedEffort` | `integer` | - |  |
 
 **Responses**
 
@@ -2079,17 +2081,17 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `description` | `object` |  -  |  |
-| `status` | `string` |  -  |  |
-| `priority` | `string` |  -  |  |
-| `type` | `string` |  -  |  |
-| `assigneeId` | `string` |  -  |  |
-| `reporterId` | `string` |  -  |  |
-| `columnId` | `string` |  -  |  |
-| `dueDate` | `string (date-time)` |  -  |  |
-| `estimatedEffort` | `integer` |  -  |  |
-| `sortOrder` | `number` |  -  |  |
+| `title` | `string` | - |  |
+| `description` | `object` | - |  |
+| `status` | `string` | - |  |
+| `priority` | `string` | - |  |
+| `type` | `string` | - |  |
+| `assigneeId` | `string` | - |  |
+| `reporterId` | `string` | - |  |
+| `columnId` | `string` | - |  |
+| `dueDate` | `string (date-time)` | - |  |
+| `estimatedEffort` | `integer` | - |  |
+| `sortOrder` | `number` | - |  |
 
 **Responses**
 
@@ -2168,11 +2170,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` |  -  |  -  |  |
-| `priority` | `string` |  -  |  -  |  |
-| `type` | `string` |  -  |  -  |  |
-| `assigneeId` | `string` |  -  |  -  |  |
-| `columnId` | `string` |  -  |  -  |  |
+| `status` | `string` | - |  -  |  |
+| `priority` | `string` | - |  -  |  |
+| `type` | `string` | - |  -  |  |
+| `assigneeId` | `string` | - |  -  |  |
+| `columnId` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -2195,16 +2197,16 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
-| `description` | `object` |  -  |  |
-| `columnId` | `string` |  -  |  |
-| `parentTicketId` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `priority` | `string` |  -  |  |
-| `type` | `string` |  -  |  |
-| `assigneeId` | `string` |  -  |  |
-| `reporterId` | `string` |  -  |  |
-| `dueDate` | `string (date-time)` |  -  |  |
-| `estimatedEffort` | `integer` |  -  |  |
+| `description` | `object` | - |  |
+| `columnId` | `string` | - |  |
+| `parentTicketId` | `string` | - |  |
+| `status` | `string` | - |  |
+| `priority` | `string` | - |  |
+| `type` | `string` | - |  |
+| `assigneeId` | `string` | - |  |
+| `reporterId` | `string` | - |  |
+| `dueDate` | `string (date-time)` | - |  |
+| `estimatedEffort` | `integer` | - |  |
 
 **Responses**
 
@@ -2243,17 +2245,17 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `description` | `object` |  -  |  |
-| `status` | `string` |  -  |  |
-| `priority` | `string` |  -  |  |
-| `type` | `string` |  -  |  |
-| `assigneeId` | `string` |  -  |  |
-| `reporterId` | `string` |  -  |  |
-| `columnId` | `string` |  -  |  |
-| `dueDate` | `string (date-time)` |  -  |  |
-| `estimatedEffort` | `integer` |  -  |  |
-| `sortOrder` | `number` |  -  |  |
+| `title` | `string` | - |  |
+| `description` | `object` | - |  |
+| `status` | `string` | - |  |
+| `priority` | `string` | - |  |
+| `type` | `string` | - |  |
+| `assigneeId` | `string` | - |  |
+| `reporterId` | `string` | - |  |
+| `columnId` | `string` | - |  |
+| `dueDate` | `string (date-time)` | - |  |
+| `estimatedEffort` | `integer` | - |  |
+| `sortOrder` | `number` | - |  |
 
 **Responses**
 
@@ -2351,7 +2353,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `body` | `object` | ✓ |  |
-| `authorId` | `string` |  -  |  |
+| `authorId` | `string` | - |  |
 
 **Responses**
 
@@ -2429,7 +2431,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `body` | `object` | ✓ |  |
-| `authorId` | `string` |  -  |  |
+| `authorId` | `string` | - |  |
 
 **Responses**
 
@@ -2498,8 +2500,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `color` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
+| `color` | `string` | - |  |
+| `description` | `string` | - |  |
 
 **Responses**
 
@@ -2521,10 +2523,10 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `color` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `color` | `string` | - |  |
+| `description` | `string` | - |  |
 
 **Responses**
 
@@ -2624,8 +2626,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `color` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
+| `color` | `string` | - |  |
+| `description` | `string` | - |  |
 
 **Responses**
 
@@ -2647,10 +2649,10 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `color` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `color` | `string` | - |  |
+| `description` | `string` | - |  |
 
 **Responses**
 
@@ -2736,7 +2738,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:93`)
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
 
 **Request body** (JSON)
 
@@ -2744,13 +2746,13 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
 | `boardId` | `string` | ✓ | Board to create the ticket on |
-| `priority` | `string` |  -  |  |
+| `priority` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  Agent task completed
 - `400`  -  Bad request
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -2767,7 +2769,7 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 **Responses**
 
 - `200`  -  Agent dispatch completed
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Ticket not found
 
 ---
@@ -2776,7 +2778,7 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. (`apps/server/src/routes/agent-tasks.ts:93`)
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
 
 **Request body** (JSON)
 
@@ -2784,13 +2786,13 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
 | `boardId` | `string` | ✓ | Board to create the ticket on |
-| `priority` | `string` |  -  |  |
+| `priority` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  Agent task completed
 - `400`  -  Bad request
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -2807,7 +2809,7 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 **Responses**
 
 - `200`  -  Agent dispatch completed
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `404`  -  Ticket not found
 
 ---
@@ -2818,24 +2820,24 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Stream agent execution via SSE**
 
-Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).
+Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).
 
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
-| `boardId` | `string` |  -  |  |
-| `workspaceId` | `string` |  -  |  |
-| `priority` | `string` |  -  |  |
-| `provider` | `string` |  -  |  |
-| `model` | `string` |  -  |  |
+| `boardId` | `string` | - |  |
+| `workspaceId` | `string` | - |  |
+| `priority` | `string` | - |  |
+| `provider` | `string` | - |  |
+| `model` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  SSE stream of agent execution events (text/event-stream)
 - `400`  -  Missing instruction or invalid provider
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -2843,24 +2845,24 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Stream agent execution via SSE**
 
-Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).
+Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).
 
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
-| `boardId` | `string` |  -  |  |
-| `workspaceId` | `string` |  -  |  |
-| `priority` | `string` |  -  |  |
-| `provider` | `string` |  -  |  |
-| `model` | `string` |  -  |  |
+| `boardId` | `string` | - |  |
+| `workspaceId` | `string` | - |  |
+| `priority` | `string` | - |  |
+| `provider` | `string` | - |  |
+| `model` | `string` | - |  |
 
 **Responses**
 
 - `200`  -  SSE stream of agent execution events (text/event-stream)
 - `400`  -  Missing instruction or invalid provider
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -2874,10 +2876,10 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
-| `authorId` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
+| `authorId` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -2895,13 +2897,13 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `excerpt` | `string` |  -  |  |
-| `content` | `any` |  -  |  |
-| `featuredImageId` | `string` |  -  |  |
-| `authorId` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `meta` | `object` |  -  |  |
-| `categories` | `array` |  -  |  |
+| `excerpt` | `string` | - |  |
+| `content` | `any` | - |  |
+| `featuredImageId` | `string` | - |  |
+| `authorId` | `string` | - |  |
+| `status` | `string` | - |  |
+| `meta` | `object` | - |  |
+| `categories` | `array` | - |  |
 
 **Responses**
 
@@ -2941,16 +2943,16 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `excerpt` | `string` |  -  |  |
-| `content` | `any` |  -  |  |
-| `featuredImageId` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `published` | `boolean` |  -  |  |
-| `meta` | `object` |  -  |  |
-| `categories` | `array` |  -  |  |
-| `publishedAt` | `string (date-time)` |  -  |  |
+| `title` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `excerpt` | `string` | - |  |
+| `content` | `any` | - |  |
+| `featuredImageId` | `string` | - |  |
+| `status` | `string` | - |  |
+| `published` | `boolean` | - |  |
+| `meta` | `object` | - |  |
+| `categories` | `array` | - |  |
+| `publishedAt` | `string (date-time)` | - |  |
 
 **Responses**
 
@@ -3002,9 +3004,9 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `mimeType` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `mimeType` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3055,8 +3057,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `alt` | `string` |  -  |  |
-| `focalPoint` | `object` |  -  |  |
+| `alt` | `string` | - |  |
+| `focalPoint` | `object` | - |  |
 
 **Responses**
 
@@ -3090,9 +3092,9 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3110,8 +3112,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
+| `description` | `string` | - |  |
+| `status` | `string` | - |  |
 
 **Responses**
 
@@ -3150,11 +3152,11 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `favicon` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `description` | `string` | - |  |
+| `status` | `string` | - |  |
+| `favicon` | `string` | - |  |
 
 **Responses**
 
@@ -3194,7 +3196,7 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` |  -  |  -  |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3220,11 +3222,11 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `path` | `string` | ✓ |  |
-| `status` | `string` |  -  |  |
-| `parentId` | `string` |  -  |  |
-| `templateId` | `string` |  -  |  |
-| `blocks` | `array` |  -  |  |
-| `seo` | `object` |  -  |  |
+| `status` | `string` | - |  |
+| `parentId` | `string` | - |  |
+| `templateId` | `string` | - |  |
+| `blocks` | `array` | - |  |
+| `seo` | `object` | - |  |
 
 **Responses**
 
@@ -3265,15 +3267,15 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `path` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `parentId` | `string` |  -  |  |
-| `templateId` | `string` |  -  |  |
-| `blocks` | `array` |  -  |  |
-| `seo` | `object` |  -  |  |
-| `publishedAt` | `string (date-time)` |  -  |  |
+| `title` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `path` | `string` | - |  |
+| `status` | `string` | - |  |
+| `parentId` | `string` | - |  |
+| `templateId` | `string` | - |  |
+| `blocks` | `array` | - |  |
+| `seo` | `object` | - |  |
+| `publishedAt` | `string (date-time)` | - |  |
 
 **Responses**
 
@@ -3311,9 +3313,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
 | `q` | `string` | ✓ |  -  |  |
-| `type` | `string` |  -  | `all` |  |
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
+| `type` | `string` | - | `all` |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
 
 **Responses**
 
@@ -3330,11 +3332,11 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `page` | `integer` |  -  | `1` |  |
-| `limit` | `integer` |  -  | `10` |  |
-| `status` | `string` |  -  |  -  |  |
-| `role` | `string` |  -  |  -  |  |
-| `search` | `string` |  -  |  -  |  |
+| `page` | `integer` | - | `1` |  |
+| `limit` | `integer` | - | `10` |  |
+| `status` | `string` | - |  -  |  |
+| `role` | `string` | - |  -  |  |
+| `search` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3373,11 +3375,11 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `email` | `string (email)` |  -  |  |
-| `role` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `avatarUrl` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `email` | `string (email)` | - |  |
+| `role` | `string` | - |  |
+| `status` | `string` | - |  |
+| `avatarUrl` | `string` | - |  |
 
 **Responses**
 
@@ -3411,9 +3413,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3431,15 +3433,15 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` |  -  |  |
-| `priceInCents` | `integer` |  -  |  |
-| `currency` | `string` |  -  |  |
-| `stripeProductId` | `string` |  -  |  |
-| `stripePriceId` | `string` |  -  |  |
-| `active` | `boolean` |  -  |  |
-| `status` | `string` |  -  |  |
-| `images` | `array` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `description` | `string` | - |  |
+| `priceInCents` | `integer` | - |  |
+| `currency` | `string` | - |  |
+| `stripeProductId` | `string` | - |  |
+| `stripePriceId` | `string` | - |  |
+| `active` | `boolean` | - |  |
+| `status` | `string` | - |  |
+| `images` | `array` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -3478,17 +3480,17 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
-| `priceInCents` | `integer` |  -  |  |
-| `currency` | `string` |  -  |  |
-| `stripeProductId` | `string` |  -  |  |
-| `stripePriceId` | `string` |  -  |  |
-| `active` | `boolean` |  -  |  |
-| `status` | `string` |  -  |  |
-| `images` | `array` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `title` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `description` | `string` | - |  |
+| `priceInCents` | `integer` | - |  |
+| `currency` | `string` | - |  |
+| `stripeProductId` | `string` | - |  |
+| `stripePriceId` | `string` | - |  |
+| `active` | `boolean` | - |  |
+| `status` | `string` | - |  |
+| `images` | `array` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -3522,9 +3524,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3541,9 +3543,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `items` | `array` | ✓ |  |
-| `currency` | `string` |  -  |  |
-| `shippingAddress` | `object` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `currency` | `string` | - |  |
+| `shippingAddress` | `object` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -3583,7 +3585,7 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `status` | `string` | ✓ |  |
-| `metadata` | `object` |  -  |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -3662,8 +3664,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `format` | `string` |  -  | `json` |  |
-| `status` | `string` |  -  |  -  |  |
+| `format` | `string` | - | `json` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3682,10 +3684,10 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
-| `authorId` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
+| `authorId` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3703,13 +3705,13 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `excerpt` | `string` |  -  |  |
-| `content` | `any` |  -  |  |
-| `featuredImageId` | `string` |  -  |  |
-| `authorId` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `meta` | `object` |  -  |  |
-| `categories` | `array` |  -  |  |
+| `excerpt` | `string` | - |  |
+| `content` | `any` | - |  |
+| `featuredImageId` | `string` | - |  |
+| `authorId` | `string` | - |  |
+| `status` | `string` | - |  |
+| `meta` | `object` | - |  |
+| `categories` | `array` | - |  |
 
 **Responses**
 
@@ -3749,16 +3751,16 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `excerpt` | `string` |  -  |  |
-| `content` | `any` |  -  |  |
-| `featuredImageId` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `published` | `boolean` |  -  |  |
-| `meta` | `object` |  -  |  |
-| `categories` | `array` |  -  |  |
-| `publishedAt` | `string (date-time)` |  -  |  |
+| `title` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `excerpt` | `string` | - |  |
+| `content` | `any` | - |  |
+| `featuredImageId` | `string` | - |  |
+| `status` | `string` | - |  |
+| `published` | `boolean` | - |  |
+| `meta` | `object` | - |  |
+| `categories` | `array` | - |  |
+| `publishedAt` | `string (date-time)` | - |  |
 
 **Responses**
 
@@ -3810,9 +3812,9 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `mimeType` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `mimeType` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3863,8 +3865,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `alt` | `string` |  -  |  |
-| `focalPoint` | `object` |  -  |  |
+| `alt` | `string` | - |  |
+| `focalPoint` | `object` | - |  |
 
 **Responses**
 
@@ -3898,9 +3900,9 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -3918,8 +3920,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
+| `description` | `string` | - |  |
+| `status` | `string` | - |  |
 
 **Responses**
 
@@ -3958,11 +3960,11 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `favicon` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `description` | `string` | - |  |
+| `status` | `string` | - |  |
+| `favicon` | `string` | - |  |
 
 **Responses**
 
@@ -4002,7 +4004,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` |  -  |  -  |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4028,11 +4030,11 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `path` | `string` | ✓ |  |
-| `status` | `string` |  -  |  |
-| `parentId` | `string` |  -  |  |
-| `templateId` | `string` |  -  |  |
-| `blocks` | `array` |  -  |  |
-| `seo` | `object` |  -  |  |
+| `status` | `string` | - |  |
+| `parentId` | `string` | - |  |
+| `templateId` | `string` | - |  |
+| `blocks` | `array` | - |  |
+| `seo` | `object` | - |  |
 
 **Responses**
 
@@ -4073,15 +4075,15 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `path` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `parentId` | `string` |  -  |  |
-| `templateId` | `string` |  -  |  |
-| `blocks` | `array` |  -  |  |
-| `seo` | `object` |  -  |  |
-| `publishedAt` | `string (date-time)` |  -  |  |
+| `title` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `path` | `string` | - |  |
+| `status` | `string` | - |  |
+| `parentId` | `string` | - |  |
+| `templateId` | `string` | - |  |
+| `blocks` | `array` | - |  |
+| `seo` | `object` | - |  |
+| `publishedAt` | `string (date-time)` | - |  |
 
 **Responses**
 
@@ -4119,9 +4121,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
 | `q` | `string` | ✓ |  -  |  |
-| `type` | `string` |  -  | `all` |  |
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
+| `type` | `string` | - | `all` |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
 
 **Responses**
 
@@ -4138,11 +4140,11 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `page` | `integer` |  -  | `1` |  |
-| `limit` | `integer` |  -  | `10` |  |
-| `status` | `string` |  -  |  -  |  |
-| `role` | `string` |  -  |  -  |  |
-| `search` | `string` |  -  |  -  |  |
+| `page` | `integer` | - | `1` |  |
+| `limit` | `integer` | - | `10` |  |
+| `status` | `string` | - |  -  |  |
+| `role` | `string` | - |  -  |  |
+| `search` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4181,11 +4183,11 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` |  -  |  |
-| `email` | `string (email)` |  -  |  |
-| `role` | `string` |  -  |  |
-| `status` | `string` |  -  |  |
-| `avatarUrl` | `string` |  -  |  |
+| `name` | `string` | - |  |
+| `email` | `string (email)` | - |  |
+| `role` | `string` | - |  |
+| `status` | `string` | - |  |
+| `avatarUrl` | `string` | - |  |
 
 **Responses**
 
@@ -4219,9 +4221,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4239,15 +4241,15 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` |  -  |  |
-| `priceInCents` | `integer` |  -  |  |
-| `currency` | `string` |  -  |  |
-| `stripeProductId` | `string` |  -  |  |
-| `stripePriceId` | `string` |  -  |  |
-| `active` | `boolean` |  -  |  |
-| `status` | `string` |  -  |  |
-| `images` | `array` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `description` | `string` | - |  |
+| `priceInCents` | `integer` | - |  |
+| `currency` | `string` | - |  |
+| `stripeProductId` | `string` | - |  |
+| `stripePriceId` | `string` | - |  |
+| `active` | `boolean` | - |  |
+| `status` | `string` | - |  |
+| `images` | `array` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -4286,17 +4288,17 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` |  -  |  |
-| `slug` | `string` |  -  |  |
-| `description` | `string` |  -  |  |
-| `priceInCents` | `integer` |  -  |  |
-| `currency` | `string` |  -  |  |
-| `stripeProductId` | `string` |  -  |  |
-| `stripePriceId` | `string` |  -  |  |
-| `active` | `boolean` |  -  |  |
-| `status` | `string` |  -  |  |
-| `images` | `array` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `title` | `string` | - |  |
+| `slug` | `string` | - |  |
+| `description` | `string` | - |  |
+| `priceInCents` | `integer` | - |  |
+| `currency` | `string` | - |  |
+| `stripeProductId` | `string` | - |  |
+| `stripePriceId` | `string` | - |  |
+| `active` | `boolean` | - |  |
+| `status` | `string` | - |  |
+| `images` | `array` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -4330,9 +4332,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` |  -  | `20` |  |
-| `offset` | `integer` |  -  | `0` |  |
-| `status` | `string` |  -  |  -  |  |
+| `limit` | `integer` | - | `20` |  |
+| `offset` | `integer` | - | `0` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4349,9 +4351,9 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `items` | `array` | ✓ |  |
-| `currency` | `string` |  -  |  |
-| `shippingAddress` | `object` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `currency` | `string` | - |  |
+| `shippingAddress` | `object` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -4391,7 +4393,7 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `status` | `string` | ✓ |  |
-| `metadata` | `object` |  -  |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -4470,8 +4472,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `format` | `string` |  -  | `json` |  |
-| `status` | `string` |  -  |  -  |  |
+| `format` | `string` | - | `json` |  |
+| `status` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4499,7 +4501,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `502`  -  admin fetch error
 
 ---
@@ -4534,7 +4536,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 **Responses**
 
 - `200`  -  Document deleted
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -4569,7 +4571,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 - `200`  -  Indexing completed
 - `400`  -  Invalid collection name
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 - `502`  -  admin fetch error
 
 ---
@@ -4604,7 +4606,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 **Responses**
 
 - `200`  -  Document deleted
-- `403`  -  AI feature requires Pro or Forge license
+- `403`  -  AI feature requires Pro or Enterprise license
 
 ---
 
@@ -4624,7 +4626,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ---
 
-## Inference Keys
+## BYOK
 
 ### `GET` `/api/api-keys`
 
@@ -4646,9 +4648,9 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `provider` | `string` | ✓ | LLM provider for this key |
 | `apiKey` | `string` | ✓ | The plaintext API key (never stored; encrypted before persisting) |
-| `label` | `string` |  -  | Optional user-visible label for this key |
-| `setAsDefault` | `boolean` |  -  | Set this provider as the default for the user's agents |
-| `model` | `string` |  -  | Preferred model for the default provider config |
+| `label` | `string` | - | Optional user-visible label for this key |
+| `setAsDefault` | `boolean` | - | Set this provider as the default for the user's agents |
+| `model` | `string` | - | Preferred model for the default provider config |
 
 **Responses**
 
@@ -4716,9 +4718,9 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `provider` | `string` | ✓ | LLM provider for this key |
 | `apiKey` | `string` | ✓ | The plaintext API key (never stored; encrypted before persisting) |
-| `label` | `string` |  -  | Optional user-visible label for this key |
-| `setAsDefault` | `boolean` |  -  | Set this provider as the default for the user's agents |
-| `model` | `string` |  -  | Preferred model for the default provider config |
+| `label` | `string` | - | Optional user-visible label for this key |
+| `setAsDefault` | `boolean` | - | Set this provider as the default for the user's agents |
+| `model` | `string` | - | Preferred model for the default provider config |
 
 **Responses**
 
@@ -4772,7 +4774,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Relevant during the Supabase phase-out; retires once vectors consolidate onto Neon. Protected by X-Cron-Secret.
+Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -4786,7 +4788,7 @@ Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Relevant during the Supabase phase-out; retires once vectors consolidate onto Neon. Protected by X-Cron-Secret.
+Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -4806,9 +4808,9 @@ Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `category` | `string` |  -  |  -  |  |
-| `limit` | `string` |  -  |  -  |  |
-| `offset` | `string` |  -  |  -  |  |
+| `category` | `string` | - |  -  |  |
+| `limit` | `string` | - |  -  |  |
+| `offset` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4827,10 +4829,10 @@ Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG
 | `name` | `string` | ✓ |  |
 | `description` | `string` | ✓ |  |
 | `url` | `string (uri)` | ✓ |  |
-| `category` | `string` |  -  |  |
-| `tags` | `array` |  -  |  |
-| `pricePerCallUsdc` | `string` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `category` | `string` | - |  |
+| `tags` | `array` | - |  |
+| `pricePerCallUsdc` | `string` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
@@ -4932,9 +4934,9 @@ See API schema for request body shape.
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `category` | `string` |  -  |  -  |  |
-| `limit` | `string` |  -  |  -  |  |
-| `offset` | `string` |  -  |  -  |  |
+| `category` | `string` | - |  -  |  |
+| `limit` | `string` | - |  -  |  |
+| `offset` | `string` | - |  -  |  |
 
 **Responses**
 
@@ -4953,10 +4955,10 @@ See API schema for request body shape.
 | `name` | `string` | ✓ |  |
 | `description` | `string` | ✓ |  |
 | `url` | `string (uri)` | ✓ |  |
-| `category` | `string` |  -  |  |
-| `tags` | `array` |  -  |  |
-| `pricePerCallUsdc` | `string` |  -  |  |
-| `metadata` | `object` |  -  |  |
+| `category` | `string` | - |  |
+| `tags` | `array` | - |  |
+| `pricePerCallUsdc` | `string` | - |  |
+| `metadata` | `object` | - |  |
 
 **Responses**
 
