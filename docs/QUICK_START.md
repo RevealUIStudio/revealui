@@ -177,7 +177,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [Full documentation](./INDEX.md)
 - [Component catalog](./COMPONENT_CATALOG.md)  -  65 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
-- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly + Railway template, environment variables, production checklist
+- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly + customer Railway marketplace template, environment variables, production checklist
 - [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)
 
 ---
