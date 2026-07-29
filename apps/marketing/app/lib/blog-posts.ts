@@ -31,6 +31,15 @@ interface PostMeta {
 
 const POST_METADATA: PostMeta[] = [
   {
+    slug: 'open-runtime-for-fde-work',
+    title: 'The open runtime for forward-deployed agent work',
+    excerpt:
+      'Demos die at the customer wall. Forward deployed work only finishes when the customer still owns the runtime after you leave.',
+    publishedAt: '2026-07-29T18:00:00.000Z',
+    author: 'Joshua Vaughn',
+    file: '18-open-runtime-for-fde-work.md',
+  },
+  {
     slug: 'shareable-upside',
     title: 'I Built This So More People Could Own the Upside of AI',
     excerpt:

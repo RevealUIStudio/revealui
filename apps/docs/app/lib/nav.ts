@@ -102,6 +102,10 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
           label: 'Own the Upside of AI',
           path: '/blog/17-shareable-upside',
         },
+        {
+          label: 'Open runtime for FDE work',
+          path: '/blog/18-open-runtime-for-fde-work',
+        },
         { label: 'UI of the Future', path: '/blog/16-ui-of-the-future' },
         { label: 'Why We Built RevealUI', path: '/blog/01-why-we-built-revealui' },
         { label: 'HTTP 402 Payments', path: '/blog/02-http-402-payments' },
