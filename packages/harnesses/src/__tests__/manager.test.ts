@@ -151,12 +151,30 @@ describe('project manager (.revealui)', () => {
     expect(cfg.tracker.note).toContain('private .jv');
   });
 
-  it('check fails without manager and passes after write', () => {
+  it('check fails without manager and passes after materialize + content', () => {
     const root = tempProject();
     expect(checkManager(root).ok).toBe(false);
     writeManager(root);
+    // Manager alone is no longer enough (GAP-421 content ADR phase 1): content
+    // tree must exist. writeManager without materialize content → not ok.
+    const managerOnly = checkManager(root);
+    expect(managerOnly.ok).toBe(false);
+    expect(managerOnly.errors.some((e) => e.includes('content'))).toBe(true);
+
+    materializeManager(root);
+    writeManagerAdapterContent(root);
     const after = checkManager(root);
     expect(after.ok).toBe(true);
+  });
+
+  it('check fails when content tree is missing after manager.json exists', () => {
+    const root = tempProject();
+    writeManager(root);
+    const result = checkManager(root);
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((e) => e.includes('missing or empty') && e.includes('content'))).toBe(
+      true,
+    );
   });
 
   it('writeManager is a no-op when content is already identical', () => {

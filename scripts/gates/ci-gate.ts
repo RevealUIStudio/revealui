@@ -275,9 +275,19 @@ async function gate(): Promise<void> {
         // GAP-406 residual: definition ↔ committed generator snapshot lock.
         // Fails when package definitions change without refreshing
         // packages/harnesses/content-snapshots/*.json (unit tests also cover this).
+        // Locks generator determinism only — not on-disk `.revealui/content` freshness.
         name: 'Harnesses content snapshot (hard fail)',
         command: 'pnpm',
         args: ['--filter', '@revealui/harnesses', 'content:snapshot:check'],
+      },
+      {
+        // GAP-421 content materialization ADR phase 1: definitions must match
+        // the committed `.revealui/content/` tree (byte compare via diffContent).
+        // Run after harnesses build (manager-only path builds the package first
+        // in CI; local gate assumes dist exists or builds via filter below).
+        name: 'Harnesses content tree freshness (hard fail)',
+        command: 'pnpm',
+        args: ['validate:content-freshness'],
       },
       {
         name: 'Boundary validation',

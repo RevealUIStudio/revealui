@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' \"[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session)\"",
+            "command": "printf '%s\\n' \"[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session + peer-context)\"",
             "timeout": 5
           },
           {
@@ -26,7 +26,7 @@
           {
             "type": "command",
             "command": "node \"$HOME/revfleet/revealui/packages/harnesses/dist/cli.js\" session register --backend grok 2>/dev/null || revealui-harnesses session register --backend grok 2>/dev/null || true",
-            "timeout": 20
+            "timeout": 25
           }
         ]
       }

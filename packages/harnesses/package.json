@@ -99,6 +99,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "content:snapshot:check": "vitest run src/__tests__/content-snapshot.test.ts",
+    "content:freshness": "node dist/cli.js content diff --generator claude-code --check --project ../..",
     "content:snapshot:write": "tsx scripts/write-content-snapshots.mts"
   },
   "type": "module",

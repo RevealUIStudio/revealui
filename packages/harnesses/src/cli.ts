@@ -86,7 +86,10 @@ async function rpcCall(method: string, params: unknown = {}): Promise<unknown> {
 
 async function handleContentCommand(subcommand: string | undefined, args: string[]): Promise<void> {
   const manifest = buildManifest();
-  const projectRoot = process.cwd();
+  // Same --project resolution as `manager` (GAP-421 content freshness runs from
+  // monorepo root via packages/harnesses/dist/cli.js).
+  const projectIdx = args.indexOf('--project');
+  const projectRoot = projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
   const ctx = { projectRoot };
 
   switch (subcommand) {
@@ -728,7 +731,8 @@ Commands:
 Content Subcommands:
   content list                      List all canonical content with metadata
   content validate                  Validate all definitions against schemas
-  content diff [--generator <id>] [--check]  Disk vs definitions (exit 1 with --check on drift)
+  content diff [--generator <id>] [--check] [--project p]
+                                Disk vs definitions (exit 1 with --check on drift)
   content snapshot [--check|--write] [--generator <id>]  Definition ↔ committed snapshot (GAP-406)
   content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory
