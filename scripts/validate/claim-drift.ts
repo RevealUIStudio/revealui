@@ -722,7 +722,7 @@ const PHANTOM_PACKAGES: PhantomPackage[] = [
       // (apps/docs/scripts/copy-docs.sh mirrors docs/* → apps/docs/public/*):
       'apps/docs/public/REVFLEET.md',
       'apps/docs/public/fleet/revcon.md',
-      // The validator itself — its FLEET_PRODUCTS table lists the phantom
+      // The validator itself — its fleet product rules list the phantom
       // by design (as the regex token to detect leaks elsewhere):
       'scripts/validate/claim-drift.ts',
     ]),
@@ -1212,16 +1212,13 @@ const FUTURE_TENSE_SCAN_FILES = ['README.md', 'CLAUDE.md', 'docs/ROADMAP.md', 'd
 const FUTURE_TENSE_PATTERN =
   /\((coming soon|planned|roadmap|TBD|forthcoming|will ship|in progress)\b[^)]*\)/i;
 
-const TRACKER_PATTERN = /(#\d+|\/(issues|pull|pulls)\/\d+|\bmilestones?\b|\.ya?ml\b)/i;
-
 /**
  * True when `line` cites a tracker: issue/PR `#N`, repo issues/pull(s) URL,
  * `milestone(s)`, or a workflow `*.yml`/`*.yaml` token.
  *
- * GAP-192 PR1 plumbing — uses marketing-voice `tokenize` + `isTrackerToken` /
- * `isRepoLinkToken`. `Intl.Segmenter` splits URLs on `:` and `/`, so
- * non-whitespace token spans are rejoined before `isRepoLinkToken`. Scanners
- * still use TRACKER_PATTERN until PR2 wires this in.
+ * GAP-192 — marketing-voice `tokenize` + `isTrackerToken` / `isRepoLinkToken`.
+ * `Intl.Segmenter` splits URLs on `:` and `/`, so non-whitespace token spans
+ * are rejoined before `isRepoLinkToken`.
  */
 export function hasTrackerSignal(line: string): boolean {
   const tokens = tokenize(line);
@@ -1238,6 +1235,52 @@ export function hasTrackerSignal(line: string): boolean {
     span += token.text;
   }
   return span.length > 0 && isRepoLinkToken(span);
+}
+
+/**
+ * Parenthetical future-tense openers that qualify an aspirational mention
+ * on the same line (parity with the pre-GAP-192 QUALIFIER_PATTERN arm).
+ * Matched as lowercase prefixes of the text inside `(...)`.
+ */
+const QUALIFIER_PAREN_PREFIXES = [
+  'coming soon',
+  'planned',
+  'roadmap',
+  'in active development',
+  'forthcoming',
+  'will ship',
+  'in progress',
+  'tbd',
+] as const;
+
+/**
+ * True when a line carries any aspirational qualifier:
+ * parenthetical future marker, bare `roadmap`, or a tracker citation.
+ * GAP-192 PR2 — token-level (no QUALIFIER_PATTERN / TRACKER_PATTERN regex).
+ */
+export function hasAspirationalQualifier(line: string): boolean {
+  if (hasTrackerSignal(line)) return true;
+
+  const tokens = tokenize(line);
+  for (const token of tokens) {
+    if (token.kind === 'word' && token.text.toLowerCase() === 'roadmap') return true;
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.text !== '(') continue;
+    let inner = '';
+    for (let j = i + 1; j < tokens.length; j++) {
+      const t = tokens[j];
+      if (t === undefined) break;
+      if (t.text === ')') {
+        const lower = inner.toLowerCase().trimStart();
+        if (QUALIFIER_PAREN_PREFIXES.some((p) => lower.startsWith(p))) return true;
+        break;
+      }
+      inner += t.text;
+    }
+  }
+  return false;
 }
 
 function scanForFutureTenseClaims(): FutureClaimMatch[] {
@@ -1271,7 +1314,7 @@ function scanForFutureTenseClaims(): FutureClaimMatch[] {
       if (!match) continue;
 
       // Pass if the line cites a tracker (issue, PR, milestone, workflow)
-      if (TRACKER_PATTERN.test(line)) continue;
+      if (hasTrackerSignal(line)) continue;
 
       matches.push({
         file: rel,
@@ -1293,12 +1336,12 @@ function scanForFutureTenseClaims(): FutureClaimMatch[] {
 // on the same line. The list is hand-maintained from the
 // marketing-claims-2026-04-25 internal honesty audit.
 //
-// Each blocklist token is checked case-insensitively. A token is allowed if
-// the line also contains any QUALIFIER pattern (e.g. "(coming soon)",
-// "(roadmap)", "Roadmap:", or a github issue/PR link).
+// GAP-192 PR2: each entry is one or more marketing-voice `Rule`s checked via
+// `checkRule` over `tokenize(line)`. A hit is allowed when
+// `hasAspirationalQualifier(line)` is true.
 //
 // Add/remove tokens here when feature reality changes — when "managed
-// hosting" actually ships, for example, drop it from BLOCKLIST.
+// hosting" actually ships, for example, drop it from ASPIRATIONAL_BLOCKLIST.
 // ---------------------------------------------------------------------------
 
 interface AspirationalMatch {
@@ -1333,75 +1376,164 @@ const ASPIRATIONAL_SCAN_FILES = [
   'docs/blog',
 ];
 
-interface BlocklistEntry {
-  /** Word/phrase that misleads when shipped without a qualifier. */
-  token: RegExp;
+interface AspirationalBlocklistEntry {
+  /** marketing-voice rules that fire this label (any hit counts once). */
+  rules: Rule[];
   /** Human-readable label printed when matched. */
   label: string;
   /** Why this is blocklisted — printed alongside the failure. */
   why: string;
 }
 
-const BLOCKLIST: BlocklistEntry[] = [
+/**
+ * Regex-shaped entry kept for agent-commerce only (GAP-192 PR5 rewrites these
+ * off regex). Not used by the general aspirational blocklist.
+ */
+interface RegexBlocklistEntry {
+  token: RegExp;
+  label: string;
+  why: string;
+}
+
+const ASPIRATIONAL_BLOCKLIST: AspirationalBlocklistEntry[] = [
   {
-    token: /\bmanaged hosting\b/i,
+    rules: [
+      {
+        kind: 'banned-token-sequences',
+        ruleId: 'claim-drift.aspirational.managed-hosting',
+        sequences: [['managed', 'hosting']],
+        caseInsensitive: true,
+      },
+    ],
     label: 'managed hosting',
     why: 'no managed-hosting service ships today',
   },
   {
-    token: /\bauto-scal(e|ing)\b/i,
+    rules: [
+      {
+        kind: 'banned-token-sequences',
+        ruleId: 'claim-drift.aspirational.auto-scaling',
+        sequences: [
+          ['auto', 'scaling'],
+          ['auto', 'scale'],
+        ],
+        caseInsensitive: true,
+      },
+    ],
     label: 'auto-scaling',
     why: 'no managed platform offers auto-scaling',
   },
   {
-    token: /\bdunning\b/i,
+    rules: [
+      {
+        kind: 'banned-tokens',
+        ruleId: 'claim-drift.aspirational.dunning',
+        tokens: ['dunning'],
+        caseInsensitive: true,
+      },
+    ],
     label: 'dunning',
     why: 'not implemented; only in stripe-best-practices guidance',
   },
   {
-    token: /\b(SSO|single sign-on)\b/i,
+    rules: [
+      {
+        kind: 'banned-tokens',
+        ruleId: 'claim-drift.aspirational.sso',
+        tokens: ['SSO'],
+        caseInsensitive: true,
+      },
+      {
+        kind: 'banned-token-sequences',
+        ruleId: 'claim-drift.aspirational.single-sign-on',
+        sequences: [['single', 'sign', 'on']],
+        caseInsensitive: true,
+      },
+    ],
     label: 'SSO',
     why: 'SSO/SAML is roadmap-only (designed, not built) per apps/marketing/app/content/roadmap.ts',
   },
   {
-    token: /\bSCIM\b/i,
+    rules: [
+      {
+        kind: 'banned-tokens',
+        ruleId: 'claim-drift.aspirational.scim',
+        tokens: ['SCIM'],
+        caseInsensitive: true,
+      },
+    ],
     label: 'SCIM',
     why: 'SCIM provisioning not in code',
   },
   {
-    token: /\bon-prem\b/i,
+    rules: [
+      {
+        kind: 'banned-token-sequences',
+        ruleId: 'claim-drift.aspirational.on-prem',
+        sequences: [['on', 'prem']],
+        caseInsensitive: true,
+      },
+    ],
     label: 'on-prem',
     why: 'forge docker images not yet published to GHCR',
   },
   {
-    token: /\bair-gapped\b/i,
+    rules: [
+      {
+        kind: 'banned-token-sequences',
+        ruleId: 'claim-drift.aspirational.air-gapped',
+        sequences: [['air', 'gapped']],
+        caseInsensitive: true,
+      },
+    ],
     label: 'air-gapped',
     why: 'no documented air-gap deploy path',
   },
   {
-    token: /\bRAG\b/,
+    rules: [
+      {
+        kind: 'banned-tokens',
+        ruleId: 'claim-drift.aspirational.rag',
+        tokens: ['RAG'],
+        caseInsensitive: false,
+      },
+    ],
     label: 'RAG',
     why: 'gated on Ollama+pgvector setup, not reachable in default flow',
   },
   {
-    token: /\bSLA\b/,
+    rules: [
+      {
+        kind: 'banned-tokens',
+        ruleId: 'claim-drift.aspirational.sla',
+        tokens: ['SLA'],
+        caseInsensitive: false,
+      },
+    ],
     label: 'SLA',
     why: 'no SLA documented in docs/',
   },
 ];
 
 /**
- * A line is allowed if it contains any qualifier signal:
- *   - parenthetical markers: "(coming soon)", "(planned)", "(roadmap)",
- *     "(in active development)", "(forthcoming)", "(will ship)",
- *     "(in progress)", "(TBD)"
- *   - the bare word "roadmap" anywhere (case-insensitive) — covers both
- *     "Roadmap: X" prefixes and "X is on the roadmap" framing
- *   - a tracker citation (#NNN / issues|pull|pulls URL / .yml workflow /
- *     `milestone`)
+ * Labels hit by aspirational blocklist rules on `line` (ignores qualifiers).
+ * Exported for unit tests (GAP-192 PR2 fixtures).
  */
-const QUALIFIER_PATTERN =
-  /\((coming soon|planned|roadmap|in active development|forthcoming|will ship|in progress|TBD)\b[^)]*\)|\broadmap\b|(#\d+|\/(issues|pull|pulls)\/\d+|\bmilestones?\b|\.ya?ml\b)/i;
+export function findAspirationalBlocklistHits(line: string): string[] {
+  const tokens = tokenize(line);
+  const hits: string[] = [];
+  for (const entry of ASPIRATIONAL_BLOCKLIST) {
+    let matched = false;
+    for (const rule of entry.rules) {
+      if (checkRule(rule, tokens, { field: 'line' }).length > 0) {
+        matched = true;
+        break;
+      }
+    }
+    if (matched) hits.push(entry.label);
+  }
+  return hits;
+}
 
 /**
  * Agent-commerce surfaces (x402 payments, the agent / MCP-server marketplace)
@@ -1409,11 +1541,13 @@ const QUALIFIER_PATTERN =
  * ("x402 is live", "the marketplace is open") -- never neutral mentions like
  * "the x402 protocol", a glossary entry, or a "## How x402 Works" heading, so
  * the design/explainer posts read normally. A shipped claim still passes if it
- * carries a same-line qualifier (QUALIFIER_PATTERN), OR the whole file declares
- * itself a roadmap post in frontmatter (isRoadmapDeclaredFile). The general
- * BLOCKLIST (SSO / SLA / ...) is unaffected.
+ * carries a same-line qualifier (hasAspirationalQualifier), OR the whole file
+ * declares itself a roadmap post in frontmatter (isRoadmapDeclaredFile). The
+ * general ASPIRATIONAL_BLOCKLIST (SSO / SLA / ...) is unaffected.
+ *
+ * GAP-192 PR5 will rewrite these off regex; leave as-is for PR2.
  */
-export const AGENT_COMMERCE_BLOCKLIST: BlocklistEntry[] = [
+export const AGENT_COMMERCE_BLOCKLIST: RegexBlocklistEntry[] = [
   {
     token:
       /\bx402\b[^.\n]{0,50}?\b(?:is|are)\s+(?:live|available|launched|in production|transacting|enabled today|working today)\b/i,
@@ -1433,7 +1567,7 @@ export const AGENT_COMMERCE_BLOCKLIST: BlocklistEntry[] = [
  * itself a roadmap post in frontmatter, e.g.:
  *   roadmap: "Coming soon: x402 #93, agent marketplace #526"
  * The declaration MUST cite a tracker (issue / PR / milestone / workflow), so a
- * roadmap exemption is never an unlinked "coming soon". The general BLOCKLIST
+ * roadmap exemption is never an unlinked "coming soon". The general blocklist
  * (SSO / SLA / on-prem / ...) is unaffected and still enforced on every file.
  */
 export function isRoadmapDeclaredFile(content: string): boolean {
@@ -1443,7 +1577,7 @@ export function isRoadmapDeclaredFile(content: string): boolean {
   for (const raw of content.slice(4, end).split('\n')) {
     const line = raw.trimStart();
     if (line.startsWith('roadmap:') || line.startsWith('lifecycle:')) {
-      if (TRACKER_PATTERN.test(raw)) return true;
+      if (hasTrackerSignal(raw)) return true;
     }
   }
   return false;
@@ -1484,16 +1618,25 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
         if (line.trim().startsWith('{/*') && line.trim().endsWith('*/}')) continue;
       }
 
-      for (const entry of BLOCKLIST) {
-        if (!entry.token.test(line)) continue;
-        if (QUALIFIER_PATTERN.test(line)) continue;
-        matches.push({
-          file: rel,
-          line: i + 1,
-          token: entry.label,
-          why: entry.why,
-          text: line.trim(),
-        });
+      if (!hasAspirationalQualifier(line)) {
+        const tokens = tokenize(line);
+        for (const entry of ASPIRATIONAL_BLOCKLIST) {
+          let matched = false;
+          for (const rule of entry.rules) {
+            if (checkRule(rule, tokens, { field: 'line' }).length > 0) {
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) continue;
+          matches.push({
+            file: rel,
+            line: i + 1,
+            token: entry.label,
+            why: entry.why,
+            text: line.trim(),
+          });
+        }
       }
 
       // Agent-commerce tokens (x402 / agent marketplace) are coming soon, not
@@ -1502,7 +1645,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
       if (!commerceExempt) {
         for (const entry of AGENT_COMMERCE_BLOCKLIST) {
           if (!entry.token.test(line)) continue;
-          if (QUALIFIER_PATTERN.test(line)) continue;
+          if (hasAspirationalQualifier(line)) continue;
           matches.push({
             file: rel,
             line: i + 1,
@@ -1606,26 +1749,124 @@ const FLEET_ATTRIBUTION_ALLOWLIST = new Set<string>([
 const FLEET_ATTRIBUTION_ALLOWLIST_PREFIXES = ['docs/fleet/'];
 
 /**
- * Product tokens. The pattern matches each as a standalone word (case-
- * sensitive — these are proper nouns) so it doesn't fire on "studio"
- * mid-sentence. `@revealui/editors` is special-cased because the package
- * doesn't actually exist (lives in revcon).
+ * Fleet product tokens as marketing-voice `Rule`s (GAP-192 PR2).
  *
- * `Studio` uses a negative lookbehind to avoid firing on "RevealUI
- * Studio" — that's the company name, not the desktop app. The Studio
- * desktop-app references typically appear as "Studio desktop app",
- * "Studio dashboard", "Studio (Tauri)", etc.
+ * Plain product names are case-sensitive proper nouns. `Studio` uses
+ * `banned-tokens-with-context` + `unlessPrecededByContiguous: ['RevealUI']`
+ * so "RevealUI Studio" (company name) passes and bare "Studio" does not.
+ * The phantom package `@revealui/editors` is matched by contiguous
+ * non-whitespace token join (symbols required) — see
+ * `hasPhantomEditorsPackage`.
  */
-const FLEET_PRODUCTS: { token: RegExp; label: string }[] = [
-  { token: /(?<!RevealUI\s)\bStudio\b/, label: 'Studio (lives in RevDev, not the company name)' },
-  { token: /\bRevVault\b/, label: 'RevVault (separate fleet product)' },
-  { token: /\bRevCon\b/, label: 'RevCon (separate fleet product)' },
-  { token: /\bRevealCoin\b/, label: 'RevealCoin (separate fleet product)' },
-  { token: /\bRevDev\b/, label: 'RevDev (separate fleet product)' },
-  { token: /\bRevSkills\b/, label: 'RevSkills (separate fleet product)' },
-  { token: /\bRevKit\b/, label: 'RevKit (separate fleet product)' },
-  { token: /@revealui\/editors\b/, label: '@revealui/editors (does not exist; ships in RevCon)' },
+interface FleetProductRuleEntry {
+  rule: Rule;
+  label: string;
+}
+
+const FLEET_PRODUCT_RULES: FleetProductRuleEntry[] = [
+  {
+    rule: {
+      kind: 'banned-tokens-with-context',
+      ruleId: 'claim-drift.fleet.studio',
+      tokens: ['Studio'],
+      unlessPrecededByContiguous: ['RevealUI'],
+    },
+    label: 'Studio (lives in RevDev, not the company name)',
+  },
+  {
+    rule: {
+      kind: 'banned-tokens',
+      ruleId: 'claim-drift.fleet.revvault',
+      tokens: ['RevVault'],
+      caseInsensitive: false,
+    },
+    label: 'RevVault (separate fleet product)',
+  },
+  {
+    rule: {
+      kind: 'banned-tokens',
+      ruleId: 'claim-drift.fleet.revcon',
+      tokens: ['RevCon'],
+      caseInsensitive: false,
+    },
+    label: 'RevCon (separate fleet product)',
+  },
+  {
+    rule: {
+      kind: 'banned-tokens',
+      ruleId: 'claim-drift.fleet.revealcoin',
+      tokens: ['RevealCoin'],
+      caseInsensitive: false,
+    },
+    label: 'RevealCoin (separate fleet product)',
+  },
+  {
+    rule: {
+      kind: 'banned-tokens',
+      ruleId: 'claim-drift.fleet.revdev',
+      tokens: ['RevDev'],
+      caseInsensitive: false,
+    },
+    label: 'RevDev (separate fleet product)',
+  },
+  {
+    rule: {
+      kind: 'banned-tokens',
+      ruleId: 'claim-drift.fleet.revskills',
+      tokens: ['RevSkills'],
+      caseInsensitive: false,
+    },
+    label: 'RevSkills (separate fleet product)',
+  },
+  {
+    rule: {
+      kind: 'banned-tokens',
+      ruleId: 'claim-drift.fleet.revkit',
+      tokens: ['RevKit'],
+      caseInsensitive: false,
+    },
+    label: 'RevKit (separate fleet product)',
+  },
 ];
+
+const PHANTOM_EDITORS_LABEL = '@revealui/editors (does not exist; ships in RevCon)';
+
+/**
+ * True when the line names the phantom package `@revealui/editors`.
+ * `checkRule` banned-token-sequences is word-only (hyphen skip), so `@` and
+ * `/` must be checked as contiguous non-whitespace token text.
+ */
+export function hasPhantomEditorsPackage(line: string): boolean {
+  const tokens = tokenize(line);
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.text !== '@' || tokens[i]?.kind !== 'symbol') continue;
+    let joined = '@';
+    for (let j = i + 1; j < tokens.length; j++) {
+      const t = tokens[j];
+      if (t === undefined || t.kind === 'whitespace') break;
+      joined += t.text;
+      if (joined === '@revealui/editors') return true;
+      if (!'@revealui/editors'.startsWith(joined)) break;
+    }
+  }
+  return false;
+}
+
+/**
+ * Fleet product labels hit on `line` (ignores attribution qualifier).
+ * Exported for unit tests (GAP-192 PR2 fixtures).
+ */
+export function findFleetProductHits(line: string): string[] {
+  const tokens = tokenize(line);
+  const hits: string[] = [];
+  for (const entry of FLEET_PRODUCT_RULES) {
+    if (checkRule(entry.rule, tokens, { field: 'line' }).length > 0) {
+      hits.push(entry.label);
+    }
+  }
+  if (hasPhantomEditorsPackage(line)) hits.push(PHANTOM_EDITORS_LABEL);
+  return hits;
+}
 
 /**
  * A line is allowed if it cites the fleet map, links to a per-product
@@ -1694,13 +1935,12 @@ function scanForFleetProductLeaks(): FleetProductMatch[] {
       // — frontmatter is not customer-visible prose
       if (i < 20 && (line === '---' || /^[a-zA-Z_][a-zA-Z0-9_-]*:\s/.test(line))) continue;
 
-      for (const product of FLEET_PRODUCTS) {
-        if (!product.token.test(line)) continue;
-        if (FLEET_ATTRIBUTION_QUALIFIER.test(line)) continue;
+      if (FLEET_ATTRIBUTION_QUALIFIER.test(line)) continue;
+      for (const product of findFleetProductHits(line)) {
         matches.push({
           file: rel,
           line: i + 1,
-          product: product.label,
+          product,
           text: line.trim(),
         });
       }
@@ -1738,7 +1978,20 @@ interface RvuiLeakMatch {
   text: string;
 }
 
-const RVUI_LEAK_PATTERN = /\$RVUI\b/;
+/**
+ * True when the line contains the internal ticker form `$RVUI`.
+ * `checkRule` banned-token-sequences is word-only, so `$` (symbol) + `RVUI`
+ * (word) is matched as contiguous non-whitespace tokens (GAP-192 PR2).
+ */
+export function hasRvuiTickerLeak(line: string): boolean {
+  const tokens = tokenize(line);
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.text !== '$' || tokens[i]?.kind !== 'symbol') continue;
+    const next = tokens[i + 1];
+    if (next !== undefined && next.kind === 'word' && next.text === 'RVUI') return true;
+  }
+  return false;
+}
 
 /**
  * Files allowed to mention `$RVUI` because they explicitly explain the
@@ -1784,7 +2037,7 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (RVUI_LEAK_PATTERN.test(line)) {
+      if (hasRvuiTickerLeak(line)) {
         matches.push({
           file: rel,
           line: i + 1,
