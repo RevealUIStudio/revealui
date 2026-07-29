@@ -40,6 +40,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  claimsExtractor,
   dbSchemaExtractor,
   docsFrontmatterExtractor,
   gitExtractor,
@@ -100,6 +101,7 @@ const TIER1: readonly Extractor[] = [
   dbSchemaExtractor,
   docsFrontmatterExtractor,
   routesExtractor,
+  claimsExtractor,
 ];
 
 describe('extractor determinism — two runs over an unchanged tree', () => {
@@ -123,6 +125,9 @@ describe('extractor determinism — two runs over an unchanged tree', () => {
       'apps/mmm-app/app/api/widgets/route.ts':
         "export async function GET() { return new Response('ok'); }\n",
       'docs/gaps/GAP-999.md': '---\nstatus: open\npriority: high\n---\n# GAP-999\n',
+      'apps/marketing/app/content/claims-evidence.ts':
+        "export const CLAIMS = [{ file: 'home.ts', exportPath: 'H.x', text: 'hi', evidence: [{ kind: 'code', ref: 'LICENSE' }] }];\n",
+      LICENSE: 'MIT\n',
     });
     const ctx: ExtractorContext = {
       repoRoot,
