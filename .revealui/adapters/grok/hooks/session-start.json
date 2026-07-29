@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s\\n' \"[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts); no full hardline mirrors\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/revfleet/.jv/scripts/tracker-session-check.js\" 2>/dev/null || true",
+            "timeout": 12
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/hotfix-check.js\" 2>/dev/null || true",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/tmpscript-check.js\" 2>/dev/null || true",
+            "timeout": 12
+          }
+        ]
+      }
+    ]
+  }
+}
