@@ -108,7 +108,12 @@ const PRODUCT_README: ClaimProfile = {
   licenseScanRoots: ['README.md', 'CLAUDE.md', 'docs'],
   futureTenseFiles: ['README.md', 'CLAUDE.md'],
   aspirationalPaths: ['README.md', 'docs'],
-  fleetAttributionFiles: ['README.md', 'docs'],
+  // Fleet-product attribution is for revealui public docs that might present
+  // Studio/Rev* as if they were the runtime. Sibling product repos (revdev,
+  // revvault, …) intentionally name peer fleet products in README and docs;
+  // hard-fail attribution there is false-positive noise (126+ hits on revdev
+  // alone). Same v1 choice as marketing-site.
+  fleetAttributionFiles: [],
 };
 
 export const PROFILES: Readonly<Record<ClaimProfileName, ClaimProfile>> = {
