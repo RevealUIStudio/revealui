@@ -40,6 +40,8 @@ reason to ship weak work, thin proofs, or dual-home shortcuts.
 - Partial file reads marked verified in exhaustive / md-truth ledgers
 - Dual-writing the same rule into Claude and Grok homes
 - Merging or force-pushing to "unblock" without owner disposition when required
+- Silencing unused params/locals with a leading underscore (\`_line\`) instead of
+  implementing, redesigning the signature, or deleting (see unused-declarations)
 
 ## When pressed for speed
 

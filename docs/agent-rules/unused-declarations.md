@@ -1,136 +1,141 @@
 ---
 title: "Unused Declarations Policy"
-description: "**NEVER suppress an unused variable/import warning without first determining if the code is incomplete.**"
+description: "HARDLINE every session: never silence unused with underscore rename; implement, redesign the signature, or delete"
 visibility: internal
 status: verified
 audience: agent
 ---
 
-## Core Rule
+**Status:** HARDLINE for every session (Claude, Grok, Cursor, any adapter). Owner
+directive 2026-07-29. Thoroughness is non-negotiable. Laziness is rejected.
 
-**NEVER suppress an unused variable/import warning without first determining if the code is incomplete.**
+## Core rule
 
-Unused declarations in this codebase frequently signal incomplete implementations  -  stubs, scaffolded functions, planned integrations  -  not dead code. Suppressing the warning without completing the code leads to permanent placeholders that silently rot.
+**NEVER silence an unused variable, parameter, or import by renaming it with a
+leading underscore (`_line`, `_unused`, `_event`) when the honest fix is to
+implement the value, redesign the API, or delete dead code.**
 
----
+Biome and many linters *allow* underscore-prefixed names as unused. That
+exception is **not** permission to skip work. This codebase treats
+underscore-silence as a policy violation equal to biome-ignore on a TODO stub.
 
-## Mandatory Decision Tree
+Unused declarations usually mean **incomplete implementation**, not "noise to
+mute." Thorough agents implement. Lazy agents rename to `_x` and move on.
 
-When you encounter an `no-unused-vars`, `noUnusedVariables`, or `noUnusedFunctionParameters` warning, you MUST follow this decision tree **before taking any action**:
-
-```
-1. Is the declaration a stub or placeholder?
-   └─ Signs: empty function body, `// TODO`, `throw new Error('not implemented')`,
-             adjacent commented-out code, file has <10 lines of real logic,
-             variable name matches a feature that exists elsewhere in the codebase
-   └─ Action: IMPLEMENT the missing functionality. Do not suppress.
-
-2. Is the declaration an intentionally-created side-effect resource?
-   └─ Signs: infrastructure-as-code (Pulumi/CDK), event listener registration,
-             DB migration runner, resource that must exist but isn't referenced
-   └─ Action: Rename with `_` prefix to signal intentional non-use.
-              Add a comment explaining WHY it exists.
-
-3. Is the import used only as a type (TypeScript)?
-   └─ Signs: import is from a types package, used only in `type X = ...` expressions
-   └─ Action: Change to `import type { ... }` — Biome will no longer flag it.
-
-4. Is the parameter required by a callback signature you don't control?
-   └─ Signs: Express/Hono middleware `(req, res, next)`, event handler `(event, context)`,
-             interface implementation where all params are mandated
-   └─ Action: Prefix with `_` (e.g. `_req`, `_event`). Add a comment if non-obvious.
-
-5. Is it genuinely dead code with no planned use?
-   └─ Signs: feature was removed, import was replaced, duplicate of another symbol
-   └─ Action: DELETE the declaration entirely. Per the Legacy Code Removal Policy,
-              no grace periods — remove it and all call sites in the same change.
-```
+Companion: quality-over-speed (reduce scope, never quality).
 
 ---
 
-## What "Implement" Means
+## Mandatory decision tree
 
-When you determine a declaration is incomplete (case 1), the required steps are:
+When you see `noUnusedVariables`, `noUnusedParameters`, TS6133, or any
+"declared but never read" diagnostic, **before any edit**:
 
-1. **Search the codebase** for related implementations, types, interfaces, and tests that reveal intent.
-2. **Check the plan file** at `the project's plan files` for any documented phase covering this feature.
-3. **Check for contracts** in `packages/contracts/src/`  -  the schema often describes the expected behavior.
-4. **Implement the function/class/module** based on what the surrounding code expects.
-5. **Run `pnpm gate:quick`** after implementing to verify no new errors were introduced.
+```
+1. Should this value drive logic that is missing?
+   └─ Signs: parameter is in the public API, named for a real concern (line,
+             path, token, id), body only uses a sibling arg, or adjacent tests
+             expect behavior from this input
+   └─ Action: IMPLEMENT using the parameter. Empty short-circuit, validation,
+              error paths, and detectors all count as real use. Do not prefix `_`.
 
-Do NOT:
-- Add `// biome-ignore lint/correctness/noUnusedVariables: TODO implement`
-- Rename to `_variable` just to silence the warning when the variable should be used
-- Delete a stub that represents planned functionality without implementing it first
+2. Do you control the function signature?
+   └─ Yes, and the param is unnecessary → REMOVE it from the signature and
+      update every call site in the same change. Prefer a smaller honest API.
+   └─ Yes, and the param is needed later in the same PR → implement now.
+
+3. Is the import type-only?
+   └─ Action: `import type { ... }` (not underscore rename).
+
+4. Is it genuinely dead with no planned use?
+   └─ Action: DELETE the declaration and call sites. No grace period.
+
+5. Is the parameter forced by a host callback signature you cannot change?
+   └─ Signs only: framework-mandated arity (e.g. Express `(err, req, res, next)`
+      when you only need `next`), or an interface you implement but do not own
+   └─ Action: prefix `_` **only then**, and add a one-line comment naming the
+      host signature. This is the sole underscore carve-out for parameters.
+
+6. Is it an intentional side-effect binding (IaC / must construct)?
+   └─ Action: `_` prefix **only with** a comment explaining the side effect.
+      Never use this for application logic params.
+```
+
+If none of 5–6 apply, **underscore is forbidden**.
+
+---
+
+## Explicitly rejected (every session)
+
+- `_line`, `_req`, `_unused`, `_args` to quiet TS6133 / Biome when you own the API
+- `// biome-ignore ... noUnusedVariables: TODO`
+- "I'll wire it later" after renaming to `_`
+- Deleting a stub that represents required behavior without implementing it
+- Partial fixes that leave the thorough path for "someone else"
+
+---
+
+## What implement means
+
+1. Search related types, tests, and call sites for intent.
+2. Use the parameter in real control flow (validate, short-circuit, detect, log
+   structured fields, pass through). Empty `line.trim()` guards are valid when
+   they match the audit contract.
+3. Typecheck + Biome + tests for the package before moving on.
+4. Prefer one correct change over a silent underscore.
 
 ---
 
 ## Examples
 
-### Wrong  -  suppressing an incomplete stub
+### Wrong — silence the audit string
+```ts
+export function findHits(_line: string, tokens: Token[]): Hit[] {
+  return detect(wordTexts(tokens));
+}
+```
+
+### Right — use the line (empty short-circuit is real use)
+```ts
+export function findHits(line: string, tokens: Token[]): Hit[] {
+  if (line.trim().length === 0) return [];
+  return detect(wordTexts(tokens));
+}
+```
+
+### Wrong — mute a stub
 ```ts
 // biome-ignore lint/correctness/noUnusedVariables: TODO
 const semanticMemory = new SemanticMemory()
 ```
 
-### Right  -  implement it
+### Right — implement
 ```ts
 const semanticMemory = new SemanticMemory()
 await semanticMemory.store('key', content, embedding)
 ```
 
----
-
-### Wrong  -  deleting a planned integration
+### Allowed underscore (host-mandated only)
 ```ts
-// Was: import { ProceduralMemory } from './procedural-memory.js'
-// Deleted because "unused"
-```
-
-### Right  -  implement the module it was waiting for
-```ts
-// packages/ai/src/memory/memory/procedural-memory.ts
-export class ProceduralMemory { ... }
-// Then use it where the original import was
+// Hono error handler arity is fixed by the framework; body only needs err.
+app.onError((_req, err) => respond(err))
 ```
 
 ---
 
-### Wrong  -  renaming away the signal
-```ts
-// Original: const routeTableAssoc = new aws.ec2.RouteTableAssociation(...)
-// "Fixed": const _routeTableAssoc = new aws.ec2.RouteTableAssociation(...)
-// No comment explaining why
-```
-
-### Right  -  rename AND document
-```ts
-// Route table association must exist for subnet routing to function.
-// The variable is not referenced after creation; AWS manages the association.
-const _routeTableAssoc = new aws.ec2.RouteTableAssociation(...)
-```
-
----
-
-## Verification Step After Any Lint Fix
-
-After resolving any unused declaration warning, run:
+## Verification (mandatory before next task)
 
 ```bash
-# Confirm the fix compiles
 pnpm --filter <package> typecheck
-
-# Confirm Biome is clean on the changed file
-node_modules/.bin/biome check <file>
-
-# If the declaration was a stub that you implemented, run the tests
-pnpm --filter <package> test
+pnpm exec biome check <file>
+pnpm --filter <package> test   # if behavior changed
 ```
-
-Never move to the next task without completing this verification.
 
 ---
 
-## Relationship to Gate Verification Rule
+## Relationship
 
-This policy works in conjunction with the gate verification rule: complete the implementation → verify with lint/type/test → then move on. The gate catches regressions; this policy prevents incomplete code from silently accumulating.
+- **quality-over-speed** — thoroughness outranks session throughput
+- **code-over-docs** — unused params that should affect behavior are incomplete product
+- **durable-solutions** — underscore silence is a temporary shape; refuse it
+

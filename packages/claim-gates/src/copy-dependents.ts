@@ -247,12 +247,15 @@ function runDetector(detector: CopyDependentDetector, words: string[]): boolean 
 
 /**
  * Find active (waiting) copy-dependent hold hits on a single line.
- * Caller supplies tokenize() tokens from claim-drift-engine (or any compatible tokenizer).
+ * `line` is the customer-facing string under audit; `tokens` must be the
+ * Segmenter walk of that same line (claim-drift-engine tokenize or equivalent).
+ * Empty / whitespace-only lines never hit.
  */
 export function findCopyDependentHits(
-  _line: string,
+  line: string,
   tokens: { kind: string; text: string }[],
 ): CopyDependentHit[] {
+  if (line.trim().length === 0) return [];
   const words = wordTexts(tokens);
   if (words.length === 0) return [];
   const hits: CopyDependentHit[] = [];

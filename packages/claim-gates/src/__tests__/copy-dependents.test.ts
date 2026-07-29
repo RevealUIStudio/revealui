@@ -26,6 +26,11 @@ describe('copy-dependent holds', () => {
     }
   });
 
+  it('uses line for empty/whitespace short-circuit (no underscore silence)', () => {
+    expect(hits('')).toEqual([]);
+    expect(hits('   \t  ')).toEqual([]);
+  });
+
   it('flags marketplace live claims while hold is waiting', () => {
     const h = hits('The MCP marketplace is live for every operator.');
     expect(h.some((x) => x.holdId === 'COPY-DEP-MCP-MARKETPLACE')).toBe(true);
