@@ -83,12 +83,12 @@ R2_BUCKET=revealui-media
 R2_PUBLIC_BASE_URL=https://media.yourdomain.com
 
 # Billing (required for payments)
-# Pre-launch posture: use sk_test_* / pk_test_* until billing-readiness audit
-# closes; STRIPE_LIVE_MODE=false (the default) keeps the runtime warnings on.
+# Local/CI: sk_test_* / pk_test_* with STRIPE_LIVE_MODE unset/false.
+# Studio production: sk_live_* / pk_live_* with STRIPE_LIVE_MODE=true (since 2026-06-26).
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-# STRIPE_LIVE_MODE=true             # flip ONLY after billing-readiness sign-off
+# STRIPE_LIVE_MODE=true             # required when using sk_live_* keys
 ```
 
 ### Build Configuration

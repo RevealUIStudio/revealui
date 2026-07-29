@@ -1097,10 +1097,10 @@ Full checkout/portal/webhook route handlers are wired at the application layer (
 
 ### Webhook environment
 
-> Pre-launch posture: RevealUI runs in Stripe TEST mode in production. Use `sk_test_*` until billing-readiness sign-off; `STRIPE_LIVE_MODE=true` flips the live path.
+> **Production posture:** Studio production runs Stripe in **live** mode (`STRIPE_LIVE_MODE=true` + `sk_live_*`; flipped 2026-06-26). Use `sk_test_*` for local/CI only.
 
 ```bash
-STRIPE_SECRET_KEY=sk_test_...   # Use sk_live_... once billing-readiness sign-off lands
+STRIPE_SECRET_KEY=sk_live_...   # sk_test_... for local/CI only
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID=price_...       # Your Pro tier price
 ```
@@ -1108,10 +1108,10 @@ STRIPE_PRICE_ID=price_...       # Your Pro tier price
 ## Environment configuration
 
 ```bash
-# Stripe (use sk_test_/pk_test_ until billing-readiness sign-off; sk_live_/pk_live_ post-flip)
-STRIPE_SECRET_KEY=sk_test_...
+# Stripe (sk_live_/pk_live_ in production; sk_test_/pk_test_ for local/CI)
+STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
 
 ```
 

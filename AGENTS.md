@@ -24,6 +24,10 @@ Mission: build the self-hosted runtime where a business and the AI agents that r
 4. **Payments**  -  Stripe checkout, subscriptions, webhooks, billing portal
 5. **Agents**  -  AI agents, CRDT memory, open-model inference, orchestration (Pro tier)
 
+## Documentation SoT
+
+Edit monorepo **`docs/`** only. **`apps/docs/public/**/*.md`** is a generated serve mirror for docs.revealui.com (`copy-docs.sh`); gitignored; never hand-edit. Hand-authored exception: `apps/docs/public/docs-pro/`. See `apps/docs/public/COPIED-FROM-DOCS.txt`.
+
 ## Stack
 
 - React 19, Next.js 16, Node 24, TypeScript 6

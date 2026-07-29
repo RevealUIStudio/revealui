@@ -1,0 +1,19 @@
+GENERATED SERVE MIRROR — DO NOT EDIT
+
+This directory holds build-time copies of monorepo docs/ for the Vite docs
+site (docs.revealui.com). Source of truth is:
+
+  docs/   (repository root)
+
+Filled by:
+  apps/docs/scripts/copy-docs.sh
+  apps/docs/vite.config.ts  (docsCopyPlugin, watch/dev)
+
+Rules:
+  - Edit markdown under monorepo docs/ only.
+  - Never commit or hand-edit public/*.md or copied subdirs (gitignored).
+  - Hand-authored exception: public/docs-pro/ (Pro docs, tracked).
+  - Visibility: only docs with frontmatter `visibility: public` are copied
+    (fail-closed prune via scripts/prune-non-public.mjs).
+
+See apps/docs/README.md and docs/internal/documentation-system.md.

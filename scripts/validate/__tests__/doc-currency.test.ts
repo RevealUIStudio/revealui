@@ -9,6 +9,7 @@ import {
   extractStringLiterals,
   type Hit,
   hitKey,
+  isGeneratedDocsMirrorRel,
   loadBaseline,
   parseArgs,
   RULES,
@@ -286,6 +287,35 @@ describe('collectMarkdownFiles — gitignored generated files', () => {
     const files = collectMarkdownFiles(tmpRoot);
     expect(files.some((f) => f.endsWith('current.md'))).toBe(true);
     expect(files.some((f) => f.endsWith('generated.md'))).toBe(true);
+  });
+});
+
+describe('isGeneratedDocsMirrorRel + collectMarkdownFiles skip public mirror', () => {
+  it('classifies copy-docs output as generated and docs-pro as hand-authored', () => {
+    expect(isGeneratedDocsMirrorRel('apps/docs/public/ARCHITECTURE.md')).toBe(true);
+    expect(isGeneratedDocsMirrorRel('apps/docs/public/blog/01.md')).toBe(true);
+    expect(isGeneratedDocsMirrorRel('apps/docs/public/docs-pro/index.md')).toBe(false);
+    expect(isGeneratedDocsMirrorRel('docs/ARCHITECTURE.md')).toBe(false);
+  });
+
+  it('does not scan apps/docs/public/*.md even without gitignore', () => {
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'doc-currency-mirror-'));
+    try {
+      fs.mkdirSync(path.join(tmpRoot, 'docs'), { recursive: true });
+      fs.mkdirSync(path.join(tmpRoot, 'apps/docs/public/docs-pro'), { recursive: true });
+      fs.mkdirSync(path.join(tmpRoot, 'apps/docs/public/blog'), { recursive: true });
+      fs.writeFileSync(path.join(tmpRoot, 'docs', 'sot.md'), '# SoT\n');
+      fs.writeFileSync(path.join(tmpRoot, 'apps/docs/public', 'MIRROR.md'), '# Mirror\n');
+      fs.writeFileSync(path.join(tmpRoot, 'apps/docs/public/blog', 'x.md'), '# Blog mirror\n');
+      fs.writeFileSync(path.join(tmpRoot, 'apps/docs/public/docs-pro', 'pro.md'), '# Pro\n');
+      const files = collectMarkdownFiles(tmpRoot);
+      expect(files.some((f) => f.endsWith(`${path.sep}sot.md`))).toBe(true);
+      expect(files.some((f) => f.endsWith(`${path.sep}pro.md`))).toBe(true);
+      expect(files.some((f) => f.endsWith(`${path.sep}MIRROR.md`))).toBe(false);
+      expect(files.some((f) => f.endsWith(`${path.sep}x.md`))).toBe(false);
+    } finally {
+      fs.rmSync(tmpRoot, { recursive: true, force: true });
+    }
   });
 });
 

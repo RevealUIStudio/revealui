@@ -1,0 +1,7 @@
+# Generated docs-site serve mirror of monorepo docs/ (CHIP-3 D5a).
+# SoT: edit docs/ only. Filled by apps/docs/scripts/copy-docs.sh + Vite plugin.
+# Hand-authored exception docs-pro/ is force-included below.
+apps/docs/public/**/*.md
+apps/docs/public/*/
+!apps/docs/public/docs-pro/
+!apps/docs/public/docs-pro/**

@@ -46,7 +46,8 @@ UX, plaintext secrets). All three must hold.
       "our team" in marketing copy if it's one person. Buyers who would reject a solo-founder SaaS
       will reject it louder after they discover it post-purchase.
 - [ ] **Subprocessor list** on a public page (`/legal/subprocessors`). Include: Vercel, NeonDB,
-      ~~Supabase~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`; remove from list once phase-out completes), Stripe, the current LLM inference providers, email provider, blob storage.
+      Stripe, Cloudflare R2, the current LLM inference providers, email provider.
+      (Supabase was removed; do not list it. Vercel Blob was retired in favor of R2.)
       Update-on-change with a dated changelog. Required for any enterprise sale and enforced by
       most DPAs.
 
@@ -81,9 +82,9 @@ for a lawyer review when you begin collecting payment.
 ### Data handling transparency
 
 - [ ] **Customer data map** — internal document naming every place customer data flows: Neon
-      region, ~~Supabase region~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`), Stripe, inference providers (including whether prompts leave the
-      account boundary), blob storage, logs. Surface the externally-relevant parts on the
-      Privacy Policy.
+      region, Stripe, Cloudflare R2, inference providers (including whether prompts leave the
+      account boundary), logs. Supabase was removed and Vercel Blob was retired (R2 is current).
+      Surface the externally-relevant parts on the Privacy Policy.
 - [ ] **Training-data promise** — explicit public statement of whether customer content is used
       to train any model. For RevealUI's open-inference posture this is easy to say "no"; saying
       it in writing is the point.
@@ -114,16 +115,17 @@ the internal hub master plan § Current Reality). The remaining work is operatio
       OAuth client secrets, and database credentials in staging end-to-end, timed. Document the
       exact command sequence. If you can't rotate in under an hour today, a compromise
       tomorrow will take days.
-- [ ] **Backup restoration drill** — restore NeonDB and ~~Supabase~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`) from backup into a clean
-      environment. Verify RPO (how much data loss is acceptable) and RTO (how long to restore)
-      against what's promised in the SLA / Privacy Policy. Unrestored backups are fiction.
+- [ ] **Backup restoration drill** — restore NeonDB (and R2 object recovery if media is in scope)
+      from backup into a clean environment. Verify RPO (how much data loss is acceptable) and RTO
+      (how long to restore) against what's promised in the SLA / Privacy Policy. Unrestored
+      backups are fiction.
 - [ ] **Separate staging environment** with production-equivalent config but non-production
       data. `deploy-test.yml` provisions previews, but a persistent staging environment for
       drills + customer repro is worth the small cost.
 
 ### Account + access hygiene
 
-- [ ] **MFA enforced on every critical external account**: Stripe, Vercel, NeonDB, ~~Supabase~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`),
+- [ ] **MFA enforced on every critical external account**: Stripe, Vercel, NeonDB, Cloudflare,
       GitHub, npm, domain registrar, email provider. Check each one; they each have a separate
       MFA setting.
 - [ ] **Privilege separation** — deploy/CI credentials (read-only push, narrow scope) distinct
@@ -278,8 +280,8 @@ These need explicit answers from the founder before the tracks above can resolve
 - `docs/PRO.md` — FSL-1.1-MIT licence terms (already public).
 - `business/BUSINESS_PLAN.md` — full business plan (not read in this handoff — confirm it
   doesn't already cover the legal / entity items above).
-- `packages/services` — Stripe integration code (tested in test mode; live-mode E2E still
-  owed).
+- `packages/services` — Stripe integration code (Studio production is live mode as of
+  2026-06-26; keep test-mode CI and post-flip live smoke current).
 - `packages/security` — header, CORS, RBAC/ABAC, encryption, audit, GDPR primitives.
 
 This handoff should be treated as alive — check each section before claiming "done," and prune

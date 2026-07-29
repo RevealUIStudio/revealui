@@ -473,7 +473,7 @@ if (stats) {
 
 ### Database Requirements
 
-Semantic caching requires PostgreSQL with the pgvector extension (provided by NeonDB, the primary database; legacy Supabase pgvector is being phased out):
+Semantic caching requires PostgreSQL with the pgvector extension (provided by NeonDB, the primary database; Supabase was removed and is not used for vectors):
 
 ```sql
 -- Enable pgvector extension

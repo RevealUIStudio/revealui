@@ -140,7 +140,7 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 |----------|----------|---------|-------------|----------|---------|
 | `POSTGRES_URL` | Yes | None | PostgreSQL connection string for the primary database (NeonDB recommended). Format: `postgresql://user:password@host:port/database?sslmode=require`. | HIGH (server-only) | admin, api |
 | `DATABASE_URL` | No | None | Fallback for `POSTGRES_URL`. If `POSTGRES_URL` is not set, this value is used automatically. A deprecation warning is logged. | HIGH (server-only) | admin, api |
-| `SUPABASE_DATABASE_URL` | No | None | Optional, legacy. Supabase connection for the RAG vector sidecar — being retired (Phase 7 consolidates onto NeonDB `pgvector`). Not required: NeonDB holds agent memories and per-record vectors. | HIGH (server-only) | ai, api |
+| `SUPABASE_DATABASE_URL` | No | None | Legacy only. Supabase was removed as architecture (ADR 2026-05-01); NeonDB `pgvector` holds agent memories and vectors. Leave unset on new deploys. | HIGH (server-only) | ai, api |
 | `SUPABASE_DATABASE_URI` | No | None | Alternative naming for the Supabase connection. Accepted as a fallback in the database config module. | HIGH (server-only) | admin, api |
 | `DB_POOL_MAX` | No | `10` | Maximum connections in the pg pool. | LOW | admin, api |
 | `DB_POOL_IDLE_TIMEOUT` | No | `30000` | Idle connection timeout in milliseconds. | LOW | admin, api |
@@ -242,7 +242,7 @@ RevealUI supports open models for AI features. No proprietary cloud APIs are req
 
 ### Supabase
 
-> **Optional + legacy.** Supabase is being retired (ADR `2026-05-01-supabase-removal`). These vars are only needed if you opt into the legacy Supabase RAG sidecar or Supabase client features. New deployments should leave them unset — NeonDB is the primary store.
+> **Legacy only.** Supabase was removed as architecture (ADR `2026-05-01-supabase-removal`). NeonDB is the primary store (including vectors). New deployments leave all Supabase vars unset.
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|

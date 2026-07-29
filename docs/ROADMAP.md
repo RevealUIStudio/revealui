@@ -48,7 +48,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Database**  -  97 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
-- **MCP servers**  -  12 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, plus the adapter base class)
+- **MCP servers**  -  first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, Docs, Contracts, RevealUI Content / Email / Memory / Stripe, plus the adapter base class; the customer Supabase MCP adapter was removed)
 - **Desktop app (RevDev)**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel) — ships in the separate [RevDev](https://github.com/RevealUIStudio/revdev) repo, not in the RevealUI monorepo
 - **Security**  -  CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
 - **CI/CD**  -  3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
@@ -60,7 +60,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **31 packages** published to npm
 - **5 CLI templates** (basic-blog, e-commerce, portfolio, starter, starter-native)  -  4 published as standalone template repos
 - **Production deploys**  -  admin, API, Marketing, Docs on Vercel
-- **Stripe test mode** verified end-to-end (checkout, webhooks, license generation)
+- **Stripe live mode** on in production (flipped 2026-06-26); test-mode E2E path remains for CI and local smoke
 
 ---
 

@@ -1,2 +1,3 @@
-# Public directory for static assets
-# Documentation files are copied here by the Vite plugin
+# Public directory for static assets (favicons, robots.txt, llms.txt, …).
+# Markdown under public/ is a generated mirror of monorepo docs/ — see
+# COPIED-FROM-DOCS.txt. Edit docs/ only; never hand-edit public/*.md.

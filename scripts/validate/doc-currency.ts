@@ -301,39 +301,82 @@ const SKIP_DIR_SEGMENTS: ReadonlySet<string> = new Set([
   '.turbo',
 ]);
 
-// Directories walked in full for `.md` prose. `apps` covers the public docs
-// mirror (apps/docs/public) and the marketing markdown; `docs` covers the whole
-// documentation tree including docs/blog (public posts stay in scope, guarded by
-// per-line exoneration, not skipped).
+/**
+ * Build-time serve mirror of monorepo `docs/` (CHIP-3 D5a). Filled by
+ * `apps/docs/scripts/copy-docs.sh` + the Vite docs-copy plugin. Not a second
+ * source of truth — edit `docs/`, never these copies.
+ *
+ * Hand-authored exceptions under `public/` (not produced by copy-docs) stay
+ * scannable: currently `docs-pro/` only.
+ */
+export const GENERATED_DOCS_PUBLIC_REL = 'apps/docs/public';
+export const HAND_AUTHORED_DOCS_PUBLIC_SUBDIRS: ReadonlySet<string> = new Set(['docs-pro']);
+
+/**
+ * True for generated mirror paths under apps/docs/public (not docs-pro).
+ * The public directory itself is not classified as generated so walkers can
+ * enter and reach hand-authored subdirs (docs-pro); only *contents* that are
+ * not hand-authored are skipped.
+ */
+export function isGeneratedDocsMirrorRel(relSlash: string): boolean {
+  const rel = relSlash.split(path.sep).join('/');
+  if (!rel.startsWith(`${GENERATED_DOCS_PUBLIC_REL}/`)) return false;
+  const rest = rel.slice(GENERATED_DOCS_PUBLIC_REL.length + 1);
+  const firstSeg = rest.split('/')[0] ?? '';
+  if (HAND_AUTHORED_DOCS_PUBLIC_SUBDIRS.has(firstSeg)) return false;
+  return true;
+}
+
+// Directories walked in full for `.md` prose. `apps` covers marketing markdown
+// and hand-authored docs-pro; the generated public mirror of monorepo `docs/`
+// is skipped (see isGeneratedDocsMirrorRel). `docs/` is the prose SoT.
 const MARKDOWN_ROOTS: readonly string[] = ['docs', 'apps'];
 
 const isMarkdown = (name: string): boolean => name.endsWith('.md');
 const isReadme = (name: string): boolean => name === 'README.md';
 
-function walkMarkdownFiles(dir: string, acc: string[], accept: (name: string) => boolean): void {
+function walkMarkdownFiles(
+  root: string,
+  dir: string,
+  acc: string[],
+  accept: (name: string) => boolean,
+): void {
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch {
     return;
   }
+  const dirRel = path.relative(root, dir).split(path.sep).join('/');
+  const atGeneratedPublicRoot = dirRel === GENERATED_DOCS_PUBLIC_REL;
+
   for (const e of entries) {
     if (e.isDirectory()) {
       if (SKIP_DIR_SEGMENTS.has(e.name)) continue;
-      walkMarkdownFiles(path.join(dir, e.name), acc, accept);
+      // At the generated public root, only enter hand-authored subdirs.
+      if (atGeneratedPublicRoot && !HAND_AUTHORED_DOCS_PUBLIC_SUBDIRS.has(e.name)) continue;
+      const next = path.join(dir, e.name);
+      const nextRel = path.relative(root, next).split(path.sep).join('/');
+      if (isGeneratedDocsMirrorRel(nextRel)) continue;
+      walkMarkdownFiles(root, next, acc, accept);
     } else if (e.isFile() && accept(e.name)) {
+      // Top-level public/*.md are copy-docs output — never SoT.
+      if (atGeneratedPublicRoot) continue;
+      const fileRel = path.relative(root, path.join(dir, e.name)).split(path.sep).join('/');
+      if (isGeneratedDocsMirrorRel(fileRel)) continue;
       acc.push(path.join(dir, e.name));
     }
   }
 }
 
 /**
- * Drop gitignored files from a collected list. Gitignored markdown is
- * generated output (e.g. the `apps/docs/public` mirror that `copy-docs.sh`
- * regenerates from `docs/`): its sources are already scanned directly, its
- * paths are absent from the baseline, and CI checkouts never contain it —
- * so scanning it yields only machine-dependent duplicate findings.
- * Outside a git repo (unit-test temp dirs), the list passes through as-is.
+ * Drop gitignored files from a collected list. Belt-and-suspenders with
+ * isGeneratedDocsMirrorRel: gitignored markdown is generated output (e.g. the
+ * `apps/docs/public` mirror that `copy-docs.sh` regenerates from `docs/`).
+ * Sources are already scanned; paths are absent from the baseline; CI checkouts
+ * never contain the mirror — scanning it yields only machine-dependent
+ * duplicate findings. Outside a git repo (unit-test temp dirs), the list
+ * passes through as-is for non-mirror paths.
  */
 function filterGitignored(root: string, files: string[]): string[] {
   if (files.length === 0) return files;
@@ -357,10 +400,10 @@ function filterGitignored(root: string, files: string[]): string[] {
 
 export function collectMarkdownFiles(root: string): string[] {
   const acc: string[] = [];
-  for (const rel of MARKDOWN_ROOTS) walkMarkdownFiles(path.join(root, rel), acc, isMarkdown);
+  for (const rel of MARKDOWN_ROOTS) walkMarkdownFiles(root, path.join(root, rel), acc, isMarkdown);
   // Under packages/, only READMEs are reader-facing prose; the rest of the tree
   // is test fixtures, generated files, and per-package CHANGELOGs.
-  walkMarkdownFiles(path.join(root, 'packages'), acc, isReadme);
+  walkMarkdownFiles(root, path.join(root, 'packages'), acc, isReadme);
   // Root-level markdown (README, CLAUDE, AGENTS, SECURITY, CONTRIBUTING, …);
   // CHANGELOG.md is dropped by shouldSkipFile's historical-log rule.
   let entries: fs.Dirent[];
