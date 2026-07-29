@@ -37,6 +37,7 @@ import {
   tokenize,
 } from '@revealui/contracts/marketing-voice';
 import ts from 'typescript';
+import { findCopyDependentHits } from './copy-dependents.js';
 import { type ClaimProfile, existingRoots, getProfile, resolveProfile } from './profiles.js';
 import type {
   CapabilityGateSlice,
@@ -82,6 +83,11 @@ function resolvedFutureTenseFiles(): string[] {
 
 function resolvedAspirationalPaths(): string[] {
   const candidates = ActiveProfile.aspirationalPaths;
+  return ActiveProfile.softScanDirs ? existingRoots(Root, candidates) : [...candidates];
+}
+
+function resolvedCopyDependentPaths(): string[] {
+  const candidates = ActiveProfile.copyDependentPaths;
   return ActiveProfile.softScanDirs ? existingRoots(Root, candidates) : [...candidates];
 }
 
@@ -2231,6 +2237,91 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
   return matches;
 }
 
+/**
+ * Feature-existence copy-dependent holds (COPY-DEP-*). Separate path list from
+ * classic aspirational blocklist so marketing content modules are covered
+ * without re-firing SSO/SLA token hits on every content string.
+ */
+function scanForCopyDependentHolds(): AspirationalMatch[] {
+  const matches: AspirationalMatch[] = [];
+  const isIgnored = ignoredPathPredicateFor(Root);
+
+  function scanFile(filePath: string): void {
+    const rel = path.relative(Root, filePath);
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    const isMarkdown = filePath.endsWith('.md');
+    const commerceExempt = isMarkdown && isRoadmapDeclaredFile(content);
+    const lines = content.split('\n');
+    let inFence = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (isMarkdown && line.startsWith('```')) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+      if (!isMarkdown) {
+        if (line.trim().startsWith('//') || line.trim().startsWith('import ')) continue;
+        if (line.trim().startsWith('{/*') && line.trim().endsWith('*/}')) continue;
+      }
+      if (commerceExempt || hasAspirationalQualifier(line)) continue;
+      const tokens = tokenize(line);
+      for (const hit of findCopyDependentHits(line, tokens)) {
+        matches.push({
+          file: rel,
+          line: i + 1,
+          token: `${hit.holdId} (${hit.title})`,
+          why: hit.why + (hit.publicTracker ? ` (${hit.publicTracker})` : ''),
+          text: line.trim(),
+        });
+      }
+    }
+  }
+
+  function walk(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
+      if (e.isDirectory()) walk(full);
+      else if (
+        e.name.endsWith('.tsx') ||
+        e.name.endsWith('.ts') ||
+        e.name.endsWith('.md') ||
+        e.name.endsWith('.txt')
+      ) {
+        scanFile(full);
+      }
+    }
+  }
+
+  const paths = resolvedCopyDependentPaths();
+  if (paths.length === 0) return matches;
+  assertScanDirsExist(paths, 'COPY_DEPENDENT_SCAN_PATHS');
+  for (const rel of paths) {
+    const full = path.join(Root, rel);
+    let stat: fs.Stats;
+    try {
+      stat = fs.statSync(full);
+    } catch {
+      continue;
+    }
+    if (stat.isFile()) scanFile(full);
+    else if (stat.isDirectory()) walk(full);
+  }
+  return matches;
+}
+
 // ---------------------------------------------------------------------------
 // Fleet-product attribution gate (PR-D, docs-claims-2026-04-26)
 //
@@ -3099,6 +3190,9 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
   // Aspirational-feature blocklist for high-visibility landing + docs copy
   const aspirationalClaims = scanForAspirationalFeatures();
 
+  // Feature-existence copy-dependent holds (COPY-DEP-* in claim-gates)
+  const copyDependentClaims = scanForCopyDependentHolds();
+
   // Fleet-product attribution gate (PR-D)
   const fleetLeaks = scanForFleetProductLeaks();
 
@@ -3145,6 +3239,7 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
   console.log(`Unlinked future-tense markers: ${futureClaims.length}`);
   console.log(`Aspirational-feature scan files: ${resolvedAspirationalPaths().length}`);
   console.log(`Unqualified aspirational features: ${aspirationalClaims.length}`);
+  console.log(`Copy-dependent hold hits (feature-existence): ${copyDependentClaims.length}`);
   console.log(`Unattributed fleet-product mentions: ${fleetLeaks.length}`);
   console.log(`Internal $RVUI ticker leaks: ${rvuiLeaks.length}`);
   console.log(`Phantom-package mentions: ${phantomMatches.length}`);
@@ -3175,6 +3270,18 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
     }
     console.log(
       '\nEach blocklist token must be paired with a qualifier on the same line: "(coming soon)", "(roadmap)", "(in active development)", "(planned)", or a "Roadmap:" prefix. Or remove the claim.',
+    );
+  }
+
+  if (copyDependentClaims.length > 0) {
+    console.log('\nCopy-dependent holds (feature does not exist yet — live claim forbidden):');
+    for (const c of copyDependentClaims) {
+      console.log(`  ${c.file}:${c.line}  ${c.token}`);
+      console.log(`    ${c.why}`);
+      console.log(`    ${c.text.substring(0, 140)}`);
+    }
+    console.log(
+      '\nQualify as roadmap/planned on the same line, or remove the live claim until the feature ships. Then set the hold status to released in packages/claim-gates/src/copy-dependents.ts and cue private COPY-DEP work (.jv copy-dependents.yml).',
     );
   }
 
@@ -3311,6 +3418,7 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
     capability.violations.length > 0 ||
     futureClaims.length > 0 ||
     aspirationalClaims.length > 0 ||
+    copyDependentClaims.length > 0 ||
     fleetLeaks.length > 0 ||
     rvuiLeaks.length > 0 ||
     phantomMatches.length > 0 ||
@@ -3331,6 +3439,9 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
     }
     if (aspirationalClaims.length > 0) {
       console.log('\nFailed: unqualified aspirational features.');
+    }
+    if (copyDependentClaims.length > 0) {
+      console.log('\nFailed: copy-dependent holds (live claim for unshipped feature).');
     }
     if (fleetLeaks.length > 0) {
       console.log('\nFailed: fleet-product mentions without attribution.');
@@ -3358,7 +3469,7 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
     }
   } else {
     console.log(
-      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, fleet products are attributed, no $RVUI ticker leaks were found, no phantom-package mentions were found, license membership matches package.json reality, and no license-split anti-pattern phrasings were found.',
+      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, copy-dependent holds are clear, fleet products are attributed, no $RVUI ticker leaks were found, no phantom-package mentions were found, license membership matches package.json reality, and no license-split anti-pattern phrasings were found.',
     );
   }
 
