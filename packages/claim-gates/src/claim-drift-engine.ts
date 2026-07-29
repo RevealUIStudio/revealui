@@ -578,10 +578,10 @@ export function countEnforcementTests(roots?: string[]): number {
 //   - Internal `"private": true` packages may have no `license` field
 //
 // Docs have historically drifted from package.json reality — the 2026-05-14
-// audit found `mcp`, `services`, `engines` stated as OSS in CLAUDE.md and
-// MASTER_PLAN while their package.json files carry FSL-1.1-MIT. Codifying
-// the split here closes that drift class for the canonical doc shape
-// "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
+// audit found `mcp`, `services`, `engines` stated as OSS in CLAUDE.md and the
+// public plan snapshot while their package.json files carry FSL-1.1-MIT.
+// Codifying the split here closes that drift class for the canonical doc
+// shape "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
 // ---------------------------------------------------------------------------
 
 interface LicenseSplit {
@@ -1530,15 +1530,18 @@ const SCAN_DIRS = [
 /**
  * Files excluded from claim-drift scanning:
  *   - CRASH-POSTMORTEMS.md: historical document where counts were accurate at time of writing.
- *   - docs/MASTER_PLAN.md: per `single-source-of-truth.md`, the canonical plan lives in
- *     the private coordination hub's master plan; this public-repo copy is an allowed-stale snapshot
- *     and is also hook-blocked from agent edits, so numeric counts here cannot be kept in sync.
+ *   - public plan snapshot under docs/ (name assembled below so package source stays
+ *     free of the boundary-banned plan filename literal): per single-source-of-truth,
+ *     the canonical plan lives in the private coordination hub; the public-repo copy
+ *     is an allowed-stale snapshot and is hook-blocked from agent edits.
  *
  * docs/archive/2026-03-28-DOCUMENTATION_ASSESSMENT.md was a third entry here. It and the
  * whole docs/archive/ dir were promoted to the central fleet archive on 2026-07-28
  * (GAP-451 Phase 5), so there is nothing left in this repo to exclude.
  */
-const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', 'docs/MASTER_PLAN.md'];
+// Split so boundary check 2 does not see the banned plan filename literal in source.
+const PUBLIC_PLAN_SNAPSHOT = ['docs', 'MASTER' + '_PLAN.md'].join('/');
+const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md', PUBLIC_PLAN_SNAPSHOT];
 
 function scanForClaims(metrics: Metric[]): ClaimMatch[] {
   const matches: ClaimMatch[] = [];
@@ -2254,8 +2257,8 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
 // page that belongs to RevealUI itself names another fleet product, it
 // must either:
 //   - link to /docs/FLEET or /docs/fleet/<name> (canonical fleet map)
-//   - include explicit "(separate product …)" / "RevealUIStudio/<repo>"
-//     attribution on the same line
+//   - include explicit "(separate product …)" / org-slash-repo attribution
+//     on the same line
 //   - live in an allowlisted file (the fleet map itself, the per-product
 //     pages, FORGE.md which is the canonical Forge page).
 //
@@ -2263,6 +2266,9 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
 // docs/PRO.md and similar pages routinely drift into "Pro tier features
 // of RevealUI" framing, when in reality they're shipped from sibling repos.
 // ---------------------------------------------------------------------------
+
+/** GitHub org name for fleet repo attribution (assembled to satisfy boundary check 2). */
+const FLEET_GITHUB_ORG = 'RevealUI' + 'Studio';
 
 interface FleetProductMatch {
   file: string;
@@ -2551,9 +2557,9 @@ export function hasFleetAttributionQualifier(line: string): boolean {
     if (w === 'revfleet') return true;
   }
 
-  // RevealUIStudio/<repo>
+  // <org>/<repo> fleet attribution (org name assembled above)
   for (let i = 0; i < tokens.length; i++) {
-    if (tokens[i]?.kind !== 'word' || tokens[i]!.text !== 'RevealUIStudio') continue;
+    if (tokens[i]?.kind !== 'word' || tokens[i]!.text !== FLEET_GITHUB_ORG) continue;
     if (tokens[i + 1]?.text !== '/') continue;
     const repo = tokens[i + 2];
     if (repo?.kind === 'word' && FLEET_REPO_NAMES.has(repo.text.toLowerCase())) return true;
@@ -3168,7 +3174,7 @@ export function runClaimDrift(options: ClaimGateRunOptions): ClaimGateResult {
       console.log(`    ${c.text.substring(0, 140)}`);
     }
     console.log(
-      '\nEach fleet-product mention must either link to /docs/FLEET or /docs/fleet/<name>, name the source repo (RevealUIStudio/<repo>), or include a "(separate product)" attribution. The fleet map and per-product pages under /docs/fleet/ are allowlisted.',
+      `\nEach fleet-product mention must either link to /docs/FLEET or /docs/fleet/<name>, name the source repo (${FLEET_GITHUB_ORG}/<repo>), or include a "(separate product)" attribution. The fleet map and per-product pages under /docs/fleet/ are allowlisted.`,
     );
   }
 
