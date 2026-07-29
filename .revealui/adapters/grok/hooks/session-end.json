@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s\\n' \"[grok] adapter SessionEnd → control layer (hotfix + temp-scripts)\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/hotfix-check.js\" 2>/dev/null || true",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/tmpscript-check.js\" 2>/dev/null || true",
+            "timeout": 12
+          }
+        ]
+      }
+    ]
+  }
+}
