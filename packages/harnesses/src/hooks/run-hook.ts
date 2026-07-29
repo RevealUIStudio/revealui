@@ -166,8 +166,8 @@ export async function runHookCommand(
 
   // GAP-199 native twin: warn-only when file-edit (or post-tool with paths)
   // touches contract/schema/app code without the product canon doc dirty.
-  // Never changes the permission decision — advisory only (Claude-side pair:
-  // ~/.claude/hooks/master-spec-pr-coupling.js).
+  // Never changes the permission decision — advisory only. Claude-side adapter
+  // invokes the same evaluatePolicy path via runHookCommand (no twin script).
   if (
     (event.kind === 'file-edit' || event.kind === 'post-tool') &&
     event.filePaths &&

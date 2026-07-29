@@ -712,8 +712,10 @@ function main(): void {
     for (const g of newGaps) {
       process.stderr.write(`  ⚠ ${g.file}:${g.line}  ${g.excerpt}\n`);
     }
+    // GAP-410: only inline citations on the claim's physical line exonerate.
+    // A ## Sources block is NOT implemented — do not promise it here.
     process.stderr.write(
-      '\n  Add a source citation (`path/to/file.ts:line`) on the line or in a `## Sources` block,\n' +
+      '\n  Add a source citation (`path/to/file.ts:line`) on the same line as the claim,\n' +
         '  or — if this is not a code-behaviour claim — rephrase / regenerate the baseline\n' +
         '  (`citation-check.ts --update-baseline`). Convention: .claude/rules/doc-citations.md\n',
     );
