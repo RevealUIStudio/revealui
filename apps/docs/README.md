@@ -1,69 +1,74 @@
 # RevealUI Docs
 
-Public documentation site for RevealUI  -  built with Vite and React.
+Public documentation site for RevealUI — built with Vite and React.
 
 **Live at:** https://docs.revealui.com
 
-## Features
-
-- **Markdown Rendering**  -  Renders project documentation as styled HTML (react-markdown + remark-gfm)
-- **Content Pipeline**  -  `scripts/copy-docs.sh` copies **public** docs from monorepo `docs/` into `public/` at build time (flat URL space per CHIP-3 D5a — `docs.revealui.com/admin-guide` resolves to `public/ADMIN_GUIDE.md`)
-- **Visibility Filtering**  -  Fail-closed on frontmatter `visibility: public` only (internal docs stay in `docs/` and never ship)
-- **SPA Routing**  -  Client-side routing via @revealui/router with Vercel SPA rewrite
-
-## Stack
-
-- **Build**: Vite
-- **UI**: React 19
-- **Markdown**: react-markdown, remark-gfm
-- **Routing**: @revealui/router
-
-## Development
-
-```bash
-# Start dev server (copies docs + starts Vite)
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
-
-# Type check
-pnpm typecheck
-
-# Run tests
-pnpm test
-```
-
-## Content Pipeline (single source of truth)
+## Documentation SoT (read this first)
 
 | Path | Role |
 |------|------|
 | **`docs/`** (monorepo root) | **Only place to edit** documentation |
-| **`apps/docs/public/**/*.md`** | **Generated serve mirror** — do not edit, gitignored |
+| **`apps/docs/public/**/*.md`** | **Do not create.** Not a materialize mirror. |
 | **`apps/docs/public/docs-pro/`** | Hand-authored Pro docs exception (tracked) |
+| **`apps/docs/dist/**/*.md`** | Build output only (gitignored) |
 
-`scripts/copy-docs.sh` (and the Vite `docsCopyPlugin`) copy markdown from monorepo `docs/` into `public/` (flat root, not `public/docs/`) before each build. After copy, `prune-non-public.mjs` removes anything that is not `visibility: public`. See CHIP-3 D5a in `scripts/copy-docs.sh` and `public/COPIED-FROM-DOCS.txt`.
+Publish plane: `scripts/docs-publish.mjs` + Vite `docs-publish` plugin.
 
-**Agents and humans:** always edit under monorepo `docs/`. Never open a PR that only changes `apps/docs/public/*.md`. A local `public/` tree after `pnpm dev` is build output, not a second docs set.
+- **Dev:** middleware serves `visibility: public` markdown from monorepo `docs/`
+- **Build:** emits the same set into `dist/` for static hosting
+- **Visibility:** fail-closed frontmatter (`scripts/served-docs.mjs`)
+
+See `public/DOCS-PUBLISH-PLANE.txt` and  
+`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`.
+
+## Features
+
+- **Markdown rendering** — react-markdown + remark-gfm
+- **Virtual publish plane** — no second authoring-shaped tree under `public/`
+- **Visibility filtering** — fail-closed `visibility: public` only
+- **SPA routing** — `@revealui/router` with Vercel SPA rewrite
+- **Flat URLs** — CHIP-3 D5a (`docs.revealui.com/admin-guide` → `ADMIN_GUIDE.md`)
+
+## Stack
+
+- Build: Vite
+- UI: React 19
+- Markdown: react-markdown, remark-gfm
+- Routing: `@revealui/router`
+
+## Development
+
+```bash
+# Start dev server (virtual serve from monorepo docs/)
+pnpm dev
+
+# Production build (emits public md into dist/)
+pnpm build
+
+# Link integrity (served set = visibility:public under monorepo docs/)
+pnpm check:links
+
+# Clean leftover generated public/*.md from old materialize builds
+pnpm clean:public-mirror
+
+pnpm typecheck
+pnpm test
+```
+
+## Adding documentation
+
+1. Add or edit markdown under monorepo **`docs/`**
+2. Set frontmatter `visibility: public` to ship on docs.revealui.com
+3. Internal docs use `visibility: internal` (never served)
+4. Re-run `pnpm build:slug-manifest` when adding/renaming public paths that affect slugs
+
+Do **not** add markdown under `apps/docs/public/` except `docs-pro/`.
 
 ## Deployment
 
-Deployed to Vercel as `revealui-docs` via CLI (not GitHub auto-deploy).
+Deployed to Vercel as `revealui-docs`.
 
 ```bash
-# Deploy from repo root
-VERCEL_ORG_ID=<org-id> \
-VERCEL_PROJECT_ID=<project-id> \
-vercel deploy --prod --archive=tgz
+pnpm vercel-build   # from apps/docs: turbo build --filter=docs
 ```
-
-## Related
-
-- [Architecture Guide](../../docs/ARCHITECTURE.md)
-
-## License
-
-MIT

@@ -29,10 +29,12 @@ Agentic business runtime. People, content, offers, payments, and agents  -  pre-
 | Path | Role |
 |------|------|
 | **`docs/`** | **Only place to edit** documentation |
-| **`apps/docs/public/**/*.md`** | Generated serve mirror (gitignored). Filled by `copy-docs.sh`. **Never edit.** |
-| **`apps/docs/public/docs-pro/`** | Hand-authored Pro docs exception (tracked) |
+| **`apps/docs/public/**/*.md`** | Not a materialize mirror — do not create/edit |
+| **`apps/docs/public/docs-pro/`** | Hand-authored Pro exception |
+| **`apps/docs/dist/`** | Build output only |
 
-After `pnpm dev` / `pnpm build` under `apps/docs`, a full `public/*.md` tree may exist on disk. That is build output, not a second docs set. See `apps/docs/public/COPIED-FROM-DOCS.txt` and `apps/docs/README.md`.
+Publish plane: virtual serve + dist emit  
+(`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`).
 
 ## Git Identity
 RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>

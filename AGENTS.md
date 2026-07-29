@@ -26,7 +26,10 @@ Mission: build the self-hosted runtime where a business and the AI agents that r
 
 ## Documentation SoT
 
-Edit monorepo **`docs/`** only. **`apps/docs/public/**/*.md`** is a generated serve mirror for docs.revealui.com (`copy-docs.sh`); gitignored; never hand-edit. Hand-authored exception: `apps/docs/public/docs-pro/`. See `apps/docs/public/COPIED-FROM-DOCS.txt`.
+Edit monorepo **`docs/`** only. Do **not** author under `apps/docs/public/*.md`
+(virtual publish plane: dev middleware + dist emit). Hand-authored exception:
+`apps/docs/public/docs-pro/`. See
+`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`.
 
 ## Stack
 

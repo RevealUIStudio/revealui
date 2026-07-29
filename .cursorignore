@@ -1,7 +1,7 @@
-# Generated docs-site serve mirror of monorepo docs/ (CHIP-3 D5a).
-# SoT: edit docs/ only. Filled by apps/docs/scripts/copy-docs.sh + Vite plugin.
-# Hand-authored exception docs-pro/ is force-included below.
+# Docs publish plane (ADR 2026-07-29): no authoring under public/*.md.
+# Monorepo docs/ is SoT; dist/ is build output. Hand-authored docs-pro stays.
 apps/docs/public/**/*.md
 apps/docs/public/*/
 !apps/docs/public/docs-pro/
 !apps/docs/public/docs-pro/**
+apps/docs/dist/

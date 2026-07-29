@@ -5,24 +5,14 @@ dist/
 # gen:previews Tailwind compile scratch (removed after each run; safety net)
 .gen-preview-css-tmp/
 
-# CHIP-3 D5a: the repo-root /docs tree is copied into public/ at build time —
-# by apps/docs/scripts/copy-docs.sh (full copy) and the vite docs-copy plugin
-# (markdown only). Everything they emit is a generated build artifact and must
-# NOT be committed: tracking the copies forces a sync-commit on every /docs edit
-# and trips CI's generated-in-sync git-diff gate (see PR #1033). Edit /docs/,
-# never public/.
-#
-# Every subdirectory under public/ is copied from /docs, so ignore them all;
-# with the top-level markdown rule this covers the whole artifact set (including
-# non-markdown like features/*.yml) and stays correct as /docs gains subdirs.
+# Docs publish plane (ADR 2026-07-29): monorepo docs/ is the only authoring SoT.
+# Public markdown is NOT materialized into public/*.md. Keep ignoring any
+# leftover generated .md / copied subdirs from the pre-virtual-serve era so they
+# can never be committed. Hand-authored docs-pro/ stays tracked.
 public/*.md
 public/*/
 
-# Hand-authored content that lives in public/ and is NOT copied from /docs —
-# keep it tracked. docs-pro/ is canonical Pro documentation served by
-# app/routes/ProPage.tsx and validated by scripts/validate/claim-drift.ts.
-# (favicons, logos, robots.txt, sitemap.xml, llms.txt, .gitkeep are top-level
-#  non-markdown files matched by neither rule above, so they stay tracked.)
+# Hand-authored Pro documentation (tracked)
 !public/docs-pro/
 !public/docs-pro/**
 

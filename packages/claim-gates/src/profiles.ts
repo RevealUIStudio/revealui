@@ -48,9 +48,8 @@ const PRODUCT_RUNTIME: ClaimProfile = {
   licenseScanRoots: [
     'docs',
     'apps/marketing/app',
-    // Hand-authored public docs only. Do NOT scan apps/docs/public/* generated
-    // by copy-docs.sh (mirror of monorepo docs/); that tree is gitignored and
-    // not a second source of truth.
+    // Hand-authored public docs only. Do NOT scan a materialize mirror of
+    // monorepo docs/ under apps/docs/public/ (ADR 2026-07-29 virtual serve).
     'apps/docs/public/docs-pro',
     'apps/docs/public/llms.txt',
     'README.md',

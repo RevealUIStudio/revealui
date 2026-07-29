@@ -82,17 +82,18 @@ library and never authored regex.
 
 The boundary is **frontmatter-driven, single-source, and fail-closed**.
 
-### Two paths, one SoT
+### Publish plane (one SoT — ADR 2026-07-29)
 
 | Path | Role |
 |------|------|
-| **`docs/`** | **Source of truth.** Edit here only. |
-| **`apps/docs/public/**/*.md`** | **Generated serve mirror** for docs.revealui.com. Filled by `copy-docs.sh` + Vite `docsCopyPlugin`. Gitignored. Never edit or commit. |
-| **`apps/docs/public/docs-pro/`** | Hand-authored Pro exception (tracked). |
+| **`docs/`** | **Only authoring source of truth** |
+| **Dev serve** | Vite `docs-publish` middleware reads `docs/` (no materialize to `public/*.md`) |
+| **Build emit** | Public markdown written to `apps/docs/dist/` only |
+| **`apps/docs/public/docs-pro/`** | Hand-authored Pro exception (tracked) |
 
-A local disk full of `apps/docs/public/*.md` after `pnpm dev` is build output.
-Scanners (`doc-currency`, claim-gates) skip that mirror; agents should use
-`.cursorignore` / `.ignore` the same way.
+Implementation: `apps/docs/scripts/docs-publish.mjs`, `served-docs.mjs`,
+`apps/docs/vite.config.ts`. ADR:
+`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`.
 
 Rules enforced by the gate:
 
@@ -101,9 +102,9 @@ Rules enforced by the gate:
 2. **Physical home.** Internal docs live under `docs/internal/` (and related
    internal paths). Anything under `docs/internal/` must be
    `visibility: internal`. The tree and the frontmatter must agree.
-3. **The mirror reads frontmatter.** The docs-app publish step serves a doc only
-   when `visibility: public`. `copy-docs.sh` + `prune-non-public.mjs` and the
-   Vite plugin read that single source (no hand-maintained denylist).
+3. **Publish reads frontmatter.** Dev middleware and dist emit serve a doc only
+   when `visibility: public` (`served-docs.mjs`). There is no authoring-shaped
+   copy under `apps/docs/public/*.md`.
 4. **Leak guard on public docs.** Every `visibility: public` doc is scanned for
    internal-only content: absolute developer home paths, Windows user-profile
    paths, the private internal planning repo and its paths, revvault secret
@@ -193,7 +194,7 @@ move them into `docs/`, which would break that discovery; it is retired.)
 | `scripts/validate/docs-import-drift.ts` | KEEP; extend to all docs; promote warn-only -> hard-fail |
 | `scripts/docs/generate-api.ts` | KEEP; wire the OpenAPI snapshot refresh into CI |
 | `scripts/validate/README.md` | REWRITE to a short pointer at this spec |
-| denylist in `copy-docs.sh` + `vite.config.ts` | DONE — frontmatter `visibility: public` + prune-non-public (single source); public/*.md is generated mirror only |
+| denylist in `copy-docs.sh` + `vite.config.ts` | DONE — visibility frontmatter + docs-publish virtual serve / dist emit (ADR 2026-07-29) |
 
 ## Execution phases
 
