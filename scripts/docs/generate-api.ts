@@ -63,8 +63,17 @@ function badge(method: string): string {
 function generateMarkdown(spec: OpenAPISpec): string {
   const lines: string[] = [];
 
-  // Header
+  // Header — YAML frontmatter required so copy-docs keeps this public
+  // when the public site should serve it (visibility: public).
   lines.push(
+    `---`,
+    `title: "REST API Reference"`,
+    `description: "Generated REST API reference from the OpenAPI spec."`,
+    `visibility: public`,
+    `status: generated`,
+    `audience: user`,
+    `---`,
+    ``,
     `# REST API Reference`,
     ``,
     `**Version:** ${spec.info.version}`,
