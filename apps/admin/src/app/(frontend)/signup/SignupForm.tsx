@@ -313,7 +313,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
               autoComplete="new-password"
               className="pr-10"
               aria-label="Password"
-              minLength={8}
+              minLength={12}
               required
             />
           </PasswordInput>

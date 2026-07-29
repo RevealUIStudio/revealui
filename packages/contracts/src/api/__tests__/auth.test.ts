@@ -85,16 +85,16 @@ describe('SignUpRequestContract', () => {
       }
     });
 
-    it('rejects password shorter than 8 characters', () => {
+    it('rejects password shorter than 12 characters (GAP-244)', () => {
       const result = SignUpRequestContract.validate({
         email: 'user@example.com',
-        password: 'Short1',
+        password: 'Short1pass', // 10 chars
         name: 'John Doe',
       });
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.errors.issues[0]?.message).toContain('at least 8 characters');
+        expect(result.errors.issues[0]?.message).toContain('at least 12 characters');
       }
     });
 
