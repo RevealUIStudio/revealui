@@ -67,7 +67,7 @@ export function Tooltip({ content, side = 'top', className, delay = 200, childre
           id={id}
           role="tooltip"
           className={cn(
-            'pointer-events-none absolute z-50 w-max max-w-xs rounded-lg bg-zinc-950 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-zinc-700',
+            'pointer-events-none absolute z-50 w-max max-w-xs rounded-lg bg-foreground px-2.5 py-1.5 text-xs text-background shadow-lg',
             sideClasses[side],
             className,
           )}

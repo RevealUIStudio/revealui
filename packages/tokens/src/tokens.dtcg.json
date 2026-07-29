@@ -1,0 +1,679 @@
+{
+  "$description": "RevealUI design tokens — DTCG export. GENERATED from packages/tokens/src/tokens.css by scripts/gen-dtcg.cjs. Do not hand-edit — edit tokens.css and run `pnpm --filter @revealui/tokens gen:dtcg`. Dark-first: $value carries the dark-mode value; light-mode overrides live in $extensions[\"com.revealui.theme\"].light. Multi-layer shadows are carried as raw CSS strings (flagged com.revealui.format: css) because DTCG's composite shadow type cannot express layered oklch shadows without loss.",
+  "dimension": {
+    "radius": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "6px"
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "10px"
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "16px"
+      },
+      "xl": {
+        "$type": "dimension",
+        "$value": "24px"
+      },
+      "full": {
+        "$type": "dimension",
+        "$value": "9999px"
+      }
+    },
+    "borderWidth": {
+      "base": {
+        "$type": "dimension",
+        "$value": "1px"
+      }
+    },
+    "space": {
+      "0": {
+        "$type": "dimension",
+        "$value": "0px"
+      },
+      "1": {
+        "$type": "dimension",
+        "$value": "4px"
+      },
+      "2": {
+        "$type": "dimension",
+        "$value": "8px"
+      },
+      "3": {
+        "$type": "dimension",
+        "$value": "12px"
+      },
+      "4": {
+        "$type": "dimension",
+        "$value": "16px"
+      },
+      "5": {
+        "$type": "dimension",
+        "$value": "20px"
+      },
+      "6": {
+        "$type": "dimension",
+        "$value": "24px"
+      },
+      "8": {
+        "$type": "dimension",
+        "$value": "32px"
+      },
+      "10": {
+        "$type": "dimension",
+        "$value": "40px"
+      },
+      "12": {
+        "$type": "dimension",
+        "$value": "48px"
+      },
+      "16": {
+        "$type": "dimension",
+        "$value": "64px"
+      },
+      "20": {
+        "$type": "dimension",
+        "$value": "80px"
+      },
+      "24": {
+        "$type": "dimension",
+        "$value": "96px"
+      },
+      "px": {
+        "$type": "dimension",
+        "$value": "1px"
+      },
+      "0-5": {
+        "$type": "dimension",
+        "$value": "2px"
+      },
+      "1-5": {
+        "$type": "dimension",
+        "$value": "6px"
+      }
+    }
+  },
+  "easing": {
+    "base": {
+      "$type": "cubicBezier",
+      "$value": [0.22, 1, 0.36, 1]
+    },
+    "in": {
+      "$type": "cubicBezier",
+      "$value": [0.55, 0, 1, 0.45]
+    },
+    "out": {
+      "$type": "cubicBezier",
+      "$value": [0, 0.55, 0.45, 1]
+    },
+    "spring": {
+      "$type": "cubicBezier",
+      "$value": [0.34, 1.56, 0.64, 1]
+    }
+  },
+  "duration": {
+    "fast": {
+      "$type": "duration",
+      "$value": "120ms"
+    },
+    "normal": {
+      "$type": "duration",
+      "$value": "200ms"
+    },
+    "slow": {
+      "$type": "duration",
+      "$value": "350ms"
+    }
+  },
+  "fontFamily": {
+    "sans": {
+      "$type": "fontFamily",
+      "$value": ["Inter Variable", "Inter", "system-ui", "sans-serif"]
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": [
+        "JetBrains Mono Variable",
+        "JetBrains Mono",
+        "Fira Code",
+        "ui-monospace",
+        "monospace"
+      ]
+    },
+    "display": {
+      "$type": "fontFamily",
+      "$value": [
+        "Inter Tight Variable",
+        "Inter Tight",
+        "Inter Variable",
+        "Inter",
+        "system-ui",
+        "sans-serif"
+      ]
+    }
+  },
+  "fontSize": {
+    "xs": {
+      "$type": "dimension",
+      "$value": "0.75rem"
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.875rem"
+    },
+    "base": {
+      "$type": "dimension",
+      "$value": "1rem"
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "1.125rem"
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "1.25rem"
+    },
+    "2xl": {
+      "$type": "dimension",
+      "$value": "1.5rem"
+    },
+    "3xl": {
+      "$type": "dimension",
+      "$value": "1.875rem"
+    },
+    "display": {
+      "$type": "dimension",
+      "$value": "2.5rem"
+    }
+  },
+  "lineHeight": {
+    "tight": {
+      "$type": "number",
+      "$value": 1.25
+    },
+    "normal": {
+      "$type": "number",
+      "$value": 1.5
+    },
+    "relaxed": {
+      "$type": "number",
+      "$value": 1.75
+    }
+  },
+  "letterSpacing": {
+    "tight": {
+      "$type": "dimension",
+      "$value": "-0.02em"
+    },
+    "normal": {
+      "$type": "dimension",
+      "$value": "0em"
+    },
+    "wide": {
+      "$type": "dimension",
+      "$value": "0.20em"
+    }
+  },
+  "zIndex": {
+    "base": {
+      "$type": "number",
+      "$value": 0
+    },
+    "dropdown": {
+      "$type": "number",
+      "$value": 100
+    },
+    "sticky": {
+      "$type": "number",
+      "$value": 200
+    },
+    "overlay": {
+      "$type": "number",
+      "$value": 300
+    },
+    "modal": {
+      "$type": "number",
+      "$value": 400
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 500
+    }
+  },
+  "color": {
+    "brand": {
+      "base": {
+        "$type": "color",
+        "$value": "oklch(0.58 0.150 240)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.58 0.150 240)",
+            "light": "oklch(0.36 0.190 240)"
+          }
+        }
+      },
+      "hover": {
+        "$type": "color",
+        "$value": "oklch(0.65 0.130 240)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.65 0.130 240)",
+            "light": "oklch(0.43 0.180 240)"
+          }
+        }
+      },
+      "strong": {
+        "$type": "color",
+        "$value": "oklch(0.36 0.190 240)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.36 0.190 240)",
+            "light": "oklch(0.20 0.130 263)"
+          }
+        }
+      },
+      "soft": {
+        "$type": "color",
+        "$value": "oklch(0.58 0.150 240 / 0.16)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.58 0.150 240 / 0.16)",
+            "light": "oklch(0.36 0.190 240 / 0.10)"
+          }
+        }
+      },
+      "subtle": {
+        "$type": "color",
+        "$value": "oklch(0.58 0.150 240 / 0.10)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.58 0.150 240 / 0.10)",
+            "light": "oklch(0.36 0.190 240 / 0.06)"
+          }
+        }
+      },
+      "text": {
+        "$type": "color",
+        "$value": "oklch(0.78 0.100 240)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.78 0.100 240)",
+            "light": "oklch(0.30 0.180 244)"
+          }
+        }
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "oklch(0.58 0.150 240 / 0.42)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.58 0.150 240 / 0.42)",
+            "light": "oklch(0.36 0.190 240 / 0.24)"
+          }
+        }
+      }
+    },
+    "accent": {
+      "base": {
+        "$type": "color",
+        "$value": "oklch(0.80 0.165 85)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.80 0.165 85)",
+            "light": "oklch(0.78 0.165 85)"
+          }
+        }
+      },
+      "hover": {
+        "$type": "color",
+        "$value": "oklch(0.87 0.150 85)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.87 0.150 85)",
+            "light": "oklch(0.85 0.150 85)"
+          }
+        }
+      },
+      "strong": {
+        "$type": "color",
+        "$value": "oklch(0.70 0.165 80)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.70 0.165 80)",
+            "light": "oklch(0.65 0.165 80)"
+          }
+        }
+      },
+      "soft": {
+        "$type": "color",
+        "$value": "oklch(0.80 0.165 85 / 0.14)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.80 0.165 85 / 0.14)",
+            "light": "oklch(0.78 0.165 85 / 0.14)"
+          }
+        }
+      },
+      "glow": {
+        "$type": "color",
+        "$value": "oklch(0.80 0.165 85 / 0.36)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.80 0.165 85 / 0.36)",
+            "light": "oklch(0.78 0.165 85 / 0.24)"
+          }
+        }
+      }
+    },
+    "surface": {
+      "0": {
+        "$type": "color",
+        "$value": "oklch(0.16 0.030 260)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.16 0.030 260)",
+            "light": "oklch(0.985 0.005 250)"
+          }
+        }
+      },
+      "1": {
+        "$type": "color",
+        "$value": "oklch(0.22 0.025 258)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.22 0.025 258)",
+            "light": "oklch(1.000 0     0)"
+          }
+        }
+      },
+      "2": {
+        "$type": "color",
+        "$value": "oklch(0.28 0.028 256)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.28 0.028 256)",
+            "light": "oklch(0.965 0.006 248)"
+          }
+        }
+      },
+      "3": {
+        "$type": "color",
+        "$value": "oklch(0.34 0.030 254)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.34 0.030 254)",
+            "light": "oklch(0.930 0.010 245)"
+          }
+        }
+      }
+    },
+    "border": {
+      "base": {
+        "$type": "color",
+        "$value": "oklch(0.83 0.015 245 / 0.12)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.83 0.015 245 / 0.12)",
+            "light": "oklch(0.16 0.030 260 / 0.08)"
+          }
+        }
+      },
+      "subtle": {
+        "$type": "color",
+        "$value": "oklch(0.83 0.015 245 / 0.06)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.83 0.015 245 / 0.06)",
+            "light": "oklch(0.16 0.030 260 / 0.04)"
+          }
+        }
+      },
+      "strong": {
+        "$type": "color",
+        "$value": "oklch(0.83 0.015 245 / 0.22)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.83 0.015 245 / 0.22)",
+            "light": "oklch(0.16 0.030 260 / 0.16)"
+          }
+        }
+      }
+    },
+    "text": {
+      "0": {
+        "$type": "color",
+        "$value": "oklch(0.985 0.005 250)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.985 0.005 250)",
+            "light": "oklch(0.16 0.030 260)"
+          }
+        }
+      },
+      "1": {
+        "$type": "color",
+        "$value": "oklch(0.83 0.015 245)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.83 0.015 245)",
+            "light": "oklch(0.34 0.030 250)"
+          }
+        }
+      },
+      "2": {
+        "$type": "color",
+        "$value": "oklch(0.72 0.020 250)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.72 0.020 250)",
+            "light": "oklch(0.48 0.030 250)"
+          }
+        }
+      }
+    },
+    "textOn": {
+      "brand": {
+        "$type": "color",
+        "$value": "oklch(0.16 0.030 260)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.16 0.030 260)",
+            "light": "oklch(0.985 0.005 250)"
+          }
+        }
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "oklch(0.18 0.040 75)"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "oklch(0.985 0.005 250)"
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.textOn.accent}"
+      },
+      "error": {
+        "$type": "color",
+        "$value": "oklch(0.985 0.005 250)"
+      }
+    },
+    "scrim": {
+      "base": {
+        "$type": "color",
+        "$value": "oklch(0.10 0.020 260 / 0.62)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.10 0.020 260 / 0.62)",
+            "light": "oklch(0.16 0.030 260 / 0.32)"
+          }
+        }
+      }
+    },
+    "status": {
+      "success": {
+        "$type": "color",
+        "$value": "oklch(0.55 0.130 165)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.55 0.130 165)",
+            "light": "oklch(0.48 0.135 165)"
+          }
+        }
+      },
+      "successSubtle": {
+        "$type": "color",
+        "$value": "oklch(0.55 0.130 165 / 0.12)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.55 0.130 165 / 0.12)",
+            "light": "oklch(0.48 0.135 165 / 0.10)"
+          }
+        }
+      },
+      "successStrong": {
+        "$type": "color",
+        "$value": "oklch(0.48 0.135 165)"
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "oklch(0.70 0.165 80)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.70 0.165 80)",
+            "light": "oklch(0.65 0.165 80)"
+          }
+        }
+      },
+      "warningSubtle": {
+        "$type": "color",
+        "$value": "oklch(0.70 0.165 80 / 0.12)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.70 0.165 80 / 0.12)",
+            "light": "oklch(0.65 0.165 80 / 0.10)"
+          }
+        }
+      },
+      "warningText": {
+        "$type": "color",
+        "$value": "oklch(0.70 0.165 80)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.70 0.165 80)",
+            "light": "oklch(0.45 0.130 75)"
+          }
+        }
+      },
+      "error": {
+        "$type": "color",
+        "$value": "oklch(0.52 0.200 15)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.52 0.200 15)",
+            "light": "oklch(0.50 0.200 15)"
+          }
+        }
+      },
+      "errorSubtle": {
+        "$type": "color",
+        "$value": "oklch(0.52 0.200 15 / 0.12)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.52 0.200 15 / 0.12)",
+            "light": "oklch(0.50 0.200 15 / 0.10)"
+          }
+        }
+      },
+      "successText": {
+        "$type": "color",
+        "$value": "oklch(0.60 0.125 165)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.60 0.125 165)",
+            "light": "oklch(0.48 0.135 165)"
+          }
+        }
+      },
+      "errorText": {
+        "$type": "color",
+        "$value": "oklch(0.62 0.170 18)",
+        "$extensions": {
+          "com.revealui.theme": {
+            "dark": "oklch(0.62 0.170 18)",
+            "light": "oklch(0.48 0.190 15)"
+          }
+        }
+      },
+      "info": {
+        "$type": "color",
+        "$value": "{color.brand.base}"
+      },
+      "infoSubtle": {
+        "$type": "color",
+        "$value": "{color.brand.subtle}"
+      }
+    }
+  },
+  "shadow": {
+    "sm": {
+      "$type": "shadow",
+      "$value": "0 1px 3px oklch(0 0 0 / 0.40)",
+      "$extensions": {
+        "com.revealui.theme": {
+          "dark": "0 1px 3px oklch(0 0 0 / 0.40)",
+          "light": "0 1px 3px oklch(0.16 0.030 260 / 0.06)"
+        },
+        "com.revealui.format": "css"
+      }
+    },
+    "md": {
+      "$type": "shadow",
+      "$value": "0 6px 18px oklch(0 0 0 / 0.45), 0 2px 4px oklch(0 0 0 / 0.25)",
+      "$extensions": {
+        "com.revealui.theme": {
+          "dark": "0 6px 18px oklch(0 0 0 / 0.45), 0 2px 4px oklch(0 0 0 / 0.25)",
+          "light": "0 6px 18px oklch(0.16 0.030 260 / 0.10), 0 2px 4px oklch(0.16 0.030 260 / 0.05)"
+        },
+        "com.revealui.format": "css"
+      }
+    },
+    "lg": {
+      "$type": "shadow",
+      "$value": "0 18px 50px oklch(0 0 0 / 0.55), 0 6px 16px oklch(0 0 0 / 0.35)",
+      "$extensions": {
+        "com.revealui.theme": {
+          "dark": "0 18px 50px oklch(0 0 0 / 0.55), 0 6px 16px oklch(0 0 0 / 0.35)",
+          "light": "0 18px 50px oklch(0.16 0.030 260 / 0.16), 0 6px 16px oklch(0.16 0.030 260 / 0.08)"
+        },
+        "com.revealui.format": "css"
+      }
+    },
+    "glow": {
+      "$type": "shadow",
+      "$value": "0 0 32px var(--rvui-brand-glow)",
+      "$extensions": {
+        "com.revealui.theme": {
+          "dark": "0 0 32px var(--rvui-brand-glow)",
+          "light": "0 0 28px var(--rvui-brand-glow)"
+        },
+        "com.revealui.format": "css"
+      }
+    },
+    "glowAccent": {
+      "$type": "shadow",
+      "$value": "0 0 28px var(--rvui-accent-glow)",
+      "$extensions": {
+        "com.revealui.theme": {
+          "dark": "0 0 28px var(--rvui-accent-glow)",
+          "light": "0 0 24px var(--rvui-accent-glow)"
+        },
+        "com.revealui.format": "css"
+      }
+    }
+  }
+}

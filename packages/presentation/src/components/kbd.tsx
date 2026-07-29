@@ -6,7 +6,7 @@ export function Kbd({ className, children, ...props }: React.ComponentPropsWitho
     <kbd
       {...props}
       className={cn(
-        'inline-flex items-center rounded border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 font-mono text-xs font-medium text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
+        'inline-flex items-center rounded border border-input bg-surface-2 px-1.5 py-0.5 font-mono text-xs font-medium text-body',
         className,
       )}
     >
@@ -30,7 +30,9 @@ export function KbdShortcut({
         // biome-ignore lint/suspicious/noArrayIndexKey: keyboard shortcut keys are positionally ordered with no stable ID
         <span key={i} className="inline-flex items-center gap-1">
           <Kbd>{key}</Kbd>
-          {i < keys.length - 1 && <span className="text-xs text-zinc-400">{separator}</span>}
+          {i < keys.length - 1 && (
+            <span className="text-xs text-muted-foreground">{separator}</span>
+          )}
         </span>
       ))}
     </span>

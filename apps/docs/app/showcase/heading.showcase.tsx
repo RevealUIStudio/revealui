@@ -49,6 +49,11 @@ const story: ShowcaseStory = {
 
   code: (props: Record<string, unknown>) =>
     `<Heading level={${props.level}}>${props.children}</Heading>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 2.4.6 Headings and Labels'],
+    notes: 'level prop maps to h1–h6; keep a single logical outline per page.',
+  },
 };
 
 export default story;

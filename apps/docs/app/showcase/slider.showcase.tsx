@@ -58,6 +58,21 @@ const story: ShowcaseStory = {
     attrs.push('label="Volume"');
     return `<Slider ${attrs.join(' ')} />`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      'Arrow keys': 'Adjust value',
+      Home: 'Minimum when supported',
+      End: 'Maximum when supported',
+    },
+    aria: {
+      role: 'slider',
+      'aria-valuenow': 'Current value',
+      'aria-valuemin': 'Minimum',
+      'aria-valuemax': 'Maximum',
+    },
+  },
 };
 
 export default story;

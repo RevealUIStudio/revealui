@@ -12,17 +12,17 @@ function Textarea({ className, ref, ...props }: TextareaProps) {
         // Layout + typography
         'flex min-h-[80px] w-full border bg-background px-3 py-2 text-sm',
         // Border — solid hex tokens (not alpha-translucent), matches Input primitive
-        'border-zinc-300 dark:border-zinc-700',
+        'border-input',
         // Hover affordance
-        'hover:border-zinc-400 dark:hover:border-zinc-600',
+        'hover:border-border-strong',
         // Focus — brand-tinted ring + border via --tenant-brand → --ring fallback chain
         'focus-visible:outline-none focus-visible:border-[var(--tenant-brand,var(--ring))] focus-visible:ring-2 focus-visible:ring-[var(--tenant-brand,var(--ring))] focus-visible:ring-offset-2',
         // Error state — solid red border + ring on aria-invalid
-        'aria-invalid:border-red-500 aria-invalid:focus-visible:border-red-500 aria-invalid:focus-visible:ring-red-500',
+        'aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive aria-invalid:focus-visible:ring-destructive',
         // Disabled state
-        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zinc-300 dark:disabled:hover:border-zinc-700',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-input',
         // Read-only state
-        'read-only:bg-zinc-50 dark:read-only:bg-zinc-900 read-only:cursor-default read-only:hover:border-zinc-300 dark:read-only:hover:border-zinc-700',
+        'read-only:bg-surface-2 read-only:cursor-default read-only:hover:border-input',
         // Placeholder + ring offset
         'placeholder:text-muted-foreground ring-offset-background',
         className,

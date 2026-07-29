@@ -19,6 +19,9 @@ export default defineConfig({
         index: path.resolve(import.meta.dirname, 'src/index.ts'),
         server: path.resolve(import.meta.dirname, 'src/server.ts'),
         client: path.resolve(import.meta.dirname, 'src/client.ts'),
+        'components/index': path.resolve(import.meta.dirname, 'src/components/index.ts'),
+        'primitives/index': path.resolve(import.meta.dirname, 'src/primitives/index.ts'),
+        'hooks/index': path.resolve(import.meta.dirname, 'src/hooks/index.ts'),
         'animations/index': path.resolve(import.meta.dirname, 'src/animations/index.ts'),
       },
       formats: ['es'],
@@ -34,7 +37,10 @@ export default defineConfig({
         banner: (chunk) => {
           // Add 'use client' directive to bundles that contain client components.
           // The 'server' bundle is the only one safe for RSC  -  index re-exports client components.
-          if (chunk.name === 'client' || chunk.name === 'index') {
+          // components + hooks re-export client components / are client by
+          // definition. primitives is server-safe and deliberately excluded:
+          // 'use client' on it would opt consumers out of RSC for nothing.
+          if (['client', 'index', 'components/index', 'hooks/index'].includes(chunk.name)) {
             return '"use client";';
           }
           return '';

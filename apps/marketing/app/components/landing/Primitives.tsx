@@ -1,16 +1,26 @@
-import { type BlockAnnotation, Button, fieldAttrs } from '@revealui/presentation';
+import {
+  type BlockAnnotation,
+  Button,
+  fieldAttrs,
+  IconPrimitiveAgents,
+  IconPrimitiveContent,
+  IconPrimitiveOffers,
+  IconPrimitivePayments,
+  IconPrimitivePeople,
+  type IconProps,
+} from '@revealui/presentation';
+import type { ComponentType } from 'react';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
 import { PRIMITIVES_FALLBACK_DATA, type PrimitivesData } from '../../lib/page-blocks';
 
 // Accent chips must be surface-relative so they adapt under the token-based
 // theme (dark-first; light via system pref OR a manual [data-theme] override).
-// Translucent bg/ring tint whatever the adaptive card surface is in either
-// mode — mirroring the emerald row's bg-primary/10 + text-primary + ring-
-// primary/20. We deliberately do NOT use Tailwind `dark:` variants: those are
-// media-based and would desync from a manual [data-theme] toggle. emerald rides
-// the adaptive brand token; the other four keep their distinct accent hues at
-// /10–/20 opacity with a mid-tone icon that reads in both modes.
+// We deliberately do NOT use Tailwind `dark:` variants: those are media-based
+// and would desync from a manual [data-theme] toggle. brand rides the adaptive
+// primary token; the other four keep distinct accent hues at /10–/20 opacity.
 const accentBg: Record<string, string> = {
+  brand: 'bg-primary/10 text-primary ring-primary/20',
+  // legacy alias if CMS still has emerald
   emerald: 'bg-primary/10 text-primary ring-primary/20',
   blue: 'bg-blue-500/10 text-blue-500 ring-blue-500/20',
   amber: 'bg-amber-500/10 text-amber-500 ring-amber-500/20',
@@ -18,12 +28,17 @@ const accentBg: Record<string, string> = {
   violet: 'bg-violet-500/10 text-violet-500 ring-violet-500/20',
 };
 
-// Color + icon are structural, not editable prose: they stay in the TSX while
-// the label + body flow through the block stream. Keyed by ORDER, not label —
-// the label is a CMS-editable field, so an operator renaming a card must not
-// drop its icon/accent. Block item order mirrors HOME_PRIMITIVES by construction
-// of the shared transform.
-const primitiveStyles = HOME_PRIMITIVES.map((p) => ({ color: p.color, iconPath: p.iconPath }));
+// Icons ship from @revealui/presentation (Gate 5 move-and-import). Order matches
+// HOME_PRIMITIVES / block stream — keyed by index so CMS label renames keep icons.
+const PRIMITIVE_ICONS: readonly ComponentType<IconProps>[] = [
+  IconPrimitivePeople,
+  IconPrimitiveContent,
+  IconPrimitiveOffers,
+  IconPrimitivePayments,
+  IconPrimitiveAgents,
+];
+
+const primitiveStyles = HOME_PRIMITIVES.map((p) => ({ color: p.color }));
 
 export interface PrimitivesProps {
   /** Rich section data; defaults to the static content modules (byte-identical). */
@@ -80,18 +95,12 @@ export function Primitives({
                 <div
                   className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl ring-1 ${style ? accentBg[style.color] : ''}`}
                 >
-                  <svg
-                    className="h-10 w-10"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                  >
-                    <title>{item.label}</title>
-                    {style ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" d={style.iconPath} />
-                    ) : null}
-                  </svg>
+                  {(() => {
+                    const Icon = PRIMITIVE_ICONS[index];
+                    return Icon ? (
+                      <Icon className="h-10 w-10" size="xl" label={item.label} />
+                    ) : null;
+                  })()}
                 </div>
                 <div className={`flex-1 ${flipped ? 'sm:text-right' : ''}`}>
                   <h3

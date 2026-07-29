@@ -108,8 +108,15 @@
 
 /* ═══════════════════════════════════════════════════════════════
  * DARK MODE — :root default (dark-first design)
+ *
+ * Also apply on [data-theme="dark"] / .dark so nested previews (showcase
+ * Dark toggle, TokensPage) re-assert the dark palette even when :root is
+ * light via prefers-color-scheme. Without this, data-theme="dark" was a
+ * no-op for CSS vars and forced-dark backgrounds painted light ink.
  * ═══════════════════════════════════════════════════════════════ */
-:root {
+:root,
+[data-theme="dark"],
+.dark {
   /* ── Brand · Cobalt (Electric Verdigris) ──
    * Dark-mode brand lifted to cobalt-300 (L=0.58) for WCAG AA on midnight.
    * Prior dark brand at L=0.46 tested at 2.80:1 (FAIL); lifted value tests at 4.73:1.
@@ -144,7 +151,11 @@
   /* ── Text ── */
   --rvui-text-0: oklch(0.985 0.005 250);   /* paper white */
   --rvui-text-1: oklch(0.83 0.015 245);    /* smoke-200 */
-  --rvui-text-2: oklch(0.65 0.025 250);    /* smoke-300 */
+  /* AA normal text on surface-0/1/2. Was 0.65 (~3.6:1 on surface-2/3 card
+   * shells when nested data-theme=dark actually applied). Lifted to 0.72 so
+   * muted copy + icon fills on elevated surfaces clear 4.5:1 (axe showcase).
+   * Prefer text-1 for long body on surface-3 still. */
+  --rvui-text-2: oklch(0.72 0.020 250);
   /* Dark CTA labels run NEAR-BLACK INK on cobalt-300, not paper-white.
    * Paper-white on the lifted dark brand tested at 3.97:1 (failing 4.5:1 AA
    * for normal text). Near-black ink — reusing the same value as the dark
@@ -162,6 +173,11 @@
    * Ratios computed against the fills below; see the PR body. */
   --rvui-text-on-success: oklch(0.985 0.005 250);
   --rvui-text-on-warning: var(--rvui-text-on-accent);
+  /* On-fill ink for solid error / danger surfaces (chips, Switch danger, etc.). */
+  --rvui-text-on-error: oklch(0.985 0.005 250);
+
+  /* Modal / drawer / alert backdrop. Higher opacity on dark so the layer reads. */
+  --rvui-scrim: oklch(0.10 0.020 260 / 0.62);
 
   /* ── Status ── */
   --rvui-success:         oklch(0.55 0.130 165);
@@ -172,6 +188,9 @@
   --rvui-warning-text:    oklch(0.70 0.165 80);   /* AAA on midnight (7.45:1) — same as --rvui-warning in dark mode */
   --rvui-error:           oklch(0.52 0.200 15);
   --rvui-error-subtle:    oklch(0.52 0.200 15 / 0.12);
+  /* Status-as-text (mirrors warning-text). Fills stay on --rvui-success / --rvui-error. */
+  --rvui-success-text:    oklch(0.60 0.125 165);   /* ≈4.67:1 on midnight */
+  --rvui-error-text:      oklch(0.62 0.170 18);    /* ≈4.99:1; chroma trimmed for sRGB */
   --rvui-info:            var(--rvui-brand);
   --rvui-info-subtle:     var(--rvui-brand-subtle);
 
@@ -201,7 +220,7 @@
   --accent: var(--rvui-accent);
   --accent-foreground: var(--rvui-text-on-accent);
   --destructive: var(--rvui-error);
-  --destructive-foreground: var(--rvui-text-0);
+  --destructive-foreground: var(--rvui-text-on-error);
   --border: var(--rvui-border);
   --input: var(--rvui-border);
   --ring: var(--rvui-brand);
@@ -252,11 +271,15 @@
   /* ── Text ── */
   --rvui-text-0: oklch(0.16 0.030 260);     /* midnight ink */
   --rvui-text-1: oklch(0.34 0.030 250);     /* smoke-700 */
-  --rvui-text-2: oklch(0.50 0.030 250);     /* smoke-500 */
+  /* Was 0.50 (~4.32:1 on paper). Lifted for AA normal on surface-0/1 (CONTRAST-CLOSE-OUT A). */
+  --rvui-text-2: oklch(0.48 0.030 250);
   /* Light CTA labels stay paper-white on deep cobalt-200 (~9.6:1, AAA).
    * Redeclared here so the cascade doesn't push the dark-mode near-black
    * ink onto a light-mode primary button (which would test at ~1.94:1). */
   --rvui-text-on-brand:  oklch(0.985 0.005 250);
+  --rvui-text-on-error:  oklch(0.985 0.005 250);
+  /* Lighter scrim over paper so the modal does not look bruised. */
+  --rvui-scrim: oklch(0.16 0.030 260 / 0.32);
 
   /* ── Status ── */
   --rvui-success:        oklch(0.48 0.135 165);
@@ -266,6 +289,8 @@
   --rvui-warning-text:   oklch(0.45 0.130 75);    /* AA on paper (~5:1) — text variant, distinct from chip-bg --rvui-warning which fails text contrast at 2.39 */
   --rvui-error:          oklch(0.50 0.200 15);
   --rvui-error-subtle:   oklch(0.50 0.200 15 / 0.10);
+  --rvui-success-text:   oklch(0.48 0.135 165);   /* same as light success fill — already AA on paper */
+  --rvui-error-text:     oklch(0.48 0.190 15);    /* was 0.50 fill at ≈4.32; text variant clears AA */
 
   /* ── Shadows ── */
   --rvui-shadow-sm:    0 1px 3px oklch(0.16 0.030 260 / 0.06);
@@ -303,8 +328,10 @@
 
     --rvui-text-0: oklch(0.16 0.030 260);
     --rvui-text-1: oklch(0.34 0.030 250);
-    --rvui-text-2: oklch(0.50 0.030 250);
+    --rvui-text-2: oklch(0.48 0.030 250);
     --rvui-text-on-brand: oklch(0.985 0.005 250);  /* paper-white on cobalt-200, AAA */
+    --rvui-text-on-error: oklch(0.985 0.005 250);
+    --rvui-scrim: oklch(0.16 0.030 260 / 0.32);
 
     --rvui-success:        oklch(0.48 0.135 165);
     --rvui-success-subtle: oklch(0.48 0.135 165 / 0.10);
@@ -313,6 +340,8 @@
     --rvui-warning-text:   oklch(0.45 0.130 75);
     --rvui-error:          oklch(0.50 0.200 15);
     --rvui-error-subtle:   oklch(0.50 0.200 15 / 0.10);
+    --rvui-success-text:   oklch(0.48 0.135 165);
+    --rvui-error-text:     oklch(0.48 0.190 15);
 
     --rvui-shadow-sm:    0 1px 3px oklch(0.16 0.030 260 / 0.06);
     --rvui-shadow-md:    0 6px 18px oklch(0.16 0.030 260 / 0.10), 0 2px 4px oklch(0.16 0.030 260 / 0.05);

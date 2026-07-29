@@ -52,6 +52,23 @@ const story: ShowcaseStory = {
     if (props.disabled) attrs.push('disabled');
     return `<Input ${attrs.join(' ')} />`;
   },
+
+  a11y: {
+    conformance: [
+      'WCAG 2.2 1.3.1 Info and Relationships',
+      'WCAG 2.2 2.1.1 Keyboard',
+      'WCAG 2.2 3.3.2 Labels or Instructions',
+      'WCAG 2.2 4.1.2 Name, Role, Value',
+    ],
+    keyboard: {
+      Tab: 'Moves focus into and out of the field',
+    },
+    aria: {
+      'aria-invalid': 'Set when validation fails',
+      'aria-disabled': 'Reflects disabled state',
+    },
+    notes: 'Pair with FormLabel or FormField for a visible name.',
+  },
 };
 
 export default story;

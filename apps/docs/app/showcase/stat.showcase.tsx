@@ -69,6 +69,11 @@ const story: ShowcaseStory = {
     if (props.description) attrs.push(`description="${props.description}"`);
     return `<Stat\n  ${attrs.join('\n  ')}\n/>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Components never format numbers or currency; pass preformatted strings (Gate 3).',
+  },
 };
 
 export default story;

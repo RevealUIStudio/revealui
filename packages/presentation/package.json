@@ -1,6 +1,6 @@
 {
   "name": "@revealui/presentation",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "Native React UI components built on Tailwind v4. Buttons, forms, dialogs, navigation, and more.",
   "keywords": [
     "components",
@@ -17,6 +17,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@revealui/dev": "workspace:*",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@testing-library/user-event": "catalog:",
@@ -26,7 +27,6 @@
     "@vitejs/plugin-react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "cross-env": "^10.1.0",
-    "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
@@ -76,7 +76,8 @@
       "types": "./dist/animations/index.d.ts",
       "import": "./dist/animations/index.js",
       "default": "./dist/animations/index.js"
-    }
+    },
+    "./theme.css": "./dist/theme.css"
   },
   "files": [
     "dist"
@@ -92,14 +93,19 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build && cp ../tokens/src/tokens.css dist/tokens.css && mkdir -p dist/design-context && cp ../tokens/design-context/MANIFEST.sha256 ../tokens/design-context/brand-meta.json ../tokens/design-context/tokens.css dist/design-context/",
+    "build": "cross-env NODE_ENV=production vite build && cp ../tokens/src/tokens.css dist/tokens.css && mkdir -p dist/design-context && cp ../tokens/design-context/MANIFEST.sha256 ../tokens/design-context/brand-meta.json ../tokens/design-context/tokens.css dist/design-context/ && cp ../tokens/src/theme.css dist/theme.css",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "icons": "node scripts/gen-icon-manifest.cjs",
+    "icons:check": "node scripts/gen-icon-manifest.cjs --check",
+    "size": "node scripts/size-budget.cjs",
+    "size:check": "node scripts/size-budget.cjs --check",
+    "size:update": "node scripts/size-budget.cjs --update"
   },
   "type": "module",
   "types": "./dist/index.d.ts",

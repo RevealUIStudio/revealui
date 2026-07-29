@@ -11,9 +11,7 @@ export function Accordion({
   className?: string;
   children: React.ReactNode;
 }) {
-  return (
-    <div className={cn('divide-y divide-zinc-200 dark:divide-zinc-700', className)}>{children}</div>
-  );
+  return <div className={cn('divide-y divide-border', className)}>{children}</div>;
 }
 
 export function AccordionItem({
@@ -38,7 +36,7 @@ export function AccordionItem({
         aria-expanded={open}
         aria-controls={`${id}-content`}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-zinc-950 transition-colors hover:text-zinc-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-white dark:hover:text-zinc-300"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-foreground transition-colors hover:text-body focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span>{title}</span>
         <svg
@@ -46,7 +44,7 @@ export function AccordionItem({
           viewBox="0 0 16 16"
           fill="none"
           className={cn(
-            'size-4 shrink-0 text-zinc-400 transition-transform duration-200',
+            'size-4 shrink-0 text-muted-foreground transition-transform duration-200',
             open && 'rotate-180',
           )}
         >
@@ -63,7 +61,7 @@ export function AccordionItem({
         <section
           id={`${id}-content`}
           aria-labelledby={`${id}-trigger`}
-          className="pb-4 text-sm text-zinc-600 dark:text-zinc-400"
+          className="pb-4 text-sm text-body"
         >
           {children}
         </section>

@@ -37,7 +37,8 @@
     "TEST_DATABASE_URL",
     "VITEST",
     "WATCHDOG_DIRS",
-    "WATCHDOG_TIMEOUT"
+    "WATCHDOG_TIMEOUT",
+    "SHOWCASE_A11Y_SOFT"
   ],
   "tasks": {
     "build": {

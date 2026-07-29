@@ -93,6 +93,22 @@ const story: ShowcaseStory = {
   </DrawerFooter>
 </Drawer>`;
   },
+
+  a11y: {
+    conformance: [
+      'WCAG 2.2 2.1.1 Keyboard',
+      'WCAG 2.2 2.4.3 Focus Order',
+      'WCAG 2.2 4.1.2 Name, Role, Value',
+    ],
+    keyboard: {
+      Escape: 'Closes the drawer',
+      Tab: 'Cycles within the panel while open',
+    },
+    aria: {
+      role: 'dialog',
+      'aria-modal': 'true',
+    },
+  },
 };
 
 export default story;

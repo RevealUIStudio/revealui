@@ -126,6 +126,19 @@ const story: ShowcaseStory = {
     const attrStr = attrs.length ? ` ${attrs.join(' ')}` : '';
     return `<Button${attrStr}>${props.children}</Button>`;
   },
+
+  a11y: {
+    conformance: [
+      'WCAG 2.2 2.1.1 Keyboard',
+      'WCAG 2.2 2.4.7 Focus Visible',
+      'WCAG 2.2 4.1.2 Name, Role, Value',
+    ],
+    keyboard: {
+      Enter: 'Activates the button',
+      Space: 'Activates the button',
+    },
+    notes: 'Focus ring uses the shared --ring token (outline-ring / focusRing helpers).',
+  },
 };
 
 export default story;

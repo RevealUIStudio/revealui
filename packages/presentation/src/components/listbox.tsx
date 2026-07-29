@@ -294,7 +294,7 @@ export function Listbox<T>({
   const selectedSharedClasses = cn(
     'flex min-w-0 items-center',
     '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
-    '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
+    '*:data-[slot=icon]:text-muted-foreground group-data-focus/option:*:data-[slot=icon]:text-primary-foreground',
     'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
     '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
   );
@@ -303,7 +303,7 @@ export function Listbox<T>({
     selectedContent != null ? (
       <span className={selectedSharedClasses}>{selectedContent}</span>
     ) : placeholder ? (
-      <span className="block truncate text-zinc-500">{placeholder}</span>
+      <span className="block truncate text-muted-foreground">{placeholder}</span>
     ) : null;
 
   return (
@@ -329,11 +329,11 @@ export function Listbox<T>({
         className={cn([
           className,
           'group relative block w-full',
-          'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm',
-          'dark:before:hidden',
+          'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-card before:shadow-sm',
+
           'focus:outline-hidden',
-          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset data-focus:after:ring-2 data-focus:after:ring-blue-500',
-          'data-disabled:opacity-50 data-disabled:before:bg-zinc-950/5 data-disabled:before:shadow-none',
+          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset data-focus:after:ring-2 data-focus:after:ring-ring',
+          'data-disabled:opacity-50 data-disabled:before:bg-border data-disabled:before:shadow-none',
         ])}
       >
         <span
@@ -341,18 +341,18 @@ export function Listbox<T>({
             'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
             'min-h-11 sm:min-h-9',
             'pr-[calc(--spacing(7)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
-            'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-            'border border-zinc-950/10 group-data-active:border-zinc-950/20 group-data-hover:border-zinc-950/20 dark:border-white/10 dark:group-data-active:border-white/20 dark:group-data-hover:border-white/20',
-            'bg-transparent dark:bg-white/5',
-            'group-data-invalid:border-red-500 group-data-hover:group-data-invalid:border-red-500 dark:group-data-invalid:border-red-600 dark:data-hover:group-data-invalid:border-red-600',
-            'group-data-disabled:border-zinc-950/20 group-data-disabled:opacity-100 dark:group-data-disabled:border-white/15 dark:group-data-disabled:bg-white/2.5 dark:group-data-disabled:data-hover:border-white/15',
+            'text-left text-base/6 text-foreground placeholder:text-muted-foreground sm:text-sm/6 forced-colors:text-[CanvasText]',
+            'border border-border group-data-active:border-border-strong group-data-hover:border-border-strong',
+            'bg-transparent',
+            'group-data-invalid:border-destructive group-data-hover:group-data-invalid:border-destructive',
+            'group-data-disabled:border-border group-data-disabled:opacity-100',
           ])}
         >
           {displayContent}
         </span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
           <svg
-            className="size-5 stroke-zinc-500 group-data-disabled:stroke-zinc-600 sm:size-4 dark:stroke-zinc-400 forced-colors:stroke-[CanvasText]"
+            className="size-5 stroke-muted-foreground group-data-disabled:stroke-muted-foreground sm:size-4 forced-colors:stroke-[CanvasText]"
             viewBox="0 0 16 16"
             aria-hidden="true"
             fill="none"
@@ -392,8 +392,8 @@ export function Listbox<T>({
               'isolate w-max min-w-[calc(var(--button-width)+1.75rem)] scroll-py-1 rounded-xl p-1 select-none',
               'outline outline-transparent focus:outline-hidden',
               'overflow-y-scroll overscroll-contain',
-              'bg-white/75 backdrop-blur-xl dark:bg-zinc-800/75',
-              'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
+              'bg-card/75 backdrop-blur-xl',
+              'shadow-lg ring-1 ring-border-strong',
               'transition-opacity duration-100 ease-in data-closed:data-leave:opacity-0 data-transition:pointer-events-none',
             )}
             style={{
@@ -440,7 +440,7 @@ export function ListboxOption<T>({
   const sharedClasses = cn(
     'flex min-w-0 items-center',
     '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
-    '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
+    '*:data-[slot=icon]:text-muted-foreground group-data-focus/option:*:data-[slot=icon]:text-primary-foreground',
     'forced-colors:*:data-[slot=icon]:text-[CanvasText] forced-colors:group-data-focus/option:*:data-[slot=icon]:text-[Canvas]',
     '*:data-[slot=avatar]:-mx-0.5 *:data-[slot=avatar]:size-6 sm:*:data-[slot=avatar]:size-5',
   );
@@ -472,8 +472,8 @@ export function ListboxOption<T>({
       tabIndex={-1}
       className={cn(
         'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg py-2.5 pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:py-1.5 sm:pr-3 sm:pl-1.5',
-        'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-        'outline-hidden data-focus:bg-blue-500 data-focus:text-white',
+        'text-base/6 text-foreground sm:text-sm/6 forced-colors:text-[CanvasText]',
+        'outline-hidden data-focus:bg-primary data-focus:text-primary-foreground',
         'forced-color-adjust-none forced-colors:data-focus:bg-[Highlight] forced-colors:data-focus:text-[HighlightText]',
         'data-disabled:opacity-50',
       )}
@@ -518,7 +518,7 @@ export function ListboxDescription({
       {...props}
       className={cn(
         className,
-        'flex flex-1 overflow-hidden text-zinc-500 group-data-focus/option:text-white before:w-2 before:min-w-0 before:shrink dark:text-zinc-400',
+        'flex flex-1 overflow-hidden text-muted-foreground group-data-focus/option:text-primary-foreground before:w-2 before:min-w-0 before:shrink',
       )}
     >
       <span className="flex-1 truncate">{children}</span>

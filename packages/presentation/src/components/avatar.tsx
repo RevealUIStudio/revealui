@@ -30,7 +30,7 @@ export function Avatar({
         className,
         // Basic layout
         'inline-grid shrink-0 align-middle [--avatar-radius:20%] *:col-start-1 *:row-start-1',
-        'outline -outline-offset-1 outline-black/10 dark:outline-white/10',
+        'outline -outline-offset-1 outline-border',
         // Border radius
         square
           ? 'rounded-(--avatar-radius) *:rounded-(--avatar-radius)'
@@ -83,7 +83,7 @@ export function AvatarButton({
   const classes = cn(
     className,
     square ? 'rounded-[20%]' : 'rounded-full',
-    'relative inline-grid focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500',
+    'relative inline-grid focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-ring',
   );
 
   return typeof props.href === 'string' ? (

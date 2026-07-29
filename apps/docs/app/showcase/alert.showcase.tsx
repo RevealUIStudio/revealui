@@ -95,6 +95,16 @@ const story: ShowcaseStory = {
     <Button variant="danger" onClick={() => setOpen(false)}>Delete</Button>
   </AlertActions>
 </Alert>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      Escape: 'Dismisses when dismissible',
+    },
+    aria: {
+      role: 'alertdialog or dialog depending on composition',
+    },
+  },
 };
 
 export default story;

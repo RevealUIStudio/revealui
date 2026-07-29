@@ -43,44 +43,12 @@
  * components render unstyled. Mirrors the agency site's @source directive. */
 @source "../node_modules/@revealui/presentation/dist/**/*.js";
 
-/* ── Bridge --rvui-* tokens into Tailwind's @theme namespace ── */
+/* Package-owned semantic bridge (Gate 0). Marketing palette remap stays below. */
+@import "@revealui/presentation/theme.css";
+
 @theme inline {
-  --color-background: var(--rvui-surface-0);
-  --color-foreground: var(--rvui-text-0);
-  --color-primary: var(--rvui-brand);
-  --color-primary-foreground: var(--rvui-text-on-brand);
-  --color-secondary: var(--rvui-surface-2);
-  --color-secondary-foreground: var(--rvui-text-0);
-  --color-muted: var(--rvui-surface-2);
-  /* Secondary / muted text — adaptive via tokens.css's --rvui-text-2
-   * (dark 0.65 smoke-300 / light 0.50 smoke-500). Must use var() inside
-   * @theme inline because literal values are inlined into the generated
-   * utilities at build time and become un-themeable — overrides via
-   * [data-theme="light"] or @media (prefers-color-scheme: light) do NOT
-   * apply to inlined literals. Every other --color-* line uses var() for
-   * exactly this reason. */
-  --color-muted-foreground: var(--rvui-text-2);
-  --color-accent: var(--rvui-accent);
-  --color-accent-foreground: var(--rvui-text-on-accent);
-  --color-destructive: var(--rvui-error);
-  --color-destructive-foreground: var(--rvui-text-0);
-  --color-border: var(--rvui-border);
-  --color-input: var(--rvui-border);
-  --color-ring: var(--rvui-brand);
-  --color-card: var(--rvui-surface-1);
-  --color-card-foreground: var(--rvui-text-0);
-  --color-popover: var(--rvui-surface-1);
-  --color-popover-foreground: var(--rvui-text-0);
-  --color-ring-offset-background: var(--rvui-surface-0);
-
-  --font-sans: var(--rvui-font-sans);
-  --font-mono: var(--rvui-font-mono);
-  --font-display: var(--rvui-font-display);
-
   /* Section eyebrows should track at 0.20em per the brand spec.
-   * Tailwind's default `tracking-widest` = 0.1em — half that.
-   * Bump the utility so every section eyebrow flips at once
-   * without editing components. */
+   * Tailwind's default `tracking-widest` = 0.1em — half that. */
   --tracking-widest: 0.20em;
 }
 

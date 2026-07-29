@@ -66,6 +66,11 @@ const story: ShowcaseStory = {
     const attrStr = attrs.length ? ` ${attrs.join(' ')}` : '';
     return `<Callout${attrStr}>${props.children}</Callout>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 1.4.1 Use of Color'],
+    notes: 'Tone is also conveyed in text, not color alone.',
+  },
 };
 
 export default story;

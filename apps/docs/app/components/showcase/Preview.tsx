@@ -37,12 +37,18 @@ export function Preview({ children }: PreviewProps) {
         </div>
       </div>
 
-      {/* Isolated preview area */}
+      {/* Isolated preview area — data-showcase-preview scopes axe scans to the
+          component under test (see e2e/showcase-a11y.e2e.ts), not docs chrome. */}
       <div
+        data-showcase-preview
         data-theme={theme}
         className="flex min-h-[200px] items-center justify-center p-8"
         style={{
-          backgroundColor: theme === 'dark' ? 'oklch(0.13 0.004 228)' : 'oklch(0.985 0.002 210)',
+          // Nested data-theme must re-apply palette (see tokens.css :root, [data-theme=dark])
+          backgroundColor: 'var(--rvui-surface-0)',
+          // Reset inherited `color` from docs chrome (page may be light while
+          // this shell is dark). Unstyled demo text then picks up theme text-0.
+          color: 'var(--rvui-text-0)',
           backgroundImage: 'radial-gradient(circle, oklch(0.5 0 0 / 0.06) 1px, transparent 1px)',
           backgroundSize: '20px 20px',
         }}

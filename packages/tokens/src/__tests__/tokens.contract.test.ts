@@ -179,6 +179,8 @@ describe('contrast guards — WCAG AA invariants on the declared canon', () => {
     // tested 4.19:1 here; the v4 ladder tests ~5.4:1.
     ['dark text-2 on surface-1', dark['text-2'] ?? '', dark['surface-1'] ?? ''],
     ['dark warning-text on surface-0', dark['warning-text'] ?? '', dark['surface-0'] ?? ''],
+    ['dark success-text on surface-0', dark['success-text'] ?? '', dark['surface-0'] ?? ''],
+    ['dark error-text on surface-0', dark['error-text'] ?? '', dark['surface-0'] ?? ''],
     // brand used as text/link on the page bg (tokens.css documents 4.73:1)
     ['dark brand on surface-0', BRAND_DARK, dark['surface-0'] ?? ''],
     // light mode
@@ -189,6 +191,8 @@ describe('contrast guards — WCAG AA invariants on the declared canon', () => {
     ['light text-2 on surface-0', light['text-2'] ?? '', light['surface-0'] ?? ''],
     ['light text-2 on surface-1', light['text-2'] ?? '', light['surface-1'] ?? ''],
     ['light warning-text on surface-0', light['warning-text'] ?? '', light['surface-0'] ?? ''],
+    ['light success-text on surface-0', light['success-text'] ?? '', light['surface-0'] ?? ''],
+    ['light error-text on surface-0', light['error-text'] ?? '', light['surface-0'] ?? ''],
     ['light brand on surface-0', BRAND_LIGHT, light['surface-0'] ?? ''],
     // CTA labels — both modes hold AA against their primary brand fill after
     // the 2026-06-14 dark-mode ink swap. Light stays paper-white on cobalt-200

@@ -9,7 +9,7 @@ function Card({
   return (
     <div
       className={cn(
-        // Token-driven card border (was a zinc-200/700 Catalyst holdover). `border-border`
+        // Token-driven card border (was a Catalyst palette holdover). `border-border`
         // resolves via --rvui-border and auto-adapts to light/dark; cards sit one tier
         // behind interactive fields, which the border token already accounts for.
         'rounded-lg border border-border bg-card text-card-foreground shadow-sm hover:shadow-md',

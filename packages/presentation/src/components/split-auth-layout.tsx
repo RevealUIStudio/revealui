@@ -30,14 +30,14 @@ export interface SplitAuthLayoutProps {
  *
  * Theming:
  * - Brand background pulls from `--tenant-brand` CSS var (set by the consuming app
- *   at the root level — see `apps/admin/src/app/(frontend)/layout.tsx`), with a
- *   neutral `--rvui-surface-3` token fallback when no tenant brand is configured.
+ * at the root level — see `apps/admin/src/app/(frontend)/layout.tsx`), with a
+ * neutral `--rvui-surface-3` token fallback when no tenant brand is configured.
  * - Brand text color pulls from `--tenant-brand-on` CSS var. When unset, falls
- *   back to `--foreground` (dark in light mode, light in dark mode) so the panel
- *   is legible regardless of the surface it renders on. Customers with a custom
- *   brand color SHOULD set `--tenant-brand-on` explicitly to guarantee contrast
- *   — no automatic luminance computation by design (avoids FOUC + browser-compat
- *   issues with color-mix / relative luminance).
+ * back to `--foreground` (dark in light mode, light in dark mode) so the panel
+ * is legible regardless of the surface it renders on. Customers with a custom
+ * brand color SHOULD set `--tenant-brand-on` explicitly to guarantee contrast
+ * — no automatic luminance computation by design (avoids FOUC + browser-compat
+ * issues with color-mix / relative luminance).
  * - Form panel uses `--background` token so dark/light mode flips correctly.
  *
  * Companion centered variant: see `AuthLayout` for single-column non-branded shells.

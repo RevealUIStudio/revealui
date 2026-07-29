@@ -27,6 +27,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/audit-line.showcase.js'),
   },
   {
+    slug: 'auth-layout',
+    name: 'Auth Layout',
+    category: 'component',
+    loader: () => import('../../showcase/auth-layout.showcase.js'),
+  },
+  {
     slug: 'avatar',
     name: 'Avatar',
     category: 'component',
@@ -147,6 +153,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/form-field.showcase.js'),
   },
   {
+    slug: 'form-label',
+    name: 'Form Label',
+    category: 'component',
+    loader: () => import('../../showcase/form-label.showcase.js'),
+  },
+  {
     slug: 'heading',
     name: 'Heading',
     category: 'component',
@@ -249,6 +261,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/sidebar.showcase.js'),
   },
   {
+    slug: 'sidebar-layout',
+    name: 'Sidebar Layout',
+    category: 'component',
+    loader: () => import('../../showcase/sidebar-layout.showcase.js'),
+  },
+  {
     slug: 'skeleton',
     name: 'Skeleton',
     category: 'component',
@@ -259,6 +277,18 @@ export const showcaseEntries: ShowcaseEntry[] = [
     name: 'Slider',
     category: 'component',
     loader: () => import('../../showcase/slider.showcase.js'),
+  },
+  {
+    slug: 'split-auth-layout',
+    name: 'Split Auth Layout',
+    category: 'component',
+    loader: () => import('../../showcase/split-auth-layout.showcase.js'),
+  },
+  {
+    slug: 'stacked-layout',
+    name: 'Stacked Layout',
+    category: 'component',
+    loader: () => import('../../showcase/stacked-layout.showcase.js'),
   },
   {
     slug: 'stat',

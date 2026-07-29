@@ -79,6 +79,11 @@ const story: ShowcaseStory = {
     if (variant === 'link') return `<Text><TextLink href="#">${content}</TextLink></Text>`;
     return `<Text>${content}</Text>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.4.3 Contrast (Minimum)'],
+    notes: 'Body uses text tokens; muted text is for secondary copy only (see text-2 constraint).',
+  },
 };
 
 export default story;

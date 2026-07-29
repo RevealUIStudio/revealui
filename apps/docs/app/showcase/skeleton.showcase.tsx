@@ -74,6 +74,14 @@ const story: ShowcaseStory = {
     if (props.variant === 'card') return `<SkeletonCard />`;
     return `<Skeleton className="h-4 w-full rounded" />`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 4.1.3 Status Messages'],
+    aria: {
+      'aria-busy': 'Set on the loading region by the consumer',
+      'aria-hidden': 'Decorative skeleton shapes are hidden from AT',
+    },
+  },
 };
 
 export default story;

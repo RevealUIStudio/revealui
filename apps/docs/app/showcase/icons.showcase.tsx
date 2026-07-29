@@ -182,6 +182,11 @@ const story: ShowcaseStory = {
     `import { IconStar } from '@revealui/presentation/server';
 
 <IconStar size="${props.size}"${props.size === 'md' ? '' : ''} />`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.1.1 Non-text Content'],
+    notes: 'Pass label for informative icons; omit for decorative (aria-hidden).',
+  },
 };
 
 export default story;

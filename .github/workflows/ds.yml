@@ -1,22 +1,27 @@
 # .github/workflows/ds.yml — RevealUI design-system gates
 #
-# Drop this into the monorepo at .github/workflows/ds.yml. It runs the
-# dependency-free DS-folder gate plus the existing token contract checks.
+# Replaces the existing ds.yml. Two jobs added for Gates 0 and 1 of
+# `Assessment · Enterprise Readiness.html`; the three existing jobs are
+# unchanged except where noted.
 #
-#   1. adherence-lint       — app/artifact CODE stays on-system (no hardcoded
-#                             greys, off-token colors, non-brand fonts, …)
-#   2. tokens contract      — the repo's own gen:manifest:check + vitest contract
-#   3. visual-regression    — Phase 3 PR-0: golden-baseline screenshots of every
-#                             apps/docs `/showcase/*` page (light + dark, chromium
-#                             only). HARD-fails on any visual diff — this is the
-#                             non-negotiable prerequisite the ds-catalyst-reskin
-#                             lane Phase 0 and the Phase 3 component-sovereignty
-#                             spec both call for; it must gate PRs (not just
-#                             main pushes) because re-authorship PRs land against
-#                             `test`. See e2e/showcase-visual.e2e.ts.
+#   1. adherence            — app/artifact CODE stays on-system (existing)
+#   2. package-adherence    — NEW (Gate 0). The design system stays on its own
+#                             system. adherence-lint only ever scanned `apps`,
+#                             so packages/presentation — the surface that
+#                             DEFINES the tokens — was the one place the gate
+#                             never looked, and consequently the largest
+#                             violator of its own CONTRIBUTING §2 rule
+#                             (228 lines carrying a raw palette value across
+#                             34 of 65 components at 0.12.1).
+#   3. tokens contract      — the repo's gen:manifest:check + vitest contract (existing)
+#   4. visual-regression    — golden screenshots of every showcase page (existing)
+#   5. a11y                 — NEW (Gate 1). axe over every showcase page in both
+#                             themes. Before this, a one-pixel visual diff
+#                             hard-failed the build while a serious axe
+#                             violation shipped silently.
 #
-# Conventions match the repo's existing ci.yml (pinned action SHAs, pnpm
-# action-setup @ PNPM_VERSION, node 24, persist-credentials:false).
+# Conventions match ci.yml (pinned action SHAs, pnpm action-setup @
+# PNPM_VERSION, node 24, persist-credentials:false).
 
 name: design-system
 
@@ -27,6 +32,8 @@ on:
       - 'apps/**'
       - 'packages/tokens/**'
       - 'packages/presentation/**'
+      - 'e2e/showcase-visual.e2e.ts'
+      - 'e2e/showcase-a11y.e2e.ts'
       - '.github/workflows/ds.yml'
   push:
     branches: [main]
@@ -64,6 +71,32 @@ jobs:
       - name: Adherence lint (docs — enforced)
         run: node packages/tokens/scripts/adherence-lint.cjs apps/docs
 
+  package-adherence:
+    name: DS package stays on-system
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # NO --warn, deliberately. This job lands together with the token purge
+      # (remediation/gate-0-1), so there is no backlog for it to trip over — and
+      # a warn-only rule here is what let 228 lines of palette literals accumulate
+      # in the first place. If this fails on a fresh PR, the PR reintroduced drift.
+      #
+      # Rules enforced: raw-palette, palette-css-var, dark-variant,
+      # blue-focus-ring, hex-literal (errors) + bare-white-black, inline-svg
+      # (warnings). `logical-props` ships OFF and turns on with Gate 3 (i18n).
+      - name: Presentation lint (enforced)
+        run: node packages/tokens/scripts/presentation-lint.cjs packages/presentation/src
+      # Preview the Gate 3 rule without failing the build, so the RTL backlog
+      # is visible and shrinking before that gate opens.
+      - name: Logical-property preview (Gate 3, report-only)
+        run: node packages/tokens/scripts/presentation-lint.cjs --warn --quiet --rule=logical-props packages/presentation/src
+
   tokens-contract:
     name: tokens pack in sync
     runs-on: ubuntu-latest
@@ -83,6 +116,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       # Hard-fails if src/tokens.css changed without regenerating the
       # design-context pack (the SHA the DS mirror is pinned against).
+      # NOTE: adding --rvui-scrim / --rvui-text-on-error (TOKEN-MAP.md §4) will
+      # trip this until you run `pnpm --filter @revealui/tokens gen:manifest`.
       - name: design-context manifest in sync
         run: pnpm --filter @revealui/tokens gen:manifest:check
       # The tokens + presentation contract tests (values, brand-meta, contrast).
@@ -143,3 +178,54 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  a11y:
+    name: Showcase accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+      - name: Build docs app
+        run: pnpm --filter docs... build
+      - name: Start docs preview server
+        run: pnpm --filter docs preview --port 3002 &
+      - name: Wait for docs
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3002 > /dev/null 2>&1 && echo "Docs ready" && break || \
+            echo "Waiting for docs... ($i/40)" && sleep 3
+          done
+          curl -sf http://localhost:3002 > /dev/null 2>&1 || \
+            (echo "::error::Docs app failed to start within 120s" && exit 1)
+      # Fails on critical + serious only (checkAccessibilityCritical); moderate
+      # and minor print as a backlog summary. No continue-on-error and no
+      # SHOWCASE_A11Y_SOFT here: the whole point of this job is that an
+      # accessibility regression is as blocking as a visual one. If the first
+      # adoption run is noisy, set SHOWCASE_A11Y_SOFT=1 LOCALLY, fix, then land.
+      - name: Run showcase accessibility
+        run: npx playwright test --project=chromium e2e/showcase-a11y.e2e.ts
+        env:
+          CI: "true"
+          DOCS_BASE_URL: "http://localhost:3002"
+      - name: Upload a11y artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: showcase-a11y-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30

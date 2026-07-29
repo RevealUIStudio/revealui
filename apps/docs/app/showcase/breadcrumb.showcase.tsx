@@ -74,6 +74,14 @@ const story: ShowcaseStory = {
   ${items.join(',\n  ')}
 ]} />`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 2.4.8 Location'],
+    aria: {
+      'aria-label': 'Breadcrumb navigation landmark label',
+    },
+    notes: 'Current page is not a link; prior crumbs are links.',
+  },
 };
 
 export default story;

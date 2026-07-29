@@ -1,0 +1,33 @@
+{
+  "version": "0.12.1",
+  "sizes": {
+    ".": {
+      "raw": 8618,
+      "gzip": 2685
+    },
+    "./components": {
+      "raw": 5227,
+      "gzip": 1642
+    },
+    "./primitives": {
+      "raw": 229,
+      "gzip": 160
+    },
+    "./server": {
+      "raw": 3408,
+      "gzip": 1186
+    },
+    "./client": {
+      "raw": 5071,
+      "gzip": 1607
+    },
+    "./hooks": {
+      "raw": 1090,
+      "gzip": 434
+    },
+    "./animations": {
+      "raw": 15786,
+      "gzip": 4766
+    }
+  }
+}
