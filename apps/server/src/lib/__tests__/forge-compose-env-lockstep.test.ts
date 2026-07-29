@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 // Resolve from this test file → apps/server/src/lib/__tests__ → repo root
-const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 
 function loadCompose(): string {
   return readFileSync(join(REPO_ROOT, 'docker-compose.forge.yml'), 'utf8');
