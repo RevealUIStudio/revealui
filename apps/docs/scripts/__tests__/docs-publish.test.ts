@@ -58,8 +58,8 @@ describe('docs-publish plane', () => {
     const denied = await resolvePublicDoc(docsSource, '/SECRET.md');
     expect(denied).toBeNull();
 
-    const escape = await resolvePublicDoc(docsSource, '/../etc/passwd.md');
-    expect(escape).toBeNull();
+    const pathEscape = await resolvePublicDoc(docsSource, '/../etc/passwd.md');
+    expect(pathEscape).toBeNull();
   });
 
   it('cleanGeneratedPublicMirror removes stale md but keeps docs-pro', async () => {

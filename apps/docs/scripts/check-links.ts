@@ -26,7 +26,6 @@ import { type DocSection, resolveDocPath } from '../app/utils/paths';
 import { collectPublicDocRels } from './docs-publish.mjs';
 
 const scriptDir = import.meta.dirname;
-const docsApp = path.resolve(scriptDir, '..'); // apps/docs
 const repoRoot = path.resolve(scriptDir, '..', '..', '..'); // monorepo root
 const sourceDocs = path.join(repoRoot, 'docs');
 
