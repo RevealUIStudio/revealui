@@ -152,7 +152,8 @@ docs/*VERIFICATION*.md
 docs/*REPORT*.md
 !docs/COVERAGE-REPORT-TEMPLATE.md
 
-# Generated documentation (copied from /docs during build)
+# Docs publish plane (ADR 2026-07-29): monorepo docs/ is SoT; no public/*.md mirror.
+# Primary ignore rules live in apps/docs/.gitignore. Legacy nested paths kept.
 apps/docs/public/docs/
 apps/docs/dist/docs/
 

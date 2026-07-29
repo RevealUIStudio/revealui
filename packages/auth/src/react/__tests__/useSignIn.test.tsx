@@ -117,6 +117,29 @@ describe('useSignIn', () => {
     }
   });
 
+  it('returns MFA challenge when body is cookie-only shape ({ requiresMfa: true })', async () => {
+    // Live admin route historically returned only requiresMfa and put the
+    // user id in the httpOnly mfa-pending cookie. Must not fall through to
+    // the success schema (user expected object).
+    vi.stubGlobal('fetch', mockFetch({ requiresMfa: true }));
+
+    const { result } = renderHook(() => useSignIn());
+
+    let signInResult: Awaited<ReturnType<typeof result.current.signIn>>;
+    await waitFor(async () => {
+      signInResult = await result.current.signIn({
+        email: 'mfa@example.com',
+        password: 'password123',
+      });
+    });
+
+    expect(signInResult!.success).toBe(false);
+    if (!signInResult!.success && 'requiresMfa' in signInResult!) {
+      expect(signInResult!.requiresMfa).toBe(true);
+    }
+    expect(result.current.error).toBeNull();
+  });
+
   it('handles network error', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
 

@@ -93,8 +93,10 @@ jobs:
 
       - name: Push regenerated snapshots to a new branch
         run: |
+          # Noreply identity required for Verified SSH-signed commits (GAP-327).
+          # founder@revealui.com has no user account to verify against after org conversion.
           git config user.name "RevealUI Studio"
-          git config user.email "founder@revealui.com"
+          git config user.email "43050008+joshua-v-dev@users.noreply.github.com"
           if [[ -z "$(git status --short e2e/__snapshots__/)" ]]; then
             echo "::notice::No snapshot changes detected — visual baseline already matches CI rendering"
             exit 0

@@ -156,6 +156,151 @@ function decideReviewGate({ verdict, labels = [], reviewDecision = '' }) {
   return { action: 'hold', kind: 'no-verdict' };
 }
 
+/**
+ * GAP-458: a test → main promote re-presents feature diffs. The gate must
+ * verify upstream verdicts mechanically, not re-ask for a human review of
+ * already-cleared code.
+ */
+function isPromotePr(baseRefName, headRefName) {
+  return baseRefName === 'main' && headRefName === 'test';
+}
+
+/**
+ * Pure coverage decision for promote PRs (unit-tested).
+ *
+ * @param {Array<{ sha: string, shortSha?: string, prs: Array<{ number: number, hasVerdict: boolean }> }>} coverage
+ *   One entry per security-touching commit in the promote batch.
+ * @returns {{ action: 'clear' | 'hold', kind: string, uncovered?: string[], coveredCount?: number }}
+ */
+function decidePromoteUpstreamCoverage(coverage) {
+  if (!Array.isArray(coverage) || coverage.length === 0) {
+    return { action: 'hold', kind: 'no-security-commits' };
+  }
+  const uncovered = [];
+  for (const entry of coverage) {
+    const prs = entry.prs || [];
+    const covered = prs.some((pr) => pr && pr.hasVerdict === true);
+    if (!covered) {
+      uncovered.push(entry.shortSha || (entry.sha ? entry.sha.slice(0, 7) : 'unknown'));
+    }
+  }
+  if (uncovered.length === 0) {
+    return { action: 'clear', kind: 'upstream-verdict', coveredCount: coverage.length };
+  }
+  return { action: 'hold', kind: 'uncovered-commits', uncovered };
+}
+
+/**
+ * Whether a PR record counts as a recorded sec-review clearance (label or
+ * approving review). Does not consult guardrail-2 markers — those remain
+ * reviewer proposals, not owner disposition (B2).
+ */
+function prRecordHasVerdict({ labels = [], reviewDecision = '' }) {
+  const labelSet = new Set(labels);
+  if ([...labelSet].some((l) => SEC_REVIEW_LABELS.has(l))) return true;
+  if (reviewDecision === 'APPROVED') return true;
+  return false;
+}
+
+/**
+ * List commit SHAs on a PR (paginated). Injectable ghImpl for tests.
+ */
+function fetchPrCommitShas(prNumber, repo, ghImpl) {
+  const run =
+    ghImpl ||
+    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 }));
+  const path = `repos/${repo || '{owner}/{repo}'}/pulls/${prNumber}/commits`;
+  const out = run(['api', path, '--paginate', '--jq', '.[].sha']);
+  return out.split('\n').filter((line) => line.length > 0);
+}
+
+/**
+ * Files changed in one commit. Injectable ghImpl for tests.
+ */
+function fetchCommitFiles(sha, repo, ghImpl) {
+  const run =
+    ghImpl ||
+    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 30000, maxBuffer: 8 * 1024 * 1024 }));
+  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}`;
+  const out = run(['api', path, '--jq', '[.files[]?.filename] | .[]']);
+  return out.split('\n').filter((line) => line.length > 0);
+}
+
+/**
+ * Associated PRs for a commit (excluding the promote PR itself).
+ */
+function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl) {
+  const run =
+    ghImpl ||
+    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024 }));
+  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}/pulls`;
+  // Accept header for media type is set by gh for this endpoint when using REST.
+  let out;
+  try {
+    out = run([
+      'api',
+      path,
+      '-H',
+      'Accept: application/vnd.github.groot-preview+json',
+      '--jq',
+      '.[] | [.number, (.labels | map(.name) | join(",")), .merged_at] | @tsv',
+    ]);
+  } catch {
+    return [];
+  }
+  const rows = [];
+  for (const line of out.split('\n')) {
+    if (!line) continue;
+    // TSV: number \t labelsCsv \t merged_at
+    const tab1 = line.indexOf('\t');
+    if (tab1 === -1) continue;
+    const numStr = line.slice(0, tab1);
+    const rest = line.slice(tab1 + 1);
+    const tab2 = rest.indexOf('\t');
+    const labelsCsv = tab2 === -1 ? rest : rest.slice(0, tab2);
+    const number = Number(numStr);
+    if (!Number.isFinite(number) || number === Number(excludePrNumber)) continue;
+    const labels = labelsCsv ? labelsCsv.split(',').filter(Boolean) : [];
+    rows.push({
+      number,
+      hasVerdict: prRecordHasVerdict({ labels, reviewDecision: '' }),
+    });
+  }
+  return rows;
+}
+
+/**
+ * Build coverage rows for a promote PR: security-touching commits and whether
+ * each traces to an upstream PR with a recorded sec-review verdict.
+ * Injectable ghImpl for unit tests.
+ */
+function buildPromoteCoverage(prNumber, repo, ghImpl) {
+  const shas = fetchPrCommitShas(prNumber, repo, ghImpl);
+  const coverage = [];
+  for (const sha of shas) {
+    let files;
+    try {
+      files = fetchCommitFiles(sha, repo, ghImpl);
+    } catch {
+      // Fail closed: unknown files → treat as security-touching so we demand a covering PR
+      files = ['packages/auth/unknown'];
+    }
+    if (classifyFiles(files).length === 0) continue;
+    let prs;
+    try {
+      prs = fetchCommitPulls(sha, repo, prNumber, ghImpl);
+    } catch {
+      prs = [];
+    }
+    coverage.push({
+      sha,
+      shortSha: sha.slice(0, 7),
+      prs,
+    });
+  }
+  return coverage;
+}
+
 function runPrMode(prNumber, repo) {
   let raw;
   const ghArgs = [
@@ -163,7 +308,7 @@ function runPrMode(prNumber, repo) {
     'view',
     prNumber,
     '--json',
-    'labels,reviewDecision,title,author,reviews,comments',
+    'labels,reviewDecision,title,author,reviews,comments,baseRefName,headRefName',
   ];
   if (repo) ghArgs.push('-R', repo);
   try {
@@ -228,6 +373,41 @@ function runPrMode(prNumber, repo) {
     process.exit(1);
   }
 
+  // GAP-458: promote (test → main) may inherit upstream feature-PR verdicts.
+  const baseRef = data.baseRefName || '';
+  const headRef = data.headRefName || '';
+  if (isPromotePr(baseRef, headRef)) {
+    let coverage;
+    try {
+      coverage = buildPromoteCoverage(prNumber, repo);
+    } catch (err) {
+      process.stderr.write(
+        `HOLD — PR #${prNumber} is a promote but upstream-verdict scan failed ` +
+          `(${err instanceof Error ? err.message : 'unknown'}). Failing closed.\n` +
+          `   Touched: ${[...new Set(hits)].join(', ')}\n` +
+          `   Override: apply "${[...SEC_REVIEW_LABELS][0]}" on this promote.\n`,
+      );
+      process.exit(1);
+    }
+    const upstream = decidePromoteUpstreamCoverage(coverage);
+    if (upstream.action === 'clear') {
+      process.stdout.write(
+        `PR #${prNumber} is a test→main promote; all ${upstream.coveredCount} security-touching ` +
+          `commit(s) trace to an upstream PR with a recorded sec-review verdict — clear to merge ` +
+          `(GAP-458). Owner label still available as override.\n`,
+      );
+      process.exit(0);
+    }
+    process.stderr.write(
+      `HOLD — PR #${prNumber} is a test→main promote with security-touching commit(s) that lack ` +
+        `an upstream sec-review verdict (GAP-458).\n` +
+        `   Uncovered commit(s): ${(upstream.uncovered || []).join(', ') || '(none mapped — treat as uncovered)'}\n` +
+        `   Touched: ${[...new Set(hits)].join(', ')}\n` +
+        `   Required: clear those commits on their feature PRs, OR apply "${[...SEC_REVIEW_LABELS][0]}" on this promote.\n`,
+    );
+    process.exit(1);
+  }
+
   process.stderr.write(
     `HOLD — PR #${prNumber} touches a security-sensitive surface with NO recorded reviewer verdict.\n` +
       `   Touched: ${[...new Set(hits)].join(', ')}\n` +
@@ -287,8 +467,13 @@ module.exports = {
   MAX_CLASSIFIABLE_FILES,
   classifyFiles,
   decideReviewGate,
+  isPromotePr,
+  decidePromoteUpstreamCoverage,
+  prRecordHasVerdict,
   fetchPrFiles,
   hitsForFiles,
+  // exposed for integration tests / CI dry-runs
+  buildPromoteCoverage,
 };
 
 if (require.main === module) {

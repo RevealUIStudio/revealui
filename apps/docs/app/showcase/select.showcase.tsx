@@ -61,6 +61,18 @@ const story: ShowcaseStory = {
     <SelectItem value="banana">Banana</SelectItem>
   </SelectContent>
 </Select>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      'Arrow keys': 'Change the selected option',
+      Tab: 'Moves focus to the select',
+    },
+    aria: {
+      'aria-invalid': 'Set when validation fails',
+    },
+    notes: 'Native select semantics; prefer Listbox for fully custom list UIs.',
+  },
 };
 
 export default story;

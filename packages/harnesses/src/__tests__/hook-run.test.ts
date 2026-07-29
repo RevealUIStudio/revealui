@@ -75,6 +75,41 @@ describe('runHookCommand', () => {
     });
   });
 
+  it('builds the grok-native response shape on deny/allow', async () => {
+    await writeFile(
+      snapshotPath,
+      JSON.stringify({
+        version: 1,
+        keyId: 'k1',
+        signature: 'sig',
+        issuedAt: new Date().toISOString(),
+        rules: [{ kind: 'pre-shell', permission: 'deny', reason: 'no shells' }],
+      }),
+      'utf8',
+    );
+
+    const denied = await runHookCommand(
+      'grok',
+      {
+        hookEventName: 'pre_tool_use',
+        toolName: 'run_terminal_command',
+        toolInput: { command: 'rm -rf /' },
+      },
+      { spoolPath, snapshotPath },
+    );
+    expect(denied.responseJson).toEqual({ decision: 'deny', reason: 'no shells' });
+    expect(denied.exitCode).toBe(2);
+    expect(denied.spooled).toBe(true);
+
+    const allowed = await runHookCommand(
+      'grok',
+      { hookEventName: 'PreToolUse', toolName: 'read_file' },
+      { spoolPath, snapshotPath },
+    );
+    expect(allowed.responseJson).toEqual({ decision: 'allow' });
+    expect(allowed.exitCode).toBe(0);
+  });
+
   it('builds the claude-code-native response shape on deny/ask/allow', async () => {
     await writeFile(
       snapshotPath,

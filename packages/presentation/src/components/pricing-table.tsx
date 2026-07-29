@@ -1,7 +1,7 @@
 import { cn } from '../utils/cn.js';
 
 // =============================================================================
-// Types (mirrors @revealui/contracts/pricing  -  no import to avoid coupling)
+// Types (mirrors @revealui/contracts/pricing - no import to avoid coupling)
 // =============================================================================
 
 export interface PricingTier {
@@ -28,7 +28,7 @@ export interface PricingTableProps {
 }
 
 // =============================================================================
-// Check Icon (inline SVG  -  no external deps)
+// Check Icon (inline SVG - no external deps)
 // =============================================================================
 
 function CheckIcon() {

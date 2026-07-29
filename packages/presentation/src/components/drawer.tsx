@@ -59,7 +59,7 @@ export function Drawer({
             ref={backdrop.nodeRef as React.RefObject<HTMLButtonElement>}
             {...backdrop.transitionProps}
             onClick={handleBackdropClick}
-            className="fixed inset-0 z-40 bg-zinc-950/25 transition duration-200 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in dark:bg-zinc-950/50"
+            className="fixed inset-0 z-40 bg-scrim transition duration-200 data-closed:opacity-0 data-enter:ease-out data-leave:ease-in"
           />
         )}
         {panel.mounted && (
@@ -70,7 +70,7 @@ export function Drawer({
             }}
             {...panel.transitionProps}
             className={cn(
-              'fixed z-50 overflow-y-auto bg-white shadow-xl ring-1 ring-zinc-950/10 transition duration-300 ease-in-out dark:bg-zinc-900 dark:ring-white/10',
+              'fixed z-50 overflow-y-auto bg-card shadow-xl ring-1 ring-border-strong transition duration-300 ease-in-out ',
               sideClasses[side],
               className,
             )}
@@ -97,11 +97,11 @@ export function DrawerHeader({
   return (
     <div
       className={cn(
-        'flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-700',
+        'flex items-center justify-between border-b border-border px-6 py-4',
         className,
       )}
     >
-      <h2 id={titleId} className="text-base font-semibold text-zinc-950 dark:text-white">
+      <h2 id={titleId} className="text-base font-semibold text-foreground">
         {children}
       </h2>
       {onClose && (
@@ -109,7 +109,7 @@ export function DrawerHeader({
           type="button"
           aria-label="Close drawer"
           onClick={onClose}
-          className="rounded-md p-1 text-zinc-400 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:hover:text-zinc-200"
+          className="rounded-md p-1 text-muted-foreground hover:text-body focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <svg viewBox="0 0 16 16" fill="none" className="size-4" aria-hidden="true">
             <path
@@ -134,7 +134,7 @@ export function DrawerFooter({ className, ...props }: React.ComponentPropsWithou
     <div
       {...props}
       className={cn(
-        'flex items-center justify-end gap-3 border-t border-zinc-200 px-6 py-4 dark:border-zinc-700',
+        'flex items-center justify-end gap-3 border-t border-border px-6 py-4',
         className,
       )}
     />

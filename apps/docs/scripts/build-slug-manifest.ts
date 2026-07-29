@@ -2,10 +2,10 @@
 /**
  * Build the slug-manifest for chip 3 docs URL flatten.
  *
- * Walks fleet-root `docs/**\/*.md`, enumerating only publicly served docs
- * (fail-closed `visibility: public` check in ./served-docs.mjs, the same
- * boundary the Vite docsCopyPlugin and copy-docs.sh enforce), and writes a
- * deterministic `app/lib/slug-manifest.ts` containing a SLUG_TO_PATH map.
+ * Walks monorepo `docs/**\/*.md`, enumerating only publicly served docs
+ * (fail-closed `visibility: public` via ./served-docs.mjs — same boundary as
+ * the Vite docs-publish plugin), and writes a deterministic
+ * `app/lib/slug-manifest.ts` containing a SLUG_TO_PATH map.
  *
  * Run via:
  *   pnpm --filter docs build:slug-manifest
@@ -66,7 +66,7 @@ async function walk(dir: string, prefix = ''): Promise<Entry[]> {
       results.push(...(await walk(fullPath, relPath)));
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
       // Fail-closed: only enumerate publicly served docs (visibility: public),
-      // matching the Vite copy plugin and copy-docs.sh prune.
+      // matching the Vite docs-publish plane.
       const content = await readFile(fullPath, 'utf8');
       if (!isPubliclyServed(relPath, content)) continue;
       results.push({ slug: pathToSlug(relPath), path: relPath });

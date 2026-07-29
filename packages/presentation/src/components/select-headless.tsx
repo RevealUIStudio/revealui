@@ -25,7 +25,7 @@ export function Select({ className, multiple, disabled, invalid, ref, ...props }
         // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
         'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-card before:shadow-sm',
         // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-        'dark:before:hidden',
+
         // Focus ring
         'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-transparent after:ring-inset has-data-focus:after:ring-2 has-data-focus:after:ring-ring',
         // Disabled state
@@ -51,17 +51,17 @@ export function Select({ className, multiple, disabled, invalid, ref, ...props }
           // Options (multi-select)
           '[&_optgroup]:font-semibold',
           // Typography
-          'text-base/6 text-foreground placeholder:text-muted-foreground sm:text-sm/6 dark:*:text-white',
+          'text-base/6 text-foreground placeholder:text-muted-foreground sm:text-sm/6',
           // Border
           'border border-input data-hover:border-input',
           // Background color
-          'bg-transparent dark:bg-white/5 dark:*:bg-zinc-800',
+          'bg-transparent',
           // Hide default focus styles
           'focus:outline-hidden',
           // Invalid state
           'data-invalid:border-destructive data-invalid:data-hover:border-destructive',
           // Disabled state
-          'data-disabled:border-border data-disabled:opacity-100 data-hover:data-disabled:border-border dark:data-disabled:bg-white/2.5',
+          'data-disabled:border-border data-disabled:opacity-100 data-hover:data-disabled:border-border',
         ])}
       />
       {!multiple && (

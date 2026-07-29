@@ -7,9 +7,9 @@ category: guide
 audience: developer
 ---
 
-> **Preview status.** The publish/list/invoke/onboard endpoints are wired; live payouts are gated on the internal billing-readiness audit (Stripe runs in TEST mode in production today). The 80/20 revenue split is the planned launch policy.
+> **Preview status.** The publish/list/invoke/onboard endpoints are wired. **Stripe is live** in production; marketplace third-party payout rails remain incomplete relative to the planned 80/20 launch policy.
 
-The RevealUI MCP Marketplace lets developers publish Model Context Protocol (MCP) servers with a per-call price. Callers pay in USDC on Base via the x402 protocol. The planned revenue split is 80% developer / 20% platform; live payouts open once the billing-readiness audit closes.
+The RevealUI MCP Marketplace lets developers publish Model Context Protocol (MCP) servers with a per-call price. Callers pay in USDC on Base via the x402 protocol. The planned revenue split is 80% developer / 20% platform; third-party developer payouts are not fully shipped yet (Stripe live mode is already on for first-party billing).
 
 ---
 

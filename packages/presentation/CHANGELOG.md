@@ -1,5 +1,32 @@
 # @revealui/presentation
 
+## 0.13.0
+
+### Minor Changes
+
+- Gate 0 themability: purge raw Tailwind palette / `dark:` theme-locks from
+  components onto the `@theme` bridge and `--rvui-*` tokens.
+
+  **Breaking (0.x minor):** Switch, Radio, Checkbox, and Progress drop the
+  Catalyst 11-colorway `color` prop API for five semantic intents shared with
+  Button: `'brand' | 'neutral' | 'success' | 'warning' | 'danger'`.
+
+  **Default change (call this out):** an unstyled `<Switch>` / `<Radio>` /
+  `<Checkbox>` was near-black (`dark/zinc`) and is now cobalt (`brand`). An
+  unstyled `<Progress>` was palette blue and is now brand. Unchanged consumer
+  code renders differently on purpose.
+
+  Migration: `color="blue"|"indigo"|"violet"|…` → `intent="brand"`;
+  `color="zinc"|"dark/zinc"|…` → `intent="neutral"`; green family → `success`;
+  amber/yellow → `warning`; red family → `danger`. The legacy `color` prop
+  remains as a deprecated alias through 0.15 with a one-shot dev warning.
+
+  **Also:** focus rings consolidate on `utils/focus.ts` constants / `ring-ring`;
+  new tokens `--rvui-scrim` and `--rvui-text-on-error`; apps import
+  `@revealui/presentation/theme.css` instead of hand-duplicating `@theme inline`;
+  `presentation-lint` hard-fails raw palette and `dark:` in the package (badge
+  product-tag swatches remain as a documented exception).
+
 ## 0.12.1
 
 ### Patch Changes

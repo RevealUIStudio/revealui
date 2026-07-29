@@ -50,6 +50,11 @@ const story: ShowcaseStory = {
 
   code: (props: Record<string, unknown>) =>
     `<KbdShortcut keys={['Ctrl', 'Shift', 'P']}${props.separator !== '+' ? ` separator="${props.separator}"` : ''} />`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Visual affordance for shortcuts; do not rely on kbd alone as the only instruction.',
+  },
 };
 
 export default story;

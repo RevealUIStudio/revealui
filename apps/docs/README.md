@@ -1,63 +1,74 @@
 # RevealUI Docs
 
-Public documentation site for RevealUI  -  built with Vite and React.
+Public documentation site for RevealUI — built with Vite and React.
 
 **Live at:** https://docs.revealui.com
 
+## Documentation SoT (read this first)
+
+| Path | Role |
+|------|------|
+| **`docs/`** (monorepo root) | **Only place to edit** documentation |
+| **`apps/docs/public/**/*.md`** | **Do not create.** Not a materialize mirror. |
+| **`apps/docs/public/docs-pro/`** | Hand-authored Pro docs exception (tracked) |
+| **`apps/docs/dist/**/*.md`** | Build output only (gitignored) |
+
+Publish plane: `scripts/docs-publish.mjs` + Vite `docs-publish` plugin.
+
+- **Dev:** middleware serves `visibility: public` markdown from monorepo `docs/`
+- **Build:** emits the same set into `dist/` for static hosting
+- **Visibility:** fail-closed frontmatter (`scripts/served-docs.mjs`)
+
+See `public/DOCS-PUBLISH-PLANE.txt` and  
+`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`.
+
 ## Features
 
-- **Markdown Rendering**  -  Renders project documentation as styled HTML (react-markdown + remark-gfm)
-- **Content Pipeline**  -  `scripts/copy-docs.sh` copies user-facing docs from the monorepo root into `public/` at build time (flat URL space per CHIP-3 D5a — `docs.revealui.com/admin-guide` resolves to `public/ADMIN_GUIDE.md`)
-- **Security Filtering**  -  Internal docs (MASTER_PLAN, GOVERNANCE, AI-AGENT-RULES, etc.) are excluded from the public build
-- **SPA Routing**  -  Client-side routing via @revealui/router with Vercel SPA rewrite
+- **Markdown rendering** — react-markdown + remark-gfm
+- **Virtual publish plane** — no second authoring-shaped tree under `public/`
+- **Visibility filtering** — fail-closed `visibility: public` only
+- **SPA routing** — `@revealui/router` with Vercel SPA rewrite
+- **Flat URLs** — CHIP-3 D5a (`docs.revealui.com/admin-guide` → `ADMIN_GUIDE.md`)
 
 ## Stack
 
-- **Build**: Vite
-- **UI**: React 19
-- **Markdown**: react-markdown, remark-gfm
-- **Routing**: @revealui/router
+- Build: Vite
+- UI: React 19
+- Markdown: react-markdown, remark-gfm
+- Routing: `@revealui/router`
 
 ## Development
 
 ```bash
-# Start dev server (copies docs + starts Vite)
+# Start dev server (virtual serve from monorepo docs/)
 pnpm dev
 
-# Build for production
+# Production build (emits public md into dist/)
 pnpm build
 
-# Preview production build
-pnpm preview
+# Link integrity (served set = visibility:public under monorepo docs/)
+pnpm check:links
 
-# Type check
+# Clean leftover generated public/*.md from old materialize builds
+pnpm clean:public-mirror
+
 pnpm typecheck
-
-# Run tests
 pnpm test
 ```
 
-## Content Pipeline
+## Adding documentation
 
-The docs app doesn't have its own source content. Instead, `scripts/copy-docs.sh` copies markdown files from the monorepo `docs/` directory into `public/` (root, not a `public/docs/` subdirectory) before each build. Internal-only documents are filtered out. See the `CHIP-3 D5a` note in `scripts/copy-docs.sh` for why the target is flat.
+1. Add or edit markdown under monorepo **`docs/`**
+2. Set frontmatter `visibility: public` to ship on docs.revealui.com
+3. Internal docs use `visibility: internal` (never served)
+4. Re-run `pnpm build:slug-manifest` when adding/renaming public paths that affect slugs
 
-To add new public documentation, add markdown files to the monorepo `docs/` directory. To exclude a file from the public build, add it to the exclusion list in `scripts/copy-docs.sh`.
+Do **not** add markdown under `apps/docs/public/` except `docs-pro/`.
 
 ## Deployment
 
-Deployed to Vercel as `revealui-docs` via CLI (not GitHub auto-deploy).
+Deployed to Vercel as `revealui-docs`.
 
 ```bash
-# Deploy from repo root
-VERCEL_ORG_ID=<org-id> \
-VERCEL_PROJECT_ID=<project-id> \
-vercel deploy --prod --archive=tgz
+pnpm vercel-build   # from apps/docs: turbo build --filter=docs
 ```
-
-## Related
-
-- [Architecture Guide](../../docs/ARCHITECTURE.md)
-
-## License
-
-MIT

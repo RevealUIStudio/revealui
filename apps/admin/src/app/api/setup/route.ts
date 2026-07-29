@@ -1,10 +1,17 @@
 import crypto from 'node:crypto';
+import { createSession } from '@revealui/auth/server';
 import { type BootstrapResult, bootstrap, type RevealUILike } from '@revealui/setup/bootstrap';
 import { logger } from '@revealui/utils/logger';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { stampTosAcceptanceByEmail } from '@/lib/auth/tos';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
+import {
+  ROLE_COOKIE,
+  requireSessionCookieDomain,
+  SESSION_COOKIE,
+  sessionCookieDomain,
+} from '@/lib/utils/session-cookies';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,9 +33,35 @@ const isWebSetupDisabled =
   process.env.REVEALUI_ALLOW_WEB_SETUP !== 'true' && process.env.NODE_ENV === 'production';
 
 /**
+ * Attach the same auth cookies sign-in sets (GAP-247 F8 auto-login).
+ * Cookie flags mirror apps/admin/src/app/api/auth/sign-in/route.ts exactly —
+ * do not weaken httpOnly/secure/sameSite or diverge maxAge from DB session TTL.
+ */
+function attachSessionCookies(response: NextResponse, sessionToken: string, role: string): void {
+  response.cookies.set(ROLE_COOKIE, role, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+    domain: sessionCookieDomain(),
+  });
+
+  response.cookies.set(SESSION_COOKIE, sessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
+    domain: requireSessionCookieDomain(),
+  });
+}
+
+/**
  * POST /api/setup  -  Bootstrap a fresh RevealUI instance.
  *
  * Creates the first admin user and seeds minimal content.
+ * On success, mints a session (auto-login) so the new admin skips re-auth.
  * Self-disabling: returns 403 once any user exists.
  * No auth required (no users exist yet).
  * Disabled in production unless REVEALUI_ALLOW_WEB_SETUP=true.
@@ -165,6 +198,35 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
       logger.error('Post-create steps skipped: database client unavailable', {
         email: parsed.data.email,
         error: dbError instanceof Error ? dbError.message : String(dbError),
+      });
+    }
+
+    // Auto-login (GAP-247 F8): mint a session with the same createSession
+    // primitive sign-in uses. Non-fatal — admin creation already succeeded;
+    // a mint failure falls back to the old /login redirect on the client.
+    const userId = result.user?.id;
+    if (userId) {
+      try {
+        const userAgent = request.headers.get('user-agent') || undefined;
+        const ipAddress =
+          request.headers.get('x-real-ip') ||
+          request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+          undefined;
+        const { token } = await createSession(userId, { userAgent, ipAddress });
+        const body: BootstrapResult = { ...result, sessionMinted: true };
+        const response = NextResponse.json(body, { status: 201 });
+        attachSessionCookies(response, token, result.user?.role ?? 'owner');
+        return response;
+      } catch (sessionError) {
+        logger.error('Setup auto-login session mint failed', {
+          email: parsed.data.email,
+          userId,
+          error: sessionError instanceof Error ? sessionError.message : String(sessionError),
+        });
+      }
+    } else {
+      logger.warn('Setup auto-login skipped: bootstrap result missing user id', {
+        email: parsed.data.email,
       });
     }
   }

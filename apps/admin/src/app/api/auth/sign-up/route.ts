@@ -193,24 +193,25 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // First user automatically becomes admin with verified email so they can
-    // access /admin immediately without waiting for email verification.
+    // First user becomes owner (DB) + super-admin (_json.roles) with verified
+    // email so they can access /admin immediately. GAP-244: same role as CLI
+    // bootstrap / setup (owner), not tenant 'admin'.
     let resolvedUser = result.user;
     if (isFirstUser && result.user?.id) {
       try {
         const db = getClient();
         const updatedUser = await updateUser(db, result.user.id, {
-          role: 'admin',
+          role: 'owner',
           emailVerified: true,
           emailVerifiedAt: new Date(),
         });
         // Grant the app-layer super-admin role in `_json.roles`. The DB `role`
         // column above is read by the proxy/cookie gate, but the engine's
         // access gates (isSuperAdmin / isAdmin via hasRole) read `_json.roles`
-        // — without this the first user is an admin the engine still denies.
+        // — without this the first user is an owner the engine still denies.
         // signUp() creates users via a typed insert that never populates
         // `_json`, so the grant must be a typed update afterward. Canonical
-        // owner shape per #1219: DB role + _json.roles=['super-admin'].
+        // owner shape per #1219 / GAP-244: DB role owner + _json.roles=['super-admin'].
         await grantSuperAdminRoleById(db, result.user.id);
         if (updatedUser) {
           resolvedUser = {
@@ -223,7 +224,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         // and/or the `_json.roles` super-admin grant). Loud: a half-promoted
         // first user can't reach the engine-gated admin surface and needs a
         // manual backfill.
-        logger.error('Failed to promote first user to admin/super-admin', {
+        logger.error('Failed to promote first user to owner/super-admin', {
           userId: result.user.id,
           error: upgradeError instanceof Error ? upgradeError.message : String(upgradeError),
         });
@@ -256,7 +257,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Grant session if email is verified. First-user admin accounts are verified
+    // Grant session if email is verified. First-user owner accounts are verified
     // immediately above. Other new signups must verify their email first.
     const isVerified = resolvedUser?.emailVerified ?? false;
 

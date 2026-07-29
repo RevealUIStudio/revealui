@@ -153,7 +153,7 @@ REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
 # Self origin for governed MCP tool loopback (credentialsProvider → REST).
 # Missing on api caused live tool calls to fail while /api/mcp auth still
 # returned 400 Session ID required (auth green, tools dead). Same vault leaf
-# as admin/marketing NEXT_PUBLIC_API_URL / REVEALUI_API_URL.
+# as admin NEXT_PUBLIC_API_URL / REVEALUI_API_URL and marketing VITE_API_URL.
 REVEALUI_API_URL           = "revealui/prod/public/api-url"
 NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
 
@@ -245,7 +245,7 @@ ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
 # Mode flags (canonical pair — kept post-Q7)
 NEXT_PUBLIC_IS_LIVE = "revealui/prod/public/is-live"
 
-# Public URLs (parity twins across api/admin/marketing)
+# Public URLs (parity twins across api/admin; marketing uses VITE_API_URL)
 NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
 REVEALUI_API_URL           = "revealui/prod/public/api-url"
 NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
@@ -277,14 +277,16 @@ skip = [
 ]
 
 [projects.revealui-marketing.vars]
-# Mode flags + public URLs (canonical paths shared with admin/api)
-NEXT_PUBLIC_IS_LIVE        = "revealui/prod/public/is-live"
-NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
-REVEALUI_API_URL           = "revealui/prod/public/api-url"
-NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
-REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
-# NEXT_PUBLIC_ADMIN_URL dropped 2026-05-09: not used in apps/marketing yet.
-# Re-add when CMS_URL → ADMIN_URL rename ships.
+# Vite bakes VITE_* at build time (apps/marketing/app/lib/api.ts). Without this
+# line every PROD build hard-falls-back to https://api.revealui.com, so the
+# vault leaf is the durable source of truth (GAP-350; staging already set it
+# in revvault-vercel-staging.toml via GAP-343).
+VITE_API_URL = "revealui/prod/public/api-url"
+# Dropped 2026-07-28 (GAP-350): NEXT_PUBLIC_* / REVEALUI_* twins had zero
+# readers in apps/marketing (Vite, not Next). NEXT_PUBLIC_IS_LIVE,
+# NEXT_PUBLIC_API_URL, REVEALUI_API_URL, NEXT_PUBLIC_SERVER_URL, and
+# REVEALUI_PUBLIC_SERVER_URL remain on api/admin where code reads them.
+# NEXT_PUBLIC_ADMIN_URL was already dropped 2026-05-09 (no marketing reader).
 
 
 # ── revealui-docs ───────────────────────────────────────────────────────────

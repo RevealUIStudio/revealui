@@ -21,8 +21,20 @@ Agentic business runtime. People, content, offers, payments, and agents  -  pre-
 - React 19, Next.js 16 (admin), Vite (docs / marketing), Hono (server), Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
 - Drizzle ORM (NeonDB), Tailwind CSS v4
-- Cloudflare R2 (S3-compatible object storage; replacing Vercel Blob)
+- Cloudflare R2 (S3-compatible object storage; Vercel Blob was retired)
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
+
+## Documentation SoT
+
+| Path | Role |
+|------|------|
+| **`docs/`** | **Only place to edit** documentation |
+| **`apps/docs/public/**/*.md`** | Not a materialize mirror — do not create/edit |
+| **`apps/docs/public/docs-pro/`** | Hand-authored Pro exception |
+| **`apps/docs/dist/`** | Build output only |
+
+Publish plane: virtual serve + dist emit  
+(`docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md`).
 
 ## Git Identity
 RevealUI Studio <43050008+joshua-v-dev@users.noreply.github.com>
@@ -68,7 +80,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (97 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
+| @revealui/db | Drizzle ORM schema (97 tables) on NeonDB (Postgres); Supabase was removed (ADR 2026-05-01) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |

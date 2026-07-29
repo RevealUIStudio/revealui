@@ -1,40 +1,20 @@
 import { Switch } from '@revealui/presentation/client';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
-const COLORS = [
-  'dark/zinc',
-  'dark/white',
-  'red',
-  'orange',
-  'amber',
-  'yellow',
-  'lime',
-  'green',
-  'emerald',
-  'teal',
-  'cyan',
-  'sky',
-  'blue',
-  'indigo',
-  'violet',
-  'purple',
-  'fuchsia',
-  'pink',
-  'rose',
-] as const;
+const INTENTS = ['brand', 'neutral', 'success', 'warning', 'danger'] as const;
 
 const story: ShowcaseStory = {
   slug: 'switch',
   name: 'Switch',
   description:
-    'Toggle control with 19 color variants. Accessible role="switch" with keyboard support and smooth transitions.',
+    'Toggle control with five semantic intents (brand, neutral, success, warning, danger). Accessible role="switch" with keyboard support.',
   category: 'component',
 
   controls: {
-    color: {
+    intent: {
       type: 'select',
-      options: [...COLORS],
-      default: 'dark/zinc',
+      options: [...INTENTS],
+      default: 'brand',
     },
     defaultChecked: { type: 'boolean', default: true },
     disabled: { type: 'boolean', default: false },
@@ -42,25 +22,26 @@ const story: ShowcaseStory = {
 
   render: (props: Record<string, unknown>) => (
     <Switch
-      color={props.color as (typeof COLORS)[number]}
+      intent={props.intent as (typeof INTENTS)[number]}
       defaultChecked={props.defaultChecked as boolean}
       disabled={props.disabled as boolean}
+      aria-label="Enable notifications"
     />
   ),
 
   variantGrid: {
-    color: ['blue', 'green', 'red', 'amber', 'violet', 'pink', 'cyan', 'dark/zinc'],
+    intent: [...INTENTS],
   },
 
   examples: [
     {
-      name: 'Color Palette',
+      name: 'Intents',
       render: () => (
         <div className="flex flex-wrap gap-4">
-          {COLORS.map((color) => (
-            <div key={color} className="flex flex-col items-center gap-1">
-              <Switch color={color} defaultChecked />
-              <span className="text-[10px] font-mono text-zinc-400">{color}</span>
+          {INTENTS.map((intent) => (
+            <div key={intent} className="flex flex-col items-center gap-1">
+              <Switch intent={intent} defaultChecked aria-label={`${intent} switch`} />
+              <span className="font-mono text-[10px] text-muted-foreground">{intent}</span>
             </div>
           ))}
         </div>
@@ -71,20 +52,20 @@ const story: ShowcaseStory = {
       render: () => (
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-center gap-1">
-            <Switch color="blue" />
-            <span className="text-xs text-zinc-400">Off</span>
+            <Switch intent="brand" aria-label="Off state demo" />
+            <span className="text-xs text-muted-foreground">Off</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Switch color="blue" defaultChecked />
-            <span className="text-xs text-zinc-400">On</span>
+            <Switch intent="brand" defaultChecked aria-label="On state demo" />
+            <span className="text-xs text-muted-foreground">On</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Switch color="blue" disabled />
-            <span className="text-xs text-zinc-400">Disabled</span>
+            <Switch intent="brand" disabled aria-label="Disabled off demo" />
+            <span className="text-xs text-muted-foreground">Disabled</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Switch color="blue" defaultChecked disabled />
-            <span className="text-xs text-zinc-400">Disabled On</span>
+            <Switch intent="brand" defaultChecked disabled aria-label="Disabled on demo" />
+            <span className="text-xs text-muted-foreground">Disabled On</span>
           </div>
         </div>
       ),
@@ -93,11 +74,24 @@ const story: ShowcaseStory = {
 
   code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
-    if (props.color !== 'dark/zinc') attrs.push(`color="${props.color}"`);
+    if (props.intent !== 'brand') attrs.push(`intent="${props.intent}"`);
     if (props.defaultChecked) attrs.push('defaultChecked');
     if (props.disabled) attrs.push('disabled');
     const attrStr = attrs.length ? ` ${attrs.join(' ')}` : '';
     return `<Switch${attrStr} />`;
+  },
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 4.1.2 Name, Role, Value'],
+    keyboard: {
+      Space: 'Toggles on/off',
+      Enter: 'Toggles on/off',
+      Tab: 'Moves focus to the switch',
+    },
+    aria: {
+      role: 'switch',
+      'aria-checked': 'true when on',
+    },
   },
 };
 

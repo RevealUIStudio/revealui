@@ -119,8 +119,22 @@ export const SHARED_DETECTION_RULES: readonly DetectionRule[] = [
   },
   {
     id: 'railway-as-current',
+    // Studio production is Vercel + Neon + Fly. Railway remains a *customer*
+    // marketplace self-host path (GAP-430, deployment/railway/). Exonerate
+    // those sales-channel lines so docs can link the template without
+    // re-introducing Railway as Studio's own infrastructure.
     anyOf: ['railway'],
-    unlessLineHas: [...COMMON_EXON, 'fly.io', 'fly machine', 'not railway'],
+    unlessLineHas: [
+      ...COMMON_EXON,
+      'fly.io',
+      'fly machine',
+      'not railway',
+      'marketplace',
+      'buyer',
+      'customer',
+      'sales channel',
+      'deployment/railway',
+    ],
   },
   {
     id: 'vercel-blob-as-current',

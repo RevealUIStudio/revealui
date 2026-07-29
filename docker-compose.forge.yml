@@ -9,31 +9,38 @@
 #   3. A .env.forge file with the variables listed below
 #
 # Quick start:
-#   cp .env.template .env.forge    # Fill in required vars
+#   cp .env.template .env.forge    # Fill in required vars (see list below)
 #   docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
 #
-# Required .env.forge variables:
-#   REVFORGE_LICENSE_KEY         — enterprise license key (required)
-#   REVFORGE_LICENSED_DOMAIN     — domain this instance serves (e.g. admin.acme.com)
-#   POSTGRES_PASSWORD         — secure database password
-#   REVEALUI_SECRET           — 32+ char random secret (openssl rand -hex 32)
-#   JWT_SECRET                — 32+ char random secret (openssl rand -hex 32)
-#   REVEALUI_PUBLIC_KEY       — RSA public key for license verification
-#   REVEALUI_PRIVATE_KEY      — RSA private key for license issuance
-#   REVEALUI_AUDIT_SIGNING_KEY — Ed25519 PKCS#8 PEM; signs every audit row
-#                               (required in production: api validate-startup
-#                               and admin instrumentation both refuse to boot
-#                               without it — ADR §2b, self-hosted signs too)
-#   RESEND_API_KEY            — transactional email (optional — disables email features if absent)
+# Required .env.forge variables (names match apps/server validate-startup forge mode):
+#   REVEALUI_LICENSE_KEY         — studio-issued JWT (stamped kits bake this)
+#   REVEALUI_LICENSE_PUBLIC_KEY  — Ed25519/public PEM that verifies the JWT
+#   REVEALUI_KEK                 — at-rest encryption key (stamp generates)
+#   POSTGRES_PASSWORD            — secure database password
+#   REVEALUI_SECRET              — 32+ char random secret (openssl rand -hex 32)
+#   REVEALUI_AUDIT_SIGNING_KEY   — Ed25519 PKCS#8 PEM; signs every audit row
+#   CORS_ORIGIN                  — e.g. https://admin.acme.com
+#   REVEALUI_PUBLIC_SERVER_URL   — public admin/site URL
+#   NEXT_PUBLIC_SERVER_URL       — same public URL (Next public)
+#
+# Optional:
+#   REVFORGE_LICENSED_DOMAIN     — Host domain-lock (admin proxy 403 on mismatch)
+#   REVEALUI_LICENSED_CUSTOMER_ID — bind JWT customerId (recommended for kits)
+#   STRIPE_* / GOOGLE_* / etc.   — only if you enable those features
+#
+# GAP-435: env names must stay locked to REQUIRED_IN_PRODUCTION_FORGE /
+# validateLicenseAtStartup — not the retired REVEALUI_PUBLIC_KEY / JWT_SECRET /
+# RESEND_* names. Postgres must be pgvector (migration 0000 CREATE EXTENSION vector).
+# A one-shot migrate service must complete before api/admin boot.
 # =============================================================================
 
 services:
 
   # ---------------------------------------------------------------------------
-  # PostgreSQL — primary data store
+  # PostgreSQL — primary data store (pgvector required for migration 0000)
   # ---------------------------------------------------------------------------
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: revealui-forge-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-revealui}
@@ -51,6 +58,26 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
+  # Migrate — one-shot drizzle-kit migrate (kit-only; hosted migrates in CI)
+  # ---------------------------------------------------------------------------
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile.forge
+      target: migrate
+    container_name: revealui-forge-migrate
+    environment:
+      NODE_ENV: production
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - forge-network
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
   # API — Hono REST server (agent tasks, billing, license, webhooks)
   # ---------------------------------------------------------------------------
   api:
@@ -62,44 +89,48 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3004"
+      # Explicit mode: private key absent + no hosted keys → forge path.
+      REVEALUI_DEPLOYMENT_MODE: forge
 
-      # RevForge license enforcement
-      REVFORGE_LICENSE_KEY: ${REVFORGE_LICENSE_KEY:?REVFORGE_LICENSE_KEY is required}
-      REVFORGE_LICENSED_DOMAIN: ${REVFORGE_LICENSED_DOMAIN:?REVFORGE_LICENSED_DOMAIN is required}
+      # License (validateLicenseAtStartup + REQUIRED_IN_PRODUCTION_FORGE)
+      # Prefer REVEALUI_LICENSE_KEY; accept legacy REVFORGE_LICENSE_KEY as alias.
+      REVEALUI_LICENSE_KEY: ${REVEALUI_LICENSE_KEY:-${REVFORGE_LICENSE_KEY:?REVEALUI_LICENSE_KEY (or REVFORGE_LICENSE_KEY) is required}}
+      REVEALUI_LICENSE_PUBLIC_KEY: ${REVEALUI_LICENSE_PUBLIC_KEY:?REVEALUI_LICENSE_PUBLIC_KEY is required}
+      REVEALUI_LICENSED_CUSTOMER_ID: ${REVEALUI_LICENSED_CUSTOMER_ID:-}
+      # Optional Host domain-lock (admin proxy); not a substitute for the JWT
+      REVFORGE_LICENSED_DOMAIN: ${REVFORGE_LICENSED_DOMAIN:-}
 
       # Database
       POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
       DATABASE_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
 
-      # Auth secrets
+      # Auth + at-rest encryption
       REVEALUI_SECRET: ${REVEALUI_SECRET:?REVEALUI_SECRET is required}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      REVEALUI_PUBLIC_KEY: ${REVEALUI_PUBLIC_KEY:?REVEALUI_PUBLIC_KEY is required}
-      REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY:?REVEALUI_PRIVATE_KEY is required}
+      REVEALUI_KEK: ${REVEALUI_KEK:?REVEALUI_KEK is required}
 
-      # Audit-row signing (GAP-355 Stage 3 / GAP-417). validate-startup refuses
-      # to boot the api without a parseable Ed25519 key — the compose previously
-      # never passed it through, so an un-keyed kit restart-looped with a
-      # generic missing-env error instead of this named one.
-      REVEALUI_AUDIT_SIGNING_KEY: ${REVEALUI_AUDIT_SIGNING_KEY:?REVEALUI_AUDIT_SIGNING_KEY is required (Ed25519 PKCS#8 PEM - signs every audit row)}
+      # Audit-row signing (GAP-355 Stage 3 / GAP-417)
+      REVEALUI_AUDIT_SIGNING_KEY: ${REVEALUI_AUDIT_SIGNING_KEY:?REVEALUI_AUDIT_SIGNING_KEY is required (Ed25519 PKCS#8 PEM)}
 
-      # CMS origin for CORS
-      ADMIN_URL: ${ADMIN_URL:-http://admin:4000}
-      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:-http://admin:4000}
+      # Public URLs + CORS (forge required list)
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:4000}
+      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:?REVEALUI_PUBLIC_SERVER_URL is required}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:?NEXT_PUBLIC_SERVER_URL is required}
+      CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
 
       # Optional: Stripe (billing features)
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
 
-      # Optional: Resend (transactional email)
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@revealui.com}
+      # Optional: Gmail transactional email (no Resend — removed PR #227)
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL:-}
+      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@revealui.com}
 
       # Optional: x402 micropayments
       X402_ENABLED: ${X402_ENABLED:-false}
       X402_RECEIVING_ADDRESS: ${X402_RECEIVING_ADDRESS:-}
 
-      # Optional: perpetual license provisioning
+      # Optional: perpetual license provisioning / crons
       REVEALUI_GITHUB_TOKEN: ${REVEALUI_GITHUB_TOKEN:-}
       REVEALUI_CRON_SECRET: ${REVEALUI_CRON_SECRET:-}
 
@@ -108,6 +139,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health',(r)=>{process.exit(r.statusCode===200?0:1)})"]
       interval: 30s
@@ -132,33 +165,31 @@ services:
       PORT: "4000"
       HOSTNAME: "0.0.0.0"
       NEXT_TELEMETRY_DISABLED: "1"
+      REVEALUI_DEPLOYMENT_MODE: forge
 
-      # RevForge license enforcement
-      REVFORGE_LICENSE_KEY: ${REVFORGE_LICENSE_KEY}
-      REVFORGE_LICENSED_DOMAIN: ${REVFORGE_LICENSED_DOMAIN}
+      # License (same material as api)
+      REVEALUI_LICENSE_KEY: ${REVEALUI_LICENSE_KEY:-${REVFORGE_LICENSE_KEY:-}}
+      REVEALUI_LICENSE_PUBLIC_KEY: ${REVEALUI_LICENSE_PUBLIC_KEY:-}
+      REVEALUI_LICENSED_CUSTOMER_ID: ${REVEALUI_LICENSED_CUSTOMER_ID:-}
+      REVFORGE_LICENSED_DOMAIN: ${REVFORGE_LICENSED_DOMAIN:-}
 
       # Database
       POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
       DATABASE_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
 
-      # Auth secrets
+      # Auth + KEK + audit
       REVEALUI_SECRET: ${REVEALUI_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-      REVEALUI_PUBLIC_KEY: ${REVEALUI_PUBLIC_KEY}
-      REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY}
-
-      # Audit-row signing (GAP-338/GAP-417): the admin process installs
-      # persistent signed audit storage at boot and refuses to serve in
-      # production without the key. Same key as the api service.
+      REVEALUI_KEK: ${REVEALUI_KEK}
       REVEALUI_AUDIT_SIGNING_KEY: ${REVEALUI_AUDIT_SIGNING_KEY}
 
-      # API URL (internal container network)
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://api:3004}
+      # API URL (internal container network for server-side; public for NEXT_PUBLIC_*)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3004}
       API_URL: http://api:3004
 
       # Public URLs
-      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:4000}
-      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:-http://localhost:4000}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
       # Optional: Stripe
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
@@ -166,15 +197,17 @@ services:
       NEXT_PUBLIC_STRIPE_PRO_PRICE_ID: ${NEXT_PUBLIC_STRIPE_PRO_PRICE_ID:-}
       NEXT_PUBLIC_STRIPE_MAX_PRICE_ID: ${NEXT_PUBLIC_STRIPE_MAX_PRICE_ID:-}
 
-      # Optional: Resend
-      RESEND_API_KEY: ${RESEND_API_KEY:-}
-      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@revealui.com}
+      # Optional: Gmail email
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL:-}
+      GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY:-}
 
     ports:
       - "${CMS_PORT:-4000}:4000"
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       api:
         condition: service_healthy
     healthcheck:

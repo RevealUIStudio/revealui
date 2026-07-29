@@ -344,6 +344,12 @@ async function gate(): Promise<void> {
         args: ['validate:claims'],
       },
       {
+        // GAP-395: REST API markdown must match `pnpm docs:generate:api`.
+        name: 'API docs drift (hard fail)',
+        command: 'pnpm',
+        args: ['validate:api-docs'],
+      },
+      {
         // The .claude config surface (rules/agents/skills) is materialized
         // from revcon profiles with a sha256 manifest; tracked copies must
         // match it exactly (no local edits, no hand-added strays). Mirrored

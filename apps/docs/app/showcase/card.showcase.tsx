@@ -110,6 +110,11 @@ const story: ShowcaseStory = {
     lines.push('</Card>');
     return lines.join('\n');
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Card is a surface; put headings and landmarks in children as needed.',
+  },
 };
 
 export default story;

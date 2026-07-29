@@ -87,6 +87,27 @@ function buildClaudeCodeResponse(decision: PolicyDecision): Record<string, unkno
   return { decision: 'approve' };
 }
 
+/**
+ * Build the Grok-native PreToolUse permission response
+ * (Grok hooks guide: allow | deny + optional reason).
+ */
+function buildGrokResponse(decision: PolicyDecision): Record<string, unknown> {
+  if (decision.permission === 'deny') {
+    return {
+      decision: 'deny',
+      reason: decision.reason ?? 'Denied by RevealUI policy',
+    };
+  }
+  if (decision.permission === 'ask') {
+    // Grok has no documented ask; surface as deny with reason so policy floors hold.
+    return {
+      decision: 'deny',
+      reason: decision.reason ?? 'Requires confirmation per RevealUI policy',
+    };
+  }
+  return { decision: 'allow' };
+}
+
 /** Event kinds that correspond to VS Code's `PreToolUse` hook. */
 const VSCODE_PRE_TOOL_KINDS: ReadonlySet<HarnessHookEventKind> = new Set([
   'pre-tool',
@@ -130,6 +151,7 @@ function buildEditorResponse(
 ): Record<string, unknown> {
   if (source === 'cursor') return buildCursorResponse(decision);
   if (source === 'vscode') return buildVSCodeResponse(kind, decision);
+  if (source === 'grok') return buildGrokResponse(decision);
   return buildClaudeCodeResponse(decision);
 }
 
@@ -166,8 +188,8 @@ export async function runHookCommand(
 
   // GAP-199 native twin: warn-only when file-edit (or post-tool with paths)
   // touches contract/schema/app code without the product canon doc dirty.
-  // Never changes the permission decision — advisory only (Claude-side pair:
-  // ~/.claude/hooks/master-spec-pr-coupling.js).
+  // Never changes the permission decision — advisory only. Claude-side adapter
+  // invokes the same evaluatePolicy path via runHookCommand (no twin script).
   if (
     (event.kind === 'file-edit' || event.kind === 'post-tool') &&
     event.filePaths &&

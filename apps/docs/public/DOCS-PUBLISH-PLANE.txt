@@ -1,0 +1,18 @@
+DOCS PUBLISH PLANE — NOT A DOCUMENTATION SOURCE OF TRUTH
+
+Author only under monorepo docs/ (repository root).
+
+Serve model:
+  Dev   — Vite docs-publish middleware reads monorepo docs/ (visibility: public).
+  Build — same set is emitted into apps/docs/dist/ only.
+  Never materialize a second authoring-shaped tree under public/*.md.
+
+Hand-authored exception (tracked):
+  public/docs-pro/   Pro documentation
+
+Static assets in this directory (favicons, robots.txt, llms.txt, …) are real.
+
+See:
+  apps/docs/README.md
+  docs/decisions/2026-07-29-docs-publish-plane-virtual-serve.md
+  apps/docs/scripts/docs-publish.mjs

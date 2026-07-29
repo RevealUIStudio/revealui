@@ -65,6 +65,11 @@ const story: ShowcaseStory = {
   <TimelineItem title="Event" date="Jan 1" description="Details" />
   <TimelineItem title="Event 2" date="Feb 1" isLast />
 </Timeline>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    notes: 'Order is meaningful; keep chronological text in the content.',
+  },
 };
 
 export default story;

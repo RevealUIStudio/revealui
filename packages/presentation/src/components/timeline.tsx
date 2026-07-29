@@ -30,28 +30,21 @@ export function TimelineItem({
     <li className={cn('relative flex gap-4', !isLast && 'pb-8', className)}>
       {/* Connector line */}
       {!isLast && (
-        <div
-          aria-hidden="true"
-          className="absolute left-4 top-8 -bottom-0 w-px bg-zinc-200 dark:bg-zinc-700"
-        />
+        <div aria-hidden="true" className="absolute left-4 top-8 -bottom-0 w-px bg-surface-2" />
       )}
 
       {/* Icon */}
-      <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-700">
-        {icon ?? <div className="size-2 rounded-full bg-zinc-400 dark:bg-zinc-500" />}
+      <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full bg-card ring-1 ring-border">
+        {icon ?? <div className="size-2 rounded-full bg-muted-foreground" />}
       </div>
 
       {/* Content */}
       <div className="flex-1 pt-0.5">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-          <p className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</p>
-          {date && (
-            <time className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">{date}</time>
-          )}
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          {date && <time className="shrink-0 text-xs text-muted-foreground">{date}</time>}
         </div>
-        {description && (
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
-        )}
+        {description && <p className="mt-1 text-sm text-body">{description}</p>}
       </div>
     </li>
   );

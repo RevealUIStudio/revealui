@@ -71,6 +71,11 @@ const story: ShowcaseStory = {
     </Field>
   </FieldGroup>
 </Fieldset>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 3.3.2 Labels or Instructions'],
+    notes: 'Use legend for the group name.',
+  },
 };
 
 export default story;

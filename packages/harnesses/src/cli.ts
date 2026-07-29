@@ -12,7 +12,8 @@
  *   list                             List harnesses in TSV format
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--project <path>]    Print current workboard state
- *   hook <cursor|claude-code|vscode> Normalize a hook payload from stdin, evaluate policy, spool the receipt
+ *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
+ *   session register|end             Soft-optional RevDev daemon session boundary (Grok/equal adapters)
  *
  * License: FSL-1.1-MIT
  */
@@ -42,6 +43,7 @@ import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from '
 import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
 import { InferenceService } from './server/inference-service.js';
+import { runSessionCli } from './session/cli.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -484,7 +486,7 @@ async function readStdin(): Promise<string> {
 async function handleHookCommand(source: string | undefined): Promise<void> {
   if (!(source && isImplementedHookSource(source))) {
     process.stderr.write(
-      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode\n`,
+      `Unsupported hook source: ${source ?? '(none)'}. Supported: cursor, claude-code, vscode, grok\n`,
     );
     process.exitCode = 1;
     return;
@@ -700,6 +702,11 @@ async function main() {
       break;
     }
 
+    case 'session': {
+      await runSessionCli(args);
+      break;
+    }
+
     default:
       process.stdout.write(`revealui-harnesses — AI harness coordination for RevealUI
 
@@ -709,7 +716,8 @@ Commands:
   sync <id> <push|pull>             Sync harness config to/from SSD (requires daemon)
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
-  hook <cursor|claude-code|vscode>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
+  hook <cursor|claude-code|vscode|grok>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
+  session register|end              Soft-optional RevDev daemon session boundary (equal adapters)
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid

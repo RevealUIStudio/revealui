@@ -87,6 +87,13 @@ const story: ShowcaseStory = {
     </NavbarItem>
   </NavbarSection>
 </Navbar>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 2.1.1 Keyboard'],
+    aria: {
+      role: 'navigation or landmark via nav element',
+    },
+  },
 };
 
 export default story;

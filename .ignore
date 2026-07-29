@@ -1,0 +1,6 @@
+# Agent / search ignore — docs publish plane (ADR 2026-07-29)
+apps/docs/public/**/*.md
+apps/docs/public/*/
+!apps/docs/public/docs-pro/
+!apps/docs/public/docs-pro/**
+apps/docs/dist/

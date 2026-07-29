@@ -101,11 +101,11 @@ function SelectTrigger({ children, className, ref, ...props }: SelectTriggerProp
     <Box
       className={cn(
         'flex h-10 w-full items-center justify-between border bg-background px-3 py-2 text-inherit',
-        'border-zinc-300 dark:border-zinc-700',
-        'hover:border-zinc-400 dark:hover:border-zinc-600',
+        'border-input',
+        'hover:border-border-strong',
         'focus-visible:outline-none focus-visible:border-[var(--tenant-brand,var(--ring))] focus-visible:ring-2 focus-visible:ring-[var(--tenant-brand,var(--ring))] focus-visible:ring-offset-2',
-        'aria-invalid:border-red-500 aria-invalid:focus-visible:border-red-500 aria-invalid:focus-visible:ring-red-500',
-        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zinc-300 dark:disabled:hover:border-zinc-700',
+        'aria-invalid:border-destructive aria-invalid:focus-visible:border-destructive aria-invalid:focus-visible:ring-destructive',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-input',
         'placeholder:text-muted-foreground ring-offset-background [&>span]:line-clamp-1',
         className,
       )}
@@ -165,7 +165,7 @@ function SelectContent({ children, className, ref, ...props }: SelectContentProp
       className={cn(
         // Popover sits above a solid surface; use a lighter neutral than the trigger
         // (bare `border` was a bug — would fall through to currentColor)
-        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border border-zinc-200 dark:border-zinc-700 bg-card text-popover-foreground shadow-md',
+        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border border-border bg-card text-popover-foreground shadow-md',
         className,
       )}
       ref={ref}

@@ -350,11 +350,11 @@ The billing system uses these NeonDB tables:
 
 ## Production Checklist
 
-> **Pre-launch posture.** RevealUI runs Stripe in TEST mode in production by default. The live-mode flip (`STRIPE_LIVE_MODE=true` + `sk_live_*` keys) is gated on the internal billing-readiness audit. The checklist below verifies wire-up; flipping live mode requires the audit closing as well.
+> **Production posture.** Studio production runs Stripe in **live** mode (`STRIPE_LIVE_MODE=true` + `sk_live_*` keys; flipped 2026-06-26 after the billing-readiness audit closed). Self-host and new environments should complete the checklist below before taking real cards. Local/CI continue to use test keys.
 
-- [ ] Switch from test keys (`sk_test_*`) to live keys (`sk_live_*`) — gated on the billing-readiness audit
-- [ ] Set `STRIPE_LIVE_MODE=true` in production env (off by default; see `apps/server/src/lib/validate-startup.ts`)
-- [ ] Register the webhook endpoint in Stripe dashboard (not just CLI)
+- [x] Switch from test keys (`sk_test_*`) to live keys (`sk_live_*`) in Studio production (done 2026-06-26)
+- [x] Set `STRIPE_LIVE_MODE=true` in production env (see `apps/server/src/lib/validate-startup.ts`)
+- [ ] Register the webhook endpoint in Stripe dashboard (not just CLI) for each environment that charges
 - [ ] Configure the Customer Portal in Stripe settings
 - [ ] Create products and prices in Stripe that match your tiers
 - [ ] Verify webhook signature validation is working

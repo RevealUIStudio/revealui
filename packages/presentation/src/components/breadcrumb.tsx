@@ -16,7 +16,12 @@ export function Breadcrumb({
   className?: string;
 }) {
   const sep = separator ?? (
-    <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" className="size-3.5 text-zinc-400">
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 16 16"
+      fill="none"
+      className="size-3.5 text-muted-foreground"
+    >
       <path
         d="M6 4l4 4-4 4"
         stroke="currentColor"
@@ -38,18 +43,14 @@ export function Breadcrumb({
               {isLast || !item.href ? (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className={cn(
-                    isLast
-                      ? 'font-medium text-zinc-950 dark:text-white'
-                      : 'text-zinc-500 dark:text-zinc-400',
-                  )}
+                  className={cn(isLast ? 'font-medium text-foreground' : 'text-muted-foreground')}
                 >
                   {item.label}
                 </span>
               ) : (
                 <a
                   href={item.href}
-                  className="text-zinc-500 transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {item.label}
                 </a>

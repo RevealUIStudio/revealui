@@ -91,7 +91,7 @@ Honest list of things that are not done, not deployed, or not verified.
 - **No public support channel.** There is no public support email, chat, or ticketing system yet.
 - **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
 - **No SOC2 or ISO 27001.** Security certifications are planned for Phase 6, not current.
-- **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; payouts open with the billing-readiness audit.
+- **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; third-party developer payouts are not fully shipped yet.
 - **No SSO / SCIM in code.** Roadmap items.
 - **No dunning logic.** Best-practice guidance only.
 - **No Prompts collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
@@ -130,7 +130,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 35 workspaces
+pnpm typecheck:all       # Typecheck all 36 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 

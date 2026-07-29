@@ -8,13 +8,14 @@
 #   3. docker compose up -d
 #
 # Apps:
-#   - api:       Hono REST API (port 3004)
-#   - admin:     Next.js Admin Dashboard (port 4000)
-#   - marketing: Next.js Marketing Site (port 3000)
+#   - api:   Hono REST API (port 3004)
+#   - admin: Next.js Admin Dashboard (port 4000)
+#
+# Marketing (apps/marketing) is a Vite SPA deployed on Vercel, not part of
+# self-host compose. It has no Dockerfile and is intentionally omitted.
 #
 # Infrastructure:
-#   - postgres:  Local PostgreSQL (alternative to NeonDB for self-hosting)
-#   - nginx:     Reverse proxy with HTTPS termination
+#   - postgres: Local PostgreSQL (alternative to NeonDB for self-hosting)
 #
 # Databases (NeonDB, Supabase) default to external managed services.
 # For fully self-hosted setups, use the included PostgreSQL container.
@@ -100,25 +101,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - revealui
-    restart: unless-stopped
-
-  # ---------------------------------------------------------------------------
-  # Marketing — Next.js Marketing + Waitlist (standalone output)
-  # ---------------------------------------------------------------------------
-  marketing:
-    build:
-      context: .
-      dockerfile: apps/marketing/Dockerfile
-    container_name: revealui-marketing
-    env_file: .env
-    environment:
-      NODE_ENV: production
-      PORT: "3000"
-      HOSTNAME: 0.0.0.0
-    ports:
-      - "${MARKETING_PORT:-3000}:3000"
     networks:
       - revealui
     restart: unless-stopped

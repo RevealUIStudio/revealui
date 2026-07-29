@@ -7,7 +7,7 @@
  * Activates MFA on the account upon success.
  */
 
-import { getSession, verifyMFASetup } from '@revealui/auth/server';
+import { getSession, rotateSession, verifyMFASetup } from '@revealui/auth/server';
 import { MFAVerifyRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -18,6 +18,7 @@ import {
 } from '@/lib/utils/error-response';
 import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 import { extractRequestContext } from '@/lib/utils/request-context';
+import { sessionCookieDomain } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -70,7 +71,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json({ success: true });
+    // Enrollment just proved possession of the authenticator. Mark this
+    // session MFA-stepped so C11 gates (e.g. POST /api/user/api-keys) work
+    // without forcing a sign-out/sign-in loop. Without this, the account has
+    // mfaEnabled=true but session.metadata.mfaVerified is still false →
+    // "MFA required" / "MFA verification required" on the next sensitive action.
+    const userAgent = request.headers.get('user-agent') ?? undefined;
+    const ipAddress =
+      request.headers.get('x-real-ip') ||
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      undefined;
+    const { token: sessionToken } = await rotateSession(session.user.id, {
+      userAgent,
+      ipAddress,
+      metadata: { mfaVerified: true },
+    });
+
+    const response = NextResponse.json({ success: true });
+    response.cookies.set('revealui-session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24,
+      domain: sessionCookieDomain({ logIfMissing: true }),
+    });
+    return response;
   } catch (error) {
     logger.error('Error verifying MFA setup', { error });
     return createErrorResponse(error, {

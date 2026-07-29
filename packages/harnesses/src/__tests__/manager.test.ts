@@ -53,6 +53,38 @@ describe('project manager (.revealui)', () => {
     expect(opencodeStub).toContain('equal');
   });
 
+  it('materialize emits Grok peer SessionStart/SessionEnd control-layer hooks', () => {
+    const root = tempProject();
+    materializeManager(root);
+    const grokMd = readFileSync(join(root, '.revealui/adapters/grok.md'), 'utf-8');
+    expect(grokMd).toContain('session-start.json');
+    expect(grokMd).toContain('hotfix-check');
+    expect(grokMd).toContain('Do not invent a second hotfix registry');
+
+    const start = JSON.parse(
+      readFileSync(join(root, '.revealui/adapters/grok/hooks/session-start.json'), 'utf-8'),
+    ) as { hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }> } };
+    const startCmds = start.hooks.SessionStart.flatMap((g) => g.hooks.map((h) => h.command));
+    expect(startCmds.some((c) => c.includes('tracker-session-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
+    expect(startCmds.some((c) => c.includes('session register'))).toBe(true);
+
+    const end = JSON.parse(
+      readFileSync(join(root, '.revealui/adapters/grok/hooks/session-end.json'), 'utf-8'),
+    ) as { hooks: { SessionEnd: Array<{ hooks: Array<{ command: string }> }> } };
+    const endCmds = end.hooks.SessionEnd.flatMap((g) => g.hooks.map((h) => h.command));
+    expect(endCmds.some((c) => c.includes('hotfix-check.js'))).toBe(true);
+    expect(endCmds.some((c) => c.includes('tmpscript-check.js'))).toBe(true);
+    expect(endCmds.some((c) => c.includes('session end'))).toBe(true);
+
+    const pre = JSON.parse(
+      readFileSync(join(root, '.revealui/adapters/grok/hooks/pre-tool.json'), 'utf-8'),
+    ) as { hooks: { PreToolUse: Array<{ hooks: Array<{ command: string }> }> } };
+    const preCmds = pre.hooks.PreToolUse.flatMap((g) => g.hooks.map((h) => h.command));
+    expect(preCmds.some((c) => c.includes('hook grok'))).toBe(true);
+  });
+
   it('writeManagerAdapterContent emits manager content + cursor hooks + opencode surfaces', () => {
     const root = tempProject();
     materializeManager(root);

@@ -107,8 +107,8 @@ export function TableHeader({ className, ...props }: React.ComponentPropsWithout
       {...props}
       className={cn(
         className,
-        'border-b border-b-foreground/10 px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))',
-        grid && 'border-l border-l-foreground/5 first:border-l-0',
+        'border-b border-b-border-strong px-4 py-2 font-medium first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))',
+        grid && 'border-l border-l-border first:border-l-0',
         !bleed && 'sm:first:pl-1 sm:last:pr-1',
       )}
     />
@@ -128,7 +128,7 @@ export function TableCell({ className, children, ...props }: React.ComponentProp
         className,
         'relative px-4 first:pl-(--gutter,--spacing(2)) last:pr-(--gutter,--spacing(2))',
         !striped && 'border-b border-foreground/5',
-        grid && 'border-l border-l-foreground/5 first:border-l-0',
+        grid && 'border-l border-l-border first:border-l-0',
         dense ? 'py-2.5' : 'py-4',
         !bleed && 'sm:first:pl-1 sm:last:pr-1',
       )}

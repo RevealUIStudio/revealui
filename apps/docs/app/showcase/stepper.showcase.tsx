@@ -67,6 +67,14 @@ const story: ShowcaseStory = {
     { label: 'Step 3', status: 'upcoming' },
   ]}
 />`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 2.4.8 Location'],
+    aria: {
+      'aria-current': 'step on the current step',
+      'aria-label': 'Progress on the nav landmark',
+    },
+  },
 };
 
 export default story;

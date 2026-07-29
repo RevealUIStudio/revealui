@@ -271,6 +271,10 @@ describe('POST /api/auth/mfa/verify-setup', () => {
   it('should return success on valid TOTP code', async () => {
     mockGetSession.mockResolvedValue(mockSession);
     mockVerifyMFASetup.mockResolvedValue({ success: true });
+    mockRotateSession.mockResolvedValue({
+      token: 'session-after-mfa-setup',
+      session: { id: 'session-after-mfa-setup' } as never,
+    });
 
     const request = createJsonRequest('http://localhost:3000/api/auth/mfa/verify-setup', {
       code: '123456',
@@ -281,6 +285,14 @@ describe('POST /api/auth/mfa/verify-setup', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(mockVerifyMFASetup).toHaveBeenCalledWith(mockSession.user.id, '123456');
+    // C11 step-up: enrollment must mark the session mfaVerified so Save Key
+    // and other requireSessionWithMfa surfaces work without a forced re-login.
+    expect(mockRotateSession).toHaveBeenCalledWith(
+      mockSession.user.id,
+      expect.objectContaining({ metadata: { mfaVerified: true } }),
+    );
+    const setCookie = response.headers.get('set-cookie') ?? '';
+    expect(setCookie).toMatch(/revealui-session=session-after-mfa-setup/);
   });
 
   it('should return 400 on invalid code', async () => {

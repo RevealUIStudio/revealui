@@ -4,22 +4,171 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  AGENT_COMMERCE_BLOCKLIST,
-  CLI_TEMPLATE_CLAIM_PATTERNS,
+  CLI_TEMPLATE_CLAIM_SPECS,
   countCliTemplates,
+  countDbTables,
   countDirs,
   countEnforcementTests,
+  countPgTableCalls,
   countTestFiles,
   countTrackedFiles,
   extractRevealuiPackages,
+  findAgentCommerceHits,
+  findAspirationalBlocklistHits,
+  findFleetProductHits,
+  findFutureTenseMarker,
   findIncompleteProList,
   findLicenseSplitAntiPattern,
+  hasAspirationalQualifier,
+  hasFleetAttributionQualifier,
+  hasFslLicenseLabel,
+  hasMitLicenseLabel,
+  hasPhantomEditorsPackage,
+  hasRvuiTickerLeak,
+  hasTrackerSignal,
+  isMarkdownHeading,
   isRoadmapDeclaredFile,
+  isYamlFrontmatterLine,
   makeIgnoredPathPredicate,
   parseGitIgnoredOutput,
+  scanNumericClaimsOnLine,
   TEST_FILE_SUFFIXES,
   WALK_EXCLUDED_DIRS,
-} from '../claim-drift.ts';
+} from '../claim-drift-engine.ts';
+
+describe('countPgTableCalls', () => {
+  it('counts CallExpression pgTable identifiers and ignores comments/strings', () => {
+    const src = `
+import { pgTable } from 'drizzle-orm/pg-core';
+// pgTable('commented', {});
+export const users = pgTable('users', {});
+export const posts = pgTable('posts', {});
+const note = "pgTable('string', {})";
+`;
+    expect(countPgTableCalls('fixture.ts', src)).toBe(2);
+  });
+
+  it('returns 0 when there are no pgTable calls', () => {
+    expect(countPgTableCalls('empty.ts', 'export const x = 1;\n')).toBe(0);
+  });
+});
+
+describe('countDbTables', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-pgtable-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts pgTable CallExpressions across schema fixtures', () => {
+    fs.writeFileSync(
+      path.join(tmp, 'users.ts'),
+      "import { pgTable } from 'drizzle-orm/pg-core';\nexport const users = pgTable('users', {});\n",
+    );
+    fs.mkdirSync(path.join(tmp, 'nested'));
+    fs.writeFileSync(
+      path.join(tmp, 'nested', 'posts.ts'),
+      "export const posts = pgTable('posts', {});\nexport const comments = pgTable('comments', {});\n",
+    );
+    // .test.ts files are excluded from the schema walk
+    fs.writeFileSync(path.join(tmp, 'users.test.ts'), "export const t = pgTable('t', {});\n");
+    // comments must not inflate the count
+    fs.writeFileSync(path.join(tmp, 'noise.ts'), "// pgTable('noise', {});\nexport const n = 1;\n");
+    expect(countDbTables(tmp)).toBe(3);
+  });
+
+  it('returns 0 for a missing schema directory', () => {
+    expect(countDbTables(path.join(tmp, 'does-not-exist'))).toBe(0);
+  });
+});
+
+describe('hasTrackerSignal', () => {
+  it('accepts issue numbers, milestones, and workflow files', () => {
+    expect(hasTrackerSignal('SSO is coming soon (#93)')).toBe(true);
+    expect(hasTrackerSignal('tracked under milestone 2')).toBe(true);
+    expect(hasTrackerSignal('see deploy.yml for the workflow')).toBe(true);
+  });
+
+  it('accepts github issues/pull URL tokens', () => {
+    expect(
+      hasTrackerSignal('https://github.com/RevealUIStudio/revealui/pull/865 is the tracker'),
+    ).toBe(true);
+  });
+
+  it('rejects unlinked future-tense prose', () => {
+    expect(hasTrackerSignal('SSO is coming soon with no tracker')).toBe(false);
+  });
+});
+
+describe('hasAspirationalQualifier + aspirational blocklist (GAP-192 PR2)', () => {
+  it('flags SSO without a qualifier', () => {
+    expect(findAspirationalBlocklistHits('Enterprise SSO for every workspace')).toContain('SSO');
+    expect(hasAspirationalQualifier('Enterprise SSO for every workspace')).toBe(false);
+  });
+
+  it('passes SSO when the line says roadmap', () => {
+    expect(hasAspirationalQualifier('SSO is on the roadmap')).toBe(true);
+    expect(hasAspirationalQualifier('SSO (coming soon)')).toBe(true);
+    expect(hasAspirationalQualifier('SSO tracked in #93')).toBe(true);
+  });
+
+  it('flags single sign-on and hyphenated auto-scaling / on-prem sequences', () => {
+    expect(findAspirationalBlocklistHits('we ship single sign-on today')).toContain('SSO');
+    expect(findAspirationalBlocklistHits('auto-scaling for your agents')).toContain('auto-scaling');
+    expect(findAspirationalBlocklistHits('air-gapped and on-prem deploy')).toEqual(
+      expect.arrayContaining(['air-gapped', 'on-prem']),
+    );
+  });
+
+  it('keeps RAG/SLA case-sensitive', () => {
+    expect(findAspirationalBlocklistHits('RAG pipelines ship by default')).toContain('RAG');
+    expect(findAspirationalBlocklistHits('rag pipelines ship by default')).not.toContain('RAG');
+    expect(findAspirationalBlocklistHits('our SLA guarantees')).toContain('SLA');
+    expect(findAspirationalBlocklistHits('our sla guarantees')).not.toContain('SLA');
+  });
+});
+
+describe('fleet product rules + Studio context (GAP-192 PR2)', () => {
+  it('flags bare Studio but not RevealUI Studio', () => {
+    expect(findFleetProductHits('Open Studio to manage agents')).toEqual(
+      expect.arrayContaining(['Studio (lives in RevDev, not the company name)']),
+    );
+    expect(findFleetProductHits('RevealUI Studio ships the fleet')).not.toContain(
+      'Studio (lives in RevDev, not the company name)',
+    );
+  });
+
+  it('flags proper-noun fleet products', () => {
+    expect(findFleetProductHits('store secrets in RevVault')).toEqual(
+      expect.arrayContaining(['RevVault (separate fleet product)']),
+    );
+  });
+
+  it('flags the phantom editors package path (built at runtime to avoid the phantom-package gate)', () => {
+    // Construct the scoped path so this test file never contains a contiguous
+    // phantom package literal (that string hard-fails claim-drift).
+    const phantomPkg = ['@', 'revealui', '/', 'editors'].join('');
+    const nearMiss = ['@', 'revealui', '/', 'editor'].join('');
+    const label = `${phantomPkg} (does not exist; ships in RevCon)`;
+    expect(hasPhantomEditorsPackage(`import from ${phantomPkg}`)).toBe(true);
+    expect(hasPhantomEditorsPackage(`import from ${nearMiss}`)).toBe(false);
+    expect(findFleetProductHits(`the ${phantomPkg} package`)).toEqual(
+      expect.arrayContaining([label]),
+    );
+  });
+});
+
+describe('hasRvuiTickerLeak (GAP-192 PR2)', () => {
+  it('flags $RVUI and not bare RVUI or lowercase route slugs', () => {
+    expect(hasRvuiTickerLeak('pay with $RVUI on-chain')).toBe(true);
+    expect(hasRvuiTickerLeak('use RVC not the internal form')).toBe(false);
+    expect(hasRvuiTickerLeak('/api/billing/rvui-payment')).toBe(false);
+  });
+});
 
 describe('countDirs', () => {
   let tmp: string;
@@ -191,17 +340,10 @@ describe('countCliTemplates', () => {
   });
 });
 
-describe('CLI template claim patterns', () => {
-  /**
-   * Mirrors scanForClaims semantics: first matching pattern on a line wins
-   * and capture group 1 carries the claimed count. null = no pattern matched.
-   */
+describe('CLI template claim specs (GAP-192 PR4)', () => {
   function claimedCount(line: string): number | null {
-    for (const pattern of CLI_TEMPLATE_CLAIM_PATTERNS) {
-      const match = pattern.exec(line);
-      if (match) return Number.parseInt(match[1], 10);
-    }
-    return null;
+    const hits = scanNumericClaimsOnLine(line, CLI_TEMPLATE_CLAIM_SPECS);
+    return hits[0]?.claimed ?? null;
   }
 
   it('matches "ships N templates" prose', () => {
@@ -222,7 +364,7 @@ describe('CLI template claim patterns', () => {
     expect(claimedCount('4 template repos under the RevealUIStudio org')).toBeNull();
   });
 
-  it('does not match "N templates repos" thanks to the repos lookahead', () => {
+  it('does not match "N templates repos" thanks to forbidNextWords', () => {
     expect(claimedCount('4 templates repos')).toBeNull();
     expect(claimedCount('4 templates repo mirrors')).toBeNull();
   });
@@ -356,7 +498,8 @@ describe('countTrackedFiles (GAP-399 durable path)', () => {
     // Integration check against the real monorepo: both paths must agree so
     // the durable switch cannot silently drift from the walk-era baseline
     // when no nested .wt/ is present.
-    const repoRoot = path.resolve(import.meta.dirname, '../../..');
+    // packages/claim-gates/src/__tests__ → monorepo root is four levels up.
+    const repoRoot = path.resolve(import.meta.dirname, '../../../..');
     const viaDefault = countTestFiles(repoRoot);
     const viaGit = countTrackedFiles(repoRoot, (rel) =>
       TEST_FILE_SUFFIXES.some((s) => rel.endsWith(s)),
@@ -400,9 +543,17 @@ describe('makeIgnoredPathPredicate', () => {
 });
 
 describe('WALK_EXCLUDED_DIRS', () => {
-  const repoRoot = path.resolve(import.meta.dirname, '../../..');
+  // packages/claim-gates/src/__tests__ → monorepo root is four levels up.
+  const repoRoot = path.resolve(import.meta.dirname, '../../../..');
 
-  it('every entry except .git has a covering .gitignore line', () => {
+  // `.git` is never gitignored as a name line. `.claude` is partially tracked
+  // (rules/agents/skills + revcon manifest; see .gitignore un-ignores) yet is
+  // walker-excluded because it is not a claim surface — agent config, not
+  // product/docs/marketing copy. Both are intentional carve-outs (pre-existing
+  // on the PR3-5 base; documented for GAP-462 Phase 1 extract).
+  const INTENTIONAL_WALK_EXCLUSIONS = new Set(['.git', '.claude']);
+
+  it('every entry except intentional carve-outs has a covering .gitignore line', () => {
     const gitignore = fs.readFileSync(path.join(repoRoot, '.gitignore'), 'utf8');
     const covered = new Set<string>();
     for (const raw of gitignore.split('\n')) {
@@ -414,12 +565,12 @@ describe('WALK_EXCLUDED_DIRS', () => {
       covered.add(name);
     }
     for (const dir of WALK_EXCLUDED_DIRS) {
-      if (dir === '.git') continue;
+      if (INTENTIONAL_WALK_EXCLUSIONS.has(dir)) continue;
       expect(covered.has(dir), `"${dir}" is walker-excluded but not gitignored`).toBe(true);
     }
   });
 
-  it('no entry shadows git-tracked files (e.g. screenshots/ must stay walkable)', () => {
+  it('no claim-surface entry shadows git-tracked files (e.g. screenshots/ stays walkable)', () => {
     const tracked = execFileSync('git', ['ls-files'], {
       cwd: repoRoot,
       encoding: 'utf8',
@@ -428,6 +579,7 @@ describe('WALK_EXCLUDED_DIRS', () => {
     const shadowed = new Set<string>();
     for (const file of tracked.split('\n')) {
       for (const segment of file.split('/')) {
+        if (INTENTIONAL_WALK_EXCLUSIONS.has(segment)) continue;
         if (WALK_EXCLUDED_DIRS.has(segment)) shadowed.add(file);
       }
     }
@@ -481,31 +633,142 @@ describe('findLicenseSplitAntiPattern', () => {
   });
 });
 
-describe('AGENT_COMMERCE_BLOCKLIST (x402 / marketplace presented as live)', () => {
-  const tokenFor = (needle: string): RegExp => {
-    const entry = AGENT_COMMERCE_BLOCKLIST.find((e) => e.label.includes(needle));
-    if (!entry) throw new Error(`no agent-commerce blocklist entry for ${needle}`);
-    return entry.token;
-  };
-  const x402 = tokenFor('x402');
-  const market = tokenFor('marketplace');
-
+describe('agent-commerce detectors (GAP-192 PR5)', () => {
   it('flags x402 presented as live but not neutral mentions', () => {
-    expect(x402.test('Big news: x402 is live today for every caller')).toBe(true);
-    expect(x402.test('x402 payments are available now')).toBe(true);
-    expect(x402.test('the x402 protocol, developed by Coinbase')).toBe(false);
-    expect(x402.test('## How x402 Works')).toBe(false);
-    expect(x402.test('the endpoints are code-complete behind X402_ENABLED=false')).toBe(false);
+    expect(findAgentCommerceHits('Big news: x402 is live today for every caller')).toContain(
+      'x402 (presented as live)',
+    );
+    expect(findAgentCommerceHits('x402 payments are available now')).toContain(
+      'x402 (presented as live)',
+    );
+    expect(findAgentCommerceHits('the x402 protocol, developed by Coinbase')).not.toContain(
+      'x402 (presented as live)',
+    );
+    expect(findAgentCommerceHits('## How x402 Works')).not.toContain('x402 (presented as live)');
     expect(
-      x402.test('x402 micropayments (USDC on Base) are designed but not transactable today'),
-    ).toBe(false);
+      findAgentCommerceHits('the endpoints are code-complete behind X402_ENABLED=false'),
+    ).not.toContain('x402 (presented as live)');
+    expect(
+      findAgentCommerceHits(
+        'x402 micropayments (USDC on Base) are designed but not transactable today',
+      ),
+    ).not.toContain('x402 (presented as live)');
   });
 
   it('flags the agent/MCP marketplace presented as live, not a template marketplace', () => {
-    expect(market.test('the agent marketplace is open for publishing')).toBe(true);
-    expect(market.test('RevMarket is live today')).toBe(true);
-    expect(market.test('the MCP marketplace discovery document lists every server')).toBe(false);
-    expect(market.test('a template marketplace is available for plugins')).toBe(false);
+    expect(findAgentCommerceHits('the agent marketplace is open for publishing')).toContain(
+      'agent marketplace (presented as live)',
+    );
+    expect(findAgentCommerceHits('RevMarket is live today')).toContain(
+      'agent marketplace (presented as live)',
+    );
+    expect(
+      findAgentCommerceHits('the MCP marketplace discovery document lists every server'),
+    ).not.toContain('agent marketplace (presented as live)');
+    expect(findAgentCommerceHits('a template marketplace is available for plugins')).not.toContain(
+      'agent marketplace (presented as live)',
+    );
+  });
+});
+
+describe('findFutureTenseMarker (GAP-192 PR3)', () => {
+  it('finds parenthetical future-tense markers', () => {
+    expect(findFutureTenseMarker('SSO (coming soon) for enterprise')).toBe('(coming soon)');
+    expect(findFutureTenseMarker('feature (will ship next quarter)')).toBe(
+      '(will ship next quarter)',
+    );
+    expect(findFutureTenseMarker('no marker here')).toBeNull();
+  });
+});
+
+describe('license label shapes (GAP-192 PR3)', () => {
+  it('detects MIT label wrappers only', () => {
+    expect(hasMitLicenseLabel('**MIT** packages')).toBe(true);
+    expect(hasMitLicenseLabel('| MIT (free) |')).toBe(true);
+    expect(hasMitLicenseLabel('MIT: core, auth')).toBe(true);
+    expect(hasMitLicenseLabel('(MIT)')).toBe(true);
+    expect(hasMitLicenseLabel('MIT-licensed code')).toBe(false);
+  });
+
+  it('detects FSL / Pro-packages label wrappers only', () => {
+    expect(hasFslLicenseLabel('**FSL-1.1-MIT**')).toBe(true);
+    expect(hasFslLicenseLabel('| Fair Source |')).toBe(true);
+    expect(hasFslLicenseLabel('Pro packages:')).toBe(true);
+    expect(hasFslLicenseLabel('Pro packages (FSL-1.1-MIT)')).toBe(true);
+    expect(hasFslLicenseLabel('ship under Fair Source (FSL-1.1-MIT)')).toBe(false);
+  });
+});
+
+describe('isMarkdownHeading + isYamlFrontmatterLine (GAP-192 PR3)', () => {
+  it('recognizes ATX headings', () => {
+    expect(isMarkdownHeading('### Title')).toBe(true);
+    expect(isMarkdownHeading('not a heading')).toBe(false);
+    expect(isMarkdownHeading('#NoSpace')).toBe(false);
+  });
+
+  it('recognizes YAML key lines and ---', () => {
+    expect(isYamlFrontmatterLine('---')).toBe(true);
+    expect(isYamlFrontmatterLine('title: Hello')).toBe(true);
+    expect(isYamlFrontmatterLine('not yaml')).toBe(false);
+    expect(isYamlFrontmatterLine('  indented: no')).toBe(false);
+  });
+});
+
+describe('hasFleetAttributionQualifier (GAP-192 PR3)', () => {
+  it('accepts fleet map paths and attribution phrases', () => {
+    expect(hasFleetAttributionQualifier('see /docs/SUITE for the map')).toBe(true);
+    expect(hasFleetAttributionQualifier('RevVault is a separate product')).toBe(true);
+    expect(hasFleetAttributionQualifier('ships in RevDev')).toBe(true);
+    expect(hasFleetAttributionQualifier('RevealUIStudio/revvault')).toBe(true);
+    expect(hasFleetAttributionQualifier('Forge tier pricing')).toBe(true);
+  });
+
+  it('rejects bare product mentions without attribution', () => {
+    expect(hasFleetAttributionQualifier('open RevVault to store secrets')).toBe(false);
+  });
+});
+
+describe('scanNumericClaimsOnLine (GAP-192 PR4)', () => {
+  it('matches package counts in the 10–39 band and skips patched', () => {
+    const specs = [
+      {
+        metricName: 'packages',
+        min: 10,
+        max: 39,
+        optionalIntervening: ['npm'],
+        requiredSequences: [['packages'], ['package']],
+        forbidNextWords: ['patched'],
+      },
+    ];
+    expect(scanNumericClaimsOnLine('we ship 21 packages today', specs)).toEqual([
+      { metricName: 'packages', claimed: 21 },
+    ]);
+    expect(scanNumericClaimsOnLine('21 npm packages', specs)).toEqual([
+      { metricName: 'packages', claimed: 21 },
+    ]);
+    expect(scanNumericClaimsOnLine('14 packages patched', specs)).toEqual([]);
+    expect(scanNumericClaimsOnLine('3 packages', specs)).toEqual([]);
+  });
+
+  it('matches OSS/Pro/internal license-split shapes', () => {
+    expect(
+      scanNumericClaimsOnLine('20 OSS (MIT)', [{ metricName: 'MIT packages', shape: 'oss-mit' }]),
+    ).toEqual([{ metricName: 'MIT packages', claimed: 20 }]);
+    expect(
+      scanNumericClaimsOnLine('5 Pro (FSL-1.1-MIT)', [
+        { metricName: 'FSL packages', shape: 'pro-fsl' },
+      ]),
+    ).toEqual([{ metricName: 'FSL packages', claimed: 5 }]);
+    expect(
+      scanNumericClaimsOnLine('5 Pro (Fair Source FSL)', [
+        { metricName: 'FSL packages', shape: 'pro-fsl' },
+      ]),
+    ).toEqual([{ metricName: 'FSL packages', claimed: 5 }]);
+    expect(
+      scanNumericClaimsOnLine('1 internal (scripts)', [
+        { metricName: 'internal packages', shape: 'internal-paren' },
+      ]),
+    ).toEqual([{ metricName: 'internal packages', claimed: 1 }]);
   });
 });
 

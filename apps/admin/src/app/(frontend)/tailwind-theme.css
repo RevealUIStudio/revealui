@@ -9,37 +9,8 @@
 @source "../../lib/**/*.{ts,tsx}";
 @source "../../components/**/*.{ts,tsx}";
 
-/*
- * Bridge --rvui-* canonical cobalt tokens into Tailwind's @theme namespace.
- * tokens.css is the source of truth for all color values. Dark is the :root
- * default; light activates via [data-theme="light"] (admin's theme toggle).
- */
-@theme inline {
-  --color-background: var(--rvui-surface-0);
-  --color-foreground: var(--rvui-text-0);
-  --color-card: var(--rvui-surface-1);
-  --color-card-foreground: var(--rvui-text-0);
-  --color-popover: var(--rvui-surface-1);
-  --color-popover-foreground: var(--rvui-text-0);
-  --color-primary: var(--rvui-brand);
-  --color-primary-foreground: var(--rvui-text-on-brand);
-  --color-secondary: var(--rvui-surface-2);
-  --color-secondary-foreground: var(--rvui-text-0);
-  --color-muted: var(--rvui-surface-2);
-  --color-muted-foreground: var(--rvui-text-2);
-  --color-accent: var(--rvui-accent);
-  --color-accent-foreground: var(--rvui-text-on-accent);
-  --color-destructive: var(--rvui-error);
-  --color-destructive-foreground: var(--rvui-text-0);
-  --color-border: var(--rvui-border);
-  --color-input: var(--rvui-border);
-  --color-ring: var(--rvui-brand);
-  --color-success: var(--rvui-success);
-  --color-warning: var(--rvui-warning);
-  --color-warning-foreground: var(--rvui-warning-text);
-  --color-error: var(--rvui-error);
-  --radius: var(--rvui-radius-md);
-}
+/* Package-owned semantic bridge (Gate 0). App @theme below keeps breakpoints. */
+@import "@revealui/presentation/theme.css";
 
 @theme {
   /* Custom Screens */

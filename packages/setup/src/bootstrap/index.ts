@@ -55,9 +55,19 @@ export interface BootstrapOptions {
 export interface BootstrapResult {
   status: 'created' | 'locked' | 'error';
   message: string;
-  user?: { email: string; role: string };
+  /**
+   * Created admin identity. `id` is the engine-returned primary key when the
+   * create() result includes one — callers (web /api/setup) use it to mint a
+   * session without re-checking the password.
+   */
+  user?: { id?: string; email: string; role: string };
   seeded?: boolean;
   error?: string;
+  /**
+   * Set by the web setup route after minting a session cookie (GAP-247 F8).
+   * Not produced by bootstrap() itself.
+   */
+  sessionMinted?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -197,8 +207,9 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
   // apps/admin/src/lib/auth/tos.ts (stampTosAcceptanceByEmail), used by the web
   // setup route (apps/admin/src/app/api/setup/route.ts) and the CLI
   // (scripts/admin/bootstrap.ts).
+  let created: Record<string, unknown>;
   try {
-    await revealui.create({
+    created = await revealui.create({
       collection: 'users',
       data: {
         name: admin.name ?? 'Admin',
@@ -223,6 +234,8 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
       error: err instanceof Error ? err.message : String(err),
     };
   }
+
+  const userId = created.id != null ? String(created.id) : undefined;
 
   // Seed minimal content
   let seeded = false;
@@ -251,8 +264,8 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
 
   return {
     status: 'created',
-    message: `Admin user created${seeded ? ' and content seeded' : ''}. Sign in at /admin.`,
-    user: { email: admin.email, role: 'owner' },
+    message: `Admin user created${seeded ? ' and content seeded' : ''}.`,
+    user: { id: userId, email: admin.email, role: 'owner' },
     seeded,
   };
 }

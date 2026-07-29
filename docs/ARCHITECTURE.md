@@ -70,7 +70,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 ### Core Systems
 
 1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 97 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
-2. **Supabase (legacy RAG sidecar — retired for internal use)**: Historically hosted `rag_chunks` and related embedding tables; RAG embeddings now live on NeonDB `pgvector` and the sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Legacy Supabase code remains in tree during phase-out.
+2. **Supabase (removed)**: Historically hosted `rag_chunks` and related embedding tables; RAG embeddings now live on NeonDB `pgvector`. Supabase was removed as architecture per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md).
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
 5. **Cloudflare R2 (S3-compatible)**: Media and file storage — the sole object-storage backend (GAP-208)
@@ -243,7 +243,7 @@ graph TB
     NeonDB -.legacy RAG.-> Supabase
 ```
 
-> **Note on `agent_memories`:** Despite the historical "vector database" framing, `agent_memories` lives in **NeonDB** (not Supabase) because of FK constraints on `sites` / `users`. NeonDB supports `pgvector`. See [`packages/db/src/schema/vector.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/vector.ts) for the canonical comment. RAG chunk embeddings likewise live on NeonDB `pgvector`; the historical Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Legacy Supabase code remains in tree during phase-out, and new features must not depend on Supabase-specific behavior.
+> **Note on `agent_memories`:** Despite the historical "vector database" framing, `agent_memories` lives in **NeonDB** because of FK constraints on `sites` / `users`. NeonDB supports `pgvector`. See [`packages/db/src/schema/vector.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/vector.ts) for the canonical comment. RAG chunk embeddings likewise live on NeonDB `pgvector`. Supabase was removed as architecture; new features must not reintroduce it.
 
 ### When to enable each layer
 
@@ -253,10 +253,10 @@ graph TB
 - Supports `pgvector` for vector embeddings inline with relational data.
 - Serverless / scale-to-zero for variable workload.
 
-#### Supabase RAG sidecar (retired — legacy)
+#### Supabase (removed)
 
-- RAG chunk embeddings now live on NeonDB `pgvector` (see NeonDB above); the standalone Supabase RAG sidecar was retired for internal use per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Auth/storage/realtime/RLS/edge-fn were never used.
-- Legacy Supabase code remains in tree during phase-out; new features must not depend on Supabase-specific behavior.
+- RAG chunk embeddings live on NeonDB `pgvector` (see NeonDB above). Supabase was removed as architecture per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). Auth/storage/realtime/RLS/edge-fn were never used.
+- Do not reintroduce `@supabase/supabase-js` or Supabase-coupled code.
 - The customer-facing Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts` / `launchSupabaseMcp`) was removed; agent database tooling uses Neon MCP.
 
 #### ElectricSQL sync (optional)
@@ -320,7 +320,7 @@ export * from "./agents/actions";
 
 ## Supabase (Optional RAG Sidecar)
 
-> **Status:** optional and being retired. Per ADR [`2026-05-01-supabase-removal`](./decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. The sidecar below is legacy; Phase 7 consolidates it onto NeonDB `pgvector`. New features must not depend on Supabase-specific behavior.
+> **Status:** removed as architecture. Per ADR [`2026-05-01-supabase-removal`](./decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. RAG and agent memories live on NeonDB `pgvector`. Any residual Supabase env aliases are legacy no-ops for new deploys. New features must not depend on Supabase.
 
 ### Role
 
@@ -1308,12 +1308,12 @@ Customer-facing meters should map to business activity rather than upstream infr
 ### Current Status
 
 - **NeonDB primary**: source of truth for everything, including `agent_memories` (NeonDB pgvector)
-- **Supabase RAG sidecar**: retired for internal use — `rag_chunks` and `agent_memories` now live on NeonDB `pgvector` (per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md)). Legacy Supabase code remains in tree during phase-out; auth / storage / realtime / RLS / edge-functions were never used.
+- **Supabase**: removed as architecture — `rag_chunks` and `agent_memories` live on NeonDB `pgvector` (per the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md)). Auth / storage / realtime / RLS / edge-functions were never used.
 - **ElectricSQL**: optional sync layer; service connects to NeonDB. Agent tables (`agent_contexts`, `agent_memories`, `conversations`) can be electrified when sync is enabled. Off by default.
 
-### Phase 7: Consolidate RAG onto NeonDB (RAG cutover landed; legacy phase-out ongoing)
+### Phase 7: Consolidate RAG onto NeonDB (complete)
 
-Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary, retire the Supabase dependency for RAG entirely). The RAG cutover has landed — `rag_chunks` and `agent_memories` are served from NeonDB `pgvector`; the remaining work is removing legacy Supabase code from the tree. The historical phase order is preserved below for reference.
+Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary). The RAG cutover has landed: `rag_chunks` and `agent_memories` are served from NeonDB `pgvector`, and Supabase is not part of the current stack. The historical phase order is preserved below for reference.
 
 Phase order (ship-order, not calendar):
 
@@ -1522,8 +1522,8 @@ await vectorDb.insert(agentMemories).values({
 # NeonDB (REST + ElectricSQL source)
 POSTGRES_URL=postgresql://...@neon.tech/...
 
-# Supabase (optional RAG sidecar — legacy, being retired per ADR 2026-05-01)
-SUPABASE_DATABASE_URL=postgresql://...@db.supabase.co/...
+# Supabase (removed; do not set for new deploys — ADR 2026-05-01)
+# SUPABASE_DATABASE_URL=
 
 # ElectricSQL Service
 ELECTRIC_SERVICE_URL=http://localhost:5133

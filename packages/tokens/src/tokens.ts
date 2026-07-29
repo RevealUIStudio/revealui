@@ -48,8 +48,16 @@ export const tokens = {
     onAccent: 'var(--rvui-text-on-accent)',
     onSuccess: 'var(--rvui-text-on-success)',
     onWarning: 'var(--rvui-text-on-warning)',
+    onError: 'var(--rvui-text-on-error)',
     warningText: 'var(--rvui-warning-text)',
   },
+  statusText: {
+    success: 'var(--rvui-success-text)',
+    error: 'var(--rvui-error-text)',
+    warning: 'var(--rvui-warning-text)',
+  },
+  /** Modal / drawer / alert backdrop (theme-varying opacity). */
+  scrim: 'var(--rvui-scrim)',
   border: {
     base: 'var(--rvui-border)',
     subtle: 'var(--rvui-border-subtle)',

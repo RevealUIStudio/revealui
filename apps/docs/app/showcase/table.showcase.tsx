@@ -141,6 +141,14 @@ const story: ShowcaseStory = {
   </TableBody>
 </Table>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships'],
+    aria: {
+      scope: 'Use th with scope for headers when composing data tables',
+    },
+    notes: 'Prefer caption or aria-label on the table when the context is not adjacent.',
+  },
 };
 
 export default story;

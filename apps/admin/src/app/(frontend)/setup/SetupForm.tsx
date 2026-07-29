@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
 
 interface SetupFormProps {
   /** Site name resolved server-side to avoid build-time env inlining. */
@@ -20,6 +21,7 @@ export function SetupForm({ siteName }: SetupFormProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [sessionMinted, setSessionMinted] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -36,8 +38,20 @@ export function SetupForm({ siteName }: SetupFormProps) {
       const data = await res.json();
 
       if (data.status === 'created') {
+        const minted = data.sessionMinted === true;
+        setSessionMinted(minted);
         setSuccess(true);
-        setTimeout(() => router.push('/login'), 2000);
+        // Full document navigation when a session was minted so the App Router
+        // cache (logged-out RSC payloads) is not replayed — same as LoginForm.
+        // Fall back to /login if mint failed so the admin can still sign in.
+        const dest = minted ? '/' : '/login';
+        setTimeout(() => {
+          if (minted) {
+            navigateAfterAuthChange(dest);
+          } else {
+            router.push(dest);
+          }
+        }, 2000);
         return;
       }
 
@@ -61,7 +75,9 @@ export function SetupForm({ siteName }: SetupFormProps) {
           Setup complete
         </Heading>
         <p className="text-sm text-muted-foreground">
-          Your admin account has been created. Redirecting to sign in…
+          {sessionMinted
+            ? 'Your admin account is ready. Taking you to the dashboard…'
+            : 'Your admin account has been created. Redirecting to sign in…'}
         </p>
         <div className="flex justify-center py-4">
           <div className="size-8 animate-spin rounded-full border-4 border-zinc-200 border-t-[var(--tenant-brand,#2563eb)] dark:border-zinc-700" />

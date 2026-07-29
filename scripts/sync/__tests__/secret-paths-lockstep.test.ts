@@ -114,6 +114,22 @@ describe('manifest ↔ spec lockstep', () => {
     expect(pub?.path).toBe('revealui/staging/license/public-key');
   });
 
+  // GAP-350: marketing is Vite — only VITE_API_URL is baked; NEXT_PUBLIC_* twins
+  // have zero readers in apps/marketing and must not re-enter the marketing blocks.
+  it('prod marketing syncs VITE_API_URL from public/api-url and no Next twins (GAP-350)', () => {
+    const marketing = vercelVars.filter((v) => v.source === 'vercel:revealui-marketing');
+    const names = marketing.map((v) => v.name).sort();
+    expect(names).toEqual(['VITE_API_URL']);
+    expect(marketing[0]?.path).toBe('revealui/prod/public/api-url');
+  });
+
+  it('staging marketing syncs VITE_API_URL only (GAP-350 parity with prod)', () => {
+    const marketing = stagingVars.filter((v) => v.source === 'vercel:revealui-marketing-staging');
+    const names = marketing.map((v) => v.name).sort();
+    expect(names).toEqual(['VITE_API_URL']);
+    expect(marketing[0]?.path).toBe('revealui/staging/public/api-url');
+  });
+
   // GAP-343: the staging manifest reuses exactly five prod paths on purpose
   // (Gmail SA transport + one Stripe meter-event name - see the manifest
   // header + the consumers additions on those prod SECRET_PATHS entries).

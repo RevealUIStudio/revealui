@@ -130,9 +130,12 @@ function categorizeFile(filePath: string): ConsoleUsage['category'] {
   }
 
   // Script files (including examples, e2e setup, CMS scripts)
+  // packages/claim-gates is a CLI tooling package (GAP-462): console is the
+  // product surface for validate:claims / claim-gates, same class as scripts/.
   if (
     relativePath.startsWith('scripts/') ||
     relativePath.startsWith('examples/') ||
+    relativePath.startsWith('packages/claim-gates/') ||
     relativePath.match(/\/scripts\//) ||
     relativePath.match(/\/examples\//) ||
     relativePath.includes('-example.') ||

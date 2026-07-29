@@ -17,11 +17,11 @@ RevealUI is the open runtime for businesses that run their own AI. People, Conte
 
 Every software company needs the same five things on day one:
 
-1. **Users** - sign up, sign in, sessions, roles, permissions (RBAC + ABAC)
+1. **People** - sign up, sign in, sessions, roles, permissions (RBAC + ABAC)
 2. **Content** - pages, posts, media, rich text, an API to serve it
-3. **Products** - a catalog, pricing tiers, license keys
+3. **Offers** - a catalog, pricing tiers, license keys
 4. **Payments** - checkout, subscriptions, invoices, a billing portal
-5. **Intelligence** - AI that actually knows your business context
+5. **Agents** - AI that actually knows your business context
 
 None of these are your product. All of them are required before your product can exist.
 
@@ -217,7 +217,7 @@ RevealUI's business primitives (auth, content, collections, the REST API, the ad
 
 The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available.
 
-To be precise about the split: 23 of the 30 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
+To be precise about the split: 24 of the 31 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
 
 ## What makes RevealUI different
 
@@ -229,7 +229,7 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **35 workspaces** across the monorepo (5 apps, 30 packages with 23 MIT, 5 Fair Source, 2 internal)
+- **36 workspaces** across the monorepo (5 apps, 31 packages with 24 MIT, 5 Fair Source, 2 internal)
 - **97 database tables** via Drizzle ORM on NeonDB (Postgres)
 - **65 UI components** in `@revealui/presentation`, with one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package
 - **13 first-party MCP servers** in `@revealui/mcp`
@@ -243,7 +243,7 @@ I want to be honest about where RevealUI is and isn't the right choice.
 
 **It's opinionated.** That's the **Justifiable** principle. Every choice has a reason you can explain in one sentence. React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend. But the admin dashboard is React. The point isn't that these are the *right* choices for every team. It's that they're a coherent set of choices that work well together. When your needs outgrow a specific tool, swap it. The **Orthogonal** architecture means nothing is welded shut.
 
-**It's pre-launch.** This is a v0. The core is stable (extensive test coverage, full TypeScript strict mode, comprehensive security hardening). Run `pnpm test` for the current count. There are zero paying customers yet, and Stripe runs in test mode in production until a billing-readiness audit closes. There's no plugin marketplace yet. The template library is small. The community is just getting started. I keep an honest, file-by-file account of what does and doesn't work at [What Works Today](../WHAT_WORKS_TODAY.md).
+**It's early.** This is a v0. The core is stable (extensive test coverage, full TypeScript strict mode, comprehensive security hardening). Run `pnpm test` for the current count. **Stripe is live** in production. The third-party plugin marketplace is still early. The template library is small. The community is just getting started. I keep an honest, file-by-file account of what does and doesn't work at [What Works Today](../WHAT_WORKS_TODAY.md).
 
 **It's a solo project.** I'm one developer at RevealUI Studio. The upside is that decisions are fast and the vision is coherent. The downside is that there's one person triaging issues and reviewing PRs. I'm building in public precisely because I need the community to grow with the project.
 

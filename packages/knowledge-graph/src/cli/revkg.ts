@@ -8,6 +8,9 @@
  *   revkg neighbors <naturalKey> [--depth <n>] [--at <iso>]
  *   revkg at <naturalKey> <iso>
  *   revkg drift [--repo <name>] [--json]                   doc-currency drift report (spec §8.5)
+ *   revkg claims-check [--root] [--repo] [--fleet] [--publish] [--json]
+ *       Parse claims-evidence, verify path evidence exists; with --publish ingest
+ *       claim-scan documents edges into the graph (GAP-462 Phase 3).
  *
  * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
  * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
@@ -28,7 +31,14 @@
 import { hostname } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { makePoolExecutor } from '../db/executor.js';
-import { additiveExtractors, tier1Extractors } from '../extractors/index.js';
+import {
+  additiveExtractors,
+  CLAIMS_EVIDENCE_REL,
+  claimsExtractor,
+  missingEvidencePaths,
+  parseClaimsEvidenceSource,
+  tier1Extractors,
+} from '../extractors/index.js';
 import { isDir, readJsonFile, readTextFile } from '../extractors/shared.js';
 import { applyScan, ingestEpisode } from '../ingest/index.js';
 import { resolveNaturalKey } from '../ingest/resolve.js';
@@ -74,7 +84,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
   const flags = new Map<string, string>();
   const bools = new Set<string>();
-  const boolFlags = new Set(['fleet', 'json']);
+  const boolFlags = new Set(['fleet', 'json', 'publish']);
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === undefined) continue;
@@ -311,6 +321,129 @@ async function cmdDrift(args: ParsedArgs): Promise<void> {
   }
 }
 
+interface ClaimsCheckSummary {
+  repo: string;
+  root: string;
+  claims: number;
+  documentsEdges: number;
+  missingEvidence: number;
+  published: boolean;
+  issues: ReturnType<typeof missingEvidencePaths>;
+}
+
+async function claimsCheckOne(
+  root: string,
+  repo: string,
+  publish: boolean,
+  embedder: Embedder | undefined,
+  exec: KgExecutor | undefined,
+): Promise<ClaimsCheckSummary> {
+  const text = readTextFile(join(root, CLAIMS_EVIDENCE_REL));
+  if (text === null) {
+    return {
+      repo,
+      root,
+      claims: 0,
+      documentsEdges: 0,
+      missingEvidence: 0,
+      published: false,
+      issues: [],
+    };
+  }
+
+  const claims = parseClaimsEvidenceSource(text, CLAIMS_EVIDENCE_REL);
+  const issues = missingEvidencePaths(root, claims, repo);
+
+  const products = await claimsExtractor.extract({
+    repoRoot: root,
+    repo,
+    siteId: hostname(),
+    now: new Date(),
+  });
+  const documentsEdges = products.reduce(
+    (n, p) => n + p.edges.filter((e) => e.relation === 'documents').length,
+    0,
+  );
+
+  let published = false;
+  if (publish) {
+    if (!exec) fail('claims-check --publish requires a database connection');
+    for (const product of products) {
+      await applyScan(exec, product, { embedder, recordOutbox: true });
+    }
+    published = products.length > 0;
+  }
+
+  return {
+    repo,
+    root,
+    claims: claims.length,
+    documentsEdges,
+    missingEvidence: issues.length,
+    published,
+    issues,
+  };
+}
+
+async function cmdClaimsCheck(args: ParsedArgs): Promise<void> {
+  const root = args.flags.get('root') ?? process.cwd();
+  const publish = args.bools.has('publish');
+  const summaries: ClaimsCheckSummary[] = [];
+
+  let exec: KgExecutor | undefined;
+  let close: (() => Promise<void>) | undefined;
+  let embedder: Embedder | undefined;
+  if (publish) {
+    const pool = await getExecutor();
+    exec = pool.exec;
+    close = pool.close;
+    embedder = await loadEmbedder();
+    if (!embedder) out('  (no embedder available — embeddings deferred)');
+  }
+
+  try {
+    if (args.bools.has('fleet')) {
+      const parent = dirname(root);
+      const { readdirSync } = await import('node:fs');
+      const entries = readdirSync(parent).filter((e) => !e.startsWith('.'));
+      for (const entry of entries) {
+        const path = join(parent, entry);
+        if (!(isDir(path) && isRepoRoot(path))) continue;
+        const evidence = join(path, CLAIMS_EVIDENCE_REL);
+        if (readTextFile(evidence) === null) continue;
+        summaries.push(await claimsCheckOne(path, entry, publish, embedder, exec));
+      }
+    } else {
+      const repo = args.flags.get('repo') ?? basename(root);
+      if (!isRepoRoot(root)) fail(`${root} does not look like a repo root`);
+      summaries.push(await claimsCheckOne(root, repo, publish, embedder, exec));
+    }
+  } finally {
+    if (close) await close();
+  }
+
+  if (args.bools.has('json')) {
+    out(JSON.stringify(summaries, null, 2));
+  } else {
+    for (const s of summaries) {
+      out(
+        `${s.repo}: ${s.claims} claims, ${s.documentsEdges} documents edges, ${s.missingEvidence} missing evidence${s.published ? ' (published)' : ''}`,
+      );
+      for (const issue of s.issues.slice(0, 20)) {
+        out(`  missing  ${issue.exportPath}  ${issue.evidenceRef}`);
+      }
+      if (s.issues.length > 20) out(`  … ${s.issues.length - 20} more`);
+    }
+  }
+
+  const totalMissing = summaries.reduce((n, s) => n + s.missingEvidence, 0);
+  if (totalMissing > 0) process.exit(1);
+  if (summaries.length === 0) {
+    out('claims-check: no claims-evidence.ts found');
+    process.exit(1);
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
@@ -333,8 +466,11 @@ async function main(): Promise<void> {
     case 'drift':
       await cmdDrift(args);
       break;
+    case 'claims-check':
+      await cmdClaimsCheck(args);
+      break;
     default:
-      out('usage: revkg <scan|search|node|neighbors|at|drift> [...]');
+      out('usage: revkg <scan|search|node|neighbors|at|drift|claims-check> [...]');
       process.exit(command ? 1 : 0);
   }
 }

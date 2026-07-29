@@ -71,6 +71,11 @@ const story: ShowcaseStory = {
     const colorAttr = props.color !== 'zinc' ? ` color="${props.color}"` : '';
     return `<Badge${colorAttr}>${props.children}</Badge>`;
   },
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.4.1 Use of Color'],
+    notes: 'Do not encode meaning only with badge color; include text.',
+  },
 };
 
 export default story;

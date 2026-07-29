@@ -786,7 +786,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'home.ts',
     exportPath: 'HOME_FAQ.items[3].answer',
-    text: 'Yes. 23 of 30 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infrastructure at any tier, with no vendor-specific edge runtimes and no proprietary database.',
+    text: 'Yes. 24 of 31 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infrastructure at any tier, with no vendor-specific edge runtimes and no proprietary database.',
     evidence: [LICENSE_SPLIT, LICENSE_MIT, SELF_HOST, POSTGRES],
   },
   {
@@ -1053,7 +1053,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing-teaser.ts',
     exportPath: 'PRICING_TEASER_TIERS[0].description',
-    text: '23 of 30 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. There is no telemetry.',
+    text: '24 of 31 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. There is no telemetry.',
     evidence: [LICENSE_SPLIT, NO_TELEMETRY],
   },
   {

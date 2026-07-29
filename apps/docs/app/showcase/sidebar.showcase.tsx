@@ -110,6 +110,13 @@ const story: ShowcaseStory = {
     </SidebarItem>
   </SidebarFooter>
 </Sidebar>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 1.3.1 Info and Relationships', 'WCAG 2.2 2.1.1 Keyboard'],
+    aria: {
+      role: 'navigation composition via SidebarItem links',
+    },
+  },
 };
 
 export default story;

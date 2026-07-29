@@ -26,7 +26,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, environment setup
+- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, Docker Compose, customer Railway marketplace template, environment setup
 - [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
 ## Pricing & Commerce

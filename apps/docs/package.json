@@ -36,11 +36,12 @@
     "node": ">=24.13.0"
   },
   "scripts": {
-    "build": "bash scripts/copy-docs.sh && vite build",
+    "build": "vite build",
     "build:slug-manifest": "tsx scripts/build-slug-manifest.ts",
     "check:links": "tsx scripts/check-links.ts",
-    "clean": "rm -rf .next dist .turbo public/docs",
-    "dev": "bash scripts/copy-docs.sh && vite dev",
+    "clean": "rm -rf .next dist .turbo && node scripts/clean-public-mirror.mjs",
+    "clean:public-mirror": "node scripts/clean-public-mirror.mjs",
+    "dev": "vite dev",
     "gen:previews": "pnpm --filter @revealui/presentation build && tsx scripts/gen-previews/index.ts",
     "lint": "biome check .",
     "preview": "vite preview",

@@ -11,7 +11,7 @@ RevealUI is open source today; the commercial side is pre-launch. Before we talk
 
 This is a solo-founder project. I don't have a VC board to answer to or a growth team optimizing conversion funnels. I have a business model I believe in, and I'd rather explain it plainly than have you discover the trade-offs later.
 
-> **Status note (updated 2026-05-26):** Two revenue surfaces described later in this post (the **MCP Marketplace** (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526); third-party publishing + 80/20 revenue share) and **x402 agent payments** (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93))) are **planned, not shipped**. The first-party MCP catalog (13 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. x402 is designed and code-complete behind `X402_ENABLED=false`. Stripe runs in test mode until a billing-readiness audit closes. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
+> **Status note (updated 2026-07-29):** Two revenue surfaces described later in this post (the **MCP Marketplace** (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526); third-party publishing + 80/20 revenue share) and **x402 agent payments** (coming soon, [#93](https://github.com/RevealUIStudio/revealui/issues/93))) remain **planned, not fully shipped**. The first-party MCP catalog (servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, and developer payouts are still incomplete. x402 is designed and code-complete behind `X402_ENABLED=false`. **Stripe is live** in production (live mode on since 2026-06-26). See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
 
 ---
 
@@ -37,7 +37,7 @@ What MIT means practically: you can take RevealUI, strip the branding, deploy it
 
 If everything important is MIT, what's left to sell?
 
-Intelligence.
+Agents.
 
 RevealUI Pro includes:
 
@@ -138,7 +138,7 @@ I'm not going to share revenue projections here. That's not the point. The point
 
 RevealUI isn't just a framework you install. It's an open runtime for businesses that run their own AI, with an ecosystem strategy.
 
-**MCP Marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Developers will be able to publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. The publish/list/invoke/onboard endpoints are wired today; payouts open with the billing-readiness audit. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
+**MCP Marketplace (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Developers will be able to publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. The publish/list/invoke/onboard endpoints are wired today; third-party developer payouts are not fully shipped yet (Stripe live mode is already on for first-party billing). We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
 
 **"Built with RevealUI" badge.** Completely opt-in. If you display the badge, you get 500 bonus agent tasks per month. If you don't want it, don't use it. We will never require attribution. MIT means MIT.
 

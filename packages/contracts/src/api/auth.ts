@@ -12,7 +12,7 @@ import { createContract } from '../foundation/contract.js';
  *
  * Validates user registration data with:
  * - Email format validation and sanitization
- * - Password strength requirements (min 8 chars)
+ * - Password strength requirements (min 12 chars — GAP-244 lockstep with setup/bootstrap)
  * - Name validation and sanitization
  */
 export const SignUpRequestSchema = z.object({
@@ -21,7 +21,7 @@ export const SignUpRequestSchema = z.object({
     .min(1, 'Email is required')
     .email('Invalid email format')
     .transform((email) => email.toLowerCase().trim()),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
+  password: z.string().min(12, 'Password must be at least 12 characters long'),
   name: z
     .string()
     .min(1, 'Name is required')

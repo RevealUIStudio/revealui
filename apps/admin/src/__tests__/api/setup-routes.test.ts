@@ -13,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockFind = vi.fn();
 const mockCreate = vi.fn();
+const mockCreateSession = vi.fn();
 
 vi.mock('@/lib/utils/revealui-singleton', () => ({
   getRevealUIInstance: () =>
@@ -35,6 +36,11 @@ vi.mock('@revealui/db/client', () => ({
   getClient: () => ({ update: mockUpdate, insert: mockInsert }),
 }));
 
+// Session mint uses the same createSession primitive as sign-in (GAP-247 F8).
+vi.mock('@revealui/auth/server', () => ({
+  createSession: (...args: unknown[]) => mockCreateSession(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
 // ---------------------------------------------------------------------------
@@ -49,8 +55,23 @@ function makePostRequest(body: Record<string, unknown>): Request {
   return new Request('http://localhost/api/setup', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'user-agent': 'setup-route-test',
+      'x-forwarded-for': '203.0.113.10',
+    },
   });
+}
+
+function getSetCookie(res: Response): string[] {
+  // undici/NextResponse expose getSetCookie when available; fall back to
+  // repeated get() for older Headers implementations.
+  const headers = res.headers as Headers & { getSetCookie?: () => string[] };
+  if (typeof headers.getSetCookie === 'function') {
+    return headers.getSetCookie();
+  }
+  const single = headers.get('set-cookie');
+  return single ? [single] : [];
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +84,10 @@ describe('POST /api/setup', () => {
     // Default: no existing users
     mockFind.mockResolvedValue({ totalDocs: 0, docs: [] });
     mockCreate.mockResolvedValue({ id: '1', email: 'admin@test.com' });
+    mockCreateSession.mockResolvedValue({
+      token: 'test-session-token',
+      session: { id: 'sess-1' },
+    });
   });
 
   it('creates admin user and returns 201', async () => {
@@ -78,6 +103,54 @@ describe('POST /api/setup', () => {
     expect(body.status).toBe('created');
     expect(body.user?.email).toBe('admin@test.com');
     expect(body.seeded).toBe(true);
+  });
+
+  it('mints a session and sets auth cookies on success (GAP-247 F8)', async () => {
+    const res = await POST(
+      makePostRequest({
+        email: 'admin@test.com',
+        password: 'securepassword12',
+      }),
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.sessionMinted).toBe(true);
+    expect(body.user?.id).toBe('1');
+
+    expect(mockCreateSession).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({
+        userAgent: 'setup-route-test',
+        ipAddress: '203.0.113.10',
+      }),
+    );
+
+    const cookies = getSetCookie(res);
+    const joined = cookies.join('\n');
+    expect(joined).toMatch(/revealui-session=test-session-token/);
+    expect(joined).toMatch(/revealui-role=owner/);
+    // Cookie flags must match sign-in (httpOnly + sameSite=lax; secure only in prod)
+    expect(joined).toMatch(/HttpOnly/i);
+    expect(joined).toMatch(/SameSite=Lax/i);
+  });
+
+  it('still returns 201 when session mint fails (non-fatal auto-login)', async () => {
+    mockCreateSession.mockRejectedValueOnce(new Error('session store unavailable'));
+
+    const res = await POST(
+      makePostRequest({
+        email: 'admin@test.com',
+        password: 'securepassword12',
+      }),
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.status).toBe('created');
+    expect(body.sessionMinted).toBeUndefined();
+    const cookies = getSetCookie(res);
+    expect(cookies.join('\n')).not.toMatch(/revealui-session=/);
   });
 
   it('stamps TOS acceptance via a typed write after creating the admin', async () => {
@@ -133,6 +206,7 @@ describe('POST /api/setup', () => {
     expect(res.status).toBe(403);
     const body = await res.json();
     expect(body.status).toBe('locked');
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
   it('rejects invalid email', async () => {

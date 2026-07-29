@@ -87,6 +87,17 @@ const story: ShowcaseStory = {
     <PaginationItem><PaginationNext /></PaginationItem>
   </PaginationContent>
 </Pagination>`,
+
+  a11y: {
+    conformance: ['WCAG 2.2 2.1.1 Keyboard', 'WCAG 2.2 2.4.8 Location'],
+    keyboard: {
+      Tab: 'Moves among page controls',
+      Enter: 'Activates the focused control',
+    },
+    aria: {
+      'aria-current': 'page on the current page control',
+    },
+  },
 };
 
 export default story;

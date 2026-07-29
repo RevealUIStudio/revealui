@@ -51,12 +51,12 @@ export function Slider({
       {(label || rightDisplay) && (
         <div className="mb-2 flex items-center justify-between">
           {label && (
-            <label htmlFor={id} className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor={id} className="text-sm font-medium text-body">
               {label}
             </label>
           )}
           {rightDisplay && (
-            <span className="text-sm text-zinc-500 dark:text-zinc-400" aria-hidden={Boolean(label)}>
+            <span className="text-sm text-muted-foreground" aria-hidden={Boolean(label)}>
               {rightDisplay}
             </span>
           )}
@@ -77,13 +77,13 @@ export function Slider({
         style={{ '--slider-pct': `${percentage}%` } as React.CSSProperties}
         className={cn(
           'h-2 w-full cursor-pointer appearance-none rounded-full outline-none',
-          'bg-zinc-200 dark:bg-zinc-700',
+          'bg-surface-2',
           '[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none',
-          '[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:shadow-sm',
-          '[&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-white [&::-webkit-slider-thumb]:dark:ring-zinc-900',
+          '[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm',
+          '[&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-card',
           '[&::-moz-range-thumb]:size-4 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none',
-          '[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-blue-600',
-          'focus-visible:[&::-webkit-slider-thumb]:outline-2 focus-visible:[&::-webkit-slider-thumb]:outline-offset-2 focus-visible:[&::-webkit-slider-thumb]:outline-blue-500',
+          '[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-primary',
+          'focus-visible:[&::-webkit-slider-thumb]:outline-2 focus-visible:[&::-webkit-slider-thumb]:outline-offset-2 focus-visible:[&::-webkit-slider-thumb]:outline-ring',
           disabled && 'cursor-not-allowed opacity-50',
         )}
       />
