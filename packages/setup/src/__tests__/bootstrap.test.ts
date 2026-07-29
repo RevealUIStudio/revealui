@@ -34,6 +34,7 @@ describe('bootstrap', () => {
     expect(result.status).toBe('created');
     expect(result.user?.email).toBe('admin@test.com');
     expect(result.user?.role).toBe('owner');
+    expect(result.user?.id).toBe('new-user');
     expect(result.seeded).toBe(true);
 
     // Verify user was created with both the DB role and Payload roles array.
