@@ -190,9 +190,9 @@ const SHARED_RULE_MESSAGES: Readonly<Record<string, string>> = {
   'vercel-blob-as-current':
     'Vercel Blob was retired; Cloudflare R2 is the canonical object store. Do not instruct provisioning a Blob token or presenting Blob as current storage.',
   'supabase-as-current':
-    'Supabase is being removed in favor of the RevealUI-native stack (Neon + ElectricSQL). Present Supabase as transitional or legacy only.',
+    'Supabase was removed; Neon + ElectricSQL is the current stack. Present Supabase as past/legacy only, never as current infrastructure.',
   'stripe-not-live-claim':
-    'Stripe live mode is on. Do not present Stripe billing as not yet flipped, or test-mode as the current state.',
+    'Stripe is live (production mode on). Do not present Stripe as not-yet-flipped or test-mode as the current billing state.',
   'forge-tier-name':
     'The billing tier "Forge" was renamed to "Enterprise". Use "Enterprise" going forward.',
   'max-price-stale':
