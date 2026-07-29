@@ -1,4 +1,10 @@
 export {
+  type ArchiveExitResult,
+  archiveSessionExit,
+  coldDaemonSessionsDir,
+  type SessionExitRecord,
+} from './archive-exit.js';
+export {
   type EndOptions,
   type RegisterOptions,
   type SessionBoundaryResult,

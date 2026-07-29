@@ -33,11 +33,17 @@ export interface PeerContextSnapshot {
   /** Short reason when unavailable/degraded (shown in WARN line). */
   readonly reason?: string;
   readonly selfAgentId?: string | null;
+  /** Live peers only (active window). Abandoned rows are omitted from pollution. */
   readonly peers: readonly PeerSessionLine[];
+  /** Count of non-ended sessions excluded as abandoned/idle (not listed). */
+  readonly abandonedExcluded?: number;
   readonly reservations: readonly PeerReservationLine[];
   readonly findings: readonly PeerFindingLine[];
   readonly source: 'context.snapshot' | 'session.list' | 'none';
 }
+
+/** Max staleSeconds still treated as "live" for the peer panel (seconds). */
+export const PEER_LIVE_STALE_SECONDS = 300;
 
 export interface FetchPeerContextOptions {
   readonly socketPath?: string;
@@ -56,6 +62,15 @@ function str(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+function numField(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
 function asPeerFromSnapshotRow(row: unknown): PeerSessionLine | null {
   const r = asRecord(row);
   if (!r) return null;
@@ -67,6 +82,17 @@ function asPeerFromSnapshotRow(row: unknown): PeerSessionLine | null {
     active: r.active === true || r.active === 't',
     isSelf: r.isSelf === true,
   };
+}
+
+/** Keep only peers still inside the live window (active flag or low staleSeconds). */
+function isLivePeer(row: unknown): boolean {
+  const r = asRecord(row);
+  if (!r) return false;
+  if (r.active === true || r.active === 't') return true;
+  const stale = numField(r.staleSeconds) ?? numField(r.stale_seconds);
+  if (stale !== undefined) return stale <= PEER_LIVE_STALE_SECONDS;
+  // session.list without staleSeconds: only trust explicit active=true above.
+  return false;
 }
 
 function asFinding(row: unknown): PeerFindingLine | null {
@@ -132,7 +158,9 @@ export async function fetchPeerContext(
     }
 
     const peersRaw = Array.isArray(o.peers) ? o.peers : [];
-    const peers = peersRaw
+    const liveRows = peersRaw.filter(isLivePeer);
+    const abandonedExcluded = Math.max(0, peersRaw.length - liveRows.length);
+    const peers = liveRows
       .map(asPeerFromSnapshotRow)
       .filter((p): p is PeerSessionLine => p != null);
 
@@ -148,6 +176,7 @@ export async function fetchPeerContext(
       status: 'available',
       selfAgentId: actorAgentId ?? (typeof o.selfAgentId === 'string' ? o.selfAgentId : null),
       peers,
+      abandonedExcluded,
       reservations,
       findings,
       source: 'context.snapshot',
@@ -203,16 +232,21 @@ async function fetchPeersViaSessionList(options: {
     const o = asRecord(raw);
     const sessions = Array.isArray(o?.sessions) ? o.sessions : [];
     const peers: PeerSessionLine[] = [];
+    let abandonedExcluded = 0;
     for (const row of sessions) {
       const r = asRecord(row);
       if (!r) continue;
       const id = str(r.id) || str(r.agentId) || str(r.agent_id);
       if (!id) continue;
       if (options.actorAgentId && id === options.actorAgentId) continue;
+      if (!isLivePeer(row)) {
+        abandonedExcluded += 1;
+        continue;
+      }
       peers.push({
         agentId: id,
         task: str(r.task, '(no task)'),
-        active: r.active === true || r.active === 't',
+        active: true,
       });
     }
     return {
@@ -220,6 +254,7 @@ async function fetchPeersViaSessionList(options: {
       reason: options.reason,
       selfAgentId: options.actorAgentId ?? null,
       peers,
+      abandonedExcluded,
       reservations: [],
       findings: [],
       source: 'session.list',
@@ -271,6 +306,12 @@ export function formatPeerPanel(snapshot: PeerContextSnapshot): string {
     if (snapshot.peers.length > 12) {
       lines.push(`  … +${snapshot.peers.length - 12} more`);
     }
+  }
+
+  if ((snapshot.abandonedExcluded ?? 0) > 0) {
+    lines.push(
+      `[peer-context] note: ${snapshot.abandonedExcluded} abandoned/idle session row(s) hidden — end sessions via archive workflow so they leave the live set`,
+    );
   }
 
   if (snapshot.reservations.length > 0) {

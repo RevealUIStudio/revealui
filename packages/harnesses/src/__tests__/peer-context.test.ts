@@ -46,6 +46,19 @@ describe('formatPeerPanel', () => {
     expect(text).toContain('peers: none other active');
     expect(text).not.toMatch(/WARN/);
   });
+
+  it('notes abandoned sessions excluded from the live peer list', () => {
+    const text = formatPeerPanel({
+      status: 'available',
+      peers: [{ agentId: 'live', task: 'working', active: true }],
+      abandonedExcluded: 40,
+      reservations: [],
+      findings: [],
+      source: 'context.snapshot',
+    });
+    expect(text).toContain('40 abandoned/idle');
+    expect(text).toContain('archive workflow');
+  });
 });
 
 describe('fetchPeerContext', () => {
@@ -144,8 +157,9 @@ describe('fetchPeerContext', () => {
               id: req.id,
               result: {
                 sessions: [
-                  { id: 'me', task: 'self' },
-                  { id: 'other', task: 'peer work', active: true },
+                  { id: 'me', task: 'self', active: true, staleSeconds: 1 },
+                  { id: 'other', task: 'peer work', active: true, staleSeconds: 2 },
+                  { id: 'zombie', task: 'abandoned', active: false, staleSeconds: 99999 },
                 ],
               },
             })}\n`,
@@ -163,6 +177,8 @@ describe('fetchPeerContext', () => {
     expect(snap.status).toBe('degraded');
     expect(snap.source).toBe('session.list');
     expect(snap.peers.map((p) => p.agentId)).toEqual(['other']);
+    expect(snap.abandonedExcluded).toBe(1);
     expect(formatPeerPanel(snap)).toContain('WARN');
+    expect(formatPeerPanel(snap)).toContain('abandoned/idle');
   });
 });
