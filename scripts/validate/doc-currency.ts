@@ -188,7 +188,7 @@ const SHARED_RULE_MESSAGES: Readonly<Record<string, string>> = {
   'railway-as-current':
     'Studio production is Vercel + Neon + Fly (not Railway). Customer Railway marketplace self-host (deployment/railway) is a sales channel only; do not present Railway as Studio production hosting.',
   'vercel-blob-as-current':
-    'Vercel Blob is being retired in favor of Cloudflare R2 as canonical object storage. Do not instruct provisioning a new Blob token.',
+    'Vercel Blob was retired; Cloudflare R2 is the canonical object store. Do not instruct provisioning a Blob token or presenting Blob as current storage.',
   'supabase-as-current':
     'Supabase is being removed in favor of the RevealUI-native stack (Neon + ElectricSQL). Present Supabase as transitional or legacy only.',
   'stripe-not-live-claim':
