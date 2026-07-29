@@ -226,7 +226,7 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
 # Auth + session (parity with api)
 SESSION_COOKIE_DOMAIN = "revealui/staging/session-cookie-domain"
 
-# Public URLs (parity twins across api/admin/marketing)
+# Public URLs (parity twins across api/admin; marketing uses VITE_API_URL)
 NEXT_PUBLIC_API_URL        = "revealui/staging/public/api-url"
 REVEALUI_API_URL           = "revealui/staging/public/api-url"
 NEXT_PUBLIC_SERVER_URL     = "revealui/staging/public/server-url"
@@ -255,15 +255,11 @@ skip = [
 ]
 
 [projects.revealui-marketing-staging.vars]
-# THE anti-cross-wire var this whole manifest exists to set explicitly: prod
-# marketing has NO VITE_API_URL today and hard-falls-back to the LIVE
-# api.revealui.com in every PROD build (apps/marketing/app/lib/api.ts:8-10).
-# Without this line, staging marketing would silently call the live api.
-VITE_API_URL               = "revealui/staging/public/api-url"
-NEXT_PUBLIC_API_URL        = "revealui/staging/public/api-url"
-REVEALUI_API_URL           = "revealui/staging/public/api-url"
-NEXT_PUBLIC_SERVER_URL     = "revealui/staging/public/server-url"
-REVEALUI_PUBLIC_SERVER_URL = "revealui/staging/public/server-url"
-# NEXT_PUBLIC_IS_LIVE intentionally excluded — genuine orphan, no code reader
-# (GAP-345), and dropping it for staging removes one class of confusion this
-# environment exists to avoid.
+# THE anti-cross-wire var: Vite bakes VITE_API_URL at build time
+# (apps/marketing/app/lib/api.ts). Without this line staging marketing would
+# hard-fall-back to the LIVE api.revealui.com in every PROD build. Prod
+# marketing maps the same env to revealui/prod/public/api-url (GAP-350).
+VITE_API_URL = "revealui/staging/public/api-url"
+# Dropped 2026-07-28 (GAP-350 parity with prod marketing): NEXT_PUBLIC_* /
+# REVEALUI_* twins have zero readers in apps/marketing (Vite, not Next).
+# NEXT_PUBLIC_IS_LIVE was already excluded (GAP-345 orphan).

@@ -512,7 +512,8 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:api', 'vercel:admin', 'vercel:marketing', 'fly:worker'],
+    // marketing dropped (GAP-350): Vite app does not read SERVER_URL twins.
+    consumers: ['vercel:api', 'vercel:admin', 'fly:worker'],
   },
   {
     path: 'revealui/prod/public/api-url',
@@ -520,17 +521,20 @@ export const SECRET_PATHS: SecretPathDef[] = [
     sensitive: false,
     tier: 'prod',
     // vercel:api is required for governed MCP tool loopback (self REST calls).
+    // vercel:marketing reads it as VITE_API_URL (GAP-350); admin/api still use
+    // REVEALUI_API_URL + NEXT_PUBLIC_API_URL.
     consumers: ['vercel:api', 'vercel:admin', 'vercel:marketing', 'vercel:docs'],
     requiredInProdHosted: true,
-    envVars: ['REVEALUI_API_URL'],
-    note: 'api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin). Governed MCP tools fail without it.',
+    envVars: ['REVEALUI_API_URL', 'VITE_API_URL'],
+    note: 'api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin on Next apps; VITE_API_URL on marketing). Governed MCP tools fail without it.',
   },
   {
     path: 'revealui/prod/public/is-live',
     kind: 'public-config',
     sensitive: false,
     tier: 'prod',
-    consumers: ['vercel:admin', 'vercel:marketing'],
+    // marketing dropped (GAP-350): zero readers in apps/marketing.
+    consumers: ['vercel:admin'],
     note: 'NEXT_PUBLIC_IS_LIVE - Stripe live-mode feature flag',
   },
   // ── STAGING (GAP-343 Phase 3) ──────────────────────────────────────────────
@@ -809,7 +813,8 @@ export const SECRET_PATHS: SecretPathDef[] = [
     kind: 'public-config',
     sensitive: false,
     tier: 'staging',
-    consumers: ['vercel:api-staging', 'vercel:admin-staging', 'vercel:marketing-staging'],
+    // marketing-staging dropped (GAP-350): Vite app does not read SERVER_URL twins.
+    consumers: ['vercel:api-staging', 'vercel:admin-staging'],
     note: 'the admin app own origin (parity with the prod server-url leaf)',
   },
   {
@@ -818,7 +823,7 @@ export const SECRET_PATHS: SecretPathDef[] = [
     sensitive: false,
     tier: 'staging',
     consumers: ['vercel:api-staging', 'vercel:admin-staging', 'vercel:marketing-staging'],
-    note: 'the api own origin (MCP loopback + OpenAPI); also VITE_API_URL on marketing (anti-cross-wire, GAP-343)',
+    note: 'the api own origin (MCP loopback + OpenAPI); VITE_API_URL on marketing (anti-cross-wire, GAP-343/350)',
   },
 
   // ── Env bundles (derived, verify-only - NOT synced to any platform) ───────
