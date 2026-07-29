@@ -186,7 +186,7 @@ const SHARED_RULE_MESSAGES: Readonly<Record<string, string>> = {
   'revealcoin-as-current':
     'RevealCoin/RVC/$RVUI was cancelled. Present it as past only, not a current or planned payment rail.',
   'railway-as-current':
-    'Railway was dropped as an infrastructure target (stack is Vercel + Neon + Fly). Do not present Railway as a live deployment target.',
+    'Studio production is Vercel + Neon + Fly (not Railway). Customer Railway marketplace self-host (deployment/railway) is a sales channel only; do not present Railway as Studio production hosting.',
   'vercel-blob-as-current':
     'Vercel Blob is being retired in favor of Cloudflare R2 as canonical object storage. Do not instruct provisioning a new Blob token.',
   'supabase-as-current':

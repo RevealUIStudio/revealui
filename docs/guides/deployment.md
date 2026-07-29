@@ -222,15 +222,16 @@ Use this in your Docker health check or load balancer configuration.
 
 ## Railway marketplace template
 
-For a one-click deploy of the self-hosted runtime **on the buyer's Railway account**, use the config-as-code under [`deployment/railway/`](../../deployment/railway/README.md). That path is a sales channel (marketplace template), not a change to Studio's own production stack.
+For a one-click deploy of the self-hosted runtime **on the buyer's Railway account**, use the config-as-code under `deployment/railway/` in this repository (operator guide on GitHub:
+[deployment/railway/README.md](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/README.md)). That path is a sales channel (marketplace template), not a change to Studio's own production stack.
 
-| Piece | Location |
+| Piece | Location (repo root) |
 |-------|----------|
-| Operator guide (license, first boot, Free-tier unlicensed flag) | [`deployment/railway/README.md`](../../deployment/railway/README.md) |
-| API service config | [`deployment/railway/api.json`](../../deployment/railway/api.json) |
-| Admin service config | [`deployment/railway/admin.json`](../../deployment/railway/admin.json) |
+| Operator guide (license, first boot, Free-tier unlicensed flag) | [deployment/railway/README.md](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/README.md) |
+| API service config | [deployment/railway/api.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/api.json) |
+| Admin service config | [deployment/railway/admin.json](https://github.com/RevealUIStudio/revealui/blob/test/deployment/railway/admin.json) |
 
-Architecture (four services): `postgres` (`pgvector/pgvector:pg16`), one-shot `migrate`, `api` (`apps/server/Dockerfile`), `admin` (`apps/admin/Dockerfile`). Read the railway README before publishing or deploying. Free (OSS) boots can set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **both** `api` and `admin` and omit license keys. Fleet (licensed) boots set `REVEALUI_LICENSE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY` instead.
+Architecture (four services): `postgres` (`pgvector/pgvector:pg16`), one-shot `migrate`, `api` (`apps/server/Dockerfile`), `admin` (`apps/admin/Dockerfile`). Read the marketplace operator guide before publishing or deploying. Free (OSS) boots can set `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` on **both** `api` and `admin` and omit license keys. Fleet (licensed) boots set `REVEALUI_LICENSE_KEY` and `REVEALUI_LICENSE_PUBLIC_KEY` instead.
 
 Marketplace listing publish and payout wiring remain an operator step once the template is ready to list.
 
