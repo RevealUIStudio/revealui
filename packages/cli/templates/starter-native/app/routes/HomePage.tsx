@@ -51,7 +51,7 @@ export function HomePage(): React.ReactNode {
       </section>
 
       <p className="mt-10 text-xs text-gray-500">
-        Powered by RevealUI — primitives for users, content, products, payments, and intelligence.
+        Powered by RevealUI. Primitives for people, content, offers, payments, and agents.
       </p>
     </main>
   );

@@ -188,7 +188,7 @@ const sampleContent = {
     {
       name: 'Five Primitives. One Audit Log. One Policy Plane.',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every action by every human and every agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain. Define once; both audiences operate immediately.',
+        'People. Content. Offers. Payments. Agents. Every action by every human and every agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain. Define once; both audiences operate immediately.',
     },
   ],
   events: [
