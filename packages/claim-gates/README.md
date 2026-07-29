@@ -59,6 +59,18 @@ Auto-detect from root shape:
 
 Flags: `--fix`, `--warn` / `--baseline` (report failures, exit 0), `--root`, `--profile`.
 
+## Copy-dependent holds (feature-existence)
+
+Unshipped capabilities must not be claimed as live. Holds live in
+`src/copy-dependents.ts` (`COPY_DEPENDENT_HOLDS`, status `waiting` | `released`).
+Detectors run on profile `copyDependentPaths` during `runClaimDrift` and hard-fail
+`pnpm validate:claims` when live phrasing appears without a same-line roadmap
+qualifier.
+
+IDs match the private planning registry (`.jv` `docs/marketing/copy-dependents.yml`).
+When a feature ships: set hold `status: released` in the same PR as the product
+work, then cue private COPY-DEP work for any remaining copy package.
+
 ## Development
 
 ```bash

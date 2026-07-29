@@ -54,6 +54,17 @@ export {
   WALK_EXCLUDED_DIRS,
 } from './claim-drift-engine.js';
 export { runClaimGatesCli } from './cli.js';
+export type {
+  CopyDependentDetector,
+  CopyDependentHit,
+  CopyDependentHold,
+  CopyDependentStatus,
+} from './copy-dependents.js';
+export {
+  activeCopyDependentHolds,
+  COPY_DEPENDENT_HOLDS,
+  findCopyDependentHits,
+} from './copy-dependents.js';
 export type { ClaimProfile } from './profiles.js';
 export { getProfile, PROFILES, resolveProfile } from './profiles.js';
 export { runClaimGates } from './run.js';
