@@ -23,7 +23,11 @@ const story: ShowcaseStory = {
     <RadioGroup defaultValue="option-1" disabled={props.disabled as boolean}>
       {['Option 1', 'Option 2', 'Option 3'].map((label, i) => (
         <RadioField key={label}>
-          <Radio intent={props.intent as (typeof INTENTS)[number]} value={`option-${i + 1}`} />
+          <Radio
+            intent={props.intent as (typeof INTENTS)[number]}
+            value={`option-${i + 1}`}
+            aria-label={label}
+          />
           <span className="text-sm text-foreground">{label}</span>
         </RadioField>
       ))}
@@ -38,7 +42,7 @@ const story: ShowcaseStory = {
           {INTENTS.map((intent) => (
             <RadioGroup key={intent} defaultValue="yes">
               <RadioField>
-                <Radio intent={intent} value="yes" />
+                <Radio intent={intent} value="yes" aria-label={`${intent} option`} />
                 <span className="text-sm capitalize">{intent}</span>
               </RadioField>
             </RadioGroup>
@@ -56,7 +60,7 @@ const story: ShowcaseStory = {
             { value: 'max', label: 'Max', desc: '$299/mo' },
           ].map((plan) => (
             <RadioField key={plan.value}>
-              <Radio intent="brand" value={plan.value} />
+              <Radio intent="brand" value={plan.value} aria-label={plan.label} />
               <div>
                 <span className="text-sm font-medium text-foreground">{plan.label}</span>
                 <span className="ml-2 text-xs text-muted-foreground">{plan.desc}</span>

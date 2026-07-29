@@ -147,8 +147,9 @@ export function TokensPage() {
         </Button>
       </div>
 
-      {/* Color Tokens */}
+      {/* Color Tokens — data-showcase-preview scopes axe (e2e/showcase-a11y) */}
       <div
+        data-showcase-preview
         data-theme={theme}
         className="rounded-2xl border border-border p-6"
         style={{

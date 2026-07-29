@@ -17,14 +17,14 @@ const story: ShowcaseStory = {
       <SplitAuthLayout
         brandSurface={props.brandSurface as 'tenant' | 'surface-3'}
         brand={
-          <div className="flex flex-col gap-2 p-6">
+          <div className="flex flex-col gap-2 p-6 text-foreground">
             <Heading level={2}>RevealUI</Heading>
-            <Text className="text-sm opacity-80">Governed agents on your infrastructure.</Text>
+            <Text className="text-sm text-body">Governed agents on your infrastructure.</Text>
           </div>
         }
       >
         <form
-          className="flex w-full max-w-sm flex-col gap-3 p-6"
+          className="flex w-full max-w-sm flex-col gap-3 p-6 text-foreground"
           onSubmit={(e) => e.preventDefault()}
         >
           <Heading level={3}>Sign in</Heading>

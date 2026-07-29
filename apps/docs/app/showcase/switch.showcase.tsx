@@ -25,6 +25,7 @@ const story: ShowcaseStory = {
       intent={props.intent as (typeof INTENTS)[number]}
       defaultChecked={props.defaultChecked as boolean}
       disabled={props.disabled as boolean}
+      aria-label="Enable notifications"
     />
   ),
 
@@ -39,7 +40,7 @@ const story: ShowcaseStory = {
         <div className="flex flex-wrap gap-4">
           {INTENTS.map((intent) => (
             <div key={intent} className="flex flex-col items-center gap-1">
-              <Switch intent={intent} defaultChecked />
+              <Switch intent={intent} defaultChecked aria-label={`${intent} switch`} />
               <span className="font-mono text-[10px] text-muted-foreground">{intent}</span>
             </div>
           ))}
@@ -51,19 +52,19 @@ const story: ShowcaseStory = {
       render: () => (
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-center gap-1">
-            <Switch intent="brand" />
+            <Switch intent="brand" aria-label="Off state demo" />
             <span className="text-xs text-muted-foreground">Off</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Switch intent="brand" defaultChecked />
+            <Switch intent="brand" defaultChecked aria-label="On state demo" />
             <span className="text-xs text-muted-foreground">On</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Switch intent="brand" disabled />
+            <Switch intent="brand" disabled aria-label="Disabled off demo" />
             <span className="text-xs text-muted-foreground">Disabled</span>
           </div>
           <div className="flex flex-col items-center gap-1">
-            <Switch intent="brand" defaultChecked disabled />
+            <Switch intent="brand" defaultChecked disabled aria-label="Disabled on demo" />
             <span className="text-xs text-muted-foreground">Disabled On</span>
           </div>
         </div>

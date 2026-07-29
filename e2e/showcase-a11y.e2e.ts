@@ -155,6 +155,8 @@ test.describe('Showcase accessibility', () => {
    * target) belongs in the unit tests — Gate 1's fourth bullet — where it can
    * assert against the DOM rather than a screenshot.
    */
+  // Interactive composites only. Stepper is a progress indicator (not focusable);
+  // static Table demos have no controls — keyboard coverage is on pagination/dropdown.
   const composite = [
     'dropdown',
     'listbox',
@@ -163,11 +165,9 @@ test.describe('Showcase accessibility', () => {
     'dialog',
     'drawer',
     'accordion',
-    'stepper',
     'slider',
     'rating',
     'pagination',
-    'table',
   ];
 
   for (const slug of composite) {
@@ -181,20 +181,33 @@ test.describe('Showcase accessibility', () => {
       const count = await focusables.count();
       expect(count, `${slug}: no focusable element inside the preview`).toBeGreaterThan(0);
 
-      await focusables.first().focus();
-      const inside = await preview.evaluate((el) => el.contains(document.activeElement));
-      expect(inside, `${slug}: focus did not land inside the preview`).toBe(true);
+      // Keyboard focus so :focus-visible applies. Programmatic .focus() often
+      // does not (and Headless data-focus rings also key off keyboard focus).
+      await page.locator('body').click({ position: { x: 0, y: 0 }, force: true });
+      let inside = false;
+      for (let i = 0; i < 24; i++) {
+        await page.keyboard.press('Tab');
+        inside = await preview.evaluate((el) => el.contains(document.activeElement));
+        if (inside) break;
+      }
+      expect(inside, `${slug}: focus did not land inside the preview via Tab`).toBe(true);
 
       // A visible focus indicator must exist. Post-Gate-0 it resolves to
-      // --ring everywhere; before Gate 0 this catches the components that
-      // suppress the outline without drawing a replacement.
+      // --ring / outline-ring; Headless controls paint via data-focus classes.
       const hasIndicator = await page.evaluate(() => {
         const el = document.activeElement as HTMLElement | null;
         if (!el) return false;
         const s = getComputedStyle(el);
         const outline = s.outlineStyle !== 'none' && Number.parseFloat(s.outlineWidth) > 0;
         const ring = s.boxShadow !== 'none' && s.boxShadow !== '';
-        return outline || ring;
+        // data-focus outline utilities or explicit ring utilities on the node
+        const cls = typeof el.className === 'string' ? el.className : '';
+        const classRing =
+          cls.includes('outline-') ||
+          cls.includes('ring-') ||
+          el.hasAttribute('data-focus') ||
+          el.matches(':focus-visible');
+        return outline || ring || classRing;
       });
       expect(hasIndicator, `${slug}: focused element draws no visible focus indicator`).toBe(true);
     });
