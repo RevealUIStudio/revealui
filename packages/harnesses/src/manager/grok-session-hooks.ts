@@ -9,8 +9,9 @@
  * Design:
  * - SessionStart / SessionEnd: TRACKER + hotfix + temp-scripts + RevDev
  *   session.register / session.end (soft-optional when daemon socket down).
+ * - SessionStart register also prints GAP-459 peer-context (WARN if down).
  * - Hotfix/temp adapters under `~/.claude` call the same control registries.
- * - Daemon boundary via `revealui-harnesses session register|end` (this package).
+ * - Daemon boundary via `revealui-harnesses session register|end|peers`.
  * - No full hardline prose; no OpenClaw; subscription OAuth never appears here.
  *
  * Credential topology: ADR 2026-07-29-provider-credential-topology-green-yellow-red
@@ -58,13 +59,14 @@ export const GROK_SESSION_START_HOOKS_JSON = hookFile('SessionStart', [
       {
         type: 'command',
         command:
-          'printf \'%s\\n\' "[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session)"',
+          'printf \'%s\\n\' "[grok] adapter SessionStart → control layer (TRACKER + hotfix + temp-scripts + daemon session + peer-context)"',
         timeout: 5,
       },
       { type: 'command', command: TRACKER_CMD, timeout: 12 },
       { type: 'command', command: HOTFIX_CMD, timeout: 15 },
       { type: 'command', command: TMPSCRIPT_CMD, timeout: 12 },
-      { type: 'command', command: SESSION_REGISTER_CMD, timeout: 20 },
+      // register prints GAP-459 peer panel (or WARN if daemon down)
+      { type: 'command', command: SESSION_REGISTER_CMD, timeout: 25 },
     ],
   },
 ]);
