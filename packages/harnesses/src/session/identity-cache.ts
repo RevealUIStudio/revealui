@@ -149,16 +149,46 @@ export function clearHookIdentity(agentId: string, dir: string = defaultIdentity
   }
 }
 
-/** Session id cache file (same pattern as Claude hooks). */
+/**
+ * Per-process daemon session id cache.
+ * Lives under the private RevealUI data dir (0700), not world-writable /tmp
+ * (CodeQL insecure temporary file).
+ */
+export function daemonSessionCacheDir(): string {
+  return (
+    process.env.REVDEV_DAEMON_SESSION_DIR ??
+    join(homedir(), '.local', 'share', 'revealui', 'daemon-sessions')
+  );
+}
+
 export function daemonSessionCachePath(ppid: number | string = process.ppid): string {
-  return `/tmp/revealui-daemon-session-${ppid}.id`;
+  const safe = String(ppid).replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!safe) {
+    throw new Error('daemon-session-cache: invalid ppid');
+  }
+  return join(daemonSessionCacheDir(), `${safe}.id`);
 }
 
 export function writeDaemonSessionCache(
   agentId: string,
   ppid: number | string = process.ppid,
 ): void {
-  writeFileSync(daemonSessionCachePath(ppid), agentId, 'utf-8');
+  const dir = daemonSessionCacheDir();
+  ensureDir(dir);
+  const target = daemonSessionCachePath(ppid);
+  const tmp = `${target}.${process.pid}.tmp`;
+  writeFileSync(tmp, agentId, { encoding: 'utf-8', mode: 0o600 });
+  try {
+    chmodSync(tmp, 0o600);
+  } catch {
+    /* non-fatal */
+  }
+  renameSync(tmp, target);
+  try {
+    chmodSync(target, 0o600);
+  } catch {
+    /* non-fatal */
+  }
 }
 
 export function readDaemonSessionCache(ppid: number | string = process.ppid): string | null {

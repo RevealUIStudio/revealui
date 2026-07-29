@@ -54,6 +54,10 @@ function defaultAgentId(backend: string): string {
   return `${backend}-${host}-${process.pid}-${Date.now().toString(36)}`;
 }
 
+function asStringField(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
 function asRegisterResult(raw: unknown): {
   agentId: string;
   did?: string;
@@ -62,27 +66,25 @@ function asRegisterResult(raw: unknown): {
 } | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  const agentId =
-    (typeof o.agentId === 'string' && o.agentId) ||
-    (typeof o.sessionId === 'string' && o.sessionId) ||
-    (o.session &&
-      typeof o.session === 'object' &&
-      typeof (o.session as { id?: string }).id === 'string' &&
-      (o.session as { id: string }).id) ||
-    null;
+  let sessionId: string | undefined;
+  if (o.session && typeof o.session === 'object') {
+    sessionId = asStringField((o.session as { id?: unknown }).id);
+  }
+  const agentId = asStringField(o.agentId) ?? asStringField(o.sessionId) ?? sessionId;
   if (!agentId) return null;
   return {
     agentId,
-    did: typeof o.did === 'string' ? o.did : undefined,
-    publicKeyPem: typeof o.publicKeyPem === 'string' ? o.publicKeyPem : undefined,
-    privateKeyPem: typeof o.privateKeyPem === 'string' ? o.privateKeyPem : undefined,
+    did: asStringField(o.did),
+    publicKeyPem: asStringField(o.publicKeyPem),
+    privateKeyPem: asStringField(o.privateKeyPem),
   };
 }
 
 /**
  * Register this process as a daemon session agent.
- * Caches agent id under `/tmp/revealui-daemon-session-<ppid>.id` and
- * signing material under hook-identities when the daemon returns a one-shot key.
+ * Caches agent id under `~/.local/share/revealui/daemon-sessions/<ppid>.id`
+ * (mode 0600; not world-writable /tmp) and signing material under
+ * hook-identities when the daemon returns a one-shot key.
  */
 export async function sessionRegister(options: RegisterOptions): Promise<SessionBoundaryResult> {
   const socketPath = options.socketPath;

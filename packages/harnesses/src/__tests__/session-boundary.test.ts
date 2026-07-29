@@ -42,6 +42,7 @@ describe('session boundary (soft-optional daemon)', () => {
     const did = `did:revfleet:${agentId}:fpdeadbeef`;
 
     process.env.REVDEV_HOOK_IDENTITY_DIR = join(dir, 'ids');
+    process.env.REVDEV_DAEMON_SESSION_DIR = join(dir, 'sessions');
 
     const server = createServer((socket) => {
       let buf = '';
@@ -117,6 +118,7 @@ describe('session boundary (soft-optional daemon)', () => {
     expect(ended.agentId).toBe(agentId);
 
     delete process.env.REVDEV_HOOK_IDENTITY_DIR;
+    delete process.env.REVDEV_DAEMON_SESSION_DIR;
   });
 
   it('signRpc produces three base64url segments', () => {
