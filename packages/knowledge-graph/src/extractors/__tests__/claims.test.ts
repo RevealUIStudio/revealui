@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   CLAIMS_EVIDENCE_REL,
   claimsExtractor,
+  evidenceNodeKind,
   evidencePathFromRef,
   isPathEvidence,
   missingEvidencePaths,
@@ -126,6 +127,14 @@ describe('evidencePathFromRef / isPathEvidence', () => {
     expect(isPathEvidence('command', 'pnpm test')).toBe(false);
     expect(isPathEvidence('url', 'https://example.com')).toBe(false);
     expect(isPathEvidence('code', 'https://example.com/x')).toBe(false);
+  });
+
+  it('aligns docs/**.md kinds with docs-frontmatter (not bare file)', () => {
+    expect(evidenceNodeKind('packages/auth/src/x.ts')).toBe('file');
+    expect(evidenceNodeKind('LICENSE')).toBe('file');
+    expect(evidenceNodeKind('docs/guides/deployment.md')).toBe('concept');
+    expect(evidenceNodeKind('docs/gaps/GAP-462.md')).toBe('gap');
+    expect(evidenceNodeKind('docs/decisions/2026-01-01-x.md')).toBe('adr');
   });
 });
 

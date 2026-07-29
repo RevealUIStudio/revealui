@@ -18,6 +18,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
+import type { NodeKind } from '../ontology/index.js';
 import type { EdgeInput, NodeInput } from '../types.js';
 import { claimKey, fileKey, readTextFile, scanEpisode, toPosix } from './shared.js';
 import type { Extractor, ExtractorContext, ScanProduct } from './types.js';
@@ -231,6 +232,27 @@ export function isPathEvidence(kind: string, ref: string): boolean {
 }
 
 /**
+ * Node kind for a path-shaped evidence target.
+ *
+ * `docs/**\/*.md` paths must match docs-frontmatter (`inferKind`): special
+ * subtrees become gap/lane/adr/skill/rule; everything else is `concept` with
+ * the same `fileKey` natural key. Emitting `file` for those paths collides
+ * with the unique `kg_nodes.natural_key` index after a prior docs scan
+ * (dogfood failure on `docs/guides/deployment.md`).
+ */
+export function evidenceNodeKind(rel: string): NodeKind {
+  const posix = toPosix(rel);
+  if (!(posix.startsWith('docs/') && posix.endsWith('.md'))) return 'file';
+  const segments = posix.split('/');
+  if (segments.includes('gaps')) return 'gap';
+  if (segments.includes('lanes')) return 'lane';
+  if (segments.includes('decisions')) return 'adr';
+  if (segments.includes('skills')) return 'skill';
+  if (segments.includes('rules')) return 'rule';
+  return 'concept';
+}
+
+/**
  * Filesystem check: every path-shaped evidence ref should exist under repoRoot
  * (file or directory). Used by `revkg claims-check` without a database.
  */
@@ -337,25 +359,27 @@ export const claimsExtractor: Extractor = {
         if (!isPathEvidence(ev.kind, ev.ref)) continue;
         const rel = evidencePathFromRef(ev.ref);
         const codeKey = fileKey(ctx.repo, rel);
-        if (!nodes.has(mapKey('file', codeKey))) {
+        const codeKind = evidenceNodeKind(rel);
+        if (!nodes.has(mapKey(codeKind, codeKey))) {
           const codeNode: NodeInput = {
-            kind: 'file',
+            kind: codeKind,
             name: rel.split('/').pop() ?? rel,
             naturalKey: codeKey,
             repo: ctx.repo,
             attributes: {
               path: rel,
               evidenceKind: ev.kind,
+              ...(codeKind === 'concept' ? { proposedKind: 'doc' } : {}),
               ...(ev.note ? { note: ev.note } : {}),
             },
           };
-          nodes.set(mapKey('file', codeKey), codeNode);
+          nodes.set(mapKey(codeKind, codeKey), codeNode);
         }
 
         // documents: DOC (claim) → CODE (evidence) per kgDrift direction convention
         edges.push({
           source: { kind: 'concept', naturalKey: cKey },
-          target: { kind: 'file', naturalKey: codeKey },
+          target: { kind: codeKind, naturalKey: codeKey },
           relation: 'documents',
           fact: `${claim.exportPath} documents ${rel}`,
           repo: ctx.repo,
