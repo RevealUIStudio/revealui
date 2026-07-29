@@ -130,7 +130,7 @@ pnpm revealui dev up
 
 - `DATABASE_URL` (primary)
 - `POSTGRES_URL` (fallback)
-- `SUPABASE_DATABASE_URI` (Supabase-specific — legacy, being retired; see the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md))
+- `SUPABASE_DATABASE_URI` (legacy alias only; Supabase was removed as architecture — see the [Supabase-removal ADR](decisions/2026-05-01-supabase-removal.md). New deploys use `POSTGRES_URL` / Neon only.)
 
 **Usage:**
 
@@ -311,7 +311,7 @@ pnpm db:status
 
 - `DATABASE_URL` - PostgreSQL connection string
 - `POSTGRES_URL` - Alternative name (Neon convention)
-- `SUPABASE_DATABASE_URI` - Supabase-specific (legacy, being retired)
+- `SUPABASE_DATABASE_URI` - legacy alias only (Supabase was removed; prefer `POSTGRES_URL`)
 
 **Format:**
 
@@ -322,8 +322,7 @@ postgresql://user:password@host:port/database
 # Neon (serverless)
 postgresql://user:password@host.neon.tech/database?sslmode=require
 
-# Supabase Postgres via the legacy SUPABASE_DATABASE_URI alias (being retired; treated as a generic Postgres host, not a RAG sidecar)
-postgresql://postgres:password@db.project.supabase.co:5432/postgres  # legacy alias, being retired
+# Prefer Neon / POSTGRES_URL. Do not provision Supabase for new deployments.
 ```
 
 ### Optional Variables

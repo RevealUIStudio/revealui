@@ -1,6 +1,9 @@
 #!/bin/bash
-# Copy documentation from main docs/ directory to apps/docs/public/
-# This ensures apps/docs serves the canonical documentation.
+# Copy documentation from monorepo docs/ → apps/docs/public/
+#
+# SoT: monorepo docs/ only. apps/docs/public/*.md is a GENERATED serve
+# mirror (gitignored). Edit docs/, never public/. See
+# apps/docs/public/COPIED-FROM-DOCS.txt and apps/docs/README.md.
 #
 # CHIP-3 D5a: target is `public/` (not `public/docs/`) so served URLs
 # match suite-root file layout — docs.revealui.com/admin-guide resolves

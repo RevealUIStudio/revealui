@@ -40,6 +40,17 @@ describe('SHARED_DETECTION_RULES', () => {
     expect(isHit).toBe(true);
     expect(isExonerated).toBe(false);
   });
+
+  it('exonerates Railway marketplace / buyer self-host sales-channel prose (GAP-430)', () => {
+    const rule = SHARED_DETECTION_RULES.find((r) => r.id === 'railway-as-current');
+    expect(rule).toBeDefined();
+    const line =
+      'one-click self-host on the buyer railway marketplace account (deployment/railway template)';
+    const isHit = rule!.anyOf.some((t) => line.includes(t));
+    const isExonerated = rule!.unlessLineHas.some((t) => line.includes(t));
+    expect(isHit).toBe(true);
+    expect(isExonerated).toBe(true);
+  });
 });
 
 describe('COMMON_EXON / STRIPE_LIVE_EXON', () => {

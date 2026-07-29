@@ -123,10 +123,11 @@ export function getClaimGatesRoot(): string {
 //
 // 2. The git-derived ignored-path set (below) — one lazy `git ls-files`
 //    --others --ignored pass covering what a name set cannot express:
-//    path-shaped ignores (the generated docs mirrors apps/docs/public/docs/
-//    + apps/docs/dist/docs/ written by apps/docs/scripts/copy-docs.sh) and
-//    pattern-shaped file ignores inside scanned dirs (docs/*VERIFICATION*.md
-//    / docs/*REPORT*.md). It also honors nested .gitignore files.
+//    path-shaped ignores (the generated docs mirror apps/docs/public/* from
+//    apps/docs/scripts/copy-docs.sh — SoT is monorepo docs/; public/*.md is
+//    gitignored) and pattern-shaped file ignores inside scanned dirs
+//    (docs/*VERIFICATION*.md / docs/*REPORT*.md). It also honors nested
+//    .gitignore files.
 // ---------------------------------------------------------------------------
 
 /** Exported for tests. */
@@ -705,7 +706,7 @@ function buildPackageLicenseMap(): PackageLicenseMap {
 // ---------------------------------------------------------------------------
 // Shared walker for the phantom + membership detectors.
 //
-// Scope: docs/, apps/marketing/app/, apps/docs/public/, root-level
+// Scope: docs/, apps/marketing/app/, apps/docs/public/docs-pro/ (+ llms), root-level
 // CLAUDE.md / README.md / CONTRIBUTING.md / .syncpackrc.json, scripts/,
 // and packages/ (README .md only — source code is out of scope for license-
 // drift checks; packages/* is huge and would slow the gate).
@@ -788,13 +789,11 @@ const PHANTOM_PACKAGES: PhantomPackage[] = [
     hint: PHANTOM_EDITORS_HINT,
     allowlist: new Set([
       // Canonical pages that exist precisely to document the redirect:
+      // (SoT is monorepo docs/; apps/docs/public/* copy-docs mirrors are
+      // generated, gitignored, and not scanned — do not list them here.)
       'apps/docs/public/docs-pro/editors/index.md',
       'docs/fleet/revcon.md',
       'docs/REVFLEET.md',
-      // Synced copies of the canonical pages above
-      // (apps/docs/scripts/copy-docs.sh mirrors docs/* → apps/docs/public/*):
-      'apps/docs/public/REVFLEET.md',
-      'apps/docs/public/fleet/revcon.md',
       // The validator itself — its fleet product rules list the phantom
       // by design (as the token sequence to detect leaks elsewhere):
       'scripts/validate/claim-drift.ts',

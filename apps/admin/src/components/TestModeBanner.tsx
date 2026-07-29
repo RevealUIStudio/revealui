@@ -3,11 +3,10 @@
 /**
  * TestModeBanner
  *
- * Shows a warning above billing CTAs when Stripe is running in test mode
- * (publishable key prefix `pk_test_*` OR no key configured). Live mode is
- * gated on the billing-readiness audit per the locked posture in
- * the internal master plan; this banner makes the test-mode posture
- * explicit so users do not assume cards will be charged.
+ * Shows a warning above billing CTAs when this environment's Stripe publishable
+ * key is test mode (`pk_test_*`) or missing. Studio production runs live mode;
+ * this banner is for local, preview, and any deploy still on test keys so users
+ * do not assume cards will be charged.
  *
  * Detection: client-side `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` prefix.
  * Server-side enforcement of the test/live invariant lives in
@@ -27,9 +26,9 @@ export function TestModeBanner({ className = '' }: { className?: string }) {
     >
       <p className="font-medium">Stripe is in test mode</p>
       <p className="mt-1 text-xs leading-relaxed">
-        No card will be charged. Live billing is gated on the internal billing-readiness audit; this
-        surface uses Stripe test mode in production until that lands. Trial flows, checkout
-        sessions, and webhooks all run end-to-end against the test environment.
+        No card will be charged in this environment. Studio production uses Stripe live mode; this
+        surface is on test keys (local, preview, or a non-live deploy). Trial flows, checkout
+        sessions, and webhooks run end-to-end against the Stripe test environment.
       </p>
     </div>
   );

@@ -8,7 +8,7 @@ audience: user
 author: Joshua Vaughn
 ---
 
-> **Coming soon, not yet live (roadmap, tracked in [#93](https://github.com/RevealUIStudio/revealui/issues/93)):** x402 payments in RevealUI are **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Live agent payments are gated on the Stripe live-keys flip and the billing-readiness audit. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status. This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.
+> **Coming soon, not yet live (roadmap, tracked in [#93](https://github.com/RevealUIStudio/revealui/issues/93)):** x402 payments in RevealUI are **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Stripe live mode is already on for first-party billing; x402 agent payments remain behind the flag until that surface ships. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status. This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.
 
 ---
 

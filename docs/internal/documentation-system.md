@@ -5,7 +5,7 @@ visibility: internal
 status: verified
 audience: maintainer
 owner: RevealUI Studio
-last_verified: 2026-06-12
+last_verified: 2026-07-29
 ---
 
 This is the canonical specification for how documentation works in the RevealUI
@@ -80,23 +80,30 @@ library and never authored regex.
 
 ## Internal vs public
 
-The boundary is **frontmatter-driven, single-source, and fail-closed** — the
-opposite of today's hand-maintained denylist that is duplicated across
-`apps/docs/scripts/copy-docs.sh` and `apps/docs/vite.config.ts` and leaks new
-internal docs by default.
+The boundary is **frontmatter-driven, single-source, and fail-closed**.
+
+### Two paths, one SoT
+
+| Path | Role |
+|------|------|
+| **`docs/`** | **Source of truth.** Edit here only. |
+| **`apps/docs/public/**/*.md`** | **Generated serve mirror** for docs.revealui.com. Filled by `copy-docs.sh` + Vite `docsCopyPlugin`. Gitignored. Never edit or commit. |
+| **`apps/docs/public/docs-pro/`** | Hand-authored Pro exception (tracked). |
+
+A local disk full of `apps/docs/public/*.md` after `pnpm dev` is build output.
+Scanners (`doc-currency`, claim-gates) skip that mirror; agents should use
+`.cursorignore` / `.ignore` the same way.
 
 Rules enforced by the gate:
 
 1. **Classification is mandatory.** Every doc declares `visibility`. No default
    to public, ever. A doc with no valid `visibility` fails CI.
-2. **Physical home.** Internal docs live under `docs/internal/` (and the root-
-   level internal docs migrate there). Anything under `docs/internal/` must be
-   `visibility: internal`; anything outside it must be `visibility: public`. The
-   tree and the frontmatter must agree.
+2. **Physical home.** Internal docs live under `docs/internal/` (and related
+   internal paths). Anything under `docs/internal/` must be
+   `visibility: internal`. The tree and the frontmatter must agree.
 3. **The mirror reads frontmatter.** The docs-app publish step serves a doc only
-   when `visibility: public`. `copy-docs.sh` and `vite.config.ts` stop carrying
-   hand-maintained lists and read the single source instead. (Contract defined
-   here; the docs-app wiring lands in the dedicated docs-app session.)
+   when `visibility: public`. `copy-docs.sh` + `prune-non-public.mjs` and the
+   Vite plugin read that single source (no hand-maintained denylist).
 4. **Leak guard on public docs.** Every `visibility: public` doc is scanned for
    internal-only content: absolute developer home paths, Windows user-profile
    paths, the private internal planning repo and its paths, revvault secret
@@ -186,7 +193,7 @@ move them into `docs/`, which would break that discovery; it is retired.)
 | `scripts/validate/docs-import-drift.ts` | KEEP; extend to all docs; promote warn-only -> hard-fail |
 | `scripts/docs/generate-api.ts` | KEEP; wire the OpenAPI snapshot refresh into CI |
 | `scripts/validate/README.md` | REWRITE to a short pointer at this spec |
-| denylist in `copy-docs.sh` + `vite.config.ts` | REPLACE with frontmatter-driven visibility (single source) |
+| denylist in `copy-docs.sh` + `vite.config.ts` | DONE — frontmatter `visibility: public` + prune-non-public (single source); public/*.md is generated mirror only |
 
 ## Execution phases
 

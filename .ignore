@@ -1,0 +1,6 @@
+# Agent / search ignore (ripgrep, Cursor, etc.)
+# Generated docs-site serve mirror — not a second documentation SoT.
+apps/docs/public/**/*.md
+apps/docs/public/*/
+!apps/docs/public/docs-pro/
+!apps/docs/public/docs-pro/**

@@ -1,28 +1,27 @@
 ---
 title: "Database Conventions"
-description: "**`@supabase/supabase-js` must only be imported inside designated vector/auth modules:**"
+description: "NeonDB primary + ElectricSQL sync. Supabase was removed (ADR 2026-05-01); do not reintroduce @supabase/supabase-js."
 visibility: internal
 status: verified
 audience: agent
 ---
 
-## Database Architecture (NeonDB primary; Supabase being retired)
+## Database Architecture (NeonDB primary; Supabase removed)
 
-> **Status:** per ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. NeonDB holds everything, including vector embeddings and `agent_memories` (via `pgvector`). Supabase is a legacy, optional sidecar being phased out (Phase 7). The import boundary below remains **enforced during the phase-out** so no new code couples to Supabase.
+> **Status:** per ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. NeonDB holds everything, including vector embeddings and `agent_memories` (via `pgvector`). Supabase was removed as architecture. Do not reintroduce it.
 
 | Database | Client | Purpose |
 |----------|--------|---------|
 | **NeonDB** (PostgreSQL) | `@neondatabase/serverless` | Primary store: collections, users, sessions, orders, products, **plus vector embeddings + `agent_memories` via `pgvector`** |
-| **Supabase** (legacy, being retired) | `@supabase/supabase-js` | Optional RAG-chunk sidecar only; import-restricted during the phase-out |
+| ~~Supabase~~ (removed) | (none in tree) | Removed. Do not reintroduce `@supabase/supabase-js` imports. |
 
 ## Boundary Rule
 
-**`@supabase/supabase-js` must only be imported inside designated vector/auth modules:**
+**Do not import `@supabase/supabase-js` anywhere.** Supabase was removed; there is no allowed path.
 
-### Allowed paths for Supabase imports
-None. The customer Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) was removed. There are zero `@supabase/supabase-js` imports left in `packages/` or `apps/`. Do not reintroduce either.
+The customer Supabase MCP adapter (`packages/mcp/src/servers/supabase.ts`) was removed. There are zero `@supabase/supabase-js` imports left in `packages/` or `apps/`. Never reintroduce either.
 
-### Forbidden: Supabase imports in
+### Surfaces that must stay Neon/Drizzle-only
 - `packages/core/`  -  Runtime engine must be DB-agnostic
 - `packages/contracts/`  -  contracts are schema-only
 - `packages/config/`  -  config must not hardcode DB client
@@ -73,11 +72,11 @@ const matches = await db
 
 ## Enforcement
 
-No automated check currently scans for Supabase imports outside the permitted path. `scripts/validate/structure.ts` and `scripts/validate/boundary.ts` (the scripts behind `pnpm validate:structure`) do not contain a Supabase-import rule. The boundary above is enforced by convention and code review, not by CI, until such a check is added.
+No automated check currently bans reintroduction of removed Supabase imports. `scripts/validate/structure.ts` and `scripts/validate/boundary.ts` (the scripts behind `pnpm validate:structure`) do not contain a Supabase-import rule. The boundary above is enforced by convention and code review, not by CI, until such a check is added.
 
 ## Migration Guidance
 
 When adding new features:
 1. **All data (content, REST, AI/vector)** → add to `packages/db/src/schema/` + use Drizzle on NeonDB (vectors via `pgvector`)
-2. **Do not add new Supabase-coupled code** — Supabase is being retired (ADR 2026-05-01). Net-new features must target NeonDB.
-3. The optional Supabase RAG sidecar, where still wired, stays behind the import boundary above.
+2. **Do not add Supabase-coupled code** — Supabase was removed (ADR 2026-05-01). Net-new features must target NeonDB only.
+3. There is no supported Supabase RAG path; vectors and memories are NeonDB `pgvector`.
