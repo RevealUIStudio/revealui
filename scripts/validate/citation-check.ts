@@ -243,6 +243,12 @@ export function isGatedDoc(rel: string): boolean {
   if (isExcludedDoc(rel)) {
     return false;
   }
+  // Fully generated from examples/api/openapi.json via pnpm docs:generate:api
+  // (GAP-395). Citation coverage would force hand-edits that the api-docs
+  // drift gate immediately rejects; validity still applies to other docs/api.
+  if (rel === 'docs/api/rest-api/README.md') {
+    return false;
+  }
   // Path-prefix includes first, so a README living under docs/api/ etc. is
   // gated by its tree rather than short-circuited by the README depth rule.
   if (

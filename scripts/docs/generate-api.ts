@@ -16,7 +16,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
 
 const specPath = join(repoRoot, 'examples/api/openapi.json');
-const outputPath = join(repoRoot, 'docs/api/rest-api/README.md');
+// DOCS_API_OUT lets validate:api-docs regenerate into a temp path without
+// dirtying the working tree (GAP-395 drift gate).
+const outputPath =
+  process.env.DOCS_API_OUT?.trim() || join(repoRoot, 'docs/api/rest-api/README.md');
 
 interface OpenAPIParam {
   name: string;
@@ -142,7 +145,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
         lines.push(`|------|------|:--------:|-------------|`);
         for (const p of pathParams) {
           lines.push(
-            `| \`${p.name}\` | \`${p.schema?.type ?? 'string'}\` | ${p.required ? '✓' : '—'} | ${p.description ?? ''} |`,
+            `| \`${p.name}\` | \`${p.schema?.type ?? 'string'}\` | ${p.required ? '✓' : '-'} | ${p.description ?? ''} |`,
           );
         }
         lines.push(``);
@@ -157,7 +160,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
         for (const p of queryParams) {
           const def = p.schema?.default != null ? `\`${p.schema.default}\`` : ' - ';
           lines.push(
-            `| \`${p.name}\` | \`${p.schema?.type ?? 'string'}\` | ${p.required ? '✓' : '—'} | ${def} | ${p.description ?? ''} |`,
+            `| \`${p.name}\` | \`${p.schema?.type ?? 'string'}\` | ${p.required ? '✓' : '-'} | ${def} | ${p.description ?? ''} |`,
           );
         }
         lines.push(``);
@@ -182,7 +185,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
             for (const [name, field] of Object.entries(props)) {
               const type = field.format ? `${field.type} (${field.format})` : (field.type ?? 'any');
               lines.push(
-                `| \`${name}\` | \`${type}\` | ${required.includes(name) ? '✓' : '—'} | ${field.description ?? ''} |`,
+                `| \`${name}\` | \`${type}\` | ${required.includes(name) ? '✓' : '-'} | ${field.description ?? ''} |`,
               );
             }
           } else {
@@ -195,7 +198,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
       // Responses
       lines.push(`**Responses**`, ``);
       for (const [status, resp] of Object.entries(op.responses)) {
-        lines.push(`- \`${status}\` — ${resp.description}`);
+        lines.push(`- \`${status}\`  -  ${resp.description}`);
       }
       lines.push(``, `---`, ``);
     }

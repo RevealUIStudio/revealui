@@ -116,6 +116,9 @@ jobs:
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
+      - name: API docs drift
+        run: pnpm validate:api-docs
+
       - name: Claims evidence validation (hard fail)
         # Every prose sentence in covered marketing content must carry a
         # claims-evidence entry citing the code that proves it. Sibling of
