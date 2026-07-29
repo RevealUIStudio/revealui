@@ -250,7 +250,7 @@ function runDetector(detector: CopyDependentDetector, words: string[]): boolean 
  * Caller supplies tokenize() tokens from claim-drift-engine (or any compatible tokenizer).
  */
 export function findCopyDependentHits(
-  line: string,
+  _line: string,
   tokens: { kind: string; text: string }[],
 ): CopyDependentHit[] {
   const words = wordTexts(tokens);
