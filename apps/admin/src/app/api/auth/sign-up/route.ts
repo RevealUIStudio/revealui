@@ -257,7 +257,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Grant session if email is verified. First-user admin accounts are verified
+    // Grant session if email is verified. First-user owner accounts are verified
     // immediately above. Other new signups must verify their email first.
     const isVerified = resolvedUser?.emailVerified ?? false;
 
