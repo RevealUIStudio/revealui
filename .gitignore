@@ -196,6 +196,10 @@ CLAUDE.md
 !.revealui/manager.json
 !.revealui/adapters/
 !.revealui/adapters/**
+# GAP-421 content materialization ADR (2026-07-25): generated policy tree is
+# committed and CI-gated for freshness (same pattern as adapters/).
+!.revealui/content/
+!.revealui/content/**
 # =============================================================================
 # Nix Development Environment
 # =============================================================================

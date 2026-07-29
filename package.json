@@ -234,6 +234,7 @@
     "validate:incubate-posture": "tsx scripts/validate/incubate-posture.ts",
     "validate:engines-posture": "tsx scripts/validate/engines-posture.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
+    "validate:content-freshness": "pnpm --filter @revealui/harnesses build && node packages/harnesses/dist/cli.js content diff --generator claude-code --check --project .",
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
     "validate:claims-evidence": "tsx scripts/validate/claims-evidence.ts",

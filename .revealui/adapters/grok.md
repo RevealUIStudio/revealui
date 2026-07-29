@@ -8,7 +8,10 @@
 Machine home (`~/.grok`) must stay **pointer-thin**. When cwd is this project:
 
 1. Read `.revealui/manager.json`
-2. Read `.revealui/content/` for shared rules
+2. Read `.revealui/content/` for generated shared policy (committed after
+   `manager materialize`; this machine home still loads thin adapters /
+   pointers — Claude Code still loads `.claude/rules/` until control-layer
+   phase 2 retires duplicated rule bodies)
 3. Open `tracker.path` from the manager (fleet TRACKER)
 4. Product work via RevealUI MCP (`rfg`)
 

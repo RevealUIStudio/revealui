@@ -208,6 +208,9 @@ jobs:
             exit 0
           fi
           pnpm validate:structure -- --manager-only
+          # GAP-421 content materialization ADR: definitions ↔ committed
+          # `.revealui/content/` byte freshness (harnesses already built above).
+          pnpm validate:content-freshness
 
       - name: Marketing voice validation (hard fail)
         run: pnpm validate:marketing-voice
