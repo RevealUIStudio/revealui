@@ -304,6 +304,19 @@
       }
     },
     {
+      "includes": ["packages/claim-gates/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/logger*.ts", "**/logger/**", "**/instance/logger.ts"],
       "linter": {
         "rules": {
