@@ -201,7 +201,9 @@ describe('POST /api/auth/sign-in', () => {
     const res = await POST(makeRequest({ email: 'mfa@example.com', password: 'ValidPass1' }));
 
     expect((res as { status: number }).status).toBe(200);
-    expect((res as unknown as { body: { requiresMfa: boolean } }).body.requiresMfa).toBe(true);
+    const body = (res as unknown as { body: { requiresMfa: boolean; mfaUserId?: string } }).body;
+    expect(body.requiresMfa).toBe(true);
+    expect(body.mfaUserId).toBe('mfa-user-1');
 
     const cookies = (res as unknown as { cookies: CookieStore }).cookies;
     expect(cookies.has('mfa-pending')).toBe(true);

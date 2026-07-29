@@ -53,12 +53,12 @@ export interface SignInInput {
 }
 
 export interface UseSignInResult {
-  signIn: (
-    input: SignInInput,
-  ) => Promise<
+  signIn: (input: SignInInput) => Promise<
     | { success: true; user: User }
     | { success: false; error: string; code?: string }
-    | { success: false; requiresMfa: true; mfaUserId: string }
+    // mfaUserId is optional: the live sign-in route puts identity in the
+    // httpOnly mfa-pending cookie and may only return { requiresMfa: true }.
+    | { success: false; requiresMfa: true; mfaUserId?: string }
   >;
   isLoading: boolean;
   error: Error | null;
@@ -125,13 +125,17 @@ export function useSignIn(): UseSignInResult {
         };
       }
 
-      // Check for MFA challenge before parsing as full success
+      // MFA challenge is HTTP 200 with { requiresMfa: true } and no `user`.
+      // The server may omit mfaUserId from the body (identity lives in the
+      // httpOnly mfa-pending cookie). Requiring mfaUserId here forced the
+      // success schema parse, which threw "expected object, received undefined"
+      // on `user` and locked MFA-enabled accounts out of the login UI.
       const jsonObj = json as Record<string, unknown>;
-      if (jsonObj.requiresMfa === true && typeof jsonObj.mfaUserId === 'string') {
+      if (jsonObj.requiresMfa === true) {
         return {
           success: false as const,
           requiresMfa: true as const,
-          mfaUserId: jsonObj.mfaUserId,
+          ...(typeof jsonObj.mfaUserId === 'string' ? { mfaUserId: jsonObj.mfaUserId } : {}),
         };
       }
 
