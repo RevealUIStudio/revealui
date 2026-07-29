@@ -22,7 +22,17 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import ts from 'typescript';
 import { CLAIMS } from '../../apps/marketing/app/content/claims-evidence.js';
+// GAP-192 PR1 plumbing: shared marketing-voice engine (source import, same
+// style as marketing-voice.ts — tsx transpiles on the fly, no package build).
+import { checkRule } from '../../packages/contracts/src/marketing-voice/check-rule.js';
+import {
+  isRepoLinkToken,
+  isTrackerToken,
+} from '../../packages/contracts/src/marketing-voice/predicates.js';
+import type { Rule } from '../../packages/contracts/src/marketing-voice/rules.js';
+import { tokenize } from '../../packages/contracts/src/marketing-voice/tokenize.js';
 import {
   type CapabilityResult,
   checkCapabilityClaims,
@@ -30,6 +40,9 @@ import {
   loadCapabilityBaseline,
   writeCapabilityBaseline,
 } from './capability-claims.js';
+
+export type { Rule };
+export { checkRule, tokenize };
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const showFix = process.argv.includes('--fix');
@@ -348,11 +361,42 @@ function countWorkspaces(): number {
 }
 
 /**
+ * Count CallExpression nodes whose callee is the identifier `pgTable`.
+ * Uses the TypeScript compiler API (no authored regex) so comments and
+ * string literals never inflate the total. Path-injectable for tests.
+ * GAP-192 PR1 plumbing.
+ */
+export function countPgTableCalls(fileName: string, content: string): number {
+  const sourceFile = ts.createSourceFile(
+    fileName,
+    content,
+    ts.ScriptTarget.Latest,
+    /* setParentNodes */ true,
+    ts.ScriptKind.TS,
+  );
+  let count = 0;
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'pgTable'
+    ) {
+      count++;
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(sourceFile, visit);
+  return count;
+}
+
+/**
  * Count `pgTable(` declarations across `packages/db/src/schema/*.ts`.
  * The audit-first source of truth for "how many database tables ship".
+ * Path-injectable + exported for tests (GAP-192 PR1).
  */
-function countDbTables(): number {
-  const schemaDir = path.join(ROOT, 'packages/db/src/schema');
+export function countDbTables(
+  schemaDir: string = path.join(ROOT, 'packages/db/src/schema'),
+): number {
   if (!fs.existsSync(schemaDir)) return 0;
   const isIgnored = ignoredPathPredicateFor(schemaDir);
   let total = 0;
@@ -375,9 +419,7 @@ function countDbTables(): number {
         } catch {
           continue;
         }
-        // Match standalone `pgTable(` calls (not inside a comment block start)
-        const matches = content.match(/pgTable\s*\(/g);
-        if (matches) total += matches.length;
+        total += countPgTableCalls(full, content);
       }
     }
   }
@@ -614,7 +656,7 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
     for (const e of entries) {
       const full = path.join(dir, e.name);
       if (WALK_EXCLUDED_DIRS.has(e.name) || isIgnored(full)) continue;
-      const rel = path.relative(ROOT, full).replace(/\\/g, '/');
+      const rel = path.relative(ROOT, full).split(path.sep).join('/');
       if (e.isDirectory()) {
         walk(full);
       } else {
@@ -630,7 +672,7 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
     const full = path.join(ROOT, root);
     try {
       const stat = fs.statSync(full);
-      const rel = path.relative(ROOT, full).replace(/\\/g, '/');
+      const rel = path.relative(ROOT, full).split(path.sep).join('/');
       if (stat.isFile()) callback(full, rel);
       else if (stat.isDirectory()) walk(full);
     } catch {
@@ -778,9 +820,7 @@ function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[
       const hasFSL = FSL_LABEL_PATTERN.test(line);
       const hasMIT = MIT_LABEL_PATTERN.test(line) && !hasFSL;
       if (!(hasMIT || hasFSL)) continue;
-      const pkgRegex = /@revealui\/([a-z][a-z0-9-]*)\b/g;
-      for (const match of line.matchAll(pkgRegex)) {
-        const pkgName = match[0];
+      for (const pkgName of extractRevealuiPackages(line)) {
         let actual: 'MIT' | 'FSL-1.1-MIT' | 'internal/none' | null;
         if (map.mit.has(pkgName)) actual = 'MIT';
         else if (map.fsl.has(pkgName)) actual = 'FSL-1.1-MIT';
@@ -1173,6 +1213,32 @@ const FUTURE_TENSE_PATTERN =
   /\((coming soon|planned|roadmap|TBD|forthcoming|will ship|in progress)\b[^)]*\)/i;
 
 const TRACKER_PATTERN = /(#\d+|\/(issues|pull|pulls)\/\d+|\bmilestones?\b|\.ya?ml\b)/i;
+
+/**
+ * True when `line` cites a tracker: issue/PR `#N`, repo issues/pull(s) URL,
+ * `milestone(s)`, or a workflow `*.yml`/`*.yaml` token.
+ *
+ * GAP-192 PR1 plumbing — uses marketing-voice `tokenize` + `isTrackerToken` /
+ * `isRepoLinkToken`. `Intl.Segmenter` splits URLs on `:` and `/`, so
+ * non-whitespace token spans are rejoined before `isRepoLinkToken`. Scanners
+ * still use TRACKER_PATTERN until PR2 wires this in.
+ */
+export function hasTrackerSignal(line: string): boolean {
+  const tokens = tokenize(line);
+  for (let i = 0; i < tokens.length; i++) {
+    if (isTrackerToken(tokens[i], tokens[i + 1])) return true;
+  }
+  let span = '';
+  for (const token of tokens) {
+    if (token.kind === 'whitespace') {
+      if (span.length > 0 && isRepoLinkToken(span)) return true;
+      span = '';
+      continue;
+    }
+    span += token.text;
+  }
+  return span.length > 0 && isRepoLinkToken(span);
+}
 
 function scanForFutureTenseClaims(): FutureClaimMatch[] {
   const matches: FutureClaimMatch[] = [];
@@ -1605,7 +1671,7 @@ function scanForFleetProductLeaks(): FleetProductMatch[] {
   }
 
   function scanFile(filePath: string): void {
-    const rel = path.relative(ROOT, filePath).replace(/\\/g, '/');
+    const rel = path.relative(ROOT, filePath).split(path.sep).join('/');
     if (isAllowlisted(rel)) return;
     let content: string;
     try {
@@ -1707,7 +1773,7 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
   }
 
   function scanFile(filePath: string): void {
-    const rel = path.relative(ROOT, filePath).replace(/\\/g, '/');
+    const rel = path.relative(ROOT, filePath).split(path.sep).join('/');
     if (isAllowlisted(rel)) return;
     let content: string;
     try {

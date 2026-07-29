@@ -7,19 +7,90 @@ import {
   AGENT_COMMERCE_BLOCKLIST,
   CLI_TEMPLATE_CLAIM_PATTERNS,
   countCliTemplates,
+  countDbTables,
   countDirs,
   countEnforcementTests,
+  countPgTableCalls,
   countTestFiles,
   countTrackedFiles,
   extractRevealuiPackages,
   findIncompleteProList,
   findLicenseSplitAntiPattern,
+  hasTrackerSignal,
   isRoadmapDeclaredFile,
   makeIgnoredPathPredicate,
   parseGitIgnoredOutput,
   TEST_FILE_SUFFIXES,
   WALK_EXCLUDED_DIRS,
 } from '../claim-drift.ts';
+
+describe('countPgTableCalls', () => {
+  it('counts CallExpression pgTable identifiers and ignores comments/strings', () => {
+    const src = `
+import { pgTable } from 'drizzle-orm/pg-core';
+// pgTable('commented', {});
+export const users = pgTable('users', {});
+export const posts = pgTable('posts', {});
+const note = "pgTable('string', {})";
+`;
+    expect(countPgTableCalls('fixture.ts', src)).toBe(2);
+  });
+
+  it('returns 0 when there are no pgTable calls', () => {
+    expect(countPgTableCalls('empty.ts', 'export const x = 1;\n')).toBe(0);
+  });
+});
+
+describe('countDbTables', () => {
+  let tmp: string;
+
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claim-drift-pgtable-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('counts pgTable CallExpressions across schema fixtures', () => {
+    fs.writeFileSync(
+      path.join(tmp, 'users.ts'),
+      "import { pgTable } from 'drizzle-orm/pg-core';\nexport const users = pgTable('users', {});\n",
+    );
+    fs.mkdirSync(path.join(tmp, 'nested'));
+    fs.writeFileSync(
+      path.join(tmp, 'nested', 'posts.ts'),
+      "export const posts = pgTable('posts', {});\nexport const comments = pgTable('comments', {});\n",
+    );
+    // .test.ts files are excluded from the schema walk
+    fs.writeFileSync(path.join(tmp, 'users.test.ts'), "export const t = pgTable('t', {});\n");
+    // comments must not inflate the count
+    fs.writeFileSync(path.join(tmp, 'noise.ts'), "// pgTable('noise', {});\nexport const n = 1;\n");
+    expect(countDbTables(tmp)).toBe(3);
+  });
+
+  it('returns 0 for a missing schema directory', () => {
+    expect(countDbTables(path.join(tmp, 'does-not-exist'))).toBe(0);
+  });
+});
+
+describe('hasTrackerSignal', () => {
+  it('accepts issue numbers, milestones, and workflow files', () => {
+    expect(hasTrackerSignal('SSO is coming soon (#93)')).toBe(true);
+    expect(hasTrackerSignal('tracked under milestone 2')).toBe(true);
+    expect(hasTrackerSignal('see deploy.yml for the workflow')).toBe(true);
+  });
+
+  it('accepts github issues/pull URL tokens', () => {
+    expect(
+      hasTrackerSignal('https://github.com/RevealUIStudio/revealui/pull/865 is the tracker'),
+    ).toBe(true);
+  });
+
+  it('rejects unlinked future-tense prose', () => {
+    expect(hasTrackerSignal('SSO is coming soon with no tracker')).toBe(false);
+  });
+});
 
 describe('countDirs', () => {
   let tmp: string;
