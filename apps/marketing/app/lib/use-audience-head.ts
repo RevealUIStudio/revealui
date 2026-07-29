@@ -29,20 +29,21 @@ const SEO: Record<Audience, AudienceSeo> = {
       'https://api.revealui.com/api/og?title=RevealUI&description=Your%20business%2C%20delivered%20and%20yours%20to%20own.',
   },
   technical: {
-    title: 'RevealUI | Run your whole business on one runtime you own.',
-    // Mirrors HOME_HERO subtitle (canonical 2026-07-09 form, no em dashes).
+    title: 'RevealUI | Build it once. Every product after starts ahead.',
+    // Title mirrors HOME_HERO.h1 (L1 default, 2026-07-29). Description mirrors
+    // HOME_HERO subtitle (canonical 2026-07-09 form, no em dashes).
     description:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.',
-    ogTitle: 'RevealUI | Run your whole business on one runtime you own.',
+    ogTitle: 'RevealUI | Build it once. Every product after starts ahead.',
     ogDescription:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     ogImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=Run%20your%20whole%20business%20on%20one%20runtime%20you%20own.',
-    twitterTitle: 'RevealUI | Run your whole business on one runtime you own.',
+      'https://api.revealui.com/api/og?title=RevealUI&description=Build%20it%20once.%20Every%20product%20after%20starts%20ahead.',
+    twitterTitle: 'RevealUI | Build it once. Every product after starts ahead.',
     twitterDescription:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     twitterImage:
-      'https://api.revealui.com/api/og?title=RevealUI&description=Run%20your%20whole%20business%20on%20one%20runtime%20you%20own.',
+      'https://api.revealui.com/api/og?title=RevealUI&description=Build%20it%20once.%20Every%20product%20after%20starts%20ahead.',
   },
 };
 

@@ -563,12 +563,36 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.h1',
+    text: 'Build it once. Every product after starts ahead.',
+    evidence: [
+      {
+        kind: 'code',
+        ref: 'packages',
+        note: 'five primitives implemented once and reused across products on one monorepo runtime',
+      },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/__tests__/hero-variant.test.ts#serves the L1 default hero by default',
+        note: 'locks the L1 H1 string as the homepage default after owner ruling 2026-07-29',
+      },
+      LICENSE_MIT,
+      SELF_HOST,
+    ],
+  },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_HERO_OWNERSHIP.h1',
     text: 'Run your whole business on one runtime you own.',
     evidence: [
       {
         kind: 'code',
         ref: 'packages',
-        note: 'auth, content, billing, agents in one monorepo runtime',
+        note: 'prior default H1 retained as ?hero=ownership rollback preview',
+      },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/__tests__/hero-variant.test.ts#serves the ownership rollback for ?hero=ownership',
+        note: 'locks ownership H1 as optional rollback variant',
       },
       LICENSE_MIT,
       SELF_HOST,

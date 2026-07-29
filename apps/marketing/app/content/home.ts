@@ -28,10 +28,12 @@ import type { Cta, FaqItem } from './types';
 
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable.',
-  h1: 'Run your whole business on one runtime you own.',
-  // Locked public form (copy-voice.md + ADR 2026-07-09 / 2026-07-21): two
-  // positioning sentences + support. Receipt foil is NOT in the subtitle; it
-  // is the ReceiptCard caption under this hero.
+  // Owner ruling 2026-07-29: ship corpus L1 leverage-frame as default H1
+  // (06-copy-corpus.md §4.1 punch-list row 9). Subtitle stays the locked
+  // positioning form (copy-voice.md + ADR 2026-07-09 / 2026-07-21): two
+  // sentences + support. Receipt foil is NOT in the subtitle; it is the
+  // ReceiptCard caption under this hero.
+  h1: 'Build it once. Every product after starts ahead.',
   subtitle: {
     sentence1:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
@@ -46,19 +48,22 @@ export const HOME_HERO = {
 
 // ---------------------------------------------------------------------------
 // Hero: "Foundation" A/B variant (canonical lock).
-// Per docs/marketing/06-copy-corpus.md §4.1 (sanctioned A/B variant under ADR
+// Per docs/marketing/06-copy-corpus.md §4.1 (sanctioned A/B under ADR
 // 2026-06-07 decision 6, hero only): H1 reframes around "foundation"; subtitle
-// inherits the default unchanged. The noun-test is the H1 only; the subtitle
-// keeps the canonical "runtime" noun. Served via selectHomeHero()
-// (app/lib/hero-variant.ts): the homepage hero renders this variant when the
-// URL carries ?hero=foundation, else HOME_HERO. An automatic traffic split +
-// conversion measurement is separate (the marketing app has no analytics sink
-// yet).
+// inherits the default unchanged. Served via selectHomeHero() when the URL
+// carries ?hero=foundation, else HOME_HERO.
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO_FOUNDATION = {
   ...HOME_HERO,
   h1: 'The foundation your business runs on.',
+} as const;
+
+// Prior default H1, retained for rollback preview via ?hero=ownership
+// (not automatic traffic). Same subtitle as HOME_HERO.
+export const HOME_HERO_OWNERSHIP = {
+  ...HOME_HERO,
+  h1: 'Run your whole business on one runtime you own.',
 } as const;
 
 // ---------------------------------------------------------------------------
