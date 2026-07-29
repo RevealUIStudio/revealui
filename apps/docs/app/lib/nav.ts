@@ -70,7 +70,6 @@ export function buildDocNavSections(showcaseItems: NavItem[]): NavSection[] {
       title: 'Reference',
       items: [
         { label: 'Package Reference', path: '/reference' },
-        { label: 'REST API', path: '/api/rest-api' },
         { label: 'Component Catalog', path: '/component-catalog' },
         { label: 'AI', path: '/ai' },
         { label: 'Marketplace', path: '/marketplace' },

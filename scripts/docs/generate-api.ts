@@ -63,18 +63,8 @@ function badge(method: string): string {
 function generateMarkdown(spec: OpenAPISpec): string {
   const lines: string[] = [];
 
-  // Header — YAML frontmatter required so copy-docs.sh keeps this public
-  // (visibility: public). Dropping it excludes /api/rest-api while nav still
-  // links it and Quality docs link-check fails (GAP-395).
+  // Header
   lines.push(
-    `---`,
-    `title: "REST API Reference"`,
-    `description: "Generated REST API reference from the OpenAPI spec."`,
-    `visibility: public`,
-    `status: generated`,
-    `audience: user`,
-    `---`,
-    ``,
     `# REST API Reference`,
     ``,
     `**Version:** ${spec.info.version}`,
