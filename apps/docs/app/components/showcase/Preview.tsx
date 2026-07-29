@@ -44,7 +44,8 @@ export function Preview({ children }: PreviewProps) {
         data-theme={theme}
         className="flex min-h-[200px] items-center justify-center p-8"
         style={{
-          backgroundColor: theme === 'dark' ? 'oklch(0.13 0.004 228)' : 'oklch(0.985 0.002 210)',
+          // Nested data-theme must re-apply palette (see tokens.css :root, [data-theme=dark])
+          backgroundColor: 'var(--rvui-surface-0)',
           backgroundImage: 'radial-gradient(circle, oklch(0.5 0 0 / 0.06) 1px, transparent 1px)',
           backgroundSize: '20px 20px',
         }}

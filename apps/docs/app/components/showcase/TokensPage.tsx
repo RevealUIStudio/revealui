@@ -99,12 +99,23 @@ function ColorSwatch({ name, description }: { name: string; description?: string
   return (
     <div className="flex items-center gap-3">
       <div
-        className="size-10 shrink-0 rounded-lg border border-white/10"
-        style={{ backgroundColor: `var(${name})` }}
+        className="size-10 shrink-0 rounded-lg border"
+        style={{
+          backgroundColor: `var(${name})`,
+          borderColor: 'var(--rvui-border)',
+        }}
       />
       <div className="min-w-0">
-        <p className="truncate font-mono text-xs text-text-secondary">{name}</p>
-        {description && <p className="text-[10px] text-text-muted">{description}</p>}
+        {/* Use theme CSS vars (not page-level Tailwind text-*) so nested
+            data-theme="dark"/"light" labels keep AA contrast on the preview. */}
+        <p className="truncate font-mono text-xs" style={{ color: 'var(--rvui-text-1)' }}>
+          {name}
+        </p>
+        {description && (
+          <p className="text-[10px]" style={{ color: 'var(--rvui-text-2)' }}>
+            {description}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -151,9 +162,11 @@ export function TokensPage() {
       <div
         data-showcase-preview
         data-theme={theme}
-        className="rounded-2xl border border-border p-6"
+        className="rounded-2xl border p-6"
         style={{
-          backgroundColor: theme === 'dark' ? 'oklch(0.13 0.004 228)' : 'oklch(0.985 0.002 210)',
+          // surface-0 follows data-theme once dark/light blocks apply on the node
+          backgroundColor: 'var(--rvui-surface-0)',
+          borderColor: 'var(--rvui-border)',
         }}
       >
         <h2 className="mb-6 text-lg font-semibold" style={{ color: 'var(--rvui-text-0)' }}>
@@ -239,7 +252,7 @@ export function TokensPage() {
           data-theme={theme}
           className="flex flex-wrap gap-6 rounded-2xl p-8"
           style={{
-            backgroundColor: theme === 'dark' ? 'oklch(0.13 0.004 228)' : 'oklch(0.985 0.002 210)',
+            backgroundColor: 'var(--rvui-surface-0)',
           }}
         >
           {shadowTokens.map((token) => (

@@ -108,8 +108,15 @@
 
 /* ═══════════════════════════════════════════════════════════════
  * DARK MODE — :root default (dark-first design)
+ *
+ * Also apply on [data-theme="dark"] / .dark so nested previews (showcase
+ * Dark toggle, TokensPage) re-assert the dark palette even when :root is
+ * light via prefers-color-scheme. Without this, data-theme="dark" was a
+ * no-op for CSS vars and forced-dark backgrounds painted light ink.
  * ═══════════════════════════════════════════════════════════════ */
-:root {
+:root,
+[data-theme="dark"],
+.dark {
   /* ── Brand · Cobalt (Electric Verdigris) ──
    * Dark-mode brand lifted to cobalt-300 (L=0.58) for WCAG AA on midnight.
    * Prior dark brand at L=0.46 tested at 2.80:1 (FAIL); lifted value tests at 4.73:1.
