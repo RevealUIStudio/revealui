@@ -28,11 +28,14 @@ import { CLAIMS } from '../../apps/marketing/app/content/claims-evidence.js';
 // style as marketing-voice.ts — tsx transpiles on the fly, no package build).
 import { checkRule } from '../../packages/contracts/src/marketing-voice/check-rule.js';
 import {
+  isIntegerWithCommas,
+  isPositiveIntegerToken,
   isRepoLinkToken,
   isTrackerToken,
+  stripCommas,
 } from '../../packages/contracts/src/marketing-voice/predicates.js';
 import type { Rule } from '../../packages/contracts/src/marketing-voice/rules.js';
-import { tokenize } from '../../packages/contracts/src/marketing-voice/tokenize.js';
+import { type Token, tokenize } from '../../packages/contracts/src/marketing-voice/tokenize.js';
 import {
   type CapabilityResult,
   checkCapabilityClaims,
@@ -41,8 +44,8 @@ import {
   writeCapabilityBaseline,
 } from './capability-claims.js';
 
-export type { Rule };
-export { checkRule, tokenize };
+export type { Rule, Token };
+export { checkRule, isIntegerWithCommas, isPositiveIntegerToken, stripCommas, tokenize };
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const showFix = process.argv.includes('--fix');
@@ -209,11 +212,48 @@ function ignoredPathPredicateFor(base: string): IgnoredPathPredicate {
 // Metric collectors
 // ---------------------------------------------------------------------------
 
+/**
+ * Typed numeric claim shape (GAP-192 PR4). Replaces authored `RegExp` claim
+ * patterns: `scanNumericClaimsOnLine` walks `tokenize` output with
+ * `isPositiveIntegerToken` / `isIntegerWithCommas`.
+ */
+export interface NumericClaimSpec {
+  metricName: string;
+  /** Inclusive lower bound on the captured count (pattern-level). */
+  min?: number;
+  /** Inclusive upper bound on the captured count (pattern-level). */
+  max?: number;
+  /** Accept `1,676`-style integers via `isIntegerWithCommas`. */
+  allowCommas?: boolean;
+  /**
+   * Words that may appear in fixed order between the number and the required
+   * sequence; each is independently optional (e.g. `native` `React` `UI`).
+   */
+  optionalIntervening?: string[];
+  /** At most one of these words may appear between number and required seq. */
+  optionalOneOf?: string[];
+  /** Case-insensitive word sequences that must follow the number. */
+  requiredSequences: string[][];
+  /**
+   * When set, one of these sequences must follow the required sequence
+   * (e.g. components + "with" / "built" / "in the").
+   */
+  trailingSequences?: string[][];
+  /** Reject when the next word after the match is in this list. */
+  forbidNextWords?: string[];
+  /** Number must sit inside `(...)` (previous non-ws token is `(`). */
+  parenWrapped?: boolean;
+  /**
+   * Compound license-split shapes that need a dedicated walk beyond
+   * requiredSequences.
+   */
+  shape?: 'oss-mit' | 'pro-fsl' | 'internal-paren';
+}
+
 interface Metric {
   name: string;
   actual: number;
-  /** Regex patterns to find claims about this metric in docs */
-  claimPatterns: RegExp[];
+  claimSpecs: NumericClaimSpec[];
 }
 
 function countByGlob(
@@ -436,16 +476,14 @@ export function countDbTables(
 // packages/cli/templates/ (each ships a package.json — the scaffold copies a
 // complete project — so the package.json-gated countDirs applies directly).
 //
-// The claim patterns deliberately do NOT match "N template repos" /
+// The claim specs deliberately do NOT match "N template repos" /
 // "N standalone template repos": docs/ROADMAP.md legitimately pairs the
 // template count with "4 published as standalone template repos", a GitHub
 // fact (the revealui-template-* repos; starter-native has none) that cannot
 // be derived from this filesystem. Plural-only `templates` plus a repos
-// lookahead keeps that phrasing out of this hard-fail gate.
+// forbid-next keeps that phrasing out of this hard-fail gate.
 //
-// REGEX-CONFIG-BOUNDARY — claim patterns only (pre-existing convention in
-// this file; AST refactor queued under GAP-192); the collector authors no
-// regex. Both exports are unit-tested in __tests__/claim-drift.test.ts.
+// GAP-192 PR4 — typed NumericClaimSpec (no authored regex).
 // ---------------------------------------------------------------------------
 
 /** Path-injectable + exported for tests. */
@@ -455,10 +493,14 @@ export function countCliTemplates(
   return countDirs(base);
 }
 
-export const CLI_TEMPLATE_CLAIM_PATTERNS: RegExp[] = [
-  // "5 templates" / "5 CLI templates" — not "4 template repos" (singular
-  // never matches) and not "4 templates repos" (repos lookahead)
-  /\b(\d+)\s+(?:CLI\s+)?templates\b(?!\s+repos?\b)/i,
+/** "5 templates" / "5 CLI templates" — not "4 template repos". Exported for tests. */
+export const CLI_TEMPLATE_CLAIM_SPECS: NumericClaimSpec[] = [
+  {
+    metricName: 'CLI templates',
+    optionalIntervening: ['CLI'],
+    requiredSequences: [['templates']],
+    forbidNextWords: ['repo', 'repos'],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -689,8 +731,7 @@ function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void)
 // separate fleet repo), but historical docs sometimes describe a phantom
 // in-monorepo package. Allowlist: files whose purpose is the redirect.
 //
-// REGEX-CONFIG-BOUNDARY — pre-existing convention in this file; AST refactor
-// queued under GAP-192.
+// GAP-192 PR3 — uses hasPhantomEditorsPackage (token walk); no authored regex.
 // ---------------------------------------------------------------------------
 
 interface PhantomMatch {
@@ -702,17 +743,21 @@ interface PhantomMatch {
 }
 
 interface PhantomPackage {
-  pattern: RegExp;
+  /** Line-level detector (no regex). */
+  detect: (line: string) => boolean;
   pkg: string;
   hint: string;
   allowlist: Set<string>;
 }
 
+const PHANTOM_EDITORS_HINT =
+  'package does not exist in this monorepo; editor sync ships as RevCon (separate fleet repo)';
+
 const PHANTOM_PACKAGES: PhantomPackage[] = [
   {
-    pattern: /@revealui\/editors\b/,
+    detect: hasPhantomEditorsPackage,
     pkg: '@revealui/editors',
-    hint: 'package does not exist in this monorepo; editor sync ships as RevCon (separate fleet repo)',
+    hint: PHANTOM_EDITORS_HINT,
     allowlist: new Set([
       // Canonical pages that exist precisely to document the redirect:
       'apps/docs/public/docs-pro/editors/index.md',
@@ -723,7 +768,7 @@ const PHANTOM_PACKAGES: PhantomPackage[] = [
       'apps/docs/public/REVFLEET.md',
       'apps/docs/public/fleet/revcon.md',
       // The validator itself — its fleet product rules list the phantom
-      // by design (as the regex token to detect leaks elsewhere):
+      // by design (as the token sequence to detect leaks elsewhere):
       'scripts/validate/claim-drift.ts',
     ]),
   },
@@ -742,7 +787,7 @@ function scanForPhantomPackages(): PhantomMatch[] {
     for (const phantom of PHANTOM_PACKAGES) {
       if (phantom.allowlist.has(rel)) continue;
       for (let i = 0; i < lines.length; i++) {
-        if (phantom.pattern.test(lines[i])) {
+        if (phantom.detect(lines[i])) {
           matches.push({
             file: rel,
             line: i + 1,
@@ -786,7 +831,7 @@ interface MembershipMatch {
 // / general prose, broad enough to catch table cells, bold labels, prefix
 // colons, and parentheticals.
 //
-// FSL pattern intentionally rejects bare `Fair Source` / `Pro packages` /
+// FSL labels intentionally reject bare `Fair Source` / `Pro packages` /
 // `FSL-1.1-MIT` mentions without a label structure — that shape appears in
 // explanatory prose like "Pro packages (@revealui/ai, @revealui/harnesses)
 // ship under Fair Source (FSL-1.1-MIT)" where treating the line as a single-
@@ -797,9 +842,139 @@ interface MembershipMatch {
 // Table-cell variants accept extra content inside the cell (e.g.
 // `| MIT (free for any tier) |`, `| Fair Source (FSL-1.1-MIT, MIT after 2 years) |`)
 // — common in customer-facing docs that annotate the license with a note.
-const MIT_LABEL_PATTERN = /\*\*MIT\*\*|\|\s*MIT\b[^|]*\||\bMIT:|\(MIT\)/;
-const FSL_LABEL_PATTERN =
-  /\*\*FSL[-\s]?1\.1[-\s]?MIT\*\*|\|\s*(?:FSL[-\s]?1\.1[-\s]?MIT|Fair[-\s]?Source)\b[^|]*\||\bFSL[-\s]?1\.1[-\s]?MIT:|\bPro packages?:|\bPro packages? \(FSL/i;
+//
+// GAP-192 PR3 — token / string walks, no authored regex.
+
+/** Skip whitespace tokens; return next index. */
+function skipWs(tokens: Token[], i: number): number {
+  let j = i;
+  while (j < tokens.length && tokens[j]?.kind === 'whitespace') j++;
+  return j;
+}
+
+/** True when tokens[i..] is FSL + optional - + 1.1 + optional - + MIT. */
+function matchFsl11MitAt(tokens: Token[], i: number): number | null {
+  if (tokens[i]?.kind !== 'word' || tokens[i]!.text.toUpperCase() !== 'FSL') return null;
+  let j = i + 1;
+  if (tokens[j]?.text === '-') j++;
+  j = skipWs(tokens, j);
+  if (tokens[j]?.kind !== 'word' || tokens[j]!.text !== '1.1') return null;
+  j++;
+  if (tokens[j]?.text === '-') j++;
+  j = skipWs(tokens, j);
+  if (tokens[j]?.kind !== 'word' || tokens[j]!.text.toUpperCase() !== 'MIT') return null;
+  return j + 1;
+}
+
+/** True when tokens[i..] is Fair + optional - + Source. */
+function matchFairSourceAt(tokens: Token[], i: number): number | null {
+  if (tokens[i]?.kind !== 'word' || tokens[i]!.text.toLowerCase() !== 'fair') return null;
+  let j = i + 1;
+  if (tokens[j]?.text === '-') j++;
+  j = skipWs(tokens, j);
+  if (tokens[j]?.kind !== 'word' || tokens[j]!.text.toLowerCase() !== 'source') return null;
+  return j + 1;
+}
+
+/**
+ * MIT label shapes: `**MIT**`, `| MIT … |`, `MIT:`, `(MIT)`.
+ * Exported for unit tests (GAP-192 PR3).
+ */
+export function hasMitLicenseLabel(line: string): boolean {
+  // Bold / parenthetical forms are contiguous substrings (no false hits on
+  // "MIT-licensed" — those lack the required wrapper shapes).
+  if (line.includes('**MIT**') || line.includes('(MIT)')) return true;
+
+  const tokens = tokenize(line);
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (t?.kind !== 'word' || t.text !== 'MIT') continue;
+
+    // MIT:
+    if (tokens[i + 1]?.text === ':') return true;
+
+    // | MIT … |
+    let prev = i - 1;
+    while (prev >= 0 && tokens[prev]?.kind === 'whitespace') prev--;
+    if (prev >= 0 && tokens[prev]?.text === '|') {
+      for (let k = i + 1; k < tokens.length; k++) {
+        if (tokens[k]?.text === '|') return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * FSL / Fair Source / Pro-packages label shapes. See block comment above.
+ * Exported for unit tests (GAP-192 PR3).
+ */
+export function hasFslLicenseLabel(line: string): boolean {
+  const tokens = tokenize(line);
+
+  // Pro package(s):  /  Pro package(s) (FSL…
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.kind !== 'word' || tokens[i]!.text.toLowerCase() !== 'pro') continue;
+    let j = skipWs(tokens, i + 1);
+    const pkg = tokens[j];
+    if (pkg?.kind !== 'word') continue;
+    const pkgLower = pkg.text.toLowerCase();
+    if (pkgLower !== 'package' && pkgLower !== 'packages') continue;
+    j = skipWs(tokens, j + 1);
+    if (tokens[j]?.text === ':') return true;
+    if (tokens[j]?.text === '(') {
+      const after = skipWs(tokens, j + 1);
+      if (tokens[after]?.kind === 'word' && tokens[after]!.text.toUpperCase().startsWith('FSL')) {
+        return true;
+      }
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    const fslEnd = matchFsl11MitAt(tokens, i);
+    if (fslEnd !== null) {
+      // **FSL-1.1-MIT** (asterisks immediately around the sequence)
+      let before = i - 1;
+      let starsBefore = 0;
+      while (before >= 0 && tokens[before]?.text === '*') {
+        starsBefore++;
+        before--;
+      }
+      let after = fslEnd;
+      let starsAfter = 0;
+      while (after < tokens.length && tokens[after]?.text === '*') {
+        starsAfter++;
+        after++;
+      }
+      if (starsBefore >= 2 && starsAfter >= 2) return true;
+
+      // FSL-1.1-MIT:
+      if (tokens[fslEnd]?.text === ':') return true;
+
+      // | FSL-1.1-MIT … |
+      let prev = i - 1;
+      while (prev >= 0 && tokens[prev]?.kind === 'whitespace') prev--;
+      if (prev >= 0 && tokens[prev]?.text === '|') {
+        for (let k = fslEnd; k < tokens.length; k++) {
+          if (tokens[k]?.text === '|') return true;
+        }
+      }
+    }
+
+    const fairEnd = matchFairSourceAt(tokens, i);
+    if (fairEnd !== null) {
+      // | Fair Source … |  (table-cell only — bare "Fair Source" is prose)
+      let prev = i - 1;
+      while (prev >= 0 && tokens[prev]?.kind === 'whitespace') prev--;
+      if (prev >= 0 && tokens[prev]?.text === '|') {
+        for (let k = fairEnd; k < tokens.length; k++) {
+          if (tokens[k]?.text === '|') return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 
 function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[] {
   const matches: MembershipMatch[] = [];
@@ -816,9 +991,9 @@ function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (/^#{1,6}\s/.test(line)) continue; // skip headings
-      const hasFSL = FSL_LABEL_PATTERN.test(line);
-      const hasMIT = MIT_LABEL_PATTERN.test(line) && !hasFSL;
+      if (isMarkdownHeading(line)) continue;
+      const hasFSL = hasFslLicenseLabel(line);
+      const hasMIT = hasMitLicenseLabel(line) && !hasFSL;
       if (!(hasMIT || hasFSL)) continue;
       for (const pkgName of extractRevealuiPackages(line)) {
         let actual: 'MIT' | 'FSL-1.1-MIT' | 'internal/none' | null;
@@ -887,12 +1062,38 @@ export function extractRevealuiPackages(line: string): string[] {
   return out;
 }
 
-/** True when `line` is a markdown ATX heading (1-6 `#` then a space). */
-function isMarkdownHeading(line: string): boolean {
+/** True when `line` is a markdown ATX heading (1-6 `#` then a space). Exported for tests. */
+export function isMarkdownHeading(line: string): boolean {
   const t = line.trimStart();
   let h = 0;
   while (h < t.length && t[h] === '#') h++;
   return h >= 1 && h <= 6 && t[h] === ' ';
+}
+
+/**
+ * True when `line` looks like a YAML frontmatter key line (`title: foo`)
+ * or the `---` delimiter. Anchored at column 0 (no leading indent).
+ * Exported for tests (GAP-192 PR3).
+ */
+export function isYamlFrontmatterLine(line: string): boolean {
+  if (line === '---') return true;
+  if (line.length === 0) return false;
+  const first = line.charCodeAt(0);
+  const isIdentStart =
+    (first >= 65 && first <= 90) || (first >= 97 && first <= 122) || first === 95; // A-Z a-z _
+  if (!isIdentStart) return false;
+  let i = 1;
+  while (i < line.length) {
+    const c = line.charCodeAt(i);
+    const ok =
+      (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || (c >= 48 && c <= 57) || c === 95 || c === 45; // A-Z a-z 0-9 _ -
+    if (!ok) break;
+    i++;
+  }
+  if (i >= line.length || line[i] !== ':') return false;
+  // Require whitespace after the colon (matches the prior `:\s` shape).
+  const after = line.charCodeAt(i + 1);
+  return after === 32 || after === 9;
 }
 
 /**
@@ -963,8 +1164,7 @@ function scanForIncompleteProList(map: PackageLicenseMap): IncompleteProMatch[] 
 //   - "N published + M private" — the explicit equation form prior copy
 //     used to count toward 26; flagged regardless of N + M arithmetic.
 //
-// REGEX-CONFIG-BOUNDARY — patterns only (pre-existing convention in this
-// file; AST refactor queued under GAP-192). The shape predicate
+// GAP-192 PR3 — token walk (no authored regex). The shape predicate
 // (findLicenseSplitAntiPattern) is exported for unit testing.
 // ---------------------------------------------------------------------------
 
@@ -980,19 +1180,76 @@ interface LicenseSplitAntiMatch {
   text: string;
 }
 
-const PUBLISHED_PACKAGES_PATTERN = /\b[1-9]\d?\s+published\s+packages?\b/i;
-const PRIVATE_PACKAGES_PATTERN = /\b[1-9]\d?\s+private\s+packages?\b/i;
-const PUBLISHED_PLUS_PRIVATE_PATTERN = /\b[1-9]\d?\s+published\s*\+\s*[1-9]\d?\s+private\b/i;
+/** Positive integer 1–99 (matches prior `[1-9]\d?` anti-pattern). */
+function isOneOrTwoDigitPositive(token: Token | undefined): boolean {
+  if (token === undefined || token.kind !== 'word') return false;
+  if (!isPositiveIntegerToken(token)) return false;
+  const n = Number(token.text);
+  return n >= 1 && n <= 99;
+}
+
+/**
+ * Advance past whitespace only. Returns null if a non-ws token is required
+ * but missing; returns the index of the next non-ws token.
+ */
+function nextNonWs(tokens: Token[], i: number): number | null {
+  const j = skipWs(tokens, i);
+  return j < tokens.length ? j : null;
+}
+
+/**
+ * True when tokens[i] is a word whose lower text equals `want`, allowing only
+ * leading whitespace from `from` (no symbols between).
+ */
+function wordAt(tokens: Token[], from: number, want: string): number | null {
+  const j = nextNonWs(tokens, from);
+  if (j === null) return null;
+  const t = tokens[j];
+  if (t?.kind !== 'word' || t.text.toLowerCase() !== want.toLowerCase()) return null;
+  return j;
+}
 
 /**
  * Returns the anti-pattern shape if `line` matches one, otherwise null.
  * Equation form takes precedence — a single line that names both halves of
  * the bug should be flagged once. Pure + exported for unit testing.
+ * GAP-192 PR3 — token walk over `tokenize` output (whitespace-only gaps,
+ * so "2. Published package" does not match).
  */
 export function findLicenseSplitAntiPattern(line: string): LicenseSplitAntiShape | null {
-  if (PUBLISHED_PLUS_PRIVATE_PATTERN.test(line)) return 'N published + M private';
-  if (PUBLISHED_PACKAGES_PATTERN.test(line)) return 'N published packages';
-  if (PRIVATE_PACKAGES_PATTERN.test(line)) return 'N private packages';
+  const tokens = tokenize(line);
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (!isOneOrTwoDigitPositive(tokens[i])) continue;
+    // N published …
+    const pub = wordAt(tokens, i + 1, 'published');
+    if (pub !== null) {
+      // N published + M private
+      const plus = nextNonWs(tokens, pub + 1);
+      if (plus !== null && tokens[plus]?.text === '+') {
+        const m = nextNonWs(tokens, plus + 1);
+        if (m !== null && isOneOrTwoDigitPositive(tokens[m])) {
+          const priv = wordAt(tokens, m + 1, 'private');
+          if (priv !== null) return 'N published + M private';
+        }
+      }
+      // N published package(s)
+      const pkg = nextNonWs(tokens, pub + 1);
+      if (pkg !== null && tokens[pkg]?.kind === 'word') {
+        const p = tokens[pkg]!.text.toLowerCase();
+        if (p === 'package' || p === 'packages') return 'N published packages';
+      }
+    }
+    // N private package(s)
+    const priv = wordAt(tokens, i + 1, 'private');
+    if (priv !== null) {
+      const pkg = nextNonWs(tokens, priv + 1);
+      if (pkg !== null && tokens[pkg]?.kind === 'word') {
+        const p = tokens[pkg]!.text.toLowerCase();
+        if (p === 'package' || p === 'packages') return 'N private packages';
+      }
+    }
+  }
   return null;
 }
 
@@ -1041,6 +1298,182 @@ interface ClaimMatch {
   text: string;
   claimed: number;
   metricName: string;
+}
+
+export interface NumericClaimHit {
+  metricName: string;
+  claimed: number;
+}
+
+function parseCountToken(token: Token, allowCommas: boolean): number | null {
+  if (token.kind !== 'word') return null;
+  if (isPositiveIntegerToken(token)) return Number(token.text);
+  if (allowCommas && isIntegerWithCommas(token)) {
+    const n = Number(stripCommas(token.text));
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }
+  return null;
+}
+
+/**
+ * License-split shapes: "N OSS (MIT)", "N Pro (FSL…)", "N internal (…".
+ * Returns the claimed N or null. Whitespace-only gaps (parity with prior regex).
+ */
+function matchLicenseShape(
+  tokens: Token[],
+  shape: 'oss-mit' | 'pro-fsl' | 'internal-paren',
+): number | null {
+  for (let i = 0; i < tokens.length; i++) {
+    const n = parseCountToken(tokens[i]!, false);
+    if (n === null || n < 1 || n > 99) continue;
+
+    if (shape === 'oss-mit') {
+      // N OSS ( MIT )
+      const oss = wordAt(tokens, i + 1, 'oss');
+      if (oss === null) continue;
+      const open = nextNonWs(tokens, oss + 1);
+      if (open === null || tokens[open]?.text !== '(') continue;
+      const mit = nextNonWs(tokens, open + 1);
+      if (mit === null || tokens[mit]?.text !== 'MIT') continue;
+      const close = nextNonWs(tokens, mit + 1);
+      if (close !== null && tokens[close]?.text === ')') return n;
+    } else if (shape === 'pro-fsl') {
+      // N Pro ( [Fair Source] FSL…
+      const pro = wordAt(tokens, i + 1, 'pro');
+      if (pro === null) continue;
+      const open = nextNonWs(tokens, pro + 1);
+      if (open === null || tokens[open]?.text !== '(') continue;
+      let m = skipWs(tokens, open + 1);
+      if (tokens[m]?.kind === 'word' && tokens[m]!.text.toLowerCase() === 'fair') {
+        m = skipWs(tokens, m + 1);
+        if (tokens[m]?.text === '-') m++;
+        m = skipWs(tokens, m);
+        if (tokens[m]?.kind === 'word' && tokens[m]!.text.toLowerCase() === 'source') {
+          m = skipWs(tokens, m + 1);
+        }
+      }
+      if (tokens[m]?.kind === 'word' && tokens[m]!.text.toUpperCase().startsWith('FSL')) {
+        return n;
+      }
+    } else {
+      // N internal (
+      const internal = wordAt(tokens, i + 1, 'internal');
+      if (internal === null) continue;
+      const open = nextNonWs(tokens, internal + 1);
+      if (open !== null && tokens[open]?.text === '(') return n;
+    }
+  }
+  return null;
+}
+
+/**
+ * Try to match `seq` starting at token index `from`, allowing only whitespace
+ * between words. Returns the token index after the match, or null.
+ */
+function matchWordSeqFrom(tokens: Token[], from: number, seq: string[]): number | null {
+  let cursor = from;
+  for (const want of seq) {
+    const at = wordAt(tokens, cursor, want);
+    if (at === null) return null;
+    cursor = at + 1;
+  }
+  return cursor;
+}
+
+/**
+ * Scan a single line for numeric metric claims against typed specs.
+ * Pure + exported for unit tests (GAP-192 PR4).
+ *
+ * Gaps between the number and the keyword sequence may only be whitespace
+ * (plus any declared optional intervening words). Symbols (`.`, `+`, backticks)
+ * break the match — parity with the prior `\s*`-only regex gaps.
+ */
+export function scanNumericClaimsOnLine(
+  line: string,
+  specs: readonly NumericClaimSpec[],
+): NumericClaimHit[] {
+  const hits: NumericClaimHit[] = [];
+  const tokens = tokenize(line);
+
+  for (const spec of specs) {
+    if (spec.shape !== undefined) {
+      const claimed = matchLicenseShape(tokens, spec.shape);
+      if (claimed !== null) {
+        if (spec.min !== undefined && claimed < spec.min) continue;
+        if (spec.max !== undefined && claimed > spec.max) continue;
+        hits.push({ metricName: spec.metricName, claimed });
+      }
+      continue;
+    }
+
+    for (let ti = 0; ti < tokens.length; ti++) {
+      const claimed = parseCountToken(tokens[ti]!, spec.allowCommas === true);
+      if (claimed === null) continue;
+      if (spec.min !== undefined && claimed < spec.min) continue;
+      if (spec.max !== undefined && claimed > spec.max) continue;
+
+      if (spec.parenWrapped) {
+        let prev = ti - 1;
+        while (prev >= 0 && tokens[prev]?.kind === 'whitespace') prev--;
+        if (prev < 0 || tokens[prev]?.text !== '(') continue;
+      }
+
+      // Optional intervening words (fixed order, each optional) — whitespace only.
+      let cursor = ti + 1;
+      if (spec.optionalIntervening !== undefined) {
+        for (const opt of spec.optionalIntervening) {
+          const at = wordAt(tokens, cursor, opt);
+          if (at !== null) cursor = at + 1;
+        }
+      }
+      if (spec.optionalOneOf !== undefined && spec.optionalOneOf.length > 0) {
+        const j = nextNonWs(tokens, cursor);
+        if (j !== null && tokens[j]?.kind === 'word') {
+          const lower = tokens[j]!.text.toLowerCase();
+          if (spec.optionalOneOf.some((o) => o.toLowerCase() === lower)) {
+            cursor = j + 1;
+          }
+        }
+      }
+
+      // Required sequence
+      let afterReq: number | null = null;
+      for (const seq of spec.requiredSequences) {
+        const end = matchWordSeqFrom(tokens, cursor, seq);
+        if (end !== null) {
+          afterReq = end;
+          break;
+        }
+      }
+      if (afterReq === null) continue;
+      cursor = afterReq;
+
+      if (spec.trailingSequences !== undefined && spec.trailingSequences.length > 0) {
+        let afterTrail: number | null = null;
+        for (const trail of spec.trailingSequences) {
+          const end = matchWordSeqFrom(tokens, cursor, trail);
+          if (end !== null) {
+            afterTrail = end;
+            break;
+          }
+        }
+        if (afterTrail === null) continue;
+        cursor = afterTrail;
+      }
+
+      if (spec.forbidNextWords !== undefined && spec.forbidNextWords.length > 0) {
+        const j = nextNonWs(tokens, cursor);
+        if (j !== null && tokens[j]?.kind === 'word') {
+          const lower = tokens[j]!.text.toLowerCase();
+          if (spec.forbidNextWords.some((f) => f.toLowerCase() === lower)) continue;
+        }
+      }
+
+      hits.push({ metricName: spec.metricName, claimed });
+    }
+  }
+
+  return hits;
 }
 
 /**
@@ -1112,25 +1545,18 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
     } catch {
       return;
     }
+    const allSpecs = metrics.flatMap((m) => m.claimSpecs);
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      for (const metric of metrics) {
-        for (const pattern of metric.claimPatterns) {
-          const match = pattern.exec(line);
-          if (match) {
-            const claimed = parseInt(match[1], 10);
-            if (!Number.isNaN(claimed) && claimed > 0) {
-              matches.push({
-                file: path.relative(ROOT, filePath),
-                line: i + 1,
-                text: line.trim(),
-                claimed,
-                metricName: metric.name,
-              });
-            }
-          }
-        }
+      for (const hit of scanNumericClaimsOnLine(line, allSpecs)) {
+        matches.push({
+          file: path.relative(ROOT, filePath),
+          line: i + 1,
+          text: line.trim(),
+          claimed: hit.claimed,
+          metricName: hit.metricName,
+        });
       }
     }
   }
@@ -1209,8 +1635,49 @@ interface FutureClaimMatch {
 /** Files scanned for unlinked future-tense markers. */
 const FUTURE_TENSE_SCAN_FILES = ['README.md', 'CLAUDE.md', 'docs/ROADMAP.md', 'docs/PRO.md'];
 
-const FUTURE_TENSE_PATTERN =
-  /\((coming soon|planned|roadmap|TBD|forthcoming|will ship|in progress)\b[^)]*\)/i;
+/**
+ * Parenthetical future-tense openers that must cite a tracker
+ * (`(coming soon)`, `(will ship)`, …). Matched as lowercase prefixes of the
+ * text inside `(...)`. GAP-192 PR3.
+ */
+const FUTURE_TENSE_PAREN_PREFIXES = [
+  'coming soon',
+  'planned',
+  'roadmap',
+  'tbd',
+  'forthcoming',
+  'will ship',
+  'in progress',
+] as const;
+
+/**
+ * Returns the full parenthetical future-tense marker (e.g. `(coming soon)`)
+ * when present, otherwise null. Exported for unit tests (GAP-192 PR3).
+ */
+export function findFutureTenseMarker(line: string): string | null {
+  const tokens = tokenize(line);
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.text !== '(') continue;
+    let inner = '';
+    let endIdx = -1;
+    for (let j = i + 1; j < tokens.length; j++) {
+      const t = tokens[j];
+      if (t === undefined) break;
+      if (t.text === ')') {
+        endIdx = j;
+        break;
+      }
+      inner += t.text;
+    }
+    if (endIdx === -1) continue;
+    const lower = inner.toLowerCase().trimStart();
+    if (!FUTURE_TENSE_PAREN_PREFIXES.some((p) => lower.startsWith(p))) continue;
+    let marker = '';
+    for (let k = i; k <= endIdx; k++) marker += tokens[k]!.text;
+    return marker;
+  }
+  return null;
+}
 
 /**
  * True when `line` cites a tracker: issue/PR `#N`, repo issues/pull(s) URL,
@@ -1308,10 +1775,10 @@ function scanForFutureTenseClaims(): FutureClaimMatch[] {
       if (inFence) continue;
 
       // Skip markdown headings (section labels, not feature claims)
-      if (/^#{1,6}\s/.test(line)) continue;
+      if (isMarkdownHeading(line)) continue;
 
-      const match = FUTURE_TENSE_PATTERN.exec(line);
-      if (!match) continue;
+      const marker = findFutureTenseMarker(line);
+      if (marker === null) continue;
 
       // Pass if the line cites a tracker (issue, PR, milestone, workflow)
       if (hasTrackerSignal(line)) continue;
@@ -1319,7 +1786,7 @@ function scanForFutureTenseClaims(): FutureClaimMatch[] {
       matches.push({
         file: rel,
         line: i + 1,
-        marker: match[0],
+        marker,
         text: line.trim(),
       });
     }
@@ -1382,16 +1849,6 @@ interface AspirationalBlocklistEntry {
   /** Human-readable label printed when matched. */
   label: string;
   /** Why this is blocklisted — printed alongside the failure. */
-  why: string;
-}
-
-/**
- * Regex-shaped entry kept for agent-commerce only (GAP-192 PR5 rewrites these
- * off regex). Not used by the general aspirational blocklist.
- */
-interface RegexBlocklistEntry {
-  token: RegExp;
-  label: string;
   why: string;
 }
 
@@ -1537,7 +1994,7 @@ export function findAspirationalBlocklistHits(line: string): string[] {
 
 /**
  * Agent-commerce surfaces (x402 payments, the agent / MCP-server marketplace)
- * are coming soon, NOT shipped. These tokens match only SHIPPED-CLAIM phrasing
+ * are coming soon, NOT shipped. Detectors match only SHIPPED-CLAIM phrasing
  * ("x402 is live", "the marketplace is open") -- never neutral mentions like
  * "the x402 protocol", a glossary entry, or a "## How x402 Works" heading, so
  * the design/explainer posts read normally. A shipped claim still passes if it
@@ -1545,22 +2002,113 @@ export function findAspirationalBlocklistHits(line: string): string[] {
  * declares itself a roadmap post in frontmatter (isRoadmapDeclaredFile). The
  * general ASPIRATIONAL_BLOCKLIST (SSO / SLA / ...) is unaffected.
  *
- * GAP-192 PR5 will rewrite these off regex; leave as-is for PR2.
+ * GAP-192 PR5 — proximity word walk (no authored regex).
  */
-export const AGENT_COMMERCE_BLOCKLIST: RegexBlocklistEntry[] = [
+
+interface AgentCommerceEntry {
+  label: string;
+  why: string;
+}
+
+/** Metadata for agent-commerce hits (label + why). Exported for tests. */
+export const AGENT_COMMERCE_ENTRIES: readonly AgentCommerceEntry[] = [
   {
-    token:
-      /\bx402\b[^.\n]{0,50}?\b(?:is|are)\s+(?:live|available|launched|in production|transacting|enabled today|working today)\b/i,
     label: 'x402 (presented as live)',
     why: 'x402 payments are coming soon, not live (X402_ENABLED=false); see #93',
   },
   {
-    token:
-      /\b(?:RevMarket|(?:agent(?: tool)?|MCP(?: server)?)[- ]marketplace)\b[^.\n]{0,50}?\b(?:is|are|now)\s+(?:live|open|available|launched)\b/i,
     label: 'agent marketplace (presented as live)',
     why: 'the agent / MCP-server marketplace is coming soon, not shipped; see #526',
   },
-];
+] as const;
+
+const X402_LIVE_STATUS = new Set(['live', 'available', 'launched', 'transacting']);
+const MARKETPLACE_LIVE_STATUS = new Set(['live', 'open', 'available', 'launched']);
+
+/** Word tokens only (kind === 'word'), lowercased for matching. */
+function wordTexts(tokens: Token[]): string[] {
+  const out: string[] = [];
+  for (const t of tokens) {
+    if (t.kind === 'word') out.push(t.text.toLowerCase());
+  }
+  return out;
+}
+
+/**
+ * True when words[i..] is an agent/MCP marketplace anchor:
+ * RevMarket | agent marketplace | agent tool marketplace |
+ * MCP marketplace | MCP server marketplace.
+ * Hyphenated forms still match (Segmenter splits on `-`).
+ */
+function marketplaceAnchorLen(words: string[], i: number): number {
+  const w = words[i];
+  if (w === 'revmarket') return 1;
+  if (w === 'agent') {
+    if (words[i + 1] === 'marketplace') return 2;
+    if (words[i + 1] === 'tool' && words[i + 2] === 'marketplace') return 3;
+    return 0;
+  }
+  if (w === 'mcp') {
+    if (words[i + 1] === 'marketplace') return 2;
+    if (words[i + 1] === 'server' && words[i + 2] === 'marketplace') return 3;
+    return 0;
+  }
+  return 0;
+}
+
+/**
+ * True when the line presents x402 as live/available/launched/in production/
+ * transacting/enabled today/working today. Proximity is a short word window
+ * after the `x402` token (parity with the prior 50-char non-period span).
+ */
+export function hasX402LiveClaim(line: string): boolean {
+  const words = wordTexts(tokenize(line));
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'x402') continue;
+    const hi = Math.min(words.length, i + 15);
+    for (let j = i + 1; j < hi; j++) {
+      if (words[j] !== 'is' && words[j] !== 'are') continue;
+      const a = words[j + 1];
+      const b = words[j + 2];
+      if (a === undefined) continue;
+      if (X402_LIVE_STATUS.has(a)) return true;
+      if (a === 'in' && b === 'production') return true;
+      if ((a === 'enabled' || a === 'working') && b === 'today') return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * True when the line presents the agent/MCP marketplace as live/open/available/
+ * launched. Accepts `is`/`are`/`now` as the copula so "is now live" matches
+ * via `now` + `live`.
+ */
+export function hasMarketplaceLiveClaim(line: string): boolean {
+  const words = wordTexts(tokenize(line));
+  for (let i = 0; i < words.length; i++) {
+    const len = marketplaceAnchorLen(words, i);
+    if (len === 0) continue;
+    const hi = Math.min(words.length, i + len + 14);
+    for (let j = i + len; j < hi; j++) {
+      if (words[j] !== 'is' && words[j] !== 'are' && words[j] !== 'now') continue;
+      const a = words[j + 1];
+      if (a !== undefined && MARKETPLACE_LIVE_STATUS.has(a)) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Labels for agent-commerce shipped-claim hits on `line`.
+ * Exported for unit tests (GAP-192 PR5).
+ */
+export function findAgentCommerceHits(line: string): string[] {
+  const hits: string[] = [];
+  if (hasX402LiveClaim(line)) hits.push(AGENT_COMMERCE_ENTRIES[0]!.label);
+  if (hasMarketplaceLiveClaim(line)) hits.push(AGENT_COMMERCE_ENTRIES[1]!.label);
+  return hits;
+}
 
 /**
  * A markdown file opts the AGENT_COMMERCE_BLOCKLIST tokens out by declaring
@@ -1642,15 +2190,14 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
       // Agent-commerce tokens (x402 / agent marketplace) are coming soon, not
       // shipped. Skip when the file declares itself a roadmap post in
       // frontmatter; otherwise require a same-line qualifier like the rest.
-      if (!commerceExempt) {
-        for (const entry of AGENT_COMMERCE_BLOCKLIST) {
-          if (!entry.token.test(line)) continue;
-          if (hasAspirationalQualifier(line)) continue;
+      if (!(commerceExempt || hasAspirationalQualifier(line))) {
+        for (const label of findAgentCommerceHits(line)) {
+          const entry = AGENT_COMMERCE_ENTRIES.find((e) => e.label === label);
           matches.push({
             file: rel,
             line: i + 1,
-            token: entry.label,
-            why: entry.why,
+            token: label,
+            why: entry?.why ?? 'agent-commerce surface is not shipped',
             text: line.trim(),
           });
         }
@@ -1872,36 +2419,187 @@ export function findFleetProductHits(line: string): string[] {
  * A line is allowed if it cites the fleet map, links to a per-product
  * page, names the source repo, or includes an explicit attribution
  * phrase. Multiple acceptance patterns — order doesn't matter.
+ *
+ * GAP-192 PR3 — substring + word-proximity walks (no authored regex).
  */
-const FLEET_ATTRIBUTION_QUALIFIER = new RegExp(
-  [
-    // Direct links to fleet map or per-product pages (absolute or relative)
-    String.raw`\/docs\/SUITE`,
-    String.raw`\/docs\/suite\/`,
-    String.raw`\.\/SUITE\.md\b`,
-    String.raw`\.\/suite\/`,
-    String.raw`\.\.\/SUITE\.md\b`,
-    String.raw`\.\.\/suite\/`,
-    // Source-repo mentions (canonical attribution)
-    String.raw`RevealUIStudio\/(revvault|revcon|revealcoin|revdev|revskills|revkit|forge|editor-configs)`,
-    // Explicit attribution phrases (non-greedy spans permit markdown bold etc.)
-    String.raw`\bseparate.{0,30}(?:product|repo|suite|fleet|kit|app)\b`,
-    String.raw`\bships in.{0,40}(?:product|repo|suite|fleet|kit|app|RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|RevFleet)\b`,
-    String.raw`\bcompanion product`,
-    String.raw`\bRevFleet`,
-    String.raw`\blives in.{0,30}(?:RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|RevFleet|monorepo|repo)\b`,
-    String.raw`\bsee (?:\[|\*\*)?(?:RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|RevFleet|Fleet)`,
-    String.raw`\bintentionally decoupled\b`,
-    String.raw`\bnot yet shipped\b`,
-    // Forge tier / kit phrasings (Forge is both a product and a tier)
-    String.raw`Forge \(Enterprise\)`,
-    'Forge tier',
-    'Forge Edition',
-    'Forge kit',
-    'Forge guide',
-  ].join('|'),
-  'i',
-);
+
+const FLEET_MAP_PATH_MARKERS = [
+  '/docs/SUITE',
+  '/docs/suite/',
+  './SUITE.md',
+  './suite/',
+  '../SUITE.md',
+  '../suite/',
+] as const;
+
+const FLEET_REPO_NAMES = new Set([
+  'revvault',
+  'revcon',
+  'revealcoin',
+  'revdev',
+  'revskills',
+  'revkit',
+  'forge',
+  'editor-configs',
+]);
+
+const SEPARATE_TARGETS = new Set(['product', 'repo', 'suite', 'fleet', 'kit', 'app']);
+
+const SHIPS_IN_TARGETS = new Set([
+  'product',
+  'repo',
+  'suite',
+  'fleet',
+  'kit',
+  'app',
+  'revdev',
+  'revvault',
+  'revcon',
+  'revealcoin',
+  'revskills',
+  'revkit',
+  'forge',
+  'revfleet',
+]);
+
+const LIVES_IN_TARGETS = new Set([
+  'revdev',
+  'revvault',
+  'revcon',
+  'revealcoin',
+  'revskills',
+  'revkit',
+  'forge',
+  'revfleet',
+  'monorepo',
+  'repo',
+]);
+
+const SEE_TARGETS = new Set([
+  'revdev',
+  'revvault',
+  'revcon',
+  'revealcoin',
+  'revskills',
+  'revkit',
+  'forge',
+  'revfleet',
+  'fleet',
+]);
+
+/**
+ * True when words[from..from+window) contain any word in `targets`
+ * (case already lowercased).
+ */
+function hasWordNear(
+  words: string[],
+  from: number,
+  window: number,
+  targets: ReadonlySet<string>,
+): boolean {
+  const hi = Math.min(words.length, from + window);
+  for (let i = from; i < hi; i++) {
+    if (targets.has(words[i]!)) return true;
+  }
+  return false;
+}
+
+/**
+ * True when the line attributes a fleet product mention (fleet map link,
+ * source-repo path, or explicit "separate product" / "ships in …" phrasing).
+ * Exported for unit tests (GAP-192 PR3).
+ */
+export function hasFleetAttributionQualifier(line: string): boolean {
+  // Path markers are case-sensitive for SUITE.md; suite/ is lower.
+  for (const marker of FLEET_MAP_PATH_MARKERS) {
+    if (line.includes(marker)) return true;
+  }
+  // Case-insensitive path forms
+  const lowerLine = line.toLowerCase();
+  if (
+    lowerLine.includes('/docs/suite') ||
+    lowerLine.includes('./suite.md') ||
+    lowerLine.includes('../suite.md')
+  ) {
+    return true;
+  }
+
+  // Literal attribution phrases
+  if (lowerLine.includes('companion product')) return true;
+  if (lowerLine.includes('intentionally decoupled')) return true;
+  if (lowerLine.includes('not yet shipped')) return true;
+  if (lowerLine.includes('forge tier')) return true;
+  if (lowerLine.includes('forge edition')) return true;
+  if (lowerLine.includes('forge kit')) return true;
+  if (lowerLine.includes('forge guide')) return true;
+  if (lowerLine.includes('forge (enterprise)')) return true;
+
+  const tokens = tokenize(line);
+  const words = wordTexts(tokens);
+
+  // RevFleet as a bare word is itself an attribution frame
+  for (const w of words) {
+    if (w === 'revfleet') return true;
+  }
+
+  // RevealUIStudio/<repo>
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i]?.kind !== 'word' || tokens[i]!.text !== 'RevealUIStudio') continue;
+    if (tokens[i + 1]?.text !== '/') continue;
+    const repo = tokens[i + 2];
+    if (repo?.kind === 'word' && FLEET_REPO_NAMES.has(repo.text.toLowerCase())) return true;
+  }
+
+  // separate … product|repo|…
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] === 'separate' && hasWordNear(words, i + 1, 8, SEPARATE_TARGETS)) return true;
+  }
+
+  // ships in … product|RevDev|…
+  for (let i = 0; i < words.length - 1; i++) {
+    if (
+      words[i] === 'ships' &&
+      words[i + 1] === 'in' &&
+      hasWordNear(words, i + 2, 10, SHIPS_IN_TARGETS)
+    ) {
+      return true;
+    }
+  }
+
+  // lives in … RevDev|monorepo|…
+  for (let i = 0; i < words.length - 1; i++) {
+    if (
+      words[i] === 'lives' &&
+      words[i + 1] === 'in' &&
+      hasWordNear(words, i + 2, 8, LIVES_IN_TARGETS)
+    ) {
+      return true;
+    }
+  }
+
+  // see [RevDev / see **RevVault / see Fleet
+  for (let i = 0; i < words.length; i++) {
+    if (words[i] !== 'see') continue;
+    // next word token may be preceded by [ or ** in the full stream — wordTexts
+    // already dropped those, so the next word is the product name.
+    const next = words[i + 1];
+    if (next !== undefined && SEE_TARGETS.has(next)) return true;
+  }
+
+  // Also accept a repo-link path (issues/pulls) as attribution context
+  let span = '';
+  for (const token of tokens) {
+    if (token.kind === 'whitespace') {
+      if (span.length > 0 && isRepoLinkToken(span)) return true;
+      span = '';
+      continue;
+    }
+    span += token.text;
+  }
+  if (span.length > 0 && isRepoLinkToken(span)) return true;
+
+  return false;
+}
 
 function scanForFleetProductLeaks(): FleetProductMatch[] {
   const matches: FleetProductMatch[] = [];
@@ -1933,9 +2631,9 @@ function scanForFleetProductLeaks(): FleetProductMatch[] {
 
       // Skip frontmatter delimiters and YAML-shaped lines (title:, etc.)
       // — frontmatter is not customer-visible prose
-      if (i < 20 && (line === '---' || /^[a-zA-Z_][a-zA-Z0-9_-]*:\s/.test(line))) continue;
+      if (i < 20 && isYamlFrontmatterLine(line)) continue;
 
-      if (FLEET_ATTRIBUTION_QUALIFIER.test(line)) continue;
+      if (hasFleetAttributionQualifier(line)) continue;
       for (const product of findFleetProductHits(line)) {
         matches.push({
           file: rel,
@@ -2191,87 +2889,139 @@ function run(): void {
   );
   console.log();
 
+  // GAP-192 PR4 — typed NumericClaimSpec[] (no authored claimPatterns regex).
   const metrics: Metric[] = [
     {
       name: 'packages',
       actual: packages,
-      claimPatterns: [
-        // "21 packages" or "21 npm packages" but not "14 packages patched" or "3 packages"
-        /\b(1\d|2\d|3\d)\s*(?:npm\s+)?packages?\b(?!\s+patched)/i,
-        // (no "N packages published/on-npm" pattern — it conflated the
-        //  npm-published subset with the total package count this metric tracks)
+      claimSpecs: [
+        // "21 packages" or "21 npm packages" but not "14 packages patched"
+        // or small counts (<10). Range 10–39 matches the prior (1\d|2\d|3\d).
+        {
+          metricName: 'packages',
+          min: 10,
+          max: 39,
+          optionalIntervening: ['npm'],
+          requiredSequences: [['packages'], ['package']],
+          forbidNextWords: ['patched'],
+        },
       ],
     },
     {
       name: 'workspaces',
       actual: workspaces,
-      claimPatterns: [/\b(\d+)\s*workspaces?\b/i],
+      claimSpecs: [
+        {
+          metricName: 'workspaces',
+          requiredSequences: [['workspaces'], ['workspace']],
+        },
+      ],
     },
     {
       name: 'test files',
       actual: testFiles,
-      claimPatterns: [
-        // "1,676 test files" or "938 test files" — must be > 100 to avoid small mentions
-        /\b(\d[\d,]+)\s*test\s*files?\b/i,
+      claimSpecs: [
+        // "1,676 test files" — compare step still skips claimed < 100
+        {
+          metricName: 'test files',
+          allowCommas: true,
+          requiredSequences: [
+            ['test', 'files'],
+            ['test', 'file'],
+          ],
+        },
       ],
     },
     {
       name: 'UI components',
       actual: uiComponents,
-      claimPatterns: [
-        // Only match claims about total component count (50+), not per-category
-        /\b(5[0-9]|6[0-9])\s*(?:native\s+)?(?:React\s+)?(?:UI\s+)?components?\b/i,
-        /\b(5[0-9]|6[0-9])\s*components?\s+(?:with|built|in the)/i,
+      claimSpecs: [
+        // Only match total component counts in 50–69, not per-category
+        {
+          metricName: 'UI components',
+          min: 50,
+          max: 69,
+          optionalIntervening: ['native', 'React', 'UI'],
+          requiredSequences: [['components'], ['component']],
+        },
+        {
+          metricName: 'UI components',
+          min: 50,
+          max: 69,
+          requiredSequences: [['components'], ['component']],
+          trailingSequences: [['with'], ['built'], ['in', 'the']],
+        },
       ],
     },
     {
       name: 'MCP servers',
       actual: mcpServers,
-      claimPatterns: [/\b(\d+)\s*MCP\s*[Ss]ervers?\b/i],
+      claimSpecs: [
+        {
+          metricName: 'MCP servers',
+          requiredSequences: [
+            ['mcp', 'servers'],
+            ['mcp', 'server'],
+          ],
+        },
+      ],
     },
     {
       name: 'DB tables',
       actual: dbTables,
-      claimPatterns: [
-        // "85 tables", "85 PostgreSQL tables", "85 database tables", "85 Drizzle tables"
-        // Constrain to plausible totals (10..199) to avoid mid-doc small-number noise
-        /\b([1-9]\d{1,2})\s+(?:PostgreSQL\s+|database\s+|Drizzle\s+|primary\s+)?tables?\b/i,
+      claimSpecs: [
+        // "85 tables", "85 PostgreSQL tables", … — 10..999 plausible totals
+        {
+          metricName: 'DB tables',
+          min: 10,
+          max: 999,
+          optionalOneOf: ['PostgreSQL', 'database', 'Drizzle', 'primary'],
+          requiredSequences: [['tables'], ['table']],
+        },
         // "Schema (85 tables)" parenthetical
-        /\(\s*([1-9]\d{1,2})\s+tables?\s*\)/i,
+        {
+          metricName: 'DB tables',
+          min: 10,
+          max: 999,
+          parenWrapped: true,
+          requiredSequences: [['tables'], ['table']],
+        },
       ],
     },
     {
       name: 'CLI templates',
       actual: cliTemplates,
-      // Patterns defined module-level (CLI_TEMPLATE_CLAIM_PATTERNS, exported
-      // for unit tests); see their definition for the "N template repos"
-      // non-match rationale.
-      claimPatterns: CLI_TEMPLATE_CLAIM_PATTERNS,
+      claimSpecs: CLI_TEMPLATE_CLAIM_SPECS,
     },
     {
       name: 'enforcement tests',
       actual: enforcementTests,
-      // REGEX-CONFIG-BOUNDARY — claim pattern only (pre-existing convention in
-      // this file); countEnforcementTests computes the count with no authored regex.
-      claimPatterns: [/\b(\d+)\s+enforcement\s+tests?\b/i],
+      claimSpecs: [
+        {
+          metricName: 'enforcement tests',
+          requiredSequences: [
+            ['enforcement', 'tests'],
+            ['enforcement', 'test'],
+          ],
+        },
+      ],
     },
-    // License-split metrics (REGEX-CONFIG-BOUNDARY — pre-existing convention
-    // in this file; AST-refactor pending GAP-192). Patterns target the
-    // canonical fleet doc shape: "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
+    // License-split metrics — canonical fleet doc shape:
+    // "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
     {
       name: 'MIT packages',
       actual: licenseSplit.mit,
-      claimPatterns: [/\b([1-9]\d?)\s+OSS\s*\(MIT\)/],
+      claimSpecs: [{ metricName: 'MIT packages', shape: 'oss-mit' }],
     },
     {
       name: 'FSL packages',
       actual: licenseSplit.fsl,
-      claimPatterns: [/\b([1-9]\d?)\s+Pro\s*\(\s*(?:Fair\s+Source\s+)?FSL/],
+      claimSpecs: [{ metricName: 'FSL packages', shape: 'pro-fsl' }],
     },
     {
       name: 'internal packages',
       actual: licenseSplit.internal,
-      claimPatterns: [/\b([1-9]\d?)\s+internal\s*\(/i],
+      claimSpecs: [{ metricName: 'internal packages', shape: 'internal-paren' }],
     },
   ];
 

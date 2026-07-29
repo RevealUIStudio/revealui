@@ -4,8 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  AGENT_COMMERCE_BLOCKLIST,
-  CLI_TEMPLATE_CLAIM_PATTERNS,
+  CLI_TEMPLATE_CLAIM_SPECS,
   countCliTemplates,
   countDbTables,
   countDirs,
@@ -14,17 +13,25 @@ import {
   countTestFiles,
   countTrackedFiles,
   extractRevealuiPackages,
+  findAgentCommerceHits,
   findAspirationalBlocklistHits,
   findFleetProductHits,
+  findFutureTenseMarker,
   findIncompleteProList,
   findLicenseSplitAntiPattern,
   hasAspirationalQualifier,
+  hasFleetAttributionQualifier,
+  hasFslLicenseLabel,
+  hasMitLicenseLabel,
   hasPhantomEditorsPackage,
   hasRvuiTickerLeak,
   hasTrackerSignal,
+  isMarkdownHeading,
   isRoadmapDeclaredFile,
+  isYamlFrontmatterLine,
   makeIgnoredPathPredicate,
   parseGitIgnoredOutput,
+  scanNumericClaimsOnLine,
   TEST_FILE_SUFFIXES,
   WALK_EXCLUDED_DIRS,
 } from '../claim-drift.ts';
@@ -333,17 +340,10 @@ describe('countCliTemplates', () => {
   });
 });
 
-describe('CLI template claim patterns', () => {
-  /**
-   * Mirrors scanForClaims semantics: first matching pattern on a line wins
-   * and capture group 1 carries the claimed count. null = no pattern matched.
-   */
+describe('CLI template claim specs (GAP-192 PR4)', () => {
   function claimedCount(line: string): number | null {
-    for (const pattern of CLI_TEMPLATE_CLAIM_PATTERNS) {
-      const match = pattern.exec(line);
-      if (match) return Number.parseInt(match[1], 10);
-    }
-    return null;
+    const hits = scanNumericClaimsOnLine(line, CLI_TEMPLATE_CLAIM_SPECS);
+    return hits[0]?.claimed ?? null;
   }
 
   it('matches "ships N templates" prose', () => {
@@ -364,7 +364,7 @@ describe('CLI template claim patterns', () => {
     expect(claimedCount('4 template repos under the RevealUIStudio org')).toBeNull();
   });
 
-  it('does not match "N templates repos" thanks to the repos lookahead', () => {
+  it('does not match "N templates repos" thanks to forbidNextWords', () => {
     expect(claimedCount('4 templates repos')).toBeNull();
     expect(claimedCount('4 templates repo mirrors')).toBeNull();
   });
@@ -623,31 +623,142 @@ describe('findLicenseSplitAntiPattern', () => {
   });
 });
 
-describe('AGENT_COMMERCE_BLOCKLIST (x402 / marketplace presented as live)', () => {
-  const tokenFor = (needle: string): RegExp => {
-    const entry = AGENT_COMMERCE_BLOCKLIST.find((e) => e.label.includes(needle));
-    if (!entry) throw new Error(`no agent-commerce blocklist entry for ${needle}`);
-    return entry.token;
-  };
-  const x402 = tokenFor('x402');
-  const market = tokenFor('marketplace');
-
+describe('agent-commerce detectors (GAP-192 PR5)', () => {
   it('flags x402 presented as live but not neutral mentions', () => {
-    expect(x402.test('Big news: x402 is live today for every caller')).toBe(true);
-    expect(x402.test('x402 payments are available now')).toBe(true);
-    expect(x402.test('the x402 protocol, developed by Coinbase')).toBe(false);
-    expect(x402.test('## How x402 Works')).toBe(false);
-    expect(x402.test('the endpoints are code-complete behind X402_ENABLED=false')).toBe(false);
+    expect(findAgentCommerceHits('Big news: x402 is live today for every caller')).toContain(
+      'x402 (presented as live)',
+    );
+    expect(findAgentCommerceHits('x402 payments are available now')).toContain(
+      'x402 (presented as live)',
+    );
+    expect(findAgentCommerceHits('the x402 protocol, developed by Coinbase')).not.toContain(
+      'x402 (presented as live)',
+    );
+    expect(findAgentCommerceHits('## How x402 Works')).not.toContain('x402 (presented as live)');
     expect(
-      x402.test('x402 micropayments (USDC on Base) are designed but not transactable today'),
-    ).toBe(false);
+      findAgentCommerceHits('the endpoints are code-complete behind X402_ENABLED=false'),
+    ).not.toContain('x402 (presented as live)');
+    expect(
+      findAgentCommerceHits(
+        'x402 micropayments (USDC on Base) are designed but not transactable today',
+      ),
+    ).not.toContain('x402 (presented as live)');
   });
 
   it('flags the agent/MCP marketplace presented as live, not a template marketplace', () => {
-    expect(market.test('the agent marketplace is open for publishing')).toBe(true);
-    expect(market.test('RevMarket is live today')).toBe(true);
-    expect(market.test('the MCP marketplace discovery document lists every server')).toBe(false);
-    expect(market.test('a template marketplace is available for plugins')).toBe(false);
+    expect(findAgentCommerceHits('the agent marketplace is open for publishing')).toContain(
+      'agent marketplace (presented as live)',
+    );
+    expect(findAgentCommerceHits('RevMarket is live today')).toContain(
+      'agent marketplace (presented as live)',
+    );
+    expect(
+      findAgentCommerceHits('the MCP marketplace discovery document lists every server'),
+    ).not.toContain('agent marketplace (presented as live)');
+    expect(findAgentCommerceHits('a template marketplace is available for plugins')).not.toContain(
+      'agent marketplace (presented as live)',
+    );
+  });
+});
+
+describe('findFutureTenseMarker (GAP-192 PR3)', () => {
+  it('finds parenthetical future-tense markers', () => {
+    expect(findFutureTenseMarker('SSO (coming soon) for enterprise')).toBe('(coming soon)');
+    expect(findFutureTenseMarker('feature (will ship next quarter)')).toBe(
+      '(will ship next quarter)',
+    );
+    expect(findFutureTenseMarker('no marker here')).toBeNull();
+  });
+});
+
+describe('license label shapes (GAP-192 PR3)', () => {
+  it('detects MIT label wrappers only', () => {
+    expect(hasMitLicenseLabel('**MIT** packages')).toBe(true);
+    expect(hasMitLicenseLabel('| MIT (free) |')).toBe(true);
+    expect(hasMitLicenseLabel('MIT: core, auth')).toBe(true);
+    expect(hasMitLicenseLabel('(MIT)')).toBe(true);
+    expect(hasMitLicenseLabel('MIT-licensed code')).toBe(false);
+  });
+
+  it('detects FSL / Pro-packages label wrappers only', () => {
+    expect(hasFslLicenseLabel('**FSL-1.1-MIT**')).toBe(true);
+    expect(hasFslLicenseLabel('| Fair Source |')).toBe(true);
+    expect(hasFslLicenseLabel('Pro packages:')).toBe(true);
+    expect(hasFslLicenseLabel('Pro packages (FSL-1.1-MIT)')).toBe(true);
+    expect(hasFslLicenseLabel('ship under Fair Source (FSL-1.1-MIT)')).toBe(false);
+  });
+});
+
+describe('isMarkdownHeading + isYamlFrontmatterLine (GAP-192 PR3)', () => {
+  it('recognizes ATX headings', () => {
+    expect(isMarkdownHeading('### Title')).toBe(true);
+    expect(isMarkdownHeading('not a heading')).toBe(false);
+    expect(isMarkdownHeading('#NoSpace')).toBe(false);
+  });
+
+  it('recognizes YAML key lines and ---', () => {
+    expect(isYamlFrontmatterLine('---')).toBe(true);
+    expect(isYamlFrontmatterLine('title: Hello')).toBe(true);
+    expect(isYamlFrontmatterLine('not yaml')).toBe(false);
+    expect(isYamlFrontmatterLine('  indented: no')).toBe(false);
+  });
+});
+
+describe('hasFleetAttributionQualifier (GAP-192 PR3)', () => {
+  it('accepts fleet map paths and attribution phrases', () => {
+    expect(hasFleetAttributionQualifier('see /docs/SUITE for the map')).toBe(true);
+    expect(hasFleetAttributionQualifier('RevVault is a separate product')).toBe(true);
+    expect(hasFleetAttributionQualifier('ships in RevDev')).toBe(true);
+    expect(hasFleetAttributionQualifier('RevealUIStudio/revvault')).toBe(true);
+    expect(hasFleetAttributionQualifier('Forge tier pricing')).toBe(true);
+  });
+
+  it('rejects bare product mentions without attribution', () => {
+    expect(hasFleetAttributionQualifier('open RevVault to store secrets')).toBe(false);
+  });
+});
+
+describe('scanNumericClaimsOnLine (GAP-192 PR4)', () => {
+  it('matches package counts in the 10–39 band and skips patched', () => {
+    const specs = [
+      {
+        metricName: 'packages',
+        min: 10,
+        max: 39,
+        optionalIntervening: ['npm'],
+        requiredSequences: [['packages'], ['package']],
+        forbidNextWords: ['patched'],
+      },
+    ];
+    expect(scanNumericClaimsOnLine('we ship 21 packages today', specs)).toEqual([
+      { metricName: 'packages', claimed: 21 },
+    ]);
+    expect(scanNumericClaimsOnLine('21 npm packages', specs)).toEqual([
+      { metricName: 'packages', claimed: 21 },
+    ]);
+    expect(scanNumericClaimsOnLine('14 packages patched', specs)).toEqual([]);
+    expect(scanNumericClaimsOnLine('3 packages', specs)).toEqual([]);
+  });
+
+  it('matches OSS/Pro/internal license-split shapes', () => {
+    expect(
+      scanNumericClaimsOnLine('20 OSS (MIT)', [{ metricName: 'MIT packages', shape: 'oss-mit' }]),
+    ).toEqual([{ metricName: 'MIT packages', claimed: 20 }]);
+    expect(
+      scanNumericClaimsOnLine('5 Pro (FSL-1.1-MIT)', [
+        { metricName: 'FSL packages', shape: 'pro-fsl' },
+      ]),
+    ).toEqual([{ metricName: 'FSL packages', claimed: 5 }]);
+    expect(
+      scanNumericClaimsOnLine('5 Pro (Fair Source FSL)', [
+        { metricName: 'FSL packages', shape: 'pro-fsl' },
+      ]),
+    ).toEqual([{ metricName: 'FSL packages', claimed: 5 }]);
+    expect(
+      scanNumericClaimsOnLine('1 internal (scripts)', [
+        { metricName: 'internal packages', shape: 'internal-paren' },
+      ]),
+    ).toEqual([{ metricName: 'internal packages', claimed: 1 }]);
   });
 });
 
