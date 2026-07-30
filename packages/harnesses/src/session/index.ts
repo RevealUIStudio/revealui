@@ -39,9 +39,9 @@ export {
 } from './peer-context.js';
 export {
   DEFAULT_HEARTBEAT_STALE_SECONDS,
+  isAbandonedSessionRow,
   type ReapOptions,
   type ReapResult,
-  isAbandonedSessionRow,
   sessionReap,
 } from './reap.js';
 export { defaultSocketPath, isDaemonSocketPresent, rpcCall } from './rpc.js';
