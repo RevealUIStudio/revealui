@@ -29,6 +29,7 @@ export {
   type FetchPeerContextOptions,
   fetchPeerContext,
   formatPeerPanel,
+  PEER_LIVE_STALE_SECONDS,
   type PeerContextSnapshot,
   type PeerContextStatus,
   type PeerFindingLine,
@@ -36,5 +37,12 @@ export {
   type PeerSessionLine,
   renderPeerPanel,
 } from './peer-context.js';
+export {
+  DEFAULT_HEARTBEAT_STALE_SECONDS,
+  type ReapOptions,
+  type ReapResult,
+  isAbandonedSessionRow,
+  sessionReap,
+} from './reap.js';
 export { defaultSocketPath, isDaemonSocketPresent, rpcCall } from './rpc.js';
 export { hashParams, signRpc } from './sign.js';

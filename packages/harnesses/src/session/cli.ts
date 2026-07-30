@@ -8,6 +8,7 @@
 
 import { sessionEnd, sessionRegister } from './boundary.js';
 import { renderPeerPanel } from './peer-context.js';
+import { DEFAULT_HEARTBEAT_STALE_SECONDS, sessionReap } from './reap.js';
 
 function printResult(
   label: string,
@@ -83,13 +84,59 @@ export async function runSessionCli(args: string[]): Promise<void> {
     return;
   }
 
+  if (subcommand === 'reap') {
+    let heartbeatStaleSeconds = DEFAULT_HEARTBEAT_STALE_SECONDS;
+    let staleDays = 7;
+    let hardDeleteDays = 30;
+    let dryRun = false;
+    let backend = 'grok';
+    for (let i = 0; i < rest.length; i++) {
+      const nxt = nextArg(rest, i);
+      if (rest[i] === '--heartbeat-seconds' && nxt) {
+        heartbeatStaleSeconds = Number(nxt);
+        i++;
+      } else if (rest[i] === '--stale-days' && nxt) {
+        staleDays = Number(nxt);
+        i++;
+      } else if (rest[i] === '--hard-delete-days' && nxt) {
+        hardDeleteDays = Number(nxt);
+        i++;
+      } else if (rest[i] === '--backend' && nxt) {
+        backend = nxt;
+        i++;
+      } else if (rest[i] === '--dry-run') {
+        dryRun = true;
+      }
+    }
+    const result = await sessionReap({
+      heartbeatStaleSeconds,
+      staleDays,
+      hardDeleteDays,
+      dryRun,
+      backend,
+    });
+    const status = result.ok ? 'ok' : result.skipped ? 'skip' : 'fail';
+    process.stderr.write(
+      `[session reap] ${status} candidates=${result.candidates} archived=${result.archived}` +
+        (result.aged !== undefined ? ` aged=${result.aged}` : '') +
+        (result.deleted !== undefined ? ` deleted=${result.deleted}` : '') +
+        (result.heartbeatStaleSeconds !== undefined
+          ? ` heartbeatSeconds=${result.heartbeatStaleSeconds}`
+          : '') +
+        (result.reason ? ` ${result.reason}` : '') +
+        '\n',
+    );
+    return;
+  }
+
   process.stderr.write(`Usage:
   revealui-harnesses session register [--backend grok|claude-code|…] [--work-dir PATH] [--no-peers]
   revealui-harnesses session peers [--actor AGENT_ID]
   revealui-harnesses session end [--summary TEXT]
+  revealui-harnesses session reap [--heartbeat-seconds N] [--stale-days N] [--hard-delete-days N] [--dry-run]
 
 Soft-optional RevDev daemon session boundary (GAP control-layer peer adapters).
 Always exits 0 so SessionStart/SessionEnd hooks never block.
-GAP-459: register/peers print peer-context (WARN when coordination unavailable).
+GAP-459: register/peers print peer-context; end archives; reap ends abandoned rows.
 `);
 }
