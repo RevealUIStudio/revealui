@@ -137,14 +137,13 @@ export async function fetchPeerContext(
   const timeoutMs = options.timeoutMs ?? 4000;
 
   try {
-    const raw = await rpcCall(
-      'context.snapshot',
-      {
-        actorAgentId,
-        includeSelf: options.includeSelf === true,
-      },
-      { socketPath, timeoutMs },
-    );
+    // Omit undefined actor so JSON does not force an identity-gate path.
+    const params: Record<string, unknown> = {
+      includeSelf: options.includeSelf === true,
+    };
+    if (actorAgentId) params.actorAgentId = actorAgentId;
+
+    const raw = await rpcCall('context.snapshot', params, { socketPath, timeoutMs });
     const o = asRecord(raw);
     if (!o) {
       return {
@@ -183,13 +182,24 @@ export async function fetchPeerContext(
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    // S1 not on this daemon yet → fall back to session.list presence only.
-    if (/Method not found|context\.snapshot|not found/i.test(message)) {
+    // Only fall back when the RPC method is missing (pre-S1 daemon). Do NOT
+    // match bare "context.snapshot" — identity-gate errors also contain that
+    // name and were mis-reported as "unavailable".
+    if (/Method not found|code":\s*-32601|-32601/i.test(message)) {
       return fetchPeersViaSessionList({
         socketPath,
         actorAgentId,
         timeoutMs,
-        reason: 'context.snapshot unavailable; using session.list',
+        reason: 'context.snapshot method missing; using session.list',
+      });
+    }
+    // Identity required and no actor: soft-register path is for CLI; here degrade honestly.
+    if (/Not registered|session\.register|-32002/i.test(message)) {
+      return fetchPeersViaSessionList({
+        socketPath,
+        actorAgentId,
+        timeoutMs,
+        reason: 'context.snapshot needs actor (session register first); using session.list',
       });
     }
     // License / Pro gate or other soft failures: still visible.
