@@ -35,9 +35,9 @@ This doc describes what's in the package today. Items in the [Roadmap](#roadmap)
 | Config normalization: `.claude/rules/*.md` (per-rule, write-only) | ✓ | same |
 | In-package coordinator (start / stop / registerAdapter / dispatchTask / healthCheck) | removed 2026-07-25 | see the daemon-ownership ADR; superseded by the RevDev daemon |
 | JSON-RPC server with `protocol.*` methods | removed 2026-07-25 | none — no daemon implements `protocol.*` today |
-| HTTP gateway (fail-closed pairing auth; not currently reachable from any production constructor) | ✓ source only, pending a port into the RevDev daemon | [server/http-gateway.ts](../packages/harnesses/src/server/http-gateway.ts) |
+| HTTP gateway (fail-closed pairing auth) | removed from this package 2026-07-29 | lives in `@revdev/daemon` (`http-gateway.ts`, revdev#328/#329); opt-in via `httpPort` |
 | **RevealUI Agent adapter** | ✓ working | [adapters/revealui-agent-adapter.ts](../packages/harnesses/src/adapters/revealui-agent-adapter.ts) |
-| Workboard manager + PGlite daemon store | ✓ | [workboard/](../packages/harnesses/src/workboard), [storage/](../packages/harnesses/src/storage) |
+| Workboard manager | ✓ | [workboard/](../packages/harnesses/src/workboard) (PGlite daemon store removed with the gateway twin) |
 | Session identity detector (3 session types + env-var override) | ✓ partial — 7-tier cascade is roadmap | [workboard/session-identity.ts](../packages/harnesses/src/workboard/session-identity.ts) |
 
 ---
@@ -182,11 +182,13 @@ The RevDev daemon serves JSON-RPC 2.0 on `~/.local/share/revealui/harness.sock`;
 
 > 0.5.0 renamed these methods from the historical `vaughn.*` namespace. A pre-publish audit confirmed no external consumers (the revdev daemon was never wired into these methods), so the rename was a clean break with no backward-compat alias. The methods themselves were removed entirely in the 2026-07-25 daemon-ownership cleanup, for the same reason: zero consumers.
 
-### HTTP transport (source only, not currently reachable)
+### HTTP transport (RevDev daemon)
 
-[`HttpGateway`](../packages/harnesses/src/server/http-gateway.ts) implements a fail-closed, HMAC challenge-response bearer-token gateway: every `/rpc` and `/api/*` route except the pairing endpoints refuses with `401` until a valid token is presented, with no pre-pairing bypass on a fresh daemon or after a restart. That posture is enforced today, and covered by its own test suite.
-
-It is **not wired into anything that runs it.** The `HarnessCoordinator` that used to construct it (when an `httpPort` was set) was removed in the 2026-07-25 daemon-ownership cleanup; the gateway is pending a port into the RevDev daemon, which will host it alongside the socket dispatch it proxies to. Until that port lands, `HttpGateway` has zero production constructors in the fleet — do not assume it is listening anywhere.
+The fail-closed HMAC challenge-response HTTP gateway was **ported to
+`@revdev/daemon`** (revdev#328; SSE ticket auth revdev#329) and **removed from
+this package** (2026-07-29). Enable with daemon `httpPort` (default off). Studio
+pairs via Settings → connection (`pairWithDaemon`). See
+`revdev/packages/daemon/src/http-gateway.ts` and the daemon package docs.
 
 ---
 
