@@ -66,6 +66,12 @@ export async function runSessionCli(args: string[]): Promise<void> {
         i++;
       }
     }
+    // Prefer explicit --actor, else this process's cached register id so
+    // context.snapshot can label self without a false "unavailable" fallback.
+    if (!actorAgentId) {
+      const { readDaemonSessionCache } = await import('./identity-cache.js');
+      actorAgentId = readDaemonSessionCache(process.ppid) ?? undefined;
+    }
     await printPeerPanel(actorAgentId);
     return;
   }
