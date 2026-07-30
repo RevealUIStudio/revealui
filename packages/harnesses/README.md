@@ -148,7 +148,7 @@ server in this package.
 | `@revealui/harnesses/content` | Content definitions, manifest builders, generators (`DEFAULT_CONTENT_GENERATOR_ID` → manager tree) |
 | `@revealui/harnesses/manager` | Project manager schema, materialize, check (`.revealui`) |
 
-Protocol adapter types, config generators, and the event normalizer are re-exported from the root `@revealui/harnesses` entry only. The dedicated `@revealui/harnesses/protocol` and `@revealui/harnesses/storage` subpaths were removed (GAP-421).
+Protocol adapter types, config generators, and the event normalizer are re-exported from the root `@revealui/harnesses` entry only (`packages/harnesses/src/index.ts:1`). The dedicated `@revealui/harnesses/protocol` and `@revealui/harnesses/storage` subpaths were removed (GAP-421; `packages/harnesses/package.json` exports map).
 
 ## Development
 
