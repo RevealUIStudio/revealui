@@ -39,8 +39,7 @@ packages/harnesses/src/
 ├── manager/        # .revealui project manager (equal vendor adapters)
 ├── detection/      # Auto-detect installed/running harnesses — incubating
 ├── registry/       # Lifecycle management of adapters — incubating
-├── server/         # inference-service.ts (in-process); http-gateway.ts (awaiting the RevDev daemon port)
-├── storage/        # PGlite-backed row types shared with the http-gateway auth test
+├── server/         # inference-service.ts only (in-process; no HTTP/socket server here)
 ├── types/          # HarnessAdapter contract, commands, events
 ├── workboard/      # Multi-agent workboard primitives — incubating
 └── cli.ts          # CLI + RPC client (dispatches to the RevDev daemon's socket)
@@ -128,42 +127,28 @@ await manager.registerSession({
 
 ### Remote Gateway (HTTP)
 
-`server/http-gateway.ts` implements a fail-closed HMAC challenge-response HTTP
-gateway that exposes the same JSON-RPC surface as the daemon's Unix socket, for
-remote access (for example the Studio app connecting from another machine on
-the network). It is not currently runnable from this package's CLI — per the
-daemon-ownership ADR (2026-07-25) it is being ported into the RevDev daemon,
-which will host it alongside the socket dispatch it proxies to. The module and
-its test suite (`server/__tests__/http-gateway.test.ts`) stay here until that
-port lands.
+Remote HTTP access lives in **`@revdev/daemon`**, not this package.
 
-Every `/rpc` and `/api/*` call, including `agent.spawn` and `agent.stop`, is refused with `401` until it carries a valid bearer token. There is no pre-pairing bypass, on a fresh daemon or after a restart.
+- Implementation: `revdev/packages/daemon/src/http-gateway.ts` (revdev#328)
+- SSE ownership tickets: revdev#329
+- Opt-in: set daemon `httpPort` (default `0` = off)
+- Studio pairing: Settings → connection tab (`pairWithDaemon`)
 
-**Pairing (challenge-response  -  the secret never crosses the wire):**
-
-1. On first start, the daemon generates a 32-byte secret at a `0600` file in its data dir and prints the path:
-   ```
-   ✓ Bootstrap pairing secret: ~/.local/share/revealui/pairing-secret
-   ```
-   Only someone who can read that file (the machine owner) can pair.
-2. The client requests a single-use, short-lived nonce: `GET /api/pair` → `{ nonce, expiresIn }` (expires in 2 minutes by default).
-3. The client reads the secret file and computes `HMAC-SHA256(secret, nonce)`, then posts it back: `POST /api/pair` with `{ nonce, hmac, label? }`.
-4. On a valid response the gateway mints a bearer token (`{ token, expiresAt }`) and stores only its SHA-256 hash. Send the token as `Authorization: Bearer <token>` on every subsequent call.
-
-Tokens are durable (default 90-day TTL) and persisted as hashes, so a daemon restart with a previously-issued token stays authenticated  -  it never reopens the pre-pairing window. Repeated failed pairing attempts trigger a per-source exponential-backoff lockout plus a global cooldown.
+The harnesses-side gateway twin and PGlite `DaemonStore` were deleted after the
+port landed (GAP-421 residual, 2026-07-29). Do not re-introduce a second HTTP
+server in this package.
 
 ## Exports
 
 | Subpath | Contents |
 |---------|----------|
-| `@revealui/harnesses` | Full API: adapters, registry, detection, config, protocol, storage row types |
+| `@revealui/harnesses` | Full API: adapters, registry, detection, config, protocol, inference service |
 | `@revealui/harnesses/types` | Type definitions: HarnessAdapter, commands, events, capabilities |
 | `@revealui/harnesses/workboard` | WorkboardManager, deriveSessionId, detectSessionType, file-locking |
 | `@revealui/harnesses/content` | Content definitions, manifest builders, generators (`DEFAULT_CONTENT_GENERATOR_ID` → manager tree) |
 | `@revealui/harnesses/manager` | Project manager schema, materialize, check (`.revealui`) |
-| `@revealui/harnesses/storage` | DaemonStore (PGlite-backed daemon state), schema |
 
-Protocol adapter types, config generators, and the event normalizer are re-exported from the root `@revealui/harnesses` entry only (see `packages/harnesses/src/index.ts:130-182`). The dedicated `@revealui/harnesses/protocol` subpath was removed (GAP-421): it was mapped in `package.json` but never listed in `packages/harnesses/tsup.config.ts:4-16`, so it 404'd for anyone who tried it, and nothing in the fleet consumed it. Re-add it once a real consumer needs the narrower import.
+Protocol adapter types, config generators, and the event normalizer are re-exported from the root `@revealui/harnesses` entry only (`packages/harnesses/src/index.ts:1`). The dedicated `@revealui/harnesses/protocol` and `@revealui/harnesses/storage` subpaths were removed (GAP-421; `packages/harnesses/package.json` exports map).
 
 ## Development
 

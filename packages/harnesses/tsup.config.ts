@@ -8,7 +8,6 @@ export default defineConfig({
     'src/types/index.ts',
     'src/content/index.ts',
     'src/manager/index.ts',
-    'src/storage/index.ts',
     'src/hooks/index.ts',
     'src/hotfix/index.ts',
     'src/gates/index.ts',
@@ -17,5 +16,4 @@ export default defineConfig({
   dts: true,
   sourcemap: false,
   clean: true,
-  external: ['@electric-sql/pglite'],
 });
