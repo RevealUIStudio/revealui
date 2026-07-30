@@ -63,8 +63,9 @@ function badge(method: string): string {
 function generateMarkdown(spec: OpenAPISpec): string {
   const lines: string[] = [];
 
-  // Header — YAML frontmatter required so copy-docs keeps this public
-  // when the public site should serve it (visibility: public).
+  // Header: YAML frontmatter required so copy-docs.sh keeps this public
+  // (visibility: public). Dropping it excludes /api/rest-api while nav still
+  // links it and Quality docs link-check fails (GAP-395).
   lines.push(
     `---`,
     `title: "REST API Reference"`,
