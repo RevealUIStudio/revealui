@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { type AuditEntry, DrizzleAuditStore } from '../audit-store.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type AuditEntry, DrizzleAuditStore, isProductionAuditTarget } from '../audit-store.js';
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -154,6 +154,84 @@ describe('DrizzleAuditStore  -  append-only enforcement', () => {
       store.appendBatch([makeEntry({ id: 'e1' }), makeEntry({ id: 'e2', tenant: '__system__' })]),
     ).rejects.toThrow(/reserved system-anchor sentinel/);
     expect(db.insert).not.toHaveBeenCalled();
+  });
+
+  // ── GAP-417 residual: targetEnv keying for unsigned refuse ─────────────────
+
+  describe('isProductionAuditTarget', () => {
+    it('treats production and prod as production surfaces', () => {
+      expect(isProductionAuditTarget('production', 'development')).toBe(true);
+      expect(isProductionAuditTarget('prod', 'development')).toBe(true);
+      expect(isProductionAuditTarget('PROD', 'development')).toBe(true);
+      expect(isProductionAuditTarget(undefined, 'production')).toBe(true);
+    });
+
+    it('treats non-prod targets as non-production only when NODE_ENV is also non-prod', () => {
+      expect(isProductionAuditTarget('dev', 'development')).toBe(false);
+      expect(isProductionAuditTarget('development', 'development')).toBe(false);
+      expect(isProductionAuditTarget('test', 'test')).toBe(false);
+      expect(isProductionAuditTarget('stage', 'development')).toBe(false);
+      expect(isProductionAuditTarget(undefined, 'development')).toBe(false);
+    });
+
+    it('OR-keying: either targetEnv or NODE_ENV production is enough', () => {
+      expect(isProductionAuditTarget('prod', 'development')).toBe(true);
+      expect(isProductionAuditTarget('dev', 'production')).toBe(true);
+    });
+  });
+
+  describe('unsigned refuse rail (GAP-417 residual targetEnv)', () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    afterEach(() => {
+      if (originalNodeEnv === undefined) {
+        delete (process.env as { NODE_ENV?: string }).NODE_ENV;
+      } else {
+        (process.env as { NODE_ENV: string }).NODE_ENV = originalNodeEnv;
+      }
+    });
+
+    it('allows unsigned append when NODE_ENV is development and no targetEnv', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'development';
+      const local = new DrizzleAuditStore(db as never);
+      await expect(local.append(makeEntry())).resolves.toBeUndefined();
+      expect(db.insert).toHaveBeenCalledOnce();
+    });
+
+    it('refuses unsigned append when NODE_ENV is production', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'production';
+      const local = new DrizzleAuditStore(db as never);
+      await expect(local.append(makeEntry())).rejects.toThrow(/UNSIGNED audit row in production/);
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('refuses unsigned append when targetEnv is prod even if NODE_ENV is development', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'development';
+      const local = new DrizzleAuditStore(db as never, undefined, { targetEnv: 'prod' });
+      await expect(local.append(makeEntry())).rejects.toThrow(/UNSIGNED audit row in production/);
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('still refuses when NODE_ENV is production even if targetEnv is dev (fail-closed OR)', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'production';
+      const local = new DrizzleAuditStore(db as never, undefined, { targetEnv: 'dev' });
+      await expect(local.append(makeEntry())).rejects.toThrow(/UNSIGNED audit row in production/);
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('does not throw the unsigned refuse when a signer is injected on a prod target', async () => {
+      (process.env as { NODE_ENV: string }).NODE_ENV = 'development';
+      // Refuse only runs when !signer — with a signer the UNSIGNED error must
+      // not appear (seq plumbing may still fail on the mock db).
+      const signed = new DrizzleAuditStore(db as never, () => 'v1.ed25519.kid.sig', {
+        targetEnv: 'prod',
+      });
+      try {
+        await signed.append(makeEntry());
+      } catch (err) {
+        expect(String(err)).not.toMatch(/UNSIGNED audit row in production/);
+      }
+    });
   });
 
   // ── DB-level trigger (migration verification) ─────────────────────────────
