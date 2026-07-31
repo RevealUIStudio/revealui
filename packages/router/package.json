@@ -1,7 +1,7 @@
 {
   "name": "@revealui/router",
-  "version": "0.3.11",
-  "description": "Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required — works with Vite, Hono, or any React setup.",
+  "version": "0.4.0-rc.0",
+  "description": "Lightweight dual-mode router for React apps: client SPA (default) plus opt-in RSC mode. SSR, data loaders, middleware, nested layouts. Works with Vite, Hono, or any React setup.",
   "keywords": [
     "file-based-routing",
     "middleware",
@@ -50,7 +50,17 @@
   "main": "./dist/index.js",
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-server-dom-webpack": "^19.2.8",
+    "@vitejs/plugin-rsc": "^0.5.27"
+  },
+  "peerDependenciesMeta": {
+    "react-server-dom-webpack": {
+      "optional": true
+    },
+    "@vitejs/plugin-rsc": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public",
