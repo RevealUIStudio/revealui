@@ -39,7 +39,7 @@ vi.mock('@hono/node-server', () => ({
   serve: serveMock,
 }));
 
-import { createDevServer } from '../server.js';
+import { createDevServer } from '../server-ssr.js';
 import type { Route } from '../types.js';
 
 const DummyComponent = () => null;

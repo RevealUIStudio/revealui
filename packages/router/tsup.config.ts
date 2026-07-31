@@ -3,7 +3,9 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
+    core: 'src/core.ts',
     server: 'src/server.tsx',
+    'server-ssr': 'src/server-ssr.tsx',
   },
   format: ['esm'],
   dts: true,

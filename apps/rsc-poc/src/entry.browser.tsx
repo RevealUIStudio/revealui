@@ -1,5 +1,13 @@
+/**
+ * Browser entry — hydrate from `__RSC_PAYLOAD__`, re-fetch flight on navigation.
+ *
+ * D3: no `history.pushState` monkey-patch. Interception is click/popstate only
+ * (same ownership model as `@revealui/router` `initClient`). Full router-owned
+ * RSC payload state lands in 2.2.3; this entry is the consumer-side pattern.
+ */
 'use client';
 
+import { RouterProvider } from '@revealui/router';
 import {
   createFromFetch,
   createFromReadableStream,
@@ -9,7 +17,10 @@ import {
 } from '@vitejs/plugin-rsc/browser';
 import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
+import { createAppRouter } from './app-router.ts';
 import type { RscPayload } from './entry.rsc.tsx';
+
+const router = createAppRouter();
 
 async function main(): Promise<void> {
   let setPayload: ((v: RscPayload) => void) | undefined;
@@ -34,6 +45,10 @@ async function main(): Promise<void> {
     initialPayload = await fetchRscPayload(window.location.href);
   }
 
+  // Seed match so client hooks see the SSR route without re-running loaders.
+  const initialPath = window.location.pathname;
+  router.seedCurrentMatch(router.match(initialPath));
+
   function BrowserRoot(): React.ReactNode {
     const [payload, setPayload_] = React.useState(initialPayload);
 
@@ -43,11 +58,13 @@ async function main(): Promise<void> {
 
     React.useEffect(() => {
       return listenNavigation(() => {
+        const path = window.location.pathname;
+        router.seedCurrentMatch(router.match(path));
         fetchRscPayload(window.location.href).then((p) => setPayload?.(p));
       });
     }, []);
 
-    return payload.root;
+    return <RouterProvider router={router}>{payload.root}</RouterProvider>;
   }
 
   setServerCallback(async (id: string, args: unknown[]) => {
@@ -97,22 +114,11 @@ async function main(): Promise<void> {
   }
 }
 
+/**
+ * Same-origin soft navigation: click + popstate only (no History API patch — D3).
+ */
 function listenNavigation(onNavigation: () => void): () => void {
   window.addEventListener('popstate', onNavigation);
-
-  const oldPushState = window.history.pushState.bind(window.history);
-  window.history.pushState = (...args: Parameters<typeof window.history.pushState>) => {
-    const res = oldPushState(...args);
-    onNavigation();
-    return res;
-  };
-
-  const oldReplaceState = window.history.replaceState.bind(window.history);
-  window.history.replaceState = (...args: Parameters<typeof window.history.replaceState>) => {
-    const res = oldReplaceState(...args);
-    onNavigation();
-    return res;
-  };
 
   function onClick(e: MouseEvent): void {
     const link = (e.target as Element).closest('a');
@@ -130,7 +136,12 @@ function listenNavigation(onNavigation: () => void): () => void {
       !e.defaultPrevented
     ) {
       e.preventDefault();
-      history.pushState(null, '', link.href);
+      const url = new URL(link.href);
+      const next = url.pathname + url.search + url.hash;
+      const current = window.location.pathname + window.location.search + window.location.hash;
+      if (next === current) return;
+      window.history.pushState(null, '', next);
+      onNavigation();
     }
   }
 
@@ -139,8 +150,6 @@ function listenNavigation(onNavigation: () => void): () => void {
   return () => {
     document.removeEventListener('click', onClick);
     window.removeEventListener('popstate', onNavigation);
-    window.history.pushState = oldPushState;
-    window.history.replaceState = oldReplaceState;
   };
 }
 
