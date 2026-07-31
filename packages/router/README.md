@@ -334,6 +334,9 @@ export default {
 - `Accept: text/x-component` → flight body (`Vary: accept`)
 - Otherwise → HTML with chunked base64 `self.__RSC_PAYLOAD__=...` + bootstrap
 - Endpoint escape hatch forces RSC when CDNs mishandle `Vary`
+- `redirect(path)` / `notFound()` throw-sentinels → 307/308 or 404 (from `@revealui/router/server`)
+- `getRequest()` via ALS inside `renderRequest` / `runWithRequest`
+- `x-rsc-action` POST: `useAction` middleware then `loadServerAction` + `returnValue` on stream ctx
 
 ## Dev Server
 

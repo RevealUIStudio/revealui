@@ -1,6 +1,7 @@
 import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { createElement } from 'react';
+import { isRouterNotFound, isRouterRedirect } from './navigation';
 import { negotiateRepresentation, type Representation, routingPathname } from './negotiate';
 import type {
   MiddlewareContext,
@@ -310,6 +311,10 @@ export class Router {
       try {
         matched.data = await matched.route.loader(matched.params);
       } catch (error) {
+        // Control-flow sentinels (T5) must not be logged as loader failures.
+        if (isRouterRedirect(error) || isRouterNotFound(error)) {
+          throw error;
+        }
         logger.error(
           'Route loader error',
           error instanceof Error ? error : new Error(String(error)),
