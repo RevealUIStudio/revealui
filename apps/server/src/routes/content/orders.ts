@@ -11,12 +11,12 @@ import * as orderQueries from '@revealui/db/queries/orders';
 import { ORDER_STATUSES } from '@revealui/db/schema/products';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
-import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 

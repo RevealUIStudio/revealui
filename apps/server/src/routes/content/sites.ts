@@ -10,12 +10,12 @@ import { cleanupVectorDataForSite } from '@revealui/db/cleanup';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
-import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 

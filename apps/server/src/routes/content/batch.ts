@@ -17,8 +17,8 @@ import * as postQueries from '@revealui/db/queries/posts';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import type { ContentVariables } from './index.js';
 import { hasApiRole } from '../../lib/api-roles.js';
+import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 

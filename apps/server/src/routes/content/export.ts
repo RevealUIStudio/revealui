@@ -20,9 +20,9 @@ import { pages } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq, isNull } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { ErrorSchema } from '../_helpers/content-schemas.js';
 import type { ContentVariables } from './index.js';
-import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 

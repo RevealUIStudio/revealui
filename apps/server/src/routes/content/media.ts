@@ -17,11 +17,11 @@ import { logger } from '@revealui/core/observability/logger';
 import * as mediaQueries from '@revealui/db/queries/media';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { getMediaStorage } from '../../lib/storage.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import type { ContentVariables } from './index.js';
-import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 

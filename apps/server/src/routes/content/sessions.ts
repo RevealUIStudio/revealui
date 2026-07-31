@@ -237,7 +237,7 @@ function applyDraftPatch(draft: Record<string, unknown>, path: string, value: un
       throw pathError(segments.slice(1).join('.'), 'theme paths are theme.<token> only');
     }
     const token = segments[1];
-    if (!token || !EDITABLE_THEME_TOKEN_NAMES.has(token)) {
+    if (!(token && EDITABLE_THEME_TOKEN_NAMES.has(token))) {
       throw pathError(token ?? 'theme', 'not an allowlisted design token');
     }
     if (typeof value !== 'string') {

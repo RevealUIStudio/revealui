@@ -46,6 +46,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../lib/api-roles.js';
 import { authMiddleware } from '../middleware/auth.js';
 import {
   buildPaymentRequired,
@@ -55,7 +56,6 @@ import {
   verifyPayment,
 } from '../middleware/x402.js';
 import { getExecutorStatus, getTaskProgress } from '../services/revmarket-executor.js';
-import { hasApiRole } from '../lib/api-roles.js';
 
 // =============================================================================
 // Helpers

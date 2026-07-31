@@ -2,7 +2,7 @@
  * GAP-444 — platform super-admin elevation + hasApiRole semantics.
  */
 import { describe, expect, it } from 'vitest';
-import { hasApiRole, isPlatformSuperAdmin, type ApiAuthUser } from '../api-roles.js';
+import { type ApiAuthUser, hasApiRole, isPlatformSuperAdmin } from '../api-roles.js';
 
 function user(partial: Partial<ApiAuthUser> & Pick<ApiAuthUser, 'id' | 'role'>): ApiAuthUser {
   return {

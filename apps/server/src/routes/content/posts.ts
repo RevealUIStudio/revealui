@@ -11,6 +11,7 @@ import { POST_STATUSES } from '@revealui/contracts/entities';
 import * as postQueries from '@revealui/db/queries/posts';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import {
   ErrorSchema,
@@ -22,7 +23,6 @@ import {
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
-import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
