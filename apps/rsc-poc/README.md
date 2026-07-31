@@ -1,6 +1,6 @@
 # `@rsc-poc/app` — GAP-194 RSC POC (T0 revive)
 
-> **Status (2026-07-31):** Restored from tag `archive/rsc-poc-spike` @ `918f5e083` for Phase 2.2.2 **T0 revive-POC gate**. Deps re-baselined to React/RSDW **19.2.7** lockstep (CVE floor ≥19.2.4) and `@vitejs/plugin-rsc` **0.5.27**. Survives into 2.2.x as the integration harness (not deleted until greenfield ships).
+> **Status (2026-07-31):** Restored from tag `archive/rsc-poc-spike` @ `918f5e083` for Phase 2.2.2 **T0 revive-POC gate**. Deps re-baselined to React/RSDW **19.2.8** lockstep (CVE floor ≥19.2.4; GHSA-wx67-qw84-cm4g) and `@vitejs/plugin-rsc` **0.5.27**. Survives into 2.2.x as the integration harness (not deleted until greenfield ships).
 
 ## What this is
 

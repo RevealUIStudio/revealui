@@ -147,8 +147,8 @@ overrides:
   fast-uri: '>=3.1.2'
   ip-address: '>=10.2.0'
   postcss: '>=8.5.10'
-  react: '>=19.2.4'
-  react-dom: '>=19.2.4'
+  react: 19.2.8
+  react-dom: 19.2.8
   basic-ftp: '>=5.3.0'
   underscore: '>=1.13.8'
   express-rate-limit: '>=8.2.2'
@@ -162,6 +162,7 @@ overrides:
   '@revealui/db': workspace:*
   sharp: '>=0.35.0'
   '@hono/node-server': '>=2.0.5'
+  react-server-dom-webpack: 19.2.8
 
 importers:
 
@@ -390,10 +391,10 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0(react@19.2.8)
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-hook-form:
         specifier: ^7.81.0
@@ -484,10 +485,10 @@ importers:
         specifier: ^0.8.212
         version: 0.8.212
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-markdown:
         specifier: 'catalog:'
@@ -609,10 +610,10 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(next@16.2.11(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-markdown:
         specifier: 'catalog:'
@@ -682,10 +683,10 @@ importers:
         specifier: 4.12.27
         version: 4.12.27
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-server-dom-webpack:
         specifier: 19.2.8
@@ -859,10 +860,10 @@ importers:
         specifier: 29.0.1
         version: 29.0.1(@noble/hashes@1.8.0)
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       typescript:
         specifier: 'catalog:'
@@ -958,7 +959,7 @@ importers:
         specifier: ^20.10.6
         version: 20.11.0
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       typescript:
         specifier: 'catalog:'
@@ -1170,10 +1171,10 @@ importers:
         specifier: 'catalog:'
         version: 8.22.0
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       yjs:
         specifier: 'catalog:'
@@ -1339,10 +1340,10 @@ importers:
         specifier: 29.0.1
         version: 29.0.1(@noble/hashes@1.8.0)
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       tsup:
         specifier: 'catalog:'
@@ -1541,10 +1542,10 @@ importers:
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.17)
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       tsup:
         specifier: 'catalog:'
@@ -1565,10 +1566,10 @@ importers:
         specifier: workspace:*
         version: link:../tokens
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       tailwind-merge:
         specifier: ^3.3.1
@@ -1678,10 +1679,10 @@ importers:
         specifier: 'catalog:'
         version: 19.2.17
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       tsup:
         specifier: ^8.5.1
@@ -1798,10 +1799,10 @@ importers:
         specifier: '>=8.5.10'
         version: 8.5.20
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       tailwindcss:
         specifier: ^4.3.2
@@ -1902,10 +1903,10 @@ importers:
         specifier: 29.0.1
         version: 29.0.1(@noble/hashes@1.8.0)
       react:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: '>=19.2.4'
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       typescript:
         specifier: 'catalog:'
@@ -2431,7 +2432,7 @@ packages:
   '@electric-sql/react@1.0.53':
     resolution: {integrity: sha512-iOEqvhtOrPKRCgCXe4pd96x/TfjxQw3ipr5GS76tPjA8qz/1cKFpYsbp2+iwc1LqsXVOsVkmVOOdwtx2SScVAg==}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
     peerDependenciesMeta:
       react:
         optional: true
@@ -2633,14 +2634,14 @@ packages:
   '@floating-ui/react-dom@2.1.9':
     resolution: {integrity: sha512-JDjEFGCpImxDCA7JJKviA0M9+RtmJdj0m/NVU5IMgBK+AmZouAQQ7/+2GLH0GXXY0YMw9oXPB8hKdbPYg5QLYg==}
     peerDependencies:
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
 
   '@floating-ui/react@0.27.20':
     resolution: {integrity: sha512-CMqMy7OaXl9W0eq1Uy7L7i2Y/anPvHmFmESd2CEw0t5YvZhcVCeo4MBevAmswRllX7Y2dEidA4ozGPunLSTQpw==}
     peerDependencies:
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
@@ -3048,8 +3049,8 @@ packages:
   '@lexical/devtools-core@0.46.0':
     resolution: {integrity: sha512-9J5dRO/tZXM/ROeSRvnkfMvfGa4AbOjDQmVFhK1WiuoPNBoC45m4hijE4R3/l/Z6xvjinc804PfAsAxVjgVVnA==}
     peerDependencies:
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
       typescript: '>=5.2'
     peerDependenciesMeta:
       typescript:
@@ -3154,8 +3155,8 @@ packages:
   '@lexical/react@0.46.0':
     resolution: {integrity: sha512-yYz09UTTSVFFpU6Zku/m4LLGgg6qjnz83PoPf7rxx7/IuZHcJK6dCaApXZUdilMHf+A1gGG0W4UNXGjWVaX1nw==}
     peerDependencies:
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
       typescript: '>=5.2'
       yjs: '>=13.5.22'
     peerDependenciesMeta:
@@ -4105,7 +4106,7 @@ packages:
     resolution: {integrity: sha512-fS0DplcP9eMxBIRurPC/uxa4NrFK+l9ZsnvQo7wZvNutc7DpTAH0hgFt6laVNCe57s1pFo+OZuKsYBA6JDvH4Q==}
     engines: {node: '>=18'}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
 
   '@sentry/replay-canvas@10.67.0':
     resolution: {integrity: sha512-neNA4T6MFtZzMdKYetiR+LZd9BNSd0q2szMn0wk+A15PqHE/IN7a34V6JZc9rCtmzB0wldh0eWGOBb49MSNKjA==}
@@ -4678,8 +4679,8 @@ packages:
       '@testing-library/dom': ^10.0.0
       '@types/react': ^18.0.0 || ^19.0.0
       '@types/react-dom': ^18.0.0 || ^19.0.0
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -4967,7 +4968,7 @@ packages:
       '@sveltejs/kit': ^1 || ^2
       next: '>=16.2.11'
       nuxt: '>= 3'
-      react: '>=19.2.4'
+      react: 19.2.8
       svelte: '>= 4'
       vue: ^3
       vue-router: ^4
@@ -5012,9 +5013,9 @@ packages:
   '@vitejs/plugin-rsc@0.5.27':
     resolution: {integrity: sha512-s1fd5DUkPXk86DDHPM/kP93WrvI0MoA8klxdDZmD1fMSaA9xujfgunsm8ZoUH0FemR+63vNalFsIDR0AJH4ktg==}
     peerDependencies:
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
-      react-server-dom-webpack: '*'
+      react: 19.2.8
+      react-dom: 19.2.8
+      react-server-dom-webpack: 19.2.8
       vite: 8.0.16
     peerDependenciesMeta:
       react-server-dom-webpack:
@@ -7518,8 +7519,8 @@ packages:
       '@opentelemetry/api': ^1.1.0
       '@playwright/test': ^1.51.1
       babel-plugin-react-compiler: '*'
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
       sass: ^1.3.0
     peerDependenciesMeta:
       '@opentelemetry/api':
@@ -7942,7 +7943,7 @@ packages:
   prism-react-renderer@2.4.1:
     resolution: {integrity: sha512-ey8Ls/+Di31eqzUxC46h8MksNuGx/n0AAC8uKpwFau4RPDYLuE3EXTp8N8G2vX2N7UC/+IXeNUnlWBGGcAG+Ig==}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
 
   prismjs@1.30.0:
     resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
@@ -8001,7 +8002,7 @@ packages:
   qrcode.react@4.2.0:
     resolution: {integrity: sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA==}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
 
   qs@6.15.3:
     resolution: {integrity: sha512-O9gl3zCl5h5blw1KGUzQKhA5oUXSl8rwUIM5o0S3nCXMliSvy5Dzx7/DJcI+SwgICv+IneSZwhBh1oSyEHA71A==}
@@ -8036,13 +8037,13 @@ packages:
   react-dom@19.2.8:
     resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
 
   react-hook-form@7.82.0:
     resolution: {integrity: sha512-Zw/uFZ2dO+02GHlBn7JFGn8kZJ7LdM33B/0BXOovzFay+CMhf94JMw5BVu+F1tVkUKjNvBuaE3fz5BJhga10Tg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -8051,14 +8052,14 @@ packages:
     resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
     peerDependencies:
       '@types/react': '>=18'
-      react: '>=19.2.4'
+      react: 19.2.8
 
   react-server-dom-webpack@19.2.8:
     resolution: {integrity: sha512-rFO1VJZ+cH9ZH6hGy9+qmIsmZHZpCMKJZXhWHqT71UnSfg+w+W+gwrwp58MVzMqdFquG8GF1c6C8q0OGphkEdg==}
     engines: {node: '>=0.10.0'}
     peerDependencies:
-      react: '>=19.2.4'
-      react-dom: '>=19.2.4'
+      react: 19.2.8
+      react-dom: 19.2.8
       webpack: ^5.59.0
 
   react@19.2.8:
@@ -8521,7 +8522,7 @@ packages:
     peerDependencies:
       '@babel/core': '*'
       babel-plugin-macros: '*'
-      react: '>=19.2.4'
+      react: 19.2.8
     peerDependenciesMeta:
       '@babel/core':
         optional: true
@@ -8894,7 +8895,7 @@ packages:
   use-sync-external-store@1.6.0:
     resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
     peerDependencies:
-      react: '>=19.2.4'
+      react: 19.2.8
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
