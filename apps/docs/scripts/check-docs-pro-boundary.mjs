@@ -5,21 +5,23 @@
 // path; this gate is the fail-closed CI assertion for that tree.
 //
 // Zero authored regex: line scans only (fleet hardline).
+// Dirent-based walk (no stat-then-read TOCTOU — CodeQL js/file-system-race).
 
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { basename, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NEVER_SERVE, readVisibility } from "./served-docs.mjs";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const docsProRoot = join(here, "..", "public", "docs-pro");
+const publicRoot = join(here, "..", "public");
 
 const problems = [];
 
 async function walk(dir) {
   let entries;
   try {
-    entries = await readdir(dir);
+    entries = await readdir(dir, { withFileTypes: true });
   } catch (err) {
     if (err && err.code === "ENOENT") {
       process.stdout.write("check-docs-pro-boundary: no public/docs-pro/ (ok)\n");
@@ -27,22 +29,29 @@ async function walk(dir) {
     }
     throw err;
   }
-  for (const name of entries) {
-    const full = join(dir, name);
-    const st = await stat(full);
-    if (st.isDirectory()) {
+  for (const ent of entries) {
+    const full = join(dir, ent.name);
+    if (ent.isDirectory()) {
       await walk(full);
       continue;
     }
-    if (!(name.endsWith(".md") || name.endsWith(".mdx"))) continue;
-    const rel = relative(join(here, "..", "public"), full);
+    if (!ent.isFile()) continue;
+    if (!(ent.name.endsWith(".md") || ent.name.endsWith(".mdx"))) continue;
+    const rel = relative(publicRoot, full);
     if (NEVER_SERVE.has(basename(full))) {
       problems.push(
         `${rel} — NEVER_SERVE basename under docs-pro (remove or relocate)`,
       );
       continue;
     }
-    const content = await readFile(full, "utf8");
+    // Single open: read only; no prior exists/stat race.
+    let content;
+    try {
+      content = await readFile(full, "utf8");
+    } catch (err) {
+      problems.push(`${rel} — unreadable (${err && err.code ? err.code : "error"})`);
+      continue;
+    }
     const vis = readVisibility(content);
     if (vis === null) {
       problems.push(
