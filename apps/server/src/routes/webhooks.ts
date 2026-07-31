@@ -2689,10 +2689,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           // revoked inside the saga but (unlike subscription.deleted) used to
           // skip the jti denylist. Without this write, a re-subscribe can
           // refresh a pre-cancel JWT lineage. Scope by subscriptionId.
-          if (
-            subscription.status === 'canceled' ||
-            subscription.status === 'incomplete_expired'
-          ) {
+          if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
             void recordJtisForRevokedCustomerLicenses(
               db,
               customerId,
@@ -3401,13 +3398,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
-        void recordJtisForRevokedCustomerLicenses(db, customerId, 'charge.dispute.lost').catch(
-          (err) => {
-            logger.warn('jti denylist write failed after charge.dispute.lost', {
-              error: err instanceof Error ? err.message : 'unknown',
-            });
-          },
-        );
+        void recordJtisForRevokedCustomerLicenses(
+          db,
+          disputeCustomerId,
+          'charge.dispute.lost',
+          disputeSubscriptionId,
+        ).catch((err) => {
+          logger.warn('jti denylist write failed after charge.dispute.lost', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+        });
+
 
         logger.warn('License revoked: chargeback dispute lost', {
           customerId: disputeCustomerId,
