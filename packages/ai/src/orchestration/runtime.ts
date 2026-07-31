@@ -46,8 +46,11 @@ export interface RuntimeConfig {
    *
    * @deprecated Prefer `mcpClients` (Stage 5.1a). The hypervisor path doesn't
    *   expose the full MCP protocol surface (resources, prompts, sampling,
-   *   elicitation). Standard `McpClient` instances do. This field stays for
-   *   backwards compatibility and will keep working until a future major.
+   *   elicitation). Standard `McpClient` instances do.
+   *
+   * **Removal owner:** product AI runtime. **REMOVE-BY:** `@revealui/ai` 1.0.0
+   * (with `MCPToolSource` / `discoverMCPTools`). Product agent-stream already
+   * mounts via `createToolsFromMcpClient` only; this field is external-compat.
    */
   mcpToolSource?: MCPToolSource;
   /**

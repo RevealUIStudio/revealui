@@ -47,6 +47,12 @@ export interface MCPClient {
  * @deprecated Prefer `McpClientLike` + `createToolsFromMcpClient()` (Stage 5.1a).
  *   The hypervisor path doesn't expose the full MCP protocol surface (resources,
  *   prompts, sampling, elicitation). The typed-client path does.
+ *
+ * **Removal owner:** product AI runtime (agent-stream already uses `mcpClients`).
+ * **REMOVE-BY:** `@revealui/ai` 1.0.0 — delete `MCPToolSource`, `discoverMCPTools`,
+ * and `AgentRuntime` `mcpToolSource` once no external kit still calls them
+ * (grep product + published examples in the same PR). Until then this path is
+ * retained for external SDK compatibility only.
  */
 export interface MCPToolSource {
   getAllTools(): Array<{ namespacedName: string; serverName: string; tool: MCPTool }>;
@@ -784,6 +790,7 @@ export interface DiscoverMCPToolsOptions {
  *
  * @deprecated Prefer `createToolsFromMcpClient` (Stage 5.1a). Kept for
  *   AgentRuntime `mcpToolSource` compatibility.
+ *   **REMOVE-BY:** `@revealui/ai` 1.0.0 (same train as `MCPToolSource`).
  *
  * @example
  * ```typescript
