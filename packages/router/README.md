@@ -84,7 +84,7 @@ function App() {
 
 ```typescript
 import { Hono } from 'hono'
-import { createSSRHandler } from '@revealui/router/server'
+import { createSSRHandler } from '@revealui/router/server-ssr'
 import routes from './routes'
 
 const app = new Hono()
@@ -309,8 +309,17 @@ createSSRHandler(routes, {
 
 ## RSC mode (0.4.0-rc+)
 
+**Import map (dual-mode packaging):**
+
+| Subpath | Use for |
+|---------|---------|
+| `@revealui/router` | Client SPA components/hooks (`RouterProvider`, `Link`, …) |
+| `@revealui/router/core` | `Router` class only — safe in RSC + browser shared route tables |
+| `@revealui/router/server` | RSC handler (`renderRequest`, `redirect`, `getRequest`, …) — **no** `react-dom/server` |
+| `@revealui/router/server-ssr` | SPA SSR (`createSSRHandler`, `hydrate`, `createDevServer`) |
+
 ```typescript
-import { Router } from '@revealui/router'
+import { Router } from '@revealui/router/core'
 import { renderRequest } from '@revealui/router/server'
 
 const router = new Router({ rsc: {} }) // or { rsc: { endpoint: '/.rsc' } }
@@ -343,7 +352,7 @@ export default {
 Quick development server:
 
 ```typescript
-import { createDevServer } from '@revealui/router/server'
+import { createDevServer } from '@revealui/router/server-ssr'
 
 await createDevServer(routes, {
   port: 3000,

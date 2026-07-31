@@ -10,7 +10,7 @@ vi.mock('@revealui/utils/logger', () => ({
   },
 }));
 
-import { createSSRHandler } from '../server.js';
+import { createSSRHandler } from '../server-ssr.js';
 import type { Route } from '../types.js';
 
 const HomeComponent = () => 'Home Page';

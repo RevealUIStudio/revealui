@@ -19,7 +19,7 @@ vi.mock('react-dom/client', () => ({
   hydrateRoot: hydrateRootMock,
 }));
 
-import { hydrate } from '../server.js';
+import { hydrate } from '../server-ssr.js';
 
 describe('hydrate', () => {
   beforeEach(() => {

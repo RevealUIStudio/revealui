@@ -233,7 +233,7 @@ export async function renderRequest(
     const { router } = options;
     if (router.mode !== 'rsc') {
       throw new Error(
-        'renderRequest requires Router in rsc mode: new Router({ rsc: {} }). Client mode: use createSSRHandler.',
+        'renderRequest requires Router in rsc mode: new Router({ rsc: {} }). Client mode: use createSSRHandler from @revealui/router/server-ssr.',
       );
     }
 
