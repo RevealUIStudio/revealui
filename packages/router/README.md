@@ -128,6 +128,7 @@ const router = new Router(options)
 - `initClient()` - Initialize client-side routing (popstate + link-click listeners)
 - `dispose()` - Remove client-side event listeners (call before unmounting or on HMR teardown)
 - `use(...middleware)` - Add global middleware (runs before all route middleware)
+- `seedCurrentMatch(match)` - Seed the current match (and loader data) without re-running middleware/loaders — used by SSR `hydrate()` so `useData()` works on first client paint. Client `navigate()` still does not run loaders (0.3.x SPA contract).
 
 ### Components
 

@@ -158,11 +158,14 @@ export async function hydrate(router: Router, rootElement: HTMLElement | null = 
   const dataScript = document.getElementById('__REVEALUI_DATA__');
   const ssrData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
 
-  // If we have SSR data with a route, resolve it to seed the router's current match
+  // If we have SSR data with a route, seed the router's current match (including
+  // loader data). Mutating a local match object is not enough: getCurrentMatch()
+  // re-matches on first read unless lastPathname/currentMatch are seeded.
   if (ssrData.route) {
     const match = router.match(window.location.pathname);
     if (match) {
       match.data = ssrData.data;
+      router.seedCurrentMatch(match);
     }
   }
 
