@@ -43,6 +43,61 @@ export interface MCPServerConfig {
 }
 
 /**
+ * Host env keys allowed into tenant MCP children (GAP-411).
+ * Intentionally excludes secrets, tokens, API keys, and NODE_OPTIONS
+ * (code injection). Tenant credentials come only from the credential
+ * resolver + explicit server config.env.
+ */
+export const TENANT_SPAWN_HOST_ENV_ALLOWLIST = [
+  'PATH',
+  'PATHEXT',
+  'SYSTEMROOT',
+  'WINDIR',
+  'COMSPEC',
+  'TMP',
+  'TEMP',
+  'TMPDIR',
+  'HOME',
+  'USERPROFILE',
+  'HOMEDRIVE',
+  'HOMEPATH',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'TZ',
+] as const;
+
+/**
+ * Build process env for a tenant-scoped MCP spawn.
+ *
+ * Does **not** spread `process.env` (GAP-411 residual). Only:
+ * 1. allowlisted host baseline (PATH/TMP/HOME/locale),
+ * 2. server `config.env`,
+ * 3. tenant credentials from the credential resolver.
+ *
+ * Host-owned process-local servers (`startServer`) still inherit full
+ * `process.env` — they are not tenant isolation boundaries.
+ */
+export function buildTenantSpawnEnv(
+  configEnv: Record<string, string> | undefined,
+  tenantEnv: Record<string, string>,
+  hostEnv: NodeJS.ProcessEnv = process.env,
+): NodeJS.ProcessEnv {
+  const baseline: Record<string, string> = {};
+  for (const key of TENANT_SPAWN_HOST_ENV_ALLOWLIST) {
+    const value = hostEnv[key];
+    if (typeof value === 'string' && value.length > 0) {
+      baseline[key] = value;
+    }
+  }
+  return {
+    ...baseline,
+    ...(configEnv ?? {}),
+    ...tenantEnv,
+  };
+}
+
+/**
  * Resolves credentials for a specific tenant/workspace at server spawn time.
  * Implementations should fetch from the database (tenantProviderConfigs, userApiKeys)
  * and return env vars to inject into the MCP server process.
@@ -655,7 +710,8 @@ export class MCPHypervisor {
       if (resolved) tenantEnv = resolved;
     }
 
-    // Create an isolated config with tenant credentials merged
+    // Create an isolated config with tenant credentials merged into config.env
+    // for bookkeeping; the actual spawn env never spreads process.env (GAP-411).
     const config: MCPServerConfig = {
       ...baseEntry.config,
       env: { ...baseEntry.config.env, ...tenantEnv },
@@ -669,10 +725,10 @@ export class MCPHypervisor {
       lastPingAt: null,
     };
 
-    // Spawn process
+    // Tenant spawn: allowlisted host baseline + config.env + tenant credentials only.
     const child = spawn(config.command, config.args, {
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, ...config.env },
+      env: buildTenantSpawnEnv(baseEntry.config.env, tenantEnv),
     });
 
     entry.process = child;

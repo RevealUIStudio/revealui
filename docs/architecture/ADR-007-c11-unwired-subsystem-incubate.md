@@ -61,10 +61,20 @@ Marketing and package copy still describe the MCP hypervisor as the live agent t
 
 `validate:incubate-posture` allowlists wire modules under `apps/server/src/lib/*-wire.ts` (and agent-stream consumer for skills/observability).
 
+## Progress — GAP-411 residual depth (2026-07-31)
+
+| Residual | Status | Notes |
+|----------|--------|-------|
+| Tenant spawn env isolation | Shipped | `buildTenantSpawnEnv` + `startServerForTenant` no longer spreads host `process.env` |
+| Skill catalog install paths | Shipped | `REVEALUI_AI_SKILLS_*` dirs + `loadAllSkills` / `loadAllFromDirectory` on wire |
+| Durable observability storage | Shipped | `REVEALUI_AI_OBSERVABILITY_PATH` → `FileSystemEventStorage` + auto-flush |
+
+Host-owned process-local `startServer` still inherits full `process.env` (not a tenant boundary).
+
 ## Verification
 
-- Production mounts of incubating surfaces go only through allowlisted GAP-406 wire modules (env-gated).
+- Production mounts of incubating surfaces go only through allowlisted GAP-406/411 wire modules (env-gated).
 - Package headers still note library surfaces; app default remains off without env flags.
-- **Phase 6 gate:** `pnpm validate:incubate-posture` fails on non-allowlisted app imports. Standing ticket: GAP-406 (close when residual product follow-ups done or abandoned).
+- **Phase 6 gate:** `pnpm validate:incubate-posture` fails on non-allowlisted app imports.
 - **Clone advisory:** `pnpm audit:clones` reports exact multi-file clones under `packages/` (optional prevention; advisory exit 0).
-- **Follow-up (not this train):** tenant spawn env isolation (avoid host `process.env` merge); deeper skill catalog install; durable event storage for observability.
+- GAP-411 residual product depth: tenant isolation + skill catalogs + file event storage (see table above).
