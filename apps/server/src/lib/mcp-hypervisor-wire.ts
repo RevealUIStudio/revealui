@@ -9,13 +9,18 @@
  *   Register + start process-local first-party MCP servers via `revealui-mcp`.
  *   Default server list is public introspection only (`contracts,docs`) unless
  *   `REVEALUI_MCP_HYPERVISOR_SERVERS` overrides (comma-separated allowlist).
- *   Process-local children inherit `process.env` for host credentials.
+ *   Process-local children inherit `process.env` for host credentials
+ *   (host-owned, not tenant isolation).
  *
  * Phase 3 (with phase 1):
  *   Credential resolver reads `mcp/<tenantId>/<serverName>/env` (JSON object of
  *   env vars) from a Vault (default revvault). Missing path → null (no tenant
- *   env). Tenant spawn still merges process.env in the hypervisor today;
- *   isolation tightening is a follow-up.
+ *   env).
+ *
+ * GAP-411 residual 1 (tenant spawn isolation):
+ *   `MCPHypervisor.startServerForTenant` no longer spreads host `process.env`.
+ *   Tenant children get allowlisted host baseline (PATH/TMP/HOME/locale) +
+ *   server config.env + vault-resolved tenant credentials only.
  *
  * Default (env unset): no-op. Safe for local/dev/serverless without hypervisor traffic.
  *
