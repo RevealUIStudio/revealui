@@ -107,4 +107,41 @@ describe('verifyLockstep', () => {
     expect(problems).toHaveLength(1);
     expect(problems[0]).toContain('malformed');
   });
+
+  it('definition-owned Claude rules must match content (not revcon hash)', () => {
+    const body = '# Biome\nfrom definitions\n';
+    writeRule('rules/biome.md', body);
+    mkdirSync(path.join(root, '.revealui', 'content', 'rules'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui', 'content', 'rules', 'biome.md'), body);
+    // Manifest still has a stale revcon hash for biome.
+    const manifest: Manifest = {
+      mode: 'copy',
+      editor: 'claude',
+      profiles: ['revealui'],
+      files: {
+        'rules/biome.md': {
+          source: 'profiles/revealui/claude/rules/biome.md',
+          sha256: 'deadbeef',
+        },
+      },
+    };
+    const defIds = new Set(['biome']);
+    expect(verifyLockstep(root, manifest, ['.claude/rules/biome.md'], defIds)).toEqual([]);
+
+    writeRule('rules/biome.md', `${body}\ndrift\n`);
+    const drifted = verifyLockstep(root, manifest, ['.claude/rules/biome.md'], defIds);
+    expect(drifted.some((p) => p.includes('dual drift'))).toBe(true);
+  });
+
+  it('definition mirrors not in the revcon manifest are not strays when they match content', () => {
+    const body = '# Code over docs\n';
+    writeRule('rules/code-over-docs.md', body);
+    mkdirSync(path.join(root, '.revealui', 'content', 'rules'), { recursive: true });
+    writeFileSync(path.join(root, '.revealui', 'content', 'rules', 'code-over-docs.md'), body);
+    writeRule('rules/git.md', '# Git\n');
+    const manifest = manifestFor({ 'rules/git.md': '' });
+    const defIds = new Set(['code-over-docs']);
+    const tracked = ['.claude/rules/git.md', '.claude/rules/code-over-docs.md'];
+    expect(verifyLockstep(root, manifest, tracked, defIds)).toEqual([]);
+  });
 });

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -93,11 +93,13 @@ describe('project manager (.revealui)', () => {
     expect(written.byGenerator['claude-code']).toBeGreaterThan(0);
     expect(written.byGenerator.cursor).toBe(1);
     expect(written.byGenerator.opencode).toBeGreaterThan(0);
-    expect(written.total).toBe(
+    const generatorTotal =
       written.byGenerator['claude-code'] +
-        written.byGenerator.cursor +
-        written.byGenerator.opencode,
-    );
+      written.byGenerator.cursor +
+      written.byGenerator.opencode;
+    // GAP-421 phase 2: definition rules also mirrored under .claude/rules/
+    expect(written.claudeRuleMirrors.length).toBeGreaterThan(0);
+    expect(written.total).toBe(generatorTotal + written.claudeRuleMirrors.length);
 
     const hooks = JSON.parse(readFileSync(join(root, '.cursor/hooks.json'), 'utf-8')) as {
       version: number;
@@ -113,6 +115,10 @@ describe('project manager (.revealui)', () => {
     );
     expect(contentRule.length).toBeGreaterThan(20);
 
+    // Phase 2: Claude load path matches content for definition rules
+    const claudeRule = readFileSync(join(root, '.claude/rules/code-over-docs.md'), 'utf-8');
+    expect(claudeRule).toBe(contentRule);
+
     // OpenCode gets at least one agent or command under .opencode
     const opencodePaths = written.paths.filter((p) => p.startsWith('.opencode/'));
     expect(opencodePaths.length).toBeGreaterThan(0);
@@ -122,6 +128,19 @@ describe('project manager (.revealui)', () => {
     expect(check.warnings.filter((w) => w.includes('cursor') || w.includes('opencode'))).toEqual(
       [],
     );
+  });
+
+  it('checkManager fails when .claude/rules dual drifts from content (GAP-421 phase 2)', () => {
+    const root = tempProject();
+    materializeManager(root);
+    writeManagerAdapterContent(root);
+    expect(checkManager(root).ok).toBe(true);
+
+    const dual = join(root, '.claude/rules/code-over-docs.md');
+    writeFileSync(dual, `${readFileSync(dual, 'utf-8')}\n// dual drift\n`, 'utf-8');
+    const drifted = checkManager(root);
+    expect(drifted.ok).toBe(false);
+    expect(drifted.errors.some((e) => e.includes('dual drift'))).toBe(true);
   });
 
   it('materialize preserves existing monorepo manager fields', () => {
