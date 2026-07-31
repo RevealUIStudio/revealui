@@ -8,11 +8,11 @@
  */
 
 import { readLicenseExp, readLicenseJti, resetLicenseState } from '@revealui/core';
+import { logger } from '@revealui/core/observability/logger';
 import { getJtiRevocationEpoch, type JtiRevocationInput, recordJtiRevocations } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { licenses } from '@revealui/db/schema';
 import { and, eq, isNull } from 'drizzle-orm';
-import { logger } from '@revealui/core/observability/logger';
 
 /**
  * Decode jtis from stored license JWTs and write denylist rows.
