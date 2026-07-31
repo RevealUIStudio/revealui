@@ -915,6 +915,21 @@ export async function readLicenseExp(licenseKey: string): Promise<number | null>
 }
 
 /**
+ * Reads the `jti` claim from a license JWT WITHOUT verifying its signature.
+ * Used when recording per-token denylist rows after a row-level revoke
+ * (GAP-260 P4-5). Never use as an authentication decision.
+ */
+export async function readLicenseJti(licenseKey: string): Promise<string | null> {
+  try {
+    const jose = await getJose();
+    const payload = jose.decodeJwt(licenseKey);
+    return typeof payload.jti === 'string' && payload.jti.length > 0 ? payload.jti : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Generates a signed license key JWT.
  * Server-only in practice (requires the private key) but edge-compatible —
  * `jose.importPKCS8` and `SignJWT` both run on Web Crypto.

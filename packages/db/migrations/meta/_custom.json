@@ -98,6 +98,12 @@
       "rationale": "GAP-447 existence-classified hole traversal: adds nullable `holes` jsonb column to audit_anchors recording burned seqs + foreign-scope-row count traversed within an anchor's range. Hand-written for the single ADD COLUMN IF NOT EXISTS idempotent statement, following the 0011/0015/0030 column-addition precedent. Companion Drizzle schema change at packages/db/src/schema/audit-anchors.ts adds the holes column (jsonb, typed via $type<AuditAnchorHoles>()) for type-safety; the security package's signAuditAnchorRoot/verifyAuditAnchorRoot cover the field in the signed payload only when present, so pre-existing anchors (NULL holes) verify unchanged.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. The Drizzle schema at audit-anchors.ts already reflects the holes column at the type level; the sweep + verify paths query via Drizzle ORM / the security package's pure functions."
+    },
+    {
+      "tag": "0032_gap260_license_jti_revocations",
+      "rationale": "GAP-260 P4-5: CREATE TABLE license_jti_revocations for per-token (jti) denylist revocation without rotating the vendor Ed25519 key. Hand-written CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0010/0021/0025 table-creation precedent. Companion Drizzle schema at packages/db/src/schema/license-jti-revocations.ts; app-layer sticky denylist at packages/db/src/license-jti-denylist.ts (fail-open for unknown jtis, sticky once observed revoked).",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema modeled for ORM typing; denylist writes/reads go through Drizzle."
     }
   ]
 }

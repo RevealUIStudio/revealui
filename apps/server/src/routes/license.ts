@@ -14,7 +14,7 @@ import {
   mintLicenseKey,
 } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
+import { getClient, isJtiRevoked } from '@revealui/db';
 import { licenses } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull } from 'drizzle-orm';
@@ -243,6 +243,34 @@ app.openapi(verifyRoute, async (c) => {
       },
       200,
     );
+  }
+
+  // GAP-260 P4-5: per-jti denylist (fail-open for unknown; sticky once revoked).
+  // A leaked token lineage can be refused without rotating the vendor key or
+  // revoking every token for the customer.
+  if (payload.jti) {
+    try {
+      if (await isJtiRevoked(getClient(), payload.jti)) {
+        return c.json(
+          {
+            valid: false,
+            reason: 'revoked' as const,
+            tier: 'free' as const,
+            customerId: null,
+            features: getFeaturesForTier('free'),
+            maxSites: 1,
+            maxUsers: 3,
+            expiresAt: null,
+          },
+          200,
+        );
+      }
+    } catch (err) {
+      // isJtiRevoked already fail-opens on DB errors; this catch is defensive.
+      logger.warn('jti denylist check threw during verify — treating as not denylisted', {
+        error: err instanceof Error ? err.message : 'unknown',
+      });
+    }
   }
 
   // JWT is structurally valid  -  also check DB status to catch explicit revocations
@@ -557,11 +585,11 @@ app.openapi(refreshRoute, async (c) => {
     return deny();
   }
 
-  // NOTE (GAP-260): per-`jti` denylist revocation — refusing a specifically
-  // revoked token lineage even when its customer's row is still active — lands
-  // with the GAP-260 jti-denylist (owner-gated, not yet built). Until then,
-  // row-level revocation is enforced by the active-row check below: a revoked
-  // or lapsed license has status != 'active', so no key is returned.
+  // GAP-260 P4-5: refuse a specifically revoked jti even when the customer
+  // still has an active license row (leaked-token lineage).
+  if (payload.jti && (await isJtiRevoked(getClient(), payload.jti))) {
+    return deny();
+  }
 
   // Return the current stored key for an ACTIVE, non-deleted license row of the
   // token's customerId, scoped to this deployment's Stripe mode (mirrors

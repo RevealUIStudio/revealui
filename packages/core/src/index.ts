@@ -84,6 +84,8 @@ export {
   configureLicenseCache,
   type GracePeriodConfig,
   generateLicenseKey,
+  readLicenseJti,
+  readLicenseExp,
   getCurrentTier,
   getGraceConfig,
   getLicensePayload,

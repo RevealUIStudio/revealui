@@ -74,6 +74,7 @@ import {
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
+import { recordJtisForRevokedCustomerLicenses } from '../lib/license-jti-revocation.js';
 
 const app = new OpenAPIHono();
 
@@ -1927,6 +1928,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(
+          db,
+          customerId,
+          'subscription.deleted',
+          subscription.id,
+        ).catch((err) => {
+          logger.warn('jti denylist write failed after subscription.deleted', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+        });
 
         logger.info('License revoked on subscription deletion', {
           customerId,
@@ -2006,6 +2017,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(db, customerId, 'customer.deleted').catch(
+          (err) => {
+            logger.warn('jti denylist write failed after customer.deleted', {
+              error: err instanceof Error ? err.message : 'unknown',
+            });
+          },
+        );
 
         logger.warn('License revoked: Stripe customer deleted', { customerId });
         auditLicenseEvent(db, 'license.revoked.customer_deleted', 'warn', { customerId });
@@ -3362,6 +3380,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(db, customerId, 'charge.dispute.lost').catch(
+          (err) => {
+            logger.warn('jti denylist write failed after charge.dispute.lost', {
+              error: err instanceof Error ? err.message : 'unknown',
+            });
+          },
+        );
 
         logger.warn('License revoked: chargeback dispute lost', {
           customerId: disputeCustomerId,
@@ -3762,6 +3787,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           resetLicenseState();
           resetDbStatusCache();
+          void recordJtisForRevokedCustomerLicenses(db, customerId, 'charge.refunded').catch(
+            (err) => {
+              logger.warn('jti denylist write failed after charge.refunded', {
+                error: err instanceof Error ? err.message : 'unknown',
+              });
+            },
+          );
 
           logger.warn('License revoked: full refund issued', {
             customerId,

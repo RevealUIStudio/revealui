@@ -60,6 +60,7 @@ export * from './idempotency.js';
 export * from './inference-configs.js';
 export * from './jobs.js';
 export * from './licenses.js';
+export * from './license-jti-revocations.js';
 export * from './lifecycle-emails.js';
 export * from './magic-links.js';
 export * from './marketplace.js';

@@ -26,6 +26,13 @@
 // Re-export audit stores
 export type { AuditEntry, AuditRowSignable, AuditRowSignerFn } from './audit-store.js';
 export { DrizzleAuditStore } from './audit-store.js';
+export {
+  __resetJtiDenylistForTest,
+  getJtiRevocationEpoch,
+  isJtiRevoked,
+  recordJtiRevocations,
+  type JtiRevocationInput,
+} from './license-jti-denylist.js';
 // Re-export client utilities
 export {
   closeAllPools,
