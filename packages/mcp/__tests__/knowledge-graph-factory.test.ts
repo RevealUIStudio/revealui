@@ -10,6 +10,10 @@
  * `src/__tests__/test-db.ts`, built only from that package's PUBLIC export
  * surface (`kgDdlStatements` + `makeExecutor`) since the internal test
  * helper isn't exported. NEVER touches a real database.
+ *
+ * GAP-385: read-only tool suites share one seeded PGlite (one cold start +
+ * DDL + seed per describe). Write/mutation cases still open an isolated
+ * instance so they cannot pollute peers under gate load.
  */
 
 import { createServer as createHttpServer, type Server as NodeHttpServer } from 'node:http';
@@ -24,7 +28,7 @@ import {
   makeExecutor,
   type NodeInput,
 } from '@revealui/knowledge-graph';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { McpClient } from '../src/client.js';
 import {
   createKnowledgeGraphServer,
@@ -288,10 +292,21 @@ describe('kg_add_episode ontology validation', () => {
 // ---------------------------------------------------------------------------
 
 describe('knowledge-graph MCP tools (PGlite)', () => {
+  // Shared seeded instance for pure-read cases (GAP-385). Mutation tests below
+  // open an isolated PGlite so they cannot poison the shared graph.
+  let shared: TestDb;
+
+  beforeAll(async () => {
+    shared = await createTestDb();
+    await seed(shared.exec);
+  }, 90_000);
+
+  afterAll(async () => {
+    await shared.close().catch(() => undefined);
+  });
+
   it('lists all 7 tools', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    const { client } = await connectedClient(db.exec);
+    const { client } = await connectedClient(shared.exec);
     const tools = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual(
       [
@@ -307,10 +322,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_search finds a seeded node via the FTS channel with no embedder configured', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({ name: 'kg_search', arguments: { query: 'client' } });
     expect(result.isError).not.toBe(true);
     const parsed = parseToolJson<{ nodes: Array<{ naturalKey: string }> }>(result);
@@ -318,10 +330,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_get_node fetches a seeded node by natural key with its current facts', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_get_node',
       arguments: { naturalKey: FILE_KEY },
@@ -336,9 +345,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_get_node returns an MCP tool error for an unknown natural key', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_get_node',
       arguments: { naturalKey: 'does-not-exist' },
@@ -347,10 +354,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_neighbors reaches connected nodes', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_neighbors',
       arguments: { naturalKey: FILE_KEY, depth: 2 },
@@ -365,10 +369,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_path finds the shortest path between two nodes', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_path',
       arguments: { fromNaturalKey: FILE_KEY, toNaturalKey: 'npm:zod' },
@@ -380,6 +381,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_path returns null when no path exists', async () => {
+    // Isolated DB: this case mutates by inserting an orphan node.
     const db = await createTestDb();
     teardowns.push(db.close);
     await seed(db.exec);
@@ -408,10 +410,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_at_time returns the facts valid at the seeded reference time', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_at_time',
       arguments: { naturalKey: FILE_KEY, at: new Date(T.getTime() + 1000).toISOString() },
@@ -422,6 +421,7 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
   });
 
   it('kg_add_episode is the only write path and its result is durably visible to reads', async () => {
+    // Isolated DB: write path must not contaminate the shared read graph.
     const db = await createTestDb();
     teardowns.push(db.close);
     const { sdk } = await connectedClient(db.exec);
@@ -461,11 +461,19 @@ describe('knowledge-graph MCP tools (PGlite)', () => {
 // ---------------------------------------------------------------------------
 
 describe('kg_context budget enforcement', () => {
+  let shared: TestDb;
+
+  beforeAll(async () => {
+    shared = await createTestDb();
+    await seed(shared.exec);
+  }, 90_000);
+
+  afterAll(async () => {
+    await shared.close().catch(() => undefined);
+  });
+
   it('packs the full neighborhood within a generous budget', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_context',
       arguments: { naturalKey: FILE_KEY, depth: 2, charBudget: 16_000 },
@@ -483,10 +491,7 @@ describe('kg_context budget enforcement', () => {
   });
 
   it('truncates and never exceeds charBudget under a tight budget', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_context',
       arguments: { naturalKey: FILE_KEY, depth: 2, charBudget: 80 },
@@ -504,10 +509,7 @@ describe('kg_context budget enforcement', () => {
   });
 
   it('includes provenance episode ids for facts in the packed context', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({
       name: 'kg_context',
       arguments: { naturalKey: FILE_KEY, depth: 2, charBudget: 16_000 },
@@ -518,19 +520,14 @@ describe('kg_context budget enforcement', () => {
   });
 
   it('defaults charBudget to 16000 when omitted', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    await seed(db.exec);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({ name: 'kg_context', arguments: { naturalKey: FILE_KEY } });
     const parsed = parseToolJson<{ charBudget: number }>(result);
     expect(parsed.charBudget).toBe(16_000);
   });
 
   it('returns an MCP tool error for an unknown anchor natural key', async () => {
-    const db = await createTestDb();
-    teardowns.push(db.close);
-    const { sdk } = await connectedClient(db.exec);
+    const { sdk } = await connectedClient(shared.exec);
     const result = await sdk.callTool({ name: 'kg_context', arguments: { naturalKey: 'nope' } });
     expect(result.isError).toBe(true);
   });
