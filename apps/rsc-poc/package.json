@@ -20,9 +20,9 @@
     "@vitejs/plugin-react": "catalog:",
     "@vitejs/plugin-rsc": "0.5.27",
     "hono": "4.12.27",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "react-server-dom-webpack": "19.2.7"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-server-dom-webpack": "19.2.8"
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",
