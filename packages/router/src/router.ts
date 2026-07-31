@@ -359,6 +359,23 @@ export class Router {
   }
 
   /**
+   * Seed the current match without re-running middleware or loaders.
+   *
+   * Used by SSR hydration to apply `__REVEALUI_DATA__` so `useData()` /
+   * `getCurrentMatch()` keep loader results across the first client paint.
+   * Client-side `navigate()` still uses plain `match()` only (no loaders);
+   * that is intentional for 0.3.x SPA consumers.
+   */
+  seedCurrentMatch(match: RouteMatch | null): void {
+    this.currentMatch = match;
+    if (typeof window !== 'undefined') {
+      this.lastPathname = window.location.pathname;
+    } else {
+      this.lastPathname = null;
+    }
+  }
+
+  /**
    * Get all registered routes
    */
   getRoutes(): Route[] {

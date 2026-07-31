@@ -369,6 +369,15 @@ async function gate(): Promise<void> {
         args: ['validate:rules-lockstep'],
       },
       {
+        // GAP-379: deps-stage COPY package.json lists in server/admin
+        // Dockerfiles must cover the pnpm --filter <app>... workspace
+        // closure. Whole-tree-copy Dockerfiles (worker) are out of scope.
+        // Mirrored in CI by the Quality job step in .github/workflows/ci.yml.
+        name: 'Dockerfile deps COPY lockstep (hard fail)',
+        command: 'pnpm',
+        args: ['validate:dockerfile-deps'],
+      },
+      {
         // Every prose sentence in covered marketing content files must carry
         // a claims-evidence entry citing the code that proves it; cited paths
         // must exist. Sibling of claim-drift: that gate pins the numbers,

@@ -82,6 +82,7 @@ Documentation link checking runs separately via `pnpm --filter docs check:links`
 | `mixed-changesets.ts`    | `pnpm validate:changesets`     | Flag mixed OSS/Pro changesets              |
 | `changelog-format.ts`    | `pnpm validate:changelogs`     | Enforce changelog format                   |
 | `pricing-lockstep.ts`    | `pnpm validate:pricing-lockstep` | Keep pricing sources in lockstep         |
+| `dockerfile-deps-lockstep.ts` | `pnpm validate:dockerfile-deps` | Keep Dockerfile package.json COPY lists in lockstep with the app workspace closure (GAP-379) |
 | `prod-env.ts`            | `pnpm validate:prod-env`       | Validate production env configuration      |
 | `gitignore-pro.ts`       | `pnpm validate:gitignore`      | Enforce Pro-package gitignore policy       |
 | `seed-script-wiring.ts`  | `pnpm validate:seed-wiring`    | Verify seed scripts are wired correctly    |

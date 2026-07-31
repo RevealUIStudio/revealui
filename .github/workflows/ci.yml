@@ -174,6 +174,13 @@ jobs:
         # match it exactly. Mirrors the local gate step in scripts/gates/ci-gate.ts.
         run: pnpm validate:rules-lockstep
 
+      - name: Dockerfile deps COPY lockstep (hard fail)
+        # GAP-379: server/admin deps-stage package.json COPY lists must cover
+        # the pnpm --filter <app>... workspace closure. Names the exact missing
+        # COPY line on failure. Worker whole-tree Dockerfiles are out of scope.
+        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:dockerfile-deps
+
       - name: Project manager check (path-gated hard fail)
         # GAP-406: when a PR (or push) touches .revealui or packages/harnesses,
         # hard-fail if manager.json is missing/invalid. Extends validate:structure
