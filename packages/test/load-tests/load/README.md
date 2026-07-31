@@ -113,7 +113,9 @@ The performance baseline script outputs key metrics:
 - Requests per second
 - Average latency
 
-For autocannon baseline tests, results are saved to `baseline.json` and compared against budgets in `performance-regression.ts`.
+For autocannon baseline tests, committed baselines live in `baseline.json` and are compared against budgets in `performance-regression.ts`.
+
+`current-results.json` is **generated** local/CI output for comparison runs. It is gitignored. Do not commit a frozen copy (a prior committed twin of baseline made the regression signal inert).
 
 ## Configuration
 

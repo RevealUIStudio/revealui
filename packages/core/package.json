@@ -325,6 +325,12 @@
       "import": "./dist/observability/alerts.js",
       "default": "./dist/observability/alerts.js"
     },
+    "./observability/cron-failure-alert": {
+      "types": "./dist/observability/cron-failure-alert.d.ts",
+      "import": "./dist/observability/cron-failure-alert.js",
+      "default": "./dist/observability/cron-failure-alert.js"
+    },
+
     "./utils/cache": {
       "types": "./dist/utils/cache.d.ts",
       "import": "./dist/utils/cache.js",
