@@ -347,6 +347,13 @@ export default {
 - `getRequest()` via ALS inside `renderRequest` / `runWithRequest`
 - `x-rsc-action` POST: `useAction` middleware then `loadServerAction` + `returnValue` on stream ctx
 
+## Client-mode compat (T9 / D16)
+
+Default `new Router()` (no `rsc` option) is the 0.3.x SPA contract used by
+`apps/docs` and `apps/marketing`. Regression suite:
+`src/__tests__/client-mode-compat.test.tsx` (export surface, navigate without
+loaders, 0.3.10 scroll behavior, hooks composition).
+
 ## Dev Server
 
 Quick development server:
