@@ -107,7 +107,7 @@ Before starting the dev server, initialize the database schema:
 pnpm db:migrate
 ```
 
-This creates all 97 tables. If you see a connection error, double-check your `POSTGRES_URL`  -  it must include `?sslmode=require` for NeonDB.
+This creates all 98 tables. If you see a connection error, double-check your `POSTGRES_URL`  -  it must include `?sslmode=require` for NeonDB.
 
 ---
 
