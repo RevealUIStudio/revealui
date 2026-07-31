@@ -28,6 +28,7 @@ If an agent did it, there's a receipt.
 Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 
 - [Read the full thesis](https://revealui.com/blog/ui-of-the-future): "The UI of the Future Has Yet to Reveal Itself"
+- [Forward-deployed handoff](https://revealui.com/blog/open-runtime-for-fde-work): "The open runtime for forward-deployed agent work"
 
 ## Pricing
 

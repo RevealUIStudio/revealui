@@ -31,6 +31,31 @@ describe('session boundary (soft-optional daemon)', () => {
     expect(result.reason).toMatch(/absent/i);
   });
 
+  it('archives on end even when socket absent (skipArchive false)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'sess-arch-'));
+    dirs.push(dir);
+    process.env.REVFLEET_ARCHIVE = join(dir, 'archive');
+    process.env.REVDEV_DAEMON_SESSION_DIR = join(dir, 'sessions');
+    process.env.REVDEV_HOOK_IDENTITY_DIR = join(dir, 'ids');
+    const { writeDaemonSessionCache } = await import('../session/identity-cache.js');
+    writeDaemonSessionCache('archived-agent-1', 'ppid-arch');
+    const ended = await sessionEnd({
+      socketPath: join(dir, 'no.sock'),
+      ppid: 'ppid-arch',
+      exitSummary: 'test-archive',
+      backend: 'test',
+    });
+    expect(ended.skipped).toBe(true);
+    const { existsSync, readdirSync } = await import('node:fs');
+    const cold = join(dir, 'archive', 'cold', 'sessions', 'daemon');
+    expect(existsSync(cold)).toBe(true);
+    const files = readdirSync(cold).filter((f) => f.endsWith('.json'));
+    expect(files.length).toBeGreaterThanOrEqual(1);
+    delete process.env.REVFLEET_ARCHIVE;
+    delete process.env.REVDEV_DAEMON_SESSION_DIR;
+    delete process.env.REVDEV_HOOK_IDENTITY_DIR;
+  });
+
   it('registers and ends against a mock daemon with signing', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'sess-bound-'));
     dirs.push(dir);
@@ -113,6 +138,7 @@ describe('session boundary (soft-optional daemon)', () => {
     const ended = await sessionEnd({
       socketPath: sock,
       ppid: 'testppid',
+      skipArchive: true,
     });
     expect(ended.ok).toBe(true);
     expect(ended.agentId).toBe(agentId);

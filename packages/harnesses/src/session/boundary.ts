@@ -9,6 +9,7 @@
  */
 
 import { hostname } from 'node:os';
+import { archiveSessionExit } from './archive-exit.js';
 import {
   clearDaemonSessionCache,
   clearHookIdentity,
@@ -44,6 +45,13 @@ export interface EndOptions {
   readonly exitSummary?: string;
   /** When set, end this agent even if cache missing (must have identity). */
   readonly agentId?: string;
+  /** Optional backend label for cold archive (e.g. grok, claude-code). */
+  readonly backend?: string;
+  /** Optional work dir / task captured at exit for the archive record. */
+  readonly workDir?: string;
+  readonly task?: string;
+  /** Skip cold-archive write (tests). Default false. */
+  readonly skipArchive?: boolean;
 }
 
 function defaultAgentId(backend: string): string {
@@ -123,23 +131,62 @@ export async function sessionRegister(options: RegisterOptions): Promise<Session
 }
 
 /**
- * End the cached daemon session (signature-required). Soft if no cache or daemon down.
+ * End the cached daemon session (signature-required), then archive the exit
+ * into the RevFleet cold session store so live peer lists stay unpolluted.
+ * Soft if no cache or daemon down — archive still runs when agentId is known.
  */
 export async function sessionEnd(options: EndOptions = {}): Promise<SessionBoundaryResult> {
   const socketPath = options.socketPath;
+  const exitSummary = options.exitSummary ?? 'hook-session-end';
+  const ppid = options.ppid ?? process.ppid;
+
   if (!isDaemonSocketPresent(socketPath)) {
-    clearDaemonSessionCache(options.ppid ?? process.ppid);
-    return { ok: false, skipped: true, reason: 'daemon socket absent' };
+    const agentId = options.agentId ?? readDaemonSessionCache(ppid);
+    if (agentId && !options.skipArchive) {
+      archiveSessionExit({
+        agentId,
+        endedAt: new Date().toISOString(),
+        exitSummary,
+        backend: options.backend,
+        workDir: options.workDir ?? process.cwd(),
+        task: options.task,
+        ppid,
+        source: 'session.end',
+        daemonEnded: false,
+        notes: 'daemon socket absent; archived without session.end RPC',
+      });
+    }
+    clearDaemonSessionCache(ppid);
+    return {
+      ok: false,
+      skipped: true,
+      reason: 'daemon socket absent',
+      ...(agentId ? { agentId } : {}),
+    };
   }
 
-  const agentId = options.agentId ?? readDaemonSessionCache(options.ppid ?? process.ppid);
+  const agentId = options.agentId ?? readDaemonSessionCache(ppid);
   if (!agentId) {
     return { ok: false, skipped: true, reason: 'no cached daemon session id' };
   }
 
   const identity = resolveAfterRegister({ agentId });
   if (!identity) {
-    clearDaemonSessionCache(options.ppid ?? process.ppid);
+    if (!options.skipArchive) {
+      archiveSessionExit({
+        agentId,
+        endedAt: new Date().toISOString(),
+        exitSummary,
+        backend: options.backend,
+        workDir: options.workDir ?? process.cwd(),
+        task: options.task,
+        ppid,
+        source: 'session.end',
+        daemonEnded: false,
+        notes: 'no signing identity; cache cleared; prune may reap daemon row',
+      });
+    }
+    clearDaemonSessionCache(ppid);
     return {
       ok: false,
       skipped: true,
@@ -150,9 +197,11 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
 
   const params: Record<string, unknown> = {
     actorAgentId: agentId,
-    exitSummary: options.exitSummary ?? 'hook-session-end',
+    exitSummary,
   };
 
+  let daemonEnded = false;
+  let endError: string | undefined;
   try {
     const signature = signRpc(identity as HookIdentity, 'session.end', params);
     await rpcCall('session.end', params, {
@@ -160,17 +209,46 @@ export async function sessionEnd(options: EndOptions = {}): Promise<SessionBound
       timeoutMs: options.timeoutMs ?? 4000,
       signature,
     });
-    clearDaemonSessionCache(options.ppid ?? process.ppid);
-    clearHookIdentity(agentId);
-    return { ok: true, skipped: false, agentId };
+    daemonEnded = true;
   } catch (err) {
-    // Still clear cache so we do not leave stale ids; prune reaps daemon rows.
-    clearDaemonSessionCache(options.ppid ?? process.ppid);
-    return {
-      ok: false,
-      skipped: false,
-      agentId,
-      reason: err instanceof Error ? err.message : String(err),
-    };
+    endError = err instanceof Error ? err.message : String(err);
   }
+
+  // Always clear local cache after an exit attempt so peers do not keep a
+  // stale "live" claim for this process.
+  clearDaemonSessionCache(ppid);
+  clearHookIdentity(agentId);
+
+  if (!options.skipArchive) {
+    const archived = archiveSessionExit({
+      agentId,
+      endedAt: new Date().toISOString(),
+      exitSummary,
+      backend: options.backend,
+      workDir: options.workDir ?? process.cwd(),
+      task: options.task,
+      ppid,
+      source: 'session.end',
+      daemonEnded,
+      notes: endError ? `session.end RPC failed: ${endError}` : undefined,
+    });
+    if (archived.ok && archived.path) {
+      // Visible one-liner so SessionEnd logs show the archive path.
+      process.stderr.write(`[session-archive] wrote ${archived.path}\n`);
+    } else if (!archived.ok) {
+      process.stderr.write(
+        `[session-archive] WARN: cold archive failed (${archived.reason ?? 'unknown'})\n`,
+      );
+    }
+  }
+
+  if (daemonEnded) {
+    return { ok: true, skipped: false, agentId };
+  }
+  return {
+    ok: false,
+    skipped: false,
+    agentId,
+    reason: endError ?? 'session.end failed',
+  };
 }

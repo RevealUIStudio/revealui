@@ -13,6 +13,8 @@ export const preambles: PreambleTier[] = [
       'durable-solutions',
       'disposition-actions',
       'adapter-only',
+      // HARDLINE every session: no underscore-silence of unused (owner 2026-07-29)
+      'unused-declarations',
     ],
   },
   {
@@ -26,7 +28,7 @@ export const preambles: PreambleTier[] = [
     tier: 3,
     name: 'Domain',
     description: 'Feature-area specific policies  -  analysis standards, code hygiene',
-    ruleIds: ['code-analysis-policy', 'unused-declarations'],
+    ruleIds: ['code-analysis-policy'],
   },
   {
     tier: 4,

@@ -166,21 +166,8 @@ export type {
   SnapStatus,
 } from './server/inference-service.js';
 export { InferenceService, PRODUCT_INFERENCE_SNAPS } from './server/inference-service.js';
-export type { DaemonStoreConfig } from './storage/daemon-store.js';
-// Storage (PGlite-backed). Retained out of the daemon-ownership ADR's DELETE set:
-// server/__tests__/http-gateway.test.ts exercises the real store for the gateway's
-// auth flow (GAP-353), a consumer the ADR's routing did not account for.
-export { DaemonStore } from './storage/daemon-store.js';
-export type {
-  AgentMessage,
-  AgentSession,
-  AgentTask,
-  DaemonEvent,
-  FileReservation,
-  GoalCriterionRow,
-  GoalRow,
-} from './storage/schema.js';
-export { SCHEMA_SQL } from './storage/schema.js';
+// HTTP gateway + PGlite DaemonStore were deleted after the RevDev port
+// (revdev#328/#329). Remote pairing lives in @revdev/daemon only.
 export type { HarnessAdapter } from './types/adapter.js';
 // Types  -  harness core
 export type {

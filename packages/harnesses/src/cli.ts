@@ -13,7 +13,7 @@
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--project <path>]    Print current workboard state
  *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
- *   session register|end             Soft-optional RevDev daemon session boundary (Grok/equal adapters)
+ *   session register|end|peers|reap  Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
  *
  * License: FSL-1.1-MIT
  */
@@ -86,7 +86,10 @@ async function rpcCall(method: string, params: unknown = {}): Promise<unknown> {
 
 async function handleContentCommand(subcommand: string | undefined, args: string[]): Promise<void> {
   const manifest = buildManifest();
-  const projectRoot = process.cwd();
+  // Same --project resolution as `manager` (GAP-421 content freshness runs from
+  // monorepo root via packages/harnesses/dist/cli.js).
+  const projectIdx = args.indexOf('--project');
+  const projectRoot = projectIdx >= 0 ? (args[projectIdx + 1] ?? DEFAULT_PROJECT) : DEFAULT_PROJECT;
   const ctx = { projectRoot };
 
   switch (subcommand) {
@@ -717,7 +720,7 @@ Commands:
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
   hook <cursor|claude-code|vscode|grok>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
-  session register|end              Soft-optional RevDev daemon session boundary (equal adapters)
+  session register|end|peers|reap   Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid
@@ -728,7 +731,8 @@ Commands:
 Content Subcommands:
   content list                      List all canonical content with metadata
   content validate                  Validate all definitions against schemas
-  content diff [--generator <id>] [--check]  Disk vs definitions (exit 1 with --check on drift)
+  content diff [--generator <id>] [--check] [--project p]
+                                Disk vs definitions (exit 1 with --check on drift)
   content snapshot [--check|--write] [--generator <id>]  Definition ↔ committed snapshot (GAP-406)
   content sync [--generator <id>] [--dry-run]  Generate into .revealui/content (default generator)
   content export --output <path>    Export canonical + generated files to directory

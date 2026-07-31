@@ -212,28 +212,25 @@ export function configureModule(overrides: Partial<ModuleConfig>): void {
 - Type discriminants and enum values
 - Schema definitions (use contracts)
 
-## Unused Declarations
+## Unused Declarations (HARDLINE every session)
 
-**NEVER suppress an unused variable/import warning without first determining if the code is incomplete.**
+**NEVER silence unused with a leading underscore** (\`_line\`, \`_unused\`) when
+the honest fix is implement, redesign the signature, or delete. Biome's
+underscore exception is not a free pass. See rule \`unused-declarations\`
+(preamble tier 1).
 
 ### Mandatory Decision Tree
 
 \`\`\`
-1. Stub or placeholder?
-   → IMPLEMENT the missing functionality. Do not suppress.
-
-2. Intentional side-effect resource?
-   → Rename with \`_\` prefix. Add a comment explaining WHY.
-
-3. Type-only import?
-   → Change to \`import type { ... }\`.
-
-4. Required callback parameter?
-   → Prefix with \`_\` (e.g. \`_req\`). Comment if non-obvious.
-
-5. Genuinely dead code?
-   → DELETE entirely. No grace periods.
+1. Param should drive logic? → IMPLEMENT it (empty guards count as real use).
+2. You own the API and param is unnecessary? → REMOVE from signature + call sites.
+3. Type-only import? → \`import type { ... }\`.
+4. Genuinely dead? → DELETE. No grace periods.
+5. Host-mandated callback arity you cannot change? → \`_\` only with a comment naming the host.
+6. IaC side-effect construct? → \`_\` only with a WHY comment.
 \`\`\`
+
+Underscore silence for incomplete work is a hardline violation.
 
 ### Verification After Any Lint Fix
 

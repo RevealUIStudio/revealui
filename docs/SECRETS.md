@@ -501,10 +501,11 @@ resolves the same way). Storing it in revvault would invert the design: it
 would require a working revvault unlock to reach a locally-running daemon,
 and it would move the credential off the single machine it authenticates.
 The daemon generates the secret on first start
-(`HttpGateway.initAuth()`, `packages/harnesses/src/server/http-gateway.ts`);
+(`HttpGateway.initAuth()` in `@revdev/daemon`
+`packages/daemon/src/http-gateway.ts`, ported from harnesses via revdev#328);
 only its SHA-256 hash is ever persisted (the `gateway_bootstrap` table),
-never the plaintext. See the harnesses README's "Remote Gateway (HTTP)"
-section for the pairing flow.
+never the plaintext. See the RevDev daemon remote-gateway docs / Studio
+Settings pairing UI for the flow.
 
 **Review date:** 2027-07-18 (annual)
-**Owner:** RevealUI Studio (harness daemon maintainer)
+**Owner:** RevealUI Studio (RevDev daemon maintainer)

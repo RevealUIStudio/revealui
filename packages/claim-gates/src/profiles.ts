@@ -20,6 +20,8 @@ export interface ClaimProfile {
   readonly licenseScanRoots: readonly string[];
   readonly futureTenseFiles: readonly string[];
   readonly aspirationalPaths: readonly string[];
+  /** Paths scanned for COPY-DEP feature-existence holds (may exceed aspirational). */
+  readonly copyDependentPaths: readonly string[];
   readonly fleetAttributionFiles: readonly string[];
   /** When true, missing scan-dir entries are skipped instead of hard-fail. */
   readonly softScanDirs: boolean;
@@ -75,6 +77,21 @@ const PRODUCT_RUNTIME: ClaimProfile = {
     'apps/docs/public/docs-pro/editors/index.md',
     'docs/blog',
   ],
+  /**
+   * Feature-existence copy-dependent holds (COPY-DEP-*). Broader than classic
+   * aspirational paths so marketing content modules are covered without
+   * re-applying the SSO/SLA token blocklist to every content string.
+   */
+  copyDependentPaths: [
+    'apps/marketing/app/components/landing',
+    'apps/marketing/app/components/GetStarted.tsx',
+    'apps/marketing/app/content',
+    'apps/marketing/public/llms.txt',
+    'docs/blog',
+    'docs/FLEET.md',
+    'docs/BUILD_YOUR_BUSINESS.md',
+    'docs/QUICK_START.md',
+  ],
   fleetAttributionFiles: [
     'docs/BUILD_YOUR_BUSINESS.md',
     'docs/EXAMPLES.md',
@@ -94,6 +111,7 @@ const MARKETING_SITE: ClaimProfile = {
   licenseScanRoots: ['README.md', 'app'],
   futureTenseFiles: ['README.md'],
   aspirationalPaths: ['app'],
+  copyDependentPaths: ['app'],
   // Fleet-product attribution rules are tuned for revealui docs (/docs/FLEET).
   // Agency intentionally names Studio/Rev* products in About and legal copy;
   // enable a dedicated agency allowlist before turning this on hard-fail.
@@ -111,6 +129,7 @@ const PRODUCT_README: ClaimProfile = {
   licenseScanRoots: ['README.md', 'CLAUDE.md', 'docs'],
   futureTenseFiles: ['README.md', 'CLAUDE.md'],
   aspirationalPaths: ['README.md', 'docs'],
+  copyDependentPaths: ['README.md', 'docs'],
   // Fleet-product attribution is for revealui public docs that might present
   // Studio/Rev* as if they were the runtime. Sibling product repos (revdev,
   // revvault, …) intentionally name peer fleet products in README and docs;

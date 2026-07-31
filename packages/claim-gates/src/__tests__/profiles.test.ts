@@ -48,12 +48,15 @@ describe('getProfile / existingRoots', () => {
     expect(product.collectMonorepoMetrics).toBe(true);
     expect(product.licenseScanners).toBe(true);
     expect(product.softScanDirs).toBe(false);
+    expect(product.copyDependentPaths.length).toBeGreaterThan(0);
+    expect(product.copyDependentPaths).toContain('apps/marketing/app/content');
 
     const marketing = getProfile('marketing-site');
     expect(marketing.collectMonorepoMetrics).toBe(false);
     expect(marketing.licenseScanners).toBe(false);
     expect(marketing.fleetAttributionFiles).toEqual([]);
     expect(marketing.softScanDirs).toBe(true);
+    expect(marketing.copyDependentPaths).toEqual(['app']);
 
     const readme = getProfile('product-readme');
     expect(readme.collectMonorepoMetrics).toBe(false);

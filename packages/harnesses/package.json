@@ -12,7 +12,6 @@
     "revealui-harnesses": "./dist/cli.js"
   },
   "dependencies": {
-    "@electric-sql/pglite": "catalog:",
     "@revealui/core": "workspace:*",
     "zod": "catalog:"
   },
@@ -51,11 +50,6 @@
       "types": "./dist/manager/index.d.ts",
       "import": "./dist/manager/index.js",
       "default": "./dist/manager/index.js"
-    },
-    "./storage": {
-      "types": "./dist/storage/index.d.ts",
-      "import": "./dist/storage/index.js",
-      "default": "./dist/storage/index.js"
     },
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
@@ -99,6 +93,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "content:snapshot:check": "vitest run src/__tests__/content-snapshot.test.ts",
+    "content:freshness": "node dist/cli.js content diff --generator claude-code --check --project ../..",
     "content:snapshot:write": "tsx scripts/write-content-snapshots.mts"
   },
   "type": "module",

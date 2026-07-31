@@ -84,7 +84,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/quality-over-speed.md",
-      "sha256": "7481acbbdcde46aa7c02ecdb7a72b60f9d270be8777e1ae8c0172dd1a0ff5277"
+      "sha256": "8bfcbe93c5b73d738859656926478798a8bed2d55ca5be5dca50b6c997e9b009"
     },
     {
       "relativePath": ".revealui/content/rules/skills-usage.md",
@@ -100,7 +100,7 @@
     },
     {
       "relativePath": ".revealui/content/rules/unused-declarations.md",
-      "sha256": "34382001e3bf3eb36d655006542a8fe109b1210413676e8ac80bbb810d432f84"
+      "sha256": "3b1ff6f14af5f8dbdb896b3da4412b482b0f2db9eca3f16011ae4be65543c086"
     },
     {
       "relativePath": ".revealui/content/skills/db-migrate/SKILL.md",
@@ -112,7 +112,7 @@
     },
     {
       "relativePath": ".revealui/content/skills/revealui-conventions/SKILL.md",
-      "sha256": "178e4c7365a0fbaf708b9e32e36f6b514c1f4bba5dbef00ad6545549036fe8f0"
+      "sha256": "4311d2513110a5bb6ceda0f31c6d03ccc9f346ef4cfb1d26bda881dfbd718caa"
     },
     {
       "relativePath": ".revealui/content/skills/revealui-db/SKILL.md",

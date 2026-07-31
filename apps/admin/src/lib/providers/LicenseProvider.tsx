@@ -4,7 +4,7 @@ import type { LicenseTierId } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
-import { redirectToLogin } from '@/lib/auth/redirect-to-login';
+import { isPreAuthPublicPath, redirectToLogin } from '@/lib/auth/redirect-to-login';
 
 /** Shared paywall instance for the admin. */
 const paywall = createPaywall();
@@ -43,6 +43,12 @@ export class LicenseResolveFailure extends Error {
 }
 
 async function resolveSaasTier(): Promise<string> {
+  // Login / MFA / signup have no full session yet. Do not probe subscription
+  // (401 would bounce /mfa → /login — owner GAP-360 walk).
+  if (typeof window !== 'undefined' && isPreAuthPublicPath(window.location.pathname)) {
+    throw new LicenseResolveFailure('auth-required', 'pre-auth public path; skip license probe');
+  }
+
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (!apiUrl) {
     // No SaaS API configured  -  genuine free/local posture.
@@ -60,6 +66,7 @@ async function resolveSaasTier(): Promise<string> {
 
   if (res.status === 401) {
     // Dead session: send the operator to re-auth. Do not claim free.
+    // redirectToLogin itself no-ops on /mfa etc. as a second belt.
     redirectToLogin();
     throw new LicenseResolveFailure('auth-required', 'subscription returned 401');
   }
