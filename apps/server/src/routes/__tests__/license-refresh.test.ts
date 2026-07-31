@@ -46,6 +46,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(),
+  isJtiRevoked: vi.fn(async () => false),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -61,12 +62,13 @@ vi.mock('@revealui/db/schema', () => ({
 
 import { getPublicKeys, validateLicenseKeyForRefresh } from '@revealui/core/license';
 import { mintLicenseKey } from '@revealui/core/license/mint-client';
-import { getClient } from '@revealui/db';
+import { getClient, isJtiRevoked } from '@revealui/db';
 import licenseApp from '../license.js';
 
 const mockedRefreshValidate = vi.mocked(validateLicenseKeyForRefresh);
 const mockedGetPublicKeys = vi.mocked(getPublicKeys);
 const mockedGenerate = vi.mocked(mintLicenseKey);
+const mockedIsJtiRevoked = vi.mocked(isJtiRevoked);
 
 const VALID_PAYLOAD = {
   tier: 'pro' as const,
@@ -123,6 +125,7 @@ const DENIED = { error: 'refresh_denied' };
 beforeEach(() => {
   vi.clearAllMocks();
   mockedGetPublicKeys.mockReturnValue(['pub-key']);
+  mockedIsJtiRevoked.mockResolvedValue(false);
 });
 
 describe('POST /refresh', () => {
@@ -255,16 +258,11 @@ describe('POST /refresh', () => {
     }
   });
 
-  // ─── RED until GAP-260 ─────────────────────────────────────────────────────
-  // Spec §4 binding 2: a token whose specific `jti` was revoked must be refused
-  // even when its customer's license row is still ACTIVE (the "a stolen old key
-  // extends the attacker's window" mitigation). That requires the GAP-260
-  // per-`jti` denylist, which is owner-gated and not yet built (no denylist
-  // store exists). Until it lands, an active-row customer's revoked-lineage key
-  // still refreshes (fail-open), so this asserts a behavior PR-1 does not yet
-  // deliver. Skipped so CI stays green; documented RED per spec §7.
-  it.skip('denies with 403 for a revoked jti even when the customer row is active (GAP-260)', async () => {
+  // Spec §4 binding 2 / GAP-260 P4-5: a token whose specific `jti` was revoked
+  // must be refused even when its customer's license row is still ACTIVE.
+  it('denies with 403 for a revoked jti even when the customer row is active (GAP-260)', async () => {
     mockedRefreshValidate.mockResolvedValue({ ...VALID_PAYLOAD, jti: 'jti-revoked' } as never);
+    mockedIsJtiRevoked.mockResolvedValueOnce(true);
     mockDbRows([{ licenseKey: 'stored.current.key' }]); // customer row is active
 
     const app = createApp();
@@ -272,5 +270,6 @@ describe('POST /refresh', () => {
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual(DENIED);
+    expect(mockedIsJtiRevoked).toHaveBeenCalledWith(expect.anything(), 'jti-revoked');
   });
 });

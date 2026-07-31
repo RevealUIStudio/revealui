@@ -49,6 +49,7 @@ import {
   coerceHostedTier,
   type HostedTier,
 } from '../lib/hosted-entitlement.js';
+import { recordJtisForRevokedCustomerLicenses } from '../lib/license-jti-revocation.js';
 import { assertSeatAvailable } from '../lib/seat-count-guard.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
@@ -1927,6 +1928,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(
+          db,
+          customerId,
+          'subscription.deleted',
+          subscription.id,
+        ).catch((err) => {
+          logger.warn('jti denylist write failed after subscription.deleted', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+        });
 
         logger.info('License revoked on subscription deletion', {
           customerId,
@@ -2006,6 +2017,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(db, customerId, 'customer.deleted').catch(
+          (err) => {
+            logger.warn('jti denylist write failed after customer.deleted', {
+              error: err instanceof Error ? err.message : 'unknown',
+            });
+          },
+        );
 
         logger.warn('License revoked: Stripe customer deleted', { customerId });
         auditLicenseEvent(db, 'license.revoked.customer_deleted', 'warn', { customerId });
@@ -2666,6 +2684,24 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           resetLicenseState();
           resetDbStatusCache();
+
+          // GAP-260 P4-5: canceled / incomplete_expired paths set licenses to
+          // revoked inside the saga but (unlike subscription.deleted) used to
+          // skip the jti denylist. Without this write, a re-subscribe can
+          // refresh a pre-cancel JWT lineage. Scope by subscriptionId.
+          if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+            void recordJtisForRevokedCustomerLicenses(
+              db,
+              customerId,
+              `subscription.updated.${subscription.status}`,
+              subscription.id,
+            ).catch((err) => {
+              logger.warn('jti denylist write failed after subscription.updated revoke', {
+                error: err instanceof Error ? err.message : 'unknown',
+                subscriptionStatus: subscription.status,
+              });
+            });
+          }
 
           if (auditEvent) {
             auditLicenseEvent(db, auditEvent, auditSeverity, auditMeta);
@@ -3362,6 +3398,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         resetLicenseState();
         resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(
+          db,
+          disputeCustomerId,
+          'charge.dispute.lost',
+          disputeSubscriptionId,
+        ).catch((err) => {
+          logger.warn('jti denylist write failed after charge.dispute.lost', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+        });
 
         logger.warn('License revoked: chargeback dispute lost', {
           customerId: disputeCustomerId,
@@ -3762,6 +3808,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           resetLicenseState();
           resetDbStatusCache();
+          void recordJtisForRevokedCustomerLicenses(db, customerId, 'charge.refunded').catch(
+            (err) => {
+              logger.warn('jti denylist write failed after charge.refunded', {
+                error: err instanceof Error ? err.message : 'unknown',
+              });
+            },
+          );
 
           logger.warn('License revoked: full refund issued', {
             customerId,

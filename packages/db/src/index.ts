@@ -48,6 +48,14 @@ export {
   schema,
   withTransaction,
 } from './client/index.js';
+// GAP-260 P4-5: per-token JTI denylist
+export {
+  __resetJtiDenylistForTest,
+  getJtiRevocationEpoch,
+  isJtiRevoked,
+  type JtiRevocationInput,
+  recordJtiRevocations,
+} from './license-jti-denylist.js';
 // Re-export saga module
 export type {
   SagaContext,

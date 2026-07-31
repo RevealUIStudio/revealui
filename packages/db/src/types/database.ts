@@ -60,6 +60,7 @@ import type {
   kgNodeAliases,
   kgNodes,
   kgOutbox,
+  licenseJtiRevocations,
   licenses,
   lifecycleEmailsSent,
   magicLinks,
@@ -367,6 +368,11 @@ export type KgOutboxRow = typeof kgOutbox.$inferSelect
 export type KgOutboxInsert = typeof kgOutbox.$inferInsert
 export type KgOutboxUpdate = Partial<KgOutboxInsert>
 
+// License Jti Revocations
+export type LicenseJtiRevocationsRow = typeof licenseJtiRevocations.$inferSelect
+export type LicenseJtiRevocationsInsert = typeof licenseJtiRevocations.$inferInsert
+export type LicenseJtiRevocationsUpdate = Partial<LicenseJtiRevocationsInsert>
+
 // Licenses
 export type LicensesRow = typeof licenses.$inferSelect
 export type LicensesInsert = typeof licenses.$inferInsert
@@ -672,6 +678,7 @@ export type DatabaseRelationships = {
   kgNodeAliases: Relationship[]
   kgNodes: Relationship[]
   kgOutbox: Relationship[]
+  licenseJtiRevocations: Relationship[]
   licenses: Relationship[]
   lifecycleEmailsSent: Relationship[]
   magicLinks: Relationship[]
@@ -910,6 +917,9 @@ export const kgNodesRelationships: readonly Relationship[] = []
 
 // KgOutbox relationships
 export const kgOutboxRelationships: readonly Relationship[] = []
+
+// LicenseJtiRevocations relationships
+export const licenseJtiRevocationsRelationships: readonly Relationship[] = []
 
 // Licenses relationships
 export const licensesRelationships = [
@@ -1453,6 +1463,12 @@ export type Database = {
         Insert: KgOutboxInsert
         Update: KgOutboxUpdate
         Relationships: typeof kgOutboxRelationships
+      }
+      license_jti_revocations: {
+        Row: LicenseJtiRevocationsRow
+        Insert: LicenseJtiRevocationsInsert
+        Update: LicenseJtiRevocationsUpdate
+        Relationships: typeof licenseJtiRevocationsRelationships
       }
       licenses: {
         Row: LicensesRow

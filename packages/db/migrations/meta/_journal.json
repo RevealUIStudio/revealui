@@ -225,6 +225,13 @@
       "when": 1785175772410,
       "tag": "0031_gap447_audit_anchors_holes",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1785250000000,
+      "tag": "0032_gap260_license_jti_revocations",
+      "breakpoints": true
     }
   ]
 }
