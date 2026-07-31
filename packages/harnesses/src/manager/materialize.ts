@@ -1,5 +1,7 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { buildManifest } from '../content/definitions/index.js';
+import { claudeRulePathForDefinitionId } from '../content/write-manager-adapters.js';
 import { GROK_HOOK_FILES, GROK_HOOK_TEMPLATE_DIR } from './grok-session-hooks.js';
 import {
   MANAGER_CONTENT_DIR,
@@ -88,10 +90,11 @@ export function materializeClaudeStub(projectRoot: string): string {
 # RevealUI manager (Claude adapter)
 
 1. Open **\`.revealui/manager.json\`** for project authority.
-2. Shared rules/skills: **\`.revealui/content/\`** (generated from \`@revealui/harnesses\`).
-3. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
-4. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
-5. Equal vendors: Claude is not more authoritative than Grok, Cursor, or OpenCode.
+2. Shared policy SSOT: package definitions → **\`.revealui/content/\`** (materialize).
+3. Claude loads \`.claude/rules/\`: definition-backed rule bodies are **mirrored** from content (GAP-421 phase 2); monorepo-only rules stay hand-authored here; this stub is adapter-only.
+4. Day-to-day free surfaces: path in \`manager.json\` → \`tracker.path\` (fleet: \`docs/TRACKER.md\`).
+5. Product I/O: RevealUI MCP only (device token via \`rfg\` / revvault) — not vendor side channels.
+6. Equal vendors: Claude is not more authoritative than Grok, Cursor, or OpenCode.
 
 See \`.revealui/README.md\`.
 `;
@@ -298,6 +301,33 @@ export function checkManager(projectRoot: string): ManagerCheckResult {
       errors.push(
         `missing or empty ${MANAGER_DIR}/${parsedConfig.contentRoot}/ — run: revealui-harnesses manager materialize`,
       );
+    } else {
+      // Phase 2: definition rule bodies under .claude/rules must match content
+      // (Claude load path). Monorepo-only rules (git.md, …) are not checked.
+      const manifest = buildManifest();
+      for (const rule of manifest.rules) {
+        const contentRel = join(MANAGER_DIR, parsedConfig.contentRoot, 'rules', `${rule.id}.md`);
+        const contentAbs = join(projectRoot, contentRel);
+        const claudeRel = claudeRulePathForDefinitionId(rule.id);
+        const claudeAbs = join(projectRoot, claudeRel);
+        const contentBody = readFileOrNull(contentAbs);
+        const claudeBody = readFileOrNull(claudeAbs);
+        if (contentBody === null) {
+          errors.push(`missing ${contentRel} — run: revealui-harnesses manager materialize`);
+          continue;
+        }
+        if (claudeBody === null) {
+          errors.push(
+            `missing ${claudeRel} (GAP-421 phase 2: definition rules must load under .claude/rules) — run: revealui-harnesses manager materialize`,
+          );
+          continue;
+        }
+        if (claudeBody !== contentBody) {
+          errors.push(
+            `dual drift: ${claudeRel} !== ${contentRel} — run: revealui-harnesses manager materialize`,
+          );
+        }
+      }
     }
   }
 

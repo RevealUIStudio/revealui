@@ -88,6 +88,7 @@ export {
 } from './snapshot.js';
 export type { WriteManagerAdapterContentResult } from './write-manager-adapters.js';
 export {
+  claudeRulePathForDefinitionId,
   MANAGER_MATERIALIZE_GENERATORS,
   writeManagerAdapterContent,
 } from './write-manager-adapters.js';

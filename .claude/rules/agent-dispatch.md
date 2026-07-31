@@ -11,16 +11,16 @@ too large or specialized for the current session.
 | `security-reviewer` | Auditing auth flows, reviewing security-sensitive PRs, checking new API routes for vulnerabilities |
 | `builder` | Large feature implementation spanning multiple packages that would pollute the current session context |
 | `tester` | Writing test suites, achieving coverage targets, fixing batches of failing tests |
-| `docs-sync` | Updating public docs, syncing API reference, writing changelogs, keeping the hub master plan in sync |
+| `docs-sync` | Updating public docs, syncing API reference, writing changelogs, keeping MASTER_PLAN in sync |
 | `linter` | Bulk lint fixes, unused declaration sweeps, `any` type removal, Biome cleanup across the monorepo |
 
 ## Rules
 
 1. Don't spawn a profile for work that takes under 15 minutes in the current session.
-2. Check the workboard before spawning — another agent may already own that area.
+2. Check the workboard before spawning  -  another agent may already own that area.
 3. Always give spawned agents:
-   - Current phase from the hub master plan (see `docs/INDEX.md` "Fleet coordination")
+   - Current phase from the internal planning hub's MASTER_PLAN.md
    - Relevant workboard state
    - The specific task and acceptance criteria
-4. Spawned agents report findings back to the parent. Only the parent updates the hub master plan.
-5. Spawned agents must not create plan files outside the hub master plan (see `planning.md`).
+4. Spawned agents report findings back to the parent. Only the parent updates MASTER_PLAN.md.
+5. Spawned agents must not create plan files outside MASTER_PLAN.md (see `planning.md`).

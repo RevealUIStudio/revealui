@@ -8,7 +8,7 @@ audience: agent
 
 > **Project manager (all vendors equal):** open [`.revealui/manager.json`](.revealui/manager.json) first.
 > Shared policy is generated from `@revealui/harnesses` into [`.revealui/content/`](.revealui/content/) (committed; refresh with `revealui-harnesses manager materialize`).
-> This Claude adapter still loads [`.claude/rules/`](.claude/rules/) until control-layer phase 2 retires duplicated rule bodies.
+> Claude loads [`.claude/rules/`](.claude/rules/): definition-backed rules are **mirrored** from content (GAP-421 phase 2); monorepo-only rules stay hand-authored. Do not dual-edit definition rule bodies.
 > This file is an adapter orientation doc, not a second policy home. See [`.revealui/README.md`](.revealui/README.md).
 
 # RevealUI Monorepo
