@@ -5,11 +5,25 @@ import { RouterProvider, Routes } from './components';
 import { Router } from './router';
 import type { Route } from './types';
 
-// RSC dual-mode surface (T3/T4) — re-exported from ./server for a single subpath.
+// RSC dual-mode surface (T3–T7) — re-exported from ./server for a single subpath.
+export {
+  getServerActionId,
+  isServerActionRequest,
+  RSC_ACTION_HEADER,
+  runActionMiddleware,
+} from './actions';
 export {
   encodeBase64Chunked,
   readStreamToUint8Array,
 } from './base64';
+export {
+  isRouterNotFound,
+  isRouterRedirect,
+  notFound,
+  RouterNotFound,
+  RouterRedirect,
+  redirect,
+} from './navigation';
 export {
   negotiateRepresentation,
   type Representation,
@@ -19,6 +33,12 @@ export {
   routingPathname,
   wantsRscPayload,
 } from './negotiate';
+export {
+  getRequest,
+  getRequestOrNull,
+  runWithRequest,
+  runWithRequestAsync,
+} from './request-context';
 export {
   inlineRscPayloadScript,
   type RenderRequestOptions,

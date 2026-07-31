@@ -1,10 +1,18 @@
+import { getServerActionId, runActionMiddleware } from './actions';
 import { encodeBase64Chunked, readStreamToUint8Array } from './base64';
+import {
+  isRouterNotFound,
+  isRouterRedirect,
+  type RouterNotFound,
+  RouterRedirect,
+} from './navigation';
 import {
   negotiateRepresentation,
   type Representation,
   RSC_CONTENT_TYPE,
   routingPathname,
 } from './negotiate';
+import { runWithRequestAsync } from './request-context';
 import type { Router } from './router';
 import type { RouteMatch } from './types';
 
@@ -16,6 +24,10 @@ export interface RscRenderContext {
   pathname: string;
   match: RouteMatch | null;
   representation: Representation;
+  /** Set after a successful server action (T7). */
+  returnValue?: { ok: boolean; data: unknown };
+  /** Opaque action id when this request is a mutation. */
+  actionId?: string;
 }
 
 export interface RenderRequestOptions {
@@ -41,6 +53,16 @@ export interface RenderRequestOptions {
    * Injected after the RSC payload script when using the default HTML shell.
    */
   loadBootstrapScriptContent?: () => Promise<string>;
+  /**
+   * Load a server action by opaque id (T7). Required when the request carries
+   * `x-rsc-action`. Consumer wires RSDW `loadServerAction` / plugin-rsc.
+   */
+  loadServerAction?: (id: string) => Promise<(...args: unknown[]) => unknown | Promise<unknown>>;
+  /**
+   * Decode action arguments from the request body (T7).
+   * Defaults to empty args when omitted.
+   */
+  decodeActionArgs?: (request: Request) => Promise<unknown[]>;
   formState?: unknown;
   title?: string;
   /** Extra headers on the response (e.g. Cache-Control). */
@@ -78,6 +100,55 @@ function escapeHtml(s: string): string {
     .replaceAll('"', '&quot;');
 }
 
+function redirectResponse(redirect: RouterRedirect, representation: Representation): Response {
+  if (representation === 'html') {
+    const status = redirect.permanent ? 308 : 307;
+    return new Response(null, {
+      status,
+      headers: { Location: redirect.path },
+    });
+  }
+  // RSC navigation: JSON body with redirect signal (ADR D6).
+  return new Response(JSON.stringify({ redirect: redirect.path, permanent: redirect.permanent }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'X-Router-Redirect': redirect.path,
+    },
+  });
+}
+
+function notFoundResponse(
+  router: Router,
+  representation: Representation,
+  _error: RouterNotFound,
+): Response {
+  const NotFound = router.getOptions().notFound;
+  if (representation === 'html' && NotFound) {
+    // Minimal shell naming the notFound component (full RSC tree is consumer-owned).
+    const html = defaultHtmlShell({
+      title: 'Not Found',
+      rscPayloadBase64: '',
+      bootstrap: '',
+      bodyHtml: '<div id="root" data-router-not-found="1"></div>',
+    });
+    return new Response(html, {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
+  }
+  if (representation === 'html') {
+    return new Response('<!DOCTYPE html><html><body><h1>404 - Not Found</h1></body></html>', {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
+  }
+  return new Response(JSON.stringify({ notFound: true }), {
+    status: 404,
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+  });
+}
+
 /**
  * Build the inline `self.__RSC_PAYLOAD__=...` assignment from a flight stream
  * half (after tee). Chunked base64 (ADR D15).
@@ -90,48 +161,26 @@ export async function inlineRscPayloadScript(
   return `self.__RSC_PAYLOAD__=${JSON.stringify(b64)};`;
 }
 
-/**
- * RSC-mode request handler (T3 negotiation + T4 render pipeline).
- *
- * - `Accept: text/x-component` (or endpoint path) → flight `text/x-component`
- * - otherwise → HTML with teed payload inlined as `__RSC_PAYLOAD__` + bootstrap
- *
- * Requires `router.mode === 'rsc'`. Client-mode callers should use `createSSRHandler`.
- */
-export async function renderRequest(
+async function finishRender(
   request: Request,
   options: RenderRequestOptions,
+  ctx: RscRenderContext,
 ): Promise<Response> {
-  const { router } = options;
-  if (router.mode !== 'rsc') {
-    throw new Error(
-      'renderRequest requires Router in rsc mode: new Router({ rsc: {} }). Client mode: use createSSRHandler.',
-    );
-  }
-
-  const rscOpts = router.getOptions().rsc;
-  const representation = negotiateRepresentation(request, rscOpts);
-  const pathname = routingPathname(request, rscOpts);
-  const match = await router.resolve(pathname);
-
-  const ctx: RscRenderContext = { pathname, match, representation };
   const rscStream = await options.createRscStream(request, ctx);
 
   const extra = new Headers(options.headers);
-  // Content negotiation requires Vary so caches do not mix HTML and flight.
   if (!extra.has('Vary')) {
     extra.set('Vary', 'accept');
   }
 
-  if (representation === 'rsc') {
+  if (ctx.representation === 'rsc') {
     extra.set('Content-Type', `${RSC_CONTENT_TYPE};charset=utf-8`);
     return new Response(rscStream, {
-      status: match ? 200 : 404,
+      status: ctx.match ? 200 : 404,
       headers: extra,
     });
   }
 
-  // HTML path: tee flight stream — one half inlined as base64, one half for optional SSR.
   const [forPayload, forSsr] = rscStream.tee();
   const bootstrap = options.loadBootstrapScriptContent
     ? await options.loadBootstrapScriptContent()
@@ -145,27 +194,113 @@ export async function renderRequest(
       formState: options.formState,
     });
     extra.set('Content-Type', 'text/html; charset=utf-8');
+    const status = ctx.match ? 200 : 404;
     if (typeof htmlResult === 'string') {
-      return new Response(htmlResult, { status: match ? 200 : 404, headers: extra });
+      return new Response(htmlResult, { status, headers: extra });
     }
-    return new Response(htmlResult, { status: match ? 200 : 404, headers: extra });
+    return new Response(htmlResult, { status, headers: extra });
   }
 
-  // Minimal shell when consumer does not provide SSR renderHtml.
   const bytes = await readStreamToUint8Array(forPayload);
-  // Drain the other tee half so the producer is not backpressured.
   await readStreamToUint8Array(forSsr);
   const b64 = encodeBase64Chunked(bytes);
   const title =
     options.title ??
-    (typeof match?.route.meta?.title === 'string' ? match.route.meta.title : 'RevealUI');
+    (typeof ctx.match?.route.meta?.title === 'string' ? ctx.match.route.meta.title : 'RevealUI');
   const html = defaultHtmlShell({
     title,
     rscPayloadBase64: b64,
     bootstrap,
   });
   extra.set('Content-Type', 'text/html; charset=utf-8');
-  return new Response(html, { status: match ? 200 : 404, headers: extra });
+  return new Response(html, { status: ctx.match ? 200 : 404, headers: extra });
+}
+
+/**
+ * RSC-mode request handler (T3–T7).
+ *
+ * - Content negotiation + endpoint strip (T3)
+ * - Flight / HTML with teed `__RSC_PAYLOAD__` (T4)
+ * - `redirect` / `notFound` sentinels (T5)
+ * - Request ALS for `getRequest()` (T6)
+ * - `x-rsc-action` + actionMiddleware (T7)
+ */
+export async function renderRequest(
+  request: Request,
+  options: RenderRequestOptions,
+): Promise<Response> {
+  return runWithRequestAsync(request, async () => {
+    const { router } = options;
+    if (router.mode !== 'rsc') {
+      throw new Error(
+        'renderRequest requires Router in rsc mode: new Router({ rsc: {} }). Client mode: use createSSRHandler.',
+      );
+    }
+
+    const rscOpts = router.getOptions().rsc;
+    const representation = negotiateRepresentation(request, rscOpts);
+    const pathname = routingPathname(request, rscOpts);
+
+    try {
+      const actionId = getServerActionId(request);
+      let returnValue: RscRenderContext['returnValue'];
+      let match: RouteMatch | null = null;
+
+      if (actionId) {
+        // Match without loader for middleware context (params/meta only).
+        match = router.match(pathname);
+        const mwResult = await runActionMiddleware(router.getActionMiddleware(), {
+          pathname,
+          params: match?.params ?? {},
+          meta: match?.route.meta,
+        });
+        if (mwResult === false) {
+          return new Response('Forbidden', { status: 403 });
+        }
+        if (typeof mwResult === 'string') {
+          // Action middleware string return = temporary redirect (same as route mw).
+          return redirectResponse(new RouterRedirect(mwResult), representation);
+        }
+
+        if (!options.loadServerAction) {
+          throw new Error(
+            'renderRequest: loadServerAction is required when x-rsc-action is present',
+          );
+        }
+        const action = await options.loadServerAction(actionId);
+        const args = options.decodeActionArgs ? await options.decodeActionArgs(request) : [];
+        try {
+          const data = await action(...args);
+          returnValue = { ok: true, data };
+        } catch (error) {
+          if (isRouterRedirect(error)) return redirectResponse(error, representation);
+          if (isRouterNotFound(error)) return notFoundResponse(router, representation, error);
+          returnValue = { ok: false, data: error instanceof Error ? error.message : String(error) };
+        }
+        // Re-resolve after mutation so loaders see fresh data.
+        match = await router.resolve(pathname);
+      } else {
+        match = await router.resolve(pathname);
+      }
+
+      const ctx: RscRenderContext = {
+        pathname,
+        match,
+        representation,
+        returnValue,
+        actionId: actionId ?? undefined,
+      };
+      return await finishRender(request, options, ctx);
+    } catch (error) {
+      if (isRouterRedirect(error)) {
+        return redirectResponse(error, representation);
+      }
+      if (isRouterNotFound(error)) {
+        return notFoundResponse(router, representation, error);
+      }
+      throw error;
+    }
+  });
 }
 
 /**
