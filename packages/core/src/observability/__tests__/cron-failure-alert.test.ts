@@ -10,8 +10,8 @@ vi.mock('../logger.js', () => ({
   },
 }));
 
-import { logger } from '../logger.js';
 import { buildCronFailureEmailBody, sendCronFailureAlert } from '../cron-failure-alert.js';
+import { logger } from '../logger.js';
 
 function makeContext(overrides: Partial<CronFailureContext> = {}): CronFailureContext {
   return {

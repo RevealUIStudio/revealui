@@ -151,7 +151,7 @@ export async function sendCronFailureAlert(
   // Step 3 — optional email
   const alertEmail =
     options.alertEmail !== undefined ? options.alertEmail : env.REVEALUI_ALERT_EMAIL;
-  if (!alertEmail || !options.sendEmail) {
+  if (!(alertEmail && options.sendEmail)) {
     return;
   }
   try {
