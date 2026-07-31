@@ -66,6 +66,14 @@ export const HOME_HERO_OWNERSHIP = {
   h1: 'Run your whole business on one runtime you own.',
 } as const;
 
+// Corpus L2 leverage-frame A/B (06-copy-corpus.md §4.1). Owner go 2026-07-31:
+// enable via ?hero=l2 only — not default traffic. Measurement still needs an
+// analytics sink (same note as foundation/ownership).
+export const HOME_HERO_L2 = {
+  ...HOME_HERO,
+  h1: 'Ship your next product on the work your last one finished.',
+} as const;
+
 // ---------------------------------------------------------------------------
 // Problem (comparison table)
 // ---------------------------------------------------------------------------
