@@ -1,6 +1,7 @@
 import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { createElement } from 'react';
+import { negotiateRepresentation, routingPathname, type Representation } from './negotiate';
 import type {
   MiddlewareContext,
   NavigateOptions,
@@ -164,6 +165,25 @@ export class Router {
    */
   getOptions(): RouterOptions {
     return this.options;
+  }
+
+  /**
+   * Content negotiation for RSC mode (ADR D1 / T3).
+   * Client mode always returns `'html'`.
+   */
+  negotiate(request: Request): Representation {
+    if (this.mode !== 'rsc') return 'html';
+    return negotiateRepresentation(request, this.options.rsc);
+  }
+
+  /**
+   * Pathname used for matching after optional RSC endpoint prefix strip.
+   */
+  routingPathname(request: Request): string {
+    if (this.mode !== 'rsc') {
+      return new URL(request.url).pathname;
+    }
+    return routingPathname(request, this.options.rsc);
   }
 
   /**

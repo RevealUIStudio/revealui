@@ -307,6 +307,34 @@ createSSRHandler(routes, {
 })
 ```
 
+## RSC mode (0.4.0-rc+)
+
+```typescript
+import { Router } from '@revealui/router'
+import { renderRequest } from '@revealui/router/server'
+
+const router = new Router({ rsc: {} }) // or { rsc: { endpoint: '/.rsc' } }
+router.registerRoutes(routes)
+
+export default {
+  async fetch(request: Request) {
+    return renderRequest(request, {
+      router,
+      // Wire your bundler/RSDW pipeline here (ADR D11 — router stays plugin-agnostic)
+      createRscStream: async (request, ctx) => {
+        // return a text/x-component flight ReadableStream for ctx.pathname
+        return myRscFlightStream(request, ctx)
+      },
+      loadBootstrapScriptContent: async () => myClientBootstrap(),
+    })
+  },
+}
+```
+
+- `Accept: text/x-component` → flight body (`Vary: accept`)
+- Otherwise → HTML with chunked base64 `self.__RSC_PAYLOAD__=...` + bootstrap
+- Endpoint escape hatch forces RSC when CDNs mishandle `Vary`
+
 ## Dev Server
 
 Quick development server:

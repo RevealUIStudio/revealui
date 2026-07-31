@@ -5,6 +5,28 @@ import { RouterProvider, Routes } from './components';
 import { Router } from './router';
 import type { Route } from './types';
 
+// RSC dual-mode surface (T3/T4) — re-exported from ./server for a single subpath.
+export {
+  encodeBase64Chunked,
+  readStreamToUint8Array,
+} from './base64';
+export {
+  negotiateRepresentation,
+  resolveRscEndpointPath,
+  routingPathname,
+  RSC_ACCEPT,
+  RSC_CONTENT_TYPE,
+  wantsRscPayload,
+  type Representation,
+} from './negotiate';
+export {
+  inlineRscPayloadScript,
+  renderRequest,
+  routeTitle,
+  type RenderRequestOptions,
+  type RscRenderContext,
+} from './server-rsc';
+
 /**
  * SSR Options
  */
