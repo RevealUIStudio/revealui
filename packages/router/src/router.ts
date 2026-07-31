@@ -1,7 +1,7 @@
 import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { createElement } from 'react';
-import { negotiateRepresentation, routingPathname, type Representation } from './negotiate';
+import { negotiateRepresentation, type Representation, routingPathname } from './negotiate';
 import type {
   MiddlewareContext,
   NavigateOptions,

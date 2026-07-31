@@ -1,9 +1,9 @@
 import { encodeBase64Chunked, readStreamToUint8Array } from './base64';
 import {
   negotiateRepresentation,
+  type Representation,
   RSC_CONTENT_TYPE,
   routingPathname,
-  type Representation,
 } from './negotiate';
 import type { Router } from './router';
 import type { RouteMatch } from './types';

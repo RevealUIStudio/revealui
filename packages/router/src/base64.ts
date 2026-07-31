@@ -11,9 +11,8 @@ export function encodeBase64Chunked(bytes: Uint8Array): string {
     const slice = bytes.subarray(i, Math.min(i + CHUNK, bytes.length));
     // Build string without spread — loop keeps stack flat for large slices.
     let part = '';
-    for (let j = 0; j < slice.length; j++) {
-      // biome-ignore lint/style/noNonNullAssertion: bounds-checked
-      part += String.fromCharCode(slice[j]!);
+    for (const byte of slice) {
+      part += String.fromCharCode(byte);
     }
     binary += part;
   }
