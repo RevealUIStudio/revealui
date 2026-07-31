@@ -991,6 +991,7 @@ describe('MCPHypervisor', () => {
     });
 
     it('startServerForTenant spawns without spreading host process.env', async () => {
+      vi.useFakeTimers();
       const hv = MCPHypervisor.getInstance();
       hv.registerServer({
         ...testConfig,
@@ -1002,23 +1003,25 @@ describe('MCPHypervisor', () => {
         },
       });
 
-      await hv.startServerForTenant('test-server', {
+      mockProcess.stdout.on.mockImplementation(() => mockProcess);
+      mockProcess.stderr.on.mockImplementation(() => mockProcess);
+      mockProcess.on.mockImplementation(() => mockProcess);
+
+      const startPromise = hv.startServerForTenant('test-server', {
         tenantId: 'tenant-a',
         tier: 'pro',
       });
+      // Advance past 500ms startup + 5s tools/list discovery timeout
+      await vi.advanceTimersByTimeAsync(5_501);
+      await startPromise;
 
       expect(spawn).toHaveBeenCalled();
       const spawnCall = vi.mocked(spawn).mock.calls.at(-1);
       const spawnEnv = spawnCall?.[2]?.env as NodeJS.ProcessEnv;
       expect(spawnEnv.MCP_SERVER_MODE).toBe('tenant');
       expect(spawnEnv.TENANT_TOKEN).toBe('vault-token');
-      // Host secrets must not ride along even when present on process.env
-      // (we only assert isolation shape: no full process.env merge means
-      // keys present only on process.env and not allowlisted are absent).
       for (const secretKey of ['STRIPE_SECRET_KEY', 'DATABASE_URL', 'REVEALUI_SECRET']) {
         if (process.env[secretKey] !== undefined) {
-          // If the host happens to set these, isolation must still drop them
-          // unless they were allowlisted (they are not).
           expect(spawnEnv[secretKey]).toBeUndefined();
         }
       }
