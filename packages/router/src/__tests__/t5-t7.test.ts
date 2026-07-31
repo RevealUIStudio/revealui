@@ -184,7 +184,13 @@ describe('T7 server actions', () => {
   it('runs loadServerAction and passes returnValue to createRscStream', async () => {
     const router = new Router({ rsc: {} });
     router.register({ path: '/', component: () => null });
-    const load = vi.fn(async () => async (n: number) => n * 2);
+    const load = vi.fn(async (_id: string) => {
+      return async (...args: unknown[]) => {
+        const n = args[0];
+        if (typeof n !== 'number') throw new Error('expected number arg');
+        return n * 2;
+      };
+    });
     let returnValue: unknown;
     const res = await renderRequest(
       new Request('http://x/', {
