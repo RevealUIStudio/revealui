@@ -114,6 +114,8 @@ app.get('*', createSSRHandler(routes, {
 
 ```typescript
 const router = new Router(options)
+// Dual-mode (0.4.0-rc): omit rsc → client (default, SPA). Pass rsc: {} → RSC mode.
+// const rscRouter = new Router({ rsc: { endpoint: '/.rsc' } }) // endpoint optional CDN escape hatch
 ```
 
 **Methods:**
@@ -128,6 +130,8 @@ const router = new Router(options)
 - `initClient()` - Initialize client-side routing (popstate + link-click listeners)
 - `dispose()` - Remove client-side event listeners (call before unmounting or on HMR teardown)
 - `use(...middleware)` - Add global middleware (runs before all route middleware)
+- `useAction(...middleware)` - Middleware for server actions (RSC mode; ADR D2.d)
+- `mode` - `'client'` | `'rsc'` (derived from `options.rsc`)
 - `seedCurrentMatch(match)` - Seed the current match (and loader data) without re-running middleware/loaders — used by SSR `hydrate()` so `useData()` works on first client paint. Client `navigate()` still does not run loaders (0.3.x SPA contract).
 
 ### Components

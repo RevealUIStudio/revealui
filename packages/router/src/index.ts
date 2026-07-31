@@ -64,5 +64,7 @@ export type {
   RouteMeta,
   RouteMiddleware,
   RouteParams,
+  RouterMode,
   RouterOptions,
+  RouterRscOptions,
 } from './types';

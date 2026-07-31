@@ -8,6 +8,7 @@ import type {
   RouteMatch,
   RouteMiddleware,
   RouteParams,
+  RouterMode,
   RouterOptions,
 } from './types';
 
@@ -112,6 +113,7 @@ export class Router {
   private routes: Route[] = [];
   private flatRoutes: Route[] = [];
   private globalMiddleware: RouteMiddleware[] = [];
+  private actionMiddleware: RouteMiddleware[] = [];
   private options: RouterOptions;
   private listeners: Set<() => void> = new Set();
   private currentMatch: RouteMatch | null = null;
@@ -127,10 +129,34 @@ export class Router {
   }
 
   /**
-   * Add global middleware that runs before all routes.
+   * Runtime mode: `'client'` (default, 0.3.x) or `'rsc'` when `options.rsc` is set.
+   * ADR D1 / L3 — per-instance constructor selection.
+   */
+  get mode(): RouterMode {
+    return this.options.rsc !== undefined ? 'rsc' : 'client';
+  }
+
+  /**
+   * Add global middleware that runs before all routes (navigation).
    */
   use(...middleware: RouteMiddleware[]): void {
     this.globalMiddleware.push(...middleware);
+  }
+
+  /**
+   * Middleware for server-action invocations (ADR D2.d).
+   * Separate from route navigation middleware: mutations must not skip auth/RBAC
+   * just because they bypass the loader path.
+   */
+  useAction(...middleware: RouteMiddleware[]): void {
+    this.actionMiddleware.push(...middleware);
+  }
+
+  /**
+   * Snapshot of action middleware (for RSC server handler in later T-steps).
+   */
+  getActionMiddleware(): RouteMiddleware[] {
+    return [...this.actionMiddleware];
   }
 
   /**
@@ -389,6 +415,7 @@ export class Router {
     this.routes = [];
     this.flatRoutes = [];
     this.globalMiddleware = [];
+    this.actionMiddleware = [];
   }
 
   private normalizePath(url: string): string {

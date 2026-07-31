@@ -312,6 +312,45 @@ describe('Router', () => {
     });
   });
 
+  describe('dual-mode (0.4.0-rc scaffold T1/T2)', () => {
+    it('defaults to client mode when rsc is omitted', () => {
+      const router = new Router();
+      expect(router.mode).toBe('client');
+      expect(router.getOptions().rsc).toBeUndefined();
+    });
+
+    it('selects rsc mode when rsc options object is provided', () => {
+      const router = new Router({ rsc: {} });
+      expect(router.mode).toBe('rsc');
+    });
+
+    it('selects rsc mode with endpoint escape hatch', () => {
+      const router = new Router({ rsc: { endpoint: '/.rsc' } });
+      expect(router.mode).toBe('rsc');
+      expect(router.getOptions().rsc?.endpoint).toBe('/.rsc');
+    });
+
+    it('keeps client-mode navigate contract when rsc is unset', () => {
+      const loader = vi.fn().mockResolvedValue({ ok: true });
+      const router = new Router();
+      router.register(createRoute('/about', { loader }));
+      router.navigate('/about');
+      expect(router.mode).toBe('client');
+      expect(loader).not.toHaveBeenCalled();
+    });
+
+    it('stores action middleware separately from route middleware', () => {
+      const routeMw = vi.fn().mockReturnValue(true);
+      const actionMw = vi.fn().mockReturnValue(true);
+      const router = new Router({ rsc: {} });
+      router.use(routeMw);
+      router.useAction(actionMw);
+      expect(router.getActionMiddleware()).toHaveLength(1);
+      router.clear();
+      expect(router.getActionMiddleware()).toHaveLength(0);
+    });
+  });
+
   describe('0.3.x client navigation contract (no loaders / middleware)', () => {
     // Live SPA consumers (marketing, docs, agency) only call navigate()/match.
     // resolve() is the SSR/data path. Keep this contract explicit for D16

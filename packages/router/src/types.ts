@@ -66,6 +66,20 @@ export interface RouteMatch<TData = unknown> {
 }
 
 /**
+ * Dual-mode selector for GAP-194 Phase 2.2 (`@revealui/router` 0.4).
+ * - `undefined` / omit → `'client'` (0.3.x behavior, default)
+ * - `{ endpoint?: string }` → `'rsc'` (server-driven; endpoint is CDN-Vary escape hatch)
+ */
+export interface RouterRscOptions {
+  /**
+   * Optional URL prefix for RSC payloads when content negotiation via
+   * `Accept: text/x-component` is unsafe (CDN ignores `Vary: accept`).
+   * Default path is same-URL negotiation per ADR D1.
+   */
+  endpoint?: string;
+}
+
+/**
  * Router configuration options
  */
 export interface RouterOptions {
@@ -75,7 +89,20 @@ export interface RouterOptions {
   notFound?: ComponentType;
   /** Error boundary component */
   errorBoundary?: ComponentType<{ error: Error }>;
+  /**
+   * Opt into RSC mode (ADR D1 / L3). Omitted or `undefined` keeps client mode
+   * byte-compatible with 0.3.x SPA consumers (marketing, docs, agency).
+   */
+  rsc?: RouterRscOptions;
+  /**
+   * Pluggable fetch for server-action transport (ADR D9). Defaults to
+   * `globalThis.fetch` when RSC mode is active.
+   */
+  serverActionTransport?: typeof fetch;
 }
+
+/** Runtime mode derived from `RouterOptions.rsc`. */
+export type RouterMode = 'client' | 'rsc';
 
 /**
  * Navigation options
