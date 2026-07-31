@@ -646,6 +646,25 @@ export const CLAIMS: readonly ClaimEntry[] = [
       },
     ],
   },
+  {
+    file: 'home.ts',
+    exportPath: 'HOME_HERO_L2.h1',
+    text: 'Ship your next product on the work your last one finished.',
+    evidence: [
+      {
+        kind: 'code',
+        ref: 'packages',
+        note: 'corpus L2 leverage-frame A/B (06-copy-corpus §4.1); owner go 2026-07-31 via ?hero=l2, not default traffic',
+      },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/__tests__/hero-variant.test.ts#serves the L2 leverage-frame for ?hero=l2',
+        note: 'locks L2 H1 as optional experiment variant',
+      },
+      LICENSE_MIT,
+      SELF_HOST,
+    ],
+  },
 
   // ── home.ts — problem ────────────────────────────────────────────────────
   {
