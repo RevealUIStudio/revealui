@@ -16,6 +16,7 @@ import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
+import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -110,7 +111,7 @@ app.openapi(
     const { status, limit, offset } = c.req.valid('query');
 
     // Admin sees all orders; non-admin sees only their own
-    const customerId = user.role === 'admin' ? undefined : user.id;
+    const customerId = hasApiRole(user, 'admin') ? undefined : user.id;
     const filterOpts = { customerId, status };
     const [data, totalDocs] = await Promise.all([
       orderQueries.getAllOrders(db, { ...filterOpts, limit, offset }),
@@ -219,7 +220,7 @@ app.openapi(
     if (!order) throw new HTTPException(404, { message: 'Order not found' });
 
     // Non-admin can only view their own orders
-    if (user.role !== 'admin' && order.customerId !== user.id) {
+    if (!hasApiRole(user, 'admin') && order.customerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -263,7 +264,8 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (user.role !== 'admin') throw new HTTPException(403, { message: 'Admin access required' });
+    if (!hasApiRole(user, 'admin'))
+      throw new HTTPException(403, { message: 'Admin access required' });
 
     const { id } = c.req.valid('param');
     const existing = await orderQueries.getOrderById(db, id);

@@ -22,6 +22,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { ErrorSchema } from '../_helpers/content-schemas.js';
 import type { ContentVariables } from './index.js';
+import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -198,7 +199,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (user.role !== 'admin') {
+    if (!hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 

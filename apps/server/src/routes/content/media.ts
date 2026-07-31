@@ -21,6 +21,7 @@ import { getMediaStorage } from '../../lib/storage.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import type { ContentVariables } from './index.js';
+import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -205,7 +206,7 @@ app.openapi(
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { mimeType, limit, offset } = c.req.valid('query');
     // Non-admin users only see their own uploads (R5-C5 multi-tenancy fix)
-    const uploadedBy = user.role === 'admin' ? undefined : user.id;
+    const uploadedBy = hasApiRole(user, 'admin') ? undefined : user.id;
     const filterOpts = { mimeType, uploadedBy };
     const [data, totalDocs] = await Promise.all([
       mediaQueries.getAllMedia(db, { ...filterOpts, limit, offset }),
@@ -252,7 +253,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const item = await mediaQueries.getMediaById(db, id);
     if (!item) throw new HTTPException(404, { message: 'Media not found' });
-    if (user.role !== 'admin' && item.uploadedBy !== user.id) {
+    if (!hasApiRole(user, 'admin') && item.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: item }, 200);
@@ -298,7 +299,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await mediaQueries.getMediaById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Media not found' });
-    if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
+    if (!hasApiRole(user, 'admin') && existing.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
@@ -335,7 +336,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await mediaQueries.getMediaById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Media not found' });
-    if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
+    if (!hasApiRole(user, 'admin') && existing.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     // Delete the stored object (best-effort  -  the DB record takes priority).

@@ -27,6 +27,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq, gte, isNull, sql } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../lib/api-roles.js';
 
 interface UserContext {
   id: string;
@@ -60,7 +61,7 @@ function requireUser(c: Context): UserContext {
  */
 function requireAdmin(c: Context): UserContext {
   const user = requireUser(c);
-  if (user.role !== 'admin') {
+  if (!hasApiRole(user, 'admin')) {
     throw new HTTPException(403, { message: 'Admin role required' });
   }
   return user;

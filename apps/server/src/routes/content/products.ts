@@ -17,6 +17,7 @@ import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js'
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
+import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -133,7 +134,7 @@ app.openapi(
     }
 
     // Admin sees all; non-admin sees only published
-    const effectiveStatus = user.role === 'admin' ? status : 'published';
+    const effectiveStatus = hasApiRole(user, 'admin') ? status : 'published';
     const filterOpts = { status: effectiveStatus };
     const [data, totalDocs] = await Promise.all([
       productQueries.getAllProducts(db, { ...filterOpts, limit, offset }),
@@ -196,7 +197,8 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (user.role !== 'admin') throw new HTTPException(403, { message: 'Admin access required' });
+    if (!hasApiRole(user, 'admin'))
+      throw new HTTPException(403, { message: 'Admin access required' });
 
     const body = c.req.valid('json');
     const product = await productQueries.createProduct(db, {
@@ -242,7 +244,7 @@ app.openapi(
     }
 
     // Non-admin users can only see published products
-    if (user && user.role !== 'admin' && product.status !== 'published') {
+    if (user && !hasApiRole(user, 'admin') && product.status !== 'published') {
       throw new HTTPException(404, { message: 'Product not found' });
     }
 
@@ -295,7 +297,8 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (user.role !== 'admin') throw new HTTPException(403, { message: 'Admin access required' });
+    if (!hasApiRole(user, 'admin'))
+      throw new HTTPException(403, { message: 'Admin access required' });
 
     const { id } = c.req.valid('param');
     const existing = await productQueries.getProductById(db, id);
@@ -332,7 +335,8 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (user.role !== 'admin') throw new HTTPException(403, { message: 'Admin access required' });
+    if (!hasApiRole(user, 'admin'))
+      throw new HTTPException(403, { message: 'Admin access required' });
 
     const { id } = c.req.valid('param');
     const existing = await productQueries.getProductById(db, id);

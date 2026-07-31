@@ -11,30 +11,46 @@
 
 import { createHash } from 'node:crypto';
 import { getSession } from '@revealui/auth/server';
+import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { userDevices, users } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { type ApiAuthUser, hasApiRole, isPlatformSuperAdmin } from '../lib/api-roles.js';
 import { extractRequestContext } from '../lib/request-context.js';
+
+export type { ApiAuthUser } from '../lib/api-roles.js';
+export { hasApiRole, isPlatformSuperAdmin } from '../lib/api-roles.js';
 
 export interface AuthOptions {
   /** If true, unauthenticated requests get 401. If false, session is set but not required. */
   required?: boolean;
 }
 
+/** Once-per-process elevation log so super-admin is visible without spamming. */
+const elevatedOnce = new Set<string>();
+
 /** Hash a bearer token for comparison against stored tokenHash. */
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
+}
+
+function noteSuperAdminElevation(user: ApiAuthUser): void {
+  if (!isPlatformSuperAdmin(user)) return;
+  if (elevatedOnce.has(user.id)) return;
+  elevatedOnce.add(user.id);
+  logger.info('platform super-admin elevated for API request', {
+    userId: user.id,
+    dbRole: user.role,
+  });
 }
 
 /**
  * Resolve user from a Bearer token. Returns null if token is invalid or expired.
  * Updates lastSeen on the device row (fire-and-forget).
  */
-async function resolveDeviceToken(
-  token: string,
-): Promise<{ id: string; email: string | null; name: string | null; role: string } | null> {
+async function resolveDeviceToken(token: string): Promise<ApiAuthUser | null> {
   const db = getClient();
   const hash = hashToken(token);
   const now = new Date();
@@ -54,7 +70,14 @@ async function resolveDeviceToken(
   if (device.tokenExpiresAt && device.tokenExpiresAt < now) return null;
 
   const [user] = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      role: users.role,
+      emailVerified: users.emailVerified,
+      _json: users._json,
+    })
     .from(users)
     .where(eq(users.id, device.userId))
     .limit(1);
@@ -116,16 +139,18 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
 
 /**
  * Require specific roles. Must be used after authMiddleware({ required: true }).
+ * Platform super-admin satisfies `admin` / `owner` requirements (GAP-444).
  */
 export const requireRole = (...roles: string[]): MiddlewareHandler => {
   return async (c, next) => {
-    const user = c.get('user');
+    const user = c.get('user') as ApiAuthUser | undefined;
     if (!user) {
       throw new HTTPException(401, { message: 'Authentication required' });
     }
-    if (!roles.includes(user.role)) {
+    if (!hasApiRole(user, ...roles)) {
       throw new HTTPException(403, { message: 'Insufficient permissions' });
     }
+    noteSuperAdminElevation(user);
     await next();
   };
 };

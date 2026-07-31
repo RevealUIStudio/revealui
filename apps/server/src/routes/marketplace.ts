@@ -28,6 +28,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { createSafeFetch } from '@revealui/security/server';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../lib/api-roles.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { authMiddleware } from '../middleware/auth.js';
 import {
@@ -516,7 +517,7 @@ app.openapi(
     if (!existing) throw new HTTPException(404, { message: 'Server not found' });
 
     // Only the developer who published it (or an admin) can unpublish
-    if (existing.developerId !== user.id && user.role !== 'admin') {
+    if (existing.developerId !== user.id && !hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 

@@ -22,6 +22,7 @@ import {
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
+import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -130,7 +131,7 @@ app.openapi(
       );
     }
     // Non-admin users can only read their own posts
-    const effectiveAuthorId = user.role === 'admin' ? authorId : user.id;
+    const effectiveAuthorId = hasApiRole(user, 'admin') ? authorId : user.id;
     const filterOpts = { status, authorId: effectiveAuthorId };
     const [data, totalDocs] = await Promise.all([
       postQueries.getAllPosts(db, { ...filterOpts, limit, offset }),
@@ -245,7 +246,7 @@ app.openapi(
       }
       return c.json({ success: true as const, data: serializePost(post) }, 200);
     }
-    if (user.role !== 'admin' && post.authorId !== user.id) {
+    if (!hasApiRole(user, 'admin') && post.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: serializePost(post) }, 200);
@@ -283,7 +284,7 @@ app.openapi(
       }
       return c.json({ success: true as const, data: serializePost(post) }, 200);
     }
-    if (user.role !== 'admin' && post.authorId !== user.id) {
+    if (!hasApiRole(user, 'admin') && post.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: serializePost(post) }, 200);
@@ -339,7 +340,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await postQueries.getPostById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Post not found' });
-    if (user.role !== 'admin' && existing.authorId !== user.id) {
+    if (!hasApiRole(user, 'admin') && existing.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
@@ -391,7 +392,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await postQueries.getPostById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Post not found' });
-    if (user.role !== 'admin' && existing.authorId !== user.id) {
+    if (!hasApiRole(user, 'admin') && existing.authorId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await postQueries.deletePost(db, id);

@@ -15,6 +15,7 @@ import { ErrorSchema, IdParam, SlugField } from '../_helpers/content-schemas.js'
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
+import { hasApiRole } from '../../lib/api-roles.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
@@ -192,7 +193,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const site = await siteQueries.getSiteById(db, id);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
-    if (user.role !== 'admin' && site.ownerId !== user.id) {
+    if (!hasApiRole(user, 'admin') && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     return c.json({ success: true as const, data: serializeSite(site) }, 200);
@@ -240,7 +241,7 @@ app.openapi(
     const body = c.req.valid('json');
     const existing = await siteQueries.getSiteById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Site not found' });
-    if (user.role !== 'admin' && existing.ownerId !== user.id) {
+    if (!hasApiRole(user, 'admin') && existing.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const site = await siteQueries.updateSite(db, id, body);
@@ -276,7 +277,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await siteQueries.getSiteById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Site not found' });
-    if (user.role !== 'admin' && existing.ownerId !== user.id) {
+    if (!hasApiRole(user, 'admin') && existing.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     await siteQueries.deleteSite(db, id);
