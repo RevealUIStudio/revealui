@@ -1,3 +1,7 @@
+---
+visibility: public
+---
+
 # RevealUI Pro
 
 RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on top of the open-source foundation. The default and recommended inference path is open-model (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible) are pluggable but opt-in.

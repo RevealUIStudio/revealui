@@ -270,6 +270,12 @@ jobs:
         # apps/docs/scripts/check-links.ts.
         run: pnpm --filter docs check:links
 
+      - name: Docs-pro visibility boundary
+        # docs-app-hardening PR2: public/docs-pro/** is hand-tracked and not
+        # covered by prune-non-public.mjs. Fail if any file lacks visibility
+        # frontmatter or uses a NEVER_SERVE basename.
+        run: pnpm --filter docs check:docs-pro-boundary
+
       - name: Citation gate (hard fail, validity + coverage-strict)
         # Every code-behaviour claim in gated docs must cite a source:line that
         # resolves and sits in range (VALIDITY, zero baseline), and must not add

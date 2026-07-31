@@ -1,3 +1,7 @@
+---
+visibility: public
+---
+
 # @revealui/mcp
 
 MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Stripe, Neon, Vercel, Playwright, and more via standardized tool interfaces.

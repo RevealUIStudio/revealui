@@ -1,3 +1,7 @@
+---
+visibility: public
+---
+
 # Open-Model Inference
 
 RevealUI AI defaults to open-model inference (Snaps, Ollama). Groq, Anthropic, OpenAI, and HuggingFace are pluggable, opt-in cloud adapters. Each one is a thin wrapper that calls the vendor's OpenAI-compatible HTTP endpoint using your own API key. RevealUI never hosts a model and ships no proprietary vendor SDK.
