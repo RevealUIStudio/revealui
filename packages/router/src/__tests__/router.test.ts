@@ -312,6 +312,41 @@ describe('Router', () => {
     });
   });
 
+  describe('0.3.x client navigation contract (no loaders / middleware)', () => {
+    // Live SPA consumers (marketing, docs, agency) only call navigate()/match.
+    // resolve() is the SSR/data path. Keep this contract explicit for D16
+    // client-mode byte-compat when 0.4 dual-mode lands.
+    it('does not run route loaders on navigate', () => {
+      const loader = vi.fn().mockResolvedValue({ ok: true });
+      const router = new Router();
+      router.register(createRoute('/about', { loader }));
+      router.navigate('/about');
+      expect(loader).not.toHaveBeenCalled();
+      expect(router.getCurrentMatch()?.data).toBeUndefined();
+    });
+
+    it('does not run middleware on navigate', () => {
+      const middleware = vi.fn().mockReturnValue(true);
+      const router = new Router();
+      router.register(createRoute('/about', { middleware: [middleware] }));
+      router.navigate('/about');
+      expect(middleware).not.toHaveBeenCalled();
+    });
+
+    it('seedCurrentMatch retains data across getCurrentMatch reads', () => {
+      const router = new Router();
+      router.register(createRoute('/about'));
+      const match = router.match('/about');
+      expect(match).not.toBeNull();
+      if (!match) return;
+      match.data = { from: 'ssr' };
+      router.seedCurrentMatch(match);
+      expect(router.getCurrentMatch()?.data).toEqual({ from: 'ssr' });
+      // Second read must keep the same seeded object (stable pathname cache)
+      expect(router.getCurrentMatch()?.data).toEqual({ from: 'ssr' });
+    });
+  });
+
   describe('navigate (client-side)', () => {
     it('calls history.pushState on navigate', () => {
       const router = new Router();
