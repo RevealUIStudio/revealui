@@ -2685,6 +2685,27 @@ app.openapi(stripeWebhookRoute, async (c) => {
           resetLicenseState();
           resetDbStatusCache();
 
+          // GAP-260 P4-5: canceled / incomplete_expired paths set licenses to
+          // revoked inside the saga but (unlike subscription.deleted) used to
+          // skip the jti denylist. Without this write, a re-subscribe can
+          // refresh a pre-cancel JWT lineage. Scope by subscriptionId.
+          if (
+            subscription.status === 'canceled' ||
+            subscription.status === 'incomplete_expired'
+          ) {
+            void recordJtisForRevokedCustomerLicenses(
+              db,
+              customerId,
+              `subscription.updated.${subscription.status}`,
+              subscription.id,
+            ).catch((err) => {
+              logger.warn('jti denylist write failed after subscription.updated revoke', {
+                error: err instanceof Error ? err.message : 'unknown',
+                subscriptionStatus: subscription.status,
+              });
+            });
+          }
+
           if (auditEvent) {
             auditLicenseEvent(db, auditEvent, auditSeverity, auditMeta);
           }
