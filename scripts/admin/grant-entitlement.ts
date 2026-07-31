@@ -244,9 +244,11 @@ async function main(): Promise<void> {
         ? `[grant-entitlement] audit signing enabled (alg=ed25519, kid=${kid})`
         : '[grant-entitlement] audit row will be written UNSIGNED (no REVEALUI_AUDIT_SIGNING_KEY; dev/test only)',
     );
+    const targetEnv =
+      process.env.REVEALUI_ENV?.trim() || process.env.NODE_ENV?.trim() || 'development';
     const eventId = randomUUID();
     try {
-      await new DrizzleAuditStore(db, signer).append({
+      await new DrizzleAuditStore(db, signer, { targetEnv }).append({
         id: eventId,
         timestamp: new Date(),
         eventType: 'admin.entitlement.granted',

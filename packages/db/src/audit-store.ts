@@ -87,35 +87,82 @@ export interface AuditFilter {
 // ─── Drizzle Audit Store ────────────────────────────────────────────────────
 
 /**
+ * Construction options for {@link DrizzleAuditStore}.
+ *
+ * GAP-417 residual (rail-2 keying): the store must refuse unsigned rows when
+ * the *target surface* is production, not only when `process.env.NODE_ENV` is
+ * `"production"`. CLI writers often run with `NODE_ENV=development` while
+ * pointed at a production database (`--env=prod` / `REVEALUI_ENV=prod`);
+ * they pass the resolved target here so the refuse rail still fires.
+ */
+export interface DrizzleAuditStoreOptions {
+  /**
+   * Resolved operator / deployment target (e.g. `prod`, `production`, `dev`).
+   * When set, production detection uses this instead of `NODE_ENV` alone.
+   * Accepts fleet short names (`prod`) and Node names (`production`).
+   */
+  targetEnv?: string;
+}
+
+function isProductionName(value: string | undefined): boolean {
+  const raw = (value ?? '').trim().toLowerCase();
+  return raw === 'production' || raw === 'prod';
+}
+
+/**
+ * Whether the write surface is production for the unsigned-row refuse rail
+ * (GAP-417 residual).
+ *
+ * Fail-closed OR: refuse when **either** the operator-resolved `targetEnv`
+ * (`prod` / `production`) **or** `NODE_ENV` is production. That way a CLI
+ * with `NODE_ENV=development` and `--env=prod` still refuses unsigned rows,
+ * and a process that forgets to pass `targetEnv` still refuses when
+ * `NODE_ENV=production`.
+ */
+export function isProductionAuditTarget(
+  targetEnv?: string,
+  nodeEnv: string | undefined = process.env.NODE_ENV,
+): boolean {
+  return isProductionName(targetEnv) || isProductionName(nodeEnv);
+}
+
+/**
  * PostgreSQL-backed audit store using Drizzle ORM.
  * Implements the AuditStore interface for production use.
  *
  * All writes are append-only. The table has no UPDATE or DELETE operations.
  */
 export class DrizzleAuditStore {
+  private readonly options: DrizzleAuditStoreOptions;
+
   /**
-   * @param db     Drizzle client.
-   * @param signer Optional injected row signer (GAP-355 Stage 3). When supplied,
+   * @param db      Drizzle client.
+   * @param signer  Optional injected row signer (GAP-355 Stage 3). When supplied,
    *   every append fetches the row's `seq` from the sequence FIRST (so the signed
    *   bytes can include it — see `nextSeqValues`), signs, and INSERTs with an
    *   explicit `seq` + `signature`. When absent, the DB assigns `seq` and the
    *   `signature` column stays NULL — the honest unsigned state for dev/test.
+   * @param options Optional. Pass `targetEnv` from CLI writers that resolve a
+   *   deployment target independent of `NODE_ENV` (GAP-417 residual).
    */
   constructor(
     private readonly db: Database,
     private readonly signer?: AuditRowSignerFn,
-  ) {}
+    options: DrizzleAuditStoreOptions = {},
+  ) {
+    this.options = options;
+  }
 
   /**
-   * GAP-417 items 1-2 (owner-countersigned 2026-07-25), store-level rail: a
-   * production process must never land an unsigned audit row, regardless of
-   * how it booted. Unsigned rows are indistinguishable from tampering and
-   * permanently stall anchor contiguity once the sweep filters them. The
-   * boot-time assert is the first rail; this is the backstop for any path
-   * that constructs a signer-less store while NODE_ENV=production.
+   * GAP-417 items 1-2 (owner-countersigned 2026-07-25) + residual keying:
+   * a production *surface* must never land an unsigned audit row. Defaults to
+   * `NODE_ENV === 'production'`; CLI writers pass `targetEnv` so a process
+   * with `NODE_ENV=development` that targets prod still fails closed.
+   * Unsigned rows are indistinguishable from tampering and permanently stall
+   * anchor contiguity once the sweep filters them.
    */
   private refuseUnsignedInProduction(): void {
-    if (process.env.NODE_ENV === 'production') {
+    if (isProductionAuditTarget(this.options.targetEnv)) {
       throw new Error(
         'DrizzleAuditStore: refusing to write an UNSIGNED audit row in production — ' +
           'no row signer is injected. An unsigned row is indistinguishable from ' +
