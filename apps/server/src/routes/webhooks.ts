@@ -49,6 +49,7 @@ import {
   coerceHostedTier,
   type HostedTier,
 } from '../lib/hosted-entitlement.js';
+import { recordJtisForRevokedCustomerLicenses } from '../lib/license-jti-revocation.js';
 import { assertSeatAvailable } from '../lib/seat-count-guard.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
@@ -74,7 +75,6 @@ import {
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
-import { recordJtisForRevokedCustomerLicenses } from '../lib/license-jti-revocation.js';
 
 const app = new OpenAPIHono();
 
@@ -3408,7 +3408,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
             error: err instanceof Error ? err.message : 'unknown',
           });
         });
-
 
         logger.warn('License revoked: chargeback dispute lost', {
           customerId: disputeCustomerId,
