@@ -1020,11 +1020,16 @@ describe('MCPHypervisor', () => {
       const spawnEnv = spawnCall?.[2]?.env as NodeJS.ProcessEnv;
       expect(spawnEnv.MCP_SERVER_MODE).toBe('tenant');
       expect(spawnEnv.TENANT_TOKEN).toBe('vault-token');
-      for (const secretKey of ['STRIPE_SECRET_KEY', 'DATABASE_URL', 'REVEALUI_SECRET']) {
-        if (process.env[secretKey] !== undefined) {
-          expect(spawnEnv[secretKey]).toBeUndefined();
-        }
-      }
+      // Always assert denylisted host secrets cannot appear on tenant spawn env
+      // (pure buildTenantSpawnEnv test injects them; this covers the live spawn call).
+      expect(spawnEnv.STRIPE_SECRET_KEY).toBeUndefined();
+      expect(spawnEnv.DATABASE_URL).toBeUndefined();
+      expect(spawnEnv.REVEALUI_SECRET).toBeUndefined();
+      expect(spawnEnv.NODE_OPTIONS).toBeUndefined();
+      // Spawn env must be composed only of allowlist + config + tenant keys
+      // we deliberately set (plus whatever allowlisted keys exist on the host).
+      expect(spawnEnv.MCP_SERVER_MODE).toBe('tenant');
+      expect(spawnEnv.TENANT_TOKEN).toBe('vault-token');
     });
   });
 });
