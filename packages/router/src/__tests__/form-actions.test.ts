@@ -58,7 +58,10 @@ describe('2.2.4 progressive form actions', () => {
     router.register({ path: '/', component: () => null });
     let seenFormState: unknown;
     const decodeFormAction = vi.fn(async () => async () => 'ok-result');
-    const decodeFormState = vi.fn(async (result: unknown) => ({ message: result }));
+    const decodeFormState = vi.fn(async (result: unknown, formData: FormData) => {
+      expect(formData.get('message')).toBe('hi');
+      return { message: result };
+    });
 
     const res = await renderRequest(formPost('http://x/', { message: 'hi' }), {
       router,
@@ -74,10 +77,6 @@ describe('2.2.4 progressive form actions', () => {
     expect(res.status).toBe(200);
     expect(decodeFormAction).toHaveBeenCalledOnce();
     expect(decodeFormState).toHaveBeenCalledOnce();
-    expect(decodeFormState.mock.calls[0]?.[0]).toBe('ok-result');
-    const fd = decodeFormState.mock.calls[0]?.[1] as FormData;
-    expect(typeof fd.get).toBe('function');
-    expect(fd.get('message')).toBe('hi');
     expect(seenFormState).toEqual({ message: 'ok-result' });
   });
 
