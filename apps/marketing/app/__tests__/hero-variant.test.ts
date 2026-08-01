@@ -42,7 +42,7 @@ describe('selectHomeHero', () => {
   it('keeps the full locked positioning form on all hero variants', () => {
     expect(HOME_HERO.subtitle.sentence1).toContain('under one roof');
     expect(HOME_HERO.subtitle.sentence2).toBe(
-      'Every agent is a governed and audited user that lives on your infrastructure.',
+      'Your team and your agents work the same objects under the same access rules on your infrastructure.',
     );
     expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
     expect(HOME_HERO_FOUNDATION.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);

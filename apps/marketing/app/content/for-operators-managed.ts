@@ -91,8 +91,8 @@ export const FO_MANAGED_PREREQS = {
   intro: 'Four things must be in place before the managed offering can move from roadmap to real:',
   prerequisites: [
     {
-      title: 'The runtime has to charge customers in live mode.',
-      body: 'A managed offering charges money. The runtime can charge today in test mode; live mode is gated on owner-side operational steps. Until that gate clears, no managed signup can complete a real transaction.',
+      title: 'A managed SKU needs more than product billing.',
+      body: 'Self-serve product tiers can charge in live mode today. A managed Cloud offering still needs automated per-operator provisioning, an operator configuration UI, and a productized support contract before signup means a hosted instance. Those three are unbuilt; the agency engagement is the path that ships.',
     },
     {
       title: 'A provisioning path that stands up a per-operator hosted instance, without a human.',

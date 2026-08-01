@@ -97,36 +97,24 @@ export const LOCAL_AI_PAGE = {
       body: 'Start fully on open weights running locally. When a task needs a frontier model, add the provider as an opt-in adapter, never the default.',
     },
   ],
+  // Named third-party adopters removed (2026-08-01 marketing corpus audit):
+  // they are not RevealUI customers and burn trust after a long disclaimer.
+  // Keep one industry-pattern card; re-add named rows only with fresh citations
+  // and an explicit "not our customers" line on the card itself.
   marketProof: {
     eyebrow: 'Why local-first matters',
     heading: 'Open and local models already run where data cannot leave.',
-    body: 'Across regulated, high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary.',
+    body: 'Across regulated and high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary. That is where RevealUI fits: good enough and yours beats best and rented.',
     adopters: [
       {
-        name: 'HSBC',
-        detail: 'is deploying self-hosted Mistral on its own internal systems in finance.',
-        source: 'HSBC, 2025-12-01',
-      },
-      {
-        name: 'Capital One',
+        name: 'Industry pattern',
         detail:
-          'runs a production multi-agent assistant on fine-tuned Llama, with dealers reporting up to 55% more engagement.',
-        source: 'Capital One tech blog, 2025-03-05',
-      },
-      {
-        name: 'Goldman Sachs and Shopify',
-        detail:
-          'run Llama in production, with Shopify serving tens of millions of inferences a day.',
-        source: 'Meta AI, 2024-08-29',
-      },
-      {
-        name: 'Scale AI Defense Llama',
-        detail: 'fine-tunes Llama 3 on doctrine and policy for controlled government environments.',
-        source: 'Scale, 2024-11-04',
+          'Finance, defense, and other regulated teams already run open-weight models on infrastructure they control, when sensitive data must stay inside their boundary.',
+        source: 'Market pattern, not RevealUI customers',
       },
     ] as readonly LocalAdopter[],
     disclaimer:
-      'These are industry adopters of open and local models, not RevealUI customers. They show where the runtime fits: where good enough and yours beats best and rented.',
+      'This is an industry pattern, not a RevealUI customer list. Use it to place the runtime, not as social proof of our install base.',
   },
   roadmap: {
     heading: 'On the roadmap',

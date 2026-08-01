@@ -607,14 +607,11 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence2',
-    text: 'Every agent is a governed and audited user that lives on your infrastructure.',
+    text: 'Your team and your agents work the same objects under the same access rules on your infrastructure.',
     evidence: [
       AGENT_ROUTES,
       RBAC_ABAC,
       TIER_GATES,
-      AUDIT_LOG_SCHEMA,
-      AUDIT_SIGNING,
-      AUDIT_SIGNING_TEST,
       {
         kind: 'code',
         ref: 'packages/auth/src/server/auth.ts',
@@ -626,6 +623,11 @@ export const CLAIMS: readonly ClaimEntry[] = [
         note: 'identity-gated access: a principal must authenticate before protected operations; agents use the same gate surface as human users',
       },
       SELF_HOST,
+      {
+        kind: 'url',
+        ref: 'https://revealui.com/claims',
+        note: 'interim-safe form under truth-source §7 / GAP-354; re-arm "governed and audited" only after GAP-355 production-path proof',
+      },
     ],
   },
   {
@@ -2500,14 +2502,14 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_PREREQS.prerequisites[0].title',
-    text: 'The runtime has to charge customers in live mode.',
-    evidence: [BILLING],
+    text: 'A managed SKU needs more than product billing.',
+    evidence: [BILLING, ROADMAP],
   },
   {
     file: 'for-operators-managed.ts',
     exportPath: 'FO_MANAGED_PREREQS.prerequisites[0].body',
-    text: 'A managed offering charges money. The runtime can charge today in test mode; live mode is gated on owner-side operational steps. Until that gate clears, no managed signup can complete a real transaction.',
-    evidence: [BILLING],
+    text: 'Self-serve product tiers can charge in live mode today. A managed Cloud offering still needs automated per-operator provisioning, an operator configuration UI, and a productized support contract before signup means a hosted instance. Those three are unbuilt; the agency engagement is the path that ships.',
+    evidence: [BILLING, ROADMAP],
   },
   {
     file: 'for-operators-managed.ts',
@@ -2707,43 +2709,25 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_PAGE.marketProof.body',
-    text: 'Across regulated, high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary.',
+    text: 'Across regulated and high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary. That is where RevealUI fits: good enough and yours beats best and rented.',
     evidence: [MARKET_CITATIONS],
   },
   {
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_PAGE.marketProof.adopters[0].detail',
-    text: 'is deploying self-hosted Mistral on its own internal systems in finance.',
+    text: 'Finance, defense, and other regulated teams already run open-weight models on infrastructure they control, when sensitive data must stay inside their boundary.',
     evidence: [MARKET_CITATIONS],
   },
   {
     file: 'local-ai.ts',
-    exportPath: 'LOCAL_AI_PAGE.marketProof.adopters[1].detail',
-    text: 'runs a production multi-agent assistant on fine-tuned Llama, with dealers reporting up to 55% more engagement.',
-    evidence: [MARKET_CITATIONS],
-  },
-  {
-    file: 'local-ai.ts',
-    exportPath: 'LOCAL_AI_PAGE.marketProof.adopters[1].source',
-    text: 'Capital One tech blog, 2025-03-05',
-    evidence: [MARKET_CITATIONS],
-  },
-  {
-    file: 'local-ai.ts',
-    exportPath: 'LOCAL_AI_PAGE.marketProof.adopters[2].detail',
-    text: 'run Llama in production, with Shopify serving tens of millions of inferences a day.',
-    evidence: [MARKET_CITATIONS],
-  },
-  {
-    file: 'local-ai.ts',
-    exportPath: 'LOCAL_AI_PAGE.marketProof.adopters[3].detail',
-    text: 'fine-tunes Llama 3 on doctrine and policy for controlled government environments.',
+    exportPath: 'LOCAL_AI_PAGE.marketProof.adopters[0].source',
+    text: 'Market pattern, not RevealUI customers',
     evidence: [MARKET_CITATIONS],
   },
   {
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_PAGE.marketProof.disclaimer',
-    text: 'These are industry adopters of open and local models, not RevealUI customers. They show where the runtime fits: where good enough and yours beats best and rented.',
+    text: 'This is an industry pattern, not a RevealUI customer list. Use it to place the runtime, not as social proof of our install base.',
     evidence: [MARKET_CITATIONS],
   },
   {
@@ -3350,17 +3334,21 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_CAPTION.text',
-    text: "If an agent did it, there's a receipt.",
+    text: 'Agents act through your runtime, not a separate black box.',
     evidence: [
-      AUDIT_SIGNING,
-      AUDIT_SIGNING_TEST,
-      AUDIT_LOG_SCHEMA,
+      AGENT_ROUTES,
+      TIER_GATES,
       REFUND_ROUTE,
       {
-        ...AUDIT_RECEIPTS_DOC,
-        note: 'Stage 4 S4-6: foil is positioning; sealed root download is Max (auditLog); verification never paid',
+        kind: 'code',
+        ref: 'packages/mcp/src/servers',
+        note: 'agents reach app data through first-party MCP tools on the same runtime, not a separate product silo',
       },
-      AUDIT_LOG_FEATURE_MAX,
+      {
+        kind: 'url',
+        ref: 'https://revealui.com/claims',
+        note: 'interim-safe foil under truth-source §7 / GAP-354; re-arm "If an agent did it, there\'s a receipt." only after GAP-355 production-path proof',
+      },
     ],
   },
 
