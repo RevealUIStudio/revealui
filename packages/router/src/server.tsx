@@ -29,6 +29,7 @@ export {
   type Representation,
   RSC_ACCEPT,
   RSC_CONTENT_TYPE,
+  resolveRscClientUrl,
   resolveRscEndpointPath,
   routingPathname,
   wantsRscPayload,

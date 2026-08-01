@@ -1,13 +1,17 @@
 /**
- * Browser entry — hydrate from `__RSC_PAYLOAD__`, re-fetch flight on navigation.
- *
- * D3: no `history.pushState` monkey-patch. Interception is click/popstate only
- * (same ownership model as `@revealui/router` `initClient`). Full router-owned
- * RSC payload state lands in 2.2.3; this entry is the consumer-side pattern.
+ * Browser entry — hydrate from `__RSC_PAYLOAD__`, soft-nav via router-owned RSC
+ * fetch (Phase 2.2.3 / ADR D3). No History monkey-patch; no local click listener.
  */
 'use client';
 
-import { RouterProvider } from '@revealui/router';
+import {
+  Link,
+  RouterProvider,
+  useNavigationError,
+  useNavigationStatus,
+  useRscPayload,
+} from '@revealui/router';
+import { RSC_ACCEPT } from '@revealui/router/core';
 import {
   createFromFetch,
   createFromReadableStream,
@@ -23,11 +27,14 @@ import type { RscPayload } from './entry.rsc.tsx';
 const router = createAppRouter();
 
 async function main(): Promise<void> {
-  let setPayload: ((v: RscPayload) => void) | undefined;
-
-  async function fetchRscPayload(url: string): Promise<RscPayload> {
-    return createFromFetch<RscPayload>(fetch(url, { headers: { accept: 'text/x-component' } }));
-  }
+  router.setRscPayloadLoader(async (url, signal) => {
+    return createFromFetch<RscPayload>(
+      fetch(url, {
+        headers: { accept: RSC_ACCEPT },
+        signal,
+      }),
+    );
+  });
 
   const rscBase64 = (globalThis as Record<string, unknown>).__RSC_PAYLOAD__ as string | undefined;
 
@@ -42,29 +49,56 @@ async function main(): Promise<void> {
     });
     initialPayload = await createFromReadableStream<RscPayload>(rscStream);
   } else {
-    initialPayload = await fetchRscPayload(window.location.href);
+    initialPayload = await createFromFetch<RscPayload>(
+      fetch(window.location.href, { headers: { accept: RSC_ACCEPT } }),
+    );
   }
 
-  // Seed match so client hooks see the SSR route without re-running loaders.
-  const initialPath = window.location.pathname;
-  router.seedCurrentMatch(router.match(initialPath));
+  router.seedCurrentMatch(router.match(window.location.pathname));
+  router.applyRscPayload(initialPayload);
+  router.initClient();
 
   function BrowserRoot(): React.ReactNode {
-    const [payload, setPayload_] = React.useState(initialPayload);
+    const payload = useRscPayload<RscPayload>();
+    const status = useNavigationStatus();
+    const navError = useNavigationError();
 
-    React.useEffect(() => {
-      setPayload = (v) => React.startTransition(() => setPayload_(v));
-    }, []);
+    if (!payload) {
+      return <div>Loading…</div>;
+    }
 
-    React.useEffect(() => {
-      return listenNavigation(() => {
-        const path = window.location.pathname;
-        router.seedCurrentMatch(router.match(path));
-        fetchRscPayload(window.location.href).then((p) => setPayload?.(p));
-      });
-    }, []);
-
-    return <RouterProvider router={router}>{payload.root}</RouterProvider>;
+    return (
+      <>
+        {status === 'loading' ? (
+          <div
+            data-router-nav="loading"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
+              background: '#3b82f6',
+              zIndex: 50,
+            }}
+          />
+        ) : null}
+        {status === 'error' && navError ? (
+          <div
+            data-router-nav="error"
+            style={{
+              padding: '8px 16px',
+              background: '#fef2f2',
+              borderBottom: '1px solid #fecaca',
+              color: '#991b1b',
+            }}
+          >
+            Navigation failed: {navError.message} <Link to={window.location.pathname}>Retry</Link>
+          </div>
+        ) : null}
+        {payload.root}
+      </>
+    );
   }
 
   setServerCallback(async (id: string, args: unknown[]) => {
@@ -72,7 +106,7 @@ async function main(): Promise<void> {
     const body = await encodeReply(args, { temporaryReferences });
     const headers: Record<string, string> = {
       'x-rsc-action': id,
-      accept: 'text/x-component',
+      accept: RSC_ACCEPT,
     };
     if (typeof body === 'string') {
       headers['content-type'] = 'text/plain;charset=UTF-8';
@@ -85,7 +119,8 @@ async function main(): Promise<void> {
       }),
       { temporaryReferences },
     );
-    setPayload?.(payload);
+    // Action already returned a fresh tree — apply without a second GET.
+    router.applyRscPayload(payload);
     const rv = payload.returnValue;
     if (!rv) return undefined;
     if (!rv.ok) throw rv.data;
@@ -94,7 +129,9 @@ async function main(): Promise<void> {
 
   const browserRoot = (
     <React.StrictMode>
-      <BrowserRoot />
+      <RouterProvider router={router}>
+        <BrowserRoot />
+      </RouterProvider>
     </React.StrictMode>
   );
 
@@ -109,48 +146,9 @@ async function main(): Promise<void> {
 
   if (import.meta.hot) {
     import.meta.hot.on('rsc:update', () => {
-      fetchRscPayload(window.location.href).then((p) => setPayload?.(p));
+      void router.refreshRscPayload(true);
     });
   }
-}
-
-/**
- * Same-origin soft navigation: click + popstate only (no History API patch — D3).
- */
-function listenNavigation(onNavigation: () => void): () => void {
-  window.addEventListener('popstate', onNavigation);
-
-  function onClick(e: MouseEvent): void {
-    const link = (e.target as Element).closest('a');
-    if (
-      link instanceof HTMLAnchorElement &&
-      link.href &&
-      (!link.target || link.target === '_self') &&
-      link.origin === location.origin &&
-      !link.hasAttribute('download') &&
-      e.button === 0 &&
-      !e.metaKey &&
-      !e.ctrlKey &&
-      !e.altKey &&
-      !e.shiftKey &&
-      !e.defaultPrevented
-    ) {
-      e.preventDefault();
-      const url = new URL(link.href);
-      const next = url.pathname + url.search + url.hash;
-      const current = window.location.pathname + window.location.search + window.location.hash;
-      if (next === current) return;
-      window.history.pushState(null, '', next);
-      onNavigation();
-    }
-  }
-
-  document.addEventListener('click', onClick);
-
-  return () => {
-    document.removeEventListener('click', onClick);
-    window.removeEventListener('popstate', onNavigation);
-  };
 }
 
 main();

@@ -22,7 +22,7 @@ plugin-rsc; Phase 2.2.2 T0–T7 built the engine; **T8** is the first real consu
 | `src/app-router.ts` | `new Router({ rsc: {} })` + three demo routes + layout |
 | `src/entry.rsc.tsx` | `renderRequest` + `createRscStream` (plugin-rsc) + `x-rsc-action` |
 | `src/entry.ssr.tsx` | SSR from teed flight; payload inline owned by router |
-| `src/entry.browser.tsx` | Hydrate + `RouterProvider` + click/popstate RSC fetch (no History patch) |
+| `src/entry.browser.tsx` | Hydrate + `setRscPayloadLoader` + `useRscPayload` (2.2.3 router-owned nav) |
 | `src/pages/*` | Demo pages + server actions |
 
 ## Commands

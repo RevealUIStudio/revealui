@@ -354,6 +354,37 @@ Default `new Router()` (no `rsc` option) is the 0.3.x SPA contract used by
 `src/__tests__/client-mode-compat.test.tsx` (export surface, navigate without
 loaders, 0.3.10 scroll behavior, hooks composition).
 
+## RSC client navigation (2.2.3 / D3)
+
+In `'rsc'` mode, soft navigations fetch flight payloads via a pluggable loader:
+
+```typescript
+import { Router, RouterProvider, useRscPayload, useNavigationStatus } from '@revealui/router'
+import { RSC_ACCEPT } from '@revealui/router/core'
+
+const router = new Router({ rsc: {} })
+router.setRscPayloadLoader(async (url, signal) =>
+  createFromFetch(fetch(url, { headers: { accept: RSC_ACCEPT }, signal })),
+)
+router.applyRscPayload(initialPayload) // SSR hydrate seed
+router.initClient() // popstate + <a> intercept → navigate → fetch
+
+function App() {
+  const payload = useRscPayload<{ root: React.ReactNode }>()
+  const status = useNavigationStatus()
+  return (
+    <RouterProvider router={router}>
+      {status === 'loading' ? <Progress /> : null}
+      {payload?.root}
+    </RouterProvider>
+  )
+}
+```
+
+- New navigations **abort** the previous fetch (`AbortSignal` token).
+- `navigate(to, { skipRscFetch: true })` when a server action already applied a payload.
+- `useNavigationError()` surfaces loader failures.
+
 ## Dev Server
 
 Quick development server:

@@ -62,3 +62,25 @@ export function routingPathname(request: Request, rsc?: RouterRscOptions): strin
   const url = new URL(request.url);
   return resolveRscEndpointPath(url.pathname, rsc?.endpoint).pathname;
 }
+
+/**
+ * Absolute URL the browser should request for an RSC soft navigation (2.2.3).
+ * Default: same resource path (content negotiation via `Accept`).
+ * With `endpoint`: prefix the path so the server forces RSC representation.
+ */
+export function resolveRscClientUrl(
+  pathname: string,
+  search = '',
+  rsc?: RouterRscOptions,
+  origin?: string,
+): string {
+  const base = origin ?? (typeof window !== 'undefined' ? window.location.origin : '');
+  const path = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  const q = search && !search.startsWith('?') ? `?${search}` : search;
+  if (!rsc?.endpoint) {
+    return `${base}${path}${q}`;
+  }
+  const prefix = rsc.endpoint.endsWith('/') ? rsc.endpoint.slice(0, -1) : rsc.endpoint;
+  const prefixed = path === '/' ? prefix : `${prefix}${path}`;
+  return `${base}${prefixed}${q}`;
+}

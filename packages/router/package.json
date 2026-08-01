@@ -1,6 +1,6 @@
 {
   "name": "@revealui/router",
-  "version": "0.4.0-rc.3",
+  "version": "0.4.0-rc.4",
   "description": "Lightweight dual-mode router for React apps: client SPA (default) plus opt-in RSC mode. SSR, data loaders, middleware, nested layouts. Works with Vite, Hono, or any React setup.",
   "keywords": [
     "file-based-routing",

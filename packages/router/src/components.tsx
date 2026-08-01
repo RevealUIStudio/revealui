@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type { Router } from './router';
-import type { Location, NavigateOptions, RouteMatch } from './types';
+import type { Location, NavigateOptions, NavigationStatus, RouteMatch } from './types';
 
 /**
  * Router context
@@ -218,6 +218,43 @@ export function useLocation(): Location {
 export function useSearchParams(): URLSearchParams {
   const { search } = useLocation();
   return useMemo(() => new URLSearchParams(search), [search]);
+}
+
+/**
+ * useRscPayload — current RSC flight payload (Phase 2.2.3 / ADR D3).
+ * Requires `setRscPayloadLoader` + `applyRscPayload` on the router instance.
+ */
+export function useRscPayload<T = unknown>(): T | null {
+  const router = useRouter();
+  return useSyncExternalStore(
+    (callback) => router.subscribeRsc(callback),
+    () => router.getRscPayload() as T | null,
+    () => router.getRscPayload() as T | null,
+  );
+}
+
+/**
+ * useNavigationStatus — idle | loading | error for RSC soft navigations.
+ */
+export function useNavigationStatus(): NavigationStatus {
+  const router = useRouter();
+  return useSyncExternalStore(
+    (callback) => router.subscribeRsc(callback),
+    () => router.getNavigationStatus(),
+    () => router.getNavigationStatus(),
+  );
+}
+
+/**
+ * useNavigationError — last RSC navigation error, or null.
+ */
+export function useNavigationError(): Error | null {
+  const router = useRouter();
+  return useSyncExternalStore(
+    (callback) => router.subscribeRsc(callback),
+    () => router.getNavigationError(),
+    () => router.getNavigationError(),
+  );
 }
 
 /**

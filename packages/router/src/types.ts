@@ -105,6 +105,20 @@ export interface RouterOptions {
 export type RouterMode = 'client' | 'rsc';
 
 /**
+ * Client RSC navigation status (Phase 2.2.3 / ADR D3).
+ * `'idle'` when no in-flight payload fetch; `'loading'` while fetching;
+ * `'error'` after a failed fetch (see `Router.getNavigationError()`).
+ */
+export type NavigationStatus = 'idle' | 'loading' | 'error';
+
+/**
+ * Pluggable RSC payload loader (ADR D11 — router stays free of RSDW/plugin-rsc).
+ * Called on soft navigation in `'rsc'` mode with an absolute URL and abort signal.
+ * New navigations abort the previous signal (D3 `currentNavigationToken`).
+ */
+export type RscPayloadLoader<T = unknown> = (url: string, signal: AbortSignal) => Promise<T>;
+
+/**
  * Navigation options
  */
 export interface NavigateOptions<TState = unknown> {
@@ -112,6 +126,11 @@ export interface NavigateOptions<TState = unknown> {
   replace?: boolean;
   /** State to pass with navigation */
   state?: TState;
+  /**
+   * Skip RSC payload fetch after history update (RSC mode only).
+   * Used when a server action already returned a fresh payload via `applyRscPayload`.
+   */
+  skipRscFetch?: boolean;
 }
 
 /**

@@ -2,16 +2,23 @@ import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { createElement } from 'react';
 import { isRouterNotFound, isRouterRedirect } from './navigation';
-import { negotiateRepresentation, type Representation, routingPathname } from './negotiate';
+import {
+  negotiateRepresentation,
+  type Representation,
+  resolveRscClientUrl,
+  routingPathname,
+} from './negotiate';
 import type {
   MiddlewareContext,
   NavigateOptions,
+  NavigationStatus,
   Route,
   RouteMatch,
   RouteMiddleware,
   RouteParams,
   RouterMode,
   RouterOptions,
+  RscPayloadLoader,
 } from './types';
 
 declare global {
@@ -118,10 +125,20 @@ export class Router {
   private actionMiddleware: RouteMiddleware[] = [];
   private options: RouterOptions;
   private listeners: Set<() => void> = new Set();
+  /** RSC payload + nav-status subscribers (Phase 2.2.3 / D3). */
+  private rscListeners: Set<() => void> = new Set();
   private currentMatch: RouteMatch | null = null;
   private lastPathname: string | null = null;
   private popstateHandler: (() => void) | null = null;
   private clickHandler: ((e: MouseEvent) => void) | null = null;
+  private rscPayloadLoader: RscPayloadLoader | null = null;
+  private rscPayload: unknown = null;
+  private navigationStatus: NavigationStatus = 'idle';
+  private navigationError: Error | null = null;
+  /** AbortController for in-flight RSC fetch (D3 navigation token). */
+  private navigationAbort: AbortController | null = null;
+  /** Last path+search we issued an RSC fetch for (skip hash-only / duplicate). */
+  private lastRscFetchKey: string | null = null;
 
   constructor(options: RouterOptions = {}) {
     this.options = {
@@ -330,7 +347,9 @@ export class Router {
   }
 
   /**
-   * Navigate to a URL (client-side only)
+   * Navigate to a URL (client-side only).
+   * In `'rsc'` mode with a payload loader set (2.2.3), also fetches the flight
+   * payload after history update (ADR D3). Client mode is unchanged (0.3.x).
    */
   navigate(url: string, options: NavigateOptions = {}): void {
     if (typeof window === 'undefined') {
@@ -358,6 +377,102 @@ export class Router {
     // native scroll restoration (scrollRestoration = 'auto') handles those.
     if (!url.includes('#')) {
       window.scrollTo(0, 0);
+    }
+
+    if (this.mode === 'rsc' && !options.skipRscFetch) {
+      void this.refreshRscPayload();
+    }
+  }
+
+  /**
+   * Install the pluggable RSC payload loader (ADR D11). Required for soft
+   * navigation in `'rsc'` mode. No-op for client mode.
+   */
+  setRscPayloadLoader(loader: RscPayloadLoader | null): void {
+    this.rscPayloadLoader = loader;
+  }
+
+  /**
+   * Seed or replace the current RSC payload without a network fetch
+   * (SSR hydrate, server-action return, HMR).
+   */
+  applyRscPayload(payload: unknown): void {
+    this.rscPayload = payload;
+    this.navigationStatus = 'idle';
+    this.navigationError = null;
+    if (typeof window !== 'undefined') {
+      this.lastRscFetchKey = window.location.pathname + window.location.search;
+    }
+    this.notifyRscListeners();
+  }
+
+  getRscPayload(): unknown {
+    return this.rscPayload;
+  }
+
+  getNavigationStatus(): NavigationStatus {
+    return this.navigationStatus;
+  }
+
+  getNavigationError(): Error | null {
+    return this.navigationError;
+  }
+
+  /**
+   * Subscribe to RSC payload / navigation-status changes (useSyncExternalStore).
+   */
+  subscribeRsc(listener: () => void): () => void {
+    this.rscListeners.add(listener);
+    return () => {
+      this.rscListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Fetch RSC payload for the current browser location (or a forced key).
+   * Cancels any in-flight fetch (D3 navigation token).
+   */
+  async refreshRscPayload(force = false): Promise<void> {
+    if (this.mode !== 'rsc' || !this.rscPayloadLoader) {
+      return;
+    }
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const key = window.location.pathname + window.location.search;
+    if (!force && key === this.lastRscFetchKey && this.navigationStatus !== 'error') {
+      // Hash-only change or duplicate notify — keep existing payload.
+      return;
+    }
+
+    this.navigationAbort?.abort();
+    const ac = new AbortController();
+    this.navigationAbort = ac;
+    this.navigationStatus = 'loading';
+    this.navigationError = null;
+    this.notifyRscListeners();
+
+    const fetchUrl = resolveRscClientUrl(
+      window.location.pathname,
+      window.location.search,
+      this.options.rsc,
+      window.location.origin,
+    );
+
+    try {
+      const payload = await this.rscPayloadLoader(fetchUrl, ac.signal);
+      if (ac.signal.aborted) return;
+      this.rscPayload = payload;
+      this.navigationStatus = 'idle';
+      this.navigationError = null;
+      this.lastRscFetchKey = key;
+      this.notifyRscListeners();
+    } catch (error) {
+      if (ac.signal.aborted) return;
+      this.navigationStatus = 'error';
+      this.navigationError = error instanceof Error ? error : new Error(String(error));
+      this.notifyRscListeners();
     }
   }
 
@@ -441,6 +556,13 @@ export class Router {
     this.flatRoutes = [];
     this.globalMiddleware = [];
     this.actionMiddleware = [];
+    this.rscPayloadLoader = null;
+    this.rscPayload = null;
+    this.navigationStatus = 'idle';
+    this.navigationError = null;
+    this.navigationAbort?.abort();
+    this.navigationAbort = null;
+    this.lastRscFetchKey = null;
   }
 
   private normalizePath(url: string): string {
@@ -467,9 +589,16 @@ export class Router {
     });
   }
 
+  private notifyRscListeners(): void {
+    this.rscListeners.forEach((listener) => {
+      listener();
+    });
+  }
+
   /**
    * Initialize client-side routing.
    * Uses a global flag to prevent duplicate event listeners on HMR re-invocation.
+   * In `'rsc'` mode, popstate also refreshes the RSC payload (ADR D3).
    */
   initClient(): void {
     if (typeof window === 'undefined') {
@@ -492,6 +621,9 @@ export class Router {
       this.lastPathname = window.location.pathname;
       this.currentMatch = this.match(window.location.pathname);
       this.notifyListeners();
+      if (this.mode === 'rsc') {
+        void this.refreshRscPayload();
+      }
     };
     window.addEventListener('popstate', this.popstateHandler);
 
@@ -543,6 +675,9 @@ export class Router {
     }
 
     this.listeners.clear();
+    this.rscListeners.clear();
+    this.navigationAbort?.abort();
+    this.navigationAbort = null;
 
     globalThis.__revealui_router_initialized = false;
   }

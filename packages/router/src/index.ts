@@ -47,10 +47,15 @@ export {
   useLocation,
   useMatch,
   useNavigate,
+  useNavigationError,
+  useNavigationStatus,
   useParams,
   useRouter,
+  useRscPayload,
   useSearchParams,
 } from './components';
+// Client RSC helpers (also on ./server for parity)
+export { RSC_ACCEPT, resolveRscClientUrl } from './negotiate';
 // Core router
 export { Router } from './router';
 
@@ -59,6 +64,7 @@ export type {
   Location,
   MiddlewareContext,
   NavigateOptions,
+  NavigationStatus,
   Route,
   RouteMatch,
   RouteMeta,
@@ -67,4 +73,5 @@ export type {
   RouterMode,
   RouterOptions,
   RouterRscOptions,
+  RscPayloadLoader,
 } from './types';
