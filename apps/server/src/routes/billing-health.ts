@@ -15,6 +15,7 @@ import { accountEntitlements, licenses, processedWebhookEvents } from '@revealui
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, gt, gte, ne } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../lib/api-roles.js';
 
 const app = new OpenAPIHono<{
   Variables: { user: { id: string; role: string } | undefined };
@@ -63,7 +64,7 @@ app.openapi(billingHealthRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
-  if (user.role !== 'admin' && user.role !== 'owner') {
+  if (!hasApiRole(user, 'admin', 'owner')) {
     throw new HTTPException(403, { message: 'Admin or owner role required' });
   }
 

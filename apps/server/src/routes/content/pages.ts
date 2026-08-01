@@ -11,6 +11,7 @@ import * as pageQueries from '@revealui/db/queries/pages';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
 import {
   ErrorSchema,
@@ -119,7 +120,7 @@ app.openapi(
       const data = await pageQueries.getPagesBySite(db, siteId, { status: 'published' });
       return c.json({ success: true as const, data: data.map(serializePage) }, 200);
     }
-    if (user.role !== 'admin' && site.ownerId !== user.id) {
+    if (!hasApiRole(user, 'admin') && site.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const data = await pageQueries.getPagesBySite(db, siteId, { status });
@@ -185,7 +186,7 @@ app.openapi(
     }
     const existingSite = await siteQueries.getSiteById(db, siteId);
     if (!existingSite) throw new HTTPException(404, { message: 'Site not found' });
-    if (user.role !== 'admin' && existingSite.ownerId !== user.id) {
+    if (!hasApiRole(user, 'admin') && existingSite.ownerId !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const page = await pageQueries.createPage(db, {
@@ -229,7 +230,7 @@ app.openapi(
       }
       return c.json({ success: true as const, data: serializePage(page) }, 200);
     }
-    if (user.role !== 'admin') {
+    if (!hasApiRole(user, 'admin')) {
       const site = await siteQueries.getSiteById(db, page.siteId);
       if (!site || site.ownerId !== user.id) {
         throw new HTTPException(403, { message: 'Forbidden' });
@@ -287,7 +288,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
-    if (user.role !== 'admin') {
+    if (!hasApiRole(user, 'admin')) {
       const site = await siteQueries.getSiteById(db, existing.siteId);
       if (!site || site.ownerId !== user.id) {
         throw new HTTPException(403, { message: 'Forbidden' });
@@ -342,7 +343,7 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
-    if (user.role !== 'admin') {
+    if (!hasApiRole(user, 'admin')) {
       const site = await siteQueries.getSiteById(db, existing.siteId);
       if (!site || site.ownerId !== user.id) {
         throw new HTTPException(403, { message: 'Forbidden' });

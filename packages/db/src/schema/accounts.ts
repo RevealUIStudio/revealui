@@ -128,6 +128,8 @@ export const accountEntitlements = pgTable(
       .default({}),
     meteringStatus: text('metering_status').notNull().default('active'),
     mode: text('mode').notNull().default('live'),
+    // GAP-444: paid vs gifted vs reconciler-heal. MRR excludes source='grant'.
+    source: text('source').notNull().default('stripe'),
     graceUntil: timestamp('grace_until', { withTimezone: true }),
     lastEventAt: timestamp('last_event_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -140,6 +142,7 @@ export const accountEntitlements = pgTable(
     index('account_entitlements_status_idx').on(table.status),
     index('account_entitlements_account_status_idx').on(table.accountId, table.status),
     index('account_entitlements_mode_idx').on(table.mode),
+    index('account_entitlements_source_idx').on(table.source),
     check('account_entitlements_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
     check(
       'account_entitlements_status_check',
@@ -150,6 +153,7 @@ export const accountEntitlements = pgTable(
       sql`metering_status IN ('active', 'paused', 'exceeded')`,
     ),
     check('account_entitlements_mode_check', sql`mode IN ('live', 'test')`),
+    check('account_entitlements_source_check', sql`source IN ('stripe', 'grant', 'reconciler')`),
   ],
 );
 

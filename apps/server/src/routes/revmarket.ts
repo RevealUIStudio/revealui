@@ -46,6 +46,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../lib/api-roles.js';
 import { authMiddleware } from '../middleware/auth.js';
 import {
   buildPaymentRequired,
@@ -394,7 +395,7 @@ app.openapi(
       .limit(1);
 
     if (!existing) throw new HTTPException(404, { message: 'Agent not found' });
-    if (existing.publisherId !== user.id && user.role !== 'admin') {
+    if (existing.publisherId !== user.id && !hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -463,7 +464,7 @@ app.openapi(
       .limit(1);
 
     if (!existing) throw new HTTPException(404, { message: 'Agent not found' });
-    if (existing.publisherId !== user.id && user.role !== 'admin') {
+    if (existing.publisherId !== user.id && !hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -553,7 +554,7 @@ app.openapi(
       .limit(1);
 
     if (!agent) throw new HTTPException(404, { message: 'Agent not found' });
-    if (agent.publisherId !== user.id && user.role !== 'admin') {
+    if (agent.publisherId !== user.id && !hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -802,7 +803,7 @@ app.openapi(
       .limit(1);
 
     if (!task) throw new HTTPException(404, { message: 'Task not found' });
-    if (task.submitterId !== user.id && user.role !== 'admin') {
+    if (task.submitterId !== user.id && !hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -871,7 +872,7 @@ app.openapi(
       .limit(1);
 
     if (!task) throw new HTTPException(404, { message: 'Task not found' });
-    if (task.submitterId !== user.id && user.role !== 'admin') {
+    if (task.submitterId !== user.id && !hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
 
@@ -1176,7 +1177,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
-    if (user.role !== 'admin') throw new HTTPException(403, { message: 'Admin only' });
+    if (!hasApiRole(user, 'admin')) throw new HTTPException(403, { message: 'Admin only' });
 
     return c.json(getExecutorStatus());
   },

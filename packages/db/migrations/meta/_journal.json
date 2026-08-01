@@ -232,6 +232,13 @@
       "when": 1785250000000,
       "tag": "0032_gap260_license_jti_revocations",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1785330000000,
+      "tag": "0033_gap444_entitlement_source",
+      "breakpoints": true
     }
   ]
 }

@@ -22,9 +22,23 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
+import {
+  and,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  gt,
+  gte,
+  isNull,
+  lt,
+  lte,
+  ne,
+  sql,
+} from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { hasApiRole } from '../lib/api-roles.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
@@ -2630,7 +2644,7 @@ app.openapi(refundRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
-  if (user.role !== 'admin' && user.role !== 'owner') {
+  if (!hasApiRole(user, 'admin', 'owner')) {
     throw new HTTPException(403, { message: 'Admin access required to issue refunds' });
   }
 
@@ -2747,7 +2761,7 @@ app.openapi(metricsRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
-  if (user.role !== 'admin' && user.role !== 'owner') {
+  if (!hasApiRole(user, 'admin', 'owner')) {
     throw new HTTPException(403, { message: 'Admin access required to view revenue metrics' });
   }
 
@@ -2790,14 +2804,21 @@ app.openapi(metricsRoute, async (c) => {
   const activeSubscriptions = subStats?.activeCount ?? 0;
   const totalCustomers = subStats?.uniqueCustomers ?? 0;
 
-  // 2. Tier breakdown from entitlements (active subscriptions only)
+  // 2. Tier breakdown from paid live entitlements only (GAP-444: exclude gifts).
+  // Mode-scoped to `live` so test-mode comps and sandbox rows never inflate MRR.
   const tierRows = await db
     .select({
       tier: accountEntitlements.tier,
       tierCount: count(),
     })
     .from(accountEntitlements)
-    .where(eq(accountEntitlements.status, 'active'))
+    .where(
+      and(
+        eq(accountEntitlements.status, 'active'),
+        eq(accountEntitlements.mode, 'live'),
+        ne(accountEntitlements.source, 'grant'),
+      ),
+    )
     .groupBy(accountEntitlements.tier);
 
   const tierBreakdown = { pro: 0, max: 0, enterprise: 0 };

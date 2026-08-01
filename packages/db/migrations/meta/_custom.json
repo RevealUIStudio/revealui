@@ -104,6 +104,12 @@
       "rationale": "GAP-260 P4-5: CREATE TABLE license_jti_revocations for per-token (jti) denylist revocation without rotating the vendor Ed25519 key. Hand-written CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0010/0021/0025 table-creation precedent. Companion Drizzle schema at packages/db/src/schema/license-jti-revocations.ts; app-layer sticky denylist at packages/db/src/license-jti-denylist.ts (fail-open for unknown jtis, sticky once observed revoked).",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema modeled for ORM typing; denylist writes/reads go through Drizzle."
+    },
+    {
+      "tag": "0033_gap444_entitlement_source",
+      "rationale": "GAP-444: ADD COLUMN account_entitlements.source (text NOT NULL DEFAULT 'stripe') + CHECK (stripe|grant|reconciler) so gifted entitlements can be excluded from MRR. Hand-written with ADD COLUMN IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object for idempotency, following the 0023/0015 column+check precedent. Companion Drizzle schema change at packages/db/src/schema/accounts.ts models source + check + index; buildHostedEntitlementValues locksteps stripe/grant/reconciler writers.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at accounts.ts already reflects source at the type level."
     }
   ]
 }
