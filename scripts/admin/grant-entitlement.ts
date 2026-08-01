@@ -212,6 +212,8 @@ async function main(): Promise<void> {
     // stale replayed event cannot win.
     lastEventAt: existing ? (existing.lastEventAt ?? null) : null,
     now: new Date(),
+    // GAP-444: gifted rows must not count as Stripe revenue in MRR.
+    source: 'grant',
   });
 
   console.log(

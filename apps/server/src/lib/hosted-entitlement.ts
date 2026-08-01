@@ -20,6 +20,14 @@ import { getHostedLimitsForTier } from './tier-limits.js';
 export type HostedTier = 'free' | LicenseTier;
 
 /**
+ * How an entitlement row was written (GAP-444).
+ * - `stripe` — webhook / checkout path (counts toward MRR)
+ * - `grant` — admin CLI gift (excluded from MRR)
+ * - `reconciler` — entitlement-consistency heal (counts as non-gift)
+ */
+export type EntitlementSource = 'stripe' | 'grant' | 'reconciler';
+
+/**
  * Known feature keys, derived from the canonical `FeatureFlags` record. Used
  * to warn on unexpected keys. Derived rather than listed: a hardcoded copy
  * drifted when vaultDesktop/vaultRotation/devkitProfiles shipped, making
@@ -85,6 +93,8 @@ export function buildHostedEntitlementValues(params: {
   graceUntil?: Date | null;
   lastEventAt: Date | null;
   now: Date;
+  /** GAP-444 — defaults to stripe (paid path). CLI grants pass `grant`. */
+  source?: EntitlementSource;
 }): {
   planId: HostedTier;
   tier: HostedTier;
@@ -93,6 +103,7 @@ export function buildHostedEntitlementValues(params: {
   limits: ReturnType<typeof getHostedLimitsForTier>;
   meteringStatus: string;
   mode: 'live' | 'test';
+  source: EntitlementSource;
   graceUntil: Date | null;
   lastEventAt: Date | null;
   updatedAt: Date;
@@ -106,6 +117,7 @@ export function buildHostedEntitlementValues(params: {
     meteringStatus:
       params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
     mode: params.mode,
+    source: params.source ?? 'stripe',
     graceUntil: params.graceUntil ?? null,
     lastEventAt: params.lastEventAt,
     updatedAt: params.now,

@@ -765,6 +765,7 @@ async function syncHostedSubscriptionState(
     graceUntil: params.graceUntil ?? null,
     lastEventAt: params.eventTimestamp ?? null,
     now,
+    source: 'stripe',
   });
 
   let entitlementApplied = false;

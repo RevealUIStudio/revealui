@@ -262,6 +262,7 @@ app.post('/reconcile-entitlements', async (c) => {
       // event win and re-open the WH-3 window PR-1 closed.
       lastEventAt: missing ? null : (row.entLastEventAt ?? null),
       now,
+      source: 'reconciler',
     });
 
     if (missing) {
