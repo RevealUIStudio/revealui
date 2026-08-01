@@ -3,11 +3,14 @@
  * Does not import React context/hooks (those live in `./components`).
  * Use this from dual-mode route tables shared by server and browser entries.
  */
+
+export { RSC_ACCEPT, resolveRscClientUrl } from './negotiate';
 export { Router } from './router';
 export type {
   Location,
   MiddlewareContext,
   NavigateOptions,
+  NavigationStatus,
   Route,
   RouteMatch,
   RouteMeta,
@@ -16,4 +19,5 @@ export type {
   RouterMode,
   RouterOptions,
   RouterRscOptions,
+  RscPayloadLoader,
 } from './types';
