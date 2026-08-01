@@ -4,9 +4,9 @@
 
 ### Patch Changes
 
-- Phase 2.2.5: migration guide (`docs/MIGRATION-RSC.md`), D18.b runtime support
-  table (`docs/RUNTIME-SUPPORT.md`), edge-safety contract tests, coverage gate
-  raised to ≥80% lines/statements on dual-mode sources.
+- Phase 2.2.5: migration guide and D18.b runtime matrix under package
+  `docs/` (repo docs; not npm `files`), edge-safety contract tests, coverage
+  gate raised to ≥80% lines/statements on dual-mode sources.
 
 ## 0.4.0-rc.5
 

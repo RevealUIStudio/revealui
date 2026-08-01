@@ -55,8 +55,7 @@
     }
   },
   "files": [
-    "dist",
-    "docs"
+    "dist"
   ],
   "main": "./dist/index.js",
   "peerDependencies": {
