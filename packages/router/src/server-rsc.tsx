@@ -1,4 +1,9 @@
-import { getServerActionId, runActionMiddleware } from './actions';
+import {
+  getServerActionId,
+  isFormActionRequest,
+  RSC_REDIRECT_HEADER,
+  runActionMiddleware,
+} from './actions';
 import { encodeBase64Chunked, readStreamToUint8Array } from './base64';
 import {
   isRouterNotFound,
@@ -24,10 +29,17 @@ export interface RscRenderContext {
   pathname: string;
   match: RouteMatch | null;
   representation: Representation;
-  /** Set after a successful server action (T7). */
+  /** Set after a successful JS server action (T7 / 2.2.4). */
   returnValue?: { ok: boolean; data: unknown };
-  /** Opaque action id when this request is a mutation. */
+  /** Opaque action id when this request is a JS mutation. */
   actionId?: string;
+  /**
+   * Progressive form POST state (2.2.4 / D2 form path).
+   * Prefer this over options.formState when both exist (request-derived).
+   */
+  formState?: unknown;
+  /** True when this request ran a progressive form action (no x-rsc-action). */
+  formAction?: boolean;
 }
 
 export interface RenderRequestOptions {
@@ -63,6 +75,20 @@ export interface RenderRequestOptions {
    * Defaults to empty args when omitted.
    */
   decodeActionArgs?: (request: Request) => Promise<unknown[]>;
+  /**
+   * Progressive enhancement form path (2.2.4 / ADR D2): decode `$ACTION_ID`
+   * from FormData into a zero-arg invoker (plugin-rsc `decodeAction`).
+   */
+  decodeFormAction?: (formData: FormData) => Promise<() => unknown | Promise<unknown>>;
+  /**
+   * Map form action result → form state for HTML re-render (plugin-rsc
+   * `decodeFormState`). Optional; when omitted, result is used as formState.
+   */
+  decodeFormState?: (result: unknown, formData: FormData) => Promise<unknown>;
+  /**
+   * Seed form state when the consumer already ran the form (legacy). Prefer
+   * `decodeFormAction` so the router owns middleware + redirect handling.
+   */
   formState?: unknown;
   title?: string;
   /** Extra headers on the response (e.g. Cache-Control). */
@@ -113,9 +139,29 @@ function redirectResponse(redirect: RouterRedirect, representation: Representati
     status: 200,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'X-Router-Redirect': redirect.path,
+      [RSC_REDIRECT_HEADER]: redirect.path,
     },
   });
+}
+
+async function runActionMiddlewareGate(
+  router: Router,
+  pathname: string,
+  match: RouteMatch | null,
+  representation: Representation,
+): Promise<Response | null> {
+  const mwResult = await runActionMiddleware(router.getActionMiddleware(), {
+    pathname,
+    params: match?.params ?? {},
+    meta: match?.route.meta,
+  });
+  if (mwResult === false) {
+    return new Response('Forbidden', { status: 403 });
+  }
+  if (typeof mwResult === 'string') {
+    return redirectResponse(new RouterRedirect(mwResult), representation);
+  }
+  return null;
 }
 
 function notFoundResponse(
@@ -217,13 +263,14 @@ async function finishRender(
 }
 
 /**
- * RSC-mode request handler (T3–T7).
+ * RSC-mode request handler (T3–T7 + 2.2.4 form path).
  *
  * - Content negotiation + endpoint strip (T3)
  * - Flight / HTML with teed `__RSC_PAYLOAD__` (T4)
  * - `redirect` / `notFound` sentinels (T5)
  * - Request ALS for `getRequest()` (T6)
  * - `x-rsc-action` + actionMiddleware (T7)
+ * - Progressive form POST without `x-rsc-action` (2.2.4 / D2)
  */
 export async function renderRequest(
   request: Request,
@@ -245,22 +292,14 @@ export async function renderRequest(
       const actionId = getServerActionId(request);
       let returnValue: RscRenderContext['returnValue'];
       let match: RouteMatch | null = null;
+      let formState: unknown = options.formState;
+      let formAction = false;
 
       if (actionId) {
-        // Match without loader for middleware context (params/meta only).
+        // JS server-action path (ADR D2): x-rsc-action + Accept flight.
         match = router.match(pathname);
-        const mwResult = await runActionMiddleware(router.getActionMiddleware(), {
-          pathname,
-          params: match?.params ?? {},
-          meta: match?.route.meta,
-        });
-        if (mwResult === false) {
-          return new Response('Forbidden', { status: 403 });
-        }
-        if (typeof mwResult === 'string') {
-          // Action middleware string return = temporary redirect (same as route mw).
-          return redirectResponse(new RouterRedirect(mwResult), representation);
-        }
+        const blocked = await runActionMiddlewareGate(router, pathname, match, representation);
+        if (blocked) return blocked;
 
         if (!options.loadServerAction) {
           throw new Error(
@@ -277,7 +316,26 @@ export async function renderRequest(
           if (isRouterNotFound(error)) return notFoundResponse(router, representation, error);
           returnValue = { ok: false, data: error instanceof Error ? error.message : String(error) };
         }
-        // Re-resolve after mutation so loaders see fresh data.
+        match = await router.resolve(pathname);
+      } else if (isFormActionRequest(request) && options.decodeFormAction) {
+        // Progressive form path (ADR D2 / 2.2.4): no x-rsc-action, FormData body.
+        formAction = true;
+        match = router.match(pathname);
+        const blocked = await runActionMiddlewareGate(router, pathname, match, representation);
+        if (blocked) return blocked;
+
+        const formData = await request.formData();
+        const decodedAction = await options.decodeFormAction(formData);
+        try {
+          const result = await decodedAction();
+          formState = options.decodeFormState
+            ? await options.decodeFormState(result, formData)
+            : result;
+        } catch (error) {
+          if (isRouterRedirect(error)) return redirectResponse(error, representation);
+          if (isRouterNotFound(error)) return notFoundResponse(router, representation, error);
+          return new Response('Internal Server Error: server action failed', { status: 500 });
+        }
         match = await router.resolve(pathname);
       } else {
         match = await router.resolve(pathname);
@@ -289,8 +347,12 @@ export async function renderRequest(
         representation,
         returnValue,
         actionId: actionId ?? undefined,
+        formState,
+        formAction: formAction || undefined,
       };
-      return await finishRender(request, options, ctx);
+      // Prefer request-derived formState for HTML shell when present.
+      const finishOptions = formState !== undefined ? { ...options, formState } : options;
+      return await finishRender(request, finishOptions, ctx);
     } catch (error) {
       if (isRouterRedirect(error)) {
         return redirectResponse(error, representation);

@@ -5,6 +5,7 @@
 'use client';
 
 import {
+  getRouterRedirect,
   Link,
   RouterProvider,
   useNavigationError,
@@ -111,14 +112,20 @@ async function main(): Promise<void> {
     if (typeof body === 'string') {
       headers['content-type'] = 'text/plain;charset=UTF-8';
     }
-    const payload = await createFromFetch<RscPayload>(
-      fetch(window.location.href, {
-        method: 'POST',
-        headers,
-        body: body as BodyInit,
-      }),
-      { temporaryReferences },
-    );
+    const response = await fetch(window.location.href, {
+      method: 'POST',
+      headers,
+      body: body as BodyInit,
+    });
+    // redirect() from action → X-Router-Redirect (ADR D6 / 2.2.4).
+    const redirectTo = getRouterRedirect(response);
+    if (redirectTo) {
+      router.navigate(redirectTo);
+      return undefined;
+    }
+    const payload = await createFromFetch<RscPayload>(Promise.resolve(response), {
+      temporaryReferences,
+    });
     // Action already returned a fresh tree — apply without a second GET.
     router.applyRscPayload(payload);
     const rv = payload.returnValue;
