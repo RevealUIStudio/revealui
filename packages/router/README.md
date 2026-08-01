@@ -8,18 +8,29 @@ audience: user
 
 # @revealui/router
 
-Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required  -  works with Vite, Hono, or any React setup.
+Lightweight dual-mode router for React apps: client SPA (default) plus opt-in
+RSC mode. SSR, data loaders, middleware, nested layouts. Works with Vite, Hono,
+or any React setup.
+
+## Docs (0.4 dual-mode)
+
+| Doc | Topic |
+|-----|--------|
+| [docs/MIGRATION-RSC.md](./docs/MIGRATION-RSC.md) | Client → RSC opt-in migration |
+| [docs/RUNTIME-SUPPORT.md](./docs/RUNTIME-SUPPORT.md) | D18.b runtime matrix (Node / Edge / Workers) |
 
 ## Features
 
+- **Dual-mode (0.4)**  -  `new Router()` SPA, or `new Router({ rsc: {} })` for RSC
 - **File-based routing**  -  named params (`:id`), wildcards (`*path`), optional segments
 - **Nested routes**  -  composable layouts that stack automatically
 - **Data loaders**  -  async per-route data loading with typed access via `useData()`
 - **Middleware**  -  global + per-route, supports blocking and redirects
-- **SSR + streaming**  -  Hono integration with `renderToReadableStream`
-- **Client-side navigation**  -  History API, link interception, back/forward
+- **SSR + streaming**  -  Hono integration with `renderToReadableStream` (SPA) + `renderRequest` (RSC)
+- **Client-side navigation**  -  History API, link interception, back/forward; RSC soft-nav flight fetch
 - **Type-safe**  -  full TypeScript support, generic route data types
 - **React 18/19**  -  uses `useSyncExternalStore` for stable rendering
+- **Edge-first (D18.b)**  -  Web Platform APIs on the RSC path; ALS `getRequest()`
 
 ## Installation
 

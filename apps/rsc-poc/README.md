@@ -33,7 +33,12 @@ pnpm install
 pnpm --filter @revealui/router build
 pnpm --filter @rsc-poc/app build
 pnpm --filter @rsc-poc/app dev
+# after preview/dev is up:
+BASE_URL=http://127.0.0.1:4173 pnpm --filter @rsc-poc/app smoke:http
 ```
+
+Migration + runtime docs: `packages/router/docs/MIGRATION-RSC.md`,
+`packages/router/docs/RUNTIME-SUPPORT.md`.
 
 ## Pin policy
 
