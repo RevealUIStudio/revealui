@@ -149,11 +149,14 @@ async function runActionMiddlewareGate(
   pathname: string,
   match: RouteMatch | null,
   representation: Representation,
+  actionMeta: { actionId?: string | null; formAction?: boolean },
 ): Promise<Response | null> {
   const mwResult = await runActionMiddleware(router.getActionMiddleware(), {
     pathname,
     params: match?.params ?? {},
     meta: match?.route.meta,
+    actionId: actionMeta.actionId,
+    formAction: actionMeta.formAction,
   });
   if (mwResult === false) {
     return new Response('Forbidden', { status: 403 });
@@ -298,7 +301,9 @@ export async function renderRequest(
       if (actionId) {
         // JS server-action path (ADR D2): x-rsc-action + Accept flight.
         match = router.match(pathname);
-        const blocked = await runActionMiddlewareGate(router, pathname, match, representation);
+        const blocked = await runActionMiddlewareGate(router, pathname, match, representation, {
+          actionId,
+        });
         if (blocked) return blocked;
 
         if (!options.loadServerAction) {
@@ -321,7 +326,9 @@ export async function renderRequest(
         // Progressive form path (ADR D2 / 2.2.4): no x-rsc-action, FormData body.
         formAction = true;
         match = router.match(pathname);
-        const blocked = await runActionMiddlewareGate(router, pathname, match, representation);
+        const blocked = await runActionMiddlewareGate(router, pathname, match, representation, {
+          formAction: true,
+        });
         if (blocked) return blocked;
 
         const formData = await request.formData();

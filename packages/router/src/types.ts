@@ -21,6 +21,24 @@ export interface MiddlewareContext {
 }
 
 /**
+ * Context for server-action middleware (ADR D2.d / Phase 2.3.1).
+ * Extends navigation middleware context with mutation identity.
+ */
+export interface ActionMiddlewareContext extends MiddlewareContext {
+  /** Opaque RSDW action id when POST carries `x-rsc-action`. */
+  actionId?: string | null;
+  /** True for progressive form POST (no x-rsc-action). */
+  formAction?: boolean;
+}
+
+/**
+ * Middleware for mutations (`useAction`). Same control flow as route middleware.
+ */
+export type ActionMiddleware = (
+  context: ActionMiddlewareContext,
+) => boolean | string | Promise<boolean | string>;
+
+/**
  * Route configuration
  */
 export interface Route<TData = unknown, TProps = Record<string, unknown>> {
