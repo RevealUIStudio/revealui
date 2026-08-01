@@ -12,6 +12,7 @@
     "dev": "vite dev",
     "lint": "biome check .",
     "preview": "vite preview",
+    "smoke:http": "node scripts/smoke-http.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
