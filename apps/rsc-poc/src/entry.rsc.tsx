@@ -1,8 +1,6 @@
 /**
- * RSC entry — T8 rewire onto `@revealui/router` `renderRequest` + registered routes.
- * Pathname if/else shim removed; match + actions owned by the dual-mode router.
+ * RSC entry — renderRequest owns JS actions (T7) and progressive forms (2.2.4).
  */
-
 import { renderRequest } from '@revealui/router/server';
 import {
   createTemporaryReferenceSet,
@@ -44,27 +42,10 @@ function renderMatchedTree(match: ReturnType<typeof router.match>): React.ReactN
 export default { fetch: handler };
 
 async function handler(request: Request): Promise<Response> {
-  let formState: ReactFormState | undefined;
   let temporaryReferences: unknown | undefined;
-
-  // Progressive form POST (no x-rsc-action) stays in the consumer until 2.2.4
-  // progressive-enhancement is first-class on the router.
-  const actionId = request.headers.get('x-rsc-action');
-  const isFormAction = request.method === 'POST' && !actionId;
-  if (isFormAction) {
-    const formData = await request.formData();
-    const decodedAction = await decodeAction(formData);
-    try {
-      const result = await decodedAction();
-      formState = await decodeFormState(result, formData);
-    } catch {
-      return new Response('Internal Server Error: server action failed', { status: 500 });
-    }
-  }
 
   return renderRequest(request, {
     router,
-    formState,
     title: 'RSC POC — dual-mode router',
     loadServerAction: async (id) => {
       const action = await loadServerAction(id);
@@ -79,11 +60,18 @@ async function handler(request: Request): Promise<Response> {
       const args = await decodeReply(body, { temporaryReferences });
       return args as unknown[];
     },
+    decodeFormAction: async (formData) => {
+      const decoded = await decodeAction(formData);
+      return decoded as () => unknown | Promise<unknown>;
+    },
+    decodeFormState: async (result, formData) => {
+      return decodeFormState(result, formData);
+    },
     createRscStream: async (_req, ctx) => {
       router.seedCurrentMatch(ctx.match);
       const rscPayload: RscPayload = {
         root: renderMatchedTree(ctx.match),
-        formState,
+        formState: ctx.formState as ReactFormState | undefined,
         returnValue: ctx.returnValue,
       };
       return renderToReadableStream<RscPayload>(rscPayload, { temporaryReferences });

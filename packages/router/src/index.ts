@@ -37,6 +37,14 @@
  * ```
  */
 
+// Client RSC helpers (also on ./server for parity)
+export {
+  getRouterRedirect,
+  isFormActionRequest,
+  isServerActionRequest,
+  RSC_ACTION_HEADER,
+  RSC_REDIRECT_HEADER,
+} from './actions';
 // React components and hooks
 export {
   Link,
@@ -54,7 +62,6 @@ export {
   useRscPayload,
   useSearchParams,
 } from './components';
-// Client RSC helpers (also on ./server for parity)
 export { RSC_ACCEPT, resolveRscClientUrl } from './negotiate';
 // Core router
 export { Router } from './router';

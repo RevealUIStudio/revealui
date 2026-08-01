@@ -385,6 +385,29 @@ function App() {
 - `navigate(to, { skipRscFetch: true })` when a server action already applied a payload.
 - `useNavigationError()` surfaces loader failures.
 
+## Server actions + progressive forms (2.2.4 / D2)
+
+```typescript
+import { renderRequest, redirect } from '@revealui/router/server'
+
+// JS path: POST + x-rsc-action → loadServerAction + returnValue on flight
+// Form path (no JS): POST multipart/urlencoded → decodeFormAction + formState HTML
+
+await renderRequest(request, {
+  router,
+  loadServerAction: (id) => loadServerAction(id),
+  decodeActionArgs: (req) => decodeReply(...),
+  decodeFormAction: (formData) => decodeAction(formData),
+  decodeFormState: (result, formData) => decodeFormState(result, formData),
+  createRscStream: async (req, ctx) => { /* ctx.formState | ctx.returnValue */ },
+})
+
+// From any action/loader:
+redirect('/done') // HTML 307/308 or RSC X-Router-Redirect header
+```
+
+Client helper: `getRouterRedirect(response)` after action fetch; navigate when set.
+
 ## Dev Server
 
 Quick development server:

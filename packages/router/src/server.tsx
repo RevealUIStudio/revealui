@@ -7,9 +7,12 @@
  */
 
 export {
+  getRouterRedirect,
   getServerActionId,
+  isFormActionRequest,
   isServerActionRequest,
   RSC_ACTION_HEADER,
+  RSC_REDIRECT_HEADER,
   runActionMiddleware,
 } from './actions';
 export {
