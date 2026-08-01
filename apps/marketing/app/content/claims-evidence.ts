@@ -168,16 +168,9 @@ const CI_GATE: EvidenceRef = {
   ref: 'scripts/gates/ci-gate.ts',
   note: 'local 3-phase gate: Biome, typecheck, Vitest, build; CodeQL, Gitleaks, and Playwright e2e jobs in .github/workflows/ci.yml',
 };
-const AUDIT_SIGNING: EvidenceRef = {
-  kind: 'code',
-  ref: 'packages/security/src/audit-signing.ts',
-  note: 'Ed25519AuditRowSigner signs each row over RFC 8785 canonical bytes',
-};
-const AUDIT_SIGNING_TEST: EvidenceRef = {
-  kind: 'test',
-  ref: 'apps/server/src/lib/__tests__/audit-signing-roundtrip.pglite.test.ts#a canonically-signed row verifies OFFLINE after the jsonb + timestamptz round trip',
-  note: 'production-path proof: signed row verifies offline from jsonb + timestamptz readback using only the public key',
-};
+// AUDIT_SIGNING + AUDIT_SIGNING_TEST removed from the shared pool while home/receipt
+// use interim-safe evidence (GAP-354). Re-export when GAP-355 production-path
+// proof re-arms the locked foil and governed-and-audited sentence.
 // Legal / contact pages: the published content module is the public policy
 // artifact. Technical sentences below add code refs when they assert product
 // behavior; the content ref always remains for the policy restatement.
