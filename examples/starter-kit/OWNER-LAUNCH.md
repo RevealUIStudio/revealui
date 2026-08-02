@@ -1,109 +1,106 @@
 # Owner launch checklist (GAP-434)
 
-Agent-prepared. Run from a real shell. Polar credentials and M-11 escape
-hatch are disposition-shaped.
+**Merchant re-rule 2026-08-02:** Stripe **Payment Link** (path C) now.
+Polar deferred. Stripe Managed Payments (path D) is a later MoR upgrade on
+the same Payment Link / Checkout surface.
 
 ## Status (2026-08-02)
 
 | Item | State |
 |------|--------|
-| Kit content (npm, Postgres-only) | on revealui `test` / `examples/starter-kit` (#2245) |
-| Standalone CI | `.github/workflows/starter-kit-standalone.yml` in monorepo |
-| Marketing listing | revealui#2358 (`/pricing#starter-kit`) |
-| Private repo `RevealUIStudio/revealui-starter-kit` | **empty** (created, never seeded) |
-| Polar product $299 | not live |
-| Stripe first-month-Pro coupon | not seeded |
-| `SITE.urls.starterKitCheckout` | empty until Polar URL exists |
+| Kit content | revealui `test` `examples/starter-kit` |
+| Private seed | `d9b6f2c` on `RevealUIStudio/revealui-starter-kit` |
+| Marketing listing | `/pricing#starter-kit` (content-only $299) |
+| **Stripe product** | **live** `prod_V01FoZi9YbgZw9` |
+| **Stripe price** | **live** `price_1U01D1Jz64n6uEibtamJHxkU` ($299 one-time) |
+| **Payment Link** | **live** `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03` (`plink_1U01D2Jz64n6uEibnSK45nuS`) |
+| `SITE.urls.starterKitCheckout` | set to Payment Link (ship in monorepo PR) |
+| Fulfillment | **manual**: GitHub invite + Substack (launch volume) |
+| First-month Pro coupon | not seeded yet (§4) |
+| Stripe Tax | confirm `STRIPE_TAX_ENABLED=true` on prod api if selling broadly |
+| Managed Payments (D) | enable in Dashboard when eligible |
 
-## 1. Seed the private buyer repo (one-time)
+## 1. Seed private buyer repo — DONE
 
-The private repo must receive the kit as its **root** (not nested under
-`examples/`). After #2245 the kit is npm-resolvable; buyers never need the
-monorepo.
+See earlier seed notes. Re-seed via `scripts/assemble-private-seed.sh` + PR.
+
+## 2. Branch protection — best-effort
+
+Free private GitHub may block rulesets API. Prefer PR-only process; do not
+re-enable `revealui.hooks.no-protection` for routine pushes.
+
+## 3. Stripe Payment Link — DONE (live)
+
+Created via Stripe CLI + `revealui/prod/stripe/secret-key` (revvault):
+
+```text
+product: prod_V01FoZi9YbgZw9  "RevealUI Starter Kit"
+price:   price_1U01D1Jz64n6uEibtamJHxkU  $299 one_time USD
+link:    https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03
+```
+
+Dashboard: Products → RevealUI Starter Kit → Payment links.
+
+After a monorepo deploy of `starterKitCheckout`, `/pricing#starter-kit`
+primary CTA is **Buy the Starter Kit**.
+
+## 4. Stripe first-month-of-Pro coupon (still owner)
 
 ```bash
-# From any machine with fleet git identity + SSH:
-SOURCE="$HOME/revfleet/revealui"   # or a clean worktree on origin/test
-git -C "$SOURCE" fetch origin test
-git -C "$SOURCE" switch --detach origin/test
+export STRIPE_API_KEY="$(revvault get --full revealui/prod/stripe/secret-key)"
 
-SEED="$HOME/tmp/revealui-starter-kit-seed"
-rm -rf "$SEED"
-bash "$SOURCE/examples/starter-kit/scripts/assemble-private-seed.sh" \
-  --source "$SOURCE/examples/starter-kit" \
-  --out "$SEED"
+stripe coupons create \
+  --duration=once \
+  --percent-off=100 \
+  --name="Starter Kit first Pro month" \
+  --id="starter_kit_pro_month_1"
 
-cd "$SEED"
-git init -b main
-git add .
-git -c user.name="RevealUI Studio" \
-    -c user.email="43050008+joshua-v-dev@users.noreply.github.com" \
-    commit -S -m "chore: seed RevealUI Starter Kit (GAP-434)"
-
-git remote add origin git@github.com-revealui:RevealUIStudio/revealui-starter-kit.git
-
-# Empty remote has no PR base — one authorized direct push to main:
-git config revealui.hooks.no-protection true
-git push -u origin main
-git config --unset revealui.hooks.no-protection
+stripe promotion_codes create \
+  --coupon=starter_kit_pro_month_1 \
+  --code=STARTERKITPRO1
 ```
 
-Verify: `gh api repos/RevealUIStudio/revealui-starter-kit/commits --jq '.[0].sha'`
+Email the code with repo invite. Optional later: auto-apply env.
 
-## 2. Branch protection (after seed has a commit)
+## 5. Manual fulfillment SOP (every sale until automated)
 
-In GitHub UI or `gh api` (repo settings mutation, owner-only):
+1. Stripe Dashboard → Payments → new $299 Starter Kit payment (or email).
+2. Buyer email from receipt.
+3. GitHub: invite buyer as **read** collaborator on
+   `RevealUIStudio/revealui-starter-kit`.
+4. Substack: private section invite.
+5. Reply with invite notes + optional `STARTERKITPRO1` (when created).
 
-- Require signed commits
-- Require status checks when CI exists on that repo
-- No force-push to `main`
+Target: within **one business day** (matches Payment Link confirmation copy).
 
-## 3. Polar product ($299)
+## 6. Free / low-cost distribution (Stripe family)
 
-1. Create/open Polar org for RevealUI Studio.
-2. Product: **RevealUI Starter Kit**, one-time **$299**.
-3. Benefits: license key (or download token) + **private GitHub repo access**
-   to `RevealUIStudio/revealui-starter-kit`.
-4. Copy the public checkout URL.
-5. In revealui (follow-up PR or same day):
+One link: `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03`
 
-```ts
-// apps/marketing/app/content/site.ts
-starterKitCheckout: 'https://polar.sh/...',  // paste Polar product URL
-```
+- `/pricing#starter-kit` (after merge/deploy)
+- X / LinkedIn / Substack
+- Product Hunt / Show HN / Indie Hackers
+- Technical post (receipt recipes) with soft CTA
+- GitHub monorepo docs pointer to pricing section
 
-Marketing CTA flips from email-reserve to **Buy on Polar** automatically.
+Do not dual-list Polar or Lemon Squeezy storefronts.
 
-## 4. Stripe first-month-of-Pro coupon
+## 7. Acceptance
 
-Not a catalog product. Create once in Stripe live (or test, then live):
+1. Smoke purchase (owner card OK; refund after).
+2. Manual GitHub + Substack invite works.
+3. `pnpm install && pnpm test && pnpm recipe:action` on private clone.
+4. Pricing CTA hits Payment Link (not mailto).
+5. Record on GAP-434; close when coupon + first external sale accepted.
 
-- Duration: once / 1 month
-- Percent or amount: 100% of first Pro month
-- Name: e.g. `starter_kit_pro_month_1`
-- Deliver code (or auto-apply token) with Polar purchase confirmation /
-  Substack invite email.
+## 8. Later: Managed Payments (D)
 
-Optional later: wire env `REVEALUI_STARTER_KIT_PRO_COUPON` if checkout should
-auto-apply; not required for first sale.
-
-## 5. Manual Substack invite
-
-At launch volume: each buyer gets a private Substack section invite by hand
-(owner ruling 2026-07-26). Automate only when volume justifies it.
-
-## 6. Acceptance test
-
-1. Real Polar checkout (owner card OK; refund after).
-2. Repo access lands.
-3. Fresh clone of private repo (no monorepo above it):
-   `pnpm install && pnpm test && pnpm recipe:action`
-4. Optional: `bash scripts/bootstrap.sh` if Postgres recipes are in scope.
-5. Marketing: `/pricing#starter-kit` primary CTA is Polar URL.
-6. Record listing URL + test purchase evidence on GAP-434 and close.
+When Dashboard offers Managed Payments for this account/entity, enable for
+digital goods so the **same Payment Link** can run under Stripe MoR. No
+marketing URL change required.
 
 ## Do not
 
-- Claim Polar checkout live before step 3.
-- Ship monorepo-only docker build paths as the buyer path (retired by #2245).
-- Put secrets in the private seed; buyers run `generate-secrets` / bootstrap.
+- Claim Polar or Lemon Squeezy checkout for this kit.
+- Re-open a second MoR storefront.
+- Put secrets in the private seed.

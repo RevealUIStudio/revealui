@@ -34,7 +34,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'What is the RevealUI Starter Kit?',
     answer:
-      'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is planned on Polar; until the listing is live, email founder@revealui.com to reserve a seat.',
+      'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is on Stripe. After purchase we invite you to the private kit repo and Substack section within one business day.',
   },
   {
     question: 'Can I upgrade or downgrade my plan?',

@@ -76,10 +76,11 @@ export const SITE = {
     repoChangelog: 'https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md',
     repoLicense: 'https://github.com/RevealUIStudio/revealui/blob/main/LICENSE',
     /**
-     * Polar $299 Starter Kit checkout URL (GAP-434). Empty until the Polar
-     * product is live; pricing CTA falls back to email when blank.
+     * GAP-434 Starter Kit Stripe Payment Link (live). Owner re-ruled 2026-08-02
+     * to Stripe Payment Link (C) over Polar; Managed Payments (D) is a later upgrade.
+     * Stripe product prod_V01FoZi9YbgZw9 / price_1U01D1Jz64n6uEibtamJHxkU.
      */
-    starterKitCheckout: '',
+    starterKitCheckout: 'https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03',
   },
   emails: {
     support: 'support@revealui.com',
