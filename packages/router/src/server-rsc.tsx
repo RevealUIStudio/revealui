@@ -93,6 +93,18 @@ export interface RenderRequestOptions {
   title?: string;
   /** Extra headers on the response (e.g. Cache-Control). */
   headers?: HeadersInit;
+  /**
+   * Optional observer for loader / action / form / render failures (2.3.3).
+   * Wire to `@revealui/core/observability/capture`. Never pass request bodies.
+   */
+  onError?: (
+    error: unknown,
+    meta: {
+      phase: 'action' | 'form' | 'loader';
+      pathname: string;
+      actionId?: string;
+    },
+  ) => void;
 }
 
 function defaultHtmlShell(opts: {
@@ -319,6 +331,7 @@ export async function renderRequest(
         } catch (error) {
           if (isRouterRedirect(error)) return redirectResponse(error, representation);
           if (isRouterNotFound(error)) return notFoundResponse(router, representation, error);
+          options.onError?.(error, { phase: 'action', pathname, actionId });
           returnValue = { ok: false, data: error instanceof Error ? error.message : String(error) };
         }
         match = await router.resolve(pathname);
@@ -341,6 +354,7 @@ export async function renderRequest(
         } catch (error) {
           if (isRouterRedirect(error)) return redirectResponse(error, representation);
           if (isRouterNotFound(error)) return notFoundResponse(router, representation, error);
+          options.onError?.(error, { phase: 'form', pathname });
           return new Response('Internal Server Error: server action failed', { status: 500 });
         }
         match = await router.resolve(pathname);
@@ -376,6 +390,7 @@ export async function renderRequest(
         throw error;
       }
       // Phase 2.3.2: loader/render failures → controlled 500 (no stack leak in prod).
+      options.onError?.(error, { phase: 'loader', pathname });
       return internalErrorResponse(error, representation);
     }
   });

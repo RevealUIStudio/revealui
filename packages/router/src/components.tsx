@@ -282,6 +282,11 @@ export class ErrorBoundary extends Component<
     children: React.ReactNode;
     /** Optional reset key — when it changes, clear the captured error. */
     resetKey?: string;
+    /**
+     * Optional observer (2.3.3). Wire to `@revealui/core/observability/capture`
+     * — never put secrets in the callback side effects.
+     */
+    onError?: (error: Error, info: React.ErrorInfo) => void;
   },
   { error: Error | null }
 > {
@@ -289,6 +294,7 @@ export class ErrorBoundary extends Component<
     fallback: React.ComponentType<{ error: Error }>;
     children: React.ReactNode;
     resetKey?: string;
+    onError?: (error: Error, info: React.ErrorInfo) => void;
   }) {
     super(props);
     this.state = { error: null };
@@ -296,6 +302,10 @@ export class ErrorBoundary extends Component<
 
   static getDerivedStateFromError(error: Error): { error: Error } {
     return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo): void {
+    this.props.onError?.(error, info);
   }
 
   componentDidUpdate(prevProps: { resetKey?: string }): void {

@@ -131,6 +131,33 @@ Both paths run `router.useAction(...)` middleware (auth/RBAC).
 - Router does **not** ship `revalidatePath` / tag cache (D4). Use HTTP
   `Cache-Control` + CDN, or `@revealui/cache` when appropriate.
 
+## Observability without Next Sentry (2.3.3)
+
+Do **not** use `@sentry/nextjs` / `withSentryConfig` on dual-mode apps.
+
+Prefer `@revealui/core/observability` (and `/capture`, `/logger` subpaths):
+
+```ts
+// Node / RSC entry
+import { initNodeObservability, captureException, captureActionFailure, bindRequestId } from '@revealui/core/observability/capture'
+initNodeObservability({ service: 'my-app' })
+// per request:
+bindRequestId(request.headers.get('x-request-id'))
+
+// Browser entry
+import { initBrowserObservability, captureException } from '@revealui/core/observability/capture'
+initBrowserObservability({ service: 'my-app' })
+```
+
+Router hooks for the same sink:
+
+| Surface | Hook |
+|---------|------|
+| Loader / action / form failures | `renderRequest({ onError: (err, meta) => … })` — `meta.actionId` only, never bodies |
+| Client render errors | `<ErrorBoundary onError={(err) => captureException(err)} …>` |
+
+Dogfood: `apps/rsc-poc` (`src/observability/*`, `/errors/boom`).
+
 ## What does not migrate 1:1 from Next App Router
 
 | Next | RevealUI router |
@@ -139,10 +166,11 @@ Both paths run `router.useAction(...)` middleware (auth/RBAC).
 | `revalidatePath` / `revalidateTag` | CDN / `@revealui/cache` (D4) |
 | File-based `app/` tree | Programmatic `router.register` |
 | Built-in RSDW bundling | Consumer wires `@vitejs/plugin-rsc` or RSDW (D11) |
+| `@sentry/nextjs` | `@revealui/core/observability/capture` (2.3.3) |
 
 ## Reference app
 
-`apps/rsc-poc` is the dual-mode dogfood harness (GAP-194 Phase 2.2).
+`apps/rsc-poc` is the dual-mode dogfood harness (GAP-194 Phase 2.2–2.3).
 
 ## Runtime support
 

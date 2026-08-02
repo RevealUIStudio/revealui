@@ -24,7 +24,8 @@ plugin-rsc; Phase 2.2.2 T0–T7 built the engine; **T8** is the first real consu
 | `src/entry.ssr.tsx` | SSR from teed flight; payload inline owned by router |
 | `src/entry.browser.tsx` | Hydrate + `setRscPayloadLoader` + `useRscPayload` (2.2.3 router-owned nav) |
 | `src/auth/*` | Dogfood signed-cookie session + `useAction` requireSession (2.3.1) |
-| `src/pages/*` | Demo pages + `/session` + `/errors` (2.3.2 boundaries) |
+| `src/observability/*` | Node + browser init via `@revealui/core/observability` (2.3.3) |
+| `src/pages/*` | Demo pages + `/session` + `/errors` (2.3.2 boundaries + 2.3.3 capture) |
 
 ## Commands
 
@@ -40,6 +41,19 @@ BASE_URL=http://127.0.0.1:4173 pnpm --filter @rsc-poc/app smoke:http
 
 Migration + runtime docs: `packages/router/docs/MIGRATION-RSC.md`,
 `packages/router/docs/RUNTIME-SUPPORT.md`.
+
+## Observability (2.3.3)
+
+Framework-agnostic sink only — **no** `@sentry/nextjs`.
+
+| Runtime | Init | Capture |
+|---------|------|---------|
+| Node / RSC | `src/observability/node.ts` → `initNodeObservability` from entry.rsc | `renderRequest({ onError })` → loader/action/form failures (action id, never body) |
+| Browser | `src/observability/browser.ts` → `initBrowserObservability` from entry.browser | `ErrorBoundary onError` + window handlers |
+
+Request correlation: bind `x-request-id` or `x-correlation-id` per request.
+
+Dogfood: open `/errors/boom` (Node console) or click client throw on `/errors` (browser console).
 
 ## Pin policy
 
