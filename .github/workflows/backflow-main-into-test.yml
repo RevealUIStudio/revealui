@@ -6,12 +6,10 @@ name: backflow-main-into-test
 # revfleet-backflow App installed on this repo (Contents + Pull requests r/w).
 # Triggers on push to BOTH main and test:
 #   - push:main — main moved forward; open a backflow PR so test catches up.
-#   - push:test — self-heal: if a backflow PR was squash-merged (which strips
-#     main's parentage and leaves `test` not containing `main`), the next push
-#     to test re-detects the broken ancestry and re-opens a correct --no-ff
-#     backflow, instead of the gap lurking until the next promotion (where
-#     promotion-gate would then block it). The reusable no-ops when test already
-#     contains main, so the push:test path is a cheap guard.
+#   - push:test — self-heal: if ancestry is still broken (legacy squash of a
+#     backflow PR), re-run lands main into test via merges API (two-parent).
+#     Primary path no longer opens a human-squashable PR. No-ops when test
+#     already contains main.
 on:
   push:
     branches: [main, test]
@@ -26,7 +24,7 @@ jobs:
   backflow:
     # Pinned to a SHA — org-shared reusable was referenced by the mutable @main.
     # Bump this deliberately when the reusable changes.
-    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@e895ec57294c24089e3a0c7238d6c34ebb5fdf95 # main @ 2026-07-25 (backflow applies backflow:merge-commit label — .github#12)
+    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@d0c9c99e243874a028c9d94d02726f73832c5968 # feat/auto-land (org .github#13) — merges API base=test; no human squash
     # Scope to ONLY the two secrets the reusable declares (its workflow_call.secrets
     # block documents this exact form) instead of `secrets: inherit`, which would
     # forward every caller secret (VERCEL_TOKEN, PROD_POSTGRES_URL, …) into it.
