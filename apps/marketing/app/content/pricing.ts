@@ -48,6 +48,7 @@ export const PRICING_HERO_NAV_ANCHORS = [
   { label: 'Subscription', href: '#subscriptions' },
   { label: 'Perpetual', href: '#perpetual' },
   { label: 'Starter Kit', href: '#starter-kit' },
+  { label: 'Agency Kit', href: '#agency-founding-kit' },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -81,6 +82,44 @@ export const PRICING_STARTER_KIT = {
     href: `${SITE.urls.repo}/tree/test/examples/starter-kit`,
     external: true,
   } satisfies Cta,
+} as const;
+
+// ---------------------------------------------------------------------------
+// Agency Founding Kit (GAP-448) — Agency Perpetual productized for agencies.
+// Purchase: existing authenticated Stripe checkout-perpetual (Max / Agency)
+// at admin /account/license. Price pinned to offerings-canonical Track C
+// ($8,499 one-time; Max $299/mo escape hatch). No founding discount on this
+// self-serve surface. License mint uses maxSites 10 (client deployments).
+// ---------------------------------------------------------------------------
+
+export const PRICING_AGENCY_FOUNDING_KIT = {
+  id: 'agency-founding-kit',
+  eyebrow: 'Agency',
+  heading: 'RevealUI Agency Founding Kit',
+  price: '$8,499',
+  priceNote: 'one-time Agency Perpetual',
+  body: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the $25,000 done-with-you Fleet engagement.',
+  points: [
+    'Agency Perpetual license key that never expires, with one year of support included',
+    'Up to 10 client deployments under one Agency license (Max-tier runtime entitlements)',
+    'Checkout on Stripe through your RevealUI account license page after you sign in',
+    'Monthly Max subscription at $299 per month is available if you are not ready for the one-time buy',
+  ],
+  badge: 'Self-serve',
+  primaryCta: {
+    label: 'Buy the Agency Founding Kit',
+    href: `${SITE.urls.admin}/account/license`,
+    external: true,
+  } satisfies Cta,
+  secondaryCta: {
+    label: 'Compare perpetual licenses on this page',
+    href: '#perpetual',
+    external: false,
+  } satisfies Cta,
+  monthlyEscape: {
+    label: 'See Max monthly subscription',
+    href: '#subscriptions',
+  },
 } as const;
 
 export const PRICING_TRACK_A_SECTION = {

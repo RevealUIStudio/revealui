@@ -480,3 +480,33 @@ export const STARTER_KIT_RECEIPT_TEST: EvidenceRef = {
   ref: 'examples/starter-kit/src/receipts/__tests__/roundtrip.test.ts#signs an action log and verifies it as valid',
   note: 'offline receipt sign+verify roundtrip in the kit',
 };
+export const AGENCY_PERPETUAL_FEATURES: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/contracts/src/pricing.ts',
+  note: 'PERPETUAL_TIERS Agency Perpetual: Max features, up to 10 client deployments, never-expire key',
+};
+export const CHECKOUT_PERPETUAL_ROUTE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/billing/routes.ts',
+  note: 'POST /api/billing/checkout-perpetual authenticated one-time Stripe payment',
+};
+export const PERPETUAL_MINT_LIMITS: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/lib/tier-limits.ts',
+  note: 'getPerpetualLicenseMintLimits: Agency/max perpetual mints maxSites 10',
+};
+export const PERPETUAL_MINT_LIMITS_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/lib/__tests__/tier-limits-perpetual.test.ts#Agency / max perpetual is capped at 10 client deployments',
+  note: 'Agency Founding Kit maxSites 10 on perpetual mint',
+};
+export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license.test.ts#perpetual licenses never expire',
+  note: 'JWT perpetual path has no exp claim',
+};
+export const ADMIN_LICENSE_PAGE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/admin/src/app/(frontend)/account/license/page.tsx',
+  note: 'Agency Perpetual buy CTA on account license page',
+};
