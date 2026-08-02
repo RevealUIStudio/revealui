@@ -15,7 +15,7 @@ audience: agent
 
 RevealUI is the agentic business runtime. People, content, offers, payments, and agents  -  pre-wired, open source, and ready to deploy.
 
-Mission: build the self-hosted runtime where a business and the AI agents that run it live under one roof, every agent governed and audited. See [/llms.txt](https://revealui.com/llms.txt) for the agent-readable summary and [the founder thesis](https://revealui.com/blog/ui-of-the-future) for the full argument.
+Mission: build the self-hosted runtime where a business and the AI agents that run it live under one roof, with your team and your agents on the same access rules. See [/llms.txt](https://revealui.com/llms.txt) for the agent-readable summary and [the founder thesis](https://revealui.com/blog/ui-of-the-future) for the full argument.
 
 ## Five Primitives
 

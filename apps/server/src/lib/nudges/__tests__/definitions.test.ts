@@ -19,12 +19,12 @@ const EXPECTED: Record<NudgeId, { headline: string; body: string; ctaLabel: stri
   },
   'free-pro-gate': {
     headline: 'You just found a Pro feature.',
-    body: 'Pro agents act on your business and every action leaves a receipt you can check. Your free setup keeps working either way.',
+    body: 'Pro agents act on your business under the same access rules as your team. Your free setup keeps working either way.',
     ctaLabel: 'See what Pro adds',
   },
   'pro-first-action': {
     headline: 'Your purchase is complete. Run your first agent task.',
-    body: "Give an agent one real task and then open Task History. If an agent did it, there's a receipt.",
+    body: 'Give an agent one real task and then open Task History. Agents act through your runtime, not a separate black box.',
     ctaLabel: 'Run your first agent',
   },
   'pro-license-wire': {
@@ -34,7 +34,7 @@ const EXPECTED: Record<NudgeId, { headline: string; body: string; ctaLabel: stri
   },
   'pro-read-receipts': {
     headline: 'Your agents have been busy.',
-    body: 'Every action they took left a receipt. Read the trail once so you know what checking it feels like.',
+    body: 'Open Task History once so you see what your agents did in the runtime. That is the habit that keeps you in control.',
     ctaLabel: 'Open the audit trail',
   },
   'pro-connect-data': {

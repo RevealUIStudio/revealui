@@ -11,7 +11,7 @@ Most agent software is easy to demo and hard to leave behind. The customer has a
 
 Palantir coined the title for the people who answer that in the field. The rest of the industry caught up. OpenAI, Anthropic, Google, Databricks, Salesforce, and a long line of vertical AI companies hire forward deployed engineers because demos do not deploy themselves. a16z called the same motion the hottest job in startups for a reason: complex AI needs implementation.
 
-Most of those teams still leave a vendor-owned stack. RevealUI is the self-hosted runtime built for a different handoff. Your business and the agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. Studio's job is the forward-deployed practice on that runtime: stamp, wire, hand over, leave the keys.
+Most of those teams still leave a vendor-owned stack. RevealUI is the self-hosted runtime built for a different handoff. Your business and the agents that run it live under one roof. Your team and your agents work the same objects under the same access rules on your infrastructure. Studio's job is the forward-deployed practice on that runtime: stamp, wire, hand over, leave the keys.
 
 ## The job is bigger than one company
 
@@ -32,7 +32,7 @@ Five things, not a slogan:
 1. **Customer-owned deploy.** The product runs on infrastructure they control, not only on a hosted demo tenant.
 2. **Business primitives already in the runtime.** Auth, content, offers, payments, and agents are not a greenfield rewrite per engagement.
 3. **Agents as governed users.** Same identity and policy surface as people, not shadow scripts with a private side channel.
-4. **A receipt path the customer can inspect.** If an agent did it, there's a receipt. Soft foil only: no certification claims, no universal "every surface" expansion until the product path proves it.
+4. **A path the customer can inspect.** Agents act through the runtime, not a separate black box. Soft foil only: no certification claims, no universal "every surface" expansion until the product path proves production receipts.
 5. **Provider choice.** The model is not the lock-in. Closed APIs stay opt-in adapters.
 
 If any of those are missing, the handoff is a laptop dependency with a nicer name.
