@@ -96,14 +96,13 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_STARTER_KIT.points[3]',
-    text: 'Sold on Polar when checkout opens; private Substack access is manual at launch volume',
+    text: 'Checkout on Stripe; private GitHub repo access and Substack invite are manual at launch volume',
     evidence: [STARTER_KIT],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_STARTER_KIT.primaryCta.label',
-    text: 'Email to reserve the Starter Kit (or Buy on Polar when SITE.urls.starterKitCheckout is set)',
-    match: 'path',
+    text: 'Buy the RevealUI Starter Kit',
     evidence: [STARTER_KIT],
   },
   {
@@ -517,7 +516,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[4].answer',
-    text: 'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is planned on Polar; until the listing is live, email founder@revealui.com to reserve a seat.',
+    text: 'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is on Stripe. After purchase we invite you to the private kit repo and Substack section within one business day.',
     evidence: [STARTER_KIT, STARTER_KIT_GETTING_STARTED, CLI_CREATE, STARTER_KIT_RECEIPT_TEST],
   },
   {
