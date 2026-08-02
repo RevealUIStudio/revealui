@@ -367,8 +367,57 @@ export async function renderRequest(
       if (isRouterNotFound(error)) {
         return notFoundResponse(router, representation, error);
       }
-      throw error;
+      // Misconfiguration (missing callbacks) should fail loud for developers.
+      if (
+        error instanceof Error &&
+        (error.message.includes('loadServerAction is required') ||
+          error.message.includes('renderRequest requires Router'))
+      ) {
+        throw error;
+      }
+      // Phase 2.3.2: loader/render failures → controlled 500 (no stack leak in prod).
+      return internalErrorResponse(error, representation);
     }
+  });
+}
+
+/**
+ * Safe 500 for unexpected loader/render failures (2.3.2).
+ * HTML gets a minimal recovery shell; RSC gets JSON so soft-nav can surface it.
+ */
+function internalErrorResponse(error: unknown, representation: Representation): Response {
+  const message = error instanceof Error && error.message ? error.message : 'Internal Server Error';
+  const publicMessage =
+    process.env.NODE_ENV === 'production' ? 'Something went wrong. Please try again.' : message;
+
+  if (representation === 'rsc') {
+    return new Response(JSON.stringify({ error: true, message: publicMessage }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-Router-Error': '1',
+      },
+    });
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Error</title>
+</head>
+<body>
+<div id="root" data-router-error="1" style="padding:2rem;text-align:center;font-family:system-ui,sans-serif">
+  <h1>Something went wrong</h1>
+  <p>${escapeHtml(publicMessage)}</p>
+  <p><a href="/">Go Home</a></p>
+</div>
+</body>
+</html>`;
+  return new Response(html, {
+    status: 500,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
   });
 }
 

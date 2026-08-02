@@ -25,6 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }): React.Re
           <a href="/counter">Counter</a>
           <a href="/actions">Actions</a>
           <a href="/session">Session</a>
+          <a href="/errors">Errors</a>
         </nav>
         <main style={{ padding: '0 16px' }}>{children}</main>
       </body>

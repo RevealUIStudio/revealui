@@ -8,6 +8,7 @@ import type { ComponentType } from 'react';
 import { requireSessionForProtectedActions } from './auth/require-session.ts';
 import { ActionsPage } from './pages/actions.tsx';
 import { CounterPage } from './pages/counter.tsx';
+import { ErrorsPage } from './pages/errors.tsx';
 import { HomePage } from './pages/home.tsx';
 import { AppLayout } from './pages/layout.tsx';
 import { NotFoundPage } from './pages/not-found.tsx';
@@ -50,6 +51,12 @@ export function createAppRouter(): Router {
     component: SessionPage as DemoPage,
     layout: AppLayout,
     meta: { title: 'Session — RSC POC' },
+  });
+  router.register({
+    path: '/errors',
+    component: ErrorsPage as DemoPage,
+    layout: AppLayout,
+    meta: { title: 'Errors — RSC POC' },
   });
 
   return router;

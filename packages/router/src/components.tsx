@@ -56,14 +56,16 @@ export function Routes() {
   const { route, params, data } = match;
   const RouteComponent = route.component;
   const Layout = route.layout;
+  // Per-route boundary wins (D5 / 2.3.2); fall back to router-level.
+  const ErrorFallback = route.errorBoundary ?? options.errorBoundary;
 
   const element = <RouteComponent params={params} data={data} />;
   const wrapped = Layout ? <Layout>{element}</Layout> : element;
 
   return (
     <MatchContext.Provider value={match}>
-      {options.errorBoundary ? (
-        <RouteErrorBoundary fallback={options.errorBoundary}>{wrapped}</RouteErrorBoundary>
+      {ErrorFallback ? (
+        <RouteErrorBoundary fallback={ErrorFallback}>{wrapped}</RouteErrorBoundary>
       ) : (
         wrapped
       )}
@@ -271,15 +273,22 @@ function NotFound() {
 }
 
 /**
- * RouteErrorBoundary - Catches render errors in route components
+ * RouteErrorBoundary - Catches render errors in route components.
+ * Exported as `ErrorBoundary` for RSC consumers that wrap flight roots (2.3.2).
  */
-class RouteErrorBoundary extends Component<
-  { fallback: React.ComponentType<{ error: Error }>; children: React.ReactNode },
+export class ErrorBoundary extends Component<
+  {
+    fallback: React.ComponentType<{ error: Error }>;
+    children: React.ReactNode;
+    /** Optional reset key — when it changes, clear the captured error. */
+    resetKey?: string;
+  },
   { error: Error | null }
 > {
   constructor(props: {
     fallback: React.ComponentType<{ error: Error }>;
     children: React.ReactNode;
+    resetKey?: string;
   }) {
     super(props);
     this.state = { error: null };
@@ -287,6 +296,12 @@ class RouteErrorBoundary extends Component<
 
   static getDerivedStateFromError(error: Error): { error: Error } {
     return { error };
+  }
+
+  componentDidUpdate(prevProps: { resetKey?: string }): void {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
   }
 
   render() {
@@ -297,6 +312,9 @@ class RouteErrorBoundary extends Component<
     return this.props.children;
   }
 }
+
+/** @deprecated Use `ErrorBoundary` — kept as alias for internal Routes. */
+const RouteErrorBoundary = ErrorBoundary;
 
 /**
  * Navigate - Component for declarative navigation
