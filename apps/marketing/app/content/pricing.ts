@@ -98,7 +98,7 @@ export const PRICING_AGENCY_FOUNDING_KIT = {
   heading: 'RevealUI Agency Founding Kit',
   price: '$8,499',
   priceNote: 'one-time Agency Perpetual',
-  body: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the $25,000 done-with-you Fleet engagement.',
+  body: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the high-touch done-with-you Fleet engagement on this page.',
   points: [
     'Agency Perpetual license key that never expires, with one year of support included',
     'Up to 10 client deployments under one Agency license (Max-tier runtime entitlements)',

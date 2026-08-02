@@ -126,7 +126,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENCY_FOUNDING_KIT.body',
-    text: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the $25,000 done-with-you Fleet engagement.',
+    text: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the high-touch done-with-you Fleet engagement on this page.',
     evidence: [
       AGENCY_PERPETUAL_FEATURES,
       CHECKOUT_PERPETUAL_ROUTE,
@@ -600,7 +600,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[5].answer',
-    text: 'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. It is not the $299 content-only Starter Kit, and it is not the high-touch $25,000 Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
+    text: 'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
     evidence: [
       AGENCY_PERPETUAL_FEATURES,
       CHECKOUT_PERPETUAL_ROUTE,
