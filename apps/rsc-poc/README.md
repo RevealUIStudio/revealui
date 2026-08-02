@@ -19,6 +19,7 @@ plugin-rsc; Phase 2.2.2 T0–T7 built the engine; **T8** is the first real consu
 
 | Piece | Role |
 |-------|------|
+| `vite.config.ts` | `@revealui/core/vite/withRevealUI` (Tier 0 step 3.0 dogfood) |
 | `src/app-router.ts` | `new Router({ rsc: {} })` + three demo routes + layout |
 | `src/entry.rsc.tsx` | `renderRequest` + JS actions + progressive `decodeFormAction` (2.2.4) |
 | `src/entry.ssr.tsx` | SSR from teed flight; payload inline owned by router |

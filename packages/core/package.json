@@ -285,6 +285,16 @@
       "import": "./dist/nextjs/withRevealUI.js",
       "default": "./dist/nextjs/withRevealUI.js"
     },
+    "./vite": {
+      "types": "./dist/vite/index.d.ts",
+      "import": "./dist/vite/index.js",
+      "default": "./dist/vite/index.js"
+    },
+    "./vite/withRevealUI": {
+      "types": "./dist/vite/withRevealUI.d.ts",
+      "import": "./dist/vite/withRevealUI.js",
+      "default": "./dist/vite/withRevealUI.js"
+    },
     "./utils/logger": {
       "types": "./dist/utils/logger.d.ts",
       "import": "./dist/utils/logger.js",

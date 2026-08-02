@@ -108,6 +108,8 @@ export {
 // project into every route that transitively imports from '@revealui/core'.
 // Import it directly from '@revealui/core/nextjs/withRevealUI' in next.config.mjs.
 export { getRevealUI as getRevealUINext } from './nextjs/index.js';
+// Vite integration: same rule — import `@revealui/core/vite/withRevealUI` from
+// vite.config.ts only (GAP-194 Phase 3 Tier 0 step 3.0).
 // Plugins
 export { formBuilderPlugin } from './plugins/form-builder.js';
 export { nestedDocsPlugin } from './plugins/nested-docs.js';
