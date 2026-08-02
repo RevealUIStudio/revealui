@@ -6,17 +6,19 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockRevalidateTag = vi.fn(async () => 0);
-const mockRevalidateDataPath = vi.fn(async () => 0);
-const mockNextRevalidatePath = vi.fn();
+const { mockRevalidateTag, mockRevalidateDataPath, mockNextRevalidatePath } = vi.hoisted(() => ({
+  mockRevalidateTag: vi.fn(async () => 0),
+  mockRevalidateDataPath: vi.fn(async () => 0),
+  mockNextRevalidatePath: vi.fn(),
+}));
 
 vi.mock('@revealui/cache', () => ({
-  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
-  revalidatePath: (...args: unknown[]) => mockRevalidateDataPath(...args),
+  revalidateTag: mockRevalidateTag,
+  revalidatePath: mockRevalidateDataPath,
 }));
 
 vi.mock('next/cache', () => ({
-  revalidatePath: (...args: unknown[]) => mockNextRevalidatePath(...args),
+  revalidatePath: mockNextRevalidatePath,
 }));
 
 vi.mock('@revealui/config', () => ({
