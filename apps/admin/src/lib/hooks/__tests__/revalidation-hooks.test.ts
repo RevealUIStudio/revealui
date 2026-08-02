@@ -8,8 +8,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRevalidate = vi.fn();
 
-vi.mock('next/cache', () => ({
-  revalidateTag: vi.fn(),
+vi.mock('@revealui/cache', () => ({
+  revalidateTag: vi.fn(async () => 0),
+  revalidatePath: vi.fn(async () => 0),
+  getCacheLogger: () => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() }),
 }));
 
 vi.mock('../revalidate', () => ({
@@ -97,14 +99,14 @@ describe('revalidateRedirects', () => {
   }
 
   it('calls revalidateTag and returns the doc', async () => {
-    const { revalidateTag } = await import('next/cache');
+    const { revalidateTag } = await import('@revealui/cache');
     const hook = await loadHook();
     const doc = { id: '1', from: '/old', to: '/new' };
 
     const result = hook({ doc });
 
     expect(result).toBe(doc);
-    expect(revalidateTag).toHaveBeenCalledWith('redirects', 'page');
+    expect(revalidateTag).toHaveBeenCalledWith('redirects');
   });
 
   it('logs the operation when context is provided', async () => {

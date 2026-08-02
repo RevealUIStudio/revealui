@@ -1,3 +1,4 @@
+import { getCacheLogger, revalidatePath as revalidateDataPath } from '@revealui/cache';
 import type { Page } from '@revealui/core/types/admin';
 import { revalidatePath } from 'next/cache';
 
@@ -7,6 +8,17 @@ interface RevealUIWithLogger {
     error: (message: string) => void;
     warn: (message: string) => void;
   };
+}
+
+function bustPathCaches(path: string): void {
+  // Data cache (tag/prefix) + Next Full Route Cache while admin is still Next.
+  void revalidateDataPath(path).catch((error: unknown) => {
+    getCacheLogger().error('revalidatePage: data revalidatePath failed', {
+      path,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
+  revalidatePath(path);
 }
 
 export const revalidatePage = ({
@@ -25,7 +37,7 @@ export const revalidatePage = ({
 
     revealui?.logger?.info(`Revalidating page at path: ${path}`);
 
-    revalidatePath(path);
+    bustPathCaches(path);
   }
 
   // If the page was previously published, we need to revalidate the old path
@@ -34,7 +46,7 @@ export const revalidatePage = ({
 
     revealui?.logger?.info(`Revalidating old page at path: ${oldPath}`);
 
-    revalidatePath(oldPath);
+    bustPathCaches(oldPath);
   }
 
   return doc;

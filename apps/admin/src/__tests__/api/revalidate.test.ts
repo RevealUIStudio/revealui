@@ -12,12 +12,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-const mockRevalidateTag = vi.fn();
-const mockRevalidatePath = vi.fn();
+const mockRevalidateTag = vi.fn(async () => 0);
+const mockRevalidateDataPath = vi.fn(async () => 0);
+const mockNextRevalidatePath = vi.fn();
+
+vi.mock('@revealui/cache', () => ({
+  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
+  revalidatePath: (...args: unknown[]) => mockRevalidateDataPath(...args),
+}));
 
 vi.mock('next/cache', () => ({
-  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
-  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
+  revalidatePath: (...args: unknown[]) => mockNextRevalidatePath(...args),
 }));
 
 vi.mock('@revealui/config', () => ({
@@ -190,8 +195,8 @@ describe('POST /api/revalidate', () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json).toEqual({ revalidated: true, tag: 'posts' });
-      expect(mockRevalidateTag).toHaveBeenCalledWith('posts', 'page');
-      expect(mockRevalidatePath).not.toHaveBeenCalled();
+      expect(mockRevalidateTag).toHaveBeenCalledWith('posts');
+      expect(mockNextRevalidatePath).not.toHaveBeenCalled();
     });
 
     it('tag takes priority over path when both are provided', async () => {
@@ -202,7 +207,7 @@ describe('POST /api/revalidate', () => {
       const json = await res.json();
       expect(json).toEqual({ revalidated: true, tag: 'posts' });
       expect(mockRevalidateTag).toHaveBeenCalledOnce();
-      expect(mockRevalidatePath).not.toHaveBeenCalled();
+      expect(mockNextRevalidatePath).not.toHaveBeenCalled();
     });
 
     it('tag takes priority over collection+slug when both are provided', async () => {
@@ -229,7 +234,8 @@ describe('POST /api/revalidate', () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json).toEqual({ revalidated: true, path: '/blog/hello-world' });
-      expect(mockRevalidatePath).toHaveBeenCalledWith('/blog/hello-world');
+      expect(mockRevalidateDataPath).toHaveBeenCalledWith('/blog/hello-world');
+      expect(mockNextRevalidatePath).toHaveBeenCalledWith('/blog/hello-world');
       expect(mockRevalidateTag).not.toHaveBeenCalled();
     });
 
@@ -244,7 +250,7 @@ describe('POST /api/revalidate', () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json).toEqual({ revalidated: true, path: '/custom' });
-      expect(mockRevalidatePath).toHaveBeenCalledOnce();
+      expect(mockNextRevalidatePath).toHaveBeenCalledOnce();
     });
 
     it('revalidates root path', async () => {
@@ -254,7 +260,7 @@ describe('POST /api/revalidate', () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json).toEqual({ revalidated: true, path: '/' });
-      expect(mockRevalidatePath).toHaveBeenCalledWith('/');
+      expect(mockNextRevalidatePath).toHaveBeenCalledWith('/');
     });
   });
 
@@ -275,8 +281,8 @@ describe('POST /api/revalidate', () => {
         collection: 'posts',
         slug: 'hello-world',
       });
-      expect(mockRevalidateTag).toHaveBeenCalledWith('posts:hello-world', 'page');
-      expect(mockRevalidatePath).toHaveBeenCalledWith('/posts/hello-world');
+      expect(mockRevalidateTag).toHaveBeenCalledWith(['posts_hello-world', 'posts:hello-world']);
+      expect(mockNextRevalidatePath).toHaveBeenCalledWith('/posts/hello-world');
     });
 
     it('calls both revalidateTag and revalidatePath for collection+slug', async () => {
@@ -287,7 +293,7 @@ describe('POST /api/revalidate', () => {
       await POST(req);
 
       expect(mockRevalidateTag).toHaveBeenCalledOnce();
-      expect(mockRevalidatePath).toHaveBeenCalledOnce();
+      expect(mockNextRevalidatePath).toHaveBeenCalledOnce();
     });
   });
 });
