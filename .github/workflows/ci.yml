@@ -780,18 +780,30 @@ jobs:
             echo "E2E_KEY_EOF"
           } >> "$GITHUB_ENV"
 
+      # Ephemeral CI secrets (not real credentials). Admin next start is
+      # production-mode and still requires the base secret trio even with
+      # SKIP_ENV_VALIDATION (env-validation.ts). KEK must be 64 hex chars.
+      # Server production boot also requires CORS_ORIGIN + audit signing key
+      # (generated above into GITHUB_ENV as REVEALUI_AUDIT_SIGNING_KEY).
       - name: Start API server
         run: pnpm --filter server start &
         env:
           SKIP_ENV_VALIDATION: "true"
-          NODE_ENV: "development"
+          NODE_ENV: "production"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          CORS_ORIGIN: "http://localhost:4000,http://localhost:3000"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:3004"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -908,6 +920,9 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -1017,6 +1032,9 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Wait for Admin
         run: |
