@@ -25,3 +25,19 @@ export function getHostedLimitsForTier(tier: HostedTierId): HostedTierLimits {
   if (tier === 'pro') return { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 };
   return { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 };
 }
+
+/**
+ * JWT maxSites/maxUsers for perpetual (one-time) license mints.
+ *
+ * Agency Perpetual / Agency Founding Kit (GAP-448) is Max-tier with a **10 client
+ * deployment** cap per offerings-canonical Track C and PERPETUAL_TIERS features.
+ * That is intentionally tighter than hosted Max multi-site limits (15 sites above).
+ */
+export function getPerpetualLicenseMintLimits(
+  tier: HostedTierId,
+): Pick<HostedTierLimits, 'maxSites' | 'maxUsers'> {
+  if (tier === 'enterprise') return {};
+  if (tier === 'max') return { maxSites: 10, maxUsers: 100 };
+  if (tier === 'pro') return { maxSites: 5, maxUsers: 25 };
+  return { maxSites: 1, maxUsers: 3 };
+}
