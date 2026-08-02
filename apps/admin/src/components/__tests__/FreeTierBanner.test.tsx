@@ -70,10 +70,10 @@ describe('FreeTierBanner', () => {
     expect(screen.queryByText(/Unlock Pro with a license/)).not.toBeInTheDocument();
   });
 
-  it('self-host deploy: links the license CTA at the vendor pricing page, opened safely', () => {
+  it('self-host deploy: links the license CTA at the Agency Founding Kit pricing anchor', () => {
     render(<FreeTierBanner isHosted={false} />);
-    const link = screen.getByText(/Unlock Pro with a license/);
-    expect(link).toHaveAttribute('href', 'https://revealui.com/pricing');
+    const link = screen.getByText(/Unlock with a license or Agency Kit/);
+    expect(link).toHaveAttribute('href', 'https://revealui.com/pricing#agency-founding-kit');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.queryByText(/Start your 7-day Pro trial/)).not.toBeInTheDocument();

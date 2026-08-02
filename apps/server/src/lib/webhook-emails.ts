@@ -176,6 +176,9 @@ export async function sendPerpetualLicenseActivatedEmail(
     year: 'numeric',
   });
   const licenseUrl = `${adminUrl()}/account/license`;
+  // Agency Founding Kit (GAP-448) = Agency Perpetual (max tier) productized pack.
+  const isAgencyKit = tier === 'max';
+  const productName = isAgencyKit ? 'Agency Founding Kit (Agency Perpetual)' : `${label} Perpetual`;
   const keyBlock = licenseKey
     ? `<div style="margin: 20px 0; padding: 16px; background: #f4f4f5; border-radius: 8px;">
   <p style="margin: 0 0 8px 0; font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Your License Key</p>
@@ -183,19 +186,28 @@ export async function sendPerpetualLicenseActivatedEmail(
 </div>
 <p style="font-size: 14px; color: #666;">Add this to your project's <code>.env</code> file as <code>REVEALUI_LICENSE_KEY=your-key</code>, or pass it via <code>initializeLicense(key)</code> at startup.</p>`
     : '';
+  const agencyKitBlock = isAgencyKit
+    ? `<p>This is your <strong>Agency Founding Kit</strong> license: Max-tier features, up to <strong>10 client deployments</strong>, and a key that never expires. Use RevForge to stamp a branded kit per client (one command once your operator pack lands).</p>
+<p style="font-size: 14px; color: #666;">Private GitHub access and kit materials follow when a GitHub username is on file at purchase. You can also open your license page any time to copy the key.</p>`
+    : '';
   await sendEmail({
     to,
-    subject: `Your RevealUI ${label} Perpetual License is ready`,
+    subject: isAgencyKit
+      ? 'Your RevealUI Agency Founding Kit license is ready'
+      : `Your RevealUI ${label} Perpetual License is ready`,
     html: emailShell(
-      'Perpetual License Activated',
-      `<h1 style="color: #2563eb;">Your Perpetual License is Active</h1>
-<p>Thank you for purchasing RevealUI <strong>${label} Perpetual</strong>. Your license never expires.</p>
+      isAgencyKit ? 'Agency Founding Kit Ready' : 'Perpetual License Activated',
+      `<h1 style="color: #2563eb;">${isAgencyKit ? 'Your Agency Founding Kit License is Active' : 'Your Perpetual License is Active'}</h1>
+<p>Thank you for purchasing RevealUI <strong>${escapeHtml(productName)}</strong>. Your license never expires.</p>
+${agencyKitBlock}
 ${keyBlock}
 <p>Your purchase includes <strong>1 year of support</strong> (until ${supportExpiry}). You'll receive a reminder 30 days before it lapses.</p>
 ${ctaButton(licenseUrl, 'View Your License')}
 ${supportFooter('Questions? Reply to this email or contact')}`,
     ),
-    text: `Your RevealUI ${label} Perpetual License is now active.${licenseKey ? ` License key: ${licenseKey}` : ''} The license never expires. Your 1-year support contract runs until ${supportExpiry}. View your license at ${licenseUrl}.`,
+    text: isAgencyKit
+      ? `Your RevealUI Agency Founding Kit license is now active (Agency Perpetual / Max, up to 10 client deployments).${licenseKey ? ` License key: ${licenseKey}` : ''} The license never expires. Support runs until ${supportExpiry}. View your license at ${licenseUrl}.`
+      : `Your RevealUI ${label} Perpetual License is now active.${licenseKey ? ` License key: ${licenseKey}` : ''} The license never expires. Your 1-year support contract runs until ${supportExpiry}. View your license at ${licenseUrl}.`,
   });
 }
 
