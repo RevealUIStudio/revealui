@@ -110,6 +110,12 @@
       "rationale": "GAP-444: ADD COLUMN account_entitlements.source (text NOT NULL DEFAULT 'stripe') + CHECK (stripe|grant|reconciler) so gifted entitlements can be excluded from MRR. Hand-written with ADD COLUMN IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object for idempotency, following the 0023/0015 column+check precedent. Companion Drizzle schema change at packages/db/src/schema/accounts.ts models source + check + index; buildHostedEntitlementValues locksteps stripe/grant/reconciler writers.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at accounts.ts already reflects source at the type level."
+    },
+    {
+      "tag": "0034_gap464_account_sso_providers",
+      "rationale": "GAP-464 / revealui#449 Phase 1: CREATE TABLE account_sso_providers + sso_identities for Enterprise SSO (OIDC|SAML). Hand-written CREATE TABLE IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object + partial unique index WHERE deleted_at IS NULL, following the 0025/0032 table-creation precedent. Hand-scoped because meta snapshots lag and db:generate would re-emit unrelated drift. Companion Drizzle schema at packages/db/src/schema/sso.ts; secrets are vault path refs only (client_secret_ref).",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at sso.ts already models both tables for ORM typing."
     }
   ]
 }

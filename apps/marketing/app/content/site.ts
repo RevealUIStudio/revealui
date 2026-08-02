@@ -37,7 +37,7 @@ export const METRICS = {
    */
   mcpServers: 13,
   /** Drizzle pgTable declarations across packages/db/src/schema/. Source: claim-drift countDbTables. */
-  dbTables: 98,
+  dbTables: 100,
   /** License split. Source: claim-drift licenseSplit. */
   licenseSplit: {
     /** MIT-licensed packages. */
