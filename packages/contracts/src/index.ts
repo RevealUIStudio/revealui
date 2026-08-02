@@ -530,6 +530,7 @@ export {
   PERPETUAL_TIERS,
   type PerpetualTier,
   type PricingResponse,
+  perpetualMaxSitesForTier,
   SUBSCRIPTION_TIERS,
   type SubscriptionTier,
   TIER_COLORS,

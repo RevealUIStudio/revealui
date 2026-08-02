@@ -285,6 +285,22 @@ export const PERPETUAL: EvidenceRef = {
   ref: 'apps/server/src/routes/billing.ts',
   note: 'perpetualCheckoutRoute POST /checkout-perpetual; catalog products in scripts/setup/stripe-catalog.ts; licenses.perpetual column',
 };
+/** Agency Perpetual mint site cap (GAP-448). */
+export const AGENCY_PERPETUAL_MAX_SITES: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/contracts/src/pricing.ts',
+  note: 'perpetualMaxSitesForTier: perpetual max tier mints maxSites 10 (Agency Fleet); subscription Max stays at TIER_LIMITS.max.sites 15',
+};
+export const AGENCY_PERPETUAL_MINT_WEBHOOK: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/license/mint-client.ts',
+  note: 'withPerpetualSiteCaps / mintLicenseKey: perpetual max tier bakes maxSites 10 for Agency JWT',
+};
+export const ADMIN_LICENSE_PAGE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/admin/src/app/(frontend)/account/license/page.tsx',
+  note: 'PERPETUAL_PLANS Agency Perpetual → POST /api/billing/checkout-perpetual with tier max',
+};
 export const MCP_SERVERS: EvidenceRef = {
   kind: 'code',
   ref: 'packages/mcp/src/servers',
@@ -492,21 +508,16 @@ export const CHECKOUT_PERPETUAL_ROUTE: EvidenceRef = {
 };
 export const PERPETUAL_MINT_LIMITS: EvidenceRef = {
   kind: 'code',
-  ref: 'apps/server/src/lib/tier-limits.ts',
-  note: 'getPerpetualLicenseMintLimits: Agency/max perpetual mints maxSites 10',
+  ref: 'packages/core/src/license/mint-client.ts',
+  note: 'withPerpetualSiteCaps: Agency/max perpetual mints maxSites 10 (and seat caps)',
 };
 export const PERPETUAL_MINT_LIMITS_TEST: EvidenceRef = {
   kind: 'test',
-  ref: 'apps/server/src/lib/__tests__/tier-limits-perpetual.test.ts#Agency / max perpetual is capped at 10 client deployments',
-  note: 'Agency Founding Kit maxSites 10 on perpetual mint',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts',
+  note: 'Agency perpetual JWT embeds maxSites 10 via withPerpetualSiteCaps',
 };
 export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
   kind: 'test',
   ref: 'packages/core/src/__tests__/license.test.ts#perpetual licenses never expire',
   note: 'JWT perpetual path has no exp claim',
-};
-export const ADMIN_LICENSE_PAGE: EvidenceRef = {
-  kind: 'code',
-  ref: 'apps/admin/src/app/(frontend)/account/license/page.tsx',
-  note: 'Agency Perpetual buy CTA on account license page',
 };

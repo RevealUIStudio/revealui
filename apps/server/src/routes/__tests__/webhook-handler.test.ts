@@ -445,18 +445,17 @@ describe('POST /stripe webhook  -  handler tests', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      // Pro perpetual site/user caps (getPerpetualLicenseMintLimits)
+      // Site/user caps for perpetual mints are applied inside mintLicenseKey
+      // (withPerpetualSiteCaps / GAP-448), not in the webhook caller.
       expect(vi.mocked(mintModule.mintLicenseKey)).toHaveBeenCalledWith({
         tier: 'pro',
         customerId: 'cus_perp',
         perpetual: true,
         expiresInSeconds: null,
-        maxSites: 5,
-        maxUsers: 25,
       });
     });
 
-    it('Agency / max perpetual mints maxSites 10 (GAP-448 Founding Kit cap)', async () => {
+    it('Agency / max perpetual checkout still mints with tier max (GAP-448)', async () => {
       mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_perp_max' }]);
       const event = makePerpetualEvent('evt_perp_agency_max', {
         metadata: {
@@ -477,8 +476,6 @@ describe('POST /stripe webhook  -  handler tests', () => {
         customerId: 'cus_perp_max',
         perpetual: true,
         expiresInSeconds: null,
-        maxSites: 10,
-        maxUsers: 100,
       });
     });
 

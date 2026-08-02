@@ -48,7 +48,7 @@ export const PRICING_HERO_NAV_ANCHORS = [
   { label: 'Subscription', href: '#subscriptions' },
   { label: 'Perpetual', href: '#perpetual' },
   { label: 'Starter Kit', href: '#starter-kit' },
-  { label: 'Agency Kit', href: '#agency-founding-kit' },
+  { label: 'Agency Founding Kit', href: '#agency-founding-kit' },
 ] as const;
 
 // ---------------------------------------------------------------------------

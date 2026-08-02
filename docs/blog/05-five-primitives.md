@@ -207,7 +207,7 @@ Content is authored by People (the `authorId` foreign key). Premium content can 
 
 Offers are what turns your software from a project into a business. RevealUI's offers primitive covers the catalog, license generation, and runtime feature gating.
 
-### License keys: Ed25519-signed JWTs
+### License keys: JWTs signed with Ed25519
 
 License keys are JWT tokens signed with EdDSA (Ed25519). The payload contains the tier, customer ID, domain restrictions, site and user limits, and an optional perpetual flag. The private key signs; the public key verifies. This means license verification can happen offline, without calling home to a license server.
 
