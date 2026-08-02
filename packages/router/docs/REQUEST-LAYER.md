@@ -73,6 +73,23 @@ export default {
 Hono equivalent: `app.use('*', async (c, next) => { … })` then
 `c.env` / `c.req.raw` into `renderRequest`.
 
+## Vite boot helper (Tier 0 step 3.0)
+
+Config-time sibling of Next `withRevealUI`:
+
+```ts
+import { withRevealUI } from '@revealui/core/vite/withRevealUI'
+import { defineConfig } from 'vite'
+
+export default defineConfig(withRevealUI({ plugins: [/* … */] }, { admin: true }))
+```
+
+Injects `process.env.REVEALUI_*` via `define` and optional baseline
+dev/preview headers. **Does not** own CSP/CSRF/session (this document does).
+**Must not** alias `@revealui/config` (use `@reveal-config` for CMS config).
+
+Dogfood: `apps/rsc-poc/vite.config.ts`.
+
 ## Related
 
 - Phase 2.3 hardening spec (`.jv`): `docs/specs/2026-08-01-phase-2.3-admin-prod-hardening.md`

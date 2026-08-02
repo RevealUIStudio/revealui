@@ -48,6 +48,7 @@ export const PRICING_HERO_NAV_ANCHORS = [
   { label: 'Subscription', href: '#subscriptions' },
   { label: 'Perpetual', href: '#perpetual' },
   { label: 'Starter Kit', href: '#starter-kit' },
+  { label: 'Agency Founding Kit', href: '#agency-founding-kit' },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -80,6 +81,37 @@ export const PRICING_STARTER_KIT = {
     label: 'Read the kit getting-started guide',
     href: `${SITE.urls.repo}/tree/test/examples/starter-kit`,
     external: true,
+  } satisfies Cta,
+} as const;
+
+// ---------------------------------------------------------------------------
+// Agency Founding Kit (GAP-448) — Agency Perpetual $8,499 self-serve path.
+// Purchase is the existing perpetual checkout (admin /account/license).
+// RevForge pre-stamp + automated kit delivery are later slices of GAP-448.
+// ---------------------------------------------------------------------------
+
+export const PRICING_AGENCY_FOUNDING_KIT = {
+  id: 'agency-founding-kit',
+  eyebrow: 'Agency',
+  heading: 'Agency Founding Kit',
+  price: '$8,499',
+  priceNote: 'one-time perpetual',
+  body: 'The middle rung for agencies: a perpetual Max-tier license for up to ten client deployments, bought self-serve. Not the twenty-five thousand dollar done-with-you Fleet engagement, and not the two hundred ninety-nine dollar content-only Starter Kit.',
+  points: [
+    'Agency Perpetual license: Max features, perpetual JWT with no subscription expiry, up to 10 client deployments',
+    'One year of priority support included, then optional annual support renewal',
+    'Checkout in the admin license page after you sign in (Stripe one-time payment)',
+    'RevForge white-label stamping and automated kit handoff ship in later GAP-448 slices',
+  ],
+  primaryCta: {
+    label: 'Buy Agency Perpetual in admin',
+    href: `${SITE.urls.adminLogin.replace(/\/login\/?$/, '')}/account/license`,
+    external: true,
+  } satisfies Cta,
+  secondaryCta: {
+    label: 'Compare perpetual tiers on this page',
+    href: '#perpetual',
+    external: false,
   } satisfies Cta,
 } as const;
 

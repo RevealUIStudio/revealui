@@ -1,6 +1,6 @@
+import { createCachedFunction } from '@revealui/cache';
 import type { RevealDocument } from '@revealui/core';
 import { logger } from '@revealui/utils/logger';
-import { unstable_cache } from 'next/cache';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 type Global = string;
@@ -33,9 +33,11 @@ async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null
 }
 
 /**
- * Returns a unstable_cache function mapped with the cache tag for the slug
+ * Returns a cached function mapped with the cache tag for the slug
+ * (GAP-194 3.7a: @revealui/cache, not next/cache unstable_cache).
  */
 export const getCachedGlobal = (slug: Global, depth = 0) =>
-  unstable_cache(async () => getGlobal(slug, depth), [String(slug)], {
+  createCachedFunction(async () => getGlobal(slug, depth), {
+    keyParts: ['global', String(slug), String(depth)],
     tags: [`global_${String(slug)}`],
   });

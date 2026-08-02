@@ -21,6 +21,7 @@
  */
 
 import { createHmac } from 'node:crypto';
+import { perpetualMaxSitesForTier } from '@revealui/contracts';
 import { generateLicenseKey, readPemEnv } from '../license.js';
 
 export const SIGNER_TIMESTAMP_HEADER = 'x-revealui-signer-timestamp';
@@ -107,18 +108,35 @@ export function signMintRequest(
   return createHmac('sha256', secret).update(payload, 'utf8').digest('hex');
 }
 
+/**
+ * GAP-448: perpetual Agency (tier max) must bake maxSites 10 on the JWT.
+ * Callers may still pass maxSites explicitly (wins). Subscription mints leave
+ * maxSites unset so runtime TIER_LIMITS apply.
+ */
+export function withPerpetualSiteCaps(input: MintLicensePayload): MintLicensePayload {
+  if (!input.perpetual || input.maxSites !== undefined) {
+    return input;
+  }
+  const maxSites = perpetualMaxSitesForTier(input.tier);
+  if (maxSites === null) {
+    return input;
+  }
+  return { ...input, maxSites };
+}
+
 function buildMintBody(input: MintLicensePayload): Record<string, unknown> {
+  const normalized = withPerpetualSiteCaps(input);
   const body: Record<string, unknown> = {
-    tier: input.tier,
-    customerId: input.customerId,
+    tier: normalized.tier,
+    customerId: normalized.customerId,
   };
-  if (input.domains !== undefined) body.domains = input.domains;
-  if (input.maxSites !== undefined) body.maxSites = input.maxSites;
-  if (input.maxUsers !== undefined) body.maxUsers = input.maxUsers;
-  if (input.perpetual !== undefined) body.perpetual = input.perpetual;
-  if (input.jti !== undefined) body.jti = input.jti;
-  if (input.expiresInSeconds !== undefined) {
-    body.expiresInSeconds = input.expiresInSeconds;
+  if (normalized.domains !== undefined) body.domains = normalized.domains;
+  if (normalized.maxSites !== undefined) body.maxSites = normalized.maxSites;
+  if (normalized.maxUsers !== undefined) body.maxUsers = normalized.maxUsers;
+  if (normalized.perpetual !== undefined) body.perpetual = normalized.perpetual;
+  if (normalized.jti !== undefined) body.jti = normalized.jti;
+  if (normalized.expiresInSeconds !== undefined) {
+    body.expiresInSeconds = normalized.expiresInSeconds;
   }
   return body;
 }
@@ -225,9 +243,10 @@ export async function mintLicenseKey(
 ): Promise<string> {
   const env = options.env ?? process.env;
   const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+  const normalized = withPerpetualSiteCaps(input);
 
   if (isSignViaSigner(env)) {
-    return mintViaSigner(input, env, fetchImpl);
+    return mintViaSigner(normalized, env, fetchImpl);
   }
-  return mintLocal(input, env);
+  return mintLocal(normalized, env);
 }

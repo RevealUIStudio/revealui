@@ -34,9 +34,10 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
+  BLOG_BODY_CLAIM_SLUGS,
   CLAIMS,
   type ClaimEntry,
   COVERED_FILES,
@@ -44,6 +45,8 @@ import {
   NON_COPY_KEYS,
 } from '../../apps/marketing/app/content/claims-evidence.js';
 import { CONTENT_FILE_ROUTES } from '../../apps/marketing/app/content/claims-routes.js';
+import { BLOG_POST_METADATA } from '../../apps/marketing/app/lib/blog-registry.js';
+import { extractBlogMdProseUnits } from '../lib/blog-md-prose.js';
 
 const warnOnly = process.argv.includes('--warn');
 const repoRoot = join(import.meta.dirname, '..', '..');
@@ -214,6 +217,87 @@ async function run(): Promise<void> {
     }
   }
 
+  // 2b. GAP-467 P1: live blog title + excerpt coverage (registry SSOT).
+  for (const post of BLOG_POST_METADATA) {
+    const claimFile = `blog/${post.slug}`;
+    const fileClaims = CLAIMS.filter((c) => c.file === claimFile);
+    const byPath = new Map(fileClaims.map((c) => [c.exportPath, c]));
+    for (const field of ['title', 'excerpt'] as const) {
+      const claim = byPath.get(field);
+      const expected = post[field];
+      if (!claim) {
+        violations.push(
+          `${claimFile} :: ${field} — live blog registry prose with no claims-evidence entry: "${expected.slice(0, 80)}"`,
+        );
+        continue;
+      }
+      if ((claim.match ?? 'text') === 'text' && claim.text !== expected) {
+        violations.push(
+          `${claimFile} :: ${field} — entry text no longer matches the registry: "${claim.text.slice(0, 80)}"`,
+        );
+      }
+    }
+    const bodyPath = join(repoRoot, 'docs/blog', post.file);
+    if (!existsSync(bodyPath)) {
+      violations.push(`${claimFile} — registry body file missing: docs/blog/${post.file}`);
+    }
+  }
+
+  // 2c. GAP-467: body prose for every live registry slug (BLOG_BODY_CLAIM_SLUGS).
+  const bodySlugSet = new Set<string>(BLOG_BODY_CLAIM_SLUGS);
+  for (const slug of BLOG_BODY_CLAIM_SLUGS) {
+    const post = BLOG_POST_METADATA.find((p) => p.slug === slug);
+    if (!post) {
+      violations.push(
+        `blog/${slug} — in BLOG_BODY_CLAIM_SLUGS but missing from BLOG_POST_METADATA`,
+      );
+      continue;
+    }
+    const bodyPath = join(repoRoot, 'docs/blog', post.file);
+    if (!existsSync(bodyPath)) continue;
+    const units = extractBlogMdProseUnits(readFileSync(bodyPath, 'utf8'));
+    const claimFile = `blog/${slug}`;
+    const bodyClaims = CLAIMS.filter(
+      (c) => c.file === claimFile && c.exportPath.startsWith('body.'),
+    );
+    const claimTexts = new Set(bodyClaims.map((c) => c.text));
+    for (const unit of units) {
+      if (!claimTexts.has(unit)) {
+        violations.push(
+          `${claimFile} :: body — prose unit with no claims-evidence entry: "${unit.slice(0, 80)}"`,
+        );
+      }
+    }
+    for (const claim of bodyClaims) {
+      if (!units.includes(claim.text)) {
+        violations.push(
+          `${claimFile} :: ${claim.exportPath} — body entry text no longer matches markdown: "${claim.text.slice(0, 80)}"`,
+        );
+      }
+    }
+  }
+  // Body claims must belong to a live registry slug in BLOG_BODY_CLAIM_SLUGS.
+  for (const claim of CLAIMS) {
+    if (!(claim.file.startsWith('blog/') && claim.exportPath.startsWith('body.'))) continue;
+    const slug = claim.file.slice('blog/'.length);
+    if (!bodySlugSet.has(slug)) {
+      violations.push(
+        `${claim.file} :: ${claim.exportPath} — body claim for slug not in BLOG_BODY_CLAIM_SLUGS`,
+      );
+    }
+  }
+
+  // Stale blog meta claims (index rows for removed slugs)
+  const liveBlogFiles = new Set(BLOG_POST_METADATA.map((p) => `blog/${p.slug}`));
+  for (const claim of CLAIMS) {
+    if (!claim.file.startsWith('blog/')) continue;
+    if (!liveBlogFiles.has(claim.file)) {
+      violations.push(
+        `${claim.file} :: ${claim.exportPath} — blog claims-evidence entry for slug not in BLOG_POST_METADATA`,
+      );
+    }
+  }
+
   // 3. Evidence: cited repo paths exist.
   for (const claim of CLAIMS) {
     for (const ev of claim.evidence) {
@@ -231,6 +315,7 @@ async function run(): Promise<void> {
 
   // 4. Route map: every covered file must resolve to a public route so
   // /claims always has a page to group its section under.
+  // Blog meta claims use file `blog/<slug>` and route via /blog/:slug; not in COVERED_FILES.
   for (const file of findMissingRouteEntries(COVERED_FILES, CONTENT_FILE_ROUTES)) {
     violations.push(
       `${file} — no entry in claims-routes.ts CONTENT_FILE_ROUTES (add one so /claims can group its claims by page)`,
@@ -251,7 +336,7 @@ async function run(): Promise<void> {
   const coveredCount = CLAIMS.length;
   if (violations.length === 0) {
     console.log(
-      `claims-evidence: ${coveredCount} indexed claims across ${COVERED_FILES.length} covered files, all matched, all evidence paths present.`,
+      `claims-evidence: ${coveredCount} indexed claims across ${COVERED_FILES.length} covered content modules + ${BLOG_POST_METADATA.length} live blog posts (title+excerpt+body), all matched, all evidence paths present.`,
     );
     process.exit(0);
   }

@@ -30,7 +30,7 @@ That pattern is the kind of thing that ends up in an input validator, looks fine
 
 For every job regex usually does, there is a clearer, safer tool that says what it means:
 
-- **Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These are battle-tested, spec-compliant, and they reject malformed input correctly instead of approximately.
+- **Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These follow the language specs, and they reject malformed input correctly instead of approximately.
 - **Walking code and markup** uses AST walkers. We use `mdast` for Markdown, the Lexical tree for rich text, and `@typescript-eslint` for TypeScript. An AST knows the difference between a string literal and an identifier; a regex only sees characters.
 - **Membership and lookup** uses `Set` and `Map`. "Is this one of the allowed values" is a `Set.has`, not an alternation you have to keep escaping.
 - **Splitting human text** uses `Intl.Segmenter`, which understands graphemes and word boundaries across languages, where a regex quietly mangles anything outside ASCII.

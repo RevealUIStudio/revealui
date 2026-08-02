@@ -257,7 +257,7 @@ If you deploy a RevealUI instance today, you get agent-native infrastructure wit
 
 **Your instance is already discoverable.** The Agent Card at `/.well-known/agent.json` advertises your instance's capabilities to the A2A network. Other agents can find you and evaluate whether you can handle their tasks.
 
-**Feature gating works for both audiences.** When a human user hits a Pro feature, they see the billing page and can upgrade. When an agent hits a Pro feature without a license, it gets a structured JSON error with the pricing URL. When x402 is enabled, agents can pay per-call instead of subscribing -- the same feature, two access patterns.
+**Feature gating works for both audiences.** When a human user hits a Pro feature, they see the billing page and can upgrade. When an agent hits a Pro feature without a license, it gets a structured JSON error with the pricing URL. When the x402 flag is set (`X402_ENABLED`, default off; planned, [#93](https://github.com/RevealUIStudio/revealui/issues/93)), agents can pay per-call instead of subscribing -- the same feature, two access patterns.
 
 **You will be able to earn money from MCP servers while you sleep (coming soon, [#526](https://github.com/RevealUIStudio/revealui/issues/526)).** Publish an MCP server to the marketplace, set a per-call price, onboard with Stripe Connect, and agent calls generate passive revenue. The marketplace handles discovery, payment verification, proxying, transaction recording, and developer payouts.
 

@@ -609,7 +609,7 @@ You have the foundation. Here is where to go from here:
 
 ### Add AI agents (Pro tier)
 
-Upgrade to [RevealUI Pro](https://revealui.com/pricing) to unlock AI agents with CRDT memory, LLM orchestration, and task history:
+Upgrade to [RevealUI Pro](https://revealui.com/pricing) for AI agents with CRDT memory, LLM orchestration, and task history:
 
 ```bash
 export REVEALUI_LICENSE_KEY=<your-pro-license-key>

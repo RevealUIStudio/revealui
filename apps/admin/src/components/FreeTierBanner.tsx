@@ -51,12 +51,12 @@ export function FreeTierBanner({ isHosted }: FreeTierBannerProps) {
           </Link>
         ) : (
           <a
-            href="https://revealui.com/pricing"
+            href="https://revealui.com/pricing#agency-founding-kit"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline underline-offset-2 hover:opacity-80"
           >
-            Unlock Pro with a license &rarr;
+            Unlock with a license or Agency Kit &rarr;
           </a>
         )}
       </p>

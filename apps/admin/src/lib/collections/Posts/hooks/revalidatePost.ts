@@ -1,3 +1,4 @@
+import { getCacheLogger, revalidatePath as revalidateDataPath } from '@revealui/cache';
 import type { Post } from '@revealui/core/types/admin';
 import { revalidatePath } from 'next/cache';
 
@@ -7,6 +8,16 @@ interface RevealUIWithLogger {
     error: (message: string) => void;
     warn: (message: string) => void;
   };
+}
+
+function bustPathCaches(path: string): void {
+  void revalidateDataPath(path).catch((error: unknown) => {
+    getCacheLogger().error('revalidatePost: data revalidatePath failed', {
+      path,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
+  revalidatePath(path);
 }
 
 export const revalidatePost = ({
@@ -25,7 +36,7 @@ export const revalidatePost = ({
 
     revealui?.logger?.info(`Revalidating post at path: ${path}`);
 
-    revalidatePath(path);
+    bustPathCaches(path);
   }
 
   // If the post was previously published, we need to revalidate the old path
@@ -34,7 +45,7 @@ export const revalidatePost = ({
 
     revealui?.logger?.info(`Revalidating old post at path: ${oldPath}`);
 
-    revalidatePath(oldPath);
+    bustPathCaches(oldPath);
   }
 
   return doc;

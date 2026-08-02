@@ -81,7 +81,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (98 tables) on NeonDB (Postgres); Supabase was removed (ADR 2026-05-01) |
+| @revealui/db | Drizzle ORM schema (100 tables) on NeonDB (Postgres); Supabase was removed (ADR 2026-05-01) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |

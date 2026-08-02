@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CLAIMS, COVERED_FILES } from '../../content/claims-evidence';
+import { BLOG_POST_METADATA } from '../../lib/blog-registry';
 import { ClaimsPage } from '../ClaimsPage';
 
 afterEach(cleanup);
@@ -17,7 +18,9 @@ describe('ClaimsPage', () => {
   it('renders live counts computed from the imported index, not hardcoded', async () => {
     render(<ClaimsPage />);
     expect(await screen.findByText(String(CLAIMS.length))).toBeInTheDocument();
-    expect(await screen.findByText(String(COVERED_FILES.length))).toBeInTheDocument();
+    expect(
+      await screen.findByText(String(COVERED_FILES.length + BLOG_POST_METADATA.length)),
+    ).toBeInTheDocument();
   });
 
   it('renders one row per claims-evidence entry', async () => {

@@ -6,12 +6,19 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockRevalidatePath = vi.fn();
-const mockRevalidateTag = vi.fn();
+const { mockRevalidateTag, mockRevalidateDataPath, mockNextRevalidatePath } = vi.hoisted(() => ({
+  mockRevalidateTag: vi.fn(async () => 0),
+  mockRevalidateDataPath: vi.fn(async () => 0),
+  mockNextRevalidatePath: vi.fn(),
+}));
+
+vi.mock('@revealui/cache', () => ({
+  revalidateTag: mockRevalidateTag,
+  revalidatePath: mockRevalidateDataPath,
+}));
 
 vi.mock('next/cache', () => ({
-  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
-  revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
+  revalidatePath: mockNextRevalidatePath,
 }));
 
 vi.mock('@revealui/config', () => ({
@@ -91,14 +98,14 @@ describe('POST /api/revalidate', () => {
     expect((res as unknown as { body: unknown }).body).toEqual(
       expect.objectContaining({ revalidated: true, tag: 'pages' }),
     );
-    expect(mockRevalidateTag).toHaveBeenCalledWith('pages', 'page');
+    expect(mockRevalidateTag).toHaveBeenCalledWith('pages');
   });
 
   it('revalidates by path', async () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest({ path: '/blog/hello' }, 'test-revalidate-secret'));
     expect((res as { status: number }).status).toBe(200);
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/blog/hello');
+    expect(mockNextRevalidatePath).toHaveBeenCalledWith('/blog/hello');
   });
 
   it('revalidates by collection + slug', async () => {
@@ -107,8 +114,8 @@ describe('POST /api/revalidate', () => {
       makeRequest({ collection: 'posts', slug: 'hello-world' }, 'test-revalidate-secret'),
     );
     expect((res as { status: number }).status).toBe(200);
-    expect(mockRevalidateTag).toHaveBeenCalledWith('posts:hello-world', 'page');
-    expect(mockRevalidatePath).toHaveBeenCalledWith('/posts/hello-world');
+    expect(mockRevalidateTag).toHaveBeenCalledWith(['posts_hello-world', 'posts:hello-world']);
+    expect(mockNextRevalidatePath).toHaveBeenCalledWith('/posts/hello-world');
   });
 
   it('returns 400 when no revalidation target provided', async () => {
@@ -141,6 +148,6 @@ describe('POST /api/revalidate', () => {
       expect.objectContaining({ tag: 'my-tag' }),
     );
     expect(mockRevalidateTag).toHaveBeenCalled();
-    expect(mockRevalidatePath).not.toHaveBeenCalled();
+    expect(mockNextRevalidatePath).not.toHaveBeenCalled();
   });
 });

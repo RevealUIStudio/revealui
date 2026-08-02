@@ -12,6 +12,7 @@ import type {
   accountEntitlements,
   accountMemberships,
   accounts,
+  accountSsoProviders,
   accountSubscriptions,
   agentActions,
   agentContexts,
@@ -90,6 +91,7 @@ import type {
   sharedFacts,
   siteCollaborators,
   sites,
+  ssoIdentities,
   syncMetadata,
   taskSubmissions,
   tenantProviderConfigs,
@@ -127,6 +129,11 @@ export type AccountMembershipsUpdate = Partial<AccountMembershipsInsert>
 export type AccountsRow = typeof accounts.$inferSelect
 export type AccountsInsert = typeof accounts.$inferInsert
 export type AccountsUpdate = Partial<AccountsInsert>
+
+// Account Sso Providers
+export type AccountSsoProvidersRow = typeof accountSsoProviders.$inferSelect
+export type AccountSsoProvidersInsert = typeof accountSsoProviders.$inferInsert
+export type AccountSsoProvidersUpdate = Partial<AccountSsoProvidersInsert>
 
 // Account Subscriptions
 export type AccountSubscriptionsRow = typeof accountSubscriptions.$inferSelect
@@ -518,6 +525,11 @@ export type SitesRow = typeof sites.$inferSelect
 export type SitesInsert = typeof sites.$inferInsert
 export type SitesUpdate = Partial<SitesInsert>
 
+// Sso Identities
+export type SsoIdentitiesRow = typeof ssoIdentities.$inferSelect
+export type SsoIdentitiesInsert = typeof ssoIdentities.$inferInsert
+export type SsoIdentitiesUpdate = Partial<SsoIdentitiesInsert>
+
 // Sync Metadata
 export type SyncMetadataRow = typeof syncMetadata.$inferSelect
 export type SyncMetadataInsert = typeof syncMetadata.$inferInsert
@@ -630,6 +642,7 @@ export type DatabaseRelationships = {
   accountEntitlements: Relationship[]
   accountMemberships: Relationship[]
   accounts: Relationship[]
+  accountSsoProviders: Relationship[]
   accountSubscriptions: Relationship[]
   agentActions: Relationship[]
   agentContexts: Relationship[]
@@ -708,6 +721,7 @@ export type DatabaseRelationships = {
   sharedFacts: Relationship[]
   siteCollaborators: Relationship[]
   sites: Relationship[]
+  ssoIdentities: Relationship[]
   syncMetadata: Relationship[]
   taskSubmissions: Relationship[]
   tenantProviderConfigs: Relationship[]
@@ -740,6 +754,9 @@ export const accountMembershipsRelationships = [
 
 // Accounts relationships
 export const accountsRelationships: readonly Relationship[] = []
+
+// AccountSsoProviders relationships
+export const accountSsoProvidersRelationships: readonly Relationship[] = []
 
 // AccountSubscriptions relationships
 export const accountSubscriptionsRelationships = [
@@ -1047,6 +1064,9 @@ export const sitesRelationships = [
   { foreignKeyName: 'sites_owner_id_users_id_fk', columns: ['owner_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// SsoIdentities relationships
+export const ssoIdentitiesRelationships: readonly Relationship[] = []
+
 // SyncMetadata relationships
 export const syncMetadataRelationships: readonly Relationship[] = []
 
@@ -1175,6 +1195,12 @@ export type Database = {
         Insert: AccountsInsert
         Update: AccountsUpdate
         Relationships: typeof accountsRelationships
+      }
+      account_sso_providers: {
+        Row: AccountSsoProvidersRow
+        Insert: AccountSsoProvidersInsert
+        Update: AccountSsoProvidersUpdate
+        Relationships: typeof accountSsoProvidersRelationships
       }
       account_subscriptions: {
         Row: AccountSubscriptionsRow
@@ -1643,6 +1669,12 @@ export type Database = {
         Insert: SitesInsert
         Update: SitesUpdate
         Relationships: typeof sitesRelationships
+      }
+      sso_identities: {
+        Row: SsoIdentitiesRow
+        Insert: SsoIdentitiesInsert
+        Update: SsoIdentitiesUpdate
+        Relationships: typeof ssoIdentitiesRelationships
       }
       sync_metadata: {
         Row: SyncMetadataRow

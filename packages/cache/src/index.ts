@@ -1,18 +1,30 @@
 /**
  * @revealui/cache — caching infrastructure for RevealUI applications.
  *
- * Runtime surface (C11 2026-07-23):
+ * Runtime surface:
  * - adapters (subpath `@revealui/cache/adapters`): memory, PGlite, browser
+ * - createCachedFunction + revalidateTag / revalidatePath (tag-aware CMS data cache)
  * - invalidation-channel: distributed cache busting across store instances
  * - logger: configurable internal logger
  *
- * Edge/CDN helpers (`edge-cache.ts`, `cdn-config.ts`) were deleted as
- * built-but-unwired (tests-only, zero app consumers). Prefer platform-native
- * cache control (e.g. `next/cache`, CDN provider APIs) at the app boundary.
+ * Edge/CDN helpers were removed as built-but-unwired (C11). Prefer
+ * platform-native cache control for HTML/CDN; use this package for app data.
  */
 
 // Adapter types (full implementations via '@revealui/cache/adapters')
 export type { CacheEntry, CacheStore } from './adapters/types.js';
+// Tag-aware memoization (GAP-194 3.7a)
+export type { CreateCachedFunctionOptions } from './cached-function.js';
+export {
+  buildCachedFunctionKey,
+  createCachedFunction,
+  serializeCacheArgs,
+} from './cached-function.js';
+export {
+  getDefaultCacheStore,
+  resetDefaultCacheStore,
+  setDefaultCacheStore,
+} from './default-store.js';
 // Invalidation channel (distributed cache busting)
 export type {
   InvalidationChannelOptions,
@@ -22,3 +34,9 @@ export type {
 export { CacheInvalidationChannel } from './invalidation-channel.js';
 export type { CacheLogger } from './logger.js';
 export { configureCacheLogger, getCacheLogger } from './logger.js';
+export {
+  normalizeCachePath,
+  pathCacheTag,
+  revalidatePath,
+  revalidateTag,
+} from './revalidate.js';

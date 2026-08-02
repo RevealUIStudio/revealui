@@ -1,18 +1,22 @@
 export const runtime = 'nodejs';
 
 import crypto from 'node:crypto';
+import { revalidatePath as revalidateDataPath, revalidateTag } from '@revealui/cache';
 import config from '@revealui/config';
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * On-demand ISR revalidation endpoint.
+ * On-demand revalidation endpoint.
  *
  * POST /api/revalidate
  * Header: x-revalidate-secret: <REVEALUI_SECRET>
  * Body:   { tag } | { path } | { collection, slug }
+ *
+ * Tags hit @revealui/cache (GAP-194 3.7a). Paths hit data cache tags/prefixes
+ * plus Next Full Route Cache while admin remains on Next.js.
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const secret = request.headers.get('x-revalidate-secret');
@@ -45,18 +49,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   };
 
   if (tag) {
-    revalidateTag(tag, 'page');
+    await revalidateTag(tag);
     return NextResponse.json({ revalidated: true, tag });
   }
 
   if (path) {
+    await revalidateDataPath(path);
     revalidatePath(path);
     return NextResponse.json({ revalidated: true, path });
   }
 
   if (collection && slug) {
-    revalidateTag(`${collection}:${slug}`, 'page');
-    revalidatePath(`/${collection}/${slug}`);
+    // Data tags: both underscore (getCachedDocument) and colon (API contract).
+    await revalidateTag([`${collection}_${slug}`, `${collection}:${slug}`]);
+    const routePath = `/${collection}/${slug}`;
+    await revalidateDataPath(routePath);
+    revalidatePath(routePath);
     return NextResponse.json({ revalidated: true, collection, slug });
   }
 

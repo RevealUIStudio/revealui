@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock next/cache
+vi.mock('@revealui/cache', () => ({
+  revalidatePath: vi.fn(async () => 0),
+  revalidateTag: vi.fn(async () => 0),
+  getCacheLogger: () => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() }),
+}));
+
+// Mock next/cache (Full Route Cache while admin is still Next)
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));

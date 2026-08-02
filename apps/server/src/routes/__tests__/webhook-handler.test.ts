@@ -445,11 +445,40 @@ describe('POST /stripe webhook  -  handler tests', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
+      // Pro perpetual site/user caps (getPerpetualLicenseMintLimits)
       expect(vi.mocked(mintModule.mintLicenseKey)).toHaveBeenCalledWith({
         tier: 'pro',
         customerId: 'cus_perp',
         perpetual: true,
         expiresInSeconds: null,
+        maxSites: 5,
+        maxUsers: 25,
+      });
+    });
+
+    it('Agency / max perpetual mints maxSites 10 (GAP-448 Founding Kit cap)', async () => {
+      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_perp_max' }]);
+      const event = makePerpetualEvent('evt_perp_agency_max', {
+        metadata: {
+          tier: 'max',
+          perpetual: 'true',
+          revealui_user_id: 'user_perp_max',
+        },
+        customer: 'cus_perp_max',
+        customer_email: 'agency@test.com',
+      });
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      expect(vi.mocked(mintModule.mintLicenseKey)).toHaveBeenCalledWith({
+        tier: 'max',
+        customerId: 'cus_perp_max',
+        perpetual: true,
+        expiresInSeconds: null,
+        maxSites: 10,
+        maxUsers: 100,
       });
     });
 

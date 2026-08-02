@@ -285,6 +285,22 @@ export const PERPETUAL: EvidenceRef = {
   ref: 'apps/server/src/routes/billing.ts',
   note: 'perpetualCheckoutRoute POST /checkout-perpetual; catalog products in scripts/setup/stripe-catalog.ts; licenses.perpetual column',
 };
+/** Agency Perpetual mint site cap (GAP-448). */
+export const AGENCY_PERPETUAL_MAX_SITES: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/contracts/src/pricing.ts',
+  note: 'perpetualMaxSitesForTier: perpetual max tier mints maxSites 10 (Agency Fleet); subscription Max stays at TIER_LIMITS.max.sites 15',
+};
+export const AGENCY_PERPETUAL_MINT_WEBHOOK: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/core/src/license/mint-client.ts',
+  note: 'withPerpetualSiteCaps / mintLicenseKey: perpetual max tier bakes maxSites 10 for Agency JWT',
+};
+export const ADMIN_LICENSE_PAGE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/admin/src/app/(frontend)/account/license/page.tsx',
+  note: 'PERPETUAL_PLANS Agency Perpetual → POST /api/billing/checkout-perpetual with tier max',
+};
 export const MCP_SERVERS: EvidenceRef = {
   kind: 'code',
   ref: 'packages/mcp/src/servers',
@@ -479,4 +495,19 @@ export const STARTER_KIT_RECEIPT_TEST: EvidenceRef = {
   kind: 'test',
   ref: 'examples/starter-kit/src/receipts/__tests__/roundtrip.test.ts#signs an action log and verifies it as valid',
   note: 'offline receipt sign+verify roundtrip in the kit',
+};
+export const AGENCY_PERPETUAL_MINT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#bakes Agency perpetual maxSites 10 when omitted',
+  note: 'GAP-448 withPerpetualSiteCaps for max perpetual',
+};
+export const AGENCY_PERPETUAL_JWT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#local mint embeds maxSites 10 for Agency perpetual JWT',
+  note: 'Agency perpetual JWT carries maxSites 10 end-to-end',
+};
+export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license.test.ts#perpetual licenses never expire',
+  note: 'perpetual JWT has no exp claim',
 };

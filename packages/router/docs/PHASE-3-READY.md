@@ -73,3 +73,4 @@ Copy into the Tier-0 admin-port kickoff PR / lane.
 | Date | Note |
 |------|------|
 | 2026-08-02 | 2.3.6 checklist authored; 2.3.1–2.3.4 dogfood on rsc-poc; browser ALS import graph fixed |
+| 2026-08-02 | Tier 0 **3.0** pre-stage: `@revealui/core/vite/withRevealUI` (+ rsc-poc dogfood). Still owner **G** before mass admin port / `apps/admin-vite` (3.1). |

@@ -12,6 +12,7 @@ import { CostCalculator } from '../components/landing/CostCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PERPETUAL_TIERS,
+  PRICING_AGENCY_FOUNDING_KIT,
   PRICING_AGENCY_VALUE_BAND,
   PRICING_AGENT_A2A,
   PRICING_AGENT_CTA_LINKS,
@@ -453,7 +454,7 @@ export function PricingPage() {
         </div>
       </section>
 
-      {/* GAP-434 Starter Kit — one-time content product (Polar when live) */}
+      {/* GAP-434 Starter Kit — one-time content product (Stripe Payment Link) */}
       <section id="starter-kit" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
@@ -508,6 +509,59 @@ export function PricingPage() {
                   rel="noopener noreferrer"
                 >
                   {PRICING_STARTER_KIT.secondaryCta.label}
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* GAP-448 Agency Founding Kit — Agency Perpetual self-serve path */}
+      <section id="agency-founding-kit" className="bg-muted/30 py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
+            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
+              {PRICING_AGENCY_FOUNDING_KIT.eyebrow}
+            </span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {PRICING_AGENCY_FOUNDING_KIT.heading}
+            </h2>
+            <p className="mt-4 flex items-baseline gap-x-2">
+              <span className="text-4xl font-bold text-foreground">
+                {PRICING_AGENCY_FOUNDING_KIT.price}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {PRICING_AGENCY_FOUNDING_KIT.priceNote}
+              </span>
+            </p>
+            <p className="mt-4 text-lg text-muted-foreground">{PRICING_AGENCY_FOUNDING_KIT.body}</p>
+            <ul className="mt-6 space-y-3">
+              {PRICING_AGENCY_FOUNDING_KIT.points.map((point) => (
+                <li key={point} className="flex items-start gap-x-3">
+                  <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
+                  <span className="text-sm text-muted-foreground">{point}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="w-full sm:w-auto">
+                <a
+                  href={PRICING_AGENCY_FOUNDING_KIT.primaryCta.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {PRICING_AGENCY_FOUNDING_KIT.primaryCta.label}
+                </a>
+              </Button>
+              <Button
+                asChild
+                appearance="outline"
+                variant="neutral"
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                <a href={PRICING_AGENCY_FOUNDING_KIT.secondaryCta.href}>
+                  {PRICING_AGENCY_FOUNDING_KIT.secondaryCta.label}
                 </a>
               </Button>
             </div>
