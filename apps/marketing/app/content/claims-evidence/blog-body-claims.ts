@@ -2173,7 +2173,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/zero-regex',
     exportPath: 'body.7',
-    text: '**Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These are battle-tested, spec-compliant, and they reject malformed input correctly instead of approximately.',
+    text: '**Parsing structured text** uses real parsers. `URL` for URLs, `JSON.parse` for JSON, `Date.parse` for dates. These follow the language specs, and they reject malformed input correctly instead of approximately.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/13-zero-regex.md', note: 'body source paragraph 7' },
       {
@@ -4396,7 +4396,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/getting-started',
     exportPath: 'body.79',
-    text: 'Upgrade to [RevealUI Pro](https://revealui.com/pricing) to unlock AI agents with CRDT memory, LLM orchestration, and task history:',
+    text: 'Upgrade to [RevealUI Pro](https://revealui.com/pricing) for AI agents with CRDT memory, LLM orchestration, and task history:',
     evidence: [
       { kind: 'code', ref: 'docs/blog/08-getting-started.md', note: 'body source paragraph 79' },
       {
@@ -7908,7 +7908,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.5',
-    text: 'Each layer independently solves a real problem. Together, they give you something genuinely unusual: a full AI-powered business software stack that can run without a network connection.',
+    text: 'Each layer independently solves a real problem. Together, they give you something genuinely unusual: a full business software stack with local AI that can run without a network connection.',
     evidence: [
       {
         kind: 'code',
@@ -8146,7 +8146,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.19',
-    text: 'The entire AI-powered business stack - People, Content, Offers, Payments, and Agents, running without a cloud API call in sight.',
+    text: 'The entire business stack with local AI - People, Content, Offers, Payments, and Agents, running without a cloud API call in sight.',
     evidence: [
       {
         kind: 'code',
@@ -10393,7 +10393,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.43',
-    text: 'The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available.',
+    text: 'The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things teams need for AI capabilities are commercially licensed but source-available.',
     evidence: [
       {
         kind: 'code',
@@ -10580,7 +10580,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.54',
-    text: '**Extensive test coverage** across unit, integration, and E2E layers (run `pnpm test` for the current count)',
+    text: '**Unit, integration, and E2E tests** across the monorepo (run `pnpm test` for the current count)',
     evidence: [
       {
         kind: 'code',
@@ -10665,7 +10665,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.59',
-    text: "**It's early.** This is a v0. The core is stable (extensive test coverage, full TypeScript strict mode, comprehensive security hardening). Run `pnpm test` for the current count. **Stripe is live** in production. The third-party plugin marketplace is still early. The template library is small. The community is just getting started. I keep an honest, file-by-file account of what does and doesn't work at [What Works Today](../WHAT_WORKS_TODAY.md).",
+    text: "**It's early.** This is a v0. The core is stable (unit and integration tests, full TypeScript strict mode, security hardening). Run `pnpm test` for the current count. **Stripe is live** in production. The third-party plugin marketplace is still early. The template library is small. The community is just getting started. I keep an honest, file-by-file account of what does and doesn't work at [What Works Today](../WHAT_WORKS_TODAY.md).",
     evidence: [
       {
         kind: 'code',
