@@ -794,10 +794,11 @@ jobs:
       - name: Start API server
         run: pnpm --filter server start &
         env:
+          # Long-running serve() lives on the dev path in index.ts; production
+          # NODE_ENV is the Vercel serverless entry (worker.ts owns Fly prod).
           SKIP_ENV_VALIDATION: "true"
-          NODE_ENV: "production"
+          NODE_ENV: "development"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
-          CORS_ORIGIN: "http://localhost:4000,http://localhost:3000"
           REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:3004"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
