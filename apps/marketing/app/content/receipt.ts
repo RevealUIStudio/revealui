@@ -48,7 +48,12 @@ export const RECEIPT_HERO_INTEGRITY = {
   value: '4b6c…e91a',
 } as const;
 
+// Interim-safe caption (truth-source §7 / GAP-354): the hero motif is a
+// demonstration of the product shape, not a claim that prod ships sealed
+// agent receipts for every tier today. Re-arm the locked foil
+// "If an agent did it, there's a receipt." only after GAP-355 production-path
+// proof is registered in claims-evidence.
 export const RECEIPT_HERO_CAPTION = {
-  text: "If an agent did it, there's a receipt.",
-  link: { label: 'See ours →', href: '/claims' },
+  text: 'Agents act through your runtime, not a separate black box.',
+  link: { label: 'See the claims ledger →', href: '/claims' },
 } as const;
