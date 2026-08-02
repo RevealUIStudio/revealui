@@ -63,7 +63,7 @@
     },
     {
       "source": "/for-operators",
-      "destination": "/?for=non-technical",
+      "destination": "/services",
       "permanent": true
     }
   ],

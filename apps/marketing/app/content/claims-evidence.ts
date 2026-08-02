@@ -1517,7 +1517,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_DONE_FOR_YOU.body',
-    text: 'RevealUI Studio (the agency) ships fixed-bid engagements on the runtime: scoped in a discovery call, delivered with a full handoff, owned by you afterward.',
+    text: 'RevealUI Studio ships fixed-bid work on the runtime. Starting prices below. Discovery scopes the engagement. Full detail lives on the Studio site and the product Services page.',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -1547,7 +1547,7 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_DONE_FOR_YOU.secondaryCta.label',
-    text: 'Visit revealuistudio.com →',
+    text: 'See full services on Studio →',
     evidence: [{ kind: 'url', ref: 'https://revealuistudio.com', note: 'agency site link label' }],
   },
   {

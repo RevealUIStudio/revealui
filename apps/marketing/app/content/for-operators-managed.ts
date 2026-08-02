@@ -13,8 +13,8 @@
 // - No prices, no dates, no signup buttons that imply the product exists,
 //   no present-tense feature claims as if the product ships.
 // - The waitlist is the ONLY conversion action, explicitly labeled as a waitlist.
-// - Impatient operators are routed back to /for-operators (the agency path
-//   that ships today).
+// - Impatient operators are routed to /services (product surface) and
+//   revealuistudio.com (agency conversion).
 //
 // Voice rules: all 5 apply unchanged + operator-lane register per spec §7
 // (codified in voice-and-headline-rules.md §2.1).
@@ -30,8 +30,8 @@ export const FO_MANAGED_HERO = {
   subtitle:
     'A self-serve managed version of the runtime: sign up in a browser, configure your business, get a hosted product without an agency engagement. It does not ship today. This page is the honest roadmap.',
   backLink: {
-    label: '← Back to For Operators',
-    href: '/?for=non-technical',
+    label: '← Back to Services',
+    href: '/services',
   } satisfies Cta,
 } as const;
 
@@ -41,7 +41,7 @@ export const FO_MANAGED_STATUS = {
   paragraph1:
     'RevealUI Cloud does not exist today. There is no signup, no billing, no managed hosting you can configure in a browser.',
   paragraph2:
-    'What does exist today is the RevealUI Studio agency engagement: we build and deliver a working product for your business as a scoped engagement. See For Operators for the path that ships.',
+    'What does exist today is the RevealUI Studio agency engagement: we build and deliver a working product for your business as a scoped engagement. See Services for the path that ships.',
   paragraph3:
     'This page is the honest version of the question "is there a managed offering?" Yes, on the roadmap; no, not yet.',
 } as const;

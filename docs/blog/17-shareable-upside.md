@@ -11,9 +11,9 @@ I spent about ten years managing and training people in AT&T and T-Mobile author
 
 In 2019 I started teaching myself to code while running my own businesses. I was not chasing a credential. I was trying to stop renting every critical piece of a company from someone else. I built a fleet of software that began as a full-stack framework for multi-product businesses: the boring, load-bearing parts that every product needs before the product is allowed to exist.
 
-Then generative AI stopped being a demo and started being a force that rewrites work. I could have bolted a chat box onto what I already had and called it a day. I did not. I rebuilt the fleet for that future. The result is RevealUI: a self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.
+Then generative AI stopped being a demo and started being a force that rewrites work. I could have bolted a chat box onto what I already had and called it a day. I did not. I rebuilt the fleet for that future. The result is RevealUI: a self-hosted runtime where your business and the AI agents that run it live under one roof. Your team and your agents work the same objects under the same access rules on your infrastructure.
 
-If an agent did it, there's a receipt.
+Agents act through your runtime, not a separate black box.
 
 ## The split I refuse to ignore
 
