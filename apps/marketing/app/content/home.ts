@@ -28,19 +28,15 @@ import type { Cta, FaqItem } from './types';
 
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable.',
-  // Owner ruling 2026-07-29: ship corpus L1 leverage-frame as default H1
-  // (06-copy-corpus.md §4.1 punch-list row 9). Sentence1 + support stay the
-  // locked ownership form. Sentence2 is the interim-safe form (truth-source
-  // §7 governance embargo / GAP-354): shared objects + access rules, not
-  // "governed and audited" / production receipt until GAP-355 re-arms with a
-  // production-path proof. Receipt foil is NOT in the subtitle; it is the
-  // ReceiptCard caption under this hero (also interim-safe).
+  // Owner ruling 2026-07-29: L1 H1. Subtitle is locked positioning form
+  // (copy-voice + ADR 2026-07-09). 2026-08-02: re-armed after GAP-355 close
+  // (stages 0–6 on test/main; prod GET /api/audit/public-key 200; S6-6 owner
+  // ruling option b). Receipt foil is NOT in the subtitle; it is RECEIPT_HERO_CAPTION.
   h1: 'Build it once. Every product after starts ahead.',
   subtitle: {
     sentence1:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof.',
-    sentence2:
-      'Your team and your agents work the same objects under the same access rules on your infrastructure.',
+    sentence2: 'Every agent is a governed and audited user that lives on your infrastructure.',
     support: 'It runs on any AI provider you choose.',
   },
   cta: {
