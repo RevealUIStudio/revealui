@@ -6,15 +6,14 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+// Re-implement extract import from scripts — marketing app may not resolve scripts path;
+// duplicate call via dynamic path from monorepo root.
+import { extractBlogMdProseUnits } from '../../../../../scripts/lib/blog-md-prose.js';
 import {
   BLOG_BODY_CLAIM_SLUGS,
   blogBodyClaimsP2,
 } from '../../content/claims-evidence/blog-body-claims-p2.js';
 import { BLOG_POST_METADATA } from '../blog-registry.js';
-
-// Re-implement extract import from scripts — marketing app may not resolve scripts path;
-// duplicate call via dynamic path from monorepo root.
-import { extractBlogMdProseUnits } from '../../../../../scripts/lib/blog-md-prose.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../../');

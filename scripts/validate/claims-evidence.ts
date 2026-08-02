@@ -278,7 +278,7 @@ async function run(): Promise<void> {
   }
   // Body claims for slugs not yet in P2 phase are not allowed (prevent silent full-corpus dump).
   for (const claim of CLAIMS) {
-    if (!claim.file.startsWith('blog/') || !claim.exportPath.startsWith('body.')) continue;
+    if (!(claim.file.startsWith('blog/') && claim.exportPath.startsWith('body.'))) continue;
     const slug = claim.file.slice('blog/'.length);
     if (!bodySlugSet.has(slug)) {
       violations.push(
