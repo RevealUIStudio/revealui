@@ -158,6 +158,13 @@ Router hooks for the same sink:
 
 Dogfood: `apps/rsc-poc` (`src/observability/*`, `/errors/boom`).
 
+## Request layer vs router (2.3.4)
+
+CSP, CSRF, domain-lock, and path-level session gates belong in a **Fetch/Hono
+middleware wrap** around `renderRequest` — not in `Router.match`. Full
+checklist: [REQUEST-LAYER.md](./REQUEST-LAYER.md). Dogfood:
+`apps/rsc-poc/src/request-layer/`.
+
 ## What does not migrate 1:1 from Next App Router
 
 | Next | RevealUI router |

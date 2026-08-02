@@ -13,12 +13,14 @@
     "lint": "biome check .",
     "preview": "vite preview",
     "smoke:http": "node scripts/smoke-http.mjs",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.11",
     "@revealui/core": "workspace:*",
     "@revealui/router": "workspace:*",
+    "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@vitejs/plugin-react": "catalog:",
     "@vitejs/plugin-rsc": "0.5.27",
@@ -33,6 +35,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }

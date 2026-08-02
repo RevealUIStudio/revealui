@@ -7,6 +7,11 @@
 - Phase 2.3.3: `ErrorBoundary onError` and `renderRequest({ onError })` for
   framework-agnostic observability (wire `@revealui/core/observability/capture`).
 
+### Docs
+
+- Phase 2.3.4: `docs/REQUEST-LAYER.md` (perimeter vs `Router.match`); MIGRATION-RSC
+  link. Dogfood: `apps/rsc-poc/src/request-layer/`.
+
 ## 0.4.0-rc.6
 
 ### Patch Changes
