@@ -1,5 +1,8 @@
 import {
   A2A_ROUTES,
+  ADMIN_LICENSE_PAGE,
+  AGENCY_PERPETUAL_MAX_SITES,
+  AGENCY_PERPETUAL_MINT_WEBHOOK,
   AUDIT_ANCHOR_API,
   AUDIT_ANCHOR_VERIFY_CLI,
   AUDIT_ANCHOR_VERIFY_TEST,
@@ -23,9 +26,6 @@ import {
   MCP_SERVERS,
   MEMORY,
   OPEN_WEIGHT,
-  ADMIN_LICENSE_PAGE,
-  AGENCY_PERPETUAL_MAX_SITES,
-  AGENCY_PERPETUAL_MINT_WEBHOOK,
   PERPETUAL,
   PRICING_FALLBACKS,
   PROVIDERS,
@@ -123,7 +123,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENCY_FOUNDING_KIT.points[0]',
-    text: 'Agency Perpetual license: Max features, never expires, up to 10 client deployments',
+    text: 'Agency Perpetual license: Max features, perpetual JWT with no subscription expiry, up to 10 client deployments',
     evidence: [AGENCY_PERPETUAL_MAX_SITES, AGENCY_PERPETUAL_MINT_WEBHOOK, PERPETUAL],
   },
   {

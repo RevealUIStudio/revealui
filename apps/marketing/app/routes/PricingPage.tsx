@@ -12,6 +12,7 @@ import { CostCalculator } from '../components/landing/CostCalculator';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import {
   PERPETUAL_TIERS,
+  PRICING_AGENCY_FOUNDING_KIT,
   PRICING_AGENCY_VALUE_BAND,
   PRICING_AGENT_A2A,
   PRICING_AGENT_CTA_LINKS,
@@ -26,7 +27,6 @@ import {
   PRICING_HERO_SUBTEXT,
   PRICING_HIGHLIGHTED_BADGE,
   PRICING_NEWSLETTER_LABEL,
-  PRICING_AGENCY_FOUNDING_KIT,
   PRICING_STARTER_KIT,
   PRICING_TRACK_A_SECTION,
   PRICING_TRACK_C_SECTION,

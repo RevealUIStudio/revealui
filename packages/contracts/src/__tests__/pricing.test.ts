@@ -9,11 +9,11 @@ import {
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PricingResponse,
+  perpetualMaxSitesForTier,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
   TIER_COLORS,
   TIER_LABELS,
-  perpetualMaxSitesForTier,
   TIER_LIMITS,
 } from '../pricing.js';
 
