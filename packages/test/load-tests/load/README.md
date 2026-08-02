@@ -79,6 +79,14 @@ pnpm test:perf:analyze
 - **Payment Processing**: 95% of requests < 3s
 - **Error Rate**: < 1-2% depending on endpoint
 
+## Baseline files
+
+`baseline.json`, `endpoints.json`, and `targets.json` are **hand-maintained**
+operator targets for the autocannon dry-run / analyze scripts. They are not
+live CI result dumps. Do not commit a `current-results.json` twin that only
+mirrors `baseline.json` (that kills regression signal — fleet-redundancy audit
+2026-08-02).
+
 ## Running All Tests
 
 ```bash
