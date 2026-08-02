@@ -9,8 +9,8 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { extractBlogMdProseUnits } from '../../../../../scripts/lib/blog-md-prose.js';
 import { describe, expect, it } from 'vitest';
+import { extractBlogMdProseUnits } from '../../../../../scripts/lib/blog-md-prose.js';
 import {
   BLOG_BODY_CLAIM_SLUGS,
   blogBodyClaims,

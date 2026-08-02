@@ -2,8 +2,9 @@
  * GAP-467: body prose units for every live static blog post.
  * Generated from extractBlogMdProseUnits — re-run when bodies change.
  */
-import type { ClaimEntry } from './types.js';
+
 import { BLOG_POST_METADATA } from '../../lib/blog-registry.js';
+import type { ClaimEntry } from './types.js';
 
 export const BLOG_BODY_CLAIM_SLUGS = BLOG_POST_METADATA.map((p) => p.slug);
 
