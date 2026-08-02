@@ -30,6 +30,7 @@ rm -rf "$OUT"
 mkdir -p "$OUT"
 
 # Flat copy: private repo root == kit root (npm-resolvable, no monorepo parent).
+# Monorepo-only operator files stay out of the buyer tree.
 rsync -a \
   --exclude node_modules \
   --exclude .turbo \
@@ -37,6 +38,8 @@ rsync -a \
   --exclude 'receipt-*.json' \
   --exclude .env \
   --exclude .env.local \
+  --exclude OWNER-LAUNCH.md \
+  --exclude scripts/assemble-private-seed.sh \
   "$SOURCE"/ "$OUT"/
 
 # Buyer-facing README at private root.
@@ -51,8 +54,8 @@ if [[ -f "$OUT/GETTING-STARTED.md" ]]; then
   } >"$OUT/README.md"
 fi
 
-# Strip monorepo-only owner notes from the seed if present (keep GETTING-STARTED).
-rm -f "$OUT/OWNER-LAUNCH.md"
+# Belt-and-suspenders if rsync exclude was skipped by an older call site.
+rm -f "$OUT/OWNER-LAUNCH.md" "$OUT/scripts/assemble-private-seed.sh"
 
 echo "seed ready: $OUT"
 echo "next: see examples/starter-kit/OWNER-LAUNCH.md §1 (owner shell)"
