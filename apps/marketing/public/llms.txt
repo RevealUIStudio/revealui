@@ -22,7 +22,9 @@
 
 ## The thesis
 
-RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Your team and your agents work the same objects under the same access rules on your infrastructure. It runs on any AI provider you choose.
+RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.
+
+If an agent did it, there's a receipt.
 
 Five primitives make up the runtime: People, Content, Offers, Payments, Agents.
 

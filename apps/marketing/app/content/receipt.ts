@@ -48,12 +48,11 @@ export const RECEIPT_HERO_INTEGRITY = {
   value: '4b6c…e91a',
 } as const;
 
-// Interim-safe caption (truth-source §7 / GAP-354): the hero motif is a
-// demonstration of the product shape, not a claim that prod ships sealed
-// agent receipts for every tier today. Re-arm the locked foil
-// "If an agent did it, there's a receipt." only after GAP-355 production-path
-// proof is registered in claims-evidence.
+// Soft foil (GAP-355 S6-6 owner ruling option b, 2026-07-29). Row signatures
+// ship when audit signing is configured; Merkle root *delivery* is Max+
+// (auditLog). Verification is never paid. See docs/security/AUDIT_RECEIPTS.md
+// and CLAIMS_RECEIPT_HOLD_NOTE.
 export const RECEIPT_HERO_CAPTION = {
-  text: 'Agents act through your runtime, not a separate black box.',
-  link: { label: 'See the claims ledger →', href: '/claims' },
+  text: "If an agent did it, there's a receipt.",
+  link: { label: 'See ours →', href: '/claims' },
 } as const;

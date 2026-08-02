@@ -30,18 +30,17 @@ const SEO: Record<Audience, AudienceSeo> = {
   },
   technical: {
     title: 'RevealUI | Build it once. Every product after starts ahead.',
-    // Title mirrors HOME_HERO.h1 (L1 default, 2026-07-29). Description mirrors
-    // HOME_HERO subtitle (sentence1 + interim-safe sentence2 + support).
+    // Title mirrors HOME_HERO.h1 (L1 default). Description mirrors locked subtitle.
     description:
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Your team and your agents work the same objects under the same access rules on your infrastructure. It runs on any AI provider you choose.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.',
     ogTitle: 'RevealUI | Build it once. Every product after starts ahead.',
     ogDescription:
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Your team and your agents work the same objects under the same access rules on your infrastructure.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     ogImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Build%20it%20once.%20Every%20product%20after%20starts%20ahead.',
     twitterTitle: 'RevealUI | Build it once. Every product after starts ahead.',
     twitterDescription:
-      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Your team and your agents work the same objects under the same access rules on your infrastructure.',
+      'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure.',
     twitterImage:
       'https://api.revealui.com/api/og?title=RevealUI&description=Build%20it%20once.%20Every%20product%20after%20starts%20ahead.',
   },

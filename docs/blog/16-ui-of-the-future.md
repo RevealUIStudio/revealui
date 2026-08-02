@@ -25,9 +25,9 @@ I kept hearing leaders at the top AI companies say some version of the same thin
 
 If agents are going to run real parts of a real business, "trust me" is not an answer. You would never hire an employee who refused to tell you what they did with your money and your customers. An agent should be held to the same standard, and it should be held to it structurally, not politely.
 
-That means your team and your agents work the same objects under the same access rules on your infrastructure. An agent gets an identity like a person. It gets permissions like a person. It is not a black-box side channel next to your real stack.
+That means every agent is a governed and audited user that lives on your infrastructure. It gets an identity like a person. It gets permissions like a person. And every action it takes can land in a signed record you can check offline.
 
-Agents act through your runtime, not a separate product.
+If an agent did it, there's a receipt.
 
 That standard carries more weight than any benchmark. A business you cannot inspect is a business you do not control, no matter how impressive the demo was.
 

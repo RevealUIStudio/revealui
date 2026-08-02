@@ -168,9 +168,21 @@ const CI_GATE: EvidenceRef = {
   ref: 'scripts/gates/ci-gate.ts',
   note: 'local 3-phase gate: Biome, typecheck, Vitest, build; CodeQL, Gitleaks, and Playwright e2e jobs in .github/workflows/ci.yml',
 };
-// AUDIT_SIGNING + AUDIT_SIGNING_TEST removed from the shared pool while home/receipt
-// use interim-safe evidence (GAP-354). Re-export when GAP-355 production-path
-// proof re-arms the locked foil and governed-and-audited sentence.
+const AUDIT_SIGNING: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/security/src/audit-signing.ts',
+  note: 'Ed25519AuditRowSigner signs each row over RFC 8785 canonical bytes (GAP-355 Stage 3)',
+};
+const AUDIT_SIGNING_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'apps/server/src/lib/__tests__/audit-signing-roundtrip.pglite.test.ts#a canonically-signed row verifies OFFLINE after the jsonb + timestamptz round trip',
+  note: 'production-path proof: signed row verifies offline from jsonb + timestamptz readback using only the public key',
+};
+const AUDIT_PUBLIC_KEY_ROUTE: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/audit.ts',
+  note: 'GET /api/audit/public-key publishes the offline-verify key (prod 200 verified 2026-08-02)',
+};
 // Legal / contact pages: the published content module is the public policy
 // artifact. Technical sentences below add code refs when they assert product
 // behavior; the content ref always remains for the policy restatement.
@@ -600,11 +612,14 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'home.ts',
     exportPath: 'HOME_HERO.subtitle.sentence2',
-    text: 'Your team and your agents work the same objects under the same access rules on your infrastructure.',
+    text: 'Every agent is a governed and audited user that lives on your infrastructure.',
     evidence: [
       AGENT_ROUTES,
       RBAC_ABAC,
       TIER_GATES,
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      AUDIT_PUBLIC_KEY_ROUTE,
       {
         kind: 'code',
         ref: 'packages/auth/src/server/auth.ts',
@@ -615,12 +630,12 @@ export const CLAIMS: readonly ClaimEntry[] = [
         ref: 'packages/core/src/collections/operations/__tests__/access-enforcement.test.ts#authenticated() allows when user is present',
         note: 'identity-gated access: a principal must authenticate before protected operations; agents use the same gate surface as human users',
       },
-      SELF_HOST,
       {
-        kind: 'url',
-        ref: 'https://revealui.com/claims',
-        note: 'interim-safe form under truth-source §7 / GAP-354; re-arm "governed and audited" only after GAP-355 production-path proof',
+        kind: 'code',
+        ref: 'scripts/validate/agent-audit-chokepoints.ts',
+        note: 'CI enforcer: agent execution chokepoints emit audit (GAP-355 Stage 5/6)',
       },
+      SELF_HOST,
     ],
   },
   {
@@ -3327,21 +3342,18 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'receipt.ts',
     exportPath: 'RECEIPT_HERO_CAPTION.text',
-    text: 'Agents act through your runtime, not a separate black box.',
+    text: "If an agent did it, there's a receipt.",
     evidence: [
-      AGENT_ROUTES,
-      TIER_GATES,
+      AUDIT_SIGNING,
+      AUDIT_SIGNING_TEST,
+      AUDIT_LOG_SCHEMA,
+      AUDIT_PUBLIC_KEY_ROUTE,
       REFUND_ROUTE,
       {
-        kind: 'code',
-        ref: 'packages/mcp/src/servers',
-        note: 'agents reach app data through first-party MCP tools on the same runtime, not a separate product silo',
+        ...AUDIT_RECEIPTS_DOC,
+        note: 'Stage 4 S4-6: soft foil; sealed root download is Max (auditLog); verification never paid',
       },
-      {
-        kind: 'url',
-        ref: 'https://revealui.com/claims',
-        note: 'interim-safe foil under truth-source §7 / GAP-354; re-arm "If an agent did it, there\'s a receipt." only after GAP-355 production-path proof',
-      },
+      AUDIT_LOG_FEATURE_MAX,
     ],
   },
 
