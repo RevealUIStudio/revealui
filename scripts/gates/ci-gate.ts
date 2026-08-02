@@ -360,6 +360,14 @@ async function gate(): Promise<void> {
         args: ['validate:api-docs'],
       },
       {
+        // ADR 2026-07-29 virtual serve: monorepo docs/ is SoT. Fail if leftover
+        // generated apps/docs/public/**/*.md reappear (not docs-pro). Script
+        // shipped in #2347; wired into phase-1 + CI for fleet-redundancy C12.
+        name: 'Docs public mirror (hard fail)',
+        command: 'pnpm',
+        args: ['validate:docs-public-mirror'],
+      },
+      {
         // The .claude config surface (rules/agents/skills) is materialized
         // from revcon profiles with a sha256 manifest; tracked copies must
         // match it exactly (no local edits, no hand-added strays). Mirrored
