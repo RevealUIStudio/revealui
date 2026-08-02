@@ -453,7 +453,7 @@ export function PricingPage() {
         </div>
       </section>
 
-      {/* GAP-434 Starter Kit — one-time content product (Polar when live) */}
+      {/* GAP-434 Starter Kit — one-time content product (Stripe Payment Link) */}
       <section id="starter-kit" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
