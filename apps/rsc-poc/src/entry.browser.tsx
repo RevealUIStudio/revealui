@@ -25,11 +25,17 @@ import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { createAppRouter } from './app-router.ts';
 import type { RscPayload } from './entry.rsc.tsx';
+import {
+  initRscPocBrowserObservability,
+  reportClientRenderError,
+} from './observability/browser.ts';
 import { ErrorFallback } from './pages/error-fallback.tsx';
 
 const router = createAppRouter();
 
 async function main(): Promise<void> {
+  initRscPocBrowserObservability();
+
   router.setRscPayloadLoader(async (url, signal) => {
     const res = await fetch(url, {
       headers: { accept: RSC_ACCEPT },
@@ -110,6 +116,7 @@ async function main(): Promise<void> {
         ) : null}
         <ErrorBoundary
           fallback={ErrorFallback}
+          onError={reportClientRenderError}
           resetKey={
             typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
           }

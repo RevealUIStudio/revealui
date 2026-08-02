@@ -24,6 +24,7 @@ export function registerServerErrorRoutes(router: Router): void {
     layout: AppLayout,
     meta: { title: 'Forced loader boom' },
     loader: () => {
+      // Intentional throw for 2.3.2 shell + 2.3.3 onError capture (console sink).
       throw new Error('dogfood loader explosion');
     },
   });

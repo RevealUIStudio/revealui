@@ -73,6 +73,21 @@ describe('ErrorBoundary (2.3.2)', () => {
     spy.mockRestore();
   });
 
+  it('invokes onError for observability (2.3.3)', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onError = vi.fn();
+    render(
+      <ErrorBoundary fallback={Fallback} onError={onError}>
+        <Boom />
+      </ErrorBoundary>,
+    );
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'render boom' }),
+      expect.objectContaining({ componentStack: expect.any(String) }),
+    );
+    spy.mockRestore();
+  });
+
   it('Routes uses per-route errorBoundary over router option', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     function RouteFallback({ error }: { error: Error }) {
@@ -157,5 +172,61 @@ describe('renderRequest loader failures (2.3.2)', () => {
     const json = (await res.json()) as { error: boolean; message: string };
     expect(json.error).toBe(true);
     expect(json.message).toMatch(/loader exploded|Something went wrong/);
+  });
+
+  it('invokes onError for loader failures (2.3.3)', async () => {
+    const onError = vi.fn();
+    const router = new Router({ rsc: {} });
+    router.register({
+      path: '/boom',
+      component: () => null,
+      loader: () => {
+        throw new Error('loader exploded');
+      },
+    });
+    const res = await renderRequest(new Request('http://x/boom'), {
+      router,
+      createRscStream: async () => flightStream('x'),
+      onError,
+    });
+    expect(res.status).toBe(500);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'loader exploded' }), {
+      phase: 'loader',
+      pathname: '/boom',
+    });
+  });
+
+  it('invokes onError for failed JS actions with actionId (2.3.3)', async () => {
+    const onError = vi.fn();
+    const router = new Router({ rsc: {} });
+    router.register({
+      path: '/',
+      component: () => null,
+    });
+    const res = await renderRequest(
+      new Request('http://x/', {
+        method: 'POST',
+        headers: {
+          'x-rsc-action': 'test-action-id',
+          accept: 'text/x-component',
+        },
+      }),
+      {
+        router,
+        createRscStream: async () => flightStream('x'),
+        loadServerAction: async () => {
+          return async () => {
+            throw new Error('action boom');
+          };
+        },
+        onError,
+      },
+    );
+    expect(res.status).toBe(200);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'action boom' }), {
+      phase: 'action',
+      pathname: '/',
+      actionId: 'test-action-id',
+    });
   });
 });

@@ -1,5 +1,12 @@
 # @revealui/router
 
+## 0.4.0-rc.9
+
+### Minor Changes
+
+- Phase 2.3.3: `ErrorBoundary onError` and `renderRequest({ onError })` for
+  framework-agnostic observability (wire `@revealui/core/observability/capture`).
+
 ## 0.4.0-rc.6
 
 ### Patch Changes

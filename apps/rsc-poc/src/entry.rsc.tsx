@@ -1,10 +1,11 @@
 /**
  * RSC entry — renderRequest owns JS actions (T7) and progressive forms (2.2.4).
  * Session login/logout are progressive form endpoints outside the flight path (2.3.1).
+ * Observability: `@revealui/core/observability` Node init (2.3.3).
  */
 
+import { logger } from '@revealui/core/observability/logger';
 import { renderRequest } from '@revealui/router/server';
-import { logger } from '@revealui/utils/logger';
 import {
   createTemporaryReferenceSet,
   decodeAction,
@@ -17,8 +18,15 @@ import type { ReactFormState } from 'react-dom/client';
 import { registerServerErrorRoutes } from './app-router.server.ts';
 import { createAppRouter } from './app-router.ts';
 import { sessionClearCookieHeader, sessionSetCookieHeader, signSession } from './auth/session.ts';
+import {
+  bindRequestIdFromRequest,
+  initRscPocNodeObservability,
+  reportRenderError,
+} from './observability/node.ts';
 import { AppLayout } from './pages/layout.tsx';
 import { NotFoundPage } from './pages/not-found.tsx';
+
+initRscPocNodeObservability();
 
 export interface RscPayload {
   root: React.ReactNode;
@@ -81,6 +89,8 @@ async function handleSessionApi(request: Request): Promise<Response | null> {
 }
 
 async function handler(request: Request): Promise<Response> {
+  bindRequestIdFromRequest(request);
+
   const sessionApi = await handleSessionApi(request);
   if (sessionApi) return sessionApi;
 
@@ -94,6 +104,7 @@ async function handler(request: Request): Promise<Response> {
   return renderRequest(request, {
     router,
     title: 'RSC POC — dual-mode router',
+    onError: reportRenderError,
     loadServerAction: async (id) => {
       const action = await loadServerAction(id);
       return action as (...args: unknown[]) => unknown | Promise<unknown>;
