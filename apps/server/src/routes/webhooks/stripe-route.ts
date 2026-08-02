@@ -1,0 +1,3166 @@
+/**
+ * Stripe Webhook Handler  -  NeonDB-native
+ *
+ * Replaces the Supabase-dependent webhook in packages/services.
+ * Writes license records to the NeonDB licenses table via Drizzle,
+ * handles subscription lifecycle events, and triggers license revocation.
+ *
+ * Idempotency is DB-backed via processed_webhook_events table to prevent
+ * duplicate processing across Vercel multi-region deployments.
+ */
+
+import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
+import { resetLicenseState, subscriptionLicenseExpiresInSeconds } from '@revealui/core/license';
+import {
+  canMintLicense,
+  mintConfigMissingMessage,
+  mintLicenseKey,
+} from '@revealui/core/license/mint-client';
+import { logger } from '@revealui/core/observability/logger';
+import { executeSaga, getClient } from '@revealui/db';
+import type { SagaStep } from '@revealui/db/saga';
+import {
+  agentCreditBalance,
+  agentCreditEvents,
+  licenses,
+  unreconciledWebhooks,
+  users,
+} from '@revealui/db/schema';
+import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
+import type Stripe from 'stripe';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { recordJtisForRevokedCustomerLicenses } from '../../lib/license-jti-revocation.js';
+import type { ProtectedStripe } from '../../lib/services-loader.js';
+import {
+  provisionGitHubAccess,
+  sendCancellationConfirmationEmail,
+  sendDisputeLostEmail,
+  sendDisputeReceivedEmail,
+  sendGracePeriodStartedEmail,
+  sendLicenseActivatedEmail,
+  sendLivemodeMismatchAlert,
+  sendPaymentActionRequiredEmail,
+  sendPaymentFailedEmail,
+  sendPaymentReceiptEmail,
+  sendPaymentRecoveredEmail,
+  sendPerpetualLicenseActivatedEmail,
+  sendPerpetualLicenseRevokedEmail,
+  sendRefundProcessedEmail,
+  sendSupportRenewalConfirmationEmail,
+  sendTierFallbackAlert,
+  sendTrialEndingEmail,
+  sendTrialExpiredEmail,
+  sendWebhookFailureAlert,
+} from '../../lib/webhook-emails.js';
+import { resetDbStatusCache, resetSupportExpiryCache } from '../../middleware/license.js';
+
+import {
+  auditLicenseEvent,
+  claimEvent,
+  findHostedStatusByCustomerId,
+  findUserEmailByCustomerId,
+  getStripeClient,
+  getSubscriptionPeriodDate,
+  getWebhookSecret,
+  markCompleted,
+  remintSubscriptionLicenseOnRenewal,
+  resolveCustomerId,
+  resolveOptionalTier,
+  resolveSubscriptionId,
+  resolveSubscriptionIdFromCharge,
+  resolveTier,
+  syncHostedSubscriptionState,
+  unmarkProcessed,
+} from './helpers.js';
+
+const app = new OpenAPIHono();
+
+// ─── Webhook Endpoint ────────────────────────────────────────────────────────
+
+// Canonical list lives in `@revealui/contracts` so seed-stripe.ts and this
+// handler cannot drift. To add/remove events, edit the source there.
+// Tracked by CR-8 audit finding revealui#406.
+const relevantEvents = new Set<string>(RELEVANT_STRIPE_WEBHOOK_EVENTS);
+
+const stripeWebhookRoute = createRoute({
+  method: 'post',
+  path: '/stripe',
+  tags: ['webhooks'],
+  summary: 'Stripe webhook handler',
+  description:
+    'Receives Stripe webhook events for subscription lifecycle, license management, disputes, and refunds. Requires raw body access for signature verification.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z
+            .object({
+              id: z.string(),
+              type: z.string(),
+              data: z.object({ object: z.unknown() }),
+              created: z.number(),
+              livemode: z.boolean(),
+            })
+            .passthrough(),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            received: z.literal(true),
+            duplicate: z.boolean().optional(),
+          }),
+        },
+      },
+      description: 'Webhook event received and processed',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Missing signature or invalid webhook',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Webhook processing failed',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Webhook service unavailable (Stripe env vars misconfigured)',
+    },
+  },
+});
+
+app.openapi(stripeWebhookRoute, async (c) => {
+  let webhookSecrets: { primary: string; secondary?: string };
+  let stripe: ProtectedStripe;
+  try {
+    webhookSecrets = getWebhookSecret();
+    stripe = await getStripeClient();
+  } catch (initErr) {
+    const msg = initErr instanceof Error ? initErr.message : 'Unknown init error';
+    logger.error(
+      'Webhook handler init failed  -  Stripe env vars may be misconfigured',
+      undefined,
+      {
+        detail: msg,
+        hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
+        hasWebhookSecret: !!(
+          process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
+        ),
+      },
+    );
+    return c.json({ error: 'Webhook service unavailable' }, 503);
+  }
+
+  // CONTRACT: Stripe signature verification REQUIRES the raw request bytes.
+  // Always read the body via c.req.text() here and verify with
+  // constructEventAsync below. Do NOT switch the event source to
+  // c.req.valid('json') / c.req.json() — a re-serialized body changes the bytes
+  // and breaks HMAC verification. The OpenAPI route declares a JSON body schema
+  // for documentation only; Hono buffers the raw body so this text() read and
+  // the schema coexist.
+  const body = await c.req.text();
+  const sig = c.req.header('Stripe-Signature');
+
+  if (!sig) {
+    return c.json({ error: 'Missing Stripe-Signature header' }, 400);
+  }
+
+  let event: Stripe.Event;
+  try {
+    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecrets.primary);
+  } catch (primaryErr) {
+    // GAP-144: dual-secret rotation transition. If a secondary is configured,
+    // try it before rejecting. A successful secondary verification logs a
+    // warning so operators can confirm the rotation overlap is active.
+    if (!webhookSecrets.secondary) {
+      const msg = primaryErr instanceof Error ? primaryErr.message : 'Unknown error';
+      logger.error('Webhook signature verification failed', undefined, { detail: msg });
+      return c.json({ error: 'Invalid webhook signature' }, 400);
+    }
+    try {
+      event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecrets.secondary);
+      logger.warn(
+        'Webhook secret rotation in flight: secondary signature verified  -  remove STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS once rotation overlap window ends',
+        {
+          eventType: 'rotation-transition',
+        },
+      );
+    } catch (_secondaryErr) {
+      const msg = primaryErr instanceof Error ? primaryErr.message : 'Unknown error';
+      logger.error(
+        'Webhook signature verification failed (both primary and secondary secrets rejected)',
+        undefined,
+        { detail: msg },
+      );
+      return c.json({ error: 'Invalid webhook signature' }, 400);
+    }
+  }
+
+  if (!relevantEvents.has(event.type)) {
+    return c.json({ received: true as const }, 200);
+  }
+
+  // D.1 / L.4: Cross-check event.livemode against the server's deployment mode.
+  // A signed event with the wrong livemode flag must never mutate customer state —
+  // it indicates either a misconfigured endpoint or a cross-mode replay attempt.
+  const expectLive = process.env.STRIPE_LIVE_MODE === 'true';
+  if (event.livemode !== expectLive) {
+    const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+    logger.error('CRITICAL: webhook livemode mismatch — refusing to process', undefined, {
+      eventId: event.id,
+      eventType: event.type,
+      eventLivemode: event.livemode,
+      serverExpectsLive: expectLive,
+    });
+    // Domain email stays specialized; centralized path adds Sentry + structured cron alert.
+    void sendCronFailureAlert({
+      jobName: 'stripe-webhook-livemode-guard',
+      error: new Error(
+        `Webhook livemode mismatch: event live=${String(event.livemode)}, server expects live=${String(expectLive)}`,
+      ),
+      severity: 'fatal',
+      metadata: {
+        eventId: event.id,
+        eventType: event.type,
+        eventLivemode: event.livemode,
+        serverExpectsLive: expectLive,
+      },
+    });
+    sendLivemodeMismatchAlert(alertEmail, {
+      eventId: event.id,
+      eventType: event.type,
+      eventLivemode: event.livemode,
+      serverExpectsLive: expectLive,
+    }).catch((alertErr: unknown) => {
+      logger.error('Failed to send livemode mismatch alert email', undefined, {
+        detail: alertErr instanceof Error ? alertErr.message : String(alertErr),
+      });
+    });
+    return c.json(
+      {
+        error: `Webhook livemode mismatch: server expects live=${String(expectLive)}, event has live=${String(event.livemode)}`,
+      },
+      400,
+    );
+  }
+
+  // NOTE: We intentionally do NOT enforce a timestamp freshness window here.
+  // Replay attacks are prevented by DB-backed idempotency (processedWebhookEvents
+  // table, INSERT ON CONFLICT) below. A timestamp window would incorrectly reject
+  // Stripe's legitimate 72-hour retry delivery attempts, which carry the original
+  // event timestamp. Stripe's own signature verification already enforces a 300s
+  // tolerance during constructEventAsync above.
+
+  const db = getClient();
+
+  // DB-backed idempotency: claim the event (claim/complete state machine).
+  if ((await claimEvent(db, event.id, event.type)) === 'duplicate') {
+    return c.json({ received: true as const, duplicate: true }, 200);
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+
+        // ── One-time payments (perpetual licenses + credit bundles) ──────
+        if (session.mode === 'payment') {
+          // ── Credit bundle purchase ──────────────────────────────────────
+          if (session.metadata?.credits_bundle) {
+            const bundle = session.metadata.credits_bundle;
+            const tasks = Number.parseInt(session.metadata.credits_tasks ?? '0', 10);
+            const creditUserId = session.metadata.revealui_user_id ?? null;
+            const creditCustomerId =
+              typeof session.customer === 'string' ? session.customer : session.customer?.id;
+
+            let resolvedCreditUserId = creditUserId;
+            if (!resolvedCreditUserId && creditCustomerId) {
+              const [u] = await db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.stripeCustomerId, creditCustomerId))
+                .limit(1);
+              resolvedCreditUserId = u?.id ?? null;
+            }
+
+            if (!resolvedCreditUserId || tasks <= 0) {
+              logger.error('Cannot process credit purchase  -  missing user or tasks', undefined, {
+                bundle,
+                tasks,
+                sessionId: session.id,
+              });
+              break;
+            }
+
+            // Idempotent credit application: record this event in the per-event
+            // ledger first; apply the balance increment ONLY when this event
+            // created the ledger row, so a replay/reclaim of the same event
+            // cannot double-credit (the bare `balance + tasks` increment is not
+            // itself idempotent).
+            const creditLedger = await db
+              .insert(agentCreditEvents)
+              .values({ eventId: event.id, userId: resolvedCreditUserId, tasks })
+              .onConflictDoNothing()
+              .returning();
+
+            if (creditLedger.length === 0) {
+              logger.info('Credit bundle event already applied  -  idempotent replay skipped', {
+                bundle,
+                tasks,
+                userId: resolvedCreditUserId,
+                eventId: event.id,
+              });
+              break;
+            }
+
+            await db
+              .insert(agentCreditBalance)
+              .values({
+                userId: resolvedCreditUserId,
+                balance: tasks,
+                totalPurchased: tasks,
+              })
+              .onConflictDoUpdate({
+                target: agentCreditBalance.userId,
+                set: {
+                  balance: sql`${agentCreditBalance.balance} + ${tasks}`,
+                  totalPurchased: sql`${agentCreditBalance.totalPurchased} + ${tasks}`,
+                  updatedAt: new Date(),
+                },
+              });
+
+            logger.info('Credit bundle purchased and credited', {
+              bundle,
+              tasks,
+              userId: resolvedCreditUserId,
+            });
+            auditLicenseEvent(db, 'credits.purchased', 'info', {
+              bundle,
+              tasks,
+              userId: resolvedCreditUserId,
+            });
+
+            break;
+          }
+
+          // ── Support renewal for perpetual license ────────────────────────
+          if (session.metadata?.support_renewal === 'true') {
+            const licenseId = session.metadata.license_id;
+            const renewalUserId = session.metadata.revealui_user_id;
+
+            if (!(licenseId && renewalUserId)) {
+              logger.error('Support renewal checkout missing license_id or user_id', undefined, {
+                sessionId: session.id,
+              });
+              break;
+            }
+
+            // Extend support by 1 year from the later of: now, or the
+            // existing expiry date. This ensures early renewals don't lose
+            // remaining months of paid support.
+            const [existingLicense] = await db
+              .select({ supportExpiresAt: licenses.supportExpiresAt })
+              .from(licenses)
+              .where(eq(licenses.id, licenseId))
+              .limit(1);
+            const baseDate = Math.max(
+              Date.now(),
+              existingLicense?.supportExpiresAt?.getTime() ?? 0,
+            );
+            const newSupportExpiresAt = new Date(baseDate + 365 * 24 * 60 * 60 * 1000);
+
+            await db
+              .update(licenses)
+              .set({
+                supportExpiresAt: newSupportExpiresAt,
+                status: 'active',
+                updatedAt: new Date(),
+              })
+              .where(
+                and(
+                  eq(licenses.id, licenseId),
+                  eq(licenses.userId, renewalUserId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                ),
+              );
+
+            resetLicenseState();
+            resetDbStatusCache();
+            resetSupportExpiryCache();
+
+            const renewalTier = session.metadata.tier ?? 'pro';
+            logger.info('Support contract renewed', { licenseId, tier: renewalTier });
+            auditLicenseEvent(db, 'license.support.renewed', 'info', {
+              licenseId,
+              tier: renewalTier,
+              userId: renewalUserId,
+              newSupportExpiresAt: newSupportExpiresAt.toISOString(),
+            });
+
+            // Send renewal confirmation email
+            const renewalEmail =
+              session.customer_email ??
+              (await findUserEmailByCustomerId(db, resolveCustomerId(session.customer) ?? ''));
+            if (renewalEmail) {
+              sendSupportRenewalConfirmationEmail(
+                renewalEmail,
+                renewalTier,
+                newSupportExpiresAt,
+              ).catch((err) => {
+                logger.error('Failed to send support renewal confirmation email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+            }
+
+            break;
+          }
+
+          // ── Perpetual license ───────────────────────────────────────────
+          // Only process as perpetual license if RevealUI tier metadata is present.
+          // Other payment-mode checkouts (non-RevealUI products) are silently skipped.
+          if (!session.metadata?.tier) break;
+
+          const customerId = resolveCustomerId(session.customer);
+          if (!customerId) {
+            logger.error(
+              'CRITICAL: Perpetual checkout completed but customerId is null  -  payment captured without license',
+              undefined,
+              { sessionId: session.id },
+            );
+            throw new Error(
+              `Perpetual checkout completed but customerId is null (sessionId=${session.id})`,
+            );
+          }
+
+          const tier = resolveTier(session.metadata);
+          const githubUsername = session.metadata?.github_username ?? null;
+
+          let resolvedUserId = session.metadata?.revealui_user_id ?? null;
+          if (!resolvedUserId) {
+            const [user] = await db
+              .select({ id: users.id })
+              .from(users)
+              .where(eq(users.stripeCustomerId, customerId))
+              .limit(1);
+            resolvedUserId = user?.id ?? null;
+          }
+
+          if (!resolvedUserId) {
+            logger.error('CRITICAL: Cannot resolve user for perpetual checkout', undefined, {
+              customerId,
+            });
+            throw new Error(
+              `Cannot resolve user for perpetual checkout (customerId=${customerId})`,
+            );
+          }
+
+          if (!canMintLicense()) {
+            logger.error(
+              `CRITICAL: ${mintConfigMissingMessage()}  -  perpetual license not generated`,
+              undefined,
+              { customerId, tier },
+            );
+            throw new Error(mintConfigMissingMessage());
+          }
+
+          // Support contract expires 1 year from purchase
+          const supportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+          const licenseId = crypto.randomUUID();
+
+          // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
+          const perpetualSteps: SagaStep[] = [
+            {
+              name: 'verify-user-exists',
+              execute: async (ctx) => {
+                const [userRow] = await ctx.db
+                  .select({ id: users.id })
+                  .from(users)
+                  .where(eq(users.stripeCustomerId, customerId))
+                  .limit(1);
+
+                if (!userRow) {
+                  logger.error(
+                    'CRITICAL: Customer has no matching user in DB  -  perpetual license not created',
+                    undefined,
+                    { customerId },
+                  );
+                  throw new Error(
+                    `Cannot find user for perpetual license (customerId=${customerId})`,
+                  );
+                }
+                return { userId: userRow.id };
+              },
+              compensate: async () => {
+                // Read-only step  -  nothing to compensate
+              },
+            },
+            {
+              name: 'insert-perpetual-license',
+              execute: async (ctx) => {
+                // WH-2 fix: idempotency guard — check for existing perpetual license
+                // before generating a key. Prevents duplicate keys on saga retry after
+                // crash between step execution and idempotency key recording.
+                const [existing] = await ctx.db
+                  .select({ id: licenses.id })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.perpetual, true),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                if (existing) {
+                  return { licenseId: existing.id, skipped: true };
+                }
+
+                // null expiresInSeconds = no exp claim — perpetual license never expires
+                // GAP-260 P4-3: mint via signer when flagged, else local private key.
+                const licenseKey = await mintLicenseKey({
+                  tier,
+                  customerId,
+                  perpetual: true,
+                  expiresInSeconds: null,
+                });
+
+                await ctx.db.insert(licenses).values({
+                  id: licenseId,
+                  userId: resolvedUserId,
+                  licenseKey,
+                  tier,
+                  subscriptionId: null,
+                  customerId,
+                  status: 'active',
+                  expiresAt: null,
+                  perpetual: true,
+                  supportExpiresAt,
+                  githubUsername,
+                  mode: event.livemode ? 'live' : 'test',
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                });
+                return { licenseId, skipped: false };
+              },
+              compensate: async (ctx, output) => {
+                const { skipped } = output as { skipped?: boolean };
+                if (skipped) return;
+                await ctx.db.delete(licenses).where(eq(licenses.id, licenseId));
+              },
+            },
+          ];
+
+          const perpetualResult = await executeSaga(
+            db,
+            'perpetual-license',
+            event.id,
+            perpetualSteps,
+          );
+
+          if (perpetualResult.status === 'skipped') {
+            logger.info('Perpetual license saga skipped (idempotent)', {
+              customerId,
+              sagaId: perpetualResult.sagaId,
+            });
+            break;
+          }
+          if (perpetualResult.status !== 'completed') {
+            throw new Error(`Perpetual license saga failed: ${perpetualResult.error ?? 'unknown'}`);
+          }
+
+          resetLicenseState();
+          resetDbStatusCache();
+
+          // A5: write license_id back to the one-time PaymentIntent so a future
+          // charge.refunded targets exactly THIS perpetual license instead of
+          // falling back to mass-revoke. Best-effort; the refund path flags an
+          // unresolved id for manual review rather than revoking everything.
+          const perpetualPaymentIntentId =
+            typeof session.payment_intent === 'string'
+              ? session.payment_intent
+              : (session.payment_intent?.id ?? null);
+          if (perpetualPaymentIntentId) {
+            await stripe.paymentIntents
+              .update(perpetualPaymentIntentId, {
+                metadata: { perpetual: 'true', license_id: licenseId, tier },
+              })
+              .catch((err) => {
+                logger.warn('Failed to write license_id to perpetual PaymentIntent metadata', {
+                  paymentIntentId: perpetualPaymentIntentId,
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+          }
+
+          logger.info('Perpetual license generated and stored', { tier, customerId, licenseId });
+          auditLicenseEvent(db, 'license.perpetual.created', 'info', {
+            licenseId,
+            tier,
+            customerId,
+            userId: resolvedUserId,
+            githubUsername,
+          });
+
+          // Best-effort: provision GitHub team access
+          if (githubUsername) {
+            provisionGitHubAccess(githubUsername, db).catch((err) => {
+              logger.warn('Failed to provision GitHub team access', {
+                githubUsername,
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+
+          // Send perpetual license activation email
+          const perpetualEmail =
+            session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+          if (perpetualEmail) {
+            // Retrieve the key from DB — it was generated inside the saga step
+            const [perpetualLicense] = await db
+              .select({ licenseKey: licenses.licenseKey })
+              .from(licenses)
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                ),
+              )
+              .limit(1);
+            if (perpetualLicense) {
+              sendPerpetualLicenseActivatedEmail(
+                perpetualEmail,
+                tier,
+                supportExpiresAt,
+                perpetualLicense.licenseKey,
+              ).catch((err) => {
+                logger.error('Failed to send perpetual license activation email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+            }
+          }
+
+          break;
+        }
+
+        // ── Subscription ──────────────────────────────────────────────────
+        if (session.mode !== 'subscription' || !session.subscription) break;
+
+        const customerId = resolveCustomerId(session.customer);
+        const subscriptionId = resolveSubscriptionId(session.subscription);
+        if (!(customerId && subscriptionId)) {
+          logger.error(
+            'CRITICAL: Subscription checkout completed but customerId/subscriptionId is null  -  payment captured without license',
+            undefined,
+            { sessionId: session.id },
+          );
+          throw new Error(
+            `Subscription checkout completed but customerId/subscriptionId is null (sessionId=${session.id})`,
+          );
+        }
+
+        // Retrieve the subscription up front: it is both the trialing-state
+        // source (below) and the authoritative fallback for the paid tier.
+        // All new checkouts start as trialing (7-day trial configured in billing.ts).
+        let checkoutSubscription: Stripe.Subscription;
+        try {
+          checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+        } catch (err) {
+          // Throw so Stripe retries the webhook  -  a payment was captured but we
+          // cannot determine trialing vs active without the subscription object.
+          logger.error(
+            'Failed to retrieve subscription at checkout  -  returning 500 for retry',
+            undefined,
+            {
+              subscriptionId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            },
+          );
+          throw new Error(`Failed to retrieve subscription ${subscriptionId} at checkout`);
+        }
+
+        // Resolve the paid tier. Prefer the top-level session metadata set at
+        // checkout creation; fall back to the subscription's own metadata
+        // (subscription_data.metadata.tier). Stripe does NOT mirror one bag onto
+        // the other, so consulting both keeps license issuance working even if a
+        // session is ever created without top-level metadata. resolveTier throws
+        // (-> 500 -> Stripe retry) only when BOTH bags lack a valid tier.
+        const tier = resolveTier(
+          session.metadata?.tier ? session.metadata : checkoutSubscription.metadata,
+        );
+        const userId = session.metadata?.revealui_user_id ?? null;
+
+        // Resolve userId from Stripe customer if not in metadata
+        let resolvedUserId = userId;
+        if (!resolvedUserId) {
+          const [user] = await db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.stripeCustomerId, customerId))
+            .limit(1);
+          resolvedUserId = user?.id ?? null;
+        }
+
+        if (!resolvedUserId) {
+          logger.error('CRITICAL: Cannot resolve user for checkout', undefined, {
+            customerId,
+            subscriptionId,
+          });
+          // Return 500 so Stripe retries  -  a payment was captured but no license was issued.
+          throw new Error(
+            `Cannot resolve user for checkout session (customerId=${customerId}, subscriptionId=${subscriptionId})`,
+          );
+        }
+
+        // Generate license key (GAP-260 P4-3: mint-client; local or signer)
+        if (!canMintLicense()) {
+          logger.error(
+            `CRITICAL: ${mintConfigMissingMessage()}  -  license not generated`,
+            undefined,
+            {
+              customerId,
+              subscriptionId,
+              tier,
+            },
+          );
+          // Return 500 so Stripe retries  -  a payment was captured but no license was issued.
+          throw new Error(mintConfigMissingMessage());
+        }
+
+        const isTrialing = checkoutSubscription.status === 'trialing';
+        // `licenses.status` is the license-lifecycle vocabulary
+        // (active/expired/revoked/support_expired) enforced by
+        // `licenses_status_check` — NOT the Stripe subscription status. A
+        // trialing subscription is an ACTIVE license (its trial expiry is
+        // captured by `licenseExpiresAt = trial_end` below); the trialing state
+        // itself is tracked in the hosted-subscription/entitlement layer via
+        // syncHostedSubscriptionState. Writing 'trialing' here violated the
+        // check constraint and failed the whole checkout saga on every trial.
+        const licenseStatus = 'active';
+        const licenseExpiresAt =
+          isTrialing && checkoutSubscription.trial_end
+            ? new Date(checkoutSubscription.trial_end * 1000)
+            : null;
+
+        // Store license in NeonDB  -  saga pattern for NeonDB-safe multi-step atomicity
+        const licenseId = crypto.randomUUID();
+        const subscriptionCheckoutSteps: SagaStep[] = [
+          {
+            name: 'verify-user-exists',
+            execute: async (ctx) => {
+              const [userRow] = await ctx.db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.stripeCustomerId, customerId))
+                .limit(1);
+
+              if (!userRow) {
+                logger.error(
+                  'CRITICAL: Customer has no matching user in DB  -  subscription license not created',
+                  undefined,
+                  { customerId, subscriptionId },
+                );
+                throw new Error(
+                  `Cannot find user for subscription license (customerId=${customerId}, subscriptionId=${subscriptionId})`,
+                );
+              }
+              return { userId: userRow.id };
+            },
+            compensate: async () => {
+              // Read-only step  -  nothing to compensate
+            },
+          },
+          {
+            name: 'insert-subscription-license',
+            execute: async (ctx) => {
+              // Idempotency guard. CRITICAL: match ANY existing row for this
+              // (customer, subscription) — including soft-deleted ones — because
+              // the `licenses_customer_subscription_unique` index spans
+              // deleted_at. Stripe redelivers webhooks (and this handler clears
+              // its idempotency marker on failure to force retries), so a plain
+              // INSERT collides with a pre-existing/soft-deleted row and fails
+              // the whole saga ("Subscription checkout saga failed"). When a row
+              // exists we UPDATE/reactivate it; only INSERT when there is none.
+              const [existing] = await ctx.db
+                .select({ id: licenses.id })
+                .from(licenses)
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscriptionId),
+                  ),
+                )
+                .limit(1);
+
+              // GAP-287 PR-2: bind exp to the billing period (period_end + slack)
+              // instead of a flat 365d. A trialing checkout's current period ends
+              // at trial_end, so the token covers the trial and is re-minted on
+              // the first renewal invoice. Falls back to the 365d default only
+              // when the subscription has no billing period.
+              // GAP-260 P4-3: mintLicenseKey (local private key or license-signer).
+              const licenseKey = await mintLicenseKey({
+                tier,
+                customerId,
+                expiresInSeconds: subscriptionLicenseExpiresInSeconds(
+                  getSubscriptionPeriodDate(checkoutSubscription, 'current_period_end'),
+                ),
+              });
+
+              if (existing) {
+                await ctx.db
+                  .update(licenses)
+                  .set({
+                    userId: resolvedUserId,
+                    licenseKey,
+                    tier,
+                    status: licenseStatus,
+                    expiresAt: licenseExpiresAt,
+                    deletedAt: null,
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(licenses.id, existing.id));
+                return { licenseId: existing.id, skipped: false };
+              }
+
+              await ctx.db.insert(licenses).values({
+                id: licenseId,
+                userId: resolvedUserId,
+                licenseKey,
+                tier,
+                subscriptionId,
+                customerId,
+                status: licenseStatus,
+                expiresAt: licenseExpiresAt,
+                mode: event.livemode ? 'live' : 'test',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              });
+              return { licenseId, skipped: false };
+            },
+            compensate: async (ctx, output) => {
+              const { skipped } = output as { skipped?: boolean };
+              if (skipped) return;
+              await ctx.db.delete(licenses).where(eq(licenses.id, licenseId));
+            },
+          },
+          {
+            name: 'sync-subscription-state',
+            execute: async (ctx) => {
+              await syncHostedSubscriptionState(ctx.db, {
+                customerId,
+                subscriptionId,
+                userId: resolvedUserId,
+                tier,
+                status: licenseStatus,
+                currentPeriodStart: checkoutSubscription
+                  ? getSubscriptionPeriodDate(checkoutSubscription, 'current_period_start')
+                  : null,
+                currentPeriodEnd: checkoutSubscription
+                  ? (getSubscriptionPeriodDate(checkoutSubscription, 'current_period_end') ??
+                    licenseExpiresAt)
+                  : licenseExpiresAt,
+                cancelAtPeriodEnd: checkoutSubscription?.cancel_at_period_end ?? false,
+                graceUntil: licenseExpiresAt,
+                mode: event.livemode ? 'live' : 'test',
+                eventTimestamp: new Date(event.created * 1000),
+              });
+              return {};
+            },
+            compensate: async () => {
+              // syncHostedSubscriptionState is convergent  -  Stripe retries will re-sync
+            },
+          },
+        ];
+
+        const checkoutResult = await executeSaga(
+          db,
+          'subscription-checkout',
+          event.id,
+          subscriptionCheckoutSteps,
+        );
+
+        if (checkoutResult.status === 'skipped') {
+          logger.info('Subscription checkout saga skipped (idempotent)', {
+            customerId,
+            subscriptionId,
+            sagaId: checkoutResult.sagaId,
+          });
+          break;
+        }
+        if (checkoutResult.status !== 'completed') {
+          throw new Error(
+            `Subscription checkout saga failed: ${checkoutResult.error ?? 'unknown'}`,
+          );
+        }
+
+        // Invalidate in-process license cache so subsequent requests see the new tier
+        resetLicenseState();
+        resetDbStatusCache();
+
+        // Best-effort: store the license ROW ID in Stripe subscription metadata
+        // for cross-system traceability. Phase 1 audit G-P0-1 (2026-05-09):
+        // we previously wrote the full JWT here ("license_key") for "easy
+        // retrieval", but JWTs are bearer credentials with no revocation —
+        // landing them in Stripe's audit-trail surface (dashboard exports,
+        // GDPR exports, future webhook endpoints) was a credential leak.
+        // The ID alone is opaque; consumers look up the JWT (or revocation
+        // status) via the local `licenses` table.
+        try {
+          await stripe.subscriptions.update(subscriptionId, {
+            metadata: { license_id: licenseId, license_tier: tier },
+          });
+        } catch (stripeErr) {
+          logger.warn('Failed to write license id to Stripe subscription metadata', {
+            subscriptionId,
+            error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
+          });
+        }
+
+        // Best-effort: tag early adopter in Stripe customer metadata so their
+        // lifetime discount is visible in the Stripe Dashboard and queryable later.
+        const earlyAdopterEnd = process.env.REVEALUI_EARLY_ADOPTER_END;
+        if (earlyAdopterEnd && new Date() < new Date(earlyAdopterEnd)) {
+          try {
+            await stripe.customers.update(customerId, {
+              metadata: { earlyAdopter: 'true' },
+            });
+          } catch (earlyErr) {
+            logger.warn('Failed to tag early adopter on Stripe customer', {
+              customerId,
+              error: earlyErr instanceof Error ? earlyErr.message : 'unknown',
+            });
+          }
+        }
+
+        logger.info('License generated and stored', { tier, customerId, licenseId });
+        auditLicenseEvent(db, 'license.created', 'info', {
+          licenseId,
+          tier,
+          customerId,
+          subscriptionId,
+          userId: resolvedUserId,
+        });
+
+        // Send license activation email
+        const userEmail =
+          session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+        if (userEmail) {
+          sendLicenseActivatedEmail(userEmail, tier).catch((err) => {
+            logger.error('Failed to send license activation email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = resolveCustomerId(subscription.customer);
+        if (!customerId) break;
+
+        // Revoke license tied to this specific subscription  -  not all licenses for the customer.
+        // Perpetual licenses (subscriptionId=null) and other subscriptions are left intact.
+        // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
+        const revokeSteps: SagaStep[] = [
+          {
+            name: 'revoke-license',
+            execute: async (ctx) => {
+              // Capture previous status for compensation
+              const [prev] = await ctx.db
+                .select({ status: licenses.status })
+                .from(licenses)
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscription.id),
+                    isNull(licenses.deletedAt),
+                  ),
+                )
+                .limit(1);
+
+              // WH-3: monotonic-timestamp guard against out-of-order delivery —
+              // a stale event whose created time predates the row's last update
+              // must not overwrite a newer license state (mirrors the guard
+              // syncHostedSubscriptionState applies to account_entitlements).
+              await ctx.db
+                .update(licenses)
+                .set({ status: 'revoked', updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscription.id),
+                    isNull(licenses.deletedAt),
+                    lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
+                  ),
+                );
+
+              return { previousStatus: prev?.status ?? 'active' };
+            },
+            compensate: async (ctx, output) => {
+              const { previousStatus } = output as { previousStatus: string };
+              await ctx.db
+                .update(licenses)
+                .set({ status: previousStatus, updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscription.id),
+                    isNull(licenses.deletedAt),
+                  ),
+                );
+            },
+          },
+          {
+            name: 'sync-subscription-state',
+            execute: async (ctx) => {
+              await syncHostedSubscriptionState(ctx.db, {
+                customerId,
+                subscriptionId: subscription.id,
+                tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                status: 'revoked',
+                currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+                currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                mode: event.livemode ? 'live' : 'test',
+                eventTimestamp: new Date(event.created * 1000),
+              });
+              return {};
+            },
+            compensate: async () => {
+              // syncHostedSubscriptionState is convergent  -  Stripe retries will re-sync
+            },
+          },
+        ];
+
+        await executeSaga(db, 'subscription-deleted', event.id, revokeSteps);
+
+        resetLicenseState();
+        resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(
+          db,
+          customerId,
+          'subscription.deleted',
+          subscription.id,
+        ).catch((err) => {
+          logger.warn('jti denylist write failed after subscription.deleted', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+        });
+
+        logger.info('License revoked on subscription deletion', {
+          customerId,
+          subscriptionId: subscription.id,
+        });
+        auditLicenseEvent(db, 'license.revoked', 'warn', {
+          customerId,
+          subscriptionId: subscription.id,
+        });
+
+        // Send cancellation confirmation email
+        const cancelTier = resolveOptionalTier(subscription.metadata as Record<string, string>);
+        const cancelEmail = await findUserEmailByCustomerId(db, customerId);
+        if (cancelEmail) {
+          sendCancellationConfirmationEmail(cancelEmail, cancelTier ?? 'pro').catch((err) => {
+            logger.error('Failed to send cancellation confirmation email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+
+      case 'customer.deleted': {
+        // Customer record deleted directly in Stripe (e.g., by an admin or via API).
+        // Revoke all associated licenses immediately to prevent continued access.
+        const customer = event.data.object as Stripe.Customer;
+        const customerId = customer.id;
+
+        // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
+        const customerDeleteSteps: SagaStep[] = [
+          {
+            // Revoke only NON-PERPETUAL (subscription) licenses on
+            // Stripe-customer deletion. Perpetual licenses are one-time
+            // purchases the customer rightfully owns and must NOT be
+            // clobbered when their Stripe customer record is deleted (which
+            // can happen via admin action, GDPR flow, or merge). Mirrors
+            // the perpetual-aware filter the dunning + charge.refunded
+            // paths already apply. See GAP-140.
+            name: 'revoke-non-perpetual-licenses',
+            execute: async (ctx) => {
+              await ctx.db
+                .update(licenses)
+                .set({ status: 'revoked', updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.perpetual, false),
+                    isNull(licenses.deletedAt),
+                  ),
+                );
+              return {};
+            },
+            compensate: async () => {
+              // Customer is deleted in Stripe  -  no meaningful rollback
+            },
+          },
+          {
+            name: 'sync-subscription-state',
+            execute: async (ctx) => {
+              await syncHostedSubscriptionState(ctx.db, {
+                customerId,
+                subscriptionId: null,
+                status: 'revoked',
+                mode: event.livemode ? 'live' : 'test',
+                eventTimestamp: new Date(event.created * 1000),
+              });
+              return {};
+            },
+            compensate: async () => {
+              // Convergent  -  Stripe retries will re-sync
+            },
+          },
+        ];
+
+        await executeSaga(db, 'customer-deleted', event.id, customerDeleteSteps);
+
+        resetLicenseState();
+        resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(db, customerId, 'customer.deleted').catch(
+          (err) => {
+            logger.warn('jti denylist write failed after customer.deleted', {
+              error: err instanceof Error ? err.message : 'unknown',
+            });
+          },
+        );
+
+        logger.warn('License revoked: Stripe customer deleted', { customerId });
+        auditLicenseEvent(db, 'license.revoked.customer_deleted', 'warn', { customerId });
+        break;
+      }
+
+      case 'customer.updated': {
+        const updatedCustomer = event.data.object as Stripe.Customer;
+        const updatedCustomerId = updatedCustomer.id;
+        const newEmail = updatedCustomer.email;
+
+        if (!newEmail) {
+          logger.info('customer.updated: no email on customer object, skipping users.email sync', {
+            customerId: updatedCustomerId,
+          });
+          break;
+        }
+
+        await db
+          .update(users)
+          .set({ email: newEmail, updatedAt: new Date() })
+          .where(eq(users.stripeCustomerId, updatedCustomerId));
+
+        logger.info('customer.updated: synced users.email from Stripe', {
+          customerId: updatedCustomerId,
+        });
+        auditLicenseEvent(db, 'customer.email.synced', 'info', {
+          customerId: updatedCustomerId,
+        });
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = resolveCustomerId(subscription.customer);
+        if (!customerId) break;
+
+        // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
+        // Each subscription status branch builds its own saga steps. Emails are sent
+        // outside the saga (fire-and-forget) to avoid coupling email delivery to DB rollback.
+        let emailToSend: (() => void) | null = null;
+        const updateSteps: SagaStep[] = [];
+        let sagaSubtype = 'noop';
+        let auditEvent: string | null = null;
+        let auditSeverity: 'info' | 'warn' = 'info';
+        const auditMeta: Record<string, unknown> = {
+          customerId,
+          subscriptionId: subscription.id,
+        };
+
+        // ── past_due / unpaid  -  degrade access ──────────────────────────────
+        if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+          const isPastDue = subscription.status === 'past_due';
+          const entitlementStatus = isPastDue ? 'past_due' : 'expired';
+          sagaSubtype = isPastDue ? 'past-due' : 'unpaid';
+
+          updateSteps.push(
+            {
+              name: 'expire-license',
+              execute: async (ctx) => {
+                const [prev] = await ctx.db
+                  .select({ status: licenses.status })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                // WH-3: guard against out-of-order delivery (see reactivate).
+                await ctx.db
+                  .update(licenses)
+                  .set({ status: 'expired', updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
+                    ),
+                  );
+                return { previousStatus: prev?.status ?? 'active' };
+              },
+              compensate: async (ctx, output) => {
+                const { previousStatus } = output as { previousStatus: string };
+                await ctx.db
+                  .update(licenses)
+                  .set({ status: previousStatus, updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  );
+              },
+            },
+            {
+              name: 'sync-subscription-state',
+              execute: async (ctx) => {
+                await syncHostedSubscriptionState(ctx.db, {
+                  customerId,
+                  subscriptionId: subscription.id,
+                  tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                  status: entitlementStatus,
+                  currentPeriodStart: getSubscriptionPeriodDate(
+                    subscription,
+                    'current_period_start',
+                  ),
+                  currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                  cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                  graceUntil: isPastDue
+                    ? getSubscriptionPeriodDate(subscription, 'current_period_end')
+                    : null,
+                  mode: event.livemode ? 'live' : 'test',
+                  eventTimestamp: new Date(event.created * 1000),
+                });
+                return {};
+              },
+              compensate: async () => {
+                // Convergent  -  Stripe retries will re-sync
+              },
+            },
+          );
+
+          auditEvent = isPastDue ? 'license.grace_period' : 'license.expired';
+          auditSeverity = 'warn';
+          auditMeta.subscriptionStatus = subscription.status;
+
+          emailToSend = async () => {
+            const email = await findUserEmailByCustomerId(db, customerId);
+            if (email) {
+              const graceEnd = isPastDue
+                ? getSubscriptionPeriodDate(subscription, 'current_period_end')
+                : null;
+              const updatedTier =
+                resolveOptionalTier(
+                  subscription.metadata as Record<string, string>,
+                  'subscription.updated:email',
+                ) ?? 'pro';
+              const emailPromise = graceEnd
+                ? sendGracePeriodStartedEmail(email, graceEnd)
+                : sendPaymentFailedEmail(email, updatedTier);
+              emailPromise.catch((err) => {
+                logger.error('Failed to send payment/grace period email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+            }
+          };
+        }
+
+        // ── active + cancel_at_period_end  -  stamp expiry ────────────────────
+        if (
+          subscription.status === 'active' &&
+          subscription.cancel_at_period_end &&
+          subscription.cancel_at
+        ) {
+          const cancelAt = new Date(subscription.cancel_at * 1000);
+          sagaSubtype = 'cancel-scheduled';
+
+          updateSteps.push(
+            {
+              name: 'stamp-license-expiry',
+              execute: async (ctx) => {
+                const [prev] = await ctx.db
+                  .select({ expiresAt: licenses.expiresAt })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                // WH-3: guard against out-of-order delivery (see deleted-revoke).
+                await ctx.db
+                  .update(licenses)
+                  .set({ expiresAt: cancelAt, updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
+                    ),
+                  );
+                return { previousExpiresAt: prev?.expiresAt ?? null };
+              },
+              compensate: async (ctx, output) => {
+                const { previousExpiresAt } = output as { previousExpiresAt: Date | null };
+                await ctx.db
+                  .update(licenses)
+                  .set({ expiresAt: previousExpiresAt, updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  );
+              },
+            },
+            {
+              name: 'sync-subscription-state',
+              execute: async (ctx) => {
+                await syncHostedSubscriptionState(ctx.db, {
+                  customerId,
+                  subscriptionId: subscription.id,
+                  tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                  status: 'active',
+                  currentPeriodStart: getSubscriptionPeriodDate(
+                    subscription,
+                    'current_period_start',
+                  ),
+                  currentPeriodEnd:
+                    getSubscriptionPeriodDate(subscription, 'current_period_end') ?? cancelAt,
+                  cancelAtPeriodEnd: true,
+                  graceUntil: cancelAt,
+                  mode: event.livemode ? 'live' : 'test',
+                  eventTimestamp: new Date(event.created * 1000),
+                });
+                return {};
+              },
+              compensate: async () => {
+                // Convergent  -  Stripe retries will re-sync
+              },
+            },
+          );
+
+          auditEvent = 'license.expiry_scheduled';
+          auditMeta.expiresAt = cancelAt.toISOString();
+        }
+
+        // ── active (no cancel)  -  sync tier + reactivate ─────────────────────
+        if (subscription.status === 'active' && !subscription.cancel_at_period_end) {
+          const newTier = resolveOptionalTier(
+            subscription.metadata as Record<string, string>,
+            'subscription.updated.reactivated',
+          );
+          if (!newTier) {
+            // Metadata is missing/invalid — log, alert, and skip rather than
+            // throw (which would cause infinite Stripe retries). The customer
+            // keeps their existing tier until metadata is fixed in Stripe dashboard.
+            logger.error(
+              'Subscription reactivated but tier metadata missing — skipping license sync. Fix metadata in Stripe dashboard.',
+              undefined,
+              { customerId, subscriptionId: subscription.id },
+            );
+            const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+            sendTierFallbackAlert(alertEmail, {
+              tier: (subscription.metadata as Record<string, string>)?.tier ?? null,
+              metadata: subscription.metadata ?? null,
+            }).catch((err) => {
+              logger.error('Failed to send tier fallback alert', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+            break;
+          }
+          sagaSubtype = 'reactivated';
+
+          if (!canMintLicense()) {
+            logger.error(
+              `CRITICAL: ${mintConfigMissingMessage()}  -  license sync failed`,
+              undefined,
+              { customerId, subscriptionId: subscription.id, tier: newTier },
+            );
+            throw new Error(mintConfigMissingMessage());
+          }
+
+          updateSteps.push(
+            {
+              name: 'reactivate-license',
+              execute: async (ctx) => {
+                const [prev] = await ctx.db
+                  .select({ status: licenses.status, tier: licenses.tier })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                // WH-2 fix: skip key regeneration if already active at the correct tier.
+                // Prevents unnecessary key churn on saga retry after crash.
+                if (prev?.status === 'active' && prev?.tier === newTier) {
+                  return {
+                    previousStatus: prev.status,
+                    previousTier: prev.tier,
+                    skipped: true,
+                  };
+                }
+
+                // GAP-287 PR-2: same period-bound exp derivation as the checkout
+                // mint — a tier change re-issues the key for the current period.
+                // GAP-260 P4-3: mintLicenseKey (local or signer).
+                const licenseKey = await mintLicenseKey({
+                  tier: newTier,
+                  customerId,
+                  expiresInSeconds: subscriptionLicenseExpiresInSeconds(
+                    getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                  ),
+                });
+
+                // WH-3: monotonic-timestamp guard against out-of-order delivery.
+                // THIS is the resurrection vector: a delayed .updated(active)
+                // delivered after a .deleted must NOT flip a revoked license back
+                // to active. The row's wall-clock updatedAt (set by the newer
+                // .deleted) will not be < this stale event's created time, so the
+                // write affects 0 rows and the revocation stands.
+                const reactivateResult = await ctx.db
+                  .update(licenses)
+                  .set({
+                    status: 'active',
+                    tier: newTier,
+                    licenseKey,
+                    updatedAt: new Date(),
+                  })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
+                    ),
+                  );
+                const reactivateStale =
+                  ((reactivateResult as { rowCount?: number }).rowCount ?? 0) === 0;
+                if (reactivateStale) {
+                  logger.info('Stale reactivate skipped — newer license state already applied', {
+                    customerId,
+                    subscriptionId: subscription.id,
+                    eventTimestamp: new Date(event.created * 1000).toISOString(),
+                  });
+                }
+                return {
+                  previousStatus: prev?.status ?? 'active',
+                  previousTier: prev?.tier ?? newTier,
+                  skipped: reactivateStale,
+                };
+              },
+              compensate: async (ctx, output) => {
+                const { previousStatus, previousTier, skipped } = output as {
+                  previousStatus: string;
+                  previousTier: string;
+                  skipped?: boolean;
+                };
+                // Nothing to roll back if the forward write was stale-skipped —
+                // the DB still holds the newer state we deliberately left intact.
+                if (skipped) return;
+                await ctx.db
+                  .update(licenses)
+                  .set({
+                    status: previousStatus,
+                    tier: previousTier,
+                    updatedAt: new Date(),
+                  })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  );
+              },
+            },
+            {
+              name: 'sync-subscription-state',
+              execute: async (ctx) => {
+                await syncHostedSubscriptionState(ctx.db, {
+                  customerId,
+                  subscriptionId: subscription.id,
+                  tier: newTier,
+                  status: 'active',
+                  currentPeriodStart: getSubscriptionPeriodDate(
+                    subscription,
+                    'current_period_start',
+                  ),
+                  currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                  cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                  graceUntil:
+                    subscription.cancel_at_period_end && subscription.cancel_at
+                      ? new Date(subscription.cancel_at * 1000)
+                      : null,
+                  mode: event.livemode ? 'live' : 'test',
+                  eventTimestamp: new Date(event.created * 1000),
+                });
+                return {};
+              },
+              compensate: async () => {
+                // Convergent  -  Stripe retries will re-sync
+              },
+            },
+          );
+
+          // Best-effort: clear pending_change flag in Stripe metadata
+          if (subscription.metadata?.pending_change) {
+            stripe.subscriptions
+              .update(subscription.id, { metadata: { pending_change: '' } })
+              .catch((err) => {
+                logger.warn('Failed to clear pending_change metadata', {
+                  subscriptionId: subscription.id,
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+          }
+
+          auditEvent = 'license.reactivated';
+          auditMeta.tier = newTier;
+
+          // If this was a trial → active conversion, notify the customer
+          const prev = event.data.previous_attributes as Record<string, unknown> | undefined;
+          if (prev?.status === 'trialing') {
+            emailToSend = async () => {
+              const email = await findUserEmailByCustomerId(db, customerId);
+              if (email) {
+                sendTrialExpiredEmail(email, newTier).catch((err) => {
+                  logger.error('Failed to send trial expired email', undefined, {
+                    detail: err instanceof Error ? err.message : 'unknown',
+                  });
+                });
+              }
+            };
+          }
+        }
+
+        // ── canceled / incomplete_expired  -  revoke ──────────────────────────
+        if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+          sagaSubtype = `revoked-${subscription.status}`;
+
+          updateSteps.push(
+            {
+              name: 'revoke-license',
+              execute: async (ctx) => {
+                const [prev] = await ctx.db
+                  .select({ status: licenses.status })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                // WH-3: guard against out-of-order delivery (see reactivate).
+                await ctx.db
+                  .update(licenses)
+                  .set({ status: 'revoked', updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
+                    ),
+                  );
+                return { previousStatus: prev?.status ?? 'active' };
+              },
+              compensate: async (ctx, output) => {
+                const { previousStatus } = output as { previousStatus: string };
+                await ctx.db
+                  .update(licenses)
+                  .set({ status: previousStatus, updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  );
+              },
+            },
+            {
+              name: 'sync-subscription-state',
+              execute: async (ctx) => {
+                await syncHostedSubscriptionState(ctx.db, {
+                  customerId,
+                  subscriptionId: subscription.id,
+                  tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                  status: 'revoked',
+                  currentPeriodStart: getSubscriptionPeriodDate(
+                    subscription,
+                    'current_period_start',
+                  ),
+                  currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                  cancelAtPeriodEnd: false,
+                  graceUntil: null,
+                  mode: event.livemode ? 'live' : 'test',
+                  eventTimestamp: new Date(event.created * 1000),
+                });
+                return {};
+              },
+              compensate: async () => {
+                // Convergent  -  Stripe retries will re-sync
+              },
+            },
+          );
+
+          auditEvent = `license.revoked.subscription_${subscription.status}`;
+          auditSeverity = 'warn';
+          auditMeta.stripeStatus = subscription.status;
+        }
+
+        // ── incomplete  -  log only, no DB writes ─────────────────────────────
+        if (subscription.status === 'incomplete') {
+          logger.warn('Subscription in incomplete state  -  awaiting payment confirmation', {
+            customerId,
+            subscriptionId: subscription.id,
+          });
+        }
+
+        // ── trialing  -  sync state only (no license changes) ─────────────────
+        if (subscription.status === 'trialing') {
+          sagaSubtype = 'trialing';
+
+          updateSteps.push({
+            name: 'sync-subscription-state',
+            execute: async (ctx) => {
+              await syncHostedSubscriptionState(ctx.db, {
+                customerId,
+                subscriptionId: subscription.id,
+                tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                status: 'trialing',
+                currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+                currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                graceUntil: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+                mode: event.livemode ? 'live' : 'test',
+                eventTimestamp: new Date(event.created * 1000),
+              });
+              return {};
+            },
+            compensate: async () => {
+              // Convergent  -  Stripe retries will re-sync
+            },
+          });
+
+          logger.info('Subscription in trialing state  -  syncing hosted state', {
+            customerId,
+            subscriptionId: subscription.id,
+            trialEnd: subscription.trial_end,
+          });
+        }
+
+        // ── paused  -  revoke access ──────────────────────────────────────────
+        if (subscription.status === 'paused') {
+          sagaSubtype = 'paused';
+
+          updateSteps.push(
+            {
+              name: 'expire-license',
+              execute: async (ctx) => {
+                const [prev] = await ctx.db
+                  .select({ status: licenses.status })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                // WH-3: guard against out-of-order delivery (see reactivate).
+                await ctx.db
+                  .update(licenses)
+                  .set({ status: 'expired', updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                      lt(licenses.updatedAt, new Date((event.created + 1) * 1000)),
+                    ),
+                  );
+                return { previousStatus: prev?.status ?? 'active' };
+              },
+              compensate: async (ctx, output) => {
+                const { previousStatus } = output as { previousStatus: string };
+                await ctx.db
+                  .update(licenses)
+                  .set({ status: previousStatus, updatedAt: new Date() })
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
+                    ),
+                  );
+              },
+            },
+            {
+              name: 'sync-subscription-state',
+              execute: async (ctx) => {
+                await syncHostedSubscriptionState(ctx.db, {
+                  customerId,
+                  subscriptionId: subscription.id,
+                  tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                  status: 'paused',
+                  currentPeriodStart: getSubscriptionPeriodDate(
+                    subscription,
+                    'current_period_start',
+                  ),
+                  currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                  cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                  graceUntil: null,
+                  mode: event.livemode ? 'live' : 'test',
+                  eventTimestamp: new Date(event.created * 1000),
+                });
+                return {};
+              },
+              compensate: async () => {
+                // Convergent  -  Stripe retries will re-sync
+              },
+            },
+          );
+
+          auditEvent = 'license.paused';
+          auditSeverity = 'warn';
+          auditMeta.subscriptionStatus = 'paused';
+        }
+
+        // Execute the saga if there are steps to run
+        if (updateSteps.length > 0) {
+          const updateResult = await executeSaga(
+            db,
+            `subscription-updated-${sagaSubtype}`,
+            event.id,
+            updateSteps,
+          );
+
+          if (updateResult.status === 'skipped') {
+            logger.info('Subscription updated saga skipped (idempotent)', {
+              customerId,
+              subscriptionId: subscription.id,
+              sagaSubtype,
+              sagaId: updateResult.sagaId,
+            });
+            break;
+          }
+          if (updateResult.status !== 'completed') {
+            throw new Error(
+              `Subscription updated saga (${sagaSubtype}) failed: ${updateResult.error ?? 'unknown'}`,
+            );
+          }
+
+          resetLicenseState();
+          resetDbStatusCache();
+
+          // GAP-260 P4-5: canceled / incomplete_expired paths set licenses to
+          // revoked inside the saga but (unlike subscription.deleted) used to
+          // skip the jti denylist. Without this write, a re-subscribe can
+          // refresh a pre-cancel JWT lineage. Scope by subscriptionId.
+          if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+            void recordJtisForRevokedCustomerLicenses(
+              db,
+              customerId,
+              `subscription.updated.${subscription.status}`,
+              subscription.id,
+            ).catch((err) => {
+              logger.warn('jti denylist write failed after subscription.updated revoke', {
+                error: err instanceof Error ? err.message : 'unknown',
+                subscriptionStatus: subscription.status,
+              });
+            });
+          }
+
+          if (auditEvent) {
+            auditLicenseEvent(db, auditEvent, auditSeverity, auditMeta);
+          }
+        }
+
+        // Send deferred emails outside the saga
+        if (emailToSend) (emailToSend as () => void)();
+
+        break;
+      }
+
+      case 'customer.subscription.created': {
+        // Logged for observability; license generation happens on checkout.session.completed.
+        // Use resolveOptionalTier  -  metadata may not be populated yet at creation time.
+        //
+        // NOTE: NeonDB HTTP driver does not support transactions.
+        // syncHostedSubscriptionState performs multiple DB writes (account
+        // creation, subscription upsert, entitlement upsert) that are not
+        // atomic. Stripe's idempotent retry mechanism mitigates partial
+        // failures. The checkout.session.completed handler (which creates the
+        // license) uses executeSaga() for its critical path.
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = resolveCustomerId(subscription.customer);
+        if (customerId) {
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: subscription.id,
+            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+            status: subscription.status,
+            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+            graceUntil:
+              subscription.status === 'trialing' && subscription.trial_end
+                ? new Date(subscription.trial_end * 1000)
+                : null,
+            mode: event.livemode ? 'live' : 'test',
+            eventTimestamp: new Date(event.created * 1000),
+          });
+        }
+        logger.info('Subscription created', {
+          customerId,
+          subscriptionId: subscription.id,
+          status: subscription.status,
+        });
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        // Handle successful invoice payment:
+        // 1. Send payment receipt email to customer (every payment)
+        // 2. Re-activate license if it was expired/revoked (recovery)
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = resolveCustomerId(invoice.customer);
+        if (!customerId) break;
+
+        // Send payment receipt email for every successful invoice (not just recovery).
+        // Fire-and-forget  -  receipt delivery must not block license recovery.
+        if (invoice.amount_paid > 0) {
+          const receiptEmail =
+            invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+          if (receiptEmail) {
+            // Resolve tier from the license matching this invoice's subscription.
+            // Extract subscription ID from the invoice. The field exists at runtime
+            // but is not typed in this Stripe SDK version.
+            const rawSub = (invoice as unknown as { subscription?: string | { id: string } | null })
+              .subscription;
+            const invoiceSubId =
+              typeof rawSub === 'string'
+                ? rawSub
+                : typeof rawSub === 'object' && rawSub?.id
+                  ? rawSub.id
+                  : null;
+
+            let receiptTier = 'pro';
+            // Prefer subscription-scoped lookup (prevents wrong tier when customer
+            // holds both perpetual and subscription licenses).
+            const licenseFilter = invoiceSubId
+              ? and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, invoiceSubId),
+                  isNull(licenses.deletedAt),
+                )
+              : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
+
+            const [licenseRow] = await db
+              .select({ tier: licenses.tier })
+              .from(licenses)
+              .where(licenseFilter)
+              .orderBy(desc(licenses.updatedAt))
+              .limit(1);
+            if (licenseRow?.tier) {
+              receiptTier = licenseRow.tier;
+            }
+
+            const periodEnd = invoice.period_end ? new Date(invoice.period_end * 1000) : null;
+
+            sendPaymentReceiptEmail(receiptEmail, {
+              amountPaid: invoice.amount_paid,
+              currency: invoice.currency,
+              invoiceNumber: invoice.number ?? null,
+              tier: receiptTier,
+              periodEnd,
+              invoiceUrl: invoice.hosted_invoice_url ?? null,
+            }).catch((err) => {
+              logger.error('Failed to send payment receipt email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+        }
+
+        // Payment recovery  -  re-activate a license that was expired/revoked due to prior payment failure.
+        // Only re-activate if the customer has an active subscription after payment.
+
+        // Fetch the customer's active subscriptions to confirm payment actually restored access.
+        // We don't read invoice.subscription directly  -  that field is not typed in this SDK version.
+        let recoveredSubscription: Stripe.Subscription | null = null;
+        try {
+          const subList = await stripe.subscriptions.list({
+            customer: customerId,
+            status: 'active',
+            limit: 1,
+          });
+          recoveredSubscription = subList.data[0] ?? null;
+        } catch (err) {
+          logger.warn('Failed to list subscriptions for invoice.payment_succeeded', {
+            customerId,
+            detail: err instanceof Error ? err.message : 'unknown',
+          });
+          break;
+        }
+
+        if (!recoveredSubscription) break;
+
+        const [existingLicense] = await db
+          .select({ id: licenses.id, status: licenses.status })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        const hostedStatus = await findHostedStatusByCustomerId(db, customerId);
+
+        // Use resolveOptionalTier with fallback  -  resolveTier would create an infinite retry loop
+        // if the recovered subscription lacks tier metadata (e.g., pre-metadata subscription)
+        const recoveredTier =
+          resolveOptionalTier(
+            recoveredSubscription.metadata as Record<string, string>,
+            'payment_succeeded:recovery',
+          ) ?? 'pro';
+        const shouldReactivateLegacyLicense =
+          existingLicense?.status === 'expired' || existingLicense?.status === 'revoked';
+        const shouldReactivateHosted = hostedStatus === 'expired' || hostedStatus === 'revoked';
+        const shouldHealHostedState = hostedStatus === null;
+
+        if (shouldReactivateLegacyLicense) {
+          // WH-2 fix: re-check license status inside the mutation block. The
+          // `shouldReactivateLegacyLicense` flag was derived earlier; on a Stripe
+          // retry after crash, the prior run may have already set status='active'.
+          // Only generate a new key if the license still needs reactivation.
+          const recoveryFilter = recoveredSubscription.id
+            ? and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, recoveredSubscription.id),
+                isNull(licenses.deletedAt),
+              )
+            : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
+
+          const [freshLicense] = await db
+            .select({ status: licenses.status, tier: licenses.tier })
+            .from(licenses)
+            .where(recoveryFilter)
+            .limit(1);
+
+          if (freshLicense?.status === 'active' && freshLicense?.tier === recoveredTier) {
+            logger.info('Payment recovery skipped — license already active at correct tier', {
+              customerId,
+              subscriptionId: recoveredSubscription.id,
+              tier: recoveredTier,
+            });
+          } else {
+            if (!canMintLicense()) {
+              logger.error(
+                `CRITICAL: ${mintConfigMissingMessage()}  -  payment recovery failed`,
+                undefined,
+                { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
+              );
+              throw new Error(mintConfigMissingMessage());
+            }
+
+            // GAP-287 PR-2: period-bound exp on the recovery re-mint too.
+            // GAP-260 P4-3: mintLicenseKey (local or signer).
+            const licenseKey = await mintLicenseKey({
+              tier: recoveredTier,
+              customerId,
+              expiresInSeconds: subscriptionLicenseExpiresInSeconds(
+                getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
+              ),
+            });
+            await db
+              .update(licenses)
+              .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
+              .where(recoveryFilter);
+          }
+        } else {
+          // GAP-287 PR-2 renewal cadence: the license is already active (not
+          // being reactivated), but a period-bound key must have its exp
+          // advanced to the new billing period on the renewal invoice. This is
+          // idempotent — it no-ops when the stored exp already covers the new
+          // bound (a duplicate/retried delivery re-derives the same decision).
+          const renewalPeriodEnd = getSubscriptionPeriodDate(
+            recoveredSubscription,
+            'current_period_end',
+          );
+          if (renewalPeriodEnd) {
+            await remintSubscriptionLicenseOnRenewal(db, {
+              customerId,
+              subscriptionId: recoveredSubscription.id,
+              periodEnd: renewalPeriodEnd,
+              eventCreatedSeconds: event.created,
+            });
+          }
+
+          if (existingLicense && !shouldReactivateHosted && !shouldHealHostedState) {
+            break;
+          }
+        }
+
+        if (
+          !(
+            shouldReactivateLegacyLicense ||
+            shouldReactivateHosted ||
+            shouldHealHostedState ||
+            existingLicense
+          )
+        ) {
+          break;
+        }
+
+        // NOTE: NeonDB HTTP driver does not support transactions. The license
+        // reactivation above and the hosted state sync below are not atomic.
+        // Stripe's idempotent retry mechanism mitigates partial failures  -  if
+        // only one of the two writes succeeds, the next webhook delivery will
+        // re-run this handler and converge both to the correct state.
+        await syncHostedSubscriptionState(db, {
+          customerId,
+          subscriptionId: recoveredSubscription.id,
+          tier: recoveredTier,
+          status: 'active',
+          currentPeriodStart: getSubscriptionPeriodDate(
+            recoveredSubscription,
+            'current_period_start',
+          ),
+          currentPeriodEnd: getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
+          cancelAtPeriodEnd: recoveredSubscription.cancel_at_period_end ?? false,
+          graceUntil: null,
+          mode: event.livemode ? 'live' : 'test',
+          eventTimestamp: new Date(event.created * 1000),
+        });
+
+        resetLicenseState();
+        resetDbStatusCache();
+
+        logger.info('License re-activated after payment recovery', {
+          customerId,
+          subscriptionId: recoveredSubscription.id,
+          tier: recoveredTier,
+        });
+        auditLicenseEvent(db, 'license.reactivated.payment_recovery', 'info', {
+          customerId,
+          subscriptionId: recoveredSubscription.id,
+          tier: recoveredTier,
+        });
+
+        const recoveryEmail =
+          invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+        if (recoveryEmail) {
+          sendPaymentRecoveredEmail(recoveryEmail).catch((err) => {
+            logger.error('Failed to send payment recovered email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+
+      case 'invoice.payment_action_required': {
+        // Customer's bank returned a 3D Secure / SCA authentication challenge.
+        // The payment has NOT failed yet — they need to complete authentication
+        // on the hosted invoice URL. Access is not interrupted; we notify
+        // the customer so they can complete auth before Stripe retries.
+        //
+        // Distinct from `invoice.payment_failed`:
+        //   - action_required: customer CAN recover by authenticating
+        //   - payment_failed: a hard failure (declined, insufficient funds, etc.)
+        //     after which Stripe's retry schedule kicks in.
+        //
+        // We do NOT modify entitlement state here — that would prematurely
+        // downgrade someone who is simply in an SCA flow.
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = resolveCustomerId(invoice.customer);
+        if (!customerId) break;
+
+        logger.info('Invoice payment requires authentication (3DS/SCA)', {
+          customerId,
+          invoiceId: invoice.id,
+          hostedInvoiceUrl: invoice.hosted_invoice_url,
+        });
+
+        // Resolve tier for email personalization.
+        let actionRequiredTier = 'pro';
+        const [actionTierRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (actionTierRow?.tier) {
+          actionRequiredTier = actionTierRow.tier;
+        }
+
+        const actionRequiredEmail =
+          invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+        if (actionRequiredEmail) {
+          sendPaymentActionRequiredEmail(actionRequiredEmail, actionRequiredTier).catch(
+            (err: unknown) => {
+              logger.error('Failed to send payment-action-required email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            },
+          );
+        }
+
+        auditLicenseEvent(db, 'payment.action_required', 'info', {
+          customerId,
+          invoiceId: invoice.id,
+          hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+        });
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = resolveCustomerId(invoice.customer);
+        if (!customerId) break;
+
+        logger.warn('Invoice payment failed', {
+          customerId,
+          invoiceId: invoice.id,
+          attemptCount: invoice.attempt_count,
+        });
+
+        // Resolve subscription ID from the invoice first  -  needed for scoped license updates.
+        // Stripe SDK v20 moved subscription from invoice.subscription to
+        // invoice.parent.subscription_details.subscription.
+        const invoiceSubscription = invoice.parent?.subscription_details?.subscription ?? null;
+        const subscriptionId =
+          typeof invoiceSubscription === 'string'
+            ? invoiceSubscription
+            : typeof invoiceSubscription === 'object' && invoiceSubscription !== null
+              ? invoiceSubscription.id
+              : null;
+
+        // Determine severity: past_due (initial failures) vs suspended (threshold+ failures).
+        // past_due gets a grace period; suspended is immediate block.
+        // Threshold is configurable to match the Stripe retry schedule (Dashboard → Billing → Automatic collection).
+        const suspendThreshold = Number.parseInt(
+          process.env.STRIPE_SUSPEND_AFTER_ATTEMPTS ?? '3',
+          10,
+        );
+        const isSuspended =
+          invoice.attempt_count != null && invoice.attempt_count >= suspendThreshold;
+        const entitlementStatus = isSuspended ? 'expired' : 'past_due';
+
+        if (isSuspended) {
+          logger.error('Payment failed 3+ times  -  suspending subscription', undefined, {
+            customerId,
+            attemptCount: invoice.attempt_count,
+          });
+
+          // Scope to this subscription if known. Always exclude perpetual
+          // licenses  -  they are a separate purchase and must never be
+          // expired by a subscription payment failure.
+          const licenseFilter = subscriptionId
+            ? and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscriptionId),
+                eq(licenses.perpetual, false),
+                isNull(licenses.deletedAt),
+              )
+            : and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.perpetual, false),
+                isNull(licenses.deletedAt),
+              );
+          await db
+            .update(licenses)
+            .set({ status: 'expired', updatedAt: new Date() })
+            .where(licenseFilter);
+        }
+
+        // Grace period: customer retains access until the end of their billing period.
+        // Only granted for initial failures (past_due). Suspended = immediate block.
+        const graceUntil =
+          !isSuspended && invoice.period_end ? new Date(invoice.period_end * 1000) : null;
+
+        // NOTE: NeonDB HTTP driver does not support transactions. The license
+        // expiry above (when isSuspended) and the hosted state sync below are
+        // not atomic. Stripe's idempotent retry mechanism mitigates partial
+        // failures  -  if only one write succeeds, the next webhook delivery
+        // will re-run this handler and converge both to the correct state.
+        await syncHostedSubscriptionState(db, {
+          customerId,
+          subscriptionId,
+          status: entitlementStatus,
+          graceUntil,
+          mode: event.livemode ? 'live' : 'test',
+          eventTimestamp: new Date(event.created * 1000),
+        });
+
+        // Reset caches for any payment failure  -  both grace period (past_due)
+        // and suspension (expired) change the effective entitlement state.
+        resetLicenseState();
+        resetDbStatusCache();
+
+        auditLicenseEvent(
+          db,
+          isSuspended ? 'license.suspended.payment_failed' : 'license.grace_period.payment_failed',
+          isSuspended ? 'critical' : 'warn',
+          {
+            customerId,
+            invoiceId: invoice.id,
+            attemptCount: invoice.attempt_count,
+            subscriptionId,
+            graceUntil: graceUntil?.toISOString() ?? null,
+          },
+        );
+
+        // Resolve tier from the customer's license in DB so the email
+        // references the correct plan (Pro, Max, Enterprise  -  not hardcoded 'pro').
+        let failedTier = 'pro';
+        const [failedLicenseRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (failedLicenseRow?.tier) {
+          failedTier = failedLicenseRow.tier;
+        }
+
+        const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+        if (email) {
+          sendPaymentFailedEmail(email, failedTier).catch((err: unknown) => {
+            logger.error('Failed to send payment failed email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+
+      case 'customer.subscription.trial_will_end': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = resolveCustomerId(subscription.customer);
+        if (!customerId) break;
+
+        logger.info('Trial ending soon', {
+          customerId,
+          subscriptionId: subscription.id,
+          trialEnd: subscription.trial_end,
+        });
+
+        // Send trial ending reminder email
+        const email = await findUserEmailByCustomerId(db, customerId);
+        if (email) {
+          const trialTier =
+            resolveOptionalTier(
+              subscription.metadata as Record<string, string>,
+              'trial_will_end:email',
+            ) ?? 'pro';
+          sendTrialEndingEmail(email, subscription.trial_end, trialTier).catch((err) => {
+            logger.error('Failed to send trial ending email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+
+      case 'charge.dispute.closed': {
+        // A dispute has been resolved. Handle both outcomes:
+        // - lost: revoke the customer's license (chargeback returned to cardholder)
+        // - won/warning_closed: restore any previously-revoked license
+        const dispute = event.data.object as Stripe.Dispute;
+
+        if (dispute.status === 'won' || dispute.status === 'warning_closed') {
+          // Dispute resolved in our favor  -  restore the customer's license if it
+          // was previously revoked due to a charge.dispute.created event.
+          const wonChargeId =
+            typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
+          let wonCustomerId: string | null = null;
+          let wonCharge: Stripe.Charge | null = null;
+          try {
+            wonCharge = await stripe.charges.retrieve(wonChargeId);
+            wonCustomerId = resolveCustomerId(wonCharge.customer);
+          } catch (firstErr) {
+            logger.warn('Charge retrieve failed for won dispute, retrying once', {
+              chargeId: wonChargeId,
+              disputeId: dispute.id,
+              detail: firstErr instanceof Error ? firstErr.message : 'unknown',
+            });
+            // Retry once before giving up  -  a transient Stripe outage must not
+            // silently drop license restoration for a customer who won their dispute.
+            try {
+              wonCharge = await stripe.charges.retrieve(wonChargeId);
+              wonCustomerId = resolveCustomerId(wonCharge.customer);
+            } catch (retryErr) {
+              logger.error('Charge retrieve failed after retry for won dispute', undefined, {
+                chargeId: wonChargeId,
+                disputeId: dispute.id,
+                detail: retryErr instanceof Error ? retryErr.message : 'unknown',
+              });
+              // Record an audit trail so the operations team can manually restore this license.
+              // Do NOT break silently  -  the audit entry ensures the failure is visible.
+              auditLicenseEvent(db, 'license.restoration_failed.dispute_won', 'critical', {
+                disputeId: dispute.id,
+                chargeId: wonChargeId,
+                reason: 'stripe_charge_retrieve_failed_after_retry',
+                detail: retryErr instanceof Error ? retryErr.message : 'unknown',
+              });
+              break;
+            }
+          }
+
+          if (wonCustomerId) {
+            // S2 (won-path): scope the restore to the DISPUTED subscription,
+            // mirroring the lost-path scoping. A customer who wins ONE dispute
+            // must not have EVERY revoked license reinstated — some may have been
+            // revoked for unrelated reasons for which no money was returned. When
+            // the charge cannot be traced to a subscription, DON'T blanket-restore
+            // (the dangerous over-grant direction); audit for manual review.
+            const wonSubscriptionId = wonCharge
+              ? await resolveSubscriptionIdFromCharge(stripe, wonCharge)
+              : null;
+
+            if (!wonSubscriptionId) {
+              logger.warn(
+                'Won dispute could not be scoped to a subscription  -  manual review required',
+                {
+                  customerId: wonCustomerId,
+                  chargeId: wonChargeId,
+                  disputeId: dispute.id,
+                },
+              );
+              auditLicenseEvent(db, 'license.restoration_unscoped.dispute_won', 'warn', {
+                customerId: wonCustomerId,
+                chargeId: wonChargeId,
+                disputeId: dispute.id,
+                reason: 'subscription_unresolved_from_charge',
+              });
+              break;
+            }
+
+            const wonRestoreScope = and(
+              eq(licenses.customerId, wonCustomerId),
+              eq(licenses.status, 'revoked'),
+              eq(licenses.subscriptionId, wonSubscriptionId),
+              isNull(licenses.deletedAt),
+            );
+
+            const revokedLicenses = await db
+              .select({
+                subscriptionId: licenses.subscriptionId,
+                tier: licenses.tier,
+              })
+              .from(licenses)
+              .where(wonRestoreScope)
+              .limit(1);
+
+            const restoredSub = revokedLicenses[0];
+
+            if (!restoredSub) {
+              // No revoked license for the disputed subscription — nothing to
+              // restore. Do NOT sync an 'active' entitlement out of thin air.
+              logger.info(
+                'Won dispute resolved but no revoked license for the disputed subscription',
+                {
+                  customerId: wonCustomerId,
+                  chargeId: wonChargeId,
+                  disputeId: dispute.id,
+                  subscriptionId: wonSubscriptionId,
+                },
+              );
+              break;
+            }
+
+            await db
+              .update(licenses)
+              .set({ status: 'active', updatedAt: new Date() })
+              .where(wonRestoreScope);
+
+            await syncHostedSubscriptionState(db, {
+              customerId: wonCustomerId,
+              subscriptionId: restoredSub.subscriptionId ?? wonSubscriptionId,
+              tier: (restoredSub.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
+              status: 'active',
+              graceUntil: null,
+              mode: event.livemode ? 'live' : 'test',
+              eventTimestamp: new Date(event.created * 1000),
+            });
+
+            resetLicenseState();
+            resetDbStatusCache();
+
+            logger.info('License restored: dispute won', {
+              customerId: wonCustomerId,
+              chargeId: wonChargeId,
+              disputeId: dispute.id,
+              disputeStatus: dispute.status,
+            });
+            auditLicenseEvent(db, 'license.restored.dispute_won', 'info', {
+              customerId: wonCustomerId,
+              chargeId: wonChargeId,
+              disputeId: dispute.id,
+              restoredTier: restoredSub?.tier ?? 'unknown',
+            });
+          }
+          break;
+        }
+
+        if (dispute.status !== 'lost') break;
+
+        // A chargeback was decided against us. Revoke the customer's license
+        // immediately to prevent continued access after the disputed payment
+        // is returned to the cardholder.
+        const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
+
+        // Retrieve the charge to resolve the customer ID (and, below, the
+        // disputed subscription).
+        let disputeCustomerId: string | null = null;
+        let disputeCharge: Stripe.Charge | null = null;
+        try {
+          disputeCharge = await stripe.charges.retrieve(chargeId);
+          disputeCustomerId = resolveCustomerId(disputeCharge.customer);
+        } catch (err) {
+          logger.error('Failed to retrieve charge for lost dispute', undefined, {
+            chargeId,
+            disputeId: dispute.id,
+            detail: err instanceof Error ? err.message : 'unknown',
+          });
+          // Throw so Stripe retries  -  lost-dispute revocation must not be silently skipped
+          throw new Error(`Failed to retrieve charge ${chargeId} for dispute ${dispute.id}`);
+        }
+
+        if (!disputeCustomerId) {
+          logger.warn('Dispute charge has no customer  -  cannot revoke license', {
+            chargeId,
+            disputeId: dispute.id,
+          });
+          break;
+        }
+
+        // S2: scope the chargeback revoke to the disputed subscription when the
+        // charge can be traced to one. A customer with multiple subscriptions
+        // must lose only the disputed one's license. When the charge is not
+        // invoice-backed or the chain is unresolvable, fall back to revoking ALL
+        // of the customer's licenses — the conservative posture for a chargeback
+        // (money was returned; never under-revoke), preserving prior behavior.
+        const disputeSubscriptionId = disputeCharge
+          ? await resolveSubscriptionIdFromCharge(stripe, disputeCharge)
+          : null;
+        const disputeRevokeWhere = disputeSubscriptionId
+          ? and(
+              eq(licenses.customerId, disputeCustomerId),
+              eq(licenses.perpetual, false),
+              eq(licenses.subscriptionId, disputeSubscriptionId),
+              isNull(licenses.deletedAt),
+            )
+          : and(eq(licenses.customerId, disputeCustomerId), isNull(licenses.deletedAt));
+        await db
+          .update(licenses)
+          .set({ status: 'revoked', updatedAt: new Date() })
+          .where(disputeRevokeWhere);
+
+        await syncHostedSubscriptionState(db, {
+          customerId: disputeCustomerId,
+          subscriptionId: null,
+          status: 'revoked',
+          mode: event.livemode ? 'live' : 'test',
+          eventTimestamp: new Date(event.created * 1000),
+        });
+
+        resetLicenseState();
+        resetDbStatusCache();
+        void recordJtisForRevokedCustomerLicenses(
+          db,
+          disputeCustomerId,
+          'charge.dispute.lost',
+          disputeSubscriptionId,
+        ).catch((err) => {
+          logger.warn('jti denylist write failed after charge.dispute.lost', {
+            error: err instanceof Error ? err.message : 'unknown',
+          });
+        });
+
+        logger.warn('License revoked: chargeback dispute lost', {
+          customerId: disputeCustomerId,
+          chargeId,
+          disputeId: dispute.id,
+          amount: dispute.amount,
+        });
+        auditLicenseEvent(db, 'license.revoked.chargeback', 'critical', {
+          customerId: disputeCustomerId,
+          chargeId,
+          disputeId: dispute.id,
+          amount: dispute.amount,
+        });
+
+        // Send notification email (best-effort)
+        const disputeEmail = await findUserEmailByCustomerId(db, disputeCustomerId);
+        if (disputeEmail) {
+          sendDisputeLostEmail(disputeEmail).catch((err) => {
+            logger.error('Failed to send dispute lost email', undefined, {
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+
+      case 'payment_intent.requires_action': {
+        // Customer's bank returned a 3D Secure / SCA authentication challenge
+        // on a one-time PaymentIntent (perpetual license, credit bundle,
+        // support renewal). Distinct from invoice.payment_action_required
+        // (which fires on subscription invoices); this handles the one-time
+        // charge variant. The payment has NOT failed yet  -  they need to
+        // complete authentication before Stripe's challenge expires (~24h).
+        //
+        // We do NOT modify any DB state here. The purchase hasn't completed,
+        // so there is no entitlement to freeze. The eventual outcome
+        // (`payment_intent.succeeded` via checkout.session.completed, or
+        // `payment_intent.payment_failed`) drives the state change.
+        const requiresActionIntent = event.data.object as Stripe.PaymentIntent;
+        const requiresActionCustomerId = resolveCustomerId(requiresActionIntent.customer);
+        if (!requiresActionCustomerId) break;
+
+        logger.info('PaymentIntent requires authentication (3DS/SCA, one-time charge)', {
+          customerId: requiresActionCustomerId,
+          paymentIntentId: requiresActionIntent.id,
+          nextActionType: requiresActionIntent.next_action?.type ?? null,
+        });
+
+        // Resolve tier for email personalization. For one-time charges the
+        // customer may not have an existing license tier; default to 'pro'.
+        let requiresActionTier = 'pro';
+        const [requiresActionTierRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, requiresActionCustomerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (requiresActionTierRow?.tier) {
+          requiresActionTier = requiresActionTierRow.tier;
+        }
+
+        // PaymentIntent does not carry customer_email; look up via users table.
+        const requiresActionEmail = await findUserEmailByCustomerId(db, requiresActionCustomerId);
+        if (requiresActionEmail) {
+          sendPaymentActionRequiredEmail(requiresActionEmail, requiresActionTier).catch(
+            (err: unknown) => {
+              logger.error(
+                'Failed to send payment-action-required email (PaymentIntent)',
+                undefined,
+                {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                },
+              );
+            },
+          );
+        }
+
+        auditLicenseEvent(db, 'payment_intent.action_required', 'info', {
+          customerId: requiresActionCustomerId,
+          paymentIntentId: requiresActionIntent.id,
+          nextActionType: requiresActionIntent.next_action?.type ?? null,
+        });
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const failedCustomerId =
+          typeof paymentIntent.customer === 'string'
+            ? paymentIntent.customer
+            : (paymentIntent.customer?.id ?? null);
+        logger.warn('Payment intent failed', {
+          paymentIntentId: paymentIntent.id,
+          customerId: failedCustomerId,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          lastPaymentError: paymentIntent.last_payment_error?.message ?? 'unknown',
+        });
+        // Stripe retries automatically per the retry schedule.
+        // Notify the customer so they can update their payment method proactively.
+        if (failedCustomerId) {
+          let intentFailedTier = 'pro';
+          const [intentLicenseRow] = await db
+            .select({ tier: licenses.tier })
+            .from(licenses)
+            .where(and(eq(licenses.customerId, failedCustomerId), isNull(licenses.deletedAt)))
+            .orderBy(desc(licenses.updatedAt))
+            .limit(1);
+          if (intentLicenseRow?.tier) {
+            intentFailedTier = intentLicenseRow.tier;
+          }
+
+          const failedEmail = await findUserEmailByCustomerId(db, failedCustomerId);
+          if (failedEmail) {
+            sendPaymentFailedEmail(failedEmail, intentFailedTier).catch((err) => {
+              logger.error('Failed to send payment failed email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+        }
+        auditLicenseEvent(db, 'payment.intent.failed', 'warn', {
+          paymentIntentId: paymentIntent.id,
+          customerId: failedCustomerId,
+          amount: paymentIntent.amount,
+        });
+        break;
+      }
+
+      case 'charge.dispute.created': {
+        // A dispute (chargeback) has been opened. Log it for monitoring.
+        // We do not revoke the license here  -  wait for charge.dispute.closed with status 'lost'.
+        const dispute = event.data.object as Stripe.Dispute;
+        const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
+        logger.warn('Chargeback dispute opened', {
+          disputeId: dispute.id,
+          chargeId,
+          amount: dispute.amount,
+          reason: dispute.reason,
+        });
+        auditLicenseEvent(db, 'license.dispute.opened', 'warn', {
+          disputeId: dispute.id,
+          chargeId,
+          amount: dispute.amount,
+        });
+
+        // Notify the customer that a dispute has been opened on their account
+        let disputeCreatedCustomerId: string | null = null;
+        try {
+          const charge = await stripe.charges.retrieve(chargeId);
+          disputeCreatedCustomerId = resolveCustomerId(charge.customer);
+        } catch {
+          // Best-effort  -  don't fail the webhook if we can't resolve the customer
+        }
+        if (disputeCreatedCustomerId) {
+          const disputeEmail = await findUserEmailByCustomerId(db, disputeCreatedCustomerId);
+          if (disputeEmail) {
+            sendDisputeReceivedEmail(disputeEmail).catch((err) => {
+              logger.error('Failed to send dispute received email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+        }
+        break;
+      }
+
+      case 'charge.refunded': {
+        // A charge has been refunded (partial or full). Revoke the customer's
+        // NON-PERPETUAL license if the refund fully covers the charge amount.
+        // Perpetual licenses are never revoked by a subscription refund —
+        // they are a separate purchase with their own refund path (BLOCKING-A,
+        // tracked separately; deferred from Surface 6 fix-train).
+        //
+        // GAP-124 Surface 6 BLOCKING-B: credit-bundle refunds debit
+        // agentCreditBalance (when the original charge was a credit-bundle
+        // purchase, detected via PaymentIntent metadata).
+        //
+        // GAP-124 Surface 6 BLOCKING-C: full refunds of subscription invoices
+        // cancel the underlying Stripe subscription so Stripe stops billing.
+        //
+        // usage_meters are NOT rolled back on refund. They are an append-only
+        // ledger of recorded events; the refund itself is the financial
+        // reversal. Reporting that needs a "refund-aware" usage view must
+        // filter out usage from refunded charges separately.
+        const charge = event.data.object as Stripe.Charge;
+        const customerId = resolveCustomerId(charge.customer);
+        if (!customerId) break;
+
+        const isFullRefund = charge.amount_refunded >= charge.amount;
+
+        // ── BLOCKING-B: Credit-bundle refund — debit agentCreditBalance ───
+        // The agentCreditBalance schema is keyed by userId (one row per user)
+        // with no charge linkage. To detect a credit-bundle refund we fetch
+        // the original PaymentIntent and inspect its metadata, which is
+        // populated at credit-bundle checkout (see checkout.session.completed
+        // → mode === 'payment' → metadata.credits_bundle).
+        //
+        // Heuristic: if the PaymentIntent carries credits_bundle + credits_tasks
+        // metadata, this charge is a credit-bundle purchase. Debit the
+        // refunded user's balance (and totalPurchased) by `credits_tasks`,
+        // clamped at 0 — the customer may have already spent the credits.
+        //
+        // Ambiguity policy: if revealui_user_id is missing AND the user
+        // cannot be uniquely resolved from stripeCustomerId (multiple matches
+        // or none), we log a warning and skip — defer to admin manual action
+        // rather than guess.
+        const paymentIntentId =
+          typeof charge.payment_intent === 'string'
+            ? charge.payment_intent
+            : (charge.payment_intent?.id ?? null);
+        let refundPi: Stripe.PaymentIntent | null = null;
+        if (paymentIntentId) {
+          try {
+            refundPi = await stripe.paymentIntents.retrieve(paymentIntentId);
+          } catch (err) {
+            logger.warn('Failed to retrieve PaymentIntent for refund — skipping credit-debit', {
+              customerId,
+              chargeId: charge.id,
+              paymentIntentId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          }
+          if (refundPi?.metadata?.credits_bundle) {
+            const pi = refundPi;
+            const bundleTasks = Number.parseInt(pi.metadata.credits_tasks ?? '0', 10);
+            // Prorate credit debit by the refund ratio so partial $ refunds
+            // debit a proportional number of credits. Full refunds debit the
+            // full bundle.
+            const refundRatio =
+              charge.amount > 0 ? Math.min(charge.amount_refunded / charge.amount, 1) : 1;
+            const refundedTasks = Math.round(bundleTasks * refundRatio);
+            let creditUserId = pi.metadata.revealui_user_id ?? null;
+
+            if (!creditUserId) {
+              const matches = await db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.stripeCustomerId, customerId))
+                .limit(2);
+              if (matches.length === 1) {
+                creditUserId = matches[0].id;
+              } else {
+                logger.warn(
+                  'Credit-bundle refund: ambiguous user lookup — skipping debit (defer to admin)',
+                  {
+                    customerId,
+                    chargeId: charge.id,
+                    paymentIntentId,
+                    matchCount: matches.length,
+                  },
+                );
+              }
+            }
+
+            if (creditUserId && refundedTasks > 0) {
+              await db
+                .update(agentCreditBalance)
+                .set({
+                  balance: sql`GREATEST(${agentCreditBalance.balance} - ${refundedTasks}, 0)`,
+                  totalPurchased: sql`GREATEST(${agentCreditBalance.totalPurchased} - ${refundedTasks}, 0)`,
+                  updatedAt: new Date(),
+                })
+                .where(eq(agentCreditBalance.userId, creditUserId));
+
+              logger.warn('Credit-bundle refund: balance debited', {
+                customerId,
+                chargeId: charge.id,
+                userId: creditUserId,
+                refundedTasks,
+                bundle: pi.metadata.credits_bundle,
+              });
+              auditLicenseEvent(db, 'credits.refunded', 'warn', {
+                customerId,
+                chargeId: charge.id,
+                userId: creditUserId,
+                refundedTasks,
+                bundle: pi.metadata.credits_bundle,
+              });
+            }
+          }
+        }
+
+        if (isFullRefund) {
+          // S2: resolve the subscription this charge backs ONCE (Charge →
+          // Invoice → Subscription) so we can both scope the license revoke to
+          // that subscription and cancel it below. Resolving once keeps a single
+          // Stripe invoices.retrieve call (a second call would break the
+          // single-mock refund-cancel test and double the Stripe round-trip).
+          const refundSubscriptionId = await resolveSubscriptionIdFromCharge(stripe, charge);
+
+          // A5 fix: Revoke the perpetual license when its originating charge is
+          // fully refunded — but ONLY the specific license identified by
+          // `license_id` in the PaymentIntent metadata (written back at issuance;
+          // see the perpetual checkout saga). A refund whose PaymentIntent has no
+          // resolvable `license_id` must NEVER fall back to revoking every
+          // perpetual license the customer owns — that collateral-revokes
+          // unrelated concurrent perpetual purchases. The unresolved case is
+          // logged + audited for manual review instead of mass-revoking.
+          if (refundPi?.metadata?.perpetual === 'true') {
+            const perpetualLicenseId = refundPi.metadata.license_id ?? null;
+            const perpetualTier = refundPi.metadata.tier ?? 'pro';
+
+            if (!perpetualLicenseId) {
+              logger.error(
+                'Perpetual refund missing license_id in PaymentIntent metadata  -  NOT revoking (manual review required)',
+                undefined,
+                {
+                  customerId,
+                  chargeId: charge.id,
+                  amountRefunded: charge.amount_refunded,
+                },
+              );
+              auditLicenseEvent(db, 'license.perpetual.refund.unresolved', 'warn', {
+                customerId,
+                chargeId: charge.id,
+                amountRefunded: charge.amount_refunded,
+              });
+            } else {
+              await db
+                .update(licenses)
+                .set({ status: 'revoked', updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(licenses.id, perpetualLicenseId),
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.perpetual, true),
+                    isNull(licenses.deletedAt),
+                  ),
+                );
+
+              resetLicenseState();
+              resetDbStatusCache();
+
+              logger.warn('Perpetual license revoked: full refund issued', {
+                customerId,
+                chargeId: charge.id,
+                perpetualLicenseId,
+                tier: perpetualTier,
+                amountRefunded: charge.amount_refunded,
+              });
+              auditLicenseEvent(db, 'license.perpetual.revoked.refund', 'warn', {
+                customerId,
+                chargeId: charge.id,
+                perpetualLicenseId,
+                tier: perpetualTier,
+                amountRefunded: charge.amount_refunded,
+              });
+
+              const perpetualEmail =
+                charge.billing_details?.email ??
+                charge.receipt_email ??
+                (await findUserEmailByCustomerId(db, customerId));
+              if (perpetualEmail) {
+                sendPerpetualLicenseRevokedEmail(perpetualEmail, {
+                  tier: perpetualTier,
+                  amountRefunded: charge.amount_refunded,
+                  currency: charge.currency,
+                }).catch((err) => {
+                  logger.error('Failed to send perpetual license revoked email', undefined, {
+                    detail: err instanceof Error ? err.message : 'unknown',
+                  });
+                });
+              }
+            }
+          }
+
+          // S2: scope the revoke to the subscription this refunded charge backs.
+          // A customer with multiple active subscriptions must lose only the
+          // refunded one's license, not all of them. When the charge cannot be
+          // traced to a subscription (non-invoice charge or broken chain) fall
+          // back to the prior all-non-perpetual revoke — strictly safer, never
+          // under-revokes. Perpetual licenses are handled above.
+          const refundRevokeWhere = refundSubscriptionId
+            ? and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.perpetual, false),
+                eq(licenses.subscriptionId, refundSubscriptionId),
+                isNull(licenses.deletedAt),
+              )
+            : and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.perpetual, false),
+                isNull(licenses.deletedAt),
+              );
+          await db
+            .update(licenses)
+            .set({ status: 'revoked', updatedAt: new Date() })
+            .where(refundRevokeWhere);
+
+          await syncHostedSubscriptionState(db, {
+            customerId,
+            subscriptionId: null,
+            status: 'revoked',
+            mode: event.livemode ? 'live' : 'test',
+            eventTimestamp: new Date(event.created * 1000),
+          });
+
+          resetLicenseState();
+          resetDbStatusCache();
+          void recordJtisForRevokedCustomerLicenses(db, customerId, 'charge.refunded').catch(
+            (err) => {
+              logger.warn('jti denylist write failed after charge.refunded', {
+                error: err instanceof Error ? err.message : 'unknown',
+              });
+            },
+          );
+
+          logger.warn('License revoked: full refund issued', {
+            customerId,
+            chargeId: charge.id,
+            amountRefunded: charge.amount_refunded,
+            amount: charge.amount,
+          });
+          auditLicenseEvent(db, 'license.revoked.refund', 'warn', {
+            customerId,
+            chargeId: charge.id,
+            amountRefunded: charge.amount_refunded,
+            amount: charge.amount,
+          });
+
+          // ── BLOCKING-C: Cancel the underlying Stripe subscription ────────
+          // Without this, Stripe continues invoicing the customer at the next
+          // cycle while our entitlement is 'revoked' — producing immediate
+          // "I got a refund and you charged me again" confusion + likely
+          // chargebacks. Uses the subscription resolved at the top of this
+          // block. Idempotent: if the subscription is already canceled, Stripe
+          // returns resource_missing / "No such subscription" / "already
+          // canceled"; we log info and continue.
+          if (refundSubscriptionId) {
+            try {
+              await stripe.subscriptions.cancel(refundSubscriptionId, {
+                invoice_now: false,
+                prorate: false,
+              });
+              logger.warn('Stripe subscription canceled after full refund', {
+                customerId,
+                chargeId: charge.id,
+                subscriptionId: refundSubscriptionId,
+              });
+              auditLicenseEvent(db, 'subscription.canceled.refund', 'warn', {
+                customerId,
+                chargeId: charge.id,
+                subscriptionId: refundSubscriptionId,
+              });
+            } catch (cancelErr) {
+              // Already-canceled is the common idempotent case. Stripe
+              // surfaces it as a StripeInvalidRequestError with
+              // code='resource_missing' (deleted) or a message containing
+              // 'already canceled' / 'already been canceled'. Treat all
+              // of these as a no-op success.
+              const msg = cancelErr instanceof Error ? cancelErr.message : 'unknown';
+              const code = (cancelErr as { code?: string }).code;
+              // M2 no-regex: detect Stripe's idempotent "already canceled"
+              // outcomes via case-insensitive substring checks. Covers
+              // "already canceled" / "already cancelled" / "already been
+              // cancel(l)ed" and "no such subscription".
+              const lowerMsg = msg.toLowerCase();
+              const isAlreadyCanceled =
+                code === 'resource_missing' ||
+                (lowerMsg.includes('already') && lowerMsg.includes('cancel')) ||
+                lowerMsg.includes('no such subscription');
+              if (isAlreadyCanceled) {
+                logger.info(
+                  'Stripe subscription already canceled — refund cancel is no-op (idempotent)',
+                  {
+                    customerId,
+                    chargeId: charge.id,
+                    subscriptionId: refundSubscriptionId,
+                    detail: msg,
+                  },
+                );
+              } else {
+                // Unexpected error — log loudly but don't crash the
+                // webhook (email + audit-log already wrote; subscription
+                // cancel can be retried by admin).
+                logger.error('Failed to cancel Stripe subscription after full refund', undefined, {
+                  customerId,
+                  chargeId: charge.id,
+                  subscriptionId: refundSubscriptionId,
+                  detail: msg,
+                  code,
+                });
+              }
+            }
+          }
+        } else {
+          logger.info('Partial refund issued  -  license retained', {
+            customerId,
+            chargeId: charge.id,
+            amountRefunded: charge.amount_refunded,
+            amount: charge.amount,
+          });
+        }
+
+        // Notify customer about the refund (both full and partial)
+        const refundEmail = charge.billing_details?.email ?? charge.receipt_email;
+        if (refundEmail) {
+          sendRefundProcessedEmail(refundEmail, {
+            isFullRefund,
+            amountRefunded: charge.amount_refunded,
+            currency: charge.currency,
+          }).catch((err) => {
+            logger.warn('Failed to send refund notification email', {
+              customerId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          });
+        }
+        break;
+      }
+    }
+
+    // Side effects completed without throwing  -  mark the claim done. Until
+    // here the row is 'processing'; an uncaught crash/timeout before this point
+    // leaves it reclaimable (a later Stripe retry re-runs the handler) instead
+    // of a permanent dedup marker that silently drops a paid event.
+    await markCompleted(db, event.id);
+  } catch (err) {
+    const cleanedUp = await unmarkProcessed(db, event.id);
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    // Surface the wrapped DB/driver cause (e.g. a Postgres "duplicate key" or
+    // "column does not exist" inside a DrizzleQueryError). err.message alone is
+    // just the failed-query text, which hides the actual reason.
+    const cause =
+      err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
+    logger.error('Webhook handler error', err instanceof Error ? err : undefined, {
+      detail: msg,
+      cause,
+      eventType: event.type,
+    });
+
+    // Fire-and-forget alert to founder  -  critical for checkout failures where
+    // customer has paid but license was not generated.
+    const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+    sendWebhookFailureAlert(alertEmail, {
+      eventId: event.id,
+      eventType: event.type,
+      error: msg,
+      customerId: (() => {
+        const obj = event.data.object;
+        if ('customer' in obj && obj.customer) {
+          return typeof obj.customer === 'string'
+            ? obj.customer
+            : typeof obj.customer === 'object' && 'id' in obj.customer
+              ? obj.customer.id
+              : undefined;
+        }
+        return undefined;
+      })(),
+    }).catch((alertErr) => {
+      logger.error('Failed to send webhook failure alert', undefined, {
+        error: alertErr instanceof Error ? alertErr.message : 'unknown',
+      });
+    });
+
+    if (cleanedUp) {
+      // Idempotency marker removed — Stripe retries will reprocess from scratch.
+      return c.json({ error: 'Webhook processing failed' }, 500);
+    }
+
+    // CRITICAL: Idempotency marker could NOT be removed (3 DB retries failed).
+    // Returning 500 would cause Stripe to retry, but the stale marker makes
+    // checkAndMarkProcessed return "duplicate" → 200 → Stripe stops.
+    // Result: customer paid, no license, silent drop.
+    //
+    // Record the event for manual reconciliation and return 200 to stop
+    // Stripe's retry loop immediately (retries would be swallowed anyway).
+    const obj = event.data.object;
+    const stripeObjId = 'id' in obj ? (obj as { id: string }).id : undefined;
+    const objType = 'object' in obj ? (obj as { object: string }).object : undefined;
+    const custId =
+      'customer' in obj && obj.customer
+        ? typeof obj.customer === 'string'
+          ? obj.customer
+          : typeof obj.customer === 'object' && 'id' in obj.customer
+            ? (obj.customer as { id: string }).id
+            : undefined
+        : undefined;
+
+    try {
+      await db
+        .insert(unreconciledWebhooks)
+        .values({
+          eventId: event.id,
+          eventType: event.type,
+          customerId: custId ?? null,
+          stripeObjectId: stripeObjId ?? null,
+          objectType: objType ?? null,
+          errorTrace: msg,
+        })
+        .onConflictDoNothing();
+    } catch (insertErr) {
+      // If even the reconciliation INSERT fails, the DB is fully down.
+      // The alert email and CRITICAL log from unmarkProcessed are the last resort.
+      logger.error('Failed to insert unreconciled webhook record', undefined, {
+        eventId: event.id,
+        error: insertErr instanceof Error ? insertErr.message : 'unknown',
+      });
+    }
+
+    logger.error(
+      'Returning 200 despite processing failure to prevent stale-idempotency silent drop',
+      undefined,
+      { eventId: event.id, eventType: event.type },
+    );
+    return c.json(
+      {
+        received: true as const,
+        status: 'unreconciled' as const,
+        reference: event.id,
+      },
+      200,
+    );
+  }
+
+  return c.json({ received: true as const }, 200);
+});
+
+export default app;
