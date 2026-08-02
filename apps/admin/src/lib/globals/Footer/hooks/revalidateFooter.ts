@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache';
+import { getCacheLogger, revalidateTag } from '@revealui/cache';
 
 type RevalidateFooterArgs = {
   doc: unknown;
@@ -15,7 +15,11 @@ export const revalidateFooter = ({ doc, req }: RevalidateFooterArgs) => {
   const revealui = req.revealui;
   revealui?.logger?.info?.(`Revalidating footer`);
 
-  revalidateTag('global_footer', 'page');
+  void revalidateTag('global_footer').catch((error: unknown) => {
+    getCacheLogger().error('revalidateFooter: revalidateTag failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 
   return doc;
 };

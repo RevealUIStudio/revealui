@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache';
+import { getCacheLogger, revalidateTag } from '@revealui/cache';
 
 type RevalidateHeaderArgs = {
   doc: unknown;
@@ -15,7 +15,11 @@ export const revalidateHeader = ({ doc, req }: RevalidateHeaderArgs) => {
   const revealui = req.revealui;
   revealui?.logger?.info?.(`Revalidating header`);
 
-  revalidateTag('global_header', 'page');
+  void revalidateTag('global_header').catch((error: unknown) => {
+    getCacheLogger().error('revalidateHeader: revalidateTag failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 
   return doc;
 };

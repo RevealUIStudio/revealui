@@ -10,9 +10,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Role } from '@/lib/access/permissions/roles';
 
-// ─── Mock next/cache before any imports that use it ─────────────────────────
-vi.mock('next/cache', () => ({
-  revalidateTag: vi.fn(),
+// ─── Mock @revealui/cache before any imports that use it ───────────────────
+vi.mock('@revealui/cache', () => ({
+  revalidateTag: vi.fn(async () => 0),
+  revalidatePath: vi.fn(async () => 0),
+  getCacheLogger: () => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() }),
 }));
 
 // ─── ensureFirstUserIsSuperAdmin ────────────────────────────────────────────
@@ -271,13 +273,13 @@ describe('revalidateRedirects', () => {
   }
 
   it('calls revalidateTag to invalidate redirect cache', async () => {
-    const { revalidateTag } = await import('next/cache');
+    const { revalidateTag } = await import('@revealui/cache');
     const hook = await loadHook();
 
     const doc = { id: 'redirect-1', from: '/old', to: '/new' };
     hook({ doc });
 
-    expect(revalidateTag).toHaveBeenCalledWith('redirects', 'page');
+    expect(revalidateTag).toHaveBeenCalledWith('redirects');
   });
 
   it('returns the doc unchanged', async () => {
@@ -320,7 +322,7 @@ describe('revalidateRedirects', () => {
   });
 
   it('invalidates cache on every call regardless of operation', async () => {
-    const { revalidateTag } = await import('next/cache');
+    const { revalidateTag } = await import('@revealui/cache');
     const hook = await loadHook();
 
     hook({ doc: { id: '1' }, context: { operation: 'create' } });

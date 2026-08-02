@@ -1,5 +1,5 @@
+import { createCachedFunction } from '@revealui/cache';
 import type { Redirect } from '@revealui/core/types/admin';
-import { unstable_cache } from 'next/cache';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 import { asDocuments } from '@/lib/utils/type-guards';
 
@@ -17,12 +17,13 @@ export async function getRedirects(depth = 1): Promise<Redirect[]> {
 }
 
 /**
- * Returns a unstable_cache function mapped with the cache tag for 'redirects'.
- *
+ * Returns a cached function mapped with the cache tag for 'redirects'.
  * Cache all redirects together to avoid multiple fetches.
+ * (GAP-194 3.7a: @revealui/cache)
  */
 export function getCachedRedirects() {
-  return unstable_cache(async () => getRedirects(), ['redirects'], {
+  return createCachedFunction(async () => getRedirects(), {
+    keyParts: ['redirects'],
     tags: ['redirects'],
   });
 }

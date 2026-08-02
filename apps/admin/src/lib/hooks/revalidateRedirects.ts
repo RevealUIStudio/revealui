@@ -1,5 +1,5 @@
+import { getCacheLogger, revalidateTag } from '@revealui/cache';
 import type { RevealUIInstance } from '@revealui/core';
-import { revalidateTag } from 'next/cache';
 
 interface RevalidateContext {
   revealui?: RevealUIInstance;
@@ -22,7 +22,12 @@ export function revalidateRedirects(args: {
     // Ignore logging errors
   }
 
-  revalidateTag('redirects', 'page');
+  // Store APIs are async; afterChange hooks are sync — fire and log failures.
+  void revalidateTag('redirects').catch((error: unknown) => {
+    getCacheLogger().error('revalidateRedirects: revalidateTag failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 
   return args.doc;
 }

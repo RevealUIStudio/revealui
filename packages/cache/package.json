@@ -1,7 +1,7 @@
 {
   "name": "@revealui/cache",
-  "version": "0.2.5",
-  "description": "Cache store adapters (memory, PGlite, browser) and distributed invalidation channel for RevealUI. Edge/CDN helpers were removed (C11: tests-only, zero app consumers).",
+  "version": "0.3.0",
+  "description": "Cache store adapters, tag-aware createCachedFunction/revalidate*, and distributed invalidation for RevealUI.",
   "license": "MIT",
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",

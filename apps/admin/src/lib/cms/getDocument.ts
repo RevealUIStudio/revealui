@@ -1,5 +1,5 @@
+import { createCachedFunction } from '@revealui/cache';
 import type { RevealDocument } from '@revealui/core';
-import { unstable_cache } from 'next/cache';
 import { getRevealUIInstance } from '@/lib/utils/revealui-singleton';
 
 type Collection = string;
@@ -26,15 +26,16 @@ async function getDocument(
 
 /**
  * Returns a cached function mapped with the cache tag for the slug
+ * (GAP-194 3.7a: @revealui/cache). Tag shape preserved: `${collection}_${slug}`.
  */
 export const getCachedDocument = (
   collection: Collection,
   slug: string,
 ): (() => Promise<RevealDocument | undefined>) =>
-  unstable_cache(
+  createCachedFunction(
     async (): Promise<RevealDocument | undefined> => getDocument(collection, slug),
-    [String(collection), slug],
     {
+      keyParts: [String(collection), slug],
       tags: [`${String(collection)}_${slug}`],
     },
   );
