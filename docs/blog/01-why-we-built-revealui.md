@@ -215,7 +215,7 @@ I've been on the other side of this equation. I've built production systems on c
 
 RevealUI's business primitives (auth, content, collections, the REST API, the admin dashboard, the CLI, the component library) are MIT licensed. You can inspect every line. You can fork it. You can self-host it on your own infrastructure. You can rip out the parts you don't need and keep the parts you do.
 
-The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available.
+The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things teams need for AI capabilities are commercially licensed but source-available.
 
 To be precise about the split: 24 of the 31 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
 
@@ -233,7 +233,7 @@ Some numbers on what's actually shipped:
 - **100 database tables** via Drizzle ORM on NeonDB (Postgres)
 - **65 UI components** in `@revealui/presentation`, with one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package
 - **13 first-party MCP servers** in `@revealui/mcp`
-- **Extensive test coverage** across unit, integration, and E2E layers (run `pnpm test` for the current count)
+- **Unit, integration, and E2E tests** across the monorepo (run `pnpm test` for the current count)
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth
 
@@ -243,7 +243,7 @@ I want to be honest about where RevealUI is and isn't the right choice.
 
 **It's opinionated.** That's the **Justifiable** principle. Every choice has a reason you can explain in one sentence. React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend. But the admin dashboard is React. The point isn't that these are the *right* choices for every team. It's that they're a coherent set of choices that work well together. When your needs outgrow a specific tool, swap it. The **Orthogonal** architecture means nothing is welded shut.
 
-**It's early.** This is a v0. The core is stable (extensive test coverage, full TypeScript strict mode, comprehensive security hardening). Run `pnpm test` for the current count. **Stripe is live** in production. The third-party plugin marketplace is still early. The template library is small. The community is just getting started. I keep an honest, file-by-file account of what does and doesn't work at [What Works Today](../WHAT_WORKS_TODAY.md).
+**It's early.** This is a v0. The core is stable (unit and integration tests, full TypeScript strict mode, security hardening). Run `pnpm test` for the current count. **Stripe is live** in production. The third-party plugin marketplace is still early. The template library is small. The community is just getting started. I keep an honest, file-by-file account of what does and doesn't work at [What Works Today](../WHAT_WORKS_TODAY.md).
 
 **It's a solo project.** I'm one developer at RevealUI Studio. The upside is that decisions are fast and the vision is coherent. The downside is that there's one person triaging issues and reviewing PRs. I'm building in public precisely because I need the community to grow with the project.
 

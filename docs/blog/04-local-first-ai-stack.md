@@ -24,7 +24,7 @@ RevealUI's local-first story comes from four independent pieces that happen to c
 | **Dev environment** | Nix flakes + direnv | Reproducible environment, zero manual tool installs |
 | **Business logic** | RevealUI | Auth, content, payments, AI agents  -  all wired |
 
-Each layer independently solves a real problem. Together, they give you something genuinely unusual: a full AI-powered business software stack that can run without a network connection.
+Each layer independently solves a real problem. Together, they give you something genuinely unusual: a full business software stack with local AI that can run without a network connection.
 
 ## RevVault: secrets that don't travel
 
@@ -107,7 +107,7 @@ sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
 └── @revealui/mcp                    # MCP tool integrations
 ```
 
-The entire AI-powered business stack  -  People, Content, Offers, Payments, and Agents, running without a cloud API call in sight.
+The entire business stack with local AI  -  People, Content, Offers, Payments, and Agents, running without a cloud API call in sight.
 
 ## Who this is for
 

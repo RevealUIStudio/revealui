@@ -4,6 +4,20 @@ import { describe, expect, it } from 'vitest';
 import { extractBlogMdProseUnits } from '../blog-md-prose.js';
 
 describe('extractBlogMdProseUnits', () => {
+  it('skips YAML frontmatter', () => {
+    const md = [
+      '---',
+      'title: "Hello world long enough title here"',
+      'author: Someone',
+      '---',
+      '',
+      'This is the first real paragraph with enough characters to qualify as prose.',
+    ].join('\n');
+    const units = extractBlogMdProseUnits(md);
+    expect(units.some((u) => u.includes('author: Someone'))).toBe(false);
+    expect(units.some((u) => u.includes('first real paragraph'))).toBe(true);
+  });
+
   it('skips fenced code and keeps paragraph prose', () => {
     const md = [
       '# Hello world this is a long enough heading',

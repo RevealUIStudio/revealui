@@ -45,15 +45,28 @@ function stripLineDecorators(line: string): string {
 }
 
 /**
+ * Drop leading YAML frontmatter (--- … ---). Body --- rules are handled later.
+ */
+export function stripYamlFrontmatter(markdown: string): string {
+  const lines = markdown.split('\n');
+  if ((lines[0]?.trim() ?? '') !== '---') return markdown;
+  for (let i = 1; i < lines.length; i += 1) {
+    if ((lines[i]?.trim() ?? '') === '---') {
+      return lines.slice(i + 1).join('\n');
+    }
+  }
+  return markdown;
+}
+
+/**
  * Split markdown into prose units (paragraphs + list items / headings that
  * pass the prose predicates). Fenced code blocks are skipped entirely.
  */
 export function extractBlogMdProseUnits(markdown: string): string[] {
-  const lines = markdown.split('\n');
+  const lines = stripYamlFrontmatter(markdown).split('\n');
   const units: string[] = [];
   let inFence = false;
   let para: string[] = [];
-
   const flushPara = (): void => {
     if (para.length === 0) return;
     const joined = para.join(' ').replace(/\s+/g, ' ').trim();
