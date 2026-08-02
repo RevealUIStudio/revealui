@@ -465,3 +465,18 @@ export const AUDIT_RECEIPTS_DOC: EvidenceRef = {
   ref: 'docs/security/AUDIT_RECEIPTS.md',
   note: 'Stage 4 honesty: what Free/Pro get vs Max root delivery; offline CLI; verification never paid',
 };
+export const STARTER_KIT: EvidenceRef = {
+  kind: 'code',
+  ref: 'examples/starter-kit',
+  note: 'GAP-434 content-only kit: recipes, receipt verify, Postgres bootstrap (npm-resolvable)',
+};
+export const STARTER_KIT_GETTING_STARTED: EvidenceRef = {
+  kind: 'code',
+  ref: 'examples/starter-kit/GETTING-STARTED.md',
+  note: 'buyer flow documents create-revealui + bootstrap',
+};
+export const STARTER_KIT_RECEIPT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'examples/starter-kit/src/receipts/__tests__/roundtrip.test.ts#signs an action log and verifies it as valid',
+  note: 'offline receipt sign+verify roundtrip in the kit',
+};

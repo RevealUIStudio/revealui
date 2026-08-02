@@ -47,7 +47,49 @@ export const PRICING_HERO_SUBTEXT = {
 export const PRICING_HERO_NAV_ANCHORS = [
   { label: 'Subscription', href: '#subscriptions' },
   { label: 'Perpetual', href: '#perpetual' },
+  { label: 'Starter Kit', href: '#starter-kit' },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Starter Kit (GAP-434) — $299 one-time content-only product on Polar.
+// Checkout URL lands when the Polar product is live; until then primary CTA
+// is email so we never claim a buy button that does not exist.
+// ---------------------------------------------------------------------------
+
+/** Polar product URL when the $299 listing is live (SITE.urls.starterKitCheckout). */
+const STARTER_KIT_CHECKOUT_URL = SITE.urls.starterKitCheckout.trim();
+
+export const PRICING_STARTER_KIT = {
+  id: 'starter-kit',
+  eyebrow: 'One-time',
+  heading: 'RevealUI Starter Kit',
+  price: '$299',
+  priceNote: 'one-time',
+  body: 'A content-only kit for builders who want governed agent recipes and signed receipt demos on top of create-revealui, without buying a Pro subscription. Not a Pro entitlement and not a full Fleet stamp.',
+  points: [
+    'npm create-revealui path plus Postgres-only bootstrap scripts',
+    'Governed agent recipes that write a receipt you can verify offline',
+    'Ships as content and scripts, not a Pro license key or runtime upgrade',
+    'Sold on Polar when checkout opens; private Substack access is manual at launch volume',
+  ],
+  badge: STARTER_KIT_CHECKOUT_URL ? null : ('Checkout opens on Polar' as const),
+  primaryCta: STARTER_KIT_CHECKOUT_URL
+    ? ({
+        label: 'Buy the Starter Kit on Polar',
+        href: STARTER_KIT_CHECKOUT_URL,
+        external: true,
+      } satisfies Cta)
+    : ({
+        label: 'Email to reserve the Starter Kit',
+        href: `mailto:${SITE.emails.founder}?subject=${encodeURIComponent('RevealUI Starter Kit ($299)')}`,
+        external: true,
+      } satisfies Cta),
+  secondaryCta: {
+    label: 'Read the kit getting-started guide',
+    href: `${SITE.urls.repo}/tree/test/examples/starter-kit`,
+    external: true,
+  } satisfies Cta,
+} as const;
 
 export const PRICING_TRACK_A_SECTION = {
   eyebrow: 'Subscription',
