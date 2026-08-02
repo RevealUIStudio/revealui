@@ -47,7 +47,41 @@ export const PRICING_HERO_SUBTEXT = {
 export const PRICING_HERO_NAV_ANCHORS = [
   { label: 'Subscription', href: '#subscriptions' },
   { label: 'Perpetual', href: '#perpetual' },
+  { label: 'Starter Kit', href: '#starter-kit' },
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Starter Kit (GAP-434) — $299 one-time content-only product.
+// Merchant: Stripe Payment Link (owner re-rule 2026-08-02, path C).
+// Checkout URL: SITE.urls.starterKitCheckout (live buy.stripe.com link).
+// ---------------------------------------------------------------------------
+
+export const PRICING_STARTER_KIT = {
+  id: 'starter-kit',
+  eyebrow: 'One-time',
+  heading: 'RevealUI Starter Kit',
+  price: '$299',
+  priceNote: 'one-time',
+  body: 'A content-only kit for builders who want governed agent recipes and signed receipt demos on top of create-revealui, without buying a Pro subscription. Not a Pro entitlement and not a full Fleet stamp.',
+  points: [
+    'npm create-revealui path plus Postgres-only bootstrap scripts',
+    'Governed agent recipes that write a receipt you can verify offline',
+    'Ships as content and scripts, not a Pro license key or runtime upgrade',
+    'Checkout on Stripe; private GitHub repo access and Substack invite are manual at launch volume',
+  ],
+  badge: null,
+  primaryCta: {
+    // ≥26 chars for claims-evidence prose gate (MIN_PROSE_LENGTH).
+    label: 'Buy the RevealUI Starter Kit',
+    href: SITE.urls.starterKitCheckout,
+    external: true,
+  } satisfies Cta,
+  secondaryCta: {
+    label: 'Read the kit getting-started guide',
+    href: `${SITE.urls.repo}/tree/test/examples/starter-kit`,
+    external: true,
+  } satisfies Cta,
+} as const;
 
 export const PRICING_TRACK_A_SECTION = {
   eyebrow: 'Subscription',

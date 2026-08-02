@@ -26,6 +26,7 @@ import {
   PRICING_HERO_SUBTEXT,
   PRICING_HIGHLIGHTED_BADGE,
   PRICING_NEWSLETTER_LABEL,
+  PRICING_STARTER_KIT,
   PRICING_TRACK_A_SECTION,
   PRICING_TRACK_C_SECTION,
   PRICING_TRIAL_NOTE,
@@ -123,18 +124,15 @@ export function PricingPage() {
             {PRICING_HERO_SUBTEXT.suffix}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
-            <a
-              href={PRICING_HERO_NAV_ANCHORS[0].href}
-              className="rounded-full bg-primary/10 px-4 py-1.5 text-primary ring-1 ring-primary/20 transition-colors hover:bg-primary/15"
-            >
-              {PRICING_HERO_NAV_ANCHORS[0].label}
-            </a>
-            <a
-              href={PRICING_HERO_NAV_ANCHORS[1].href}
-              className="rounded-full bg-primary/10 px-4 py-1.5 text-primary ring-1 ring-primary/20 transition-colors hover:bg-primary/15"
-            >
-              {PRICING_HERO_NAV_ANCHORS[1].label}
-            </a>
+            {PRICING_HERO_NAV_ANCHORS.map((anchor) => (
+              <a
+                key={anchor.href}
+                href={anchor.href}
+                className="rounded-full bg-primary/10 px-4 py-1.5 text-primary ring-1 ring-primary/20 transition-colors hover:bg-primary/15"
+              >
+                {anchor.label}
+              </a>
+            ))}
           </div>
         </div>
       </section>
@@ -450,6 +448,68 @@ export function PricingPage() {
               >
                 {PRICING_AGENT_CTA_LINKS.apiDocs.label}
               </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* GAP-434 Starter Kit — one-time content product (Polar when live) */}
+      <section id="starter-kit" className="py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border sm:p-10">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-semibold uppercase tracking-widest text-primary">
+                {PRICING_STARTER_KIT.eyebrow}
+              </span>
+              {PRICING_STARTER_KIT.badge ? (
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                  {PRICING_STARTER_KIT.badge}
+                </span>
+              ) : null}
+            </div>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {PRICING_STARTER_KIT.heading}
+            </h2>
+            <p className="mt-4 flex items-baseline gap-x-2">
+              <span className="text-4xl font-bold text-foreground">
+                {PRICING_STARTER_KIT.price}
+              </span>
+              <span className="text-sm text-muted-foreground">{PRICING_STARTER_KIT.priceNote}</span>
+            </p>
+            <p className="mt-4 text-lg text-muted-foreground">{PRICING_STARTER_KIT.body}</p>
+            <ul className="mt-6 space-y-3">
+              {PRICING_STARTER_KIT.points.map((point) => (
+                <li key={point} className="flex items-start gap-x-3">
+                  <IconCheckCircle className="mt-0.5 shrink-0 text-primary" size="md" />
+                  <span className="text-sm text-muted-foreground">{point}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="w-full sm:w-auto">
+                <a
+                  href={PRICING_STARTER_KIT.primaryCta.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {PRICING_STARTER_KIT.primaryCta.label}
+                </a>
+              </Button>
+              <Button
+                asChild
+                appearance="outline"
+                variant="neutral"
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                <a
+                  href={PRICING_STARTER_KIT.secondaryCta.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {PRICING_STARTER_KIT.secondaryCta.label}
+                </a>
+              </Button>
             </div>
           </div>
         </div>

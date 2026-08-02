@@ -32,6 +32,11 @@ export const PRICING_FAQS: readonly FaqItem[] = [
       'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have.',
   },
   {
+    question: 'What is the RevealUI Starter Kit?',
+    answer:
+      'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is on Stripe. After purchase we invite you to the private kit repo and Substack section within one business day.',
+  },
+  {
     question: 'Can I upgrade or downgrade my plan?',
     answer: `Yes, you can upgrade your plan at any time. You'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact ${SITE.emails.support}.`,
   },
