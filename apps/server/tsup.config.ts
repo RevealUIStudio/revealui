@@ -23,6 +23,14 @@ export default defineConfig({
   // only by the E2E smoke job, 2026-07-25 promotion). External, Node loads
   // the CJS chain natively from node_modules like the other Pro packages.
   external: ['pg', 'pg-native', 'stripe', '@revealui/ai', '@revealui/services', '@revealui/mcp'],
+  // Prefer package.json "node" export condition for deps such as @lexical/code
+  // (LexicalCode.node.mjs). Without this, esbuild picks the default/browser
+  // chain through @lexical/code-prism which assigns Prism.languages.* against
+  // a missing global and kills `node dist/index.js` at import time
+  // (E2E Smoke on promote PRs, 2026-08-02).
+  esbuildOptions(options) {
+    options.conditions = ['node', 'import', 'module', 'default'];
+  },
   // OG fonts + resvg WASM are read at runtime from dist (copy-og-fonts /
   // copy-resvg-wasm). Do NOT binary-inline .ttf — that worked only in the
   // built bundle and broke `tsx watch` with ERR_UNKNOWN_FILE_EXTENSION

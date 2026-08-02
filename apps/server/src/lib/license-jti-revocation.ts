@@ -7,7 +7,11 @@
  * same customer.
  */
 
-import { readLicenseExp, readLicenseJti, resetLicenseState } from '@revealui/core';
+// Subpath only — bare `@revealui/core` is the package root barrel and pulls
+// client richtext / @lexical/code-prism into the server tsup bundle, which
+// throws `ReferenceError: Prism is not defined` at `node dist/index.js` boot
+// (E2E Smoke, 2026-08-02 promote).
+import { readLicenseExp, readLicenseJti, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getJtiRevocationEpoch, type JtiRevocationInput, recordJtiRevocations } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
