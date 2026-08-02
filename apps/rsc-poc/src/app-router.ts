@@ -1,32 +1,47 @@
 /**
- * Shared route table for the RSC POC (GAP-194 T8 + 2.3.1 auth dogfood).
- * Server and browser each call `createAppRouter()` — class instances are not
- * serialized across the RSC boundary; both sides register the same paths.
+ * Client-safe route table for the RSC POC.
+ *
+ * Browser entry imports this module — it must NOT pull
+ * `@revealui/router/server`, session ALS, or async server pages.
+ * Server-only wiring (useAction, real SessionPage, error loaders) lives in
+ * `app-router.server.ts`.
  */
 import { Router } from '@revealui/router/core';
 import type { ComponentType } from 'react';
-import { requireSessionForProtectedActions } from './auth/require-session.ts';
 import { ActionsPage } from './pages/actions.tsx';
 import { CounterPage } from './pages/counter.tsx';
 import { ErrorsPage } from './pages/errors.tsx';
 import { HomePage } from './pages/home.tsx';
 import { AppLayout } from './pages/layout.tsx';
 import { NotFoundPage } from './pages/not-found.tsx';
-import { SessionPage } from './pages/session.tsx';
 
 /** Demo pages take no props; router still passes params/data (ignored). */
-type DemoPage = ComponentType<{ params?: Record<string, string>; data?: unknown }>;
+export type DemoPage = ComponentType<{ params?: Record<string, string>; data?: unknown }>;
 
-export function createAppRouter(): Router {
+/**
+ * Placeholder for server-only SessionPage on the client. Soft-nav uses RSC
+ * payload for the real tree; match only needs a stable path entry.
+ */
+function SessionRouteStub(): React.ReactNode {
+  return null;
+}
+
+export interface CreateAppRouterOptions {
+  /** Override /session page (server passes real SessionPage). */
+  sessionPage?: DemoPage;
+}
+
+/**
+ * Shared path registration. Browser uses SessionRouteStub; server injects
+ * the real async SessionPage so match is not double-registered.
+ */
+export function createAppRouter(options: CreateAppRouterOptions = {}): Router {
   const router = new Router({
     rsc: {},
     notFound: NotFoundPage,
   });
 
-  // Phase 2.3.1: protected JS actions fail closed without dogfood session.
-  // useAction is Router API (D2.d), not a React hook — Biome rules-of-hooks false positive.
-  // biome-ignore lint/correctness/useHookAtTopLevel: Router.useAction mutation middleware
-  router.useAction(requireSessionForProtectedActions);
+  const sessionPage = options.sessionPage ?? (SessionRouteStub as DemoPage);
 
   router.register({
     path: '/',
@@ -48,7 +63,7 @@ export function createAppRouter(): Router {
   });
   router.register({
     path: '/session',
-    component: SessionPage as DemoPage,
+    component: sessionPage,
     layout: AppLayout,
     meta: { title: 'Session — RSC POC' },
   });

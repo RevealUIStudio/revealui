@@ -16,8 +16,7 @@ import {
   renderToReadableStream,
 } from '@vitejs/plugin-rsc/rsc';
 import type { ReactFormState } from 'react-dom/client';
-import { registerServerErrorRoutes } from './app-router.server.ts';
-import { createAppRouter } from './app-router.ts';
+import { createServerAppRouter } from './app-router.server.ts';
 import { sessionClearCookieHeader, sessionSetCookieHeader, signSession } from './auth/session.ts';
 import {
   bindRequestIdFromRequest,
@@ -36,8 +35,7 @@ export interface RscPayload {
   formState?: ReactFormState;
 }
 
-const router = createAppRouter();
-registerServerErrorRoutes(router);
+const router = createServerAppRouter();
 
 function renderMatchedTree(match: ReturnType<typeof router.match>): React.ReactNode {
   if (!match) {

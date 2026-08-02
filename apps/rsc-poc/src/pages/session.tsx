@@ -1,4 +1,4 @@
-import { getSession } from '../auth/session.ts';
+import { getSession } from '../auth/session-server.ts';
 import { SecretPingForm, WhoamiButton } from './session-client.tsx';
 
 export async function SessionPage(): Promise<React.ReactNode> {
