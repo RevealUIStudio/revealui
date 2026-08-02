@@ -39,5 +39,17 @@ if (!results[1].contentType.includes('text/x-component')) {
 results.push(await check('/counter', { bodyIncludes: ['Counter'] }));
 results.push(await check('/actions', { bodyIncludes: ['Actions'] }));
 results.push(await check('/nope', { expectStatus: 404, bodyIncludes: ['Not Found', '404'] }));
+results.push(
+  await check('/errors/not-found', {
+    expectStatus: 404,
+    bodyIncludes: ['Not Found', 'data-router-not-found'],
+  }),
+);
+results.push(
+  await check('/errors/boom', {
+    expectStatus: 500,
+    bodyIncludes: ['data-router-error', 'Go Home'],
+  }),
+);
 
 console.log(JSON.stringify({ ok: true, base, results }, null, 2));

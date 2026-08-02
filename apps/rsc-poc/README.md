@@ -24,7 +24,7 @@ plugin-rsc; Phase 2.2.2 T0–T7 built the engine; **T8** is the first real consu
 | `src/entry.ssr.tsx` | SSR from teed flight; payload inline owned by router |
 | `src/entry.browser.tsx` | Hydrate + `setRscPayloadLoader` + `useRscPayload` (2.2.3 router-owned nav) |
 | `src/auth/*` | Dogfood signed-cookie session + `useAction` requireSession (2.3.1) |
-| `src/pages/*` | Demo pages + server actions + `/session` |
+| `src/pages/*` | Demo pages + `/session` + `/errors` (2.3.2 boundaries) |
 
 ## Commands
 

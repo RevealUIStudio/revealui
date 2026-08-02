@@ -47,6 +47,7 @@ export {
 } from './actions';
 // React components and hooks
 export {
+  ErrorBoundary,
   Link,
   Navigate,
   RouterProvider,

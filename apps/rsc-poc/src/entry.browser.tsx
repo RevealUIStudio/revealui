@@ -5,6 +5,7 @@
 'use client';
 
 import {
+  ErrorBoundary,
   getRouterRedirect,
   Link,
   RouterProvider,
@@ -24,17 +25,25 @@ import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { createAppRouter } from './app-router.ts';
 import type { RscPayload } from './entry.rsc.tsx';
+import { ErrorFallback } from './pages/error-fallback.tsx';
 
 const router = createAppRouter();
 
 async function main(): Promise<void> {
   router.setRscPayloadLoader(async (url, signal) => {
-    return createFromFetch<RscPayload>(
-      fetch(url, {
-        headers: { accept: RSC_ACCEPT },
-        signal,
-      }),
-    );
+    const res = await fetch(url, {
+      headers: { accept: RSC_ACCEPT },
+      signal,
+    });
+    // Soft-nav hit a controlled 500 JSON body (2.3.2) — surface via navigation error.
+    if (res.status >= 500 && res.headers.get('X-Router-Error') === '1') {
+      const body = (await res.json()) as { message?: string };
+      throw new Error(body.message ?? 'Navigation failed');
+    }
+    if (!res.ok) {
+      throw new Error(`Navigation failed (${res.status})`);
+    }
+    return createFromFetch<RscPayload>(Promise.resolve(res));
   });
 
   const rscBase64 = (globalThis as Record<string, unknown>).__RSC_PAYLOAD__ as string | undefined;
@@ -95,9 +104,18 @@ async function main(): Promise<void> {
             }}
           >
             Navigation failed: {navError.message} <Link to={window.location.pathname}>Retry</Link>
+            {' · '}
+            <Link to="/">Home</Link>
           </div>
         ) : null}
-        {payload.root}
+        <ErrorBoundary
+          fallback={ErrorFallback}
+          resetKey={
+            typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/'
+          }
+        >
+          {payload.root}
+        </ErrorBoundary>
       </>
     );
   }

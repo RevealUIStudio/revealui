@@ -54,6 +54,11 @@ export interface Route<TData = unknown, TProps = Record<string, unknown>> {
   meta?: RouteMeta;
   /** Optional middleware that runs before this route's loader */
   middleware?: RouteMiddleware[];
+  /**
+   * Per-route render error boundary (ADR D5 / Phase 2.3.2).
+   * Wins over `RouterOptions.errorBoundary` when both are set.
+   */
+  errorBoundary?: ComponentType<{ error: Error }>;
   /** Nested child routes  -  children inherit parent's layout and middleware */
   children?: Route[];
 }

@@ -33,9 +33,16 @@ export function notFound(): never {
 }
 
 export function isRouterRedirect(error: unknown): error is RouterRedirect {
-  return error instanceof RouterRedirect;
+  // Name check survives duplicate module copies under plugin-rsc bundling.
+  return (
+    error instanceof RouterRedirect ||
+    (typeof error === 'object' && error !== null && (error as Error).name === 'RouterRedirect')
+  );
 }
 
 export function isRouterNotFound(error: unknown): error is RouterNotFound {
-  return error instanceof RouterNotFound;
+  return (
+    error instanceof RouterNotFound ||
+    (typeof error === 'object' && error !== null && (error as Error).name === 'RouterNotFound')
+  );
 }
