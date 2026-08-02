@@ -28,11 +28,10 @@ import type { Cta, FaqItem } from './types';
 
 export const HOME_HERO = {
   eyebrow: 'Open source. Self-hostable.',
-  // Owner ruling 2026-07-29: ship corpus L1 leverage-frame as default H1
-  // (06-copy-corpus.md §4.1 punch-list row 9). Subtitle stays the locked
-  // positioning form (copy-voice.md + ADR 2026-07-09 / 2026-07-21): two
-  // sentences + support. Receipt foil is NOT in the subtitle; it is the
-  // ReceiptCard caption under this hero.
+  // Owner ruling 2026-07-29: L1 H1. Subtitle is locked positioning form
+  // (copy-voice + ADR 2026-07-09). 2026-08-02: re-armed after GAP-355 close
+  // (stages 0–6 on test/main; prod GET /api/audit/public-key 200; S6-6 owner
+  // ruling option b). Receipt foil is NOT in the subtitle; it is RECEIPT_HERO_CAPTION.
   h1: 'Build it once. Every product after starts ahead.',
   subtitle: {
     sentence1:
@@ -64,6 +63,14 @@ export const HOME_HERO_FOUNDATION = {
 export const HOME_HERO_OWNERSHIP = {
   ...HOME_HERO,
   h1: 'Run your whole business on one runtime you own.',
+} as const;
+
+// Corpus L2 leverage-frame A/B (06-copy-corpus.md §4.1). Owner go 2026-07-31:
+// enable via ?hero=l2 only — not default traffic. Measurement still needs an
+// analytics sink (same note as foundation/ownership).
+export const HOME_HERO_L2 = {
+  ...HOME_HERO,
+  h1: 'Ship your next product on the work your last one finished.',
 } as const;
 
 // ---------------------------------------------------------------------------

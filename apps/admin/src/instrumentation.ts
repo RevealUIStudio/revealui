@@ -32,85 +32,19 @@ export async function register() {
   }
 
   // ── Forge boot license enforcement ─────────────────────────────────
-  // Mirrors apps/server validateLicenseAtStartup / detectDeploymentMode.
-  // Hosted SaaS (REVEALUI_DEPLOYMENT_MODE=hosted, or legacy private-key
-  // presence) is a no-op; Forge hard-fails on missing/invalid customer JWT.
-  // GAP-260 P4-1: MODE is the durable signal so admin can boot hosted with
-  // the signing private key ABSENT (signer isolation).
+  // Shared with apps/server via @revealui/core/revforge-license-boot
+  // (fleet-redundancy 2026-08-02). Hosted is a no-op; Forge hard-fails on
+  // missing/invalid customer JWT (GAP-260 / GAP-436).
   //
-  // We use process.exit(1) rather than `throw` because Next.js's
-  // instrumentation.ts contract is "never throw — it kills the entire
-  // runtime". process.exit(1) is the *intentional* kill, distinct from
-  // accidental crashes that the surrounding try/catch swallows.
-  //
-  // TODO: extract this block to @revealui/core/revforge-license-boot once
-  // the same pattern is needed in a third app. Today (api + admin) the
-  // ~25-line duplication is preferable to a new package boundary.
-  const { detectDeploymentMode } = await import('@revealui/core/deployment-mode');
-  if (process.env.SKIP_ENV_VALIDATION !== 'true' && detectDeploymentMode(process.env) === 'forge') {
-    // GAP-436 (owner-ruled 2026-07-26): a self-hosted boot with NO license key
-    // at all, that explicitly opts in via REVEALUI_ALLOW_UNLICENSED_SELF_HOST=
-    // true, is the plain OSS/self-host or marketplace-template path — not a
-    // RevForge-stamped kit (RevForge always mints and bakes a license key at
-    // stamp time). Mirrors apps/server/src/lib/validate-startup.ts
-    // validateLicenseAtStartup; the flag does nothing unless explicitly set,
-    // so a stamped kit's enforcement below is unchanged. A present-but-invalid
-    // key is still rejected regardless of this flag.
-    if (
-      !process.env.REVEALUI_LICENSE_KEY &&
-      process.env.REVEALUI_ALLOW_UNLICENSED_SELF_HOST === 'true'
-    ) {
-      const { logger } = await import('@revealui/core/observability/logger');
-      logger.info('no license key — running Free (OSS) tier');
-    } else {
-      const failures: string[] = [];
-      if (!process.env.REVEALUI_LICENSE_KEY) {
-        failures.push(
-          'REVEALUI_LICENSE_KEY is required for RevForge deployments. ' +
-            'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
-            'or contact the operator who stamped this kit. A plain self-host deployment ' +
-            'that intends to run without a license should set ' +
-            'REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true to boot at Free (OSS) tier instead.',
-        );
-      }
-      if (!process.env.REVEALUI_LICENSE_PUBLIC_KEY) {
-        failures.push(
-          'REVEALUI_LICENSE_PUBLIC_KEY is required for RevForge deployments. ' +
-            'Stamped kits embed this value in docker/.env.example.',
-        );
-      }
-      if (failures.length === 0) {
-        try {
-          const { validateLicenseKey } = await import('@revealui/core/license');
-          // Restore real newlines in a single-line PEM (split/join, no authored
-          // regex — mirrors @revealui/core/license normalizePem). GAP-259 P0-4.
-          const publicKey = (process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? '').split('\\n').join('\n');
-          const payload = await validateLicenseKey(
-            process.env.REVEALUI_LICENSE_KEY ?? '',
-            publicKey,
-          );
-          if (!payload) {
-            failures.push(
-              'REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
-                'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
-                'Contact the operator who stamped this kit to re-issue the license.',
-            );
-          }
-        } catch (err) {
-          failures.push(
-            `License validation failed unexpectedly: ${err instanceof Error ? err.message : String(err)}`,
-          );
-        }
-      }
-      if (failures.length > 0) {
-        // Logger may not be initialized yet — write directly to stderr so
-        // the failure is visible in Docker logs.
-        process.stderr.write(
-          `LICENSE VALIDATION FAILED:\n${failures.map((m) => `  - ${m}`).join('\n')}\n`,
-        );
-        process.exit(1);
-      }
-    }
+  // process.exit(1) rather than throw: Next.js instrumentation contract is
+  // "never throw — it kills the entire runtime". exit(1) is the intentional kill.
+  try {
+    const { validateForgeLicenseAtStartup } = await import('@revealui/core/revforge-license-boot');
+    await validateForgeLicenseAtStartup(process.env);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
   }
 
   try {

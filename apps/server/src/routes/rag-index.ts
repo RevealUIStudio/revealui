@@ -15,6 +15,7 @@ import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../lib/api-roles.js';
 
 type Variables = {
   db: DatabaseClient;
@@ -32,7 +33,7 @@ function assertWorkspaceAccess(
     throw new HTTPException(401, { message: 'Authentication required' });
   }
   // In multi-tenant mode, workspaceId must match the tenant context (admin bypass)
-  if (tenant && workspaceId !== tenant.id && user.role !== 'admin') {
+  if (tenant && workspaceId !== tenant.id && !hasApiRole(user, 'admin')) {
     throw new HTTPException(403, { message: 'Access denied for this workspace' });
   }
 }

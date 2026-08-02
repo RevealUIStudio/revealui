@@ -1340,6 +1340,32 @@ export type KgOutboxRow = z.infer<typeof KgOutboxSelectSchema>
 export type KgOutboxInsert = z.infer<typeof KgOutboxInsertSchema>
 
 // =============================================================================
+// LicenseJtiRevocations Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting licenseJtiRevocations rows from database
+ * Generated from Drizzle table definition: tables.licenseJtiRevocations
+ */
+export const LicenseJtiRevocationsSelectSchema = createSelectSchema(tables.licenseJtiRevocations)
+
+/**
+ * Zod schema for inserting licenseJtiRevocations rows to database
+ * Generated from Drizzle table definition: tables.licenseJtiRevocations
+ */
+export const LicenseJtiRevocationsInsertSchema = createInsertSchema(tables.licenseJtiRevocations)
+
+/**
+ * TypeScript type for licenseJtiRevocations row (Select)
+ */
+export type LicenseJtiRevocationsRow = z.infer<typeof LicenseJtiRevocationsSelectSchema>
+
+/**
+ * TypeScript type for licenseJtiRevocations insert
+ */
+export type LicenseJtiRevocationsInsert = z.infer<typeof LicenseJtiRevocationsInsertSchema>
+
+// =============================================================================
 // Licenses Schemas
 // =============================================================================
 

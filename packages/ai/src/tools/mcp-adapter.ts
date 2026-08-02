@@ -25,6 +25,25 @@ import { z } from 'zod/v4';
 import type { Tool, ToolResult } from './base.js';
 import { emitMcpEvent, type McpEventSink, type McpToolCallEvent } from './mcp-events.js';
 
+/** One-time process warning for the hypervisor MCP tool path (REMOVE-BY ai@1.0.0). */
+let hypervisorPathWarned = false;
+
+export function warnHypervisorMcpPathDeprecated(site: string): void {
+  if (hypervisorPathWarned) return;
+  hypervisorPathWarned = true;
+  process.emitWarning(
+    `@revealui/ai: ${site} is deprecated. Prefer mcpClients / createToolsFromMcpClient (Stage 5.1a). ` +
+      'REMOVE-BY: @revealui/ai 1.0.0. See packages/ai/src/tools/mcp-adapter.ts.',
+    'DeprecationWarning',
+    'REVEALUI_AI_MCP_HYPERVISOR_DEPRECATED',
+  );
+}
+
+/** Test-only: reset the one-time deprecation warn latch. */
+export function resetHypervisorMcpPathWarningForTests(): void {
+  hypervisorPathWarned = false;
+}
+
 export interface MCPTool {
   name: string;
   description: string;
@@ -47,6 +66,12 @@ export interface MCPClient {
  * @deprecated Prefer `McpClientLike` + `createToolsFromMcpClient()` (Stage 5.1a).
  *   The hypervisor path doesn't expose the full MCP protocol surface (resources,
  *   prompts, sampling, elicitation). The typed-client path does.
+ *
+ * **Removal owner:** product AI runtime (agent-stream already uses `mcpClients`).
+ * **REMOVE-BY:** `@revealui/ai` 1.0.0 — delete `MCPToolSource`, `discoverMCPTools`,
+ * and `AgentRuntime` `mcpToolSource` once no external kit still calls them
+ * (grep product + published examples in the same PR). Until then this path is
+ * retained for external SDK compatibility only.
  */
 export interface MCPToolSource {
   getAllTools(): Array<{ namespacedName: string; serverName: string; tool: MCPTool }>;
@@ -784,6 +809,7 @@ export interface DiscoverMCPToolsOptions {
  *
  * @deprecated Prefer `createToolsFromMcpClient` (Stage 5.1a). Kept for
  *   AgentRuntime `mcpToolSource` compatibility.
+ *   **REMOVE-BY:** `@revealui/ai` 1.0.0 (same train as `MCPToolSource`).
  *
  * @example
  * ```typescript
@@ -796,6 +822,7 @@ export interface DiscoverMCPToolsOptions {
  * ```
  */
 export function discoverMCPTools(source: MCPToolSource, options?: DiscoverMCPToolsOptions): Tool[] {
+  warnHypervisorMcpPathDeprecated('discoverMCPTools() / MCPToolSource');
   return source.getAllTools().map(({ namespacedName, serverName, tool }) => {
     const zodSchema = jsonSchemaToZod(tool.inputSchema);
 

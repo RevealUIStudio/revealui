@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { HOME_HERO, HOME_HERO_FOUNDATION, HOME_HERO_OWNERSHIP } from '../content/home';
+import {
+  HOME_HERO,
+  HOME_HERO_FOUNDATION,
+  HOME_HERO_L2,
+  HOME_HERO_OWNERSHIP,
+} from '../content/home';
 import { selectHomeHero } from '../lib/hero-variant';
 
 describe('selectHomeHero', () => {
@@ -42,5 +47,11 @@ describe('selectHomeHero', () => {
     expect(HOME_HERO.subtitle.support).toBe('It runs on any AI provider you choose.');
     expect(HOME_HERO_FOUNDATION.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
     expect(HOME_HERO_OWNERSHIP.subtitle.sentence2).toBe(HOME_HERO.subtitle.sentence2);
+  });
+
+  it('serves the L2 leverage-frame for ?hero=l2', () => {
+    expect(selectHomeHero('?hero=l2')).toBe(HOME_HERO_L2);
+    expect(HOME_HERO_L2.h1).toBe('Ship your next product on the work your last one finished.');
+    expect(HOME_HERO_L2.subtitle).toEqual(HOME_HERO.subtitle);
   });
 });

@@ -1,5 +1,11 @@
+import { spawn } from 'node:child_process';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MCPHypervisor, type MCPServerConfig } from '../hypervisor.js';
+import {
+  buildTenantSpawnEnv,
+  MCPHypervisor,
+  type MCPServerConfig,
+  TENANT_SPAWN_HOST_ENV_ALLOWLIST,
+} from '../hypervisor.js';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -56,6 +62,7 @@ describe('MCPHypervisor', () => {
   afterEach(() => {
     MCPHypervisor._resetForTests();
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   describe('getInstance()', () => {
@@ -941,6 +948,88 @@ describe('MCPHypervisor', () => {
       );
 
       await expect(toolPromise).resolves.toBeDefined();
+    });
+  });
+
+  describe('buildTenantSpawnEnv + startServerForTenant isolation (GAP-411)', () => {
+    it('buildTenantSpawnEnv never copies arbitrary host secrets', () => {
+      const env = buildTenantSpawnEnv(
+        { SERVER_FLAG: '1' },
+        { TENANT_KEY: 'secret-tenant' },
+        {
+          PATH: '/usr/bin',
+          HOME: '/home/user',
+          STRIPE_SECRET_KEY: 'sk_live_should_not_leak',
+          DATABASE_URL: 'postgres://should-not-leak',
+          NODE_OPTIONS: '--require ./evil.js',
+          LANG: 'en_US.UTF-8',
+        },
+      );
+
+      expect(env.PATH).toBe('/usr/bin');
+      expect(env.HOME).toBe('/home/user');
+      expect(env.LANG).toBe('en_US.UTF-8');
+      expect(env.SERVER_FLAG).toBe('1');
+      expect(env.TENANT_KEY).toBe('secret-tenant');
+      expect(env.STRIPE_SECRET_KEY).toBeUndefined();
+      expect(env.DATABASE_URL).toBeUndefined();
+      expect(env.NODE_OPTIONS).toBeUndefined();
+      expect(TENANT_SPAWN_HOST_ENV_ALLOWLIST).toContain('PATH');
+      expect(TENANT_SPAWN_HOST_ENV_ALLOWLIST).not.toContain('NODE_OPTIONS');
+    });
+
+    it('tenant credentials override config.env and allowlisted host keys', () => {
+      const env = buildTenantSpawnEnv(
+        { SHARED: 'from-config', PATH: '/config/bin' },
+        { SHARED: 'from-tenant', EXTRA: 't' },
+        { PATH: '/host/bin', HOME: '/home/h' },
+      );
+      expect(env.PATH).toBe('/config/bin'); // config beats host
+      expect(env.SHARED).toBe('from-tenant'); // tenant beats config
+      expect(env.EXTRA).toBe('t');
+      expect(env.HOME).toBe('/home/h');
+    });
+
+    it('startServerForTenant spawns without spreading host process.env', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer({
+        ...testConfig,
+        env: { MCP_SERVER_MODE: 'tenant' },
+      });
+      hv.setCredentialResolver({
+        async resolve() {
+          return { TENANT_TOKEN: 'vault-token' };
+        },
+      });
+
+      mockProcess.stdout.on.mockImplementation(() => mockProcess);
+      mockProcess.stderr.on.mockImplementation(() => mockProcess);
+      mockProcess.on.mockImplementation(() => mockProcess);
+
+      const startPromise = hv.startServerForTenant('test-server', {
+        tenantId: 'tenant-a',
+        tier: 'pro',
+      });
+      // Advance past 500ms startup + 5s tools/list discovery timeout
+      await vi.advanceTimersByTimeAsync(5_501);
+      await startPromise;
+
+      expect(spawn).toHaveBeenCalled();
+      const spawnCall = vi.mocked(spawn).mock.calls.at(-1);
+      const spawnEnv = spawnCall?.[2]?.env as NodeJS.ProcessEnv;
+      expect(spawnEnv.MCP_SERVER_MODE).toBe('tenant');
+      expect(spawnEnv.TENANT_TOKEN).toBe('vault-token');
+      // Always assert denylisted host secrets cannot appear on tenant spawn env
+      // (pure buildTenantSpawnEnv test injects them; this covers the live spawn call).
+      expect(spawnEnv.STRIPE_SECRET_KEY).toBeUndefined();
+      expect(spawnEnv.DATABASE_URL).toBeUndefined();
+      expect(spawnEnv.REVEALUI_SECRET).toBeUndefined();
+      expect(spawnEnv.NODE_OPTIONS).toBeUndefined();
+      // Spawn env must be composed only of allowlist + config + tenant keys
+      // we deliberately set (plus whatever allowlisted keys exist on the host).
+      expect(spawnEnv.MCP_SERVER_MODE).toBe('tenant');
+      expect(spawnEnv.TENANT_TOKEN).toBe('vault-token');
     });
   });
 });

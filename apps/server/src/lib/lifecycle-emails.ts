@@ -52,7 +52,7 @@ export function buildDay0Welcome(tier: LifecycleTier): LifecycleEmailContent {
 <p>Welcome to RevealUI ${label}. Here are the two things worth doing first.</p>
 <p>Your license key is waiting on your account page. Wire it into your runtime and your ${label} features turn on.</p>
 ${ctaButton(licenseUrl(), 'View your license key')}
-<p>Then run your first agent. Hand it a task on your own data, and check the receipt it leaves behind. If an agent did it, there's a receipt.</p>
+<p>Then run your first agent. Hand it a task on your own data. If an agent did it, there's a receipt.</p>
 ${ctaButton(dashboardUrl(), 'Run your first agent')}
 ${supportFooter('If you have questions')}`,
       ),

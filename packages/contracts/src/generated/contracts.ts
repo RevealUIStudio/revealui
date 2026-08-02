@@ -1341,6 +1341,32 @@ export const KgOutboxInsertContract = createContract({
 })
 
 // =============================================================================
+// LicenseJtiRevocations Contracts
+// =============================================================================
+
+/**
+ * Contract for licenseJtiRevocations row (Select)
+ * Database table: license_jti_revocations
+ */
+export const LicenseJtiRevocationsRowContract = createContract({
+  name: 'LicenseJtiRevocationsRow',
+  version: '1',
+  description: 'Database row contract for license_jti_revocations table',
+  schema: Schemas.LicenseJtiRevocationsSelectSchema,
+})
+
+/**
+ * Contract for licenseJtiRevocations insert
+ * Database table: license_jti_revocations
+ */
+export const LicenseJtiRevocationsInsertContract = createContract({
+  name: 'LicenseJtiRevocationsInsert',
+  version: '1',
+  description: 'Database insert contract for license_jti_revocations table',
+  schema: Schemas.LicenseJtiRevocationsInsertSchema,
+})
+
+// =============================================================================
 // Licenses Contracts
 // =============================================================================
 

@@ -41,7 +41,7 @@ export const FAIR_SOURCE_HERO = {
     prefix: `${METRICS.licenseSplit.mit} RevealUI packages ship under plain MIT and stay that way. ${METRICS.licenseSplit.fsl} packages ship under`,
     fslLabel: 'FSL-1.1-MIT',
     fslHref: SITE.urls.fslSoftware,
-    suffix: `: source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace package is @revealui/scripts, internal build tooling with no license field, not customer-facing.)`,
+    suffix: `: source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace packages are @revealui/scripts and @revealui/apify-actor-governed-run, private tooling with no public license field, not customer-facing.)`,
   },
   ogTitle: 'Fair Source',
   ogSubtitle: 'Source-visible. Commercially usable. MIT in two years.',

@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import type { Router } from './router';
-import type { Location, NavigateOptions, RouteMatch } from './types';
+import type { Location, NavigateOptions, NavigationStatus, RouteMatch } from './types';
 
 /**
  * Router context
@@ -56,14 +56,16 @@ export function Routes() {
   const { route, params, data } = match;
   const RouteComponent = route.component;
   const Layout = route.layout;
+  // Per-route boundary wins (D5 / 2.3.2); fall back to router-level.
+  const ErrorFallback = route.errorBoundary ?? options.errorBoundary;
 
   const element = <RouteComponent params={params} data={data} />;
   const wrapped = Layout ? <Layout>{element}</Layout> : element;
 
   return (
     <MatchContext.Provider value={match}>
-      {options.errorBoundary ? (
-        <RouteErrorBoundary fallback={options.errorBoundary}>{wrapped}</RouteErrorBoundary>
+      {ErrorFallback ? (
+        <RouteErrorBoundary fallback={ErrorFallback}>{wrapped}</RouteErrorBoundary>
       ) : (
         wrapped
       )}
@@ -221,6 +223,43 @@ export function useSearchParams(): URLSearchParams {
 }
 
 /**
+ * useRscPayload — current RSC flight payload (Phase 2.2.3 / ADR D3).
+ * Requires `setRscPayloadLoader` + `applyRscPayload` on the router instance.
+ */
+export function useRscPayload<T = unknown>(): T | null {
+  const router = useRouter();
+  return useSyncExternalStore(
+    (callback) => router.subscribeRsc(callback),
+    () => router.getRscPayload() as T | null,
+    () => router.getRscPayload() as T | null,
+  );
+}
+
+/**
+ * useNavigationStatus — idle | loading | error for RSC soft navigations.
+ */
+export function useNavigationStatus(): NavigationStatus {
+  const router = useRouter();
+  return useSyncExternalStore(
+    (callback) => router.subscribeRsc(callback),
+    () => router.getNavigationStatus(),
+    () => router.getNavigationStatus(),
+  );
+}
+
+/**
+ * useNavigationError — last RSC navigation error, or null.
+ */
+export function useNavigationError(): Error | null {
+  const router = useRouter();
+  return useSyncExternalStore(
+    (callback) => router.subscribeRsc(callback),
+    () => router.getNavigationError(),
+    () => router.getNavigationError(),
+  );
+}
+
+/**
  * NotFound - Default 404 component
  */
 function NotFound() {
@@ -234,15 +273,28 @@ function NotFound() {
 }
 
 /**
- * RouteErrorBoundary - Catches render errors in route components
+ * RouteErrorBoundary - Catches render errors in route components.
+ * Exported as `ErrorBoundary` for RSC consumers that wrap flight roots (2.3.2).
  */
-class RouteErrorBoundary extends Component<
-  { fallback: React.ComponentType<{ error: Error }>; children: React.ReactNode },
+export class ErrorBoundary extends Component<
+  {
+    fallback: React.ComponentType<{ error: Error }>;
+    children: React.ReactNode;
+    /** Optional reset key — when it changes, clear the captured error. */
+    resetKey?: string;
+    /**
+     * Optional observer (2.3.3). Wire to `@revealui/core/observability/capture`
+     * — never put secrets in the callback side effects.
+     */
+    onError?: (error: Error, info: React.ErrorInfo) => void;
+  },
   { error: Error | null }
 > {
   constructor(props: {
     fallback: React.ComponentType<{ error: Error }>;
     children: React.ReactNode;
+    resetKey?: string;
+    onError?: (error: Error, info: React.ErrorInfo) => void;
   }) {
     super(props);
     this.state = { error: null };
@@ -250,6 +302,16 @@ class RouteErrorBoundary extends Component<
 
   static getDerivedStateFromError(error: Error): { error: Error } {
     return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo): void {
+    this.props.onError?.(error, info);
+  }
+
+  componentDidUpdate(prevProps: { resetKey?: string }): void {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
   }
 
   render() {
@@ -260,6 +322,9 @@ class RouteErrorBoundary extends Component<
     return this.props.children;
   }
 }
+
+/** @deprecated Use `ErrorBoundary` — kept as alias for internal Routes. */
+const RouteErrorBoundary = ErrorBoundary;
 
 /**
  * Navigate - Component for declarative navigation

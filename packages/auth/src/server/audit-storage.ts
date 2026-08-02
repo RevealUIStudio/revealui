@@ -33,7 +33,11 @@
 
 import { randomUUID } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
-import type { AuditRowSignerFn, DrizzleAuditStore as DrizzleAuditStoreType } from '@revealui/db';
+import type {
+  AuditRowSignerFn,
+  DrizzleAuditStoreOptions,
+  DrizzleAuditStore as DrizzleAuditStoreType,
+} from '@revealui/db';
 import { DrizzleAuditStore, getClient, hasDatabaseConnectionEnv } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import type {
@@ -82,9 +86,15 @@ export function getAuditRowSigner(): AuditRowSignerFn | undefined {
  * Construct a `DrizzleAuditStore` wired to the process-wide signer. Every audit
  * writer builds its store through this helper so a row written through the one
  * door on a signing deployment always carries a signature.
+ *
+ * @param options Optional store options (GAP-417 residual): pass `targetEnv`
+ *   from CLI writers that resolve a deployment target independent of NODE_ENV.
  */
-export function createAuditStore(db: Database): DrizzleAuditStoreType {
-  return new DrizzleAuditStore(db, getAuditRowSigner());
+export function createAuditStore(
+  db: Database,
+  options?: DrizzleAuditStoreOptions,
+): DrizzleAuditStoreType {
+  return new DrizzleAuditStore(db, getAuditRowSigner(), options);
 }
 
 /** Test-only reset of the cached signer (re-reads env on next `getAuditRowSigner`). */

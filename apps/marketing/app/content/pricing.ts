@@ -225,10 +225,12 @@ export interface DoneForYouRung {
   readonly note: string;
 }
 
+// Funnel collapse (2026-08-02): pricing keeps price anchors + one discovery CTA.
+// Full engagement narrative lives on /services and revealuistudio.com, not here.
 export const PRICING_DONE_FOR_YOU = {
   eyebrow: 'Done for you',
   heading: 'Want it built and handed over?',
-  body: 'RevealUI Studio (the agency) ships fixed-bid engagements on the runtime: scoped in a discovery call, delivered with a full handoff, owned by you afterward.',
+  body: 'RevealUI Studio ships fixed-bid work on the runtime. Starting prices below. Discovery scopes the engagement. Full detail lives on the Studio site and the product Services page.',
   rungs: AGENCY_ENGAGEMENT_LADDER.map(
     (engagement: AgencyEngagement): DoneForYouRung => ({
       name: engagement.name,
@@ -242,7 +244,8 @@ export const PRICING_DONE_FOR_YOU = {
     external: true,
   } satisfies Cta,
   secondaryCta: {
-    label: 'Visit revealuistudio.com →',
+    // Keep ≥26 chars so claims-evidence prose gate indexes the label.
+    label: 'See full services on Studio →',
     href: SITE.urls.agency,
     external: true,
   } satisfies Cta,

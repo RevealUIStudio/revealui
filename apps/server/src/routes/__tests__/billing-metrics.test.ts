@@ -111,6 +111,8 @@ vi.mock('@revealui/db/schema', () => ({
     accountId: 'accountEntitlements.accountId',
     tier: 'accountEntitlements.tier',
     status: 'accountEntitlements.status',
+    mode: 'accountEntitlements.mode',
+    source: 'accountEntitlements.source',
   },
   billingCatalog: {
     stripePriceId: 'billingCatalog.stripePriceId',
@@ -157,6 +159,7 @@ vi.mock('@revealui/db/schema', () => ({
 
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
+  ne: vi.fn((_col: unknown, _val: unknown) => `ne(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
   gt: vi.fn((_col: unknown, _val: unknown) => `gt(${String(_col)},${String(_val)})`),
@@ -230,6 +233,8 @@ interface UserContext {
   email: string | null;
   name: string;
   role: string;
+  emailVerified?: boolean;
+  _json?: unknown;
 }
 
 const ADMIN_USER: UserContext = {
@@ -251,6 +256,16 @@ const REGULAR_USER: UserContext = {
   email: 'user@example.com',
   name: 'Regular User',
   role: 'user',
+};
+
+/** GAP-444: founder with engine super-admin marker, DB role still viewer. */
+const SUPER_ADMIN_USER: UserContext = {
+  id: 'founder',
+  email: 'founder@example.com',
+  name: 'Founder',
+  role: 'viewer',
+  emailVerified: true,
+  _json: { roles: ['super-admin'] },
 };
 
 function createBillingApp(user?: UserContext) {
@@ -401,6 +416,14 @@ describe('Billing Metrics', { timeout: 60_000 }, () => {
     it('returns 200 for owner user', async () => {
       queueMetricsResults({});
       const app = createBillingApp(OWNER_USER);
+      const res = await app.request(get('/metrics'));
+
+      expect(res.status).toBe(200);
+    });
+
+    it('returns 200 for platform super-admin (GAP-444)', async () => {
+      queueMetricsResults({});
+      const app = createBillingApp(SUPER_ADMIN_USER);
       const res = await app.request(get('/metrics'));
 
       expect(res.status).toBe(200);

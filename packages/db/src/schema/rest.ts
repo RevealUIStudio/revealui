@@ -59,6 +59,7 @@ export * from './gdpr.js';
 export * from './idempotency.js';
 export * from './inference-configs.js';
 export * from './jobs.js';
+export * from './license-jti-revocations.js';
 export * from './licenses.js';
 export * from './lifecycle-emails.js';
 export * from './magic-links.js';

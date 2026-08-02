@@ -97,6 +97,8 @@ export {
   type LicenseMode,
   type LicensePayload,
   type LicenseTier,
+  readLicenseExp,
+  readLicenseJti,
   resetLicenseState,
   validateLicenseKey,
 } from './license.js';

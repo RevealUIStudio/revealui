@@ -46,7 +46,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 |----|---------|---------|----------|---------------------|
 | PKG-001 | @revealui/core | Admin engine, REST API, auth, rich text, plugins | npm | Public |
 | PKG-002 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) | npm | Public |
-| PKG-003 | @revealui/db | Drizzle ORM schema (97 tables) on NeonDB (Postgres) | npm | Public |
+| PKG-003 | @revealui/db | Drizzle ORM schema (98 tables) on NeonDB (Postgres) | npm | Public |
 | PKG-004 | @revealui/auth | Session auth, password reset, rate limiting | npm | Public |
 | PKG-005 | @revealui/presentation | 65 native UI components (Tailwind v4) | npm | Public |
 | PKG-006 | @revealui/router | Lightweight file-based router with SSR | npm | Public |
@@ -82,7 +82,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 
 ### 3.1 Data Categories by Store
 
-**NeonDB (DS-001):** Primary relational data across 97 tables.
+**NeonDB (DS-001):** Primary relational data across 98 tables.
 - User accounts, profiles, and PII (email, name)
 - Session tokens and password hashes (bcrypt, 12 rounds)
 - Content (pages, products, collections)

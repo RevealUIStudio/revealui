@@ -1,11 +1,10 @@
 /**
  * GAP-436 (owner-ruled 2026-07-26) — admin's Forge boot license enforcement
- * block in instrumentation.ts `register()` mirrors apps/server's
- * `validateLicenseAtStartup` (see apps/server/src/lib/validate-startup.ts).
- * That block is not extracted into a separately-tested function (see the
- * TODO in instrumentation.ts), so this exercises `register()` directly with
- * the minimal mocking needed to reach the license gate without running the
- * unrelated production-only telemetry/engine-init branches.
+ * in instrumentation.ts `register()` calls
+ * `@revealui/core/revforge-license-boot` (shared with apps/server
+ * `validateLicenseAtStartup` after fleet-redundancy 2026-08-02). This
+ * exercises `register()` with the minimal mocking needed to reach the
+ * license gate without production-only telemetry/engine-init branches.
  *
  * Proves:
  *  1. A plain self-host boot (forge-mode-detected, no license key) with

@@ -30,8 +30,7 @@ const SEO: Record<Audience, AudienceSeo> = {
   },
   technical: {
     title: 'RevealUI | Build it once. Every product after starts ahead.',
-    // Title mirrors HOME_HERO.h1 (L1 default, 2026-07-29). Description mirrors
-    // HOME_HERO subtitle (canonical 2026-07-09 form, no em dashes).
+    // Title mirrors HOME_HERO.h1 (L1 default). Description mirrors locked subtitle.
     description:
       'RevealUI is the self-hosted runtime where your business and the AI agents that run it live under one roof. Every agent is a governed and audited user that lives on your infrastructure. It runs on any AI provider you choose.',
     ogTitle: 'RevealUI | Build it once. Every product after starts ahead.',

@@ -173,7 +173,7 @@ async function main(): Promise<void> {
     );
     const eventId = randomUUID();
     try {
-      await new DrizzleAuditStore(db, signer).append({
+      await new DrizzleAuditStore(db, signer, { targetEnv: env }).append({
         id: eventId,
         timestamp: new Date(),
         eventType: 'admin.bootstrap.completed',

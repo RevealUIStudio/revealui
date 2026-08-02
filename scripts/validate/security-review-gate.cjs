@@ -270,14 +270,40 @@ function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl) {
 }
 
 /**
+ * Parent count for a commit (merge commits have 2+). Injectable ghImpl.
+ */
+function fetchCommitParentCount(sha, repo, ghImpl) {
+  const run =
+    ghImpl ||
+    ((args) => execFileSync('gh', args, { encoding: 'utf8', timeout: 30000, maxBuffer: 2 * 1024 * 1024 }));
+  const path = `repos/${repo || '{owner}/{repo}'}/commits/${sha}`;
+  const out = run(['api', path, '--jq', '.parents | length']);
+  const n = Number(String(out).trim());
+  return Number.isFinite(n) ? n : 1;
+}
+
+/**
  * Build coverage rows for a promote PR: security-touching commits and whether
  * each traces to an upstream PR with a recorded sec-review verdict.
  * Injectable ghImpl for unit tests.
+ *
+ * Merge commits are skipped: `git show merge` lists the entire other-side tree
+ * as "changed", which re-attributes already-cleared feature files (e.g. a
+ * `merge origin/test into feat/…` after GAP-444 landed) to a commit that is
+ * not linked to the feature PR and has no sec-review label. Security deltas
+ * still appear on the non-merge feature commits that actually authored them.
  */
 function buildPromoteCoverage(prNumber, repo, ghImpl) {
   const shas = fetchPrCommitShas(prNumber, repo, ghImpl);
   const coverage = [];
   for (const sha of shas) {
+    try {
+      if (fetchCommitParentCount(sha, repo, ghImpl) > 1) {
+        continue;
+      }
+    } catch {
+      // Unknown parent count — keep evaluating the commit (fail closed on files).
+    }
     let files;
     try {
       files = fetchCommitFiles(sha, repo, ghImpl);

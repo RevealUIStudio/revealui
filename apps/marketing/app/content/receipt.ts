@@ -48,6 +48,10 @@ export const RECEIPT_HERO_INTEGRITY = {
   value: '4b6c…e91a',
 } as const;
 
+// Soft foil (GAP-355 S6-6 owner ruling option b, 2026-07-29). Row signatures
+// ship when audit signing is configured; Merkle root *delivery* is Max+
+// (auditLog). Verification is never paid. See docs/security/AUDIT_RECEIPTS.md
+// and CLAIMS_RECEIPT_HOLD_NOTE.
 export const RECEIPT_HERO_CAPTION = {
   text: "If an agent did it, there's a receipt.",
   link: { label: 'See ours →', href: '/claims' },

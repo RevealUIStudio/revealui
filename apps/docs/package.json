@@ -51,7 +51,8 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "cd ../.. && pnpm turbo build --filter=docs"
+    "vercel-build": "cd ../.. && pnpm turbo build --filter=docs",
+    "check:docs-pro-boundary": "node scripts/check-docs-pro-boundary.mjs"
   },
   "type": "module"
 }

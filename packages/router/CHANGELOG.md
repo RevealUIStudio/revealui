@@ -1,5 +1,47 @@
 # @revealui/router
 
+## 0.4.0-rc.9
+
+### Minor Changes
+
+- Phase 2.3.3: `ErrorBoundary onError` and `renderRequest({ onError })` for
+  framework-agnostic observability (wire `@revealui/core/observability/capture`).
+
+### Docs
+
+- Phase 2.3.4: `docs/REQUEST-LAYER.md` (perimeter vs `Router.match`); MIGRATION-RSC
+  link. Dogfood: `apps/rsc-poc/src/request-layer/`.
+- Phase 2.3.6: `docs/PHASE-3-READY.md` — Phase 2.3 acceptance evidence + pre–Phase 3
+  operator checklist (owner disposition still required for G).
+
+## 0.4.0-rc.6
+
+### Patch Changes
+
+- Phase 2.2.5: migration guide and D18.b runtime matrix under package
+  `docs/` (repo docs; not npm `files`), edge-safety contract tests, coverage
+  gate raised to ≥80% lines/statements on dual-mode sources.
+
+## 0.4.0-rc.5
+
+### Minor Changes
+
+- Phase 2.2.4: progressive form actions (`decodeFormAction` / `decodeFormState`)
+  on `renderRequest`, `getRouterRedirect` for client action redirects.
+
+## 0.4.0-rc.4
+
+### Minor Changes
+
+- Phase 2.2.3: RSC client soft-nav (`setRscPayloadLoader`, `useRscPayload`,
+  abort token, navigation status hooks).
+
+## 0.4.0-rc.3
+
+### Patch Changes
+
+- Phase 2.2 T8 packaging: `/core`, `/server` (RSC-safe), `/server-ssr` (SPA).
+
 ## 0.3.11
 
 ### Patch Changes

@@ -1,3 +1,7 @@
+---
+visibility: public
+---
+
 # Editor Config Sync — see RevCon
 
 > **This page redirects.** Editor configuration sync is **not** an `@revealui/editors` package inside this monorepo. It ships as a separate fleet product called **RevCon**, distributed standalone and used independently of any RevealUI license.

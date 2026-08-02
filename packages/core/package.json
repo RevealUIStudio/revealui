@@ -1,6 +1,6 @@
 {
   "name": "@revealui/core",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "description": "RevealUI's runtime engine — admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
   "license": "MIT",
   "dependencies": {
@@ -69,6 +69,11 @@
       "types": "./dist/revforge-license.d.ts",
       "import": "./dist/revforge-license.js",
       "default": "./dist/revforge-license.js"
+    },
+    "./revforge-license-boot": {
+      "types": "./dist/revforge-license-boot.d.ts",
+      "import": "./dist/revforge-license-boot.js",
+      "default": "./dist/revforge-license-boot.js"
     },
     "./features": {
       "types": "./dist/features.d.ts",
@@ -310,11 +315,17 @@
       "import": "./dist/observability/index.js",
       "default": "./dist/observability/index.js"
     },
+    "./observability/capture": {
+      "types": "./dist/observability/capture.d.ts",
+      "import": "./dist/observability/capture.js",
+      "default": "./dist/observability/capture.js"
+    },
     "./observability/logger": {
       "types": "./dist/observability/logger.d.ts",
       "import": "./dist/observability/logger.js",
       "default": "./dist/observability/logger.js"
     },
+
     "./observability/metrics": {
       "types": "./dist/observability/metrics.d.ts",
       "import": "./dist/observability/metrics.js",
@@ -325,6 +336,12 @@
       "import": "./dist/observability/alerts.js",
       "default": "./dist/observability/alerts.js"
     },
+    "./observability/cron-failure-alert": {
+      "types": "./dist/observability/cron-failure-alert.d.ts",
+      "import": "./dist/observability/cron-failure-alert.js",
+      "default": "./dist/observability/cron-failure-alert.js"
+    },
+
     "./utils/cache": {
       "types": "./dist/utils/cache.d.ts",
       "import": "./dist/utils/cache.js",

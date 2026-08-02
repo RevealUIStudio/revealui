@@ -37,8 +37,17 @@
  * ```
  */
 
+// Client RSC helpers (also on ./server for parity)
+export {
+  getRouterRedirect,
+  isFormActionRequest,
+  isServerActionRequest,
+  RSC_ACTION_HEADER,
+  RSC_REDIRECT_HEADER,
+} from './actions';
 // React components and hooks
 export {
+  ErrorBoundary,
   Link,
   Navigate,
   RouterProvider,
@@ -47,22 +56,32 @@ export {
   useLocation,
   useMatch,
   useNavigate,
+  useNavigationError,
+  useNavigationStatus,
   useParams,
   useRouter,
+  useRscPayload,
   useSearchParams,
 } from './components';
+export { RSC_ACCEPT, resolveRscClientUrl } from './negotiate';
 // Core router
 export { Router } from './router';
 
 // Types
 export type {
+  ActionMiddleware,
+  ActionMiddlewareContext,
   Location,
   MiddlewareContext,
   NavigateOptions,
+  NavigationStatus,
   Route,
   RouteMatch,
   RouteMeta,
   RouteMiddleware,
   RouteParams,
+  RouterMode,
   RouterOptions,
+  RouterRscOptions,
+  RscPayloadLoader,
 } from './types';

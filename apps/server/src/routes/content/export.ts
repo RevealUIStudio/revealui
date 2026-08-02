@@ -20,6 +20,7 @@ import { pages } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq, isNull } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { hasApiRole } from '../../lib/api-roles.js';
 import { ErrorSchema } from '../_helpers/content-schemas.js';
 import type { ContentVariables } from './index.js';
 
@@ -198,7 +199,7 @@ app.openapi(
   async (c) => {
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-    if (user.role !== 'admin') {
+    if (!hasApiRole(user, 'admin')) {
       throw new HTTPException(403, { message: 'Admin access required' });
     }
 

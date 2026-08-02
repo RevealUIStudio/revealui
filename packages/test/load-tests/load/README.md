@@ -79,6 +79,14 @@ pnpm test:perf:analyze
 - **Payment Processing**: 95% of requests < 3s
 - **Error Rate**: < 1-2% depending on endpoint
 
+## Baseline files
+
+`baseline.json`, `endpoints.json`, and `targets.json` are **hand-maintained**
+operator targets for the autocannon dry-run / analyze scripts. They are not
+live CI result dumps. Do not commit a `current-results.json` twin that only
+mirrors `baseline.json` (that kills regression signal — fleet-redundancy audit
+2026-08-02).
+
 ## Running All Tests
 
 ```bash
@@ -113,7 +121,9 @@ The performance baseline script outputs key metrics:
 - Requests per second
 - Average latency
 
-For autocannon baseline tests, results are saved to `baseline.json` and compared against budgets in `performance-regression.ts`.
+For autocannon baseline tests, committed baselines live in `baseline.json` and are compared against budgets in `performance-regression.ts`.
+
+`current-results.json` is **generated** local/CI output for comparison runs. It is gitignored. Do not commit a frozen copy (a prior committed twin of baseline made the regression signal inert).
 
 ## Configuration
 

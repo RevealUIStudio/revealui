@@ -31,8 +31,8 @@ export const FO_HIW_HERO = {
     external: true,
   } satisfies Cta,
   backLink: {
-    label: '← Back to For Operators',
-    href: '/?for=non-technical',
+    label: '← Back to Services',
+    href: '/services',
   } satisfies Cta,
 } as const;
 
@@ -135,7 +135,7 @@ export const FO_HIW_CLOSING = {
     external: true,
   } satisfies Cta,
   backLink: {
-    label: '← Back to For Operators',
-    href: '/?for=non-technical',
+    label: '← Back to Services',
+    href: '/services',
   } satisfies Cta,
 } as const;

@@ -103,8 +103,8 @@
       "fast-uri": ">=3.1.2",
       "ip-address": ">=10.2.0",
       "postcss": ">=8.5.10",
-      "react": ">=19.2.4",
-      "react-dom": ">=19.2.4",
+      "react": "19.2.8",
+      "react-dom": "19.2.8",
       "basic-ftp": ">=5.3.0",
       "underscore": ">=1.13.8",
       "express-rate-limit": ">=8.2.2",
@@ -117,7 +117,8 @@
       "@revealui/contracts": "workspace:*",
       "@revealui/db": "workspace:*",
       "sharp": ">=0.35.0",
-      "@hono/node-server": ">=2.0.5"
+      "@hono/node-server": ">=2.0.5",
+      "react-server-dom-webpack": "19.2.8"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
@@ -248,6 +249,7 @@
     "validate:react-floor": "tsx scripts/validate/react-rsc-floor.ts",
     "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts",
     "validate:api-docs": "tsx scripts/validate/api-docs-drift.ts",
+    "validate:docs-public-mirror": "tsx scripts/validate/docs-public-mirror.ts",
     "validate:citations": "tsx scripts/validate/citation-check.ts",
     "validate:changesets": "tsx scripts/validate/mixed-changesets.ts",
     "validate:changelogs": "tsx scripts/validate/changelog-format.ts",
@@ -263,6 +265,7 @@
     "validate:seed-wiring": "tsx scripts/validate/seed-script-wiring.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts",
     "validate:pricing-lockstep": "tsx scripts/validate/pricing-lockstep.ts",
+    "validate:dockerfile-deps": "tsx scripts/validate/dockerfile-deps-lockstep.ts",
     "validate:secret-paths": "vitest run scripts/sync/__tests__/secret-paths-lockstep.test.ts",
     "validate:doc-currency": "tsx scripts/validate/doc-currency.ts",
     "validate:rules-lockstep": "tsx scripts/validate/rules-lockstep.ts",

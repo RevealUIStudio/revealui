@@ -101,12 +101,14 @@ export {
 } from './contracts.js';
 // Hypervisor: process management + dynamic tool discovery
 export {
+  buildTenantSpawnEnv,
   type MCPCredentialResolver,
   MCPHypervisor,
   type MCPServerConfig,
   type MCPTenantContext,
   type MCPTool,
   type NamespacedTool,
+  TENANT_SPAWN_HOST_ENV_ALLOWLIST,
 } from './hypervisor.js';
 export type { McpMeterEvent, McpMeterSink } from './metering.js';
 // OAuth 2.1 client provider (Stage 2 PR-2.1 — revvault-backed credential storage)

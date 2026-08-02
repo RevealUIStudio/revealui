@@ -1,3 +1,7 @@
+---
+visibility: public
+---
+
 # @revealui/ai
 
 AI agents, open-model inference, CRDT memory, and the A2A protocol — distributed under **Fair Source (FSL-1.1-MIT)**, source-visible in the public repo, with runtime feature gates that require a Pro / Enterprise subscription or a perpetual license. Each release converts to plain MIT after 2 years.

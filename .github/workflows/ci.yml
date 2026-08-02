@@ -161,6 +161,12 @@ jobs:
       - name: API docs drift
         run: pnpm validate:api-docs
 
+      - name: Docs public mirror (hard fail)
+        # ADR 2026-07-29: monorepo docs/ is SoT; fail if leftover generated
+        # apps/docs/public/**/*.md reappear (except docs-pro). Mirrors local
+        # gate step in scripts/gates/ci-gate.ts (fleet-redundancy C12).
+        run: pnpm validate:docs-public-mirror
+
       - name: Claims evidence validation (hard fail)
         # Every prose sentence in covered marketing content must carry a
         # claims-evidence entry citing the code that proves it. Sibling of
@@ -173,6 +179,13 @@ jobs:
         # from revcon profiles with a sha256 manifest; tracked copies must
         # match it exactly. Mirrors the local gate step in scripts/gates/ci-gate.ts.
         run: pnpm validate:rules-lockstep
+
+      - name: Dockerfile deps COPY lockstep (hard fail)
+        # GAP-379: server/admin deps-stage package.json COPY lists must cover
+        # the pnpm --filter <app>... workspace closure. Names the exact missing
+        # COPY line on failure. Worker whole-tree Dockerfiles are out of scope.
+        # Mirrors the local gate step in scripts/gates/ci-gate.ts.
+        run: pnpm validate:dockerfile-deps
 
       - name: Project manager check (path-gated hard fail)
         # GAP-406: when a PR (or push) touches .revealui or packages/harnesses,
@@ -269,6 +282,12 @@ jobs:
         # broken-link class fixed manually in #1096. See
         # apps/docs/scripts/check-links.ts.
         run: pnpm --filter docs check:links
+
+      - name: Docs-pro visibility boundary
+        # docs-app-hardening PR2: public/docs-pro/** is hand-tracked and not
+        # covered by prune-non-public.mjs. Fail if any file lacks visibility
+        # frontmatter or uses a NEVER_SERVE basename.
+        run: pnpm --filter docs check:docs-pro-boundary
 
       - name: Citation gate (hard fail, validity + coverage-strict)
         # Every code-behaviour claim in gated docs must cite a source:line that
@@ -767,18 +786,31 @@ jobs:
             echo "E2E_KEY_EOF"
           } >> "$GITHUB_ENV"
 
+      # Ephemeral CI secrets (not real credentials). Admin next start is
+      # production-mode and still requires the base secret trio even with
+      # SKIP_ENV_VALIDATION (env-validation.ts). KEK must be 64 hex chars.
+      # Server production boot also requires CORS_ORIGIN + audit signing key
+      # (generated above into GITHUB_ENV as REVEALUI_AUDIT_SIGNING_KEY).
       - name: Start API server
         run: pnpm --filter server start &
         env:
+          # Long-running serve() lives on the dev path in index.ts; production
+          # NODE_ENV is the Vercel serverless entry (worker.ts owns Fly prod).
           SKIP_ENV_VALIDATION: "true"
           NODE_ENV: "development"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:3004"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Start Admin server
         run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -895,6 +927,9 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Start marketing server
         run: pnpm --filter marketing start &
@@ -1004,6 +1039,9 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
+          REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
+          REVEALUI_PUBLIC_SERVER_URL: "http://localhost:4000"
+          REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
       - name: Wait for Admin
         run: |

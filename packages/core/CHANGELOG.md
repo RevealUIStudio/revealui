@@ -1,5 +1,13 @@
 # @revealui/core
 
+## 0.12.3
+
+### Minor Changes
+
+- Phase 2.3.3: `@revealui/core/observability/capture` — `initNodeObservability`,
+  `initBrowserObservability`, `captureException`, `captureActionFailure`,
+  `bindRequestId` (no `@sentry/nextjs`; browser-safe capture entry).
+
 ## 0.12.2
 
 ### Patch Changes

@@ -8,18 +8,29 @@ audience: user
 
 # @revealui/router
 
-Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required  -  works with Vite, Hono, or any React setup.
+Lightweight dual-mode router for React apps: client SPA (default) plus opt-in
+RSC mode. SSR, data loaders, middleware, nested layouts. Works with Vite, Hono,
+or any React setup.
+
+## Docs (0.4 dual-mode)
+
+| Doc | Topic |
+|-----|--------|
+| [docs/MIGRATION-RSC.md](./docs/MIGRATION-RSC.md) | Client → RSC opt-in migration |
+| [docs/RUNTIME-SUPPORT.md](./docs/RUNTIME-SUPPORT.md) | D18.b runtime matrix (Node / Edge / Workers) |
 
 ## Features
 
+- **Dual-mode (0.4)**  -  `new Router()` SPA, or `new Router({ rsc: {} })` for RSC
 - **File-based routing**  -  named params (`:id`), wildcards (`*path`), optional segments
 - **Nested routes**  -  composable layouts that stack automatically
 - **Data loaders**  -  async per-route data loading with typed access via `useData()`
 - **Middleware**  -  global + per-route, supports blocking and redirects
-- **SSR + streaming**  -  Hono integration with `renderToReadableStream`
-- **Client-side navigation**  -  History API, link interception, back/forward
+- **SSR + streaming**  -  Hono integration with `renderToReadableStream` (SPA) + `renderRequest` (RSC)
+- **Client-side navigation**  -  History API, link interception, back/forward; RSC soft-nav flight fetch
 - **Type-safe**  -  full TypeScript support, generic route data types
 - **React 18/19**  -  uses `useSyncExternalStore` for stable rendering
+- **Edge-first (D18.b)**  -  Web Platform APIs on the RSC path; ALS `getRequest()`
 
 ## Installation
 
@@ -84,7 +95,7 @@ function App() {
 
 ```typescript
 import { Hono } from 'hono'
-import { createSSRHandler } from '@revealui/router/server'
+import { createSSRHandler } from '@revealui/router/server-ssr'
 import routes from './routes'
 
 const app = new Hono()
@@ -114,6 +125,8 @@ app.get('*', createSSRHandler(routes, {
 
 ```typescript
 const router = new Router(options)
+// Dual-mode (0.4.0-rc): omit rsc → client (default, SPA). Pass rsc: {} → RSC mode.
+// const rscRouter = new Router({ rsc: { endpoint: '/.rsc' } }) // endpoint optional CDN escape hatch
 ```
 
 **Methods:**
@@ -128,6 +141,9 @@ const router = new Router(options)
 - `initClient()` - Initialize client-side routing (popstate + link-click listeners)
 - `dispose()` - Remove client-side event listeners (call before unmounting or on HMR teardown)
 - `use(...middleware)` - Add global middleware (runs before all route middleware)
+- `useAction(...middleware)` - Middleware for server actions (RSC mode; ADR D2.d)
+- `mode` - `'client'` | `'rsc'` (derived from `options.rsc`)
+- `seedCurrentMatch(match)` - Seed the current match (and loader data) without re-running middleware/loaders — used by SSR `hydrate()` so `useData()` works on first client paint. Client `navigate()` still does not run loaders (0.3.x SPA contract).
 
 ### Components
 
@@ -302,12 +318,113 @@ createSSRHandler(routes, {
 })
 ```
 
+## RSC mode (0.4.0-rc+)
+
+**Import map (dual-mode packaging):**
+
+| Subpath | Use for |
+|---------|---------|
+| `@revealui/router` | Client SPA components/hooks (`RouterProvider`, `Link`, …) |
+| `@revealui/router/core` | `Router` class only — safe in RSC + browser shared route tables |
+| `@revealui/router/server` | RSC handler (`renderRequest`, `redirect`, `getRequest`, …) — **no** `react-dom/server` |
+| `@revealui/router/server-ssr` | SPA SSR (`createSSRHandler`, `hydrate`, `createDevServer`) |
+
+```typescript
+import { Router } from '@revealui/router/core'
+import { renderRequest } from '@revealui/router/server'
+
+const router = new Router({ rsc: {} }) // or { rsc: { endpoint: '/.rsc' } }
+router.registerRoutes(routes)
+
+export default {
+  async fetch(request: Request) {
+    return renderRequest(request, {
+      router,
+      // Wire your bundler/RSDW pipeline here (ADR D11 — router stays plugin-agnostic)
+      createRscStream: async (request, ctx) => {
+        // return a text/x-component flight ReadableStream for ctx.pathname
+        return myRscFlightStream(request, ctx)
+      },
+      loadBootstrapScriptContent: async () => myClientBootstrap(),
+    })
+  },
+}
+```
+
+- `Accept: text/x-component` → flight body (`Vary: accept`)
+- Otherwise → HTML with chunked base64 `self.__RSC_PAYLOAD__=...` + bootstrap
+- Endpoint escape hatch forces RSC when CDNs mishandle `Vary`
+- `redirect(path)` / `notFound()` throw-sentinels → 307/308 or 404 (from `@revealui/router/server`)
+- `getRequest()` via ALS inside `renderRequest` / `runWithRequest`
+- `x-rsc-action` POST: `useAction` middleware then `loadServerAction` + `returnValue` on stream ctx
+
+## Client-mode compat (T9 / D16)
+
+Default `new Router()` (no `rsc` option) is the 0.3.x SPA contract used by
+`apps/docs` and `apps/marketing`. Regression suite:
+`src/__tests__/client-mode-compat.test.tsx` (export surface, navigate without
+loaders, 0.3.10 scroll behavior, hooks composition).
+
+## RSC client navigation (2.2.3 / D3)
+
+In `'rsc'` mode, soft navigations fetch flight payloads via a pluggable loader:
+
+```typescript
+import { Router, RouterProvider, useRscPayload, useNavigationStatus } from '@revealui/router'
+import { RSC_ACCEPT } from '@revealui/router/core'
+
+const router = new Router({ rsc: {} })
+router.setRscPayloadLoader(async (url, signal) =>
+  createFromFetch(fetch(url, { headers: { accept: RSC_ACCEPT }, signal })),
+)
+router.applyRscPayload(initialPayload) // SSR hydrate seed
+router.initClient() // popstate + <a> intercept → navigate → fetch
+
+function App() {
+  const payload = useRscPayload<{ root: React.ReactNode }>()
+  const status = useNavigationStatus()
+  return (
+    <RouterProvider router={router}>
+      {status === 'loading' ? <Progress /> : null}
+      {payload?.root}
+    </RouterProvider>
+  )
+}
+```
+
+- New navigations **abort** the previous fetch (`AbortSignal` token).
+- `navigate(to, { skipRscFetch: true })` when a server action already applied a payload.
+- `useNavigationError()` surfaces loader failures.
+
+## Server actions + progressive forms (2.2.4 / D2)
+
+```typescript
+import { renderRequest, redirect } from '@revealui/router/server'
+
+// JS path: POST + x-rsc-action → loadServerAction + returnValue on flight
+// Form path (no JS): POST multipart/urlencoded → decodeFormAction + formState HTML
+
+await renderRequest(request, {
+  router,
+  loadServerAction: (id) => loadServerAction(id),
+  decodeActionArgs: (req) => decodeReply(...),
+  decodeFormAction: (formData) => decodeAction(formData),
+  decodeFormState: (result, formData) => decodeFormState(result, formData),
+  createRscStream: async (req, ctx) => { /* ctx.formState | ctx.returnValue */ },
+})
+
+// From any action/loader:
+redirect('/done') // HTML 307/308 or RSC X-Router-Redirect header
+```
+
+Client helper: `getRouterRedirect(response)` after action fetch; navigate when set.
+
 ## Dev Server
 
 Quick development server:
 
 ```typescript
-import { createDevServer } from '@revealui/router/server'
+import { createDevServer } from '@revealui/router/server-ssr'
 
 await createDevServer(routes, {
   port: 3000,
