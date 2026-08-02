@@ -7,6 +7,9 @@
  * These tests verify the SOURCE CODE contains the correct branching
  * pattern, catching regressions where someone removes the branch
  * guard or the reconciliation insert.
+ *
+ * Implementation lives under webhooks/stripe-route.ts (webhooks.ts is a
+ * thin barrel after the length-split refactor).
  */
 
 import { readFileSync } from 'node:fs';
@@ -14,10 +17,18 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const webhooksPath = resolve(fileURLToPath(new URL('..', import.meta.url)), 'webhooks.ts');
-const src = readFileSync(webhooksPath, 'utf8');
+const routesDir = fileURLToPath(new URL('..', import.meta.url));
+const barrelPath = resolve(routesDir, 'webhooks.ts');
+const implementationPath = resolve(routesDir, 'webhooks', 'stripe-route.ts');
+const src = readFileSync(implementationPath, 'utf8');
+const barrel = readFileSync(barrelPath, 'utf8');
 
 describe('webhook bug #1 — reconciliation branching contract', () => {
+  it('barrel re-exports the stripe-route implementation', () => {
+    // Guards against the entry path detaching from the file under contract.
+    expect(barrel).toContain("from './webhooks/stripe-route.js'");
+  });
+
   it('checks unmarkProcessed return value before deciding 500 vs 200', () => {
     // The catch block must assign unmarkProcessed's return value
     // and branch on it. If someone removes the branch, both paths

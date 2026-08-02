@@ -8,7 +8,7 @@ audience: user
 
 RevealUI integrates with Stripe for checkout, subscriptions, and billing portal. The billing system uses account-level subscriptions with metered usage for AI and agent features.
 
-**API routes:** `apps/server/src/routes/billing.ts`, `apps/server/src/routes/webhooks.ts`
+**API routes:** `apps/server/src/routes/billing/` (helpers + routes), `apps/server/src/routes/webhooks/` (helpers + stripe-route)
 
 ---
 
@@ -120,10 +120,10 @@ Response:
 
 The endpoint:
 
-1. Validates the user session (`apps/server/src/routes/billing.ts:749`)
+1. Validates the user session (`apps/server/src/routes/billing/routes.ts:115`)
 2. Finds or creates a Stripe customer (linked via `stripe_customer_id` in the users table)
 3. Creates a Checkout Session with the correct price
-4. Returns the Checkout URL (`apps/server/src/routes/billing.ts:856`)
+4. Returns the Checkout URL (`apps/server/src/routes/billing/routes.ts:236`)
 
 ### Success and Cancel URLs
 

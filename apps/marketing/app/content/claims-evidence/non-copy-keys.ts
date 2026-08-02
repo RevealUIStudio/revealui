@@ -1,0 +1,18 @@
+export const NON_COPY_KEYS: readonly string[] = [
+  'iconPath',
+  'icon',
+  'color',
+  'bgColor',
+  'ringColor',
+  'href',
+  'moreHref',
+  'linkHref',
+  'validatorHref',
+  'code',
+  'command',
+  'id',
+  'n',
+  'key',
+  'tableAriaLabel',
+  'create',
+] as const;
