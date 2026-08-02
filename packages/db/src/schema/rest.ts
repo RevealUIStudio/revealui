@@ -69,6 +69,7 @@ export * from './node-ids.js';
 export * from './nudges.js';
 export * from './oauth-accounts.js';
 export * from './pages.js';
+export * from './sso.js';
 export * from './passkeys.js';
 export * from './password-reset-tokens.js';
 export * from './products.js';

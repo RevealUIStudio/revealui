@@ -92,6 +92,32 @@ export type AccountsRow = z.infer<typeof AccountsSelectSchema>
 export type AccountsInsert = z.infer<typeof AccountsInsertSchema>
 
 // =============================================================================
+// AccountSsoProviders Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting accountSsoProviders rows from database
+ * Generated from Drizzle table definition: tables.accountSsoProviders
+ */
+export const AccountSsoProvidersSelectSchema = createSelectSchema(tables.accountSsoProviders)
+
+/**
+ * Zod schema for inserting accountSsoProviders rows to database
+ * Generated from Drizzle table definition: tables.accountSsoProviders
+ */
+export const AccountSsoProvidersInsertSchema = createInsertSchema(tables.accountSsoProviders)
+
+/**
+ * TypeScript type for accountSsoProviders row (Select)
+ */
+export type AccountSsoProvidersRow = z.infer<typeof AccountSsoProvidersSelectSchema>
+
+/**
+ * TypeScript type for accountSsoProviders insert
+ */
+export type AccountSsoProvidersInsert = z.infer<typeof AccountSsoProvidersInsertSchema>
+
+// =============================================================================
 // AccountSubscriptions Schemas
 // =============================================================================
 
@@ -2118,6 +2144,32 @@ export type SitesRow = z.infer<typeof SitesSelectSchema>
  * TypeScript type for sites insert
  */
 export type SitesInsert = z.infer<typeof SitesInsertSchema>
+
+// =============================================================================
+// SsoIdentities Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting ssoIdentities rows from database
+ * Generated from Drizzle table definition: tables.ssoIdentities
+ */
+export const SsoIdentitiesSelectSchema = createSelectSchema(tables.ssoIdentities)
+
+/**
+ * Zod schema for inserting ssoIdentities rows to database
+ * Generated from Drizzle table definition: tables.ssoIdentities
+ */
+export const SsoIdentitiesInsertSchema = createInsertSchema(tables.ssoIdentities)
+
+/**
+ * TypeScript type for ssoIdentities row (Select)
+ */
+export type SsoIdentitiesRow = z.infer<typeof SsoIdentitiesSelectSchema>
+
+/**
+ * TypeScript type for ssoIdentities insert
+ */
+export type SsoIdentitiesInsert = z.infer<typeof SsoIdentitiesInsertSchema>
 
 // =============================================================================
 // SyncMetadata Schemas
