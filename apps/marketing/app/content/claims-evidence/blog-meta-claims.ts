@@ -123,6 +123,11 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
         ref: 'apps/marketing/app/lib/blog-registry.ts',
         note: 'live registry row for slug revfleet-product-family',
       },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#revfleet product family excerpt mentions encrypted secrets product',
+        note: 'GAP-467 registry lock for capability-shaped excerpt',
+      },
     ],
   },
   {
@@ -183,6 +188,11 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
         ref: 'apps/marketing/app/lib/blog-registry.ts',
         note: 'live registry row for slug own-your-secrets',
       },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#own your secrets excerpt says credentials never sit as plaintext on disk',
+        note: 'GAP-467 registry lock for capability-shaped excerpt',
+      },
     ],
   },
   {
@@ -235,6 +245,11 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
         ref: 'apps/marketing/app/lib/blog-registry.ts',
         note: 'live registry row for slug claim-drift',
       },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#claim drift excerpt says every number is checked against the code',
+        note: 'GAP-467 registry lock for capability-shaped excerpt',
+      },
     ],
   },
   {
@@ -286,6 +301,11 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
         kind: 'code',
         ref: 'apps/marketing/app/lib/blog-registry.ts',
         note: 'live registry row for slug own-your-data',
+      },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#own your data excerpt claims real-time sync in the product stack',
+        note: 'GAP-467 registry lock for capability-shaped excerpt',
       },
     ],
   },
@@ -390,6 +410,11 @@ export const blogMetaClaims: readonly ClaimEntry[] = [
         kind: 'code',
         ref: 'apps/marketing/app/lib/blog-registry.ts',
         note: 'live registry row for slug five-primitives',
+      },
+      {
+        kind: 'test',
+        ref: 'apps/marketing/app/lib/__tests__/blog-registry.test.ts#five primitives excerpt says every software company needs the building blocks',
+        note: 'GAP-467 registry lock for capability-shaped excerpt',
       },
     ],
   },
