@@ -513,7 +513,7 @@ export const PERPETUAL_MINT_LIMITS: EvidenceRef = {
 };
 export const PERPETUAL_MINT_LIMITS_TEST: EvidenceRef = {
   kind: 'test',
-  ref: 'packages/core/src/__tests__/license-mint-client.test.ts',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#local mint embeds maxSites 10 for Agency perpetual JWT',
   note: 'Agency perpetual JWT embeds maxSites 10 via withPerpetualSiteCaps',
 };
 export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
