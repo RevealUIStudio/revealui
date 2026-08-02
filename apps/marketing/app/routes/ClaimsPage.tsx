@@ -17,6 +17,7 @@ import {
 } from '../content/claims-evidence';
 import { CONTENT_FILE_ROUTES, routeDepth } from '../content/claims-routes';
 import { SITE } from '../content/site';
+import { BLOG_POST_METADATA } from '../lib/blog-registry';
 
 /** One accent color throughout (locked design point 10): every kind badge
  *  reads "brand" (the Cobalt primary token). Kinds are told apart by label. */
@@ -72,7 +73,8 @@ interface FileSection {
 // the depth of the route it proves — the file mapping to "/" comes first.
 // COVERED_FILES already lists home.ts before deeper pages, so a stable sort
 // on depth alone preserves that order among ties.
-const FILE_SECTIONS: readonly FileSection[] = COVERED_FILES.map((covered) => {
+// GAP-467: append live blog posts (title+excerpt index) after product/legal.
+const CONTENT_FILE_SECTIONS: readonly FileSection[] = COVERED_FILES.map((covered) => {
   // Guaranteed present by the validate:claims-evidence route-map assertion
   // (scripts/validate/claims-evidence.ts check 4); the fallback only matters
   // for a local dev build made before that gate has run.
@@ -86,6 +88,21 @@ const FILE_SECTIONS: readonly FileSection[] = COVERED_FILES.map((covered) => {
 })
   .slice()
   .sort((a, b) => routeDepth(a.route) - routeDepth(b.route));
+
+const BLOG_FILE_SECTIONS: readonly FileSection[] = BLOG_POST_METADATA.map((post) => {
+  const file = `blog/${post.slug}`;
+  return {
+    file,
+    route: `/blog/${post.slug}`,
+    pageTitle: post.title,
+    claims: CLAIMS.filter((claim) => claim.file === file),
+  };
+});
+
+const FILE_SECTIONS: readonly FileSection[] = [...CONTENT_FILE_SECTIONS, ...BLOG_FILE_SECTIONS];
+
+/** Content modules + live blog posts represented on this ledger. */
+const LEDGER_SURFACE_COUNT = COVERED_FILES.length + BLOG_POST_METADATA.length;
 
 function EvidenceRow({ evidence }: { evidence: ClaimEntry['evidence'][number] }) {
   return (
@@ -176,7 +193,7 @@ export function ClaimsPage() {
               {CLAIMS_COUNTS_LABELS.entriesLabel}
             </span>
             <span>
-              <strong className="font-semibold">{COVERED_FILES.length}</strong>{' '}
+              <strong className="font-semibold">{LEDGER_SURFACE_COUNT}</strong>{' '}
               {CLAIMS_COUNTS_LABELS.filesLabel}
             </span>
           </div>
