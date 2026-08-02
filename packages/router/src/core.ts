@@ -7,6 +7,8 @@
 export { RSC_ACCEPT, resolveRscClientUrl } from './negotiate';
 export { Router } from './router';
 export type {
+  ActionMiddleware,
+  ActionMiddlewareContext,
   Location,
   MiddlewareContext,
   NavigateOptions,

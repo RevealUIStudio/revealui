@@ -68,6 +68,8 @@ export { Router } from './router';
 
 // Types
 export type {
+  ActionMiddleware,
+  ActionMiddlewareContext,
   Location,
   MiddlewareContext,
   NavigateOptions,

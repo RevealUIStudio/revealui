@@ -162,6 +162,43 @@ describe('T7 server actions', () => {
     expect(res.status).toBe(403);
   });
 
+  it('actionMiddleware receives actionId for selective auth (2.3.1)', async () => {
+    const router = new Router({ rsc: {} });
+    router.register({ path: '/', component: () => null });
+    const seen: Array<string | null | undefined> = [];
+    router.useAction(async (ctx) => {
+      seen.push(ctx.actionId);
+      return !ctx.actionId?.includes('secret');
+    });
+    const blocked = await renderRequest(
+      new Request('http://x/', {
+        method: 'POST',
+        headers: { [RSC_ACTION_HEADER]: 'mod#secretPing', accept: 'text/x-component' },
+      }),
+      {
+        router,
+        createRscStream: async () => flightStream('x'),
+        loadServerAction: async () => async () => 'nope',
+      },
+    );
+    expect(blocked.status).toBe(403);
+    expect(seen).toEqual(['mod#secretPing']);
+
+    const allowed = await renderRequest(
+      new Request('http://x/', {
+        method: 'POST',
+        headers: { [RSC_ACTION_HEADER]: 'mod#public', accept: 'text/x-component' },
+      }),
+      {
+        router,
+        createRscStream: async () => flightStream('ok'),
+        loadServerAction: async () => async () => 'yes',
+      },
+    );
+    expect(allowed.status).toBe(200);
+    expect(seen).toEqual(['mod#secretPing', 'mod#public']);
+  });
+
   it('actionMiddleware can redirect', async () => {
     const router = new Router({ rsc: {} });
     router.register({ path: '/', component: () => null });

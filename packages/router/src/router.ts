@@ -9,6 +9,7 @@ import {
   routingPathname,
 } from './negotiate';
 import type {
+  ActionMiddleware,
   MiddlewareContext,
   NavigateOptions,
   NavigationStatus,
@@ -122,7 +123,7 @@ export class Router {
   private routes: Route[] = [];
   private flatRoutes: Route[] = [];
   private globalMiddleware: RouteMiddleware[] = [];
-  private actionMiddleware: RouteMiddleware[] = [];
+  private actionMiddleware: ActionMiddleware[] = [];
   private options: RouterOptions;
   private listeners: Set<() => void> = new Set();
   /** RSC payload + nav-status subscribers (Phase 2.2.3 / D3). */
@@ -167,14 +168,14 @@ export class Router {
    * Separate from route navigation middleware: mutations must not skip auth/RBAC
    * just because they bypass the loader path.
    */
-  useAction(...middleware: RouteMiddleware[]): void {
+  useAction(...middleware: ActionMiddleware[]): void {
     this.actionMiddleware.push(...middleware);
   }
 
   /**
-   * Snapshot of action middleware (for RSC server handler in later T-steps).
+   * Snapshot of action middleware (for RSC server handler / D2.d).
    */
-  getActionMiddleware(): RouteMiddleware[] {
+  getActionMiddleware(): ActionMiddleware[] {
     return [...this.actionMiddleware];
   }
 

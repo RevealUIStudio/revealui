@@ -2,7 +2,7 @@
  * Server-action transport helpers (ADR D2 / T7 / 2.2.4 progressive forms).
  */
 
-import type { MiddlewareContext, RouteMiddleware } from './types';
+import type { ActionMiddleware, ActionMiddlewareContext } from './types';
 
 /** Header carrying the opaque server-action id (RSDW convention). */
 export const RSC_ACTION_HEADER = 'x-rsc-action';
@@ -43,14 +43,14 @@ export function getRouterRedirect(response: Response): string | null {
 }
 
 /**
- * Run action middleware chain before loadServerAction (D2.d).
+ * Run action middleware chain before loadServerAction / form actions (D2.d).
  * - `false` → abort (403)
  * - `string` → redirect path
  * - `true` → continue
  */
 export async function runActionMiddleware(
-  middleware: RouteMiddleware[],
-  context: MiddlewareContext,
+  middleware: ActionMiddleware[],
+  context: ActionMiddlewareContext,
 ): Promise<true | false | string> {
   for (const mw of middleware) {
     const result = await mw(context);
