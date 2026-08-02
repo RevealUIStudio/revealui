@@ -37,6 +37,11 @@ export const PRICING_FAQS: readonly FaqItem[] = [
       'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is on Stripe. After purchase we invite you to the private kit repo and Substack section within one business day.',
   },
   {
+    question: 'What is the RevealUI Agency Founding Kit?',
+    answer:
+      'The Agency Founding Kit is the Agency Perpetual license productized for small agencies and MSPs: $8,499 one-time for Max-tier runtime entitlements with up to 10 client deployments, one year of support, and a license key that never expires. You check out through your signed-in account license page on Stripe. It is not the $299 content-only Starter Kit, and it is not the high-touch done-with-you Fleet engagement. A Max monthly subscription remains available if you prefer recurring billing.',
+  },
+  {
     question: 'Can I upgrade or downgrade my plan?',
     answer: `Yes, you can upgrade your plan at any time. You'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact ${SITE.emails.support}.`,
   },

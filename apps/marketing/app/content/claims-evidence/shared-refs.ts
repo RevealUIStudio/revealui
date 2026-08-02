@@ -496,3 +496,18 @@ export const STARTER_KIT_RECEIPT_TEST: EvidenceRef = {
   ref: 'examples/starter-kit/src/receipts/__tests__/roundtrip.test.ts#signs an action log and verifies it as valid',
   note: 'offline receipt sign+verify roundtrip in the kit',
 };
+export const AGENCY_PERPETUAL_MINT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#bakes Agency perpetual maxSites 10 when omitted',
+  note: 'GAP-448 withPerpetualSiteCaps for max perpetual',
+};
+export const AGENCY_PERPETUAL_JWT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#local mint embeds maxSites 10 for Agency perpetual JWT',
+  note: 'Agency perpetual JWT carries maxSites 10 end-to-end',
+};
+export const PERPETUAL_NEVER_EXPIRES_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'packages/core/src/__tests__/license.test.ts#perpetual licenses never expire',
+  note: 'perpetual JWT has no exp claim',
+};
