@@ -93,6 +93,32 @@ export const AccountsInsertContract = createContract({
 })
 
 // =============================================================================
+// AccountSsoProviders Contracts
+// =============================================================================
+
+/**
+ * Contract for accountSsoProviders row (Select)
+ * Database table: account_sso_providers
+ */
+export const AccountSsoProvidersRowContract = createContract({
+  name: 'AccountSsoProvidersRow',
+  version: '1',
+  description: 'Database row contract for account_sso_providers table',
+  schema: Schemas.AccountSsoProvidersSelectSchema,
+})
+
+/**
+ * Contract for accountSsoProviders insert
+ * Database table: account_sso_providers
+ */
+export const AccountSsoProvidersInsertContract = createContract({
+  name: 'AccountSsoProvidersInsert',
+  version: '1',
+  description: 'Database insert contract for account_sso_providers table',
+  schema: Schemas.AccountSsoProvidersInsertSchema,
+})
+
+// =============================================================================
 // AccountSubscriptions Contracts
 // =============================================================================
 
@@ -2118,6 +2144,32 @@ export const SitesInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for sites table',
   schema: Schemas.SitesInsertSchema,
+})
+
+// =============================================================================
+// SsoIdentities Contracts
+// =============================================================================
+
+/**
+ * Contract for ssoIdentities row (Select)
+ * Database table: sso_identities
+ */
+export const SsoIdentitiesRowContract = createContract({
+  name: 'SsoIdentitiesRow',
+  version: '1',
+  description: 'Database row contract for sso_identities table',
+  schema: Schemas.SsoIdentitiesSelectSchema,
+})
+
+/**
+ * Contract for ssoIdentities insert
+ * Database table: sso_identities
+ */
+export const SsoIdentitiesInsertContract = createContract({
+  name: 'SsoIdentitiesInsert',
+  version: '1',
+  description: 'Database insert contract for sso_identities table',
+  schema: Schemas.SsoIdentitiesInsertSchema,
 })
 
 // =============================================================================

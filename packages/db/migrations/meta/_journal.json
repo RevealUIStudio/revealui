@@ -239,6 +239,13 @@
       "when": 1785330000000,
       "tag": "0033_gap444_entitlement_source",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1785660000000,
+      "tag": "0034_gap464_account_sso_providers",
+      "breakpoints": true
     }
   ]
 }
