@@ -293,8 +293,8 @@ export const AGENCY_PERPETUAL_MAX_SITES: EvidenceRef = {
 };
 export const AGENCY_PERPETUAL_MINT_WEBHOOK: EvidenceRef = {
   kind: 'code',
-  ref: 'apps/server/src/routes/webhooks/stripe-route.ts',
-  note: 'perpetual checkout.session.completed mintLicenseKey spreads maxSites from perpetualMaxSitesForTier',
+  ref: 'packages/core/src/license/mint-client.ts',
+  note: 'withPerpetualSiteCaps / mintLicenseKey: perpetual max tier bakes maxSites 10 for Agency JWT',
 };
 export const ADMIN_LICENSE_PAGE: EvidenceRef = {
   kind: 'code',

@@ -450,30 +450,6 @@ describe('POST /stripe webhook  -  handler tests', () => {
         customerId: 'cus_perp',
         perpetual: true,
         expiresInSeconds: null,
-        maxSites: 5,
-      });
-    });
-
-    it('mints Agency Perpetual (tier max) with maxSites 10 (GAP-448)', async () => {
-      mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_agency' }]);
-      const event = makePerpetualEvent('evt_perp_agency', {
-        metadata: {
-          tier: 'max',
-          perpetual: 'true',
-          revealui_user_id: 'user_agency',
-        },
-      });
-      mockConstructEvent.mockReturnValueOnce(event);
-
-      const app = createApp();
-      await app.request(postStripe(event));
-
-      expect(vi.mocked(mintModule.mintLicenseKey)).toHaveBeenCalledWith({
-        tier: 'max',
-        customerId: 'cus_perp',
-        perpetual: true,
-        expiresInSeconds: null,
-        maxSites: 10,
       });
     });
 
