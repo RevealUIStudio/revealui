@@ -498,7 +498,7 @@ export const STARTER_KIT_RECEIPT_TEST: EvidenceRef = {
 };
 export const AGENCY_PERPETUAL_MINT_TEST: EvidenceRef = {
   kind: 'test',
-  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#bakes Agency perpetual maxSites 10 when omitted',
+  ref: 'packages/core/src/__tests__/license-mint-client.test.ts#bakes Agency perpetual maxSites 10 and maxUsers 100 when omitted',
   note: 'GAP-448 withPerpetualSiteCaps for max perpetual',
 };
 export const AGENCY_PERPETUAL_JWT_TEST: EvidenceRef = {
