@@ -161,6 +161,12 @@ jobs:
       - name: API docs drift
         run: pnpm validate:api-docs
 
+      - name: Docs public mirror (hard fail)
+        # ADR 2026-07-29: monorepo docs/ is SoT; fail if leftover generated
+        # apps/docs/public/**/*.md reappear (except docs-pro). Mirrors local
+        # gate step in scripts/gates/ci-gate.ts (fleet-redundancy C12).
+        run: pnpm validate:docs-public-mirror
+
       - name: Claims evidence validation (hard fail)
         # Every prose sentence in covered marketing content must carry a
         # claims-evidence entry citing the code that proves it. Sibling of
