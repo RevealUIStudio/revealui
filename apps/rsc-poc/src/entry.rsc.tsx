@@ -2,6 +2,7 @@
  * RSC entry — renderRequest owns JS actions (T7) and progressive forms (2.2.4).
  * Session login/logout are progressive form endpoints outside the flight path (2.3.1).
  * Observability: `@revealui/core/observability` Node init (2.3.3).
+ * Request layer: security headers / domain-lock / CSRF origin outside Router.match (2.3.4).
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -15,8 +16,7 @@ import {
   renderToReadableStream,
 } from '@vitejs/plugin-rsc/rsc';
 import type { ReactFormState } from 'react-dom/client';
-import { registerServerErrorRoutes } from './app-router.server.ts';
-import { createAppRouter } from './app-router.ts';
+import { createServerAppRouter } from './app-router.server.ts';
 import { sessionClearCookieHeader, sessionSetCookieHeader, signSession } from './auth/session.ts';
 import {
   bindRequestIdFromRequest,
@@ -25,6 +25,7 @@ import {
 } from './observability/node.ts';
 import { AppLayout } from './pages/layout.tsx';
 import { NotFoundPage } from './pages/not-found.tsx';
+import { withRequestLayer } from './request-layer/index.ts';
 
 initRscPocNodeObservability();
 
@@ -34,8 +35,7 @@ export interface RscPayload {
   formState?: ReactFormState;
 }
 
-const router = createAppRouter();
-registerServerErrorRoutes(router);
+const router = createServerAppRouter();
 
 function renderMatchedTree(match: ReturnType<typeof router.match>): React.ReactNode {
   if (!match) {
@@ -52,8 +52,6 @@ function renderMatchedTree(match: ReturnType<typeof router.match>): React.ReactN
   const page = <Page params={params} data={data} />;
   return <Layout>{page}</Layout>;
 }
-
-export default { fetch: handler };
 
 async function handleSessionApi(request: Request): Promise<Response | null> {
   const url = new URL(request.url);
@@ -88,7 +86,7 @@ async function handleSessionApi(request: Request): Promise<Response | null> {
   return null;
 }
 
-async function handler(request: Request): Promise<Response> {
+async function handleRender(request: Request): Promise<Response> {
   bindRequestIdFromRequest(request);
 
   const sessionApi = await handleSessionApi(request);
@@ -147,6 +145,9 @@ async function handler(request: Request): Promise<Response> {
     },
   });
 }
+
+/** Perimeter (2.3.4) wraps session API + renderRequest — never inside Router.match. */
+export default { fetch: withRequestLayer(handleRender) };
 
 if (import.meta.hot) {
   import.meta.hot.accept();

@@ -1,6 +1,6 @@
 'use server';
 
-import { getSession } from '../auth/session.ts';
+import { getSession } from '../auth/session-server.ts';
 
 /** Public: who am I (reads ALS request cookie). */
 export async function whoami(): Promise<string> {

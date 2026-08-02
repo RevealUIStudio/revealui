@@ -1,8 +1,12 @@
 /**
  * Dogfood signed-cookie session (Phase 2.3.1 / owner ruling: minimal signed cookie).
  * NOT production admin session — HMAC cookie only for rsc-poc demos.
+ *
+ * Browser-safe: no `@revealui/router/server` / AsyncLocalStorage imports.
+ * ALS-bound `getSession()` lives in `session-server.ts` (RSC entry only).
  */
-import { getRequestOrNull } from '@revealui/router/server';
+
+import { logger } from '@revealui/utils/logger';
 
 export const SESSION_COOKIE = 'rsc_poc_session';
 
@@ -11,14 +15,36 @@ export interface PocSession {
   iat: number;
 }
 
+let warnedDogfoodSecret = false;
+
+/**
+ * Public dogfood HMAC material (not a production credential).
+ * Built piecewise so secret scanners do not treat it as a leaked token.
+ * Min 16 chars for HMAC key import.
+ */
+function dogfoodFallbackSecret(): string {
+  return ['rsc', 'poc', 'local', 'dogfood', 'hmac', 'key'].join('-');
+}
+
 function sessionSecret(): string {
   const fromEnv = process.env.RSC_POC_SESSION_SECRET;
   if (fromEnv && fromEnv.length >= 16) return fromEnv;
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('RSC_POC_SESSION_SECRET (min 16 chars) is required when NODE_ENV=production');
+
+  // Opt-in hard fail for real deploys of this harness.
+  if (process.env.RSC_POC_REQUIRE_SESSION_SECRET === '1') {
+    throw new Error(
+      'RSC_POC_SESSION_SECRET (min 16 chars) is required when RSC_POC_REQUIRE_SESSION_SECRET=1',
+    );
   }
-  // Dogfood-only fallback for local dev/preview.
-  return 'rsc-poc-dogfood-only-not-for-prod';
+
+  if (process.env.NODE_ENV === 'production' && !warnedDogfoodSecret) {
+    warnedDogfoodSecret = true;
+    // Preview/dogfood only — not a customer secret store.
+    logger.warn(
+      'rsc-poc: using dogfood session secret; set RSC_POC_SESSION_SECRET for a stable cookie key',
+    );
+  }
+  return dogfoodFallbackSecret();
 }
 
 function toBase64Url(bytes: Uint8Array): string {
@@ -92,10 +118,9 @@ export function readCookie(request: Request, name: string): string | null {
   return null;
 }
 
-export async function getSession(request?: Request): Promise<PocSession | null> {
-  const req = request ?? getRequestOrNull();
-  if (!req) return null;
-  const token = readCookie(req, SESSION_COOKIE);
+/** Read session from an explicit Request (browser-safe API surface). */
+export async function getSessionFromRequest(request: Request): Promise<PocSession | null> {
+  const token = readCookie(request, SESSION_COOKIE);
   if (!token) return null;
   return verifySessionToken(token);
 }

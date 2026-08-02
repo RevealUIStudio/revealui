@@ -25,6 +25,7 @@ plugin-rsc; Phase 2.2.2 T0–T7 built the engine; **T8** is the first real consu
 | `src/entry.browser.tsx` | Hydrate + `setRscPayloadLoader` + `useRscPayload` (2.2.3 router-owned nav) |
 | `src/auth/*` | Dogfood signed-cookie session + `useAction` requireSession (2.3.1) |
 | `src/observability/*` | Node + browser init via `@revealui/core/observability` (2.3.3) |
+| `src/request-layer/*` | Secure headers, domain-lock, CSRF origin (2.3.4; outside `Router.match`) |
 | `src/pages/*` | Demo pages + `/session` + `/errors` (2.3.2 boundaries + 2.3.3 capture) |
 
 ## Commands
@@ -54,6 +55,27 @@ Framework-agnostic sink only — **no** `@sentry/nextjs`.
 Request correlation: bind `x-request-id` or `x-correlation-id` per request.
 
 Dogfood: open `/errors/boom` (Node console) or click client throw on `/errors` (browser console).
+
+## Request layer (2.3.4)
+
+Perimeter **outside** `Router.match` / route tables:
+
+| Concern | Implementation |
+|---------|----------------|
+| Secure headers | `@revealui/security` `createSecurityMiddleware` (`src/request-layer/security.ts`) |
+| Domain-lock | `RSC_POC_ALLOWED_HOSTS` host allowlist (optional) |
+| CSRF (dogfood) | Same-origin Origin/Referer check on non-action POSTs |
+| Session mutations | `useAction` requireSession (2.3.1) — not match-time auth |
+
+Checklist (admin port): `packages/router/docs/REQUEST-LAYER.md`.
+
+Smoke asserts `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, CSP present, and evil-Origin POST → 403.
+
+## Phase 3 ready (2.3.6)
+
+Phase 2.3 dogfood acceptance and the pre–admin-port gate live in  
+`packages/router/docs/PHASE-3-READY.md`. Owner must still mark criterion **G**
+before Phase 3 port work starts.
 
 ## Pin policy
 

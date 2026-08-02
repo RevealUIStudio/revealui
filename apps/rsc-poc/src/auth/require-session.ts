@@ -1,9 +1,10 @@
 /**
  * Action middleware: require dogfood session for protected action ids (2.3.1).
+ * Server-only — registered from RSC entry, never from entry.browser.
  */
 import type { ActionMiddleware } from '@revealui/router/core';
 import { logger } from '@revealui/utils/logger';
-import { getSession } from './session.ts';
+import { getSession } from './session-server.ts';
 
 /** RSDW / plugin-rsc action module ids that require a signed session. */
 const PROTECTED_ACTION_ID_MARKERS = ['secretPing', 'protected-ping'] as const;
