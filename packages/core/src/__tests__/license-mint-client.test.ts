@@ -11,6 +11,7 @@ import {
   SIGNER_SIGNATURE_HEADER,
   SIGNER_TIMESTAMP_HEADER,
   signMintRequest,
+  withPerpetualSiteCaps,
 } from '../license/mint-client.js';
 import { validateLicenseKey } from '../license.js';
 
@@ -163,5 +164,65 @@ describe('mintLicenseKey remote path', () => {
         },
       ),
     ).rejects.toBeInstanceOf(LicenseMintRemoteError);
+  });
+});
+
+describe('withPerpetualSiteCaps (GAP-448)', () => {
+  it('does not alter non-perpetual mints', () => {
+    const input = { tier: 'max' as const, customerId: 'cus_1' };
+    expect(withPerpetualSiteCaps(input)).toEqual(input);
+  });
+
+  it('bakes Agency perpetual maxSites 10 when omitted', () => {
+    expect(
+      withPerpetualSiteCaps({
+        tier: 'max',
+        customerId: 'cus_1',
+        perpetual: true,
+      }),
+    ).toMatchObject({ maxSites: 10 });
+  });
+
+  it('bakes pro perpetual maxSites 5 when omitted', () => {
+    expect(
+      withPerpetualSiteCaps({
+        tier: 'pro',
+        customerId: 'cus_1',
+        perpetual: true,
+      }),
+    ).toMatchObject({ maxSites: 5 });
+  });
+
+  it('leaves explicit maxSites and enterprise unlimited', () => {
+    expect(
+      withPerpetualSiteCaps({
+        tier: 'max',
+        customerId: 'cus_1',
+        perpetual: true,
+        maxSites: 3,
+      }).maxSites,
+    ).toBe(3);
+    expect(
+      withPerpetualSiteCaps({
+        tier: 'enterprise',
+        customerId: 'cus_1',
+        perpetual: true,
+      }).maxSites,
+    ).toBeUndefined();
+  });
+
+  it('local mint embeds maxSites 10 for Agency perpetual JWT', async () => {
+    const jwt = await mintLicenseKey(
+      { tier: 'max', customerId: 'cus_agency', perpetual: true, expiresInSeconds: null },
+      {
+        env: {
+          REVEALUI_LICENSE_PRIVATE_KEY: privateKeyPem,
+          REVEALUI_LICENSE_PUBLIC_KEY: publicKeyPem,
+        },
+      },
+    );
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload?.tier).toBe('max');
+    expect(payload?.maxSites).toBe(10);
   });
 });
