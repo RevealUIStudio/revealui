@@ -783,15 +783,16 @@ jobs:
       # Ephemeral CI secrets (not real credentials). Admin next start is
       # production-mode and still requires the base secret trio even with
       # SKIP_ENV_VALIDATION (env-validation.ts). KEK must be 64 hex chars.
-      # Server production boot also requires CORS_ORIGIN + audit signing key
-      # (generated above into GITHUB_ENV as REVEALUI_AUDIT_SIGNING_KEY).
+      # API must use NODE_ENV=development: apps/server/src/index.ts only calls
+      # serve() on the long-running dev path; production NODE_ENV is the
+      # Vercel serverless entry (worker.ts owns long-running production).
+      # REVEALUI_AUDIT_SIGNING_KEY comes from GITHUB_ENV (step above).
       - name: Start API server
         run: pnpm --filter server start &
         env:
           SKIP_ENV_VALIDATION: "true"
-          NODE_ENV: "production"
+          NODE_ENV: "development"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
-          CORS_ORIGIN: "http://localhost:4000,http://localhost:3000"
           REVEALUI_SECRET: "e2e-smoke-secret-at-least-32-chars-long"
           REVEALUI_PUBLIC_SERVER_URL: "http://localhost:3004"
           REVEALUI_KEK: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
