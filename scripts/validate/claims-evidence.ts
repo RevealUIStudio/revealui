@@ -243,7 +243,7 @@ async function run(): Promise<void> {
     }
   }
 
-  // 2c. GAP-467 P2: body prose for BLOG_BODY_CLAIM_SLUGS (newest posts first).
+  // 2c. GAP-467: body prose for every live registry slug (BLOG_BODY_CLAIM_SLUGS).
   const bodySlugSet = new Set<string>(BLOG_BODY_CLAIM_SLUGS);
   for (const slug of BLOG_BODY_CLAIM_SLUGS) {
     const post = BLOG_POST_METADATA.find((p) => p.slug === slug);
@@ -276,13 +276,13 @@ async function run(): Promise<void> {
       }
     }
   }
-  // Body claims for slugs not yet in P2 phase are not allowed (prevent silent full-corpus dump).
+  // Body claims must belong to a live registry slug in BLOG_BODY_CLAIM_SLUGS.
   for (const claim of CLAIMS) {
     if (!(claim.file.startsWith('blog/') && claim.exportPath.startsWith('body.'))) continue;
     const slug = claim.file.slice('blog/'.length);
     if (!bodySlugSet.has(slug)) {
       violations.push(
-        `${claim.file} :: ${claim.exportPath} — body claim for slug not in BLOG_BODY_CLAIM_SLUGS (expand the phase list deliberately)`,
+        `${claim.file} :: ${claim.exportPath} — body claim for slug not in BLOG_BODY_CLAIM_SLUGS`,
       );
     }
   }
@@ -336,7 +336,7 @@ async function run(): Promise<void> {
   const coveredCount = CLAIMS.length;
   if (violations.length === 0) {
     console.log(
-      `claims-evidence: ${coveredCount} indexed claims across ${COVERED_FILES.length} covered content modules + ${BLOG_POST_METADATA.length} live blog posts (title+excerpt) + ${BLOG_BODY_CLAIM_SLUGS.length} posts with body prose (P2), all matched, all evidence paths present.`,
+      `claims-evidence: ${coveredCount} indexed claims across ${COVERED_FILES.length} covered content modules + ${BLOG_POST_METADATA.length} live blog posts (title+excerpt+body), all matched, all evidence paths present.`,
     );
     process.exit(0);
   }
