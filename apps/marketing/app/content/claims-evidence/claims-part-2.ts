@@ -126,8 +126,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENCY_FOUNDING_KIT.body',
-    // Interpolated: fleetDeploymentPrice from AGENCY_ENGAGEMENT_LADDER (fleet-deployment).
-    text: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the $25,000 done-with-you Fleet engagement. (interpolated: fleetDeploymentPrice)',
+    // Resolved string: fleetDeploymentPrice is interpolated from AGENCY_ENGAGEMENT_LADDER.
+    text: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the $25,000 done-with-you Fleet engagement.',
     match: 'path',
     evidence: [
       AGENCY_PERPETUAL_FEATURES,
