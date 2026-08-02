@@ -143,6 +143,21 @@ const CLI_CREATE: EvidenceRef = {
   ref: 'npx create-revealui@latest my-app',
   note: 'scaffolder at packages/cli; the 60-second figure is a timed claim, re-verify per release',
 };
+const STARTER_KIT: EvidenceRef = {
+  kind: 'code',
+  ref: 'examples/starter-kit',
+  note: 'GAP-434 content-only kit: recipes, receipt verify, Postgres bootstrap (npm-resolvable)',
+};
+const STARTER_KIT_GETTING_STARTED: EvidenceRef = {
+  kind: 'code',
+  ref: 'examples/starter-kit/GETTING-STARTED.md',
+  note: 'buyer flow documents create-revealui + bootstrap',
+};
+const STARTER_KIT_RECEIPT_TEST: EvidenceRef = {
+  kind: 'test',
+  ref: 'examples/starter-kit/src/receipts/__tests__/roundtrip.test.ts#signs an action log and verifies it as valid',
+  note: 'offline receipt sign+verify roundtrip in the kit',
+};
 const LICENSE_MIT: EvidenceRef = {
   kind: 'code',
   ref: 'LICENSE',
@@ -1494,6 +1509,49 @@ export const CLAIMS: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.body',
+    text: 'A content-only kit for builders who want governed agent recipes and signed receipt demos on top of create-revealui, without buying a Pro subscription. Not a Pro entitlement and not a full Fleet stamp.',
+    evidence: [STARTER_KIT, STARTER_KIT_GETTING_STARTED, CLI_CREATE, STARTER_KIT_RECEIPT_TEST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.points[0]',
+    text: 'npm create-revealui path plus Postgres-only bootstrap scripts',
+    evidence: [STARTER_KIT_GETTING_STARTED, CLI_CREATE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.points[1]',
+    text: 'Governed agent recipes that write a receipt you can verify offline',
+    evidence: [STARTER_KIT, STARTER_KIT_RECEIPT_TEST],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.points[2]',
+    text: 'Ships as content and scripts, not a Pro license key or runtime upgrade',
+    evidence: [STARTER_KIT, COMMERCIAL_POLICY],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.points[3]',
+    text: 'Sold on Polar when checkout opens; private Substack access is manual at launch volume',
+    evidence: [STARTER_KIT],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.primaryCta.label',
+    text: 'Email to reserve the Starter Kit (or Buy on Polar when SITE.urls.starterKitCheckout is set)',
+    match: 'path',
+    evidence: [STARTER_KIT],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PRICING_STARTER_KIT.secondaryCta.label',
+    text: 'Read the kit getting-started guide',
+    evidence: [STARTER_KIT_GETTING_STARTED],
+  },
+  {
+    file: 'pricing.ts',
     exportPath: 'PRICING_AGENTS_SECTION.subhead',
     text: 'Agents discover, authenticate, and pay without human intervention.',
     evidence: [LIVE_AGENT_CARD, AUTH_SESSIONS, X402],
@@ -1893,68 +1951,80 @@ export const CLAIMS: readonly ClaimEntry[] = [
   {
     file: 'pricing-faq.ts',
     exportPath: 'PRICING_FAQS[4].question',
+    text: 'What is the RevealUI Starter Kit?',
+    evidence: [STARTER_KIT],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[4].answer',
+    text: 'The Starter Kit is a $299 one-time, content-only product. It packages create-revealui onboarding, Postgres bootstrap, and governed agent recipes that demonstrate signed receipts you can verify offline. It does not include a Pro subscription entitlement or a full RevealUI Fleet stamp. Checkout is planned on Polar; until the listing is live, email founder@revealui.com to reserve a seat.',
+    evidence: [STARTER_KIT, STARTER_KIT_GETTING_STARTED, CLI_CREATE, STARTER_KIT_RECEIPT_TEST],
+  },
+  {
+    file: 'pricing-faq.ts',
+    exportPath: 'PRICING_FAQS[5].question',
     text: 'Can I upgrade or downgrade my plan?',
     evidence: [BILLING],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[4].answer',
+    exportPath: 'PRICING_FAQS[5].answer',
     text: "Yes, you can upgrade your plan at any time. You'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support. (interpolated: SITE.emails.support)",
     match: 'path',
     evidence: [BILLING],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[5].question',
+    exportPath: 'PRICING_FAQS[6].question',
     text: 'How does AI inference work?',
     evidence: [OPEN_WEIGHT],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[5].answer',
+    exportPath: 'PRICING_FAQS[6].answer',
     text: 'Bring your own model. The default ships open-weight (Gemma-family and other open-weight models) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default, Studio lifecycle pending), so your bill does not scale with usage. Switch to Claude, GPT, or any OpenAI-compatible provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
     evidence: [OPEN_WEIGHT, PROVIDERS],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[6].question',
+    exportPath: 'PRICING_FAQS[7].question',
     text: 'What does "full source code access" mean?',
     evidence: [LICENSE_MIT],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[6].answer',
+    exportPath: 'PRICING_FAQS[7].answer',
     text: 'You get the complete RevealUI source code: every app and package is published in the public monorepo. Infrastructure packages (@revealui/core, auth, db, contracts, security, utils, config, cache, resilience, openapi, sync) are MIT-licensed. The five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) ship under Fair Source (FSL-1.1-MIT): source is visible, commercial use is permitted except for building a directly competing developer platform, and each release automatically converts to plain MIT two years after publication. All paid tiers add runtime entitlements (license validation, feature gates, priority updates) on top of that source access, and nothing is hidden behind a closed binary.',
     evidence: [LICENSE_SPLIT, LICENSE_MIT, REPO, TIER_GATES],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[7].question',
+    exportPath: 'PRICING_FAQS[8].question',
     text: 'What is Fair Source (FSL-1.1-MIT)?',
     evidence: [FAIR_SOURCE_PAGE],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[7].answer',
+    exportPath: 'PRICING_FAQS[8].answer',
     text: "Fair Source is a middle path between closed commercial and plain open-source. Our five Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are source-visible on GitHub, installable from npm, and legally usable in commercial products, with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.",
     evidence: [LICENSE_SPLIT, FAIR_SOURCE_PAGE, REPO],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[8].question',
+    exportPath: 'PRICING_FAQS[9].question',
     text: 'Do you offer custom pricing for large teams?',
     evidence: [COMMERCIAL_POLICY],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[8].answer',
+    exportPath: 'PRICING_FAQS[9].answer',
     text: 'Yes. If you need more than what the Enterprise tier offers, contact us to discuss custom pricing. See /sla for our standard support and uptime commitments. (interpolated: SITE.emails.support)',
     match: 'path',
     evidence: [COMMERCIAL_POLICY, SLA_PAGE],
   },
   {
     file: 'pricing-faq.ts',
-    exportPath: 'PRICING_FAQS[9].answer',
+    exportPath: 'PRICING_FAQS[10].answer',
     text: 'RevFleet is the RevealUI Studio product family: seven products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Claude Code skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevMarket is the agent tool marketplace (bundled with the runtime, on the way). Use RevealUI standalone, or compose what you need.',
     evidence: [
       REVVAULT_REPO,

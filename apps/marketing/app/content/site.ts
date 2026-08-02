@@ -75,6 +75,11 @@ export const SITE = {
     linkedin: 'https://www.linkedin.com/company/revealui',
     repoChangelog: 'https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md',
     repoLicense: 'https://github.com/RevealUIStudio/revealui/blob/main/LICENSE',
+    /**
+     * Polar $299 Starter Kit checkout URL (GAP-434). Empty until the Polar
+     * product is live; pricing CTA falls back to email when blank.
+     */
+    starterKitCheckout: '',
   },
   emails: {
     support: 'support@revealui.com',
