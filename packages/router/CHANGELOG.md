@@ -11,6 +11,8 @@
 
 - Phase 2.3.4: `docs/REQUEST-LAYER.md` (perimeter vs `Router.match`); MIGRATION-RSC
   link. Dogfood: `apps/rsc-poc/src/request-layer/`.
+- Phase 2.3.6: `docs/PHASE-3-READY.md` — Phase 2.3 acceptance evidence + pre–Phase 3
+  operator checklist (owner disposition still required for G).
 
 ## 0.4.0-rc.6
 

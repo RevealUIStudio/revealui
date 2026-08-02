@@ -165,6 +165,11 @@ middleware wrap** around `renderRequest` — not in `Router.match`. Full
 checklist: [REQUEST-LAYER.md](./REQUEST-LAYER.md). Dogfood:
 `apps/rsc-poc/src/request-layer/`.
 
+## Phase 3 ready (2.3.6)
+
+Before starting the `apps/admin` port, complete [PHASE-3-READY.md](./PHASE-3-READY.md)
+(Phase 2.3 acceptance A–F with evidence; owner disposition for G).
+
 ## What does not migrate 1:1 from Next App Router
 
 | Next | RevealUI router |

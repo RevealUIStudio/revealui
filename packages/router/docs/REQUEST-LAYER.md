@@ -76,5 +76,6 @@ Hono equivalent: `app.use('*', async (c, next) => { … })` then
 ## Related
 
 - Phase 2.3 hardening spec (`.jv`): `docs/specs/2026-08-01-phase-2.3-admin-prod-hardening.md`
+- [PHASE-3-READY.md](./PHASE-3-READY.md) — Phase 2.3 acceptance + pre–Phase 3 gate (2.3.6)
 - [MIGRATION-RSC.md](./MIGRATION-RSC.md) — dual-mode consumer recipe
 - [RUNTIME-SUPPORT.md](./RUNTIME-SUPPORT.md) — edge matrix (D18.b)

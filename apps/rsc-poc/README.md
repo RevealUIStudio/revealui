@@ -71,6 +71,12 @@ Checklist (admin port): `packages/router/docs/REQUEST-LAYER.md`.
 
 Smoke asserts `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, CSP present, and evil-Origin POST → 403.
 
+## Phase 3 ready (2.3.6)
+
+Phase 2.3 dogfood acceptance and the pre–admin-port gate live in  
+`packages/router/docs/PHASE-3-READY.md`. Owner must still mark criterion **G**
+before Phase 3 port work starts.
+
 ## Pin policy
 
 - `react` / `react-dom` / `react-server-dom-webpack`: **exact same version**, floor **≥19.2.4**
