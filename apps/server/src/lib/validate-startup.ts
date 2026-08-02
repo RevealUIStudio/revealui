@@ -11,12 +11,11 @@ import {
   deploymentModeKeyConsistencyError,
   detectDeploymentMode as detectDeploymentModeCore,
 } from '@revealui/core/deployment-mode';
-import {
-  computeKeyId,
-  hostMatchesLicensedDomains,
-  validateLicenseKey,
-} from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
+import {
+  ALLOW_UNLICENSED_SELF_HOST_ENV,
+  validateForgeLicenseAtStartup,
+} from '@revealui/core/revforge-license-boot';
 import { normalizeEnvPem } from '@revealui/core/security';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
@@ -139,20 +138,6 @@ export function detectDeploymentMode(
 ): DeploymentMode {
   return detectDeploymentModeCore(env, options);
 }
-
-/**
- * GAP-436 (owner-ruled 2026-07-26): a self-hosted boot with NO license key at
- * all is the plain OSS/self-host/template path (`docker-compose.yml`, the
- * Railway marketplace template) — not a RevForge-stamped kit. RevForge always
- * mints and bakes a `REVEALUI_LICENSE_KEY` at stamp time (`forge/stamp.sh`),
- * so a genuinely stamped kit never reaches the unlicensed branch below.
- *
- * Setting this to `'true'` opts a self-hosted (forge-mode-detected) boot into
- * Free (OSS) tier instead of the hard license requirement. It changes NOTHING
- * unless explicitly set — RevForge-stamped kits, and any deployment that
- * doesn't know about this flag, keep today's hard refusal unchanged.
- */
-const ALLOW_UNLICENSED_SELF_HOST_ENV = 'REVEALUI_ALLOW_UNLICENSED_SELF_HOST';
 
 /** The two license-material keys the plain self-host opt-in makes optional. */
 const FORGE_LICENSE_KEYS = ['REVEALUI_LICENSE_KEY', 'REVEALUI_LICENSE_PUBLIC_KEY'] as const;
@@ -517,167 +502,14 @@ export function validateStartup(
 }
 
 /**
- * Extracts the `kid` (key id) from a JWT's protected header WITHOUT verifying
- * the signature. Returns undefined when the token is malformed or carries no
- * `kid` (older tokens issued before the issuer paired a public key). Uses only
- * built-in parsers (base64url decode + JSON.parse): no authored regex and no
- * jose import at the boot layer. Used purely to sharpen the error message once
- * cryptographic verification has ALREADY failed; never as a verification step.
- */
-function decodeJwtKid(jwt: string): string | undefined {
-  const headerSegment = jwt.split('.')[0];
-  if (!headerSegment) return undefined;
-  try {
-    const header: unknown = JSON.parse(Buffer.from(headerSegment, 'base64url').toString('utf8'));
-    if (header && typeof header === 'object' && 'kid' in header) {
-      const { kid } = header as { kid?: unknown };
-      return typeof kid === 'string' ? kid : undefined;
-    }
-  } catch {
-    // Malformed header segment. Fall through; the caller's generic
-    // "invalid license" path surfaces the real failure.
-  }
-  return undefined;
-}
-
-/**
- * Boot-time license enforcement for self-hosted (Forge) deployments.
+ * Forge / self-host license boot gate.
  *
- * The hosted SaaS deployment (apps/server on Vercel for revealui.com) signs
- * license JWTs for paying subscribers, so REVEALUI_LICENSE_PRIVATE_KEY is
- * always set there — entitlement comes from `account_entitlements` rows,
- * not from an env-var JWT. Boot-time license enforcement is a no-op in
- * that mode.
- *
- * Self-hosted Forge customer deployments don't have the studio's signing
- * key — they only consume a JWT signed by the studio, plus the matching
- * public key. We detect Forge mode by the absence of
- * REVEALUI_LICENSE_PRIVATE_KEY and, when in that mode:
- *
- *   - REVEALUI_LICENSE_KEY must be set (the studio-issued JWT)
- *   - REVEALUI_LICENSE_PUBLIC_KEY must be set (master verification key)
- *   - The JWT must verify cleanly (signature + expiry, with the
- *     subscription grace window from `@revealui/core/license`)
- *
- * Throws on any failure so the API refuses to boot rather than silently
- * degrading to free tier (which is `initializeLicense`'s default
- * behavior). This is the gate that makes a stamped Forge kit honor its
- * license — without it, an expired or tampered key would still let the
- * stack come up.
- *
- * GAP-436 (owner-ruled 2026-07-26): the one exception is a COMPLETELY
- * ABSENT license key on a deployment that explicitly opts in via
- * `REVEALUI_ALLOW_UNLICENSED_SELF_HOST=true` — the plain OSS/self-host or
- * marketplace-template path, which has no license to begin with. A present
- * key (valid, invalid, expired, or wrong-keypair) is still verified exactly
- * as before regardless of that flag, so it can never be used to downgrade a
- * genuinely stamped kit's enforcement.
- *
- * Honors `SKIP_ENV_VALIDATION=true` so Docker-build contexts and tests
- * can compile without live credentials present. Takes `env` as an
- * argument (defaulted to `process.env`) so tests can pass explicit
- * fixtures.
+ * Implementation lives in `@revealui/core/revforge-license-boot` so apps/admin
+ * instrumentation and this API boot path cannot drift (fleet-redundancy 2026-08-02).
+ * Re-exported under the historical name for existing server callers and tests.
  */
 export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvMap): Promise<void> {
-  if (env.SKIP_ENV_VALIDATION === 'true') {
-    return;
-  }
-
-  // Mode detection: absence of the signing key = self-hosted deployment
-  // (RevForge-stamped kit OR a plain self-host / marketplace-template boot).
-  if (detectDeploymentMode(env) !== 'forge') {
-    return;
-  }
-
-  if (!env.REVEALUI_LICENSE_KEY) {
-    if (env[ALLOW_UNLICENSED_SELF_HOST_ENV] === 'true') {
-      logger.info('no license key — running Free (OSS) tier');
-      return;
-    }
-    throw new Error(
-      'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is required for RevForge deployments. ' +
-        'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
-        'or contact the operator who stamped this kit. A plain self-host deployment that ' +
-        `intends to run without a license should set ${ALLOW_UNLICENSED_SELF_HOST_ENV}=true to ` +
-        'boot at Free (OSS) tier instead.',
-    );
-  }
-  if (!env.REVEALUI_LICENSE_PUBLIC_KEY) {
-    throw new Error(
-      'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_PUBLIC_KEY is required for RevForge deployments. ' +
-        'Stamped kits embed this value in docker/.env.example; check that it survived the bootstrap step.',
-    );
-  }
-
-  // Restore real newlines if the public key landed as a single-line PEM
-  // (the .env-encoded format that stamp.sh produces). Split/join, no authored
-  // regex — mirrors @revealui/core/license normalizePem. GAP-259 P0-4.
-  const publicKey = env.REVEALUI_LICENSE_PUBLIC_KEY.split('\\n').join('\n');
-  // Phase 1 audit B-2: bind the license to a specific customer when the
-  // operator has provided REVEALUI_LICENSED_CUSTOMER_ID. Without this, a
-  // leaked JWT from one customer would license another customer's
-  // deployment. Hosted mode does not set this — the deployment IS the
-  // customer. Forge stamping should set it (revforge#NN tracking).
-  const expectedCustomerId = env.REVEALUI_LICENSED_CUSTOMER_ID || undefined;
-  const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey, expectedCustomerId);
-  if (!payload) {
-    // Sharpen the most common (and most confusing) stamping failure: the kit
-    // baked a REVEALUI_LICENSE_PUBLIC_KEY that is not the verification key for
-    // the issued JWT. Our issuer embeds a `kid` (a short digest of the paired
-    // public key) in every token, so a token whose kid does not match the
-    // configured public key's id was provably signed by a different key. We
-    // consult the kid only HERE, after cryptographic verification has already
-    // failed, so a public key that is correct but merely formatted differently
-    // (validateLicenseKey verifies key material, not PEM bytes) can never reach
-    // this branch and produce a false "wrong key" message.
-    const tokenKid = decodeJwtKid(env.REVEALUI_LICENSE_KEY);
-    if (tokenKid !== undefined) {
-      const expectedKid = await computeKeyId(publicKey);
-      if (tokenKid !== expectedKid) {
-        throw new Error(
-          'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_PUBLIC_KEY does not match the key that ' +
-            `signed REVEALUI_LICENSE_KEY (license key id "${tokenKid}", configured public key id ` +
-            `"${expectedKid}"). The stamped kit baked the wrong public key. Re-issue the license ` +
-            'with the matching keypair, or bake the public key that pairs with the signing key, ' +
-            'then re-run bin/revvault-bootstrap.sh. Contact the operator who stamped this kit.',
-        );
-      }
-    }
-    throw new Error(
-      'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
-        'signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY, or its ' +
-        'customerId does not match REVEALUI_LICENSED_CUSTOMER_ID (if set). ' +
-        'Contact the operator who stamped this kit to re-issue the license.',
-    );
-  }
-
-  // Domain binding: when the license restricts domains, the configured public
-  // server URL must resolve to a licensed host. The allowed domains come from
-  // the signed JWT `domains` claim (cryptographically bound), so this cannot
-  // be bypassed by editing an env var. REVEALUI_PUBLIC_SERVER_URL presence is
-  // enforced separately in validateStartup's forge-mode REQUIRED list (prod);
-  // when it is absent here (e.g. dev), skip — request-time `requireDomain` is
-  // the per-request gate. localhost/127.0.0.1 pass via the shared matcher so a
-  // trial kit on its default http://localhost still boots.
-  if (payload.domains && payload.domains.length > 0) {
-    const publicUrl = (env.REVEALUI_PUBLIC_SERVER_URL ?? env.NEXT_PUBLIC_SERVER_URL ?? '').trim();
-    if (publicUrl) {
-      let host = '';
-      try {
-        host = new URL(publicUrl).hostname;
-      } catch {
-        host = '';
-      }
-      if (!hostMatchesLicensedDomains(host, payload.domains)) {
-        throw new Error(
-          'LICENSE VALIDATION FAILED: this license is restricted to ' +
-            `[${payload.domains.join(', ')}], but REVEALUI_PUBLIC_SERVER_URL host ` +
-            `"${host || '(unparseable)'}" is not among them. Set REVEALUI_PUBLIC_SERVER_URL ` +
-            'to a licensed domain, or contact the operator who stamped this kit.',
-        );
-      }
-    }
-  }
+  await validateForgeLicenseAtStartup(env);
 }
 
 /**

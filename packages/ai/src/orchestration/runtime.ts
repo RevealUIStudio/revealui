@@ -13,7 +13,11 @@ import type { AgentSkillProvider } from '../skills/integration/agent-skill-provi
 import type { ApprovalCallback, Tool, ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
 import type { MCPToolSource, McpClientLike } from '../tools/mcp-adapter.js';
-import { createToolsFromMcpClient, discoverMCPTools } from '../tools/mcp-adapter.js';
+import {
+  createToolsFromMcpClient,
+  discoverMCPTools,
+  warnHypervisorMcpPathDeprecated,
+} from '../tools/mcp-adapter.js';
 import type { McpToolCallEvent } from '../tools/mcp-events.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
@@ -118,6 +122,9 @@ export class AgentRuntime {
   private isShuttingDown = false;
 
   constructor(config: RuntimeConfig = {}) {
+    if (config.mcpToolSource) {
+      warnHypervisorMcpPathDeprecated('AgentRuntime mcpToolSource');
+    }
     this.config = {
       maxIterations: config.maxIterations ?? 10,
       timeout: config.timeout ?? 60000, // 60 seconds
