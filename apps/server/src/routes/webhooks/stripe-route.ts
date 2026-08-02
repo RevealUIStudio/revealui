@@ -32,6 +32,7 @@ import type Stripe from 'stripe';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { recordJtisForRevokedCustomerLicenses } from '../../lib/license-jti-revocation.js';
 import type { ProtectedStripe } from '../../lib/services-loader.js';
+import { getPerpetualLicenseMintLimits } from '../../lib/tier-limits.js';
 import {
   provisionGitHubAccess,
   sendCancellationConfirmationEmail,
@@ -543,11 +544,21 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
                 // null expiresInSeconds = no exp claim — perpetual license never expires
                 // GAP-260 P4-3: mint via signer when flagged, else local private key.
+                // GAP-448: Agency Perpetual (max) mints with maxSites 10 (client deployments).
+                const perpetualLimits = getPerpetualLicenseMintLimits(
+                  tier as 'free' | 'pro' | 'max' | 'enterprise',
+                );
                 const licenseKey = await mintLicenseKey({
                   tier,
                   customerId,
                   perpetual: true,
                   expiresInSeconds: null,
+                  ...(perpetualLimits.maxSites !== undefined
+                    ? { maxSites: perpetualLimits.maxSites }
+                    : {}),
+                  ...(perpetualLimits.maxUsers !== undefined
+                    ? { maxUsers: perpetualLimits.maxUsers }
+                    : {}),
                 });
 
                 await ctx.db.insert(licenses).values({
