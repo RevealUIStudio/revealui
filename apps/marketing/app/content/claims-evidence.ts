@@ -10,6 +10,7 @@ export type {
 } from './claims-evidence/types.js';
 export { COVERED_FILES } from './claims-evidence/types.js';
 
+import { blogBodyClaimsP2 } from './claims-evidence/blog-body-claims-p2.js';
 import { blogMetaClaims } from './claims-evidence/blog-meta-claims.js';
 import { claimsPart1 } from './claims-evidence/claims-part-1.js';
 import { claimsPart2 } from './claims-evidence/claims-part-2.js';
@@ -27,6 +28,9 @@ export const CLAIMS: readonly ClaimEntry[] = [
   ...claimsPart5,
   ...claimsPart6,
   ...blogMetaClaims,
+  ...blogBodyClaimsP2,
 ];
+
+export { BLOG_BODY_CLAIM_SLUGS } from './claims-evidence/blog-body-claims-p2.js';
 
 export { NON_COPY_KEYS } from './claims-evidence/non-copy-keys.js';
