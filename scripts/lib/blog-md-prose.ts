@@ -29,8 +29,12 @@ function stripLineDecorators(line: string): string {
   } else {
     // Ordered list: digits then . then space
     let i = 0;
-    while (i < t.length && t[i] >= '0' && t[i] <= '9') i += 1;
-    if (i > 0 && t[i] === '.' && t[i + 1] === ' ') {
+    while (i < t.length) {
+      const ch = t.at(i);
+      if (ch === undefined || ch < '0' || ch > '9') break;
+      i += 1;
+    }
+    if (i > 0 && t.at(i) === '.' && t.at(i + 1) === ' ') {
       t = t.slice(i + 2);
     }
   }
@@ -90,8 +94,12 @@ export function extractBlogMdProseUnits(markdown: string): string[] {
       (() => {
         const t = raw.trimStart();
         let i = 0;
-        while (i < t.length && t[i] >= '0' && t[i] <= '9') i += 1;
-        return i > 0 && t[i] === '.' && t[i + 1] === ' ';
+        while (i < t.length) {
+          const ch = t.at(i);
+          if (ch === undefined || ch < '0' || ch > '9') break;
+          i += 1;
+        }
+        return i > 0 && t.at(i) === '.' && t.at(i + 1) === ' ';
       })() ||
       raw.trimStart().startsWith('> ');
 
