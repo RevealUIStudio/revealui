@@ -99,19 +99,16 @@ describe('marketing route registry', () => {
     expect(redirect?.permanent).toBe(true);
   });
 
-  it('redirects the retired /for-operators path to /?for=non-technical', () => {
-    // /for-operators was a nav link that pre-dated the ?for= audience selector.
-    // The entry point is now the homepage with ?for=non-technical. A permanent
-    // edge redirect (vercel.json) preserves any bookmarks or indexed links.
+  it('redirects the retired /for-operators path to /services', () => {
+    // Funnel collapse 2026-08-02: operator entry is /services (not the
+    // homepage ?for=non-technical alias). Permanent edge redirect preserves
+    // bookmarks and indexed links.
     const vercelConfig = JSON.parse(
       readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
     ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
     const redirect = vercelConfig.redirects?.find((entry) => entry.source === '/for-operators');
-    expect(
-      redirect,
-      'the /for-operators → /?for=non-technical redirect must be present',
-    ).toBeDefined();
-    expect(redirect?.destination).toBe('/?for=non-technical');
+    expect(redirect, 'the /for-operators → /services redirect must be present').toBeDefined();
+    expect(redirect?.destination).toBe('/services');
     expect(redirect?.permanent).toBe(true);
   });
 
