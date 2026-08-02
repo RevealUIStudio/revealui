@@ -9,7 +9,7 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
-import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
+import { perpetualMaxSitesForTier, RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import { resetLicenseState, subscriptionLicenseExpiresInSeconds } from '@revealui/core/license';
 import {
   canMintLicense,
@@ -543,11 +543,14 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
                 // null expiresInSeconds = no exp claim — perpetual license never expires
                 // GAP-260 P4-3: mint via signer when flagged, else local private key.
+                // GAP-448: Agency Perpetual is tier max + maxSites 10 (not Max subscription 15).
+                const maxSites = perpetualMaxSitesForTier(tier);
                 const licenseKey = await mintLicenseKey({
                   tier,
                   customerId,
                   perpetual: true,
                   expiresInSeconds: null,
+                  ...(maxSites !== null ? { maxSites } : {}),
                 });
 
                 await ctx.db.insert(licenses).values({

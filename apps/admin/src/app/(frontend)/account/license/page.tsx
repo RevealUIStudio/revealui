@@ -50,7 +50,8 @@ const PERPETUAL_PLANS = [
     label: 'Agency Perpetual',
     tier: 'max' as const,
     priceIdEnv: process.env.NEXT_PUBLIC_STRIPE_MAX_PERPETUAL_PRICE_ID,
-    description: 'Max features forever. Includes 1 year of support.',
+    // GAP-448: Agency Founding Kit / Fleet perpetual — canon 10 client sites on the JWT.
+    description: 'Max features forever, up to 10 client deployments. Includes 1 year of support.',
   },
   {
     label: 'Enterprise Perpetual',

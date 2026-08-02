@@ -13,6 +13,7 @@ import {
   SUBSCRIPTION_TIERS,
   TIER_COLORS,
   TIER_LABELS,
+  perpetualMaxSitesForTier,
   TIER_LIMITS,
 } from '../pricing.js';
 
@@ -72,6 +73,25 @@ describe('TIER_LIMITS', () => {
       expect(next.sites!).toBeGreaterThan(current.sites!);
       expect(next.users!).toBeGreaterThan(current.users!);
     }
+  });
+});
+
+// =============================================================================
+// perpetualMaxSitesForTier (GAP-448 Agency Founding Kit mint caps)
+// =============================================================================
+
+describe('perpetualMaxSitesForTier', () => {
+  it('pro perpetual matches Pro site cap', () => {
+    expect(perpetualMaxSitesForTier('pro')).toBe(5);
+  });
+
+  it('max perpetual is Agency 10 sites (not subscription Max 15)', () => {
+    expect(perpetualMaxSitesForTier('max')).toBe(10);
+    expect(TIER_LIMITS.max.sites).toBe(15);
+  });
+
+  it('enterprise perpetual omits maxSites (unlimited)', () => {
+    expect(perpetualMaxSitesForTier('enterprise')).toBeNull();
   });
 });
 

@@ -105,6 +105,23 @@ export const TIER_LIMITS: Record<LicenseTierId, TierLimits> = {
   enterprise: { sites: null, users: null, agentTasks: null, apiRequestsPerMinute: 1_000 },
 };
 
+/**
+ * Site caps baked into **perpetual** license JWTs at mint time (GAP-448).
+ *
+ * Runtime subscription Max uses {@link TIER_LIMITS}.max.sites (15). Agency
+ * Perpetual is the self-serve Fleet rung (canon: up to **10** client
+ * deployments) and checkouts with `tier: max` + perpetual metadata — so mint
+ * must pass maxSites explicitly or Agency keys inherit the wider Max default.
+ *
+ * `null` = omit maxSites on the JWT (unlimited).
+ */
+export function perpetualMaxSitesForTier(tier: 'pro' | 'max' | 'enterprise'): number | null {
+  if (tier === 'pro') return TIER_LIMITS.pro.sites;
+  // Agency Perpetual (and only perpetual max checkout) — offerings-canonical Track C.
+  if (tier === 'max') return 10;
+  return null;
+}
+
 // =============================================================================
 // Subscription Tiers (Track A)
 // =============================================================================

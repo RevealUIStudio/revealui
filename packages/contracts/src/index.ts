@@ -529,6 +529,7 @@ export {
   type LicenseTierId,
   PERPETUAL_TIERS,
   type PerpetualTier,
+  perpetualMaxSitesForTier,
   type PricingResponse,
   SUBSCRIPTION_TIERS,
   type SubscriptionTier,
