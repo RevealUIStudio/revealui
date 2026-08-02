@@ -92,13 +92,22 @@ export const PRICING_STARTER_KIT = {
 // self-serve surface. License mint uses maxSites 10 (client deployments).
 // ---------------------------------------------------------------------------
 
+/** Fleet deployment rung price from AGENCY_ENGAGEMENT_LADDER (single ownership). */
+const fleetDeploymentPrice = (() => {
+  const rung = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === 'fleet-deployment');
+  if (!rung) {
+    throw new Error('AGENCY_ENGAGEMENT_LADDER missing fleet-deployment rung');
+  }
+  return rung.price;
+})();
+
 export const PRICING_AGENCY_FOUNDING_KIT = {
   id: 'agency-founding-kit',
   eyebrow: 'Agency',
   heading: 'RevealUI Agency Founding Kit',
   price: '$8,499',
   priceNote: 'one-time Agency Perpetual',
-  body: 'The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the high-touch done-with-you Fleet engagement on this page.',
+  body: `The middle rung for small agencies and MSPs: a signed Agency-tier license (Max features, up to 10 client deployments) plus the path to stamp branded, self-hosted kits for your clients. Not the $299 content-only Starter Kit, and not the ${fleetDeploymentPrice} done-with-you Fleet engagement.`,
   points: [
     'Agency Perpetual license key that never expires, with one year of support included',
     'Up to 10 client deployments under one Agency license (Max-tier runtime entitlements)',
