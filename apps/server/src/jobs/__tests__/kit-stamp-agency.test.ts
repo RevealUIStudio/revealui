@@ -55,7 +55,7 @@ describe('kitStampAgencyHandler', () => {
     process.env.REVEALUI_SECRET = 'test-secret';
     delete process.env.REVEALUI_KIT_STAMP_MODE;
     delete process.env.REVEALUI_KIT_STAMP_RUN;
-    delete process.env.REVEALUI_REVFROGE_ROOT;
+    delete process.env.REVEALUI_REVFORGE_ROOT;
     mockSelectLimit.mockResolvedValue([]);
     mockUpload.mockResolvedValue({
       key: 'kits/test/x/y.tar.gz',

@@ -32,7 +32,7 @@ On Fly/operator hosts with a revforge checkout (not Vercel serverless):
 ```bash
 export REVEALUI_KIT_STAMP_MODE=full
 export REVEALUI_KIT_STAMP_RUN=1
-export REVEALUI_REVFROGE_ROOT=/path/to/revforge
+export REVEALUI_REVFORGE_ROOT=/path/to/revforge
 # R2_* vars required for upload
 # Optional: REVEALUI_LICENSE_PUBLIC_KEY for stamp.sh bake-in
 ```

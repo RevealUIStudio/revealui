@@ -2,7 +2,7 @@
  * GAP-448 P2-B: optional local RevForge stamp.sh for long-running workers.
  *
  * Default full mode produces a package tar (START-HERE + revforge.json) without
- * invoking stamp.sh — safe on Vercel serverless. When REVEALUI_REVFROGE_ROOT
+ * invoking stamp.sh — safe on Vercel serverless. When REVEALUI_REVFORGE_ROOT
  * points at a revforge checkout and REVEALUI_KIT_STAMP_RUN=1, run stamp.sh into
  * a temp dir and tar the output (operator/Fly worker path).
  *
@@ -38,7 +38,7 @@ function stampRunEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
 }
 
 function revforgeRoot(env: NodeJS.ProcessEnv = process.env): string | null {
-  const root = env.REVEALUI_REVFROGE_ROOT?.trim() || env.REVEALUI_REVFROGE_PATH?.trim();
+  const root = env.REVEALUI_REVFORGE_ROOT?.trim() || env.REVEALUI_REVFORGE_PATH?.trim();
   return root && root.length > 0 ? root : null;
 }
 

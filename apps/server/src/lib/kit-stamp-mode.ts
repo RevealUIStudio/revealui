@@ -3,7 +3,7 @@
  *
  * - thin (default): jsonb package only (P2-A)
  * - full: tar.gz package uploaded to object storage (artifact_uri); optional
- *   local RevForge stamp.sh when REVEALUI_REVFROGE_ROOT is set (long worker)
+ *   local RevForge stamp.sh when REVEALUI_REVFORGE_ROOT is set (long worker)
  */
 
 export type KitStampMode = 'thin' | 'full';
