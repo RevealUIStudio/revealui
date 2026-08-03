@@ -1,5 +1,6 @@
 /**
- * Schema shape lock for GAP-448 Phase 2 kit_fulfillments (P2-1 base + P2-A columns).
+ * Schema shape lock for GAP-448 Phase 2 kit_fulfillments.
+ * Handler + webhook enqueue land in later PRs (P2-2 / P2-3).
  */
 import { getTableName } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
@@ -16,11 +17,10 @@ describe('GAP-448 kit_fulfillments schema', () => {
       'customerId',
       'tier',
       'status',
-      'artifactMode',
       'branding',
       'artifact',
+      'artifactUri',
       'error',
-      'livemode',
       'createdAt',
       'updatedAt',
     ]) {

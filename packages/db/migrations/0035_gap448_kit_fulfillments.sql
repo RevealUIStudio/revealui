@@ -1,21 +1,20 @@
 -- GAP-448 Phase 2-A: kit_fulfillments for Agency Founding Kit stamp/deliver.
 -- Hand-written CREATE (snapshot lag precedent: 0034_gap464_account_sso_providers).
--- Landed via revealui#2393. P2-A handler columns added in 0036.
 
 CREATE TABLE IF NOT EXISTS "kit_fulfillments" (
-	"id" text PRIMARY KEY NOT NULL,
-	"stripe_event_id" text NOT NULL,
-	"license_id" text,
-	"user_id" text,
-	"customer_id" text NOT NULL,
-	"tier" text DEFAULT 'max' NOT NULL,
-	"status" text DEFAULT 'queued' NOT NULL,
-	"branding" jsonb DEFAULT '{}'::jsonb NOT NULL,
-	"artifact_uri" text,
-	"error" text,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "kit_fulfillments_status_check" CHECK (status IN ('queued', 'running', 'awaiting_branding', 'ready', 'failed'))
+"id" text PRIMARY KEY NOT NULL,
+"stripe_event_id" text NOT NULL,
+"license_id" text,
+"user_id" text,
+"customer_id" text NOT NULL,
+"tier" text DEFAULT 'max' NOT NULL,
+"status" text DEFAULT 'queued' NOT NULL,
+"branding" jsonb DEFAULT '{}'::jsonb NOT NULL,
+"artifact_uri" text,
+"error" text,
+"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+CONSTRAINT "kit_fulfillments_status_check" CHECK (status IN ('queued', 'running', 'awaiting_branding', 'ready', 'failed'))
 );
 --> statement-breakpoint
 DO $$ BEGIN

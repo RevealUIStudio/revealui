@@ -1,13 +1,13 @@
 /**
- * Agency Founding Kit fulfillments (GAP-448 Phase 2).
+ * Agency Founding Kit fulfillment rows (GAP-448 Phase 2).
  *
- * Tracks stamp-on-payment for Agency Perpetual (max, maxSites 10) purchases.
- * Never stores license private keys. Artifact may be thin (P2-A) or full (P2-B).
+ * Tracks stamp/deliver progress after Agency Perpetual (max) mint.
+ * No private key material. Thin package may live in `artifact` jsonb (P2-A);
+ * external blob URI goes in `artifact_uri` (P2-B).
  *
- * Spec: .jv docs/specs/2026-08-02-gap-448-phase2-stamp-deliver.md
+ * P2-1 schema landed on test via #2393; P2-A extends with optional `artifact`.
  *
- * Migration history: 0035 (revealui#2393) creates base table; 0036 adds
- * artifact_mode / artifact / livemode for the P2-A handler.
+ * @see docs/specs/2026-08-02-gap-448-phase2-stamp-deliver.md
  */
 
 import { sql } from 'drizzle-orm';
@@ -15,36 +15,32 @@ import { check, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'driz
 import { licenses } from './licenses.js';
 import { users } from './users.js';
 
-/** Fulfillment lifecycle. */
+/** Job/fulfillment lifecycle for kit.stamp.agency */
 export type KitFulfillmentStatus = 'queued' | 'running' | 'awaiting_branding' | 'ready' | 'failed';
 
-/** Artifact production mode: thin package (P2-A) or full stamp tarball (P2-B). */
-export type KitArtifactMode = 'thin' | 'full';
-
-export interface KitBranding {
-  company: string;
-  slug: string;
-  brand: string;
-  email: string;
+export interface KitFulfillmentBranding {
+  company?: string;
+  slug?: string;
+  brand?: string;
+  email?: string;
 }
 
-/**
- * Opaque artifact metadata (no private key material).
- * P2-A: manifest + START-HERE + revforge.json stored as JSON or object URI.
- * P2-B: full kit tarball URI when long-running stamp worker is wired.
- */
-export interface KitArtifactMeta {
-  mode: KitArtifactMode;
-  /** Object storage URI or inline storage key */
-  uri?: string;
-  /** SHA-256 hex of artifact bytes when stored */
-  contentSha256?: string;
-  /** Template / stamp version tag for reproducibility */
-  templateVersion?: string;
-  /** Human notes for ops (e.g. full stamp deferred) */
-  note?: string;
-  /** P2-A thin package JSON (no private keys) */
-  package?: Record<string, unknown>;
+/** Thin package files for operator stamp or buyer download (P2-A). */
+export interface KitFulfillmentArtifact {
+  version: 1;
+  manifest: {
+    product: 'agency-founding-kit';
+    tier: 'max';
+    perpetual: true;
+    maxSites: 10;
+    maxUsers: 100;
+    licenseId: string;
+    templateVersion: string;
+    imageTag: string;
+    livemode: boolean;
+  };
+  startHereMarkdown: string;
+  revforgeJson: Record<string, unknown>;
 }
 
 export const kitFulfillments = pgTable(
@@ -61,24 +57,23 @@ export const kitFulfillments = pgTable(
 
     customerId: text('customer_id').notNull(),
 
-    /** Always max for Agency Founding Kit */
+    /** Always `max` for Agency Founding Kit perpetual path */
     tier: text('tier').notNull().default('max'),
 
     status: text('status').notNull().default('queued').$type<KitFulfillmentStatus>(),
 
-    /** thin (P2-A default) | full (P2-B) — added in 0036 */
-    artifactMode: text('artifact_mode').notNull().default('thin').$type<KitArtifactMode>(),
+    branding: jsonb('branding').$type<KitFulfillmentBranding>().notNull().default({}),
 
-    branding: jsonb('branding').$type<KitBranding>().notNull(),
+    /**
+     * Thin kit package (START-HERE + revforge.json + manifest). Prefer this for
+     * P2-A; never store private keys here.
+     */
+    artifact: jsonb('artifact').$type<KitFulfillmentArtifact>(),
 
-    /** Thin/full package meta (JSON). 0035 also has legacy artifact_uri (unused by handler). */
-    artifact: jsonb('artifact').$type<KitArtifactMeta>(),
+    /** R2/S3 or storage path for P2-B full tarball — never a private key */
+    artifactUri: text('artifact_uri'),
 
-    /** Last failure message (no secrets) */
     error: text('error'),
-
-    /** Stripe livemode of originating event — added in 0036 */
-    livemode: text('livemode').notNull().default('test'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -88,15 +83,14 @@ export const kitFulfillments = pgTable(
   },
   (table) => [
     uniqueIndex('kit_fulfillments_stripe_event_id_uidx').on(table.stripeEventId),
-    index('kit_fulfillments_license_id_idx').on(table.licenseId),
     index('kit_fulfillments_user_id_idx').on(table.userId),
-    index('kit_fulfillments_status_idx').on(table.status),
+    index('kit_fulfillments_license_id_idx').on(table.licenseId),
     index('kit_fulfillments_customer_id_idx').on(table.customerId),
+    index('kit_fulfillments_status_idx').on(table.status),
     check(
       'kit_fulfillments_status_check',
       sql`status IN ('queued', 'running', 'awaiting_branding', 'ready', 'failed')`,
     ),
-    check('kit_fulfillments_artifact_mode_check', sql`artifact_mode IN ('thin', 'full')`),
   ],
 );
 

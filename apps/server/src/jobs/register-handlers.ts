@@ -13,13 +13,8 @@
  */
 
 import { registerHandler } from '@revealui/db/jobs';
-import type { Job } from '@revealui/db/schema';
 import { type AgentDispatchPayload, agentDispatchHandler } from './agent-dispatch.js';
-import {
-  KIT_STAMP_AGENCY_JOB,
-  type KitStampAgencyPayload,
-  kitStampAgencyHandler,
-} from './kit-stamp-agency.js';
+import { type KitStampAgencyPayload, kitStampAgencyHandler } from './kit-stamp-agency.js';
 
 // Register idempotently: double-import (test harness + prod boot) is a
 // no-op because registerHandler throws on duplicates. The try/catch
@@ -27,7 +22,7 @@ import {
 // shouldn't crash the app.
 function registerOnce<TData extends Record<string, unknown>, TOut>(
   name: string,
-  handler: (data: TData, job: Job) => Promise<TOut>,
+  handler: (data: TData, job: import('@revealui/db/schema').Job) => Promise<TOut>,
 ): void {
   try {
     registerHandler(name, handler);
@@ -42,8 +37,10 @@ registerOnce<AgentDispatchPayload, Awaited<ReturnType<typeof agentDispatchHandle
   'agent.dispatch',
   agentDispatchHandler,
 );
+
+// GAP-448 Phase 2: Agency Founding Kit thin stamp package after max perpetual mint
 registerOnce<KitStampAgencyPayload, Awaited<ReturnType<typeof kitStampAgencyHandler>>>(
-  KIT_STAMP_AGENCY_JOB,
+  'kit.stamp.agency',
   kitStampAgencyHandler,
 );
 

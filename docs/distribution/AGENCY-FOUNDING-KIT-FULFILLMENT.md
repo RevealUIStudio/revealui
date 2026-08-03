@@ -1,42 +1,52 @@
 # Agency Founding Kit fulfillment (GAP-448)
 
-## Automated (P2-A on test once merged)
+Operator + automation notes after a buyer completes **Agency Perpetual**
+checkout (`POST /api/billing/checkout-perpetual` with `tier: max`).
 
-1. Authenticated Stripe Checkout for Agency Perpetual (`tier: max`).
-2. Webhook mints Max perpetual JWT with `maxSites: 10` (`withPerpetualSiteCaps` / mint limits).
-3. Activation email names the Agency Founding Kit.
-4. **`kit.stamp.agency` job** enqueued (idempotent on Stripe event id):
-   - Upserts `kit_fulfillments`
-   - Builds **thin package** (manifest + START-HERE + revforge config) — no private keys
-   - Status `ready` with artifact metadata
+## Automated today (Phase 1 + Phase 2 P2-A)
 
-Env:
+1. Stripe Checkout (authenticated) for Agency Perpetual ($8,499).
+2. Webhook `checkout.session.completed` + `mode=payment` + `tier=max` →
+   `mintLicenseKey` with `perpetual: true`, `maxSites: 10`, `maxUsers: 100`.
+3. `sendPerpetualLicenseActivatedEmail` names the Agency Founding Kit and
+   includes the license key + `/account/license` link.
+4. Optional GitHub team provision when `github_username` metadata is set.
+5. **Phase 2:** enqueue durable job `kit.stamp.agency` (idempotency key
+   `kit.stamp.agency:${stripeEventId}`).
+6. Job builds a **thin kit package** (START-HERE.md, revforge.json, manifest)
+   into `kit_fulfillments.artifact` — no private keys, no full monorepo zip.
+7. Buyer receives `sendAgencyKitPackageEmail` with a signed 48h download URL:
+   `GET /api/kits/agency-founding/download?token=…`
+8. Optional checkout session metadata for branding:
+   `company` / `kit_company`, `slug` / `kit_slug`, `brand` / `kit_brand`.
 
-| Var | Default | Meaning |
-|-----|---------|---------|
-| `REVEALUI_KIT_STAMP_MODE` | `thin` | P2-A thin package. Set `full` to mark P2-B mode (full tarball deferred until long-running worker). |
+## Operator full stamp (RevForge, still available)
 
-## Operator / P2-B
-
-Full branded kit tarball via RevForge:
+Thin package is enough for buyer activation with the JWT. For a full Docker
+Fleet kit on a machine with revvault:
 
 ```bash
 revvault export-env -- \
   ./stamp.sh \
+    --config path/to/revforge.json \
+    # or flags:
     --company "Buyer Co" \
     --slug "buyer-co" \
     --email "buyer@example.com" \
-    --password '<temp>' \
+    --password '<temp-admin-password>' \
     --brand "#1a56db" \
     --output ../buyer-co-fleet \
     --license-tier max \
     --license-perpetual
+# maxSites 10 is applied automatically for max + perpetual (GAP-448).
 ```
 
-maxSites 10 applies for max+perpetual by default (revforge stamp).
+## Not automated yet (P2-B residual)
 
-## Residual
+- Long-running worker that runs full `stamp.sh` and uploads a kit tarball to R2
+- Unauthenticated Payment Link for $8,499 (prefer keep auth checkout)
 
-- P2-B Fly long-running stamp worker writing real object-storage tarball
-- Signed download HTTP route + email with kit URI
-- Test-mode e2e (checkout → fulfillment ready)
+## Marketing
+
+- Public surface: `https://revealui.com/pricing#agency-founding-kit`
+- Self-host Free tier banner deep-links that anchor

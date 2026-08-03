@@ -1,72 +1,88 @@
-import { describe, expect, it } from 'vitest';
-import {
-  buildThinKitPackage,
-  resolveKitBranding,
-  resolveKitStampMode,
-} from '../kit-stamp-agency-lib.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('resolveKitStampMode', () => {
-  it('defaults to thin (P2-A)', () => {
-    expect(resolveKitStampMode({})).toBe('thin');
+const mockInsertValues = vi.fn().mockResolvedValue(undefined);
+const mockUpdateSet = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
+const mockSelectLimit = vi.fn();
+
+vi.mock('@revealui/db/client', () => ({
+  getClient: () => ({
+    select: () => ({
+      from: () => ({
+        where: () => ({
+          limit: mockSelectLimit,
+        }),
+      }),
+    }),
+    insert: () => ({ values: mockInsertValues }),
+    update: () => ({ set: mockUpdateSet }),
+  }),
+}));
+
+vi.mock('../../lib/webhook-emails.js', () => ({
+  sendAgencyKitPackageEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../lib/kit-download-token.js', () => ({
+  mintKitDownloadToken: vi.fn().mockReturnValue('signed.token'),
+}));
+
+import { kitStampAgencyHandler } from '../kit-stamp-agency.js';
+
+describe('kitStampAgencyHandler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_SECRET = 'test-secret';
+    mockSelectLimit.mockResolvedValue([]);
   });
 
-  it('accepts full for P2-B path', () => {
-    expect(resolveKitStampMode({ REVEALUI_KIT_STAMP_MODE: 'full' })).toBe('full');
-  });
-});
+  it('creates fulfillment and marks ready with artifact', async () => {
+    // first select: no existing; second select in email path N/A with empty user
+    mockSelectLimit.mockResolvedValueOnce([]).mockResolvedValueOnce([{ email: 'buyer@ex.com' }]);
 
-describe('resolveKitBranding', () => {
-  it('builds slug and company from email when branding omitted', () => {
-    const b = resolveKitBranding({
-      customerId: 'cus_abc12345',
-      buyerEmail: 'jane.ops@agency.example',
-    });
-    expect(b.email).toBe('jane.ops@agency.example');
-    expect(b.slug).toMatch(/^[a-z0-9][a-z0-9-]*$/);
-    expect(b.brand).toBe('#1a56db');
-    expect(b.company.length).toBeGreaterThan(0);
-  });
-
-  it('prefers explicit branding fields', () => {
-    const b = resolveKitBranding({
-      customerId: 'cus_x',
-      branding: {
-        company: 'Acme Agency',
-        slug: 'acme-agency',
-        brand: '#112233',
-        email: 'ops@acme.test',
+    const result = await kitStampAgencyHandler(
+      {
+        stripeEventId: 'evt_test_1',
+        licenseId: 'lic_1',
+        userId: 'user_1',
+        customerId: 'cus_1',
+        livemode: false,
+        branding: { company: 'Buyer Co', email: 'buyer@ex.com' },
       },
-    });
-    expect(b).toEqual({
-      company: 'Acme Agency',
-      slug: 'acme-agency',
-      brand: '#112233',
-      email: 'ops@acme.test',
-    });
-  });
-});
+      { id: 'job_1' } as never,
+    );
 
-describe('buildThinKitPackage', () => {
-  it('emits Agency Founding Kit P2-A package without private keys', () => {
-    const pkg = buildThinKitPackage({
-      branding: {
-        company: 'Acme',
-        slug: 'acme',
-        brand: '#1a56db',
-        email: 'a@acme.test',
+    expect(result.status).toBe('ready');
+    expect(result.fulfillmentId).toBeTruthy();
+    expect(mockInsertValues).toHaveBeenCalled();
+    expect(mockUpdateSet).toHaveBeenCalled();
+  });
+
+  it('short-circuits when already ready', async () => {
+    mockSelectLimit.mockReset();
+    mockSelectLimit.mockResolvedValue([
+      {
+        id: 'ful_existing',
+        status: 'ready',
+        artifact: { version: 1 },
       },
-      licenseId: 'lic-1',
-      customerId: 'cus-1',
+    ]);
+
+    const result = await kitStampAgencyHandler(
+      {
+        stripeEventId: 'evt_test_2',
+        licenseId: 'lic_1',
+        userId: 'user_1',
+        customerId: 'cus_1',
+        livemode: false,
+      },
+      { id: 'job_2' } as never,
+    );
+
+    expect(result).toEqual({
+      fulfillmentId: 'ful_existing',
+      status: 'ready',
+      deduplicated: true,
     });
-    expect(pkg.product).toBe('agency-founding-kit');
-    expect(pkg.tier).toBe('max');
-    expect(pkg.maxSites).toBe(10);
-    expect(pkg.perpetual).toBe(true);
-    expect(pkg.revforgeConfig.licenseTier).toBe('max');
-    expect(pkg.revforgeConfig.licensePerpetual).toBe(true);
-    expect(pkg.startHere).toContain('REVEALUI_LICENSE_KEY');
-    expect(pkg.startHere).not.toMatch(/BEGIN PRIVATE KEY/i);
-    const json = JSON.stringify(pkg);
-    expect(json).not.toMatch(/PRIVATE KEY/i);
+    expect(mockInsertValues).not.toHaveBeenCalled();
   });
 });
