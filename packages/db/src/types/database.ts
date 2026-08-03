@@ -61,6 +61,7 @@ import type {
   kgNodeAliases,
   kgNodes,
   kgOutbox,
+  kitFulfillments,
   licenseJtiRevocations,
   licenses,
   lifecycleEmailsSent,
@@ -374,6 +375,11 @@ export type KgNodesUpdate = Partial<KgNodesInsert>
 export type KgOutboxRow = typeof kgOutbox.$inferSelect
 export type KgOutboxInsert = typeof kgOutbox.$inferInsert
 export type KgOutboxUpdate = Partial<KgOutboxInsert>
+
+// Kit Fulfillments
+export type KitFulfillmentsRow = typeof kitFulfillments.$inferSelect
+export type KitFulfillmentsInsert = typeof kitFulfillments.$inferInsert
+export type KitFulfillmentsUpdate = Partial<KitFulfillmentsInsert>
 
 // License Jti Revocations
 export type LicenseJtiRevocationsRow = typeof licenseJtiRevocations.$inferSelect
@@ -691,6 +697,7 @@ export type DatabaseRelationships = {
   kgNodeAliases: Relationship[]
   kgNodes: Relationship[]
   kgOutbox: Relationship[]
+  kitFulfillments: Relationship[]
   licenseJtiRevocations: Relationship[]
   licenses: Relationship[]
   lifecycleEmailsSent: Relationship[]
@@ -934,6 +941,9 @@ export const kgNodesRelationships: readonly Relationship[] = []
 
 // KgOutbox relationships
 export const kgOutboxRelationships: readonly Relationship[] = []
+
+// KitFulfillments relationships
+export const kitFulfillmentsRelationships: readonly Relationship[] = []
 
 // LicenseJtiRevocations relationships
 export const licenseJtiRevocationsRelationships: readonly Relationship[] = []
@@ -1489,6 +1499,12 @@ export type Database = {
         Insert: KgOutboxInsert
         Update: KgOutboxUpdate
         Relationships: typeof kgOutboxRelationships
+      }
+      kit_fulfillments: {
+        Row: KitFulfillmentsRow
+        Insert: KitFulfillmentsInsert
+        Update: KitFulfillmentsUpdate
+        Relationships: typeof kitFulfillmentsRelationships
       }
       license_jti_revocations: {
         Row: LicenseJtiRevocationsRow
