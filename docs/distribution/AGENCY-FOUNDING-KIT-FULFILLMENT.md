@@ -63,8 +63,16 @@ revvault export-env -- \
 
 ## Residual (gap close)
 
-- e2e test-mode purchase → mint → stamp → download dry-run (P2-T1)
+- ~~e2e test-mode purchase → mint → stamp → download dry-run (P2-T1)~~
+  **DONE** — `apps/server/src/routes/__tests__/agency-founding-kit-e2e.test.ts`
+  (webhook max perpetual → real JWT maxSites 10 → enqueue kit.stamp.agency →
+  package download with no private key). Run:
+  `pnpm exec vitest run src/routes/__tests__/agency-founding-kit-e2e.test.ts`
+  from `apps/server` after workspace packages are built.
+- Owner: enable `REVEALUI_KIT_STAMP_MODE=full` (+ R2) on the long worker when
+  tar.gz delivery is desired in prod (thin default remains safe).
 - Unauthenticated Payment Link for $8,499 (prefer keep auth checkout)
+- Owner: one live test-mode purchase walk on hosted (optional beyond unit e2e)
 
 ## Marketing
 
