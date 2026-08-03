@@ -25,9 +25,13 @@ export interface KitFulfillmentBranding {
   email?: string;
 }
 
-/** Thin package files for operator stamp or buyer download (P2-A). */
+/** Package files for operator stamp or buyer download (P2-A thin / P2-B full). */
 export interface KitFulfillmentArtifact {
   version: 1;
+  /** text = multi-file body; tar.gz = object at artifact_uri (P2-B). */
+  packageFormat?: 'text' | 'tar.gz';
+  /** How full archive was produced when mode=full. */
+  stampSource?: 'package' | 'revforge-stamp';
   manifest: {
     product: 'agency-founding-kit';
     tier: 'max';
