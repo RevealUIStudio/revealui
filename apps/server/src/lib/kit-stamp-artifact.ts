@@ -1,17 +1,21 @@
 /**
- * GAP-448 Phase 2 (P2-A): build a thin Agency Founding Kit package.
+ * GAP-448 Phase 2: build Agency Founding Kit package metadata.
  *
- * Not a full monorepo tarball (that is P2-B on a long-running worker).
- * Output is START-HERE.md + revforge.json + manifest for stamp.sh --config
- * or buyer handoff. Never embeds REVEALUI_LICENSE_PRIVATE_KEY.
+ * P2-A thin: START-HERE + revforge.json + manifest (jsonb + text download).
+ * P2-B full: same files packed as tar.gz and uploaded to R2 (artifact_uri);
+ * optional local stamp.sh on long workers (REVEALUI_KIT_STAMP_RUN=1).
+ * Never embeds REVEALUI_LICENSE_PRIVATE_KEY.
  *
  * Types mirror packages/db kit-fulfillments schema (kept local so pure unit
  * tests do not need @revealui/db dist).
  */
 
 const DEFAULT_BRAND = '#1a56db';
-const TEMPLATE_VERSION = 'agency-founding-kit-p2a-1';
+const TEMPLATE_VERSION = 'agency-founding-kit-p2b-1';
 const DEFAULT_IMAGE_TAG = 'latest';
+
+export type KitPackageFormat = 'text' | 'tar.gz';
+export type KitStampSource = 'package' | 'revforge-stamp';
 
 export interface KitFulfillmentBranding {
   company: string;
@@ -22,6 +26,10 @@ export interface KitFulfillmentBranding {
 
 export interface KitFulfillmentArtifact {
   version: 1;
+  /** Delivery shape: text multi-file (thin) or tar.gz via artifact_uri (full). */
+  packageFormat?: KitPackageFormat;
+  /** How the full archive was produced (P2-B). */
+  stampSource?: KitStampSource;
   manifest: {
     product: 'agency-founding-kit';
     tier: 'max';
@@ -41,6 +49,7 @@ export interface BuildAgencyKitArtifactInput {
   branding: KitFulfillmentBranding;
   licenseId: string;
   livemode: boolean;
+  packageFormat?: KitPackageFormat;
 }
 
 /**
@@ -79,6 +88,7 @@ export function resolveAgencyKitBranding(input: {
 
 export function buildAgencyKitArtifact(input: BuildAgencyKitArtifactInput): KitFulfillmentArtifact {
   const { branding, licenseId, livemode } = input;
+  const packageFormat = input.packageFormat ?? 'text';
   const startHereMarkdown = [
     `# RevealUI Agency Founding Kit — ${branding.company}`,
     '',
@@ -109,6 +119,10 @@ export function buildAgencyKitArtifact(input: BuildAgencyKitArtifactInput): KitF
     'The included `revforge.json` is pre-filled for your branding. `maxSites: 10` is the',
     'Agency perpetual default when using `--license-tier max --license-perpetual`.',
     '',
+    packageFormat === 'tar.gz'
+      ? 'This download is a **.tar.gz** archive (START-HERE.md, revforge.json, manifest.json).'
+      : 'This download is a multi-file text package (extract sections between ---FILE--- markers).',
+    '',
     '## Support',
     '',
     'One year of support is included with purchase. Reply to your license email or open',
@@ -137,6 +151,7 @@ export function buildAgencyKitArtifact(input: BuildAgencyKitArtifactInput): KitF
 
   return {
     version: 1,
+    packageFormat,
     manifest: {
       product: 'agency-founding-kit',
       tier: 'max',

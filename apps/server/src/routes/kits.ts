@@ -1,8 +1,11 @@
 /**
- * Agency Founding Kit download (GAP-448 Phase 2 P2-A).
+ * Agency Founding Kit download (GAP-448 Phase 2).
  *
  * GET /api/kits/agency-founding/download?token=…
  * Token is HMAC-signed short TTL; no session required when the token is valid.
+ *
+ * P2-A thin: text multi-file body from jsonb artifact.
+ * P2-B full: redirect to R2 public URL when artifact_uri is set; else text fallback.
  */
 
 import { getClient } from '@revealui/db';
@@ -19,7 +22,7 @@ const downloadRoute = createRoute({
   method: 'get',
   path: '/agency-founding/download',
   tags: ['Kits'],
-  summary: 'Download Agency Founding Kit thin package (signed token)',
+  summary: 'Download Agency Founding Kit package (signed token)',
   request: {
     query: z.object({
       token: z.string().min(1).openapi({ description: 'Signed download token' }),
@@ -27,13 +30,14 @@ const downloadRoute = createRoute({
   },
   responses: {
     200: {
-      description: 'Plain-text multi-file kit package',
+      description: 'Kit package (text multi-file or redirected tarball)',
       content: {
         'text/plain': {
           schema: z.string(),
         },
       },
     },
+    302: { description: 'Redirect to object-storage tarball (full mode)' },
     400: { description: 'Missing or invalid token' },
     404: { description: 'Fulfillment not ready' },
     410: { description: 'Token expired' },
@@ -57,7 +61,17 @@ app.openapi(downloadRoute, async (c) => {
     .where(eq(kitFulfillments.id, verified.fulfillmentId))
     .limit(1);
 
-  if (row?.status !== 'ready' || !row.artifact) {
+  if (row?.status !== 'ready') {
+    throw new HTTPException(404, { message: 'Kit package not available' });
+  }
+
+  // P2-B full: signed token gates redirect to unguessable object URL
+  const uri = row.artifactUri?.trim();
+  if (uri && (uri.startsWith('https://') || uri.startsWith('http://'))) {
+    return c.redirect(uri, 302);
+  }
+
+  if (!row.artifact) {
     throw new HTTPException(404, { message: 'Kit package not available' });
   }
 
