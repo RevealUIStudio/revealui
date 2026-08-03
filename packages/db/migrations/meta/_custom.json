@@ -119,9 +119,15 @@
     },
     {
       "tag": "0035_gap448_kit_fulfillments",
-      "rationale": "GAP-448 Phase 2 P2-A: CREATE TABLE kit_fulfillments for Agency Founding Kit stamp-on-payment tracking (thin package artifact jsonb, no private keys). Hand-written CREATE TABLE IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object + unique index on stripe_event_id, following the 0032/0034 table-creation precedent. Hand-scoped because meta snapshots lag. Companion Drizzle schema at packages/db/src/schema/kit-fulfillments.ts.",
+      "rationale": "Hand-written CREATE TABLE kit_fulfillments for GAP-448 Phase 2-A stamp/deliver. Scoped CREATE + IF NOT EXISTS indexes + DO $$ FK guards (same pattern as 0034 SSO). No private key columns. Snapshot debt deferred with peer migrations until clean regen.",
       "missingSnapshot": true,
-      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at kit-fulfillments.ts models the table for ORM typing; job handler kit.stamp.agency writes via Drizzle."
+      "snapshotDebtNote": "Same regen path as 0034_gap464_account_sso_providers; Drizzle schema at packages/db/src/schema/kit-fulfillments.ts is the type contract."
+    },
+    {
+      "tag": "0036_gap448_kit_fulfillments_artifact",
+      "rationale": "GAP-448 Phase 2-A: ADD COLUMN kit_fulfillments.artifact (jsonb thin package) + customer_id index after P2-1 #2393 created the base table without artifact storage. Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/kit-fulfillments.ts models artifact via $type<KitFulfillmentArtifact>().",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: pnpm --filter @revealui/db db:generate against a clean DB once the broader snapshot-debt backfill happens. Schema already models artifact at the type level."
     }
   ]
 }

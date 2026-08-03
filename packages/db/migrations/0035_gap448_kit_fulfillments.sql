@@ -1,5 +1,5 @@
--- GAP-448 Phase 2: Agency Founding Kit fulfillments (thin stamp package tracking).
--- Hand-written scoped CREATE (meta snapshot lag precedent: 0025 / 0034).
+-- GAP-448 Phase 2-A: kit_fulfillments for Agency Founding Kit stamp/deliver.
+-- Hand-written CREATE (snapshot lag precedent: 0034_gap464_account_sso_providers).
 
 CREATE TABLE IF NOT EXISTS "kit_fulfillments" (
 "id" text PRIMARY KEY NOT NULL,
@@ -9,8 +9,7 @@ CREATE TABLE IF NOT EXISTS "kit_fulfillments" (
 "customer_id" text NOT NULL,
 "tier" text DEFAULT 'max' NOT NULL,
 "status" text DEFAULT 'queued' NOT NULL,
-"branding" jsonb NOT NULL,
-"artifact" jsonb,
+"branding" jsonb DEFAULT '{}'::jsonb NOT NULL,
 "artifact_uri" text,
 "error" text,
 "created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -32,11 +31,9 @@ EXCEPTION
 END $$;--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "kit_fulfillments_stripe_event_id_uidx"
   ON "kit_fulfillments" USING btree ("stripe_event_id");--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "kit_fulfillments_license_id_idx"
-  ON "kit_fulfillments" USING btree ("license_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "kit_fulfillments_user_id_idx"
   ON "kit_fulfillments" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "kit_fulfillments_customer_id_idx"
-  ON "kit_fulfillments" USING btree ("customer_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "kit_fulfillments_license_id_idx"
+  ON "kit_fulfillments" USING btree ("license_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "kit_fulfillments_status_idx"
   ON "kit_fulfillments" USING btree ("status");
