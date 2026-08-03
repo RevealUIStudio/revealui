@@ -18,6 +18,7 @@ import {
 } from '@revealui/core/license/mint-client';
 import { logger } from '@revealui/core/observability/logger';
 import { executeSaga, getClient } from '@revealui/db';
+import { enqueue } from '@revealui/db/jobs';
 import type { SagaStep } from '@revealui/db/saga';
 import {
   agentCreditBalance,
@@ -29,6 +30,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
+import { KIT_STAMP_AGENCY_JOB } from '../../jobs/kit-stamp-agency.js';
 import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { recordJtisForRevokedCustomerLicenses } from '../../lib/license-jti-revocation.js';
 import type { ProtectedStripe } from '../../lib/services-loader.js';
@@ -676,6 +678,43 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 });
               });
             }
+          }
+
+          // GAP-448 Phase 2: Agency Founding Kit stamp job after max perpetual mint.
+          // Fail-open: mint + email already succeeded; enqueue errors are logged only.
+          if (tier === 'max') {
+            const meta = session.metadata ?? {};
+            const branding = {
+              company: typeof meta.company === 'string' ? meta.company : undefined,
+              slug: typeof meta.slug === 'string' ? meta.slug : undefined,
+              brand: typeof meta.brand === 'string' ? meta.brand : undefined,
+              email:
+                typeof meta.kit_email === 'string'
+                  ? meta.kit_email
+                  : (session.customer_email ?? undefined),
+            };
+            enqueue(
+              KIT_STAMP_AGENCY_JOB,
+              {
+                stripeEventId: event.id,
+                licenseId,
+                userId: resolvedUserId,
+                customerId,
+                livemode: event.livemode,
+                githubUsername: githubUsername ?? null,
+                branding,
+                buyerEmail: session.customer_email ?? null,
+              },
+              {
+                idempotencyKey: `kit.stamp.agency:${event.id}`,
+                retryLimit: 5,
+              },
+            ).catch((err) => {
+              logger.error('Failed to enqueue Agency kit stamp job', undefined, {
+                eventId: event.id,
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
           }
 
           break;
