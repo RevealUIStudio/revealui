@@ -59,13 +59,17 @@ Creates coupon `starter_kit_pro_month_1` (100% once) + promo `STARTERKITPRO1`.
 Email **STARTERKITPRO1** with the GitHub invite. Constants live in
 `scripts/setup/starter-kit-pro-coupon.ts` (do not invent alternate ids).
 
-Raw Stripe CLI equivalent (only if seeder unavailable):
+Raw Stripe CLI equivalent (only if seeder unavailable; Stripe API 2025+ nested promotion):
 
 ```bash
 export STRIPE_API_KEY="$(revvault get --full revealui/prod/stripe/secret-key)"
 stripe coupons create --duration=once --percent-off=100 \
   --name="Starter Kit first Pro month" --id="starter_kit_pro_month_1"
-stripe promotion_codes create --coupon=starter_kit_pro_month_1 --code=STARTERKITPRO1
+# Do NOT pass top-level --coupon (unknown parameter on current API).
+stripe promotion_codes create \
+  --code=STARTERKITPRO1 \
+  -d "promotion[type]=coupon" \
+  -d "promotion[coupon]=starter_kit_pro_month_1"
 ```
 
 ## 5. Manual fulfillment SOP (every sale until automated)
