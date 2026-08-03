@@ -144,8 +144,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PRICING_AGENCY_FOUNDING_KIT.points[3]',
-    text: 'RevForge white-label stamping and automated kit handoff ship in later GAP-448 slices',
-    evidence: [REVFORGE_REF],
+    text: 'After purchase you get the license key plus an automated thin kit package (stamp config and START-HERE) by email',
+    evidence: [REVFORGE_REF, PERPETUAL],
   },
   {
     file: 'pricing.ts',
