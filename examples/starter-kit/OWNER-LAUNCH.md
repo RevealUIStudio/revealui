@@ -4,7 +4,7 @@
 Polar deferred. Stripe Managed Payments (path D) is a later MoR upgrade on
 the same Payment Link / Checkout surface.
 
-## Status (2026-08-02)
+## Status (2026-08-03)
 
 | Item | State |
 |------|--------|
@@ -14,9 +14,9 @@ the same Payment Link / Checkout surface.
 | **Stripe product** | **live** `prod_V01FoZi9YbgZw9` |
 | **Stripe price** | **live** `price_1U01D1Jz64n6uEibtamJHxkU` ($299 one-time) |
 | **Payment Link** | **live** `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03` (`plink_1U01D2Jz64n6uEibnSK45nuS`) |
-| `SITE.urls.starterKitCheckout` | set to Payment Link (ship in monorepo PR) |
+| `SITE.urls.starterKitCheckout` | **wired** on marketing (`SITE.urls.starterKitCheckout`) |
 | Fulfillment | **manual**: GitHub invite + Substack (launch volume) |
-| First-month Pro coupon | not seeded yet (§4) |
+| First-month Pro coupon | **seed script ready** (§4); run once on live key |
 | Stripe Tax | confirm `STRIPE_TAX_ENABLED=true` on prod api if selling broadly |
 | Managed Payments (D) | enable in Dashboard when eligible |
 
@@ -44,23 +44,29 @@ Dashboard: Products → RevealUI Starter Kit → Payment links.
 After a monorepo deploy of `starterKitCheckout`, `/pricing#starter-kit`
 primary CTA is **Buy the Starter Kit**.
 
-## 4. Stripe first-month-of-Pro coupon (still owner)
+## 4. Stripe first-month-of-Pro coupon (owner, one command)
+
+Idempotent seeder (preferred over raw CLI):
+
+```bash
+export STRIPE_SECRET_KEY="$(revvault get --full revealui/prod/stripe/secret-key)"
+pnpm stripe:seed:starter-kit-coupon -- --dry-run   # preview
+pnpm stripe:seed:starter-kit-coupon                # create if missing
+pnpm stripe:seed:starter-kit-coupon -- --check     # exit 1 if drift
+```
+
+Creates coupon `starter_kit_pro_month_1` (100% once) + promo `STARTERKITPRO1`.
+Email **STARTERKITPRO1** with the GitHub invite. Constants live in
+`scripts/setup/starter-kit-pro-coupon.ts` (do not invent alternate ids).
+
+Raw Stripe CLI equivalent (only if seeder unavailable):
 
 ```bash
 export STRIPE_API_KEY="$(revvault get --full revealui/prod/stripe/secret-key)"
-
-stripe coupons create \
-  --duration=once \
-  --percent-off=100 \
-  --name="Starter Kit first Pro month" \
-  --id="starter_kit_pro_month_1"
-
-stripe promotion_codes create \
-  --coupon=starter_kit_pro_month_1 \
-  --code=STARTERKITPRO1
+stripe coupons create --duration=once --percent-off=100 \
+  --name="Starter Kit first Pro month" --id="starter_kit_pro_month_1"
+stripe promotion_codes create --coupon=starter_kit_pro_month_1 --code=STARTERKITPRO1
 ```
-
-Email the code with repo invite. Optional later: auto-apply env.
 
 ## 5. Manual fulfillment SOP (every sale until automated)
 
