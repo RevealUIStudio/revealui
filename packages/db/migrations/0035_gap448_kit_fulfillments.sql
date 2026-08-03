@@ -1,5 +1,6 @@
--- GAP-448 Phase 2: kit_fulfillments for Agency Founding Kit stamp-on-payment.
--- Hand-written (scoped CREATE; meta snapshot lag precedent 0034).
+-- GAP-448 Phase 2-A: kit_fulfillments for Agency Founding Kit stamp/deliver.
+-- Hand-written CREATE (snapshot lag precedent: 0034_gap464_account_sso_providers).
+-- Landed via revealui#2393. P2-A handler columns added in 0036.
 
 CREATE TABLE IF NOT EXISTS "kit_fulfillments" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -9,15 +10,12 @@ CREATE TABLE IF NOT EXISTS "kit_fulfillments" (
 	"customer_id" text NOT NULL,
 	"tier" text DEFAULT 'max' NOT NULL,
 	"status" text DEFAULT 'queued' NOT NULL,
-	"artifact_mode" text DEFAULT 'thin' NOT NULL,
-	"branding" jsonb NOT NULL,
-	"artifact" jsonb,
+	"branding" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"artifact_uri" text,
 	"error" text,
-	"livemode" text DEFAULT 'test' NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "kit_fulfillments_status_check" CHECK (status IN ('queued', 'running', 'awaiting_branding', 'ready', 'failed')),
-	CONSTRAINT "kit_fulfillments_artifact_mode_check" CHECK (artifact_mode IN ('thin', 'full'))
+	CONSTRAINT "kit_fulfillments_status_check" CHECK (status IN ('queued', 'running', 'awaiting_branding', 'ready', 'failed'))
 );
 --> statement-breakpoint
 DO $$ BEGIN
@@ -34,11 +32,9 @@ EXCEPTION
 END $$;--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "kit_fulfillments_stripe_event_id_uidx"
   ON "kit_fulfillments" USING btree ("stripe_event_id");--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "kit_fulfillments_license_id_idx"
-  ON "kit_fulfillments" USING btree ("license_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "kit_fulfillments_user_id_idx"
   ON "kit_fulfillments" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "kit_fulfillments_license_id_idx"
+  ON "kit_fulfillments" USING btree ("license_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "kit_fulfillments_status_idx"
-  ON "kit_fulfillments" USING btree ("status");--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "kit_fulfillments_customer_id_idx"
-  ON "kit_fulfillments" USING btree ("customer_id");
+  ON "kit_fulfillments" USING btree ("status");

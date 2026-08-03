@@ -5,6 +5,9 @@
  * Never stores license private keys. Artifact may be thin (P2-A) or full (P2-B).
  *
  * Spec: .jv docs/specs/2026-08-02-gap-448-phase2-stamp-deliver.md
+ *
+ * Migration history: 0035 (revealui#2393) creates base table; 0036 adds
+ * artifact_mode / artifact / livemode for the P2-A handler.
  */
 
 import { sql } from 'drizzle-orm';
@@ -63,17 +66,18 @@ export const kitFulfillments = pgTable(
 
     status: text('status').notNull().default('queued').$type<KitFulfillmentStatus>(),
 
-    /** thin (P2-A default) | full (P2-B) */
+    /** thin (P2-A default) | full (P2-B) — added in 0036 */
     artifactMode: text('artifact_mode').notNull().default('thin').$type<KitArtifactMode>(),
 
     branding: jsonb('branding').$type<KitBranding>().notNull(),
 
+    /** Thin/full package meta (JSON). 0035 also has legacy artifact_uri (unused by handler). */
     artifact: jsonb('artifact').$type<KitArtifactMeta>(),
 
     /** Last failure message (no secrets) */
     error: text('error'),
 
-    /** Stripe livemode of originating event */
+    /** Stripe livemode of originating event — added in 0036 */
     livemode: text('livemode').notNull().default('test'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

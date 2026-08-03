@@ -1,5 +1,5 @@
 /**
- * Schema shape lock for GAP-448 Phase 2 kit_fulfillments (P2-1 + P2-A/B artifact mode).
+ * Schema shape lock for GAP-448 Phase 2 kit_fulfillments (P2-1 base + P2-A columns).
  */
 import { getTableName } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
