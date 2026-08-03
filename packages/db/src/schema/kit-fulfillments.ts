@@ -2,7 +2,10 @@
  * Agency Founding Kit fulfillment rows (GAP-448 Phase 2).
  *
  * Tracks stamp/deliver progress after Agency Perpetual (max) mint.
- * No private key material — store artifact URI + branding JSON only.
+ * No private key material. Thin package may live in `artifact` jsonb (P2-A);
+ * external blob URI goes in `artifact_uri` (P2-B).
+ *
+ * P2-1 schema landed on test via #2393; P2-A extends with optional `artifact`.
  *
  * @see docs/specs/2026-08-02-gap-448-phase2-stamp-deliver.md
  */
@@ -20,6 +23,24 @@ export interface KitFulfillmentBranding {
   slug?: string;
   brand?: string;
   email?: string;
+}
+
+/** Thin package files for operator stamp or buyer download (P2-A). */
+export interface KitFulfillmentArtifact {
+  version: 1;
+  manifest: {
+    product: 'agency-founding-kit';
+    tier: 'max';
+    perpetual: true;
+    maxSites: 10;
+    maxUsers: 100;
+    licenseId: string;
+    templateVersion: string;
+    imageTag: string;
+    livemode: boolean;
+  };
+  startHereMarkdown: string;
+  revforgeJson: Record<string, unknown>;
 }
 
 export const kitFulfillments = pgTable(
@@ -43,7 +64,13 @@ export const kitFulfillments = pgTable(
 
     branding: jsonb('branding').$type<KitFulfillmentBranding>().notNull().default({}),
 
-    /** R2/S3 or storage path — never a private key */
+    /**
+     * Thin kit package (START-HERE + revforge.json + manifest). Prefer this for
+     * P2-A; never store private keys here.
+     */
+    artifact: jsonb('artifact').$type<KitFulfillmentArtifact>(),
+
+    /** R2/S3 or storage path for P2-B full tarball — never a private key */
     artifactUri: text('artifact_uri'),
 
     error: text('error'),
@@ -58,6 +85,7 @@ export const kitFulfillments = pgTable(
     uniqueIndex('kit_fulfillments_stripe_event_id_uidx').on(table.stripeEventId),
     index('kit_fulfillments_user_id_idx').on(table.userId),
     index('kit_fulfillments_license_id_idx').on(table.licenseId),
+    index('kit_fulfillments_customer_id_idx').on(table.customerId),
     index('kit_fulfillments_status_idx').on(table.status),
     check(
       'kit_fulfillments_status_check',

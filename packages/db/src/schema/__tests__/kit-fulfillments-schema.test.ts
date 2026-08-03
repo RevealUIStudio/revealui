@@ -18,6 +18,7 @@ describe('GAP-448 kit_fulfillments schema', () => {
       'tier',
       'status',
       'branding',
+      'artifact',
       'artifactUri',
       'error',
       'createdAt',

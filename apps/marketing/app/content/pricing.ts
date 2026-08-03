@@ -87,7 +87,8 @@ export const PRICING_STARTER_KIT = {
 // ---------------------------------------------------------------------------
 // Agency Founding Kit (GAP-448) — Agency Perpetual $8,499 self-serve path.
 // Purchase is the existing perpetual checkout (admin /account/license).
-// RevForge pre-stamp + automated kit delivery are later slices of GAP-448.
+// Phase 2 P2-A: automated thin kit package (START-HERE + stamp config) after pay.
+// Full monorepo tarball via stamp.sh remains P2-B.
 // ---------------------------------------------------------------------------
 
 export const PRICING_AGENCY_FOUNDING_KIT = {
@@ -101,7 +102,7 @@ export const PRICING_AGENCY_FOUNDING_KIT = {
     'Agency Perpetual license: Max features, perpetual JWT with no subscription expiry, up to 10 client deployments',
     'One year of priority support included, then optional annual support renewal',
     'Checkout in the admin license page after you sign in (Stripe one-time payment)',
-    'RevForge white-label stamping and automated kit handoff ship in later GAP-448 slices',
+    'After purchase you get the license key plus an automated thin kit package (stamp config and START-HERE) by email',
   ],
   primaryCta: {
     label: 'Buy Agency Perpetual in admin',

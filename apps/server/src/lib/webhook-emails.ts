@@ -187,8 +187,8 @@ export async function sendPerpetualLicenseActivatedEmail(
 <p style="font-size: 14px; color: #666;">Add this to your project's <code>.env</code> file as <code>REVEALUI_LICENSE_KEY=your-key</code>, or pass it via <code>initializeLicense(key)</code> at startup.</p>`
     : '';
   const agencyKitBlock = isAgencyKit
-    ? `<p>This is your <strong>Agency Founding Kit</strong> license: Max-tier features, up to <strong>10 client deployments</strong>, and a key that never expires. Use RevForge to stamp a branded kit per client (one command once your operator pack lands).</p>
-<p style="font-size: 14px; color: #666;">Private GitHub access and kit materials follow when a GitHub username is on file at purchase. You can also open your license page any time to copy the key.</p>`
+    ? `<p>This is your <strong>Agency Founding Kit</strong> license: Max-tier features, up to <strong>10 client deployments</strong>, and a key that never expires.</p>
+<p style="font-size: 14px; color: #666;">A thin kit package (START-HERE + stamp config) is prepared automatically after purchase and emailed with a download link. You can also open your license page any time to copy the key.</p>`
     : '';
   await sendEmail({
     to,
@@ -208,6 +208,36 @@ ${supportFooter('Questions? Reply to this email or contact')}`,
     text: isAgencyKit
       ? `Your RevealUI Agency Founding Kit license is now active (Agency Perpetual / Max, up to 10 client deployments).${licenseKey ? ` License key: ${licenseKey}` : ''} The license never expires. Support runs until ${supportExpiry}. View your license at ${licenseUrl}.`
       : `Your RevealUI ${label} Perpetual License is now active.${licenseKey ? ` License key: ${licenseKey}` : ''} The license never expires. Your 1-year support contract runs until ${supportExpiry}. View your license at ${licenseUrl}.`,
+  });
+}
+
+/**
+ * GAP-448 Phase 2: thin kit package ready (download link). License JWT was
+ * already emailed by sendPerpetualLicenseActivatedEmail.
+ */
+export async function sendAgencyKitPackageEmail(
+  to: string,
+  params: {
+    company: string;
+    downloadUrl: string;
+    licensePageUrl: string;
+  },
+): Promise<void> {
+  const { company, downloadUrl, licensePageUrl } = params;
+  await sendEmail({
+    to,
+    subject: 'Your Agency Founding Kit package is ready',
+    html: emailShell(
+      'Kit Package Ready',
+      `<h1 style="color: #2563eb;">Your Agency Founding Kit package is ready</h1>
+<p>We prepared a thin stamp package for <strong>${escapeHtml(company)}</strong>: START-HERE.md, revforge.json, and a manifest (maxSites 10, perpetual Max).</p>
+<p>Your <strong>license key</strong> was sent in the previous email and stays on your account license page. This download does not re-send the JWT.</p>
+${ctaButton(downloadUrl, 'Download kit package')}
+<p style="font-size: 14px; color: #666;">The link expires in 48 hours. After that, contact support or open your license page for next steps.</p>
+${ctaButton(licensePageUrl, 'View license page')}
+${supportFooter('Questions? Reply to this email or contact')}`,
+    ),
+    text: `Your Agency Founding Kit package for ${company} is ready. Download (48h): ${downloadUrl}. License page: ${licensePageUrl}. The JWT was emailed separately.`,
   });
 }
 

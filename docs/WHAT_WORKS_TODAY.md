@@ -108,7 +108,7 @@ Honest list of things that are not done, not deployed, or not verified.
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 1 (`@revealui/scripts`, unlicensed build tooling) | Yes |
 | UI components | 65 in `@revealui/presentation` | Yes |
-| Database tables | 100 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
+| Database tables | 101 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | CHECK constraints | 81 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers | 13 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
