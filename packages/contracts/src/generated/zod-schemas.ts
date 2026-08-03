@@ -1366,6 +1366,32 @@ export type KgOutboxRow = z.infer<typeof KgOutboxSelectSchema>
 export type KgOutboxInsert = z.infer<typeof KgOutboxInsertSchema>
 
 // =============================================================================
+// KitFulfillments Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting kitFulfillments rows from database
+ * Generated from Drizzle table definition: tables.kitFulfillments
+ */
+export const KitFulfillmentsSelectSchema = createSelectSchema(tables.kitFulfillments)
+
+/**
+ * Zod schema for inserting kitFulfillments rows to database
+ * Generated from Drizzle table definition: tables.kitFulfillments
+ */
+export const KitFulfillmentsInsertSchema = createInsertSchema(tables.kitFulfillments)
+
+/**
+ * TypeScript type for kitFulfillments row (Select)
+ */
+export type KitFulfillmentsRow = z.infer<typeof KitFulfillmentsSelectSchema>
+
+/**
+ * TypeScript type for kitFulfillments insert
+ */
+export type KitFulfillmentsInsert = z.infer<typeof KitFulfillmentsInsertSchema>
+
+// =============================================================================
 // LicenseJtiRevocations Schemas
 // =============================================================================
 

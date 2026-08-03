@@ -14,22 +14,35 @@
 
 import { registerHandler } from '@revealui/db/jobs';
 import { type AgentDispatchPayload, agentDispatchHandler } from './agent-dispatch.js';
+import { type KitStampAgencyPayload, kitStampAgencyHandler } from './kit-stamp-agency.js';
 
 // Register idempotently: double-import (test harness + prod boot) is a
 // no-op because registerHandler throws on duplicates. The try/catch
 // downgrades that to a warning — two modules both importing this file
 // shouldn't crash the app.
-try {
-  registerHandler<AgentDispatchPayload, Awaited<ReturnType<typeof agentDispatchHandler>>>(
-    'agent.dispatch',
-    agentDispatchHandler,
-  );
-} catch (err) {
-  // Already registered (re-import in hot-reload or test). Ignore.
-  if (!(err instanceof Error && err.message.includes('already registered'))) {
-    throw err;
+function registerOnce<TData extends Record<string, unknown>, TOut>(
+  name: string,
+  handler: (data: TData, job: import('@revealui/db/schema').Job) => Promise<TOut>,
+): void {
+  try {
+    registerHandler(name, handler);
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes('already registered'))) {
+      throw err;
+    }
   }
 }
+
+registerOnce<AgentDispatchPayload, Awaited<ReturnType<typeof agentDispatchHandler>>>(
+  'agent.dispatch',
+  agentDispatchHandler,
+);
+
+// GAP-448 Phase 2: Agency Founding Kit thin stamp package after max perpetual mint
+registerOnce<KitStampAgencyPayload, Awaited<ReturnType<typeof kitStampAgencyHandler>>>(
+  'kit.stamp.agency',
+  kitStampAgencyHandler,
+);
 
 /**
  * Boot-time assertion: when the queue-based dispatch flag is on, the

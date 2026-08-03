@@ -599,6 +599,54 @@ app.openapi(stripeWebhookRoute, async (c) => {
               customerId,
               sagaId: perpetualResult.sagaId,
             });
+            // Still attempt kit stamp enqueue for max (idempotent job key) so a
+            // retry after mint-but-before-enqueue does not drop the package.
+            if (tier === 'max') {
+              const [existingLic] = await db
+                .select({ id: licenses.id })
+                .from(licenses)
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.perpetual, true),
+                    isNull(licenses.deletedAt),
+                  ),
+                )
+                .limit(1);
+              if (existingLic) {
+                try {
+                  const { enqueue } = await import('@revealui/db/jobs');
+                  const meta = (session.metadata ?? {}) as Record<string, string | undefined>;
+                  const skipEmail =
+                    session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+                  await enqueue(
+                    'kit.stamp.agency',
+                    {
+                      stripeEventId: event.id,
+                      licenseId: existingLic.id,
+                      userId: resolvedUserId,
+                      customerId,
+                      livemode: Boolean(event.livemode),
+                      branding: {
+                        company: meta.company ?? meta.kit_company ?? null,
+                        slug: meta.slug ?? meta.kit_slug ?? null,
+                        brand: meta.brand ?? meta.kit_brand ?? null,
+                        email: skipEmail ?? meta.email ?? null,
+                      },
+                    },
+                    {
+                      idempotencyKey: `kit.stamp.agency:${event.id}`,
+                      retryLimit: 5,
+                    },
+                  );
+                } catch (err) {
+                  logger.error('Failed to enqueue kit.stamp.agency on saga skip', undefined, {
+                    eventId: event.id,
+                    detail: err instanceof Error ? err.message : 'unknown',
+                  });
+                }
+              }
+            }
             break;
           }
           if (perpetualResult.status !== 'completed') {
@@ -675,6 +723,50 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   detail: err instanceof Error ? err.message : 'unknown',
                 });
               });
+            }
+          }
+
+          // GAP-448 Phase 2: enqueue thin kit stamp package for Agency Founding Kit
+          // (max perpetual). Mint + license email already succeeded — stamp failures
+          // retry via the job queue and must not fail the webhook.
+          if (tier === 'max') {
+            try {
+              const { enqueue } = await import('@revealui/db/jobs');
+              const meta = (session.metadata ?? {}) as Record<string, string | undefined>;
+              await enqueue(
+                'kit.stamp.agency',
+                {
+                  stripeEventId: event.id,
+                  licenseId,
+                  userId: resolvedUserId,
+                  customerId,
+                  livemode: Boolean(event.livemode),
+                  branding: {
+                    company: meta.company ?? meta.kit_company ?? null,
+                    slug: meta.slug ?? meta.kit_slug ?? null,
+                    brand: meta.brand ?? meta.kit_brand ?? null,
+                    email: session.customer_email ?? perpetualEmail ?? meta.email ?? null,
+                  },
+                },
+                {
+                  idempotencyKey: `kit.stamp.agency:${event.id}`,
+                  retryLimit: 5,
+                },
+              );
+              logger.info('Enqueued kit.stamp.agency for Agency Founding Kit', {
+                eventId: event.id,
+                licenseId,
+                customerId,
+              });
+            } catch (err) {
+              logger.error(
+                'Failed to enqueue kit.stamp.agency (mint still ok; safety-net may retry)',
+                undefined,
+                {
+                  eventId: event.id,
+                  detail: err instanceof Error ? err.message : 'unknown',
+                },
+              );
             }
           }
 
