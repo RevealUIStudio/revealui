@@ -116,6 +116,12 @@
       "rationale": "GAP-464 / revealui#449 Phase 1: CREATE TABLE account_sso_providers + sso_identities for Enterprise SSO (OIDC|SAML). Hand-written CREATE TABLE IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object + partial unique index WHERE deleted_at IS NULL, following the 0025/0032 table-creation precedent. Hand-scoped because meta snapshots lag and db:generate would re-emit unrelated drift. Companion Drizzle schema at packages/db/src/schema/sso.ts; secrets are vault path refs only (client_secret_ref).",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at sso.ts already models both tables for ORM typing."
+    },
+    {
+      "tag": "0035_gap448_kit_fulfillments",
+      "rationale": "GAP-448 Phase 2: CREATE TABLE kit_fulfillments for Agency Founding Kit stamp-on-payment tracking. Hand-written CREATE TABLE IF NOT EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object + unique/index IF NOT EXISTS, following the 0032/0034 table-creation precedent. Hand-scoped because meta snapshots lag (db:generate against stale snapshot re-emits unrelated drift). Companion Drizzle schema at packages/db/src/schema/kit-fulfillments.ts; never stores private key material.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Schema at kit-fulfillments.ts already models the table for ORM typing."
     }
   ]
 }
