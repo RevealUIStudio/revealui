@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **65 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**100 PostgreSQL tables** with Drizzle ORM, **81 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
+**101 PostgreSQL tables** with Drizzle ORM, **81 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -108,7 +108,7 @@ Honest list of things that are not done, not deployed, or not verified.
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 1 (`@revealui/scripts`, unlicensed build tooling) | Yes |
 | UI components | 65 in `@revealui/presentation` | Yes |
-| Database tables | 100 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
+| Database tables | 101 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | CHECK constraints | 81 | Yes (run `grep -rh 'check(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers | 13 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
