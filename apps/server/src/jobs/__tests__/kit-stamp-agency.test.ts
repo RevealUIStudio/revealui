@@ -4,7 +4,7 @@ const mockInsertValues = vi.fn().mockResolvedValue(undefined);
 const mockUpdateSet = vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) }));
 const mockSelectLimit = vi.fn();
 
-vi.mock('@revealui/db', () => ({
+vi.mock('@revealui/db/client', () => ({
   getClient: () => ({
     select: () => ({
       from: () => ({

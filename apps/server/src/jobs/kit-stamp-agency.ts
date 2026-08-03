@@ -12,8 +12,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
-import type { Database } from '@revealui/db';
-import { getClient } from '@revealui/db';
+import { getClient } from '@revealui/db/client';
 import type { Job } from '@revealui/db/schema';
 import { kitFulfillments, users } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
@@ -53,7 +52,8 @@ export async function kitStampAgencyHandler(
   data: KitStampAgencyPayload,
   _job: Job,
 ): Promise<KitStampAgencyResult> {
-  const db: Database = getClient();
+  // Infer client type from getClient(); root @revealui/db Database is types/database.
+  const db = getClient();
   const { stripeEventId, licenseId, userId, customerId, livemode, branding: brandingIn } = data;
 
   if (!(stripeEventId && licenseId && customerId)) {
