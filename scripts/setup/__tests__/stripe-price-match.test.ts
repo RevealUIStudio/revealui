@@ -131,4 +131,43 @@ describe('priceMatchesDefinition', () => {
       false,
     );
   });
+
+  it('matches a metered overage price only when usage_type is metered (GAP-212)', () => {
+    const overage: PriceDefinition = {
+      key: 'revealui_pro_task_overage',
+      unitAmount: 5,
+      currency: 'usd',
+      mode: 'metered',
+      interval: 'month',
+    };
+    expect(
+      priceMatchesDefinition(
+        price({
+          lookup_key: 'revealui_pro_task_overage',
+          unit_amount: 5,
+          recurring: { interval: 'month', usage_type: 'metered' },
+        }),
+        overage,
+      ),
+    ).toBe(true);
+    expect(
+      priceMatchesDefinition(
+        price({
+          lookup_key: 'revealui_pro_task_overage',
+          unit_amount: 5,
+          recurring: { interval: 'month', usage_type: 'licensed' },
+        }),
+        overage,
+      ),
+    ).toBe(false);
+  });
+
+  it('still matches licensed subscription when usage_type is absent (legacy Stripe prices)', () => {
+    expect(
+      priceMatchesDefinition(
+        price({ lookup_key: 'revealui_pro_monthly', recurring: { interval: 'month' } }),
+        proMonthly,
+      ),
+    ).toBe(true);
+  });
 });

@@ -1,4 +1,4 @@
-# Governed Agent Run — developer notes
+# Governed Agent Run: developer notes
 
 > **The public Apify Store listing is `.actor/README.md`, not this file.**
 > `actor.json` points `readme` there. This file is internal developer/build
