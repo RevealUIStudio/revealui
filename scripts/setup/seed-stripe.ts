@@ -37,7 +37,7 @@ import {
   ensureBillingMeter,
   PRICE_TAX_BEHAVIOR,
   PRODUCT_TAX_CODE,
-} from './seed-stripe-meter.js';
+} from './stripe-billing-meter.js';
 import {
   CATALOG,
   findCatalogDrift,
@@ -59,7 +59,7 @@ export {
   ensureBillingMeter,
   PRICE_TAX_BEHAVIOR,
   PRODUCT_TAX_CODE,
-} from './seed-stripe-meter.js';
+} from './stripe-billing-meter.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -100,7 +100,7 @@ const WEBHOOK_EVENTS = [
 // Env vars to track: public-facing price IDs + server-side aliases
 //
 // Stripe Billing Meter (Track B agent task overage): helpers live in
-// seed-stripe-meter.ts. Runtime emits events at apps/server billing routes
+// stripe-billing-meter.ts. Runtime emits events at apps/server billing routes
 // using STRIPE_AGENT_METER_EVENT_NAME (fallback agent_task_overage).
 // Tax: PRODUCT_TAX_CODE / PRICE_TAX_BEHAVIOR — exclusive is immutable once set.
 

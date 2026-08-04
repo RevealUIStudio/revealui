@@ -2,8 +2,8 @@
  * GAP-212 — seed-stripe unit coverage: meter creation, meter env, tax constants,
  * idempotency, and dry-run zero-writes. Stripe SDK is fully mocked.
  *
- * Imports seed-stripe-meter (not the CLI seeder) so tests need no dotenv / Stripe
- * package resolution from packages/services.
+ * Imports stripe-billing-meter (not the CLI seeder) so tests need no dotenv /
+ * Stripe package resolution from packages/services.
  */
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -17,7 +17,7 @@ import {
   ensureBillingMeter,
   PRICE_TAX_BEHAVIOR,
   PRODUCT_TAX_CODE,
-} from '../seed-stripe-meter.js';
+} from '../stripe-billing-meter.js';
 
 type MeterListResult = {
   autoPagingToArray: (opts: { limit: number }) => Promise<Stripe.Billing.Meter[]>;
@@ -153,7 +153,7 @@ describe('seed-stripe.ts wiring (source lock)', () => {
     expect(content.includes('tax_behavior: PRICE_TAX_BEHAVIOR')).toBe(true);
     expect(content.includes('tax_code: PRODUCT_TAX_CODE')).toBe(true);
     expect(content.includes('applyAgentMeterEnv(envVars)')).toBe(true);
-    expect(content.includes("from './seed-stripe-meter.js'")).toBe(true);
+    expect(content.includes("from './stripe-billing-meter.js'")).toBe(true);
     expect(content.includes('pathToFileURL')).toBe(true);
     expect(content.includes('isDirectRun')).toBe(true);
   });
