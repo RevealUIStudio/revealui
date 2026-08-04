@@ -34,6 +34,7 @@ import type Stripe from 'stripe';
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
 import {
   applyAgentMeterEnv,
+  ensureAgentOveragePrice,
   ensureBillingMeter,
   PRICE_TAX_BEHAVIOR,
   PRODUCT_TAX_CODE,
@@ -55,7 +56,11 @@ import { syncToRevvault } from './stripe-revvault-sync.js';
 export {
   AGENT_METER_DISPLAY_NAME,
   AGENT_METER_EVENT_NAME,
+  AGENT_OVERAGE_ENV_KEY,
+  AGENT_OVERAGE_PRICE_KEY,
+  AGENT_OVERAGE_UNIT_AMOUNT_DECIMAL,
   applyAgentMeterEnv,
+  ensureAgentOveragePrice,
   ensureBillingMeter,
   PRICE_TAX_BEHAVIOR,
   PRODUCT_TAX_CODE,
@@ -762,12 +767,16 @@ async function main(): Promise<void> {
 
   // ── Stripe Billing Meter (Track B agent task overage)
   log.header('Stripe Billing Meter');
-  await ensureBillingMeter(stripe, dryRun, log);
+  const meter = await ensureBillingMeter(stripe, dryRun, log);
+
+  // Shared metered overage price (Pro/Max checkout line item)
+  log.header('Agent Task Overage Price');
+  const overagePriceId = await ensureAgentOveragePrice(stripe, meter?.id ?? null, dryRun, log);
 
   // ── Products & prices
   log.header('Products & Prices');
   const { envVars, subscriptionProducts, catalogEntries } = await syncCatalog(stripe, dryRun);
-  applyAgentMeterEnv(envVars);
+  applyAgentMeterEnv(envVars, overagePriceId);
 
   // Reconcile orphan products (convergent IaC: archive undeclared managed products)
   log.header('Catalog Reconciliation');
