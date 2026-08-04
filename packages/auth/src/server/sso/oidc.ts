@@ -75,8 +75,13 @@ const DISCOVERY_REQUIRED = [
   'jwks_uri',
 ] as const;
 
+/** Strip trailing `/` without regex (CodeQL: avoid poly ReDoS on uncontrolled issuer). */
 function normalizeIssuer(issuer: string): string {
-  return issuer.replace(/\/+$/, '');
+  let end = issuer.length;
+  while (end > 0 && issuer.charCodeAt(end - 1) === 47 /* '/' */) {
+    end -= 1;
+  }
+  return end === issuer.length ? issuer : issuer.slice(0, end);
 }
 
 function isNonEmptyString(value: unknown): value is string {

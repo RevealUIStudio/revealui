@@ -72,6 +72,26 @@ describe('fetchOidcDiscovery', () => {
     }
   });
 
+  it('normalizes trailing slashes when matching expectedIssuer', async () => {
+    const doc = {
+      issuer: `${ISSUER}/`,
+      authorization_endpoint: `${ISSUER}/authorize`,
+      token_endpoint: `${ISSUER}/token`,
+      jwks_uri: `${ISSUER}/jwks`,
+    };
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => doc,
+    });
+
+    const result = await fetchOidcDiscovery(`${ISSUER}/.well-known/openid-configuration`, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      expectedIssuer: `${ISSUER}///`,
+    });
+
+    expect(result.ok).toBe(true);
+  });
+
   it('rejects missing required fields', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
