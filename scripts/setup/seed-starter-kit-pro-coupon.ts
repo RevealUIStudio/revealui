@@ -22,7 +22,7 @@ import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
 import type Stripe from 'stripe';
-import { STARTER_KIT_PRO_COUPON } from './starter-kit-pro-coupon.js';
+import { promotionCodeCreateParams, STARTER_KIT_PRO_COUPON } from './starter-kit-pro-coupon.js';
 
 config({ path: resolve(import.meta.dirname, '../../.env') });
 
@@ -53,11 +53,16 @@ async function findPromotionCode(
   couponId: string,
   code: string,
 ): Promise<Stripe.PromotionCode | null> {
-  // Prefer list by coupon; fall back to code match across pages (small volume).
+  // Exact code filter (case-insensitive on Stripe side).
+  const byCode = await stripe.promotionCodes.list({ code, limit: 10 });
+  const codeMatch = byCode.data.find(
+    (p) => p.code.toUpperCase() === code.toUpperCase() && p.promotion?.type === 'coupon',
+  );
+  if (codeMatch) return codeMatch;
+
+  // Fallback: list by coupon id (still supported on list params).
   const listed = await stripe.promotionCodes.list({ coupon: couponId, limit: 100 });
-  const match = listed.data.find((p) => p.code === code);
-  if (match) return match;
-  return null;
+  return listed.data.find((p) => p.code.toUpperCase() === code.toUpperCase()) ?? null;
 }
 
 async function main(): Promise<void> {
@@ -123,14 +128,12 @@ async function main(): Promise<void> {
   } else if (!coupon) {
     throw new Error('internal: coupon required before promotion code');
   } else {
-    const promo = await stripe.promotionCodes.create({
-      coupon: couponId,
-      code: promotionCode,
-      metadata: {
+    const promo = await stripe.promotionCodes.create(
+      promotionCodeCreateParams(couponId, promotionCode, {
         revealui_gap: 'GAP-434',
         revealui_purpose: 'starter_kit_first_pro_month',
-      },
-    });
+      }),
+    );
     console.log(`  ✓ created promotion code: ${promo.code} id=${promo.id}`);
   }
 
@@ -143,7 +146,15 @@ Verify:
 `);
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+// Only run when executed as a CLI script (not when imported by tests).
+const isDirectRun =
+  typeof process.argv[1] === 'string' &&
+  (process.argv[1].endsWith('seed-starter-kit-pro-coupon.ts') ||
+    process.argv[1].endsWith('seed-starter-kit-pro-coupon.js'));
+
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}
