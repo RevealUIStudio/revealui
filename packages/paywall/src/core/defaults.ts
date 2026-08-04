@@ -36,6 +36,8 @@ export const DEFAULT_FEATURES: Record<string, FeatureDefinition<DefaultTier>> = 
   // --- Enterprise tier ---
   multiTenant: { tier: 'enterprise', label: 'Multi-Tenant' },
   whiteLabel: { tier: 'enterprise', label: 'White Label', planned: true },
+  /** GAP-464: OIDC MVP live; SAML + admin UI residual */
+  sso: { tier: 'enterprise', label: 'SSO / SAML' },
 };
 
 /** Standard resource limits. */

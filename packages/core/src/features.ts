@@ -45,6 +45,8 @@ export interface FeatureFlags {
   vaultRotation: boolean;
   /** RevKit environment provisioning  -  tiered dev profiles (Max+) */
   devkitProfiles: boolean;
+  /** Enterprise SSO (OIDC/SAML)  -  account IdP federation (Enterprise) */
+  sso: boolean;
 }
 
 /** Feature-to-tier mapping: minimum tier required for each feature */
@@ -65,6 +67,8 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   // Forced to false below in getFeatures/getFeaturesForTier/isFeatureEnabled
   // to avoid advertising features that don't exist. Re-enable when implemented.
   whiteLabel: 'enterprise',
+  /** GAP-464 OIDC routes + JIT; SAML + admin UI residual */
+  sso: 'enterprise',
   vaultDesktop: 'pro',
   vaultRotation: 'pro',
   devkitProfiles: 'max',

@@ -136,3 +136,49 @@ export async function accountHasAuditLogFeature(
 
   return features.auditLog === true;
 }
+
+/**
+ * Whether `accountId` currently has the Enterprise `sso` feature (GAP-464).
+ *
+ * Fail-closed: missing/grace-expired entitlement → false.
+ * Account-scoped (provider rows are always loaded with matching accountId).
+ * Checked on both SSO init and callback.
+ */
+export async function accountHasSsoFeature(
+  db: Database,
+  accountId: string | null,
+): Promise<boolean> {
+  if (!accountId) return false;
+
+  const [entitlement] = await db
+    .select({
+      tier: accountEntitlements.tier,
+      status: accountEntitlements.status,
+      graceUntil: accountEntitlements.graceUntil,
+      features: accountEntitlements.features,
+    })
+    .from(accountEntitlements)
+    .where(
+      and(
+        eq(accountEntitlements.accountId, accountId),
+        eq(accountEntitlements.mode, getConfiguredStripeMode()),
+      ),
+    )
+    .limit(1);
+
+  if (!entitlement) return false;
+
+  const status = entitlement.status ?? null;
+  const graceUntil = entitlement.graceUntil ?? null;
+  const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
+  const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
+  if (graceExpired) return false;
+
+  const tier = (entitlement.tier as 'free' | 'pro' | 'max' | 'enterprise' | undefined) ?? 'free';
+  const features =
+    entitlement.features && Object.keys(entitlement.features).length > 0
+      ? featureRecord(entitlement.features)
+      : featureRecord(getFeaturesForTier(tier));
+
+  return features.sso === true;
+}
