@@ -216,10 +216,17 @@ describe('validateOidcIdToken', () => {
   it('rejects tampered signature', async () => {
     const token = await signIdToken({ sub: 'user-1' });
     const parts = token.split('.');
-    // Flip last char of signature
-    const sig = parts[2] as string;
-    const flipped = sig.slice(0, -1) + (sig.endsWith('A') ? 'B' : 'A');
-    const tampered = `${parts[0]}.${parts[1]}.${flipped}`;
+    const sigB64 = parts[2] as string;
+    // Flip a middle signature *byte* after base64url decode. Flipping only the
+    // last base64url character is flaky: trailing alphabet members can be
+    // padding-equivalent and decode to the same RSA signature bytes, so
+    // verification still succeeds (CI saw expected true to be false).
+    const sigBytes = Buffer.from(sigB64, 'base64url');
+    expect(sigBytes.length).toBeGreaterThan(8);
+    const mid = Math.floor(sigBytes.length / 2);
+    sigBytes[mid] = (sigBytes[mid] as number) ^ 0xff;
+    const tampered = `${parts[0]}.${parts[1]}.${sigBytes.toString('base64url')}`;
+    expect(tampered).not.toBe(token);
 
     const result = await validateOidcIdToken({
       idToken: tampered,
