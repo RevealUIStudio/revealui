@@ -134,6 +134,12 @@
       "rationale": "GAP-175: ADD COLUMN coordination_file_claims.expires_at (timestamptz nullable) + btree index so the RevDev daemon dual-write can store file-reservation TTL and sweepExpiredFileClaims can DELETE expired Neon rows. Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031/0036 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/coordination.ts models expiresAt; daemon writes ISO expires_at on files.reserve.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: pnpm --filter @revealui/db db:generate against a clean DB once the broader snapshot-debt backfill happens. Schema already models expiresAt at the type level."
+    },
+    {
+      "tag": "0038_gap176_coordination_mail_uuid",
+      "rationale": "GAP-176: rebuild coordination_mail with UUID primary key (was SERIAL) so the RevDev daemon can dual-write the same id used in PGlite agent_messages and markRead without subject/body heuristics. Hand-written table rebuild + gen_random_uuid() backfill ordered by old serial id; no FKs reference coordination_mail.id. Companion Drizzle schema at packages/db/src/schema/coordination.ts models id as uuid().",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: pnpm --filter @revealui/db db:generate against a clean DB once the broader snapshot-debt backfill happens. Schema already models UUID id at the type level."
     }
   ]
 }
