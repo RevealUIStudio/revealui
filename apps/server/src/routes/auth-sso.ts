@@ -236,9 +236,7 @@ export async function resolveSamlSpConfig(
   callbackUrl: string,
 ): Promise<{ ok: true; config: SamlSpConfig } | { ok: false; reason: string; message: string }> {
   const spEntityId =
-    (provider.samlSpEntityId && provider.samlSpEntityId.trim()) ||
-    process.env.REVEALUI_SSO_SP_ENTITY_ID?.trim() ||
-    callbackUrl;
+    provider.samlSpEntityId?.trim() || process.env.REVEALUI_SSO_SP_ENTITY_ID?.trim() || callbackUrl;
 
   let entryPoint: string | null = null;
   let idpCertPem: string | null =
@@ -322,7 +320,7 @@ function clientIp(c: {
 app.get('/sso/saml/metadata', async (c) => {
   const accountId = c.req.query('accountId');
   const providerId = c.req.query('providerId');
-  if (!accountId || !providerId) {
+  if (!(accountId && providerId)) {
     return c.json({ error: 'accountId and providerId query parameters are required' }, 400);
   }
 

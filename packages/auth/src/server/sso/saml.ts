@@ -8,7 +8,7 @@
  * - InResponseTo checked when present (replay resistance).
  */
 
-import { SAML, ValidateInResponseTo, type Profile } from '@node-saml/node-saml';
+import { type Profile, SAML, ValidateInResponseTo } from '@node-saml/node-saml';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -99,8 +99,7 @@ export function normalizeIdpCertPem(cert: string): string {
   }
   // Strip whitespace from bare base64
   let compact = '';
-  for (let i = 0; i < trimmed.length; i++) {
-    const ch = trimmed[i] as string;
+  for (const ch of trimmed) {
     if (ch !== ' ' && ch !== '\n' && ch !== '\r' && ch !== '\t') {
       compact += ch;
     }
@@ -297,7 +296,7 @@ export async function buildSamlAuthorizeUrl(
   config: SamlSpConfig,
   relayState: string,
 ): Promise<BuildSamlAuthorizeUrlResult> {
-  if (!isNonEmptyString(config.callbackUrl) || !isNonEmptyString(config.entryPoint)) {
+  if (!(isNonEmptyString(config.callbackUrl) && isNonEmptyString(config.entryPoint))) {
     return {
       ok: false,
       reason: 'missing_config',

@@ -52,9 +52,9 @@ export {
   type ParseIdpMetadataResult,
   parseIdpMetadataXml,
   type SamlSpConfig,
+  type ValidatedSamlAssertion,
   type ValidateSamlResponseFailureReason,
   type ValidateSamlResponseResult,
-  type ValidatedSamlAssertion,
   validateSamlPostResponse,
 } from './saml.js';
 export {

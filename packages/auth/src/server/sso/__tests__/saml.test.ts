@@ -6,8 +6,8 @@ import {
   fetchIdpMetadata,
   normalizeIdpCertPem,
   parseIdpMetadataXml,
-  validateSamlPostResponse,
   type SamlSpConfig,
+  validateSamlPostResponse,
 } from '../saml.js';
 
 const SP_ENTITY = 'https://app.example.com/sp';
