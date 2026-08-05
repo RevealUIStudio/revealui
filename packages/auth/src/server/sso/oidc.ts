@@ -410,4 +410,141 @@ export function createOidcRemoteJwkSet(jwksUri: string): JWTVerifyGetKey {
   return createRemoteJWKSet(new URL(jwksUri));
 }
 
+// ---------------------------------------------------------------------------
+// Authorization code exchange
+// ---------------------------------------------------------------------------
+
+export type ExchangeOidcCodeFailureReason =
+  | 'missing_params'
+  | 'fetch_failed'
+  | 'invalid_json'
+  | 'missing_id_token';
+
+export interface ExchangeOidcCodeInput {
+  tokenEndpoint: string;
+  clientId: string;
+  clientSecret: string;
+  code: string;
+  redirectUri: string;
+  codeVerifier: string;
+  /** Injectable fetch for tests (defaults to global fetch) */
+  fetchImpl?: typeof fetch;
+  /** Request timeout ms (default 10_000) */
+  timeoutMs?: number;
+}
+
+export interface ExchangeOidcCodeSuccess {
+  id_token: string;
+  access_token?: string;
+}
+
+export type ExchangeOidcCodeResult =
+  | { ok: true; tokens: ExchangeOidcCodeSuccess }
+  | { ok: false; reason: ExchangeOidcCodeFailureReason; message: string };
+
+/**
+ * Exchange an OIDC authorization code for tokens (PKCE + client_secret).
+ *
+ * POSTs `application/x-www-form-urlencoded`. Rejects responses without `id_token`.
+ * Never logs client_secret or tokens.
+ */
+export async function exchangeOidcCode(
+  input: ExchangeOidcCodeInput,
+): Promise<ExchangeOidcCodeResult> {
+  const {
+    tokenEndpoint,
+    clientId,
+    clientSecret,
+    code,
+    redirectUri,
+    codeVerifier,
+    fetchImpl = fetch,
+    timeoutMs = 10_000,
+  } = input;
+
+  if (
+    !(
+      isNonEmptyString(tokenEndpoint) &&
+      isNonEmptyString(clientId) &&
+      isNonEmptyString(clientSecret) &&
+      isNonEmptyString(code) &&
+      isNonEmptyString(redirectUri) &&
+      isNonEmptyString(codeVerifier)
+    )
+  ) {
+    return {
+      ok: false,
+      reason: 'missing_params',
+      message:
+        'tokenEndpoint, clientId, clientSecret, code, redirectUri, and codeVerifier are required',
+    };
+  }
+
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: redirectUri,
+    client_id: clientId,
+    client_secret: clientSecret,
+    code_verifier: codeVerifier,
+  });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetchImpl(tokenEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
+      body,
+      signal: controller.signal,
+      redirect: 'error',
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    const message = err instanceof Error ? err.message : 'token exchange fetch failed';
+    return { ok: false, reason: 'fetch_failed', message };
+  }
+  clearTimeout(timer);
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      reason: 'fetch_failed',
+      message: `token endpoint HTTP ${response.status}`,
+    };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = await response.json();
+  } catch {
+    return { ok: false, reason: 'invalid_json', message: 'token response is not JSON' };
+  }
+
+  if (!parsed || typeof parsed !== 'object') {
+    return { ok: false, reason: 'invalid_json', message: 'token response is not an object' };
+  }
+
+  const record = parsed as Record<string, unknown>;
+  if (!isNonEmptyString(record.id_token)) {
+    return {
+      ok: false,
+      reason: 'missing_id_token',
+      message: 'token response missing id_token',
+    };
+  }
+
+  const tokens: ExchangeOidcCodeSuccess = { id_token: record.id_token };
+  if (isNonEmptyString(record.access_token)) {
+    tokens.access_token = record.access_token;
+  }
+
+  return { ok: true, tokens };
+}
+
 export type { JWTPayload, JWTVerifyGetKey, KeyLike };
