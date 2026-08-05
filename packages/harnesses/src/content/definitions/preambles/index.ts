@@ -15,6 +15,8 @@ export const preambles: PreambleTier[] = [
       'adapter-only',
       // HARDLINE every session: no underscore-silence of unused (owner 2026-07-29)
       'unused-declarations',
+      // HARDLINE: stream-safe revvault (GAP-468 / ADR 2026-08-05)
+      'stream-safe-secrets',
     ],
   },
   {
