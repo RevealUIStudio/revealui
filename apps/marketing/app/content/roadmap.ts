@@ -81,8 +81,8 @@ export const ROADMAP_UPCOMING: readonly RoadmapItem[] = [
   {
     name: 'Enterprise SSO / SAML',
     description:
-      'Single sign-on via SAML for enterprise customers. Advanced audit logging, custom RBAC policy editor, and multi-region deployment support.',
-    status: 'Planned: designed, not built',
+      'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
+    status: 'Shipped: Enterprise feature gate (OIDC + SAML SP-initiated)',
     category: 'Enterprise',
   },
 ];

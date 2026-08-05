@@ -71,7 +71,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
-| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + SSO/SAML (planned, [#449](https://github.com/RevealUIStudio/revealui/issues/449)) |
+| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + Enterprise SSO (OIDC/SAML SP-initiated, [#449](https://github.com/RevealUIStudio/revealui/issues/449)) |
 | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
 | **Local AI inference (Snaps / Ollama)** | Yes | Yes | Yes | Yes |

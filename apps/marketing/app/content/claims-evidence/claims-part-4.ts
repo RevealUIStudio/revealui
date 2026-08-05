@@ -42,6 +42,10 @@ import {
   REVFORGE_REF,
   ROADMAP,
   SELF_HOST,
+  SSO_ADMIN_UI,
+  SSO_AUTH_ROUTES,
+  SSO_SAML_PURE,
+  SSO_SETUP_DOC,
   THIS_SITE,
 } from './shared-refs.js';
 import type { ClaimEntry } from './types.js';
@@ -249,8 +253,14 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'roadmap.ts',
     exportPath: 'ROADMAP_UPCOMING[3].description',
-    text: 'Single sign-on via SAML for enterprise customers. Advanced audit logging, custom RBAC policy editor, and multi-region deployment support.',
-    evidence: [ROADMAP, RBAC_ABAC],
+    text: 'OIDC and SAML SP-initiated federation for Enterprise accounts (Admin IdP config, test-connection, SP metadata). SCIM, advanced RBAC editor, and multi-region remain later enterprise work.',
+    evidence: [ROADMAP, SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE, SSO_SETUP_DOC, RBAC_ABAC],
+  },
+  {
+    file: 'roadmap.ts',
+    exportPath: 'ROADMAP_UPCOMING[3].status',
+    text: 'Shipped: Enterprise feature gate (OIDC + SAML SP-initiated)',
+    evidence: [ROADMAP, SSO_AUTH_ROUTES, SSO_ADMIN_UI, SSO_SAML_PURE],
   },
   {
     file: 'roadmap.ts',

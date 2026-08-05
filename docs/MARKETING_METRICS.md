@@ -101,7 +101,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Perpetual Licenses (Track C) | **In flight** | `comingSoon: false` in contracts (asserted by `apps/server/src/routes/__tests__/pricing-accuracy.test.ts`); Stripe products seeded. Renders as available; the Stripe live-mode flip landed 2026-06-26, so charging rides the live catalog. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
-| Enterprise SSO / SAML | **Planned** | Designed, not built. |
+| Enterprise SSO / SAML | **Shipped (code)** | OIDC + SAML SP-initiated under Enterprise `sso` gate; Admin UI + routes on `test`. Guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). SCIM still not built. |
 | Cloudflare adoption | **Planned** | Deferred post-launch per memory. |
 
 ## 4. Brand

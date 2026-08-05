@@ -158,6 +158,26 @@ export const X402: EvidenceRef = {
   ref: 'apps/server/src/middleware/x402.ts',
   note: 'HTTP 402 payment middleware; rails in development per the roadmap',
 };
+export const SSO_AUTH_ROUTES: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/server/src/routes/auth-sso.ts',
+  note: 'Enterprise OIDC + SAML SP-initiated login routes (GAP-464)',
+};
+export const SSO_ADMIN_UI: EvidenceRef = {
+  kind: 'code',
+  ref: 'apps/admin/src/app/(backend)/settings/sso/sso-settings-client.tsx',
+  note: 'Admin Enterprise SSO settings (OIDC + SAML metadata)',
+};
+export const SSO_SAML_PURE: EvidenceRef = {
+  kind: 'code',
+  ref: 'packages/auth/src/server/sso/saml.ts',
+  note: 'SAML pure layer (metadata parse, AuthnRequest, ACS validate)',
+};
+export const SSO_SETUP_DOC: EvidenceRef = {
+  kind: 'code',
+  ref: 'docs/FORGE_SSO_SETUP.md',
+  note: 'operator guide for Enterprise SSO setup',
+};
 export const MEMORY: EvidenceRef = {
   kind: 'code',
   ref: 'packages/ai/src/memory',

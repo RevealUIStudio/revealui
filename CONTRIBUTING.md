@@ -198,7 +198,7 @@ Every future-tense claim in docs — "coming soon", "(planned)", "will ship", "r
 Acceptable forms:
 
 ```markdown
-- **Multi-tenant SSO** (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449))
+- **Multi-tenant SSO** (Enterprise gate — [#449](https://github.com/RevealUIStudio/revealui/issues/449); see docs/FORGE_SSO_SETUP.md)
 - **RevealUI Fleet self-hosted kit** (roadmap — tracked in [#123](https://github.com/RevealUIStudio/revealui/issues/123))
 ```
 

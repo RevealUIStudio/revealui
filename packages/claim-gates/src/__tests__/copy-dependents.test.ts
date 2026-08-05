@@ -55,7 +55,8 @@ describe('copy-dependent holds', () => {
   it('flags SSO live claims without flagging bare SSO', () => {
     expect(hits('Configure SSO for your team.').length).toBe(0);
     const h = hits('SSO is available on Enterprise today.');
-    expect(h.some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(true);
+    // Released when GAP-464 OIDC/SAML code landed (docs train 2026-08-05)
+    expect(h.some((x) => x.holdId === 'COPY-DEP-ENTERPRISE-SSO')).toBe(false);
   });
 
   it('flags GHCR fleet images live claims but not planned roadmap prose', () => {

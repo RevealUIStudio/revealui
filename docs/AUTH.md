@@ -1063,12 +1063,17 @@ If you have not been running such a legacy fork, no migration is required — th
 - ✅ Input sanitization
 - ✅ CSRF protection
 - ✅ SQL injection prevention
+- ✅ **Enterprise SSO (OIDC + SAML SP-initiated)** under the `sso` feature gate
+  (schema, pure layers, server routes, Admin settings UI, test-connection).
+  Operator guide: [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md). Public tracker
+  [#449](https://github.com/RevealUIStudio/revealui/issues/449).
 
 ### What's still ahead
 
 1. **Integration tests** — currently not running in CI (need a `DATABASE_URL` test fixture).
 2. **Performance baseline** — no production traffic to measure against. Performance targets are tracked internally; treat them as proposed budgets.
 3. **MFA** — `apps/admin/src/app/api/auth/mfa/` ships; verify your admin flow surfaces it before relying on it for compliance.
+4. **SCIM / IdP-initiated SAML as primary path** — non-goals of the GAP-464 MVP; not required for Enterprise OIDC/SAML SP-initiated federation.
 
 ### Production Deployment
 
@@ -1097,12 +1102,20 @@ If you have not been running such a legacy fork, no migration is required — th
 | `/api/auth/me` | GET | ✅ Complete | Get current user |
 | `/api/auth/mfa` | various | ✅ Complete | TOTP / passkey enrollment + verification |
 | `/api/auth/sessions` | GET / DELETE | ✅ Complete | List and revoke active sessions |
+| `/api/auth/sso/:providerId/init` | GET | ✅ Complete | Enterprise SSO init (OIDC or SAML) |
+| `/api/auth/sso/:providerId/callback` | GET | ✅ Complete | OIDC authorization-code callback |
+| `/api/auth/sso/:providerId/callback` | POST | ✅ Complete | SAML ACS (HTTP-POST) |
+| `/api/auth/sso/saml/metadata` | GET | ✅ Complete | SP metadata XML |
+
+Account admin API (owner/admin + `sso` entitlement): `/api/accounts/.../sso-providers`
+(list/create/patch/delete + test-connection). See [FORGE_SSO_SETUP.md](./FORGE_SSO_SETUP.md).
 
 ---
 
 
 ## Related Documentation
 
+- [Enterprise SSO setup](./FORGE_SSO_SETUP.md) - Operator guide for OIDC/SAML IdP attachment
 - [Architecture](./ARCHITECTURE.md) - System architecture and security design
 - [Testing Guide](./TESTING.md) - Security and integration testing
 - [Database Guide](./DATABASE.md) - Database configuration and setup
@@ -1118,7 +1131,7 @@ If you have not been running such a legacy fork, no migration is required — th
 
 ---
 
-**Last Updated:** 2026-04-26 (post honesty audit)
+**Last Updated:** 2026-08-05 (GAP-464 Enterprise SSO operator docs)
 
 ---
 
