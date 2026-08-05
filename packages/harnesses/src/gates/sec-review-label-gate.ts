@@ -102,7 +102,7 @@ export function isSecReviewApprovedLabelAdd(command: string): boolean {
 }
 
 function segmentIsLabelAdd(s: string): boolean {
-  if (!s.includes('pr') || !s.includes('edit')) return false;
+  if (!(s.includes('pr') && s.includes('edit'))) return false;
   const parts = tokenize(s);
   let sawGh = false;
   let sawPr = false;

@@ -37,10 +37,8 @@ describe('checkDispositionCommand', () => {
   });
 
   it('blocks self-clear', () => {
-    const r = checkDispositionCommand('gh api ... review dismiss');
-    // dismiss without gh pr may not match — use explicit form
-    const r2 = checkDispositionCommand('gh pr review 9 --dismiss -b "cleared"');
-    expect(r2.block).toBe(true);
+    const r = checkDispositionCommand('gh pr review 9 --dismiss -b "cleared"');
+    expect(r.block).toBe(true);
   });
 
   it('allows ordinary commands', () => {
