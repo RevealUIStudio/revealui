@@ -83,7 +83,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsup --config tsup.gates-cjs.ts",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
     "lint": "biome check .",
