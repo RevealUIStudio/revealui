@@ -68,6 +68,10 @@ vi.mock('@revealui/db/schema', () => ({
     discoveryUrl: 'accountSsoProviders.discoveryUrl',
     clientId: 'accountSsoProviders.clientId',
     clientSecretRef: 'accountSsoProviders.clientSecretRef',
+    samlMetadataUrl: 'accountSsoProviders.samlMetadataUrl',
+    samlMetadataXml: 'accountSsoProviders.samlMetadataXml',
+    samlSpEntityId: 'accountSsoProviders.samlSpEntityId',
+    signingCertPem: 'accountSsoProviders.signingCertPem',
     groupClaim: 'accountSsoProviders.groupClaim',
     groupRoleMap: 'accountSsoProviders.groupRoleMap',
     defaultRole: 'accountSsoProviders.defaultRole',
@@ -91,6 +95,11 @@ vi.mock('@revealui/auth/server', () => ({
   mapSsoGroupsToRole: (...args: unknown[]) => mockMapSsoGroupsToRole(...args),
   upsertSsoUser: (...args: unknown[]) => mockUpsertSsoUser(...args),
   createSession: (...args: unknown[]) => mockCreateSession(...args),
+  buildSamlAuthorizeUrl: vi.fn(),
+  buildSamlSpMetadata: vi.fn(),
+  fetchIdpMetadata: vi.fn(),
+  parseIdpMetadataXml: vi.fn(),
+  validateSamlPostResponse: vi.fn(),
 }));
 
 import { Hono } from 'hono';
