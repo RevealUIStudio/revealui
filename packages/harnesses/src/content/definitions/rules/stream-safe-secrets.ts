@@ -27,7 +27,7 @@ YouTube/OBS, agent transcripts, and \`pnpm\` argv echoes never show them.
    revvault run --env KEY=vault/path -- <cmd>
    with-secrets stripe neon -- <cmd>
    \`\`\`
-2. **Never** expand \`\$(revvault get …)\` into CLI flags or export lines that
+2. **Never** expand \`$(revvault get …)\` into CLI flags or export lines that
    other tools will print. PreToolUse denies that shape for agents.
 3. **Never** pass credential-bearing URLs as flags
    (e.g. \`--database-url 'postgresql://user:pass@…'\`). Prefer
