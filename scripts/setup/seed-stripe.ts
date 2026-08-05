@@ -26,11 +26,19 @@ import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { config } from 'dotenv';
 import type Stripe from 'stripe';
 // Relative TS import resolves via tsx at script runtime; avoids adding
 // @revealui/contracts as a root-level dep. Script only; not bundled.
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
+import {
+  applyAgentMeterEnv,
+  ensureAgentOveragePrice,
+  ensureBillingMeter,
+  PRICE_TAX_BEHAVIOR,
+  PRODUCT_TAX_CODE,
+} from './stripe-billing-meter.js';
 import {
   CATALOG,
   findCatalogDrift,
@@ -43,6 +51,20 @@ import {
 import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
 import { priceMatchesDefinition, priceSharesHandle } from './stripe-price-match.js';
 import { syncToRevvault } from './stripe-revvault-sync.js';
+
+// Re-export meter surface (tests and future catalog wiring).
+export {
+  AGENT_METER_DISPLAY_NAME,
+  AGENT_METER_EVENT_NAME,
+  AGENT_OVERAGE_ENV_KEY,
+  AGENT_OVERAGE_PRICE_KEY,
+  AGENT_OVERAGE_UNIT_AMOUNT_DECIMAL,
+  applyAgentMeterEnv,
+  ensureAgentOveragePrice,
+  ensureBillingMeter,
+  PRICE_TAX_BEHAVIOR,
+  PRODUCT_TAX_CODE,
+} from './stripe-billing-meter.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -81,27 +103,11 @@ const WEBHOOK_EVENTS = [
 ] satisfies Stripe.WebhookEndpointCreateParams.EnabledEvent[];
 
 // Env vars to track: public-facing price IDs + server-side aliases
-
-// ─── Stripe Billing Meter (Track B agent task overage) ──────────────────────
-// The runtime emits meter events at apps/server/src/routes/billing.ts:1894
-// using STRIPE_AGENT_METER_EVENT_NAME (fallback 'agent_task_overage'). The
-// meter must exist BEFORE meter events can land — this seed creates it
-// idempotently. Track B per MASTER_PLAN §5.1.
-const AGENT_METER_EVENT_NAME = 'agent_task_overage';
-const AGENT_METER_DISPLAY_NAME = 'Agent task overage';
-
-// ─── Stripe Tax categories ──────────────────────────────────────────────────
-// Stripe Tax requires explicit tax categories on every product/price before
-// account-level Tax can be enabled cleanly.
 //
-// Per Stripe Tax Code Lookup (https://stripe.com/docs/tax/tax-codes):
-//   txcd_10103000 = "Software as a Service (SaaS)" — RevealUI's product class.
-//
-// tax_behavior: 'exclusive' = tax added on top (B2B norm). NOTE: tax_behavior
-// is IMMUTABLE on Stripe prices once set to a non-'unspecified' value —
-// choose carefully. Owner cross-checks both at dry-run BEFORE the live run.
-const PRODUCT_TAX_CODE = 'txcd_10103000';
-const PRICE_TAX_BEHAVIOR: Stripe.PriceCreateParams.TaxBehavior = 'exclusive';
+// Stripe Billing Meter (Track B agent task overage): helpers live in
+// stripe-billing-meter.ts. Runtime emits events at apps/server billing routes
+// using STRIPE_AGENT_METER_EVENT_NAME (fallback agent_task_overage).
+// Tax: PRODUCT_TAX_CODE / PRICE_TAX_BEHAVIOR — exclusive is immutable once set.
 
 function productTaxCode(p: Stripe.Product): string | null {
   return typeof p.tax_code === 'string' ? p.tax_code : (p.tax_code?.id ?? null);
@@ -129,45 +135,6 @@ function isLocalWebhookUrl(url: string): boolean {
   } catch {
     return false;
   }
-}
-
-// ─── Billing Meter ──────────────────────────────────────────────────────────
-
-async function ensureBillingMeter(
-  stripe: Stripe,
-  dryRun: boolean,
-): Promise<Stripe.Billing.Meter | null> {
-  log.info('');
-  log.info(`Meter event name: ${AGENT_METER_EVENT_NAME}`);
-
-  const allMeters = await stripe.billing.meters
-    .list({ status: 'active' })
-    .autoPagingToArray({ limit: 10_000 });
-  const match = allMeters.find((m) => m.event_name === AGENT_METER_EVENT_NAME);
-
-  if (match) {
-    log.success(`Meter exists: ${match.id} (${match.event_name})`);
-    return match;
-  }
-
-  if (dryRun) {
-    log.info(`Would create meter: ${AGENT_METER_EVENT_NAME} (${AGENT_METER_DISPLAY_NAME})`);
-    return null;
-  }
-
-  const meter = await stripe.billing.meters.create({
-    display_name: AGENT_METER_DISPLAY_NAME,
-    event_name: AGENT_METER_EVENT_NAME,
-    default_aggregation: { formula: 'sum' },
-    customer_mapping: {
-      type: 'by_id',
-      event_payload_key: 'stripe_customer_id',
-    },
-    value_settings: { event_payload_key: 'value' },
-  });
-
-  log.success(`Created meter: ${meter.id} (${meter.event_name})`);
-  return meter;
 }
 
 // ─── Products & Prices ───────────────────────────────────────────────────────
@@ -761,7 +728,15 @@ async function main(): Promise<void> {
 
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
-    log.error('STRIPE_SECRET_KEY is not set. Add it to .env');
+    log.error('STRIPE_SECRET_KEY is not set.');
+    log.error('Load from revvault (do not paste into .env by hand):');
+    log.error(
+      '  export STRIPE_SECRET_KEY="$(revvault get --full revealui/dev/stripe/secret-key)"  # sk_test_',
+    );
+    log.error(
+      '  export STRIPE_SECRET_KEY="$(revvault get --full revealui/prod/stripe/secret-key)" # sk_live_',
+    );
+    log.error('Restricted rk_* keys cannot seed (need full sk_test_ / sk_live_).');
     process.exit(1);
   }
 
@@ -800,12 +775,16 @@ async function main(): Promise<void> {
 
   // ── Stripe Billing Meter (Track B agent task overage)
   log.header('Stripe Billing Meter');
-  await ensureBillingMeter(stripe, dryRun);
+  const meter = await ensureBillingMeter(stripe, dryRun, log);
+
+  // Shared metered overage price (Pro/Max checkout line item)
+  log.header('Agent Task Overage Price');
+  const overagePriceId = await ensureAgentOveragePrice(stripe, meter?.id ?? null, dryRun, log);
 
   // ── Products & prices
   log.header('Products & Prices');
   const { envVars, subscriptionProducts, catalogEntries } = await syncCatalog(stripe, dryRun);
-  envVars.STRIPE_AGENT_METER_EVENT_NAME = AGENT_METER_EVENT_NAME;
+  applyAgentMeterEnv(envVars, overagePriceId);
 
   // Reconcile orphan products (convergent IaC: archive undeclared managed products)
   log.header('Catalog Reconciliation');
@@ -886,7 +865,14 @@ async function main(): Promise<void> {
   log.success('Done!');
 }
 
-main().catch((err) => {
-  log.error(`Fatal: ${err instanceof Error ? err.message : String(err)}`);
-  process.exit(1);
-});
+// Isolate main from import-time execution so unit tests can import this module
+// without hitting Stripe / process.exit (GAP-212).
+const isDirectRun =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  main().catch((err) => {
+    log.error(`Fatal: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  });
+}

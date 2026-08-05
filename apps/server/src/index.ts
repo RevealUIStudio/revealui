@@ -100,6 +100,7 @@ import analyticsRoute from './routes/analytics.js';
 import apiKeysRoute from './routes/api-keys.js';
 import auditRoute from './routes/audit.js';
 import authRoute from './routes/auth.js';
+import authSsoRoute from './routes/auth-sso.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
@@ -124,6 +125,7 @@ import gdprRoute from './routes/gdpr.js';
 import ghcrRoute from './routes/ghcr.js';
 import healthRoute from './routes/health.js';
 import jobsRoute from './routes/jobs/index.js';
+import kitsRoute from './routes/kits.js';
 import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
@@ -135,6 +137,7 @@ import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
 import rotationRoute from './routes/rotation.js';
+import ssoProvidersRoute from './routes/sso-providers.js';
 import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
@@ -495,6 +498,10 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'log-ingest': { maxRequests: 200, windowMs: ONE_MINUTE },
     'api-keys': { maxRequests: 20, windowMs: ONE_MINUTE },
     'auth-signup': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    /** Enterprise SSO OIDC init/callback (GAP-464) — aligned with sign-in abuse budget */
+    'auth-sso': { maxRequests: 20, windowMs: FIFTEEN_MINUTES },
+    /** Enterprise SSO provider admin CRUD + test-connection (GAP-464) */
+    'sso-providers': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
     'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
@@ -979,6 +986,12 @@ app.post('/api/v1/content/sites', siteLimit);
 // Resource limits  -  enforce tier-based caps on user signup
 app.use('/api/auth/signup', routeLimit('auth-signup'));
 app.use('/api/v1/auth/signup', routeLimit('auth-signup'));
+// Enterprise SSO OIDC init/callback (GAP-464)
+app.use('/api/auth/sso/*', routeLimit('auth-sso'));
+app.use('/api/v1/auth/sso/*', routeLimit('auth-sso'));
+// Enterprise SSO provider admin config (GAP-464)
+app.use('/api/accounts/*', routeLimit('sso-providers'));
+app.use('/api/v1/accounts/*', routeLimit('sso-providers'));
 const userLimit = enforceUserLimit(() => users);
 app.post('/api/auth/signup', userLimit);
 app.post('/api/v1/auth/signup', userLimit);
@@ -1235,7 +1248,10 @@ app.route('/api/errors', errorsRoute);
 app.route('/api/gdpr', gdprRoute);
 app.route('/api/logs', logsRoute);
 app.route('/api/license', licenseRoute);
+app.route('/api/kits', kitsRoute);
 app.route('/api/auth', authRoute);
+app.route('/api/auth', authSsoRoute);
+app.route('/api/accounts', ssoProvidersRoute);
 app.route('/api/billing', billingRoute);
 app.route('/api/contact', contactRoute);
 app.route('/api/v1/contact', contactRoute);
@@ -1326,7 +1342,10 @@ app.route('/api/v1/errors', errorsRoute);
 app.route('/api/v1/gdpr', gdprRoute);
 app.route('/api/v1/logs', logsRoute);
 app.route('/api/v1/license', licenseRoute);
+app.route('/api/v1/kits', kitsRoute);
 app.route('/api/v1/auth', authRoute);
+app.route('/api/v1/auth', authSsoRoute);
+app.route('/api/v1/accounts', ssoProvidersRoute);
 app.route('/api/v1/billing', billingRoute);
 app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);

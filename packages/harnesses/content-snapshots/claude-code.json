@@ -91,6 +91,10 @@
       "sha256": "8607d1d76c2800137808a5a5e72185ad2a632a0fb1553b59d55b3246b412d647"
     },
     {
+      "relativePath": ".revealui/content/rules/stream-safe-secrets.md",
+      "sha256": "a8dd8ee4f106df0590c05f7e68a21c056a8338fd035af290e20a04d161326f0c"
+    },
+    {
       "relativePath": ".revealui/content/rules/tailwind.md",
       "sha256": "498578c8bc2c7d3370667efd6a60d17c09903ab774659ce5a031b3acdb70e6d3"
     },

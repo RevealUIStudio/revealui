@@ -136,6 +136,44 @@ export {
 } from './session.js';
 // Signed Cookie
 export { signCookiePayload, verifyCookiePayload } from './signed-cookie.js';
+// Enterprise SSO pure layer (GAP-464) — routes/JIT/entitlement in follow-up PRs
+export {
+  type BuildOidcAuthorizationUrlInput,
+  buildOidcAuthorizationUrl,
+  createOidcRemoteJwkSet,
+  type ExchangeOidcCodeFailureReason,
+  type ExchangeOidcCodeInput,
+  type ExchangeOidcCodeResult,
+  type ExchangeOidcCodeSuccess,
+  exchangeOidcCode,
+  extractGroupsFromClaim,
+  type FetchOidcDiscoveryOptions,
+  type FetchOidcDiscoveryResult,
+  fetchOidcDiscovery,
+  type GenerateSsoStateInput,
+  type GenerateSsoStateResult,
+  generateSsoState,
+  type JWTPayload,
+  type JWTVerifyGetKey,
+  type KeyLike,
+  type MapSsoGroupsFailureReason,
+  type MapSsoGroupsInput,
+  type MapSsoGroupsResult,
+  mapSsoGroupsToRole,
+  normalizeSsoUserRole,
+  type OidcDiscoveryDocument,
+  type OidcDiscoveryFailureReason,
+  type SsoStatePayload,
+  type UpsertSsoUserInput,
+  upsertSsoUser,
+  type ValidatedIdTokenClaims,
+  type ValidateIdTokenFailureReason,
+  type ValidateIdTokenResult,
+  type ValidateOidcIdTokenOptions,
+  type VerifiedSsoState,
+  validateOidcIdToken,
+  verifySsoState,
+} from './sso/index.js';
 export type { Storage } from './storage/index.js';
 export {
   createStorage,

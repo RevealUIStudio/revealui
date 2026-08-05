@@ -14,7 +14,11 @@ export interface PriceDefinition {
   unitAmount: number; // cents
   currency: string;
   interval?: 'month' | 'year';
-  mode: 'subscription' | 'payment';
+  /**
+   * `metered` = subscription overage price (usage_type metered), GAP-212 step 1.
+   * Catalog rows for metered rates stay owner-gated until per-tier rates land.
+   */
+  mode: 'subscription' | 'payment' | 'metered';
   trialDays?: number;
 }
 
@@ -28,7 +32,7 @@ export interface MatchablePrice {
   metadata: Record<string, string> | null;
   unit_amount: number | null;
   currency: string;
-  recurring: { interval: string } | null;
+  recurring: { interval: string; usage_type?: string | null } | null;
 }
 
 /**
@@ -48,7 +52,17 @@ export function priceMatchesDefinition(price: MatchablePrice, priceDef: PriceDef
   if (!priceSharesHandle(price, priceDef)) return false;
   if (price.unit_amount !== priceDef.unitAmount) return false;
   if (price.currency !== priceDef.currency) return false;
-  return priceDef.mode === 'subscription'
-    ? price.recurring?.interval === priceDef.interval
-    : !price.recurring;
+  if (priceDef.mode === 'subscription') {
+    return (
+      price.recurring?.interval === priceDef.interval &&
+      (price.recurring.usage_type == null || price.recurring.usage_type === 'licensed')
+    );
+  }
+  if (priceDef.mode === 'metered') {
+    return (
+      price.recurring?.interval === (priceDef.interval ?? 'month') &&
+      price.recurring.usage_type === 'metered'
+    );
+  }
+  return !price.recurring;
 }

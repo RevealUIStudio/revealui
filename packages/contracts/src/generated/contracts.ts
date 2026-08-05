@@ -1367,6 +1367,32 @@ export const KgOutboxInsertContract = createContract({
 })
 
 // =============================================================================
+// KitFulfillments Contracts
+// =============================================================================
+
+/**
+ * Contract for kitFulfillments row (Select)
+ * Database table: kit_fulfillments
+ */
+export const KitFulfillmentsRowContract = createContract({
+  name: 'KitFulfillmentsRow',
+  version: '1',
+  description: 'Database row contract for kit_fulfillments table',
+  schema: Schemas.KitFulfillmentsSelectSchema,
+})
+
+/**
+ * Contract for kitFulfillments insert
+ * Database table: kit_fulfillments
+ */
+export const KitFulfillmentsInsertContract = createContract({
+  name: 'KitFulfillmentsInsert',
+  version: '1',
+  description: 'Database insert contract for kit_fulfillments table',
+  schema: Schemas.KitFulfillmentsInsertSchema,
+})
+
+// =============================================================================
 // LicenseJtiRevocations Contracts
 // =============================================================================
 

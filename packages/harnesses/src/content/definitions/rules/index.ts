@@ -11,6 +11,7 @@ import { monorepoRule } from './monorepo.js';
 import { parameterizationRule } from './parameterization.js';
 import { qualityOverSpeedRule } from './quality-over-speed.js';
 import { skillsUsageRule } from './skills-usage.js';
+import { streamSafeSecretsRule } from './stream-safe-secrets.js';
 import { tailwindRule } from './tailwind.js';
 import { trackerFirstRule } from './tracker-first.js';
 import { unusedDeclarationsRule } from './unused-declarations.js';
@@ -28,6 +29,7 @@ export const rules: Rule[] = [
   parameterizationRule,
   qualityOverSpeedRule,
   skillsUsageRule,
+  streamSafeSecretsRule,
   tailwindRule,
   trackerFirstRule,
   unusedDeclarationsRule,

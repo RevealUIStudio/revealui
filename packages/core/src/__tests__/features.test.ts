@@ -43,6 +43,7 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'payments',
   'multiTenant',
   'whiteLabel',
+  'sso',
   'aiInference',
   'auditLog',
   'advancedSync',
@@ -79,7 +80,7 @@ const MAX_FEATURES: (keyof FeatureFlags)[] = [
 ];
 
 /** Features that require Enterprise tier */
-const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel'];
+const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel', 'sso'];
 
 /**
  * Features hardcoded to false (B-02: unimplemented, unsafe to expose).
@@ -194,10 +195,10 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns a FeatureFlags object with exactly 16 keys', () => {
+  it('returns a FeatureFlags object with exactly 17 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(16);
+    expect(Object.keys(features)).toHaveLength(17);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -417,6 +418,10 @@ describe('getRequiredTier', () => {
     expect(getRequiredTier('whiteLabel')).toBe('enterprise');
   });
 
+  it('returns enterprise for sso feature', () => {
+    expect(getRequiredTier('sso')).toBe('enterprise');
+  });
+
   it('returns pro for vaultDesktop feature', () => {
     expect(getRequiredTier('vaultDesktop')).toBe('pro');
   });
@@ -440,7 +445,7 @@ describe('tier progression', () => {
     free: 1, // aiLocal
     pro: 10, // 1 free + 9 pro features (incl. vaultDesktop, vaultRotation)
     max: 14, // 1 free + 9 pro + 4 max features (incl. devkitProfiles)
-    enterprise: 15, // 16 total minus 1 hardcoded-off (whiteLabel)
+    enterprise: 16, // 17 total minus 1 hardcoded-off (whiteLabel); sso enableable
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {

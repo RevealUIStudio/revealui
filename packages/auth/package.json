@@ -18,6 +18,7 @@
     "@simplewebauthn/server": "^13.3.2",
     "bcryptjs": "catalog:",
     "drizzle-orm": "catalog:",
+    "jose": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
