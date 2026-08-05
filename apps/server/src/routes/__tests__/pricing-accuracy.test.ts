@@ -43,6 +43,10 @@ const EXPECTED_FEATURE_TIER_MAP: Record<FeatureFlagKey, LicenseTierId> = {
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
+  sso: 'enterprise',
+  vaultDesktop: 'pro',
+  vaultRotation: 'pro',
+  devkitProfiles: 'max',
 };
 
 /** Must match getHostedLimitsForTier in apps/server/src/lib/tier-limits.ts */
