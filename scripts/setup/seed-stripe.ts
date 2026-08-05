@@ -728,7 +728,15 @@ async function main(): Promise<void> {
 
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
-    log.error('STRIPE_SECRET_KEY is not set. Add it to .env');
+    log.error('STRIPE_SECRET_KEY is not set.');
+    log.error('Load from revvault (do not paste into .env by hand):');
+    log.error(
+      '  export STRIPE_SECRET_KEY="$(revvault get --full revealui/dev/stripe/secret-key)"  # sk_test_',
+    );
+    log.error(
+      '  export STRIPE_SECRET_KEY="$(revvault get --full revealui/prod/stripe/secret-key)" # sk_live_',
+    );
+    log.error('Restricted rk_* keys cannot seed (need full sk_test_ / sk_live_).');
     process.exit(1);
   }
 
