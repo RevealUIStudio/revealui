@@ -89,11 +89,18 @@ const PROVIDER: SsoProvider = {
 function mockFetchSequence(
   handlers: Array<(url: string, init?: RequestInit) => Promise<Response> | Response>,
 ) {
+  if (handlers.length === 0) {
+    throw new Error('mockFetchSequence requires at least one handler');
+  }
   let i = 0;
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    const handler = handlers[Math.min(i, handlers.length - 1)];
+    const index = Math.min(i, handlers.length - 1);
+    const handler = handlers[index];
     i += 1;
+    if (!handler) {
+      throw new Error(`mockFetchSequence: missing handler at index ${index}`);
+    }
     return handler(url, init);
   });
 }
