@@ -10,6 +10,7 @@ export default defineConfig({
     'src/manager/index.ts',
     'src/hooks/index.ts',
     'src/hotfix/index.ts',
+    'src/tmpscript/index.ts',
     'src/gates/index.ts',
   ],
   // CJS for Claude-hook thin adapters (createRequire); ESM for monorepo/node apps.
