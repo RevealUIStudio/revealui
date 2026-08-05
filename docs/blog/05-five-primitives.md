@@ -251,8 +251,8 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   auditLog: 'max',
   devkitProfiles: 'max',
   multiTenant: 'enterprise',
-  whiteLabel: 'enterprise', // planned — forced false until shipped
-  sso: 'enterprise',        // planned — forced false until shipped
+  whiteLabel: 'enterprise', // managed setup via RevForge
+  sso: 'enterprise',        // OIDC + SAML SP-initiated under the sso gate
 };
 
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {

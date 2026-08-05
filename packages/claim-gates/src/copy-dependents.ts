@@ -59,17 +59,17 @@ export const COPY_DEPENDENT_HOLDS: readonly CopyDependentHold[] = [
   },
   {
     id: 'COPY-DEP-ENTERPRISE-SSO',
-    status: 'waiting',
+    status: 'released',
     title: 'Enterprise SSO / SAML customer copy',
     detector: 'sso-live',
-    why: 'Enterprise SSO / SAML is Planned; no "SSO is available" live claim',
+    why: 'GAP-464 code on test (OIDC+SAML SP-initiated + Admin); live copy allowed under Enterprise gate honesty',
   },
   {
     id: 'COPY-DEP-ENTERPRISE-SAML',
-    status: 'waiting',
+    status: 'released',
     title: 'Enterprise SAML live claims',
     detector: 'saml-live',
-    why: 'SAML is Planned with SSO; no live claim until feature ships',
+    why: 'GAP-464 SAML SP path + Admin metadata config on test; live copy allowed with SCIM still non-goal',
   },
   {
     id: 'COPY-DEP-VISUAL-BUILDER',
