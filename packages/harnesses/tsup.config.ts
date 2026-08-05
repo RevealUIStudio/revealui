@@ -21,6 +21,7 @@ export default defineConfig({
     'src/manager/index.ts',
     'src/hooks/index.ts',
     'src/hotfix/index.ts',
+    'src/tmpscript/index.ts',
     'src/gates/index.ts',
   ],
   format: ['esm'],

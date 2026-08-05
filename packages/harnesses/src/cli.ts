@@ -44,6 +44,7 @@ import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
 import { InferenceService } from './server/inference-service.js';
 import { runSessionCli } from './session/cli.js';
+import { runTmpscriptCli } from './tmpscript/cli.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -531,6 +532,11 @@ async function main() {
     process.exit(code);
   }
 
+  if (command === 'tmpscript' || command === 'temp-script') {
+    const code = runTmpscriptCli(args);
+    process.exit(code);
+  }
+
   if (command === 'inference') {
     const [subcommand, tierArg] = args;
     const inference = new InferenceService();
@@ -725,6 +731,7 @@ Commands:
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
   manager check [--project p]       Verify project manager present and valid
   hotfix <subcommand>               Durable-debt registry (long-term fixes only; GAP-405)
+  tmpscript <subcommand>            Temp-artifact lifecycle (GAP-295 control layer)
   inference status                  Local AI profile (tier, mem, engines)
   inference apply <tier>            idle|daily|snaps|heavy (host control plane)
 
@@ -743,6 +750,11 @@ Hotfix Subcommands (prefer durable root-cause fixes; register only as debt):
   hotfix register --title T --symptom S --temporary X --durable D
   hotfix resolve <id> --pr URL | --note TEXT
   hotfix promote <id> --gap GAP-N
+
+Tmpscript Subcommands (one-shot helpers; confirm validates then deletes):
+  tmpscript check | list | store | sweep
+  tmpscript register <path> --purpose "..." [--validate "cmd"]
+  tmpscript confirm <id|path>
 
 Default content generator: ${DEFAULT_CONTENT_GENERATOR_ID} → ${MANAGER_CONTENT_OUTPUT}
 `);
