@@ -32,12 +32,32 @@ vi.mock('@revealui/presentation', () => ({
     </button>
   ),
   Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+  Select: ({
+    children,
+    ...props
+  }: React.SelectHTMLAttributes<HTMLSelectElement> & { children?: ReactNode }) => (
+    <select {...props}>{children}</select>
+  ),
 }));
 
 vi.mock('@revealui/presentation/client', () => ({
   Field: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
   Label: ({ children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
     <span {...props}>{children}</span>
+  ),
+  Checkbox: ({
+    checked,
+    onChange,
+  }: {
+    checked?: boolean;
+    onChange?: (checked: boolean) => void;
+  }) => (
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(e) => onChange?.(e.target.checked)}
+      aria-label="checkbox"
+    />
   ),
 }));
 

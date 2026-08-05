@@ -3,8 +3,8 @@
 const SUCCESS_DISMISS_MS = 5_000;
 const ERROR_DISMISS_MS = 8_000;
 
-import { Button, Input } from '@revealui/presentation';
-import { Field, Label } from '@revealui/presentation/client';
+import { Button, Input, Select } from '@revealui/presentation';
+import { Checkbox, Field, Label } from '@revealui/presentation/client';
 import { useCallback, useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
@@ -244,6 +244,7 @@ function SsoSettingsContent() {
           providerId: editingId ?? undefined,
         }),
       });
+      // empty-catch-ok: JSON-parse fallback for an error-response body; `{}` is the safe shape so `data.error` evaluates to undefined and the UI falls back to the generic error text below.
       const data = (await res.json().catch(() => ({}))) as TestConnectionResult & {
         error?: string;
       };
@@ -308,6 +309,7 @@ function SsoSettingsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      // empty-catch-ok: JSON-parse fallback for an error-response body; `{}` is the safe shape so `data.error` evaluates to undefined and the UI falls back to the generic error text below.
       const data = (await res.json().catch(() => ({}))) as {
         provider?: SsoProvider;
         error?: string;
@@ -340,6 +342,7 @@ function SsoSettingsContent() {
         credentials: 'include',
       });
       if (!res.ok) {
+        // empty-catch-ok: JSON-parse fallback for an error-response body; `{}` is the safe shape so `data.error` evaluates to undefined and the UI falls back to the generic error text below.
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setError(data.error ?? 'Unable to remove SSO provider.');
         return;
@@ -365,6 +368,7 @@ function SsoSettingsContent() {
         body: JSON.stringify({ enabled }),
       });
       if (!res.ok) {
+        // empty-catch-ok: JSON-parse fallback for an error-response body; `{}` is the safe shape so `data.error` evaluates to undefined and the UI falls back to the generic error text below.
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setError(data.error ?? 'Unable to update provider.');
         return;
@@ -580,59 +584,53 @@ function SsoSettingsContent() {
                     <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       Default role
                     </Label>
-                    <select
+                    <Select
                       value={form.defaultRole}
                       onChange={(e) => updateField('defaultRole', e.target.value)}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
                     >
                       <option value="viewer">viewer</option>
                       <option value="member">member</option>
                       <option value="editor">editor</option>
                       <option value="admin">admin</option>
-                    </select>
+                    </Select>
                   </Field>
 
-                  <label className="flex items-center gap-2 text-sm text-foreground">
-                    <input
-                      type="checkbox"
+                  <div className="flex items-center gap-2 text-sm text-foreground">
+                    <Checkbox
                       checked={form.requireGroupMatch}
-                      onChange={(e) => updateField('requireGroupMatch', e.target.checked)}
-                      className="rounded border-border"
+                      onChange={(checked) => updateField('requireGroupMatch', checked)}
                     />
-                    Require group match (reject login when no group maps)
-                  </label>
+                    <span>Require group match (reject login when no group maps)</span>
+                  </div>
 
-                  <label className="flex items-center gap-2 text-sm text-foreground">
-                    <input
-                      type="checkbox"
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
+                    <Checkbox
                       checked={form.enabled}
-                      onChange={(e) => {
-                        const next = e.target.checked;
-                        if (next && !testedOk) {
+                      onChange={(checked) => {
+                        if (checked && !testedOk) {
                           setEnableConfirm(false);
                         }
-                        updateField('enabled', next);
+                        updateField('enabled', checked);
                       }}
-                      className="rounded border-border"
                     />
-                    Enabled
+                    <span>Enabled</span>
                     {!testedOk && form.enabled && (
                       <span className="text-xs text-warning-foreground/80">
                         (test connection first, or confirm on save)
                       </span>
                     )}
-                  </label>
+                  </div>
 
                   {form.enabled && !testedOk && (
-                    <label className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
-                      <input
-                        type="checkbox"
+                    <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+                      <Checkbox
                         checked={enableConfirm}
-                        onChange={(e) => setEnableConfirm(e.target.checked)}
-                        className="mt-0.5"
+                        onChange={(checked) => setEnableConfirm(checked)}
                       />
-                      I understand discovery was not tested successfully. Enable anyway.
-                    </label>
+                      <span>
+                        I understand discovery was not tested successfully. Enable anyway.
+                      </span>
+                    </div>
                   )}
 
                   <div className="flex flex-wrap gap-2 pt-2">
