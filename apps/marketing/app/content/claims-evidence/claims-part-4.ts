@@ -38,14 +38,14 @@ import {
   PERPETUAL,
   POSTGRES,
   RBAC_ABAC,
-  SSO_ADMIN_UI,
-  SSO_AUTH_ROUTES,
-  SSO_SAML_PURE,
-  SSO_SETUP_DOC,
   REFUND_ROUTE,
   REVFORGE_REF,
   ROADMAP,
   SELF_HOST,
+  SSO_ADMIN_UI,
+  SSO_AUTH_ROUTES,
+  SSO_SAML_PURE,
+  SSO_SETUP_DOC,
   THIS_SITE,
 } from './shared-refs.js';
 import type { ClaimEntry } from './types.js';
