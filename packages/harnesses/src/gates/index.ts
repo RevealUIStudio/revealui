@@ -18,6 +18,12 @@ export {
   REVEALUI_HISTORICAL_MARKERS,
   scanInboundLinks,
 } from './archive-check.js';
+export type { DispositionGateResult } from './disposition-command-gate.js';
+export {
+  checkDispositionCommand,
+  isGhPrMergeCommand,
+  isSecuritySelfClearCommand,
+} from './disposition-command-gate.js';
 export type { DetectionRule } from './doc-currency-shared-rules.js';
 export {
   COMMON_EXON,
@@ -44,3 +50,11 @@ export {
   REQUEST_CHANGES,
   verdictForBody,
 } from './guardrail2-verdict.js';
+export type { LabelGateResult, StatusCheckLike } from './sec-review-label-gate.js';
+export {
+  checkSecReviewLabelApply,
+  evaluateSecurityAuditRollup,
+  isSecReviewApprovedLabelAdd,
+  REQUIRED_SECURITY_AUDIT_CHECKS,
+  SEC_REVIEW_APPROVED_LABEL,
+} from './sec-review-label-gate.js';
