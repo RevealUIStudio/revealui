@@ -1,0 +1,225 @@
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mockUseLicense = vi.fn();
+
+vi.mock('@/lib/providers/LicenseProvider', () => ({
+  useLicense: () => mockUseLicense(),
+}));
+
+vi.mock('@/lib/components/LicenseGate', () => ({
+  LicenseGate: ({ feature, children }: { feature: string; children: ReactNode }) => {
+    const { features, isLoading } = mockUseLicense() as {
+      features: Record<string, boolean> | null;
+      isLoading: boolean;
+    };
+    if (isLoading) return <div>loading</div>;
+    if (!(features?.[feature] ?? false)) {
+      return <div>Enterprise SSO requires upgrade</div>;
+    }
+    return <>{children}</>;
+  },
+}));
+
+vi.mock('@revealui/presentation', () => ({
+  Button: ({
+    children,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: ReactNode }) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+  Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+}));
+
+vi.mock('@revealui/presentation/client', () => ({
+  Field: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  Label: ({ children, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+    <span {...props}>{children}</span>
+  ),
+}));
+
+vi.mock('@/lib/utils/csrf', () => ({
+  apiFetch: (...args: Parameters<typeof fetch>) => fetch(...args),
+}));
+
+import SsoSettingsClient, { providerToForm, type SsoProvider } from '../sso-settings-client';
+
+const PROVIDER: SsoProvider = {
+  id: 'sso_1',
+  accountId: 'acct-1',
+  providerType: 'oidc',
+  name: 'Okta',
+  enabled: false,
+  issuer: 'https://idp.example.com',
+  discoveryUrl: null,
+  clientId: 'client-1',
+  clientSecretRef: 'REVEALUI_SSO_CLIENT_SECRET',
+  groupClaim: 'groups',
+  groupRoleMap: {},
+  defaultRole: 'member',
+  requireGroupMatch: false,
+  allowPasswordFallback: false,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+function mockFetchSequence(
+  handlers: Array<(url: string, init?: RequestInit) => Promise<Response> | Response>,
+) {
+  let i = 0;
+  return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const handler = handlers[Math.min(i, handlers.length - 1)];
+    i += 1;
+    return handler(url, init);
+  });
+}
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockUseLicense.mockReturnValue({ features: { sso: true }, isLoading: false });
+});
+
+describe('providerToForm', () => {
+  it('maps provider fields into form state', () => {
+    const form = providerToForm(PROVIDER);
+    expect(form.name).toBe('Okta');
+    expect(form.clientSecretRef).toBe('REVEALUI_SSO_CLIENT_SECRET');
+    expect(form.enabled).toBe(false);
+  });
+});
+
+describe('SsoSettingsClient', () => {
+  it('shows upgrade gate when sso feature is false', () => {
+    mockUseLicense.mockReturnValue({ features: { sso: false }, isLoading: false });
+    vi.stubGlobal('fetch', vi.fn());
+    render(<SsoSettingsClient />);
+    expect(screen.getByText(/Enterprise SSO requires upgrade/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Add provider/i })).not.toBeInTheDocument();
+  });
+
+  it('lists providers after bootstrap', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ accountId: 'acct-1', ssoFeature: true, membershipRole: 'owner' }),
+          } as Response),
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ providers: [PROVIDER] }),
+          } as Response),
+      ]),
+    );
+
+    render(<SsoSettingsClient />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Okta')).toBeInTheDocument();
+    });
+    expect(screen.getByText('https://idp.example.com')).toBeInTheDocument();
+    expect(screen.getByText('Disabled')).toBeInTheDocument();
+  });
+
+  it('opens create form with OIDC-only fields and secret-ref hint', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ accountId: 'acct-1', ssoFeature: true, membershipRole: 'owner' }),
+          } as Response),
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ providers: [] }),
+          } as Response),
+      ]),
+    );
+
+    render(<SsoSettingsClient />);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add provider/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Add provider/i }));
+    expect(screen.getByText(/Add OIDC provider/i)).toBeInTheDocument();
+    expect(screen.getByText(/Never paste the secret value/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Test connection/i })).toBeInTheDocument();
+  });
+
+  it('runs test connection and shows discovery preview', async () => {
+    const fetchMock = mockFetchSequence([
+      () =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ accountId: 'acct-1', ssoFeature: true, membershipRole: 'owner' }),
+        } as Response),
+      () =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ providers: [] }),
+        } as Response),
+      () =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            ok: true,
+            discoveryUrl: 'https://idp.example.com/.well-known/openid-configuration',
+            discovery: {
+              issuer: 'https://idp.example.com',
+              authorizationEndpoint: 'https://idp.example.com/authorize',
+              tokenEndpoint: 'https://idp.example.com/token',
+              jwksUri: 'https://idp.example.com/jwks',
+              scopesSupported: ['openid', 'email'],
+            },
+            claimStructurePreview: {
+              standardClaims: ['sub', 'email'],
+              groupClaim: 'groups',
+              notes: ['Dry-run discovery does not issue tokens.'],
+            },
+          }),
+        } as Response),
+    ]);
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<SsoSettingsClient />);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add provider/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Add provider/i }));
+
+    fireEvent.change(screen.getByPlaceholderText('Okta Production'), {
+      target: { value: 'Okta' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('https://your-org.okta.com'), {
+      target: { value: 'https://idp.example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Test connection/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Discovery OK/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Claim structure preview/i)).toBeInTheDocument();
+    expect(screen.getByText(/https:\/\/idp\.example\.com\/jwks/)).toBeInTheDocument();
+  });
+});
