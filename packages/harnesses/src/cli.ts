@@ -41,10 +41,10 @@ import {
 } from './content/index.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
 import { runHotfixCli } from './hotfix/cli.js';
-import { runTmpscriptCli } from './tmpscript/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';
 import { InferenceService } from './server/inference-service.js';
 import { runSessionCli } from './session/cli.js';
+import { runTmpscriptCli } from './tmpscript/cli.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
