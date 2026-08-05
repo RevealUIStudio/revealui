@@ -31,8 +31,10 @@
     "@vitest/coverage-v8": "catalog:",
     "happy-dom": "^20.10.6",
     "react": "catalog:",
+    "selfsigned": "2.4.1",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "xml-crypto": "6.1.2"
   },
   "engines": {
     "node": ">=24.13.0"
