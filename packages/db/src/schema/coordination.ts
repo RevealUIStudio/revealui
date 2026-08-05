@@ -77,10 +77,16 @@ export const coordinationFileClaims = pgTable(
       .notNull()
       .references(() => coordinationSessions.id, { onDelete: 'cascade' }),
     claimedAt: timestamp('claimed_at', { withTimezone: true }).defaultNow().notNull(),
+    /**
+     * Claim TTL (GAP-175). Null only for pre-GAP-175 rows; new dual-writes always
+     * set this. Neon sweep deletes rows where expires_at < now().
+     */
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
   },
   (table) => [
     primaryKey({ columns: [table.filePath, table.sessionId] }),
     index('coordination_file_claims_session_id_idx').on(table.sessionId),
+    index('coordination_file_claims_expires_at_idx').on(table.expiresAt),
   ],
 );
 
