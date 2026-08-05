@@ -1,9 +1,9 @@
 /**
  * Enterprise SSO pure layer (GAP-464).
  *
- * OIDC discovery + id_token validation, code exchange, signed SSO state,
- * group→role mapping, JIT user upsert. HTTP routes + account entitlement gate
- * live in apps/server.
+ * OIDC discovery + id_token validation, code exchange, SAML SP helpers,
+ * signed SSO state, group→role mapping, JIT user upsert. HTTP routes +
+ * account entitlement gate live in apps/server.
  */
 
 export {
@@ -41,6 +41,22 @@ export {
   type MapSsoGroupsResult,
   mapSsoGroupsToRole,
 } from './roles.js';
+export {
+  type BuildSamlAuthorizeUrlFailureReason,
+  type BuildSamlAuthorizeUrlResult,
+  buildSamlAuthorizeUrl,
+  buildSamlSpMetadata,
+  fetchIdpMetadata,
+  normalizeIdpCertPem,
+  type ParseIdpMetadataFailureReason,
+  type ParseIdpMetadataResult,
+  parseIdpMetadataXml,
+  type SamlSpConfig,
+  type ValidateSamlResponseFailureReason,
+  type ValidateSamlResponseResult,
+  type ValidatedSamlAssertion,
+  validateSamlPostResponse,
+} from './saml.js';
 export {
   type GenerateSsoStateInput,
   type GenerateSsoStateResult,
