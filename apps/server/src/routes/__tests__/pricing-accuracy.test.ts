@@ -148,9 +148,10 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
   });
 
   describe('Feature flag consistency', () => {
-    it('all 13 feature flags have tier assignments', () => {
+    it('all feature flags have tier assignments (lockstep with FeatureFlagKey)', () => {
       const featureKeys = Object.keys(EXPECTED_FEATURE_TIER_MAP);
-      expect(featureKeys).toHaveLength(13);
+      // free(1) + pro(9) + max(4) + enterprise(3) = 17 (matches core FeatureFlags + contracts FEATURE_LABELS)
+      expect(featureKeys).toHaveLength(17);
     });
 
     it('aiLocal is the only free-tier feature', () => {
@@ -161,35 +162,39 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(freeFeatures).toEqual(['aiLocal']);
     });
 
-    it('pro-tier has 7 features', () => {
+    it('pro-tier has 9 features', () => {
       const proFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'pro')
         .map(([feature]) => feature);
 
-      expect(proFeatures).toHaveLength(7);
+      expect(proFeatures).toHaveLength(9);
       expect(proFeatures).toContain('ai');
       expect(proFeatures).toContain('mcp');
       expect(proFeatures).toContain('payments');
+      expect(proFeatures).toContain('vaultDesktop');
+      expect(proFeatures).toContain('vaultRotation');
     });
 
-    it('max-tier has 3 features', () => {
+    it('max-tier has 4 features', () => {
       const maxFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'max')
         .map(([feature]) => feature);
 
-      expect(maxFeatures).toHaveLength(3);
+      expect(maxFeatures).toHaveLength(4);
       expect(maxFeatures).toContain('aiMemory');
       expect(maxFeatures).toContain('auditLog');
+      expect(maxFeatures).toContain('devkitProfiles');
     });
 
-    it('enterprise-tier has 2 features', () => {
+    it('enterprise-tier has 3 features', () => {
       const enterpriseFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'enterprise')
         .map(([feature]) => feature);
 
-      expect(enterpriseFeatures).toHaveLength(2);
+      expect(enterpriseFeatures).toHaveLength(3);
       expect(enterpriseFeatures).toContain('multiTenant');
       expect(enterpriseFeatures).toContain('whiteLabel');
+      expect(enterpriseFeatures).toContain('sso');
     });
   });
 
