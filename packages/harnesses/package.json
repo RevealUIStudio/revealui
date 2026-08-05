@@ -64,6 +64,7 @@
     "./gates": {
       "types": "./dist/gates/index.d.ts",
       "import": "./dist/gates/index.js",
+      "require": "./dist/gates/index.cjs",
       "default": "./dist/gates/index.js"
     }
   },

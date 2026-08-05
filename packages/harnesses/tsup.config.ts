@@ -12,7 +12,8 @@ export default defineConfig({
     'src/hotfix/index.ts',
     'src/gates/index.ts',
   ],
-  format: ['esm'],
+  // CJS for Claude-hook thin adapters (createRequire); ESM for monorepo/node apps.
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: false,
   clean: true,
