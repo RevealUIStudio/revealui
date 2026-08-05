@@ -137,6 +137,7 @@ import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
 import rotationRoute from './routes/rotation.js';
+import ssoProvidersRoute from './routes/sso-providers.js';
 import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
@@ -499,6 +500,8 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'auth-signup': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     /** Enterprise SSO OIDC init/callback (GAP-464) — aligned with sign-in abuse budget */
     'auth-sso': { maxRequests: 20, windowMs: FIFTEEN_MINUTES },
+    /** Enterprise SSO provider admin CRUD + test-connection (GAP-464) */
+    'sso-providers': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
     'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
@@ -986,6 +989,9 @@ app.use('/api/v1/auth/signup', routeLimit('auth-signup'));
 // Enterprise SSO OIDC init/callback (GAP-464)
 app.use('/api/auth/sso/*', routeLimit('auth-sso'));
 app.use('/api/v1/auth/sso/*', routeLimit('auth-sso'));
+// Enterprise SSO provider admin config (GAP-464)
+app.use('/api/accounts/*', routeLimit('sso-providers'));
+app.use('/api/v1/accounts/*', routeLimit('sso-providers'));
 const userLimit = enforceUserLimit(() => users);
 app.post('/api/auth/signup', userLimit);
 app.post('/api/v1/auth/signup', userLimit);
@@ -1245,6 +1251,7 @@ app.route('/api/license', licenseRoute);
 app.route('/api/kits', kitsRoute);
 app.route('/api/auth', authRoute);
 app.route('/api/auth', authSsoRoute);
+app.route('/api/accounts', ssoProvidersRoute);
 app.route('/api/billing', billingRoute);
 app.route('/api/contact', contactRoute);
 app.route('/api/v1/contact', contactRoute);
@@ -1338,6 +1345,7 @@ app.route('/api/v1/license', licenseRoute);
 app.route('/api/v1/kits', kitsRoute);
 app.route('/api/v1/auth', authRoute);
 app.route('/api/v1/auth', authSsoRoute);
+app.route('/api/v1/accounts', ssoProvidersRoute);
 app.route('/api/v1/billing', billingRoute);
 app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);
