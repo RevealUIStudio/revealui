@@ -128,6 +128,12 @@
       "rationale": "GAP-448 Phase 2-A: ADD COLUMN kit_fulfillments.artifact (jsonb thin package) + customer_id index after P2-1 #2393 created the base table without artifact storage. Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/kit-fulfillments.ts models artifact via $type<KitFulfillmentArtifact>().",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as prior entries: pnpm --filter @revealui/db db:generate against a clean DB once the broader snapshot-debt backfill happens. Schema already models artifact at the type level."
+    },
+    {
+      "tag": "0037_gap175_file_claims_expires_at",
+      "rationale": "GAP-175: ADD COLUMN coordination_file_claims.expires_at (timestamptz nullable) + btree index so the RevDev daemon dual-write can store file-reservation TTL and sweepExpiredFileClaims can DELETE expired Neon rows. Hand-written ADD COLUMN IF NOT EXISTS + CREATE INDEX IF NOT EXISTS for idempotency, following the 0011/0031/0036 column-addition precedent. Companion Drizzle schema at packages/db/src/schema/coordination.ts models expiresAt; daemon writes ISO expires_at on files.reserve.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: pnpm --filter @revealui/db db:generate against a clean DB once the broader snapshot-debt backfill happens. Schema already models expiresAt at the type level."
     }
   ]
 }
