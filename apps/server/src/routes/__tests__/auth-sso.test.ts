@@ -18,6 +18,11 @@ const {
   mockMapSsoGroupsToRole,
   mockUpsertSsoUser,
   mockCreateSession,
+  mockBuildSamlAuthorizeUrl,
+  mockBuildSamlSpMetadata,
+  mockFetchIdpMetadata,
+  mockParseIdpMetadataXml,
+  mockValidateSamlPostResponse,
 } = vi.hoisted(() => {
   const mockSelectLimit = vi.fn();
   const mockDb = {
@@ -43,6 +48,11 @@ const {
     mockMapSsoGroupsToRole: vi.fn(),
     mockUpsertSsoUser: vi.fn(),
     mockCreateSession: vi.fn(),
+    mockBuildSamlAuthorizeUrl: vi.fn(),
+    mockBuildSamlSpMetadata: vi.fn(),
+    mockFetchIdpMetadata: vi.fn(),
+    mockParseIdpMetadataXml: vi.fn(),
+    mockValidateSamlPostResponse: vi.fn(),
   };
 });
 
@@ -95,11 +105,11 @@ vi.mock('@revealui/auth/server', () => ({
   mapSsoGroupsToRole: (...args: unknown[]) => mockMapSsoGroupsToRole(...args),
   upsertSsoUser: (...args: unknown[]) => mockUpsertSsoUser(...args),
   createSession: (...args: unknown[]) => mockCreateSession(...args),
-  buildSamlAuthorizeUrl: vi.fn(),
-  buildSamlSpMetadata: vi.fn(),
-  fetchIdpMetadata: vi.fn(),
-  parseIdpMetadataXml: vi.fn(),
-  validateSamlPostResponse: vi.fn(),
+  buildSamlAuthorizeUrl: (...args: unknown[]) => mockBuildSamlAuthorizeUrl(...args),
+  buildSamlSpMetadata: (...args: unknown[]) => mockBuildSamlSpMetadata(...args),
+  fetchIdpMetadata: (...args: unknown[]) => mockFetchIdpMetadata(...args),
+  parseIdpMetadataXml: (...args: unknown[]) => mockParseIdpMetadataXml(...args),
+  validateSamlPostResponse: (...args: unknown[]) => mockValidateSamlPostResponse(...args),
 }));
 
 import { Hono } from 'hono';
@@ -114,10 +124,40 @@ const PROVIDER_ROW = {
   discoveryUrl: 'https://idp.example.com/.well-known/openid-configuration',
   clientId: 'client-1',
   clientSecretRef: 'REVEALUI_SSO_CLIENT_SECRET',
+  samlMetadataUrl: null as string | null,
+  samlMetadataXml: null as string | null,
+  samlSpEntityId: null as string | null,
+  signingCertPem: null as string | null,
   groupClaim: 'groups',
   groupRoleMap: { Engineering: 'member' },
   defaultRole: 'member',
   requireGroupMatch: false,
+};
+
+const SAML_PROVIDER_ROW = {
+  ...PROVIDER_ROW,
+  id: 'saml-prov-1',
+  providerType: 'saml',
+  clientId: null,
+  clientSecretRef: null,
+  discoveryUrl: null,
+  samlSpEntityId: 'https://app.example.com/sp',
+  signingCertPem: '-----BEGIN CERTIFICATE-----\nTESTCERT\n-----END CERTIFICATE-----',
+  samlMetadataXml: `<?xml version="1.0"?>
+<EntityDescriptor entityID="https://idp.example.com">
+  <IDPSSODescriptor>
+    <KeyDescriptor use="signing">
+      <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <X509Data>
+          <X509Certificate>TESTCERT</X509Certificate>
+        </X509Data>
+      </KeyInfo>
+    </KeyDescriptor>
+    <SingleSignOnService
+      Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      Location="https://idp.example.com/sso" />
+  </IDPSSODescriptor>
+</EntityDescriptor>`,
 };
 
 function createApp() {
@@ -368,5 +408,291 @@ describe('GET /api/auth/sso/:providerId/callback', () => {
     });
     expect(res.status).toBe(302);
     expect(res.headers.get('Location')).toContain('error=provider_not_found');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SAML ACS + init + SP metadata (GAP-464 Phase 3 residual)
+// ---------------------------------------------------------------------------
+
+function samlFormBody(fields: Record<string, string>): string {
+  return new URLSearchParams(fields).toString();
+}
+
+describe('GET /api/auth/sso/:providerId/init (SAML)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_SECRET = 'state-signing-secret-for-tests-only';
+    process.env.REVEALUI_PUBLIC_SERVER_URL = 'https://app.example.com';
+    mockAccountHasSsoFeature.mockResolvedValue(true);
+    mockSelectLimit.mockResolvedValue([SAML_PROVIDER_ROW]);
+    mockGenerateSsoState.mockReturnValue({
+      state: 'saml-state-token',
+      cookieValue: 'saml-state-token.hmac',
+      codeChallenge: 'unused-for-saml',
+    });
+    // resolveSamlSpConfig uses real parseIdpMetadataXml on samlMetadataXml unless mocked
+    mockParseIdpMetadataXml.mockReturnValue({
+      ok: true,
+      entityId: 'https://idp.example.com',
+      entryPoint: 'https://idp.example.com/sso',
+      idpCertPem: SAML_PROVIDER_ROW.signingCertPem,
+    });
+    mockBuildSamlAuthorizeUrl.mockResolvedValue({
+      ok: true,
+      url: 'https://idp.example.com/sso?SAMLRequest=abc&RelayState=saml-state-token',
+    });
+  });
+
+  it('redirects to IdP with AuthnRequest URL and sets sso_state cookie', async () => {
+    const app = createApp();
+    const res = await app.request(
+      '/api/auth/sso/saml-prov-1/init?accountId=acct-1&redirectTo=/dashboard',
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain('SAMLRequest=');
+    const setCookie = res.headers.get('Set-Cookie') ?? '';
+    expect(setCookie).toContain('sso_state=saml-state-token.hmac');
+    expect(mockBuildSamlAuthorizeUrl).toHaveBeenCalled();
+    expect(mockBuildOidcAuthorizationUrl).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 when entitlement is false (SAML init)', async () => {
+    mockAccountHasSsoFeature.mockResolvedValue(false);
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/init?accountId=acct-1');
+    expect(res.status).toBe(403);
+    expect(mockBuildSamlAuthorizeUrl).not.toHaveBeenCalled();
+  });
+
+  it('returns 500 when SAML provider lacks entry point / cert resolution', async () => {
+    mockSelectLimit.mockResolvedValue([
+      {
+        ...SAML_PROVIDER_ROW,
+        signingCertPem: null,
+        samlMetadataXml: null,
+        samlMetadataUrl: null,
+      },
+    ]);
+    mockParseIdpMetadataXml.mockReturnValue({
+      ok: false,
+      reason: 'missing_xml',
+      message: 'none',
+    });
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/init?accountId=acct-1');
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('POST /api/auth/sso/:providerId/callback (SAML ACS)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_SECRET = 'state-signing-secret-for-tests-only';
+    process.env.REVEALUI_PUBLIC_SERVER_URL = 'https://app.example.com';
+    mockAccountHasSsoFeature.mockResolvedValue(true);
+    mockSelectLimit.mockResolvedValue([SAML_PROVIDER_ROW]);
+    mockVerifySsoState.mockReturnValue({
+      accountId: 'acct-1',
+      providerId: 'saml-prov-1',
+      redirectTo: '/home',
+      nonce: 'n1',
+      codeVerifier: 'cv-unused',
+    });
+    mockParseIdpMetadataXml.mockReturnValue({
+      ok: true,
+      entityId: 'https://idp.example.com',
+      entryPoint: 'https://idp.example.com/sso',
+      idpCertPem: SAML_PROVIDER_ROW.signingCertPem,
+    });
+    mockValidateSamlPostResponse.mockResolvedValue({
+      ok: true,
+      assertion: {
+        subject: 'user@example.com',
+        email: 'user@example.com',
+        name: 'User',
+        attributes: { groups: ['Engineering'], email: 'user@example.com' },
+        profile: { nameID: 'user@example.com' },
+      },
+    });
+    mockMapSsoGroupsToRole.mockReturnValue({
+      ok: true,
+      role: 'member',
+      matchedGroups: ['Engineering'],
+      groups: ['Engineering'],
+    });
+    mockUpsertSsoUser.mockResolvedValue({
+      id: 'user-1',
+      role: 'viewer',
+      email: 'user@example.com',
+    });
+    mockCreateSession.mockResolvedValue({
+      token: 'saml-session-token',
+      session: { id: 'sess-saml-1' },
+    });
+  });
+
+  it('rejects invalid RelayState / state cookie', async () => {
+    mockVerifySsoState.mockReturnValue(null);
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'sso_state=bad.hmac',
+      },
+      body: samlFormBody({ SAMLResponse: 'YmFzZTY0', RelayState: 'bad' }),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain('error=invalid_state');
+    expect(mockValidateSamlPostResponse).not.toHaveBeenCalled();
+  });
+
+  it('rejects provider_mismatch when RelayState provider differs from path', async () => {
+    mockVerifySsoState.mockReturnValue({
+      accountId: 'acct-1',
+      providerId: 'other-prov',
+      redirectTo: '/home',
+      nonce: 'n1',
+      codeVerifier: 'cv',
+    });
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'sso_state=s.hmac',
+      },
+      body: samlFormBody({ SAMLResponse: 'YmFzZTY0', RelayState: 's' }),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain('error=provider_mismatch');
+  });
+
+  it('rejects missing SAMLResponse', async () => {
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'sso_state=s.hmac',
+      },
+      body: samlFormBody({ RelayState: 's' }),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain('error=missing_saml_response');
+  });
+
+  it('re-checks entitlement on ACS and fails closed', async () => {
+    mockAccountHasSsoFeature.mockResolvedValue(false);
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'sso_state=s.hmac',
+      },
+      body: samlFormBody({ SAMLResponse: 'YmFzZTY0', RelayState: 's' }),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain('error=entitlement_denied');
+    expect(mockValidateSamlPostResponse).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid SAML signature (fail closed)', async () => {
+    mockValidateSamlPostResponse.mockResolvedValue({
+      ok: false,
+      reason: 'invalid_signature',
+      message: 'Invalid document signature',
+    });
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'sso_state=s.hmac',
+      },
+      body: samlFormBody({ SAMLResponse: 'YmFzZTY0', RelayState: 's' }),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain('error=saml_invalid_signature');
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
+  it('issues session cookie and redirects on success', async () => {
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml-prov-1/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: 'sso_state=s.hmac',
+      },
+      body: samlFormBody({ SAMLResponse: 'YmFzZTY0', RelayState: 's' }),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toBe('https://app.example.com/home');
+    const cookies =
+      typeof res.headers.getSetCookie === 'function'
+        ? res.headers.getSetCookie()
+        : [res.headers.get('Set-Cookie') ?? ''];
+    const joined = cookies.join(';');
+    expect(joined).toContain('revealui-session=saml-session-token');
+    expect(mockCreateSession).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          authMethod: 'sso',
+          ssoProviderId: 'saml-prov-1',
+          providerType: 'saml',
+          accountId: 'acct-1',
+        }),
+      }),
+    );
+    expect(mockValidateSamlPostResponse).toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/auth/sso/saml/metadata', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.REVEALUI_PUBLIC_SERVER_URL = 'https://app.example.com';
+    mockAccountHasSsoFeature.mockResolvedValue(true);
+    mockSelectLimit.mockResolvedValue([SAML_PROVIDER_ROW]);
+    mockParseIdpMetadataXml.mockReturnValue({
+      ok: true,
+      entityId: 'https://idp.example.com',
+      entryPoint: 'https://idp.example.com/sso',
+      idpCertPem: SAML_PROVIDER_ROW.signingCertPem,
+    });
+    mockBuildSamlSpMetadata.mockReturnValue(
+      '<EntityDescriptor entityID="https://app.example.com/sp"></EntityDescriptor>',
+    );
+  });
+
+  it('requires accountId and providerId', async () => {
+    const app = createApp();
+    const res = await app.request('/api/auth/sso/saml/metadata');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 403 without entitlement', async () => {
+    mockAccountHasSsoFeature.mockResolvedValue(false);
+    const app = createApp();
+    const res = await app.request(
+      '/api/auth/sso/saml/metadata?accountId=acct-1&providerId=saml-prov-1',
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns SP metadata XML when entitled', async () => {
+    const app = createApp();
+    const res = await app.request(
+      '/api/auth/sso/saml/metadata?accountId=acct-1&providerId=saml-prov-1',
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type') ?? '').toContain('samlmetadata');
+    const body = await res.text();
+    expect(body).toContain('EntityDescriptor');
+    expect(mockBuildSamlSpMetadata).toHaveBeenCalled();
   });
 });
