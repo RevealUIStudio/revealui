@@ -22,7 +22,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { fetchOidcDiscovery } from '@revealui/auth/server';
+import { fetchIdpMetadata, fetchOidcDiscovery, parseIdpMetadataXml } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountMemberships, accountSsoProviders } from '@revealui/db/schema';
@@ -60,6 +60,11 @@ interface ProviderPublic {
   clientId: string | null;
   /** Vault path / env var name only — never a resolved secret */
   clientSecretRef: string | null;
+  samlMetadataUrl: string | null;
+  samlMetadataXml: string | null;
+  samlSpEntityId: string | null;
+  /** Present when stored; never return PEM body contents as a secret — PEM is IdP public cert */
+  hasSigningCert: boolean;
   groupClaim: string;
   groupRoleMap: Record<string, string>;
   defaultRole: string;
@@ -76,6 +81,10 @@ interface CreateBody {
   discoveryUrl?: unknown;
   clientId?: unknown;
   clientSecretRef?: unknown;
+  samlMetadataUrl?: unknown;
+  samlMetadataXml?: unknown;
+  samlSpEntityId?: unknown;
+  signingCertPem?: unknown;
   groupClaim?: unknown;
   groupRoleMap?: unknown;
   defaultRole?: unknown;
@@ -87,10 +96,13 @@ interface CreateBody {
 interface UpdateBody extends CreateBody {}
 
 interface TestConnectionBody {
+  providerType?: unknown;
   issuer?: unknown;
   discoveryUrl?: unknown;
   groupClaim?: unknown;
   providerId?: unknown;
+  samlMetadataUrl?: unknown;
+  samlMetadataXml?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -195,6 +207,10 @@ function toPublic(row: {
   discoveryUrl: string | null;
   clientId: string | null;
   clientSecretRef: string | null;
+  samlMetadataUrl?: string | null;
+  samlMetadataXml?: string | null;
+  samlSpEntityId?: string | null;
+  signingCertPem?: string | null;
   groupClaim: string;
   groupRoleMap: unknown;
   defaultRole: string;
@@ -203,6 +219,7 @@ function toPublic(row: {
   createdAt: Date;
   updatedAt: Date;
 }): ProviderPublic {
+  const signing = row.signingCertPem?.trim() ?? '';
   return {
     id: row.id,
     accountId: row.accountId,
@@ -213,6 +230,11 @@ function toPublic(row: {
     discoveryUrl: row.discoveryUrl,
     clientId: row.clientId,
     clientSecretRef: row.clientSecretRef,
+    samlMetadataUrl: row.samlMetadataUrl ?? null,
+    // Return XML so admins can re-edit; it is IdP public metadata, not a secret
+    samlMetadataXml: row.samlMetadataXml ?? null,
+    samlSpEntityId: row.samlSpEntityId ?? null,
+    hasSigningCert: signing.length > 0,
     groupClaim: row.groupClaim,
     groupRoleMap: (row.groupRoleMap ?? {}) as Record<string, string>,
     defaultRole: row.defaultRole,
@@ -221,6 +243,20 @@ function toPublic(row: {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+function asProviderType(value: unknown, fallback: 'oidc' | 'saml' = 'oidc'): 'oidc' | 'saml' {
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : fallback;
+  if (raw === 'oidc' || raw === 'saml') return raw;
+  throw new HTTPException(400, { message: 'providerType must be oidc or saml' });
+}
+
+function requireSamlMetadata(metadataUrl: string | null, metadataXml: string | null): void {
+  if (!(metadataUrl || metadataXml)) {
+    throw new HTTPException(400, {
+      message: 'SAML providers require samlMetadataUrl or samlMetadataXml',
+    });
+  }
 }
 
 async function loadMembership(userId: string, accountId: string): Promise<MembershipRow | null> {
@@ -367,6 +403,91 @@ app.get('/current', async (c) => {
 // POST /:accountId/sso-providers/test-connection (before :providerId routes)
 // ---------------------------------------------------------------------------
 
+async function runOidcTestConnection(
+  issuer: string,
+  discoveryUrl: string | null,
+  groupClaim: string,
+): Promise<Record<string, unknown>> {
+  const url = buildDiscoveryUrl(issuer, discoveryUrl);
+  const result = await fetchOidcDiscovery(url, { expectedIssuer: issuer });
+
+  if (!result.ok) {
+    return {
+      ok: false as const,
+      reason: result.reason,
+      message: result.message,
+      discoveryUrl: url,
+    };
+  }
+
+  const doc = result.document;
+  return {
+    ok: true as const,
+    discoveryUrl: url,
+    discovery: {
+      issuer: doc.issuer,
+      authorizationEndpoint: doc.authorization_endpoint,
+      tokenEndpoint: doc.token_endpoint,
+      jwksUri: doc.jwks_uri,
+      userinfoEndpoint: doc.userinfo_endpoint ?? null,
+      endSessionEndpoint: doc.end_session_endpoint ?? null,
+      scopesSupported: doc.scopes_supported ?? [],
+      responseTypesSupported: doc.response_types_supported ?? [],
+      codeChallengeMethodsSupported: doc.code_challenge_methods_supported ?? [],
+    },
+    claimStructurePreview: claimStructurePreview(groupClaim),
+  };
+}
+
+async function runSamlTestConnection(
+  issuer: string,
+  metadataUrl: string | null,
+  metadataXml: string | null,
+  groupClaim: string,
+): Promise<Record<string, unknown>> {
+  if (!(metadataUrl || metadataXml)) {
+    throw new HTTPException(400, {
+      message: 'samlMetadataUrl or samlMetadataXml is required for SAML test connection',
+    });
+  }
+
+  const parsed = metadataXml
+    ? parseIdpMetadataXml(metadataXml)
+    : await fetchIdpMetadata(metadataUrl as string);
+
+  if (!parsed.ok) {
+    return {
+      ok: false as const,
+      reason: parsed.reason,
+      message: parsed.message,
+      metadataUrl: metadataUrl ?? undefined,
+    };
+  }
+
+  const issuerMismatch =
+    issuer.length > 0 &&
+    parsed.entityId.length > 0 &&
+    issuer.replace(/\/+$/, '') !== parsed.entityId.replace(/\/+$/, '');
+
+  return {
+    ok: true as const,
+    metadataUrl: metadataUrl ?? null,
+    saml: {
+      entityId: parsed.entityId,
+      entryPoint: parsed.entryPoint,
+      hasSigningCert: true,
+      issuerMatchesMetadata: !issuerMismatch,
+    },
+    claimStructurePreview: claimStructurePreview(groupClaim),
+    ...(issuerMismatch
+      ? {
+          warning:
+            'Configured issuer does not match IdP metadata entityID. Update issuer to the entityID before enabling.',
+        }
+      : {}),
+  };
+}
+
 app.post('/:accountId/sso-providers/test-connection', async (c) => {
   const accountId = c.req.param('accountId');
   await authorizeAccountAccess(c, accountId, { mutation: true });
@@ -378,10 +499,19 @@ app.post('/:accountId/sso-providers/test-connection', async (c) => {
     body = {};
   }
 
+  let providerType: 'oidc' | 'saml' = asProviderType(body.providerType ?? 'oidc');
   let issuer = typeof body.issuer === 'string' ? body.issuer.trim() : '';
   let discoveryUrl =
     typeof body.discoveryUrl === 'string' && body.discoveryUrl.trim().length > 0
       ? body.discoveryUrl.trim()
+      : null;
+  let samlMetadataUrl =
+    typeof body.samlMetadataUrl === 'string' && body.samlMetadataUrl.trim().length > 0
+      ? body.samlMetadataUrl.trim()
+      : null;
+  let samlMetadataXml =
+    typeof body.samlMetadataXml === 'string' && body.samlMetadataXml.trim().length > 0
+      ? body.samlMetadataXml.trim()
       : null;
   let groupClaim =
     typeof body.groupClaim === 'string' && body.groupClaim.trim().length > 0
@@ -398,8 +528,11 @@ app.post('/:accountId/sso-providers/test-connection', async (c) => {
     if (!existing) {
       throw new HTTPException(404, { message: 'SSO provider not found' });
     }
+    providerType = existing.providerType;
     if (!issuer) issuer = existing.issuer;
     if (!discoveryUrl) discoveryUrl = existing.discoveryUrl;
+    if (!samlMetadataUrl) samlMetadataUrl = existing.samlMetadataUrl;
+    if (!samlMetadataXml) samlMetadataXml = existing.samlMetadataXml;
     if (groupClaim === 'groups' && existing.groupClaim) groupClaim = existing.groupClaim;
   }
 
@@ -407,41 +540,14 @@ app.post('/:accountId/sso-providers/test-connection', async (c) => {
     throw new HTTPException(400, { message: 'issuer is required for test connection' });
   }
 
-  const url = buildDiscoveryUrl(issuer, discoveryUrl);
-  const result = await fetchOidcDiscovery(url, { expectedIssuer: issuer });
-
-  if (!result.ok) {
+  if (providerType === 'saml') {
     return c.json(
-      {
-        ok: false as const,
-        reason: result.reason,
-        message: result.message,
-        discoveryUrl: url,
-      },
+      await runSamlTestConnection(issuer, samlMetadataUrl, samlMetadataXml, groupClaim),
       200,
     );
   }
 
-  const doc = result.document;
-  return c.json(
-    {
-      ok: true as const,
-      discoveryUrl: url,
-      discovery: {
-        issuer: doc.issuer,
-        authorizationEndpoint: doc.authorization_endpoint,
-        tokenEndpoint: doc.token_endpoint,
-        jwksUri: doc.jwks_uri,
-        userinfoEndpoint: doc.userinfo_endpoint ?? null,
-        endSessionEndpoint: doc.end_session_endpoint ?? null,
-        scopesSupported: doc.scopes_supported ?? [],
-        responseTypesSupported: doc.response_types_supported ?? [],
-        codeChallengeMethodsSupported: doc.code_challenge_methods_supported ?? [],
-      },
-      claimStructurePreview: claimStructurePreview(groupClaim),
-    },
-    200,
-  );
+  return c.json(await runOidcTestConnection(issuer, discoveryUrl, groupClaim), 200);
 });
 
 // ---------------------------------------------------------------------------
@@ -458,39 +564,20 @@ app.post('/:accountId/sso-providers/:providerId/test-connection', async (c) => {
     throw new HTTPException(404, { message: 'SSO provider not found' });
   }
 
-  const url = buildDiscoveryUrl(existing.issuer, existing.discoveryUrl);
-  const result = await fetchOidcDiscovery(url, { expectedIssuer: existing.issuer });
-
-  if (!result.ok) {
+  if (existing.providerType === 'saml') {
     return c.json(
-      {
-        ok: false as const,
-        reason: result.reason,
-        message: result.message,
-        discoveryUrl: url,
-      },
+      await runSamlTestConnection(
+        existing.issuer,
+        existing.samlMetadataUrl,
+        existing.samlMetadataXml,
+        existing.groupClaim,
+      ),
       200,
     );
   }
 
-  const doc = result.document;
   return c.json(
-    {
-      ok: true as const,
-      discoveryUrl: url,
-      discovery: {
-        issuer: doc.issuer,
-        authorizationEndpoint: doc.authorization_endpoint,
-        tokenEndpoint: doc.token_endpoint,
-        jwksUri: doc.jwks_uri,
-        userinfoEndpoint: doc.userinfo_endpoint ?? null,
-        endSessionEndpoint: doc.end_session_endpoint ?? null,
-        scopesSupported: doc.scopes_supported ?? [],
-        responseTypesSupported: doc.response_types_supported ?? [],
-        codeChallengeMethodsSupported: doc.code_challenge_methods_supported ?? [],
-      },
-      claimStructurePreview: claimStructurePreview(existing.groupClaim),
-    },
+    await runOidcTestConnection(existing.issuer, existing.discoveryUrl, existing.groupClaim),
     200,
   );
 });
@@ -530,17 +617,19 @@ app.post('/:accountId/sso-providers', async (c) => {
   }
 
   const name = asNonEmptyString(body.name, 'name');
-  const providerTypeRaw = asNonEmptyString(body.providerType ?? 'oidc', 'providerType');
-  if (providerTypeRaw !== 'oidc') {
-    throw new HTTPException(400, {
-      message: 'Only OIDC providers are supported in this release. SAML is planned.',
-    });
-  }
+  const providerType = asProviderType(body.providerType ?? 'oidc');
 
   const issuer = asNonEmptyString(body.issuer, 'issuer');
   const discoveryUrl = asOptionalString(body.discoveryUrl);
   const clientId = asOptionalString(body.clientId);
   const clientSecretRef = asOptionalString(body.clientSecretRef);
+  const samlMetadataUrl = asOptionalString(body.samlMetadataUrl);
+  const samlMetadataXml = asOptionalString(body.samlMetadataXml);
+  const samlSpEntityId = asOptionalString(body.samlSpEntityId);
+  const signingCertPem = asOptionalString(body.signingCertPem);
+  if (providerType === 'saml') {
+    requireSamlMetadata(samlMetadataUrl, samlMetadataXml);
+  }
   const groupClaim =
     typeof body.groupClaim === 'string' && body.groupClaim.trim().length > 0
       ? body.groupClaim.trim()
@@ -565,13 +654,17 @@ app.post('/:accountId/sso-providers', async (c) => {
     await db.insert(accountSsoProviders).values({
       id,
       accountId,
-      providerType: 'oidc',
+      providerType,
       name,
       enabled,
       issuer,
-      discoveryUrl,
-      clientId,
-      clientSecretRef,
+      discoveryUrl: providerType === 'oidc' ? discoveryUrl : null,
+      clientId: providerType === 'oidc' ? clientId : null,
+      clientSecretRef: providerType === 'oidc' ? clientSecretRef : null,
+      samlMetadataUrl: providerType === 'saml' ? samlMetadataUrl : null,
+      samlMetadataXml: providerType === 'saml' ? samlMetadataXml : null,
+      samlSpEntityId: providerType === 'saml' ? samlSpEntityId : null,
+      signingCertPem: providerType === 'saml' ? signingCertPem : null,
       groupClaim,
       groupRoleMap,
       defaultRole,
@@ -643,11 +736,12 @@ app.patch('/:accountId/sso-providers/:providerId', async (c) => {
     throw new HTTPException(400, { message: 'Invalid JSON body' });
   }
 
+  // providerType is immutable after create (avoid half-migrated OIDC/SAML rows)
   if (body.providerType !== undefined) {
-    const pt = asNonEmptyString(body.providerType, 'providerType');
-    if (pt !== 'oidc') {
+    const pt = asProviderType(body.providerType);
+    if (pt !== existing.providerType) {
       throw new HTTPException(400, {
-        message: 'Only OIDC providers are supported in this release. SAML is planned.',
+        message: 'providerType cannot be changed after create; remove and re-add the provider',
       });
     }
   }
@@ -659,6 +753,10 @@ app.patch('/:accountId/sso-providers/:providerId', async (c) => {
     discoveryUrl: string | null;
     clientId: string | null;
     clientSecretRef: string | null;
+    samlMetadataUrl: string | null;
+    samlMetadataXml: string | null;
+    samlSpEntityId: string | null;
+    signingCertPem: string | null;
     groupClaim: string;
     groupRoleMap: Record<string, string>;
     defaultRole: string;
@@ -673,6 +771,18 @@ app.patch('/:accountId/sso-providers/:providerId', async (c) => {
   if (body.clientId !== undefined) patch.clientId = asOptionalString(body.clientId);
   if (body.clientSecretRef !== undefined) {
     patch.clientSecretRef = asOptionalString(body.clientSecretRef);
+  }
+  if (body.samlMetadataUrl !== undefined) {
+    patch.samlMetadataUrl = asOptionalString(body.samlMetadataUrl);
+  }
+  if (body.samlMetadataXml !== undefined) {
+    patch.samlMetadataXml = asOptionalString(body.samlMetadataXml);
+  }
+  if (body.samlSpEntityId !== undefined) {
+    patch.samlSpEntityId = asOptionalString(body.samlSpEntityId);
+  }
+  if (body.signingCertPem !== undefined) {
+    patch.signingCertPem = asOptionalString(body.signingCertPem);
   }
   if (body.groupClaim !== undefined) {
     patch.groupClaim = asNonEmptyString(body.groupClaim, 'groupClaim');
@@ -693,6 +803,14 @@ app.patch('/:accountId/sso-providers/:providerId', async (c) => {
   }
   if (body.enabled !== undefined) {
     patch.enabled = asBoolean(body.enabled, false);
+  }
+
+  if (existing.providerType === 'saml') {
+    const nextUrl =
+      patch.samlMetadataUrl !== undefined ? patch.samlMetadataUrl : existing.samlMetadataUrl;
+    const nextXml =
+      patch.samlMetadataXml !== undefined ? patch.samlMetadataXml : existing.samlMetadataXml;
+    requireSamlMetadata(nextUrl, nextXml);
   }
 
   const db = getClient();
