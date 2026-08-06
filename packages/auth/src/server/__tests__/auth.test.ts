@@ -58,6 +58,18 @@ vi.mock('../audit-bridge.js', () => ({
   auditLoginFailure: (...args: unknown[]) => mockAuditLoginFailure(...args),
 }));
 
+const mockEnsureAccountOwnerPlatformAdmin = vi.fn();
+vi.mock('../platform-roles.js', () => ({
+  ensureAccountOwnerPlatformAdmin: (...args: unknown[]) =>
+    mockEnsureAccountOwnerPlatformAdmin(...args),
+}));
+
+const mockIsHostedDeployment = vi.fn(() => false);
+vi.mock('@revealui/core/deployment-mode', () => ({
+  isHostedDeployment: (...args: unknown[]) => mockIsHostedDeployment(...args),
+  detectDeploymentMode: vi.fn(() => 'forge'),
+}));
+
 // Chain mocks for drizzle-orm query builder
 const mockReturning = vi.fn();
 const mockInsertValues = vi.fn().mockReturnValue({ returning: mockReturning });
@@ -510,10 +522,16 @@ describe('auth', () => {
     // the hosted case sets it explicitly.
     beforeEach(() => {
       delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+      mockIsHostedDeployment.mockReturnValue(false);
+      mockEnsureAccountOwnerPlatformAdmin.mockResolvedValue({
+        previousRole: 'viewer',
+        nextRole: 'admin',
+        updated: true,
+      });
     });
 
     it('provisions a personal account + owner membership on hosted SaaS', async () => {
-      process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'test-signing-key';
+      mockIsHostedDeployment.mockReturnValue(true);
       mockLimit.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await signUp('acct@example.com', 'StrongPass1', 'Acct User');
@@ -532,6 +550,8 @@ describe('auth', () => {
       expect(
         valueCalls.some((v) => v.role === 'owner' && v.status === 'active' && Boolean(v.accountId)),
       ).toBe(true);
+      // Platform shell admin (not super-admin) for account owner
+      expect(mockEnsureAccountOwnerPlatformAdmin).toHaveBeenCalled();
     });
 
     it('creates user and returns session token on success', async () => {

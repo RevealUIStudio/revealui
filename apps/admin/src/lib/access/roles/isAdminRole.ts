@@ -1,10 +1,16 @@
 /**
- * Whether a user's top-level `role` string grants admin access — the set the
- * proxy.ts `revealui-role` cookie gate checks.
+ * Whether a user's top-level `role` string grants CMS shell admin access —
+ * the set the proxy.ts `revealui-role` cookie gate checks.
  *
- * The admin set is {owner, admin, super-admin}: `owner` is the highest DB role
- * (assigned to the bootstrap admin), `admin` is the standard admin role, and
- * `super-admin` is a forward-compat app-layer role.
+ * Bounds (see packages/auth platform-roles + ADR role planes):
+ * - `owner` — highest DB column role (bootstrap / primary operator)
+ * - `admin` — standard CMS shell admin (hosted account owners promoted here)
+ * - `super-admin` — cookie-compat only; canonical storage is `_json.roles`,
+ *   not `users.role` (CHECK forbids super-admin on the column)
+ *
+ * Super-admin is platform operator power, not "first SaaS customer".
+ * Account membership owner ≠ shell admin until users.role is admin/owner
+ * (ensureAccountOwnerPlatformAdmin on account provision).
  *
  * Centralized so every auth route (sign-in, sign-up, OAuth callback, passkey)
  * derives the cookie identically. They historically drifted: the #306 role
