@@ -10,6 +10,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@node-saml/node-saml": "5.1.0",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
@@ -22,16 +23,18 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@revealui/dev": "workspace:*",
     "@simplewebauthn/browser": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
-    "@revealui/dev": "workspace:*",
     "happy-dom": "^20.10.6",
     "react": "catalog:",
+    "selfsigned": "2.4.1",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "xml-crypto": "6.1.2"
   },
   "engines": {
     "node": ">=24.13.0"

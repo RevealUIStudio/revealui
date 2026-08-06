@@ -145,12 +145,12 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   auditLog: 'max',
   devkitProfiles: 'max',
   multiTenant: 'enterprise',
-  whiteLabel: 'enterprise', // planned — forced false until shipped
-  sso: 'enterprise',        // planned — forced false until shipped
+  whiteLabel: 'enterprise', // managed setup via RevForge; see Fleet docs
+  sso: 'enterprise',        // OIDC + SAML SP-initiated under the sso gate
 };
 ```
 
-Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama, no API key, no cloud bill). Pro unlocks AI agents, payments, sync, MCP, and the monitoring dashboard. Max adds AI memory and advanced inference configuration. Enterprise adds multi-tenant management and RevealUI Fleet, a branded white-label deployment for your own customers (managed setup via RevForge). White-label and SSO are on the roadmap, designed but not yet shipped (SSO tracked in [#449](https://github.com/RevealUIStudio/revealui/issues/449)), so the code forces those flags to `false` rather than advertise features that don't exist.
+Free tier gets the full runtime engine, auth, the REST API, and local AI inference (Inference Snaps or Ollama, no API key, no cloud bill). Pro unlocks AI agents, payments, sync, MCP, and the monitoring dashboard. Max adds AI memory and advanced inference configuration. Enterprise adds multi-tenant management, RevealUI Fleet (branded white-label via RevForge), and Enterprise SSO (OIDC + SAML SP-initiated; operator guide [FORGE_SSO_SETUP](../FORGE_SSO_SETUP.md); tracker [#449](https://github.com/RevealUIStudio/revealui/issues/449)).
 
 ### Pricing served from a single source, not hardcoded
 

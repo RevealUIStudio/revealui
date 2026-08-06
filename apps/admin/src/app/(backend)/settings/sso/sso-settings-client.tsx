@@ -4,21 +4,27 @@ const SUCCESS_DISMISS_MS = 5_000;
 const ERROR_DISMISS_MS = 8_000;
 
 import { Button, Input, Select } from '@revealui/presentation';
-import { Checkbox, Field, Label } from '@revealui/presentation/client';
+import { Checkbox, Field, Label, Textarea } from '@revealui/presentation/client';
 import { useCallback, useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
+export type SsoProviderType = 'oidc' | 'saml';
+
 export interface SsoProvider {
   id: string;
   accountId: string;
-  providerType: 'oidc' | 'saml';
+  providerType: SsoProviderType;
   name: string;
   enabled: boolean;
   issuer: string;
   discoveryUrl: string | null;
   clientId: string | null;
   clientSecretRef: string | null;
+  samlMetadataUrl: string | null;
+  samlMetadataXml: string | null;
+  samlSpEntityId: string | null;
+  hasSigningCert: boolean;
   groupClaim: string;
   groupRoleMap: Record<string, string>;
   defaultRole: string;
@@ -29,11 +35,15 @@ export interface SsoProvider {
 }
 
 export interface SsoFormState {
+  providerType: SsoProviderType;
   name: string;
   issuer: string;
   discoveryUrl: string;
   clientId: string;
   clientSecretRef: string;
+  samlMetadataUrl: string;
+  samlMetadataXml: string;
+  samlSpEntityId: string;
   groupClaim: string;
   defaultRole: string;
   requireGroupMatch: boolean;
@@ -44,13 +54,21 @@ export interface TestConnectionResult {
   ok: boolean;
   reason?: string;
   message?: string;
+  warning?: string;
   discoveryUrl?: string;
+  metadataUrl?: string | null;
   discovery?: {
     issuer: string;
     authorizationEndpoint: string;
     tokenEndpoint: string;
     jwksUri: string;
     scopesSupported: string[];
+  };
+  saml?: {
+    entityId: string;
+    entryPoint: string;
+    hasSigningCert: boolean;
+    issuerMatchesMetadata: boolean;
   };
   claimStructurePreview?: {
     standardClaims: string[];
@@ -60,11 +78,15 @@ export interface TestConnectionResult {
 }
 
 const EMPTY_FORM: SsoFormState = {
+  providerType: 'oidc',
   name: '',
   issuer: '',
   discoveryUrl: '',
   clientId: '',
   clientSecretRef: '',
+  samlMetadataUrl: '',
+  samlMetadataXml: '',
+  samlSpEntityId: '',
   groupClaim: 'groups',
   defaultRole: 'member',
   requireGroupMatch: false,
@@ -83,11 +105,15 @@ function accountsUrl(path: string): string {
 
 export function providerToForm(p: SsoProvider): SsoFormState {
   return {
+    providerType: p.providerType,
     name: p.name,
     issuer: p.issuer,
     discoveryUrl: p.discoveryUrl ?? '',
     clientId: p.clientId ?? '',
     clientSecretRef: p.clientSecretRef ?? '',
+    samlMetadataUrl: p.samlMetadataUrl ?? '',
+    samlMetadataXml: p.samlMetadataXml ?? '',
+    samlSpEntityId: p.samlSpEntityId ?? '',
     groupClaim: p.groupClaim,
     defaultRole: p.defaultRole,
     requireGroupMatch: p.requireGroupMatch,
@@ -142,7 +168,6 @@ function SsoSettingsContent() {
         return;
       }
       if (!current.ssoFeature) {
-        // LicenseGate should hide, but API is source of truth for entitlement
         setError('SSO is not enabled for this account.');
         setAccountId(current.accountId);
         setLoading(false);
@@ -217,32 +242,68 @@ function SsoSettingsContent() {
 
   function updateField<K extends keyof SsoFormState>(key: K, value: SsoFormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
-    // Requiring re-test when connection-relevant fields change
-    if (key === 'issuer' || key === 'discoveryUrl' || key === 'groupClaim') {
+    const connectionKeys: Array<keyof SsoFormState> = [
+      'providerType',
+      'issuer',
+      'discoveryUrl',
+      'groupClaim',
+      'samlMetadataUrl',
+      'samlMetadataXml',
+    ];
+    if (connectionKeys.includes(key)) {
       setTestedOk(false);
       setTestResult(null);
     }
   }
 
+  function canTestConnection(): boolean {
+    if (!form.issuer.trim()) return false;
+    if (form.providerType === 'saml') {
+      return Boolean(form.samlMetadataUrl.trim() || form.samlMetadataXml.trim());
+    }
+    return true;
+  }
+
   async function handleTestConnection() {
     if (!accountId) return;
     if (!form.issuer.trim()) {
-      setError('Issuer is required to test the connection.');
+      setError(
+        form.providerType === 'saml'
+          ? 'IdP entity ID (issuer) is required to test the connection.'
+          : 'Issuer is required to test the connection.',
+      );
+      return;
+    }
+    if (form.providerType === 'saml' && !canTestConnection()) {
+      setError('Provide IdP metadata URL or paste metadata XML to test.');
       return;
     }
     setTesting(true);
     setError(null);
     try {
+      const body =
+        form.providerType === 'saml'
+          ? {
+              providerType: 'saml' as const,
+              issuer: form.issuer.trim(),
+              samlMetadataUrl: form.samlMetadataUrl.trim() || undefined,
+              samlMetadataXml: form.samlMetadataXml.trim() || undefined,
+              groupClaim: form.groupClaim.trim() || 'groups',
+              providerId: editingId ?? undefined,
+            }
+          : {
+              providerType: 'oidc' as const,
+              issuer: form.issuer.trim(),
+              discoveryUrl: form.discoveryUrl.trim() || undefined,
+              groupClaim: form.groupClaim.trim() || 'groups',
+              providerId: editingId ?? undefined,
+            };
+
       const res = await apiFetch(accountsUrl(`/${accountId}/sso-providers/test-connection`), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          issuer: form.issuer.trim(),
-          discoveryUrl: form.discoveryUrl.trim() || undefined,
-          groupClaim: form.groupClaim.trim() || 'groups',
-          providerId: editingId ?? undefined,
-        }),
+        body: JSON.stringify(body),
       });
       // empty-catch-ok: JSON-parse fallback for an error-response body; `{}` is the safe shape so `data.error` evaluates to undefined and the UI falls back to the generic error text below.
       const data = (await res.json().catch(() => ({}))) as TestConnectionResult & {
@@ -257,9 +318,13 @@ function SsoSettingsContent() {
       setTestResult(data);
       setTestedOk(data.ok === true);
       if (data.ok) {
-        setSuccess('Discovery succeeded. You can enable this provider when ready.');
+        setSuccess(
+          form.providerType === 'saml'
+            ? 'IdP metadata validated. You can enable this provider when ready.'
+            : 'Discovery succeeded. You can enable this provider when ready.',
+        );
       } else {
-        setError(data.message ?? 'Discovery failed. Check issuer and discovery URL.');
+        setError(data.message ?? 'Test failed. Check issuer and metadata / discovery URL.');
       }
     } catch {
       setError('Unable to reach the server. Please check your connection and try again.');
@@ -270,8 +335,23 @@ function SsoSettingsContent() {
 
   async function handleSave() {
     if (!accountId) return;
-    if (!(form.name.trim() && form.issuer.trim())) {
-      setError('Name and issuer are required.');
+    if (!form.name.trim()) {
+      setError('Name is required.');
+      return;
+    }
+    if (!form.issuer.trim()) {
+      setError(
+        form.providerType === 'saml'
+          ? 'IdP entity ID (issuer) is required.'
+          : 'Name and issuer are required.',
+      );
+      return;
+    }
+    if (
+      form.providerType === 'saml' &&
+      !(form.samlMetadataUrl.trim() || form.samlMetadataXml.trim())
+    ) {
+      setError('SAML providers require a metadata URL or metadata XML.');
       return;
     }
     if (form.enabled && !testedOk && !enableConfirm) {
@@ -285,18 +365,32 @@ function SsoSettingsContent() {
     setSaving(true);
     setError(null);
     try {
-      const payload = {
-        name: form.name.trim(),
-        providerType: 'oidc' as const,
-        issuer: form.issuer.trim(),
-        discoveryUrl: form.discoveryUrl.trim() || null,
-        clientId: form.clientId.trim() || null,
-        clientSecretRef: form.clientSecretRef.trim() || null,
-        groupClaim: form.groupClaim.trim() || 'groups',
-        defaultRole: form.defaultRole,
-        requireGroupMatch: form.requireGroupMatch,
-        enabled: form.enabled,
-      };
+      const payload =
+        form.providerType === 'saml'
+          ? {
+              name: form.name.trim(),
+              providerType: 'saml' as const,
+              issuer: form.issuer.trim(),
+              samlMetadataUrl: form.samlMetadataUrl.trim() || null,
+              samlMetadataXml: form.samlMetadataXml.trim() || null,
+              samlSpEntityId: form.samlSpEntityId.trim() || null,
+              groupClaim: form.groupClaim.trim() || 'groups',
+              defaultRole: form.defaultRole,
+              requireGroupMatch: form.requireGroupMatch,
+              enabled: form.enabled,
+            }
+          : {
+              name: form.name.trim(),
+              providerType: 'oidc' as const,
+              issuer: form.issuer.trim(),
+              discoveryUrl: form.discoveryUrl.trim() || null,
+              clientId: form.clientId.trim() || null,
+              clientSecretRef: form.clientSecretRef.trim() || null,
+              groupClaim: form.groupClaim.trim() || 'groups',
+              defaultRole: form.defaultRole,
+              requireGroupMatch: form.requireGroupMatch,
+              enabled: form.enabled,
+            };
 
       const url = editingId
         ? accountsUrl(`/${accountId}/sso-providers/${editingId}`)
@@ -380,6 +474,14 @@ function SsoSettingsContent() {
     }
   }
 
+  const formTitle = editingId
+    ? form.providerType === 'saml'
+      ? 'Edit SAML provider'
+      : 'Edit OIDC provider'
+    : form.providerType === 'saml'
+      ? 'Add SAML provider'
+      : 'Add OIDC provider';
+
   return (
     <div className="min-h-screen">
       <div className="p-4 sm:p-6 max-w-2xl">
@@ -418,9 +520,9 @@ function SsoSettingsContent() {
                 <div>
                   <h1 className="text-base font-semibold text-foreground">Enterprise SSO</h1>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Connect an OIDC identity provider (Okta, Azure AD, Google Workspace, Keycloak).
-                    Store client secrets as env/revvault references only. Never paste raw secrets
-                    here.
+                    Connect an OIDC or SAML identity provider (Okta, Azure AD, Google Workspace,
+                    Keycloak). Store client secrets as env/revvault references only. Never paste raw
+                    secrets here.
                   </p>
                 </div>
                 {!showForm && (
@@ -501,14 +603,35 @@ function SsoSettingsContent() {
 
             {showForm && (
               <div className="rounded-xl border border-border bg-card p-5">
-                <h2 className="text-base font-semibold text-foreground">
-                  {editingId ? 'Edit OIDC provider' : 'Add OIDC provider'}
-                </h2>
+                <h2 className="text-base font-semibold text-foreground">{formTitle}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  SAML configuration is planned. OIDC only for this release.
+                  {form.providerType === 'saml'
+                    ? 'Paste IdP metadata URL or XML. Optional SP entity ID overrides the default ACS-based entity ID.'
+                    : 'OIDC discovery + client credentials. Secrets as references only.'}
                 </p>
 
                 <div className="mt-5 flex flex-col gap-4">
+                  <Field>
+                    <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                      Protocol
+                    </Label>
+                    <Select
+                      value={form.providerType}
+                      onChange={(e) =>
+                        updateField('providerType', e.target.value === 'saml' ? 'saml' : 'oidc')
+                      }
+                      disabled={Boolean(editingId)}
+                    >
+                      <option value="oidc">OIDC</option>
+                      <option value="saml">SAML</option>
+                    </Select>
+                    {editingId && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Protocol is fixed after create. Remove and re-add to switch.
+                      </p>
+                    )}
+                  </Field>
+
                   <Field>
                     <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       Display name
@@ -516,62 +639,111 @@ function SsoSettingsContent() {
                     <Input
                       value={form.name}
                       onChange={(e) => updateField('name', e.target.value)}
-                      placeholder="Okta Production"
+                      placeholder={
+                        form.providerType === 'saml' ? 'Azure AD SAML' : 'Okta Production'
+                      }
                     />
                   </Field>
 
                   <Field>
                     <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Issuer
+                      {form.providerType === 'saml' ? 'IdP entity ID (issuer)' : 'Issuer'}
                     </Label>
                     <Input
                       value={form.issuer}
                       onChange={(e) => updateField('issuer', e.target.value)}
-                      placeholder="https://your-org.okta.com"
+                      placeholder={
+                        form.providerType === 'saml'
+                          ? 'https://sts.windows.net/…/'
+                          : 'https://your-org.okta.com'
+                      }
                     />
                   </Field>
 
-                  <Field>
-                    <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Discovery URL (optional)
-                    </Label>
-                    <Input
-                      value={form.discoveryUrl}
-                      onChange={(e) => updateField('discoveryUrl', e.target.value)}
-                      placeholder="https://…/.well-known/openid-configuration"
-                    />
-                  </Field>
+                  {form.providerType === 'oidc' && (
+                    <>
+                      <Field>
+                        <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                          Discovery URL (optional)
+                        </Label>
+                        <Input
+                          value={form.discoveryUrl}
+                          onChange={(e) => updateField('discoveryUrl', e.target.value)}
+                          placeholder="https://…/.well-known/openid-configuration"
+                        />
+                      </Field>
+
+                      <Field>
+                        <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                          Client ID
+                        </Label>
+                        <Input
+                          value={form.clientId}
+                          onChange={(e) => updateField('clientId', e.target.value)}
+                          placeholder="0oa…"
+                          autoComplete="off"
+                        />
+                      </Field>
+
+                      <Field>
+                        <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                          Client secret reference
+                        </Label>
+                        <Input
+                          value={form.clientSecretRef}
+                          onChange={(e) => updateField('clientSecretRef', e.target.value)}
+                          placeholder="REVEALUI_SSO_CLIENT_SECRET or revvault path"
+                          autoComplete="off"
+                        />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Env var name or revvault path only. Never paste the secret value.
+                        </p>
+                      </Field>
+                    </>
+                  )}
+
+                  {form.providerType === 'saml' && (
+                    <>
+                      <Field>
+                        <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                          IdP metadata URL
+                        </Label>
+                        <Input
+                          value={form.samlMetadataUrl}
+                          onChange={(e) => updateField('samlMetadataUrl', e.target.value)}
+                          placeholder="https://idp.example.com/metadata.xml"
+                        />
+                      </Field>
+
+                      <Field>
+                        <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                          IdP metadata XML (optional if URL set)
+                        </Label>
+                        <Textarea
+                          value={form.samlMetadataXml}
+                          onChange={(e) => updateField('samlMetadataXml', e.target.value)}
+                          placeholder="<EntityDescriptor …>"
+                          rows={6}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                      </Field>
+
+                      <Field>
+                        <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                          SP entity ID (optional override)
+                        </Label>
+                        <Input
+                          value={form.samlSpEntityId}
+                          onChange={(e) => updateField('samlSpEntityId', e.target.value)}
+                          placeholder="Defaults to ACS callback URL or REVEALUI_SSO_SP_ENTITY_ID"
+                        />
+                      </Field>
+                    </>
+                  )}
 
                   <Field>
                     <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Client ID
-                    </Label>
-                    <Input
-                      value={form.clientId}
-                      onChange={(e) => updateField('clientId', e.target.value)}
-                      placeholder="0oa…"
-                      autoComplete="off"
-                    />
-                  </Field>
-
-                  <Field>
-                    <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Client secret reference
-                    </Label>
-                    <Input
-                      value={form.clientSecretRef}
-                      onChange={(e) => updateField('clientSecretRef', e.target.value)}
-                      placeholder="REVEALUI_SSO_CLIENT_SECRET or revvault path"
-                      autoComplete="off"
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Env var name or revvault path only. Never paste the secret value.
-                    </p>
-                  </Field>
-
-                  <Field>
-                    <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      Group claim
+                      Group claim / attribute
                     </Label>
                     <Input
                       value={form.groupClaim}
@@ -639,7 +811,7 @@ function SsoSettingsContent() {
                       variant="neutral"
                       size="sm"
                       onClick={() => void handleTestConnection()}
-                      disabled={testing || !form.issuer.trim()}
+                      disabled={testing || !canTestConnection()}
                     >
                       {testing ? 'Testing…' : 'Test connection'}
                     </Button>
@@ -672,7 +844,13 @@ function SsoSettingsContent() {
                       }`}
                     >
                       <p className="font-medium">
-                        {testResult.ok ? 'Discovery OK' : 'Discovery failed'}
+                        {testResult.ok
+                          ? form.providerType === 'saml'
+                            ? 'Metadata OK'
+                            : 'Discovery OK'
+                          : form.providerType === 'saml'
+                            ? 'Metadata failed'
+                            : 'Discovery failed'}
                       </p>
                       {testResult.discoveryUrl && (
                         <p className="mt-1 break-all text-xs opacity-90">
@@ -706,6 +884,27 @@ function SsoSettingsContent() {
                             </div>
                           )}
                         </dl>
+                      )}
+                      {testResult.ok && testResult.saml && (
+                        <dl className="mt-3 space-y-1 text-xs text-foreground">
+                          <div className="flex justify-between gap-4">
+                            <dt className="text-muted-foreground">Entity ID</dt>
+                            <dd className="truncate text-right">{testResult.saml.entityId}</dd>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <dt className="text-muted-foreground">SSO entry</dt>
+                            <dd className="truncate text-right">{testResult.saml.entryPoint}</dd>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <dt className="text-muted-foreground">Signing cert</dt>
+                            <dd className="text-right">
+                              {testResult.saml.hasSigningCert ? 'present' : 'missing'}
+                            </dd>
+                          </div>
+                        </dl>
+                      )}
+                      {testResult.warning && (
+                        <p className="mt-2 text-xs text-warning-foreground">{testResult.warning}</p>
                       )}
                       {testResult.ok && testResult.claimStructurePreview && (
                         <div className="mt-3 text-xs text-foreground">

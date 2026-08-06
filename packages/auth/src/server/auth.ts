@@ -14,6 +14,7 @@ import type { SignInResult, SignUpResult, User } from '../types.js';
 import { auditLoginFailure, auditLoginSuccess } from './audit-bridge.js';
 import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js';
 import { validatePasswordStrength } from './password-validation.js';
+import { ensureAccountOwnerPlatformAdmin } from './platform-roles.js';
 import { checkRateLimit } from './rate-limit.js';
 import { createSession, rotateSession } from './session.js';
 
@@ -544,6 +545,10 @@ export async function signUp(
           createdAt: now,
           updatedAt: now,
         });
+        // First membership owner of a hosted account gets platform shell
+        // admin (users.role), not super-admin. Unlocks /settings + API keys
+        // without granting fleet control-plane power.
+        await ensureAccountOwnerPlatformAdmin(db, user.id);
       } catch {
         logger.error(
           'Failed to provision personal account at signup (billing webhook will backfill)',

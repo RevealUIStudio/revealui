@@ -59,6 +59,7 @@ vi.mock('@revealui/presentation/client', () => ({
       aria-label="checkbox"
     />
   ),
+  Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...props} />,
 }));
 
 vi.mock('@/lib/utils/csrf', () => ({
@@ -77,6 +78,10 @@ const PROVIDER: SsoProvider = {
   discoveryUrl: null,
   clientId: 'client-1',
   clientSecretRef: 'REVEALUI_SSO_CLIENT_SECRET',
+  samlMetadataUrl: null,
+  samlMetadataXml: null,
+  samlSpEntityId: null,
+  hasSigningCert: false,
   groupClaim: 'groups',
   groupRoleMap: {},
   defaultRole: 'member',
@@ -84,6 +89,20 @@ const PROVIDER: SsoProvider = {
   allowPasswordFallback: false,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const SAML_PROVIDER: SsoProvider = {
+  ...PROVIDER,
+  id: 'sso_saml_1',
+  providerType: 'saml',
+  name: 'Azure SAML',
+  issuer: 'https://sts.windows.net/tenant/',
+  clientId: null,
+  clientSecretRef: null,
+  samlMetadataUrl: 'https://idp.example.com/metadata.xml',
+  samlMetadataXml: null,
+  samlSpEntityId: null,
+  hasSigningCert: true,
 };
 
 function mockFetchSequence(
@@ -161,7 +180,7 @@ describe('SsoSettingsClient', () => {
     expect(screen.getByText('Disabled')).toBeInTheDocument();
   });
 
-  it('opens create form with OIDC-only fields and secret-ref hint', async () => {
+  it('opens create form with OIDC fields and secret-ref hint by default', async () => {
     vi.stubGlobal(
       'fetch',
       mockFetchSequence([
@@ -189,6 +208,63 @@ describe('SsoSettingsClient', () => {
     expect(screen.getByText(/Add OIDC provider/i)).toBeInTheDocument();
     expect(screen.getByText(/Never paste the secret value/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Test connection/i })).toBeInTheDocument();
+  });
+
+  it('switches create form to SAML metadata fields', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ accountId: 'acct-1', ssoFeature: true, membershipRole: 'owner' }),
+          } as Response),
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ providers: [] }),
+          } as Response),
+      ]),
+    );
+
+    render(<SsoSettingsClient />);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add provider/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Add provider/i }));
+
+    fireEvent.change(screen.getByDisplayValue('OIDC'), { target: { value: 'saml' } });
+    expect(screen.getByText(/Add SAML provider/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/metadata\.xml/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Never paste the secret value/i)).not.toBeInTheDocument();
+  });
+
+  it('lists SAML providers with type badge', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchSequence([
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ accountId: 'acct-1', ssoFeature: true, membershipRole: 'owner' }),
+          } as Response),
+        () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ providers: [SAML_PROVIDER] }),
+          } as Response),
+      ]),
+    );
+
+    render(<SsoSettingsClient />);
+    await waitFor(() => {
+      expect(screen.getByText('Azure SAML')).toBeInTheDocument();
+    });
+    expect(screen.getByText('saml')).toBeInTheDocument();
   });
 
   it('runs test connection and shows discovery preview', async () => {

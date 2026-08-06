@@ -8,6 +8,8 @@ const {
   mockInsertValues,
   mockUpdateWhere,
   mockFetchOidcDiscovery,
+  mockParseIdpMetadataXml,
+  mockFetchIdpMetadata,
   mockDb,
 } = vi.hoisted(() => {
   const mockMembershipLimit = vi.fn();
@@ -30,6 +32,8 @@ const {
     mockInsertValues,
     mockUpdateWhere,
     mockFetchOidcDiscovery: vi.fn(),
+    mockParseIdpMetadataXml: vi.fn(),
+    mockFetchIdpMetadata: vi.fn(),
     mockDb,
   };
 });
@@ -79,6 +83,10 @@ vi.mock('@revealui/db/schema', () => ({
     discoveryUrl: 'accountSsoProviders.discoveryUrl',
     clientId: 'accountSsoProviders.clientId',
     clientSecretRef: 'accountSsoProviders.clientSecretRef',
+    samlMetadataUrl: 'accountSsoProviders.samlMetadataUrl',
+    samlMetadataXml: 'accountSsoProviders.samlMetadataXml',
+    samlSpEntityId: 'accountSsoProviders.samlSpEntityId',
+    signingCertPem: 'accountSsoProviders.signingCertPem',
     groupClaim: 'accountSsoProviders.groupClaim',
     groupRoleMap: 'accountSsoProviders.groupRoleMap',
     defaultRole: 'accountSsoProviders.defaultRole',
@@ -92,6 +100,8 @@ vi.mock('@revealui/db/schema', () => ({
 
 vi.mock('@revealui/auth/server', () => ({
   fetchOidcDiscovery: (...args: unknown[]) => mockFetchOidcDiscovery(...args),
+  parseIdpMetadataXml: (...args: unknown[]) => mockParseIdpMetadataXml(...args),
+  fetchIdpMetadata: (...args: unknown[]) => mockFetchIdpMetadata(...args),
 }));
 
 vi.mock('drizzle-orm', () => ({
@@ -126,6 +136,10 @@ const PROVIDER_ROW = {
   discoveryUrl: 'https://idp.example.com/.well-known/openid-configuration',
   clientId: 'client-1',
   clientSecretRef: 'REVEALUI_SSO_CLIENT_SECRET',
+  samlMetadataUrl: null,
+  samlMetadataXml: null,
+  samlSpEntityId: null,
+  signingCertPem: null,
   groupClaim: 'groups',
   groupRoleMap: { Engineering: 'member' },
   defaultRole: 'member',
@@ -134,6 +148,21 @@ const PROVIDER_ROW = {
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   deletedAt: null,
+};
+
+const SAML_PROVIDER_ROW = {
+  ...PROVIDER_ROW,
+  id: 'sso_saml',
+  providerType: 'saml',
+  name: 'Azure SAML',
+  issuer: 'https://sts.windows.net/tenant/',
+  discoveryUrl: null,
+  clientId: null,
+  clientSecretRef: null,
+  samlMetadataUrl: 'https://idp.example.com/metadata.xml',
+  samlMetadataXml: null,
+  samlSpEntityId: null,
+  signingCertPem: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----',
 };
 
 function createApp(user: typeof USER | null = USER) {
@@ -338,7 +367,7 @@ describe('SSO provider CRUD + entitlement', () => {
     expect(insertArg.providerType).toBe('oidc');
   });
 
-  it('rejects SAML create (planned)', async () => {
+  it('rejects SAML create without metadata', async () => {
     mockMembershipLimit.mockResolvedValue([{ accountId: 'acct-1', role: 'owner' }]);
     const app = createApp();
     const res = await app.request('/api/accounts/acct-1/sso-providers', {
@@ -352,7 +381,63 @@ describe('SSO provider CRUD + entitlement', () => {
     });
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error: string };
-    expect(body.error).toMatch(/OIDC/i);
+    expect(body.error).toMatch(/metadata/i);
+  });
+
+  it('creates a SAML provider with metadata URL', async () => {
+    mockMembershipLimit.mockResolvedValue([{ accountId: 'acct-1', role: 'owner' }]);
+    mockProviderSelectLimit.mockResolvedValue([SAML_PROVIDER_ROW]);
+
+    const app = createApp();
+    const res = await app.request('/api/accounts/acct-1/sso-providers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Azure SAML',
+        providerType: 'saml',
+        issuer: 'https://sts.windows.net/tenant/',
+        samlMetadataUrl: 'https://idp.example.com/metadata.xml',
+      }),
+    });
+    expect(res.status).toBe(201);
+    const insertArg = mockInsertValues.mock.calls[0]?.[0] as {
+      providerType: string;
+      samlMetadataUrl: string;
+      clientId: string | null;
+    };
+    expect(insertArg.providerType).toBe('saml');
+    expect(insertArg.samlMetadataUrl).toBe('https://idp.example.com/metadata.xml');
+    expect(insertArg.clientId).toBeNull();
+  });
+
+  it('test-connection validates SAML metadata XML dry-run', async () => {
+    mockMembershipLimit.mockResolvedValue([{ accountId: 'acct-1', role: 'owner' }]);
+    mockParseIdpMetadataXml.mockReturnValue({
+      ok: true,
+      entityId: 'https://sts.windows.net/tenant/',
+      entryPoint: 'https://login.microsoftonline.com/sso',
+      idpCertPem: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----',
+    });
+    const app = createApp();
+    const res = await app.request('/api/accounts/acct-1/sso-providers/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providerType: 'saml',
+        issuer: 'https://sts.windows.net/tenant/',
+        samlMetadataXml: '<EntityDescriptor entityID="https://sts.windows.net/tenant/"/>',
+      }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      ok: boolean;
+      saml: { entityId: string; entryPoint: string };
+    };
+    expect(body.ok).toBe(true);
+    expect(body.saml.entityId).toBe('https://sts.windows.net/tenant/');
+    expect(body.saml.entryPoint).toBe('https://login.microsoftonline.com/sso');
+    expect(mockParseIdpMetadataXml).toHaveBeenCalled();
+    expect(mockFetchOidcDiscovery).not.toHaveBeenCalled();
   });
 
   it('returns 404 when provider id is not on the account', async () => {

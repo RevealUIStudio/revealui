@@ -115,6 +115,13 @@ export {
   validatePasswordStrength,
 } from './password-validation.js';
 export {
+  ensureAccountOwnerPlatformAdmin,
+  isPlatformShellAdminRole,
+  PLATFORM_SHELL_ADMIN_COOKIE_ROLES,
+  PLATFORM_SHELL_ADMIN_ROLES,
+  platformRoleForAccountOwner,
+} from './platform-roles.js';
+export {
   checkRateLimit,
   configureRateLimit,
   getRateLimitStatus,
@@ -136,10 +143,14 @@ export {
 } from './session.js';
 // Signed Cookie
 export { signCookiePayload, verifyCookiePayload } from './signed-cookie.js';
-// Enterprise SSO pure layer (GAP-464) — routes/JIT/entitlement in follow-up PRs
+// Enterprise SSO pure layer (GAP-464) — OIDC + SAML SP helpers
 export {
   type BuildOidcAuthorizationUrlInput,
+  type BuildSamlAuthorizeUrlFailureReason,
+  type BuildSamlAuthorizeUrlResult,
   buildOidcAuthorizationUrl,
+  buildSamlAuthorizeUrl,
+  buildSamlSpMetadata,
   createOidcRemoteJwkSet,
   type ExchangeOidcCodeFailureReason,
   type ExchangeOidcCodeInput,
@@ -149,6 +160,7 @@ export {
   extractGroupsFromClaim,
   type FetchOidcDiscoveryOptions,
   type FetchOidcDiscoveryResult,
+  fetchIdpMetadata,
   fetchOidcDiscovery,
   type GenerateSsoStateInput,
   type GenerateSsoStateResult,
@@ -160,18 +172,27 @@ export {
   type MapSsoGroupsInput,
   type MapSsoGroupsResult,
   mapSsoGroupsToRole,
+  normalizeIdpCertPem,
   normalizeSsoUserRole,
   type OidcDiscoveryDocument,
   type OidcDiscoveryFailureReason,
+  type ParseIdpMetadataFailureReason,
+  type ParseIdpMetadataResult,
+  parseIdpMetadataXml,
+  type SamlSpConfig,
   type SsoStatePayload,
   type UpsertSsoUserInput,
   upsertSsoUser,
   type ValidatedIdTokenClaims,
+  type ValidatedSamlAssertion,
   type ValidateIdTokenFailureReason,
   type ValidateIdTokenResult,
   type ValidateOidcIdTokenOptions,
+  type ValidateSamlResponseFailureReason,
+  type ValidateSamlResponseResult,
   type VerifiedSsoState,
   validateOidcIdToken,
+  validateSamlPostResponse,
   verifySsoState,
 } from './sso/index.js';
 export type { Storage } from './storage/index.js';

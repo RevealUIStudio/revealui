@@ -74,6 +74,24 @@ revvault export-env -- \
 - Unauthenticated Payment Link for $8,499 (prefer keep auth checkout)
 - Owner: one live test-mode purchase walk on hosted (optional beyond unit e2e)
 
+## Owner acceptance walk (close GAP-448)
+
+Agent code train is **done** on `test` (#2378, #2383, #2393, #2395, #2396, #2398).
+Close only after owner confirms the happy path needs **no founder** in the loop.
+
+1. Hosted **test-mode** (or staging with Stripe test keys): authenticated checkout
+   for Agency Perpetual from `/pricing#agency-founding-kit`.
+2. Webhook path: license email arrives with JWT; `/account/license` accepts key;
+   tier reports Max/Agency and Free-tier banner clears.
+3. Kit email: signed download URL works within 48h; package has **no** private key
+   material (spot-check START-HERE / revforge.json / tarball listing).
+4. Optional full mode: with `REVEALUI_KIT_STAMP_MODE=full` + R2 on the long worker,
+   download is `.tar.gz` redirect; without it, thin multi-file remains valid.
+5. Record on GAP-448: date of walk, Stripe test session id (not secrets), and
+   "no founder intervention" yes/no. Then set `status: closed`.
+
+Peers: do not re-build stamp/fulfillment/e2e surfaces.
+
 ## Marketing
 
 - Public surface: `https://revealui.com/pricing#agency-founding-kit`

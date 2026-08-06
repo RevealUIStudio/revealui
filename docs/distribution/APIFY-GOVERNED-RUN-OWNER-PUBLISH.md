@@ -83,8 +83,25 @@ Record the actor id (`username~governed-agent-run` or similar) on GAP-431 when l
 4. Billing shows `governed-action` × N + one `run-completed`.  
 5. Paste Store URL + one run id into GAP-431 progress; set status closed.
 
+## 7. Free discovery surfaces (after Store is live)
+
+GAP-431 work item 4: same capability on free directories once the actor is public.
+Do **not** submit these before the Store listing and PPE pricing are live, or the
+links will 404 or under-claim.
+
+| Surface | When | Owner action |
+|---------|------|----------------|
+| **Apify Store** | Required for close | §5 + public actor URL |
+| **Claude Connectors / MCP directory** | After Store live | If/when Anthropic accepts remote MCP or actor-as-tool listings: submit the Store URL + short description that matches `.actor/README.md` foil ("If an agent did it, there's a receipt"). No parallel marketing copy. |
+| **ChatGPT Apps / custom GPT tools** | After Store live | Same: link the live actor or a thin MCP wrapper only if product already exposes one; do not invent a second MCP server for discovery. |
+| **Make / n8n / Gumloop** | Optional, Apify auto-dist | Confirm Apify distribution toggles; no extra implementation. |
+
+Record submission ids / URLs under GAP-431 progress when done. Free directories are
+**not** a substitute for the paid smoke in §6.
+
 ## Do not
 
 - Re-scaffold the package or fork MCP primitives.  
 - Change prices without updating Track E + `pricing.config.ts` together.  
 - Publish the internal developer README as the Store listing.
+- Submit Claude/ChatGPT listings before the Apify Store URL exists.

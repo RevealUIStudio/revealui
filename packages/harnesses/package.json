@@ -61,9 +61,15 @@
       "import": "./dist/hotfix/index.js",
       "default": "./dist/hotfix/index.js"
     },
+    "./tmpscript": {
+      "types": "./dist/tmpscript/index.d.ts",
+      "import": "./dist/tmpscript/index.js",
+      "default": "./dist/tmpscript/index.js"
+    },
     "./gates": {
       "types": "./dist/gates/index.d.ts",
       "import": "./dist/gates/index.js",
+      "require": "./dist/gates/index.cjs",
       "default": "./dist/gates/index.js"
     }
   },
@@ -82,7 +88,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsup --config tsup.gates-cjs.ts",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
     "lint": "biome check .",
