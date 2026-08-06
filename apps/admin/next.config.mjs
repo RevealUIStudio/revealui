@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -11,6 +11,19 @@ import sentryModule from '@sentry/nextjs'
 import { withRevealUI } from '@revealui/core/nextjs/withRevealUI'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Monorepo product version for dashboard chrome (not apps/admin's private 0.1.0 stub).
+// NEXT_PUBLIC_ so client sidebar/footer can read it; inlined at build time.
+function readMonorepoVersion() {
+  try {
+    const raw = readFileSync(path.join(__dirname, '../../package.json'), 'utf8')
+    const pkg = JSON.parse(raw)
+    return typeof pkg.version === 'string' && pkg.version.length > 0 ? pkg.version : '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+}
+const monorepoVersion = readMonorepoVersion()
 
 // Pro package (@revealui/ai) is Fair Source (FSL-1.1-MIT) and normally present.
 // If someone removes it from a fork, alias all subpaths to a stub for graceful degradation.
@@ -47,6 +60,10 @@ const proAIAliases = hasProAI ? {} : {
 const nextConfig = {
   reactStrictMode: true,
   distDir: '.next',
+  env: {
+    NEXT_PUBLIC_APP_VERSION: monorepoVersion,
+    APP_VERSION: monorepoVersion,
+  },
   // Use standalone output for all environments including Vercel
   // Required for monorepo workspace packages to resolve correctly in serverless
   output: 'standalone',

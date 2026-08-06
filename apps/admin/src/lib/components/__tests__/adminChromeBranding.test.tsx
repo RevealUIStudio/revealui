@@ -48,6 +48,18 @@ describe('admin chrome white-label branding', () => {
       expect(screen.getByText('RevealUI')).toBeDefined();
       expect(screen.getByText('RevealUI Admin')).toBeDefined();
     });
+
+    it('shows app version in the footer, not over nav icons', () => {
+      render(
+        <AdminSidebarLayout siteName="Acme" appVersion="0.4.0">
+          content
+        </AdminSidebarLayout>,
+      );
+      expect(screen.getByText('v0.4.0')).toBeDefined();
+      // Settings gear row is a separate nav item; version is footer-only.
+      expect(screen.getByText('Settings')).toBeDefined();
+      expect(screen.queryByText('v0.1.0')).toBeNull();
+    });
   });
 
   describe('AdminDashboard', () => {

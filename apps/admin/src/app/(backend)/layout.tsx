@@ -33,6 +33,8 @@ const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
 // GAP-260 P4-1: which product posture is this process. FreeTierBanner uses
 // this to stop pointing self-host at a Stripe checkout it has no keys for.
 const isHosted = isHostedDeployment(process.env);
+// Monorepo product version (next.config env from root package.json).
+const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? process.env.APP_VERSION ?? '0.0.0';
 const ADMIN_ROLES = new Set(['owner', 'admin', 'super-admin']);
 
 export default async function Layout({ children }: Args) {
@@ -58,6 +60,7 @@ export default async function Layout({ children }: Args) {
             isFleetMode={isFleetMode}
             isHosted={isHosted}
             isAdmin={isAdmin}
+            appVersion={appVersion}
           >
             {children}
           </AdminSidebarLayout>
