@@ -148,6 +148,9 @@ async function main(): Promise<void> {
         createdAt: now,
         updatedAt: now,
       });
+      // Account owner → platform shell admin (not super-admin). Mirrors signup.
+      const { ensureAccountOwnerPlatformAdmin } = await import('@revealui/auth/server');
+      await ensureAccountOwnerPlatformAdmin(db, user.id);
     }
   }
 

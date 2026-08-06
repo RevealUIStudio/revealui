@@ -11,8 +11,12 @@
  * owner/admin/editor/viewer/agent/contributor, so the app-level 'super-admin'
  * CANNOT live there — it lives in `_json.roles`. A first user promoted to DB
  * role 'admin'/'owner' but with no `_json.roles` is denied by every engine gate
- * (the founder's bug). Canonical owner shape (per #1219): DB role='owner' +
- * _json.roles=['super-admin'].
+ * (the founder's bug). Canonical **system** bootstrap shape (per #1219): DB
+ * role='owner' + _json.roles=['super-admin'].
+ *
+ * Separate from hosted **account membership owner** → shell admin (users.role
+ * admin, never super-admin): packages/auth ensureAccountOwnerPlatformAdmin.
+ * ADR: 2026-08-05-role-planes-owner-admin-super-admin.
  *
  * A typed Drizzle write is required for the same reason ./tos.ts documents: the
  * engine's dynamic-SQL create path can write `roles` into `_json`, but the

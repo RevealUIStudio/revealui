@@ -9,6 +9,7 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
+import { ensureAccountOwnerPlatformAdmin } from '@revealui/auth/server';
 import {
   coversRenewalBound,
   readLicenseExp,
@@ -518,6 +519,10 @@ export async function ensureHostedAccount(
     createdAt: now,
     updatedAt: now,
   });
+
+  // Account owner → platform shell admin (not super-admin). Same rule as
+  // signup personal-account provision (packages/auth platform-roles).
+  await ensureAccountOwnerPlatformAdmin(tx as Database, userId);
 
   logger.info('Hosted billing account created from Stripe webhook', {
     accountId,
