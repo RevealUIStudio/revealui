@@ -45,8 +45,13 @@ export function RootPage({ config }: RootPageProps) {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-foreground">{`${siteName} Admin`}</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground">v0.1.0</span>
+            <div className="flex shrink-0 items-center gap-3">
+              <span
+                className="shrink-0 text-sm tabular-nums text-muted-foreground"
+                title="Application version"
+              >
+                v{process.env.NEXT_PUBLIC_APP_VERSION ?? process.env.APP_VERSION ?? '0.0.0'}
+              </span>
             </div>
           </div>
         </div>
