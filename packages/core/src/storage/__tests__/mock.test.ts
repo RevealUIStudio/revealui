@@ -154,6 +154,58 @@ describe('createMockProvider', () => {
     });
   });
 
+  describe('createPresignedPutUrl', () => {
+    it('returns a mock presign URL + content-type headers + expiry', async () => {
+      const result = await provider.createPresignedPutUrl({
+        key: 'media/uuid.png',
+        contentType: 'image/png',
+        expiresInSeconds: 120,
+      });
+      expect(result.key).toBe('media/uuid.png');
+      expect(result.headers['content-type']).toBe('image/png');
+      expect(result.url).toContain('mock://storage/presign/media/uuid.png');
+      expect(result.expiresAt.getTime()).toBeGreaterThan(Date.now());
+    });
+
+    it('includes content-length when provided', async () => {
+      const result = await provider.createPresignedPutUrl({
+        key: 'k',
+        contentType: 'video/mp4',
+        contentLength: 99,
+      });
+      expect(result.headers['content-length']).toBe('99');
+    });
+  });
+
+  describe('headObject', () => {
+    it('returns size + contentType + url for a stored object', async () => {
+      await provider.put('media/a.png', new Uint8Array([1, 2, 3]), { contentType: 'image/png' });
+      const result = await provider.headObject('media/a.png');
+      expect(result).toEqual({
+        size: 3,
+        contentType: 'image/png',
+        url: 'mock://storage/media/a.png',
+      });
+    });
+
+    it('throws when the key is missing', async () => {
+      await expect(provider.headObject('missing')).rejects.toThrow(/NoSuchKey/);
+    });
+  });
+
+  describe('getObjectRange', () => {
+    it('returns the inclusive byte slice', async () => {
+      await provider.put('blob', new Uint8Array([10, 20, 30, 40, 50]));
+      await expect(provider.getObjectRange('blob', 1, 3)).resolves.toEqual(
+        new Uint8Array([20, 30, 40]),
+      );
+    });
+
+    it('throws when the key is missing', async () => {
+      await expect(provider.getObjectRange('missing', 0, 15)).rejects.toThrow(/NoSuchKey/);
+    });
+  });
+
   describe('test helpers', () => {
     it('size() returns object count', async () => {
       expect(provider.size()).toBe(0);

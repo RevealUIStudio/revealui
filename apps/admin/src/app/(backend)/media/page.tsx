@@ -18,24 +18,14 @@ import {
 } from '@revealui/presentation/client';
 import { type ChangeEvent, useCallback, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
+import { type UploadedMediaItem, uploadMedia as uploadMediaDirect } from './upload-media';
 import { useWindowFileDrop } from './use-window-file-drop';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface MediaItem {
-  id: string;
-  filename: string;
-  mimeType: string;
-  filesize: number | null;
-  url: string;
-  alt: string | null;
-  width: number | null;
-  height: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
+type MediaItem = UploadedMediaItem;
 
 interface MediaListResponse {
   success: boolean;
@@ -87,20 +77,7 @@ async function fetchMedia(
 }
 
 async function uploadMedia(serverUrl: string, file: File, alt?: string): Promise<MediaItem> {
-  const formData = new FormData();
-  formData.append('file', file);
-  if (alt) formData.append('alt', alt);
-  const res = await apiFetch(`${serverUrl}/api/content/media`, {
-    method: 'POST',
-    credentials: 'include',
-    body: formData,
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: 'Upload failed' }));
-    throw new Error(body.error ?? `Upload failed: ${res.status}`);
-  }
-  const json = await res.json();
-  return json.data;
+  return uploadMediaDirect(serverUrl, file, { apiFetch }, alt);
 }
 
 async function deleteMediaItem(serverUrl: string, id: string): Promise<void> {

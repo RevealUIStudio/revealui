@@ -3,9 +3,8 @@
 //
 // Phase 1 (#959): types.ts + index.ts type re-exports.
 // Phase 2a (#959 follow-up): r2 + mock providers + createStorage factory.
-// Phase 2b (#959 follow-up): apps/server media-route cutover onto R2.
-// #1644: legacy Vercel Blob StorageProvider removed once R2 was confirmed in
-//   every production environment — R2 is now the sole non-mock backend.
+// Phase 2b media-route cutover onto R2 (server) + #1644 Vercel Blob removal.
+// Phase 2b presign (GAP-215): createPresignedPutUrl + headObject + getObjectRange.
 
 import { createMockProvider } from './mock.js';
 import { createR2Provider } from './r2.js';
@@ -23,9 +22,12 @@ export { objectStorage } from './object-storage.js';
 // factory below).
 export { createR2Provider } from './r2.js';
 export type {
+  HeadObjectResult,
   ListItem,
   ListOptions,
   ListResult,
+  PresignPutOptions,
+  PresignPutResult,
   PutOptions,
   PutResult,
   R2Config,

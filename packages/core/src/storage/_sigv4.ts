@@ -118,9 +118,12 @@ export function computeSigV4(input: CanonicalInput): SigV4Result {
   return { signature, signedHeaders, scope, canonicalQuery };
 }
 
+/** Payload hash token for presigned URLs (body hash unknown at sign time). */
+export const UNSIGNED_PAYLOAD = 'UNSIGNED-PAYLOAD';
+
 /** Inputs for an R2/S3 request signature. */
 export interface SignS3Input {
-  method: 'GET' | 'PUT' | 'DELETE';
+  method: 'GET' | 'PUT' | 'DELETE' | 'HEAD';
   accountId: string;
   bucket: string;
   /** Object key; omit for bucket-level operations (e.g. ListObjectsV2). */
@@ -198,4 +201,87 @@ export function signS3Request(input: SignS3Input): SignedS3Request {
 
   const url = `https://${host}${canonicalPath}${canonicalQuery ? `?${canonicalQuery}` : ''}`;
   return { url, headers };
+}
+
+/** Inputs for a query-string presigned S3/R2 URL (no Authorization header). */
+export interface SignS3PresignedInput {
+  method: 'GET' | 'PUT' | 'DELETE' | 'HEAD';
+  accountId: string;
+  bucket: string;
+  key: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  /** Lifetime of the URL in seconds. */
+  expiresInSeconds: number;
+  /**
+   * Headers the client must send and that are included in the signature
+   * (content-type, content-length, …). Host is always signed and omitted
+   * from the returned headers (fetch sets it from the URL).
+   */
+  signedHeaders?: Record<string, string>;
+  now: Date;
+}
+
+export interface PresignedS3Url {
+  url: string;
+  /** Headers the client must include (signed set minus host). */
+  headers: Record<string, string>;
+}
+
+/**
+ * Build a query-string SigV4 presigned URL for R2/S3.
+ *
+ * Uses UNSIGNED-PAYLOAD so the client does not need to pre-hash the body.
+ * Credential and signature ride in the query string; the client sends only
+ * the signed non-host headers (e.g. content-type) with the request.
+ */
+export function signS3PresignedUrl(input: SignS3PresignedInput): PresignedS3Url {
+  const host = `${input.accountId}.r2.cloudflarestorage.com`;
+  const { amzDate, dateStamp } = toAmzDate(input.now);
+  const scope = `${dateStamp}/${input.region}/${S3_SERVICE}/aws4_request`;
+
+  const encodedKey = input.key
+    .split('/')
+    .map((segment) => awsUriEncode(segment, false))
+    .join('/');
+  const canonicalPath = `/${awsUriEncode(input.bucket, false)}/${encodedKey}`;
+
+  const clientHeaders: Record<string, string> = {};
+  const headersToSign: Record<string, string> = { host };
+  for (const [name, value] of Object.entries(input.signedHeaders ?? {})) {
+    const lower = name.toLowerCase();
+    if (lower === 'host') continue;
+    headersToSign[lower] = value;
+    clientHeaders[lower] = value;
+  }
+
+  const signedHeaderNames = Object.keys(headersToSign).sort().join(';');
+
+  const query: [string, string][] = [
+    ['X-Amz-Algorithm', ALGORITHM],
+    ['X-Amz-Credential', `${input.accessKeyId}/${scope}`],
+    ['X-Amz-Date', amzDate],
+    ['X-Amz-Expires', String(input.expiresInSeconds)],
+    ['X-Amz-SignedHeaders', signedHeaderNames],
+  ];
+
+  const { signature, canonicalQuery } = computeSigV4({
+    method: input.method,
+    canonicalPath,
+    query,
+    headersToSign,
+    payloadHash: UNSIGNED_PAYLOAD,
+    amzDate,
+    region: input.region,
+    service: S3_SERVICE,
+    accessKeyId: input.accessKeyId,
+    secretAccessKey: input.secretAccessKey,
+  });
+
+  const fullQuery = `${canonicalQuery}&${awsUriEncode('X-Amz-Signature', true)}=${awsUriEncode(signature, true)}`;
+  return {
+    url: `https://${host}${canonicalPath}?${fullQuery}`,
+    headers: clientHeaders,
+  };
 }

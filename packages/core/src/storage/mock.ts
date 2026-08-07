@@ -8,14 +8,17 @@
  * `mock://` scheme so callers can distinguish mock results from real ones
  * without parsing host names.
  *
- * GAP-208 Phase 2a (2026-05-18).
+ * GAP-208 Phase 2a (2026-05-18). Phase 2b (GAP-215): presigned PUT + head + range.
  */
 
 import { toUint8Array } from './_helpers.js';
 import type {
+  HeadObjectResult,
   ListItem,
   ListOptions,
   ListResult,
+  PresignPutOptions,
+  PresignPutResult,
   PutOptions,
   PutResult,
   StorageProvider,
@@ -24,6 +27,7 @@ import type {
 const PROVIDER_TAG = 'mock';
 const MOCK_URL_SCHEME = 'mock://storage';
 const DEFAULT_LIST_LIMIT = 1000;
+const DEFAULT_PRESIGN_EXPIRES_SECONDS = 900;
 
 interface MockEntry {
   body: Uint8Array;
@@ -56,6 +60,65 @@ class MockProvider implements StorageProvider {
       size: body.byteLength,
       provider: PROVIDER_TAG,
     };
+  }
+
+  async createPresignedPutUrl(opts: PresignPutOptions): Promise<PresignPutResult> {
+    const expiresInSeconds = opts.expiresInSeconds ?? DEFAULT_PRESIGN_EXPIRES_SECONDS;
+    if (expiresInSeconds <= 0) {
+      throw new Error('createPresignedPutUrl: expiresInSeconds must be positive');
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + expiresInSeconds * 1000);
+    const headers: Record<string, string> = {
+      'content-type': opts.contentType,
+    };
+    if (opts.contentLength !== undefined) {
+      headers['content-length'] = String(opts.contentLength);
+    }
+
+    // Synthetic presigned URL. Tests that exercise the full client flow call
+    // put() with the same key after "uploading"; route tests mock this method.
+    const params = new URLSearchParams({
+      expires: String(Math.floor(expiresAt.getTime() / 1000)),
+      'content-type': opts.contentType,
+    });
+    return {
+      url: `${MOCK_URL_SCHEME}/presign/${opts.key}?${params.toString()}`,
+      headers,
+      key: opts.key,
+      expiresAt,
+    };
+  }
+
+  async headObject(key: string): Promise<HeadObjectResult> {
+    const entry = this.store.get(key);
+    if (!entry) {
+      throw new Error(`mock HEAD failed for "${key}": NoSuchKey object not found`);
+    }
+    return {
+      size: entry.body.byteLength,
+      contentType: entry.contentType,
+      url: `${MOCK_URL_SCHEME}/${key}`,
+    };
+  }
+
+  async getObjectRange(key: string, start: number, endInclusive: number): Promise<Uint8Array> {
+    if (start < 0 || endInclusive < start) {
+      throw new Error(
+        `getObjectRange: invalid range ${start}-${endInclusive} (start must be >= 0 and endInclusive >= start)`,
+      );
+    }
+    const entry = this.store.get(key);
+    if (!entry) {
+      throw new Error(`mock GET range failed for "${key}": NoSuchKey object not found`);
+    }
+    // Inclusive end, clamped to body length (mirrors S3 range semantics).
+    const end = Math.min(endInclusive, entry.body.byteLength - 1);
+    if (start >= entry.body.byteLength) {
+      return new Uint8Array(0);
+    }
+    return entry.body.slice(start, end + 1);
   }
 
   async del(keyOrUrl: string): Promise<void> {

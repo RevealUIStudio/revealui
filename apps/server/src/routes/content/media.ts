@@ -1,7 +1,9 @@
 /**
  * Media CRUD routes
  *
- * POST /media (upload)
+ * POST /media (legacy multipart upload — still supported for small/dev files)
+ * POST /media/presign (GAP-215: issue direct-to-R2 PUT URL)
+ * POST /media/confirm (GAP-215: HEAD + magic-byte check, create media row)
  * GET /media
  * GET|PATCH|DELETE /media/:id
  */
@@ -25,6 +27,12 @@ import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 
+/** Default lifetime of a presigned media PUT URL (15 minutes). */
+const PRESIGN_EXPIRES_SECONDS = 900;
+
+/** Bytes of object prefix fetched on confirm for magic-byte verification. */
+const MAGIC_BYTE_PREFIX_LENGTH = 16;
+
 // =============================================================================
 // Media Schemas
 // =============================================================================
@@ -47,11 +55,314 @@ const MediaSchema = z
   })
   .openapi('Media');
 
+const PresignRequestSchema = z.object({
+  filename: z.string().min(1).max(255),
+  mimeType: z.string().min(1).max(127),
+  size: z.number().int().positive(),
+});
+
+const ConfirmRequestSchema = z.object({
+  key: z.string().min(1).max(512),
+  filename: z.string().min(1).max(255),
+  mimeType: z.string().min(1).max(127),
+  size: z.number().int().positive(),
+  alt: z.string().max(500).optional(),
+});
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+function assertAllowedMime(mimeType: string): void {
+  const allowedMimes: readonly string[] = ALL_MIME_TYPES;
+  if (!allowedMimes.includes(mimeType)) {
+    throw new HTTPException(400, {
+      message: `Unsupported file type: ${mimeType}. Allowed: ${allowedMimes.join(', ')}`,
+    });
+  }
+}
+
+function assertWithinSizeLimit(mimeType: string, size: number): void {
+  const sizeLimit = getSizeLimit(mimeType);
+  if (size > sizeLimit) {
+    throw new HTTPException(413, {
+      message: `File too large (${(size / 1024 / 1024).toFixed(1)}MB). Maximum for ${mimeType}: ${(sizeLimit / 1024 / 1024).toFixed(0)}MB`,
+    });
+  }
+}
+
+/**
+ * Storage keys issued by presign are always `media/<uuid>.<ext>` where `ext`
+ * is derived from the verified MIME type. Confirm rejects any other shape so
+ * a client cannot register an arbitrary object under a media row.
+ */
+export function isIssuedMediaKey(key: string, mimeType: string): boolean {
+  const expectedExt = extensionForMimeType(mimeType);
+  const prefix = 'media/';
+  if (!key.startsWith(prefix)) return false;
+  const rest = key.slice(prefix.length);
+  const dot = rest.lastIndexOf('.');
+  if (dot <= 0) return false;
+  const name = rest.slice(0, dot);
+  const ext = rest.slice(dot + 1);
+  if (ext !== expectedExt) return false;
+  // UUID form: 8-4-4-4-12 hex with dashes at fixed positions.
+  if (name.length !== 36) return false;
+  if (name[8] !== '-' || name[13] !== '-' || name[18] !== '-' || name[23] !== '-') {
+    return false;
+  }
+  for (let i = 0; i < name.length; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) continue;
+    const code = name.charCodeAt(i);
+    const isDigit = code >= 48 && code <= 57;
+    const isLowerHex = code >= 97 && code <= 102;
+    const isUpperHex = code >= 65 && code <= 70;
+    if (!(isDigit || isLowerHex || isUpperHex)) return false;
+  }
+  return true;
+}
+
+function contentTypesCompatible(declared: string, stored: string): boolean {
+  // R2 may append charset or return a default; compare the media type token only.
+  const declaredBase = declared.split(';')[0]?.trim().toLowerCase() ?? '';
+  const storedBase = stored.split(';')[0]?.trim().toLowerCase() ?? '';
+  if (declaredBase === storedBase) return true;
+  // Some backends default missing Content-Type to application/octet-stream.
+  if (storedBase === 'application/octet-stream') return true;
+  return false;
+}
+
 // =============================================================================
 // Media Routes
 // =============================================================================
 
-// POST /media (upload)
+// POST /media/presign — issue a direct-to-R2 PUT URL (GAP-215). Static path
+// registered before /media/:id so it is not captured as an id.
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/media/presign',
+    tags: ['content'],
+    summary: 'Presign a direct-to-storage media upload',
+    description:
+      'Returns a short-lived presigned PUT URL. The client uploads bytes directly ' +
+      'to object storage, then calls POST /media/confirm. File bytes never buffer ' +
+      'in the API function (GAP-215).',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: PresignRequestSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.literal(true),
+              data: z.object({
+                key: z.string(),
+                uploadUrl: z.string(),
+                headers: z.record(z.string(), z.string()),
+                expiresAt: z.string().openapi({ type: 'string', format: 'date-time' }),
+              }),
+            }),
+          },
+        },
+        description: 'Presigned upload issued',
+      },
+      400: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Invalid request',
+      },
+      413: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'File too large',
+      },
+    },
+  }),
+  async (c) => {
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+
+    const body = c.req.valid('json');
+    assertAllowedMime(body.mimeType);
+    assertWithinSizeLimit(body.mimeType, body.size);
+
+    const ext = extensionForMimeType(body.mimeType);
+    const key = `media/${crypto.randomUUID()}.${ext}`;
+
+    try {
+      const storage = getMediaStorage();
+      const presigned = await storage.createPresignedPutUrl({
+        key,
+        contentType: body.mimeType,
+        expiresInSeconds: PRESIGN_EXPIRES_SECONDS,
+      });
+      return c.json(
+        {
+          success: true as const,
+          data: {
+            key: presigned.key,
+            uploadUrl: presigned.url,
+            headers: presigned.headers,
+            expiresAt: presigned.expiresAt.toISOString(),
+          },
+        },
+        200,
+      );
+    } catch (presignError) {
+      logger.error('Failed to create presigned media upload URL', undefined, {
+        mimeType: body.mimeType,
+        size: body.size,
+        error: presignError instanceof Error ? presignError.message : 'unknown',
+      });
+      throw new HTTPException(502, {
+        message: 'Failed to prepare media upload. Please try again.',
+      });
+    }
+  },
+);
+
+// POST /media/confirm — re-validate object in storage and create the media row.
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/media/confirm',
+    tags: ['content'],
+    summary: 'Confirm a direct-to-storage media upload',
+    description:
+      'After the client PUTs to the presigned URL, confirm HEADs the object, ' +
+      're-checks size and magic bytes, then creates the media DB row (GAP-215).',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: ConfirmRequestSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      201: {
+        content: {
+          'application/json': {
+            schema: z.object({ success: z.literal(true), data: MediaSchema }),
+          },
+        },
+        description: 'Media registered',
+      },
+      400: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Validation failed',
+      },
+      413: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'File too large',
+      },
+    },
+  }),
+  async (c) => {
+    const db = c.get('db');
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+
+    const body = c.req.valid('json');
+    assertAllowedMime(body.mimeType);
+    assertWithinSizeLimit(body.mimeType, body.size);
+
+    if (!isIssuedMediaKey(body.key, body.mimeType)) {
+      throw new HTTPException(400, {
+        message: 'Invalid storage key for the declared media type.',
+      });
+    }
+
+    const storage = getMediaStorage();
+
+    let head: { size: number; contentType: string; url: string };
+    try {
+      head = await storage.headObject(body.key);
+    } catch (headError) {
+      const message = headError instanceof Error ? headError.message : 'unknown';
+      if (message.includes('NoSuchKey') || message.includes('not found')) {
+        throw new HTTPException(400, {
+          message: 'Uploaded object not found. Complete the storage PUT before confirming.',
+        });
+      }
+      logger.error('Failed to HEAD media object on confirm', undefined, {
+        key: body.key,
+        error: message,
+      });
+      throw new HTTPException(502, {
+        message: 'Failed to verify uploaded media. Please try again.',
+      });
+    }
+
+    if (head.size !== body.size) {
+      throw new HTTPException(400, {
+        message: `Uploaded object size (${head.size}) does not match declared size (${body.size}).`,
+      });
+    }
+    if (head.size > getSizeLimit(body.mimeType)) {
+      throw new HTTPException(413, {
+        message: `Uploaded object exceeds the size limit for ${body.mimeType}.`,
+      });
+    }
+    if (!contentTypesCompatible(body.mimeType, head.contentType)) {
+      throw new HTTPException(400, {
+        message: `Uploaded object content-type (${head.contentType}) does not match declared type (${body.mimeType}).`,
+      });
+    }
+
+    let prefix: Uint8Array;
+    try {
+      prefix = await storage.getObjectRange(body.key, 0, MAGIC_BYTE_PREFIX_LENGTH - 1);
+    } catch (rangeError) {
+      logger.error('Failed to read media object prefix on confirm', undefined, {
+        key: body.key,
+        error: rangeError instanceof Error ? rangeError.message : 'unknown',
+      });
+      throw new HTTPException(502, {
+        message: 'Failed to verify uploaded media content. Please try again.',
+      });
+    }
+
+    if (!verifyMagicBytes(body.mimeType, prefix)) {
+      // Best-effort cleanup of a rejected object so it cannot linger.
+      try {
+        await storage.del(body.key);
+      } catch (delError) {
+        logger.warn('Failed to delete media object that failed magic-byte check', {
+          key: body.key,
+          error: delError instanceof Error ? delError.message : 'unknown',
+        });
+      }
+      throw new HTTPException(400, {
+        message: `File content does not match its declared type (${body.mimeType}).`,
+      });
+    }
+
+    const item = await mediaQueries.createMedia(db, {
+      id: crypto.randomUUID(),
+      filename: sanitizeFilename(body.filename),
+      mimeType: body.mimeType,
+      filesize: head.size,
+      url: head.url,
+      alt: body.alt ?? null,
+      uploadedBy: user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    if (!item) throw new HTTPException(500, { message: 'Failed to create media record' });
+    return c.json({ success: true as const, data: item }, 201);
+  },
+);
+
+// POST /media (legacy multipart upload)
 app.openapi(
   createRoute({
     method: 'post',

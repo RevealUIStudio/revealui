@@ -1,8 +1,9 @@
 /**
  * Request body-size limits.
  *
- * A single path-aware gate: media uploads (POST to the media collection) get the
- * image per-type ceiling; every other route gets 1MB.
+ * A single path-aware gate: legacy multipart media uploads (POST exact path
+ * `/api/content/media`) get the image per-type ceiling (10MB); every other
+ * route — including POST /media/presign and POST /media/confirm — gets 1MB.
  *
  * Why one middleware instead of separate `app.use('/media/*', big)` +
  * `app.use('*', small)`: Hono runs every matching middleware in registration
@@ -11,9 +12,10 @@
  * 100MB media limit dead code (every media upload was capped at 1MB). Choosing
  * the size inside one middleware avoids that interaction.
  *
- * Larger/video uploads will move to a presigned direct-to-R2 upload path, where
- * the bytes never buffer in the function. The per-type check in the media route
- * remains the authoritative content-size enforcement after parse.
+ * Large/video uploads use the GAP-215 presigned direct-to-R2 path: the client
+ * PUTs bytes to R2, so the API never buffers the file body. Presign/confirm
+ * bodies are tiny JSON and stay under GLOBAL_BODY_LIMIT. The per-type check on
+ * those routes is the authoritative content-size enforcement.
  */
 import { FILE_SIZE_LIMITS } from '@revealui/contracts/entities';
 import type { MiddlewareHandler } from 'hono';
@@ -22,10 +24,17 @@ import { bodyLimit } from 'hono/body-limit';
 /** Default body limit for all routes (1MB). */
 export const GLOBAL_BODY_LIMIT = 1024 * 1024;
 
-/** Body limit for media uploads — the image/document per-type ceiling (10MB). */
+/**
+ * Body limit for legacy multipart media uploads — image/document per-type
+ * ceiling (10MB). Video and larger files must use POST /media/presign.
+ */
 export const MEDIA_UPLOAD_BODY_LIMIT = FILE_SIZE_LIMITS.IMAGE;
 
-/** POST paths that accept a media upload and therefore get the larger body limit. */
+/**
+ * POST paths that accept a legacy multipart media upload and therefore get the
+ * larger body limit. Exact path only — /media/presign and /media/confirm stay
+ * on GLOBAL_BODY_LIMIT (JSON).
+ */
 const MEDIA_UPLOAD_PATHS = new Set(['/api/content/media', '/api/v1/content/media']);
 
 function normalizePath(path: string): string {

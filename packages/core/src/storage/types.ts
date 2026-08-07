@@ -30,8 +30,73 @@ export interface StorageProvider {
   /** List items, optionally filtered by key prefix. Used by health probes + admin browsing. */
   list(opts?: ListOptions): Promise<ListResult>;
 
+  /**
+   * Issue a short-lived presigned PUT URL so clients upload bytes direct to the
+   * backend (GAP-215 / Phase 2b). File bytes never buffer in the API function.
+   */
+  createPresignedPutUrl(opts: PresignPutOptions): Promise<PresignPutResult>;
+
+  /**
+   * HEAD an object. Used by the media confirm endpoint to re-check size and
+   * content-type after a direct-to-storage upload.
+   */
+  headObject(key: string): Promise<HeadObjectResult>;
+
+  /**
+   * GET a byte range of an object (inclusive end). Used to re-check magic
+   * bytes on confirm without downloading the whole file.
+   */
+  getObjectRange(key: string, start: number, endInclusive: number): Promise<Uint8Array>;
+
   /** Provider tag (e.g. "r2", "mock") — exposed so consumers can adapt URL handling. */
   readonly provider: string;
+}
+
+// ── Presigned PUT (Phase 2b / GAP-215) ───────────────────────────────────────
+
+export interface PresignPutOptions {
+  /** Storage key the client will write (provider-relative, e.g. "media/uuid.jpg"). */
+  key: string;
+
+  /** MIME type the client must send as Content-Type (signed into the URL). */
+  contentType: string;
+
+  /**
+   * Optional declared Content-Length. When set, signed into the request so the
+   * client cannot upload a larger body. Browser fetch cannot set Content-Length
+   * manually, so media direct-upload leaves this unset and re-checks size via
+   * headObject on confirm.
+   */
+  contentLength?: number;
+
+  /** URL lifetime in seconds. Defaults to provider-specific value (typically 900). */
+  expiresInSeconds?: number;
+}
+
+export interface PresignPutResult {
+  /** Fully-qualified presigned PUT URL (query-string SigV4). */
+  url: string;
+
+  /**
+   * Headers the client MUST send with the PUT (at least content-type). Values
+   * are already signed into the URL's X-Amz-SignedHeaders set.
+   */
+  headers: Record<string, string>;
+
+  /** Storage key the URL writes to (echo of PresignPutOptions.key). */
+  key: string;
+
+  /** Absolute expiry of the URL. */
+  expiresAt: Date;
+}
+
+// ── HEAD / range GET ─────────────────────────────────────────────────────────
+
+export interface HeadObjectResult {
+  size: number;
+  contentType: string;
+  /** Public (or mock) URL the object is reachable at for GET. */
+  url: string;
 }
 
 // ── Put ──────────────────────────────────────────────────────────────────────
@@ -125,10 +190,11 @@ export interface R2Config {
   bucket: string;
 
   /**
-   * Optional public base URL for objects (e.g. "https://media.revealui.com" if a
-   * custom domain is bound, or "https://<account-id>.r2.cloudflarestorage.com/<bucket>"
-   * for the dev URL). When set, PutResult.url uses this base. When omitted, PutResult.url
-   * falls back to a presigned URL (private bucket pattern).
+   * Public base URL for objects (e.g. "https://media.revealui.com" if a custom
+   * domain is bound, or the R2 dev URL). Required: PutResult.url, HeadObjectResult.url,
+   * and media rows after confirm use this base. Presigned PUT URLs themselves
+   * target the S3 API endpoint and do not need this, but the final public media
+   * URL still does.
    */
   publicBaseUrl?: string;
 }

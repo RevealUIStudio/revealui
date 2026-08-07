@@ -20,13 +20,16 @@ const { mockMediaQueries, mockStorage } = vi.hoisted(() => ({
     deleteMedia: vi.fn(),
   },
   // Stand-in StorageProvider. media.ts depends only on the provider interface
-  // (via getMediaStorage), so the concrete backend (R2 / Vercel Blob) is
-  // irrelevant to these route tests.
+  // (via getMediaStorage), so the concrete backend (R2) is irrelevant to these
+  // route tests.
   mockStorage: {
     provider: 'mock' as const,
     put: vi.fn(),
     del: vi.fn(),
     list: vi.fn(),
+    createPresignedPutUrl: vi.fn(),
+    headObject: vi.fn(),
+    getObjectRange: vi.fn(),
   },
 }));
 
@@ -131,6 +134,234 @@ function makeFile(name: string, type: string): File {
   const bytes = new Uint8Array([...sig, 0x00, 0x00, 0x00, 0x00]);
   return new File([bytes], name, { type });
 }
+
+// ─── POST /media/presign ──────────────────────────────────────────────────────
+
+describe('POST /media/presign', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockStorage.createPresignedPutUrl.mockResolvedValue({
+      key: 'media/11111111-1111-1111-1111-111111111111.png',
+      url: 'https://acct.r2.cloudflarestorage.com/bucket/media/uuid.png?X-Amz-Signature=abc',
+      headers: { 'content-type': 'image/png' },
+      expiresAt: new Date('2026-05-18T10:15:00.000Z'),
+    });
+  });
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/media/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: 'a.png', mimeType: 'image/png', size: 100 }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 for unsupported MIME type', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/media/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: 'evil.exe',
+        mimeType: 'application/x-msdownload',
+        size: 100,
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/unsupported file type/i);
+    expect(mockStorage.createPresignedPutUrl).not.toHaveBeenCalled();
+  });
+
+  it('returns 413 when declared size exceeds per-type limit', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/media/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: 'huge.png',
+        mimeType: 'image/png',
+        size: 10_485_761,
+      }),
+    });
+    expect(res.status).toBe(413);
+    expect(mockStorage.createPresignedPutUrl).not.toHaveBeenCalled();
+  });
+
+  it('allows video sizes up to the VIDEO limit (not the 10MB interim multipart cap)', async () => {
+    mockStorage.createPresignedPutUrl.mockResolvedValue({
+      key: 'media/11111111-1111-1111-1111-111111111111.mp4',
+      url: 'https://acct.r2.cloudflarestorage.com/bucket/media/v.mp4?sig=1',
+      headers: { 'content-type': 'video/mp4' },
+      expiresAt: new Date('2026-05-18T10:15:00.000Z'),
+    });
+    const app = createApp(USER_A);
+    const res = await app.request('/media/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: 'clip.mp4',
+        mimeType: 'video/mp4',
+        size: 30 * 1024 * 1024,
+      }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockStorage.createPresignedPutUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contentType: 'video/mp4',
+        key: expect.stringMatching(/^media\/[a-f0-9-]+\.mp4$/),
+      }),
+    );
+  });
+
+  it('returns uploadUrl + headers + key on success', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/media/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: 'a.png', mimeType: 'image/png', size: 100 }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.uploadUrl).toContain('X-Amz-Signature');
+    expect(body.data.headers['content-type']).toBe('image/png');
+    expect(body.data.key).toMatch(/^media\/.+\.png$/);
+    expect(body.data.expiresAt).toBe('2026-05-18T10:15:00.000Z');
+  });
+
+  it('returns 502 when the storage provider fails to presign', async () => {
+    mockStorage.createPresignedPutUrl.mockRejectedValue(new Error('signer down'));
+    const app = createApp(USER_A);
+    const res = await app.request('/media/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: 'a.png', mimeType: 'image/png', size: 100 }),
+    });
+    expect(res.status).toBe(502);
+  });
+});
+
+// ─── POST /media/confirm ──────────────────────────────────────────────────────
+
+describe('POST /media/confirm', () => {
+  const validKey = 'media/11111111-1111-4111-8111-111111111111.png';
+  const pngMagic = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockStorage.headObject.mockResolvedValue({
+      size: 12,
+      contentType: 'image/png',
+      url: 'https://media.revealui.com/media/11111111-1111-4111-8111-111111111111.png',
+    });
+    mockStorage.getObjectRange.mockResolvedValue(pngMagic);
+    mockMediaQueries.createMedia.mockResolvedValue(
+      makeMediaRecord({
+        url: 'https://media.revealui.com/media/11111111-1111-4111-8111-111111111111.png',
+      }),
+    );
+  });
+
+  function confirmBody(overrides: Record<string, unknown> = {}) {
+    return JSON.stringify({
+      key: validKey,
+      filename: 'photo.png',
+      mimeType: 'image/png',
+      size: 12,
+      ...overrides,
+    });
+  }
+
+  it('returns 401 without authentication', async () => {
+    const app = createApp(null);
+    const res = await app.request('/media/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: confirmBody(),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 for a key that was not issued by presign', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/media/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: confirmBody({ key: 'other/not-ours.png' }),
+    });
+    expect(res.status).toBe(400);
+    expect(mockStorage.headObject).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when the object is missing in storage', async () => {
+    mockStorage.headObject.mockRejectedValue(new Error('NoSuchKey object not found'));
+    const app = createApp(USER_A);
+    const res = await app.request('/media/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: confirmBody(),
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/not found/i);
+  });
+
+  it('returns 400 when stored size does not match declared size', async () => {
+    mockStorage.headObject.mockResolvedValue({
+      size: 99,
+      contentType: 'image/png',
+      url: 'https://media.revealui.com/media/x.png',
+    });
+    const app = createApp(USER_A);
+    const res = await app.request('/media/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: confirmBody(),
+    });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/size/i);
+  });
+
+  it('returns 400 when magic bytes do not match the declared type', async () => {
+    mockStorage.getObjectRange.mockResolvedValue(new TextEncoder().encode('<html>evil'));
+    const app = createApp(USER_A);
+    const res = await app.request('/media/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: confirmBody(),
+    });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/does not match/i);
+    expect(mockStorage.del).toHaveBeenCalledWith(validKey);
+    expect(mockMediaQueries.createMedia).not.toHaveBeenCalled();
+  });
+
+  it('creates the media row on success', async () => {
+    const app = createApp(USER_A);
+    const res = await app.request('/media/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: confirmBody({ alt: 'A sunset' }),
+    });
+    expect(res.status).toBe(201);
+    expect(mockMediaQueries.createMedia).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        uploadedBy: USER_A.id,
+        mimeType: 'image/png',
+        filesize: 12,
+        alt: 'A sunset',
+        url: 'https://media.revealui.com/media/11111111-1111-4111-8111-111111111111.png',
+      }),
+    );
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.id).toBe('media-1');
+  });
+});
 
 // ─── POST /media  -  Upload ────────────────────────────────────────────────────
 

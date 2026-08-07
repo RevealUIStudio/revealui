@@ -23,6 +23,9 @@ function createMockProvider(tag = 'mock'): StorageProvider {
     put: (...args: unknown[]) => mockPut(...args),
     del: (...args: unknown[]) => mockDel(...args),
     list: (...args: unknown[]) => mockList(...args),
+    createPresignedPutUrl: vi.fn(),
+    headObject: vi.fn(),
+    getObjectRange: vi.fn(),
   } as unknown as StorageProvider;
 }
 
