@@ -99,6 +99,10 @@
       "sha256": "498578c8bc2c7d3370667efd6a60d17c09903ab774659ce5a031b3acdb70e6d3"
     },
     {
+      "relativePath": ".revealui/content/rules/token-economy.md",
+      "sha256": "7ed4fc56740046530b5188de5810d77cc1fe86d2de238739e60de5ef04e4d851"
+    },
+    {
       "relativePath": ".revealui/content/rules/tracker-first.md",
       "sha256": "a31d4380657565bcb45e65c34458de01e77d0f547b9304e627f6764d90f55f1c"
     },
