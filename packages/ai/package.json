@@ -1,7 +1,7 @@
 {
   "name": "@revealui/ai",
   "version": "0.9.1",
-  "description": "AI runtime for agent-driven products — agents, memory, LLM providers (Inference Snaps, Ollama, OpenAI-compatible), tools, and orchestration. Anthropic-SDK-free.",
+  "description": "AI runtime for agent-driven products \u2014 agents, memory, LLM providers (Inference Snaps, Ollama, OpenAI-compatible), tools, and orchestration. Anthropic-SDK-free.",
   "keywords": [
     "agent",
     "ai",
@@ -199,6 +199,11 @@
       "types": "./dist/inference/task-decomposer.d.ts",
       "import": "./dist/inference/task-decomposer.js",
       "default": "./dist/inference/task-decomposer.js"
+    },
+    "./llm/hardware-capability-profile": {
+      "types": "./dist/llm/hardware-capability-profile.d.ts",
+      "import": "./dist/llm/hardware-capability-profile.js",
+      "default": "./dist/llm/hardware-capability-profile.js"
     }
   },
   "files": [
