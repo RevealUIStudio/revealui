@@ -90,6 +90,7 @@
   },
   "scripts": {
     "build": "tsup && tsup --config tsup.gates-cjs.ts",
+    "build:gates": "tsup --config tsup.gates-only.ts",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
     "lint": "biome check .",

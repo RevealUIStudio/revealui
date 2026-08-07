@@ -58,19 +58,17 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # SCOPED install: harnesses + its workspace deps (not the full monorepo).
-      # Full install took 10+ minutes and timed out on unrelated PRs. Same shape
-      # as security-review-gate.yml. `...` includes deps such as
-      # @revealui/security (GAP-381 policy crypto) required for harnesses DTS.
-      - name: Install (harnesses + deps)
-        run: pnpm install --frozen-lockfile --filter @revealui/harnesses...
+      # SCOPED install: harnesses + dev only (not full monorepo; not security).
+      # Full install timed out on unrelated PRs. archive-check only needs
+      # dist/gates (archive-check helpers), not hooks/policy → build:gates.
+      - name: Install (harnesses + dev)
+        run: pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
 
       # The gate fails closed if it cannot resolve the shared module, so the
-      # build is a hard prerequisite rather than an optimization. Build deps
-      # first so @revealui/security/server types exist for tsup DTS.
-      # pnpm recursive (not turbo): scoped install has no root turbo binary.
+      # build is a hard prerequisite. build:gates avoids @revealui/security DTS
+      # (sparse checkout has no security source; GAP-381 policy crypto).
       - name: Build the shared gates module
-        run: pnpm --filter "@revealui/harnesses..." run build
+        run: pnpm --filter @revealui/harnesses run build:gates
 
       # jv#871: a gate is not wired until CI has observed it green AND red.
       # Seeding a violation into the repo cannot prove the red half, because
