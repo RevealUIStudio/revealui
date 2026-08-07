@@ -1,6 +1,6 @@
 {
   "name": "@revealui/claim-gates",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Fleet claim honesty engines: multi-root claim-drift and related gates (GAP-462).",
   "license": "MIT",
   "type": "module",
