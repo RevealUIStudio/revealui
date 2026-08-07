@@ -7,7 +7,7 @@ describe('Content Public API', () => {
       const manifest = buildManifest();
       expect(manifest.version).toBe(1);
       expect(manifest.generatedAt).toBeTruthy();
-      expect(manifest.rules.length).toBe(16);
+      expect(manifest.rules.length).toBe(17);
       expect(manifest.commands.length).toBe(4);
       expect(manifest.agents.length).toBe(6);
       expect(manifest.skills.length).toBe(10);
@@ -47,18 +47,18 @@ describe('Content Public API', () => {
   describe('listContent', () => {
     it('returns correct counts', () => {
       const summary = listContent();
-      expect(summary.rules).toBe(16);
+      expect(summary.rules).toBe(17);
       expect(summary.commands).toBe(4);
       expect(summary.agents).toBe(6);
       expect(summary.skills).toBe(10);
       expect(summary.preambles).toBe(4);
-      expect(summary.total).toBe(36);
+      expect(summary.total).toBe(37);
     });
 
     it('accepts an explicit manifest', () => {
       const manifest = buildManifest();
       const summary = listContent(manifest);
-      expect(summary.total).toBe(36);
+      expect(summary.total).toBe(37);
     });
   });
 
