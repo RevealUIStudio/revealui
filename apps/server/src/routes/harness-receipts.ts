@@ -252,9 +252,10 @@ export function createHarnessReceiptsApp(): Hono {
 
 /**
  * Mount under /api/harness and /api/v1/harness with the governed chain.
+ * App typing matches mountMcpEndpoint (OpenAPIHono is not Hono&lt;BlankEnv&gt;).
  */
-/** Accept OpenAPIHono or Hono mounts without forcing BlankEnv. */
-export function mountHarnessReceipts(app: Pick<Hono, 'use' | 'route'>): void {
+// biome-ignore lint/suspicious/noExplicitAny: same as mountMcpEndpoint — OpenAPIHono Env vs Hono BlankEnv
+export function mountHarnessReceipts(app: Hono<any, any, any>): void {
   const chain: MiddlewareHandler[] = [
     authMiddleware({ required: true }),
     requireDeviceToken,
