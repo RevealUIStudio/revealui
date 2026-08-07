@@ -509,3 +509,12 @@ Settings pairing UI for the flow.
 
 **Review date:** 2027-07-18 (annual)
 **Owner:** RevealUI Studio (RevDev daemon maintainer)
+
+## GAP-339 vault paths (signup / bundle flags)
+
+| Path | Consumers | Notes |
+|------|-----------|--------|
+| `revealui/prod/admin/signup-open` | admin `REVEALUI_SIGNUP_OPEN` | Boolean string; self-serve funnel gate |
+| `revealui/prod/api/bundle-pro` | api `REVEALUI_BUNDLE_PRO` | Pro bundle flag |
+
+Scoped sync runbook: [docs/security/REVVAULT-VERCEL-SCOPED-SYNC.md](./security/REVVAULT-VERCEL-SCOPED-SYNC.md).
