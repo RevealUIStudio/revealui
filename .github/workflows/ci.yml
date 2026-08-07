@@ -104,13 +104,15 @@ jobs:
         # into src/ (GAP-421 §6.2): doc-currency.ts resolves its
         # SHARED_FLEET_RULES detection tuples from dist/gates, and
         # structure.ts resolves checkManager from dist/manager (manager-resolver.cjs,
-        # mirroring gates-resolver.cjs). Building just this one package is
-        # cheap relative to the whole monorepo (Quality is install-only
-        # otherwise). Absence degrades gracefully for doc-currency (warn +
-        # shared-rules-skipped run) but fails closed for the manager check
-        # (GAP-406 hard-fail posture), so this step must run before Structure
-        # validation and the path-gated manager-only check below.
-        run: pnpm --filter @revealui/harnesses build
+        # mirroring gates-resolver.cjs). Absence degrades gracefully for
+        # doc-currency (warn + shared-rules-skipped run) but fails closed for
+        # the manager check (GAP-406 hard-fail posture), so this step must run
+        # before Structure validation and the path-gated manager-only check
+        # below.
+        # `...` includes workspace deps (e.g. @revealui/security for policy
+        # snapshot crypto / GAP-381 I-5) so DTS can resolve @revealui/security/server.
+        # turbo ^build order applies.
+        run: pnpm turbo run build --filter=@revealui/harnesses...
         env:
           SKIP_ENV_VALIDATION: "true"
 
