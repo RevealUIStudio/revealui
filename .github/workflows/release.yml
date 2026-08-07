@@ -63,6 +63,11 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          # Need remote package@version tags so `changeset tag` can skip names
+          # that already exist (idempotent re-run) and so the tag step can
+          # verify coverage when tags point at the version-bump commit rather
+          # than the current main HEAD (common after a promote merge).
+          fetch-tags: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # Annotated tags from `changeset publish` / `changeset tag` need an
@@ -125,14 +130,15 @@ jobs:
           NPM_CONFIG_PROVENANCE: "true"
 
       # `changeset tag` creates ANNOTATED tags (`git tag -m`). Annotated tags
-      # require a committer identity. Actions runners do not set user.name /
-      # user.email by default, so `git tag -m` fails with empty ident.
-      # @changesets/git.tag() returns false on failure but callers only log
-      # "New tag:" *before* the call and ignore the return value — so the step
-      # used to print "New tag:" for every package then find zero tags at HEAD
-      # (runs 31158518015, 31141045252, …). Fix: set bot identity before tag,
-      # then fail loud with diagnostics if HEAD still has no tags.
-      # `git push --tags` pushes both annotated and lightweight tags.
+      # require a committer identity (set above). Callers log "New tag:" before
+      # the call and ignore false returns, so identity must be set first
+      # (runs 31158518015, …).
+      #
+      # Re-run / post-promote case: package@version tags often point at the
+      # version-bump commit, not the current main HEAD (promote merge). Then
+      # `changeset tag` creates nothing (names already exist) and
+      # `git tag --points-at HEAD` is empty — that is OK if every non-private
+      # packages/* version already has a tag by name (run 31173877847).
       - name: Create + push tags
         if: ${{ !inputs.dry-run }}
         run: |
@@ -140,17 +146,58 @@ jobs:
           pnpm changeset tag
           mapfile -t head_tags < <(git tag --points-at HEAD)
           tag_count="${#head_tags[@]}"
-          if [ "$tag_count" -eq 0 ]; then
-            echo "::error title=No tags at HEAD::changeset tag left zero tags at HEAD. Annotated tags need git user.name/email (set above). Check for pre-existing tag name collisions or git tag failures."
-            echo "git user.email=$(git config --get user.email || echo unset)"
-            echo "git user.name=$(git config --get user.name || echo unset)"
-            echo "HEAD=$(git rev-parse HEAD)"
-            git tag -l | tail -20 || true
-            exit 1
+          if [ "$tag_count" -gt 0 ]; then
+            echo "Pushing $tag_count tag(s) at HEAD:"
+            printf '  %s\n' "${head_tags[@]}"
+            git push origin --tags
+            exit 0
           fi
-          echo "Pushing $tag_count tag(s) at HEAD:"
-          printf '  %s\n' "${head_tags[@]}"
-          git push origin --tags
+
+          echo "No tags at HEAD after changeset tag — checking package@version tags by name (idempotent re-run / promote lag)."
+          echo "HEAD=$(git rev-parse HEAD)"
+          echo "git user.email=$(git config --get user.email || echo unset)"
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const { execFileSync } = require("node:child_process");
+          const tags = new Set(
+            execFileSync("git", ["tag"], { encoding: "utf8" })
+              .split("\n")
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0),
+          );
+          const packagesRoot = path.join(process.cwd(), "packages");
+          const missing = [];
+          let checked = 0;
+          for (const entry of fs.readdirSync(packagesRoot, { withFileTypes: true })) {
+            if (!entry.isDirectory()) continue;
+            const manifestPath = path.join(packagesRoot, entry.name, "package.json");
+            if (!fs.existsSync(manifestPath)) continue;
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            if (manifest.private === true) continue;
+            if (typeof manifest.name !== "string" || typeof manifest.version !== "string") continue;
+            checked += 1;
+            const tag = `${manifest.name}@${manifest.version}`;
+            if (!tags.has(tag)) missing.push(tag);
+          }
+          if (checked === 0) {
+            console.error("::error::No non-private packages/* manifests found to verify tags.");
+            process.exit(1);
+          }
+          if (missing.length > 0) {
+            console.error(
+              `::error title=Missing package tags::${missing.length} of ${checked} package@version tags missing after changeset tag:`,
+            );
+            for (const tag of missing) console.error(`  ${tag}`);
+            console.error(
+              "If identity is set and tags are still missing, git tag -m failed or tags were never recovered.",
+            );
+            process.exit(1);
+          }
+          console.log(
+            `OK: all ${checked} non-private package versions already tagged by name (nothing new at HEAD).`,
+          );
+          NODE
 
       # Release bodies come from each package's own CHANGELOG.md section for the
       # tagged version (changesets convention). generate_release_notes is
