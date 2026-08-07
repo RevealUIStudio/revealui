@@ -1,5 +1,16 @@
 # @revealui/sync
 
+## 0.4.0
+
+### Minor Changes
+
+- 320b98b: Export OfflineMutationQueue (and OfflineQueueMutation) for demos/apps; use core readCsrfToken SSOT in sync csrfHeaders; add @revealui/core workspace dependency and ./offline-queue package export (fleet-redundancy C12 residual).
+
+### Patch Changes
+
+- Updated dependencies [fcd7273]
+  - @revealui/core@0.13.0
+
 ## 0.3.20
 
 ### Patch Changes
