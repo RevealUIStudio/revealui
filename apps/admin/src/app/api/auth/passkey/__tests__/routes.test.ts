@@ -832,7 +832,13 @@ describe('POST /api/auth/passkey/authenticate-verify', () => {
     expect(data.success).toBe(true);
     expect(data.user.email).toBe('user@example.com');
     expect(mockVerifyAuthentication).toHaveBeenCalled();
-    expect(mockRotateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
+    // Passkey login is AAL2 — session must carry mfaVerified for API key save, etc.
+    expect(mockRotateSession).toHaveBeenCalledWith(
+      'user-123',
+      expect.objectContaining({
+        metadata: { mfaVerified: true, mfaMethod: 'passkey' },
+      }),
+    );
 
     // Session cookie should be set
     const sessionCookie = response.cookies.get('revealui-session');

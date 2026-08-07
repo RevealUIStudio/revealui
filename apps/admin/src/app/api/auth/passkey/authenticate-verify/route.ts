@@ -121,7 +121,10 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       );
     }
 
-    // Passkeys are inherently MFA  -  create session directly (no TOTP check)
+    // Passkeys are phishing-resistant MFA (WebAuthn). Create a full session
+    // with mfaVerified so requireSessionWithMfa (API keys, GDPR, etc.) accepts
+    // this session without a second TOTP prompt. Matches TOTP verify/backup
+    // and MFA setup verify-setup session metadata.
     const userAgent = request.headers.get('user-agent') ?? undefined;
     const ipAddress =
       request.headers.get('x-real-ip') ||
@@ -131,6 +134,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
     const { token: sessionToken } = await rotateSession(storedPasskey.userId, {
       userAgent,
       ipAddress,
+      metadata: { mfaVerified: true, mfaMethod: 'passkey' },
     });
 
     const response = NextResponse.json({
