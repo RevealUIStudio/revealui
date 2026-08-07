@@ -1,5 +1,17 @@
 # @revealui/router
 
+## 0.4.0
+
+### Minor Changes
+
+- 925ed49: Dual-mode scaffold (0.4.0-rc.0): `RouterOptions.rsc` selects RSC mode; default remains client-compatible with 0.3.x. Adds `router.mode`, `useAction` / action middleware chain (ADR D2.d), and optional peers for `react-server-dom-webpack` + `@vitejs/plugin-rsc`.
+- 1c4f7ea: RSC mode T3/T4: content negotiation (`Accept: text/x-component` + endpoint escape hatch) and `renderRequest` with teed flight stream, chunked `__RSC_PAYLOAD__` base64 inline, and injectible `createRscStream` (ADR D1/D11/D15).
+- 27b0034: RSC mode T5–T7: redirect/notFound throw-sentinels (307/308), request ALS getRequest, x-rsc-action dispatch with actionMiddleware before loadServerAction (ADR D2/D6/D10).
+
+### Patch Changes
+
+- c38285a: Fix SSR hydrate so loader data is available via getCurrentMatch/useData on first client paint. Add Router.seedCurrentMatch and lock 0.3.x contract that client navigate does not run loaders or middleware.
+
 ## 0.4.0-rc.9
 
 ### Minor Changes

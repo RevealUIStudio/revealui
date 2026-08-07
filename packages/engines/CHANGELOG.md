@@ -1,5 +1,15 @@
 # @revealui/engines
 
+## 0.4.11
+
+### Patch Changes
+
+- Updated dependencies [c02e613]
+  - @revealui/contracts@0.8.2
+  - @revealui/auth@0.5.1
+  - @revealui/core@0.12.4
+  - @revealui/services@0.7.10
+
 ## 0.4.10
 
 ### Patch Changes

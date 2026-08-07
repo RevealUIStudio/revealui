@@ -1,5 +1,32 @@
 # @revealui/harnesses
 
+## 0.12.0
+
+### Minor Changes
+
+- a22dbbf: Add the shared archive-check gate (`./gates` export): `scanInboundLinks`,
+  `isHistoricalPath`, `countOccurrences`, `ARCHIVE_URL_PREFIX`, and the per-repo
+  historical-path marker sets.
+
+  Docs moved to the central fleet archive must leave no live inbound links
+  behind. That rule was previously enforced only in the private coordination
+  repo, so links could rot in the public repo — the one place a dead link is
+  externally visible. The matching logic now has one home here and is consumed by
+  both repos' thin adapters, so the two cannot drift (same reasoning as the
+  existing doc-currency and guardrail2-verdict gate exports).
+
+- 981b3f0: Retire the dead HTTP gateway twin and PGlite DaemonStore from `@revealui/harnesses` after the RevDev port (revdev#328/#329). Remote pairing lives only in `@revdev/daemon`. Breaking: removes `./storage` export and root `DaemonStore` / `SCHEMA_SQL` re-exports.
+- a3f9f09: GAP-459: session peer panel + archive-on-exit into revfleet cold sessions/daemon (live set stays unpolluted)
+- 4d4f384: GAP-459: session reap CLI — cold-archive abandoned rows then signed harness.prune
+
+### Patch Changes
+
+- aa721ea: Commit generated `.revealui/content/` and gate freshness (GAP-421 content materialization ADR phase 1): un-ignore the tree, require it in `checkManager`, add `validate:content-freshness` / CI hard-fail, and clarify adapter load paths until phase 2.
+- 6fdf057: Add soft-optional `session register|end` CLI for RevDev daemon boundary; wire Grok SessionStart/End hooks to register/end with shared identity cache.
+- 2c23487: Materialize Grok SessionStart/SessionEnd control-layer hook templates under `.revealui/adapters/grok/hooks/` (TRACKER + hotfix + temp-scripts; install to `~/.grok/hooks`).
+- c12977e: Add `hook grok` normalizer + PreToolUse receipt spool; extend Grok hook templates with pre-tool.json.
+  - @revealui/core@0.12.4
+
 ## 0.11.0
 
 ### Minor Changes

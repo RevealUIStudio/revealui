@@ -1,5 +1,11 @@
 # @revealui/contracts
 
+## 0.8.2
+
+### Patch Changes
+
+- c02e613: Add perpetualMaxSitesForTier so Agency Perpetual mints bake maxSites 10 (GAP-448), distinct from subscription Max (15).
+
 ## 0.8.1
 
 ### Patch Changes
