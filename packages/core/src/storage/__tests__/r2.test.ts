@@ -121,10 +121,10 @@ describe('createR2Provider', () => {
       expect(result.url).toBe('https://cdn.example/a/b.txt');
     });
 
-    it('throws when access="private" is requested (Phase 2a limit) without sending a request', async () => {
+    it('throws when access="private" is requested without sending a request', async () => {
       const provider = createR2Provider(baseConfig());
       await expect(provider.put('p', new Uint8Array([1]), { access: 'private' })).rejects.toThrow(
-        /Phase 2a does not support access: 'private'/,
+        /does not support access: 'private'/,
       );
       expect(requests).toHaveLength(0);
     });
@@ -241,6 +241,109 @@ describe('createR2Provider', () => {
       const provider = createR2Provider(baseConfig());
       await provider.list({ cursor: 'resume-from' });
       expect(requests[0].url).toContain('continuation-token=resume-from');
+    });
+  });
+
+  describe('createPresignedPutUrl', () => {
+    it('returns a query-string SigV4 URL with content-type signed and no network call', async () => {
+      const provider = createR2Provider(baseConfig());
+      const now = new Date('2026-05-18T10:00:00.000Z');
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const result = await provider.createPresignedPutUrl({
+        key: 'media/uuid.png',
+        contentType: 'image/png',
+        expiresInSeconds: 600,
+      });
+
+      expect(requests).toHaveLength(0);
+      expect(result.key).toBe('media/uuid.png');
+      expect(result.headers['content-type']).toBe('image/png');
+      expect(result.expiresAt.getTime()).toBe(now.getTime() + 600_000);
+      expect(result.url).toContain(
+        'https://acct-123.r2.cloudflarestorage.com/media/media/uuid.png?',
+      );
+      expect(result.url).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256');
+      expect(result.url).toContain('X-Amz-Expires=600');
+      expect(result.url).toContain('X-Amz-SignedHeaders=content-type%3Bhost');
+      expect(result.url).toContain('X-Amz-Signature=');
+      expect(result.url).toContain(
+        'X-Amz-Credential=AKIA-TEST%2F20260518%2Fauto%2Fs3%2Faws4_request',
+      );
+
+      vi.useRealTimers();
+    });
+
+    it('includes content-length in signed headers when provided', async () => {
+      const provider = createR2Provider(baseConfig());
+      const result = await provider.createPresignedPutUrl({
+        key: 'media/big.mp4',
+        contentType: 'video/mp4',
+        contentLength: 30_000_000,
+      });
+      expect(result.headers['content-length']).toBe('30000000');
+      expect(result.url).toContain('content-length');
+    });
+
+    it('rejects non-positive expiresInSeconds', async () => {
+      const provider = createR2Provider(baseConfig());
+      await expect(
+        provider.createPresignedPutUrl({
+          key: 'k',
+          contentType: 'image/png',
+          expiresInSeconds: 0,
+        }),
+      ).rejects.toThrow(/expiresInSeconds must be positive/);
+    });
+  });
+
+  describe('headObject', () => {
+    it('HEADs the object and returns size + contentType + public url', async () => {
+      responseQueue.push(
+        new Response(null, {
+          status: 200,
+          headers: {
+            'content-length': '2048',
+            'content-type': 'image/png',
+          },
+        }),
+      );
+      const provider = createR2Provider(baseConfig());
+      const result = await provider.headObject('media/a.png');
+
+      expect(requests[0].method).toBe('HEAD');
+      expect(requests[0].url).toBe('https://acct-123.r2.cloudflarestorage.com/media/media/a.png');
+      expect(result).toEqual({
+        size: 2048,
+        contentType: 'image/png',
+        url: 'https://media.revealui.com/media/a.png',
+      });
+    });
+
+    it('throws NoSuchKey on 404', async () => {
+      queueResponse('', 404);
+      const provider = createR2Provider(baseConfig());
+      await expect(provider.headObject('missing')).rejects.toThrow(/NoSuchKey/);
+    });
+  });
+
+  describe('getObjectRange', () => {
+    it('GETs with a Range header and returns the body bytes', async () => {
+      const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+      responseQueue.push(new Response(bytes, { status: 206 }));
+      const provider = createR2Provider(baseConfig());
+      const result = await provider.getObjectRange('media/a.png', 0, 15);
+
+      expect(requests[0].method).toBe('GET');
+      expect(requests[0].headers.range).toBe('bytes=0-15');
+      expect(result).toEqual(bytes);
+    });
+
+    it('rejects inverted ranges without sending a request', async () => {
+      const provider = createR2Provider(baseConfig());
+      await expect(provider.getObjectRange('k', 10, 5)).rejects.toThrow(/invalid range/);
+      expect(requests).toHaveLength(0);
     });
   });
 });
