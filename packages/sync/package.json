@@ -7,6 +7,7 @@
     "@electric-sql/react": "^1.0.52",
     "@revealui/cache": "workspace:*",
     "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "lib0": "^0.2.117",
     "ws": "^8.21.0",
@@ -49,6 +50,11 @@
       "types": "./dist/collab/server-index.d.ts",
       "import": "./dist/collab/server-index.js",
       "default": "./dist/collab/server-index.js"
+    },
+    "./offline-queue": {
+      "types": "./dist/offline-queue.d.ts",
+      "import": "./dist/offline-queue.js",
+      "default": "./dist/offline-queue.js"
     }
   },
   "files": [

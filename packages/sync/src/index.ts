@@ -126,4 +126,10 @@ export type {
 } from './hooks/useTaskSubmissions.js';
 export { useTaskSubmissions } from './hooks/useTaskSubmissions.js';
 export type { MutationResult } from './mutations.js';
+/**
+ * localStorage-backed offline mutation queue (table/operation shape).
+ * Distinct from conflict-resolution `OfflineMutation` (HTTP replay shape).
+ */
+export type { OfflineMutation as OfflineQueueMutation } from './offline-queue.js';
+export { OfflineMutationQueue } from './offline-queue.js';
 export { ElectricProvider, useElectricConfig } from './provider/index.js';

@@ -1,20 +1,20 @@
+/**
+ * Admin browser CSRF helpers.
+ *
+ * Cookie reader is the fleet SSOT in `@revealui/core/admin/utils/csrf`
+ * (fleet-redundancy P2-C / 2026-08-07 C12 residual). This module keeps the
+ * admin-only attach predicate (`isCsrfTarget`) and `apiFetch` wrapper.
+ */
+
+import { readCsrfToken } from '@revealui/core/admin/utils/csrf';
+
+/**
+ * Read the `revealui-csrf` cookie value.
+ * Returns null outside a browser context or when the cookie is absent or empty.
+ * Thin null-coalesce over the core SSOT (`readCsrfToken` returns `undefined`).
+ */
 export function getCsrfToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  for (const part of document.cookie.split(';')) {
-    const eqIdx = part.indexOf('=');
-    if (eqIdx === -1) continue;
-    const key = part.slice(0, eqIdx).trim();
-    if (key === 'revealui-csrf') {
-      const raw = part.slice(eqIdx + 1).trim();
-      if (!raw) return null;
-      try {
-        return decodeURIComponent(raw);
-      } catch {
-        return raw;
-      }
-    }
-  }
-  return null;
+  return readCsrfToken() ?? null;
 }
 
 const CSRF_UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);

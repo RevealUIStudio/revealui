@@ -1,6 +1,10 @@
 /**
- * Offline mutation queue  -  stores pending mutations in localStorage
+ * Offline mutation queue — stores pending mutations in localStorage
  * so they survive page reloads and can be flushed when connectivity returns.
+ *
+ * Public surface: import `{ OfflineMutationQueue, type OfflineQueueMutation }`
+ * from `@revealui/sync` (or `@revealui/sync/offline-queue`). The class was
+ * previously internal; demos and apps must not reimplement the same storage key.
  */
 
 /** localStorage key for the persisted queue. */
