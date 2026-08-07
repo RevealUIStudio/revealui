@@ -17,6 +17,7 @@ export const preambles: PreambleTier[] = [
       'unused-declarations',
       // HARDLINE: stream-safe revvault (GAP-468 / ADR 2026-08-05)
       'stream-safe-secrets',
+      'token-economy',
     ],
   },
   {
