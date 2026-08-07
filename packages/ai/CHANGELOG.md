@@ -1,5 +1,16 @@
 # @revealui/ai
 
+## 0.10.0
+
+### Minor Changes
+
+- 86048ac: Add hardware capability profiles (constrained / mainstream / workstation) for GAP-297 local-inference vocabulary. Additive; no default path change when unconfigured.
+
+### Patch Changes
+
+- Updated dependencies [fcd7273]
+  - @revealui/core@0.13.0
+
 ## 0.9.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/engines",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "private": true,
   "description": "Unified entry point for the five RevealUI business primitives: people, content, offers, payments, agents.",
   "license": "FSL-1.1-MIT",

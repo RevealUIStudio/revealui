@@ -1,5 +1,11 @@
 # @revealui/core
 
+## 0.13.0
+
+### Minor Changes
+
+- fcd7273: Add StorageProvider createPresignedPutUrl, headObject, and getObjectRange for direct-to-R2 media uploads (GAP-215)
+
 ## 0.12.4
 
 ### Patch Changes

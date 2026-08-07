@@ -1,5 +1,12 @@
 # @revealui/services
 
+## 0.7.11
+
+### Patch Changes
+
+- Updated dependencies [fcd7273]
+  - @revealui/core@0.13.0
+
 ## 0.7.10
 
 ### Patch Changes
