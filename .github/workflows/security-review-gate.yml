@@ -99,8 +99,9 @@ jobs:
         run: |
           set -euo pipefail
           # Include workspace deps (e.g. @revealui/security) for harnesses DTS.
+          # Use pnpm recursive build (topo order) — scoped install has no root turbo.
           pnpm install --frozen-lockfile --filter @revealui/harnesses...
-          pnpm turbo run build --filter=@revealui/harnesses...
+          pnpm --filter "@revealui/harnesses..." run build
 
       - name: Evaluate review gate
         env:
