@@ -164,7 +164,7 @@ describe('GAP-381 Phase A: POST /api/harness/receipts', () => {
     expect(entry.payload.userId).not.toBe('forged@attacker.example');
   });
 
-  it('I-5: coerces client enforcementTier=enforced to advisory until signatures exist', async () => {
+  it('I-5: coerces client enforcementTier=enforced to advisory without a verifiable snapshot', async () => {
     const result = await handleReceiptsPost(USER, 'acct_1', {
       source: 'vscode',
       kind: 'pre-shell',
@@ -190,12 +190,28 @@ describe('GAP-381 Phase A: POST /api/harness/receipts', () => {
     expect(key).toContain(USER.id);
   });
 
-  it('GET /policy-snapshot returns advisory structure-only document', async () => {
-    const app = mountWithAuth({ user: USER, deviceAuth: true });
-    const res = await app.request('/api/harness/policy-snapshot');
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as { enforcementTier: string; rules: unknown[] };
-    expect(body.enforcementTier).toBe('advisory');
-    expect(Array.isArray(body.rules)).toBe(true);
+  it('GET /policy-snapshot returns advisory structure-only document without signing keys', async () => {
+    const prev = {
+      policy: process.env.REVEALUI_POLICY_SIGNING_KEY,
+      audit: process.env.REVEALUI_AUDIT_SIGNING_KEY,
+    };
+    delete process.env.REVEALUI_POLICY_SIGNING_KEY;
+    delete process.env.REVEALUI_AUDIT_SIGNING_KEY;
+    try {
+      const app = mountWithAuth({ user: USER, deviceAuth: true });
+      const res = await app.request('/api/harness/policy-snapshot');
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as {
+        enforcementTier: string;
+        rules: unknown[];
+        keyId: string;
+      };
+      expect(body.enforcementTier).toBe('advisory');
+      expect(body.keyId).toBe('unsigned-structure-only');
+      expect(Array.isArray(body.rules)).toBe(true);
+    } finally {
+      if (prev.policy) process.env.REVEALUI_POLICY_SIGNING_KEY = prev.policy;
+      if (prev.audit) process.env.REVEALUI_AUDIT_SIGNING_KEY = prev.audit;
+    }
   });
 });

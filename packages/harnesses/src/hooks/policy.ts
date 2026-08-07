@@ -8,25 +8,21 @@
  * snapshot degrades to advisory mode and SAYS SO -- it never silently
  * claims enforcement it cannot back up.
  *
- * SIGNING DEVIATION (recorded per the build brief, do not remove without
- * updating the report this shipped with): design doc §5 says to reuse an
- * existing signing primitive from `@revealui/security`, auditing at build
- * time for the exact fit. That package (`packages/security/src/*`) ships
- * only symmetric AES-GCM encryption (`encryption.ts`) and SHA-256/384/512
- * digests -- no asymmetric sign/verify primitive. The fleet's one Ed25519
- * sign/verify precedent (`packages/core/src/license.ts`, via `jose`) is
- * NOT in `@revealui/security` and pulling `jose` into `@revealui/harnesses`
- * would add a new dependency, which this build is scoped to avoid. Per the
- * documented fallback: this module does STRUCTURE validation only --
- * `PolicySnapshotSchema` requires `signature` and `keyId` fields to be
- * present and well-formed, but never cryptographically verifies them.
- * TODO(security, blocks a real "enforced" claim beyond structural validity):
- * once a signing primitive lands in `@revealui/security` (or `jose` is
- * accepted as a dependency here), replace `parsePolicySnapshot`'s structural
- * check with an actual signature verification before returning `valid: true`.
+ * Cryptographic verification (GAP-381 residual, 2026-08-07): uses
+ * `@revealui/security/server` Ed25519 (same wire format as audit Stage 3).
+ * A structurally valid but unsigned / unverified snapshot still evaluates
+ * rules (denies can only tighten) but reports `cryptoVerified: false` so
+ * receipts stay `advisory`. Only a verified signature yields
+ * `cryptoVerified: true` and allows an `enforced` receipt tier.
  */
 
 import { readFile } from 'node:fs/promises';
+import {
+  createPolicySnapshotSignerFromEnv,
+  UNSIGNED_POLICY_KEY_ID,
+  UNSIGNED_POLICY_SIGNATURE,
+  verifyPolicySnapshot,
+} from '@revealui/security/server';
 import { z } from 'zod';
 import type {
   HarnessHookEvent,
@@ -44,9 +40,9 @@ export interface PolicySnapshotRule {
 }
 
 /**
- * A policy snapshot as read from disk. `signature` + `keyId` are present in
- * the schema so the format is ready for real verification (see the TODO
- * above); today they are checked for well-formedness only.
+ * A policy snapshot as read from disk. `signature` + `keyId` are required
+ * fields; cryptographic validity is reported via `cryptoVerified` on the
+ * load result, not by inventing a second document shape.
  */
 export interface PolicySnapshot {
   readonly version: number;
@@ -91,17 +87,29 @@ export type PolicySnapshotInvalidReason =
   | 'missing'
   | 'unreadable'
   | 'invalid-json'
-  | 'invalid-shape';
+  | 'invalid-shape'
+  | 'invalid-signature';
 
 export type PolicySnapshotLoadResult =
-  | { readonly valid: true; readonly snapshot: PolicySnapshot }
+  | {
+      readonly valid: true;
+      readonly snapshot: PolicySnapshot;
+      /**
+       * True only when the Ed25519 signature verified against a known public
+       * key. Receipts may claim `enforced` only when this is true (I-5).
+       */
+      readonly cryptoVerified: boolean;
+    }
   | { readonly valid: false; readonly reason: PolicySnapshotInvalidReason };
 
 /**
- * Load + structurally validate a policy snapshot from `path`. Never throws:
- * every failure mode (missing file, unreadable, malformed JSON, wrong
- * shape) collapses to `{ valid: false, reason }` so the caller's advisory
- * fallback (design invariant I-5) is unconditional.
+ * Load + validate a policy snapshot from `path`. Never throws: every
+ * failure mode collapses to `{ valid: false, reason }` so the caller's
+ * advisory fallback (design invariant I-5) is unconditional.
+ *
+ * When a public key is available (env), cryptographic verification is
+ * required for non-placeholder signatures: a bad signature is
+ * `invalid-signature` (not a silent valid document).
  */
 export async function loadPolicySnapshot(path: string): Promise<PolicySnapshotLoadResult> {
   let contents: string;
@@ -125,7 +133,27 @@ export async function loadPolicySnapshot(path: string): Promise<PolicySnapshotLo
     return { valid: false, reason: 'invalid-shape' };
   }
 
-  return { valid: true, snapshot: result.data };
+  const snapshot = result.data;
+  const isPlaceholder =
+    snapshot.signature === UNSIGNED_POLICY_SIGNATURE || snapshot.keyId === UNSIGNED_POLICY_KEY_ID;
+
+  if (isPlaceholder) {
+    return { valid: true, snapshot, cryptoVerified: false };
+  }
+
+  const { resolvePublicKey, mode } = createPolicySnapshotSignerFromEnv(process.env);
+  if (mode === 'unsigned') {
+    // Structurally valid signed-looking document but no local public key:
+    // apply rules defensively, never claim enforced (I-5).
+    return { valid: true, snapshot, cryptoVerified: false };
+  }
+
+  const verified = verifyPolicySnapshot(snapshot, resolvePublicKey);
+  if (!verified.valid) {
+    return { valid: false, reason: 'invalid-signature' };
+  }
+
+  return { valid: true, snapshot, cryptoVerified: true };
 }
 
 /** The local policy decision for one hook event. */
