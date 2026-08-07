@@ -1,5 +1,11 @@
 # create-revealui
 
+## 0.5.18
+
+### Patch Changes
+
+- @revealui/cli@0.9.5
+
 ## 0.5.17
 
 ### Patch Changes
