@@ -81,6 +81,7 @@ export {
   defaultHookRunOptions,
   evaluatePolicy,
   flushSpool,
+  flushSpoolAsync,
   getDefaultPolicySnapshotPath,
   getDefaultSpoolPath,
   getHarnessDataDir,

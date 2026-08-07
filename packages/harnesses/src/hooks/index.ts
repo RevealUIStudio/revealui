@@ -38,4 +38,9 @@ export {
   runHookCommand,
 } from './run-hook.js';
 export type { FlushConfig, FlushResult, SpoolAppendResult, SpoolRecord } from './spool.js';
-export { appendToSpool, DEFAULT_SPOOL_MAX_BYTES, flushSpool } from './spool.js';
+export {
+  appendToSpool,
+  DEFAULT_SPOOL_MAX_BYTES,
+  flushSpool,
+  flushSpoolAsync,
+} from './spool.js';
