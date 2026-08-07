@@ -253,12 +253,13 @@ export function createHarnessReceiptsApp(): Hono {
 /**
  * Mount under /api/harness and /api/v1/harness with the governed chain.
  */
-export function mountHarnessReceipts(app: Hono): void {
+/** Accept OpenAPIHono or Hono mounts without forcing BlankEnv. */
+export function mountHarnessReceipts(app: Pick<Hono, 'use' | 'route'>): void {
   const chain: MiddlewareHandler[] = [
-    authMiddleware,
+    authMiddleware({ required: true }),
     requireDeviceToken,
     harnessReceiptRateLimit,
-    entitlementMiddleware,
+    entitlementMiddleware(),
     requireFeature('mcp', { mode: 'entitlements' }),
   ];
 
