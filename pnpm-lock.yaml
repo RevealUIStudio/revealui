@@ -1901,6 +1901,9 @@ importers:
       '@revealui/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@revealui/core':
+        specifier: workspace:*
+        version: link:../core
       '@revealui/db':
         specifier: workspace:*
         version: link:../db

@@ -1,8 +1,13 @@
 /**
- * Alert System
+ * Alert System (monitoring / process-health plane)
  *
  * Manages alert channels (logger, Sentry, console) and alert delivery.
  * Provides configurable thresholds and aggregation for production.
+ *
+ * Ownership (ADR 2026-08-07-core-alert-planes): this is the **monitoring**
+ * plane (`sendAlert`). Rule/threshold lifecycle lives in
+ * `observability/alerts` (`AlertingSystem`). Cron failures use only
+ * `observability/cron-failure-alert`. Do not reimplement a fourth path.
  */
 
 import { logger } from '../utils/logger-server.js';

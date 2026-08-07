@@ -1,7 +1,12 @@
 /**
- * Alert System
+ * Alert System (observability rule plane)
  *
- * Configure and trigger alerts based on metrics and thresholds
+ * Configure and trigger alerts based on metrics and thresholds.
+ *
+ * Ownership (ADR 2026-08-07-core-alert-planes): this is the **observability**
+ * plane (`AlertingSystem`). Process/health ops delivery is
+ * `monitoring/alerts` (`sendAlert`). Cron failures use only
+ * `cron-failure-alert`. Do not reimplement a fourth path.
  */
 
 import { logger } from './logger.js';
