@@ -313,6 +313,26 @@ export const SECRET_PATHS: SecretPathDef[] = [
     tier: 'prod',
     consumers: ['vercel:admin'],
   },
+  // Self-serve funnel + Pro bundle flags (GAP-339). Public-config booleans;
+  // declared here so secret-paths lockstep matches revvault-vercel.toml.
+  {
+    path: 'revealui/prod/admin/signup-open',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:admin'],
+    envVars: ['REVEALUI_SIGNUP_OPEN'],
+    note: 'Boolean string; self-serve signup funnel gate (true/false)',
+  },
+  {
+    path: 'revealui/prod/api/bundle-pro',
+    kind: 'public-config',
+    sensitive: false,
+    tier: 'prod',
+    consumers: ['vercel:api'],
+    envVars: ['REVEALUI_BUNDLE_PRO'],
+    note: 'Pro bundle flag for hosted API',
+  },
   // ── Storage - Cloudflare R2 ───────────────────────────────────────────────
   {
     path: 'revealui/prod/r2/account-id',

@@ -94,7 +94,7 @@ _Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-
 spec, the Vercel/Fly sync manifests, or their sensitivity markers. Change `secret-paths.ts`
 and re-run the renderer._
 
-Production runtime paths synced to Vercel + Fly (109 paths). `sensitive` = the
+Production runtime paths synced to Vercel + Fly (111 paths). `sensitive` = the
 value is never UI/API-revealable after write (credentials + private signing keys).
 
 | Path | Kind | Sensitive | Consumers | Notes |
@@ -104,7 +104,9 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
 | `revealui/prod/admin/password` | credential | yes | vercel:admin |  |
+| `revealui/prod/admin/signup-open` | public-config | no | vercel:admin | Boolean string; self-serve signup funnel gate (true/false) |
 | `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/server refuses to start without it |
+| `revealui/prod/api/bundle-pro` | public-config | no | vercel:api | Pro bundle flag for hosted API |
 | `revealui/prod/audit/signing-private-key` | signing-private | yes | vercel:api, vercel:admin, fly:worker | required@boot; Ed25519 PKCS#8 PEM - signs every audit row; only signing surfaces read it, no fallback |
 | `revealui/prod/audit/signing-public-key` | signing-public | no | vercel:api, vercel:admin, fly:worker | Ed25519 SPKI PEM - published for offline receipt verification; derivable from the private key. See docs/security/AUDIT_RECEIPTS.md (Stage 4: row verify free; root download Max) |
 | `revealui/prod/billing/portal-config-id` | public-config | no | fly:worker | → migrating to `revealui/prod/stripe/billing-portal-config-id` (since 2026-07-01); R18 - Fly-side duplicate of the stripe/ canonical; converge in P3-3 |
@@ -509,3 +511,12 @@ Settings pairing UI for the flow.
 
 **Review date:** 2027-07-18 (annual)
 **Owner:** RevealUI Studio (RevDev daemon maintainer)
+
+## GAP-339 vault paths (signup / bundle flags)
+
+| Path | Consumers | Notes |
+|------|-----------|--------|
+| `revealui/prod/admin/signup-open` | admin `REVEALUI_SIGNUP_OPEN` | Boolean string; self-serve funnel gate |
+| `revealui/prod/api/bundle-pro` | api `REVEALUI_BUNDLE_PRO` | Pro bundle flag |
+
+Scoped sync runbook: [docs/security/REVVAULT-VERCEL-SCOPED-SYNC.md](./security/REVVAULT-VERCEL-SCOPED-SYNC.md).
