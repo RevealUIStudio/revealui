@@ -1,5 +1,13 @@
 # @revealui/mcp
 
+## 0.8.5
+
+### Patch Changes
+
+- Updated dependencies [fcd7273]
+  - @revealui/core@0.13.0
+  - @revealui/knowledge-graph@0.1.7
+
 ## 0.8.4
 
 ### Patch Changes

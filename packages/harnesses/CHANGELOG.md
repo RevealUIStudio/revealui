@@ -1,5 +1,17 @@
 # @revealui/harnesses
 
+## 0.13.0
+
+### Minor Changes
+
+- 04d7fdb: Add control-layer `token-economy` hardline rule (GAP-362) to preamble tier 1.
+
+### Patch Changes
+
+- bcd515f: GAP-381 Phase A: flushSpoolAsync POSTs to /api/harness/receipts; server ingest route.
+- Updated dependencies [fcd7273]
+  - @revealui/core@0.13.0
+
 ## 0.12.0
 
 ### Minor Changes

@@ -30,6 +30,12 @@ describe('isMediaUploadRequest', () => {
     expect(isMediaUploadRequest('GET', '/api/content/media')).toBe(false);
     expect(isMediaUploadRequest('POST', '/api/other')).toBe(false);
   });
+
+  it('does not match presign/confirm JSON paths (GAP-215 direct-to-R2)', () => {
+    expect(isMediaUploadRequest('POST', '/api/content/media/presign')).toBe(false);
+    expect(isMediaUploadRequest('POST', '/api/content/media/confirm')).toBe(false);
+    expect(isMediaUploadRequest('POST', '/api/v1/content/media/presign')).toBe(false);
+  });
 });
 
 describe('bodyLimitGate', () => {
@@ -63,6 +69,17 @@ describe('bodyLimitGate', () => {
 
   it('caps non-media routes at 1MB', async () => {
     const res = await makeApp().request('/api/other', { method: 'POST', ...withBody(5) });
+    expect(res.status).toBe(413);
+    expect((await res.json()).error).toContain('1MB');
+  });
+
+  it('caps presign/confirm JSON bodies at 1MB (file bytes never hit the function)', async () => {
+    const app = makeApp();
+    app.post('/api/content/media/presign', (c) => c.json({ ok: true }));
+    const res = await app.request('/api/content/media/presign', {
+      method: 'POST',
+      ...withBody(5),
+    });
     expect(res.status).toBe(413);
     expect((await res.json()).error).toContain('1MB');
   });

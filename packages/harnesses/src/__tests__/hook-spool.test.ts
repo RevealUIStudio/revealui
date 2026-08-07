@@ -113,9 +113,10 @@ describe('flushSpool', () => {
     }
   });
 
-  it('reports not-implemented when an endpoint IS configured -- Phase A ships the real POST', () => {
+  it('reports not-implemented on sync flush when endpoint is set (use flushSpoolAsync)', () => {
     const result = flushSpool('/tmp/spool.jsonl', {
       endpoint: 'https://example.com/api/harness/receipts',
+      token: 'rvui_dev_test',
     });
     expect(result.flushed).toBe(false);
     expect(result.reason).toBe('not-implemented');

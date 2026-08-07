@@ -13,6 +13,7 @@ import { qualityOverSpeedRule } from './quality-over-speed.js';
 import { skillsUsageRule } from './skills-usage.js';
 import { streamSafeSecretsRule } from './stream-safe-secrets.js';
 import { tailwindRule } from './tailwind.js';
+import { tokenEconomyRule } from './token-economy.js';
 import { trackerFirstRule } from './tracker-first.js';
 import { unusedDeclarationsRule } from './unused-declarations.js';
 
@@ -31,6 +32,7 @@ export const rules: Rule[] = [
   skillsUsageRule,
   streamSafeSecretsRule,
   tailwindRule,
+  tokenEconomyRule,
   trackerFirstRule,
   unusedDeclarationsRule,
 ];

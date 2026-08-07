@@ -12,22 +12,27 @@
  *
  * GAP-208 Phase 2a (2026-05-18). Phase 1 (interface + types) shipped in #959.
  * Native client (dropping @aws-sdk/client-s3) landed 2026-06-09.
+ * Phase 2b (GAP-215): createPresignedPutUrl + headObject + getObjectRange for
+ * direct-to-R2 media uploads.
  *
  * Server-only. Do NOT import from client-side code or edge runtime.
  *
- * Known limitation (unchanged from the SDK version): request bodies are
- * buffered fully in memory (see toUint8Array) so the payload can be hashed for
- * SigV4. Streaming uploads (STREAMING-AWS4-HMAC-SHA256-PAYLOAD) are a future
- * enhancement; presigned/private URLs remain Phase 2b.
+ * Known limitation: request bodies for server-side put() are buffered fully in
+ * memory (see toUint8Array) so the payload can be hashed for SigV4. Streaming
+ * uploads (STREAMING-AWS4-HMAC-SHA256-PAYLOAD) are a future enhancement.
+ * Direct client uploads use createPresignedPutUrl and never buffer in the API.
  */
 
 import { toUint8Array } from './_helpers.js';
-import { EMPTY_SHA256, sha256Hex, signS3Request } from './_sigv4.js';
+import { EMPTY_SHA256, sha256Hex, signS3PresignedUrl, signS3Request } from './_sigv4.js';
 import { parseListObjectsV2, s3ErrorFields } from './_xml.js';
 import type {
+  HeadObjectResult,
   ListItem,
   ListOptions,
   ListResult,
+  PresignPutOptions,
+  PresignPutResult,
   PutOptions,
   PutResult,
   R2Config,
@@ -37,6 +42,7 @@ import type {
 const PROVIDER_TAG = 'r2';
 const DEFAULT_CONTENT_TYPE = 'application/octet-stream';
 const DEFAULT_LIST_LIMIT = 1000;
+const DEFAULT_PRESIGN_EXPIRES_SECONDS = 900;
 const REGION = 'auto';
 
 class R2Provider implements StorageProvider {
@@ -50,9 +56,9 @@ class R2Provider implements StorageProvider {
   constructor(config: R2Config) {
     if (!config.publicBaseUrl) {
       throw new Error(
-        'R2 provider requires R2Config.publicBaseUrl. Presigned/private URLs ' +
-          'are not supported in Phase 2a. Set publicBaseUrl to either a bound ' +
-          "custom domain (e.g. 'https://media.revealui.com') or the R2 dev URL " +
+        'R2 provider requires R2Config.publicBaseUrl for public media URLs after ' +
+          'upload. Set publicBaseUrl to either a bound custom domain ' +
+          "(e.g. 'https://media.revealui.com') or the R2 dev URL " +
           "('https://<account-id>.r2.cloudflarestorage.com/<bucket>').",
       );
     }
@@ -71,9 +77,9 @@ class R2Provider implements StorageProvider {
   ): Promise<PutResult> {
     if (opts?.access === 'private') {
       throw new Error(
-        "R2 provider Phase 2a does not support access: 'private'. All objects " +
-          'are written under the publicBaseUrl. Presigned/private-URL support ' +
-          'lands in Phase 2b.',
+        "R2 provider does not support access: 'private' for put(). Use " +
+          'createPresignedPutUrl for client direct uploads; public object URLs ' +
+          'still use publicBaseUrl after confirm.',
       );
     }
 
@@ -118,10 +124,112 @@ class R2Provider implements StorageProvider {
 
     return {
       key,
-      url: `${this.publicBaseUrl}/${key}`,
+      url: this.objectPublicUrl(key),
       size: body.byteLength,
       provider: PROVIDER_TAG,
     };
+  }
+
+  async createPresignedPutUrl(opts: PresignPutOptions): Promise<PresignPutResult> {
+    const expiresInSeconds = opts.expiresInSeconds ?? DEFAULT_PRESIGN_EXPIRES_SECONDS;
+    if (expiresInSeconds <= 0) {
+      throw new Error('createPresignedPutUrl: expiresInSeconds must be positive');
+    }
+
+    const signedHeaders: Record<string, string> = {
+      'content-type': opts.contentType,
+    };
+    if (opts.contentLength !== undefined) {
+      signedHeaders['content-length'] = String(opts.contentLength);
+    }
+
+    const now = new Date();
+    const { url, headers } = signS3PresignedUrl({
+      method: 'PUT',
+      accountId: this.accountId,
+      bucket: this.bucket,
+      key: opts.key,
+      region: REGION,
+      accessKeyId: this.accessKeyId,
+      secretAccessKey: this.secretAccessKey,
+      expiresInSeconds,
+      signedHeaders,
+      now,
+    });
+
+    return {
+      url,
+      headers,
+      key: opts.key,
+      expiresAt: new Date(now.getTime() + expiresInSeconds * 1000),
+    };
+  }
+
+  async headObject(key: string): Promise<HeadObjectResult> {
+    const { url, headers } = signS3Request({
+      method: 'HEAD',
+      accountId: this.accountId,
+      bucket: this.bucket,
+      key,
+      region: REGION,
+      accessKeyId: this.accessKeyId,
+      secretAccessKey: this.secretAccessKey,
+      payloadHash: EMPTY_SHA256,
+      now: new Date(),
+    });
+
+    const response = await fetch(url, { method: 'HEAD', headers });
+    if (response.status === 404) {
+      throw new Error(`R2 HEAD failed for "${key}": NoSuchKey object not found`);
+    }
+    if (!response.ok) {
+      throw await storageError('HEAD', key, response);
+    }
+
+    const lengthHeader = response.headers.get('content-length');
+    const size = lengthHeader === null ? 0 : Number(lengthHeader);
+    if (!Number.isFinite(size) || size < 0) {
+      throw new Error(`R2 HEAD failed for "${key}": invalid content-length`);
+    }
+
+    return {
+      size,
+      contentType: response.headers.get('content-type') ?? DEFAULT_CONTENT_TYPE,
+      url: this.objectPublicUrl(key),
+    };
+  }
+
+  async getObjectRange(key: string, start: number, endInclusive: number): Promise<Uint8Array> {
+    if (start < 0 || endInclusive < start) {
+      throw new Error(
+        `getObjectRange: invalid range ${start}-${endInclusive} (start must be >= 0 and endInclusive >= start)`,
+      );
+    }
+
+    const { url, headers } = signS3Request({
+      method: 'GET',
+      accountId: this.accountId,
+      bucket: this.bucket,
+      key,
+      region: REGION,
+      accessKeyId: this.accessKeyId,
+      secretAccessKey: this.secretAccessKey,
+      payloadHash: EMPTY_SHA256,
+      extraHeaders: { range: `bytes=${start}-${endInclusive}` },
+      now: new Date(),
+    });
+
+    const response = await fetch(url, { method: 'GET', headers });
+    if (response.status === 404) {
+      throw new Error(`R2 GET range failed for "${key}": NoSuchKey object not found`);
+    }
+    // 206 Partial Content is the expected success; some backends return 200
+    // with the full object when range is unsupported — still accept it.
+    if (!response.ok && response.status !== 206) {
+      throw await storageError('GET range', key, response);
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
   }
 
   async del(keyOrUrl: string): Promise<void> {
@@ -172,7 +280,7 @@ class R2Provider implements StorageProvider {
     const parsed = parseListObjectsV2(await response.text());
     const items: ListItem[] = parsed.objects.map((entry) => ({
       key: entry.key,
-      url: `${this.publicBaseUrl}/${entry.key}`,
+      url: this.objectPublicUrl(entry.key),
       size: entry.size,
       uploadedAt: entry.lastModified,
     }));
@@ -182,6 +290,10 @@ class R2Provider implements StorageProvider {
       cursor: parsed.nextContinuationToken,
       hasMore: parsed.isTruncated,
     };
+  }
+
+  private objectPublicUrl(key: string): string {
+    return `${this.publicBaseUrl}/${key}`;
   }
 
   private extractKey(keyOrUrl: string): string {

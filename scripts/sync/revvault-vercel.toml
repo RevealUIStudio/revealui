@@ -113,6 +113,10 @@ REVEALUI_PREVIEW_TOKEN_SECRET = { path = "revealui/prod/preview-token-secret", s
 REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }
 REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"
 
+# Pro bundle feature flag (boolean string). Must live in vault (GAP-339).
+# Owner must: revvault set revealui/prod/api/bundle-pro
+REVEALUI_BUNDLE_PRO = "revealui/prod/api/bundle-pro"
+
 # Storage — Cloudflare R2 (canonical, S3-compatible). All five set together.
 R2_ACCOUNT_ID         = "revealui/prod/r2/account-id"
 R2_ACCESS_KEY_ID      = { path = "revealui/prod/r2/access-key-id", sensitive = true }
@@ -132,6 +136,10 @@ EMAIL_REPLY_TO                = "revealui/prod/email/reply-to"
 PASSKEY_ORIGIN         = "revealui/prod/passkey/origin"
 PASSKEY_RP_ID          = "revealui/prod/passkey/rp-id"
 PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
+
+# Signup gate (boolean string true|false). Source of truth for self-serve funnel.
+# Owner must: revvault set revealui/prod/admin/signup-open  (value true/false)
+REVEALUI_SIGNUP_OPEN  = "revealui/prod/admin/signup-open"
 SESSION_COOKIE_DOMAIN  = "revealui/prod/session-cookie-domain"
 CORS_ORIGIN            = "revealui/prod/cors-origin"
 # REVEALUI_CORS_ORIGINS dropped 2026-05-09: code falls back to CORS_ORIGIN
@@ -218,6 +226,10 @@ REVEALUI_SECRET              = { path = "revealui/prod/secret", sensitive = true
 PASSKEY_ORIGIN         = "revealui/prod/passkey/origin"
 PASSKEY_RP_ID          = "revealui/prod/passkey/rp-id"
 PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
+
+# Signup gate (boolean string true|false). Source of truth for self-serve funnel.
+# Owner must: revvault set revealui/prod/admin/signup-open  (value true/false)
+REVEALUI_SIGNUP_OPEN  = "revealui/prod/admin/signup-open"
 
 # Cron + alerting (parity with api)
 REVEALUI_CRON_SECRET = { path = "revealui/prod/cron-secret", sensitive = true }

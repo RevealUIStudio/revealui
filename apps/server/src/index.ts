@@ -123,6 +123,7 @@ import devkitRoute from './routes/devkit.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import ghcrRoute from './routes/ghcr.js';
+import { mountHarnessReceipts } from './routes/harness-receipts.js';
 import healthRoute from './routes/health.js';
 import jobsRoute from './routes/jobs/index.js';
 import kitsRoute from './routes/kits.js';
@@ -1277,6 +1278,8 @@ app.route('/api/mcp/usage', mcpUsageRoute);
 // (auth → entitlements → requireFeature('mcp') → Streamable HTTP), so it does
 // not shadow the /api/mcp/usage route mounted above.
 mountMcpEndpoint(app);
+// GAP-381 Phase A: harness hook receipts + policy snapshot (device-token only)
+mountHarnessReceipts(app);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);

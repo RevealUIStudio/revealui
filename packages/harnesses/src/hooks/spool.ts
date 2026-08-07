@@ -11,7 +11,7 @@
  * keeps appending to a fresh one, and it warns on every rotation.
  */
 
-import { appendFile, mkdir, open, rename } from 'node:fs/promises';
+import { appendFile, mkdir, open, readFile, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { HarnessHookEvent } from '../types/hook-event.js';
 import type { PolicyDecision } from './policy.js';
@@ -120,12 +120,10 @@ let warnedNotConfigured = false;
 /**
  * Attempt to flush the local spool to the receipts-ingest server.
  *
- * SPOOL-ONLY MODE (multi-editor harness design doc §6, Phase B acceptance):
- * `POST /api/harness/receipts` does not exist yet -- it ships in Phase A.
- * When `config.endpoint` is unset this no-ops with a single warn line (not
- * one per call) and never throws; when it IS set, this still returns
- * `not-implemented` today rather than guessing at a wire format Phase A
- * hasn't shipped. Wiring the real POST is Phase A's job.
+ * When `config.endpoint` is unset: spool-only mode (warn once, never throw).
+ * When set with a token: POST the spool lines as `{ receipts: [...] }` to
+ * `POST /api/harness/receipts` (GAP-381 Phase A). Failures return
+ * `request-failed` without throwing so hooks never block on network.
  */
 export function flushSpool(spoolPath: string, config: FlushConfig): FlushResult {
   if (!config.endpoint) {
@@ -138,7 +136,85 @@ export function flushSpool(spoolPath: string, config: FlushConfig): FlushResult 
     return { flushed: false, reason: 'not-configured' };
   }
 
+  if (!config.token) {
+    return { flushed: false, reason: 'not-configured' };
+  }
+
+  // Sync API cannot await fetch. Callers that can await should use flushSpoolAsync.
   return { flushed: false, reason: 'not-implemented' };
+}
+
+/** Map a spool line to the Phase A ingest receipt body. */
+function spoolRecordToReceipt(record: SpoolRecord): Record<string, unknown> {
+  const { event, decision } = record;
+  return {
+    source: event.source,
+    kind: event.kind,
+    enforcementTier: event.enforcementTier,
+    decision: decision.permission,
+    toolName: event.toolName,
+    identity: event.identity,
+    raw: event.raw,
+  };
+}
+
+/**
+ * Async flush used by the hook CLI after spool append (GAP-381 Phase A).
+ * Reads NDJSON spool, POSTs to `POST /api/harness/receipts` with the device token.
+ */
+export async function flushSpoolAsync(
+  spoolPath: string,
+  config: FlushConfig,
+): Promise<FlushResult> {
+  if (!config.endpoint) {
+    return flushSpool(spoolPath, config);
+  }
+  if (!config.token) {
+    return { flushed: false, reason: 'not-configured' };
+  }
+
+  let text: string;
+  try {
+    text = await readFile(spoolPath, 'utf8');
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') return { flushed: true };
+    return { flushed: false, reason: 'request-failed' };
+  }
+
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) return { flushed: true };
+
+  const receipts: Record<string, unknown>[] = [];
+  for (const line of lines) {
+    try {
+      const parsed = JSON.parse(line) as SpoolRecord;
+      if (parsed?.event && parsed?.decision) {
+        receipts.push(spoolRecordToReceipt(parsed));
+      }
+    } catch {
+      // Skip corrupt lines; do not abort the batch.
+    }
+  }
+  if (receipts.length === 0) return { flushed: true };
+
+  try {
+    const res = await fetch(config.endpoint, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${config.token}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ receipts }),
+    });
+    if (!res.ok) return { flushed: false, reason: 'request-failed' };
+    return { flushed: true };
+  } catch {
+    return { flushed: false, reason: 'request-failed' };
+  }
 }
 
 /** Test-only: reset the single-warn latch between test cases. */

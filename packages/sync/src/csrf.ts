@@ -1,35 +1,26 @@
 /**
  * Signed double-submit CSRF support for the admin sync mutation routes.
  *
+ * Cookie reader is the fleet SSOT in `@revealui/core/admin/utils/csrf`
+ * (fleet-redundancy P2-C / 2026-08-07 C12 residual). This module only adds
+ * same-origin header attach for sync hooks.
+ *
  * The admin proxy rejects any unsafe-method `/api/*` request that carries a
  * `revealui-session` cookie without an `X-CSRF-Token` header echoing the
- * JS-readable `revealui-csrf` cookie. Mirrors the attach pattern used by the
- * admin `apiFetch` helper and the core admin `APIClient`.
+ * JS-readable `revealui-csrf` cookie.
  */
 
-const CSRF_COOKIE_NAME = 'revealui-csrf';
+import { readCsrfToken } from '@revealui/core/admin/utils/csrf';
+
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
 
 /**
  * Read the `revealui-csrf` cookie value.
  * Returns null outside a browser context or when the cookie is absent or empty.
+ * Thin null-coalesce over the core SSOT (`readCsrfToken` returns `undefined`).
  */
 export function getCsrfToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  for (const part of document.cookie.split(';')) {
-    const eqIdx = part.indexOf('=');
-    if (eqIdx === -1) continue;
-    if (part.slice(0, eqIdx).trim() === CSRF_COOKIE_NAME) {
-      const raw = part.slice(eqIdx + 1).trim();
-      if (!raw) return null;
-      try {
-        return decodeURIComponent(raw);
-      } catch {
-        return raw;
-      }
-    }
-  }
-  return null;
+  return readCsrfToken() ?? null;
 }
 
 /**

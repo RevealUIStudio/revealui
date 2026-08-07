@@ -1,9 +1,10 @@
 /**
- * CSRF helpers for browser clients (admin, auth hooks, agent stream).
+ * CSRF helpers for browser clients (admin, auth hooks, agent stream, sync).
  *
  * Single source of truth for reading the JS-readable `revealui-csrf` cookie
- * (fleet-redundancy P2-C). Consumers: this package's admin APIClient,
- * `@revealui/auth/react` (re-export), `@revealui/ai` useAgentStream.
+ * (fleet-redundancy P2-C; C12 residual 2026-08-07). Consumers: this package's
+ * admin APIClient, `@revealui/auth/react` (re-export), `@revealui/ai`
+ * useAgentStream, `@revealui/sync` csrfHeaders, and apps/admin `apiFetch`.
  *
  * The admin proxy and the api server's csrfMiddleware require any unsafe
  * request carrying a `revealui-session` cookie to echo this cookie as an

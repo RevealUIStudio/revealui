@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { awsUriEncode, computeSigV4, EMPTY_SHA256, signS3Request } from '../_sigv4.js';
+import {
+  awsUriEncode,
+  computeSigV4,
+  EMPTY_SHA256,
+  signS3PresignedUrl,
+  signS3Request,
+  UNSIGNED_PAYLOAD,
+} from '../_sigv4.js';
 
 describe('computeSigV4', () => {
   // AWS SigV4 test-suite, `get-vanilla` — the canonical known-answer vector.
@@ -81,5 +88,54 @@ describe('signS3Request', () => {
     expect(url).toBe(
       'https://acct-123.r2.cloudflarestorage.com/media?list-type=2&max-keys=2&prefix=media%2F',
     );
+  });
+
+  it('supports HEAD method', () => {
+    const { url, headers } = signS3Request({
+      method: 'HEAD',
+      bucket: 'media',
+      key: 'a.png',
+      payloadHash: EMPTY_SHA256,
+      now: new Date('2026-05-18T10:00:00.000Z'),
+      ...creds,
+    });
+    expect(url).toBe('https://acct-123.r2.cloudflarestorage.com/media/a.png');
+    expect(headers.authorization).toContain('AWS4-HMAC-SHA256');
+  });
+});
+
+describe('signS3PresignedUrl', () => {
+  const creds = {
+    accountId: 'acct-123',
+    accessKeyId: 'AKIA-TEST',
+    secretAccessKey: 'secret',
+    region: 'auto',
+  } as const;
+
+  it('builds a query-string presigned PUT URL with UNSIGNED-PAYLOAD', () => {
+    const { url, headers } = signS3PresignedUrl({
+      method: 'PUT',
+      bucket: 'media',
+      key: 'uploads/a.bin',
+      expiresInSeconds: 900,
+      signedHeaders: { 'content-type': 'image/png' },
+      now: new Date('2026-05-18T10:00:00.000Z'),
+      ...creds,
+    });
+
+    expect(url.startsWith('https://acct-123.r2.cloudflarestorage.com/media/uploads/a.bin?')).toBe(
+      true,
+    );
+    expect(url).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256');
+    expect(url).toContain('X-Amz-Credential=AKIA-TEST%2F20260518%2Fauto%2Fs3%2Faws4_request');
+    expect(url).toContain('X-Amz-Date=20260518T100000Z');
+    expect(url).toContain('X-Amz-Expires=900');
+    expect(url).toContain('X-Amz-SignedHeaders=content-type%3Bhost');
+    expect(url).toContain('X-Amz-Signature=');
+    expect(headers).toEqual({ 'content-type': 'image/png' });
+  });
+
+  it('exports UNSIGNED-PAYLOAD for callers that need the constant', () => {
+    expect(UNSIGNED_PAYLOAD).toBe('UNSIGNED-PAYLOAD');
   });
 });

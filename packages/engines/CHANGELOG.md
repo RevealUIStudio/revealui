@@ -1,5 +1,14 @@
 # @revealui/engines
 
+## 0.4.12
+
+### Patch Changes
+
+- Updated dependencies [fcd7273]
+  - @revealui/core@0.13.0
+  - @revealui/auth@0.5.2
+  - @revealui/services@0.7.11
+
 ## 0.4.11
 
 ### Patch Changes
