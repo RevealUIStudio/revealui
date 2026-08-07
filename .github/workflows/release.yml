@@ -65,6 +65,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Annotated tags from `changeset publish` / `changeset tag` need an
+      # identity. Set once for the whole job (publish + explicit tag step).
+      - name: Configure git identity for annotated tags
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -117,26 +124,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
 
-      # `changeset publish` is SUPPOSED to create tags for what it publishes,
-      # but runs 30184318015 + the 0.10 morning train (2026-07-25) proved the
-      # in-runner tag creation can silently produce nothing even while logging
-      # "New tag:" — and `git push --follow-tags` only pushes ANNOTATED tags,
-      # while changesets creates LIGHTWEIGHT ones, so even created tags never
-      # left the runner. Last tags to actually reach the remote were 07-19.
-      # Belt and braces: `changeset tag` is idempotent (creates only missing
-      # tags for current package.json versions), and `--tags` pushes
-      # lightweight tags. A re-run after a successful publish becomes a no-op
-      # at the push (tags already on the remote), not a silent skip.
+      # `changeset tag` creates ANNOTATED tags (`git tag -m`). Annotated tags
+      # require a committer identity. Actions runners do not set user.name /
+      # user.email by default, so `git tag -m` fails with empty ident.
+      # @changesets/git.tag() returns false on failure but callers only log
+      # "New tag:" *before* the call and ignore the return value — so the step
+      # used to print "New tag:" for every package then find zero tags at HEAD
+      # (runs 31158518015, 31141045252, …). Fix: set bot identity before tag,
+      # then fail loud with diagnostics if HEAD still has no tags.
+      # `git push --tags` pushes both annotated and lightweight tags.
       - name: Create + push tags
         if: ${{ !inputs.dry-run }}
         run: |
+          # Identity already set in "Configure git identity for annotated tags".
           pnpm changeset tag
-          tag_count="$(git tag --points-at HEAD | wc -l)"
+          mapfile -t head_tags < <(git tag --points-at HEAD)
+          tag_count="${#head_tags[@]}"
           if [ "$tag_count" -eq 0 ]; then
-            echo "::error title=No tags at HEAD::changeset tag created nothing — package.json versions at HEAD have no tags to create, which after a publish means something is wrong. Failing loudly instead of skipping."
+            echo "::error title=No tags at HEAD::changeset tag left zero tags at HEAD. Annotated tags need git user.name/email (set above). Check for pre-existing tag name collisions or git tag failures."
+            echo "git user.email=$(git config --get user.email || echo unset)"
+            echo "git user.name=$(git config --get user.name || echo unset)"
+            echo "HEAD=$(git rev-parse HEAD)"
+            git tag -l | tail -20 || true
             exit 1
           fi
-          echo "Pushing $tag_count tag(s) at HEAD."
+          echo "Pushing $tag_count tag(s) at HEAD:"
+          printf '  %s\n' "${head_tags[@]}"
           git push origin --tags
 
       # Release bodies come from each package's own CHANGELOG.md section for the
