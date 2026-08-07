@@ -122,6 +122,25 @@ export {
   PrivacyPolicyManager,
   privacyPolicyManager,
 } from './gdpr.js';
+export type {
+  PolicySignerEnv,
+  PolicySnapshotSignerResolution,
+} from './policy-snapshot-signer-env.js';
+export { createPolicySnapshotSignerFromEnv } from './policy-snapshot-signer-env.js';
+// GAP-381 policy snapshot Ed25519 (I-5 enforced tier honesty)
+export type {
+  PolicySnapshotDocument,
+  PolicySnapshotSignable,
+} from './policy-snapshot-signing.js';
+export {
+  createPolicySnapshotSigner,
+  policyPublicKeyFromPem,
+  policySnapshotSignableBytes,
+  signPolicySnapshot,
+  UNSIGNED_POLICY_KEY_ID,
+  UNSIGNED_POLICY_SIGNATURE,
+  verifyPolicySnapshot,
+} from './policy-snapshot-signing.js';
 // SSRF protection
 export {
   assertPublicUrl,

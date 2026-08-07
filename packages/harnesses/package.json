@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@revealui/core": "workspace:*",
+    "@revealui/security": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
