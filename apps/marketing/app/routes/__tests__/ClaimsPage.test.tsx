@@ -39,12 +39,11 @@ describe('ClaimsPage', () => {
   });
 
   it('deep-links "code" evidence to the public GitHub repo', async () => {
-    render(<ClaimsPage />);
-    const allLinks = await screen.findAllByRole('link');
+    const { container } = render(<ClaimsPage />);
+    // Wait for ledger rows (page is large; full a11y link tree times out under coverage).
+    await screen.findAllByTestId('claim-row');
     const codeEvidenceHrefPrefix = 'https://github.com/RevealUIStudio/revealui/blob/main/';
-    const codeLinks = allLinks.filter((link) =>
-      (link.getAttribute('href') ?? '').startsWith(codeEvidenceHrefPrefix),
-    );
+    const codeLinks = container.querySelectorAll(`a[href^="${codeEvidenceHrefPrefix}"]`);
     expect(codeLinks.length).toBeGreaterThan(0);
   });
 });
