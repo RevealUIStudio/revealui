@@ -90,20 +90,13 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build @revealui/harnesses gates only (guardrail2-verdict, GAP-408)
+      - name: Build @revealui/harnesses gates (CJS for gates-resolver)
         run: |
           set -euo pipefail
-          # See security-review-gate.yml: sparse checkout + promote base=main fallback.
+          # Same durable sparse contract as security-review-gate.yml:
+          # tsup.gates-cjs.ts → dist/gates/index.cjs (gates-resolver SSOT).
           pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
-          if grep -q '"build:gates"' packages/harnesses/package.json; then
-            pnpm --filter @revealui/harnesses run build:gates
-          else
-            echo "build:gates missing on this ref — tsup.gates-cjs.ts fallback"
-            pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
-            if [[ ! -f packages/harnesses/dist/gates/index.js && -f packages/harnesses/dist/gates/index.cjs ]]; then
-              cp packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
-            fi
-          fi
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Guard the clearance label
         env:

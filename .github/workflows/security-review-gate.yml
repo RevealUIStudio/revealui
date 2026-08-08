@@ -95,22 +95,18 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build @revealui/harnesses gates only (guardrail2-verdict, GAP-408)
+      - name: Build @revealui/harnesses gates (CJS for gates-resolver)
         run: |
           set -euo pipefail
-          # Sparse: harnesses+dev only. Full harnesses build DTS needs security
-          # (GAP-381). Gates do not. Promote PRs (base=main) check out main tip
-          # which may lack build:gates — fall back to tsup.gates-cjs.ts.
+          # Durable sparse-job contract (do not change without updating
+          # scripts/validate/gates-resolver.cjs):
+          #   - install only harnesses + dev (sparse checkout; no turbo, no security)
+          #   - emit packages/harnesses/dist/gates/index.cjs via tsup.gates-cjs.ts
+          # Full package DTS needs @revealui/security (GAP-381) and is out of scope here.
+          # tsup.gates-cjs.ts has lived on main and test for the full dual-format era;
+          # never require a tip-only package.json script.
           pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
-          if grep -q '"build:gates"' packages/harnesses/package.json; then
-            pnpm --filter @revealui/harnesses run build:gates
-          else
-            echo "build:gates missing on this ref — tsup.gates-cjs.ts fallback"
-            pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
-            if [[ ! -f packages/harnesses/dist/gates/index.js && -f packages/harnesses/dist/gates/index.cjs ]]; then
-              cp packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
-            fi
-          fi
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Evaluate review gate
         env:
