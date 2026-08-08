@@ -13,9 +13,9 @@ governed MCP endpoint, with hook receipts running as command-based plugin
 hooks. This guide uses the project-local plugin bundle that
 `@revealui/harnesses` generates under `.revealui/vscode-plugin/`.
 
-Package-level detail (org allowlists, Preview cadence) lives in the monorepo
-at `packages/harnesses/docs/vscode-agent-plugin.md` (package docs, not a
-served docs-site page).
+For install and org-policy notes that are not repeated here, see the package
+doc path `packages/harnesses/docs/vscode-agent-plugin.md` in the monorepo
+checkout (not a served docs.revealui.com page).
 
 ## What governance means here
 
