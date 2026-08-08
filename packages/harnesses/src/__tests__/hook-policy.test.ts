@@ -56,7 +56,23 @@ describe('loadPolicySnapshot', () => {
     expect(!result.valid && result.reason).toBe('invalid-shape');
   });
 
-  it('loads a structurally well-formed snapshot', async () => {
+  it('loads a structurally well-formed unsigned snapshot without cryptoVerified', async () => {
+    const path = join(dir, 'snapshot.json');
+    const snapshot = {
+      version: 1,
+      keyId: 'unsigned-structure-only',
+      signature: 'unsigned',
+      issuedAt: new Date().toISOString(),
+      rules: [{ source: 'cursor', kind: 'pre-shell', permission: 'deny', reason: 'no shell' }],
+    };
+    await writeFile(path, JSON.stringify(snapshot), 'utf8');
+    const result = await loadPolicySnapshot(path);
+    expect(result.valid).toBe(true);
+    expect(result.valid && result.cryptoVerified).toBe(false);
+    expect(result.valid && result.snapshot.rules).toHaveLength(1);
+  });
+
+  it('loads a structure-only signed-looking snapshot as not cryptoVerified without public key', async () => {
     const path = join(dir, 'snapshot.json');
     const snapshot = {
       version: 1,
@@ -66,9 +82,26 @@ describe('loadPolicySnapshot', () => {
       rules: [{ source: 'cursor', kind: 'pre-shell', permission: 'deny', reason: 'no shell' }],
     };
     await writeFile(path, JSON.stringify(snapshot), 'utf8');
-    const result = await loadPolicySnapshot(path);
-    expect(result.valid).toBe(true);
-    expect(result.valid && result.snapshot.rules).toHaveLength(1);
+    const prev = {
+      policy: process.env.REVEALUI_POLICY_PUBLIC_KEY,
+      audit: process.env.REVEALUI_AUDIT_PUBLIC_KEY,
+      policyPriv: process.env.REVEALUI_POLICY_SIGNING_KEY,
+      auditPriv: process.env.REVEALUI_AUDIT_SIGNING_KEY,
+    };
+    delete process.env.REVEALUI_POLICY_PUBLIC_KEY;
+    delete process.env.REVEALUI_AUDIT_PUBLIC_KEY;
+    delete process.env.REVEALUI_POLICY_SIGNING_KEY;
+    delete process.env.REVEALUI_AUDIT_SIGNING_KEY;
+    try {
+      const result = await loadPolicySnapshot(path);
+      expect(result.valid).toBe(true);
+      expect(result.valid && result.cryptoVerified).toBe(false);
+    } finally {
+      if (prev.policy) process.env.REVEALUI_POLICY_PUBLIC_KEY = prev.policy;
+      if (prev.audit) process.env.REVEALUI_AUDIT_PUBLIC_KEY = prev.audit;
+      if (prev.policyPriv) process.env.REVEALUI_POLICY_SIGNING_KEY = prev.policyPriv;
+      if (prev.auditPriv) process.env.REVEALUI_AUDIT_SIGNING_KEY = prev.auditPriv;
+    }
   });
 });
 
@@ -87,6 +120,7 @@ describe('evaluatePolicy', () => {
     const decision = evaluatePolicy(
       {
         valid: true,
+        cryptoVerified: false,
         snapshot: {
           version: 1,
           keyId: 'k1',
@@ -105,6 +139,7 @@ describe('evaluatePolicy', () => {
     const decision = evaluatePolicy(
       {
         valid: true,
+        cryptoVerified: false,
         snapshot: {
           version: 1,
           keyId: 'k1',
@@ -137,12 +172,16 @@ describe('evaluatePolicy', () => {
         },
       ],
     };
-    expect(evaluatePolicy({ valid: true, snapshot }, toolEvent).permission).toBe('ask');
+    expect(
+      evaluatePolicy({ valid: true, cryptoVerified: false, snapshot }, toolEvent).permission,
+    ).toBe('ask');
 
     const otherTool = normalizeCursorHookEvent(
       { hook_event_name: 'preToolUse', tool_name: 'SafeTool' },
       'advisory',
     );
-    expect(evaluatePolicy({ valid: true, snapshot }, otherTool).permission).toBe('allow');
+    expect(
+      evaluatePolicy({ valid: true, cryptoVerified: false, snapshot }, otherTool).permission,
+    ).toBe('allow');
   });
 });

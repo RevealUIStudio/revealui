@@ -90,11 +90,13 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build @revealui/harnesses (guardrail2-verdict gates module, GAP-408)
+      - name: Build @revealui/harnesses gates (CJS for gates-resolver)
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile --filter @revealui/harnesses
-          pnpm --filter @revealui/harnesses build
+          # Same durable sparse contract as security-review-gate.yml:
+          # tsup.gates-cjs.ts → dist/gates/index.cjs (gates-resolver SSOT).
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Guard the clearance label
         env:

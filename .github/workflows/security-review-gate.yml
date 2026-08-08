@@ -95,11 +95,18 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build @revealui/harnesses (guardrail2-verdict gates module, GAP-408)
+      - name: Build @revealui/harnesses gates (CJS for gates-resolver)
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile --filter @revealui/harnesses
-          pnpm --filter @revealui/harnesses build
+          # Durable sparse-job contract (do not change without updating
+          # scripts/validate/gates-resolver.cjs):
+          #   - install only harnesses + dev (sparse checkout; no turbo, no security)
+          #   - emit packages/harnesses/dist/gates/index.cjs via tsup.gates-cjs.ts
+          # Full package DTS needs @revealui/security (GAP-381) and is out of scope here.
+          # tsup.gates-cjs.ts has lived on main and test for the full dual-format era;
+          # never require a tip-only package.json script.
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       - name: Evaluate review gate
         env:

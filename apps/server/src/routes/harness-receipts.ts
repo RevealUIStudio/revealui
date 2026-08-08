@@ -20,6 +20,13 @@
 import { createHash } from 'node:crypto';
 import { checkRateLimit } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
+import {
+  createPolicySnapshotSignerFromEnv,
+  signPolicySnapshot,
+  UNSIGNED_POLICY_KEY_ID,
+  UNSIGNED_POLICY_SIGNATURE,
+  verifyPolicySnapshot,
+} from '@revealui/security/server';
 import type { Handler, MiddlewareHandler } from 'hono';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
@@ -119,6 +126,11 @@ interface ReceiptBody {
   raw?: unknown;
   /** Client may send precomputed digest; otherwise we hash a safe subset. */
   rawDigest?: unknown;
+  /**
+   * Optional policy snapshot the client used for an `enforced` claim (I-5).
+   * Server re-verifies the signature before accepting `enforced`.
+   */
+  policySnapshot?: unknown;
 }
 
 function asString(v: unknown): string | undefined {
@@ -176,10 +188,43 @@ export async function handleReceiptsPost(
     if (!TIERS.has(tier)) {
       throw new HTTPException(400, { message: `Invalid enforcementTier: ${tier}` });
     }
-    // I-5: never accept client claim of enforced without signature verification.
-    // Until policy-snapshot crypto lands, force advisory on ingest storage.
-    const enforcementTier: 'enforced' | 'advisory' =
-      tier === 'enforced' ? 'advisory' : (tier as 'advisory');
+    // I-5: never accept client claim of enforced without re-verifying a signed
+    // policy snapshot the client attaches (or default advisory).
+    let enforcementTier: 'enforced' | 'advisory' = 'advisory';
+    if (tier === 'enforced') {
+      const snap = item.policySnapshot;
+      if (snap && typeof snap === 'object') {
+        const doc = snap as {
+          version?: unknown;
+          issuedAt?: unknown;
+          rules?: unknown;
+          keyId?: unknown;
+          signature?: unknown;
+        };
+        if (
+          typeof doc.version === 'number' &&
+          typeof doc.issuedAt === 'string' &&
+          Array.isArray(doc.rules) &&
+          typeof doc.keyId === 'string' &&
+          typeof doc.signature === 'string'
+        ) {
+          const { resolvePublicKey } = createPolicySnapshotSignerFromEnv(process.env);
+          const verified = verifyPolicySnapshot(
+            {
+              version: doc.version,
+              issuedAt: doc.issuedAt,
+              rules: doc.rules,
+              keyId: doc.keyId,
+              signature: doc.signature,
+            },
+            resolvePublicKey,
+          );
+          if (verified.valid) {
+            enforcementTier = 'enforced';
+          }
+        }
+      }
+    }
 
     const decision = asString(item.decision);
     if (decision !== undefined && !DECISIONS.has(decision)) {
@@ -227,18 +272,35 @@ export const postReceiptsHandler: Handler = async (c) => {
 };
 
 /**
- * Policy snapshot for offline hook evaluation. Structure-only / advisory
- * until a signing primitive lands in @revealui/security (I-5).
+ * Policy snapshot for offline hook evaluation (I-5).
+ * When a policy (or audit fallback) Ed25519 key is configured, the document
+ * is signed and `enforcementTier` is `enforced`. Without a key, structure-only
+ * advisory placeholders are returned so hooks still boot.
  */
 export const getPolicySnapshotHandler: Handler = async (c) => {
-  return c.json({
+  const issuedAt = new Date().toISOString();
+  const body = {
     version: 1,
-    keyId: 'unsigned-structure-only',
-    signature: 'unsigned',
-    issuedAt: new Date().toISOString(),
-    enforcementTier: 'advisory' as const,
+    issuedAt,
+    // Empty deny-list is a valid signed product state until org policy UI lands.
     rules: [] as const,
-    note: 'Structure-only snapshot; cryptographic enforcement is not available yet',
+  };
+  const { cryptoSigner, mode } = createPolicySnapshotSignerFromEnv(process.env);
+  if (mode === 'unsigned' || !cryptoSigner) {
+    return c.json({
+      ...body,
+      keyId: UNSIGNED_POLICY_KEY_ID,
+      signature: UNSIGNED_POLICY_SIGNATURE,
+      enforcementTier: 'advisory' as const,
+      note: 'Structure-only snapshot; set REVEALUI_POLICY_SIGNING_KEY (or audit signing key) for cryptographic enforcement',
+    });
+  }
+  const signed = signPolicySnapshot(body, cryptoSigner);
+  return c.json({
+    ...body,
+    keyId: signed.keyId,
+    signature: signed.signature,
+    enforcementTier: 'enforced' as const,
   });
 };
 

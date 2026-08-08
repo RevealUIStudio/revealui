@@ -172,16 +172,15 @@ export async function runHookCommand(
 
   const snapshotResult = await loadPolicySnapshot(options.snapshotPath);
   // Honest enforcement tier (design invariant I-5): a receipt may claim
-  // `enforced` ONLY when the policy's authenticity is actually established.
-  // `loadPolicySnapshot` does STRUCTURE validation only today -- it does not
-  // cryptographically verify the snapshot signature (see policy.ts TODO), and
-  // no org/team config-pinning detection exists yet either. Until at least one
-  // of those lands, the tier is always `advisory`: a structurally valid
-  // snapshot's deny/ask rules are STILL applied by `evaluatePolicy` below (they
-  // can only tighten, never weaken -- defense in depth), but the receipt never
-  // overclaims enforcement it cannot back up. Flip this to a real conditional
-  // the moment signature verification ships.
-  const enforcementTier = 'advisory' as const;
+  // `enforced` ONLY when the policy signature cryptographically verifies
+  // (`cryptoVerified`). Structurally valid / unsigned snapshots still apply
+  // deny/ask rules below (they can only tighten), but the receipt stays
+  // `advisory` so we never overclaim enforcement. Org/team hook-config
+  // pinning is a separate future signal and is not claimed here.
+  const enforcementTier =
+    snapshotResult.valid && snapshotResult.cryptoVerified
+      ? ('enforced' as const)
+      : ('advisory' as const);
 
   const event = normalizeHookEvent(source, rawInput, enforcementTier);
   const decision = evaluatePolicy(snapshotResult, event);
