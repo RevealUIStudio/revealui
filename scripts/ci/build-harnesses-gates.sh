@@ -19,9 +19,8 @@ else
   echo "build:gates not in package.json — falling back to tsup.gates-cjs.ts"
   pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 fi
-
-# gates-resolver prefers dist/gates/index.js; gates-cjs only emits .cjs
-if [[ ! -f packages/harnesses/dist/gates/index.js && -f packages/harnesses/dist/gates/index.cjs ]]; then
-  cp packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
-  echo "copied index.cjs → index.js for gates-resolver"
+# Nested package type so index.js CJS loads under parent type:module
+if [[ -f packages/harnesses/dist/gates/index.cjs ]]; then
+  printf '%s\n' '{"type":"commonjs"}' > packages/harnesses/dist/gates/package.json
+  cp -f packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
 fi

@@ -68,9 +68,10 @@ jobs:
             pnpm --filter @revealui/harnesses run build:gates
           else
             pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
-            if [[ ! -f packages/harnesses/dist/gates/index.js && -f packages/harnesses/dist/gates/index.cjs ]]; then
-              cp packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
-            fi
+          fi
+          if [[ -f packages/harnesses/dist/gates/index.cjs ]]; then
+            printf '%s\n' '{"type":"commonjs"}' > packages/harnesses/dist/gates/package.json
+            cp -f packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
           fi
 
       # jv#871: a gate is not wired until CI has observed it green AND red.
