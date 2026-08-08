@@ -53,7 +53,10 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 ## Agent Coordination
 
 - [Harness Protocol](./HARNESS_PROTOCOL.md): Agent normalization, capability model, lifecycle events, and the adapter/coordinator surface shipped in `@revealui/harnesses`
-- [Connect OpenCode](./guides/connect-opencode.md): Connect the OpenCode CLI to a RevealUI instance through the governed MCP endpoint
+- [Connect OpenCode](./guides/connect-opencode.md): OpenCode CLI via governed MCP
+- [Connect Cursor](./guides/connect-cursor.md): Cursor hooks + governed MCP
+- [Connect VS Code](./guides/connect-vscode.md): Copilot agent-plugin bundle
+- [Connect ACP (Zed / JetBrains)](./guides/connect-acp.md): RevealUI ACP agent on stdio
 - [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
 
 ## Pro & Enterprise

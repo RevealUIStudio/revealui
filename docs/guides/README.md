@@ -21,6 +21,13 @@ Practical, step-by-step guides for building with RevealUI.
 - [Billing](./billing.md) -- Stripe checkout, subscriptions, webhooks, pricing tiers
 - [Deployment](./deployment.md) -- Vercel, Docker, self-hosted, environment variables
 
+## Connect editors (governed agents)
+
+- [Connect OpenCode](./connect-opencode.md) -- OpenCode CLI via governed MCP
+- [Connect Cursor](./connect-cursor.md) -- Cursor hooks + governed MCP
+- [Connect VS Code](./connect-vscode.md) -- Copilot agent plugin bundle
+- [Connect ACP (Zed / JetBrains)](./connect-acp.md) -- `revealui-harnesses acp` on stdio
+
 ## Reference
 
 For package-level API documentation, see the [API Reference](/api).
