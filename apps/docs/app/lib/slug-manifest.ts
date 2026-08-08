@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 74 entries.
+ * Generated: 81 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -45,6 +45,7 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'blog/15-dashboard-agent-chat': 'blog/15-dashboard-agent-chat.md',
   'blog/16-ui-of-the-future': 'blog/16-ui-of-the-future.md',
   'blog/17-shareable-upside': 'blog/17-shareable-upside.md',
+  'blog/18-open-runtime-for-fde-work': 'blog/18-open-runtime-for-fde-work.md',
   'build-your-business': 'BUILD_YOUR_BUSINESS.md',
   'component-catalog': 'COMPONENT_CATALOG.md',
   'core-stability': 'CORE_STABILITY.md',
@@ -55,6 +56,9 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'decisions/2026-06-13-collab-snapshot-durability':
     'decisions/2026-06-13-collab-snapshot-durability.md',
   'decisions/2026-06-14-stripe-mode-coherence': 'decisions/2026-06-14-stripe-mode-coherence.md',
+  'decisions/2026-07-29-docs-publish-plane-virtual-serve':
+    'decisions/2026-07-29-docs-publish-plane-virtual-serve.md',
+  'decisions/2026-08-07-core-alert-planes': 'decisions/2026-08-07-core-alert-planes.md',
   'environment-variables-guide': 'ENVIRONMENT-VARIABLES-GUIDE.md',
   examples: 'EXAMPLES.md',
   'fair-source': 'FAIR_SOURCE.md',
@@ -64,10 +68,14 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'fleet/revskills': 'fleet/revskills.md',
   'fleet/revvault': 'fleet/revvault.md',
   forge: 'FORGE.md',
+  'forge-sso-setup': 'FORGE_SSO_SETUP.md',
   'guides/authentication': 'guides/authentication.md',
   'guides/billing': 'guides/billing.md',
   'guides/collections': 'guides/collections.md',
+  'guides/connect-acp': 'guides/connect-acp.md',
+  'guides/connect-cursor': 'guides/connect-cursor.md',
   'guides/connect-opencode': 'guides/connect-opencode.md',
+  'guides/connect-vscode': 'guides/connect-vscode.md',
   'guides/deployment': 'guides/deployment.md',
   'guides/quick-start': 'guides/quick-start.md',
   'guides/readme': 'guides/README.md',
