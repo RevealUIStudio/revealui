@@ -9,8 +9,8 @@
  * - I-6: prompt execution uses AcpPromptExecutor (adapter), never direct DB
  */
 
-import * as acp from '@agentclientprotocol/sdk';
 import { randomBytes } from 'node:crypto';
+import * as acp from '@agentclientprotocol/sdk';
 import type { AcpPromptExecutor } from './executor.js';
 import { createDefaultAcpPromptExecutor } from './executor.js';
 import { extractPromptText } from './prompt-text.js';

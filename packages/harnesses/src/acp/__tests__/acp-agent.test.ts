@@ -8,8 +8,8 @@
 import * as acp from '@agentclientprotocol/sdk';
 import { describe, expect, it } from 'vitest';
 import { createRevealUiAcpAgent } from '../agent.js';
-import { extractPromptText } from '../prompt-text.js';
 import type { AcpPromptExecutor } from '../executor.js';
+import { extractPromptText } from '../prompt-text.js';
 
 describe('extractPromptText', () => {
   it('joins text content blocks', () => {

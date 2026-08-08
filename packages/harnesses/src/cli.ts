@@ -23,6 +23,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { runRevealUiAcpAgentStdio } from './acp/index.js';
 import {
   buildManifest,
   checkAllContentSnapshots,
@@ -40,7 +41,6 @@ import {
   writeAllContentSnapshots,
   writeManagerAdapterContent,
 } from './content/index.js';
-import { runRevealUiAcpAgentStdio } from './acp/index.js';
 import { defaultHookRunOptions, isImplementedHookSource, runHookCommand } from './hooks/index.js';
 import { runHotfixCli } from './hotfix/cli.js';
 import { checkManager, materializeManager } from './manager/index.js';

@@ -5,15 +5,15 @@
  */
 
 export {
-  createRevealUiAcpAgent,
   acp,
+  createRevealUiAcpAgent,
   type RevealUiAcpAgentOptions,
 } from './agent.js';
 export {
-  createDefaultAcpPromptExecutor,
   type AcpPromptExecutor,
   type AcpPromptInput,
   type AcpPromptResult,
+  createDefaultAcpPromptExecutor,
 } from './executor.js';
 export { extractPromptText, isTextContentBlock } from './prompt-text.js';
 export { runRevealUiAcpAgentStdio } from './stdio.js';

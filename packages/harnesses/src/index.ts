@@ -9,6 +9,17 @@
  * @packageDocumentation
  */
 
+// ACP agent plane (GAP-381 Phase D)
+export {
+  type AcpPromptExecutor,
+  type AcpPromptInput,
+  type AcpPromptResult,
+  createDefaultAcpPromptExecutor,
+  createRevealUiAcpAgent,
+  extractPromptText,
+  type RevealUiAcpAgentOptions,
+  runRevealUiAcpAgentStdio,
+} from './acp/index.js';
 // Config
 export {
   diffAllConfigs,
@@ -52,17 +63,6 @@ export {
   validateManifest,
   writeAllContentSnapshots,
 } from './content/index.js';
-// ACP agent plane (GAP-381 Phase D)
-export {
-  createDefaultAcpPromptExecutor,
-  createRevealUiAcpAgent,
-  extractPromptText,
-  runRevealUiAcpAgentStdio,
-  type AcpPromptExecutor,
-  type AcpPromptInput,
-  type AcpPromptResult,
-  type RevealUiAcpAgentOptions,
-} from './acp/index.js';
 // Detection
 export { autoDetectHarnesses } from './detection/auto-detector.js';
 export {
