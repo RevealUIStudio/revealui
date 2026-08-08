@@ -138,6 +138,36 @@ export const ROADMAP_PROFILES: Record<string, ProtocolCapabilities> = {
       'tool.blocked',
     ],
   },
+
+  /**
+   * Zed as an ACP *client*. RevealUI is the ACP agent server
+   * (`revealui-harnesses acp`, GAP-381 Phase D). No headless Zed adapter;
+   * dispatch stays false. MCP can be forwarded to agents per ACP.
+   */
+  zed: {
+    dispatch: {
+      generateCode: false,
+      analyzeCode: false,
+      applyEdit: false,
+      executeCommand: false,
+    },
+    readWorkboard: false,
+    writeWorkboard: false,
+    claimTasks: false,
+    reportConflicts: false,
+    headless: false,
+    resumable: false,
+    forkable: false,
+    backgroundable: false,
+    hooks: { supported: false, granularity: 'none', canBlock: false },
+    sandbox: { supported: false, modes: [] },
+    supportsWorktrees: true,
+    supportsSkills: false,
+    supportsMcp: true,
+    memory: { supported: false, backend: 'none' },
+    maxContextTokens: 0,
+    lifecycleEvents: ['session.start', 'session.stop', 'prompt.submit'],
+  },
 } as const;
 
 /**
