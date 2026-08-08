@@ -71,7 +71,10 @@ export const SITE = {
     fslSoftware: 'https://fsl.software/',
     fslSpecText: 'https://fsl.software/FSL-1.1-MIT.template.md',
     adminLogin: 'https://admin.revealui.com/login',
-    x: 'https://x.com/revealui',
+    /**
+     * X/Twitter handle is not live yet (x.com/revealui 404 as of 2026-08 audit).
+     * Omit from public nav until the account exists; do not reintroduce a dead href.
+     */
     linkedin: 'https://www.linkedin.com/company/revealui',
     repoChangelog: 'https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md',
     repoLicense: 'https://github.com/RevealUIStudio/revealui/blob/main/LICENSE',

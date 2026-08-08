@@ -371,7 +371,7 @@ importers:
         version: 13.3.0
       '@vercel/speed-insights':
         specifier: ^2.0.0
-        version: 2.0.0(next@16.2.11(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
+        version: 2.0.0(next@16.2.11(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
@@ -611,7 +611,7 @@ importers:
         version: 10.67.0(react@19.2.8)
       '@vercel/speed-insights':
         specifier: ^2.0.0
-        version: 2.0.0(next@16.2.11(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
+        version: 2.0.0(next@16.2.11(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -1416,6 +1416,9 @@ importers:
 
   packages/harnesses:
     dependencies:
+      '@agentclientprotocol/sdk':
+        specifier: 1.3.0
+        version: 1.3.0(zod@4.4.3)
       '@revealui/core':
         specifier: workspace:*
         version: link:../core
@@ -2077,6 +2080,11 @@ packages:
 
   '@adraffy/ens-normalize@1.11.1':
     resolution: {integrity: sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ==}
+
+  '@agentclientprotocol/sdk@1.3.0':
+    resolution: {integrity: sha512-i3h/efaeuMUFAO1HSfo97QZQnnvMd7wWBYtBsdL6UMZg3a78sk3Ffya5Xu7C7tYsXomXoDXJBAzQF2PcFKAhIQ==}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
 
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -9372,6 +9380,10 @@ snapshots:
 
   '@adraffy/ens-normalize@1.11.1': {}
 
+  '@agentclientprotocol/sdk@1.3.0(zod@4.4.3)':
+    dependencies:
+      zod: 4.4.3
+
   '@alloc/quick-lru@5.2.0': {}
 
   '@apify/consts@2.54.2': {}
@@ -12628,7 +12640,7 @@ snapshots:
     dependencies:
       zod: 4.4.3
 
-  '@vercel/speed-insights@2.0.0(next@16.2.11(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)':
+  '@vercel/speed-insights@2.0.0(next@16.2.11(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)':
     optionalDependencies:
       next: 16.2.11(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(@types/node@25.9.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8

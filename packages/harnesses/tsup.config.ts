@@ -23,6 +23,7 @@ export default defineConfig({
     'src/hotfix/index.ts',
     'src/tmpscript/index.ts',
     'src/gates/index.ts',
+    'src/acp/index.ts',
   ],
   format: ['esm'],
   dts: true,

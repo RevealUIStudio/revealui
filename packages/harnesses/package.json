@@ -12,6 +12,7 @@
     "revealui-harnesses": "./dist/cli.js"
   },
   "dependencies": {
+    "@agentclientprotocol/sdk": "1.3.0",
     "@revealui/core": "workspace:*",
     "@revealui/security": "workspace:*",
     "zod": "catalog:"
@@ -72,6 +73,11 @@
       "import": "./dist/gates/index.js",
       "require": "./dist/gates/index.cjs",
       "default": "./dist/gates/index.js"
+    },
+    "./acp": {
+      "types": "./dist/acp/index.d.ts",
+      "import": "./dist/acp/index.js",
+      "default": "./dist/acp/index.js"
     }
   },
   "files": [

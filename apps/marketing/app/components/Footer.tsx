@@ -1,4 +1,4 @@
-import { BuiltWithRevealUI, GitHubIcon, LinkedInIcon, XIcon } from '@revealui/presentation';
+import { BuiltWithRevealUI, GitHubIcon, LinkedInIcon } from '@revealui/presentation';
 import {
   FOOTER_CLAIMS_LEDGER_NOTE,
   FOOTER_COLUMNS,
@@ -66,13 +66,6 @@ export function Footer() {
                 aria-label="GitHub"
               >
                 <GitHubIcon className="size-5" />
-              </a>
-              <a
-                href={SITE.urls.x}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="RevealUI on X"
-              >
-                <XIcon className="size-5" />
               </a>
               <a
                 href={SITE.urls.linkedin}
