@@ -40,6 +40,12 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.revealui.com" }],
+      "destination": "https://revealui.com/:path*",
+      "permanent": true
+    },
     { "source": "/docs", "destination": "https://docs.revealui.com", "permanent": true },
     {
       "source": "/docs/:path*",
