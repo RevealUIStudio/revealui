@@ -1,6 +1,6 @@
 {
   "name": "@rsc-poc/app",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "GAP-194 Phase 2.1 RSC POC sandbox — revived for Phase 2.2.2 T0 gate (archive/rsc-poc-spike). Integration harness for dual-mode @revealui/router 0.4 RSC work.",
   "private": true,
   "type": "module",
