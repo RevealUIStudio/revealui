@@ -28,8 +28,7 @@ an audit trail for what agents do **through RevealUI**.
 - **Audited.** Tool calls through the governed MCP endpoint write receipts.
   Hook events can spool receipts via `revealui-harnesses hook cursor`.
 - **Revocable.** Revoking the device token stops MCP access on the next
-  request. The server re-validates the token on every request
-  (`apps/server/src/middleware/auth.ts:26`), not only when a session starts.
+  request. The server re-validates the token on every request (`apps/server/src/middleware/auth.ts:26`), not only when a session starts.
 
 ### Honest limits (read before you ship this to customers)
 
@@ -122,9 +121,7 @@ From a monorepo checkout you can also generate the hooks file via the
 `cursor` content generator (`CursorGenerator` → `.cursor/hooks.json`).
 
 The hook CLI reads JSON on stdin, evaluates local policy, spools a receipt,
-and prints the permission decision. Invalid stdin defaults to allow
-(`packages/harnesses/src/cli.ts:506`) so a bad payload does not crash
-Cursor's hook pipeline.
+and prints the permission decision. Invalid stdin defaults to allow (`packages/harnesses/src/cli.ts:506`) so a bad payload does not crash Cursor's hook pipeline.
 
 ## 5. Confirm MCP
 
