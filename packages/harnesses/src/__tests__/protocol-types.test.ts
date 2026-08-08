@@ -99,8 +99,8 @@ describe('TOOL_PROFILES (shipped adapters)', () => {
 });
 
 describe('ROADMAP_PROFILES (declared, no adapter)', () => {
-  it('contains the remaining spec-declared tools (opencode + cursor graduated to TOOL_PROFILES; vscode added Phase C)', () => {
-    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'vscode']);
+  it('contains remaining roadmap tools (vscode Phase C; zed Phase D ACP client)', () => {
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'vscode', 'zed']);
   });
 
   it('vscode declares real hook support but no dispatch/adapter capabilities', () => {
@@ -134,7 +134,7 @@ describe('ROADMAP_PROFILES (declared, no adapter)', () => {
 });
 
 describe('ALL_KNOWN_PROFILES (merged view)', () => {
-  it('contains all six declared tools', () => {
+  it('contains all seven declared tools', () => {
     expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
       'claude-code',
       'codex',
@@ -142,6 +142,7 @@ describe('ALL_KNOWN_PROFILES (merged view)', () => {
       'opencode',
       'revealui-agent',
       'vscode',
+      'zed',
     ]);
   });
 

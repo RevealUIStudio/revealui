@@ -9,6 +9,17 @@
  * @packageDocumentation
  */
 
+// ACP agent plane (GAP-381 Phase D)
+export {
+  type AcpPromptExecutor,
+  type AcpPromptInput,
+  type AcpPromptResult,
+  createDefaultAcpPromptExecutor,
+  createRevealUiAcpAgent,
+  extractPromptText,
+  type RevealUiAcpAgentOptions,
+  runRevealUiAcpAgentStdio,
+} from './acp/index.js';
 // Config
 export {
   diffAllConfigs,

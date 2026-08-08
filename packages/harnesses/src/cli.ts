@@ -13,6 +13,7 @@
  *   sync <harnessId> <push|pull>     Sync harness config to/from SSD
  *   coordinate [--project <path>]    Print current workboard state
  *   hook <cursor|claude-code|vscode|grok> Normalize a hook payload from stdin, evaluate policy, spool the receipt
+ *   acp                              Run RevealUI as an ACP agent on stdio (GAP-381 Phase D; Zed/JetBrains)
  *   session register|end|peers|reap  Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
  *
  * License: FSL-1.1-MIT
@@ -22,6 +23,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { runRevealUiAcpAgentStdio } from './acp/index.js';
 import {
   buildManifest,
   checkAllContentSnapshots,
@@ -520,6 +522,13 @@ async function main() {
     return;
   }
 
+  // GAP-381 Phase D: ACP agent over stdio (blocks until client disconnects).
+  if (command === 'acp') {
+    const connection = runRevealUiAcpAgentStdio();
+    await connection.closed;
+    return;
+  }
+
   if (command === 'content') {
     const [subcommand] = args;
     const contentArgs = args.slice(1);
@@ -726,6 +735,7 @@ Commands:
   health                            Run health check (requires daemon)
   coordinate [--project <path>]     Print workboard state
   hook <cursor|claude-code|vscode|grok>  Normalize a hook payload from stdin, evaluate policy, spool the receipt
+  acp                               Run RevealUI ACP agent on stdio (Zed / JetBrains / ACP clients)
   session register|end|peers|reap   Soft-optional RevDev session boundary + peer panel + reaper (GAP-459)
   content <subcommand>              Manage canonical content definitions
   manager materialize [--project p] Write manager.json + .revealui/content + Cursor/OpenCode surfaces + equal stubs
