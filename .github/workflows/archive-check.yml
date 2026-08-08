@@ -58,20 +58,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      # SCOPED install + gates-only build. Full monorepo install timed out.
-      # Fall back when package.json lacks build:gates (older base tips).
+      # Scoped install + gates CJS only (same contract as security-review-gate).
+      # Full monorepo install timed out; hooks/policy DTS is not needed here.
       - name: Install + build shared gates module
         run: |
           set -euo pipefail
           pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
-          if grep -q '"build:gates"' packages/harnesses/package.json; then
-            pnpm --filter @revealui/harnesses run build:gates
-          else
-            pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
-            if [[ ! -f packages/harnesses/dist/gates/index.js && -f packages/harnesses/dist/gates/index.cjs ]]; then
-              cp packages/harnesses/dist/gates/index.cjs packages/harnesses/dist/gates/index.js
-            fi
-          fi
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
 
       # jv#871: a gate is not wired until CI has observed it green AND red.
       # Seeding a violation into the repo cannot prove the red half, because
