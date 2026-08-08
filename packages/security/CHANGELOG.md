@@ -1,5 +1,11 @@
 # @revealui/security
 
+## 0.7.0
+
+### Minor Changes
+
+- 9cf46d6: GAP-381 I-5: Ed25519 sign/verify for harness policy snapshots; enforced tier only when signature verifies.
+
 ## 0.6.1
 
 ### Patch Changes

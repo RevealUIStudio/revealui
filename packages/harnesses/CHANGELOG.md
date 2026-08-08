@@ -1,5 +1,17 @@
 # @revealui/harnesses
 
+## 0.14.0
+
+### Minor Changes
+
+- 9cf46d6: GAP-381 I-5: Ed25519 sign/verify for harness policy snapshots; enforced tier only when signature verifies.
+
+### Patch Changes
+
+- Updated dependencies [9cf46d6]
+  - @revealui/security@0.7.0
+  - @revealui/core@0.13.1
+
 ## 0.13.0
 
 ### Minor Changes

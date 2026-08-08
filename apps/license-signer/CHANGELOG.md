@@ -1,5 +1,11 @@
 # @revealui/license-signer
 
+## 0.1.5
+
+### Patch Changes
+
+- @revealui/core@0.13.1
+
 ## 0.1.4
 
 ### Patch Changes
