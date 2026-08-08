@@ -95,12 +95,15 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Build @revealui/harnesses (guardrail2-verdict gates module, GAP-408)
+      - name: Build @revealui/harnesses gates only (guardrail2-verdict, GAP-408)
         run: |
           set -euo pipefail
-          # Include workspace deps (e.g. @revealui/security) for harnesses DTS.
-          pnpm install --frozen-lockfile --filter @revealui/harnesses...
-          pnpm turbo run build --filter=@revealui/harnesses...
+          # Sparse checkout has packages/harnesses + packages/dev only — no turbo.json
+          # and no @revealui/security source. Full `harnesses build` DTS needs security
+          # (GAP-381 policy crypto). Gates code does not; build:gates emits dist/gates
+          # without that dep (same sparse model as pre-#2449).
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm --filter @revealui/harnesses run build:gates
 
       - name: Evaluate review gate
         env:
