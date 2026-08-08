@@ -55,6 +55,11 @@ function buildPackageDirMap(packagesRoot) {
 /**
  * Extract the body of the `## <version>` section from a changesets CHANGELOG.
  *
+ * Returns:
+ *   - `null` if the `## <version>` heading is absent
+ *   - `''` if the heading exists but the section has no body (dependency-only bump)
+ *   - the section text otherwise
+ *
  * The section ends at the first line that is not changesets section content.
  * Changesets only ever emits blank lines, `###` change-type headings, `-`/`*`
  * bullets, and indented continuation lines inside a section, so any other
@@ -94,7 +99,9 @@ function extractChangelogSection(changelogText, version) {
   }
   while (start < end && lines[start].trim() === '') start += 1;
   while (end > start && lines[end - 1].trim() === '') end -= 1;
-  if (start >= end) return null;
+  // Empty section is valid: changesets often emits `## x.y.z` with no body for
+  // dependency-only bumps (e.g. knowledge-graph 0.1.8). Missing heading only.
+  if (start >= end) return '';
   return lines.slice(start, end).join('\n');
 }
 
@@ -152,7 +159,12 @@ async function run({ github, context, core }) {
       continue;
     }
 
-    let body = section;
+    // Empty body after a present heading (dependency-only bump). GitHub requires
+    // a non-empty release body in practice for a useful release page.
+    let body =
+      section.length > 0
+        ? section
+        : '_No package-level changes in this release (dependency bumps only). See the package CHANGELOG.md._';
     if (body.length > MAX_BODY_CHARS) {
       core.warning(`${tag}: changelog section is ${body.length} chars; truncating to ${MAX_BODY_CHARS}.`);
       body = `${body.slice(0, MAX_BODY_CHARS)}\n\n_Truncated — see ${relativeChangelogPath} for the full entry._`;
