@@ -8,6 +8,7 @@ import type {
   CoveredFile,
 } from '../../../apps/marketing/app/content/claims-evidence.ts';
 import {
+  findCriticalProofGradeViolations,
   findMissingRouteEntries,
   findUntrackedCodeEvidence,
   isTrackedPath,
@@ -58,6 +59,74 @@ describe('isTrackedPath', () => {
 
   it('does not match a directory with no tracked files under it', () => {
     expect(isTrackedPath(tracked, 'packages/nonexistent-pkg/src')).toBe(false);
+  });
+});
+
+describe('findCriticalProofGradeViolations', () => {
+  function claim(
+    file: string,
+    exportPath: string,
+    proofGrade?: ClaimEntry['proofGrade'],
+  ): ClaimEntry {
+    return {
+      file,
+      exportPath,
+      text: 'placeholder text long enough to pass the prose floor',
+      evidence: [{ kind: 'code', ref: 'packages' }],
+      proofGrade,
+    };
+  }
+
+  it('flags a critical homepage claim with no proofGrade (path default)', () => {
+    expect(findCriticalProofGradeViolations([claim('home.ts', 'HOME_HERO.h1')])).toEqual([
+      { file: 'home.ts', exportPath: 'HOME_HERO.h1', grade: 'path' },
+    ]);
+  });
+
+  it('flags a critical claim graded only path', () => {
+    expect(
+      findCriticalProofGradeViolations([claim('home.ts', 'HOME_PROBLEM.body', 'path')]),
+    ).toEqual([{ file: 'home.ts', exportPath: 'HOME_PROBLEM.body', grade: 'path' }]);
+  });
+
+  it('passes critical claims graded behavior or outcome', () => {
+    expect(
+      findCriticalProofGradeViolations([
+        claim('home.ts', 'HOME_HERO.h1', 'behavior'),
+        claim('primitives.ts', 'HOME_PRIMITIVES[0].body', 'outcome'),
+      ]),
+    ).toEqual([]);
+  });
+
+  it('skips competitor-framing, FAQ questions, and chrome fields', () => {
+    expect(
+      findCriticalProofGradeViolations([
+        claim('home.ts', 'HOME_PROBLEM.rows[0].sprawl'),
+        claim('home.ts', 'HOME_FAQ.items[0].question'),
+        claim('home.ts', 'HOME_GET_STARTED.newsletter.label'),
+        claim('proof.ts', 'PROOF_TRUST.changelogCta.label'),
+      ]),
+    ).toEqual([]);
+  });
+
+  it('requires grades on products, local-ai, and for-operators', () => {
+    expect(
+      findCriticalProofGradeViolations([
+        claim('products.ts', 'PRODUCTS_PAGE_HERO.h1'),
+        claim('local-ai.ts', 'LOCAL_AI_PAGE.lead'),
+        claim('for-operators.ts', 'FOR_OPERATORS_HERO.subtitle'),
+      ]),
+    ).toEqual([
+      { file: 'products.ts', exportPath: 'PRODUCTS_PAGE_HERO.h1', grade: 'path' },
+      { file: 'local-ai.ts', exportPath: 'LOCAL_AI_PAGE.lead', grade: 'path' },
+      { file: 'for-operators.ts', exportPath: 'FOR_OPERATORS_HERO.subtitle', grade: 'path' },
+    ]);
+  });
+
+  it('skips non-critical files even without a grade', () => {
+    expect(findCriticalProofGradeViolations([claim('pricing.ts', 'PRICING_PAGE_HERO.h1')])).toEqual(
+      [],
+    );
   });
 });
 

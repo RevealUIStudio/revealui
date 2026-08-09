@@ -28,6 +28,11 @@
  *      unstaged local-only paths too; those would 404 on the public GitHub
  *      deep link this page renders for `code` refs.
  *
+ *   6. proof grade — critical homepage funnel claims must declare
+ *      proofGrade 'behavior' or 'outcome' (owner 2026-08-09). Path-only
+ *      citations are not enough for hero / problem / primitives / proof /
+ *      pricing-teaser product claims.
+ *
  * Usage:
  *   tsx scripts/validate/claims-evidence.ts          # exit 1 on violations
  *   tsx scripts/validate/claims-evidence.ts --warn   # warn-only (exit 0)
@@ -42,6 +47,9 @@ import {
   type ClaimEntry,
   COVERED_FILES,
   type CoveredFile,
+  effectiveProofGrade,
+  isCriticalMarketingClaim,
+  isProofGradeSufficient,
   NON_COPY_KEYS,
 } from '../../apps/marketing/app/content/claims-evidence.js';
 import { CONTENT_FILE_ROUTES } from '../../apps/marketing/app/content/claims-routes.js';
@@ -158,6 +166,30 @@ export function findUntrackedCodeEvidence(
       if (ev.kind === 'code' && untrackedRefs.has(ev.ref)) {
         results.push({ file: claim.file, exportPath: claim.exportPath, ref: ev.ref });
       }
+    }
+  }
+  return results;
+}
+
+export interface CriticalProofGradeViolation {
+  readonly file: string;
+  readonly exportPath: string;
+  readonly grade: string;
+}
+
+/**
+ * Critical homepage funnel claims that lack proofGrade behavior|outcome.
+ * Pure; exported for tests.
+ */
+export function findCriticalProofGradeViolations(
+  claims: readonly ClaimEntry[],
+): CriticalProofGradeViolation[] {
+  const results: CriticalProofGradeViolation[] = [];
+  for (const claim of claims) {
+    if (!isCriticalMarketingClaim(claim.file, claim.exportPath)) continue;
+    const grade = effectiveProofGrade(claim);
+    if (!isProofGradeSufficient(grade)) {
+      results.push({ file: claim.file, exportPath: claim.exportPath, grade });
     }
   }
   return results;
@@ -333,10 +365,17 @@ async function run(): Promise<void> {
     );
   }
 
+  // 6. Proof grade: critical homepage funnel claims need behavior|outcome.
+  for (const weak of findCriticalProofGradeViolations(CLAIMS)) {
+    violations.push(
+      `${weak.file} :: ${weak.exportPath} — critical claim needs proofGrade 'behavior' or 'outcome' (got '${weak.grade}'). Path-only is not enough for primary funnel copy.`,
+    );
+  }
+
   const coveredCount = CLAIMS.length;
   if (violations.length === 0) {
     console.log(
-      `claims-evidence: ${coveredCount} indexed claims across ${COVERED_FILES.length} covered content modules + ${BLOG_POST_METADATA.length} live blog posts (title+excerpt+body), all matched, all evidence paths present.`,
+      `claims-evidence: ${coveredCount} indexed claims across ${COVERED_FILES.length} covered content modules + ${BLOG_POST_METADATA.length} live blog posts (title+excerpt+body), all matched, all evidence paths present, critical proof grades sufficient.`,
     );
     process.exit(0);
   }
@@ -346,7 +385,7 @@ async function run(): Promise<void> {
     console.error(`  ✗ ${v}`);
   }
   console.error(
-    '\nFix: index the sentence in apps/marketing/app/content/claims-evidence.ts with the code that proves it, update the stale entry, or restore the cited path. Copy with no proof does not ship.',
+    '\nFix: index the sentence in apps/marketing/app/content/claims-evidence.ts with the code that proves it, set proofGrade behavior|outcome on critical homepage fields, update the stale entry, or restore the cited path. Copy with no proof does not ship.',
   );
   process.exit(warnOnly ? 0 : 1);
 }

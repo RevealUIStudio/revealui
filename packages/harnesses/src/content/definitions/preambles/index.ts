@@ -10,6 +10,7 @@ export const preambles: PreambleTier[] = [
       'tracker-first',
       'quality-over-speed',
       'code-over-docs',
+      'ai-mechanics',
       'durable-solutions',
       'disposition-actions',
       'adapter-only',

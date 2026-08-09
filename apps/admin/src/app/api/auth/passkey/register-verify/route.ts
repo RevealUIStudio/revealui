@@ -10,7 +10,9 @@
  */
 
 import {
+  admitFreeIntake,
   createSession,
+  ensureFreeSignupEntitlement,
   getSession,
   initiateMFASetup,
   storePasskey,
@@ -161,11 +163,32 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         return createApplicationErrorResponse('Unable to create account', 'SIGNUP_FAILED', 400);
       }
 
+      // GAP-256 PR-3b: admit before users insert (K13)
+      const passkeyEmail = (challengePayload.email ?? '').toLowerCase();
+      const admit = await admitFreeIntake({
+        channel: 'free_signup',
+        email: passkeyEmail,
+        payingIntent: { kind: 'none' },
+      });
+      if (admit.decision === 'waitlist') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'WAITLISTED',
+            code: 'WAITLISTED',
+            waitlistToken: admit.waitlistToken,
+            positionEstimate: admit.positionEstimate ?? null,
+            message: 'Free signup is temporarily waitlisted. Paid signup remains available.',
+          },
+          { status: 202 },
+        );
+      }
+
       // Create user (no password  -  passkey-only account)
       const newUserId = crypto.randomUUID();
       const newUser = await createUser(db, {
         id: newUserId,
-        email: (challengePayload.email ?? '').toLowerCase(),
+        email: passkeyEmail,
         name: challengePayload.name ?? '',
         password: null,
         emailVerified: false,
@@ -173,6 +196,20 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
       if (!newUser) {
         return createApplicationErrorResponse('Failed to create user', 'SIGNUP_FAILED', 500);
+      }
+
+      // Free@t0 account + entitlement (passkey path does not use signUp())
+      try {
+        await ensureFreeSignupEntitlement({
+          userId: newUser.id,
+          cohortLimits: admit.cohortLimits,
+          displayName: challengePayload.name ?? '',
+        });
+      } catch (entErr) {
+        logger.error('Failed free entitlement@t0 after passkey sign-up (non-fatal)', {
+          userId: newUser.id,
+          error: entErr instanceof Error ? entErr.message : String(entErr),
+        });
       }
 
       // Store passkey  -  registrationInfo is guaranteed non-null after verified === true

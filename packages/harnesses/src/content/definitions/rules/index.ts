@@ -1,6 +1,7 @@
 import type { Rule } from '../../schemas/rule.js';
 import { adapterOnlyRule } from './adapter-only.js';
 import { agentDispatchRule } from './agent-dispatch.js';
+import { aiMechanicsRule } from './ai-mechanics.js';
 import { biomeRule } from './biome.js';
 import { codeAnalysisPolicyRule } from './code-analysis-policy.js';
 import { codeOverDocsRule } from './code-over-docs.js';
@@ -20,6 +21,7 @@ import { unusedDeclarationsRule } from './unused-declarations.js';
 export const rules: Rule[] = [
   adapterOnlyRule,
   agentDispatchRule,
+  aiMechanicsRule,
   biomeRule,
   codeAnalysisPolicyRule,
   codeOverDocsRule,

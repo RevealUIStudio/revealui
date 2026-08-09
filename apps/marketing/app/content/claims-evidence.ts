@@ -7,8 +7,15 @@ export type {
   CoveredFile,
   EvidenceKind,
   EvidenceRef,
+  ProofGrade,
 } from './claims-evidence/types.js';
-export { COVERED_FILES } from './claims-evidence/types.js';
+export {
+  COVERED_FILES,
+  CRITICAL_PROOF_FILES,
+  effectiveProofGrade,
+  isCriticalMarketingClaim,
+  isProofGradeSufficient,
+} from './claims-evidence/types.js';
 
 import { blogBodyClaims } from './claims-evidence/blog-body-claims.js';
 import { blogMetaClaims } from './claims-evidence/blog-meta-claims.js';

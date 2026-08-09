@@ -41,6 +41,32 @@ export const AccountEntitlementsInsertContract = createContract({
 })
 
 // =============================================================================
+// AccountMarginDaily Contracts
+// =============================================================================
+
+/**
+ * Contract for accountMarginDaily row (Select)
+ * Database table: account_margin_daily
+ */
+export const AccountMarginDailyRowContract = createContract({
+  name: 'AccountMarginDailyRow',
+  version: '1',
+  description: 'Database row contract for account_margin_daily table',
+  schema: Schemas.AccountMarginDailySelectSchema,
+})
+
+/**
+ * Contract for accountMarginDaily insert
+ * Database table: account_margin_daily
+ */
+export const AccountMarginDailyInsertContract = createContract({
+  name: 'AccountMarginDailyInsert',
+  version: '1',
+  description: 'Database insert contract for account_margin_daily table',
+  schema: Schemas.AccountMarginDailyInsertSchema,
+})
+
+// =============================================================================
 // AccountMemberships Contracts
 // =============================================================================
 
@@ -142,6 +168,32 @@ export const AccountSubscriptionsInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for account_subscriptions table',
   schema: Schemas.AccountSubscriptionsInsertSchema,
+})
+
+// =============================================================================
+// AdmissionWaitlist Contracts
+// =============================================================================
+
+/**
+ * Contract for admissionWaitlist row (Select)
+ * Database table: admission_waitlist
+ */
+export const AdmissionWaitlistRowContract = createContract({
+  name: 'AdmissionWaitlistRow',
+  version: '1',
+  description: 'Database row contract for admission_waitlist table',
+  schema: Schemas.AdmissionWaitlistSelectSchema,
+})
+
+/**
+ * Contract for admissionWaitlist insert
+ * Database table: admission_waitlist
+ */
+export const AdmissionWaitlistInsertContract = createContract({
+  name: 'AdmissionWaitlistInsert',
+  version: '1',
+  description: 'Database insert contract for admission_waitlist table',
+  schema: Schemas.AdmissionWaitlistInsertSchema,
 })
 
 // =============================================================================
@@ -1494,6 +1546,32 @@ export const MagicLinksInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for magic_links table',
   schema: Schemas.MagicLinksInsertSchema,
+})
+
+// =============================================================================
+// MarginSnapshots Contracts
+// =============================================================================
+
+/**
+ * Contract for marginSnapshots row (Select)
+ * Database table: margin_snapshots
+ */
+export const MarginSnapshotsRowContract = createContract({
+  name: 'MarginSnapshotsRow',
+  version: '1',
+  description: 'Database row contract for margin_snapshots table',
+  schema: Schemas.MarginSnapshotsSelectSchema,
+})
+
+/**
+ * Contract for marginSnapshots insert
+ * Database table: margin_snapshots
+ */
+export const MarginSnapshotsInsertContract = createContract({
+  name: 'MarginSnapshotsInsert',
+  version: '1',
+  description: 'Database insert contract for margin_snapshots table',
+  schema: Schemas.MarginSnapshotsInsertSchema,
 })
 
 // =============================================================================

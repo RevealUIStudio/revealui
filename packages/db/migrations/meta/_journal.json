@@ -274,6 +274,13 @@
       "when": 1785960000000,
       "tag": "0038_gap176_coordination_mail_uuid",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1786272000000,
+      "tag": "0039_gap256_margin_admission",
+      "breakpoints": true
     }
   ]
 }

@@ -22,7 +22,7 @@ RevealUI is a framework, not a stack. The five primitives (people, content, offe
 
 | Choice | Role | Why |
 |---|---|---|
-| **NeonDB** (Postgres) | Primary database — 101 tables across the five primitives | Serverless Postgres; pgvector supported; any standard Postgres works as a substitute (the agnosticism principle is a contract, not a coupling). |
+| **NeonDB** (Postgres) | Primary database — 104 tables across the five primitives | Serverless Postgres; pgvector supported; any standard Postgres works as a substitute (the agnosticism principle is a contract, not a coupling). |
 | **Drizzle ORM** | Schema definition + type-safe queries | Schema-first, accurate types, no runtime overhead, no proprietary query DSL. |
 | **Cloudflare R2** | Canonical object-storage backend | S3-compatible, no egress fees. The legacy Vercel Blob backend was retired. |
 | **ElectricSQL** (optional) | Real-time browser sync layer | Off by default. When enabled, syncs Postgres tables to a local PGlite store in the browser for offline-capable UIs. |

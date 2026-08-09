@@ -77,10 +77,11 @@ export function resolveAgencyKitBranding(input: {
   const email = input.email.trim().toLowerCase();
   const local = email.split('@')[0] || 'buyer';
   const company =
-    (input.company?.trim() && input.company.trim()) ||
+    input.company?.trim() ||
     local.replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ||
     'Agency Buyer';
-  const slug = (input.slug?.trim() && slugifyCompany(input.slug.trim())) || slugifyCompany(company);
+  const slugSource = input.slug?.trim();
+  const slug = (slugSource && slugifyCompany(slugSource)) || slugifyCompany(company);
   const brandRaw = input.brand?.trim() || DEFAULT_BRAND;
   const brand = /^#[0-9A-Fa-f]{6}$/.test(brandRaw) ? brandRaw : DEFAULT_BRAND;
   return { company, slug, brand, email };

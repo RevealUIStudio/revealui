@@ -92,6 +92,7 @@ import adminCoordinationRoute from './routes/admin/coordination.js';
 import adminInferenceConfigRoute from './routes/admin/inference-config.js';
 import adminLocalAiStatusRoute from './routes/admin/local-ai-status.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
+import admissionWaitlistRoute from './routes/admission/waitlist.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
 import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
@@ -112,6 +113,7 @@ import cronDispatchRoute from './routes/cron/dispatch.js';
 import cronDrainUnreconciledRoute from './routes/cron/drain-unreconciled.js';
 import cronJobsSafetyNetRoute from './routes/cron/jobs-safety-net.js';
 import cronLifecycleEmailsRoute from './routes/cron/lifecycle-emails.js';
+import cronMarginSnapshotRoute from './routes/cron/margin-snapshot.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
 import cronReconcileCustomersRoute from './routes/cron/reconcile-customers.js';
@@ -499,6 +501,8 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'log-ingest': { maxRequests: 200, windowMs: ONE_MINUTE },
     'api-keys': { maxRequests: 20, windowMs: ONE_MINUTE },
     'auth-signup': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
+    /** GAP-256 admission waitlist status + claim (not marketing waitlist) */
+    'admission-waitlist': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     /** Enterprise SSO OIDC init/callback (GAP-464) — aligned with sign-in abuse budget */
     'auth-sso': { maxRequests: 20, windowMs: FIFTEEN_MINUTES },
     /** Enterprise SSO provider admin CRUD + test-connection (GAP-464) */
@@ -987,6 +991,9 @@ app.post('/api/v1/content/sites', siteLimit);
 // Resource limits  -  enforce tier-based caps on user signup
 app.use('/api/auth/signup', routeLimit('auth-signup'));
 app.use('/api/v1/auth/signup', routeLimit('auth-signup'));
+// GAP-256 admission waitlist (status + claim)
+app.use('/api/admission/*', routeLimit('admission-waitlist'));
+app.use('/api/v1/admission/*', routeLimit('admission-waitlist'));
 // Enterprise SSO OIDC init/callback (GAP-464)
 app.use('/api/auth/sso/*', routeLimit('auth-sso'));
 app.use('/api/v1/auth/sso/*', routeLimit('auth-sso'));
@@ -1258,6 +1265,9 @@ app.route('/api/contact', contactRoute);
 app.route('/api/v1/contact', contactRoute);
 app.route('/api/waitlist', waitlistRoute);
 app.route('/api/v1/waitlist', waitlistRoute);
+// GAP-256 admission waitlist (distinct from marketing waitlist)
+app.route('/api/admission', admissionWaitlistRoute);
+app.route('/api/v1/admission', admissionWaitlistRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
 app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
@@ -1303,6 +1313,7 @@ app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/cron', cronCleanupRoute);
 app.route('/api/cron', cronJobsSafetyNetRoute);
 app.route('/api/cron', cronLifecycleEmailsRoute);
+app.route('/api/cron', cronMarginSnapshotRoute);
 app.route('/api/cron', cronWorkerLivenessRoute);
 app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
@@ -1380,6 +1391,7 @@ app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/cron', cronCleanupRoute);
 app.route('/api/v1/cron', cronJobsSafetyNetRoute);
 app.route('/api/v1/cron', cronLifecycleEmailsRoute);
+app.route('/api/v1/cron', cronMarginSnapshotRoute);
 app.route('/api/v1/cron', cronWorkerLivenessRoute);
 app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);

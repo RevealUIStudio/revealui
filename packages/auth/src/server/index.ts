@@ -6,6 +6,19 @@
  */
 
 export type { SignInResult, SignUpResult } from '../types.js';
+// GAP-256 admission waitlist (NOT marketing waitlist)
+export {
+  type EnqueueAdmissionWaitlistParams,
+  type EnqueueAdmissionWaitlistResult,
+  enqueueAdmissionWaitlist,
+  estimateAdmissionWaitlistPosition,
+  generateAdmissionToken,
+  getAdmissionWaitlistByToken,
+  getAdmissionWaitlistByTokenAnyStatus,
+  hashAdmissionToken,
+  markAdmissionWaitlistConverted,
+  maskAdmissionEmail,
+} from './admission-waitlist.js';
 // Audit bridge
 export {
   auditAccountLocked,
@@ -48,6 +61,15 @@ export {
   resetMagicLinkConfig,
   verifyMagicLink,
 } from './magic-link.js';
+// GAP-256 margin admit (shared admin + server free-intake)
+export {
+  type AdmitFreeIntakeInput,
+  type AdmitFreeIntakeResult,
+  admitFreeIntake,
+  ensureFreeSignupEntitlement,
+  OPEN_FREE_LIMITS,
+  provisionHostedPersonalAccount,
+} from './margin-admit.js';
 export type { MFAConfig, MFADisableProof, MFASetupResult } from './mfa.js';
 export {
   configureMFA,
