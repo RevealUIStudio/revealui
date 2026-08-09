@@ -9,7 +9,6 @@ import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
 import type { getClient } from '@revealui/db';
 import { accountEntitlements, billingCatalog } from '@revealui/db/schema';
 import { and, count, eq, ne } from 'drizzle-orm';
-import { computeMonthlyMrrCents, dailyRevenueCentsFromMrr } from './margin-mrr-pure.js';
 import type { LivePaidTierCounts, PaidSubscriptionTier } from './margin-mrr-types.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from './tier-pricing.js';
 

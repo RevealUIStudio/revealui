@@ -28,7 +28,7 @@
     "./validation/database": "./validation/database.ts"
   },
   "peerDependencies": {
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "scripts": {
     "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",

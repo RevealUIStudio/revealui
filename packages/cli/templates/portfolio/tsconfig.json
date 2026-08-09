@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "baseUrl": ".",
     "strict": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -24,7 +25,7 @@
     "noEmit": true,
     "incremental": true,
     "plugins": [{ "name": "next" }],
-    "baseUrl": ".",
+
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    "baseUrl": ".",
     "strict": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -23,7 +24,7 @@
     "target": "ES2022",
     "noEmit": true,
     "incremental": true,
-    "baseUrl": ".",
+
     "paths": {
       "@/*": ["./app/*"]
     },
