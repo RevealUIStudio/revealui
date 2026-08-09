@@ -35,6 +35,21 @@ Stop at the open PR. List the exact one-line owner command under owner actions.
 Do not re-send a blocked command or accomplish the disposition through another
 tool.
 
+## Owner-action `gh` form (all sessions, all harnesses)
+
+Prefer short `-R owner/repo` over long `--repo`. Always pin the repo so the
+command works from any cwd. Prefer unquoted label values when the label has no
+spaces. Canonical clearance example:
+
+```bash
+gh pr edit 2482 -R RevealUIStudio/revealui --add-label sec-review:approved
+```
+
+Same shape for other owner one-liners: `gh pr merge <n> -R owner/repo …`,
+`gh pr view <n> -R owner/repo …`, `gh pr checks <n> -R owner/repo`. Hooks that
+print clearance commands (for example sec-review-pending) already use `-R`;
+agent wrap-ups and skills must match.
+
 ## References
 
 - Sibling: tracker-first, quality-over-speed, durable-solutions
