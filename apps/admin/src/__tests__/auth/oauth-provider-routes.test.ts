@@ -46,6 +46,7 @@ vi.mock('@revealui/auth/server', () => ({
   // mockIsSignupAllowed.mockReturnValueOnce(false) to exercise the
   // revealui#833 closed-signup gate.
   isSignupAllowed: (...args: unknown[]) => mockIsSignupAllowed(...args),
+  readUsersRole: vi.fn(async () => null),
   OAuthAccountConflictError: MockOAuthAccountConflictError,
 }));
 

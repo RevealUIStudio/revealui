@@ -9,6 +9,16 @@ import {
   nodeKindJsonSchema,
   validateNodeAttributes,
 } from '../ontology/index.js';
+import { EPISODE_TYPES } from '../types.js';
+
+describe('EPISODE_TYPES runtime export', () => {
+  it('lists the seven episode types used by MCP kg_add_episode', () => {
+    expect(EPISODE_TYPES).toContain('code-scan');
+    expect(EPISODE_TYPES).toContain('agent-fact');
+    expect(EPISODE_TYPES).toContain('manual');
+    expect(EPISODE_TYPES.length).toBe(7);
+  });
+});
 
 describe('ontology enums', () => {
   it('include the prescribed core kinds and relations', () => {

@@ -14,8 +14,8 @@
  */
 
 import type { Database } from '@revealui/db/client';
-import { users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { accountMemberships, users } from '@revealui/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 /** DB column values that already pass isAdminRole / shell admin cookie gate. */
 export const PLATFORM_SHELL_ADMIN_ROLES: ReadonlySet<string> = new Set(['owner', 'admin']);
@@ -75,4 +75,47 @@ export async function ensureAccountOwnerPlatformAdmin(
 
   await db.update(users).set({ role: nextRole }).where(eq(users.id, userId));
   return { previousRole, nextRole, updated: true };
+}
+
+/**
+ * If the user has an active account_memberships.owner seat, ensure users.role
+ * is shell-admin (admin/owner). No-op for members/admins who are not owners.
+ *
+ * GAP-473 residual: accounts provisioned before ensureAccountOwnerPlatformAdmin
+ * (or any race that left membership owner + users.role=viewer) get shell access
+ * on the next session mint without a manual backfill. Never promotes non-owners.
+ *
+ * Best-effort call sites: createSession (covers password/MFA/passkey/OAuth mint).
+ */
+export async function ensureShellAdminIfAccountOwner(
+  db: Database,
+  userId: string,
+): Promise<{ previousRole: string; nextRole: string; updated: boolean } | null> {
+  const [membership] = await db
+    .select({ id: accountMemberships.id })
+    .from(accountMemberships)
+    .where(
+      and(
+        eq(accountMemberships.userId, userId),
+        eq(accountMemberships.role, 'owner'),
+        eq(accountMemberships.status, 'active'),
+      ),
+    )
+    .limit(1);
+
+  if (!membership) {
+    return null;
+  }
+
+  return ensureAccountOwnerPlatformAdmin(db, userId);
+}
+
+/** Fresh users.role after session mint / shell repair (for revealui-role cookie). */
+export async function readUsersRole(db: Database, userId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row?.role ?? null;
 }

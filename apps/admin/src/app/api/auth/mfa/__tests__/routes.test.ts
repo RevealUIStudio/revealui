@@ -31,6 +31,8 @@ vi.mock('@revealui/auth/server', () => ({
   verifyAuthentication: vi.fn(),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
+  // GAP-473: mfa/verify re-reads role after session mint
+  readUsersRole: vi.fn(async () => 'admin'),
 }));
 
 // Mock drizzle-orm operators (needed for passkey DB lookup in mfa/disable)

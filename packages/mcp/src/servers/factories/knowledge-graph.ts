@@ -48,6 +48,7 @@ import {
   type EdgeInput,
   type EdgeRelation,
   type Embedder,
+  EPISODE_TYPES,
   ingestEpisode,
   type KgExecutor,
   kgAtTime,
@@ -69,21 +70,9 @@ const SERVER_VERSION = '0.1.0';
 /** Text block budget for `kg_context` — chars, not tokens, per GAP-349 P2 scope. */
 const DEFAULT_CONTEXT_CHAR_BUDGET = 16_000;
 
-/**
- * Mirrors `EpisodeType` in `@revealui/knowledge-graph/src/types.ts`. That union
- * is a compile-time type only (not exported as a runtime array by P1), so the
- * literal list is duplicated here for Zod enum validation — keep it in
- * lockstep with `types.ts` on any future P3 change.
- */
-const EPISODE_TYPES = [
-  'code-scan',
-  'git-commit',
-  'doc',
-  'agent-fact',
-  'memory',
-  'json',
-  'manual',
-] as const;
+/** Hard caps for kg_add_episode payloads (prevents unbounded Neon writes). */
+const MAX_EPISODE_CONTENT_CHARS = 64_000;
+const MAX_EPISODE_ATTRIBUTES_JSON_CHARS = 16_000;
 
 // ---------------------------------------------------------------------------
 // Tool argument schemas (Zod 4)
@@ -92,6 +81,7 @@ const EPISODE_TYPES = [
 export const KgSearchArgsSchema = z
   .object({
     query: z.string().min(1),
+    /** Node id (uuid-ish) or natural key — resolved via resolveNaturalKey when needed. */
     anchor: z.string().min(1).optional(),
     kinds: z.array(z.enum(NODE_KINDS)).optional(),
     relations: z.array(z.enum(EDGE_RELATIONS)).optional(),
@@ -150,14 +140,53 @@ export const KgAddEpisodeArgsSchema = z
   .object({
     episodeType: z.enum(EPISODE_TYPES),
     source: z.string().min(1),
-    content: z.string().optional(),
+    content: z
+      .string()
+      .max(MAX_EPISODE_CONTENT_CHARS, `content max ${MAX_EPISODE_CONTENT_CHARS} chars`)
+      .optional(),
     contentRef: z.record(z.string(), z.unknown()).optional(),
     referenceTime: z.string().datetime().optional(),
     siteId: z.string().min(1).optional(),
     nodes: z.array(NodeInputArgsSchema).default([]),
     edges: z.array(EdgeInputArgsSchema).default([]),
   })
-  .strict();
+  .strict()
+  .superRefine((val, ctx) => {
+    if (val.contentRef) {
+      const size = JSON.stringify(val.contentRef).length;
+      if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `contentRef JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
+          path: ['contentRef'],
+        });
+      }
+    }
+    for (let i = 0; i < val.nodes.length; i++) {
+      const attrs = val.nodes[i]?.attributes;
+      if (!attrs) continue;
+      const size = JSON.stringify(attrs).length;
+      if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `nodes[${i}].attributes JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
+          path: ['nodes', i, 'attributes'],
+        });
+      }
+    }
+    for (let i = 0; i < val.edges.length; i++) {
+      const attrs = val.edges[i]?.attributes;
+      if (!attrs) continue;
+      const size = JSON.stringify(attrs).length;
+      if (size > MAX_EPISODE_ATTRIBUTES_JSON_CHARS) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `edges[${i}].attributes JSON max ${MAX_EPISODE_ATTRIBUTES_JSON_CHARS} chars (got ${size})`,
+          path: ['edges', i, 'attributes'],
+        });
+      }
+    }
+  });
 
 export const KgPathArgsSchema = z
   .object({
@@ -215,7 +244,8 @@ const TOOLS: Tool[] = [
         query: { type: 'string', description: 'Free-text query.' },
         anchor: {
           type: 'string',
-          description: 'Anchor node id for the BFS traversal channel + node-distance reranker.',
+          description:
+            'Anchor node id OR natural key for the BFS traversal channel + node-distance reranker.',
         },
         kinds: {
           type: 'array',
@@ -667,10 +697,18 @@ export function createKnowledgeGraphServer(options?: CreateKnowledgeGraphServerO
           const parsed = validateToolArgs(KgSearchArgsSchema, request.params.arguments, toolName);
           if (!parsed.ok) return parsed.error as unknown as CallToolResult;
           const { query, anchor, kinds, relations, at, limit, bfsDepth } = parsed.value;
+          let anchorId = anchor;
+          if (anchor) {
+            // Accept natural key or node id: try resolveNaturalKey first; fall back to raw id.
+            const resolved = await resolveNaturalKey(exec, anchor);
+            if (resolved) {
+              anchorId = resolved;
+            }
+          }
           const queryEmbedding = await tryEmbed(query);
           const result = await kgSearch(exec, {
             query,
-            anchor,
+            anchor: anchorId,
             kinds: kinds as NodeKind[] | undefined,
             relations: relations as EdgeRelation[] | undefined,
             at: at ? new Date(at) : undefined,

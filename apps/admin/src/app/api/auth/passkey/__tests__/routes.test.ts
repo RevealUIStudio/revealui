@@ -35,6 +35,7 @@ vi.mock('@revealui/auth/server', () => ({
   verifyMFASetup: vi.fn(),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
+  readUsersRole: vi.fn(async () => null),
 }));
 
 // Mock the logger

@@ -234,6 +234,7 @@ export async function signIn(
     // Rotate session: delete all existing sessions for this user, then create
     // a fresh one. This prevents session fixation attacks where an attacker
     // plants a session token that the victim later authenticates.
+    // createSession also repairs membership-owner shell role (GAP-473).
     let token: string;
     try {
       const sessionResult = await rotateSession(user.id, {
@@ -248,6 +249,21 @@ export async function signIn(
         reason: 'session_error',
         error: 'Failed to create session',
       };
+    }
+
+    // Re-read role after session mint so revealui-role cookie matches DB when
+    // ensureShellAdminIfAccountOwner promoted viewer → admin (GAP-473).
+    try {
+      const [roleRow] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+      if (roleRow && roleRow.role !== user.role) {
+        user = { ...user, role: roleRow.role };
+      }
+    } catch {
+      // Cookie may lag one login; next getSession still sees repaired DB role.
     }
 
     // A fresh session was minted: the login succeeded. Land a success receipt
