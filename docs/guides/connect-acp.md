@@ -33,6 +33,15 @@ RevealUI device token on data-plane calls.
 - An ACP client (Zed with ACP agents, JetBrains ACP support, or another
   ACP-compatible host).
 - `@revealui/harnesses` installed so `revealui-harnesses` is on `PATH`.
+- **Headless agent prompts (default ACP executor):** `@revealui/ai` must resolve
+  next to harnesses. It is an **optionalDependency** of `@revealui/harnesses`
+  (same pattern as `@revealui/cli`). After a normal monorepo `pnpm install`, the
+  workspace link is present. Outside the monorepo, install both packages so Node
+  can load the agent runtime (`npm install @revealui/harnesses @revealui/ai`).
+- **LLM credentials / local inference:** the default executor uses
+  `createLLMClientFromEnv` from `@revealui/ai` (for example `LLM_PROVIDER` plus
+  the matching API key, or Inference Snaps / Ollama base URLs). Protocol session
+  setup works without a model; prompt execution needs a configured provider.
 - Optional but recommended: a RevealUI device token and MCP config in the
   client for data-plane tools (same mint as [Connect OpenCode](./connect-opencode.md)).
 
@@ -95,6 +104,14 @@ session stays open.
 - **Permission prompts every turn:** default Phase D posture. Disable only
   if you intentionally change agent options in code; customer builds should
   keep human approval for consequential prompts.
+- **`@revealui/ai is not installed` in the agent reply:** Node could not
+  resolve the optional agent runtime. From the monorepo root run
+  `pnpm install` (harnesses declares `@revealui/ai` as an optionalDependency).
+  Outside the monorepo install `@revealui/ai` next to harnesses. Do not
+  hand-symlink `node_modules`; fix the package graph.
+- **Agent loads then fails on the model call:** check LLM env / local
+  inference (see Prerequisites). ACP permissions and session plumbing are
+  separate from provider reachability.
 
 ## Sources
 

@@ -16,6 +16,9 @@
     "stripe": "catalog:",
     "zod": "catalog:"
   },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:*"
+  },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
     "@electric-sql/pglite-pgvector": "^0.0.5",
@@ -50,6 +53,16 @@
       "types": "./dist/integration/test-database.d.ts",
       "import": "./dist/integration/test-database.js",
       "default": "./dist/integration/test-database.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "default": "./dist/utils/index.js"
+    },
+    "./utils/drizzle-test-db": {
+      "types": "./dist/utils/drizzle-test-db.d.ts",
+      "import": "./dist/utils/drizzle-test-db.js",
+      "default": "./dist/utils/drizzle-test-db.js"
     }
   },
   "main": "./dist/index.js",

@@ -52,12 +52,8 @@ export default createVitestConfig({
     },
     resolve: {
       alias: {
-        '@revealui/config/revealui': path.resolve(
-          __dirname,
-          '../../packages/config/src/revealui.config.ts',
-        ),
-        '@revealui/config': path.resolve(__dirname, '../../packages/config/src/index.ts'),
-        '@revealui/auth/server': path.resolve(__dirname, '../../packages/auth/src/server/index.ts'),
+        // App-local path aliases only. @revealui/* packages resolve via the
+        // install graph (dependencies + package exports).
         '@': path.resolve(__dirname, './src'),
         '@reveal-config': path.resolve(__dirname, './revealui.config.ts'),
         '@/collections': path.resolve(__dirname, './src/lib/collections'),

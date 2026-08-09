@@ -26,13 +26,10 @@ import { createServer as createHttpServer, type Server as NodeHttpServer } from 
 import type { AddressInfo } from 'node:net';
 import { serve } from '@hono/node-server';
 import * as schema from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { McpClient } from '@revealui/mcp/client';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import { createMcpEndpointApp } from '../mcp-endpoint.js';
 
 let testDb: TestDb;

@@ -3,7 +3,8 @@
  * tax constants, idempotency, and dry-run zero-writes. Stripe SDK is fully mocked.
  *
  * Imports stripe-billing-meter (not the CLI seeder) so tests need no dotenv /
- * Stripe package resolution from packages/services.
+ * or live Stripe seed. Stripe resolves via the root install graph when the
+ * seeder itself runs.
  */
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';

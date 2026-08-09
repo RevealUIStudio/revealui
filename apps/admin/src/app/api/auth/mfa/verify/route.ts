@@ -5,12 +5,19 @@
  *
  * Step 2 of MFA login flow: validates a TOTP code from the user's authenticator app.
  * Reads userId from the `mfa-pending` signed cookie (set during sign-in).
- * On success, creates a full session and sets the `revealui-session` cookie.
+ * On success, creates a full session and sets `revealui-session` + `revealui-role`
+ * (role cookie is required for proxy admin-only paths such as /settings).
  */
 
-import { rotateSession, verifyCookiePayload, verifyMFACode } from '@revealui/auth/server';
+import {
+  readUsersRole,
+  rotateSession,
+  verifyCookiePayload,
+  verifyMFACode,
+} from '@revealui/auth/server';
 import config from '@revealui/config';
 import { MFAVerifyRequestContract } from '@revealui/contracts';
+import { getClient } from '@revealui/db';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -19,7 +26,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -101,6 +108,15 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       metadata: { mfaVerified: true },
     });
 
+    // Role for proxy gate after createSession shell repair (GAP-473).
+    // sign-in skips setting the cookie when MFA is required.
+    let userRole = 'viewer';
+    try {
+      userRole = (await readUsersRole(getClient(), payload.userId)) ?? 'viewer';
+    } catch {
+      // Tests / transient DB: cookie falls back to viewer (proxy re-checks later)
+    }
+
     const response = NextResponse.json({ success: true });
 
     // Set session cookie (same pattern as sign-in route)
@@ -112,6 +128,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
       domain: sessionCookieDomain({ logIfMissing: true }),
     });
+    setRoleCookie(response, userRole, { maxAge: 60 * 60 * 24 });
 
     // Clear the mfa-pending cookie
     response.cookies.set('mfa-pending', '', {

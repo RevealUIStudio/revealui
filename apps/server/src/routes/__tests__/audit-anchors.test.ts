@@ -18,13 +18,10 @@ import {
 import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { accountMemberships, accounts, auditAnchors, auditLog, users } from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { asc, eq, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import { SYSTEM_ANCHOR_SCOPE } from '../../jobs/audit-anchor-sweep.js';
 import auditRoute from '../audit.js';
 

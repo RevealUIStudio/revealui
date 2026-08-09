@@ -9,6 +9,8 @@
 
 import { createSession, deleteAllUserSessions, verifyMagicLink } from '@revealui/auth/server';
 import { RecoveryVerifyRequestSchema } from '@revealui/contracts';
+import { getClient } from '@revealui/db';
+import { getUserById } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -17,7 +19,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -81,6 +83,8 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       ipAddress,
     });
 
+    const user = await getUserById(getClient(), verified.userId);
+
     const response = NextResponse.json({ success: true });
 
     // Set session cookie (same pattern as sign-in / MFA verify routes)
@@ -92,6 +96,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       maxAge: 30 * 60, // 30 minutes (matches session expiry)
       domain: sessionCookieDomain({ logIfMissing: true }),
     });
+    setRoleCookie(response, user?.role, { maxAge: 30 * 60 });
 
     return response;
   } catch (error) {

@@ -14,13 +14,9 @@
  *       the healed row's features/limits
  */
 
+import { createTestDb, seedTestUser, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  seedTestUser,
-  type TestDb,
-} from '../../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 // ─── Mocks (before imports) ─────────────────────────────────────────────────
 

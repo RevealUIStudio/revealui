@@ -395,6 +395,56 @@
       "import": "./dist/utils/request-context.js",
       "default": "./dist/utils/request-context.js"
     },
+    "./utils/getBlockSelect": {
+      "types": "./dist/utils/getBlockSelect.d.ts",
+      "import": "./dist/utils/getBlockSelect.js",
+      "default": "./dist/utils/getBlockSelect.js"
+    },
+    "./utils/stripUnselectedFields": {
+      "types": "./dist/utils/stripUnselectedFields.d.ts",
+      "import": "./dist/utils/stripUnselectedFields.js",
+      "default": "./dist/utils/stripUnselectedFields.js"
+    },
+    "./utils/flattenResult": {
+      "types": "./dist/utils/flattenResult.d.ts",
+      "import": "./dist/utils/flattenResult.js",
+      "default": "./dist/utils/flattenResult.js"
+    },
+    "./utils/isValidID": {
+      "types": "./dist/utils/isValidID.d.ts",
+      "import": "./dist/utils/isValidID.js",
+      "default": "./dist/utils/isValidID.js"
+    },
+    "./utils/getSelectMode": {
+      "types": "./dist/utils/getSelectMode.d.ts",
+      "import": "./dist/utils/getSelectMode.js",
+      "default": "./dist/utils/getSelectMode.js"
+    },
+    "./utils/access-conversion": {
+      "types": "./dist/utils/access-conversion.d.ts",
+      "import": "./dist/utils/access-conversion.js",
+      "default": "./dist/utils/access-conversion.js"
+    },
+    "./utils/field-conversion": {
+      "types": "./dist/utils/field-conversion.d.ts",
+      "import": "./dist/utils/field-conversion.js",
+      "default": "./dist/utils/field-conversion.js"
+    },
+    "./utils/block-conversion": {
+      "types": "./dist/utils/block-conversion.d.ts",
+      "import": "./dist/utils/block-conversion.js",
+      "default": "./dist/utils/block-conversion.js"
+    },
+    "./fieldTraversal": {
+      "types": "./dist/fieldTraversal.d.ts",
+      "import": "./dist/fieldTraversal.js",
+      "default": "./dist/fieldTraversal.js"
+    },
+    "./queries/queryBuilder": {
+      "types": "./dist/queries/queryBuilder.d.ts",
+      "import": "./dist/queries/queryBuilder.js",
+      "default": "./dist/queries/queryBuilder.js"
+    },
     "./error-handling": {
       "types": "./dist/error-handling/index.d.ts",
       "import": "./dist/error-handling/index.js",

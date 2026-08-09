@@ -23,7 +23,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Calculate paths relative to this file's location (packages/dev/src/vite/)
-const packagesRoot = path.resolve(__dirname, '../../..'); // packages/
 const projectRoot = path.resolve(__dirname, '../../../..'); // RevealUI/
 
 // Vite 7 adds oxc + rolldownOptions properties not yet in @types  -  cast to UserConfig
@@ -67,12 +66,9 @@ const sharedViteConfig = {
   resolve: {
     alias: {
       'node:fs': 'fs',
-      // admin config alias
+      // App-local admin config only. @revealui/* packages resolve via the
+      // install graph (workspace deps + package exports), not monorepo paths.
       '@reveal-config': path.resolve(projectRoot, 'apps/admin/revealui.config.ts'),
-      // Package aliases
-      '@revealui/core': path.resolve(packagesRoot, 'core/src'),
-      '@revealui/contracts': path.resolve(packagesRoot, 'contracts/src'),
-      '@revealui/db': path.resolve(packagesRoot, 'db/src'),
     },
   },
   define: {

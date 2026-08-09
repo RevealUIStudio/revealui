@@ -50,15 +50,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-// Consolidated onto the shared @revealui/contracts/marketing-voice engine
-// (GAP-332). Imported from SOURCE, not the built package, so this phase-1 gate
-// stays dependency-light: tsx transpiles the .ts on the fly, no package build
-// required, and the engine's import chain here is zod-free.
-import type { MarketingBlock } from '../../packages/contracts/src/marketing-voice/blocks.js';
-import { runTier1 } from '../../packages/contracts/src/marketing-voice/check-rule.js';
-import type { Token } from '../../packages/contracts/src/marketing-voice/tokenize.js';
-import { tokenize } from '../../packages/contracts/src/marketing-voice/tokenize.js';
-import { FLEET_MARKETING_VOICE_RULES } from '../../packages/contracts/src/marketing-voice/voice-rules.js';
+// Shared engine via install graph (`@revealui/contracts` root devDependency).
+// Prefer package export over path into packages/contracts/src (no hand paths).
+import type { MarketingBlock, Token } from '@revealui/contracts/marketing-voice';
+import {
+  FLEET_MARKETING_VOICE_RULES,
+  runTier1,
+  tokenize,
+} from '@revealui/contracts/marketing-voice';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const BASELINE_PATH = path.join(ROOT, 'scripts/validate/marketing-voice-baseline.json');

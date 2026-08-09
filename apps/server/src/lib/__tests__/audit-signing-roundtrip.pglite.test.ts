@@ -27,12 +27,9 @@ import {
 import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { auditLog } from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 const KID = 'kid-test-1';
 

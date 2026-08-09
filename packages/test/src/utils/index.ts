@@ -5,5 +5,6 @@
  */
 
 export * from './drizzle-test-db.js';
+export * from './mock-request.js';
 export * from './mocks.js';
 export * from './test-helpers.js';

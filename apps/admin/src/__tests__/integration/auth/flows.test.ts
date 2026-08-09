@@ -74,9 +74,9 @@ import {
   validatePasswordStrength,
 } from '@revealui/auth/server';
 
-// resetStorage is not part of the server barrel export; reach into the source
-// via the relative path (the admin vitest config inlines @revealui/* packages).
-import { resetStorage } from '../../../../../../packages/auth/src/server/storage/index.js';
+// Test-only storage reset — dedicated export so vi.mock('@revealui/auth/server')
+// does not swallow it (same posture as @revealui/auth/audit-storage).
+import { resetStorage } from '@revealui/auth/server/storage';
 
 // ---------------------------------------------------------------------------
 // Helpers

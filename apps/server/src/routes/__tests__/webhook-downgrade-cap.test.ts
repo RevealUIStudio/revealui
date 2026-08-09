@@ -32,13 +32,9 @@ import {
   accounts,
   sites,
 } from '@revealui/db/schema';
+import { createTestDb, seedTestUser, type TestDb } from '@revealui/db/testing';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  seedTestUser,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 // ─── Mocks (before imports) ─────────────────────────────────────────────────
 

@@ -31,12 +31,12 @@ and in-process ACP protocol. It does **not** replace the rows below.
 
 | # | Check | Pass? |
 |---|--------|-------|
-| P1 | RevealUI instance reachable (prod or staging API) | |
-| P2 | Device token minted (`rvui_dev_…`); stored in revvault path if durable | |
-| P3 | `revealui-harnesses` on PATH (`npx`/`pnpm exec` ok from monorepo) | |
-| P4 | Cursor desktop with Grok available if testing subscription path | |
-| P5 | VS Code + Copilot agent mode available | |
-| P6 | Zed (or other ACP client) available | |
+| P1 | RevealUI instance reachable (prod or staging API) | PASS (api.revealui.com/health 200) |
+| P2 | Device token minted (`rvui_dev_…`); stored in revvault path if durable | PASS (`revealui/dev/mcp/cli-token`) |
+| P3 | `revealui-harnesses` on PATH (`npx`/`pnpm exec` ok from monorepo) | PASS (monorepo dist CLI) |
+| P4 | Cursor desktop with Grok available if testing subscription path | PASS (Cursor installed; Grok paid path not required) |
+| P5 | VS Code + Copilot agent mode available | SKIP (VS Code not installed) |
+| P6 | Zed (or other ACP client) available | PASS |
 
 ## Walk A — Cursor + Grok (hooks + MCP)
 
@@ -82,9 +82,9 @@ Follow [connect-acp.md](../guides/connect-acp.md).
 
 | # | Step | Expected | Pass? |
 |---|------|----------|-------|
-| D1 | With MCP working in Cursor or VS Code, revoke device token in RevealUI | Next MCP request fails closed (401) | |
-| D2 | ACP session still open after MCP revoke | ACP may continue chat; data-plane tools fail without new token | |
-| D3 | Mint new token and rewire env/input | MCP recovers | |
+| D1 | With MCP working in Cursor or VS Code, revoke device token in RevealUI | Next MCP request fails closed (401) | PASS 2026-08-09T04:19:47Z (MCP 401; status authenticated=false) |
+| D2 | ACP session still open after MCP revoke | ACP may continue chat; data-plane tools fail without new token | PASS (ACP path independent of MCP token; by design + code) |
+| D3 | Mint new token and rewire env/input | MCP recovers | PASS 2026-08-09T04:25:33Z (`rfg smoke` 3/3; Windows User token refreshed) |
 
 **Proof:** revoke timestamp, failing status code/body class (no secrets).
 
@@ -92,6 +92,6 @@ Follow [connect-acp.md](../guides/connect-acp.md).
 
 | Role | Name | Date | Result |
 |------|------|------|--------|
-| Owner | | | PASS / FAIL (list failed IDs) |
+| Owner | Joshua Vaughn | 2026-08-09 | PASS (A–D; P5 VS Code SKIP; A4 paid Cursor SKIP) |
 
-On PASS of A–D, update `.jv` GAP-381 residual note and consider gap close if D-C/D-D also signed.
+On PASS of A–D, update `.jv` GAP-381 residual note and consider gap close if D-C/D-D also signed. D-D APPROVE 2026-08-09. D-C Marketplace deferred (no VS Code / publisher publish this pass).

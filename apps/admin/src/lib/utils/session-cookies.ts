@@ -82,6 +82,32 @@ export function requireSessionCookieDomain(): string | undefined {
   return process.env.SESSION_COOKIE_DOMAIN || undefined;
 }
 
+/** Default maxAge for role hint: 7 days (matches non-MFA sign-in). */
+const ROLE_COOKIE_MAX_AGE_DEFAULT = 60 * 60 * 24 * 7;
+
+/**
+ * Set `revealui-role` for the proxy role-aware gate (admin-only paths like
+ * /settings, /users). Must be set on every session-establishing response —
+ * not only password sign-in. MFA verify/backup historically omitted this and
+ * left MFA users on a session-only cookie: dashboard worked, Settings bounced
+ * to /welcome?denied=admin.
+ */
+export function setRoleCookie(
+  response: NextResponse,
+  role: string | null | undefined,
+  options?: { maxAge?: number },
+): void {
+  const userRole = role && role.length > 0 ? role : 'viewer';
+  response.cookies.set(ROLE_COOKIE, userRole, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: options?.maxAge ?? ROLE_COOKIE_MAX_AGE_DEFAULT,
+    domain: sessionCookieDomain(),
+  });
+}
+
 /**
  * Expire the auth cookies with the same attributes they were set with:
  * `revealui-session` / `revealui-role` domain-scoped in production,

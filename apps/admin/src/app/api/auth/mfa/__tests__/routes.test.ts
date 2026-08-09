@@ -31,6 +31,8 @@ vi.mock('@revealui/auth/server', () => ({
   verifyAuthentication: vi.fn(),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
+  // GAP-473: mfa/verify re-reads role after session mint
+  readUsersRole: vi.fn(async () => 'admin'),
 }));
 
 // Mock drizzle-orm operators (needed for passkey DB lookup in mfa/disable)
@@ -57,6 +59,10 @@ const mockDb: MockDatabase = {
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
+}));
+
+vi.mock('@revealui/db/queries/users', () => ({
+  getUserById: vi.fn(async () => ({ id: 'user-123', role: 'admin' })),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -293,6 +299,8 @@ describe('POST /api/auth/mfa/verify-setup', () => {
     );
     const setCookie = response.headers.get('set-cookie') ?? '';
     expect(setCookie).toMatch(/revealui-session=session-after-mfa-setup/);
+    // Keep role cookie aligned with session rotation after enroll
+    expect(response.cookies.get('revealui-role')?.value).toBe(mockSession.user.role);
   });
 
   it('should return 400 on invalid code', async () => {
@@ -404,6 +412,10 @@ describe('POST /api/auth/mfa/verify', () => {
     const sessionCookie = response.cookies.get('revealui-session');
     expect(sessionCookie?.value).toBe('new-session-token');
 
+    // Proxy admin-only paths (/settings) require revealui-role; MFA must stamp it
+    const roleCookie = response.cookies.get('revealui-role');
+    expect(roleCookie?.value).toBe('admin');
+
     // Check mfa-pending cookie was cleared
     const mfaCookie = response.cookies.get('mfa-pending');
     expect(mfaCookie?.value).toBe('');
@@ -514,6 +526,9 @@ describe('POST /api/auth/mfa/backup', () => {
     // Check session cookie was set
     const sessionCookie = response.cookies.get('revealui-session');
     expect(sessionCookie?.value).toBe('new-session-token');
+
+    const roleCookie = response.cookies.get('revealui-role');
+    expect(roleCookie?.value).toBe('admin');
 
     // Check mfa-pending cookie was cleared
     const mfaCookie = response.cookies.get('mfa-pending');

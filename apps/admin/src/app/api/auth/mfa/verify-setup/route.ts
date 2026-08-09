@@ -18,7 +18,7 @@ import {
 } from '@/lib/utils/error-response';
 import { rejectRecoverySession } from '@/lib/utils/recovery-guard';
 import { extractRequestContext } from '@/lib/utils/request-context';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -96,6 +96,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       maxAge: 60 * 60 * 24,
       domain: sessionCookieDomain({ logIfMissing: true }),
     });
+    // Keep role cookie in lockstep when rotating the session after MFA enroll.
+    setRoleCookie(response, session.user.role, { maxAge: 60 * 60 * 24 });
     return response;
   } catch (error) {
     logger.error('Error verifying MFA setup', { error });
