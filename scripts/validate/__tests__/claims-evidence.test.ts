@@ -109,10 +109,24 @@ describe('findCriticalProofGradeViolations', () => {
     ).toEqual([]);
   });
 
-  it('skips non-critical files even without a grade', () => {
+  it('requires grades on products, local-ai, and for-operators', () => {
     expect(
-      findCriticalProofGradeViolations([claim('products.ts', 'PRODUCTS_PAGE_HERO.h1')]),
-    ).toEqual([]);
+      findCriticalProofGradeViolations([
+        claim('products.ts', 'PRODUCTS_PAGE_HERO.h1'),
+        claim('local-ai.ts', 'LOCAL_AI_PAGE.lead'),
+        claim('for-operators.ts', 'FOR_OPERATORS_HERO.subtitle'),
+      ]),
+    ).toEqual([
+      { file: 'products.ts', exportPath: 'PRODUCTS_PAGE_HERO.h1', grade: 'path' },
+      { file: 'local-ai.ts', exportPath: 'LOCAL_AI_PAGE.lead', grade: 'path' },
+      { file: 'for-operators.ts', exportPath: 'FOR_OPERATORS_HERO.subtitle', grade: 'path' },
+    ]);
+  });
+
+  it('skips non-critical files even without a grade', () => {
+    expect(findCriticalProofGradeViolations([claim('pricing.ts', 'PRICING_PAGE_HERO.h1')])).toEqual(
+      [],
+    );
   });
 });
 

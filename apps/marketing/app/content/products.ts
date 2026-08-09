@@ -58,7 +58,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Seven products on one foundation, all built and operated by RevealUI Studio. Five are yours to use today, RevForge runs in private preview, and the agent marketplace is on the way.',
+    'Start with the runtime. Add tools as you grow. Seven products on one foundation, built and operated by RevealUI Studio. Five are ready to use today. RevForge is in private preview. The agent marketplace is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
@@ -124,8 +124,8 @@ export const PRODUCTS_FLAGSHIP: FlagshipProduct = {
   status: 'Beta',
   version: 'v0.4.0',
   priceLabel: 'Free to self-host · Pro tier optional',
-  tagline: 'The agentic business runtime',
-  body: 'People, content, offers, payments, and agents: pre-wired into one runtime your team and your AI agents share through a single open protocol. The foundation every other RevFleet product builds on.',
+  tagline: 'The self-hosted business runtime',
+  body: 'People, content, offers, payments, and agents in one runtime your team and your agents share. The foundation the rest of RevFleet builds on.',
   iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
   facts: [
     { stat: String(METRICS.packages), label: 'packages' },
@@ -161,11 +161,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
   {
     slug: 'revvault',
     name: 'RevVault',
-    tagline: 'Age-encrypted secret vault',
+    tagline: 'Secret vault for the whole fleet',
     highlights: [
-      'Rust CLI + Tauri desktop app',
-      'Age-encrypted, passage-compatible store format',
-      'Canonical secret store, no .env plaintext',
+      'CLI and desktop app for day-to-day secret work',
+      'Age-locked store, no plaintext .env as source of truth',
+      'One vault the rest of the fleet is built to read',
     ],
     status: 'Beta',
     version: 'v0.3.0',
@@ -181,11 +181,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
   {
     slug: 'revforge',
     name: 'RevForge',
-    tagline: 'White-label stamping tool',
+    tagline: 'Stamp branded runtime kits for clients',
     highlights: [
-      'Generates branded RevealUI trial kits',
-      'Domain-locked, multi-tenant',
-      'Self-hosted runtime instances',
+      'Produces branded RevealUI trial kits',
+      'Domain-locked instances per client',
+      'Self-hosted runtimes your clients operate',
     ],
     status: 'Alpha',
     priceLabel: 'Operator tool · private preview',
@@ -199,11 +199,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
   {
     slug: 'revdev',
     name: 'RevDev',
-    tagline: 'Multi-agent IDE harness',
+    tagline: 'Multi-agent engineering harness',
     highlights: [
-      'Desktop Studio + Console + Node daemon',
+      'Desktop Studio, Console, and local daemon',
       'Coordinates agents across a multi-repo workspace',
-      'Registers and coordinates agents over JSON-RPC',
+      'One place to run and watch agent work on your code',
     ],
     status: 'Alpha',
     version: 'v0.2.0',
@@ -218,11 +218,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
   {
     slug: 'revcon',
     name: 'RevCon',
-    tagline: 'Editor config sync',
+    tagline: 'Editor config sync across projects',
     highlights: [
-      'Zed and Cursor configs',
-      'Symlinked into every project',
-      'Edit once, propagate fleet-wide',
+      'Zed and Cursor configs in one place',
+      'Linked into each project you work on',
+      'Edit once, keep the fleet consistent',
     ],
     status: 'Active (MIT)',
     priceLabel: 'Free · MIT',
@@ -237,11 +237,11 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
   {
     slug: 'revskills',
     name: 'RevSkills',
-    tagline: 'Claude Code skills library',
+    tagline: 'Agent skills library for real engineering work',
     highlights: [
-      'Drizzle schemas, Vitest patterns, security hardening',
-      'Drop into any Claude Code agent',
-      'Free, open, importable',
+      'Database, test, and security patterns ready to use',
+      'Drop into your agent harness and go',
+      'Free, open, and importable',
     ],
     status: 'Active (MIT)',
     priceLabel: 'Free · MIT',
@@ -258,9 +258,9 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     name: 'RevMarket',
     tagline: 'Agent tool marketplace',
     highlights: [
-      `${METRICS.mcpServers} first-party integrations, out of the box`,
+      `${METRICS.mcpServers} first-party integrations ship with the runtime`,
       'Stripe, Neon, Vercel, Next.js, and more',
-      'Third-party publishing planned',
+      'Third-party publishing is planned, not shipped',
     ],
     status: 'Planned',
     priceLabel: 'Bundled with the runtime',
@@ -280,18 +280,18 @@ export interface StatItem {
 
 export const PRODUCTS_STATS_SECTION = {
   heading: 'Built to production standards',
-  body: 'Not a starter template. A complete runtime with tested, documented, and audited code.',
+  body: 'Not a starter template. A complete runtime with tested code you can inspect in the public repo.',
   items: [
     { stat: String(METRICS.packages), label: 'workspace packages' },
     { stat: String(METRICS.dbTables), label: 'database tables' },
     { stat: String(METRICS.testFiles), label: 'test files' },
-    { stat: String(METRICS.mcpServers), label: 'first-party MCP servers' },
+    { stat: String(METRICS.mcpServers), label: 'first-party integrations' },
   ] as readonly StatItem[],
 } as const;
 
 export const PRODUCTS_CTA_SECTION = {
   heading: 'Start with the runtime',
-  body: 'Every other RevFleet product builds on RevealUI. One command, full source, everything pre-wired and ready for your first deploy.',
+  body: 'The rest of RevFleet builds on RevealUI. One command, full source, ready for your first deploy.',
   cliSnippet: 'npx create-revealui my-app',
   cta: {
     docs: { label: 'Read the Docs', href: SITE.urls.docs } satisfies Cta,
