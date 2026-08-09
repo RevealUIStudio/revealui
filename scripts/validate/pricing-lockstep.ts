@@ -9,12 +9,12 @@
  *   tsx scripts/validate/pricing-lockstep.ts          # exit 1 on drift
  *   tsx scripts/validate/pricing-lockstep.ts --warn   # warn-only (exit 0)
  */
+import { PERPETUAL_TIERS } from '@revealui/contracts/pricing';
 import {
   ANNUAL_SUBSCRIPTION_PRICE_FALLBACKS,
   PERPETUAL_PRICE_FALLBACKS,
   SUBSCRIPTION_PRICE_FALLBACKS,
 } from '../../apps/marketing/app/lib/pricing-fallbacks.js';
-import { PERPETUAL_TIERS } from '../../packages/contracts/src/pricing.js';
 import { CATALOG } from '../setup/stripe-catalog.js';
 
 const warnOnly = process.argv.includes('--warn');

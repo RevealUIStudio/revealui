@@ -18,17 +18,16 @@
  * later: write id to SECRETS.md / revvault for automation.
  */
 
-import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
-import type Stripe from 'stripe';
+import Stripe from 'stripe';
 import { promotionCodeCreateParams, STARTER_KIT_PRO_COUPON } from './starter-kit-pro-coupon.js';
 
 config({ path: resolve(import.meta.dirname, '../../.env') });
 
-const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
-const stripeModule = require('stripe') as { default?: typeof Stripe } & typeof Stripe;
-const StripeConstructor = (stripeModule.default ?? stripeModule) as typeof Stripe;
+// Stripe resolves via root package.json install graph (`stripe` catalog dep).
+// Do not path-createRequire into packages/services or set NODE_PATH.
+const StripeConstructor = Stripe;
 
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has('--dry-run');

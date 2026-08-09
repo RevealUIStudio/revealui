@@ -14,11 +14,8 @@
  */
 
 import path from 'node:path';
+import { type CapabilityGateSlice, runClaimGatesCli } from '@revealui/claim-gates';
 import { CLAIMS } from '../../apps/marketing/app/content/claims-evidence.js';
-import {
-  type CapabilityGateSlice,
-  runClaimGatesCli,
-} from '../../packages/claim-gates/src/index.ts';
 import {
   checkCapabilityClaims,
   computeBaselineKeys,
@@ -26,7 +23,7 @@ import {
   writeCapabilityBaseline,
 } from './capability-claims.js';
 
-export * from '../../packages/claim-gates/src/index.ts';
+export * from '@revealui/claim-gates';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const CAPABILITY_BASELINE_PATH = path.join(

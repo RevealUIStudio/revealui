@@ -24,14 +24,11 @@
 
 import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import { config } from 'dotenv';
-import type Stripe from 'stripe';
-// Relative TS import resolves via tsx at script runtime; avoids adding
-// @revealui/contracts as a root-level dep. Script only; not bundled.
-import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
+import Stripe from 'stripe';
 import {
   applyAgentMeterEnv,
   ensureAgentOveragePrice,
@@ -69,14 +66,9 @@ export {
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
 
-// Stripe is installed in packages/services  -  resolve from there.
-// Stripe SDK 22.0.1+ shipped CJS as `module.exports = Stripe` directly
-// (no `.default` wrapper). Older versions exported `{ default: Stripe }`.
-// Defensive `default ?? module` handles both shapes so future SDK
-// upgrades don't re-break this require.
-const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
-const stripeModule = require('stripe') as { default?: typeof Stripe } & typeof Stripe;
-const StripeConstructor = (stripeModule.default ?? stripeModule) as typeof Stripe;
+// Stripe resolves via root package.json install graph (`stripe` catalog dep).
+// Do not path-createRequire into packages/services or set NODE_PATH.
+const StripeConstructor = Stripe;
 
 // ─── Product Catalog ────────────────────────────────────────────────────────
 

@@ -34,9 +34,8 @@
  *     tsx scripts/security/rotate-kek.ts --execute
  */
 
+import { decryptWithKey, encryptWithKey, isEncryptedField } from '@revealui/db/crypto';
 import { Pool } from 'pg';
-
-import { decryptWithKey, encryptWithKey, isEncryptedField } from '../../packages/db/src/crypto';
 
 // ============================================================================
 // Pure rotation decision (testable without a DB)
