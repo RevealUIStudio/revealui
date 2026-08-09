@@ -18,13 +18,15 @@
 // led with the same unproven audit-trail claim); and the local-AI beat (its
 // own page covers this). What remains is what a buyer needs to decide whether
 // to trust the repo: it is inspectable, and the numbers are checkable.
+//
+// 2026-08-09: light allure polish; keep inspectability and metric honesty.
 
 import { METRICS, SITE } from './site';
 
 export const PROOF_SECTION = {
   eyebrow: 'Open source',
-  heading: 'Inspect the code before you commit to it.',
-  body: 'The entire runtime sits in the public repo under an open license. Read it, run it, or fork it before you build on it.',
+  heading: 'Read the code before you build on it.',
+  body: 'The whole runtime lives in a public repo under an open license. Inspect it, run it, or fork it before you commit.',
   repoLinkLabel: 'View the repo on GitHub',
 } as const;
 
@@ -32,7 +34,7 @@ export const PROOF_SECTION = {
 // answers is whether their security team can read the code, not what
 // framework it runs on.
 export const PROOF_TRUST = {
-  body: 'Your security team can read every line. The whole runtime is open source, MIT or Fair Source, sitting in the repo. There is no closed binary to explain away when procurement comes asking.',
+  body: 'Your security team can read the full source. The runtime is open source, MIT or Fair Source, in the public repo. There is no closed binary to explain when procurement asks.',
   linkLabel: 'Read the LICENSE',
   linkHref: SITE.urls.repoLicense,
   changelogCta: {
@@ -67,7 +69,7 @@ export interface LiveMetric {
 export const LIVE_METRICS = {
   eyebrow: 'Live from the repo',
   heading: 'Every number here is pinned to the codebase.',
-  body: 'These counts are validated on every PR by the claim-drift gate. If the code changes and a number drifts, the build fails before it can ship.',
+  body: 'These counts are checked on each pull request. If the code changes and a number drifts, the build fails before it can ship.',
   metrics: [
     { value: METRICS.packages, label: 'packages' },
     { value: METRICS.apps, label: 'apps' },

@@ -1,6 +1,8 @@
 // Sourced from: app/components/landing/PricingTeaser.tsx (Phase 1c, no copy changes).
 // Per the internal marketing-overhaul plan §4.4.
 // Tier copy lives here; runtime pricing (prices/periods) fetched from /api/pricing in the component.
+// 2026-08-09: outcome-first Free/Pro teaser; package-count license math stays
+// on Fair Source / pricing pages, not the homepage pitch.
 
 import type { LicenseTierId } from '@revealui/contracts/pricing';
 import { SITE } from './site';
@@ -18,7 +20,7 @@ export interface TeaserTier {
 export const PRICING_TEASER_SECTION = {
   eyebrow: 'Pricing',
   heading: 'Start free. Pay when you scale.',
-  body: 'Self-host the open-source stack at no cost. Pro, Max, and Enterprise add runtime entitlements and an agent task allowance. Pro and Max include a 7-day free trial.',
+  body: 'Self-host the open stack at no cost. Pro, Max, and Enterprise add agent capacity and support. Pro and Max include a 7-day free trial.',
 } as const;
 
 // Free and Pro get full cards, since they cover the self-serve path most
@@ -29,7 +31,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
     id: 'free',
     name: 'Free',
     description:
-      '24 of 31 packages are MIT, forever. The 5 Pro packages are Fair Source (FSL) and convert to MIT after two years. There is no telemetry.',
+      'Run the open stack on your own infrastructure. Most packages stay MIT forever. No telemetry.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
@@ -43,7 +45,8 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    description: 'Pro adds the AI primitives, an agent task allowance, and priority support.',
+    description:
+      'Add the AI layer, an agent task allowance, and priority support when you scale agents.',
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',
@@ -67,7 +70,7 @@ export const PRICING_TEASER_LINKS: readonly TeaserLink[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'Max adds AI memory and advanced inference.',
+    description: 'Max adds durable agent memory and advanced inference.',
     href: '/pricing',
   },
   {
