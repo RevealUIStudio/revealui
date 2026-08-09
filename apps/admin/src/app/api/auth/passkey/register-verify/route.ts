@@ -171,10 +171,16 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         payingIntent: { kind: 'none' },
       });
       if (admit.decision === 'waitlist') {
-        return createApplicationErrorResponse(
-          'Free signup is temporarily waitlisted. Paid signup remains available.',
-          'WAITLISTED',
-          202,
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'WAITLISTED',
+            code: 'WAITLISTED',
+            waitlistToken: admit.waitlistToken,
+            positionEstimate: admit.positionEstimate ?? null,
+            message: 'Free signup is temporarily waitlisted. Paid signup remains available.',
+          },
+          { status: 202 },
         );
       }
 

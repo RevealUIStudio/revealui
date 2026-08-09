@@ -6,6 +6,19 @@
  */
 
 export type { SignInResult, SignUpResult } from '../types.js';
+// GAP-256 admission waitlist (NOT marketing waitlist)
+export {
+  type EnqueueAdmissionWaitlistParams,
+  type EnqueueAdmissionWaitlistResult,
+  enqueueAdmissionWaitlist,
+  estimateAdmissionWaitlistPosition,
+  generateAdmissionToken,
+  getAdmissionWaitlistByToken,
+  getAdmissionWaitlistByTokenAnyStatus,
+  hashAdmissionToken,
+  markAdmissionWaitlistConverted,
+  maskAdmissionEmail,
+} from './admission-waitlist.js';
 // Audit bridge
 export {
   auditAccountLocked,

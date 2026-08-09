@@ -138,6 +138,12 @@ export async function GET(
         payingIntent: { kind: 'none' },
       });
       if (admit.decision === 'waitlist') {
+        if (admit.waitlistToken) {
+          const url = new URL('/login', baseUrl);
+          url.searchParams.set('waitlisted', '1');
+          url.searchParams.set('token', admit.waitlistToken);
+          return NextResponse.redirect(url);
+        }
         return loginUrl('waitlisted');
       }
       oauthAdmitCohort = admit.cohortLimits;

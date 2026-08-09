@@ -2,7 +2,7 @@
  * GAP-256 free-intake admit + free@t0 entitlement (shared by server + admin).
  *
  * Pure decide lives in @revealui/core/margin-governor. This module is the I/O
- * wrapper: read margin_snapshots, never COUNT(users). Waitlist insert is PR-4.
+ * wrapper: read margin_snapshots, never COUNT(users). Waitlist enqueue is PR-4.
  */
 
 import { getFeaturesForTier } from '@revealui/core/features';
@@ -10,6 +10,7 @@ import {
   type AdmissionChannel,
   type CohortLimits,
   decideFreeIntake,
+  freeCohortLimitsForMode,
   type GovernorFlags,
   governorFlagsFromEnv,
   type MarginSnapshotView,
@@ -25,6 +26,7 @@ import {
   marginSnapshots,
 } from '@revealui/db/schema';
 import { and, desc, eq } from 'drizzle-orm';
+import { enqueueAdmissionWaitlist } from './admission-waitlist.js';
 import { ensureAccountOwnerPlatformAdmin } from './platform-roles.js';
 
 export type AdmitFreeIntakeInput = {
@@ -34,10 +36,15 @@ export type AdmitFreeIntakeInput = {
   deploymentMode?: 'hosted' | 'forge' | 'unknown';
   env?: NodeJS.ProcessEnv;
   now?: Date;
+  /** Waitlist enqueue source tag (default free_signup). */
+  source?: string;
 };
 
 export type AdmitFreeIntakeResult = PureAdmitResult & {
   flags: GovernorFlags;
+  /** Present on waitlist decision after successful enqueue (raw once). */
+  waitlistToken?: string;
+  positionEstimate?: number | null;
 };
 
 /** Hosted free open limits — lockstep with apps/server getHostedLimitsForTier('free'). */
@@ -95,6 +102,7 @@ async function loadLatestSnapshot(): Promise<MarginSnapshotView | null> {
 /**
  * Pre-check free intake. Call **before** any users insert (K13).
  * Shadow defaults → always admit (never waitlist response).
+ * Enforce waitlist → enqueue admission_waitlist and attach raw token.
  */
 export async function admitFreeIntake(input: AdmitFreeIntakeInput): Promise<AdmitFreeIntakeResult> {
   const env = input.env ?? process.env;
@@ -109,6 +117,70 @@ export async function admitFreeIntake(input: AdmitFreeIntakeInput): Promise<Admi
     openLimits: OPEN_FREE_LIMITS,
     now: input.now,
   });
+
+  if (result.decision === 'waitlist') {
+    const email = input.email?.trim();
+    if (!email) {
+      // Cannot enqueue without identity — fail-open admit (not margin 403).
+      logger.warn('[admit-free-intake] waitlist without email; fail-open admit', {
+        channel: input.channel,
+        snapshotId: result.snapshotId,
+      });
+      return {
+        decision: 'admit',
+        mode: 'open',
+        cohortLimits: freeCohortLimitsForMode('open', OPEN_FREE_LIMITS),
+        snapshotId: result.snapshotId,
+        reason: 'waitlist_missing_email',
+        shadow: false,
+        flags,
+      };
+    }
+
+    try {
+      const enqueued = await enqueueAdmissionWaitlist({
+        email,
+        snapshotId: result.snapshotId,
+        modeAtEnqueue: 'waitlist',
+        source: input.source ?? input.channel,
+        now: input.now,
+      });
+      logger.info('[admit-free-intake]', {
+        channel: input.channel,
+        email: '[redacted]',
+        decision: 'waitlist',
+        mode: result.mode,
+        reason: result.reason,
+        shadow: result.shadow,
+        snapshotId: result.snapshotId,
+        governorEnabled: flags.enabled,
+        waitlistId: enqueued.id,
+        positionEstimate: enqueued.positionEstimate,
+      });
+      return {
+        ...result,
+        flags,
+        waitlistToken: enqueued.waitlistToken,
+        positionEstimate: enqueued.positionEstimate,
+      };
+    } catch (err) {
+      // Enqueue failure must not 403; fail-open admit so signup can proceed.
+      logger.error(
+        '[admit-free-intake] waitlist enqueue failed; fail-open admit',
+        err instanceof Error ? err : undefined,
+        { channel: input.channel },
+      );
+      return {
+        decision: 'admit',
+        mode: 'open',
+        cohortLimits: freeCohortLimitsForMode('open', OPEN_FREE_LIMITS),
+        snapshotId: result.snapshotId,
+        reason: 'waitlist_enqueue_failed',
+        shadow: false,
+        flags,
+      };
+    }
+  }
 
   logger.info('[admit-free-intake]', {
     channel: input.channel,

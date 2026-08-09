@@ -206,6 +206,17 @@ export function decideFreeIntake(input: {
 
   // Enforce path (PR-4): waitlist when mode is waitlist
   if (rawMode === 'waitlist') {
+    // Claim free must never re-waitlist; use open free limits under waitlist mode.
+    if (input.channel === 'waitlist_claim_free') {
+      return {
+        decision: 'admit',
+        mode: 'open',
+        cohortLimits: freeCohortLimitsForMode('open', openLimits, leanTasks),
+        snapshotId,
+        reason: 'waitlist_claim',
+        shadow: false,
+      };
+    }
     return {
       decision: 'waitlist',
       mode: 'waitlist',
