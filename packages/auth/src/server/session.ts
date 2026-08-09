@@ -12,6 +12,7 @@ import { and, eq, gt, inArray, isNull, ne } from 'drizzle-orm';
 import type { Session, User } from '../types.js';
 import { hashToken } from '../utils/token.js';
 import { DatabaseError, TokenError } from './errors.js';
+import { ensureShellAdminIfAccountOwner } from './platform-roles.js';
 
 // ---------------------------------------------------------------------------
 // Session binding configuration
@@ -281,6 +282,19 @@ export async function createSession(
     } catch (error: unknown) {
       logger.error('Error getting database client');
       throw new DatabaseError('Database connection failed', error);
+    }
+
+    // GAP-473: membership owner + stale users.role=viewer must not mint a
+    // session that still fails the proxy admin shell gate. Best-effort only —
+    // never fail session mint if role repair fails.
+    try {
+      await ensureShellAdminIfAccountOwner(db, userId);
+    } catch (roleRepairError: unknown) {
+      logger.warn('ensureShellAdminIfAccountOwner failed during createSession', {
+        userId,
+        message:
+          roleRepairError instanceof Error ? roleRepairError.message : String(roleRepairError),
+      });
     }
 
     // Generate secure session token
