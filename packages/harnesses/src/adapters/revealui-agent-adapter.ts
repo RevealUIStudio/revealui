@@ -46,12 +46,14 @@ export interface RevealUIAgentConfig {
   includeRules?: boolean;
 }
 
-const DEFAULT_CONFIG: Required<Omit<RevealUIAgentConfig, 'provider' | 'model' | 'workboardPath'>> =
-  {
-    projectRoot: process.cwd(),
-    maxIterations: 10,
-    timeoutMs: 120_000,
-  };
+// includeRules omitted so undefined → env REVEALUI_AGENT_INCLUDE_RULES (shouldIncludeAgentRules)
+const DEFAULT_CONFIG: Required<
+  Omit<RevealUIAgentConfig, 'provider' | 'model' | 'workboardPath' | 'includeRules'>
+> = {
+  projectRoot: process.cwd(),
+  maxIterations: 10,
+  timeoutMs: 120_000,
+};
 
 /**
  * RevealUI's standalone coding agent adapter.
