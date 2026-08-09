@@ -128,7 +128,7 @@ overrides:
   '@changesets/parse>js-yaml': 5.2.2
   '@vercel/python-analysis>js-yaml': 5.2.2
   minimatch: '>=10.2.4'
-  brace-expansion@5: '>=5.0.7'
+  brace-expansion@5: '>=5.0.9'
   rollup: '>=4.59.0'
   serialize-javascript: '>=7.0.3'
   immutable: '>=5.1.5'
@@ -165,6 +165,7 @@ overrides:
   hono: 4.12.34
   fast-uri@4: '>=4.1.2'
   fast-uri@3: '>=3.1.5'
+  brace-expansion: '>=5.0.9'
 
 importers:
 
@@ -5544,9 +5545,9 @@ packages:
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
 
-  brace-expansion@5.0.7:
-    resolution: {integrity: sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==}
-    engines: {node: 18 || 20 || >=22}
+  brace-expansion@5.0.9:
+    resolution: {integrity: sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==}
+    engines: {node: 20 || >=22}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -13213,7 +13214,7 @@ snapshots:
 
   boolbase@1.0.0: {}
 
-  brace-expansion@5.0.7:
+  brace-expansion@5.0.9:
     dependencies:
       balanced-match: 4.0.4
 
@@ -15226,7 +15227,7 @@ snapshots:
 
   minimatch@10.2.5:
     dependencies:
-      brace-expansion: 5.0.7
+      brace-expansion: 5.0.9
 
   minimist@1.2.8: {}
 
