@@ -234,17 +234,18 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
 
   /**
    * Run a headless prompt through the coding agent.
-   * Lazy-imports @revealui/ai to avoid hard dependency at module load time.
-   * Types are inferred from the dynamic imports  -  no compile-time @revealui/ai dependency.
+   * Lazy-imports @revealui/ai so harnesses can build without a hard type dependency.
+   * Runtime resolve: package.json optionalDependency `@revealui/ai` (same posture as
+   * `@revealui/cli`) so monorepo ACP and npm installs link the package when present.
+   * Types come from dynamic import only — no compile-time import of @revealui/ai.
    */
   private async runHeadlessPrompt(
     prompt: string,
     maxTurns?: number,
     timeoutMs?: number,
   ): Promise<HarnessCommandResult> {
-    // Lazy import  -  @revealui/ai is an optional peer. Dynamic import()
-    // deliberately uses string literals so TS doesn't resolve the types
-    // at build time (the harnesses package has no dependency on @revealui/ai).
+    // Lazy import — optionalDependency at install time; string paths so TypeScript
+    // does not hard-require @revealui/ai types at harnesses build time.
     const aiRuntimePath = '@revealui/ai/orchestration/streaming-runtime';
     const aiClientPath = '@revealui/ai/llm/client';
     const aiToolsPath = '@revealui/ai/tools/coding';
@@ -264,7 +265,7 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
         success: false,
         command: 'headless-prompt',
         message:
-          '@revealui/ai is not installed. Install it to use the RevealUI agent: npm install @revealui/ai',
+          '@revealui/ai is not installed or failed to load. Install it next to @revealui/harnesses (optionalDependency): npm install @revealui/ai — monorepo: pnpm install from the workspace root so the optional workspace link is present.',
       };
     }
 
