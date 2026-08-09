@@ -6,7 +6,7 @@
  * never appear as node values.
  */
 
-import { readdirSync, readFileSync, type Stats, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import type { EpisodeIngestInput } from '../ingest/engine.js';
 
@@ -19,6 +19,9 @@ const MAX_FILE_CHARS = 48_000;
 
 /**
  * Load markdown fragments under a handoffs/rolling directory (or any dir of .md).
+ *
+ * Single open/read path (no stat-then-read) so CodeQL does not flag TOCTOU
+ * between existence check and content load.
  */
 export function loadMarkdownSources(dir: string, options?: { limit?: number }): TextSource[] {
   let names: string[];
@@ -32,15 +35,9 @@ export function loadMarkdownSources(dir: string, options?: { limit?: number }): 
   for (const name of names) {
     if (!name.endsWith('.md')) continue;
     const path = join(dir, name);
-    let st: Stats;
-    try {
-      st = statSync(path);
-    } catch {
-      continue;
-    }
-    if (!st.isFile()) continue;
     let text: string;
     try {
+      // readFileSync fails closed for dirs / missing paths (EISDIR, ENOENT, …)
       text = readFileSync(path, 'utf8');
     } catch {
       continue;
