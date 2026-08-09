@@ -45,4 +45,13 @@ describe('buildHostedEntitlementValues source (GAP-444)', () => {
     const values = buildHostedEntitlementValues({ ...base, source: 'reconciler' });
     expect(values.source).toBe('reconciler');
   });
+
+  it('accepts signup for free@t0 and paid-pending (GAP-256)', () => {
+    const values = buildHostedEntitlementValues({
+      ...base,
+      tier: 'free',
+      source: 'signup',
+    });
+    expect(values.source).toBe('signup');
+  });
 });
