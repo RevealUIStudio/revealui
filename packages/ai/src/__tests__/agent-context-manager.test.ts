@@ -11,8 +11,8 @@
  */
 
 import type { Database } from '@revealui/db/client';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb, type TestDb } from '../../../test/src/utils/drizzle-test-db.js';
 import { AgentContextManager } from '../memory/agent/context-manager.js';
 import { ValidationError } from '../memory/errors/index.js';
 import type { CRDTPersistence } from '../memory/persistence/crdt-persistence.js';

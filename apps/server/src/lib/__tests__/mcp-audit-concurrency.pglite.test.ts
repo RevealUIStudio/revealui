@@ -10,11 +10,8 @@
  */
 
 import * as schema from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import { recordMcpToolAudit } from '../mcp-audit.js';
 
 let testDb: TestDb;

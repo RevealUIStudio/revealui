@@ -5,13 +5,9 @@
  */
 
 import { accounts, type NewUsageMeter, usageMeters } from '@revealui/db/schema';
+import { cleanTables, createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import {
-  cleanTables,
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 let testDb: TestDb;
 

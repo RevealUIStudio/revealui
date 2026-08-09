@@ -5,13 +5,9 @@
  */
 
 import { accounts, usageMeters } from '@revealui/db/schema';
+import { cleanTables, createTestDb, type TestDb } from '@revealui/db/testing';
 import { Hono } from 'hono';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import {
-  cleanTables,
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import mcpUsageRoute from '../mcp-usage.js';
 
 let testDb: TestDb;
