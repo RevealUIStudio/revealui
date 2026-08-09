@@ -4,7 +4,7 @@ import { SITE } from '../site';
 
 describe('PROOF_DEPLOYERS (FDE secondary band)', () => {
   it('keeps the open-source H2 identity separate from the deployers H3', () => {
-    expect(PROOF_SECTION.heading).toBe('Inspect the code before you commit to it.');
+    expect(PROOF_SECTION.heading).toBe('Read the code before you build on it.');
     expect(PROOF_DEPLOYERS.heading).toBe('Built for people who deploy, not only demo.');
     expect(PROOF_DEPLOYERS.heading).not.toEqual(PROOF_SECTION.heading);
   });

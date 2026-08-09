@@ -36,6 +36,17 @@ vi.mock('@revealui/auth/server', () => ({
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
   readUsersRole: vi.fn(async () => null),
+  // GAP-256 PR-3b: passkey sign-up admits before users insert
+  admitFreeIntake: vi.fn().mockResolvedValue({
+    decision: 'admit',
+    mode: 'shadow',
+    cohortLimits: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1000 },
+    snapshotId: null,
+    reason: 'shadow_would_open',
+    shadow: true,
+    flags: { enabled: true, shadow: true, staleHours: 48 },
+  }),
+  ensureFreeSignupEntitlement: vi.fn().mockResolvedValue({ accountId: 'acct-test' }),
 }));
 
 // Mock the logger

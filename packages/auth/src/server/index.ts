@@ -48,6 +48,15 @@ export {
   resetMagicLinkConfig,
   verifyMagicLink,
 } from './magic-link.js';
+// GAP-256 margin admit (shared admin + server free-intake)
+export {
+  type AdmitFreeIntakeInput,
+  type AdmitFreeIntakeResult,
+  admitFreeIntake,
+  ensureFreeSignupEntitlement,
+  OPEN_FREE_LIMITS,
+  provisionHostedPersonalAccount,
+} from './margin-admit.js';
 export type { MFAConfig, MFADisableProof, MFASetupResult } from './mfa.js';
 export {
   configureMFA,

@@ -7,6 +7,11 @@
 // covered file gains prose with no entry here, when an entry's text no longer
 // matches the copy, or when a cited code path stops existing.
 //
+// Proof grade (owner 2026-08-09): path existence is not enough for primary
+// funnel copy. Critical homepage surfaces require proofGrade 'behavior' or
+// 'outcome' so marketing stays true and buyer-facing, with technical depth
+// in the docs app. See isCriticalMarketingClaim + findCriticalProofGradeViolations.
+//
 // Granularity: one entry per copy FIELD (a field may hold more than one
 // sentence); the evidence array carries one ref per distinct claim in the
 // field, with the claim named in `note`. Line numbers never appear in `ref`
@@ -21,6 +26,14 @@
 // and the test is not .skip/.todo. Required on every capability-shaped claim
 // (see scripts/validate/capability-claims.ts).
 export type EvidenceKind = 'code' | 'command' | 'url' | 'metric' | 'test';
+
+/**
+ * Strength of the claim↔evidence link (human-reviewed).
+ * - path: cited artifact exists (machine floor; default for non-critical).
+ * - behavior: cited artifact does what the sentence claims.
+ * - outcome: buyer-facing wording still entailed by that behavior.
+ */
+export type ProofGrade = 'path' | 'behavior' | 'outcome';
 
 export interface EvidenceRef {
   /** What kind of artifact proves the claim. */
@@ -44,6 +57,59 @@ export interface ClaimEntry {
   readonly text: string;
   readonly match?: 'text' | 'path';
   readonly evidence: readonly EvidenceRef[];
+  /**
+   * Human-reviewed proof strength. Required at 'behavior' or 'outcome' for
+   * critical homepage funnel fields (see isCriticalMarketingClaim).
+   * Omitted entries are treated as 'path'.
+   */
+  readonly proofGrade?: ProofGrade;
+}
+
+/**
+ * Primary public marketing modules that carry the proof-grade bar.
+ * Homepage first (2026-08-09); products / local-ai / for-operators next.
+ */
+export const CRITICAL_PROOF_FILES: readonly string[] = [
+  'home.ts',
+  'primitives.ts',
+  'proof.ts',
+  'pricing-teaser.ts',
+  'products.ts',
+  'local-ai.ts',
+  'for-operators.ts',
+  'for-operators-how-it-works.ts',
+  'for-operators-managed.ts',
+] as const;
+
+/**
+ * True when a claim must carry proofGrade 'behavior' or 'outcome'.
+ * Competitor-framing cells, chrome labels, and captions stay at path floor.
+ */
+export function isCriticalMarketingClaim(file: string, exportPath: string): boolean {
+  if (!CRITICAL_PROOF_FILES.includes(file)) return false;
+  if (exportPath.includes('.sprawl')) return false;
+  if (exportPath.includes('.agentOnly')) return false;
+  if (exportPath.includes('.question')) return false;
+  if (exportPath.includes('mockupCaption')) return false;
+  if (exportPath.includes('newsletter')) return false;
+  if (exportPath.includes('changelogCta')) return false;
+  if (exportPath.includes('docsLink')) return false;
+  if (exportPath.includes('detailLink')) return false;
+  if (exportPath.includes('validatorLabel')) return false;
+  if (exportPath.includes('successMessage')) return false;
+  if (exportPath.includes('reverseLink')) return false;
+  // Link chrome and short labels (not product claims)
+  if (exportPath.endsWith('.label') || exportPath.includes('.links[')) return false;
+  if (exportPath.includes('.cta') || exportPath.endsWith('.cta')) return false;
+  return true;
+}
+
+export function effectiveProofGrade(entry: Pick<ClaimEntry, 'proofGrade'>): ProofGrade {
+  return entry.proofGrade ?? 'path';
+}
+
+export function isProofGradeSufficient(grade: ProofGrade): boolean {
+  return grade === 'behavior' || grade === 'outcome';
 }
 
 /** Files whose prose the validator requires to be fully indexed. */

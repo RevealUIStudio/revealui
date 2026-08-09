@@ -35,15 +35,15 @@ export interface LocalAiBeat {
 export const LOCAL_AI_SECTION = {
   eyebrow: 'Local-first AI',
   heading: 'Your agents run on models you own.',
-  body: 'Your Agents run on open-weight models on your own infrastructure by default. The content they read and write never leaves your boundary, and your AI bill is your own inference cost.',
+  body: 'By default, agents run on open-weight models on infrastructure you control. Their work stays in your boundary. Your AI bill is your own inference cost.',
   beats: [
     {
       title: 'Sovereignty',
-      body: 'The content your agents read and write never leaves your boundary. In the default config, inference runs on infrastructure you own.',
+      body: 'In the default config, inference runs where you host it. Content agents read and write does not leave your boundary for a hosted model API.',
     },
     {
       title: 'Economics',
-      body: 'Your AI bill is your own inference cost, not a per-token tax that grows with every customer.',
+      body: 'You pay for your own inference and compute, not a per-token tax that scales with usage.',
     },
     {
       title: 'Pathway',
@@ -63,9 +63,9 @@ export const LOCAL_AI_SECTION = {
     ],
   },
   dogfood:
-    'RevDev Studio, the harness the team uses to build RevealUI, ships a local-inference cockpit that installs and runs Inference Snaps and Ollama. The team that maintains RevealUI runs local inference.',
+    'RevDev Studio, the harness this team uses to build RevealUI, includes a local-inference cockpit for Inference Snaps and Ollama. The maintainers run local inference themselves.',
   honesty:
-    'Local inference needs an open-weight model runner (Ollama or Ubuntu Inference Snaps) and adequate hardware. Frontier models still lead the hardest work, which is why they are one config line away.',
+    'Local inference needs an open-weight model runner (Ollama or Ubuntu Inference Snaps) and enough hardware. Frontier models still lead the hardest work, which is why they stay one config line away.',
   cta: { label: 'See local-first AI', href: '/local-ai' },
 } as const;
 
@@ -82,19 +82,19 @@ export interface LocalAdopter {
 export const LOCAL_AI_PAGE = {
   eyebrow: 'Local-first AI',
   h1: 'Run your AI on infrastructure you own.',
-  lead: 'RevealUI is open-model first. The runtime needs no hosted model API: it runs on open-weight models by default, and a frontier provider is one opt-in config line, never assumed. Ownership is the lead. Local AI is how you prove it.',
+  lead: 'RevealUI is open-model first. The runtime does not require a hosted model API. Open-weight models are the default. A frontier provider is one opt-in config line, not the default. Ownership leads. Local AI is how you prove it.',
   pillars: [
     {
       title: 'Your data stays in your boundary',
-      body: 'In the default config, agents run on an open-weight model on your own infrastructure, so the content they read and write never leaves your boundary. No hosted model API sits between your code and your business logic.',
+      body: 'In the default config, agents run on an open-weight model you host. No hosted model API sits between your code and your business data.',
     },
     {
       title: 'Your inference cost, not a per-token tax',
-      body: 'You pay for your own inference and compute, not a per-token fee that grows with every customer you add. Frontier API prices have moved up; commodity and local inference keep falling.',
+      body: 'You pay for your own inference and compute, not a per-token fee that scales with usage. Frontier API prices have moved up; local and commodity inference keep falling.',
     },
     {
       title: 'Frontier is one opt-in line away',
-      body: 'Start fully on open weights running locally. When a task needs a frontier model, add the provider as an opt-in adapter, never the default.',
+      body: 'Start on open weights running locally. When a task needs a frontier model, add the provider as an opt-in adapter, not as the default.',
     },
   ],
   // Named third-party adopters removed (2026-08-01 marketing corpus audit):
@@ -104,12 +104,12 @@ export const LOCAL_AI_PAGE = {
   marketProof: {
     eyebrow: 'Why local-first matters',
     heading: 'Open and local models already run where data cannot leave.',
-    body: 'Across regulated and high-stakes industries, teams already self-host open-weight models so sensitive data stays inside their boundary. That is where RevealUI fits: good enough and yours beats best and rented.',
+    body: 'In regulated and high-stakes work, teams already self-host open-weight models so sensitive data stays inside their boundary. That is where RevealUI fits: good enough and yours beats best and rented.',
     adopters: [
       {
         name: 'Industry pattern',
         detail:
-          'Finance, defense, and other regulated teams already run open-weight models on infrastructure they control, when sensitive data must stay inside their boundary.',
+          'Finance, defense, and other regulated teams already run open-weight models on infrastructure they control when sensitive data must stay inside their boundary.',
         source: 'Market pattern, not RevealUI customers',
       },
     ] as readonly LocalAdopter[],
@@ -118,7 +118,7 @@ export const LOCAL_AI_PAGE = {
   },
   roadmap: {
     heading: 'On the roadmap',
-    body: 'An air-gapped, container-image deployment path for fully disconnected environments. Not shipped yet, tracked on the roadmap.',
+    body: 'An air-gapped, container-image path for fully disconnected environments. Not shipped yet. Tracked on the roadmap.',
     href: '/roadmap',
   },
   honesty: LOCAL_AI_SECTION.honesty,
@@ -180,7 +180,7 @@ export const FRONTIER_PATHWAY = {
     {
       n: '1',
       title: 'Open-weight default',
-      body: 'Agents run on an open-weight model on your own box. Zero config.',
+      body: 'Agents run on an open-weight model on your machine. No hosted provider required to start.',
     },
     {
       n: '2',
