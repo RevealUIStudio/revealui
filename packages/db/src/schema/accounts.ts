@@ -129,7 +129,14 @@ export const accountEntitlements = pgTable(
     meteringStatus: text('metering_status').notNull().default('active'),
     mode: text('mode').notNull().default('live'),
     // GAP-444: paid vs gifted vs reconciler-heal. MRR excludes source='grant'.
+    // GAP-256: signup = free@t0 / paid-pending (not reconciler).
     source: text('source').notNull().default('stripe'),
+    /**
+     * GAP-256 Layer 3 SSOT — when set, free-tier COGS breaker is open.
+     * Do not use metering_status for breaker enforcement.
+     */
+    cogsBreakerTrippedAt: timestamp('cogs_breaker_tripped_at', { withTimezone: true }),
+    cogsBreakerReason: text('cogs_breaker_reason'),
     graceUntil: timestamp('grace_until', { withTimezone: true }),
     lastEventAt: timestamp('last_event_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -143,6 +150,7 @@ export const accountEntitlements = pgTable(
     index('account_entitlements_account_status_idx').on(table.accountId, table.status),
     index('account_entitlements_mode_idx').on(table.mode),
     index('account_entitlements_source_idx').on(table.source),
+    index('account_entitlements_cogs_breaker_tripped_at_idx').on(table.cogsBreakerTrippedAt),
     check('account_entitlements_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
     check(
       'account_entitlements_status_check',
@@ -153,7 +161,10 @@ export const accountEntitlements = pgTable(
       sql`metering_status IN ('active', 'paused', 'exceeded')`,
     ),
     check('account_entitlements_mode_check', sql`mode IN ('live', 'test')`),
-    check('account_entitlements_source_check', sql`source IN ('stripe', 'grant', 'reconciler')`),
+    check(
+      'account_entitlements_source_check',
+      sql`source IN ('stripe', 'grant', 'reconciler', 'signup')`,
+    ),
   ],
 );
 

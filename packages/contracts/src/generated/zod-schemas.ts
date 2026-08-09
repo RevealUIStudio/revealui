@@ -40,6 +40,32 @@ export type AccountEntitlementsRow = z.infer<typeof AccountEntitlementsSelectSch
 export type AccountEntitlementsInsert = z.infer<typeof AccountEntitlementsInsertSchema>
 
 // =============================================================================
+// AccountMarginDaily Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting accountMarginDaily rows from database
+ * Generated from Drizzle table definition: tables.accountMarginDaily
+ */
+export const AccountMarginDailySelectSchema = createSelectSchema(tables.accountMarginDaily)
+
+/**
+ * Zod schema for inserting accountMarginDaily rows to database
+ * Generated from Drizzle table definition: tables.accountMarginDaily
+ */
+export const AccountMarginDailyInsertSchema = createInsertSchema(tables.accountMarginDaily)
+
+/**
+ * TypeScript type for accountMarginDaily row (Select)
+ */
+export type AccountMarginDailyRow = z.infer<typeof AccountMarginDailySelectSchema>
+
+/**
+ * TypeScript type for accountMarginDaily insert
+ */
+export type AccountMarginDailyInsert = z.infer<typeof AccountMarginDailyInsertSchema>
+
+// =============================================================================
 // AccountMemberships Schemas
 // =============================================================================
 
@@ -142,6 +168,32 @@ export type AccountSubscriptionsRow = z.infer<typeof AccountSubscriptionsSelectS
  * TypeScript type for accountSubscriptions insert
  */
 export type AccountSubscriptionsInsert = z.infer<typeof AccountSubscriptionsInsertSchema>
+
+// =============================================================================
+// AdmissionWaitlist Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting admissionWaitlist rows from database
+ * Generated from Drizzle table definition: tables.admissionWaitlist
+ */
+export const AdmissionWaitlistSelectSchema = createSelectSchema(tables.admissionWaitlist)
+
+/**
+ * Zod schema for inserting admissionWaitlist rows to database
+ * Generated from Drizzle table definition: tables.admissionWaitlist
+ */
+export const AdmissionWaitlistInsertSchema = createInsertSchema(tables.admissionWaitlist)
+
+/**
+ * TypeScript type for admissionWaitlist row (Select)
+ */
+export type AdmissionWaitlistRow = z.infer<typeof AdmissionWaitlistSelectSchema>
+
+/**
+ * TypeScript type for admissionWaitlist insert
+ */
+export type AdmissionWaitlistInsert = z.infer<typeof AdmissionWaitlistInsertSchema>
 
 // =============================================================================
 // AgentActions Schemas
@@ -1494,6 +1546,32 @@ export type MagicLinksRow = z.infer<typeof MagicLinksSelectSchema>
  * TypeScript type for magicLinks insert
  */
 export type MagicLinksInsert = z.infer<typeof MagicLinksInsertSchema>
+
+// =============================================================================
+// MarginSnapshots Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting marginSnapshots rows from database
+ * Generated from Drizzle table definition: tables.marginSnapshots
+ */
+export const MarginSnapshotsSelectSchema = createSelectSchema(tables.marginSnapshots)
+
+/**
+ * Zod schema for inserting marginSnapshots rows to database
+ * Generated from Drizzle table definition: tables.marginSnapshots
+ */
+export const MarginSnapshotsInsertSchema = createInsertSchema(tables.marginSnapshots)
+
+/**
+ * TypeScript type for marginSnapshots row (Select)
+ */
+export type MarginSnapshotsRow = z.infer<typeof MarginSnapshotsSelectSchema>
+
+/**
+ * TypeScript type for marginSnapshots insert
+ */
+export type MarginSnapshotsInsert = z.infer<typeof MarginSnapshotsInsertSchema>
 
 // =============================================================================
 // MarketplaceAgents Schemas

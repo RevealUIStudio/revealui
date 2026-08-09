@@ -20,12 +20,13 @@ import { getHostedLimitsForTier } from './tier-limits.js';
 export type HostedTier = 'free' | LicenseTier;
 
 /**
- * How an entitlement row was written (GAP-444).
+ * How an entitlement row was written (GAP-444 + GAP-256).
  * - `stripe` — webhook / checkout path (counts toward MRR)
  * - `grant` — admin CLI gift (excluded from MRR)
  * - `reconciler` — entitlement-consistency heal (counts as non-gift)
+ * - `signup` — free@t0 or paid-pending at free/paid_signup (GAP-256; not reconciler)
  */
-export type EntitlementSource = 'stripe' | 'grant' | 'reconciler';
+export type EntitlementSource = 'stripe' | 'grant' | 'reconciler' | 'signup';
 
 /**
  * Known feature keys, derived from the canonical `FeatureFlags` record. Used

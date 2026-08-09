@@ -64,6 +64,7 @@ export * from './license-jti-revocations.js';
 export * from './licenses.js';
 export * from './lifecycle-emails.js';
 export * from './magic-links.js';
+export * from './margin-admission.js';
 export * from './marketplace.js';
 export * from './mcp-document-operations.js';
 export * from './node-ids.js';

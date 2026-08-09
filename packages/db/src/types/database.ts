@@ -10,10 +10,12 @@
 
 import type {
   accountEntitlements,
+  accountMarginDaily,
   accountMemberships,
   accounts,
   accountSsoProviders,
   accountSubscriptions,
+  admissionWaitlist,
   agentActions,
   agentContexts,
   agentCreditBalance,
@@ -66,6 +68,7 @@ import type {
   licenses,
   lifecycleEmailsSent,
   magicLinks,
+  marginSnapshots,
   marketplaceAgents,
   marketplaceServers,
   marketplaceTransactions,
@@ -121,6 +124,11 @@ export type AccountEntitlementsRow = typeof accountEntitlements.$inferSelect
 export type AccountEntitlementsInsert = typeof accountEntitlements.$inferInsert
 export type AccountEntitlementsUpdate = Partial<AccountEntitlementsInsert>
 
+// Account Margin Daily
+export type AccountMarginDailyRow = typeof accountMarginDaily.$inferSelect
+export type AccountMarginDailyInsert = typeof accountMarginDaily.$inferInsert
+export type AccountMarginDailyUpdate = Partial<AccountMarginDailyInsert>
+
 // Account Memberships
 export type AccountMembershipsRow = typeof accountMemberships.$inferSelect
 export type AccountMembershipsInsert = typeof accountMemberships.$inferInsert
@@ -140,6 +148,11 @@ export type AccountSsoProvidersUpdate = Partial<AccountSsoProvidersInsert>
 export type AccountSubscriptionsRow = typeof accountSubscriptions.$inferSelect
 export type AccountSubscriptionsInsert = typeof accountSubscriptions.$inferInsert
 export type AccountSubscriptionsUpdate = Partial<AccountSubscriptionsInsert>
+
+// Admission Waitlist
+export type AdmissionWaitlistRow = typeof admissionWaitlist.$inferSelect
+export type AdmissionWaitlistInsert = typeof admissionWaitlist.$inferInsert
+export type AdmissionWaitlistUpdate = Partial<AdmissionWaitlistInsert>
 
 // Agent Actions
 export type AgentActionsRow = typeof agentActions.$inferSelect
@@ -401,6 +414,11 @@ export type MagicLinksRow = typeof magicLinks.$inferSelect
 export type MagicLinksInsert = typeof magicLinks.$inferInsert
 export type MagicLinksUpdate = Partial<MagicLinksInsert>
 
+// Margin Snapshots
+export type MarginSnapshotsRow = typeof marginSnapshots.$inferSelect
+export type MarginSnapshotsInsert = typeof marginSnapshots.$inferInsert
+export type MarginSnapshotsUpdate = Partial<MarginSnapshotsInsert>
+
 // Marketplace Agents
 export type MarketplaceAgentsRow = typeof marketplaceAgents.$inferSelect
 export type MarketplaceAgentsInsert = typeof marketplaceAgents.$inferInsert
@@ -646,10 +664,12 @@ export type Relationship = {
  */
 export type DatabaseRelationships = {
   accountEntitlements: Relationship[]
+  accountMarginDaily: Relationship[]
   accountMemberships: Relationship[]
   accounts: Relationship[]
   accountSsoProviders: Relationship[]
   accountSubscriptions: Relationship[]
+  admissionWaitlist: Relationship[]
   agentActions: Relationship[]
   agentContexts: Relationship[]
   agentCreditBalance: Relationship[]
@@ -702,6 +722,7 @@ export type DatabaseRelationships = {
   licenses: Relationship[]
   lifecycleEmailsSent: Relationship[]
   magicLinks: Relationship[]
+  marginSnapshots: Relationship[]
   marketplaceAgents: Relationship[]
   marketplaceServers: Relationship[]
   marketplaceTransactions: Relationship[]
@@ -753,6 +774,9 @@ export const accountEntitlementsRelationships = [
   { foreignKeyName: 'account_entitlements_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// AccountMarginDaily relationships
+export const accountMarginDailyRelationships: readonly Relationship[] = []
+
 // AccountMemberships relationships
 export const accountMembershipsRelationships = [
   { foreignKeyName: 'account_memberships_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
@@ -769,6 +793,9 @@ export const accountSsoProvidersRelationships: readonly Relationship[] = []
 export const accountSubscriptionsRelationships = [
   { foreignKeyName: 'account_subscriptions_account_id_accounts_id_fk', columns: ['account_id'], isOneToOne: true, referencedRelation: 'accounts', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// AdmissionWaitlist relationships
+export const admissionWaitlistRelationships: readonly Relationship[] = []
 
 // AgentActions relationships
 export const agentActionsRelationships = [
@@ -960,6 +987,9 @@ export const lifecycleEmailsSentRelationships: readonly Relationship[] = []
 export const magicLinksRelationships = [
   { foreignKeyName: 'magic_links_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// MarginSnapshots relationships
+export const marginSnapshotsRelationships: readonly Relationship[] = []
 
 // MarketplaceAgents relationships
 export const marketplaceAgentsRelationships = [
@@ -1194,6 +1224,12 @@ export type Database = {
         Update: AccountEntitlementsUpdate
         Relationships: typeof accountEntitlementsRelationships
       }
+      account_margin_daily: {
+        Row: AccountMarginDailyRow
+        Insert: AccountMarginDailyInsert
+        Update: AccountMarginDailyUpdate
+        Relationships: typeof accountMarginDailyRelationships
+      }
       account_memberships: {
         Row: AccountMembershipsRow
         Insert: AccountMembershipsInsert
@@ -1217,6 +1253,12 @@ export type Database = {
         Insert: AccountSubscriptionsInsert
         Update: AccountSubscriptionsUpdate
         Relationships: typeof accountSubscriptionsRelationships
+      }
+      admission_waitlist: {
+        Row: AdmissionWaitlistRow
+        Insert: AdmissionWaitlistInsert
+        Update: AdmissionWaitlistUpdate
+        Relationships: typeof admissionWaitlistRelationships
       }
       agent_actions: {
         Row: AgentActionsRow
@@ -1529,6 +1571,12 @@ export type Database = {
         Insert: MagicLinksInsert
         Update: MagicLinksUpdate
         Relationships: typeof magicLinksRelationships
+      }
+      margin_snapshots: {
+        Row: MarginSnapshotsRow
+        Insert: MarginSnapshotsInsert
+        Update: MarginSnapshotsUpdate
+        Relationships: typeof marginSnapshotsRelationships
       }
       marketplace_agents: {
         Row: MarketplaceAgentsRow
