@@ -646,7 +646,7 @@ export class LLMClient {
  *
  * Provider defaults:
  *   inference-snaps → nemotron-3-nano   (base URL defaults to http://localhost:9090/v1)
- *   groq            → qwen/qwen3-32b
+ *   groq            → llama-3.3-70b-versatile
  *   ollama          → gemma4:e2b        (base URL defaults to http://localhost:11434)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
  *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
@@ -712,7 +712,7 @@ export function createLLMClientFromEnv(): LLMClient {
   } else if (provider === 'groq') {
     apiKey = process.env.GROQ_API_KEY;
     baseURL = process.env.GROQ_BASE_URL;
-    defaultModel = 'qwen/qwen3-32b';
+    defaultModel = 'llama-3.3-70b-versatile';
   } else if (provider === 'ollama') {
     apiKey = 'ollama'; // Ollama ignores the API key
     // Ollama's OpenAI-compatible endpoint lives at /v1

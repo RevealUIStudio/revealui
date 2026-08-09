@@ -7,8 +7,6 @@
  * directly. This is RevealUI's own coding agent.
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import type { GeneratedFiles, ProtocolConfig } from '../protocol/adapter.js';
 import type { ProtocolCapabilities } from '../protocol/capabilities.js';
 import { TOOL_PROFILES } from '../protocol/capabilities.js';
@@ -22,6 +20,7 @@ import type {
   HarnessEvent,
   HarnessInfo,
 } from '../types/core.js';
+import { buildAgentInstructions } from './agent-instructions.js';
 
 /**
  * Configuration for the RevealUI Agent Adapter.
@@ -40,6 +39,11 @@ export interface RevealUIAgentConfig {
   timeoutMs?: number;
   /** Workboard path for coordination (default: REVEALUI_WORKBOARD_PATH env) */
   workboardPath?: string;
+  /**
+   * Include truncated `.claude/rules` in system prompt (default: false / env).
+   * Full monorepo rules exceed free-tier LLM TPM (e.g. Groq 12k).
+   */
+  includeRules?: boolean;
 }
 
 const DEFAULT_CONFIG: Required<Omit<RevealUIAgentConfig, 'provider' | 'model' | 'workboardPath'>> =
@@ -312,7 +316,10 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
     const agent = {
       id: 'revealui-coding-agent',
       name: 'RevealUI Coding Agent',
-      instructions: this.buildInstructions(),
+      instructions: buildAgentInstructions({
+        projectRoot,
+        includeRules: this.config.includeRules,
+      }),
       tools,
       config: {},
       getContext: () => ({ projectRoot, workingDirectory: projectRoot }),
@@ -365,38 +372,6 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
       message: output,
       data: { taskId, output },
     };
-  }
-
-  /**
-   * Build system instructions from the content layer.
-   * Loads rules from .claude/rules/ as a baseline (they are the canonical content).
-   */
-  private buildInstructions(): string {
-    const lines: string[] = [
-      'You are the RevealUI coding agent. You help with software development tasks in this project.',
-      'Use the available tools to read, write, edit, search, and execute commands.',
-      'Always read files before modifying them. Prefer surgical edits over full rewrites.',
-      'Follow project conventions discovered via the project_context tool.',
-      '',
-    ];
-
-    // Load project rules if available (static ESM imports — require() is undefined under "type":"module")
-    try {
-      const projectRoot = this.config.projectRoot ?? process.cwd();
-      const rulesDir = join(projectRoot, '.claude', 'rules');
-
-      const ruleFiles: string[] = readdirSync(rulesDir);
-      for (const file of ruleFiles) {
-        if (file.endsWith('.md')) {
-          const content = readFileSync(join(rulesDir, file), 'utf8');
-          lines.push(`## ${file.replace('.md', '')}`, content, '');
-        }
-      }
-    } catch {
-      // No rules directory  -  proceed with base instructions
-    }
-
-    return lines.join('\n');
   }
 
   onEvent(handler: (event: HarnessEvent) => void): () => void {
