@@ -54,14 +54,21 @@ export interface EdgeInput {
   attributes?: Record<string, unknown>;
 }
 
-export type EpisodeType =
-  | 'code-scan'
-  | 'git-commit'
-  | 'doc'
-  | 'agent-fact'
-  | 'memory'
-  | 'json'
-  | 'manual';
+/**
+ * Runtime episode-type list (MCP / Zod enums import this — do not duplicate).
+ * Keep lockstep with the `EpisodeType` union below.
+ */
+export const EPISODE_TYPES = [
+  'code-scan',
+  'git-commit',
+  'doc',
+  'agent-fact',
+  'memory',
+  'json',
+  'manual',
+] as const;
+
+export type EpisodeType = (typeof EPISODE_TYPES)[number];
 
 /** An immutable provenance unit. Its id is content-addressed (see `deriveEpisodeId`). */
 export interface EpisodeInput {
