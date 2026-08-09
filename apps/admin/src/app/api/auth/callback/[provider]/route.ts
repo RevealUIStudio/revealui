@@ -158,8 +158,13 @@ export async function GET(
 
     // Set role cookie for proxy.ts role-aware gate (defense-in-depth).
     // Re-read after createSession shell repair (GAP-473 membership owner).
-    const repairedRole = await readUsersRole(getClient(), user.id);
-    const userRole = repairedRole ?? (user as { role?: string }).role ?? 'viewer';
+    let userRole = (user as { role?: string }).role ?? 'viewer';
+    try {
+      const repairedRole = await readUsersRole(getClient(), user.id);
+      if (repairedRole) userRole = repairedRole;
+    } catch {
+      // Fall back to upsertOAuthUser role if DB re-read fails
+    }
     response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

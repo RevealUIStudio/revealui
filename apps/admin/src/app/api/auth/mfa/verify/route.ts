@@ -110,7 +110,12 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
 
     // Role for proxy gate after createSession shell repair (GAP-473).
     // sign-in skips setting the cookie when MFA is required.
-    const userRole = (await readUsersRole(getClient(), payload.userId)) ?? 'viewer';
+    let userRole = 'viewer';
+    try {
+      userRole = (await readUsersRole(getClient(), payload.userId)) ?? 'viewer';
+    } catch {
+      // Tests / transient DB: cookie falls back to viewer (proxy re-checks later)
+    }
 
     const response = NextResponse.json({ success: true });
 

@@ -46,6 +46,7 @@ vi.mock('@revealui/auth/server', () => ({
   countUserCredentials: vi.fn(),
   createMagicLink: vi.fn(),
   verifyMagicLink: vi.fn(),
+  readUsersRole: vi.fn(async () => 'user'),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
 }));

@@ -143,8 +143,13 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
     });
 
     // After createSession shell repair (GAP-473), cookie + JSON must match DB.
-    const userRole =
-      (await readUsersRole(getClient(), storedPasskey.userId)) ?? user.role ?? 'viewer';
+    let userRole = user.role ?? 'viewer';
+    try {
+      const repaired = await readUsersRole(getClient(), storedPasskey.userId);
+      if (repaired) userRole = repaired;
+    } catch {
+      // Fall back to user row loaded above
+    }
 
     const response = NextResponse.json({
       success: true,
