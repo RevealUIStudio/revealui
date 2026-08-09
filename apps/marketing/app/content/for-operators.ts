@@ -32,7 +32,7 @@ export const FOR_OPERATORS_HERO = {
   eyebrow: 'Built. Delivered. Yours.',
   h1Lines: ['Your business grows with you,', 'and stays at the frontier.'] as const,
   subtitle:
-    'Running a business is hard enough without racing to keep up with AI. We build and deliver your software with AI built in, yours to own, and keep it current as the world moves. You stay ahead of your competition and keep doing the work you love.',
+    'Running a business is hard enough without racing AI stack churn. We build and deliver software with agents built in, on infrastructure you own, and keep it current as the world moves. You stay ahead and keep doing the work you love.',
   primaryCta: {
     label: 'Book a build call',
     href: AGENCY_CONTACT,
@@ -52,27 +52,27 @@ export interface OutcomeCard {
 export const FOR_OPERATORS_WHAT_YOU_GET = {
   eyebrow: 'What you get',
   heading: 'What you get when we deliver.',
-  body: 'A working business: accounts, billing, content, and a place to operate the thing. Five capabilities, in plain English.',
+  body: 'A working business: accounts, billing, content, and a place to run it. Five outcomes, in plain English.',
   cards: [
     {
       title: 'Customers can sign in.',
-      body: 'Real accounts with passwords, password resets, and roles. You decide who sees what. The admin you log into is the same admin your team uses.',
+      body: 'Real accounts with passwords, password resets, and roles. You decide who sees what. The admin you use is the same admin your team uses.',
     },
     {
       title: 'Customers can pay you.',
-      body: 'Stripe Checkout, subscriptions, one-time charges, and a billing page customers can self-serve. Refunds and disputes are handled in the dashboard, not by emailing your accountant.',
+      body: 'Checkout, subscriptions, one-time charges, and a billing page customers can self-serve. Refunds and disputes live in the dashboard, not in an email thread with your accountant.',
     },
     {
       title: 'You have a dashboard.',
-      body: 'One admin you log into to manage products, customers, content, and orders. No second tool. No spreadsheet stitched to a Stripe export.',
+      body: 'One admin to manage products, customers, content, and orders. No second tool. No spreadsheet stitched to a Stripe export.',
     },
     {
       title: 'The software can do work on its own.',
-      body: 'An agent layer that drafts emails and runs recurring tasks. It runs on open AI models on your infrastructure, not on a per-token API. The AI bill is your inference cost, not a per-task tax.',
+      body: 'An agent layer that drafts emails and runs recurring tasks. It runs on open models on your infrastructure. The AI bill is your inference cost, not a per-task tax.',
     },
     {
       title: 'It is yours.',
-      body: 'The code is yours. The data is yours. The Stripe account is yours. The hosting account is yours. If you ever want to walk away from RevealUI Studio, you take it with you and a different engineer can pick it up.',
+      body: 'The code is yours. The data is yours. The Stripe account is yours. The hosting account is yours. If you walk away from RevealUI Studio, you take it with you and another engineer can pick it up.',
     },
   ] as readonly OutcomeCard[],
 } as const;
@@ -179,30 +179,30 @@ export interface PricingRung {
 export const FOR_OPERATORS_PRICING = {
   eyebrow: 'What it costs',
   heading: 'What an engagement costs.',
-  body: 'Every engagement is fixed-bid and starts with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
+  body: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
   rungs: [
     {
       title: ARCHITECTURE_REVIEW.name,
       price: agencyEngagementPriceDisplay(ARCHITECTURE_REVIEW),
-      body: 'A two-week, fixed-bid plan for a self-hosted, audited product your clients own: a reference architecture, a data-flow and audit map, a model plan, and a priced path to launch. Credited toward a Fleet deployment if you start one within 30 days.',
+      body: 'A two-week, fixed-bid plan for a self-hosted product your clients own: architecture, data and audit map, model plan, and a priced path to launch. Credited toward a Fleet deployment if you start one within 30 days.',
       cta: { label: 'Book the scoping call', href: AGENCY_CONTACT, external: true },
     },
     {
       title: LAUNCH_PACKAGE.name,
       price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'A fixed-bid setup, live in two to four weeks: we configure your RevealUI instance, deploy it to production, and hand you the keys with a full handoff session. The fastest path from a signed engagement to a live product you operate yourself.',
+      body: 'A fixed-bid setup, live in two to four weeks: we configure your RevealUI instance, deploy it, and hand you the keys with a full handoff. The fastest path from an agreed engagement to a live product you operate yourself.',
       cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
     {
       title: FLEET_DEPLOYMENT.name,
       price: agencyEngagementPriceDisplay(FLEET_DEPLOYMENT),
-      body: 'A branded, self-hosted runtime your clients use under your name, on your cloud, white-labeled per client. Built and delivered as a fixed-scope engagement, scoped in the Architecture Review. Ongoing support runs as a separate monthly plan.',
+      body: 'A branded, self-hosted runtime your clients use under your name, on your cloud, white-labeled per client. Fixed-scope, scoped in the Architecture Review. Ongoing support is a separate monthly plan.',
       cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
     {
       title: CUSTOM_BUILD.name,
       price: agencyEngagementPriceDisplay(CUSTOM_BUILD),
-      body: 'A bespoke product on the same runtime, scoped to what your business needs beyond a standard Fleet deployment. A four-to-twelve-week statement of work, fixed-bid, scoped in discovery.',
+      body: 'A custom product on the same runtime, scoped to what you need beyond a standard Fleet deployment. Four to twelve weeks, fixed-bid, scoped in discovery.',
       cta: { label: 'Book a build call', href: AGENCY_CONTACT, external: true },
     },
   ] as readonly PricingRung[],
@@ -221,12 +221,12 @@ export const FOR_OPERATORS_DISCOVERY = {
 export const FOR_OPERATORS_PROOF = {
   eyebrow: 'Who delivers it',
   heading: 'Built by the engineer who built the runtime.',
-  body: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. Ten years managing teams in telecommunications before this. The agency engagement is delivered by the same person who reviews every commit to the open-source codebase you will be running.',
+  body: 'RevealUI Studio is one engineer, Joshua Vaughn, and the runtime he maintains. Ten years managing teams in telecommunications before this. The engagement is delivered by the same person who reviews commits on the open-source codebase you will run.',
   bulletIntro: 'That means three concrete things:',
   bullets: [
     'The software we build for you runs the same code we run on revealui.com.',
     'When a bug surfaces in your deployment, the person debugging it wrote that part of the runtime.',
-    'When the runtime ships a new feature, your deployment gets it on the same release cadence as every other one.',
+    'When the runtime ships a new feature, your deployment can take the same release cadence as the rest of the fleet.',
   ] as readonly string[],
   links: [
     {
@@ -273,7 +273,7 @@ export const FOR_OPERATORS_FAQ = {
     {
       question: 'What about AI?',
       answer:
-        "The runtime ships an agent layer that can draft emails and run recurring tasks for you. It runs on open AI models on your infrastructure, not on a per-call API. The AI bill is your inference cost, not a per-task tax. The first practical use cases for most operators are customer-email triage, recurring report generation, and routine inventory tasks; we scope what's right for your business in discovery.",
+        'The runtime ships an agent layer that can draft emails and run recurring tasks. It runs on open models on your infrastructure. The AI bill is your inference cost, not a per-task tax. Common first uses are email triage, recurring reports, and routine ops tasks. We scope what fits your business in discovery.',
     },
   ] as readonly FaqItem[],
 } as const;
