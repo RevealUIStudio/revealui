@@ -63,8 +63,13 @@ publish.
 
 | Field | Value |
 |-------|--------|
-| Publisher account | |
-| Listing URL | |
-| Plugin version | |
-| Owner | |
-| Date | |
+| Publisher account | (not created this pass) |
+| Listing URL | n/a |
+| Plugin version | n/a |
+| Owner | Joshua Vaughn |
+| Date | 2026-08-09 |
+
+**Status 2026-08-09:** DEFERRED. Phase E walk B / VS Code local install was SKIP
+(VS Code not installed). Marketplace listing remains owner ops when a customer
+or Studio needs the public path. Local `chat.pluginLocations` remains supported;
+connect-vscode.md already states Marketplace is not required.
