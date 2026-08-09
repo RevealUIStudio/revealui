@@ -10,6 +10,8 @@
  */
 
 import {
+  admitFreeIntake,
+  ensureFreeSignupEntitlement,
   exchangeCode,
   fetchProviderUser,
   isSignupAllowed,
@@ -126,12 +128,43 @@ export async function GET(
       });
     }
 
+    // GAP-256 PR-3b: for net-new OAuth identities, admit before users insert (K13)
+    let oauthAdmitCohort: { maxSites: number; maxUsers: number; maxAgentTasks: number } | null =
+      null;
+    if (!existingOAuth) {
+      const admit = await admitFreeIntake({
+        channel: 'free_signup',
+        email: providerUser.email ?? undefined,
+        payingIntent: { kind: 'none' },
+      });
+      if (admit.decision === 'waitlist') {
+        return loginUrl('waitlisted');
+      }
+      oauthAdmitCohort = admit.cohortLimits;
+    }
+
     // Pass linkConsent from the signed state  -  when true, the user has
     // explicitly consented to link their OAuth account to the existing
     // local account with the same email.
     const user = await upsertOAuthUser(provider, providerUser, {
       linkConsent: verified.linkConsent,
     });
+
+    // Free@t0 for newly created OAuth users only
+    if (oauthAdmitCohort && user.id) {
+      try {
+        await ensureFreeSignupEntitlement({
+          userId: user.id,
+          cohortLimits: oauthAdmitCohort,
+          displayName: providerUser.name ?? 'RevealUI',
+        });
+      } catch (entErr) {
+        logger.error('Failed free entitlement@t0 after OAuth signup (non-fatal)', {
+          userId: user.id,
+          error: entErr instanceof Error ? entErr.message : String(entErr),
+        });
+      }
+    }
 
     const userAgent = request.headers.get('user-agent') ?? undefined;
     const ipAddress =

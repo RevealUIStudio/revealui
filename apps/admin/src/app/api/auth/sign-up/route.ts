@@ -6,7 +6,12 @@
  * Creates a new user account.
  */
 
-import { isSignupAllowed, signUp } from '@revealui/auth/server';
+import {
+  admitFreeIntake,
+  ensureFreeSignupEntitlement,
+  isSignupAllowed,
+  signUp,
+} from '@revealui/auth/server';
 import { SignUpRequestContract } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { getClient } from '@revealui/db';
@@ -178,6 +183,20 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
+    // GAP-256 PR-3b: admit **before** any users insert (K13). Shadow → always admit.
+    const admit = await admitFreeIntake({
+      channel: 'free_signup',
+      email: sanitizedEmail,
+      payingIntent: { kind: 'none' },
+    });
+    if (admit.decision === 'waitlist') {
+      return createApplicationErrorResponse(
+        'Free signup is temporarily waitlisted. Paid signup remains available.',
+        'WAITLISTED',
+        202,
+      );
+    }
+
     const result = await signUp(sanitizedEmail, password, sanitizedName, {
       userAgent,
       ipAddress,
@@ -191,6 +210,22 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         'SIGNUP_FAILED',
         400,
       );
+    }
+
+    // Free entitlement@t0 (K15) — best-effort
+    if (result.user?.id) {
+      try {
+        await ensureFreeSignupEntitlement({
+          userId: result.user.id,
+          cohortLimits: admit.cohortLimits,
+          displayName: sanitizedName,
+        });
+      } catch (entErr) {
+        logger.error('Failed free entitlement@t0 after admin sign-up (non-fatal)', {
+          userId: result.user.id,
+          error: entErr instanceof Error ? entErr.message : String(entErr),
+        });
+      }
     }
 
     // First user becomes owner (DB) + super-admin (_json.roles) with verified
