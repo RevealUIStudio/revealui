@@ -65,6 +65,11 @@
       "import": "./dist/deployment-mode.js",
       "default": "./dist/deployment-mode.js"
     },
+    "./margin-governor": {
+      "types": "./dist/margin-governor.d.ts",
+      "import": "./dist/margin-governor.js",
+      "default": "./dist/margin-governor.js"
+    },
     "./revforge-license": {
       "types": "./dist/revforge-license.d.ts",
       "import": "./dist/revforge-license.js",
