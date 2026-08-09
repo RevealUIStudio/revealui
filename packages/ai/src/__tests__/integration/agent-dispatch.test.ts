@@ -49,7 +49,7 @@ async function buildLLMClient(): Promise<LLMClient | null> {
     return new LLMClient({
       provider: 'groq',
       apiKey: process.env.GROQ_API_KEY,
-      model: process.env.LLM_MODEL ?? 'qwen/qwen3-32b',
+      model: process.env.LLM_MODEL ?? 'llama-3.3-70b-versatile',
     });
   }
 

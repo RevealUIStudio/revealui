@@ -24,7 +24,7 @@ export interface GroqProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey: string;
   /** Defaults to https://api.groq.com/openai/v1 */
   baseURL?: string;
-  /** Defaults to qwen/qwen3-32b */
+  /** Defaults to llama-3.3-70b-versatile (current Groq free-tier catalog) */
   model?: string;
 }
 
@@ -35,12 +35,13 @@ export class GroqProvider implements LLMProvider {
     this.inner = new OpenAICompatProvider({
       ...config,
       baseURL: config.baseURL ?? 'https://api.groq.com/openai/v1',
-      model: config.model ?? 'qwen/qwen3-32b',
+      // Retired catalog id qwen/qwen3-32b (404). Prefer versatile Llama for tools.
+      model: config.model ?? 'llama-3.3-70b-versatile',
     });
   }
 
   capabilities(): ReasonerCapabilities {
-    // Profile for the default model (qwen/qwen3-32b). Groq exposes no embeddings endpoint.
+    // Profile for the default model. Groq exposes no embeddings endpoint.
     return {
       providerTag: 'groq',
       tools: true,
