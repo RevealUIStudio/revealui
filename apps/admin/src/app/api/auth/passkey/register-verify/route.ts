@@ -179,6 +179,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
             waitlistToken: admit.waitlistToken,
             positionEstimate: admit.positionEstimate ?? null,
             message: 'Free signup is temporarily waitlisted. Paid signup remains available.',
+            paidSignupPath: '/api/admission/paid-signup',
           },
           { status: 202 },
         );

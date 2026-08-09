@@ -79,6 +79,7 @@ describe('POST /auth/signup waitlist (HC2)', () => {
       code: 'WAITLISTED',
       waitlistToken: 'raw-token-hex',
       positionEstimate: 3,
+      paidSignupPath: '/api/admission/paid-signup',
     });
     expect(json.message).toContain('waitlisted');
     expect(signUp).not.toHaveBeenCalled();
