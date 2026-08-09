@@ -17,6 +17,9 @@
 // Every prose sentence in this file is indexed in ./claims-evidence.ts with
 // the code that proves it (owner directive); the collections-over-MCP claims
 // reflect default-on resources (mcpResource !== false; opt out with false).
+// 2026-08-09: proof-grade + allure pass. Outcome language on problem/demo/FAQ/
+// get-started; locked positioning subtitle and L1 H1 unchanged. Technical
+// depth points at docs / local-ai / pricing rather than dumping stack lists.
 
 import { SUBSCRIPTION_PRICE_FALLBACKS } from '../lib/pricing-fallbacks';
 import { SITE } from './site';
@@ -86,8 +89,8 @@ export interface ProblemRow {
 
 export const HOME_PROBLEM = {
   eyebrow: 'The problem',
-  heading: 'Vendor sprawl, or framework-only. Pick neither.',
-  body: 'You either glue together an auth vendor, a headless CMS, Stripe code, and a job runner, or you pick an agent framework and rebuild all four underneath it. RevealUI is the third option: the whole set arrives wired into one runtime that you own.',
+  heading: 'Stop buying a separate product for each slice of the stack.',
+  body: 'Most teams stitch sign-in, content, billing, and agents from different vendors. Or they pick an agent framework and rebuild the rest underneath it. RevealUI is the third path: one self-hosted runtime for the business and the agents that run it.',
   tableAriaLabel: 'Vendor sprawl vs agent-framework vs RevealUI comparison',
   columns: {
     capability: 'Capability',
@@ -97,28 +100,28 @@ export const HOME_PROBLEM = {
   },
   rows: [
     {
-      capability: 'Auth + RBAC + sessions',
-      sprawl: 'A separate auth vendor, per seat',
+      capability: 'Sign-in and permissions',
+      sprawl: 'A separate auth product, priced per seat',
       agentOnly: 'Bring your own',
-      revealui: 'Sessions with RBAC and ABAC, built in',
+      revealui: 'Sign-in, roles, and policies built in',
     },
     {
-      capability: 'CMS + admin UI',
-      sprawl: 'A headless CMS, plus a team to wire it',
+      capability: 'Content and admin',
+      sprawl: 'A CMS plus a team to wire it',
       agentOnly: 'Bring your own',
-      revealui: 'Collections with an admin UI and REST API',
+      revealui: 'Your content model, with admin UI and API',
     },
     {
-      capability: 'Stripe billing + webhooks',
-      sprawl: 'Stripe + your code',
+      capability: 'Billing',
+      sprawl: 'Stripe + your glue',
       agentOnly: 'Bring your own',
-      revealui: 'Checkout, webhooks, and reconciliation crons',
+      revealui: 'Checkout, subscriptions, and webhook handling',
     },
     {
-      capability: 'Agent access to your data',
+      capability: 'Agents on your data',
       sprawl: 'One-off integrations',
       agentOnly: 'Tool registry only',
-      revealui: 'Content tools over MCP; collections surface as resources unless you opt out',
+      revealui: 'Agents use the same data and gates as your team',
     },
   ] as readonly ProblemRow[],
   footnote: `Capability comparison only; a monthly cost estimate lives on the pricing page. RevealUI Pro is ${SUBSCRIPTION_PRICE_FALLBACKS.pro.price}/mo + your own infrastructure. Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.`,
@@ -136,8 +139,8 @@ export interface DemoBeat {
 
 export const HOME_DEMO = {
   eyebrow: 'Watch it work',
-  heading: 'From one command to a working stack in 60 seconds.',
-  body: 'The stack runs locally in 60 seconds, Stripe starts in test mode, and agents connect over MCP.',
+  heading: 'From one command to a running stack in about a minute.',
+  body: 'Install on your machine. Take a test payment. Connect an agent to the same data your admin UI already uses.',
   mockupCaption: {
     prefix: 'Local screenshot from a fresh',
     code: 'npx create-revealui',
@@ -147,17 +150,17 @@ export const HOME_DEMO = {
     {
       n: '01',
       title: 'Spin up a stack.',
-      body: 'One command. Auth, content, admin UI, the Stripe webhook handler, and MCP server scaffolding all running locally in 60 seconds.',
+      body: 'One command. Sign-in, content, admin UI, billing hooks, and agent tooling run locally in about a minute.',
     },
     {
       n: '02',
       title: 'Customer flow, end to end.',
-      body: 'A user signs up, picks a plan, and Stripe test-mode checkout completes. The admin UI shows the new account. Switch to live mode when you are ready to take real money.',
+      body: 'A user signs up, picks a plan, and test-mode checkout completes. The admin UI shows the new account. Switch to live mode when you are ready to take real money.',
     },
     {
       n: '03',
-      title: 'Agent-native, by default.',
-      body: 'Wire an LLM provider and your agents read your sites, users, and content over MCP, with every call passing the same auth and tier gates your human users pass.',
+      title: 'Agents on your data.',
+      body: 'Connect a model. Agents read and write the same content your team does, under the same sign-in and plan rules.',
     },
   ] as readonly DemoBeat[],
 } as const;
@@ -178,38 +181,37 @@ export const HOME_FAQ = {
     {
       question: 'Will I get locked in?',
       answer:
-        'No. Open standards end-to-end: OAuth, JWT, Stripe webhooks, MCP, and OpenAPI, over plain Postgres. Deploy anywhere Node runs, and take your data, your code, and your infrastructure with you. RevealUI is the runtime, not the prison.',
+        'No. You keep your data in plain Postgres, your code in your repo, and your deploy on infrastructure you choose. Open standards throughout. RevealUI is the runtime, not the prison. Details live in the docs.',
     },
     {
       question: 'Is it production-ready?',
       answer:
-        'Every PR clears a 3-phase gate before it lands: Biome, Vitest unit and integration tests, Playwright end-to-end tests, CodeQL, and Gitleaks. This site and the agency site at revealuistudio.com both run on RevealUI in production.',
+        'Changes clear automated tests and security checks before they land. This site and the agency site at revealuistudio.com both run on RevealUI in production today.',
     },
     {
-      question:
-        'How is this different from stitching together separate auth, database, CMS, and background-job services?',
+      question: 'How is this different from stitching separate tools together?',
       answer:
-        'Each of those covers one slice: a real-time database, a Postgres-plus-auth backend, a session service, a jobs runner. RevealUI is the whole runtime: auth, content, billing, admin UI, and an agent layer, self-hosted at every tier. (Vercel, Cloudflare, and Fly are deploy targets, not competitors. RevealUI runs on all three.)',
+        'Each vendor covers one slice. RevealUI is the whole runtime: people, content, billing, admin, and agents, self-hosted at all tiers. Deploy targets such as Vercel, Cloudflare, and Fly are places it runs, not competitors.',
     },
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. 24 of 31 packages are MIT and stay MIT, forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infrastructure at any tier, with no vendor-specific edge runtimes and no proprietary database.',
+        'Yes. Most packages are MIT forever. A small Pro set is Fair Source and converts to MIT two years after each release. Self-host the full stack on your infrastructure at any tier. License detail is on the Fair Source page.',
     },
     {
-      question: 'What does "agent-native" actually mean in code?',
+      question: 'What does agent-native mean for my product?',
       answer:
-        'Agents authenticate like users and pass the same tier gates your customers pass. The content MCP server ships discovery and read tools, collections surface as discoverable MCP resources by default (set mcpResource: false to opt out), and writes go through the same REST API your app uses.',
+        'Agents sign in like users and face the same plan rules. They work on your content through the same APIs your app uses. How the wire protocol works is covered in the docs.',
     },
     {
       question: 'How does AI inference work?',
       answer:
-        'Agents run on an open-weight model on your own infrastructure by default, with Claude, GPT, or any other provider one config line away. See the local AI docs at revealui.com/local-ai for the full pathway.',
+        'By default, agents run on an open-weight model on infrastructure you own. Add Claude, GPT, or another provider when you choose. The local AI page walks through the full path.',
     },
     {
       question: 'How do agent payments work?',
       answer:
-        'RevealUI implements the HTTP 402 payment protocol so agents can pay each other over standard HTTP, with the payment rails still in development. See the agents section of the pricing page for the current status.',
+        'RevealUI speaks the HTTP 402 payment protocol so agents can pay over standard HTTP. Payment rails are still in development. See the agents section on the pricing page for current status.',
     },
   ] as readonly FaqItem[],
 } as const;
@@ -219,8 +221,8 @@ export const HOME_FAQ = {
 // ---------------------------------------------------------------------------
 
 export const HOME_GET_STARTED = {
-  heading: 'Your stack is one command away.',
-  body: 'Spin it up on your machine in minutes. Flip to live mode when you are ready to charge real customers.',
+  heading: 'Start on your machine today.',
+  body: 'Install free. Open the admin UI. Go live when you are ready to charge customers.',
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
@@ -230,9 +232,9 @@ export const HOME_GET_STARTED = {
   // CTA, not competing with the hero's primary/secondary buttons.
   cli: {
     command: ['npx', 'create-revealui@latest', 'my-app'],
-    caption: 'Local dev stack in 60 seconds. No credit card.',
+    caption: 'Local stack in about a minute. No credit card.',
   },
   newsletter: {
-    label: 'Not ready to start? Get product updates and engineering insights.',
+    label: 'Not ready to start? Get product updates when they ship.',
   },
 } as const;
