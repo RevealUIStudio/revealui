@@ -1,12 +1,12 @@
 /**
  * Unit tests for field traversal utilities
  *
- * Tests actual utility from packages/core/src/fieldTraversal.ts
+ * Tests actual utility from @revealui/core/fieldTraversal
  */
 
+import { traverseFieldsCore } from '@revealui/core/fieldTraversal';
+import type { Field } from '@revealui/core/types';
 import { describe, expect, it } from 'vitest';
-import { traverseFieldsCore } from '../../../../../packages/core/src/fieldTraversal.js';
-import type { Field } from '../../../../../packages/core/src/types/index.js';
 
 describe('Field Traversal Utilities', () => {
   describe('traverseFieldsCore', () => {

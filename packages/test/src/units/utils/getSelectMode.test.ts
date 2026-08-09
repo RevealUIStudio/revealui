@@ -1,12 +1,12 @@
 /**
  * Unit tests for getSelectMode utility
  *
- * Tests actual utility from packages/core/src/utils/getSelectMode.ts
+ * Tests actual utility from @revealui/core/utils/getSelectMode
  */
 
+import type { SelectType } from '@revealui/core/types';
+import { getSelectMode } from '@revealui/core/utils/getSelectMode';
 import { describe, expect, it } from 'vitest';
-import type { SelectType } from '../../../../../packages/core/src/types/index.js';
-import { getSelectMode } from '../../../../../packages/core/src/utils/getSelectMode.js';
 
 describe('getSelectMode', () => {
   it('should return "include" for select with truthy values', () => {

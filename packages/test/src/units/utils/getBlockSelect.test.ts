@@ -1,12 +1,12 @@
 /**
  * Unit tests for getBlockSelect utility
  *
- * Tests actual utility from packages/core/src/utils/getBlockSelect.ts
+ * Tests actual utility from @revealui/core/utils/getBlockSelect
  */
 
+import type { SelectType } from '@revealui/core/types';
+import { getBlockSelect } from '@revealui/core/utils/getBlockSelect';
 import { describe, expect, it } from 'vitest';
-import type { SelectType } from '../../../../../packages/core/src/types/index.js';
-import { getBlockSelect } from '../../../../../packages/core/src/utils/getBlockSelect.js';
 
 describe('getBlockSelect', () => {
   const createTestBlock = () => ({

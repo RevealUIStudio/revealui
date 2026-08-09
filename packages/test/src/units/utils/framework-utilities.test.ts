@@ -1,11 +1,11 @@
 /**
  * Unit tests for REAL framework utilities
  *
- * Tests actual utilities from packages/core/src/utils
+ * Tests actual utilities from @revealui/core/utils
  */
 
+import { isValidID } from '@revealui/core/utils/isValidID';
 import { describe, expect, it } from 'vitest';
-import { isValidID } from '../../../../../packages/core/src/utils/isValidID.js';
 
 describe('Framework Utilities (Real Code)', () => {
   describe('isValidID', () => {
