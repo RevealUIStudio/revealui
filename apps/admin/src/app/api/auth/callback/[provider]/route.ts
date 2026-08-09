@@ -14,6 +14,7 @@ import {
   fetchProviderUser,
   isSignupAllowed,
   OAuthAccountConflictError,
+  readUsersRole,
   rotateSession,
   upsertOAuthUser,
   verifyOAuthState,
@@ -156,7 +157,9 @@ export async function GET(
     const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
 
     // Set role cookie for proxy.ts role-aware gate (defense-in-depth).
-    const userRole = (user as { role?: string }).role ?? 'viewer';
+    // Re-read after createSession shell repair (GAP-473 membership owner).
+    const repairedRole = await readUsersRole(getClient(), user.id);
+    const userRole = repairedRole ?? (user as { role?: string }).role ?? 'viewer';
     response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

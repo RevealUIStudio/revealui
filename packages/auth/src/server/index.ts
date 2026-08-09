@@ -116,10 +116,12 @@ export {
 } from './password-validation.js';
 export {
   ensureAccountOwnerPlatformAdmin,
+  ensureShellAdminIfAccountOwner,
   isPlatformShellAdminRole,
   PLATFORM_SHELL_ADMIN_COOKIE_ROLES,
   PLATFORM_SHELL_ADMIN_ROLES,
   platformRoleForAccountOwner,
+  readUsersRole,
 } from './platform-roles.js';
 export {
   checkRateLimit,

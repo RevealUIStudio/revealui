@@ -7,7 +7,12 @@
  * Passkeys are inherently MFA  -  no TOTP check required.
  */
 
-import { rotateSession, verifyAuthentication, verifyCookiePayload } from '@revealui/auth/server';
+import {
+  readUsersRole,
+  rotateSession,
+  verifyAuthentication,
+  verifyCookiePayload,
+} from '@revealui/auth/server';
 import config from '@revealui/config';
 import { PasskeyAuthenticateVerifyRequestSchema } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
@@ -137,6 +142,10 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       metadata: { mfaVerified: true, mfaMethod: 'passkey' },
     });
 
+    // After createSession shell repair (GAP-473), cookie + JSON must match DB.
+    const userRole =
+      (await readUsersRole(getClient(), storedPasskey.userId)) ?? user.role ?? 'viewer';
+
     const response = NextResponse.json({
       success: true,
       user: {
@@ -144,7 +153,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
         email: user.email,
         name: user.name,
         avatarUrl: user.avatarUrl,
-        role: user.role,
+        role: userRole,
       },
     });
 
@@ -159,7 +168,6 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
     });
 
     // Set role cookie for proxy.ts role-aware gate
-    const userRole = user.role ?? 'viewer';
     response.cookies.set('revealui-role', userRole, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
