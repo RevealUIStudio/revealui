@@ -1,19 +1,18 @@
 /**
  * Unit tests for access conversion utilities
  *
- * Tests actual utilities from packages/core/src/utils/access-conversion.ts
+ * Tests actual utilities from @revealui/core/utils/access-conversion
  */
 
-import { describe, expect, it } from 'vitest';
-import type { RevealUIAccessContext } from '../../../../../packages/core/src/types/access.js';
-import type { RevealUIPermission } from '../../../../../packages/core/src/types/user.js';
+import type { RevealUIAccessContext, RevealUIPermission } from '@revealui/core/types';
 import {
   combineRevealUIAccessRules,
   convertToRevealUIAccessRule,
   createEnhancedAccessRule,
   createRevealUIAccessRule,
   evaluateRevealUIAccessRule,
-} from '../../../../../packages/core/src/utils/access-conversion.js';
+} from '@revealui/core/utils/access-conversion';
+import { describe, expect, it } from 'vitest';
 
 describe('Access Conversion Utilities', () => {
   describe('createRevealUIAccessRule', () => {

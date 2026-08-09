@@ -1,18 +1,12 @@
 /**
  * Unit tests for query builder utilities
  *
- * Tests actual utilities from packages/core/src/queries/queryBuilder.ts
+ * Tests actual utilities from @revealui/core/queries/queryBuilder
  */
 
+import { buildWhereClause, extractWhereValues } from '@revealui/core/queries/queryBuilder';
+import type { RevealWhere, RevealWhereField } from '@revealui/core/types';
 import { describe, expect, it } from 'vitest';
-import {
-  buildWhereClause,
-  extractWhereValues,
-} from '../../../../../packages/core/src/queries/queryBuilder.js';
-import type {
-  RevealWhere,
-  RevealWhereField,
-} from '../../../../../packages/core/src/types/index.js';
 
 describe('Query Builder Utilities', () => {
   describe('buildWhereClause', () => {

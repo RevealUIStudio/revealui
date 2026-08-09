@@ -1,12 +1,12 @@
 /**
  * Unit tests for flattenResult utility
  *
- * Tests actual utility from packages/core/src/utils/flattenResult.ts
+ * Tests actual utility from @revealui/core/utils/flattenResult
  */
 
+import type { RevealDocument } from '@revealui/core/types';
+import { flattenResult } from '@revealui/core/utils/flattenResult';
 import { describe, expect, it } from 'vitest';
-import type { RevealDocument } from '../../../../../packages/core/src/types/index.js';
-import { flattenResult } from '../../../../../packages/core/src/utils/flattenResult.js';
 
 describe('flattenResult', () => {
   const asRecord = (value: unknown): Record<string, unknown> => value as Record<string, unknown>;
