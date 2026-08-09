@@ -30,19 +30,9 @@ export default createVitestConfig({
   overrides: {
     resolve: {
       alias: [
+        // App-local only. @revealui/* packages resolve via the install graph
+        // (dependencies + package exports) — do not path-alias into packages/*.
         { find: '@', replacement: path.resolve(__dirname, './src') },
-        {
-          find: '@revealui/security/server',
-          replacement: path.resolve(__dirname, '../../packages/security/src/server.ts'),
-        },
-        {
-          find: '@revealui/security/sanitize',
-          replacement: path.resolve(__dirname, '../../packages/security/src/sanitize.ts'),
-        },
-        {
-          find: '@revealui/security',
-          replacement: path.resolve(__dirname, '../../packages/security/src/index.ts'),
-        },
         {
           find: /^.+\.ttf$/,
           replacement: path.resolve(__dirname, './__tests__/binary-stub.ts'),

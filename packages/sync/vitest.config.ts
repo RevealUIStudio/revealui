@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { createVitestConfig } from '@revealui/dev/vitest';
 
 export default createVitestConfig({
@@ -22,11 +21,6 @@ export default createVitestConfig({
       },
       maxConcurrency: 1,
     },
-    resolve: {
-      alias: {
-        '@revealui/db': path.resolve(__dirname, '../db/src'),
-        '@revealui/contracts': path.resolve(__dirname, '../contracts/src'),
-      },
-    },
+    // @revealui/db and @revealui/contracts resolve via the install graph.
   },
 });

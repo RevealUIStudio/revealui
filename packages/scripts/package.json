@@ -6,6 +6,7 @@
   "dependencies": {
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
     "ret": "^0.5.0"
   },
   "devDependencies": {
