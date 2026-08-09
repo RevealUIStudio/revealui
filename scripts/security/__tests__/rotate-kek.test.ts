@@ -1,8 +1,6 @@
 import { randomBytes } from 'node:crypto';
-
+import { encryptWithKey } from '@revealui/db/crypto';
 import { describe, expect, it } from 'vitest';
-
-import { encryptWithKey } from '../../../packages/db/src/crypto';
 import {
   type DataSource,
   planRotation,
