@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/node": "^25.9.4",
     "tsx": "^4.23.0",
-    "typescript": "catalog:",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
   "engines": {

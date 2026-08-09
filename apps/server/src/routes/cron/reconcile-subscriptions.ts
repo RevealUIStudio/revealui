@@ -48,14 +48,21 @@ const LIVE_LOCAL_STATUSES = ['active', 'trialing', 'past_due'] as const;
 function mapStripeStatus(
   stripeStatus: Stripe.Subscription.Status,
 ): 'active' | 'trialing' | 'past_due' | 'canceled' | 'unpaid' | 'paused' | null {
+  // Return string literals (not `stripeStatus`) so TypeScript does not widen
+  // through Stripe's open-ended Status union (`OtherString` in newer types).
   switch (stripeStatus) {
     case 'active':
+      return 'active';
     case 'trialing':
+      return 'trialing';
     case 'past_due':
+      return 'past_due';
     case 'canceled':
+      return 'canceled';
     case 'unpaid':
+      return 'unpaid';
     case 'paused':
-      return stripeStatus;
+      return 'paused';
     case 'incomplete':
     case 'incomplete_expired':
       return 'canceled';
