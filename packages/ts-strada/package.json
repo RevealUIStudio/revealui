@@ -2,7 +2,7 @@
   "name": "@revealui/ts-strada",
   "version": "0.1.0",
   "private": true,
-  "description": "Strada TypeScript Compiler API (typescript@6.x) for AST tooling. TypeScript 7 (Corsa) does not ship the classic createSourceFile/forEachChild surface; keep monorepo analyzers on this package until a supported Corsa parse/walk API exists. CLI typecheck uses catalog typescript@7.",
+  "description": "Strada TypeScript Compiler API (typescript@6.x) for AST tooling. Monorepo catalog stays on 6.x while Next.js requires classic typescript/lib/typescript.js; dual 6+7 splits peer type graphs (e.g. lexical). Import this package for createSourceFile/forEachChild; do not import typescript for Compiler API work.",
   "license": "MIT",
   "type": "commonjs",
   "main": "./index.js",

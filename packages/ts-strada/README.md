@@ -4,14 +4,22 @@
 
 | Concern | Package |
 |---------|---------|
-| `tsc` typecheck / declaration emit | catalog `typescript@7.0.2` |
+| `tsc` typecheck / declaration emit | catalog `typescript` (currently **6.0.3**) |
 | `createSourceFile` / AST walk | **this package** (`typescript@6.0.3`) |
-| Next.js build typecheck (`apps/admin`) | pin `typescript@6.0.3` in that app |
+| Next.js build typecheck (`apps/admin`) | same classic `typescript` (needs `lib/typescript.js`) |
 
-Next.js (`verify-typescript-setup`) requires classic
-`typescript/lib/typescript.js`. TypeScript 7 (Corsa) does not export that
-path, so the Next app keeps an explicit 6.0.3 pin while the monorepo catalog
-stays on 7 for CLI `tsc`.
+## Why this package exists
+
+TypeScript **7 (Corsa)** drops the classic Compiler API path
+(`typescript/lib/typescript.js`). Next.js still requires that path for
+`next build` typecheck. Dual-installing 6 + 7 also splits peer-dep type
+graphs (for example `lexical@…_typescript@6` vs `…@7`), which fails
+assignability across packages.
+
+Until Next (and peer-dep consumers) support Corsa, the monorepo catalog
+stays on Strada 6. This package is the **single import** for Compiler API
+work so a future catalog bump to 7 only needs to keep the classic bridge
+here (or migrate callers when Corsa ships a supported parse/walk API).
 
 ```ts
 import ts from '@revealui/ts-strada';
@@ -20,6 +28,3 @@ import * as ts from '@revealui/ts-strada';
 ```
 
 Do not import `typescript` for Compiler API work in this monorepo.
-
-When Corsa ships a supported parse/walk API, migrate callers and remove this
-package in the same train.
