@@ -520,7 +520,13 @@ class StructureValidator {
     const packagesDir = 'packages';
     // Packages exempt from src/ and __tests__ checks  -  thin wrappers or delegation-only packages
     // scripts: flat layout (no src/)  -  moved from scripts/lib, predates src/ convention
-    const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md', 'scripts']);
+    // ts-strada: private CJS re-export of typescript@6 Compiler API (no src/)
+    const srcExempt = new Set([
+      'create-revealui',
+      'PACKAGE-CONVENTIONS.md',
+      'scripts',
+      'ts-strada',
+    ]);
     if (existsSync(packagesDir)) {
       const packages = readdirSync(packagesDir).filter((item) =>
         statSync(join(packagesDir, item)).isDirectory(),
