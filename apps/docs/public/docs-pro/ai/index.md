@@ -30,7 +30,7 @@ Run a local model with Ollama (default path) or install a Canonical Inference Sn
 
 ```bash
 # Default path
-ollama pull gemma4:e2b
+ollama pull qwen2.5:3b
 ollama pull nomic-embed-text
 
 # OR planned path (run + manage the snap yourself for now)

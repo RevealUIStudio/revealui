@@ -157,7 +157,8 @@ app.openapi(agentStreamRoute, async (c) => {
         provider: localProvider as LLMConfig['provider'],
         apiKey: localProvider,
         baseURL: localBaseURL,
-        model: process.env.LLM_MODEL ?? 'gemma4:e2b',
+        // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL when ollama
+        model: process.env.LLM_MODEL ?? 'qwen2.5:3b',
       });
     } catch {
       return c.json(

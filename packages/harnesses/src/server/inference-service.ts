@@ -85,7 +85,8 @@ export const PRODUCT_INFERENCE_SNAPS: ReadonlyArray<readonly [string, string]> =
 const KNOWN_SNAPS = PRODUCT_INFERENCE_SNAPS;
 const SNAP_IDS = PRODUCT_INFERENCE_SNAPS.map(([id]) => id);
 
-const DEFAULT_DAILY_OLLAMA = 'gemma3:1b';
+// Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL (cannot hard-require @revealui/ai).
+const DEFAULT_DAILY_OLLAMA = 'qwen2.5:3b';
 const DEFAULT_SNAPS_SNAP = 'gemma3';
 const DEFAULT_HEAVY_SNAP = 'nemotron-3-nano';
 
@@ -414,7 +415,7 @@ export class InferenceService {
         model: DEFAULT_DAILY_OLLAMA,
         baseURL: 'http://127.0.0.1:11434',
         keepAlive: '0',
-        note: 'Ollama small US model; weights unload after each request',
+        note: 'Ollama daily default (qwen2.5:3b); weights unload after each request',
       };
     } else if (tier === 'snaps') {
       await this.ollamaStop();

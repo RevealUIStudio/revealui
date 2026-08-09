@@ -85,6 +85,7 @@ describe('local-ai-profile', () => {
 
   it('profileDefaultsForTier covers all tiers', () => {
     expect(profileDefaultsForTier('daily').provider).toBe('ollama');
+    expect(profileDefaultsForTier('daily').model).toBe('qwen2.5:3b');
     expect(profileDefaultsForTier('snaps').provider).toBe('inference-snaps');
     expect(profileDefaultsForTier('heavy').model).toBe('nemotron-3-nano');
     expect(profileDefaultsForTier('idle').provider).toBeNull();

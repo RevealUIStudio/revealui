@@ -433,7 +433,7 @@ export const claimsPart3: readonly ClaimEntry[] = [
   {
     file: 'local-ai.ts',
     exportPath: 'LOCAL_AI_SECTION.snippet.lines[1].note',
-    text: 'gemma4 on your box, port 11434',
+    text: 'qwen2.5:3b on your box, port 11434',
     evidence: [OLLAMA],
   },
   {

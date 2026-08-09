@@ -17,7 +17,7 @@
 // cost + sovereignty + good-enough-for-most-work economics, NEVER on parity,
 // "free", "turnkey", or "faster". Frontier stays the opt-in escalation. The
 // provider snippet is grep-accurate to packages/ai/src/llm/client.ts
-// (LLM_PROVIDER; inference-snaps default nemotron-3-nano :9090, ollama gemma4 :11434).
+// (LLM_PROVIDER; inference-snaps default nemotron-3-nano :9090, ollama qwen2.5:3b :11434).
 // Positioning guardrail (Phase C): ownership stays the lead; local AI is its proof.
 //
 // claims-ratchet 2026-07-12: frontier-mode provider naming scoped to the shipped
@@ -59,7 +59,7 @@ export const LOCAL_AI_SECTION = {
         code: 'LLM_PROVIDER=inference-snaps',
         note: 'nemotron-3-nano on your box, port 9090 (default runner)',
       },
-      { code: 'LLM_PROVIDER=ollama', note: 'gemma4 on your box, port 11434' },
+      { code: 'LLM_PROVIDER=ollama', note: 'qwen2.5:3b on your box, port 11434' },
     ],
   },
   dogfood:

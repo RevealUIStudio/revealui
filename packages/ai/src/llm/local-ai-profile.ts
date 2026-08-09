@@ -173,7 +173,7 @@ export function profileDefaultsForTier(
         model: DEFAULT_DAILY_OLLAMA_MODEL,
         baseURL: 'http://127.0.0.1:11434',
         keepAlive: '0',
-        note: 'Ollama small US model; weights unload after each request',
+        note: 'Ollama daily default (qwen2.5:3b); weights unload after each request',
       };
     case 'snaps':
       return {

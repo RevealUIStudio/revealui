@@ -434,7 +434,7 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 RevealUI defaults to open-weight models (no API key, no cloud bill, no vendor lock-in). Cloud providers (Groq, HuggingFace, and OpenAI-compatible endpoints) are opt-in via environment variables. The inference path is auto-detected:
 
 1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (US-origin allowlist: Nemotron-3-nano, Gemma 3/4, Nemotron Omni)
-2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
+2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `qwen2.5:3b`, embeddings: `nomic-embed-text`)
 
 ### CRDT-based memory system
 

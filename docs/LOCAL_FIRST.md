@@ -78,7 +78,7 @@ Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 Install Ollama, then pull a model:
 ```bash
 ollama serve &
-ollama pull gemma4:e2b
+ollama pull qwen2.5:3b
 ollama pull nomic-embed-text   # for embeddings
 ```
 
