@@ -65,6 +65,11 @@
       "import": "./dist/types/index.js",
       "default": "./dist/types/index.js"
     },
+    "./types/discover": {
+      "types": "./dist/types/discover.d.ts",
+      "import": "./dist/types/discover.js",
+      "default": "./dist/types/discover.js"
+    },
     "./schema/agents": {
       "types": "./dist/schema/agents.d.ts",
       "import": "./dist/schema/agents.js",

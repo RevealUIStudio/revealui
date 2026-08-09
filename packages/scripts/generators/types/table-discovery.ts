@@ -17,7 +17,7 @@
  * ```
  */
 
-import { discoverTables } from '../../../../packages/db/src/types/discover.js';
+import { discoverTables } from '@revealui/db/types/discover';
 import { ErrorCode, ScriptError } from '../../errors.js';
 import { createLogger } from '../../index.js';
 
