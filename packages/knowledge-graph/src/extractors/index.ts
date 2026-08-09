@@ -12,6 +12,14 @@ export {
 export { dbSchemaExtractor } from './db-schema.js';
 export { docsFrontmatterExtractor } from './docs-frontmatter.js';
 export { gitExtractor } from './git.js';
+export {
+  type ExtractEpisodeOptions,
+  extractEpisodeFromText,
+  LLM_EXTRACTION_PROMPT,
+  type LlmCompleter,
+  type LlmExtraction,
+  LlmExtractionSchema,
+} from './llm-episode.js';
 export { routesExtractor } from './routes.js';
 export * from './shared.js';
 export { tsProjectExtractor } from './ts-project.js';
