@@ -55,4 +55,17 @@ describe('SidebarLayout', () => {
     );
     expect(screen.getByRole('main')).toBeInTheDocument();
   });
+
+  it('constrains the shell so nested flex content cannot force page x-scroll', () => {
+    const { container } = render(
+      <SidebarLayout navbar={<div>Nav</div>} sidebar={<div>Side</div>}>
+        <p>Content</p>
+      </SidebarLayout>,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toMatch(/overflow-x-hidden/);
+    expect(root.className).toMatch(/max-w-\[100vw\]/);
+    const main = screen.getByRole('main');
+    expect(main.className).toMatch(/min-w-0/);
+  });
 });
