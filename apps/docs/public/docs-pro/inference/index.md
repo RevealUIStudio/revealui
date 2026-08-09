@@ -70,7 +70,7 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 Run any open source model locally via the RevealUI harness.
 
 ```bash
-ollama pull gemma4:e2b            # Chat model (Gemma 4 — Apache 2.0)
+ollama pull qwen2.5:3b            # Chat model (daily default — fits ~4GB WSL)
 ollama pull nomic-embed-text      # Embedding model
 ```
 

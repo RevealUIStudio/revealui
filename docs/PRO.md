@@ -844,7 +844,7 @@ RevealUI AI defaults to open source models running on your own hardware. It neve
 
 | Path | Runtime | Notes |
 |------|---------|-------|
-| **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
+| **Ollama** | Local GGUF models | Any open source GGUF model. Default: `qwen2.5:3b` |
 | **Groq** | Cloud, your own key | Bring your own key, opt-in via `GROQ_API_KEY` |
 | **Anthropic** | Cloud, your own key | Bring your own key, opt-in via `ANTHROPIC_API_KEY`. Calls Anthropic's OpenAI-compatible endpoint directly. No proprietary Anthropic SDK. |
 | **OpenAI** | Cloud, your own key | Bring your own key, opt-in via `OPENAI_API_KEY` |

@@ -59,11 +59,11 @@ gemma3 status
 
 Each snap serves an OpenAI-compatible API locally. The `@revealui/ai` package auto-detects the running snap and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations work with any supported inference path  -  because they all expose OpenAI-compatible `/v1/chat/completions` endpoints.
 
-As a fallback, **Ollama** supports any open source GGUF model (default: `gemma4:e2b`):
+As a fallback, **Ollama** supports any open source GGUF model (default: `qwen2.5:3b`):
 
 ```bash
 ollama serve &
-ollama pull gemma4:e2b
+ollama pull qwen2.5:3b
 ```
 
 No API key. No usage bill. No data leaving your machine.
@@ -82,7 +82,7 @@ direnv allow        # Nix builds and activates the full dev environment
 sudo snap install nemotron-3-nano
 
 # Or use Ollama
-ollama pull gemma4:e2b
+ollama pull qwen2.5:3b
 ```
 
 No `apt install`, no `brew install`, no conda environment. Every developer on the project gets the same toolchain regardless of what's on their system. It works the same on a Ryzen laptop as it does on a Mac or a Linux CI runner.
@@ -99,7 +99,7 @@ flake.nix
 └── devShell
     └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
+sudo snap install nemotron-3-nano    # Or: ollama pull qwen2.5:3b
 └── OpenAI-compatible API served locally
 
 @revealui/ai                         # Agent orchestration routes to local model

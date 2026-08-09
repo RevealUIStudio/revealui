@@ -53,8 +53,13 @@ export const DEFAULT_US_ORIGIN_INFERENCE_SNAP: UsOriginInferenceSnapId = 'nemotr
 /** Preferred snap on constrained hosts (profile `snaps` tier). */
 export const DEFAULT_LOW_RAM_INFERENCE_SNAP: UsOriginInferenceSnapId = 'gemma3';
 
-/** Preferred Ollama model for profile `daily` tier (fits ~4GB WSL). */
-export const DEFAULT_DAILY_OLLAMA_MODEL = 'gemma3:1b';
+/**
+ * Preferred Ollama chat model for profile `daily` tier and bare Ollama defaults.
+ * ~1.9GB Q4; quality step up from 1.5b-class while still fitting ~4GB WSL with
+ * Studio + unload-after-request (`OLLAMA_KEEP_ALIVE=0`). One model at a time.
+ * Ollama accepts any GGUF; US-origin hardline remains Inference Snaps only.
+ */
+export const DEFAULT_DAILY_OLLAMA_MODEL = 'qwen2.5:3b';
 
 /** Operator escape env var. Never set in customer seed or CI green paths. */
 export const NON_US_MODELS_ESCAPE_ENV = 'REVEALUI_ALLOW_NON_US_MODELS';
