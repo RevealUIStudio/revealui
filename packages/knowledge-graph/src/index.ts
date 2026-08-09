@@ -52,12 +52,14 @@ export {
   type RankedFact,
   type RankedNode,
 } from './search/index.js';
-export type {
-  EdgeInput,
-  Embedder,
-  EpisodeInput,
-  KgExecutor,
-  KgOp,
-  NodeInput,
-  ScanApplyResult,
+export {
+  type EdgeInput,
+  type Embedder,
+  EPISODE_TYPES,
+  type EpisodeInput,
+  type EpisodeType,
+  type KgExecutor,
+  type KgOp,
+  type NodeInput,
+  type ScanApplyResult,
 } from './types.js';
