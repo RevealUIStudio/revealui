@@ -11,7 +11,6 @@ import {
   deploymentModeKeyConsistencyError,
   detectDeploymentMode as detectDeploymentModeCore,
 } from '@revealui/core/deployment-mode';
-import { logger } from '@revealui/core/observability/logger';
 import {
   ALLOW_UNLICENSED_SELF_HOST_ENV,
   validateForgeLicenseAtStartup,
