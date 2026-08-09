@@ -28,6 +28,10 @@ Practical, step-by-step guides for building with RevealUI.
 - [Connect VS Code](./connect-vscode.md) -- Copilot agent plugin bundle
 - [Connect ACP (Zed / JetBrains)](./connect-acp.md) -- `revealui-harnesses acp` on stdio
 
+Maintainer residual (GAP-381 Phase E / D-C / D-D) is monorepo-only under
+`docs/runbooks/` (visibility: internal; not linked here so the public docs
+site never 404s). Automated smoke: `pnpm exec tsx scripts/validate/gap-381-phase-e-smoke.ts`.
+
 ## Reference
 
 For package-level API documentation, see the [API Reference](/api).
