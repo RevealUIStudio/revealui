@@ -13,6 +13,11 @@ export { dbSchemaExtractor } from './db-schema.js';
 export { docsFrontmatterExtractor } from './docs-frontmatter.js';
 export { gitExtractor } from './git.js';
 export {
+  loadMarkdownSources,
+  type TextSource,
+  textSourceToEpisode,
+} from './handoff-memory.js';
+export {
   type ExtractEpisodeOptions,
   extractEpisodeFromText,
   LLM_EXTRACTION_PROMPT,

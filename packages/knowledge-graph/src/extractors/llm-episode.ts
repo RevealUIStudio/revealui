@@ -7,33 +7,105 @@
  * `@revealui/ai` Ollama chat with JSON mode). No hard import of @revealui/ai
  * so the package stays installable without Pro optional deps.
  *
- * Contradictions: when relation is `supersedes` / `blocks`, the engine still
- * applies additive ingest; temporal invalidation of prior edges is a follow-on
- * once resolution ladder lands (P3 residual).
+ * Contradictions: ingest stays additive by default. Pass
+ * `invalidateContradictions: true` to ingestEpisode (or use CLI
+ * `extract` / `ingest-handoffs`) to temporally invalidate prior edges that
+ * share endpoints+relation but differ in fact (invalidate-not-delete).
  */
 
 import { z } from 'zod';
 import type { EpisodeIngestInput } from '../ingest/engine.js';
-import { EDGE_RELATIONS, NODE_KINDS } from '../ontology/index.js';
+import {
+  EDGE_RELATIONS,
+  isEdgeRelation,
+  isNodeKind,
+  LEARNED_KIND,
+  LEARNED_RELATION,
+  NODE_KINDS,
+} from '../ontology/index.js';
 import type { EdgeInput, EpisodeInput, NodeInput } from '../types.js';
 
-const ExtractedNodeSchema = z.object({
-  kind: z.enum(NODE_KINDS),
-  name: z.string().min(1).max(200),
-  naturalKey: z.string().min(1).max(500),
-  repo: z.string().max(100).optional(),
-  summary: z.string().max(2000).optional(),
-});
+/** Models often emit null for optional fields — coerce null → undefined. */
+const optionalRepo = z.preprocess(
+  (v) => (v === null || v === undefined || v === '' ? undefined : v),
+  z.string().max(100).optional(),
+);
 
-const ExtractedEdgeSchema = z.object({
-  sourceNaturalKey: z.string().min(1).max(500),
-  targetNaturalKey: z.string().min(1).max(500),
-  sourceKind: z.enum(NODE_KINDS),
-  targetKind: z.enum(NODE_KINDS),
-  relation: z.enum(EDGE_RELATIONS),
-  fact: z.string().min(1).max(2000),
-  repo: z.string().max(100).optional(),
-});
+/** Small models invent kinds; map unknown → concept (spec §5 learned fallback). */
+const coercedKind = z.preprocess((v) => {
+  if (typeof v === 'string' && isNodeKind(v)) return v;
+  return LEARNED_KIND;
+}, z.enum(NODE_KINDS));
+
+/** Small models invent relations; map unknown → relates-to. */
+const coercedRelation = z.preprocess((v) => {
+  if (typeof v === 'string' && isEdgeRelation(v)) return v;
+  return LEARNED_RELATION;
+}, z.enum(EDGE_RELATIONS));
+
+/** Prefer model naturalKey; else derive from name (small-model resilience). */
+function deriveNaturalKey(raw: unknown, name: unknown): string | undefined {
+  if (typeof raw === 'string' && raw.trim().length > 0) return raw.trim().slice(0, 500);
+  if (typeof name === 'string' && name.trim().length > 0) {
+    return `concept:${name.trim().slice(0, 200).toLowerCase().replaceAll(' ', '-')}`;
+  }
+  return undefined;
+}
+
+const ExtractedNodeSchema = z.preprocess(
+  (input) => {
+    if (input === null || typeof input !== 'object') return input;
+    const o = input as Record<string, unknown>;
+    const naturalKey = deriveNaturalKey(o.naturalKey, o.name);
+    return naturalKey === undefined ? o : { ...o, naturalKey };
+  },
+  z.object({
+    kind: coercedKind,
+    name: z.string().min(1).max(200),
+    naturalKey: z.string().min(1).max(500),
+    repo: optionalRepo,
+    summary: z.preprocess(
+      (v) => (v === null || v === undefined ? undefined : v),
+      z.string().max(2000).optional(),
+    ),
+  }),
+);
+
+const ExtractedEdgeSchema = z.preprocess(
+  (input) => {
+    if (input === null || typeof input !== 'object') return input;
+    const o = input as Record<string, unknown>;
+    const sourceNaturalKey =
+      typeof o.sourceNaturalKey === 'string' && o.sourceNaturalKey.trim()
+        ? o.sourceNaturalKey
+        : deriveNaturalKey(undefined, o.sourceName ?? o.source);
+    const targetNaturalKey =
+      typeof o.targetNaturalKey === 'string' && o.targetNaturalKey.trim()
+        ? o.targetNaturalKey
+        : deriveNaturalKey(undefined, o.targetName ?? o.target);
+    const fact =
+      typeof o.fact === 'string' && o.fact.trim()
+        ? o.fact
+        : typeof o.relation === 'string'
+          ? `${String(sourceNaturalKey ?? 'source')} ${o.relation} ${String(targetNaturalKey ?? 'target')}`
+          : undefined;
+    return {
+      ...o,
+      ...(sourceNaturalKey !== undefined ? { sourceNaturalKey } : {}),
+      ...(targetNaturalKey !== undefined ? { targetNaturalKey } : {}),
+      ...(fact !== undefined ? { fact } : {}),
+    };
+  },
+  z.object({
+    sourceNaturalKey: z.string().min(1).max(500),
+    targetNaturalKey: z.string().min(1).max(500),
+    sourceKind: coercedKind,
+    targetKind: coercedKind,
+    relation: coercedRelation,
+    fact: z.string().min(1).max(2000),
+    repo: optionalRepo,
+  }),
+);
 
 export const LlmExtractionSchema = z.object({
   nodes: z.array(ExtractedNodeSchema).max(50),
