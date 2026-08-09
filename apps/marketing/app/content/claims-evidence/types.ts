@@ -65,12 +65,20 @@ export interface ClaimEntry {
   readonly proofGrade?: ProofGrade;
 }
 
-/** Homepage primary funnel modules that carry the proof-grade bar. */
+/**
+ * Primary public marketing modules that carry the proof-grade bar.
+ * Homepage first (2026-08-09); products / local-ai / for-operators next.
+ */
 export const CRITICAL_PROOF_FILES: readonly string[] = [
   'home.ts',
   'primitives.ts',
   'proof.ts',
   'pricing-teaser.ts',
+  'products.ts',
+  'local-ai.ts',
+  'for-operators.ts',
+  'for-operators-how-it-works.ts',
+  'for-operators-managed.ts',
 ] as const;
 
 /**
@@ -86,7 +94,12 @@ export function isCriticalMarketingClaim(file: string, exportPath: string): bool
   if (exportPath.includes('newsletter')) return false;
   if (exportPath.includes('changelogCta')) return false;
   if (exportPath.includes('docsLink')) return false;
+  if (exportPath.includes('detailLink')) return false;
   if (exportPath.includes('validatorLabel')) return false;
+  if (exportPath.includes('successMessage')) return false;
+  if (exportPath.includes('reverseLink')) return false;
+  // Link chrome and short labels (not product claims)
+  if (exportPath.endsWith('.label') || exportPath.includes('.links[')) return false;
   if (exportPath.includes('.cta') || exportPath.endsWith('.cta')) return false;
   return true;
 }
