@@ -10,7 +10,7 @@
  *   pnpm --filter @revealui/ai test:integration
  *
  * Prerequisites:
- *   - Ollama running: `ollama serve` + `ollama pull gemma4:e2b`
+ *   - Ollama running: `ollama serve` + `ollama pull qwen2.5:3b`
  *   - OR set GROQ_API_KEY in env
  */
 
@@ -40,7 +40,7 @@ async function buildLLMClient(): Promise<LLMClient | null> {
       provider: 'ollama',
       apiKey: 'ollama',
       baseURL: `${ollamaBase}/v1`,
-      model: process.env.LLM_MODEL ?? 'gemma4:e2b',
+      model: process.env.LLM_MODEL ?? 'qwen2.5:3b',
     });
   }
 
@@ -49,7 +49,7 @@ async function buildLLMClient(): Promise<LLMClient | null> {
     return new LLMClient({
       provider: 'groq',
       apiKey: process.env.GROQ_API_KEY,
-      model: process.env.LLM_MODEL ?? 'qwen/qwen3-32b',
+      model: process.env.LLM_MODEL ?? 'llama-3.3-70b-versatile',
     });
   }
 

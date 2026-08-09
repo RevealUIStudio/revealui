@@ -19,12 +19,13 @@ import type {
   ReasonerCapabilities,
 } from './base.js';
 import { OpenAICompatProvider } from './openai-compat.js';
+import { DEFAULT_DAILY_OLLAMA_MODEL } from './us-origin-snaps.js';
 
 export interface OllamaProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey?: string;
   /** Defaults to http://localhost:11434/v1 */
   baseURL?: string;
-  /** Chat model. Defaults to gemma4:e2b  -  run `ollama pull gemma4:e2b` first */
+  /** Chat model. Defaults to DEFAULT_DAILY_OLLAMA_MODEL — run `ollama pull` first */
   model?: string;
   /** Embedding model. Defaults to nomic-embed-text  -  run `ollama pull nomic-embed-text` first */
   embedModel?: string;
@@ -44,12 +45,12 @@ export class OllamaProvider implements LLMProvider {
       // Ollama ignores the API key but the OpenAI client requires a non-empty value
       apiKey: config.apiKey ?? 'ollama',
       baseURL,
-      model: config.model ?? 'gemma4:e2b',
+      model: config.model ?? DEFAULT_DAILY_OLLAMA_MODEL,
     });
   }
 
   capabilities(): ReasonerCapabilities {
-    // Profile for the default model (gemma4:e2b, text-only).
+    // Profile for the default daily Ollama model (text + tools; no vision).
     return {
       providerTag: 'ollama',
       tools: true,

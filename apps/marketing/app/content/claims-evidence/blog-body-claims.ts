@@ -7473,7 +7473,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/five-primitives',
     exportPath: 'body.68',
-    text: '**Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)',
+    text: '**Ollama** (fallback)  -  Any open source GGUF model (chat: `qwen2.5:3b`, embeddings: `nomic-embed-text`)',
     evidence: [
       { kind: 'code', ref: 'docs/blog/05-five-primitives.md', note: 'body source paragraph 68' },
       {
@@ -8045,7 +8045,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/local-first-ai-stack',
     exportPath: 'body.13',
-    text: 'As a fallback, **Ollama** supports any open source GGUF model (default: `gemma4:e2b`):',
+    text: 'As a fallback, **Ollama** supports any open source GGUF model (default: `qwen2.5:3b`):',
     evidence: [
       {
         kind: 'code',

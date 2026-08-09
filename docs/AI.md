@@ -99,7 +99,7 @@ const memory = {
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
 | **Ubuntu Inference Snaps** (canonical default — Studio lifecycle pending) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
-| Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
+| Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `qwen2.5:3b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
 

@@ -11,6 +11,15 @@
  *   revkg claims-check [--root] [--repo] [--fleet] [--publish] [--json]
  *       Parse claims-evidence, verify path evidence exists; with --publish ingest
  *       claim-scan documents edges into the graph (GAP-462 Phase 3).
+ *   revkg extract [--file <path>] [--source <s>] [--dry-run] [--json] [--no-invalidate]
+ *       P3 LLM structured extraction from free text (stdin if no --file);
+ *       ingests via ingestEpisode unless --dry-run. Requires @revealui/ai +
+ *       local/env LLM (Ollama / snaps). Completer is dynamic-import only.
+ *       By default invalidates prior edges with same endpoints+relation but
+ *       different fact (P3 contradiction ladder).
+ *   revkg ingest-handoffs --dir <path> [--limit n] [--dry-run] [--json] [--no-invalidate]
+ *       P3 deterministic handoff/memory markdown → episodes (no LLM). Explicit
+ *       publish only; default path is rolling handoffs when --dir omitted.
  *
  * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
  * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
@@ -84,7 +93,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
   const flags = new Map<string, string>();
   const bools = new Set<string>();
-  const boolFlags = new Set(['fleet', 'json', 'publish']);
+  const boolFlags = new Set(['fleet', 'json', 'publish', 'dry-run', 'no-invalidate']);
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === undefined) continue;
@@ -444,6 +453,185 @@ async function cmdClaimsCheck(args: ParsedArgs): Promise<void> {
   }
 }
 
+async function cmdExtract(args: ParsedArgs): Promise<void> {
+  const file = args.flags.get('file');
+  let text: string;
+  if (file) {
+    const body = readTextFile(file);
+    if (body === null) fail(`cannot read ${file}`);
+    text = body;
+  } else if (args.positionals.length > 0) {
+    text = args.positionals.join(' ');
+  } else {
+    // stdin
+    const chunks: Buffer[] = [];
+    for await (const chunk of process.stdin) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+    }
+    text = Buffer.concat(chunks).toString('utf8');
+  }
+  if (!text.trim()) fail('extract requires text (--file, positionals, or stdin)');
+
+  const { extractEpisodeFromText } = await import('../extractors/llm-episode.js');
+  const source = args.flags.get('source') ?? 'revkg-extract';
+  const siteId = args.flags.get('site') ?? hostname();
+  const dryRun = args.bools.has('dry-run');
+
+  const complete = await loadLlmCompleter();
+  const { extraction, ingest } = await extractEpisodeFromText(text, {
+    complete,
+    source,
+    siteId,
+    episodeType: 'agent-fact',
+  });
+
+  if (args.bools.has('json')) {
+    out(JSON.stringify({ extraction, dryRun }, null, 2));
+  } else {
+    out(`extracted ${extraction.nodes.length} nodes, ${extraction.edges.length} edges`);
+    for (const n of extraction.nodes.slice(0, 20)) {
+      out(`  [${n.kind}] ${n.naturalKey}`);
+    }
+    for (const e of extraction.edges.slice(0, 20)) {
+      out(`  (${e.relation}) ${e.fact.slice(0, 80)}`);
+    }
+  }
+
+  if (dryRun) {
+    out('dry-run: not ingested');
+    return;
+  }
+
+  const { exec, close } = await getExecutor();
+  try {
+    const embedder = await loadEmbedder();
+    const invalidate = !args.bools.has('no-invalidate');
+    const result = await ingestEpisode(exec, ingest, {
+      embedder,
+      recordOutbox: true,
+      invalidateContradictions: invalidate,
+    });
+    out(
+      `ingested episodeId=${result.episodeId} nodes=${result.nodeCount} edges=${result.edgeCount} invalidated=${result.invalidatedEdgeIds.length}`,
+    );
+  } finally {
+    await close();
+  }
+}
+
+/**
+ * Deterministic handoff/memory ingest (no LLM). Explicit publish only.
+ * Default dir: REVFLEET_HANDOFFS or ~/revfleet/.jv/docs/handoffs/rolling.
+ */
+async function cmdIngestHandoffs(args: ParsedArgs): Promise<void> {
+  const { loadMarkdownSources, textSourceToEpisode } = await import(
+    '../extractors/handoff-memory.js'
+  );
+  const defaultDir =
+    process.env.REVFLEET_HANDOFFS ??
+    join(process.env.HOME ?? '', 'revfleet/.jv/docs/handoffs/rolling');
+  const dir = args.flags.get('dir') ?? defaultDir;
+  const limitRaw = args.flags.get('limit');
+  const limit = limitRaw !== undefined ? Number.parseInt(limitRaw, 10) : 50;
+  if (!Number.isFinite(limit) || limit < 1) fail('--limit must be a positive integer');
+
+  const sources = loadMarkdownSources(dir, { limit });
+  if (sources.length === 0) {
+    out(`no markdown sources under ${dir}`);
+    return;
+  }
+
+  const siteId = args.flags.get('site') ?? hostname();
+  const dryRun = args.bools.has('dry-run');
+  const invalidate = !args.bools.has('no-invalidate');
+  const episodes = sources.map((s) =>
+    textSourceToEpisode(s, { siteId, sourceLabel: `handoff:${s.path}` }),
+  );
+
+  if (args.bools.has('json')) {
+    out(
+      JSON.stringify(
+        {
+          dir,
+          dryRun,
+          count: episodes.length,
+          episodes: episodes.map((e) => ({
+            source: e.episode.source,
+            nodes: e.nodes.length,
+            edges: e.edges.length,
+          })),
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    out(`handoffs: ${episodes.length} file(s) from ${dir}`);
+    for (const e of episodes.slice(0, 20)) {
+      out(`  ${e.episode.source} → ${e.nodes.length}n/${e.edges.length}e`);
+    }
+  }
+
+  if (dryRun) {
+    out('dry-run: not ingested');
+    return;
+  }
+
+  const { exec, close } = await getExecutor();
+  try {
+    const embedder = await loadEmbedder();
+    let nodes = 0;
+    let edges = 0;
+    let invalidated = 0;
+    for (const ep of episodes) {
+      const result = await ingestEpisode(exec, ep, {
+        embedder,
+        recordOutbox: true,
+        invalidateContradictions: invalidate,
+      });
+      nodes += result.nodeCount;
+      edges += result.edgeCount;
+      invalidated += result.invalidatedEdgeIds.length;
+    }
+    out(`ingested nodes=${nodes} edges=${edges} invalidated=${invalidated}`);
+  } finally {
+    await close();
+  }
+}
+
+/** Dynamic @revealui/ai chat → JSON string completer for P3 extract. */
+async function loadLlmCompleter(): Promise<(prompt: string, userText: string) => Promise<string>> {
+  try {
+    const specifier = '@revealui/ai';
+    const ai = (await import(specifier)) as {
+      createLLMClientFromEnv: () => {
+        chat(
+          messages: Array<{ role: string; content: string }>,
+          options?: { temperature?: number; maxTokens?: number },
+        ): Promise<{ content?: string; text?: string; message?: { content?: string } }>;
+      };
+    };
+    const client = ai.createLLMClientFromEnv();
+    return async (prompt: string, userText: string): Promise<string> => {
+      const res = await client.chat(
+        [
+          { role: 'system', content: prompt },
+          { role: 'user', content: userText },
+        ],
+        { temperature: 0.1, maxTokens: 4096 },
+      );
+      if (typeof res.content !== 'string' || !res.content.trim()) {
+        throw new Error('LLM returned empty content for extract');
+      }
+      return res.content;
+    };
+  } catch (err) {
+    fail(
+      `extract requires @revealui/ai + LLM env (Ollama/snaps): ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
@@ -469,8 +657,16 @@ async function main(): Promise<void> {
     case 'claims-check':
       await cmdClaimsCheck(args);
       break;
+    case 'extract':
+      await cmdExtract(args);
+      break;
+    case 'ingest-handoffs':
+      await cmdIngestHandoffs(args);
+      break;
     default:
-      out('usage: revkg <scan|search|node|neighbors|at|drift|claims-check> [...]');
+      out(
+        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs> [...]',
+      );
       process.exit(command ? 1 : 0);
   }
 }

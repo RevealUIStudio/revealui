@@ -17,7 +17,7 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 | Path | Chat | Embeddings | Key Env Var | Notes |
 |------|------|-----------|-------------|-------|
 | **Ubuntu Inference Snaps** | yes | depends on model | `INFERENCE_SNAPS_BASE_URL` | Canonical snap runtime  -  US-origin allowlist only: Nemotron 3 Nano/Omni, Gemma 3/4 |
-| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `gemma4:e2b`, Embed: `nomic-embed-text` |
+| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `qwen2.5:3b`, Embed: `nomic-embed-text` |
 
 ### Auto-Detection Priority
 

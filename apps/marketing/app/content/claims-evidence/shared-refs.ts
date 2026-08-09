@@ -376,7 +376,7 @@ export const LLM_CLIENT: EvidenceRef = {
 export const OLLAMA: EvidenceRef = {
   kind: 'code',
   ref: 'packages/ai/src/llm/providers/ollama.ts',
-  note: 'Ollama adapter, default gemma4:e2b, port 11434',
+  note: 'Ollama adapter, default qwen2.5:3b (DEFAULT_DAILY_OLLAMA_MODEL), port 11434',
 };
 export const OPENAI_COMPAT: EvidenceRef = {
   kind: 'code',

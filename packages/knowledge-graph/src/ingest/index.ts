@@ -1,4 +1,11 @@
 export {
+  type ContradictingEdge,
+  findContradictingEdges,
+  invalidateContradictions,
+  naturalKeysSimilar,
+  normalizeNaturalKey,
+} from './contradiction.js';
+export {
   backfillEdgeEmbedding,
   backfillNodeEmbedding,
 } from './embed.js';

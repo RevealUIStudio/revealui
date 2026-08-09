@@ -39,7 +39,10 @@ import {
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
 import { type OpenAICompatConfig, OpenAICompatProvider } from './providers/openai-compat.js';
-import { DEFAULT_US_ORIGIN_INFERENCE_SNAP } from './providers/us-origin-snaps.js';
+import {
+  DEFAULT_DAILY_OLLAMA_MODEL,
+  DEFAULT_US_ORIGIN_INFERENCE_SNAP,
+} from './providers/us-origin-snaps.js';
 import { XaiProvider, type XaiProviderConfig } from './providers/xai.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
@@ -646,8 +649,8 @@ export class LLMClient {
  *
  * Provider defaults:
  *   inference-snaps → nemotron-3-nano   (base URL defaults to http://localhost:9090/v1)
- *   groq            → qwen/qwen3-32b
- *   ollama          → gemma4:e2b        (base URL defaults to http://localhost:11434)
+ *   groq            → llama-3.3-70b-versatile
+ *   ollama          → DEFAULT_DAILY_OLLAMA_MODEL (qwen2.5:3b; base URL http://localhost:11434)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
  *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
  *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)
@@ -712,13 +715,13 @@ export function createLLMClientFromEnv(): LLMClient {
   } else if (provider === 'groq') {
     apiKey = process.env.GROQ_API_KEY;
     baseURL = process.env.GROQ_BASE_URL;
-    defaultModel = 'qwen/qwen3-32b';
+    defaultModel = 'llama-3.3-70b-versatile';
   } else if (provider === 'ollama') {
     apiKey = 'ollama'; // Ollama ignores the API key
     // Ollama's OpenAI-compatible endpoint lives at /v1
     const ollamaBase = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
     baseURL = ollamaBase.endsWith('/v1') ? ollamaBase : `${ollamaBase}/v1`;
-    defaultModel = 'gemma4:e2b';
+    defaultModel = DEFAULT_DAILY_OLLAMA_MODEL;
   } else if (provider === 'inference-snaps') {
     apiKey = 'inference-snaps'; // inference-snaps ignores the API key
     // Defaults to Canonical's Inference Snap local service on port 9090; override
