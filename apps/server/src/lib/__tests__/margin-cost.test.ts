@@ -3,9 +3,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import { costCentsForMeterRow, splitFreePaidCost, sumCostByAccount } from '../margin-cost.js';
-import { classifyMeter, type CostRates, rateCentsForClass } from '../margin-cost-meters.js';
-import { decideSnapshotMode, projectNet7dCents } from '../margin-snapshot-mode.js';
+import { type CostRates, classifyMeter, rateCentsForClass } from '../margin-cost-meters.js';
 import { defaultPeriodDateUtc, periodDayBoundsUtc } from '../margin-period.js';
+import { decideSnapshotMode, projectNet7dCents } from '../margin-snapshot-mode.js';
 
 const rates: CostRates = {
   mcpMinuteCents: 10,

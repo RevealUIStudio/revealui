@@ -13,8 +13,8 @@ import { computeMonthlyMrrCents, dailyRevenueCentsFromMrr } from './margin-mrr-p
 import type { LivePaidTierCounts, PaidSubscriptionTier } from './margin-mrr-types.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from './tier-pricing.js';
 
-export type { LivePaidTierCounts, PaidSubscriptionTier } from './margin-mrr-types.js';
 export { computeMonthlyMrrCents, dailyRevenueCentsFromMrr } from './margin-mrr-pure.js';
+export type { LivePaidTierCounts, PaidSubscriptionTier } from './margin-mrr-types.js';
 
 /** Drizzle client returned by getClient(). */
 export type MarginDb = ReturnType<typeof getClient>;
