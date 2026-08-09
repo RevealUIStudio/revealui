@@ -35,6 +35,7 @@ import type {
   NodeInput,
   ScanApplyResult,
 } from '../types.js';
+import { invalidateContradictions as runInvalidateContradictions } from './contradiction.js';
 import { backfillEdgeEmbedding, backfillNodeEmbedding } from './embed.js';
 import { applyOps } from './merge.js';
 
@@ -43,6 +44,13 @@ export interface IngestOptions {
   embedder?: Embedder;
   /** Record every applied op into `kg_outbox` for offline replay. */
   recordOutbox?: boolean;
+  /**
+   * When true, after additive edge insert, invalidate any *current* edge with
+   * the same (source, target, relation) triple and a different fact
+   * (invalidate-not-delete; P3 contradiction ladder). Default false so MCP
+   * agent-fact publish stays purely additive unless the caller opts in.
+   */
+  invalidateContradictions?: boolean;
 }
 
 export interface ScanInput {
@@ -255,13 +263,23 @@ export async function ingestEpisode(
   await exec.transaction((tx) =>
     applyOps(tx, ops, { siteId: input.episode.siteId, recordOutbox: options.recordOutbox }),
   );
+
+  let invalidatedEdgeIds: string[] = [];
+  if (options.invalidateContradictions && input.edges.length > 0) {
+    invalidatedEdgeIds = await runInvalidateContradictions(exec, input.edges, {
+      siteId: input.episode.siteId,
+      invalidAt: referenceTime,
+      recordOutbox: options.recordOutbox,
+    });
+  }
+
   await applyEmbeddings(exec, options.embedder, nodeOps, edgeOps);
 
   return {
     episodeId,
     nodeCount: nodeOps.length,
     edgeCount: edgeOps.length,
-    invalidatedEdgeIds: [],
+    invalidatedEdgeIds,
     ops,
   };
 }

@@ -14,7 +14,10 @@ export {
   additiveExtractors,
   type Extractor,
   type ExtractorContext,
+  loadMarkdownSources,
   type ScanProduct,
+  type TextSource,
+  textSourceToEpisode,
   tier1Extractors,
 } from './extractors/index.js';
 export {
@@ -28,8 +31,13 @@ export {
   applyOp,
   applyOps,
   applyScan,
+  type ContradictingEdge,
+  findContradictingEdges,
   type IngestOptions,
   ingestEpisode,
+  invalidateContradictions,
+  naturalKeysSimilar,
+  normalizeNaturalKey,
   type ScanInput,
 } from './ingest/index.js';
 export {

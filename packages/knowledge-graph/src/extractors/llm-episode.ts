@@ -7,9 +7,10 @@
  * `@revealui/ai` Ollama chat with JSON mode). No hard import of @revealui/ai
  * so the package stays installable without Pro optional deps.
  *
- * Contradictions: when relation is `supersedes` / `blocks`, the engine still
- * applies additive ingest; temporal invalidation of prior edges is a follow-on
- * once resolution ladder lands (P3 residual).
+ * Contradictions: ingest stays additive by default. Pass
+ * `invalidateContradictions: true` to ingestEpisode (or use CLI
+ * `extract` / `ingest-handoffs`) to temporally invalidate prior edges that
+ * share endpoints+relation but differ in fact (invalidate-not-delete).
  */
 
 import { z } from 'zod';
@@ -17,12 +18,21 @@ import type { EpisodeIngestInput } from '../ingest/engine.js';
 import { EDGE_RELATIONS, NODE_KINDS } from '../ontology/index.js';
 import type { EdgeInput, EpisodeInput, NodeInput } from '../types.js';
 
+/** Models often emit null for optional fields — coerce null → undefined. */
+const optionalRepo = z.preprocess(
+  (v) => (v === null || v === undefined || v === '' ? undefined : v),
+  z.string().max(100).optional(),
+);
+
 const ExtractedNodeSchema = z.object({
   kind: z.enum(NODE_KINDS),
   name: z.string().min(1).max(200),
   naturalKey: z.string().min(1).max(500),
-  repo: z.string().max(100).optional(),
-  summary: z.string().max(2000).optional(),
+  repo: optionalRepo,
+  summary: z.preprocess(
+    (v) => (v === null || v === undefined ? undefined : v),
+    z.string().max(2000).optional(),
+  ),
 });
 
 const ExtractedEdgeSchema = z.object({
@@ -32,7 +42,7 @@ const ExtractedEdgeSchema = z.object({
   targetKind: z.enum(NODE_KINDS),
   relation: z.enum(EDGE_RELATIONS),
   fact: z.string().min(1).max(2000),
-  repo: z.string().max(100).optional(),
+  repo: optionalRepo,
 });
 
 export const LlmExtractionSchema = z.object({

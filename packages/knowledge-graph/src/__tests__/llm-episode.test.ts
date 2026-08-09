@@ -60,4 +60,39 @@ describe('extractEpisodeFromText', () => {
     });
     expect(seen.length).toBe(100);
   });
+
+  it('coerces null optional repo/summary from model JSON', async () => {
+    const complete = async () =>
+      JSON.stringify({
+        nodes: [
+          {
+            kind: 'concept',
+            name: 'x',
+            naturalKey: 'concept:x',
+            repo: null,
+            summary: null,
+          },
+        ],
+        edges: [
+          {
+            sourceKind: 'concept',
+            sourceNaturalKey: 'concept:x',
+            targetKind: 'gap',
+            targetNaturalKey: 'gap:GAP-349',
+            relation: 'relates-to',
+            fact: 'x relates to GAP-349',
+            repo: null,
+          },
+        ],
+      });
+
+    const { extraction, ingest } = await extractEpisodeFromText('x', {
+      complete,
+      source: 't',
+      siteId: 'h',
+    });
+    expect(extraction.nodes[0]?.repo).toBeUndefined();
+    expect(ingest.nodes[0]?.repo).toBeUndefined();
+    expect(ingest.edges[0]?.repo).toBeUndefined();
+  });
 });
