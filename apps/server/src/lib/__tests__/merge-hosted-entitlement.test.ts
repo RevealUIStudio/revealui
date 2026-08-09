@@ -93,4 +93,24 @@ describe('mergeHostedEntitlementUpdate', () => {
     });
     expect(next.source).toBe('signup');
   });
+
+  it('paid_pending_create forces signup source and zero-task limits (K20)', () => {
+    const next = buildHostedEntitlementValues({
+      tier: 'free',
+      status: 'active',
+      mode: 'live',
+      lastEventAt: null,
+      now,
+      source: 'reconciler',
+      limits: { maxSites: 1, maxUsers: 1, maxAgentTasks: 0 },
+    });
+    const merged = mergeHostedEntitlementUpdate({
+      existing: null,
+      next,
+      reason: 'paid_pending_create',
+    });
+    expect(merged.source).toBe('signup');
+    expect(merged.limits.maxAgentTasks).toBe(0);
+    expect(merged.cogsBreakerTrippedAt).toBeNull();
+  });
 });
