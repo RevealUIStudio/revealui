@@ -31,7 +31,7 @@ export default createVitestConfig({
   overrides: {
     resolve: {
       alias: {
-        '@revealui/core': path.resolve(__dirname, '../core/src'),
+        // App-local test path aliases only. @revealui/* uses the install graph.
         '@admin': path.resolve(__dirname, '../../apps/admin/src'),
         '@api': path.resolve(__dirname, '../../apps/server/src'),
       },

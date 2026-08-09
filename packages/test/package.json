@@ -16,6 +16,9 @@
     "stripe": "catalog:",
     "zod": "catalog:"
   },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:*"
+  },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",
     "@electric-sql/pglite-pgvector": "^0.0.5",

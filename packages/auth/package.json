@@ -50,6 +50,11 @@
       "import": "./dist/server/index.js",
       "default": "./dist/server/index.js"
     },
+    "./server/storage": {
+      "types": "./dist/server/storage/index.d.ts",
+      "import": "./dist/server/storage/index.js",
+      "default": "./dist/server/storage/index.js"
+    },
     "./audit-storage": {
       "types": "./dist/server/audit-storage.d.ts",
       "import": "./dist/server/audit-storage.js",
