@@ -1,12 +1,12 @@
 /**
  * Unit tests for stripUnselectedFields utility
  *
- * Tests actual utility from packages/core/src/utils/stripUnselectedFields.ts
+ * Tests actual utility from @revealui/core/utils/stripUnselectedFields
  */
 
+import type { Field, SelectType } from '@revealui/core/types';
+import { stripUnselectedFields } from '@revealui/core/utils/stripUnselectedFields';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Field, SelectType } from '../../../../../packages/core/src/types/index.js';
-import { stripUnselectedFields } from '../../../../../packages/core/src/utils/stripUnselectedFields.js';
 
 describe('stripUnselectedFields', () => {
   let siblingDoc: Record<string, unknown>;
