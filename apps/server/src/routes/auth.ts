@@ -6,8 +6,9 @@
  * This route is rate-limited and enforces the tier-based user limit
  * (enforceUserLimit middleware is applied in index.ts).
  *
- * GAP-256 PR-3: margin admit **before** signUp (K13); free entitlement@t0 after
- * successful hosted signup (K15). Shadow defaults → never 202 waitlist here.
+ * GAP-256: margin admit **before** signUp (K13); free entitlement@t0 after
+ * successful hosted signup (K15). Enforce waitlist → 202 WAITLISTED + token (PR-4).
+ * Default flags still shadow → admit (no 202).
  */
 
 import { isSignupAllowed, signUp } from '@revealui/auth/server';
@@ -40,12 +41,14 @@ app.post('/signup', zValidator('json', SignUpRequestSchema), async (c) => {
   });
 
   if (admit.decision === 'waitlist') {
-    // PR-4 enforce path — PR-3 shadow should not reach here with default flags.
+    // PR-4: never margin 403; no users row; raw waitlistToken once.
     return c.json(
       {
         success: false,
         error: 'WAITLISTED',
-        code: admit.code,
+        code: 'WAITLISTED',
+        waitlistToken: admit.waitlistToken,
+        positionEstimate: admit.positionEstimate ?? null,
         message: 'Free signup is temporarily waitlisted. Paid signup remains available.',
       },
       202,

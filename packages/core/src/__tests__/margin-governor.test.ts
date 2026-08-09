@@ -104,6 +104,29 @@ describe('decideFreeIntake', () => {
     }
   });
 
+  it('waitlist_claim_free under waitlist enforce admits (never re-waitlists)', () => {
+    const r = decideFreeIntake({
+      channel: 'waitlist_claim_free',
+      deploymentMode: 'hosted',
+      payingIntent: { kind: 'none' },
+      snapshot: {
+        id: 'snap-claim',
+        mode: 'waitlist',
+        computedAt: now,
+      },
+      flags: { enabled: true, shadow: false, staleHours: 36 },
+      openLimits,
+      now,
+    });
+    expect(r.decision).toBe('admit');
+    if (r.decision === 'admit') {
+      expect(r.reason).toBe('waitlist_claim');
+      expect(r.shadow).toBe(false);
+      expect(r.cohortLimits.maxAgentTasks).toBe(1_000);
+      expect(r.mode).toBe('open');
+    }
+  });
+
   it('paying-intent bypasses waitlist', () => {
     const r = decideFreeIntake({
       channel: 'paid_signup',
