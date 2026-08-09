@@ -6,12 +6,14 @@
  * Step 2 of MFA login flow (backup path): validates a one-time backup code
  * when the user's authenticator app is unavailable.
  * Reads userId from the `mfa-pending` signed cookie (set during sign-in).
- * On success, creates a full session and sets the `revealui-session` cookie.
+ * On success, creates a full session and sets `revealui-session` + `revealui-role`.
  */
 
 import { rotateSession, verifyBackupCode, verifyCookiePayload } from '@revealui/auth/server';
 import config from '@revealui/config';
 import { MFABackupCodeRequestContract } from '@revealui/contracts';
+import { getClient } from '@revealui/db';
+import { getUserById } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -20,7 +22,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
-import { sessionCookieDomain } from '@/lib/utils/session-cookies';
+import { sessionCookieDomain, setRoleCookie } from '@/lib/utils/session-cookies';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -101,6 +103,8 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       metadata: { mfaVerified: true },
     });
 
+    const user = await getUserById(getClient(), payload.userId);
+
     const response = NextResponse.json({
       success: true,
       remainingCodes: result.remainingCodes,
@@ -115,6 +119,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       maxAge: 60 * 60 * 24, // 1 day (matches DB session expiry)
       domain: sessionCookieDomain({ logIfMissing: true }),
     });
+    setRoleCookie(response, user?.role, { maxAge: 60 * 60 * 24 });
 
     // Clear the mfa-pending cookie
     response.cookies.set('mfa-pending', '', {

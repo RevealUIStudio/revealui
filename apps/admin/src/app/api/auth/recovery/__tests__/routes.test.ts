@@ -41,6 +41,7 @@ vi.mock('@/lib/email', () => ({
 
 // Mock the database
 const mockGetUserByEmail = vi.fn();
+const mockGetUserById = vi.fn();
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => ({})),
@@ -48,6 +49,7 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/db/queries/users', () => ({
   getUserByEmail: (...args: unknown[]) => mockGetUserByEmail(...args),
+  getUserById: (...args: unknown[]) => mockGetUserById(...args),
 }));
 
 const mockCreateMagicLink = vi.mocked(authServer.createMagicLink);
@@ -68,6 +70,7 @@ function createJsonRequest(url: string, body: unknown): NextRequest {
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetUserByEmail.mockResolvedValue(null);
+  mockGetUserById.mockResolvedValue({ id: 'user-456', role: 'admin' });
 });
 
 // ============================================================================
@@ -193,6 +196,9 @@ describe('POST /api/auth/recovery/verify', () => {
     // Check session cookie was set
     const sessionCookie = response.cookies.get('revealui-session');
     expect(sessionCookie?.value).toBe('recovery-session-token');
+    // Role cookie required for proxy admin-only paths (parity with MFA verify)
+    expect(response.cookies.get('revealui-role')?.value).toBe('admin');
+    expect(mockGetUserById).toHaveBeenCalledWith(expect.anything(), 'user-456');
   });
 
   it('should return 401 for invalid token', async () => {
@@ -243,6 +249,8 @@ describe('POST /api/auth/recovery/verify', () => {
 
   it('should set recovery session with 30-minute expiry', async () => {
     mockVerifyMagicLink.mockResolvedValue({ userId: 'user-789' });
+    mockDeleteAllUserSessions.mockResolvedValue(undefined);
+    mockGetUserById.mockResolvedValue({ id: 'user-789', role: 'owner' });
     mockCreateSession.mockResolvedValue({
       token: 'recovery-token',
       session: { id: 'session-id' } as never,
@@ -252,7 +260,9 @@ describe('POST /api/auth/recovery/verify', () => {
     const request = createJsonRequest('http://localhost:4000/api/auth/recovery/verify', {
       token: 'valid-token',
     });
-    await handler(request);
+    const response = await handler(request);
+    expect(response.status).toBe(200);
+    expect(response.cookies.get('revealui-role')?.value).toBe('owner');
     const after = Date.now();
 
     const sessionCall = mockCreateSession.mock.calls[0];
