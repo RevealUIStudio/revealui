@@ -153,7 +153,7 @@ app.post('/paid-signup', zValidator('json', PaidSignupBodySchema), async (c) => 
     ipAddress: c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip'),
   });
 
-  if (!result.success || !result.user?.id) {
+  if (!(result.success && result.user?.id)) {
     logger.warn('[admission-paid-signup] signUp failed', { error: result.error });
     return c.json(
       {
