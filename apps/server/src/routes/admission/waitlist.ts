@@ -62,17 +62,17 @@ app.get('/waitlist/status', async (c) => {
       });
     }
 
-    const any = await getAdmissionWaitlistByTokenAnyStatus(token);
-    if (any?.status === 'converted') {
+    const prior = await getAdmissionWaitlistByTokenAnyStatus(token);
+    if (prior?.status === 'converted') {
       return c.json({
         status: 'converted' as const,
         positionEstimate: null,
-        emailMasked: maskAdmissionEmail(any.email),
+        emailMasked: maskAdmissionEmail(prior.email),
       });
     }
-    if (any?.status === 'expired' || any?.status === 'cancelled') {
+    if (prior?.status === 'expired' || prior?.status === 'cancelled') {
       return c.json({
-        status: any.status,
+        status: prior.status,
         positionEstimate: null,
         emailMasked: null,
       });
@@ -105,8 +105,8 @@ app.post('/waitlist/claim', zValidator('json', ClaimBodySchema), async (c) => {
   }
 
   if (!row) {
-    const any = await getAdmissionWaitlistByTokenAnyStatus(token).catch(() => null);
-    if (any?.status === 'converted') {
+    const prior = await getAdmissionWaitlistByTokenAnyStatus(token).catch(() => null);
+    if (prior?.status === 'converted') {
       return c.json(
         {
           success: false,

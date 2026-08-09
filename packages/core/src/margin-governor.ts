@@ -95,10 +95,9 @@ export function governorFlagsFromEnv(
   env: Record<string, string | undefined> = process.env,
 ): GovernorFlags {
   const enabled = env.MARGIN_GOVERNOR_ENABLED === 'true';
-  // When master is on, shadow defaults true unless explicitly false
+  // Shadow defaults true unless explicitly false (safe until owner flips enforce).
   const shadowExplicit = env.MARGIN_GOVERNOR_SHADOW;
-  const shadow =
-    shadowExplicit === 'false' ? false : shadowExplicit === 'true' ? true : enabled ? true : true;
+  const shadow = shadowExplicit !== 'false';
   const staleHours = parsePositiveInt(env.MARGIN_SNAPSHOT_STALE_HOURS, 36);
   return { enabled, shadow, staleHours };
 }
