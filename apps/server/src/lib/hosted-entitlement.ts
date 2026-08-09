@@ -96,6 +96,10 @@ export function buildHostedEntitlementValues(params: {
   now: Date;
   /** GAP-444 — defaults to stripe (paid path). CLI grants pass `grant`. */
   source?: EntitlementSource;
+  /** Override limits (free cohort lean / paid-pending). Default: tier map. */
+  limits?: ReturnType<typeof getHostedLimitsForTier>;
+  /** Override features (paid-pending may zero AI). Default: getFeaturesForTier. */
+  features?: Record<string, boolean>;
 }): {
   planId: HostedTier;
   tier: HostedTier;
@@ -113,8 +117,8 @@ export function buildHostedEntitlementValues(params: {
     planId: params.tier,
     tier: params.tier,
     status: params.status,
-    features: toFeatureRecord(getFeaturesForTier(params.tier)),
-    limits: getHostedLimitsForTier(params.tier),
+    features: params.features ?? toFeatureRecord(getFeaturesForTier(params.tier)),
+    limits: params.limits ?? getHostedLimitsForTier(params.tier),
     meteringStatus:
       params.status === 'active' || params.status === 'trialing' ? 'active' : 'paused',
     mode: params.mode,
@@ -122,5 +126,82 @@ export function buildHostedEntitlementValues(params: {
     graceUntil: params.graceUntil ?? null,
     lastEventAt: params.lastEventAt,
     updatedAt: params.now,
+  };
+}
+
+/** Existing entitlement row fields needed for free_preserve merge (K21). */
+export interface AccountEntitlementMergeExisting {
+  limits: ReturnType<typeof getHostedLimitsForTier> | Record<string, unknown>;
+  source: EntitlementSource | string;
+  cogsBreakerTrippedAt?: Date | null;
+  cogsBreakerReason?: string | null;
+  tier?: string;
+}
+
+export type MergeHostedEntitlementReason =
+  | 'free_preserve'
+  | 'paid_rebuild'
+  | 'paid_pending_create'
+  | 'breaker_clear';
+
+/**
+ * Single free-row merge helper (K21). All free writers must call this —
+ * no raw `.set(values)` on free/signup rows without going through here.
+ */
+export function mergeHostedEntitlementUpdate(params: {
+  existing: AccountEntitlementMergeExisting | null;
+  next: ReturnType<typeof buildHostedEntitlementValues>;
+  reason: MergeHostedEntitlementReason;
+}): ReturnType<typeof buildHostedEntitlementValues> & {
+  cogsBreakerTrippedAt: Date | null;
+  cogsBreakerReason: string | null;
+} {
+  const { existing, next, reason } = params;
+
+  if (reason === 'paid_rebuild') {
+    return {
+      ...next,
+      cogsBreakerTrippedAt: null,
+      cogsBreakerReason: null,
+    };
+  }
+
+  if (reason === 'paid_pending_create') {
+    return {
+      ...next,
+      source: 'signup',
+      cogsBreakerTrippedAt: null,
+      cogsBreakerReason: null,
+    };
+  }
+
+  if (reason === 'breaker_clear') {
+    return {
+      ...next,
+      cogsBreakerTrippedAt: null,
+      cogsBreakerReason: null,
+    };
+  }
+
+  // free_preserve: keep limits + breaker + signup source when healing free rows
+  if (existing) {
+    const keepSource =
+      existing.source === 'signup' || existing.source === 'grant'
+        ? (existing.source as EntitlementSource)
+        : next.source;
+    return {
+      ...next,
+      limits: existing.limits as ReturnType<typeof getHostedLimitsForTier>,
+      source: keepSource === 'stripe' ? next.source : keepSource,
+      cogsBreakerTrippedAt: existing.cogsBreakerTrippedAt ?? null,
+      cogsBreakerReason: existing.cogsBreakerReason ?? null,
+    };
+  }
+
+  // First free insert (no existing)
+  return {
+    ...next,
+    cogsBreakerTrippedAt: null,
+    cogsBreakerReason: null,
   };
 }
