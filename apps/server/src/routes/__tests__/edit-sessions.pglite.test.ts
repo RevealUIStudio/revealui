@@ -64,10 +64,7 @@ vi.mock('@revealui/db/queries/edit-sessions', async () => {
   };
 });
 
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import type { ContentVariables } from '../content/index.js';
 import sessionsRoutes from '../content/sessions.js';
 

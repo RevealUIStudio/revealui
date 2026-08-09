@@ -1,0 +1,246 @@
+/**
+ * PGlite + Drizzle ORM Integration Test Database
+ *
+ * Provides an in-memory PostgreSQL database for integration tests.
+ * Uses @electric-sql/pglite for zero-setup, isolated test databases
+ * with full PostgreSQL compatibility.
+ *
+ * Canonical import (install graph via `@revealui/db`):
+ *   import { createTestDb, type TestDb } from '@revealui/db/testing'
+ *
+ * Convenience re-export also available as `@revealui/test/utils`.
+ *
+ *   let db: TestDb
+ *   beforeAll(async () => { db = await createTestDb() })
+ *   afterAll(async () => { await db.close() })
+ *
+ *   it('queries users', async () => {
+ *     await db.drizzle.insert(users).values({ ... })
+ *     const rows = await db.drizzle.select().from(users)
+ *   })
+ */
+
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import type { PGlite } from '@electric-sql/pglite';
+import type { PgliteDatabase } from 'drizzle-orm/pglite';
+import type * as schema from '../schema/index.js';
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface TestDb {
+  /** Typed Drizzle ORM client backed by PGlite */
+  drizzle: PgliteDatabase<typeof schema>;
+  /** Raw PGlite instance for direct SQL when needed */
+  pglite: PGlite;
+  /** Close the database and release resources */
+  close(): Promise<void>;
+}
+
+export interface CreateTestDbOptions {
+  /** Custom migration directory (default: auto-detected) */
+  migrationsDir?: string;
+  /** Enable query logging (default: false) */
+  logger?: boolean;
+  /**
+   * Enable the PGlite pgvector extension. When true, the harness loads
+   * `@electric-sql/pglite-pgvector`, enables the `vector` type, and keeps
+   * (rather than skips) tables + statements that reference vector columns.
+   * Required for tests that query tables like `agent_contexts`, `agent_memories`,
+   * or `rag_chunks` which have pgvector-typed embedding columns.
+   * Default: false.
+   */
+  enableVector?: boolean;
+}
+
+// =============================================================================
+// Migration loader
+// =============================================================================
+
+/**
+ * Find the migrations directory for this package.
+ * File lives at packages/db/src/testing/drizzle-test-db.ts → ../../migrations.
+ */
+function findMigrationsDir(): string {
+  return resolve(import.meta.dirname, '..', '..', 'migrations');
+}
+
+/**
+ * Read and parse all migration SQL files in order.
+ * Drizzle-kit migrations use `--> statement-breakpoint` as separator.
+ */
+async function loadMigrations(dir: string): Promise<string[]> {
+  const { readdir } = await import('node:fs/promises');
+  const files = await readdir(dir);
+  const sqlFiles = files.filter((f) => f.endsWith('.sql')).sort();
+
+  const statements: string[] = [];
+  for (const file of sqlFiles) {
+    const content = await readFile(resolve(dir, file), 'utf-8');
+    for (const stmt of content.split('--> statement-breakpoint')) {
+      const trimmed = stmt.trim();
+      if (trimmed) statements.push(trimmed);
+    }
+  }
+
+  return statements;
+}
+
+// =============================================================================
+// Database factory
+// =============================================================================
+
+/**
+ * Create an in-memory PGlite database with all RevealUI schemas applied.
+ *
+ * Each call creates a fresh, isolated database  -  no shared state between tests.
+ * The returned `drizzle` client is fully typed against `@revealui/db/schema`.
+ */
+export async function createTestDb(options?: CreateTestDbOptions): Promise<TestDb> {
+  // Dynamic imports  -  PGlite and drizzle-orm/pglite are devDependencies
+  const { PGlite } = await import('@electric-sql/pglite');
+  const { drizzle } = await import('drizzle-orm/pglite');
+  const dbSchema = await import('../schema/index.js');
+
+  // Optionally load the pgvector extension. When `enableVector` is true, we
+  // register the extension up front so `CREATE EXTENSION vector` + `vector(N)`
+  // columns succeed natively and vector-typed tables can be created.
+  const enableVector = options?.enableVector === true;
+  let pglite: PGlite;
+  if (enableVector) {
+    const { vector } = await import('@electric-sql/pglite-pgvector');
+    pglite = new PGlite({ extensions: { vector } });
+  } else {
+    pglite = new PGlite();
+  }
+
+  // Apply all migrations
+  const migrationsDir = options?.migrationsDir ?? findMigrationsDir();
+  const statements = await loadMigrations(migrationsDir);
+
+  // Tables that use vector columns — PGlite skips these unless the vector
+  // extension was loaded via `enableVector: true`.
+  const vectorTables = new Set<string>();
+
+  for (const stmt of statements) {
+    const lower = stmt.toLowerCase();
+
+    // CREATE EXTENSION vector: skip unless vector is enabled (so the
+    // extension statement becomes a no-op to keep migrations ordering clean).
+    if (lower.includes('create extension') && lower.includes('vector')) {
+      if (enableVector) {
+        try {
+          await pglite.exec(stmt);
+        } catch {
+          // already loaded via options — ignore
+        }
+      }
+      continue;
+    }
+
+    // Detect and skip tables that use vector columns — ONLY when vector is disabled.
+    if (!enableVector && lower.includes('vector(') && lower.includes('create table')) {
+      const tableMatch = stmt.match(/create\s+table\s+"([^"]+)"/i);
+      const tableName = tableMatch?.[1];
+      if (tableName) vectorTables.add(tableName);
+      continue;
+    }
+
+    // Skip statements referencing vector tables (only applies when vector is disabled).
+    if (!enableVector && vectorTables.size > 0) {
+      const refsVectorTable = [...vectorTables].some(
+        (t) => lower.includes(`"${t}"`) || lower.includes(`"${t}".`),
+      );
+      if (refsVectorTable) continue;
+    }
+
+    try {
+      await pglite.exec(stmt);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Skip errors from unsupported extensions or vector types
+      if (msg.includes('extension') || msg.includes('EXTENSION')) continue;
+      if (!enableVector && (msg.includes('"vector"') || msg.includes('type "vector"'))) continue;
+      if (msg.includes('does not exist')) continue;
+      if (msg.includes('already exists')) continue;
+      // CONCURRENTLY  -  retry without it
+      if (msg.includes('CONCURRENTLY')) {
+        const fixed = stmt.replace(/\bCONCURRENTLY\b/gi, '');
+        try {
+          await pglite.exec(fixed);
+        } catch {
+          // Skip if still fails
+        }
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  // Create typed Drizzle client
+  const db = drizzle({
+    client: pglite,
+    schema: dbSchema,
+    logger: options?.logger ?? false,
+  });
+
+  return {
+    drizzle: db as PgliteDatabase<typeof schema>,
+    pglite,
+    async close() {
+      await pglite.close();
+    },
+  };
+}
+
+// =============================================================================
+// Seed helpers
+// =============================================================================
+
+/**
+ * Seed a test user into the database. Returns the inserted user row.
+ */
+export async function seedTestUser(
+  db: PgliteDatabase<typeof schema>,
+  overrides?: Partial<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+    stripeCustomerId: string;
+  }>,
+): Promise<{ id: string; email: string; name: string }> {
+  const { randomUUID } = await import('node:crypto');
+  const { users } = await import('../schema/index.js');
+
+  const id = overrides?.id ?? randomUUID();
+  const email = overrides?.email ?? `test-${id}@example.com`;
+  const name = overrides?.name ?? 'Test User';
+
+  await db.insert(users).values({
+    id,
+    name,
+    email,
+    role: overrides?.role ?? 'viewer',
+    status: overrides?.status ?? 'active',
+    stripeCustomerId: overrides?.stripeCustomerId,
+  });
+
+  return { id, email, name };
+}
+
+/**
+ * Clean all rows from the specified tables (in order, respecting FK constraints).
+ */
+export async function cleanTables(
+  db: PgliteDatabase<typeof schema>,
+  tableNames: string[],
+): Promise<void> {
+  const { sql } = await import('drizzle-orm');
+  for (const table of tableNames) {
+    await db.execute(sql.raw(`DELETE FROM "${table}"`));
+  }
+}

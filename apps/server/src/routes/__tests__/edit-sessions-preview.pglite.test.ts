@@ -15,13 +15,10 @@
 
 import type { DatabaseClient } from '@revealui/db/client';
 import * as schema from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { OpenAPIHono } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import { mintPreviewToken } from '../content/_helpers/preview-token.js';
 import type { ContentVariables } from '../content/index.js';
 import sessionsRoutes from '../content/sessions.js';

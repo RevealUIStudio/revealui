@@ -3,8 +3,9 @@
  *
  * Public API surface for the test package. Consumers can also use
  * subpath imports for integration helpers:
- *   - `test/integration/setup`
- *   - `test/integration/test-database`
+ *   - `@revealui/test/integration/setup`
+ *   - `@revealui/test/integration/test-database`
+ *   - `@revealui/test/utils` (PGlite drizzle harness: createTestDb)
  */
 
 // Fixtures  -  test data factories (users, payments)

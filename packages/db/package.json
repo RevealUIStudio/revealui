@@ -12,11 +12,14 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "catalog:",
+    "@electric-sql/pglite-pgvector": "^0.0.5",
     "@revealui/dev": "workspace:*",
     "drizzle-kit": "^0.31.10",
     "drizzle-zod": "^0.8.3",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"
@@ -306,6 +309,11 @@
       "types": "./dist/pool.d.ts",
       "import": "./dist/pool.js",
       "default": "./dist/pool.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js",
+      "default": "./dist/testing/index.js"
     }
   },
   "files": [

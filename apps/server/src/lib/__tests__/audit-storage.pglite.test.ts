@@ -20,12 +20,9 @@ import { randomUUID } from 'node:crypto';
 import type { AuditEvent, AuditStorage } from '@revealui/core/security';
 import { AuditSystem } from '@revealui/core/security';
 import type { Database } from '@revealui/db/client';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import {
   assertAuditStorageEnv,
   auditStorageSelfTest,
