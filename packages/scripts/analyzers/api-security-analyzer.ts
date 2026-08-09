@@ -10,7 +10,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 
 export type ApiSecurityIssueKind = 'cors-wildcard';
 

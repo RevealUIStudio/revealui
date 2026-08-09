@@ -33,7 +33,7 @@
     "@types/react": "^19.2.17",
     "babel-plugin-react-compiler": "^1.0.0",
     "tailwindcss": "^4.1.0",
-    "typescript": "^6.0.3",
+    "typescript": "catalog:",
     "vitest": "^4.0.0"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@revealui/knowledge-graph",
   "version": "0.1.8",
-  "description": "Fleet knowledge graph — bi-temporal, content-addressed graph (ontology, deterministic IDs, deterministic ingestion, hybrid search) over Neon + pgvector. GAP-340.",
+  "description": "Fleet knowledge graph \u2014 bi-temporal, content-addressed graph (ontology, deterministic IDs, deterministic ingestion, hybrid search) over Neon + pgvector. GAP-340.",
   "keywords": [
     "knowledge-graph",
     "temporal",
@@ -56,7 +56,8 @@
     "@revealui/db": "workspace:*",
     "typescript": "catalog:",
     "yaml": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@revealui/ts-strada": "workspace:*"
   },
   "optionalDependencies": {
     "@revealui/ai": "workspace:*"

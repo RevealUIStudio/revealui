@@ -217,7 +217,7 @@ RevealUI's business primitives (auth, content, collections, the REST API, the ad
 
 The business model is straightforward: the Pro tier (AI agents, the memory system, the MCP framework, open-model orchestration) funds ongoing development. The things that make RevealUI useful for most use cases are free forever. The things teams need for AI capabilities are commercially licensed but source-available.
 
-To be precise about the split: 24 of the 31 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
+To be precise about the split: 25 of the 32 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.
 
 ## What makes RevealUI different
 
@@ -229,7 +229,7 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **37 workspaces** across the monorepo (6 apps, 31 packages with 24 MIT, 5 Fair Source, 2 internal)
+- **38 workspaces** across the monorepo (6 apps, 32 packages with 25 MIT, 5 Fair Source, 2 internal)
 - **104 database tables** via Drizzle ORM on NeonDB (Postgres)
 - **65 UI components** in `@revealui/presentation`, with one third-party runtime dependency (`tailwind-merge`), built directly on Tailwind v4 and React, with `cva` and `cn` vendored in-package
 - **13 first-party MCP servers** in `@revealui/mcp`

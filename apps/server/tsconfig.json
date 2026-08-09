@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "7.0",
     "target": "ES2022",
     "module": "ESNext",
     "lib": ["ES2022", "DOM"],

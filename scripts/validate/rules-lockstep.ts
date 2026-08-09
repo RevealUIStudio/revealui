@@ -86,7 +86,7 @@ export function definitionRuleIdsFromContent(root: string): Set<string> {
 /** True when `rel` is `.claude/rules/<definition-id>.md`. */
 export function isDefinitionClaudeRule(rel: string, definitionIds: Set<string>): boolean {
   const prefix = '.claude/rules/';
-  if (!rel.startsWith(prefix) || !rel.endsWith('.md')) return false;
+  if (!(rel.startsWith(prefix) && rel.endsWith('.md'))) return false;
   const base = rel.slice(prefix.length, -'.md'.length);
   if (base.includes('/') || base.startsWith('00-')) return false;
   return definitionIds.has(base);

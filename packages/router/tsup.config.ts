@@ -8,7 +8,7 @@ export default defineConfig({
     'server-ssr': 'src/server-ssr.tsx',
   },
   format: ['esm'],
-  dts: true,
+  dts: false,
   splitting: false,
   sourcemap: false,
   clean: true,

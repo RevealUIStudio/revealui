@@ -31,6 +31,7 @@ COPY packages/security/package.json ./packages/security/
 COPY packages/services/package.json ./packages/services/
 COPY packages/setup/package.json ./packages/setup/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/ts-strada/package.json ./packages/ts-strada/
 COPY apps/server/package.json ./apps/server/
 
 # Install dependencies with frozen lockfile.

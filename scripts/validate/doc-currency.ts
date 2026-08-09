@@ -52,7 +52,7 @@ import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import { createRequire } from 'node:module';
 import * as path from 'node:path';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const BASELINE_PATH = path.join(ROOT, 'scripts/validate/doc-currency-baseline.json');

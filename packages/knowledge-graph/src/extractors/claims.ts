@@ -17,7 +17,7 @@
 
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 import type { NodeKind } from '../ontology/index.js';
 import type { EdgeInput, NodeInput } from '../types.js';
 import { claimKey, fileKey, readTextFile, scanEpisode, toPosix } from './shared.js';
