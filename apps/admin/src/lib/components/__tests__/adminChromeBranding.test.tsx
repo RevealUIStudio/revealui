@@ -8,8 +8,16 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
+const licenseMock = vi.hoisted(() => ({
+  tier: 'pro' as string,
+  features: {} as Record<string, unknown>,
+  isLoading: false,
+  resolveError: null as null | string,
+  refetch: () => {},
+}));
+
 vi.mock('@/lib/providers/LicenseProvider', () => ({
-  useLicense: () => ({ tier: 'pro', features: {}, isLoading: false, refetch: () => {} }),
+  useLicense: () => licenseMock,
 }));
 
 // The admin chrome must show the kit's brand, never the framework name,
@@ -20,6 +28,9 @@ const saved: Record<string, string | undefined> = {};
 
 describe('admin chrome white-label branding', () => {
   beforeEach(() => {
+    licenseMock.tier = 'pro';
+    licenseMock.isLoading = false;
+    licenseMock.resolveError = null;
     for (const key of ENV_KEYS) {
       saved[key] = process.env[key];
     }
@@ -59,6 +70,32 @@ describe('admin chrome white-label branding', () => {
       // Settings gear row is a separate nav item; version is footer-only.
       expect(screen.getByText('Settings')).toBeDefined();
       expect(screen.queryByText('v0.1.0')).toBeNull();
+    });
+
+    it('shows Upgrade for free/pro when a higher tier exists', () => {
+      licenseMock.tier = 'free';
+      licenseMock.isLoading = false;
+      licenseMock.resolveError = null;
+      render(<AdminSidebarLayout>content</AdminSidebarLayout>);
+      expect(screen.getByText('Upgrade')).toBeDefined();
+    });
+
+    it('hides Upgrade for enterprise (founder / top tier)', () => {
+      licenseMock.tier = 'enterprise';
+      licenseMock.isLoading = false;
+      licenseMock.resolveError = null;
+      render(<AdminSidebarLayout>content</AdminSidebarLayout>);
+      expect(screen.queryByText('Upgrade')).toBeNull();
+    });
+
+    it('hides Upgrade for max when only enterprise remains above', () => {
+      // getTiersFromCurrent('max') still returns enterprise — product choice:
+      // still show Upgrade for max so Max can buy Enterprise.
+      licenseMock.tier = 'max';
+      licenseMock.isLoading = false;
+      licenseMock.resolveError = null;
+      render(<AdminSidebarLayout>content</AdminSidebarLayout>);
+      expect(screen.getByText('Upgrade')).toBeDefined();
     });
   });
 
