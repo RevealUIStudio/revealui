@@ -69,7 +69,9 @@ publish.
 | Owner | Joshua Vaughn |
 | Date | 2026-08-09 |
 
-**Status 2026-08-09:** DEFERRED. Phase E walk B / VS Code local install was SKIP
+**Status 2026-08-09:** DEFERRED to **GAP-475** (owner:human free surface).
+
+**Status 2026-08-09 (detail):** DEFERRED. Phase E walk B / VS Code local install was SKIP
 (VS Code not installed). Marketplace listing remains owner ops when a customer
 or Studio needs the public path. Local `chat.pluginLocations` remains supported;
 connect-vscode.md already states Marketplace is not required.
