@@ -14,13 +14,9 @@
  * - Account linking and unlinking
  */
 
+import { createTestDb, seedTestUser, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  seedTestUser,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 

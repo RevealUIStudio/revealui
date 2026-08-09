@@ -12,12 +12,9 @@ import {
 import { type AuditEntry, type AuditRowSignerFn, DrizzleAuditStore } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
 import { auditAnchors, usageMeters } from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq, sql } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 import {
   assertTraversalIntegrity,
   isConsecutiveFromStart,

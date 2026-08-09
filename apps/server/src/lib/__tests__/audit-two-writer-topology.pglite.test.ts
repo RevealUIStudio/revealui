@@ -23,11 +23,8 @@ import type { AuditEvent, AuditSignable } from '@revealui/core/security';
 import { verifyAuditRow } from '@revealui/core/security';
 import type { Database } from '@revealui/db/client';
 import { auditLog } from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 function makeKeypair(): { privateKeyPem: string; publicKeyPem: string } {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519', {

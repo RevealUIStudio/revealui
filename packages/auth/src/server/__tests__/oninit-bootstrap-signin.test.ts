@@ -17,12 +17,9 @@
  * `created_at` — to its SQL-level DEFAULT, exactly like the real bootstrap.
  */
 
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import {
-  createTestDb,
-  type TestDb,
-} from '../../../../../packages/test/src/utils/drizzle-test-db.js';
 
 let testDb: TestDb;
 

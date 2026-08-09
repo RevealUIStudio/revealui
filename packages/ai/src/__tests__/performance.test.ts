@@ -18,8 +18,8 @@
 import { createHash } from 'node:crypto';
 import type { Database } from '@revealui/db/client';
 import { nodeIdMappings } from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb, type TestDb } from '../../../test/src/utils/drizzle-test-db.js';
 import { NodeIdService } from '../memory/services/node-id-service.js';
 
 const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');

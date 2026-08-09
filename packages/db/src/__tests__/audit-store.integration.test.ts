@@ -32,9 +32,9 @@
  * harness must never report green.
  */
 import { randomUUID } from 'node:crypto';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb, type TestDb } from '../../../test/src/utils/drizzle-test-db.js';
 import { auditLog } from '../schema/audit-log.js';
 
 function makeRow(overrides: Partial<{ severity: string }> = {}) {
@@ -54,7 +54,7 @@ describe('audit_log — real schema (PGlite), not the vi.fn() mock', () => {
   let db: TestDb;
 
   // createTestDb() applies every real migration and has observed 9-19s
-  // bootstrap time (see packages/test/src/utils/drizzle-test-db.ts) — done
+  // bootstrap time (see packages/db/src/testing/drizzle-test-db.ts) — done
   // in beforeEach/afterEach (not inside each `it()` body) so it's covered by
   // this package's vitest.config.ts `hookTimeout: 30000` rather than the
   // default 5000ms test timeout.
