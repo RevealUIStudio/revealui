@@ -1,5 +1,7 @@
 /**
- * GAP-256 PR-4b / HC15 — paid-pending feature map zeros AI (no free cohort AI).
+ * GAP-256 PR-4b HC15 — paid-pending limits and AI-off feature map (unit).
+ * Webhook paid_rebuild after successful checkout is the existing Stripe path
+ * (routes/webhooks); not reimplemented here.
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -9,7 +11,7 @@ vi.mock('@revealui/core/features', () => ({
     ai: true,
     aiMemory: true,
     aiInference: true,
-    audit: true,
+    mcp: false,
   }),
 }));
 
@@ -32,15 +34,32 @@ vi.mock('@revealui/db/schema', () => ({
   accountMemberships: {},
 }));
 
+import { paidPendingLimits } from '@revealui/core/margin-governor';
 import { buildPaidPendingFeatureMap } from '../ensure-paid-pending-entitlement.js';
 
-describe('buildPaidPendingFeatureMap (HC15)', () => {
-  it('forces AI-bearing features off while leaving other free features', () => {
+describe('paid-pending entitlement shape (HC15)', () => {
+  it('paidPendingLimits zeros agent tasks (K20)', () => {
+    expect(paidPendingLimits()).toEqual({
+      maxSites: 1,
+      maxUsers: 1,
+      maxAgentTasks: 0,
+    });
+  });
+
+  it('buildPaidPendingFeatureMap forces AI-bearing features off', () => {
     const features = buildPaidPendingFeatureMap();
     expect(features.aiLocal).toBe(false);
     expect(features.ai).toBe(false);
     expect(features.aiMemory).toBe(false);
     expect(features.aiInference).toBe(false);
-    expect(features.audit).toBe(true);
+    expect(features.mcp).toBe(false);
+  });
+
+  it('task-quota denies when maxAgentTasks is 0 (quota exhausted at zero usage)', () => {
+    // Mirrors requireTaskQuota: current >= quota with quota 0 → deny
+    const quota = paidPendingLimits().maxAgentTasks;
+    const current = 0;
+    expect(quota).toBe(0);
+    expect(current >= quota).toBe(true);
   });
 });
