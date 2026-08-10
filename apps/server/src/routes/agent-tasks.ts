@@ -272,14 +272,9 @@ app.openapi(
     const dispatcher = built.dispatcher;
     if (!dispatcher) {
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
-      return c.json(
-        {
-          success: false as const,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      // Null dispatcher = optional @revealui/ai missing or resolve failed — not Free.
+      const { aiModuleUnavailableBody } = await import('../lib/ai-module-loader.js');
+      return c.json(aiModuleUnavailableBody('dispatcher unavailable'), 503);
     }
 
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
@@ -405,14 +400,8 @@ app.openapi(
     }
     const dispatcher = built.dispatcher;
     if (!dispatcher) {
-      return c.json(
-        {
-          success: false as const,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      const { aiModuleUnavailableBody } = await import('../lib/ai-module-loader.js');
+      return c.json(aiModuleUnavailableBody('dispatcher unavailable'), 503);
     }
 
     await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
