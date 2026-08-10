@@ -148,7 +148,7 @@ jobs:
       - name: Deploy (preview — not production)
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          URL=$(vercel deploy --prebuilt --archive=tgz --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} preview: $URL"
         env:
