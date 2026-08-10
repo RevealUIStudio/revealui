@@ -103,6 +103,7 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
         graceUntil: accountEntitlements.graceUntil,
         features: accountEntitlements.features,
         limits: accountEntitlements.limits,
+        cogsBreakerTrippedAt: accountEntitlements.cogsBreakerTrippedAt,
       })
       .from(accountEntitlements)
       .where(
@@ -126,6 +127,10 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
     const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
     const effectiveTier: EntitlementContext['tier'] = graceExpired ? 'free' : rawTier;
 
+    const cogsTripped = effectiveTier === 'free' && entitlement?.cogsBreakerTrippedAt != null;
+    const baseLimits = graceExpired ? {} : (entitlement?.limits ?? {});
+    const limits = cogsTripped ? { ...baseLimits, maxAgentTasks: 0 } : baseLimits;
+
     c.set('entitlements', {
       userId,
       accountId: membership.accountId,
@@ -138,7 +143,7 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
         : entitlement?.features && Object.keys(entitlement.features).length > 0
           ? toFeatureRecord(entitlement.features)
           : toFeatureRecord(getFeaturesForTier(effectiveTier)),
-      limits: graceExpired ? {} : (entitlement?.limits ?? {}),
+      limits,
       resolvedAt: new Date(),
     } satisfies EntitlementContext);
 
