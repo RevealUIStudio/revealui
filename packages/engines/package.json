@@ -16,7 +16,7 @@
     "@revealui/ai": "workspace:^"
   },
   "peerDependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "catalog:"
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",
@@ -32,8 +32,8 @@
     "./agents": "./src/agents/index.ts"
   },
   "scripts": {
-    "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",
-    "dev": "echo 'Source-only package — no watch mode needed'",
+    "build": "echo 'Source-only package \u2014 consumed via tsconfig paths, no build needed'",
+    "dev": "echo 'Source-only package \u2014 no watch mode needed'",
     "lint": "biome check .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

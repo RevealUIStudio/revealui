@@ -205,3 +205,15 @@ export function mergeHostedEntitlementUpdate(params: {
     cogsBreakerReason: null,
   };
 }
+
+/**
+ * GAP-256 PR-5 / HC11 — reconciler heal reason from expected tier.
+ * Paid expected → full rebuild + clear breaker. Free expected → free_preserve
+ * so an existing lean signup maxAgentTasks is never clobbered free→free.
+ */
+export function reconcileHealMergeReason(expectedTier: HostedTier): MergeHostedEntitlementReason {
+  if (expectedTier === 'pro' || expectedTier === 'max' || expectedTier === 'enterprise') {
+    return 'paid_rebuild';
+  }
+  return 'free_preserve';
+}

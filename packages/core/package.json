@@ -70,6 +70,11 @@
       "import": "./dist/margin-governor.js",
       "default": "./dist/margin-governor.js"
     },
+    "./cogs-breaker": {
+      "types": "./dist/cogs-breaker.d.ts",
+      "import": "./dist/cogs-breaker.js",
+      "default": "./dist/cogs-breaker.js"
+    },
     "./revforge-license": {
       "types": "./dist/revforge-license.d.ts",
       "import": "./dist/revforge-license.js",

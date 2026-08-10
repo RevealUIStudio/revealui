@@ -31,7 +31,6 @@
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plugin-dts": "^4.5.4",
     "vitest": "catalog:"
   },
   "engines": {
@@ -93,7 +92,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build && cp ../tokens/src/tokens.css dist/tokens.css && mkdir -p dist/design-context && cp ../tokens/design-context/MANIFEST.sha256 ../tokens/design-context/brand-meta.json ../tokens/design-context/tokens.css dist/design-context/ && cp ../tokens/src/theme.css dist/theme.css",
+    "build": "cross-env NODE_ENV=production vite build && cp ../tokens/src/tokens.css dist/tokens.css && mkdir -p dist/design-context && cp ../tokens/design-context/MANIFEST.sha256 ../tokens/design-context/brand-meta.json ../tokens/design-context/tokens.css dist/design-context/ && cp ../tokens/src/theme.css dist/theme.css && tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",

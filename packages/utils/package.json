@@ -1,7 +1,7 @@
 {
   "name": "@revealui/utils",
   "version": "0.3.6",
-  "description": "Shared utilities — logger, SSL config, validation helpers, and common helpers. Ships with RevealUI.",
+  "description": "Shared utilities \u2014 logger, SSL config, validation helpers, and common helpers. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
     "zod": "catalog:"
@@ -47,7 +47,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
     "lint": "biome check .",

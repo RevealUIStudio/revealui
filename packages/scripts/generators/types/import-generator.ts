@@ -17,7 +17,7 @@
  * ```
  */
 
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 import type { TableMapping } from './table-discovery.js';
 
 // =============================================================================

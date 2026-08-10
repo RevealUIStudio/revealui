@@ -79,9 +79,9 @@ The runtime is provider-agnostic by contract and ships with no default AI vendor
 
 ## License posture
 
-- **24 of 31 packages MIT-licensed** (forever).
-- **5 of 31 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
-- **2 of 31 packages internal** (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) — unlicensed, unpublished.
+- **25 of 32 packages MIT-licensed** (forever).
+- **5 of 32 packages Fair Source (FSL-1.1-MIT)** — source-visible, non-compete; convert to MIT 2 years after each release.
+- **2 of 32 packages internal** (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) — unlicensed, unpublished.
 
 See [FAIR_SOURCE.md](../FAIR_SOURCE.md) for the licensing rationale.
 

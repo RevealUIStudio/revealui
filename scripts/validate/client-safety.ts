@@ -49,7 +49,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 
 // =============================================================================
 // Configuration

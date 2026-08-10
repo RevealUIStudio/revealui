@@ -19,7 +19,7 @@
 
 import { readFile, readFileSync } from 'node:fs';
 import { relative } from 'node:path';
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 
 export interface ConsoleUsage {
   file: string;

@@ -11,7 +11,7 @@ export default defineConfig({
   // entry.
   entry: ['src/index.ts', 'src/server.ts', 'src/sanitize.ts'],
   format: ['esm'],
-  dts: true,
+  dts: false,
   sourcemap: false,
   clean: true,
 });

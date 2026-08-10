@@ -91,7 +91,9 @@ import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminCoordinationRoute from './routes/admin/coordination.js';
 import adminInferenceConfigRoute from './routes/admin/inference-config.js';
 import adminLocalAiStatusRoute from './routes/admin/local-ai-status.js';
+import adminMarginRoute from './routes/admin/margin.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
+import admissionPaidSignupRoute from './routes/admission/paid-signup.js';
 import admissionWaitlistRoute from './routes/admission/waitlist.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
@@ -1265,9 +1267,11 @@ app.route('/api/contact', contactRoute);
 app.route('/api/v1/contact', contactRoute);
 app.route('/api/waitlist', waitlistRoute);
 app.route('/api/v1/waitlist', waitlistRoute);
-// GAP-256 admission waitlist (distinct from marketing waitlist)
+// GAP-256 admission waitlist + paid_signup (distinct from marketing waitlist)
 app.route('/api/admission', admissionWaitlistRoute);
 app.route('/api/v1/admission', admissionWaitlistRoute);
+app.route('/api/admission', admissionPaidSignupRoute);
+app.route('/api/v1/admission', admissionPaidSignupRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
 app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
@@ -1295,6 +1299,7 @@ app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/admin/local-ai/status', adminLocalAiStatusRoute);
+app.route('/api/admin/margin', adminMarginRoute);
 app.route('/api/admin/coordination', adminCoordinationRoute);
 app.route('/api/analytics', analyticsRoute);
 app.route('/api/nudges', nudgesRoute);
@@ -1374,6 +1379,7 @@ app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/v1/admin/local-ai/status', adminLocalAiStatusRoute);
+app.route('/api/v1/admin/margin', adminMarginRoute);
 app.route('/api/v1/admin/coordination', adminCoordinationRoute);
 app.route('/api/v1/analytics', analyticsRoute);
 app.route('/api/v1/nudges', nudgesRoute);

@@ -26,7 +26,7 @@ export default defineConfig({
     'src/acp/index.ts',
   ],
   format: ['esm'],
-  dts: true,
+  dts: false,
   sourcemap: false,
   clean: true,
 });

@@ -10,8 +10,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as ts from '@revealui/ts-strada';
 import { logger } from '@revealui/utils/logger';
-import * as ts from 'typescript';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

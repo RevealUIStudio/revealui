@@ -41,6 +41,7 @@ COPY packages/sync/package.json ./packages/sync/
 COPY packages/test/package.json ./packages/test/
 COPY packages/tokens/package.json ./packages/tokens/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/ts-strada/package.json ./packages/ts-strada/
 COPY apps/admin/package.json ./apps/admin/
 
 # Install dependencies with frozen lockfile.

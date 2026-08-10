@@ -36,7 +36,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const DOCS_DIR = path.join(ROOT, 'docs');

@@ -1,7 +1,7 @@
 {
   "name": "@revealui/setup",
   "version": "0.7.4",
-  "description": "Setup utilities for new projects — environment config, database init, secrets validation. Used by @revealui/cli.",
+  "description": "Setup utilities for new projects \u2014 environment config, database init, secrets validation. Used by @revealui/cli.",
   "keywords": [
     "cli",
     "configuration",
@@ -83,7 +83,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsc -p tsconfig.build.json",
     "dev": "tsup --watch",
     "lint": "biome check .",
     "test": "vitest",

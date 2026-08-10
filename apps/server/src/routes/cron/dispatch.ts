@@ -19,6 +19,7 @@ import { Hono } from 'hono';
 import billingApp from '../billing.js';
 import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
+import cogsBreakerApp from './cogs-breaker.js';
 import drainUnreconciledApp from './drain-unreconciled.js';
 import jobsSafetyNetApp from './jobs-safety-net.js';
 import lifecycleEmailsApp from './lifecycle-emails.js';
@@ -103,6 +104,7 @@ const JOBS = [
   // MARGIN_SNAPSHOT_CRON_ENABLED=true. Runs via this single Hobby cron path
   // (not a second vercel.json cron entry).
   { name: 'margin-snapshot', app: marginSnapshotApp, path: '/margin-snapshot' },
+  { name: 'cogs-breaker', app: cogsBreakerApp, path: '/cogs-breaker' },
   // lifecycle-emails evaluates onboarding day-0/day-1/day-7 sends. Disarmed by
   // default (LIFECYCLE_EMAILS_ENABLED must be 'true' to call the transport);
   // otherwise it only records would-send decisions.

@@ -147,6 +147,99 @@ describe('decideFreeIntake', () => {
     }
   });
 
+  it('enforce + lean → new cohort maxAgentTasks 250 (HC11)', () => {
+    const r = decideFreeIntake({
+      channel: 'free_signup',
+      deploymentMode: 'hosted',
+      payingIntent: { kind: 'none' },
+      snapshot: {
+        id: 'snap-lean',
+        mode: 'lean',
+        computedAt: now,
+      },
+      flags: { enabled: true, shadow: false, staleHours: 36 },
+      openLimits,
+      now,
+    });
+    expect(r.decision).toBe('admit');
+    if (r.decision === 'admit') {
+      expect(r.mode).toBe('lean');
+      expect(r.cohortLimits).toEqual({
+        maxSites: 1,
+        maxUsers: 3,
+        maxAgentTasks: 250,
+      });
+      expect(r.reason).toBe('snapshot_lean');
+    }
+  });
+
+  it('enforce + open → maxAgentTasks 1000 (HC11)', () => {
+    const r = decideFreeIntake({
+      channel: 'free_signup',
+      deploymentMode: 'hosted',
+      payingIntent: { kind: 'none' },
+      snapshot: {
+        id: 'snap-open',
+        mode: 'open',
+        computedAt: now,
+      },
+      flags: { enabled: true, shadow: false, staleHours: 36 },
+      openLimits,
+      now,
+    });
+    expect(r.decision).toBe('admit');
+    if (r.decision === 'admit') {
+      expect(r.mode).toBe('open');
+      expect(r.cohortLimits.maxAgentTasks).toBe(1_000);
+    }
+  });
+
+  it('shadow + lean snapshot → still open 1000 (never lean under shadow) (HC11)', () => {
+    const r = decideFreeIntake({
+      channel: 'free_signup',
+      deploymentMode: 'hosted',
+      payingIntent: { kind: 'none' },
+      snapshot: {
+        id: 'snap-shadow-lean',
+        mode: 'lean',
+        computedAt: now,
+      },
+      flags: { enabled: true, shadow: true, staleHours: 36 },
+      openLimits,
+      now,
+    });
+    expect(r.decision).toBe('admit');
+    if (r.decision === 'admit') {
+      expect(r.mode).toBe('shadow');
+      expect(r.shadow).toBe(true);
+      expect(r.reason).toBe('shadow_would_lean');
+      expect(r.cohortLimits.maxAgentTasks).toBe(1_000);
+      expect(r.cohortLimits.maxSites).toBe(1);
+      expect(r.cohortLimits.maxUsers).toBe(3);
+    }
+  });
+
+  it('enforce lean respects leanMaxAgentTasks override', () => {
+    const r = decideFreeIntake({
+      channel: 'free_signup',
+      deploymentMode: 'hosted',
+      payingIntent: { kind: 'none' },
+      snapshot: {
+        id: 'snap-lean-override',
+        mode: 'lean',
+        computedAt: now,
+      },
+      flags: { enabled: true, shadow: false, staleHours: 36 },
+      openLimits,
+      leanMaxAgentTasks: 100,
+      now,
+    });
+    expect(r.decision).toBe('admit');
+    if (r.decision === 'admit') {
+      expect(r.cohortLimits.maxAgentTasks).toBe(100);
+    }
+  });
+
   it('does not reference user COUNT (HC6 — pure API surface)', () => {
     // Module has no users import; smoke the API only.
     expect(typeof decideFreeIntake).toBe('function');

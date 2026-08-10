@@ -36,7 +36,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 
 function out(line: string): void {
   process.stdout.write(`${line}\n`);

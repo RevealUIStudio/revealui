@@ -42,6 +42,7 @@ app.post('/signup', zValidator('json', SignUpRequestSchema), async (c) => {
 
   if (admit.decision === 'waitlist') {
     // PR-4: never margin 403; no users row; raw waitlistToken once.
+    // PR-4b: CTA points at paid_signup escape (not marketing-only pricing).
     return c.json(
       {
         success: false,
@@ -50,6 +51,7 @@ app.post('/signup', zValidator('json', SignUpRequestSchema), async (c) => {
         waitlistToken: admit.waitlistToken,
         positionEstimate: admit.positionEstimate ?? null,
         message: 'Free signup is temporarily waitlisted. Paid signup remains available.',
+        paidSignupPath: '/api/admission/paid-signup',
       },
       202,
     );

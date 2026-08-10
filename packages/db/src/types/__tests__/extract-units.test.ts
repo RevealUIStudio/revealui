@@ -5,7 +5,7 @@
  * For integration tests that use actual schema files, see extract-relationships.test.ts
  */
 
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 import { describe, expect, it } from 'vitest';
 import type { DiscoveredTable } from '../discover.js';
 import {
