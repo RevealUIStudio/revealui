@@ -1,6 +1,7 @@
 ---
 name: RevealUI Code Review
 description: "Code review for RevealUI: run Standards and Spec axes in parallel before merge or \"done\". Use when reviewing code, completing a feature, checking quality, or before committing. Invoke with $revealui-review."
+disable-model-invocation: true
 ---
 
 # RevealUI Code Review
@@ -116,4 +117,3 @@ If copy/claims touched: `pnpm validate:claims`. If harness content touched: cont
 - `$revealui-debugging`  -  red-capable loop before hypothesising
 - `$revealui-testing`  -  flaky/concurrency triage
 - `$revealui-conventions`  -  house TypeScript/Tailwind/monorepo rules
-
