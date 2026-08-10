@@ -79,6 +79,8 @@ import {
   buildHostedEntitlementValues,
   coerceHostedTier,
   type HostedTier,
+  mergeHostedEntitlementUpdate,
+  reconcileHealMergeReason,
 } from '../../lib/hosted-entitlement.js';
 
 const app = new Hono();
@@ -149,6 +151,10 @@ app.post('/reconcile-entitlements', async (c) => {
       entAccountId: accountEntitlements.accountId,
       entTier: accountEntitlements.tier,
       entLastEventAt: accountEntitlements.lastEventAt,
+      entLimits: accountEntitlements.limits,
+      entSource: accountEntitlements.source,
+      entCogsBreakerTrippedAt: accountEntitlements.cogsBreakerTrippedAt,
+      entCogsBreakerReason: accountEntitlements.cogsBreakerReason,
       hasActiveLicense: sql<boolean>`EXISTS (
         SELECT 1 FROM ${licenses} l
         JOIN ${accountMemberships} m2 ON m2.user_id = l.user_id
@@ -252,7 +258,8 @@ app.post('/reconcile-entitlements', async (c) => {
       continue;
     }
 
-    const values = buildHostedEntitlementValues({
+    // K21 / HC12: never raw `.set(values)` — paid rebuild vs free_preserve.
+    const next = buildHostedEntitlementValues({
       tier: expectedTier,
       status: row.subStatus ?? 'active',
       mode,
@@ -264,16 +271,61 @@ app.post('/reconcile-entitlements', async (c) => {
       now,
       source: 'reconciler',
     });
+    const existing = missing
+      ? null
+      : {
+          limits: (row.entLimits ?? {}) as Record<string, unknown>,
+          source: row.entSource ?? 'reconciler',
+          cogsBreakerTrippedAt: row.entCogsBreakerTrippedAt ?? null,
+          cogsBreakerReason: row.entCogsBreakerReason ?? null,
+          tier: row.entTier ?? undefined,
+        };
+    // HC11: paid_rebuild only for paid expected; free→free uses free_preserve
+    // so lean signup maxAgentTasks is never clobbered.
+    const merged = mergeHostedEntitlementUpdate({
+      existing,
+      next,
+      reason: reconcileHealMergeReason(expectedTier),
+    });
 
     if (missing) {
       await db
         .insert(accountEntitlements)
-        .values({ accountId, ...values })
+        .values({
+          accountId,
+          planId: merged.planId,
+          tier: merged.tier,
+          status: merged.status,
+          features: merged.features,
+          limits: merged.limits,
+          meteringStatus: merged.meteringStatus,
+          mode: merged.mode,
+          source: merged.source,
+          graceUntil: merged.graceUntil,
+          lastEventAt: merged.lastEventAt,
+          updatedAt: merged.updatedAt,
+          cogsBreakerTrippedAt: merged.cogsBreakerTrippedAt,
+          cogsBreakerReason: merged.cogsBreakerReason,
+        })
         .onConflictDoNothing();
     } else {
       await db
         .update(accountEntitlements)
-        .set(values)
+        .set({
+          planId: merged.planId,
+          tier: merged.tier,
+          status: merged.status,
+          features: merged.features,
+          limits: merged.limits,
+          meteringStatus: merged.meteringStatus,
+          mode: merged.mode,
+          source: merged.source,
+          graceUntil: merged.graceUntil,
+          lastEventAt: merged.lastEventAt,
+          updatedAt: merged.updatedAt,
+          cogsBreakerTrippedAt: merged.cogsBreakerTrippedAt,
+          cogsBreakerReason: merged.cogsBreakerReason,
+        })
         .where(
           and(eq(accountEntitlements.accountId, accountId), eq(accountEntitlements.mode, mode)),
         );

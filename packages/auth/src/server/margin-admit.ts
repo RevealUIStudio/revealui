@@ -104,6 +104,13 @@ async function loadLatestSnapshot(): Promise<MarginSnapshotView | null> {
  * Shadow defaults → always admit (never waitlist response).
  * Enforce waitlist → enqueue admission_waitlist and attach raw token.
  */
+function leanMaxAgentTasksFromEnv(env: NodeJS.ProcessEnv): number {
+  const raw = env.LEAN_FREE_MAX_AGENT_TASKS;
+  if (raw === undefined || raw.trim() === '') return 250;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : 250;
+}
+
 export async function admitFreeIntake(input: AdmitFreeIntakeInput): Promise<AdmitFreeIntakeResult> {
   const env = input.env ?? process.env;
   const flags = governorFlagsFromEnv(env);
@@ -115,6 +122,7 @@ export async function admitFreeIntake(input: AdmitFreeIntakeInput): Promise<Admi
     snapshot,
     flags,
     openLimits: OPEN_FREE_LIMITS,
+    leanMaxAgentTasks: leanMaxAgentTasksFromEnv(env),
     now: input.now,
   });
 
