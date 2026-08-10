@@ -23,6 +23,7 @@ vi.mock('../tier-limits.js', () => ({
 import {
   buildHostedEntitlementValues,
   mergeHostedEntitlementUpdate,
+  reconcileHealMergeReason,
 } from '../hosted-entitlement.js';
 
 describe('mergeHostedEntitlementUpdate', () => {
@@ -112,5 +113,70 @@ describe('mergeHostedEntitlementUpdate', () => {
     expect(merged.source).toBe('signup');
     expect(merged.limits.maxAgentTasks).toBe(0);
     expect(merged.cogsBreakerTrippedAt).toBeNull();
+  });
+});
+
+describe('reconcileHealMergeReason (PR-5 / HC11 / HC12)', () => {
+  const now = new Date('2026-08-09T00:00:00.000Z');
+
+  it('paid expected tiers → paid_rebuild', () => {
+    expect(reconcileHealMergeReason('pro')).toBe('paid_rebuild');
+    expect(reconcileHealMergeReason('max')).toBe('paid_rebuild');
+    expect(reconcileHealMergeReason('enterprise')).toBe('paid_rebuild');
+  });
+
+  it('free expected → free_preserve', () => {
+    expect(reconcileHealMergeReason('free')).toBe('free_preserve');
+  });
+
+  it('reconciler free→free path keeps lean signup maxAgentTasks (HC11)', () => {
+    const next = buildHostedEntitlementValues({
+      tier: 'free',
+      status: 'active',
+      mode: 'live',
+      lastEventAt: null,
+      now,
+      source: 'reconciler',
+      limits: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 },
+    });
+    const merged = mergeHostedEntitlementUpdate({
+      existing: {
+        limits: { maxSites: 1, maxUsers: 3, maxAgentTasks: 250 },
+        source: 'signup',
+        cogsBreakerTrippedAt: null,
+        cogsBreakerReason: null,
+        tier: 'free',
+      },
+      next,
+      reason: reconcileHealMergeReason('free'),
+    });
+    expect(merged.limits.maxAgentTasks).toBe(250);
+    expect(merged.source).toBe('signup');
+  });
+
+  it('reconciler paid heal rebuilds and clears breaker (HC12)', () => {
+    const next = buildHostedEntitlementValues({
+      tier: 'pro',
+      status: 'active',
+      mode: 'live',
+      lastEventAt: null,
+      now,
+      source: 'reconciler',
+    });
+    const merged = mergeHostedEntitlementUpdate({
+      existing: {
+        limits: { maxSites: 1, maxUsers: 3, maxAgentTasks: 250 },
+        source: 'signup',
+        cogsBreakerTrippedAt: now,
+        cogsBreakerReason: 'daily',
+        tier: 'free',
+      },
+      next,
+      reason: reconcileHealMergeReason('pro'),
+    });
+    expect(merged.tier).toBe('pro');
+    expect(merged.cogsBreakerTrippedAt).toBeNull();
+    expect(merged.cogsBreakerReason).toBeNull();
+    expect(merged.source).toBe('reconciler');
   });
 });

@@ -190,13 +190,13 @@ export function decideFreeIntake(input: {
   const rawMode: SnapshotMode = stale ? 'open' : (input.snapshot?.mode ?? 'open');
   const snapshotId = input.snapshot?.id ?? null;
 
-  // Shadow: always admit; attach would-be mode for logs
+  // Shadow: always admit with open limits (never waitlist / never lean-enforce).
+  // Reason still records would-be mode for logs (MARGIN_GOVERNOR_SHADOW table).
   if (input.flags.shadow) {
-    const cohortMode = rawMode === 'lean' ? 'lean' : 'open';
     return {
       decision: 'admit',
       mode: 'shadow',
-      cohortLimits: freeCohortLimitsForMode(cohortMode, openLimits, leanTasks),
+      cohortLimits: freeCohortLimitsForMode('open', openLimits, leanTasks),
       snapshotId,
       reason: stale ? `shadow_stale_would_${rawMode}` : `shadow_would_${rawMode}`,
       shadow: true,

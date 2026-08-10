@@ -60,4 +60,22 @@ describe('decide path used by admit (PR-4)', () => {
       expect(r.reason).toBe('waitlist_claim');
     }
   });
+
+  it('shadow never applies lean cohort limits (PR-5 / HC11)', () => {
+    const r = decideFreeIntake({
+      channel: 'free_signup',
+      deploymentMode: 'hosted',
+      payingIntent: { kind: 'none' },
+      snapshot: { id: 'snap', mode: 'lean', computedAt: now },
+      flags: { enabled: true, shadow: true, staleHours: 36 },
+      openLimits: OPEN_FREE_LIMITS,
+      leanMaxAgentTasks: 250,
+      now,
+    });
+    expect(r.decision).toBe('admit');
+    if (r.decision === 'admit') {
+      expect(r.cohortLimits.maxAgentTasks).toBe(1_000);
+      expect(r.reason).toBe('shadow_would_lean');
+    }
+  });
 });
