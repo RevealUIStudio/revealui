@@ -1,5 +1,14 @@
 # @revealui/harnesses
 
+## 0.15.1
+
+### Patch Changes
+
+- 8e53beb: Declare `@revealui/ai` as an optionalDependency so ACP headless prompts resolve the agent runtime in monorepo and install graphs (no hand symlinks / NODE_PATH).
+- 158381f: Add always-on `ai-mechanics` rule (model/harness/context/smart zone/primary source diagnosis) with progressive disclosure to the fleet glossary.
+- a7e172c: Harden revealui-review skill: Standards ‖ Spec parallel review axes + deep-module checks.
+- ffd40ba: Harden control-layer `revealui-tdd` (seams, vertical slices, test anti-patterns) and `revealui-debugging` (red-capable feedback loop first, multi-hypothesis, instrument/cleanup).
+
 ## 0.15.0
 
 ### Minor Changes

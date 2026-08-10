@@ -1,7 +1,7 @@
 {
   "name": "@revealui/harnesses",
-  "version": "0.15.0",
-  "description": "AI harness integration \u2014 CLI, content definitions, and CI gates; the coordination daemon lives in RevDev.",
+  "version": "0.15.1",
+  "description": "AI harness integration — CLI, content definitions, and CI gates; the coordination daemon lives in RevDev.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
