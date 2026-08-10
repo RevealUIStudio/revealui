@@ -96,6 +96,12 @@ const operationsItems: NavItem[] = [
     icon: <IconUpload data-slot="icon" className={iconClass} aria-hidden="true" />,
   },
   {
+    href: '/margin',
+    label: 'Margin',
+    adminOnly: true,
+    icon: <IconInfo data-slot="icon" className={iconClass} aria-hidden="true" />,
+  },
+  {
     href: '/logs',
     label: 'Logs',
     icon: <IconCode data-slot="icon" className={iconClass} aria-hidden="true" />,
