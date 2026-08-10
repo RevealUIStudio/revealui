@@ -71,7 +71,7 @@ Deploys all 4 apps (api, admin, marketing, docs) in parallel via matrix strategy
 - `main` → production (`*.revealui.com`)
 - `test` → test (`test.*.revealui.com`)
 
-Each app: `vercel pull` → `vercel build` → `vercel deploy --prebuilt` → alias to stable domain.
+Each app: `vercel pull` → `vercel build` → `vercel deploy --prebuilt --archive=tgz` → alias to stable domain.
 Smoke tests (health checks) run on production and test deploys.
 
 ## Disabled / Removed Workflows

@@ -414,8 +414,10 @@ jobs:
 
       - name: Deploy
         id: deploy
+        # --archive=tgz: single tarball upload avoids Vercel free-tier
+        # api-upload-free (5000 file) rate limit on monorepo prebuilts.
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          URL=$(vercel deploy --prebuilt --prod --archive=tgz --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} deployed to $URL"
         env:
