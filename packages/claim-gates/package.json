@@ -23,7 +23,8 @@
   ],
   "dependencies": {
     "@revealui/contracts": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@revealui/ts-strada": "workspace:*"
   },
   "devDependencies": {
     "@revealui/dev": "workspace:*",

@@ -9,7 +9,8 @@
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
     "pg": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@revealui/ts-strada": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "catalog:",

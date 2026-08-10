@@ -51,7 +51,8 @@
     "vercel": "^52.2.1",
     "vercel-mcp": "^0.0.7",
     "vitest": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@revealui/ts-strada": "workspace:*"
   },
   "engines": {
     "node": ">=24.13.0"
@@ -102,6 +103,7 @@
       "yauzl": ">=3.2.1",
       "esbuild": ">=0.28.1",
       "vite": "8.0.16",
+      "typescript": "6.0.3",
       "body-parser": ">=2.2.1",
       "next": ">=16.2.11",
       "ip-address": ">=10.3.1",

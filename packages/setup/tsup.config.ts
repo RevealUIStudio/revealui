@@ -11,7 +11,7 @@ export default defineConfig({
     'revvault/index': 'src/revvault/index.ts',
   },
   format: ['esm'],
-  dts: true,
+  dts: false,
   splitting: false,
   sourcemap: false,
   clean: true,

@@ -33,7 +33,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
     "lint": "biome check .",

@@ -8,7 +8,7 @@
  */
 
 import { join } from 'node:path';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 import type { EdgeInput, NodeInput } from '../types.js';
 import { isDir, packageKey, readTextFile, scanEpisode, tableKey, walkFiles } from './shared.js';
 import type { Extractor, ExtractorContext, ScanProduct } from './types.js';

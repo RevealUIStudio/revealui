@@ -7,7 +7,7 @@
 
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ParseError } from '../discover.js';
 import {

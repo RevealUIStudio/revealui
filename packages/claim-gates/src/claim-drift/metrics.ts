@@ -5,7 +5,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import ts from 'typescript';
+import ts from '@revealui/ts-strada';
 import { scanState } from './state.js';
 
 // ---------------------------------------------------------------------------

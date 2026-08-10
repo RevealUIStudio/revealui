@@ -5,7 +5,7 @@
  * This is separate from test-utils.ts which is for database integration tests.
  */
 
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 
 /**
  * Creates an in-memory TypeScript source file for testing

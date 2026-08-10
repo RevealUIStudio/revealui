@@ -2499,7 +2499,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/claim-drift',
     exportPath: 'body.11',
-    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 31 packages, 65 UI components, 13 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
+    text: 'That hard failure is the whole point. The numbers you read here are not a snapshot someone updated when they remembered. They are a measurement of the code as it exists right now: 32 packages, 65 UI components, 13 first-party MCP servers, 104 database tables, 60 access-control enforcement tests, 5 starter templates. Each one is checked on the commit that publishes it.',
     evidence: [
       { kind: 'code', ref: 'docs/blog/14-claim-drift.md', note: 'body source paragraph 11' },
       {
@@ -10411,7 +10411,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.44',
-    text: "To be precise about the split: 24 of the 31 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.",
+    text: "To be precise about the split: 25 of the 32 packages are MIT, forever. The five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`) are Fair Source under FSL-1.1-MIT: source-visible, commercially usable, and they convert to MIT two years after each release. Two workspace packages carry no public license: internal build tooling and an Apify actor scaffold. MCP integration is a Pro capability today, not a free add-on. I'd rather be honest about where the line sits than blur it. You can read every line of the Pro code on npm; the license key unlocks the features, it doesn't hide the source.",
     evidence: [
       {
         kind: 'code',
@@ -10513,7 +10513,7 @@ export const blogBodyClaims: readonly ClaimEntry[] = [
   {
     file: 'blog/why-we-built-revealui',
     exportPath: 'body.50',
-    text: '**37 workspaces** across the monorepo (6 apps, 31 packages with 24 MIT, 5 Fair Source, 2 internal)',
+    text: '**38 workspaces** across the monorepo (6 apps, 32 packages with 25 MIT, 5 Fair Source, 2 internal)',
     evidence: [
       {
         kind: 'code',

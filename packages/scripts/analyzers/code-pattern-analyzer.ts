@@ -23,9 +23,9 @@ import type {
   SecurityRuleId,
 } from '@revealui/contracts/security';
 import { RetNodeType, SECURITY_RULES } from '@revealui/contracts/security';
+import * as ts from '@revealui/ts-strada';
 // ret parser (runtime only, not in contracts)
 import * as retModule from 'ret';
-import * as ts from 'typescript';
 
 // ret exports a callable function via CJS default; cast through unknown for ESM compat
 const retParse = (retModule as unknown as { default: (p: string) => unknown }).default ?? retModule;

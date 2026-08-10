@@ -20,7 +20,7 @@
 
 import { readFile, stat } from 'node:fs/promises';
 import { basename, relative } from 'node:path';
-import * as ts from 'typescript';
+import * as ts from '@revealui/ts-strada';
 import type {
   ArgumentMetadata,
   ASTAnalysisResult,

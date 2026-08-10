@@ -8,7 +8,7 @@ export default defineConfig({
     'src/validation/index.ts',
   ],
   format: ['esm'],
-  dts: true,
+  dts: false,
   sourcemap: false,
   clean: true,
 });

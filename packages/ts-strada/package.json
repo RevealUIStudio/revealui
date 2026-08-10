@@ -1,0 +1,38 @@
+{
+  "name": "@revealui/ts-strada",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Strada TypeScript Compiler API (typescript@6.x) for AST tooling. Monorepo catalog stays on 6.x while Next.js requires classic typescript/lib/typescript.js; dual 6+7 splits peer type graphs (e.g. lexical). Import this package for createSourceFile/forEachChild; do not import typescript for Compiler API work.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "import": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "dependencies": {
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "scripts": {
+    "test": "node -e \"const ts=require('@revealui/ts-strada'); if (typeof ts.createSourceFile!=='function') process.exit(1); console.log('strada', ts.version);\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/ts-strada"
+  },
+  "keywords": [
+    "typescript",
+    "compiler-api",
+    "strada",
+    "revealui"
+  ]
+}
