@@ -20,6 +20,9 @@
  *   revkg ingest-handoffs --dir <path> [--limit n] [--dry-run] [--json] [--no-invalidate]
  *       P3 deterministic handoff/memory markdown → episodes (no LLM). Explicit
  *       publish only; default path is rolling handoffs when --dir omitted.
+ *   revkg decommission <repo> [--at <iso>] [--dry-run] [--json]
+ *       Invalidate current edges for a retired repo at the ice date (default
+ *       now). Point-in-time history before the ice date is preserved (GAP-349).
  *
  * Connects to Neon via its own pool (`@revealui/db`'s `createPool`, DATABASE_URL
  * / POSTGRES_URL resolved by `getConnectionIdentity`) rather than the shared
@@ -49,7 +52,7 @@ import {
   tier1Extractors,
 } from '../extractors/index.js';
 import { isDir, readJsonFile, readTextFile } from '../extractors/shared.js';
-import { applyScan, ingestEpisode } from '../ingest/index.js';
+import { applyScan, decommissionRepo, ingestEpisode } from '../ingest/index.js';
 import { resolveNaturalKey } from '../ingest/resolve.js';
 import type { NodeKind } from '../ontology/index.js';
 import { type DriftCandidate, kgAtTime, kgDrift, kgNeighbors, kgSearch } from '../search/index.js';
@@ -632,6 +635,48 @@ async function loadLlmCompleter(): Promise<(prompt: string, userText: string) =>
   }
 }
 
+async function cmdDecommission(args: ParsedArgs): Promise<void> {
+  const repo = args.positionals[0];
+  if (!repo) fail('decommission requires <repo> (e.g. revkg decommission revealcoin)');
+
+  let invalidAt: Date | undefined;
+  const atIso = args.flags.get('at');
+  if (atIso) {
+    const parsed = new Date(atIso);
+    if (Number.isNaN(parsed.getTime())) fail(`--at must be a valid ISO timestamp, got ${atIso}`);
+    invalidAt = parsed;
+  }
+
+  const dryRun = args.bools.has('dry-run');
+  const { exec, close } = await getExecutor();
+  try {
+    const result = await decommissionRepo(exec, {
+      repo,
+      invalidAt,
+      siteId: hostname(),
+      dryRun,
+    });
+    if (args.bools.has('json')) {
+      out(
+        JSON.stringify({
+          repo: result.repo,
+          invalidAt: result.invalidAt,
+          edgeCount: result.edgeIds.length,
+          edgeIds: result.edgeIds,
+          dryRun: result.dryRun,
+        }),
+      );
+      return;
+    }
+    const verb = result.dryRun ? 'would invalidate' : 'invalidated';
+    out(
+      `decommission ${result.repo}: ${verb} ${result.edgeIds.length} edge(s) at ${result.invalidAt}`,
+    );
+  } finally {
+    await close();
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   const args = parseArgs(rest);
@@ -663,9 +708,12 @@ async function main(): Promise<void> {
     case 'ingest-handoffs':
       await cmdIngestHandoffs(args);
       break;
+    case 'decommission':
+      await cmdDecommission(args);
+      break;
     default:
       out(
-        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs> [...]',
+        'usage: revkg <scan|search|node|neighbors|at|drift|claims-check|extract|ingest-handoffs|decommission> [...]',
       );
       process.exit(command ? 1 : 0);
   }

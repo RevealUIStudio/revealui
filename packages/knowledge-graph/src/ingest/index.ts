@@ -6,6 +6,11 @@ export {
   normalizeNaturalKey,
 } from './contradiction.js';
 export {
+  type DecommissionOptions,
+  type DecommissionResult,
+  decommissionRepo,
+} from './decommission.js';
+export {
   backfillEdgeEmbedding,
   backfillNodeEmbedding,
 } from './embed.js';
