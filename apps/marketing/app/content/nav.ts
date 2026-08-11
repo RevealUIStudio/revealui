@@ -1,7 +1,7 @@
 // Sourced from: app/components/NavBar.tsx, app/components/Footer.tsx (Phase 1c, no copy changes).
 // Per the internal marketing-overhaul plan §4.4.
 
-import { SITE } from './site';
+import { COMMUNITY, SITE } from './site';
 import type { NavLink } from './types';
 
 export const NAV_LINKS: readonly NavLink[] = [
@@ -22,6 +22,16 @@ export interface FooterColumn {
   readonly links: readonly NavLink[];
 }
 
+const communityLinks: readonly NavLink[] = [
+  { label: 'GitHub', href: SITE.urls.repo, external: true },
+  { label: 'Discussions', href: SITE.urls.repoDiscussions, external: true },
+  ...(COMMUNITY.substack.url
+    ? ([{ label: 'Substack', href: COMMUNITY.substack.url, external: true }] as const)
+    : []),
+  { label: 'RevealUI Studio (agency) →', href: SITE.urls.agency, external: true },
+  { label: 'Contact', href: '/contact' },
+];
+
 export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   {
     heading: 'Product',
@@ -38,12 +48,8 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   },
   {
     heading: 'Community',
-    links: [
-      { label: 'GitHub', href: SITE.urls.repo, external: true },
-      { label: 'Discussions', href: SITE.urls.repoDiscussions, external: true },
-      { label: 'RevealUI Studio (agency) →', href: SITE.urls.agency, external: true },
-      { label: 'Contact', href: '/contact' },
-    ],
+    // Broadcast list (Substack) only; Skool stays invite-only and off the public footer.
+    links: communityLinks,
   },
   {
     heading: 'Trust',
