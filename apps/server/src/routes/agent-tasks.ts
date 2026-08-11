@@ -38,6 +38,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import type { AgentDispatchOutput, AgentDispatchPayload } from '../jobs/agent-dispatch.js';
 import { buildDispatcher, type Dispatcher } from '../lib/agent-dispatcher.js';
+import { AiModuleUnavailableBodySchema } from '../lib/ai-module-loader.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { getEntitlementsFromContext } from '../middleware/entitlements.js';
@@ -183,6 +184,10 @@ app.openapi(
         content: { 'application/json': { schema: LLMNotConfiguredSchema } },
         description:
           'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+      },
+      503: {
+        content: { 'application/json': { schema: AiModuleUnavailableBodySchema } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),
@@ -332,6 +337,10 @@ app.openapi(
         content: { 'application/json': { schema: LLMNotConfiguredSchema } },
         description:
           'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+      },
+      503: {
+        content: { 'application/json': { schema: AiModuleUnavailableBodySchema } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),

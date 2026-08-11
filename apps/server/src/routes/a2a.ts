@@ -98,6 +98,10 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
@@ -145,6 +149,10 @@ app.openapi(
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),
@@ -399,6 +407,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
@@ -440,6 +452,10 @@ a2a.openapi(
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),
@@ -493,6 +509,10 @@ a2a.openapi(
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),
@@ -652,6 +672,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
@@ -753,6 +777,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
@@ -829,6 +857,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
       409: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent already registered',
@@ -904,6 +936,10 @@ a2a.openapi(
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),
@@ -995,6 +1031,10 @@ a2a.openapi(
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
       409: {
         content: { 'application/json': { schema: z.unknown() } },

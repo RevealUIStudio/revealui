@@ -30,6 +30,10 @@ import {
 } from '../lib/agent-run-sessions.js';
 import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
 import { applyAgentToolGovernance } from '../lib/agent-tool-governance.js';
+import {
+  AiModuleUnavailableBodySchema,
+  AiResolveFailedBodySchema,
+} from '../lib/ai-module-loader.js';
 import { createAgentEventLoggerIfEnabled } from '../lib/ai-observability-wire.js';
 import { createSkillProviderIfEnabled } from '../lib/ai-skills-wire.js';
 import { createAuditStore } from '../lib/audit-signer.js';
@@ -97,6 +101,22 @@ const agentStreamRoute = createRoute({
         },
       },
       description: 'AI feature requires Pro or Enterprise license',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: AiResolveFailedBodySchema,
+        },
+      },
+      description: 'AI client resolve failed (not a Free-plan limit)',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: AiModuleUnavailableBodySchema,
+        },
+      },
+      description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
     },
     409: {
       content: {

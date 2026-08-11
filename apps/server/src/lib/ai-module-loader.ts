@@ -12,9 +12,24 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { z } from '@revealui/openapi';
 
 export const AI_MODULE_UNAVAILABLE_CODE = 'AI_MODULE_UNAVAILABLE' as const;
 export const AI_RESOLVE_FAILED_CODE = 'AI_RESOLVE_FAILED' as const;
+
+/** OpenAPI / Zod body for 503 AI_MODULE_UNAVAILABLE responses. */
+export const AiModuleUnavailableBodySchema = z.object({
+  success: z.literal(false),
+  error: z.string(),
+  code: z.literal(AI_MODULE_UNAVAILABLE_CODE),
+});
+
+/** OpenAPI / Zod body for 500 AI_RESOLVE_FAILED responses. */
+export const AiResolveFailedBodySchema = z.object({
+  success: z.literal(false),
+  error: z.string(),
+  code: z.literal(AI_RESOLVE_FAILED_CODE),
+});
 
 export const AI_MODULE_UNAVAILABLE_MESSAGE =
   'The AI runtime is not available in this deployment. This is a server configuration problem, not a Free-plan limit. Contact support if you are on Pro or Enterprise.';
@@ -100,7 +115,7 @@ export async function loadAgentStreamAiModules(): Promise<{
   // Empty mock modules (vitest `() => ({})`) and partial deploys must not pass.
   // Use `in` + try/catch: Vitest auto-mocks throw on missing named exports.
   const hasFn = (mod: object | null, name: string): boolean => {
-    if (!mod || !(name in mod)) return false;
+    if (!(mod && name in mod)) return false;
     try {
       return typeof (mod as Record<string, unknown>)[name] === 'function';
     } catch {
