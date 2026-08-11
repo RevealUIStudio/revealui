@@ -1,5 +1,11 @@
 # @revealui/knowledge-graph
 
+## 0.1.9
+
+### Patch Changes
+
+- Add revkg decommission for retired repository edges (GAP-349 residual).
+
 ## 0.1.8
 
 ## 0.1.7
