@@ -8,7 +8,7 @@ import {
   FOOTER_SOLO_OPERATOR_NOTE,
   FOOTER_TAGLINE,
 } from '../content/nav';
-import { SITE } from '../content/site';
+import { COMMUNITY, SITE } from '../content/site';
 import { NewsletterSignup } from './NewsletterSignup';
 
 export function Footer() {
@@ -59,7 +59,7 @@ export function Footer() {
                 Product updates and engineering insights. No spam.
               </p>
             </div>
-            <div className="mt-6 flex gap-4">
+            <div className="mt-6 flex flex-wrap items-center gap-4">
               <a
                 href={SITE.urls.repo}
                 className="text-muted-foreground hover:text-foreground transition-colors"
@@ -74,6 +74,16 @@ export function Footer() {
               >
                 <LinkedInIcon className="size-5" />
               </a>
+              {COMMUNITY.substack.url ? (
+                <a
+                  href={COMMUNITY.substack.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Substack
+                </a>
+              ) : null}
             </div>
           </div>
           {FOOTER_COLUMNS.map((col) => (

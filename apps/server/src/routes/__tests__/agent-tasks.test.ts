@@ -246,10 +246,11 @@ describe('POST /  -  submit agent task', () => {
       '/',
       post({ instruction: 'Publish blog post', boardId: 'board-1' }),
     );
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(503);
     const body = await parseBody(res);
     expect(body.success).toBe(false);
-    expect(body.error).toContain('requires a Pro or Enterprise license');
+    expect(body.code).toBe('AI_MODULE_UNAVAILABLE');
+    expect(body.error).not.toMatch(/requires a Pro or Enterprise license/i);
   });
 
   it('returns 200 with agent output on success', async () => {
@@ -348,18 +349,19 @@ describe('POST /:ticketId/dispatch  -  dispatch existing ticket', () => {
     expect(body.error).toBe('Ticket not found');
   });
 
-  it('returns 403 when no LLM key is configured', async () => {
-    // Simulate missing API key: createLLMClientFromEnv throws
+  it('returns 503 when dispatcher cannot start (module/resolve miss, not Free-plan)', async () => {
+    // Simulate missing API key: createLLMClientFromEnv throws → dispatcher null
     mockCreateLLMClient.mockImplementationOnce(() => {
       throw new Error('API key not found');
     });
     mt.getTicketById.mockResolvedValue(makeTicket() as never);
     const app = createApp();
     const res = await app.request('/ticket-1/dispatch', post({}));
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(503);
     const body = await parseBody(res);
     expect(body.success).toBe(false);
-    expect(body.error).toContain('requires a Pro or Enterprise license');
+    expect(body.code).toBe('AI_MODULE_UNAVAILABLE');
+    expect(body.error).not.toMatch(/requires a Pro or Enterprise license/i);
   });
 
   it('returns 200 with agent output on success', async () => {

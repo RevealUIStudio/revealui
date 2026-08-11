@@ -30,6 +30,10 @@ import {
 } from '../lib/agent-run-sessions.js';
 import { recordAgentMcpToolAudit } from '../lib/agent-tool-audit.js';
 import { applyAgentToolGovernance } from '../lib/agent-tool-governance.js';
+import {
+  AiModuleUnavailableBodySchema,
+  AiResolveFailedBodySchema,
+} from '../lib/ai-module-loader.js';
 import { createAgentEventLoggerIfEnabled } from '../lib/ai-observability-wire.js';
 import { createSkillProviderIfEnabled } from '../lib/ai-skills-wire.js';
 import { createAuditStore } from '../lib/audit-signer.js';
@@ -98,6 +102,22 @@ const agentStreamRoute = createRoute({
       },
       description: 'AI feature requires Pro or Enterprise license',
     },
+    500: {
+      content: {
+        'application/json': {
+          schema: AiResolveFailedBodySchema,
+        },
+      },
+      description: 'AI client resolve failed (not a Free-plan limit)',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: AiModuleUnavailableBodySchema,
+        },
+      },
+      description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+    },
     409: {
       content: {
         'application/json': {
@@ -122,24 +142,15 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const body = c.req.valid('json');
 
-  // Dynamically load @revealui/ai modules
-  const [aiMod, llmClientMod, streamingRuntimeMod] = await Promise.all([
-    import('@revealui/ai').catch(() => null),
-    import('@revealui/ai/llm/client').catch(() => null),
-    import('@revealui/ai/orchestration/streaming-runtime').catch(() => null),
-  ]);
-
-  if (!(aiMod && llmClientMod && streamingRuntimeMod)) {
-    return c.json(
-      {
-        success: false,
-        error:
-          "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        code: 'HTTP_403',
-      },
-      403,
-    );
+  // Dynamically load optional Pro package @revealui/ai (must not claim Free on miss).
+  const { loadAgentStreamAiModules, aiModuleUnavailableBody, aiResolveFailedBody } = await import(
+    '../lib/ai-module-loader.js'
+  );
+  const aiMods = await loadAgentStreamAiModules();
+  if (!aiMods) {
+    return c.json(aiModuleUnavailableBody(), 503);
   }
+  const { ai: aiMod, llmClient: llmClientMod, streamingRuntime: streamingRuntimeMod } = aiMods;
 
   // Free tier: local inference only (Ollama or inference snaps)
   const aiAccessMode = c.get('aiAccessMode');
@@ -160,16 +171,11 @@ app.openapi(agentStreamRoute, async (c) => {
         // Lockstep packages/ai DEFAULT_DAILY_OLLAMA_MODEL when ollama
         model: process.env.LLM_MODEL ?? 'qwen2.5:3b',
       });
-    } catch {
-      return c.json(
-        {
-          success: false,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-          code: 'HTTP_403',
-        },
-        403,
-      );
+    } catch (err) {
+      logger.error('[agent-stream] local LLM client construct failed', {
+        message: err instanceof Error ? err.message : String(err),
+      });
+      return c.json(aiResolveFailedBody('local inference client'), 500);
     }
   } else {
     // Paid path: resolve per-account BYOK on hosted, env on self-hosted. userId
@@ -186,15 +192,10 @@ app.openapi(agentStreamRoute, async (c) => {
       if (notConfigured) {
         return c.json(notConfigured, 409);
       }
-      return c.json(
-        {
-          success: false,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-          code: 'HTTP_403',
-        },
-        403,
-      );
+      logger.error('[agent-stream] resolveLLMClientForRequest failed', {
+        message: err instanceof Error ? err.message : String(err),
+      });
+      return c.json(aiResolveFailedBody(), 500);
     }
   }
 

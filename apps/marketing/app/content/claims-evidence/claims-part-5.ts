@@ -451,6 +451,18 @@ export const claimsPart5: readonly ClaimEntry[] = [
   },
   {
     file: 'legal/support.ts',
+    exportPath: 'SUPPORT_SECTIONS[0].listItems[4]',
+    text: '**Paid product buyers (Starter Kit, Pro, Max, and services):** after purchase we invite you to the private Skool buyer community for onboarding and product questions. That invite is manual at launch volume and is not a public join link. Billing and license issues still go to email.',
+    evidence: [LEGAL_SUPPORT_CONTENT],
+  },
+  {
+    file: 'legal/support.ts',
+    exportPath: 'SUPPORT_SECTIONS[0].listItems[5]',
+    text: '**Essays and product notes:** https://substack.com/@revealuistudio is the public broadcast list. It is not a support desk.',
+    evidence: [LEGAL_SUPPORT_CONTENT],
+  },
+  {
+    file: 'legal/support.ts',
     exportPath: 'SUPPORT_SECTIONS[1].paragraphs[0]',
     text: '(interpolated: SITE email / domain embedded at runtime)',
     match: 'path',

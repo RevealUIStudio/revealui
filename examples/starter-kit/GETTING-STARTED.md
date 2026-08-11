@@ -22,8 +22,9 @@ packages) stays free. What this kit adds:
 4. **Three governed-agent recipes**, each producing a cryptographically
    signed, offline-verifiable receipt of every action — the pattern the
    fleet's own Apify actor uses, generalized for use in your own app.
-5. Access to the private RevealUI Substack section and lifetime kit updates
-   (see your purchase confirmation for the invite).
+5. Invite to the **Skool buyer community** and lifetime kit updates
+   (see your purchase confirmation for the invite). Public product questions
+   stay on [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions).
 
 ## What "governed agent" and "receipt" mean here
 
@@ -119,5 +120,7 @@ checkout when you're ready to upgrade at revealui.com/pricing.
 
 ## Support
 
-Questions and requests go in the private RevealUI Substack section (invite
-in your purchase confirmation). Kit updates ship there too.
+Questions and requests go in the **Skool buyer community** (invite in your
+purchase confirmation). Kit updates ship via the private repo and community
+notes. Public product discussion:
+https://github.com/RevealUIStudio/revealui/discussions

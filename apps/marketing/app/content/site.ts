@@ -84,6 +84,11 @@ export const SITE = {
      * Stripe product prod_V01FoZi9YbgZw9 / price_1U01D1Jz64n6uEibtamJHxkU.
      */
     starterKitCheckout: 'https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03',
+    /**
+     * Public shipping board (Projects tab). Prefer a concrete Projects v2 URL when
+     * one is pinned; until then the org/repo projects index is the honest link.
+     */
+    repoProjects: 'https://github.com/RevealUIStudio/revealui/projects',
   },
   emails: {
     support: 'support@revealui.com',
@@ -95,4 +100,44 @@ export const SITE = {
   },
 } as const;
 
+/**
+ * Community defaults (owner 2026-08-10; Skool URL 2026-08-11). Full map:
+ * fleet private `business/community-map-2026-08-10.md` + offerings-canonical Track E.
+ *
+ * Consumers must not render a nav/footer link when `url` is null, and must not
+ * treat Skool as a public join CTA while `skool.access === 'invite-only'`.
+ *
+ * - Skool: invite-only after purchase (profile URL is for owner fulfillment / invites)
+ * - Substack: public subscribe (https://substack.com/@revealuistudio); broadcast list, not paid support home
+ * - Discussions / Projects: public (urls live under SITE.urls)
+ */
+export const COMMUNITY = {
+  discussions: {
+    access: 'public' as const,
+    url: SITE.urls.repoDiscussions,
+  },
+  projects: {
+    access: 'public-view' as const,
+    url: SITE.urls.repoProjects,
+  },
+  /**
+   * Paid buyer home. Invite after Starter Kit / SaaS / AR close.
+   * Profile URL set 2026-08-11 (owner). Still invite-only: do not put a free
+   * "Join Skool" CTA on marketing while access is invite-only.
+   */
+  skool: {
+    access: 'invite-only' as const,
+    url: 'https://www.skool.com/@joshua-vaughn-3634',
+  },
+  /**
+   * Broadcast + free list. Not the paid support desk.
+   * Public subscribe URL set 2026-08-11 (owner). Safe for footer/nav when non-null.
+   */
+  substack: {
+    access: 'public-subscribe' as const,
+    url: 'https://substack.com/@revealuistudio',
+  },
+} as const;
+
 export type SiteConfig = typeof SITE;
+export type CommunityConfig = typeof COMMUNITY;

@@ -38,6 +38,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import type { AgentDispatchOutput, AgentDispatchPayload } from '../jobs/agent-dispatch.js';
 import { buildDispatcher, type Dispatcher } from '../lib/agent-dispatcher.js';
+import { AiModuleUnavailableBodySchema } from '../lib/ai-module-loader.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { detectDeploymentMode, type EnvMap } from '../lib/validate-startup.js';
 import { getEntitlementsFromContext } from '../middleware/entitlements.js';
@@ -184,6 +185,10 @@ app.openapi(
         description:
           'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
       },
+      503: {
+        content: { 'application/json': { schema: AiModuleUnavailableBodySchema } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
@@ -272,14 +277,9 @@ app.openapi(
     const dispatcher = built.dispatcher;
     if (!dispatcher) {
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
-      return c.json(
-        {
-          success: false as const,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      // Null dispatcher = optional @revealui/ai missing or resolve failed — not Free.
+      const { aiModuleUnavailableBody } = await import('../lib/ai-module-loader.js');
+      return c.json(aiModuleUnavailableBody('dispatcher unavailable'), 503);
     }
 
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
@@ -337,6 +337,10 @@ app.openapi(
         content: { 'application/json': { schema: LLMNotConfiguredSchema } },
         description:
           'Hosted account has no LLM provider configured (set one at /settings/api-keys)',
+      },
+      503: {
+        content: { 'application/json': { schema: AiModuleUnavailableBodySchema } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
       },
     },
   }),
@@ -405,14 +409,8 @@ app.openapi(
     }
     const dispatcher = built.dispatcher;
     if (!dispatcher) {
-      return c.json(
-        {
-          success: false as const,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      const { aiModuleUnavailableBody } = await import('../lib/ai-module-loader.js');
+      return c.json(aiModuleUnavailableBody('dispatcher unavailable'), 503);
     }
 
     await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
