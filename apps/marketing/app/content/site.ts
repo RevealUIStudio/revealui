@@ -101,15 +101,14 @@ export const SITE = {
 } as const;
 
 /**
- * Community defaults (owner 2026-08-10). Full map:
+ * Community defaults (owner 2026-08-10; Skool URL 2026-08-11). Full map:
  * fleet private `business/community-map-2026-08-10.md` + offerings-canonical Track E.
  *
- * URLs: OWNER_FILL later. Do not invent live hrefs. Consumers must not render a
- * nav/footer link when `url` is null (same pattern as omitted X handle).
+ * Consumers must not render a nav/footer link when `url` is null, and must not
+ * treat Skool as a public join CTA while `skool.access === 'invite-only'`.
  *
- * Defaults until owner updates:
- * - Skool: invite-only after purchase (no public join CTA)
- * - Substack: public subscribe when URL set; broadcast list, not paid support home
+ * - Skool: invite-only after purchase (profile URL is for owner fulfillment / invites)
+ * - Substack: public subscribe (https://substack.com/@revealuistudio); broadcast list, not paid support home
  * - Discussions / Projects: public (urls live under SITE.urls)
  */
 export const COMMUNITY = {
@@ -123,21 +122,20 @@ export const COMMUNITY = {
   },
   /**
    * Paid buyer home. Invite after Starter Kit / SaaS / AR close.
-   * Set `url` only when intentionally publishing a join link; default stays null.
+   * Profile URL set 2026-08-11 (owner). Still invite-only: do not put a free
+   * "Join Skool" CTA on marketing while access is invite-only.
    */
   skool: {
     access: 'invite-only' as const,
-    /** OWNER_FILL later — e.g. https://www.skool.com/… */
-    url: null as string | null,
+    url: 'https://www.skool.com/@joshua-vaughn-3634',
   },
   /**
    * Broadcast + free list. Not the paid support desk.
-   * Set `url` when the publication is ready for public subscribe CTAs.
+   * Public subscribe URL set 2026-08-11 (owner). Safe for footer/nav when non-null.
    */
   substack: {
     access: 'public-subscribe' as const,
-    /** OWNER_FILL later — e.g. https://….substack.com */
-    url: null as string | null,
+    url: 'https://substack.com/@revealuistudio',
   },
 } as const;
 

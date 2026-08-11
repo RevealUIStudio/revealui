@@ -15,7 +15,7 @@ the same Payment Link / Checkout surface.
 | **Stripe price** | **live** `price_1U01D1Jz64n6uEibtamJHxkU` ($299 one-time) |
 | **Payment Link** | **live** `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03` (`plink_1U01D2Jz64n6uEibnSK45nuS`) |
 | `SITE.urls.starterKitCheckout` | **wired** on marketing (`SITE.urls.starterKitCheckout`) |
-| Fulfillment | **manual**: GitHub invite + Skool buyer invite (launch volume). Substack = broadcast list only (URL OWNER_FILL later). |
+| Fulfillment | **manual**: GitHub invite + Skool buyer invite (launch volume). Skool: https://www.skool.com/@joshua-vaughn-3634 (invite-only). Substack broadcast: https://substack.com/@revealuistudio (not support home). |
 | First-month Pro coupon | **seed script ready** (§4); run once on live key |
 | Stripe Tax | confirm `STRIPE_TAX_ENABLED=true` on prod api if selling broadly |
 | Managed Payments (D) | enable in Dashboard when eligible |
@@ -78,8 +78,8 @@ stripe promotion_codes create \
 2. Buyer email from receipt.
 3. GitHub: invite buyer as **read** collaborator on
    `RevealUIStudio/revealui-starter-kit`.
-4. Skool: invite buyer to the paid classroom (invite-only; no public join link
-   until owner publishes one). Substack is not the support home.
+4. Skool: invite buyer via https://www.skool.com/@joshua-vaughn-3634 (invite-only;
+   no public marketing join CTA). Substack is not the support home.
 5. Reply with invite notes + optional `STARTERKITPRO1` (when created).
 
 Target: within **one business day** (matches Payment Link confirmation copy).
@@ -89,7 +89,7 @@ Target: within **one business day** (matches Payment Link confirmation copy).
 One link: `https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03`
 
 - `/pricing#starter-kit` (after merge/deploy)
-- LinkedIn / Substack (when URL set) / optional X when the handle is live
+- LinkedIn / Substack (https://substack.com/@revealuistudio) / optional X when the handle is live
 - Product Hunt / Show HN / Indie Hackers
 - Technical post (receipt recipes) with soft CTA
 - GitHub monorepo docs pointer to pricing section
