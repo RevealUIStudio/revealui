@@ -1,16 +1,16 @@
-# Owner publish checklist — Railway marketplace (GAP-430)
+# Owner publish checklist — customer Railway marketplace template (GAP-430)
 
 Agent work for template definition, first-boot docs, and monorepo cross-links is
 **done** (`deployment/railway/*` on `test`). Closure is **owner dashboard publish**
 only. Studio production hosting stays Vercel + Neon + Fly; this listing is a
-customer self-host sales channel.
+customer self-host **sales channel** (marketplace template), not Studio infra.
 
 ## 1. Account
 
-1. Sign in to the RevealUI Railway account (Hobby paid account already used for
-   early work 2026-07-27).
+1. Sign in to the RevealUI author account on the customer marketplace platform
+   (Hobby paid account already used for early sales-channel work 2026-07-27).
 2. Confirm billing is active (marketplace author kickback requires a paid plan
-   context as Railway documents it).
+   context as the marketplace vendor documents it).
 3. Optional: enable support-bonus queue / author program settings if offered.
 
 ## 2. Template source
@@ -24,8 +24,8 @@ Do **not** re-author a parallel compose path. Extend `deployment/railway/` only.
 
 ## 3. Publish (dashboard)
 
-1. Create or update a Railway **Template** from this monorepo, pointing services
-   at the config in `deployment/railway/`.
+1. Create or update a marketplace **Template** from this monorepo, pointing
+   services at the config in `deployment/railway/`.
 2. Ensure template services match the README architecture table (postgres,
    migrate, api, admin).
 3. Document required env vars in the template UI (no secrets baked in).
@@ -33,11 +33,12 @@ Do **not** re-author a parallel compose path. Extend `deployment/railway/` only.
    api and admin when no license key is supplied (see README).
 5. Publish to the marketplace; opt into author kickback / support bonus if
    separate toggles exist.
-6. Wire payout (Stripe Connect or Railway payout path) for the $100 threshold.
+6. Wire payout (Stripe Connect or the marketplace vendor payout path) for the
+   $100 threshold on this sales channel.
 
 ## 4. Clean-account acceptance walk (close GAP-430)
 
-From a **second** Railway account (or reset project):
+From a **second** buyer account on the marketplace (or reset project):
 
 1. Deploy template one-click.
 2. Wait migrate success; api + admin healthy.
