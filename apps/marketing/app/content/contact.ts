@@ -1,6 +1,6 @@
 // Sourced from: app/routes/ContactPage.tsx (Phase 1, no copy changes). Per the internal marketing-overhaul plan §4.4.
 
-import { SITE } from './site';
+import { COMMUNITY, SITE } from './site';
 
 export interface ContactMethod {
   readonly title: string;
@@ -25,12 +25,29 @@ export const CONTACT_METHODS: readonly ContactMethod[] = [
     href: SITE.urls.repoDiscussions,
     external: true,
   },
+  ...(COMMUNITY.substack.url
+    ? [
+        {
+          title: 'Essays',
+          body: '',
+          linkLabel: 'Substack',
+          href: COMMUNITY.substack.url,
+          external: true,
+        } satisfies ContactMethod,
+      ]
+    : []),
   {
     title: 'Support',
     body: '',
     linkLabel: SITE.emails.support,
     href: `mailto:${SITE.emails.support}`,
     isEmail: true,
+  },
+  {
+    title: 'Help channels',
+    body: '',
+    linkLabel: 'Support page',
+    href: '/support',
   },
   {
     title: 'Bug Reports',

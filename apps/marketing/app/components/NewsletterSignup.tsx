@@ -1,6 +1,7 @@
 import { Button, Input } from '@revealui/presentation';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { COMMUNITY } from '../content/site';
 import { submitNewsletter } from '../lib/api';
 
 export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 'stacked' }) {
@@ -66,6 +67,21 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
         )}
         <p className="text-xs text-muted-foreground">
           Product updates and engineering insights. No spam.
+          {COMMUNITY.substack.url ? (
+            <>
+              {' '}
+              Or read on{' '}
+              <a
+                href={COMMUNITY.substack.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline"
+              >
+                Substack
+              </a>
+              .
+            </>
+          ) : null}
         </p>
       </form>
     );
@@ -102,6 +118,19 @@ export function NewsletterSignup({ variant = 'inline' }: { variant?: 'inline' | 
           {message}
         </p>
       )}
+      {COMMUNITY.substack.url ? (
+        <p className="text-xs text-muted-foreground">
+          Prefer essays?{' '}
+          <a
+            href={COMMUNITY.substack.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            Substack
+          </a>
+        </p>
+      ) : null}
     </form>
   );
 }
