@@ -26,6 +26,7 @@ import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { desc, eq } from 'drizzle-orm';
+import { aiModuleUnavailableBody, getAiModule } from '../lib/ai-module-loader.js';
 import { createAuditStore } from '../lib/audit-signer.js';
 import { asLLMNotConfigured } from '../lib/llm-not-configured.js';
 import { buildMcpManifest } from '../lib/mcp-manifest.js';
@@ -43,16 +44,6 @@ import {
 
 // JSON-RPC error codes (inlined  -  avoids static import of @revealui/ai)
 const RPC_INVALID_REQUEST = -32600;
-
-// Lazy-loaded @revealui/ai module  -  cached after first successful import
-let aiModulePromise: Promise<typeof import('@revealui/ai') | null> | null = null;
-
-function getAiModule(): Promise<typeof import('@revealui/ai') | null> {
-  if (!aiModulePromise) {
-    aiModulePromise = import('@revealui/ai').catch(() => null);
-  }
-  return aiModulePromise;
-}
 
 interface UserContext {
   id: string;
@@ -107,18 +98,16 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const baseUrl = getBaseUrl(c.req.raw);
     const card = aiMod.agentCardRegistry.getCard('revealui-creator', baseUrl);
@@ -161,18 +150,16 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const { id: agentId } = c.req.valid('param');
     if (!isValidAgentId(agentId)) {
@@ -420,18 +407,16 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const baseUrl = getBaseUrl(c.req.raw);
     const cards = aiMod.agentCardRegistry.listCards(baseUrl);
@@ -468,18 +453,16 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const { id: agentId } = c.req.valid('param');
     if (!isValidAgentId(agentId)) {
@@ -527,18 +510,16 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const { id: agentId } = c.req.valid('param');
     if (!isValidAgentId(agentId)) {
@@ -691,18 +672,16 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const { id: agentId } = c.req.valid('param');
     if (!isValidAgentId(agentId)) {
@@ -798,6 +777,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent not found',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
@@ -813,13 +796,7 @@ a2a.openapi(
 
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
 
     const removed = aiMod.agentCardRegistry.unregister(agentId);
@@ -880,6 +857,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
       409: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Agent already registered',
@@ -896,13 +877,7 @@ a2a.openapi(
 
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
 
     const def = parsed.data;
@@ -962,18 +937,16 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
     },
   }),
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
-      return c.json(
-        {
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-        },
-        403,
-      );
+      return c.json(aiModuleUnavailableBody(), 503);
     }
     const { taskId } = c.req.valid('param');
 
@@ -1059,6 +1032,10 @@ a2a.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
       },
+      503: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'AI runtime package not available in this deployment (not a Free-plan limit)',
+      },
       409: {
         content: { 'application/json': { schema: z.unknown() } },
         description:
@@ -1076,11 +1053,11 @@ a2a.openapi(
           id: null,
           error: {
             code: -32003,
-            message:
-              "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+            message: aiModuleUnavailableBody().error,
+            data: { code: 'AI_MODULE_UNAVAILABLE' },
           },
         },
-        403,
+        503,
       );
     }
 
@@ -1109,13 +1086,15 @@ a2a.openapi(
         | undefined;
       const aiEnabled = entitlements?.features?.ai ?? false;
       if (!aiEnabled) {
+        // Real entitlement denial (Free / feature off) — not a module load miss.
         return c.json(
           {
             jsonrpc: '2.0',
             id: req.id,
             error: {
               code: -32003,
-              message: "Feature 'ai' requires a Pro or Enterprise license.",
+              message:
+                "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
             },
           },
           403,

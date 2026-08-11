@@ -62,19 +62,22 @@ describe('agent-stream route', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 403 when AI package is not available', async () => {
+  it('returns 503 AI_MODULE_UNAVAILABLE when AI package is not available (not Free-plan)', async () => {
     const app = createApp();
 
     const res = await jsonPost(app, '/agent-stream', {
       instruction: 'Hello',
     });
 
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(503);
     const body = await parseBody(res);
-    expect(body.error).toContain('requires a Pro or Enterprise license');
+    expect(body.code).toBe('AI_MODULE_UNAVAILABLE');
+    expect(body.error).not.toMatch(/requires a Pro or Enterprise license/i);
+    expect(body.error).toMatch(/not available in this deployment/i);
+    expect(body.error).toMatch(/not a Free-plan limit/i);
   });
 
-  it('returns 403 with empty instruction string (AI not configured)', async () => {
+  it('returns 503 with empty instruction string when AI module missing', async () => {
     const app = createApp();
 
     const res = await jsonPost(app, '/agent-stream', {
@@ -82,7 +85,9 @@ describe('agent-stream route', () => {
     });
 
     // Schema accepts empty string  -  handler proceeds but AI module not available
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(503);
+    const body = await parseBody(res);
+    expect(body.code).toBe('AI_MODULE_UNAVAILABLE');
   });
 });
 
@@ -102,8 +107,8 @@ describe('agent-stream route  -  mode parameter', () => {
       mode: 'admin',
     });
 
-    // AI modules not available → 403 (schema validation passed)
-    expect(res.status).toBe(403);
+    // AI modules not available → 503 deployment fault (schema validation passed)
+    expect(res.status).toBe(503);
   });
 
   it('accepts mode: "coding" without error', async () => {
@@ -114,8 +119,8 @@ describe('agent-stream route  -  mode parameter', () => {
       mode: 'coding',
     });
 
-    // AI modules not available → 403 (schema validation passed)
-    expect(res.status).toBe(403);
+    // AI modules not available → 503 deployment fault (schema validation passed)
+    expect(res.status).toBe(503);
   });
 
   it('defaults to admin mode when mode is omitted', async () => {
@@ -125,8 +130,8 @@ describe('agent-stream route  -  mode parameter', () => {
       instruction: 'Hello',
     });
 
-    // Schema defaults mode to 'admin'; AI not available → 403
-    expect(res.status).toBe(403);
+    // Schema defaults mode to 'admin'; AI not available → 503
+    expect(res.status).toBe(503);
   });
 
   it('rejects invalid mode values', async () => {
@@ -154,7 +159,7 @@ describe('agent-stream route  -  mode parameter', () => {
       mode: 'coding',
     });
 
-    // Schema accepts all fields; AI not available → 403
-    expect(res.status).toBe(403);
+    // Schema accepts all fields; AI not available → 503
+    expect(res.status).toBe(503);
   });
 });
