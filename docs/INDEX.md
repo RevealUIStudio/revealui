@@ -35,9 +35,6 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Marketplace](./MARKETPLACE.md): Agent-commerce monetization direction and marketplace economics
 - [HTTP 402 Payments](./blog/02-http-402-payments.md): Paid API and machine-to-machine payment model
 - [Pro](./PRO.md): Commercial packaging for AI, MCP, trust, and governance features
-- [PLG channels status](./distribution/PLG-CHANNELS-STATUS.md): Starter Kit, Apify governed run, customer Railway marketplace template (owner publish residuals)
-- [Apify owner publish](./distribution/APIFY-GOVERNED-RUN-OWNER-PUBLISH.md): Store publish checklist for GAP-431
-- [Railway marketplace owner publish](./distribution/RAILWAY-MARKETPLACE-OWNER-PUBLISH.md): Customer sales-channel template publish checklist for GAP-430
 
 ## Development
 
