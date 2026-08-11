@@ -84,6 +84,11 @@ export const SITE = {
      * Stripe product prod_V01FoZi9YbgZw9 / price_1U01D1Jz64n6uEibtamJHxkU.
      */
     starterKitCheckout: 'https://buy.stripe.com/dRmeVegcH1AM2mmdbsa3u03',
+    /**
+     * Public shipping board (Projects tab). Prefer a concrete Projects v2 URL when
+     * one is pinned; until then the org/repo projects index is the honest link.
+     */
+    repoProjects: 'https://github.com/RevealUIStudio/revealui/projects',
   },
   emails: {
     support: 'support@revealui.com',
@@ -95,4 +100,46 @@ export const SITE = {
   },
 } as const;
 
+/**
+ * Community defaults (owner 2026-08-10). Full map:
+ * fleet private `business/community-map-2026-08-10.md` + offerings-canonical Track E.
+ *
+ * URLs: OWNER_FILL later. Do not invent live hrefs. Consumers must not render a
+ * nav/footer link when `url` is null (same pattern as omitted X handle).
+ *
+ * Defaults until owner updates:
+ * - Skool: invite-only after purchase (no public join CTA)
+ * - Substack: public subscribe when URL set; broadcast list, not paid support home
+ * - Discussions / Projects: public (urls live under SITE.urls)
+ */
+export const COMMUNITY = {
+  discussions: {
+    access: 'public' as const,
+    url: SITE.urls.repoDiscussions,
+  },
+  projects: {
+    access: 'public-view' as const,
+    url: SITE.urls.repoProjects,
+  },
+  /**
+   * Paid buyer home. Invite after Starter Kit / SaaS / AR close.
+   * Set `url` only when intentionally publishing a join link; default stays null.
+   */
+  skool: {
+    access: 'invite-only' as const,
+    /** OWNER_FILL later — e.g. https://www.skool.com/… */
+    url: null as string | null,
+  },
+  /**
+   * Broadcast + free list. Not the paid support desk.
+   * Set `url` when the publication is ready for public subscribe CTAs.
+   */
+  substack: {
+    access: 'public-subscribe' as const,
+    /** OWNER_FILL later — e.g. https://….substack.com */
+    url: null as string | null,
+  },
+} as const;
+
 export type SiteConfig = typeof SITE;
+export type CommunityConfig = typeof COMMUNITY;

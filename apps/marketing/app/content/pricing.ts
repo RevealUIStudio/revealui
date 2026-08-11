@@ -68,7 +68,7 @@ export const PRICING_STARTER_KIT = {
     'npm create-revealui path plus Postgres-only bootstrap scripts',
     'Governed agent recipes that write a receipt you can verify offline',
     'Ships as content and scripts, not a Pro license key or runtime upgrade',
-    'Checkout on Stripe; private GitHub repo access and Substack invite are manual at launch volume',
+    'Checkout on Stripe; private GitHub repo access and Skool buyer invite are manual at launch volume',
   ],
   badge: null,
   primaryCta: {
